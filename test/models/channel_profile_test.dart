@@ -117,6 +117,43 @@ void main() {
     });
   });
 
+  group('hostile values', () {
+    test('over-long ids, logins and colours are refused, not cut', () {
+      expect(
+        ChannelProfile.fromGql({'id': '1' * 25, 'login': 'someone'}),
+        isNull,
+      );
+      expect(ChannelProfile.fromGql({'id': '1', 'login': 'a' * 30}), isNull);
+      final profile = ChannelProfile.fromGql({
+        'id': '1',
+        'login': 'someone',
+        'primaryColorHex': '#ABCDEFZZZ',
+        'lastBroadcast': {
+          'title': 'x',
+          'game': {'id': '1' * 30, 'displayName': 'Game'},
+        },
+      })!;
+      expect(profile.accentColor, isNull);
+      expect(profile.lastBroadcast?.gameId, isNull);
+    });
+
+    test('deep Markdown nesting is flattened to a few levels', () {
+      String? describe(String text) => ChannelPanel.fromGql({
+        'id': '1',
+        'type': 'DEFAULT',
+        'description': text,
+      })?.description;
+
+      final quotes = describe('${'>' * 4990} x')!;
+      expect(quotes, startsWith('>>>>'));
+      expect(quotes.substring(4), isNot(startsWith('>')));
+      expect(describe('${'- ' * 2490}x'), startsWith('- - - - '));
+      expect(describe('${'- ' * 2490}x')!.substring(8), startsWith(r'\-'));
+      // Normal Markdown is untouched.
+      expect(describe('> quote\n- item\n  - sub'), '> quote\n- item\n  - sub');
+    });
+  });
+
   group('schedule', () {
     Object? schedule() =>
         (_user(gqlChannelScheduleLirik)! as Map)['channel']['schedule'];

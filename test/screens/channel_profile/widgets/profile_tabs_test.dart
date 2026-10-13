@@ -85,6 +85,23 @@ void main() {
       expect(find.byType(Image), findsNothing);
     });
 
+    testWidgets('a hostile, deeply nested panel renders without breaking', (
+      tester,
+    ) async {
+      final panel = ChannelPanel.fromGql({
+        'id': '1',
+        'type': 'DEFAULT',
+        'description': '${'>' * 4990} x',
+      })!;
+      final watch = Stopwatch()..start();
+      await tester.pumpWidget(
+        _app(ProfilePanel(panel: panel, onOpenLink: opened.add), width: 320),
+      );
+      watch.stop();
+      expect(tester.takeException(), isNull);
+      expect(watch.elapsed, lessThan(const Duration(seconds: 5)));
+    });
+
     testWidgets('no bio says so', (tester) async {
       await tester.pumpWidget(
         _app(

@@ -28,11 +28,44 @@ String? _link(Object? value) {
   return uri.toString();
 }
 
+/// [value] when it is text of at most [max] units; longer is refused, not
+/// cut (a cut id or login would name someone else).
+String? _exact(Object? value, int max) =>
+    value is String && value.length <= max ? chString(value, max: max) : null;
+
 /// An "RRGGBB" accent colour as 0xFFRRGGBB, or null.
 int? _color(Object? value) {
-  final hex = chString(value, max: 7)?.replaceFirst('#', '');
+  final hex = _exact(value, 7)?.replaceFirst('#', '');
   if (hex == null || !RegExp(r'^[0-9A-Fa-f]{6}$').hasMatch(hex)) return null;
   return 0xFF000000 | int.parse(hex, radix: 16);
+}
+
+/// Deepest Markdown nesting a panel keeps per line (quotes and lists).
+const kPanelMarkdownMaxDepth = 4;
+
+final _blockMarkers = RegExp(r'^(?:[ \t]*(?:>|[-*+]|\d{1,9}[.)])[ \t]*)+');
+final _oneMarker = RegExp(r'[ \t]*(?:>|[-*+]|\d{1,9}[.)])[ \t]*');
+
+/// [text] with each line's run of block markers (`> > - 1.`) cut to
+/// [kPanelMarkdownMaxDepth]: deeper nesting makes Markdown layout freeze.
+String? _flattenMarkdown(String? text) {
+  if (text == null) return null;
+  return text
+      .split('\n')
+      .map((line) {
+        final run = _blockMarkers.matchAsPrefix(line);
+        if (run == null) return line;
+        final markers = _oneMarker.allMatches(run[0]!).toList();
+        if (markers.length <= kPanelMarkdownMaxDepth) return line;
+        final kept = run[0]!.substring(
+          0,
+          markers[kPanelMarkdownMaxDepth - 1].end,
+        );
+        // The rest stays as text, escaped so it is not read as markers.
+        final rest = line.substring(kept.length);
+        return '$kept${rest.replaceAllMapped(RegExp(r'[>*+\-.)]'), (m) => '\\${m[0]}')}';
+      })
+      .join('\n');
 }
 
 enum BroadcasterRole { partner, affiliate, none }
@@ -90,7 +123,7 @@ class ChannelPanel {
       title: chString(map['title'], max: 120),
       imageUrl: _image(map['imageURL']),
       linkUrl: _link(map['linkURL']),
-      description: chString(map['description'], max: 5000),
+      description: _flattenMarkdown(chString(map['description'], max: 5000)),
       altText: chString(map['altText'], max: 300),
     );
     final empty =
@@ -113,7 +146,7 @@ class LastBroadcast {
     final map = chMap(node);
     if (map == null) return null;
     final game = chMap(map['game']);
-    final gameId = chString(game?['id'], max: 20);
+    final gameId = _exact(game?['id'], 20);
     final broadcast = LastBroadcast(
       title: chString(map['title'], max: 300),
       startedAt: chDate(map['startedAt']),
@@ -186,8 +219,8 @@ class ChannelProfile {
   /// A GQL `user` node, or null when the channel does not exist.
   static ChannelProfile? fromGql(Object? node) {
     final map = chMap(node);
-    final id = chString(map?['id'], max: 20);
-    final login = chString(map?['login'], max: 25);
+    final id = _exact(map?['id'], 20);
+    final login = _exact(map?['login'], 25);
     if (id == null ||
         login == null ||
         !RegExp(r'^[0-9]+$').hasMatch(id) ||
