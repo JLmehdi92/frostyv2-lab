@@ -436,6 +436,17 @@ void main() {
       expect(ms(steps), [3000, 6000, 2000, 20000]);
     });
 
+    test('our own end (no event from Twitch) skips the totals', () {
+      final after = train().copyWith(endReason: HtEndReason.completed);
+      final steps = plan(
+        const HtEndEvent(reason: HtEndReason.completed, synthesized: true),
+        after: after,
+      );
+
+      expect(kinds(steps), isNot(contains(HtStepKind.totals)));
+      expect(kinds(steps), contains(HtStepKind.rewardsStrip));
+    });
+
     test('completed mythic reveals the chosen emote', () {
       final steps = end(train(variant: HtVariant.mythic));
 

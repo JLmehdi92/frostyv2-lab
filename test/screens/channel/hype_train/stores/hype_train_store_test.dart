@@ -566,8 +566,186 @@ void main() {
     });
   });
 
+  group('review fixes', () {
+    test('a queued level-up keeps the expiry fallback away', () {
+      run((async) {
+        snapshot(
+          () => ongoing(running(expiresIn: const Duration(seconds: 20))),
+        );
+        final store = build();
+        async.flushMicrotasks();
+        for (var i = 1; i <= 6; i++) {
+          store.injectEvent(
+            HtProgressionEvent(
+              trainId: 'train',
+              sequenceId: 16040 + i * 10,
+              action: const HtAction('TIER_1_GIFTED_SUB'),
+              source: HtSource.subs,
+              quantity: 50,
+              isLarge: true,
+              progress: progress(
+                level: 7,
+                value: 1540 + i * 10,
+                goal: 4700,
+                total: 16040 + i * 10,
+              ),
+            ),
+          );
+        }
+        async.elapse(const Duration(seconds: 18));
+        store
+          ..injectEvent(small(19400, level: 8, value: 200))
+          ..injectEvent(levelUp(8, total: 19400, value: 200));
+
+        async.elapse(const Duration(seconds: 13));
+        expect(store.phase, HtPhase.ongoing);
+        async.elapse(const Duration(seconds: 40));
+        expect(store.phase, HtPhase.ongoing);
+        expect(store.level, 8);
+        store.dispose();
+      });
+    });
+
+    test('a train our fallback ended comes back when it moves', () {
+      run((async) {
+        var answer = ongoing(running(expiresIn: const Duration(seconds: 5)));
+        snapshot(() => answer);
+        final store = build();
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 16));
+        expect(store.phase, HtPhase.ending);
+
+        answer = ongoing(
+          running(total: 16500, expiresIn: const Duration(minutes: 2)),
+        );
+        store.injectEvent(small(16500));
+        async.elapse(const Duration(seconds: 3));
+
+        expect(store.phase, HtPhase.ongoing);
+        expect(store.train!.progress.total, 16500);
+        store.dispose();
+      });
+    });
+
+    test("Twitch's own end is not undone by a late snapshot", () {
+      run((async) {
+        snapshot(() => ongoing(running()));
+        final store = build();
+        async.flushMicrotasks();
+        store.injectEvent(const HtEndEvent(reason: HtEndReason.completed));
+        async.elapse(const Duration(seconds: 3));
+
+        store.handleAppResume();
+        async.flushMicrotasks();
+
+        expect(store.phase, HtPhase.ending);
+        store.dispose();
+      });
+    });
+
+    test('a late start of the running train changes nothing', () {
+      run((async) {
+        snapshot(() => ongoing(running()));
+        final store = build();
+        async.flushMicrotasks();
+
+        store.injectEvent(HtStartEvent(train(total: 0)));
+        async.flushMicrotasks();
+
+        expect(store.level, 7);
+        expect(store.train!.progress.total, 16040);
+        expect(store.step, isNull);
+        store.dispose();
+      });
+    });
+
+    test('a level gap asks GQL', () {
+      run((async) {
+        snapshot(() => ongoing(running()));
+        final store = build();
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 3));
+
+        store.injectEvent(small(30000, level: 9));
+        async.flushMicrotasks();
+
+        expect(fetches, 2);
+        store.dispose();
+      });
+    });
+
+    test('an end keeps a deferred level', () {
+      run((async) {
+        snapshot(() => ongoing(running()));
+        final store = build();
+        async.flushMicrotasks();
+
+        store.injectEvent(small(19400, level: 8, value: 200));
+        async.elapse(const Duration(milliseconds: 500));
+        store.injectEvent(const HtEndEvent(reason: HtEndReason.completed));
+
+        expect(store.endSummary!.level, 8);
+        store.dispose();
+      });
+    });
+
+    test('an unchanged snapshot does not cut the animation', () {
+      run((async) {
+        snapshot(() => ongoing(running(level: 1, value: 0, total: 0)));
+        final store = build()
+          ..injectEvent(HtStartEvent(running(level: 1, value: 0, total: 0)));
+        async.flushMicrotasks();
+        async.elapse(const Duration(milliseconds: 3000));
+        expect(store.step?.kind, HtStepKind.marquee);
+
+        topic.add(const RealtimeSubscribed(isResubscribe: true));
+        async.flushMicrotasks();
+
+        expect(store.step?.kind, HtStepKind.marquee);
+        store.dispose();
+      });
+    });
+
+    test('an approaching banner on screen takes later updates', () {
+      run((async) {
+        final store = build(viewerId: 'me')
+          ..injectEvent(HtApproachingEvent(approachingIn(const {1: 30})));
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 12));
+
+        store.injectEvent(
+          HtApproachingEvent(
+            approachingIn(const {1: 15, 2: 50}, participants: const {'me'}),
+          ),
+        );
+        async.flushMicrotasks();
+
+        expect(store.approachingNMore, isTrue);
+        expect(store.approachingChecks, 2);
+        store.dispose();
+      });
+    });
+
+    test('polling stops during the end', () {
+      run((async) {
+        snapshot(() => ongoing(running()));
+        final store = build();
+        async.flushMicrotasks();
+        topic.add(const RealtimeUnavailable('reconnecting'));
+        async.flushMicrotasks();
+
+        store.injectEvent(const HtEndEvent(reason: HtEndReason.completed));
+        final before = fetches;
+        async.elapse(const Duration(seconds: 25));
+
+        expect(fetches, before);
+        store.dispose();
+      });
+    });
+  });
+
   group('recovery and lifecycle', () {
-    test('a resubscribe refetches, at most every 2 s', () {
+    test('refetches are at most every 2 s, and none is lost', () {
       run((async) {
         build();
         async.flushMicrotasks();
@@ -578,9 +756,38 @@ void main() {
         expect(fetches, 2);
 
         async.elapse(const Duration(seconds: 1));
-        topic.add(const RealtimeSubscribed(isResubscribe: true));
+        topic
+          ..add(const RealtimeSubscribed(isResubscribe: true))
+          ..add(const RealtimeSubscribed(isResubscribe: true));
         async.flushMicrotasks();
-        expect(fetches, 2);
+        expect(fetches, 2, reason: 'too soon');
+
+        async.elapse(const Duration(seconds: 1));
+        expect(fetches, 3, reason: 'one trailing fetch for both');
+        async.elapse(const Duration(seconds: 10));
+        expect(fetches, 3);
+      });
+    });
+
+    test('a refetch asked during a fetch runs after it', () {
+      run((async) {
+        final first = Completer<HypeTrainSnapshot>();
+        var calls = 0;
+        when(() => service.getHypeTrain(any())).thenAnswer((_) {
+          calls++;
+          return calls == 1 ? first.future : Future.value(ongoing(running()));
+        });
+        final store = build();
+        async.flushMicrotasks();
+
+        // A progression with no train asks GQL while the startup fetch runs.
+        store.injectEvent(small(16100));
+        first.complete(const HtNoTrain());
+        async.elapse(const Duration(seconds: 3));
+
+        expect(calls, 2);
+        expect(store.phase, HtPhase.ongoing);
+        store.dispose();
       });
     });
 

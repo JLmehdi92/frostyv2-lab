@@ -100,6 +100,10 @@ HtApplyResult applyEvent(
         endRewards: event.rewards,
       );
     case HtStartEvent(train: final next):
+      // A late or repeated start must not reset the running train.
+      if (next.id == train.id) {
+        return HtApplyResult.ignored(train, 'duplicate start');
+      }
       return HtApplyResult(next);
     case HtMergeEvent():
       return HtApplyResult(
@@ -171,7 +175,9 @@ HtApplyResult _levelUp(
   String? channelId,
 ) {
   final level = event.progress.level.value;
-  if (level < train.level) return HtApplyResult.ignored(train, 'stale');
+  if (level < train.level || event.progress.total < train.progress.total) {
+    return HtApplyResult.ignored(train, 'stale');
+  }
 
   // The level-up carries the whole train in GQL shape: it refreshes the
   // variant details, the shared channels and the config.

@@ -213,6 +213,7 @@ final class HtEndEvent extends HypeTrainEvent {
   const HtEndEvent({
     required this.reason,
     this.trainId,
+    this.synthesized = false,
     this.endedAt,
     this.totals = const [],
     this.rewards = const [],
@@ -220,6 +221,9 @@ final class HtEndEvent extends HypeTrainEvent {
 
   final HtEndReason reason;
   final String? trainId;
+
+  /// Ours, at expiry + 10 s, when Twitch sent no end: no totals to show.
+  final bool synthesized;
   final DateTime? endedAt;
   final List<HtTotal> totals;
 

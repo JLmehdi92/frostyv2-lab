@@ -120,6 +120,17 @@ abstract class HypeTrainStoreBase with Store {
 
   var _fetching = false;
   DateTime? _lastFetch;
+
+  /// A refetch asked for while one ran or too soon: it runs afterwards.
+  var _refetchPending = false;
+  Timer? _refetchTimer;
+
+  /// The latest expiry among queued events: a queued level-up extends the
+  /// train before it is presented.
+  DateTime? _queuedExpiry;
+
+  /// The end on screen is ours (expiry fallback), not Twitch's.
+  var _endSynthesized = false;
   var _failures = 0;
 
   var _deadlines = <int, DateTime>{};
@@ -310,6 +321,7 @@ abstract class HypeTrainStoreBase with Store {
       _approachingTicker,
       _stripTicker,
       _pollTimer,
+      _refetchTimer,
     ]) {
       timer?.cancel();
     }
@@ -337,13 +349,20 @@ abstract class HypeTrainStoreBase with Store {
   void _onEvent(HypeTrainEvent event) {
     if (_disposed) return;
     switch (_phase) {
-      case HtPhase.ending:
-        // Only a new train interrupts the end sequence.
-        if (event is! HtStartEvent) return;
-        _toHidden();
-      case HtPhase.rewards || HtPhase.expired:
-        if (event is! HtStartEvent && event is! HtApproachingEvent) return;
-        _toHidden();
+      case HtPhase.ending || HtPhase.rewards || HtPhase.expired:
+        if (event is HtStartEvent && event.train.id != _train?.id ||
+            event is HtApproachingEvent && _phase != HtPhase.ending) {
+          // A new train cuts the end short.
+          _toHidden();
+        } else {
+          // Our expiry guess was wrong if the train still moves: ask GQL,
+          // which brings it back.
+          if (_endSynthesized &&
+              (event is HtProgressionEvent || event is HtLevelUpEvent)) {
+            unawaited(_refetch());
+          }
+          return;
+        }
       case HtPhase.hidden || HtPhase.approaching || HtPhase.ongoing:
         break;
     }
@@ -355,6 +374,7 @@ abstract class HypeTrainStoreBase with Store {
 
     if (_phase == HtPhase.ongoing) {
       if (event is HtApproachingEvent) return;
+      _noteQueuedExpiry(event);
       _queue.enqueue(event);
       _pump();
       return;
@@ -454,8 +474,18 @@ abstract class HypeTrainStoreBase with Store {
       });
       return;
     }
-    if (!result.applied) return;
+    if (!result.applied) {
+      // Levels went missing (lost events): GQL knows where the train is.
+      if (result.ignoredReason == 'level mismatch') unawaited(_refetch());
+      return;
+    }
     appliedEvents++;
+    if (before != null && result.train.id != before.id) {
+      // Another train: nothing of the old one carries over.
+      _seenIds.clear();
+      _unlockedRewards = const [];
+      _queuedExpiry = null;
+    }
 
     if (result.levelChangedFrom != null && before != null) {
       _unlockedRewards = [
@@ -598,9 +628,28 @@ abstract class HypeTrainStoreBase with Store {
   }
 
   /// Twitch sometimes never sends the end: close it ourselves (D5).
+  void _noteQueuedExpiry(HypeTrainEvent event) {
+    final expiry = switch (event) {
+      HtLevelUpEvent(:final timeToExpire) => timeToExpire,
+      HtProgressionEvent(:final expiresAt) => expiresAt,
+      _ => null,
+    };
+    final current = _queuedExpiry ?? _train?.expiresAt;
+    if (expiry == null || (current != null && !expiry.isAfter(current))) {
+      return;
+    }
+    _queuedExpiry = expiry;
+    _scheduleExpiry();
+  }
+
   void _scheduleExpiry() {
     _expiryTimer?.cancel();
-    final expiresAt = _train?.expiresAt;
+    final trainExpiry = _train?.expiresAt;
+    final queued = _queuedExpiry;
+    final expiresAt =
+        queued != null && (trainExpiry == null || queued.isAfter(trainExpiry))
+        ? queued
+        : trainExpiry;
     if (_phase != HtPhase.ongoing || expiresAt == null) return;
     final due = expiresAt
         .add(HtTimings.expiryGrace)
@@ -613,6 +662,7 @@ abstract class HypeTrainStoreBase with Store {
           reason: train.level >= 2
               ? HtEndReason.completed
               : HtEndReason.expired,
+          synthesized: true,
         ),
       );
     });
@@ -625,11 +675,14 @@ abstract class HypeTrainStoreBase with Store {
     _stepTimer?.cancel();
     _busy = false;
     _onSequenceDone = null;
-    _deferred = null;
     _deferredTimer?.cancel();
+    final deferred = _deferred;
+    _deferred = null;
+    _queuedExpiry = null;
+    _endSynthesized = end.synthesized;
     // Whatever is still queued already happened: apply it silently.
     var train = _train!;
-    for (final event in _queue.drainForEnd()) {
+    for (final event in [?deferred, ..._queue.drainForEnd()]) {
       final result = applyEvent(
         train,
         event,
@@ -677,6 +730,7 @@ abstract class HypeTrainStoreBase with Store {
         ? HtPhase.ending
         : HtPhase.expired;
     _remaining = Duration.zero;
+    _updatePolling();
     _runSteps(steps, onDone: _toHidden);
   }
 
@@ -710,6 +764,8 @@ abstract class HypeTrainStoreBase with Store {
     _onSequenceDone = null;
     _steps = const [];
     _queue.clear();
+    _queuedExpiry = null;
+    _endSynthesized = false;
     _phase = HtPhase.hidden;
     _train = null;
     _step = null;
@@ -731,10 +787,13 @@ abstract class HypeTrainStoreBase with Store {
         key: now.add(Duration(seconds: value)),
     };
     if (deadlines.isEmpty) return;
-    final first = deadlines[1] ?? deadlines.values.reduce(_later);
-    // Too late to be worth showing (notes: the 20 s rule).
-    if (first.difference(now) <= HtTimings.approachingMinWindow) return;
     final arriving = _phase != HtPhase.approaching;
+    final first = deadlines[1] ?? deadlines.values.reduce(_later);
+    // Too late to be worth showing (notes: the 20 s rule); updates to a
+    // banner already up always apply.
+    if (arriving && first.difference(now) <= HtTimings.approachingMinWindow) {
+      return;
+    }
     _approaching = approaching;
     _deadlines = deadlines;
     if (arriving) {
@@ -803,12 +862,26 @@ abstract class HypeTrainStoreBase with Store {
 
   // --- GQL --------------------------------------------------------------------------
 
-  /// Single-flight, at most every 2 s.
+  /// Single-flight, at most every 2 s. A request that cannot run now runs
+  /// once afterwards, so none is lost.
   Future<void> _refetch() async {
-    if (_disposed || _fetching) return;
+    if (_disposed) return;
+    if (_fetching) {
+      _refetchPending = true;
+      return;
+    }
     final last = _lastFetch;
     final now = clock.now();
-    if (last != null && now.difference(last) < _minRefetchGap) return;
+    if (last != null) {
+      final wait = _minRefetchGap - now.difference(last);
+      if (wait > Duration.zero) {
+        _refetchTimer ??= Timer(wait, () {
+          _refetchTimer = null;
+          unawaited(_refetch());
+        });
+        return;
+      }
+    }
     _fetching = true;
     _lastFetch = now;
     try {
@@ -822,6 +895,10 @@ abstract class HypeTrainStoreBase with Store {
       _log('fetch failed: $e');
     } finally {
       _fetching = false;
+      if (_refetchPending && !_disposed) {
+        _refetchPending = false;
+        unawaited(_refetch());
+      }
     }
   }
 
@@ -830,7 +907,8 @@ abstract class HypeTrainStoreBase with Store {
     switch (snapshot) {
       case HtOngoingSnapshot(train: final fetched):
         if (_phase case HtPhase.ending || HtPhase.rewards || HtPhase.expired) {
-          if (fetched.id == _train?.id) return;
+          // Twitch's own end stands; ours was a guess the train outlived.
+          if (fetched.id == _train?.id && !_endSynthesized) return;
           _toHidden();
         }
         final current = _train;
@@ -845,6 +923,17 @@ abstract class HypeTrainStoreBase with Store {
                 expiresAt: serverClock.now().add(Duration(seconds: seconds)),
               )
             : fetched;
+        if (current != null &&
+            _phase == HtPhase.ongoing &&
+            current.id == fetched.id &&
+            fetched.progress.total == current.progress.total) {
+          // Nothing new: refresh the details, keep what is playing.
+          _train = train;
+          if (!_busy) _showTrainAsIs();
+          _updateCountdown();
+          _scheduleExpiry();
+          return;
+        }
         // Shown as it is now: no start animation (the notes' progress
         // marker), and queued events are older than the snapshot.
         _stepTimer?.cancel();
@@ -852,6 +941,13 @@ abstract class HypeTrainStoreBase with Store {
         _onSequenceDone = null;
         _step = null;
         _queue.clear();
+        _queuedExpiry = null;
+        _deferred = null;
+        _deferredTimer?.cancel();
+        if (current?.id != train.id) {
+          _seenIds.clear();
+          _unlockedRewards = const [];
+        }
         _clearApproaching();
         _phase = HtPhase.ongoing;
         _setTrain(train);

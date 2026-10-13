@@ -328,11 +328,13 @@ List<HtStep> _completed(HtPlanInput input) {
       ),
     ],
     if (after.community != null) _instruction('communityRewards'),
-    HtStep(
-      HtStepKind.totals,
-      HtTimings.textLong,
-      data: {'totals': endTotals(result.endTotals)},
-    ),
+    // Our own end (Twitch sent none) has no totals to show.
+    if (!(input.event as HtEndEvent).synthesized)
+      HtStep(
+        HtStepKind.totals,
+        HtTimings.textLong,
+        data: {'totals': endTotals(result.endTotals)},
+      ),
     if (shared) _sharedTop3(after),
     HtStep(
       HtStepKind.summary,

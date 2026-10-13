@@ -420,6 +420,31 @@ void main() {
     expect(result.train, same(next));
   });
 
+  test('a start of the running train is ignored', () {
+    final result = applyEvent(
+      running,
+      HtStartEvent(train(total: 0)),
+      seenIds: seen,
+    );
+
+    expect(result.applied, isFalse);
+    expect(result.ignoredReason, 'duplicate start');
+    expect(result.train, same(running));
+  });
+
+  test('a level-up behind the current total is stale', () {
+    final ahead = applyEvent(
+      running,
+      levelUp(8, total: 20100),
+      seenIds: seen,
+    ).train;
+
+    final result = applyEvent(ahead, levelUp(8, total: 19400), seenIds: seen);
+
+    expect(result.applied, isFalse);
+    expect(result.train.progress.total, 20100);
+  });
+
   test('other events leave the train alone', () {
     for (final event in const [HtIgnoredEvent('x'), HtUnknownEvent('y')]) {
       final result = applyEvent(running, event, seenIds: seen);
