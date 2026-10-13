@@ -65,17 +65,23 @@ class TwitchCommunityHighlightsService extends BaseApiClient {
 
   /// The channel's viewable poll (active, or just ended), or null.
   Future<Poll?> getPoll(String channelId) async {
-    final data = await _gql('GetViewablePoll', _pollQuery, {
-      'channelID': _checked(channelId),
-    });
+    final data = await _gql(
+      'GetViewablePoll',
+      _pollQuery,
+      {'channelID': _checked(channelId)},
+      fields: const {'viewablePoll'},
+    );
     return Poll.fromGql(chMap(data['user'])?['viewablePoll']);
   }
 
   /// The channel's active, locked and last resolved predictions.
   Future<ChannelPredictions> getPredictions(String channelId) async {
-    final data = await _gql('GetActivePrediction', _predictionsQuery, {
-      'channelID': _checked(channelId),
-    });
+    final data = await _gql(
+      'GetActivePrediction',
+      _predictionsQuery,
+      {'channelID': _checked(channelId)},
+      fields: const {'activePredictionEvents', 'lockedPredictionEvents'},
+    );
     final channel = chMap(chMap(data['user'])?['channel']);
     Prediction? first(Object? list) {
       for (final node in chList(list)) {
@@ -96,9 +102,12 @@ class TwitchCommunityHighlightsService extends BaseApiClient {
 
   /// The message moderators pinned in chat, or null.
   Future<PinnedChatMessage?> getPinned(String channelId) async {
-    final data = await _gql('GetPinnedChat', _pinnedQuery, {
-      'channelID': _checked(channelId),
-    });
+    final data = await _gql(
+      'GetPinnedChat',
+      _pinnedQuery,
+      {'channelID': _checked(channelId)},
+      fields: const {'pinnedChatMessages'},
+    );
     final pinned = chMap(chMap(data['channel'])?['pinnedChatMessages']);
     for (final edge in chList(pinned?['edges'])) {
       final pin = PinnedChatMessage.fromGql(chMap(edge)?['node']);
@@ -115,11 +124,14 @@ class TwitchCommunityHighlightsService extends BaseApiClient {
     return id;
   }
 
+  /// Runs [query]. An error on one of [fields] itself (which then reads as
+  /// null) fails the call: "nothing there" would hide a highlight that is.
   Future<JsonMap> _gql(
     String operationName,
     String query,
-    JsonMap variables,
-  ) async {
+    JsonMap variables, {
+    required Set<String> fields,
+  }) async {
     final Object? body = await post<dynamic>(
       _gqlUrl,
       headers: {'Client-ID': kTwitchWebClientId},
@@ -139,9 +151,14 @@ class TwitchCommunityHighlightsService extends BaseApiClient {
           .map((e) => e is Map ? '${e['message']}' : '$e')
           .join('; ');
       final isIntegrity = messages.toLowerCase().contains('integrity');
-      // A nested resolver error still answers the rest: keep partial data.
+      // A nested resolver error (a prediction's `createdBy`) still answers
+      // the rest: keep partial data.
       final partial = data is Map && data.values.any((v) => v != null);
-      if (isIntegrity || !partial) {
+      final onField = errors.any((e) {
+        final path = e is Map ? e['path'] : null;
+        return path is List && path.isNotEmpty && fields.contains(path.last);
+      });
+      if (isIntegrity || !partial || onField) {
         throw CommunityHighlightsApiException(
           messages,
           isIntegrity: isIntegrity,

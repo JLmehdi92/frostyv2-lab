@@ -143,6 +143,43 @@ void main() {
     });
   });
 
+  test(
+    'an error on the asked field fails instead of reading as none',
+    () async {
+      reply({
+        'errors': [
+          {
+            'message': 'service timeout',
+            'path': ['user', 'viewablePoll'],
+          },
+        ],
+        'data': {
+          'user': {'id': '1', 'viewablePoll': null},
+        },
+      });
+      await expectLater(
+        service.getPoll('1'),
+        throwsA(isA<CommunityHighlightsApiException>()),
+      );
+
+      reply({
+        'errors': [
+          {
+            'message': 'service timeout',
+            'path': ['channel', 'pinnedChatMessages'],
+          },
+        ],
+        'data': {
+          'channel': {'id': '1', 'pinnedChatMessages': null},
+        },
+      });
+      await expectLater(
+        service.getPinned('1'),
+        throwsA(isA<CommunityHighlightsApiException>()),
+      );
+    },
+  );
+
   test('integrity and data-less errors throw typed', () async {
     reply({
       'errors': [
