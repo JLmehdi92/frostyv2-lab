@@ -1,0 +1,104 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/models/irc.dart';
+import 'package:frosty/models/vod.dart';
+import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
+import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/vod/stores/vod_chat_replay_store.dart';
+import 'package:frosty/screens/vod/widgets/vod_chat_replay.dart';
+import 'package:frosty/widgets/alert_message.dart';
+import 'package:frosty/widgets/loading_indicator.dart';
+import 'package:mobx/mobx.dart' show ObservableList;
+import 'package:mocktail/mocktail.dart';
+
+class MockReplayStore extends Mock implements VodChatReplayStore {}
+
+class MockChatAssetsStore extends Mock implements ChatAssetsStore {}
+
+void main() {
+  late MockReplayStore store;
+
+  setUp(() {
+    store = MockReplayStore();
+    final assets = MockChatAssetsStore();
+    when(() => assets.emoteToObject).thenReturn({});
+    when(() => assets.twitchBadgesToObject).thenReturn({});
+    when(() => assets.userToFFZBadges).thenReturn({});
+    when(() => assets.userTo7TVBadges).thenReturn({});
+    when(() => assets.userToBTTVBadges).thenReturn({});
+    when(() => assets.ffzRoomInfo).thenReturn(null);
+    when(() => store.assetsStore).thenReturn(assets);
+    when(() => store.settings).thenReturn(SettingsStore.fromJson({}));
+    when(() => store.messages).thenReturn(ObservableList<IRCMessage>());
+    when(() => store.autoScroll).thenReturn(true);
+    when(() => store.scrollController).thenReturn(ScrollController());
+    when(() => store.vod).thenReturn(
+      Vod(
+        id: '1',
+        title: 't',
+        lengthSeconds: 10,
+        createdAt: DateTime.utc(2026),
+        viewCount: 0,
+        ownerId: '42',
+        ownerLogin: 'streamer',
+        ownerDisplayName: 'Streamer',
+      ),
+    );
+  });
+
+  Future<void> pump(WidgetTester tester, ReplayStatus status) {
+    when(() => store.status).thenReturn(status);
+    return tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: VodChatReplay(store: store)),
+      ),
+    );
+  }
+
+  testWidgets('loading shows a spinner with a caption', (tester) async {
+    await pump(tester, ReplayStatus.loading);
+
+    expect(find.byType(LoadingIndicator), findsOneWidget);
+    expect(find.text('Loading chat replay'), findsOneWidget);
+  });
+
+  testWidgets('an active replay without messages says so', (tester) async {
+    await pump(tester, ReplayStatus.active);
+
+    expect(find.text('No messages yet'), findsOneWidget);
+  });
+
+  testWidgets('unavailable offers a retry', (tester) async {
+    await pump(tester, ReplayStatus.unavailable);
+
+    expect(
+      find.text('Chat replay is unavailable for this video'),
+      findsOneWidget,
+    );
+    await tester.tap(find.byIcon(Icons.refresh_rounded));
+    verify(() => store.retry()).called(1);
+  });
+
+  testWidgets('uploads explain there is no chat', (tester) async {
+    await pump(tester, ReplayStatus.notApplicable);
+
+    expect(find.byType(AlertMessage), findsOneWidget);
+    expect(find.text('Uploads have no chat replay'), findsOneWidget);
+  });
+
+  testWidgets('the resume pill calls resumeScroll', (tester) async {
+    when(() => store.messages).thenReturn(
+      ObservableList.of([
+        IRCMessage.fromString(
+          '@display-name=A;id=1 :a!a@a.tmi.twitch.tv PRIVMSG #streamer :hi',
+        ),
+      ]),
+    );
+    when(() => store.autoScroll).thenReturn(false);
+    await pump(tester, ReplayStatus.active);
+
+    expect(find.textContaining('hi', findRichText: true), findsWidgets);
+    await tester.tap(find.text('Resume scroll'));
+    verify(() => store.resumeScroll()).called(1);
+  });
+}
