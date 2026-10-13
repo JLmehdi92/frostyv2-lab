@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/models/clip.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/utils/twitch_links.dart';
 
@@ -113,11 +114,95 @@ void main() {
     test('other sites are other links', () {
       expect(_p('https://evil.com/videos/1'), isA<OtherLink>());
       expect(_p('https://twitch.tv.evil.com/videos/1'), isA<OtherLink>());
-      expect(_p('https://clips.twitch.tv/SomeClip'), isA<OtherLink>());
+      expect(
+        _p('https://clips.twitch.tv/SomeClip'),
+        const ClipLink('SomeClip'),
+      );
       expect(_p('not a link'), isA<OtherLink>());
       expect(_p('javascript://twitch.tv/videos/1'), isA<OtherLink>());
       expect(_p('ftp://twitch.tv/videos/1'), isA<OtherLink>());
       expect(_p('http://twitch.tv/videos/1'), const VodLink('1'));
     });
+  });
+
+  group('clip links', () {
+    const slug = 'InexpensiveHotGrouseNerfBlueBlaster--wdg-mRtFp79lgSC';
+
+    test('every clip URL form, slug case kept', () {
+      for (final link in [
+        'https://clips.twitch.tv/$slug',
+        'https://CLIPS.twitch.tv/$slug',
+        'clips.twitch.tv/$slug',
+        'https://clips.twitch.tv/embed?clip=$slug&parent=x',
+        'https://www.twitch.tv/xqc/clip/$slug',
+        'https://twitch.tv/xqc/clip/$slug?filter=clips',
+        'https://m.twitch.tv/xqc/clip/$slug',
+        'https://m.twitch.tv/clip/$slug',
+        'https://clips.twitch.tv/$slug.',
+        '(https://clips.twitch.tv/$slug)',
+      ]) {
+        expect(
+          _p(link.startsWith('(') ? link.substring(1) : link),
+          const ClipLink(slug),
+          reason: link,
+        );
+      }
+    });
+
+    test('not clips', () {
+      for (final link in [
+        'https://clips.twitch.tv/',
+        'https://clips.twitch.tv/a/b',
+        'https://clips.twitch.tv/embed',
+        'https://clips.twitch.tv/create',
+        'https://evil.com/xqc/clip/$slug',
+        'https://clips.twitch.tv.evil.com/$slug',
+        'https://www.twitch.tv/xqc/clip/-bad',
+        'https://www.twitch.tv/xqc/clip/',
+      ]) {
+        expect(_p(link), isA<OtherLink>(), reason: link);
+      }
+    });
+
+    test("a channel's clips, with its range", () {
+      expect(
+        _p('https://www.twitch.tv/xqc/clips'),
+        const ChannelClipsLink('xqc'),
+      );
+      expect(
+        _p('https://www.twitch.tv/xqc/clips?range=24hr'),
+        const ChannelClipsLink('xqc', period: ClipPeriod.lastDay),
+      );
+      expect(
+        _p('https://www.twitch.tv/xqc/clips?range=7d'),
+        const ChannelClipsLink('xqc', period: ClipPeriod.lastWeek),
+      );
+      expect(
+        _p('https://www.twitch.tv/xqc/clips?range=30d'),
+        const ChannelClipsLink('xqc', period: ClipPeriod.lastMonth),
+      );
+      expect(
+        _p('https://www.twitch.tv/xqc/clips?range=all'),
+        const ChannelClipsLink('xqc', period: ClipPeriod.allTime),
+      );
+      expect(
+        _p('https://www.twitch.tv/xqc/clips?range=bogus'),
+        const ChannelClipsLink('xqc'),
+      );
+      // The old videos page filter.
+      expect(
+        _p('https://www.twitch.tv/xqc/videos?filter=clips&range=7d'),
+        const ChannelClipsLink('xqc', period: ClipPeriod.lastWeek),
+      );
+    });
+
+    test('clip is not a channel name', () {
+      expect(_p('https://www.twitch.tv/clip'), isA<OtherLink>());
+    });
+  });
+
+  test('a malformed escape is an other link, not an exception', () {
+    expect(_p('https://clips.twitch.tv/%9a'), isA<OtherLink>());
+    expect(_p('https://www.twitch.tv/%9a'), isA<OtherLink>());
   });
 }

@@ -24,8 +24,10 @@ import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/apis/unauthorized_interceptor.dart';
 import 'package:frosty/cache_manager.dart';
 import 'package:frosty/firebase_options.dart';
+import 'package:frosty/models/clip.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/channel/channel.dart';
+import 'package:frosty/screens/clips/clip_screen.dart';
 import 'package:frosty/screens/home/home.dart';
 import 'package:frosty/screens/onboarding/onboarding_intro.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
@@ -216,7 +218,18 @@ class _MyAppState extends State<MyApp> {
     _initDeepLinks();
   }
 
-  /// Opens VOD and channel-videos links in-app (from chat or deep links).
+  /// The channel's display name, or [login] when it cannot be had.
+  Future<String> _displayNameOf(String login) async {
+    try {
+      final user = await context.read<TwitchApi>().getUser(userLogin: login);
+      return user.displayName;
+    } catch (e) {
+      debugPrint('Channel link: no user for $login: $e');
+      return login;
+    }
+  }
+
+  /// Opens video and clip links in-app (from chat or deep links).
   Future<bool> _openTwitchLinkInApp(TwitchLink link) async {
     final Route<void> route;
     switch (link) {
@@ -226,21 +239,29 @@ class _MyAppState extends State<MyApp> {
           builder: (context) => VodScreen(vodId: vodId, startAt: startAt),
         );
       case ChannelVideosLink(:final login, :final type):
-        var displayName = login;
-        try {
-          final user = await context.read<TwitchApi>().getUser(
-            userLogin: login,
-          );
-          displayName = user.displayName;
-        } catch (e) {
-          debugPrint('Channel videos link: no user for $login: $e');
-        }
+        final displayName = await _displayNameOf(login);
         route = MaterialPageRoute(
           settings: const RouteSettings(name: ChannelVideosScreen.routeName),
           builder: (context) => ChannelVideosScreen(
             userLogin: login,
             displayName: displayName,
             initialTab: type ?? VodType.archive,
+          ),
+        );
+      case ClipLink(:final slug):
+        route = MaterialPageRoute(
+          settings: const RouteSettings(name: ClipScreen.routeName),
+          builder: (context) => ClipScreen(slug: slug),
+        );
+      case ChannelClipsLink(:final login, :final period):
+        final displayName = await _displayNameOf(login);
+        route = MaterialPageRoute(
+          settings: const RouteSettings(name: ChannelVideosScreen.routeName),
+          builder: (context) => ChannelVideosScreen(
+            userLogin: login,
+            displayName: displayName,
+            startOnClips: true,
+            clipPeriod: period ?? ClipPeriod.lastWeek,
           ),
         );
       case ChannelLink() || OtherLink():
@@ -313,8 +334,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> handleDeepLink(Uri uri) async {
     // Videos open in-app; every other link keeps the handling below.
     final link = TwitchLink.parse(uri);
-    if ((link is VodLink || link is ChannelVideosLink) &&
-        await _openTwitchLinkInApp(link)) {
+    if (link.opensInApp && await _openTwitchLinkInApp(link)) {
       return;
     }
     if (!mounted) return;

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/models/clip.dart';
 import 'package:frosty/utils/link_router.dart';
 import 'package:frosty/utils/twitch_links.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -40,6 +41,30 @@ void main() {
 
     expect(handled, [const ChannelVideosLink('somechannel')]);
     expect(launched, isEmpty);
+  });
+
+  test('clip links open in-app, never in a browser', () async {
+    await LinkRouter.open(
+      'https://clips.twitch.tv/SomeClipSlug',
+      launchExternal: true,
+    );
+    await LinkRouter.open(
+      'https://www.twitch.tv/xqc/clips?range=7d',
+      launchExternal: true,
+    );
+
+    expect(handled, [
+      const ClipLink('SomeClipSlug'),
+      const ChannelClipsLink('xqc', period: ClipPeriod.lastWeek),
+    ]);
+    expect(launched, isEmpty);
+  });
+
+  test('a channel page is not handled in-app here', () async {
+    await LinkRouter.open('https://www.twitch.tv/xqc', launchExternal: false);
+
+    expect(handled, isEmpty);
+    expect(launched, hasLength(1));
   });
 
   test('before the app is ready a VOD link is launched', () async {

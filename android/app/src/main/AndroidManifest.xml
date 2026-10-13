@@ -45,6 +45,7 @@
                 <data android:host="twitch.tv" />
                 <data android:host="www.twitch.tv" />
                 <data android:host="m.twitch.tv" />
+                <data android:host="clips.twitch.tv" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
