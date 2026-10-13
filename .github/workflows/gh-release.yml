@@ -1,0 +1,104 @@
+# Drafts a GitHub release with the APK attached.
+name: Draft GitHub release
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - v*.*.*
+jobs:
+  android:
+    name: Draft release and attach APK
+    runs-on: ubuntu-latest
+    environment: release-android
+    env:
+      UPLOAD_KEYSTORE: ${{ secrets.UPLOAD_KEYSTORE }}
+      STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      KEY_FILE_PATH: android/key.properties
+      CLIENT_ID: ${{ secrets.CLIENT_ID }}
+      SECRET: ${{ secrets.SECRET }}
+    steps:
+      - name: Checkout Frosty repo
+        uses: actions/checkout@v6
+      
+      # Setup Java so that we can build the APK.
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+      
+      # Setup and cache Flutter to install packages and build.
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          cache: true
+      
+      # Decode and create the upload-keystore.jks file, used for signing the app.
+      - name: Decode and create upload-keystore.jks
+        run: echo $UPLOAD_KEYSTORE | base64 --decode > $GITHUB_WORKSPACE/android/upload-keystore.jks
+      
+      # Create the key.properties file, used for signing the app.
+      - name: Create key.properties
+        run: |
+          echo storePassword=$STORE_PASSWORD >> $KEY_FILE_PATH
+          echo keyPassword=$KEY_PASSWORD >> $KEY_FILE_PATH
+          echo keyAlias=upload >> $KEY_FILE_PATH
+          echo storeFile=$GITHUB_WORKSPACE/android/upload-keystore.jks >> $KEY_FILE_PATH
+      
+      # Build the APK with the environment variables and move/rename it.
+      - name: Build for Android
+        run: |
+          flutter build apk --dart-define CLIENT_ID=$CLIENT_ID --dart-define SECRET=$SECRET
+          mv build/app/outputs/flutter-apk/app-release.apk frosty-${{ github.ref_name }}.apk
+
+      # Extract release notes from assets/release-notes.md for the current version.
+      - name: Extract release notes
+        id: release_notes
+        run: |
+          VERSION="${{ github.ref_name }}"
+          RELEASE_NOTES_FILE="assets/release-notes.md"
+
+          # Extract the section for this version using awk
+          # Starts at "## vX.X.X", skips date line, stops at next "---" or "## v" header
+          NOTES=$(awk -v version="$VERSION" '
+            BEGIN { found=0; output="" }
+            $0 ~ "^## " version "$" { found=1; next }
+            found && /^[A-Z][a-z]+ [0-9]+, [0-9]+$/ { next }
+            found && /^---$/ { exit }
+            found && /^## v[0-9]+\.[0-9]+\.[0-9]+$/ { exit }
+            found { output = output $0 "\n" }
+            END { print output }
+          ' "$RELEASE_NOTES_FILE")
+
+          # Clean up "on GitHub" suffix (redundant since we're on GitHub)
+          NOTES=$(echo "$NOTES" | sed 's/ on GitHub)/)/')
+
+          # Trim leading/trailing whitespace
+          NOTES=$(echo "$NOTES" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
+          if [ -n "$NOTES" ]; then
+            # Get the previous tag for the Full Changelog link
+            PREV_TAG=$(git describe --tags --abbrev=0 "$VERSION^" 2>/dev/null || echo "")
+
+            echo "found=true" >> $GITHUB_OUTPUT
+            echo "body<<EOF" >> $GITHUB_OUTPUT
+            echo "$NOTES" >> $GITHUB_OUTPUT
+            if [ -n "$PREV_TAG" ]; then
+              echo "" >> $GITHUB_OUTPUT
+              echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${VERSION}" >> $GITHUB_OUTPUT
+            fi
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+            echo "::warning::No release notes found for $VERSION in $RELEASE_NOTES_FILE"
+          fi
+
+      # Create a draft release on GitHub.
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          generate_release_notes: ${{ steps.release_notes.outputs.found != 'true' }}
+          body: ${{ steps.release_notes.outputs.found == 'true' && steps.release_notes.outputs.body || '' }}
+          files: frosty-${{ github.ref_name }}.apk

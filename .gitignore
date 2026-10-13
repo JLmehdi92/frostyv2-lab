@@ -1,0 +1,102 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+# .vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Folder containing random testing files
+random/
+
+# fastlane specific
+**/fastlane/report.xml
+
+# deliver temporary files
+**/fastlane/Preview.html
+
+# snapshot generated screenshots
+**/fastlane/screenshots
+**/fastlane/metadata/android/en-US/images
+
+# scan temporary files
+**/fastlane/test_output
+
+# potentially sensitive review information
+**/fastlane/metadata/review_information
+
+# secrets
+.env
+
+# ai
+.claude/settings.local.jsontablet_shot*.png
+t_*.png
+tablet_*.png
+.claude/
+dt_*.png
+fs_*.png
+ivs_*.png
+pip_*.png
+tex_*.png
+mini_*.png
+r1_*.png
+r2_*.png
+smooth_*.png
+align_*.png
+*_s.png
+*_small.png
+h_*.png
+i2*.png
+i3*.png
+s1*.png
+s2*.png
+android/key.properties
+codec_*.png
+ff_*.png
+fit_*.png
+prof_*.png
+q_*.png
+rel_*.png
+res_*.png
+chat_*.png
+cp_*.png
+pp_*.png

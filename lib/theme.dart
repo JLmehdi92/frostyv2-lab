@@ -1,0 +1,285 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+
+/// Shared shadow for overlay controls and text on top of video content.
+const kOverlayShadow = [
+  Shadow(
+    offset: Offset(0, 1),
+    blurRadius: 4,
+    color: Color.fromRGBO(0, 0, 0, 0.3),
+  ),
+];
+
+/// App-specific semantic colors that extend Material's [ColorScheme].
+///
+/// Colors that map to Material 3 roles use [ColorScheme] directly:
+/// - Links → [ColorScheme.primary]
+/// - Mentions → [ColorScheme.error]
+/// - First-time chatters → [ColorScheme.tertiary]
+///
+/// Access via `Theme.of(context).extension<FrostyColors>()!` or the
+/// `context.frostyColors` convenience extension.
+class FrostyColors extends ThemeExtension<FrostyColors> {
+  final Color highlightedMessage;
+  final Color emoteOnly;
+  final Color followersOnly;
+  final Color slowMode;
+  final Color subOnly;
+  final Color uniqueMode;
+  final Color overlayOnSurface;
+
+  const FrostyColors({
+    required this.highlightedMessage,
+    required this.emoteOnly,
+    required this.followersOnly,
+    required this.slowMode,
+    required this.subOnly,
+    required this.uniqueMode,
+    required this.overlayOnSurface,
+  });
+
+  static const light = FrostyColors(
+    highlightedMessage: Color(0xff9146ff),
+    emoteOnly: Color(0xFFFFB74D),
+    followersOnly: Color(0xFFF44336),
+    slowMode: Color(0xFF2196F3),
+    subOnly: Color(0xFF4CAF50),
+    uniqueMode: Color(0xFFAB47BC),
+    overlayOnSurface: Colors.white,
+  );
+
+  static const dark = FrostyColors(
+    highlightedMessage: Color(0xff9146ff),
+    emoteOnly: Color(0xFFFFCC80),
+    followersOnly: Color(0xFFE57373),
+    slowMode: Color(0xFF64B5F6),
+    subOnly: Color(0xFF81C784),
+    uniqueMode: Color(0xFFBA68C8),
+    overlayOnSurface: Colors.white,
+  );
+
+  @override
+  FrostyColors copyWith({
+    Color? highlightedMessage,
+    Color? emoteOnly,
+    Color? followersOnly,
+    Color? slowMode,
+    Color? subOnly,
+    Color? uniqueMode,
+    Color? overlayOnSurface,
+  }) {
+    return FrostyColors(
+      highlightedMessage: highlightedMessage ?? this.highlightedMessage,
+      emoteOnly: emoteOnly ?? this.emoteOnly,
+      followersOnly: followersOnly ?? this.followersOnly,
+      slowMode: slowMode ?? this.slowMode,
+      subOnly: subOnly ?? this.subOnly,
+      uniqueMode: uniqueMode ?? this.uniqueMode,
+      overlayOnSurface: overlayOnSurface ?? this.overlayOnSurface,
+    );
+  }
+
+  @override
+  FrostyColors lerp(FrostyColors? other, double t) {
+    if (other is! FrostyColors) return this;
+    return FrostyColors(
+      highlightedMessage: Color.lerp(highlightedMessage, other.highlightedMessage, t)!,
+      emoteOnly: Color.lerp(emoteOnly, other.emoteOnly, t)!,
+      followersOnly: Color.lerp(followersOnly, other.followersOnly, t)!,
+      slowMode: Color.lerp(slowMode, other.slowMode, t)!,
+      subOnly: Color.lerp(subOnly, other.subOnly, t)!,
+      uniqueMode: Color.lerp(uniqueMode, other.uniqueMode, t)!,
+      overlayOnSurface: Color.lerp(overlayOnSurface, other.overlayOnSurface, t)!,
+    );
+  }
+}
+
+class FrostyThemes {
+  final Color colorSchemeSeed;
+
+  const FrostyThemes({required this.colorSchemeSeed});
+
+  ThemeData get light => createBaseTheme(
+    colorScheme: ColorScheme.fromSeed(seedColor: colorSchemeSeed),
+    backgroundColor: const Color.fromRGBO(248, 248, 248, 1),
+  );
+
+  ThemeData get dark => createBaseTheme(
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: colorSchemeSeed,
+      brightness: Brightness.dark,
+    ),
+    backgroundColor: Colors.black,
+  );
+
+  ThemeData createBaseTheme({
+    required ColorScheme colorScheme,
+    Color? backgroundColor,
+  }) {
+    final borderColor = colorScheme.outlineVariant.withValues(alpha: 0.5);
+
+    const borderWidth = 0.5;
+
+    return ThemeData(
+      extensions: [
+        colorScheme.brightness == Brightness.dark
+            ? FrostyColors.dark
+            : FrostyColors.light,
+      ],
+      colorScheme: colorScheme,
+      fontFamily: 'Inter',
+      splashFactory: Platform.isIOS ? NoSplash.splashFactory : null,
+      scaffoldBackgroundColor: backgroundColor,
+      bottomSheetTheme: BottomSheetThemeData(
+        showDragHandle: true,
+        backgroundColor: backgroundColor,
+        surfaceTintColor: backgroundColor,
+      ),
+      menuTheme: MenuThemeData(
+        style: MenuStyle(
+          padding: const WidgetStatePropertyAll(
+            EdgeInsets.symmetric(vertical: 4),
+          ),
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: const BorderRadius.all(Radius.circular(12)),
+              side: BorderSide(color: borderColor),
+            ),
+          ),
+        ),
+      ),
+      menuButtonTheme: MenuButtonThemeData(
+        style: MenuItemButton.styleFrom(
+          visualDensity: VisualDensity.compact,
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: backgroundColor,
+        surfaceTintColor: backgroundColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(16)),
+          side: BorderSide(color: borderColor),
+        ),
+      ),
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        backgroundColor: backgroundColor,
+        surfaceTintColor: backgroundColor,
+        titleSpacing: 0,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        filled: true,
+        fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+        hintStyle: TextStyle(
+          color: colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.normal,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(100)),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(100)),
+          borderSide: BorderSide.none,
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(100)),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: const BorderRadius.all(Radius.circular(100)),
+          borderSide: BorderSide(
+            color: colorScheme.primary.withValues(alpha: 0.8),
+            width: 1.5,
+          ),
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        elevation: 0,
+        backgroundColor: backgroundColor,
+        height: 64,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
+        indicatorColor: Colors.transparent,
+        indicatorShape: const CircleBorder(),
+        overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+      ),
+      tabBarTheme: const TabBarThemeData(
+        dividerColor: Colors.transparent,
+        tabAlignment: TabAlignment.start,
+      ),
+      tooltipTheme: TooltipThemeData(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        showDuration: const Duration(seconds: 2),
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: const BorderRadius.all(Radius.circular(12)),
+          border: Border.all(color: borderColor),
+        ),
+        textStyle: TextStyle(color: colorScheme.onSurface),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        showCloseIcon: true,
+        backgroundColor: backgroundColor,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: borderColor),
+          borderRadius: const BorderRadius.all(Radius.circular(12)),
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+      dividerTheme: DividerThemeData(
+        thickness: borderWidth,
+        space: borderWidth,
+        color: borderColor,
+      ),
+      textTheme: TextTheme(
+        // Alert dialog title
+        headlineSmall: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.019,
+        ),
+
+        // App bar title
+        titleLarge: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.019,
+        ),
+
+        // Section titles
+        titleMedium: TextStyle(
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.011,
+        ),
+
+        // Tab bar title
+        titleSmall: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.011,
+        ),
+
+        // Labels
+        labelLarge: TextStyle(
+          fontWeight: FontWeight.w500,
+          letterSpacing: -0.006,
+        ),
+        labelMedium: TextStyle(fontWeight: FontWeight.w500, letterSpacing: 0),
+        labelSmall: TextStyle(
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.005,
+        ),
+
+        // Body text
+        bodyLarge: TextStyle(
+          fontWeight: FontWeight.w500,
+          letterSpacing: -0.011,
+        ),
+        bodyMedium: TextStyle(letterSpacing: -0.006),
+        bodySmall: TextStyle(letterSpacing: 0),
+      ),
+    );
+  }
+}
