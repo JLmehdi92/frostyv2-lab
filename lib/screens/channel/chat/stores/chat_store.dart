@@ -10,6 +10,7 @@ import 'package:frosty/models/emotes.dart';
 import 'package:frosty/models/events.dart';
 import 'package:frosty/models/irc.dart';
 import 'package:frosty/screens/channel/chat/details/chat_details_store.dart';
+import 'package:frosty/screens/channel/chat/muted_words.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
@@ -540,19 +541,16 @@ abstract class ChatStoreBase with Store {
           continue;
         }
 
-        // Filter messages containing any muted words.
-        if (parsedIRCMessage.message != null) {
-          final List<String> mutedWords = settings.mutedWords;
-
-          // check if the message contains any of the muted words
-          for (final word in mutedWords) {
-            if (parsedIRCMessage.message!
-                .toLowerCase()
-                .split(settings.matchWholeWord ? ' ' : '')
-                .contains(word.toLowerCase())) {
-              return;
-            }
-          }
+        // Filter messages containing any muted words (only this one: the
+        // rest of the batch goes on).
+        final text = parsedIRCMessage.message;
+        if (text != null &&
+            isMuted(
+              text,
+              settings.mutedWords,
+              wholeWord: settings.matchWholeWord,
+            )) {
+          continue;
         }
 
         switch (parsedIRCMessage.command) {
