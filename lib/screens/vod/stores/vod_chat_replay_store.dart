@@ -222,6 +222,8 @@ abstract class VodChatReplayStoreBase with Store {
     if (lastSeek != null &&
         now.difference(lastSeek) < const Duration(seconds: 1)) {
       _notBefore = now.add(_seekDebounce);
+    } else {
+      _notBefore = null;
     }
     _evict(s);
     _needsFill = true;
@@ -241,6 +243,21 @@ abstract class VodChatReplayStoreBase with Store {
     _show(_cache.lastN(upTo, _seekBacklog));
     _status = ReplayStatus.active;
     return true;
+  }
+
+  /// Fills after a seek from the page fetched at [second] when playback
+  /// already moved past what it covers (a busy chat on a slow network):
+  /// its stretch, then whatever is cached up to [s]. Waiting for [s] itself
+  /// to be covered could never catch up.
+  void _fillFromPage(int second, int s) {
+    final coveredEnd = _cache.firstUncoveredFrom(second) - 1;
+    final upTo = coveredEnd < s ? coveredEnd : s;
+    messages.clear();
+    _shownKeys.clear();
+    _needsFill = false;
+    _show(_cache.lastN(upTo, _seekBacklog));
+    _show(_cache.commentsIn(upTo, s));
+    _status = ReplayStatus.active;
   }
 
   void _evict(int s) {
@@ -286,11 +303,15 @@ abstract class VodChatReplayStoreBase with Store {
     if ((_retryTimer?.isActive ?? false) || (_fetchTimer?.isActive ?? false)) {
       return;
     }
-    final target = _cache.firstUncoveredFrom(s);
+    // Past a finished video's end, its last comments are what to show.
+    final from = !vod.isRecording && s >= vod.lengthSeconds
+        ? (vod.lengthSeconds - _leadSeconds).clamp(0, vod.lengthSeconds)
+        : s;
+    final target = _cache.firstUncoveredFrom(from);
     // Twitch answers an offset past the end with an error, and a recording
     // has nothing beyond the playback position yet.
     if (vod.isRecording ? target > s : target >= vod.lengthSeconds) return;
-    if (target - s > (_leadSeconds * playbackRate).ceil()) return;
+    if (target - from > (_leadSeconds * playbackRate).ceil()) return;
     final wait = _notBefore?.difference(DateTime.now());
     if (wait != null && wait > Duration.zero) {
       _fetchTimer = Timer(wait, () {
@@ -340,7 +361,7 @@ abstract class VodChatReplayStoreBase with Store {
       final s = _lastSecond;
       if (s == null) return;
       if (_needsFill) {
-        _fillIfCovered(s);
+        if (!_fillIfCovered(s) && second <= s) _fillFromPage(second, s);
       } else {
         _status = ReplayStatus.active;
         if (s >= second) _show(_cache.commentsIn(second - 1, s));

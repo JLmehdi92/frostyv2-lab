@@ -522,6 +522,54 @@ void main() {
       expect(ids(), [for (var s = 0; s <= 11; s++) 's$s']);
     });
 
+    test(
+      'a busy chat whose page lands a tick late still starts replaying',
+      () async {
+        for (var s = 1000; s < 1020; s++) {
+          pages[s] = VodCommentPage(
+            comments: [
+              for (var i = 0; i < 25; i++) _c('p$s-a$i', s - 1),
+              for (var i = 0; i < 25; i++) _c('p$s-b$i', s),
+            ],
+            hasNextPage: true,
+          );
+        }
+        gate = Completer<void>();
+        store = build();
+
+        // Every page lands only after playback moved on by a second.
+        store.onPositionSecond(1000);
+        for (var second = 1001; second <= 1010; second++) {
+          final pending = gate!;
+          gate = Completer<void>();
+          store.onPositionSecond(second);
+          pending.complete();
+          await settle();
+        }
+        gate!.complete();
+        gate = null;
+        await settle();
+
+        expect(store.status, ReplayStatus.active);
+        expect(store.messages, isNotEmpty);
+        expect(ids().last, startsWith('p10'));
+      },
+    );
+
+    test(
+      'a seek to the end of a finished video loads its last comments',
+      () async {
+        pages[3585] = _span(3585, 3599, hasNext: false);
+        store = build();
+
+        store.onPositionSecond(3600);
+        await settle();
+
+        expect(requests, [3585]);
+        expect(ids(), contains('s3599'));
+      },
+    );
+
     test('the rate is a plain setting', () {
       store = build();
       store.playbackRate = 1.5;
