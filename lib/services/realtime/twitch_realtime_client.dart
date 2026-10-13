@@ -49,6 +49,14 @@ enum RealtimeConnectionState {
 class RealtimeTopicSubscription {
   RealtimeTopicSubscription._(this.topic, this.events, this._cancel);
 
+  /// A subscription backed by any stream, for consumers' tests.
+  @visibleForTesting
+  RealtimeTopicSubscription.forTesting(
+    this.topic,
+    this.events,
+    void Function() cancel,
+  ) : _cancel = cancel;
+
   final String topic;
   final Stream<RealtimeTopicEvent> events;
   final void Function() _cancel;
