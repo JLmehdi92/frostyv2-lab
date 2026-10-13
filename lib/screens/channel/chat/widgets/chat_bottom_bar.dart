@@ -7,6 +7,7 @@ import 'package:frosty/models/irc.dart';
 import 'package:frosty/screens/channel/chat/details/chat_details.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_character_counter.dart';
+import 'package:frosty/screens/channel/chat/widgets/chat_restriction_bar.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/blurred_container.dart';
@@ -122,6 +123,11 @@ class ChatBottomBar extends StatelessWidget {
 
         final bottomBarContent = Column(
           children: [
+            if (chatStore.auth.isLoggedIn)
+              Observer(
+                builder: (_) =>
+                    ChatRestrictionBar(restriction: chatStore.restriction),
+              ),
             if (chatStore.replyingToMessage != null) ...[
               const Divider(),
               TextFieldTapRegion(
@@ -295,8 +301,13 @@ class ChatBottomBar extends StatelessWidget {
                           final isWaitingForAck = chatStore.isWaitingForAck;
                           final isConnected = chatStore.isConnected;
                           final hasConnected = chatStore.hasConnected;
+                          final locked =
+                              chatStore.restriction?.blocksInput ?? false;
                           final isEnabled =
-                              isLoggedIn && !isWaitingForAck && isConnected;
+                              isLoggedIn &&
+                              !isWaitingForAck &&
+                              isConnected &&
+                              !locked;
 
                           return GestureDetector(
                             onTap: !isLoggedIn
@@ -343,12 +354,16 @@ class ChatBottomBar extends StatelessWidget {
                                 hintMaxLines: 1,
                                 hintText: !isLoggedIn
                                     ? loginTooltipMessage
+                                    : locked
+                                    ? "You can't chat right now"
                                     : !isConnected
                                     ? (hasConnected
                                           ? 'Chat disconnected'
                                           : 'Connecting...')
                                     : isWaitingForAck
                                     ? 'Sending...'
+                                    : chatStore.restriction != null
+                                    ? chatStore.restriction!.describe(null)
                                     : chatStore.replyingToMessage != null
                                     ? channelDisplayName != null
                                           ? 'Reply in ${channelDisplayName!}'
@@ -396,7 +411,9 @@ class ChatBottomBar extends StatelessWidget {
                               onPressed:
                                   chatStore.auth.isLoggedIn &&
                                       !chatStore.isWaitingForAck &&
-                                      chatStore.isConnected
+                                      chatStore.isConnected &&
+                                      !(chatStore.restriction?.blocksInput ??
+                                          false)
                                   ? () => chatStore.sendMessage(
                                       chatStore.textController.text,
                                     )
