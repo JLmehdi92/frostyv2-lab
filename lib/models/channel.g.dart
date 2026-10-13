@@ -22,4 +22,6 @@ ChannelQuery _$ChannelQueryFromJson(Map<String, dynamic> json) => ChannelQuery(
   id: json['id'] as String,
   isLive: json['is_live'] as bool,
   startedAt: json['started_at'] as String,
+  gameName: json['game_name'] as String? ?? '',
+  title: json['title'] as String? ?? '',
 );

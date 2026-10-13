@@ -6,18 +6,8 @@ library;
 
 const twitchEmotesGlobalResponse = {
   'data': [
-    {
-      'id': '25',
-      'name': 'Kappa',
-      'emote_type': 'bitstier',
-      'owner_id': null,
-    },
-    {
-      'id': '1902',
-      'name': 'Keepo',
-      'emote_type': 'globals',
-      'owner_id': null,
-    },
+    {'id': '25', 'name': 'Kappa', 'emote_type': 'bitstier', 'owner_id': null},
+    {'id': '1902', 'name': 'Keepo', 'emote_type': 'globals', 'owner_id': null},
   ],
 };
 
@@ -100,6 +90,8 @@ const twitchChannelQueryResponse = {
       'id': '12345',
       'is_live': true,
       'started_at': '2024-01-01T00:00:00Z',
+      'game_name': 'Chess',
+      'title': 'Ranked games',
     },
   ],
 };
@@ -203,11 +195,7 @@ const ffzEmotesGlobalResponse = {
 };
 
 const ffzRoomInfoResponse = {
-  'room': {
-    'set': 123,
-    'vip_badge': null,
-    'mod_urls': null,
-  },
+  'room': {'set': 123, 'vip_badge': null, 'mod_urls': null},
   'sets': {
     '123': {
       'emoticons': [
@@ -275,12 +263,7 @@ const sevenTVEmotesGlobalResponse = {
             {'name': '1x.webp', 'width': 32, 'height': 32, 'format': 'WEBP'},
             {'name': '2x.webp', 'width': 64, 'height': 64, 'format': 'WEBP'},
             {'name': '3x.webp', 'width': 96, 'height': 96, 'format': 'WEBP'},
-            {
-              'name': '4x.webp',
-              'width': 128,
-              'height': 128,
-              'format': 'WEBP',
-            },
+            {'name': '4x.webp', 'width': 128, 'height': 128, 'format': 'WEBP'},
           ],
         },
       },
@@ -303,12 +286,7 @@ const sevenTVEmotesChannelResponse = {
           'host': {
             'url': '//cdn.7tv.app/emote/7tv_ch1',
             'files': [
-              {
-                'name': '1x.webp',
-                'width': 32,
-                'height': 32,
-                'format': 'WEBP',
-              },
+              {'name': '1x.webp', 'width': 32, 'height': 32, 'format': 'WEBP'},
               {
                 'name': '4x.webp',
                 'width': 128,

@@ -5,6 +5,7 @@ import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/models/channel.dart';
 import 'package:frosty/screens/channel/channel.dart';
 import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
+import 'package:frosty/screens/home/search/featured_channel.dart';
 import 'package:frosty/screens/home/search/search_store.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
@@ -68,6 +69,47 @@ class _SearchResultsChannelsState extends State<SearchResultsChannels> {
     }
   }
 
+  /// Live: the stream; offline: the profile, like Twitch.
+  void _open(BuildContext context, ChannelQuery channel) {
+    if (channel.isLive) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          settings: const RouteSettings(name: VideoChat.routeName),
+          builder: (context) => VideoChat(
+            userId: channel.id,
+            userName: channel.displayName,
+            userLogin: channel.broadcasterLogin,
+          ),
+        ),
+      );
+    } else {
+      ChannelProfileScreen.open(
+        context,
+        login: channel.broadcasterLogin,
+        userId: channel.id,
+        displayName: getReadableName(
+          channel.displayName,
+          channel.broadcasterLogin,
+        ),
+      );
+    }
+  }
+
+  void _showActions(BuildContext context, ChannelQuery channel) {
+    HapticFeedback.mediumImpact();
+
+    showModalBottomSheetWithProperFocus(
+      context: context,
+      builder: (context) => UserActionsModal(
+        authStore: widget.searchStore.authStore,
+        name: getReadableName(channel.displayName, channel.broadcasterLogin),
+        userLogin: channel.broadcasterLogin,
+        userId: channel.id,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Observer(
@@ -110,49 +152,27 @@ class _SearchResultsChannelsState extends State<SearchResultsChannels> {
                   .contains(channel.id),
             );
 
+            final featured = featuredChannel(results, widget.query);
+
             return SliverList.list(
               children: [
-                ...results.map((channel) {
+                if (featured != null)
+                  FeaturedChannelCard(
+                    channel: featured,
+                    onTap: () => _open(context, featured),
+                    onLongPress: () => _showActions(context, featured),
+                  ),
+                ...results.where((channel) => channel != featured).map((
+                  channel,
+                ) {
                   final displayName = getReadableName(
                     channel.displayName,
                     channel.broadcasterLogin,
                   );
 
                   return InkWell(
-                    // Offline: the profile, like Twitch.
-                    onTap: () => channel.isLive
-                        ? Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              settings: const RouteSettings(
-                                name: VideoChat.routeName,
-                              ),
-                              builder: (context) => VideoChat(
-                                userId: channel.id,
-                                userName: channel.displayName,
-                                userLogin: channel.broadcasterLogin,
-                              ),
-                            ),
-                          )
-                        : ChannelProfileScreen.open(
-                            context,
-                            login: channel.broadcasterLogin,
-                            userId: channel.id,
-                            displayName: displayName,
-                          ),
-                    onLongPress: () {
-                      HapticFeedback.mediumImpact();
-
-                      showModalBottomSheetWithProperFocus(
-                        context: context,
-                        builder: (context) => UserActionsModal(
-                          authStore: widget.searchStore.authStore,
-                          name: displayName,
-                          userLogin: channel.broadcasterLogin,
-                          userId: channel.id,
-                        ),
-                      );
-                    },
+                    onTap: () => _open(context, channel),
+                    onLongPress: () => _showActions(context, channel),
                     child: ListTile(
                       title: Text(displayName),
                       leading: ProfilePicture(

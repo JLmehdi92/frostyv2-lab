@@ -36,12 +36,22 @@ class ChannelQuery {
   final bool isLive;
   final String startedAt;
 
+  /// The stream's (or last stream's) category; '' when unset.
+  @JsonKey(defaultValue: '')
+  final String gameName;
+
+  /// The stream's (or last stream's) title; '' when unset.
+  @JsonKey(defaultValue: '')
+  final String title;
+
   const ChannelQuery({
     required this.broadcasterLogin,
     required this.displayName,
     required this.id,
     required this.isLive,
     required this.startedAt,
+    this.gameName = '',
+    this.title = '',
   });
 
   factory ChannelQuery.fromJson(Map<String, dynamic> json) =>

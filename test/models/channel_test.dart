@@ -32,6 +32,8 @@ void main() {
       expect(query.id, '12345');
       expect(query.isLive, isTrue);
       expect(query.startedAt, '2024-01-01T00:00:00Z');
+      expect(query.gameName, 'Chess');
+      expect(query.title, 'Ranked games');
     });
 
     test('fromJson handles isLive false', () {
@@ -44,6 +46,8 @@ void main() {
       });
 
       expect(query.isLive, isFalse);
+      expect(query.gameName, '');
+      expect(query.title, '');
     });
   });
 }
