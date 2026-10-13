@@ -88,3 +88,7 @@ const Map<String, Color> chatColorValues = {
   'spring_green': Color(0xFF00FF7F),
   'yellow_green': Color(0xFF9ACD32),
 };
+
+/// Public Client-ID of the Twitch website (not a secret), for anonymous
+/// Twitch GQL and realtime requests.
+const kTwitchWebClientId = 'kimne78kx3ncx6brgo4mv6wki5h1ko';
