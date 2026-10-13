@@ -14,6 +14,7 @@ class ChannelClipsStore = ChannelClipsStoreBase with _$ChannelClipsStore;
 abstract class ChannelClipsStoreBase with Store {
   ChannelClipsStoreBase({
     required this.login,
+    this.gameId,
     required this.clipService,
     ClipPeriod period = ClipPeriod.lastWeek,
     ClipSort sort = ClipSort.top,
@@ -21,6 +22,9 @@ abstract class ChannelClipsStoreBase with Store {
        _sort = sort;
 
   final String login;
+
+  /// A category instead of a channel ([login] is then unused).
+  final String? gameId;
   final TwitchClipService clipService;
 
   final scrollController = ScrollController();
@@ -105,16 +109,26 @@ abstract class ChannelClipsStoreBase with Store {
   Future<void> _load((ClipPeriod, ClipSort) key) async {
     runInAction(() => _isLoading = true);
     try {
-      final page = await clipService.getChannelClips(
-        login: login,
-        period: key.$1,
-        sort: key.$2,
-      );
+      final gameId = this.gameId;
+      final page = gameId != null
+          ? await clipService.getCategoryClips(
+              gameId: gameId,
+              period: key.$1,
+              sort: key.$2,
+            )
+          : await clipService.getChannelClips(
+              login: login,
+              period: key.$1,
+              sort: key.$2,
+            );
       _pages[key] = page;
       // The viewer may have picked other chips meanwhile.
       if (key == _key) _show(page);
     } on NotFoundException {
-      _showError(key, 'Channel not found');
+      _showError(
+        key,
+        gameId != null ? 'Category not found' : 'Channel not found',
+      );
     } catch (e) {
       debugPrint('ChannelClipsStore ${key.$1} ${key.$2} failed: $e');
       _showError(key, "Couldn't load clips");

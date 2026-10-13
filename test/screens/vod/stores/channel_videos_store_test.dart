@@ -127,4 +127,22 @@ void main() {
 
     expect(store.error, 'Channel not found');
   });
+
+  test('a category store asks for the category\'s top videos', () async {
+    when(
+      () => service.getCategoryVideos('32982'),
+    ).thenAnswer((_) async => VodPage(items: [_vod('1')], hasMore: false));
+    final category = ChannelVideosStore(
+      login: '',
+      type: VodType.archive,
+      gameId: '32982',
+      vodService: service,
+    );
+    addTearDown(category.dispose);
+
+    await category.load();
+
+    expect(category.videos.single.id, '1');
+    expect(category.error, isNull);
+  });
 }

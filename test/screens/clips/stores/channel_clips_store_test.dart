@@ -189,4 +189,31 @@ void main() {
     expect(store.clips, [clip]);
     expect(store.error, isNull);
   });
+
+  test('a category store asks for the category\'s clips', () async {
+    when(
+      () => service.getCategoryClips(
+        gameId: '32982',
+        period: ClipPeriod.lastWeek,
+        sort: ClipSort.top,
+      ),
+    ).thenAnswer((_) async => ClipPage(items: [clip], hasMore: false));
+    final category = ChannelClipsStore(
+      login: '',
+      gameId: '32982',
+      clipService: service,
+    );
+    addTearDown(category.dispose);
+
+    await category.load();
+
+    expect(category.clips, [clip]);
+    verifyNever(
+      () => service.getChannelClips(
+        login: any(named: 'login'),
+        period: any(named: 'period'),
+        sort: any(named: 'sort'),
+      ),
+    );
+  });
 }

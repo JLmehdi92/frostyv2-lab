@@ -14,11 +14,16 @@ class ChannelVideosStore = ChannelVideosStoreBase with _$ChannelVideosStore;
 abstract class ChannelVideosStoreBase with Store {
   ChannelVideosStoreBase({
     required this.login,
+    this.gameId,
     required this.type,
     required this.vodService,
   });
 
   final String login;
+
+  /// A category instead of a channel: its most viewed videos ([login] and
+  /// [type] are then unused).
+  final String? gameId;
   final VodType type;
   final TwitchVodService vodService;
 
@@ -54,7 +59,10 @@ abstract class ChannelVideosStoreBase with Store {
   Future<void> _load() async {
     _isLoading = true;
     try {
-      final page = await vodService.getChannelVideos(login: login, type: type);
+      final gameId = this.gameId;
+      final page = gameId != null
+          ? await vodService.getCategoryVideos(gameId)
+          : await vodService.getChannelVideos(login: login, type: type);
       runInAction(() {
         _videos = page.items.asObservable();
         _hasMore = page.hasMore;
