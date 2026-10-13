@@ -68,6 +68,7 @@ SettingsStore _$SettingsStoreFromJson(
       json['highlightFirstTimeChatter'] as bool? ?? true
   ..showUserNotices = json['showUserNotices'] as bool? ?? true
   ..showHypeTrain = json['showHypeTrain'] as bool? ?? true
+  ..showCommunityHighlights = json['showCommunityHighlights'] as bool? ?? true
   ..emoteMenuButtonOnLeft = json['emoteMenuButtonOnLeft'] as bool? ?? false
   ..landscapeChatLeftSide = json['landscapeChatLeftSide'] as bool? ?? false
   ..landscapeForceVerticalChat =
@@ -143,6 +144,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'highlightFirstTimeChatter': instance.highlightFirstTimeChatter,
   'showUserNotices': instance.showUserNotices,
   'showHypeTrain': instance.showHypeTrain,
+  'showCommunityHighlights': instance.showCommunityHighlights,
   'emoteMenuButtonOnLeft': instance.emoteMenuButtonOnLeft,
   'landscapeChatLeftSide': instance.landscapeChatLeftSide,
   'landscapeForceVerticalChat': instance.landscapeForceVerticalChat,
@@ -753,6 +755,28 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     });
   }
 
+  late final _$showCommunityHighlightsAtom = Atom(
+    name: '_SettingsStoreBase.showCommunityHighlights',
+    context: context,
+  );
+
+  @override
+  bool get showCommunityHighlights {
+    _$showCommunityHighlightsAtom.reportRead();
+    return super.showCommunityHighlights;
+  }
+
+  @override
+  set showCommunityHighlights(bool value) {
+    _$showCommunityHighlightsAtom.reportWrite(
+      value,
+      super.showCommunityHighlights,
+      () {
+        super.showCommunityHighlights = value;
+      },
+    );
+  }
+
   late final _$emoteMenuButtonOnLeftAtom = Atom(
     name: '_SettingsStoreBase.emoteMenuButtonOnLeft',
     context: context,
@@ -1300,6 +1324,7 @@ syncedChatDelay: ${syncedChatDelay},
 highlightFirstTimeChatter: ${highlightFirstTimeChatter},
 showUserNotices: ${showUserNotices},
 showHypeTrain: ${showHypeTrain},
+showCommunityHighlights: ${showCommunityHighlights},
 emoteMenuButtonOnLeft: ${emoteMenuButtonOnLeft},
 landscapeChatLeftSide: ${landscapeChatLeftSide},
 landscapeForceVerticalChat: ${landscapeForceVerticalChat},

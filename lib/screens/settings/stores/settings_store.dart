@@ -164,6 +164,7 @@ abstract class _SettingsStoreBase with Store {
   static const defaultHighlightFirstTimeChatter = true;
   static const defaultShowUserNotices = true;
   static const defaultShowHypeTrain = true;
+  static const defaultShowCommunityHighlights = true;
 
   // Layout defaults
   static const defaultEmoteMenuButtonOnLeft = false;
@@ -264,6 +265,10 @@ abstract class _SettingsStoreBase with Store {
   @JsonKey(defaultValue: defaultShowHypeTrain)
   @observable
   var showHypeTrain = defaultShowHypeTrain;
+
+  @JsonKey(defaultValue: defaultShowCommunityHighlights)
+  @observable
+  var showCommunityHighlights = defaultShowCommunityHighlights;
 
   // Layout options
   @JsonKey(defaultValue: defaultEmoteMenuButtonOnLeft)
@@ -366,6 +371,7 @@ abstract class _SettingsStoreBase with Store {
     highlightFirstTimeChatter = defaultHighlightFirstTimeChatter;
     showUserNotices = defaultShowUserNotices;
     showHypeTrain = defaultShowHypeTrain;
+    showCommunityHighlights = defaultShowCommunityHighlights;
 
     emoteMenuButtonOnLeft = defaultEmoteMenuButtonOnLeft;
 
