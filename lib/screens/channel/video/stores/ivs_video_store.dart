@@ -56,7 +56,8 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   @readonly
   int? _textureId;
 
-  /// Set by the [IvsVideo] widget once the native PlatformView is created.
+  /// Per-texture MethodChannel, set by [attachTextureChannel] once the native
+  /// texture player exists.
   MethodChannel? _channel;
 
   /// Called when the IVS player hits a fatal error (or exhausted its retry
@@ -271,9 +272,6 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
       }
     }
   }
-
-  /// Wires the per-view MethodChannel once the native SurfaceView exists.
-  void attachPlatformView(int viewId) => _attachChannel('frosty/ivs/$viewId');
 
   /// Wires the per-texture MethodChannel for the texture-backed mini player.
   void attachTextureChannel(int textureId) =>

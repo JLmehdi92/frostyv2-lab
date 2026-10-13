@@ -13,14 +13,13 @@ import io.flutter.plugin.common.MethodChannel
 private const val CORE_TAG = "FrostyIVS"
 
 /**
- * Shared Amazon IVS control/event wiring used by both the full-screen
- * SurfaceView player ([IvsPlayerView]) and the texture-backed mini player
+ * Amazon IVS control/event wiring for a texture-backed player
  * ([IvsTexturePlayer]).
  *
  * Given an IVS [Player] and a per-instance [MethodChannel], it bridges
- * play/pause/quality/load from Dart, forwards player events back, and ticks
- * the live latency once per second. [onVideoSize] lets a texture target resize
- * its buffer to the source resolution.
+ * play/pause/quality/sound/load from Dart, forwards player events back, and
+ * ticks the live latency (plus optional stats) once per second. [onVideoSize]
+ * lets the texture resize its buffer to the source resolution.
  */
 class IvsPlayerCore(
     private val player: Player,

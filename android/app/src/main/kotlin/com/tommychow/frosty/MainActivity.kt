@@ -10,13 +10,7 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
         super.configureFlutterEngine(flutterEngine)
         val messenger = flutterEngine.dartExecutor.binaryMessenger
 
-        // Full-screen IVS player (SurfaceView).
-        flutterEngine.platformViewsController.registry.registerViewFactory(
-            "frosty/ivs-player",
-            IvsPlayerViewFactory(messenger),
-        )
-
-        // Texture-backed IVS players for the smooth in-app mini player.
+        // Texture-backed IVS players (channel screen, mini player and PiP).
         textureManager = IvsTextureManager(this, flutterEngine.renderer, messenger)
     }
 }
