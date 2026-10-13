@@ -18,6 +18,7 @@ import 'package:frosty/apis/ffz_api.dart';
 import 'package:frosty/apis/seventv_api.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_auth_interceptor.dart';
+import 'package:frosty/apis/twitch_clip_service.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/apis/unauthorized_interceptor.dart';
@@ -129,6 +130,7 @@ void main() async {
   );
   final twitchVodService = TwitchVodService(anonymousGqlDio);
   final twitchHypeTrainService = TwitchHypeTrainService(anonymousGqlDio);
+  final twitchClipService = TwitchClipService(anonymousGqlDio);
 
   // One anonymous realtime connection (Hermes) for public Twitch topics such
   // as the hype train. It connects only when something subscribes and
@@ -173,6 +175,7 @@ void main() async {
         Provider<SevenTVApi>.value(value: sevenTVApiService),
         Provider<TwitchVodService>.value(value: twitchVodService),
         Provider<TwitchHypeTrainService>.value(value: twitchHypeTrainService),
+        Provider<TwitchClipService>.value(value: twitchClipService),
         Provider<TwitchRealtimeClient>.value(value: realtimeClient),
         Provider<GlobalAssetsStore>.value(value: globalAssetsStore),
         Provider<MiniPlayerStore>(create: (_) => MiniPlayerStore()),
