@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/screens/channel/video/ivs_recovery.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
@@ -33,6 +34,8 @@ void main() {
     Duration startAt = Duration.zero,
     Duration? knownLength = const Duration(hours: 2),
     IvsRecoveryPolicy? policy,
+    Duration overlayHideDelay = const Duration(seconds: 5),
+    Duration seekTimeout = const Duration(seconds: 3),
   }) {
     final s = IvsVodStore(
       vodId: '123',
@@ -41,6 +44,8 @@ void main() {
       startAt: startAt,
       knownLength: knownLength,
       recoveryPolicy: policy ?? instantPolicy(),
+      overlayHideDelay: overlayHideDelay,
+      seekTimeout: seekTimeout,
     );
     created = s;
     return s;
@@ -50,8 +55,16 @@ void main() {
     Duration startAt = Duration.zero,
     Duration? knownLength = const Duration(hours: 2),
     IvsRecoveryPolicy? policy,
+    Duration overlayHideDelay = const Duration(seconds: 5),
+    Duration seekTimeout = const Duration(seconds: 3),
   }) async {
-    final s = build(startAt: startAt, knownLength: knownLength, policy: policy);
+    final s = build(
+      startAt: startAt,
+      knownLength: knownLength,
+      policy: policy,
+      overlayHideDelay: overlayHideDelay,
+      seekTimeout: seekTimeout,
+    );
     await s.ready;
     for (var i = 0; i < 20 && native.callsNamed('load').isEmpty; i++) {
       await settle();
@@ -66,6 +79,32 @@ void main() {
       forceFreshToken: any(named: 'forceFreshToken'),
     ),
   ).thenAnswer((_) async => _url);
+
+  Future<void> settleMany([int n = 6]) async {
+    for (var i = 0; i < n; i++) {
+      await settle();
+    }
+  }
+
+  void stubUrlSequence(List<Object> answers) {
+    var i = 0;
+    when(
+      () => service.getVodUsherUrl(
+        vodId: any(named: 'vodId'),
+        forceFreshToken: any(named: 'forceFreshToken'),
+      ),
+    ).thenAnswer((_) async {
+      final answer = answers[i < answers.length ? i : answers.length - 1];
+      i++;
+      if (answer is String) return answer;
+      throw answer;
+    });
+  }
+
+  List<int> loadStarts() => [
+    for (final c in native.callsNamed('load'))
+      (c.arguments as Map)['startMs'] as int,
+  ];
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
@@ -132,6 +171,7 @@ void main() {
   group('progress', () {
     test('updates position, duration and buffer', () async {
       store = await createStore();
+      await native.emit({'type': 'seeked', 'ms': 0});
 
       await native.emitProgress(61500, durationMs: 7200000, bufferedMs: 70000);
 
@@ -357,6 +397,7 @@ void main() {
   group('errors', () {
     test('a recoverable error reloads at the current position', () async {
       store = await createStore();
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
       await native.emitProgress(42000, durationMs: 100000);
       native.playerCalls.clear();
 
@@ -432,6 +473,354 @@ void main() {
     });
   });
 
+  group('start position', () {
+    test('ticks before the start seek do not move the position', () async {
+      store = await createStore(startAt: const Duration(hours: 1));
+
+      await native.emitProgress(0, durationMs: 7200000);
+      expect(store.position, const Duration(hours: 1));
+      expect(store.positionSeconds, 3600);
+
+      await native.emit({'type': 'seeked', 'ms': 3600000});
+      await native.emitProgress(3600250, durationMs: 7200000);
+      expect(store.position, const Duration(milliseconds: 3600250));
+    });
+
+    test('a second error during a reload keeps the resume point', () async {
+      store = await createStore(startAt: const Duration(hours: 1));
+      await native.emit({'type': 'seeked', 'ms': 3600000});
+      await native.emitProgress(3700000, durationMs: 7200000);
+
+      await native.emit({'type': 'error', 'errorType': 'ERROR_NETWORK'});
+      await settleMany();
+      await native.emitProgress(0, durationMs: 7200000);
+      await native.emit({'type': 'error', 'errorType': 'ERROR_NETWORK'});
+      await settleMany();
+
+      expect(loadStarts(), [3600000, 3700000, 3700000]);
+    });
+
+    test('a user seek before the start seek replaces it', () async {
+      store = await createStore(startAt: const Duration(hours: 1));
+      await native.emitProgress(0, durationMs: 7200000);
+
+      store.seekTo(const Duration(minutes: 10));
+      await native.emit({'type': 'seeked', 'ms': 600000});
+      await native.emitProgress(600250, durationMs: 7200000);
+
+      expect(store.position, const Duration(milliseconds: 600250));
+    });
+
+    test('a forbidden vod still completes ready', () async {
+      when(
+        () => service.getVodUsherUrl(
+          vodId: any(named: 'vodId'),
+          forceFreshToken: any(named: 'forceFreshToken'),
+        ),
+      ).thenThrow(const VodForbiddenException('vod_manifest_restricted'));
+      final s = build();
+
+      await expectLater(s.ready, completes);
+      expect(s.status, VodPlaybackStatus.problem);
+      expect(s.problem, VodPlaybackProblem.subscriberOnly);
+    });
+
+    test('another url failure still rejects ready', () async {
+      when(
+        () => service.getVodUsherUrl(
+          vodId: any(named: 'vodId'),
+          forceFreshToken: any(named: 'forceFreshToken'),
+        ),
+      ).thenThrow(const ApiException('No playback access token'));
+      final s = build();
+
+      await expectLater(s.ready, throwsA(isA<ApiException>()));
+      await settleMany();
+      expect(s.status, VodPlaybackStatus.failed);
+    });
+
+    test('a texture that cannot be created falls back', () async {
+      native.createThrows = true;
+      var fatal = 0;
+      build().onFatalError = () => fatal++;
+      await settleMany(10);
+
+      expect(fatal, 1);
+      expect(created!.status, VodPlaybackStatus.failed);
+    });
+
+    test('a native load failure falls back', () async {
+      native.loadThrows = true;
+      var fatal = 0;
+      build().onFatalError = () => fatal++;
+      await settleMany(10);
+
+      expect(fatal, 1);
+    });
+
+    test('a duration event sets the duration', () async {
+      store = await createStore(knownLength: null);
+
+      await native.emit({'type': 'duration', 'ms': 5000000});
+
+      expect(store.duration, const Duration(milliseconds: 5000000));
+    });
+  });
+
+  group('review: recovery', () {
+    test('not available with a playable playlist retries', () async {
+      when(
+        () => service.diagnoseVodPlaylist(any()),
+      ).thenAnswer((_) async => null);
+      store = await createStore();
+
+      await native.emit({'type': 'error', 'errorType': 'ERROR_NOT_AVAILABLE'});
+      await settleMany();
+
+      expect(native.callsNamed('load'), hasLength(2));
+      expect(store.status, isNot(VodPlaybackStatus.problem));
+    });
+
+    test(
+      'not available with a rejected token retries with a fresh token',
+      () async {
+        when(
+          () => service.diagnoseVodPlaylist(any()),
+        ).thenAnswer((_) async => VodPlaybackProblem.tokenRejected);
+        store = await createStore();
+
+        await native.emit({
+          'type': 'error',
+          'errorType': 'ERROR_NOT_AVAILABLE',
+        });
+        await settleMany();
+
+        verify(
+          () => service.getVodUsherUrl(vodId: '123', forceFreshToken: true),
+        ).called(1);
+        expect(native.callsNamed('load'), hasLength(2));
+      },
+    );
+
+    test('a geoblock found during a reload is a geoblock problem', () async {
+      stubUrlSequence([_url, const VodForbiddenException('geoblocked')]);
+      store = await createStore();
+
+      await native.emit({'type': 'error', 'errorType': 'ERROR_NETWORK'});
+      await settleMany();
+
+      expect(store.status, VodPlaybackStatus.problem);
+      expect(store.problem, VodPlaybackProblem.geoBlocked);
+    });
+
+    test('a vod deleted while watching is diagnosed, not a fallback', () async {
+      stubUrlSequence([_url, const ApiException('No playback access token')]);
+      when(
+        () => service.diagnoseVodPlaylist(any()),
+      ).thenAnswer((_) async => VodPlaybackProblem.notFound);
+      var fatal = 0;
+      store = await createStore();
+      store.onFatalError = () => fatal++;
+
+      await native.emit({'type': 'error', 'errorType': 'ERROR_NETWORK'});
+      await settleMany();
+
+      expect(store.status, VodPlaybackStatus.problem);
+      expect(store.problem, VodPlaybackProblem.notFound);
+      expect(fatal, 0);
+    });
+
+    test('failed is terminal: later states and errors are ignored', () async {
+      var fatal = 0;
+      store = await createStore();
+      store.onFatalError = () => fatal++;
+
+      await native.emit({'type': 'error', 'errorType': 'ERROR_NOT_SUPPORTED'});
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      await native.emit({'type': 'error', 'errorType': 'ERROR_NOT_SUPPORTED'});
+      await native.emit({'type': 'error', 'errorType': 'ERROR_NETWORK'});
+      await settleMany();
+
+      expect(fatal, 1);
+      expect(store.status, VodPlaybackStatus.failed);
+      expect(native.callsNamed('load'), hasLength(1));
+    });
+
+    test('a problem is terminal too', () async {
+      when(
+        () => service.diagnoseVodPlaylist(any()),
+      ).thenAnswer((_) async => VodPlaybackProblem.subscriberOnly);
+      store = await createStore();
+
+      await native.emit({'type': 'error', 'errorType': 'ERROR_NOT_AVAILABLE'});
+      await settleMany();
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+
+      expect(store.status, VodPlaybackStatus.problem);
+    });
+
+    test('no reload after dispose', () async {
+      store = await createStore(
+        policy: IvsRecoveryPolicy(
+          backoff: const [
+            Duration(milliseconds: 30),
+            Duration(milliseconds: 30),
+            Duration(milliseconds: 30),
+          ],
+        ),
+      );
+
+      await native.emit({'type': 'error', 'errorType': 'ERROR_NETWORK'});
+      store.dispose();
+      created = null;
+      await Future<void>.delayed(const Duration(milliseconds: 80));
+
+      expect(native.callsNamed('load'), hasLength(1));
+    });
+
+    test('rate is re-sent after an actual reload', () async {
+      store = await createStore();
+      store.setPlaybackRate(1.5);
+      await settle();
+      native.playerCalls.clear();
+
+      await native.emit({'type': 'error', 'errorType': 'ERROR_NETWORK'});
+      await settleMany();
+      expect(native.callsNamed('load'), hasLength(1));
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1080p60'],
+      });
+      await settle();
+
+      expect(
+        (native.callsNamed('setPlaybackRate').single.arguments as Map)['rate'],
+        1.5,
+      );
+    });
+  });
+
+  group('review: seeking', () {
+    test('a confirmation for an older seek does not end a newer one', () async {
+      store = await createStore();
+      await native.emit({'type': 'seeked', 'ms': 0});
+      await native.emitProgress(5000, durationMs: 100000);
+
+      store.seekBy(const Duration(seconds: 10));
+      store.seekBy(const Duration(seconds: 10));
+      await native.emit({'type': 'seeked', 'ms': 15000});
+      await native.emitProgress(15250, durationMs: 100000);
+      expect(store.position, const Duration(seconds: 25));
+
+      await native.emit({'type': 'seeked', 'ms': 25000});
+      await native.emitProgress(25250, durationMs: 100000);
+      expect(store.position, const Duration(milliseconds: 25250));
+    });
+
+    test('a lost confirmation times out', () async {
+      store = await createStore(seekTimeout: const Duration(milliseconds: 20));
+      await native.emit({'type': 'seeked', 'ms': 0});
+      await native.emitProgress(5000, durationMs: 100000);
+
+      store.seekTo(const Duration(seconds: 60));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await native.emitProgress(5250, durationMs: 100000);
+
+      expect(store.position, const Duration(milliseconds: 5250));
+    });
+
+    test('replay from the end ignores a stale end tick', () async {
+      store = await createStore();
+      await native.emit({'type': 'seeked', 'ms': 0});
+      await native.emitProgress(99000, durationMs: 100000);
+      await native.emit({'type': 'state', 'state': 'ENDED'});
+
+      store.play();
+      await native.emitProgress(99000, durationMs: 100000);
+
+      expect(store.position, Duration.zero);
+      expect(store.status, isNot(VodPlaybackStatus.ended));
+    });
+
+    test('seeking after the end leaves the ended state', () async {
+      store = await createStore();
+      await native.emitProgress(1000, durationMs: 100000);
+      await native.emit({'type': 'state', 'state': 'ENDED'});
+
+      store.seekTo(const Duration(seconds: 10));
+
+      expect(store.ended, isFalse);
+      expect(store.status, VodPlaybackStatus.paused);
+    });
+
+    test('the save position ignores native 0 before the start seek', () async {
+      store = await createStore(startAt: const Duration(hours: 1));
+      native.nativePosition = 0;
+
+      expect(await store.currentPositionForSave(), const Duration(hours: 1));
+    });
+
+    test('the save position uses the seek target while seeking', () async {
+      store = await createStore();
+      await native.emit({'type': 'seeked', 'ms': 0});
+      await native.emitProgress(5000, durationMs: 100000);
+      native.nativePosition = 5000;
+
+      store.seekTo(const Duration(seconds: 50));
+
+      expect(await store.currentPositionForSave(), const Duration(seconds: 50));
+    });
+  });
+
+  group('review: overlay', () {
+    test('hides after the delay while playing, stays while paused, and '
+        'hides again after resuming', () async {
+      store = await createStore(
+        overlayHideDelay: const Duration(milliseconds: 20),
+      );
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(store.overlayVisible, isFalse);
+
+      await native.emit({'type': 'state', 'state': 'READY'});
+      store.showOverlay();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(store.overlayVisible, isTrue);
+
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      expect(store.overlayVisible, isFalse);
+    });
+  });
+
+  group('review: quality', () {
+    test('defaults to Auto without a saved quality', () async {
+      store = await createStore();
+
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1080p60', '720p60'],
+      });
+      await settle();
+
+      expect(native.callsNamed('setQuality'), isEmpty);
+      expect(store.quality, 'Auto');
+    });
+
+    test('picks the highest when the setting is on', () async {
+      settingsStore.defaultToHighestQuality = true;
+      store = await createStore();
+
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1080p60', '720p60'],
+      });
+      await settle();
+
+      expect(store.quality, '1080p60');
+    });
+  });
+
   group('lifecycle', () {
     test('dispose during creation releases the native player', () async {
       native.createGate = Completer<void>();
@@ -476,6 +865,7 @@ void main() {
 
     test('currentPositionForSave asks the native player', () async {
       store = await createStore();
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
       native.nativePosition = 777000;
 
       expect(
@@ -486,6 +876,7 @@ void main() {
 
     test('currentPositionForSave falls back to the last progress', () async {
       store = await createStore();
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
       await native.emitProgress(5000);
 
       expect(await store.currentPositionForSave(), const Duration(seconds: 5));

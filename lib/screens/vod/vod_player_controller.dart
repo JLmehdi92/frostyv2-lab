@@ -40,7 +40,9 @@ abstract class VodPlayerController {
   bool get overlayVisible;
   bool get isInPipMode;
 
-  /// Completes once the playback URL resolved (or throws).
+  /// Completes once the playback URL resolved, or once the VOD turned out to
+  /// be refused (then [status] is [VodPlaybackStatus.problem]: show it, do not
+  /// fall back). Throws only when no playlist can be had at all.
   Future<void> get ready;
 
   /// Called when this engine cannot play at all (switch to the web player).

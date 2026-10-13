@@ -28,10 +28,13 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
     Duration startAt = Duration.zero,
     Duration? knownLength,
     @visibleForTesting IvsRecoveryPolicy? recoveryPolicy,
+    @visibleForTesting Duration overlayHideDelay = const Duration(seconds: 5),
+    @visibleForTesting Duration seekTimeout = const Duration(seconds: 3),
   }) : _knownLength = knownLength,
        _recovery = recoveryPolicy ?? IvsRecoveryPolicy(),
-       _position = startAt,
-       _startAt = startAt {
+       _overlayHideDelay = overlayHideDelay,
+       _seekTimeoutDelay = seekTimeout,
+       _position = startAt {
     _textureReady = _createTexture().then(
       (_) => true,
       onError: (Object e) {
@@ -40,40 +43,15 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
         return false;
       },
     );
-    ready = _resolveUrl();
-    final startEpoch = _epoch;
-    unawaited(
-      ready
-          .then((_) async {
-            final url = _url;
-            if (url == null || startEpoch != _epoch) return;
-            try {
-              await _loadSource(url, _startAt, startEpoch);
-            } catch (e) {
-              debugPrint('IvsVodStore initial load failed: $e');
-              _fail();
-            }
-          })
-          .catchError((Object e) {
-            if (_disposed) return;
-            if (e is VodForbiddenException) {
-              runInAction(() {
-                _status = VodPlaybackStatus.problem;
-                _problem = switch (e.reason) {
-                  'geoblocked' => VodPlaybackProblem.geoBlocked,
-                  _ => VodPlaybackProblem.subscriberOnly,
-                };
-              });
-            } else {
-              runInAction(() => _status = VodPlaybackStatus.failed);
-            }
-          }),
-    );
+    ready = _start(startAt);
     _scheduleOverlayHide();
     if (Platform.isAndroid) {
       _disposeAutoPip = autorun((_) async {
-        final playing = _status == VodPlaybackStatus.playing;
-        if (playing && await SimplePip.isAutoPipAvailable) {
+        // Buffering counts as playing: a rebuffer must not flip auto-PiP.
+        final playing = !paused;
+        final available = playing && await SimplePip.isAutoPipAvailable;
+        if (_disposed) return;
+        if (available) {
           pip.setAutoPipMode();
         } else {
           pip.setAutoPipMode(autoEnter: false);
@@ -90,7 +68,8 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
 
   final Duration? _knownLength;
   final IvsRecoveryPolicy _recovery;
-  final Duration _startAt;
+  final Duration _overlayHideDelay;
+  final Duration _seekTimeoutDelay;
 
   /// Android picture-in-picture controller.
   final pip = SimplePip();
@@ -112,6 +91,10 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
 
   /// Bumped by dispose so stale async work never touches state.
   var _epoch = 0;
+
+  /// True between a `load` and the native start seek (first READY): IVS
+  /// reports position 0 until then, which must not replace the resume point.
+  var _awaitingStart = false;
 
   /// True between a seek request and the native confirmation, so late
   /// progress ticks do not jump the seek bar back.
@@ -169,12 +152,58 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
   @computed
   int get positionSeconds => _position.inSeconds;
 
+  /// Failed (fallback requested) and problem (usher refused) are final.
+  bool get _terminal =>
+      _status == VodPlaybackStatus.failed ||
+      _status == VodPlaybackStatus.problem;
+
   @override
   bool get paused =>
       _status != VodPlaybackStatus.playing &&
       _status != VodPlaybackStatus.buffering;
 
   // --- Loading -------------------------------------------------------------
+
+  /// Resolves the playlist, then starts loading it in the background.
+  /// Completes normally when the VOD is forbidden (a problem state, not a
+  /// reason to fall back to the web player); rejects only when no playlist
+  /// can be had.
+  Future<void> _start(Duration startAt) async {
+    final epoch = _epoch;
+    try {
+      await _resolveUrl();
+    } on VodForbiddenException catch (e) {
+      if (!_disposed) _setProblem(_forbiddenProblem(e));
+      return;
+    } catch (e) {
+      if (!_disposed) runInAction(() => _status = VodPlaybackStatus.failed);
+      rethrow;
+    }
+    final url = _url;
+    if (url == null || epoch != _epoch) return;
+    unawaited(
+      _loadSource(url, startAt, epoch).catchError((Object e) {
+        debugPrint('IvsVodStore initial load failed: $e');
+        _fail();
+      }),
+    );
+  }
+
+  static VodPlaybackProblem _forbiddenProblem(VodForbiddenException e) =>
+      switch (e.reason) {
+        'geoblocked' => VodPlaybackProblem.geoBlocked,
+        _ => VodPlaybackProblem.subscriberOnly,
+      };
+
+  void _setProblem(VodPlaybackProblem problem) {
+    _retryTimer?.cancel();
+    _recovering = false;
+    runInAction(() {
+      _status = VodPlaybackStatus.problem;
+      _problem = problem;
+      _overlayVisible = true;
+    });
+  }
 
   Future<void> _resolveUrl() async {
     for (var attempt = 0; ; attempt++) {
@@ -217,6 +246,10 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
       return;
     }
     if (epoch != _epoch) return;
+    runInAction(() {
+      _awaitingStart = true;
+      _position = startAt;
+    });
     await _channel?.invokeMethod('load', {
       'url': url,
       'startMs': startAt.inMilliseconds,
@@ -229,7 +262,7 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
   void _onEvent(Map<String, dynamic> e) {
     switch (e['type']) {
       case 'state':
-        _onState(e['state'] as String?);
+        if (!_terminal) _onState(e['state'] as String?);
       case 'progress':
         final duration = _validDuration(e['durationMs']);
         if (duration != null) _nativeDuration = duration;
@@ -242,16 +275,22 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
           final at = Duration(milliseconds: position);
           // A tick at the target means the seek is done even if the native
           // confirmation got lost.
-          if (_seeking && (at - _seekTarget).abs() < _seekTolerance) {
-            _endSeek();
+          if (_seeking && _nearSeekTarget(at)) _endSeek();
+          if (_awaitingStart && (at - _position).abs() < _seekTolerance) {
+            _awaitingStart = false;
           }
-          if (!_seeking) _position = at;
+          if (!_seeking && !_awaitingStart) _position = at;
         }
       case 'duration':
         final duration = _validDuration(e['ms']);
         if (duration != null) _nativeDuration = duration;
       case 'seeked':
-        _endSeek();
+        // The first confirmation after a load is the native start seek.
+        _awaitingStart = false;
+        final ms = (e['ms'] as num?)?.toInt();
+        if (ms == null || _nearSeekTarget(Duration(milliseconds: ms))) {
+          _endSeek();
+        }
       case 'qualities':
         final list = (e['list'] as List).map((q) => q.toString()).toList();
         _qualities = ['Auto', ...list];
@@ -267,6 +306,7 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
           source: e['source'] as String?,
         );
         debugPrint('IVS vod error: ${e['errorType']} ${e['code']} -> $kind');
+        if (_terminal) break;
         if (_recovering && kind != IvsErrorKind.fatal) break;
         _applyRecovery(_recovery.onError(kind));
     }
@@ -275,8 +315,12 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
   void _onState(String? state) {
     switch (state) {
       case 'PLAYING':
+        final resumed = paused;
         _status = VodPlaybackStatus.playing;
         _ended = false;
+        _awaitingStart = false;
+        // Controls shown while paused hide again once playback resumes.
+        if (resumed && _overlayVisible) _scheduleOverlayHide();
       case 'BUFFERING':
         _status = VodPlaybackStatus.buffering;
       case 'ENDED':
@@ -300,6 +344,9 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
 
   static const _seekTolerance = Duration(milliseconds: 1500);
 
+  bool _nearSeekTarget(Duration at) =>
+      (at - _seekTarget).abs() < _seekTolerance;
+
   void _endSeek() {
     _seeking = false;
     _seekTimeout?.cancel();
@@ -308,16 +355,19 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
   // --- Recovery -------------------------------------------------------------
 
   void _applyRecovery(IvsRecoveryAction action) {
-    if (_disposed) return;
+    if (_disposed || _terminal) return;
     switch (action) {
       case IvsRetry(:final delay) && final retry:
         _recovering = true;
         runInAction(() => _status = VodPlaybackStatus.loading);
         _retryTimer?.cancel();
         final epoch = _epoch;
+        // Captured now: ticks reported while reloading are not playback.
+        final resumeAt = _seeking ? _seekTarget : _position;
         _retryTimer = Timer(
           delay,
-          () => unawaited(_reload(epoch, freshToken: retry.freshToken)),
+          () =>
+              unawaited(_reload(epoch, resumeAt, freshToken: retry.freshToken)),
         );
       case IvsOffline():
         _recovering = true;
@@ -328,55 +378,76 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
     }
   }
 
-  Future<void> _reload(int epoch, {bool freshToken = false}) async {
+  Future<void> _reload(
+    int epoch,
+    Duration resumeAt, {
+    bool freshToken = false,
+  }) async {
     if (epoch != _epoch) return;
+    final String url;
     try {
-      final url = await vodService.getVodUsherUrl(
+      url = await vodService.getVodUsherUrl(
         vodId: vodId,
         forceFreshToken: freshToken,
       );
-      if (epoch != _epoch) return;
-      _url = url;
-      await _loadSource(url, _position, epoch);
-      if (epoch == _epoch) _recovering = false;
+    } on VodForbiddenException catch (e) {
+      if (epoch == _epoch) _setProblem(_forbiddenProblem(e));
+      return;
     } catch (e) {
       if (epoch != _epoch) return;
       _recovering = false;
-      if (e is VodForbiddenException) {
-        runInAction(() {
-          _status = VodPlaybackStatus.problem;
-          _problem = VodPlaybackProblem.subscriberOnly;
-        });
-        return;
+      if (isRetryableTokenError(e)) {
+        _applyRecovery(_recovery.onError(IvsErrorKind.recoverable));
+      } else {
+        // No token at all (e.g. the VOD was deleted): usher knows why; the
+        // web player would not do better.
+        _recovering = true;
+        unawaited(_diagnose(epoch));
       }
-      _applyRecovery(
-        _recovery.onError(
-          isRetryableTokenError(e)
-              ? IvsErrorKind.recoverable
-              : IvsErrorKind.fatal,
-        ),
-      );
+      return;
+    }
+    if (epoch != _epoch) return;
+    _url = url;
+    try {
+      await _loadSource(url, resumeAt, epoch);
+    } catch (e) {
+      debugPrint('IvsVodStore reload failed: $e');
+      if (epoch == _epoch) {
+        _recovering = false;
+        _fail();
+      }
+      return;
+    }
+    if (epoch == _epoch) _recovering = false;
+  }
+
+  /// IVS says the video is unavailable: ask usher why. A refusal (sub-only,
+  /// geoblock, gone) is a problem state, since the web player would fail the
+  /// same way; a playable playlist or a rejected token is retried.
+  Future<void> _diagnose(int epoch) async {
+    final url = _url;
+    VodPlaybackProblem? problem;
+    try {
+      problem = url == null
+          ? VodPlaybackProblem.unknown
+          : await vodService.diagnoseVodPlaylist(url);
+    } catch (_) {
+      problem = VodPlaybackProblem.unknown;
+    }
+    if (epoch != _epoch) return;
+    _recovering = false;
+    switch (problem) {
+      case null:
+        _applyRecovery(_recovery.onError(IvsErrorKind.recoverable));
+      case VodPlaybackProblem.tokenRejected:
+        _applyRecovery(_recovery.onError(IvsErrorKind.refreshToken));
+      case final problem:
+        _setProblem(problem);
     }
   }
 
-  /// IVS says the video is unavailable: ask usher why. The web player would
-  /// fail the same way, so this ends in a problem state, not a fallback.
-  Future<void> _diagnose(int epoch) async {
-    final url = _url;
-    final problem = url == null
-        ? VodPlaybackProblem.unknown
-        : await vodService.diagnoseVodPlaylist(url) ??
-              VodPlaybackProblem.unknown;
-    if (epoch != _epoch) return;
-    _recovering = false;
-    runInAction(() {
-      _status = VodPlaybackStatus.problem;
-      _problem = problem;
-    });
-  }
-
   void _fail() {
-    if (_disposed || _status == VodPlaybackStatus.failed) return;
+    if (_disposed || _terminal) return;
     _retryTimer?.cancel();
     _epoch++;
     _recovering = false;
@@ -389,11 +460,7 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
   @override
   @action
   void play() {
-    if (_ended) {
-      _ended = false;
-      _position = Duration.zero;
-      unawaited(_invoke('seekTo', {'ms': 0}));
-    }
+    if (_ended) seekTo(Duration.zero);
     unawaited(_invoke('play'));
   }
 
@@ -413,8 +480,11 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
     _seeking = true;
     _seekTarget = clamped;
     _seekTimeout?.cancel();
-    _seekTimeout = Timer(const Duration(seconds: 3), _endSeek);
-    _ended = false;
+    _seekTimeout = Timer(_seekTimeoutDelay, _endSeek);
+    if (_ended) {
+      _ended = false;
+      _status = VodPlaybackStatus.paused;
+    }
     unawaited(_invoke('seekTo', {'ms': clamped.inMilliseconds}));
     showOverlay();
   }
@@ -530,7 +600,7 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
 
   void _scheduleOverlayHide() {
     _overlayTimer?.cancel();
-    _overlayTimer = Timer(const Duration(seconds: 5), () {
+    _overlayTimer = Timer(_overlayHideDelay, () {
       // Stays visible while paused or ended so the controls are reachable.
       if (!paused) runInAction(() => _overlayVisible = false);
     });
@@ -551,6 +621,14 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
 
   @override
   Future<Duration?> currentPositionForSave() async {
+    // Before the start seek, during a reload or a seek, or after a failure,
+    // the native position is 0 or stale: the store's position is the truth.
+    if (_awaitingStart ||
+        _seeking ||
+        _terminal ||
+        _status == VodPlaybackStatus.loading) {
+      return _position;
+    }
     try {
       final ms = await _channel?.invokeMethod<int>('getPosition');
       if (ms != null && ms >= 0) return Duration(milliseconds: ms);

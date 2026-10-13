@@ -83,7 +83,13 @@ class IvsPlayerCore(
                 // owned by the live catch-up.
                 "seekTo" -> if (tuning.vod) {
                     val ms = call.argument<Number>("ms")?.toLong() ?: 0L
-                    player.seekTo(ms.coerceAtLeast(0L))
+                    if (autoPlayPending) {
+                        // Not READY yet: the start seek on READY would undo
+                        // this one, so it becomes the start position.
+                        pendingStartMs = ms
+                    } else {
+                        player.seekTo(ms.coerceAtLeast(0L))
+                    }
                     result.success(null)
                 } else {
                     result.notImplemented()
