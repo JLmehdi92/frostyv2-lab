@@ -230,39 +230,42 @@ class _ChannelChatTopOverlayState extends State<ChannelChatTopOverlay> {
                   maxWidth: largeScreen ? _maxBannerWidth : double.infinity,
                   maxHeight: maxHeight,
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (hypeTrain != null)
-                      HypeTrainSlot(
-                        store: hypeTrain,
-                        compact: compact,
-                        detailsMaxHeight: detailsMax,
-                        onLearnMore: () => _openGuide(settings),
-                        onOpenDetails: () =>
-                            showHypeTrainDetails(context, hypeTrain, settings),
-                      ),
-                    if (trainUp && showHighlights && highlights.visible)
-                      const SizedBox(height: 6),
-                    if (showHighlights)
-                      Flexible(
-                        child: SingleChildScrollView(
-                          child: HighlightSlot(
-                            store: highlights,
-                            compact: highlightsCompact,
-                            onWatchRaid: _watchRaid,
-                            pinnedMessage: widget.pinnedMessage,
-                            onOpenDetails: () => showHighlightDetails(
-                              context,
-                              highlights,
-                              onWatchRaid: _watchRaid,
-                              pinnedMessage: widget.pinnedMessage,
-                            ),
+                // A very short chat (the keyboard up) scrolls the tiers
+                // instead of overflowing.
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (hypeTrain != null)
+                        HypeTrainSlot(
+                          store: hypeTrain,
+                          compact: compact,
+                          detailsMaxHeight: detailsMax,
+                          onLearnMore: () => _openGuide(settings),
+                          onOpenDetails: () => showHypeTrainDetails(
+                            context,
+                            hypeTrain,
+                            settings,
                           ),
                         ),
-                      ),
-                  ],
+                      if (trainUp && showHighlights && highlights.visible)
+                        const SizedBox(height: 6),
+                      if (showHighlights)
+                        HighlightSlot(
+                          store: highlights,
+                          compact: highlightsCompact,
+                          onWatchRaid: _watchRaid,
+                          pinnedMessage: widget.pinnedMessage,
+                          onOpenDetails: () => showHighlightDetails(
+                            context,
+                            highlights,
+                            onWatchRaid: _watchRaid,
+                            pinnedMessage: widget.pinnedMessage,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),

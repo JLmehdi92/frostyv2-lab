@@ -423,6 +423,23 @@ void main() {
       expect(bottom, lessThanOrEqualTo(300 + 260 - 56));
     });
 
+    testWidgets('a very short chat scrolls the tiers instead of overflowing', (
+      tester,
+    ) async {
+      when(() => tabs.showTabBar).thenReturn(true);
+      await start(tester);
+      final train = running();
+      for (final height in [130.0, 160.0]) {
+        await pumpAt(
+          tester,
+          const Size(360, 740),
+          chat(train: train, height: height),
+        );
+        expect(tester.takeException(), isNull, reason: '$height dp');
+      }
+      await train.close(tester);
+    });
+
     testWidgets('hidden chat: both pills over the video, train first', (
       tester,
     ) async {
