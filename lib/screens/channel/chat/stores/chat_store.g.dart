@@ -33,6 +33,18 @@ mixin _$ChatStore on ChatStoreBase, Store {
         () => super.matchingChatters,
         name: 'ChatStoreBase.matchingChatters',
       )).value;
+  Computed<List<({String description, String name, String usage})>>?
+  _$matchingCommandsComputed;
+
+  @override
+  List<({String description, String name, String usage})>
+  get matchingCommands =>
+      (_$matchingCommandsComputed ??=
+              Computed<List<({String description, String name, String usage})>>(
+                () => super.matchingCommands,
+                name: 'ChatStoreBase.matchingCommands',
+              ))
+          .value;
   Computed<double>? _$bottomBarHeightComputed;
 
   @override
@@ -607,6 +619,7 @@ replyingToMessage: ${replyingToMessage},
 renderMessages: ${renderMessages},
 matchingEmotes: ${matchingEmotes},
 matchingChatters: ${matchingChatters},
+matchingCommands: ${matchingCommands},
 bottomBarHeight: ${bottomBarHeight}
     ''';
   }

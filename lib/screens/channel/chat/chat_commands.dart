@@ -41,8 +41,10 @@ final class UnsupportedCommand extends ChatCommand {
   final String message;
 }
 
+typedef ChatCommandInfo = ({String name, String usage, String description});
+
 /// The commands the input suggests, with their usage.
-const kChatCommands = <({String name, String usage, String description})>[
+const kChatCommands = <ChatCommandInfo>[
   (
     name: 'me',
     usage: '/me <message>',
@@ -122,6 +124,17 @@ const _moderatorCommands = {
 
 final _login = RegExp(r'^@?([a-zA-Z0-9_]{1,25})$');
 final _hex = RegExp(r'^#?([0-9a-fA-F]{6})$');
+
+/// The commands to suggest for [text] being typed: a `/` and the start of
+/// a name, before any space.
+List<ChatCommandInfo> matchCommands(String text) {
+  if (!text.startsWith('/') || text.contains(' ')) return const [];
+  final term = text.substring(1).toLowerCase();
+  return [
+    for (final command in kChatCommands)
+      if (command.name.startsWith(term)) command,
+  ];
+}
 
 ChatCommand parseChatCommand(String text) {
   final trimmed = text.trim();

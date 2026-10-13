@@ -60,4 +60,13 @@ void main() {
       contains('/help'),
     );
   });
+
+  test('suggestions while the command name is typed', () {
+    expect(matchCommands('/'), hasLength(kChatCommands.length));
+    expect(matchCommands('/co').map((c) => c.name), ['color']);
+    expect(matchCommands('/BL').map((c) => c.name), ['block']);
+    expect(matchCommands('/color '), isEmpty);
+    expect(matchCommands('hello /co'), isEmpty);
+    expect(matchCommands('/zzz'), isEmpty);
+  });
 }

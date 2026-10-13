@@ -230,6 +230,42 @@ class ChatBottomBar extends StatelessWidget {
               ),
             ],
             if (chatStore.settings.autocomplete &&
+                chatStore.matchingCommands.isNotEmpty) ...[
+              const Divider(),
+              TextFieldTapRegion(
+                child: SizedBox(
+                  height: 50,
+                  child: ListView(
+                    padding: const EdgeInsets.all(4),
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      for (final command in chatStore.matchingCommands)
+                        Tooltip(
+                          message: '${command.usage} · ${command.description}',
+                          child: TextButton(
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                            ),
+                            onPressed: () {
+                              final text = '/${command.name} ';
+                              chatStore.textController.value = TextEditingValue(
+                                text: text,
+                                selection: TextSelection.collapsed(
+                                  offset: text.length,
+                                ),
+                              );
+                            },
+                            child: Text('/${command.name}'),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+            if (chatStore.settings.autocomplete &&
                 chatStore.showMentionAutocomplete &&
                 matchingChatters.isNotEmpty) ...[
               const Divider(),

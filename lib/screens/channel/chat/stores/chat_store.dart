@@ -416,6 +416,10 @@ abstract class ChatStoreBase with Store {
         .toList();
   }
 
+  /// Slash commands matching what is typed ("/co" suggests /color).
+  @computed
+  List<ChatCommandInfo> get matchingCommands => matchCommands(_inputText);
+
   /// Current bottom bar height based on visible overlays.
   /// Used to dynamically adjust chat message list padding.
   @computed
@@ -430,7 +434,8 @@ abstract class ChatStoreBase with Store {
     // Add autocomplete bar height when showing matches.
     if (settings.autocomplete &&
         ((_showEmoteAutocomplete && matchingEmotes.isNotEmpty) ||
-            (_showMentionAutocomplete && matchingChatters.isNotEmpty))) {
+            (_showMentionAutocomplete && matchingChatters.isNotEmpty) ||
+            matchingCommands.isNotEmpty)) {
       height += _autocompleteHeight;
     }
 
