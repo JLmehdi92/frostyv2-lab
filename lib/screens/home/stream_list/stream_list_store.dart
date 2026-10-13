@@ -171,16 +171,7 @@ abstract class ListStoreBase with Store {
     this.scrollController,
     this.hypeTrainService,
   }) {
-    if (scrollController != null) {
-      scrollController!.addListener(() {
-        if (scrollController!.position.atEdge ||
-            scrollController!.position.outOfRange) {
-          showJumpButton = false;
-        } else {
-          showJumpButton = true;
-        }
-      });
-    }
+    scrollController?.addListener(_onScroll);
 
     if (listType != ListType.followed) {
       // A new language starts the list over.
@@ -401,12 +392,19 @@ abstract class ListStoreBase with Store {
     lastTimeRefreshed = now;
   }
 
+  void _onScroll() {
+    final position = scrollController!.position;
+    showJumpButton = !(position.atEdge || position.outOfRange);
+  }
+
+  /// Stops the reactions and the scroll listener. The [scrollController]
+  /// belongs to whoever passed it and is left alone.
   void dispose() {
     _languageReactionDisposer?.call();
     _pinnedStreamsReactionDisposer?.call();
     _offlineChannelsExpansionDisposer?.call();
 
-    scrollController?.dispose();
+    scrollController?.removeListener(_onScroll);
   }
 }
 

@@ -83,6 +83,7 @@ class _StreamsListState extends State<StreamsList>
 
   @override
   void dispose() {
+    _listStore.dispose();
     _scrollController?.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
