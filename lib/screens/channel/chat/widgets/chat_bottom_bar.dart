@@ -29,6 +29,40 @@ class ChatBottomBar extends StatelessWidget {
     this.channelDisplayName,
   });
 
+  /// Narrowest side chat, in dp, that still gets a text field on a large
+  /// screen. Below it a pencil widens the chat first.
+  static const minInputWidth = 200.0;
+
+  /// Whether the landscape side chat shows a pencil instead of the text
+  /// field, and whether it shows the send button.
+  ///
+  /// Phones keep the original rule (a chat under 30% of the width). A large
+  /// screen uses the chat's width in dp, so a tablet's 20% column (320 dp)
+  /// keeps the input.
+  @visibleForTesting
+  static ({bool pencil, bool send}) inputControls({
+    required double screenWidth,
+    required double chatWidth,
+    required bool landscape,
+    required bool forceVerticalChat,
+    required bool showVideo,
+    required bool expandChat,
+    required bool largeScreen,
+  }) {
+    if (largeScreen) {
+      final tooNarrow =
+          landscape &&
+          showVideo &&
+          !forceVerticalChat &&
+          screenWidth * chatWidth < minInputWidth;
+      return (pencil: !expandChat && tooNarrow, send: expandChat || !tooNarrow);
+    }
+    return (
+      pencil: !expandChat && chatWidth < 0.3 && showVideo && landscape,
+      send: chatWidth >= 0.3 || expandChat || !landscape,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isEmotesEnabled =
@@ -66,6 +100,16 @@ class ChatBottomBar extends StatelessWidget {
 
         final isFullscreenOverlay =
             chatStore.settings.fullScreen && context.isLandscape;
+
+        final inputControls = ChatBottomBar.inputControls(
+          screenWidth: context.screenWidth,
+          chatWidth: chatStore.settings.chatWidth,
+          landscape: context.isLandscape,
+          forceVerticalChat: chatStore.settings.landscapeForceVerticalChat,
+          showVideo: chatStore.settings.showVideo,
+          expandChat: chatStore.expandChat,
+          largeScreen: context.isLargeScreen,
+        );
 
         final effectiveChatDelay = chatStore.settings.effectiveChatDelay;
 
@@ -216,10 +260,7 @@ class ChatBottomBar extends StatelessWidget {
               padding: const EdgeInsets.only(left: 12, top: 8, bottom: 8),
               child: Row(
                 children: [
-                  if (!chatStore.expandChat &&
-                      chatStore.settings.chatWidth < 0.3 &&
-                      chatStore.settings.showVideo &&
-                      context.isLandscape)
+                  if (inputControls.pencil)
                     Builder(
                       builder: (context) {
                         final isDisabled = !chatStore.auth.isLoggedIn;
@@ -306,12 +347,12 @@ class ChatBottomBar extends StatelessWidget {
                                     ? 'Sending...'
                                     : chatStore.replyingToMessage != null
                                     ? channelDisplayName != null
-                                        ? 'Reply in ${channelDisplayName!}'
-                                        : 'Reply'
+                                          ? 'Reply in ${channelDisplayName!}'
+                                          : 'Reply'
                                     : hasChatDelay
                                     ? channelDisplayName != null
-                                        ? 'Chat in ${channelDisplayName!} (${effectiveChatDelay.toInt()}s delay)'
-                                        : 'Chat (${effectiveChatDelay.toInt()}s delay)'
+                                          ? 'Chat in ${channelDisplayName!} (${effectiveChatDelay.toInt()}s delay)'
+                                          : 'Chat (${effectiveChatDelay.toInt()}s delay)'
                                     : channelDisplayName != null
                                     ? 'Chat in ${channelDisplayName!}'
                                     : 'Chat',
@@ -327,11 +368,7 @@ class ChatBottomBar extends StatelessWidget {
                       ),
                     ),
                   TextFieldTapRegion(
-                    child:
-                        chatStore.showSendButton &&
-                            (chatStore.settings.chatWidth >= 0.3 ||
-                                chatStore.expandChat ||
-                                context.isPortrait)
+                    child: chatStore.showSendButton && inputControls.send
                         ? Observer(
                             builder: (context) => IconButton(
                               tooltip: chatStore.isWaitingForAck
