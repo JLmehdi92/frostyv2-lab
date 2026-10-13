@@ -77,4 +77,16 @@ void main() {
       );
     });
   });
+
+  test('vod players are created in vod mode only', () {
+    expect(IvsPlayerConfig.vodCreateArgs, {'vod': true});
+    for (final catchUp in LiveCatchUpMode.values) {
+      for (final buffer in BufferProfile.values) {
+        expect(
+          IvsPlayerConfig(catchUp: catchUp, buffer: buffer).toCreateArgs(),
+          isNot(contains('vod')),
+        );
+      }
+    }
+  });
 }

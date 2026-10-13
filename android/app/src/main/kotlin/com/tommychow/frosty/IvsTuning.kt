@@ -22,12 +22,22 @@ data class IvsTuning(
     val initialBufferMs: Long = 100,
     val llMinBufferSec: Double? = null,
     val llMinBufferCeilingSec: Double? = null,
+    /** Past broadcast / highlight: no live low-latency or catch-up tuning. */
+    val vod: Boolean = false,
 ) {
     /**
      * Builds the player with the session config, falling back to a plain
      * player if the SDK rejects it, so playback never fails because of tuning.
      */
     fun buildPlayer(context: Context): Player {
+        if (vod) {
+            val player = runCatching {
+                val built: Player = MediaPlayer.Builder(context).build()
+                built
+            }.getOrElse { Player.Factory.create(context) }
+            Log.i(TUNING_TAG, "vod player sdk=${runCatching { player.version }.getOrNull()}")
+            return player
+        }
         val player = runCatching {
             val session = SessionConfig().setLiveCatchUpSpeedUpEnabled(speedUpCatchUp)
             // Each buffer override is optional: an out-of-range value only
@@ -56,6 +66,16 @@ data class IvsTuning(
      * and the latency/catch-up modes are only (re)applied when a stream loads.
      */
     fun applyTo(player: Player) {
+        if (vod) {
+            // VODs keep the SDK's default buffering for smooth seeking.
+            try {
+                player.setLiveLowLatencyEnabled(false)
+                player.setRebufferToLive(false)
+            } catch (t: Throwable) {
+                Log.w(TUNING_TAG, "vod config failed: $t")
+            }
+            return
+        }
         try {
             player.setLiveLowLatencyEnabled(true)
             player.setRebufferToLive(rebufferToLive)
@@ -77,6 +97,7 @@ data class IvsTuning(
                     ?: defaults.initialBufferMs,
                 llMinBufferSec = (args["llMinBufferSec"] as? Number)?.toDouble(),
                 llMinBufferCeilingSec = (args["llMinBufferCeilingSec"] as? Number)?.toDouble(),
+                vod = args["vod"] as? Boolean ?: false,
             )
         }
     }
