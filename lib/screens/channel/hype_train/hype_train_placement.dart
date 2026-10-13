@@ -9,7 +9,7 @@ enum HtPlacement {
   /// Chat is hidden in landscape full screen: a pill over the video.
   pill,
 
-  /// The landscape keyboard leaves no room.
+  /// The landscape keyboard leaves no room (phones).
   none,
 }
 
@@ -20,14 +20,17 @@ HtPlacement hypeTrainPlacement({
   required bool overlayChat,
   required bool showVideo,
   required bool keyboardOpen,
+  required bool largeScreen,
 }) {
+  // A tablet keeps plenty of chat above the landscape keyboard.
+  final keyboardHides = keyboardOpen && !largeScreen;
   if (!showVideo) {
-    return landscape && keyboardOpen
+    return landscape && keyboardHides
         ? HtPlacement.none
         : HtPlacement.bannerFull;
   }
   if (!landscape || forceVertical) return HtPlacement.bannerFull;
-  if (keyboardOpen) return HtPlacement.none;
+  if (keyboardHides) return HtPlacement.none;
   if (fullScreen) {
     return overlayChat ? HtPlacement.bannerCompact : HtPlacement.pill;
   }

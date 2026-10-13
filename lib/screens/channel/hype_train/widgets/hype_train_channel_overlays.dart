@@ -28,7 +28,14 @@ HtPlacement _placement(
   overlayChat: settings.fullScreenChatOverlay,
   showVideo: settings.showVideo,
   keyboardOpen: typing || _keyboardOpen(context),
+  largeScreen: context.isLargeScreen,
 );
+
+/// Widest banner on a large screen, in dp (Twitch's tablet chat card).
+const _maxBannerWidth = 560.0;
+
+/// Narrowest chat that gets the full banner on a large screen.
+const _fullBannerMinWidth = 480.0;
 
 void _openGuide(SettingsStore settings) =>
     LinkRouter.open(htHelpUrl, launchExternal: settings.launchUrlExternal);
@@ -159,7 +166,12 @@ class _HypeTrainChatOverlayState extends State<HypeTrainChatOverlay> {
           if (placement == HtPlacement.none || placement == HtPlacement.pill) {
             return const SizedBox.shrink();
           }
-          final compact = placement == HtPlacement.bannerCompact;
+          final largeScreen = context.isLargeScreen;
+          // A wide chat (a tablet's expanded column) has room for the full
+          // banner.
+          final compact =
+              placement == HtPlacement.bannerCompact &&
+              !(largeScreen && constraints.maxWidth >= _fullBannerMinWidth);
           final chatOnly = !settings.showVideo;
           final top =
               (chatOnly ? context.safePaddingTop : 0) +
@@ -175,13 +187,18 @@ class _HypeTrainChatOverlayState extends State<HypeTrainChatOverlay> {
             alignment: Alignment.topCenter,
             child: Padding(
               padding: EdgeInsets.fromLTRB(8, top + 6, 8, 0),
-              child: HypeTrainSlot(
-                store: widget.store,
-                compact: compact,
-                detailsMaxHeight: detailsMax,
-                onLearnMore: () => _openGuide(settings),
-                onOpenDetails: () =>
-                    showHypeTrainDetails(context, widget.store, settings),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: largeScreen ? _maxBannerWidth : double.infinity,
+                ),
+                child: HypeTrainSlot(
+                  store: widget.store,
+                  compact: compact,
+                  detailsMaxHeight: detailsMax,
+                  onLearnMore: () => _openGuide(settings),
+                  onOpenDetails: () =>
+                      showHypeTrainDetails(context, widget.store, settings),
+                ),
               ),
             ),
           );

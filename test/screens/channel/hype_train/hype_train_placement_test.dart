@@ -9,6 +9,7 @@ void main() {
     bool overlayChat = false,
     bool showVideo = true,
     bool keyboardOpen = false,
+    bool largeScreen = false,
   }) => hypeTrainPlacement(
     landscape: landscape,
     forceVertical: forceVertical,
@@ -16,6 +17,7 @@ void main() {
     overlayChat: overlayChat,
     showVideo: showVideo,
     keyboardOpen: keyboardOpen,
+    largeScreen: largeScreen,
   );
 
   test('portrait is always the full banner, keyboard or not', () {
@@ -60,8 +62,41 @@ void main() {
     );
   });
 
+  test('a large screen keeps it when the landscape keyboard opens', () {
+    expect(
+      place(landscape: true, keyboardOpen: true, largeScreen: true),
+      HtPlacement.bannerCompact,
+    );
+    expect(
+      place(
+        landscape: true,
+        fullScreen: true,
+        overlayChat: true,
+        keyboardOpen: true,
+        largeScreen: true,
+      ),
+      HtPlacement.bannerCompact,
+    );
+    expect(
+      place(
+        showVideo: false,
+        landscape: true,
+        keyboardOpen: true,
+        largeScreen: true,
+      ),
+      HtPlacement.bannerFull,
+    );
+  });
+
+  test('a large screen in full screen with hidden chat is still a pill', () {
+    expect(
+      place(landscape: true, fullScreen: true, largeScreen: true),
+      HtPlacement.pill,
+    );
+  });
+
   test('every combination has a placement', () {
-    for (var bits = 0; bits < 64; bits++) {
+    for (var bits = 0; bits < 128; bits++) {
       bool bit(int i) => bits & (1 << i) != 0;
       expect(
         HtPlacement.values,
@@ -73,6 +108,7 @@ void main() {
             overlayChat: bit(3),
             showVideo: bit(4),
             keyboardOpen: bit(5),
+            largeScreen: bit(6),
           ),
         ),
       );

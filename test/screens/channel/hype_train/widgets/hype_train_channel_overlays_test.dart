@@ -245,4 +245,58 @@ void main() {
     await h.close(tester);
     semantics.dispose();
   });
+
+  group('large screens', () {
+    Future<(HtHarness, HypeTrainSlot)> slotInChat(
+      WidgetTester tester,
+      double width,
+    ) async {
+      final h = running();
+      await pumpAt(
+        tester,
+        const Size(1600, 1067),
+        Align(
+          alignment: Alignment.topRight,
+          child: SizedBox(
+            width: width,
+            height: 1000,
+            child: Stack(
+              children: [
+                const SizedBox.expand(),
+                HypeTrainChatOverlay(
+                  store: h.store,
+                  settingsStore: settings,
+                  chatTabsStore: tabs,
+                  chatInputFocus: FocusNode(),
+                  bottomBarHeight: 56,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      expect(tester.takeException(), isNull);
+      return (h, tester.widget<HypeTrainSlot>(find.byType(HypeTrainSlot)));
+    }
+
+    testWidgets('the 320 dp side chat keeps the compact banner', (
+      tester,
+    ) async {
+      final (h, slot) = await slotInChat(tester, 320);
+      expect(slot.compact, isTrue);
+      await h.close(tester);
+    });
+
+    testWidgets('a wide chat gets the full banner, at most 560 dp', (
+      tester,
+    ) async {
+      final (h, slot) = await slotInChat(tester, 800);
+      expect(slot.compact, isFalse);
+      expect(
+        tester.getSize(find.byType(HypeTrainSlot)).width,
+        lessThanOrEqualTo(560),
+      );
+      await h.close(tester);
+    });
+  });
 }
