@@ -14,13 +14,52 @@ Object? chField(Map<dynamic, dynamic>? map, String camel, [String? snake]) {
 /// [value] as a map, or null.
 Map<dynamic, dynamic>? chMap(Object? value) => value is Map ? value : null;
 
-/// [value] as a list, or an empty one.
-List<Object?> chList(Object? value) => value is List ? value : const [];
+/// [value] as a list of at most [max] items, or an empty one.
+List<Object?> chList(Object? value, {int max = 20}) => value is List
+    ? (value.length > max ? value.sublist(0, max) : value)
+    : const [];
 
-/// [value] as non-empty text of at most [max] characters, or null.
+/// [value] as non-empty, well-formed text of at most [max] UTF-16 units,
+/// or null. A cut never splits a character, and a lone surrogate (which
+/// text layout rejects) becomes U+FFFD.
 String? chString(Object? value, {int max = 500}) {
   if (value is! String || value.isEmpty) return null;
-  return value.length > max ? value.substring(0, max) : value;
+  var text = value;
+  if (text.length > max) {
+    var end = max;
+    if (end > 0 && _isHighSurrogate(text.codeUnitAt(end - 1))) end--;
+    text = text.substring(0, end);
+  }
+  text = chWellFormed(text);
+  return text.isEmpty ? null : text;
+}
+
+bool _isHighSurrogate(int unit) => unit >= 0xD800 && unit <= 0xDBFF;
+bool _isLowSurrogate(int unit) => unit >= 0xDC00 && unit <= 0xDFFF;
+
+/// [text] with every unpaired surrogate replaced by U+FFFD.
+String chWellFormed(String text) {
+  StringBuffer? out;
+  for (var i = 0; i < text.length; i++) {
+    final unit = text.codeUnitAt(i);
+    final paired = _isHighSurrogate(unit)
+        ? i + 1 < text.length && _isLowSurrogate(text.codeUnitAt(i + 1))
+        : !_isLowSurrogate(unit);
+    if (paired && _isHighSurrogate(unit)) {
+      i++;
+      out
+        ?..writeCharCode(unit)
+        ..writeCharCode(text.codeUnitAt(i));
+      continue;
+    }
+    if (!paired) {
+      out ??= StringBuffer(text.substring(0, i));
+      out.writeCharCode(0xFFFD);
+      continue;
+    }
+    out?.writeCharCode(unit);
+  }
+  return out?.toString() ?? text;
 }
 
 /// A whole number from a number or a numeric string ("154").
@@ -30,8 +69,15 @@ int? chInt(Object? value) {
   return null;
 }
 
+/// [value] seconds, between zero and [max].
+Duration? chSeconds(Object? value, {required Duration max}) {
+  final seconds = chInt(value);
+  if (seconds == null) return null;
+  return Duration(seconds: seconds.clamp(0, max.inSeconds));
+}
+
 /// A date from an ISO string, or epoch seconds or milliseconds (number or
-/// string). Anything before 2000 is treated as nonsense.
+/// string). Anything outside 2000-2200 is treated as nonsense.
 DateTime? chDate(Object? value) {
   final number = value is num
       ? value
@@ -42,16 +88,27 @@ DateTime? chDate(Object? value) {
     if (!number.isFinite) return null;
     // Seconds until year 33658; milliseconds after.
     final ms = number.abs() < 1e12 ? number * 1000 : number;
-    if (ms < 946684800000) return null;
+    if (ms < _minDateMs || ms >= _maxDateMs) return null;
     return DateTime.fromMillisecondsSinceEpoch(ms.toInt(), isUtc: true);
   }
   if (value is String) {
     final date = DateTime.tryParse(value);
-    if (date == null || date.year < 2000) return null;
+    if (date == null || date.year < 2000 || date.year >= 2200) return null;
     return date.toUtc();
   }
   return null;
 }
+
+const _minDateMs = 946684800000; // 2000-01-01
+const _maxDateMs = 7258118400000; // 2200-01-01
+
+/// Longest poll or prediction window Twitch allows is far below this.
+const _maxWindow = Duration(days: 1);
+
+/// A pinned message: Twitch's 500-character limit, in at most this many
+/// fragments.
+const _maxText = 500;
+const _maxFragments = 200;
 
 final _numericId = RegExp(r'^[0-9]{1,20}$');
 final _login = RegExp(r'^[a-zA-Z0-9_]{1,25}$');
@@ -138,10 +195,12 @@ class Poll {
       title: chString(map['title'], max: 200) ?? '',
       status: _pollStatus(map['status']),
       choices: choices,
-      duration: Duration(
-        seconds:
-            chInt(chField(map, 'durationSeconds', 'duration_seconds')) ?? 0,
-      ),
+      duration:
+          chSeconds(
+            chField(map, 'durationSeconds', 'duration_seconds'),
+            max: _maxWindow,
+          ) ??
+          Duration.zero,
       totalVotes:
           chInt(chMap(map['votes'])?['total']) ??
           choices.fold(0, (sum, c) => sum + c.votes),
@@ -149,7 +208,10 @@ class Poll {
       channelId: chString(map['owned_by'], max: 20),
       startedAt: chDate(chField(map, 'startedAt', 'started_at')),
       endedAt: chDate(chField(map, 'endedAt', 'ended_at')),
-      remaining: remainingMs == null || remainingMs < 0
+      remaining:
+          remainingMs == null ||
+              remainingMs < 0 ||
+              remainingMs > _maxWindow.inMilliseconds
           ? null
           : Duration(milliseconds: remainingMs),
       multiChoice: chField(multi, 'isEnabled', 'is_enabled') == true,
@@ -302,17 +364,16 @@ class Prediction {
       title: chString(map['title'], max: 200) ?? '',
       status: _predictionStatus(map['status']),
       outcomes: outcomes,
-      window: Duration(
-        seconds:
-            chInt(
-              chField(
-                map,
-                'predictionWindowSeconds',
-                'prediction_window_seconds',
-              ),
-            ) ??
-            0,
-      ),
+      window:
+          chSeconds(
+            chField(
+              map,
+              'predictionWindowSeconds',
+              'prediction_window_seconds',
+            ),
+            max: _maxWindow,
+          ) ??
+          Duration.zero,
       channelId: chString(map['channel_id'], max: 20),
       createdAt: chDate(chField(map, 'createdAt', 'created_at')),
       lockedAt: chDate(chField(map, 'lockedAt', 'locked_at')),
@@ -385,10 +446,12 @@ class PinnedChatMessage {
     final sender = chMap(message['sender']);
     final content = chMap(message['content']);
     final fragments = <PinnedFragment>[];
-    for (final item in chList(content?['fragments'])) {
+    var length = 0;
+    for (final item in chList(content?['fragments'], max: _maxFragments)) {
       final fragment = chMap(item);
-      final text = fragment?['text'];
-      if (text is! String) continue;
+      final text = chString(fragment?['text'], max: _maxText - length);
+      if (text == null) continue;
+      length += text.length;
       final inner = chMap(fragment!['content']);
       fragments.add(
         PinnedFragment(
@@ -433,10 +496,12 @@ class PinnedChatMessage {
     final sender = chMap(message['sender']);
     final content = chMap(message['content']);
     final fragments = <PinnedFragment>[];
-    for (final item in chList(content?['fragments'])) {
+    var length = 0;
+    for (final item in chList(content?['fragments'], max: _maxFragments)) {
       final fragment = chMap(item);
-      final text = fragment?['text'];
-      if (text is! String) continue;
+      final text = chString(fragment?['text'], max: _maxText - length);
+      if (text == null) continue;
+      length += text.length;
       final emote = chMap(fragment!['emote']) ?? chMap(fragment['emoticon']);
       fragments.add(
         PinnedFragment(
@@ -549,7 +614,12 @@ class OutgoingRaid {
           : null,
       targetViewerCount: chInt(map['target_viewer_count']),
       createdAt: chDate(map['raid_created_at']),
-      forceRaidNowSeconds: chInt(map['force_raid_now_seconds']) ?? 90,
+      forceRaidNowSeconds:
+          chSeconds(
+            map['force_raid_now_seconds'],
+            max: const Duration(minutes: 10),
+          )?.inSeconds ??
+          90,
     );
   }
 

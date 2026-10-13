@@ -309,4 +309,76 @@ void main() {
     }
     expect(ChEvent.parse(HighlightTopic.polls, 'x'), isA<ChUnknown>());
   });
+
+  group('hostile payloads', () {
+    test('a cut never splits an emoji; lone surrogates are replaced', () {
+      final cut = chString('${'a' * 499}😀b')!;
+      expect(cut, 'a' * 499);
+      expect(chString('x\ud83dy'), 'x�y');
+      expect(chString('\udc00'), '�');
+      expect(chString('ok 😀'), 'ok 😀');
+      expect(chWellFormed('😀😀'), '😀😀');
+    });
+
+    test('absurd dates and durations never throw', () {
+      expect(chDate(1e16), isNull);
+      expect(chDate('9000000000000000'), isNull);
+      expect(chDate('2400-01-01T00:00:00Z'), isNull);
+      expect(chDate(1760385600), DateTime.utc(2025, 10, 13, 20));
+
+      final poll = Poll.fromPubsub({
+        'poll_id': 'p',
+        'title': 'Q',
+        'status': 'ACTIVE',
+        'started_at': '2026-10-13T20:00:00Z',
+        'ended_at': 8640000000000000,
+        'duration_seconds': 8640000000000,
+        'choices': const [],
+      })!;
+      expect(poll.endedAt, isNull);
+      expect(poll.endsAt, DateTime.utc(2026, 10, 14, 20));
+
+      final raid = OutgoingRaid.fromPubsub({
+        'id': 'r',
+        'source_id': '1',
+        'target_id': '2',
+        'target_login': 'friend',
+        'raid_created_at': 1760385600,
+        'force_raid_now_seconds': 8640000000000,
+      })!;
+      expect(raid.goAt, DateTime.utc(2025, 10, 13, 20, 10));
+    });
+
+    test('lists and pinned text are bounded', () {
+      final poll = Poll.fromPubsub({
+        'poll_id': 'p',
+        'title': 'Q',
+        'status': 'ACTIVE',
+        'choices': [
+          for (var i = 0; i < 1000; i++) {'choice_id': 'c$i', 'title': 'C$i'},
+        ],
+      })!;
+      expect(poll.choices.length, lessThanOrEqualTo(20));
+
+      final pin = PinnedChatMessage.fromPubsub({
+        'id': 'pin',
+        'message': {
+          'id': 'm',
+          'sender': {'id': '7', 'login': 'mod', 'display_name': 'Mod'},
+          'content': {
+            'text': 'x' * 100000,
+            'fragments': [
+              for (var i = 0; i < 1000; i++) {'text': 'y' * 100000},
+            ],
+          },
+        },
+      })!;
+      expect(pin.text.length, lessThanOrEqualTo(500));
+      expect(pin.fragments.length, lessThanOrEqualTo(200));
+      expect(
+        pin.fragments.fold(0, (sum, f) => sum + f.text.length),
+        lessThanOrEqualTo(500),
+      );
+    });
+  });
 }
