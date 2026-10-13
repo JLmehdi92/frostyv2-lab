@@ -10,6 +10,7 @@ import 'package:frosty/screens/settings/video_settings.dart';
 import 'package:frosty/screens/settings/widgets/settings_tile_route.dart';
 import 'package:frosty/widgets/blurred_container.dart';
 import 'package:frosty/widgets/frosty_scrollbar.dart';
+import 'package:frosty/widgets/readable_width.dart';
 import 'package:frosty/widgets/section_header.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -92,29 +93,31 @@ class Settings extends StatelessWidget {
                         kToolbarHeight +
                         8,
                   ),
-                  sliver: SliverList.list(
-                    children: [
-                      const SectionHeader('Account', isFirst: true),
-                      ProfileCard(authStore: context.read<AuthStore>()),
-                      const SectionHeader('Customize'),
-                      SettingsTileRoute(
-                        leading: const Icon(Icons.settings_outlined),
-                        title: 'General',
-                        child: GeneralSettings(settingsStore: settingsStore),
-                      ),
-                      SettingsTileRoute(
-                        leading: const Icon(Icons.tv_rounded),
-                        title: 'Video',
-                        child: VideoSettings(settingsStore: settingsStore),
-                      ),
-                      SettingsTileRoute(
-                        leading: const Icon(Icons.chat_outlined),
-                        title: 'Chat',
-                        child: ChatSettings(settingsStore: settingsStore),
-                      ),
-                      const SectionHeader('Other'),
-                      OtherSettings(settingsStore: settingsStore),
-                    ],
+                  sliver: SliverReadableWidth(
+                    sliver: SliverList.list(
+                      children: [
+                        const SectionHeader('Account', isFirst: true),
+                        ProfileCard(authStore: context.read<AuthStore>()),
+                        const SectionHeader('Customize'),
+                        SettingsTileRoute(
+                          leading: const Icon(Icons.settings_outlined),
+                          title: 'General',
+                          child: GeneralSettings(settingsStore: settingsStore),
+                        ),
+                        SettingsTileRoute(
+                          leading: const Icon(Icons.tv_rounded),
+                          title: 'Video',
+                          child: VideoSettings(settingsStore: settingsStore),
+                        ),
+                        SettingsTileRoute(
+                          leading: const Icon(Icons.chat_outlined),
+                          title: 'Chat',
+                          child: ChatSettings(settingsStore: settingsStore),
+                        ),
+                        const SectionHeader('Other'),
+                        OtherSettings(settingsStore: settingsStore),
+                      ],
+                    ),
                   ),
                 ),
                 SliverFillRemaining(
