@@ -4,6 +4,7 @@ import 'package:frosty/apis/ffz_api.dart';
 import 'package:frosty/apis/seventv_api.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_clip_service.dart';
+import 'package:frosty/apis/twitch_community_highlights_service.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
@@ -108,6 +109,10 @@ extension ContextExtensions on BuildContext {
 
   /// Clips from anonymous GQL.
   TwitchClipService get twitchClipService => read<TwitchClipService>();
+
+  /// Polls, predictions and pinned messages from anonymous GQL.
+  TwitchCommunityHighlightsService get twitchCommunityHighlightsService =>
+      read<TwitchCommunityHighlightsService>();
 
   /// Hype train snapshots from anonymous GQL.
   TwitchHypeTrainService get twitchHypeTrainService =>
