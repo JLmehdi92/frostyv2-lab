@@ -145,4 +145,21 @@ void main() {
     expect(category.videos.single.id, '1');
     expect(category.error, isNull);
   });
+
+  test('an unknown category says so', () async {
+    when(
+      () => service.getCategoryVideos('1'),
+    ).thenThrow(const NotFoundException('Category not found'));
+    final category = ChannelVideosStore(
+      login: '',
+      type: VodType.archive,
+      gameId: '1',
+      vodService: service,
+    );
+    addTearDown(category.dispose);
+
+    await category.load();
+
+    expect(category.error, 'Category not found');
+  });
 }

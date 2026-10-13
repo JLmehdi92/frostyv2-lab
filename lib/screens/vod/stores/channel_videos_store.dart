@@ -69,7 +69,11 @@ abstract class ChannelVideosStoreBase with Store {
         _error = null;
       });
     } on NotFoundException {
-      runInAction(() => _error = 'Channel not found');
+      runInAction(
+        () => _error = gameId != null
+            ? 'Category not found'
+            : 'Channel not found',
+      );
     } catch (e) {
       debugPrint('ChannelVideosStore $type failed: $e');
       runInAction(() => _error = "Couldn't load videos");

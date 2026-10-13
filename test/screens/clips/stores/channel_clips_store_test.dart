@@ -216,4 +216,24 @@ void main() {
       ),
     );
   });
+
+  test('an unknown category says so', () async {
+    when(
+      () => service.getCategoryClips(
+        gameId: any(named: 'gameId'),
+        period: any(named: 'period'),
+        sort: any(named: 'sort'),
+      ),
+    ).thenThrow(const NotFoundException('nope'));
+    final category = ChannelClipsStore(
+      login: '',
+      gameId: '1',
+      clipService: service,
+    );
+    addTearDown(category.dispose);
+
+    await category.load();
+
+    expect(category.error, 'Category not found');
+  });
 }
