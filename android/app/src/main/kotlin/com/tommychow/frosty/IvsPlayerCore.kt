@@ -14,12 +14,13 @@ private const val CORE_TAG = "FrostyIVS"
 
 /**
  * Amazon IVS control/event wiring for a texture-backed player
- * ([IvsTexturePlayer]).
+ * ([IvsTexturePlayer]), live or VOD ([IvsTuning.vod]).
  *
  * Given an IVS [Player] and a per-instance [MethodChannel], it bridges
- * play/pause/quality/sound/load from Dart, forwards player events back, and
- * ticks the live latency (plus optional stats) once per second. [onVideoSize]
- * lets the texture resize its buffer to the source resolution.
+ * play/pause/quality/sound/load (and, for VODs, seek/rate/position) from
+ * Dart, forwards player events back, and ticks either the live latency (plus
+ * optional stats) once per second or the VOD progress four times a second.
+ * [onVideoSize] lets the texture resize its buffer to the source resolution.
  */
 class IvsPlayerCore(
     private val player: Player,
@@ -28,10 +29,22 @@ class IvsPlayerCore(
 ) {
     private val main = Handler(Looper.getMainLooper())
     private var latencyTicker: Runnable? = null
+    private var progressTicker: Runnable? = null
+    private var tuning = IvsTuning()
+
+    /**
+     * VOD only: position to seek to on the first READY after a load (0 too:
+     * a still-recording VOD would otherwise start at its live edge).
+     */
+    private var pendingStartMs: Long? = null
+
+    /** VOD only: auto-play once per load, so later READYs keep a pause. */
+    private var autoPlayPending = false
     private var qualitiesSent = false
     private var statsEnabled = false
 
     fun start(url: String, tuning: IvsTuning = IvsTuning()) {
+        this.tuning = tuning
         channel.setMethodCallHandler { call, result ->
             when (call.method) {
                 "play" -> { player.play(); result.success(null) }
@@ -59,8 +72,40 @@ class IvsPlayerCore(
                 "load" -> {
                     val newUrl = call.argument<String>("url")
                     qualitiesSent = false
+                    if (tuning.vod) {
+                        pendingStartMs = call.argument<Number>("startMs")?.toLong()
+                        autoPlayPending = true
+                    }
                     if (newUrl != null) player.load(Uri.parse(newUrl))
                     result.success(null)
+                }
+                // VOD-only controls: a live player has no seek and its speed is
+                // owned by the live catch-up.
+                "seekTo" -> if (tuning.vod) {
+                    val ms = call.argument<Number>("ms")?.toLong() ?: 0L
+                    if (autoPlayPending) {
+                        // Not READY yet: the start seek on READY would undo
+                        // this one, so it becomes the start position.
+                        pendingStartMs = ms
+                    } else {
+                        player.seekTo(ms.coerceAtLeast(0L))
+                    }
+                    result.success(null)
+                } else {
+                    result.notImplemented()
+                }
+                "setPlaybackRate" -> if (tuning.vod) {
+                    val raw = call.argument<Number>("rate")?.toFloat() ?: 1f
+                    val rate = if (raw.isNaN()) 1f else raw
+                    player.playbackRate = rate.coerceIn(0.5f, 2f)
+                    result.success(null)
+                } else {
+                    result.notImplemented()
+                }
+                "getPosition" -> if (tuning.vod) {
+                    result.success(runCatching { player.position }.getOrNull())
+                } else {
+                    result.notImplemented()
                 }
                 else -> result.notImplemented()
             }
@@ -69,7 +114,16 @@ class IvsPlayerCore(
         player.addListener(object : Player.Listener() {
             override fun onStateChanged(state: Player.State) {
                 send(mapOf("type" to "state", "state" to state.name))
-                if (state == Player.State.READY) player.play()
+                if (state == Player.State.READY) {
+                    if (!tuning.vod) {
+                        player.play()
+                    } else if (autoPlayPending) {
+                        autoPlayPending = false
+                        pendingStartMs?.let { player.seekTo(it.coerceAtLeast(0L)) }
+                        pendingStartMs = null
+                        player.play()
+                    }
+                }
                 if (state == Player.State.PLAYING && !qualitiesSent) {
                     qualitiesSent = true
                     // Best first (resolution, then frame rate, then bitrate) so
@@ -105,16 +159,51 @@ class IvsPlayerCore(
             }
             override fun onVideoSizeChanged(w: Int, h: Int) { onVideoSize?.invoke(w, h) }
             override fun onCue(cue: Cue) {}
-            override fun onDurationChanged(duration: Long) {}
-            override fun onSeekCompleted(position: Long) {}
+            override fun onDurationChanged(duration: Long) {
+                if (tuning.vod) send(mapOf("type" to "duration", "ms" to duration))
+            }
+            override fun onSeekCompleted(position: Long) {
+                if (tuning.vod) send(mapOf("type" to "seeked", "ms" to position))
+            }
         })
 
         tuning.applyTo(player)
 
         // The player can be created before the usher URL is known; Dart then
         // sends it with "load" as soon as it resolves.
-        if (url.isNotEmpty()) player.load(Uri.parse(url))
-        startLatencyTicker()
+        if (url.isNotEmpty()) {
+            // A VOD created with its URL must auto-play like one sent with "load".
+            if (tuning.vod) autoPlayPending = true
+            player.load(Uri.parse(url))
+        }
+        if (tuning.vod) startProgressTicker() else startLatencyTicker()
+    }
+
+    /**
+     * VOD only: position, buffer and duration four times a second for the seek
+     * bar and chat replay (no latency: a VOD has no live edge).
+     */
+    private fun startProgressTicker() {
+        progressTicker = object : Runnable {
+            override fun run() {
+                main.postDelayed(this, 250)
+                try {
+                    val position = runCatching { player.position }.getOrNull()
+                    val buffered = runCatching { player.bufferedPosition }.getOrNull()
+                    send(
+                        mapOf(
+                            "type" to "progress",
+                            "positionMs" to position,
+                            "bufferedMs" to buffered,
+                            "durationMs" to runCatching { player.duration }.getOrNull(),
+                        ),
+                    )
+                } catch (t: Throwable) {
+                    Log.w(CORE_TAG, "progress failed: $t")
+                }
+            }
+        }
+        main.postDelayed(progressTicker!!, 250)
     }
 
     private fun startLatencyTicker() {
@@ -178,6 +267,7 @@ class IvsPlayerCore(
 
     fun dispose() {
         latencyTicker?.let { main.removeCallbacks(it) }
+        progressTicker?.let { main.removeCallbacks(it) }
         channel.setMethodCallHandler(null)
         player.release()
     }

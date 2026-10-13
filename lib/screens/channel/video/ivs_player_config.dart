@@ -19,6 +19,10 @@ class IvsPlayerConfig {
   static const ultraMinBufferSec = 0.5;
   static const ultraMinBufferCeilingSec = 3.0;
 
+  /// `create` arguments for a past broadcast: VOD mode, none of the live
+  /// low-latency tuning.
+  static const Map<String, Object> vodCreateArgs = {'vod': true};
+
   final LiveCatchUpMode catchUp;
   final BufferProfile buffer;
 
