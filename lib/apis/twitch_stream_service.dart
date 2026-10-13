@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/models/hls_variant.dart';
 
@@ -41,26 +42,20 @@ class TwitchStreamService extends BaseApiClient {
   ///
   /// Throws if the channel is offline or Twitch rejects the request; callers
   /// should treat a throw as "fall back to the WebView engine".
-  Future<List<HlsVariant>> getStreamVariants({required String userLogin}) async {
+  Future<List<HlsVariant>> getStreamVariants({
+    required String userLogin,
+  }) async {
     final token = await _getAccessToken(userLogin);
 
     // Dio returns a non-JSON `.m3u8` body as a plain string under the default
     // transformer (verified against live usher), so `get<String>` is safe here.
     final playlist = await get<String>(
       '$_usherBase/$userLogin.m3u8',
-      queryParameters: {
-        'allow_source': 'true',
-        'fast_bread': 'true', // enables Twitch low-latency segments
-        'low_latency': 'true',
-        // Include 1440p/4K enhanced (HEVC/AV1) renditions when the streamer
-        // broadcasts them; no effect on plain H.264 streams.
-        'supported_codecs': 'av1,h265,h264',
-        'p': _randomP(),
-        'sig': token.signature,
-        'token': token.value,
-        'player': 'twitchweb',
-        'type': 'any',
-      },
+      queryParameters: usherQueryParameters(
+        signature: token.signature,
+        token: token.value,
+        p: _randomP(),
+      ),
     );
 
     return HlsVariant.parseMasterPlaylist(playlist);
@@ -71,25 +66,40 @@ class TwitchStreamService extends BaseApiClient {
   /// player). Throws if the channel is offline / Twitch rejects the request.
   Future<String> getUsherUrl({required String userLogin}) async {
     final token = await _getAccessToken(userLogin);
-    final params = <String, String>{
-      'allow_source': 'true',
-      'fast_bread': 'true',
-      'low_latency': 'true',
-      // Advertise the higher-quality codecs so Twitch includes the 1440p/4K
-      // "enhanced broadcasting" renditions (which are HEVC/AV1, not H.264).
-      // For plain H.264 streams this changes nothing (no other encodes exist).
-      'supported_codecs': 'av1,h265,h264',
-      'p': '${_randomP()}',
-      'sig': token.signature,
-      'token': token.value,
-      'player': 'twitchweb',
-      'type': 'any',
-    };
+    final params = usherQueryParameters(
+      signature: token.signature,
+      token: token.value,
+      p: _randomP(),
+    );
     final query = params.entries
         .map((e) => '${e.key}=${Uri.encodeQueryComponent(e.value)}')
         .join('&');
     return '$_usherBase/$userLogin.m3u8?$query';
   }
+
+  /// Query parameters for the usher master playlist, shared by
+  /// [getStreamVariants] and [getUsherUrl].
+  ///
+  /// Matches what the official app sends: no legacy `low_latency` or
+  /// `player=twitchweb` flags (`fast_bread` is what enables the low-latency
+  /// segments).
+  @visibleForTesting
+  static Map<String, String> usherQueryParameters({
+    required String signature,
+    required String token,
+    required int p,
+  }) => {
+    'allow_source': 'true',
+    'fast_bread': 'true', // enables Twitch low-latency segments
+    // Advertise the higher-quality codecs so Twitch includes the 1440p/4K
+    // "enhanced broadcasting" renditions (which are HEVC/AV1, not H.264).
+    // For plain H.264 streams this changes nothing (no other encodes exist).
+    'supported_codecs': 'av1,h265,h264',
+    'p': '$p',
+    'sig': signature,
+    'token': token,
+    'type': 'any',
+  };
 
   /// Releases the underlying HTTP client. Only call when this service owns the
   /// Dio (i.e. it was not injected from the shared app client).
