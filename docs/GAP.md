@@ -9,6 +9,7 @@
 | Date | Commits | Lignes mises à jour |
 |---|---|---|
 | 2026-10-13 | `bbe7ca3` → `d0c9be5` (épopée « lecteur basse latence », C1-C6) + nettoyage SurfaceView | PLY-01, 02, 03, 04, 05, 06, 10, 11. Comptes de synthèse recalculés pour PLY et P0. « À valider sur appareil » : l'émulateur du conteneur ne permet ni l'affichage fluide ni le réseau. |
+| 2026-10-13 | `1838137` → `5c8dbf2` (épopée E1 « rediffusions », V1-V7) | PRF-07, 08, 09, 10, 11, 12, 14, 15 ; PLY-06, PLY-10, MSC-01 (remarques). Comptes de synthèse recalculés. Lecture, replay et reprise à valider sur appareil. |
 
 ## 0. Légende et conventions
 
@@ -48,11 +49,11 @@
 | PLY-03 | Mode faible latence | P0 | ⚠️ | `IvsTuning.kt`, `ivs_player_config.dart`, `video_settings.dart` (`fe2e1c1`) | Rattrapage par accélération comme l'officiel (défaut), tampon initial 100 ms, réglages « Live catch-up » et « Buffer profile » (Ultra expérimental). Reste : pas de mode « latence normale ». Latence à mesurer sur appareil. | OK |
 | PLY-04 | Statistiques vidéo et latence | P0 | ✅ | `ivs_stats_panel.dart`, `latency_stats.dart`, `IvsPlayerCore.kt` (`bbe7ca3`) | Latence au dixième, visible par défaut ; panneau stats (médiane/p90/max, buffer, débit, images, qualité/codec, mode, démarrage, rebuffers). À valider sur appareil. | OK |
 | PLY-05 | Choix de qualité | P0 | ✅ | `quality_selection.dart`, `ivs_video_store.dart`, `IvsPlayerCore.kt` (`d0c9be5`) | Qualité de la session, sinon sauvegardée, sinon la plus haute (meilleur rendu en premier, 2K en tête), réappliquée après chaque rechargement. À valider sur appareil. | OK |
-| PLY-06 | Son et volume | P0 | ⚠️ | `ivs_video_store.dart`, `video_overlay.dart`, `IvsPlayerCore.kt` (`d0c9be5`) | Mute (paysage + feuille) et volume, conservés en mini-player/PiP/rechargement. Reste : pas de gestion du focus audio. | OK |
+| PLY-06 | Son et volume | P0 | ⚠️ | `ivs_video_store.dart`, `video_overlay.dart`, `IvsPlayerCore.kt` (`d0c9be5`) | Mute (paysage + feuille) et volume, conservés en mini-player/PiP/rechargement. Un seul lecteur audible entre le live et les VOD (`playback_focus.dart`, `55ffb66`). Reste : pas de focus audio Android (appels, autres apps). | OK |
 | PLY-07 | Plein écran, ajuster, rogner, zoom | P0 | ⚠️ | `video_overlay.dart:112-135,200-229`, `ivs_video.dart:39-96` | Plein écran immersif et ajuster/remplir (IVS en paysage seulement). Pas de pincer-zoomer. | OK |
 | PLY-08 | Overlay de métadonnées | P0 | ✅ | `stream_info_bar.dart:13-220`, `video_overlay.dart:424-472` | Titre, catégorie, uptime, spectateurs. Tags absents. | OK |
 | PLY-09 | État du live en temps réel | P0 | ⚠️ | `ivs_video_store.dart:250-299` | Infos rafraîchies par polling Helix au tap ou au retour dans l'app. Pas de push, pas de relance auto au retour du stream. Via EventSub `stream.online`/`stream.offline`/`channel.update` (aucun scope). | OK |
-| PLY-10 | Fin de diffusion, chaîne hors ligne | P0 | ⚠️ | `ivs_recovery.dart`, `ivs_video_store.dart` (`4d50b89`) | Une erreur « non disponible » confirmée hors ligne par Helix affiche l'état hors ligne au lieu de basculer sur la WebView. Reste : pas d'écran de fin ni de CTA vers la VOD ; une chaîne déjà hors ligne à l'ouverture bascule toujours sur la WebView. | OK |
+| PLY-10 | Fin de diffusion, chaîne hors ligne | P0 | ⚠️ | `ivs_recovery.dart`, `ivs_video_store.dart` (`4d50b89`) | Une erreur « non disponible » confirmée hors ligne par Helix affiche l'état hors ligne au lieu de basculer sur la WebView. Reste : pas d'écran de fin mais un bouton « Past broadcasts » hors ligne (`46b4ed2`) ; une chaîne déjà hors ligne à l'ouverture bascule toujours sur la WebView. | OK |
 | PLY-11 | Erreurs et relance du flux | P0 | ✅ | `ivs_recovery.dart`, `ivs_video_store.dart`, `channel.dart` (`4d50b89`) | Erreurs classées, relance 1/2/4 s sur le même lecteur avec nouvelle URL, « ↻ n/3 », jeton neuf si refusé, repli WebView après 3 échecs en 60 s ou erreur fatale ; IVS seulement sur Android. À valider sur appareil. | OK |
 | PLY-12 | Audio seul | P1 | ❌ | — | `allow_audio_only` non demandé, pas de variante audio. | OK |
 | PLY-13 | Chat seul | P1 | ✅ | `settings_store.dart:77-79`, `channel.dart:492-573` | Réglage global « Enable video ». Pas de paramètre de deep link. | OK |
@@ -266,15 +267,15 @@
 | PRF-04 | Panneaux | P1 | ❌ | — | — | GQL privé |
 | PRF-05 | Programme | P1 | ❌ | — | Helix `GET /schedule`. | OK |
 | PRF-06 | Rappel d'un stream programmé | P2 | ❌ | — | — | GQL privé |
-| PRF-07 | Liste des vidéos | P1 | ❌ | — | Helix `GET /videos`. | OK |
-| PRF-08 | Lecture VOD | P1 | ❌ | — | La requête GQL existante contient déjà `videoPlaybackAccessToken` (`twitch_stream_service.dart:30-32`), puis usher `/vod/<id>.m3u8`. | OK |
-| PRF-09 | Contrôles VOD | P1 | ❌ | — | IVS `seekTo`. | OK |
-| PRF-10 | Vitesse de lecture | P1 | ❌ | — | IVS `setPlaybackRate`. | OK |
-| PRF-11 | Reprise de lecture | P1 | ❌ | — | Position stockée en local. La synchro serveur passe par GQL. | OK |
-| PRF-12 | Revoir le chat (chat replay) | P1 | ❌ | — | Les commentaires de VOD exigent `Client-Integrity` : risque élevé. | GQL privé |
+| PRF-07 | Liste des vidéos | P1 | ✅ | `channel_videos.dart`, `channel_videos_store.dart`, `vod_card.dart` (`46b4ed2`) | Onglets rediffusions / temps forts / uploads, 100 plus récentes par onglet (la pagination par curseur est bloquée par l'intégrité pour les anonymes), progression de reprise et « Vu » sur les cartes. Accès depuis l'overlay live et hors ligne, le mode chat seul, la fiche utilisateur et le menu d'actions. | OK |
+| PRF-08 | Lecture VOD | P1 | ✅ | `twitch_vod_service.dart`, `ivs_vod_store.dart`, `web_vod_store.dart`, `vod_screen.dart` (`b1a41fe`, `5ecf601`, `ad3cf94`, `021c827`) | Dans l'appli, jamais dans le navigateur : IVS en mode VOD (mêmes codecs AV1/HEVC → 2K), repli embed WebView sur iOS ou après échec natif, reprise d'erreurs, diagnostic usher. À valider sur appareil. | OK |
+| PRF-09 | Contrôles VOD | P1 | ✅ | `vod_overlay.dart`, `vod_seek_bar.dart` (`021c827`) | Barre de progression (tampon, segments muets), ±10 s, double-tap gauche/droite, qualité, volume, PiP, fit/fill, plein écran, lien au timecode. | OK |
+| PRF-10 | Vitesse de lecture | P1 | ✅ | `ivs_vod_store.dart`, `vod_overlay.dart` (`5ecf601`, `021c827`) | 0,5× à 2× par 0,25 ; le replay du chat suit la vitesse. | OK |
+| PRF-11 | Reprise de lecture | P1 | ⚠️ | `vod_resume.dart` (`021c827`) | Cadence de l'officiel (20 s, pause, arrière-plan, sortie), reprise à −30 s, `?t=` prioritaire, 300 vidéos. Locale seulement : la synchro serveur exige une session Twitch (E9). | OK |
+| PRF-12 | Revoir le chat (chat replay) | P1 | ⚠️ | `vod_chat_replay_store.dart`, `vod_comment_cache.dart`, `vod_comment_to_irc.dart` (`6cc7ba0`) | Commentaires par offset en anonyme, rendus comme le live (badges, couleurs, emotes Twitch et 7TV/BTTV/FFZ, mentions, bloqués et mots masqués). Limites : seconde très chargée tronquée à une page (pas de curseur anonyme) ; emotes tierces = sets actuels de la chaîne. | GQL privé |
 | PRF-13 | Vidéo suivante, lecture auto, revoir | P2 | ❌ | — | — | OK |
-| PRF-14 | Segments muets | P2 | ❌ | — | Lecture des segments muets dans la playlist VOD. | OK |
-| PRF-15 | VOD réservées aux abonnés | P2 | ❌ | — | Le refus du jeton VOD donne le palier requis. | OK |
+| PRF-14 | Segments muets | P2 | ✅ | `twitch_vod_service.dart`, `vod_seek_bar.dart` (`b1a41fe`, `021c827`) | Repères sur la barre de progression. | OK |
+| PRF-15 | VOD réservées aux abonnés | P2 | ⚠️ | `ivs_vod_store.dart`, `vod_error_view.dart`, `vod_card.dart` (`ad3cf94`, `021c827`) | Cadenas dans la liste et message « réservée aux abonnés » (ou géobloquée) au lieu d'un repli. Lecture impossible sans session abonnée (E9). | OK |
 | PRF-16 | Vidéos des chaînes suivies | P1 | ❌ | — | Helix `GET /videos?user_id=`, un appel par chaîne suivie. | OK |
 | PRF-17 | Clips de la chaîne | P1 | ❌ | — | Helix `GET /clips`. | OK |
 | PRF-18 | Lecture de clip | P1 | ❌ | — | Jeton de clip via GQL (sans intégrité). | GQL privé |
@@ -393,7 +394,7 @@
 
 | ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
-| MSC-01 | Deep links et App Links | P0 | ⚠️ | `AndroidManifest.xml:40-47`, `main.dart:241-298` | `twitch.tv`, `www.` et `m.` vers une chaîne seulement. Ni `clips.`, ni `twitch://`, ni `/videos/<id>`, ni `t=`. | OK |
+| MSC-01 | Deep links et App Links | P0 | ⚠️ | `AndroidManifest.xml:40-47`, `main.dart`, `twitch_links.dart`, `link_router.dart` (`5c8dbf2`) | `twitch.tv`, `www.` et `m.` : chaîne, `/videos/<id>`, `/v/<id>`, `/<chaîne>/v/<id>`, `?t=` et `/<chaîne>/videos?filter=` ouverts dans l'appli, y compris depuis le chat. Ni `clips.`, ni `twitch://`. | OK |
 | MSC-02 | Transport GraphQL | P0 | ⚠️ | `twitch_stream_service.dart:20-34,98-113` | Une seule requête GQL, non persistée (choix volontaire contre la rotation des hashes). Ni APQ ni intégrité. | GQL privé |
 | MSC-03 | Temps réel Hermes | P0 | ❌ | — | Aucun temps réel hors IRC et 7TV. EventSub WebSocket est le substitut public ; Hermes reste privé. | OK |
 | MSC-04 | Client chat Kotlin Multiplatform | P1 | ✅ | `chat_store.dart:884-1005`, `chat_tabs_store.dart:151-200` | Buffer flushé toutes les 200 ms, backoff, PING/PONG. | OK |
@@ -423,23 +424,23 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Modération (MOD) | 0 | 0 | 31 | 0 | 31 |
 | Social & notifications (SOC) | 2 | 3 | 17 | 0 | 22 |
 | Découverte & recherche (DSC) | 2 | 5 | 15 | 0 | 22 |
-| Profil de chaîne & contenus (VOD / clips) (PRF) | 0 | 3 | 26 | 0 | 29 |
+| Profil de chaîne & contenus (VOD / clips) (PRF) | 5 | 6 | 18 | 0 | 29 |
 | Monétisation (MON) | 0 | 0 | 15 | 0 | 15 |
 | Compte & réglages (ACC) | 3 | 6 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 2 | 7 | 8 | 0 | 17 |
-| **Total** | **29** | **46** | **234** | **8** | **317** |
+| **Total** | **34** | **49** | **226** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 17 | 25 | 14 | 4 | 60 |
-| P1 | 10 | 14 | 80 | 4 | 108 |
-| P2 | 2 | 7 | 140 | 0 | 149 |
-| **Total** | **29** | **46** | **234** | **8** | **317** |
+| P1 | 14 | 16 | 74 | 4 | 108 |
+| P2 | 3 | 8 | 138 | 0 | 149 |
+| **Total** | **34** | **49** | **226** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 28 | 48 | 35 | 111 |
+| OK | 28 | 44 | 34 | 106 |
 | GQL privé | 6 | 35 | 63 | 104 |
 | Compte requis | 8 | 11 | 12 | 31 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
