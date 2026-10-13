@@ -33,6 +33,16 @@ class VodResumeEntry {
 /// needs a Twitch session). One JSON map in SharedPreferences, keeping the
 /// 300 most recently watched videos.
 class VodResumeRepository {
+  VodResumeRepository._();
+
+  /// The one repository: every save goes through its queue, so screens
+  /// open at the same time never overwrite each other's positions.
+  static final shared = VodResumeRepository._();
+
+  /// Bumped after each save, so lists can refresh their progress bars once
+  /// the closing save of a player screen has landed.
+  static final changes = ValueNotifier<int>(0);
+
   static const _key = 'vod_resume_v1';
   static const _maxEntries = 300;
 
@@ -44,6 +54,10 @@ class VodResumeRepository {
 
   /// Saves run one after the other (read-modify-write).
   Future<void> _queue = Future.value();
+
+  /// Forgets pending saves (each widget test runs in its own fake zone).
+  @visibleForTesting
+  void resetQueue() => _queue = Future.value();
 
   Future<Map<String, Map<String, int>>> _read() async {
     final prefs = await SharedPreferences.getInstance();
@@ -113,6 +127,7 @@ class VodResumeRepository {
         }
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_key, jsonEncode(all));
+        changes.value++;
       })
       .catchError((Object e) {
         debugPrint('VOD resume save failed: $e');
@@ -153,6 +168,11 @@ class VodResumeController {
   Timer? _timer;
   ReactionDisposer? _disposePauseReaction;
 
+  /// Nothing is saved until playback really started: before that the
+  /// position is the rewound start (30 s back), and saving it would move
+  /// the resume point back on every quick open and close.
+  var _started = false;
+
   void start() {
     _timer = Timer.periodic(interval, (_) {
       final p = player();
@@ -161,6 +181,7 @@ class VodResumeController {
     _disposePauseReaction = reaction((_) => player()?.status, (
       VodPlaybackStatus? status,
     ) {
+      if (status == VodPlaybackStatus.playing) _started = true;
       if (status == VodPlaybackStatus.paused ||
           status == VodPlaybackStatus.ended) {
         unawaited(save());
@@ -170,7 +191,7 @@ class VodResumeController {
 
   Future<void> save() async {
     final p = player();
-    if (p == null) return;
+    if (p == null || !_started) return;
     final at = await p.currentPositionForSave();
     if (at == null) return;
     final length = p.duration.inSeconds;

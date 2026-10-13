@@ -48,6 +48,7 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+    VodResumeRepository.shared.resetQueue();
     starts.clear();
     deepLink = null;
     settings = SettingsStore.fromJson({})..keepScreenAwake = false;
@@ -162,6 +163,27 @@ void main() {
     await close(tester);
   });
 
+  testWidgets('playing over the mini player closes it', (tester) async {
+    player.status = VodPlaybackStatus.playing;
+    await pump(tester);
+    await ready(tester);
+    final other = Object();
+    PlaybackFocus.shared
+      ..register(other, onLost: () {}, onRegained: () {})
+      ..claim(other);
+    player.status = VodPlaybackStatus.paused;
+    when(() => mini.visible).thenReturn(true);
+    PlaybackFocus.shared.release(other);
+    await tester.pump();
+    clearInteractions(mini);
+
+    player.status = VodPlaybackStatus.playing;
+    await tester.pump();
+
+    verify(() => mini.close()).called(1);
+    await close(tester);
+  });
+
   testWidgets('the landscape chat overlay toggle applies at once', (
     tester,
   ) async {
@@ -196,7 +218,7 @@ void main() {
 
   testWidgets('resumes 30 s before where the viewer left', (tester) async {
     await tester.runAsync(
-      () => VodResumeRepository().save(
+      () => VodResumeRepository.shared.save(
         _vod.id,
         positionSec: 600,
         lengthSec: 3600,
@@ -211,7 +233,7 @@ void main() {
 
   testWidgets('a link time wins over the saved position', (tester) async {
     await tester.runAsync(
-      () => VodResumeRepository().save(
+      () => VodResumeRepository.shared.save(
         _vod.id,
         positionSec: 600,
         lengthSec: 3600,

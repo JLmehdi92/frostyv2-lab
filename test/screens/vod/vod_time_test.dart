@@ -74,6 +74,8 @@ void main() {
     test('rejects absurdly long timestamps', () {
       expect(parseTwitchTimestamp('1000h'), isNull);
       expect(parseTwitchTimestamp('999h'), const Duration(hours: 999));
+      expect(parseTwitchTimestamp('9999999'), isNull);
+      expect(parseTwitchTimestamp('3596400'), const Duration(hours: 999));
     });
   });
 

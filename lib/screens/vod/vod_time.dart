@@ -30,7 +30,8 @@ Duration? parseTwitchTimestamp(String raw) {
   final value = raw.trim().toLowerCase();
   if (value.isEmpty) return null;
   if (_plainSeconds.hasMatch(value)) {
-    return Duration(seconds: int.parse(value));
+    final seconds = int.parse(value);
+    return seconds > 999 * 3600 ? null : Duration(seconds: seconds);
   }
   final match = _hms.firstMatch(value);
   if (match == null) return null;

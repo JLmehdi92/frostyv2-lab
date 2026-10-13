@@ -115,6 +115,9 @@ void main() {
       expect(_p('https://twitch.tv.evil.com/videos/1'), isA<OtherLink>());
       expect(_p('https://clips.twitch.tv/SomeClip'), isA<OtherLink>());
       expect(_p('not a link'), isA<OtherLink>());
+      expect(_p('javascript://twitch.tv/videos/1'), isA<OtherLink>());
+      expect(_p('ftp://twitch.tv/videos/1'), isA<OtherLink>());
+      expect(_p('http://twitch.tv/videos/1'), const VodLink('1'));
     });
   });
 }

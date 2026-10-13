@@ -15,6 +15,9 @@ sealed class TwitchLink {
   }
 
   static TwitchLink parse(Uri uri) {
+    if (uri.scheme != 'https' && uri.scheme != 'http') {
+      return const OtherLink();
+    }
     final host = uri.host.toLowerCase();
     if (host != 'twitch.tv' &&
         host != 'www.twitch.tv' &&

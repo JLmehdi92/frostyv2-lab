@@ -93,7 +93,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   /// One video widget moved between the portrait, landscape and PiP trees,
   /// so its platform view (WebView) is never recreated.
   final _videoKey = GlobalKey();
-  final _resumeRepository = VodResumeRepository();
+  final _resumeRepository = VodResumeRepository.shared;
   VodResumeController? _resume;
 
   Vod? _vod;
@@ -270,6 +270,16 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
           (double rate) => replay.playbackRate = rate,
           fireImmediately: true,
         ),
+      )
+      ..add(
+        // The viewer pressed play while a channel plays in the mini
+        // player: one player at a time, so the mini player closes and PiP
+        // comes back to this screen.
+        reaction((_) => player.paused, (bool paused) {
+          if (paused || !_miniPlayer.visible) return;
+          _miniPlayer.close();
+          reclaimPipCallbacks(_pipKey);
+        }),
       );
   }
 

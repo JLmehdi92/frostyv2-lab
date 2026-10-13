@@ -12,7 +12,8 @@ void main() {
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
-    repo = VodResumeRepository();
+    VodResumeRepository.shared.resetQueue();
+    repo = VodResumeRepository.shared;
   });
 
   group('VodResumeRepository', () {
@@ -54,7 +55,6 @@ void main() {
 
     test('corrupted data reads as empty and is replaced', () async {
       SharedPreferences.setMockInitialValues({'vod_resume_v1': '{nope'});
-      repo = VodResumeRepository();
 
       expect(await repo.snapshot(), isEmpty);
       await repo.save('1', positionSec: 100, lengthSec: 3600);
@@ -68,7 +68,6 @@ void main() {
           '2': {'p': 120, 'l': 3600, 'u': 2},
         }),
       });
-      repo = VodResumeRepository();
 
       expect((await repo.snapshot()).keys, ['2']);
     });
@@ -133,6 +132,9 @@ void main() {
 
     tearDown(() => controller.cancel());
 
+    /// The video played at least once (saves are skipped before that).
+    void started() => player.status = VodPlaybackStatus.playing;
+
     Future<int?> saved() async => (await repo.entry('1'))?.positionSec;
 
     test('saves periodically only while playing', () async {
@@ -146,7 +148,7 @@ void main() {
     });
 
     test('saves when playback pauses', () async {
-      player.status = VodPlaybackStatus.playing;
+      started();
       player.position = const Duration(minutes: 12);
 
       player.status = VodPlaybackStatus.paused;
@@ -157,12 +159,14 @@ void main() {
     });
 
     test('saves when the app goes to the background', () async {
+      started();
       await controller.save();
 
       expect(await saved(), 600);
     });
 
     test('closing saves the last position', () async {
+      started();
       player.position = const Duration(minutes: 15);
 
       await controller.close();
@@ -170,13 +174,23 @@ void main() {
       expect(await saved(), 900);
     });
 
-    test('nothing is saved before the video started', () async {
+    test('leaving before the video started keeps the saved point', () async {
+      await repo.save('1', positionSec: 900, lengthSec: 3600);
       player.status = VodPlaybackStatus.loading;
-      player.position = Duration.zero;
+      player.position = const Duration(seconds: 870);
 
       await controller.close();
 
-      expect(await saved(), isNull);
+      expect(await saved(), 900, reason: 'not moved back by the -30 s start');
+    });
+
+    test('every save is announced so lists can refresh', () async {
+      final before = VodResumeRepository.changes.value;
+      started();
+
+      await controller.close();
+
+      expect(VodResumeRepository.changes.value, greaterThan(before));
     });
   });
 }

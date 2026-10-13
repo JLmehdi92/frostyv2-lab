@@ -58,7 +58,7 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen> {
     (VodType.upload, 'Uploads', 'No uploads'),
   ];
 
-  final _resumeRepository = VodResumeRepository();
+  final _resumeRepository = VodResumeRepository.shared;
 
   /// Saved watch positions, refreshed when coming back from a video.
   var _resume = const <String, VodResumeEntry>{};
@@ -67,17 +67,20 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen> {
   void initState() {
     super.initState();
     unawaited(_loadResume());
+    // Refreshed when a save lands (the closing save of a player screen
+    // finishes after its route has popped).
+    VodResumeRepository.changes.addListener(_onResumeChanged);
   }
+
+  void _onResumeChanged() => unawaited(_loadResume());
 
   Future<void> _loadResume() async {
     final resume = await _resumeRepository.snapshot();
     if (mounted) setState(() => _resume = resume);
   }
 
-  Future<void> _openVod(Vod vod) async {
-    await VodScreen.open(context, vodId: vod.id, vod: vod);
-    await _loadResume();
-  }
+  Future<void> _openVod(Vod vod) =>
+      VodScreen.open(context, vodId: vod.id, vod: vod);
 
   late final _stores = {
     for (final (type, _, _) in _tabs)
@@ -90,6 +93,7 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen> {
 
   @override
   void dispose() {
+    VodResumeRepository.changes.removeListener(_onResumeChanged);
     for (final store in _stores.values) {
       store.dispose();
     }
