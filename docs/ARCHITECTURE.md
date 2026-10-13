@@ -194,6 +194,11 @@ Portrait : vidéo 16:9 au-dessus du chat (l.806-836). Paysage (l.576-805) : chat
 - **Menu d'emotes** (`chat.dart:261-337`) : Récents (48 max), Twitch (par propriétaire, emotes sub grisées si non abonné), 7TV, BTTV, FFZ (Channel/Global).
 - **Autres** : fiche utilisateur (historique dans la session, Reply, Block, Report via WebView), copier / copier-coller, filtre des bloqués, mots masqués (2 bugs : `return` qui coupe le lot, correspondance partielle via `split('')`), menu « More » (modes du salon en lecture seule, chat seul, rafraîchir emotes, reconnecter, couleur du pseudo (15 couleurs, Helix `/chat/color`), chatters (vus en IRC), ajouter un chat, minuteur de veille), **multi-chat** (10 onglets, réordonnables, persistables, vue fusionnée), **shared chat**.
 
+### Ajouts E7 (chat)
+- **Commandes** (`chat/chat_commands.dart`) : `parseChatCommand` classe la saisie ; `/me` part en IRC, `/color`, `/block`, `/unblock`, `/help` s'exécutent via Helix dans `ChatStore._runCommand` (résultat en notice), le reste est expliqué sans être envoyé. `matchCommands` alimente l'autocomplétion.
+- **Restrictions** (`chat/chat_restrictions.dart`) : `chatRestriction` donne, par priorité, ban, timeout, attente du mode lent puis modes du salon ; `ChatStore._restriction` est recalculée sur CLEARCHAT visant son compte, rejets `msg_banned`/`msg_timedout`/`msg_slowmode`, ROOMSTATE, USERSTATE (VIP lu dans les badges) et à l'échéance. La saisie est verrouillée et `ChatRestrictionBar` affiche le compte à rebours ; les modes non bloquants vont dans le texte d'aide.
+- **Divers** : saisie limitée à 500 caractères (`chat_character_counter.dart`), mots masqués via `isMuted` (`muted_words.dart`), mentions en mot entier (`mentionsUser`), couleur d'annonce (`announcement_color.dart`).
+
 ## 5. Design system existant (thème Frosty — pas d'ONSET)
 
 - `lib/theme.dart` : `FrostyThemes` M3 light/dark via `ColorScheme.fromSeed(accent)` ; fond clair `#F8F8F8`, sombre `#000000` (OLED de fait) ; mode Système/Clair/Sombre ; accent par défaut `#9146FF`, modifiable (sélecteur HSV + « Random »).

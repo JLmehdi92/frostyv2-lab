@@ -13,6 +13,7 @@
 | 2026-10-13 | épopées E3 « temps réel » et E4 « Hype Train » | INT-15, 16, 17 ✅ ; MSC-03, CHT-41 ⚠️ ; PLY-09 (remarque). Comptes de synthèse recalculés à partir des tableaux. Affichage à valider sur appareil. |
 | 2026-10-13 | épopée tablette (Xiaomi Pad 7) | MSC-14 ✅ ; DSC-01 (rail). Comptes recalculés. |
 | 2026-10-13 | épopée E2 « clips » | PRF-17, PRF-18 ✅ ; CHT-45 ⚠️ ; PRF-19 (compte requis) ; MSC-01 (remarques). Comptes recalculés. Lecture à valider sur appareil. |
+| 2026-10-13 | épopée E7 « chat » (1re partie) | CHT-03, 06, 12, 15, 18 ✅ ; CHT-05, 17, 28 ⚠️ (remarques). Comptes recalculés. À valider sur appareil. |
 | 2026-10-13 | épopée E6 « profil de chaîne » | PRF-01, 02, 03, 04, 05, 28 ✅ ; PRF-25 ⚠️ (remarque). Comptes recalculés. Affichage à valider sur appareil. |
 | 2026-10-13 | épopée E5 « highlights communautaires » | CHT-41, CHT-42 ✅ ; INT-01, INT-02 ⚠️ (lecture seule) ; INT-19 (raid sortant). Comptes recalculés. Affichage à valider sur appareil. |
 
@@ -89,22 +90,22 @@
 |---|---|---|---|---|---|---|
 | CHT-01 | Connexion au chat | P0 | ✅ | `chat_store.dart:884-1005,1058-1061,678-679` | Anonyme `justinfan888`, PING/PONG, 5 tentatives avec backoff. `RECONNECT` non géré explicitement. | OK |
 | CHT-02 | Historique récent | P0 | ✅ | `chat_store.dart:402-405,1328`, `twitch_api.dart:460`, `irc.dart:165` | Via `recent-messages.robotty.de` (tiers), avec marqueur d'historique. | OK |
-| CHT-03 | Envoi de message | P0 | ⚠️ | `chat_store.dart:1161-1238`, `chat_bottom_bar.dart:299-315` | Envoi IRC confirmé par USERSTATE, rejets en toast. Pas de compteur ni de limite à 500 caractères. | OK |
+| CHT-03 | Envoi de message | P0 | ✅ | `chat_store.dart`, `chat_bottom_bar.dart`, `chat_character_counter.dart` | Envoi IRC confirmé par USERSTATE, rejets en toast ; saisie limitée à 500 caractères avec compte à rebours des 50 derniers (épopée E7). | OK |
 | CHT-04 | Réponses et fils | P0 | ✅ | `chat_store.dart:1187,1226-1230`, `chat_message.dart:192,251-263`, `reply_thread.dart` | — | OK |
-| CHT-05 | Mentions | P0 | ⚠️ | `irc.dart:1057-1069`, `chat_message.dart:315-316` | Détection par sous-chaîne, d'où des faux positifs. Pas de push. | OK |
-| CHT-06 | Autocomplétion | P0 | ⚠️ | `chat_bottom_bar.dart:136-181`, `chat_store.dart:276-300` | Emotes (tous fournisseurs) et @mentions. Pas de commandes `/`. | OK |
+| CHT-05 | Mentions | P0 | ⚠️ | `irc.dart` (`mentionsUser`), `chat_message.dart:315-316` | Mention détectée comme mot entier (avec ou sans @), plus de faux positifs (E7). Pas de notification push. | OK |
+| CHT-06 | Autocomplétion | P0 | ✅ | `chat_bottom_bar.dart`, `chat_commands.dart` | Emotes (tous fournisseurs), @mentions et commandes `/` (E7). | OK |
 | CHT-07 | Menu d'un message | P0 | ✅ | `chat_message.dart:102-200,599`, `user_actions_modal.dart:36-151` | Copier, copier-coller, répondre. Les actions sur l'utilisateur passent par le pseudo. | OK |
 | CHT-08 | Défilement auto et nouveaux messages | P0 | ✅ | `chat_store.dart:221`, `chat_tabs_store.dart:151-252` | Pastille « N new messages ». | OK |
 | CHT-09 | Rendu des messages supprimés | P0 | ➕ | `irc.dart:106-127`, `chat_message.dart:342-403` | Le contenu supprimé reste révélable au tap pour tous ; l'officiel le réserve aux mods. | OK |
 | CHT-10 | Rendu des timeouts et bans | P0 | ⚠️ | `irc.dart:60-103`, `chat_message.dart:344-370` | Messages marqués avec la durée, contenu révélable. Aucune ligne « X exclu » si l'utilisateur n'a pas de message visible. | OK |
 | CHT-11 | Affichage des messages supprimés (option) | P1 | ➕ | `settings_store.dart:202-204`, `chat_settings.dart:147`, `chat_message.dart:380-388` | Réglage local plus révélation au cas par cas. | OK |
-| CHT-12 | Restriction : timeout ou ban (côté viewer) | P0 | ⚠️ | `chat_store.dart:41-66,560-575` | `msg_banned`/`msg_timedout` en toast. Saisie non verrouillée, pas de compte à rebours. On peut le dériver du CLEARCHAT qui vise son propre `target-user-id`. | OK |
+| CHT-12 | Restriction : timeout ou ban (côté viewer) | P0 | ✅ | `chat_restrictions.dart`, `chat_restriction_bar.dart` | Le CLEARCHAT qui vise son propre compte (ou le rejet `msg_timedout`/`msg_banned`) verrouille la saisie avec un compte à rebours ; le ban reste jusqu'à un envoi réussi (E7). | OK |
 | CHT-13 | Avertissement (côté viewer) | P0 | ❌ | — | L'acquittement existe seulement en GQL (`AcknowledgeChatWarning`). | GQL privé |
 | CHT-14 | Demande de déban (côté viewer) | P1 | ❌ | — | Helix `/moderation/unban_requests` est réservé aux mods ; la création d'une demande passe par GQL. | GQL privé |
-| CHT-15 | Bannières de restriction de mode | P0 | ⚠️ | `chat_modes.dart:6-183`, `chat_store.dart:41-66` | Modes en icônes (lecture seule), rejets en toast. Pas de bannière dans la saisie ni de temps restant. | OK |
+| CHT-15 | Bannières de restriction de mode | P0 | ✅ | `chat_restrictions.dart`, `chat_bottom_bar.dart` | Mode lent : saisie verrouillée avec le temps restant après un envoi ; emotes seules, abonnés, followers (durée) dans le texte d'aide de la saisie. Modérateurs, VIP et diffuseur exemptés (E7). | OK |
 | CHT-16 | Règles du chat | P1 | ❌ | — | — | GQL privé |
-| CHT-17 | Commandes slash (viewer) | P0 | ⚠️ | `chat_store.dart:1211-1213` | Seul `/me` fonctionne. Les autres commandes partent en texte brut et sont inopérantes. À mapper vers Helix (`/color`, `/block`, `/w`…). | OK |
-| CHT-18 | Annonces | P0 | ⚠️ | `chat_message.dart:481-490` | Rendu « Announcement », mais `msg-param-color` est ignoré. | OK |
+| CHT-17 | Commandes slash (viewer) | P0 | ⚠️ | `chat_commands.dart`, `chat_store.dart` | `/me`, `/color` (noms Twitch ou hex), `/block`, `/unblock`, `/help` exécutées par l'appli (Helix) ; les commandes de modération et `/w` expliquent pourquoi elles ne sont pas disponibles (scopes) au lieu de partir en texte (E7). | OK |
+| CHT-18 | Annonces | P0 | ✅ | `chat_message.dart`, `announcement_color.dart` | Rendu « Announcement » avec la couleur `msg-param-color` (bleu, vert, orange, violet) (E7). | OK |
 | CHT-19 | Badges | P0 | ✅ | `twitch_api.dart:83-123`, `irc.dart:248-300` | Badges Twitch plus FFZ/BTTV. Badges 7TV codés mais jamais alimentés (`chat_assets_store.dart:94-96`). | OK |
 | CHT-20 | Sélecteur d'emotes | P0 | ➕ | `chat.dart:261-337` | Récents, Twitch (emotes sub grisées), 7TV, BTTV, FFZ. | OK |
 | CHT-21 | Rendu des emotes et types | P0 | ➕ | `irc.dart:950-1154`, `chat_assets_store.dart:153-230` | Plages `emotes` plus 7TV/BTTV/FFZ (zero-width, alias) et mises à jour live 7TV (`chat_store.dart:797-881`). | OK |
@@ -114,7 +115,7 @@
 | CHT-25 | Animation des emotes et GIF | P1 | ❌ | — | Aucune bascule d'animation (réglage local). | OK |
 | CHT-26 | GIF dans le chat (GIPHY) | P2 | ❌ | — | — | GQL privé |
 | CHT-27 | Couleurs lisibles et contraste | P1 | ✅ | `utils.dart:19-47`, `irc.dart:416` | Ajustement automatique du contraste, sans option. | OK |
-| CHT-28 | Masquer le langage offensant | P1 | ⚠️ | `settings_muted_words.dart`, `chat_store.dart:543-556` | Mots masqués manuels seulement. **Bugs** : le `return` abandonne tout le lot, et `split('')` compare caractère par caractère. | OK |
+| CHT-28 | Masquer le langage offensant | P1 | ⚠️ | `settings_muted_words.dart`, `muted_words.dart` | Mots masqués manuels (mot entier ou sous-chaîne, expressions). Bugs corrigés en E7 : le lot n'est plus abandonné et la comparaison n'est plus lettre par lettre. Pas de catégories de filtres Twitch. | OK |
 | CHT-29 | Filtres de chat personnels | P1 | ❌ | — | Pas de catégories de filtres (listes locales possibles). | OK |
 | CHT-30 | Menu des réglages du chat | P0 | ⚠️ | `chat_details.dart:290-420`, `chat_settings.dart` | Menu « More » et page des réglages du chat. Pas de section modération. | OK |
 | CHT-31 | Couleur du pseudo | P1 | ✅ | `chat_details.dart:351-355,573-611`, `twitch_api.dart:419-458` | 15 couleurs nommées. Ni hex (Turbo/Prime) ni `/color`. | OK |
@@ -424,7 +425,7 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | Lecture vidéo (PLY) | 8 | 7 | 17 | 1 | 33 |
-| Chat (CHT) | 14 | 15 | 13 | 6 | 48 |
+| Chat (CHT) | 19 | 10 | 13 | 6 | 48 |
 | Interactions communautaires (INT) | 3 | 3 | 25 | 0 | 31 |
 | Modération (MOD) | 0 | 0 | 31 | 0 | 31 |
 | Social & notifications (SOC) | 2 | 3 | 17 | 0 | 22 |
@@ -434,18 +435,18 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Compte & réglages (ACC) | 3 | 6 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 3 | 7 | 7 | 0 | 17 |
-| **Total** | **48** | **51** | **210** | **8** | **317** |
+| **Total** | **53** | **46** | **210** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| P0 | 17 | 26 | 13 | 4 | 60 |
+| P0 | 22 | 21 | 13 | 4 | 60 |
 | P1 | 25 | 18 | 61 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **48** | **51** | **210** | **8** | **317** |
+| **Total** | **53** | **46** | **210** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 25 | 37 | 33 | 95 |
+| OK | 20 | 37 | 33 | 90 |
 | GQL privé | 6 | 30 | 61 | 97 |
 | Compte requis | 8 | 12 | 12 | 32 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
