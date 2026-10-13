@@ -1,0 +1,567 @@
+# Écarts de fonctionnalités — Twitch Android 31.5.2 vs frostyv2
+
+> Ce document compare, ligne par ligne, le catalogue `docs/TWITCH_FEATURES.md` (317 lignes) au code de `frostyv2-lab` (base `bb2d838`).
+> Chaque statut ✅ ou ⚠️ a été vérifié dans le code par `grep` et lecture ; l'inventaire de `docs/ARCHITECTURE.md` n'a servi que de point de départ.
+> Ce document ne contient que de l'analyse : aucun code n'a été modifié.
+
+## 0. Légende et conventions
+
+| Statut | Sens |
+|---|---|
+| ✅ | Implémentée et conforme au comportement officiel (de petits écarts peuvent figurer en remarque) |
+| ⚠️ | Partielle |
+| ❌ | Absente |
+| ➕ | frostyv2 fait clairement mieux que l'officiel ou va au-delà |
+
+| Faisabilité | Sens |
+|---|---|
+| « OK » | Faisable avec des API publiques (Helix, IRC, EventSub, 7TV/BTTV/FFZ) ou avec le GQL/usher déjà utilisé pour la lecture (`PlaybackAccessToken`) |
+| « GQL privé » | Exige le GQL privé de Twitch (client-id web, souvent un `auth-token` web et `Client-Integrity`). Fragile, contraire aux CGU, à isoler derrière un flag |
+| « Compte requis » | Exige un rôle modérateur, diffuseur, affilié ou partenaire que l'utilisateur n'a peut-être pas |
+| « Impossible proprement » | Achats Play Billing, DRM signé Twitch, SDK pub, ingest de diffusion, services internes Twitch… |
+
+**Chemins abrégés.** Les références `fichier:ligne` donnent le nom du fichier seul. Correspondance :
+`channel.dart`, `video_overlay.dart`, `stream_info_bar.dart`, `ivs_video.dart`, `video_store.dart` → `lib/screens/channel/video/` (sauf `channel.dart` : `lib/screens/channel/`) · `ivs_video_store.dart`, `native_video_store.dart` → `lib/screens/channel/video/stores/` · `chat_store.dart`, `chat_tabs_store.dart`, `chat_assets_store.dart` → `lib/screens/channel/chat/stores/` · `chat_message.dart`, `chat_bottom_bar.dart`, `chat_user_modal.dart`, `reply_thread.dart` → `lib/screens/channel/chat/widgets/` · `chat_details.dart`, `chat_details_store.dart`, `chat_modes.dart`, `chat_users_list.dart` → `lib/screens/channel/chat/details/` · `chat.dart` → `lib/screens/channel/chat/` · `irc.dart` → `lib/models/` · `twitch_api.dart`, `twitch_stream_service.dart`, `seventv_api.dart` → `lib/apis/` · `settings_store.dart`, `auth_store.dart` → `lib/screens/settings/stores/` · `video_settings.dart`, `chat_settings.dart`, `other_settings.dart`, `settings.dart` → `lib/screens/settings/` · `account_options.dart`, `blocked_users.dart`, `profile_card.dart` → `lib/screens/settings/account/` (et `widgets/`) · `settings_muted_words.dart`, `release_notes.dart` → `lib/screens/settings/widgets/` · `streams_list.dart`, `stream_card.dart`, `offline_channel_card.dart` → `lib/screens/home/stream_list/` · `home.dart` → `lib/screens/home/` · `search.dart`, `search_store.dart`, `search_results_channels.dart` → `lib/screens/home/search/` · `categories.dart`, `category_streams.dart` → `lib/screens/home/top/categories/` · `mini_player_store.dart` → `lib/stores/` · `global_mini_player.dart`, `user_actions_modal.dart`, `live_indicator.dart` → `lib/widgets/` · `utils.dart`, `main.dart`, `theme.dart`, `dev_player_harness.dart` → `lib/` · `onboarding_intro.dart` → `lib/screens/onboarding/` · `IvsPlayerCore.kt` → `android/app/src/main/kotlin/com/tommychow/frosty/` · `AndroidManifest.xml` → `android/app/src/main/`.
+
+**Constats de vérification** (par rapport à `ARCHITECTURE.md`, tous confirmés dans le code) :
+
+- Aucun EventSub ni PubSub : `grep -ri eventsub lib/` ne renvoie rien. Le temps réel se limite à l'IRC et à l'EventAPI 7TV.
+- Scopes OAuth limités à `chat:read chat:edit user:read:follows user:read:blocked_users user:manage:blocked_users user:manage:chat_color` (`auth_store.dart:164`). Aucun scope `moderator:*`, `user:read:chat`, `user:manage:whispers` ni `user:read:emotes`. **Ajouter un scope oblige à se reconnecter.**
+- iOS : `ready` réussit (usher résolu), mais `_createTexture` échoue faute de canal natif. L'échec est avalé par `catchError` (`ivs_video_store.dart:115`) : `onFatalError` n'est jamais appelé et le spinner tourne à l'infini.
+- Mots masqués : `chat_store.dart:548-555`. Le `return` abandonne tout le lot IRC en cours, et `split('')` compare caractère par caractère si « mot entier » est désactivé.
+- Deep links : `android:autoVerify="true"` sur `twitch.tv`/`www.`/`m.` (`AndroidManifest.xml:40-47`). La vérification échouera toujours, car `assetlinks.json` appartient à Twitch. Android affichera donc un sélecteur ou ouvrira l'app officielle.
+
+## 1. Tableaux par domaine
+
+### Lecture vidéo (PLY)
+
+| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+|---|---|---|---|---|---|---|
+| PLY-01 | Lecture live native | P0 | ⚠️ | `IvsPlayerCore.kt:34-90`, `twitch_stream_service.dart:72-123`, `channel.dart:116-131` | IVS natif présent mais SDK 1.52 (officiel 1.57), jeton `platform:"web"`/`playerType:"embed"`, pas de reprise gérée par l'app. iOS : aucun code IVS, la texture n'est jamais créée → spinner infini. | OK |
+| PLY-02 | Préchargement du théâtre | P0 | ❌ | — | Jeton puis `load()` en série après l'ouverture de l'écran (`ivs_video_store.dart:114-115`). Pas de préchargement. Préchauffer PAT + manifeste suffit (`TheatrePortalPreloadQuery` n'est pas nécessaire). | OK |
+| PLY-03 | Mode faible latence | P0 | ⚠️ | `IvsPlayerCore.kt:81-86` | Basse latence forcée, sans bascule Low/Normal. Pas de rattrapage par accélération (setter absent en 1.52). `setRebufferToLive(true)` provoque des sauts ; l'officiel ne l'active pas. | OK |
+| PLY-04 | Statistiques vidéo et latence | P0 | ⚠️ | `ivs_video_store.dart:192-202`, `video_overlay.dart:487-516`, `settings_store.dart:74` | Latence seule, arrondie à 1 s, bornée à 60 s, **masquée par défaut**. Ni débit, ni résolution, ni buffer. | OK |
+| PLY-05 | Choix de qualité | P0 | ⚠️ | `ivs_video_store.dart:183-226`, `video_overlay.dart:137-185` | Choix valable pour la session seulement. `last_stream_quality` est écrit (`video_overlay.dart:169`) mais IVS l'ignore, comme `defaultToHighestQuality`. Libellés sans débit, pas d'`include_unavailable`. | OK |
+| PLY-06 | Son et volume | P0 | ❌ | — | Le pont IVS n'expose ni mute ni volume (`IvsPlayerCore.kt:35-53`). Pas de gestion du focus audio. | OK |
+| PLY-07 | Plein écran, ajuster, rogner, zoom | P0 | ⚠️ | `video_overlay.dart:112-135,200-229`, `ivs_video.dart:39-96` | Plein écran immersif et ajuster/remplir (IVS en paysage seulement). Pas de pincer-zoomer. | OK |
+| PLY-08 | Overlay de métadonnées | P0 | ✅ | `stream_info_bar.dart:13-220`, `video_overlay.dart:424-472` | Titre, catégorie, uptime, spectateurs. Tags absents. | OK |
+| PLY-09 | État du live en temps réel | P0 | ⚠️ | `ivs_video_store.dart:250-299` | Infos rafraîchies par polling Helix au tap ou au retour dans l'app. Pas de push, pas de relance auto au retour du stream. Via EventSub `stream.online`/`stream.offline`/`channel.update` (aucun scope). | OK |
+| PLY-10 | Fin de diffusion, chaîne hors ligne | P0 | ⚠️ | `channel.dart:556-559`, `ivs_video_store.dart:290-297` | La barre affiche les infos hors ligne, mais IVS échoue faute de jeton → bascule WebView. Pas d'écran de fin, pas de CTA vers la VOD. | OK |
+| PLY-11 | Erreurs et relance du flux | P0 | ⚠️ | `channel.dart:164-177`, `ivs_video_store.dart:203-206,235-246` | Toute erreur IVS, même récupérable, bascule **définitivement** sur la WebView. Pas de retry/backoff ni de message. Refresh manuel seulement. | OK |
+| PLY-12 | Audio seul | P1 | ❌ | — | `allow_audio_only` non demandé, pas de variante audio. | OK |
+| PLY-13 | Chat seul | P1 | ✅ | `settings_store.dart:77-79`, `channel.dart:492-573` | Réglage global « Enable video ». Pas de paramètre de deep link. | OK |
+| PLY-14 | Audio en arrière-plan | P1 | ❌ | — | Pas de service `mediaPlayback`. Seul l'auto-PiP permet de continuer. | OK |
+| PLY-15 | Contrôles média et casque | P1 | ❌ | — | Pas de MediaSession (seulement `pip.setIsPlaying`, `ivs_video_store.dart:181`). | OK |
+| PLY-16 | PiP natif Android | P1 | ✅ | `ivs_video_store.dart:119-130,270-275`, `channel.dart:845`, `video_overlay.dart:521-544` | Auto-PiP Android 12+ pour IVS uniquement. | OK |
+| PLY-17 | Lecteur pop-out flottant | P1 | ❌ | — | Pas de fenêtre `SYSTEM_ALERT_WINDOW` (le PiP couvre l'essentiel). | OK |
+| PLY-18 | Mini-lecteur intégré | P1 | ✅ | `mini_player_store.dart:41-58`, `global_mini_player.dart:18-202`, `channel.dart:275-293` | Déplaçable, aimanté aux coins, chat conservé. Moteur IVS seulement (les autres basculent en PiP). | OK |
+| PLY-19 | Modes de chat en paysage | P1 | ➕ | `channel.dart:407-439,576-805`, `settings_store.dart:249-267` | Colonne gauche/droite à largeur réglable, overlay à opacité réglable, masqué. Cycle au double-tap, gestion de l'encoche. | OK |
+| PLY-20 | Taille du chat en portrait | P1 | ❌ | — | Vidéo 16:9 fixe au-dessus du chat (`channel.dart:806-836`), sans poignée. | OK |
+| PLY-21 | Disposition verticale / classique (dual format) | P1 | ❌ | — | Ni `multigroup_video` ni usher `/api/v2/`. | OK |
+| PLY-22 | Minuteur de veille | P1 | ✅ | `chat_details.dart:70-150`, `chat_store.dart:1296-1325` | — | OK |
+| PLY-23 | Sous-titres (CC) | P1 | ❌ | — | `onCue` vide (`IvsPlayerCore.kt:76`). | OK |
+| PLY-24 | Chromecast | P1 | ❌ | — | Pas de Cast SDK. Le récepteur Twitch est propriétaire, mais le Default Media Receiver peut lire l'URL usher. | OK |
+| PLY-25 | Écran de garde classification (CCL) | P1 | ❌ | — | Aucun interstitiel. Helix `GET /channels` renvoie `content_classification_labels`. | OK |
+| PLY-26 | Live réservé aux abonnés + aperçu gratuit | P1 | ❌ | — | Refus du jeton → WebView, sans explication. La réponse GQL déjà utilisée contient la raison du refus. | OK |
+| PLY-27 | Erreurs de lecture usher | P1 | ❌ | — | 403 usher (géo, VPN) non distingués → WebView. | OK |
+| PLY-28 | Contenu premium DRM | P2 | ❌ | — | Licences Widevine/PlayReady délivrées par KeyOS pour Twitch. | Impossible proprement |
+| PLY-29 | Proposition de version en langue locale | P2 | ❌ | — | Confiance faible dans le catalogue. | GQL privé |
+| PLY-30 | Signaler un problème de lecture | P2 | ❌ | — | — | GQL privé |
+| PLY-31 | Publicités vidéo (SSAI) | P2 | ❌ | — | Aucune gestion des pubs : les segments SSAI sont lus tels quels, sans overlay. | Impossible proprement |
+| PLY-32 | Pubs interactives, display, picture-by-picture | P2 | ❌ | — | SDK et serveurs pub Twitch. | Impossible proprement |
+| PLY-33 | Transparence publicitaire (DSA) | P2 | ❌ | — | Lié à la diffusion des pubs. | Impossible proprement |
+
+### Chat (CHT)
+
+| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+|---|---|---|---|---|---|---|
+| CHT-01 | Connexion au chat | P0 | ✅ | `chat_store.dart:884-1005,1058-1061,678-679` | Anonyme `justinfan888`, PING/PONG, 5 tentatives avec backoff. `RECONNECT` non géré explicitement. | OK |
+| CHT-02 | Historique récent | P0 | ✅ | `chat_store.dart:402-405,1328`, `twitch_api.dart:460`, `irc.dart:165` | Via `recent-messages.robotty.de` (tiers), avec marqueur d'historique. | OK |
+| CHT-03 | Envoi de message | P0 | ⚠️ | `chat_store.dart:1161-1238`, `chat_bottom_bar.dart:299-315` | Envoi IRC confirmé par USERSTATE, rejets en toast. Pas de compteur ni de limite à 500 caractères. | OK |
+| CHT-04 | Réponses et fils | P0 | ✅ | `chat_store.dart:1187,1226-1230`, `chat_message.dart:192,251-263`, `reply_thread.dart` | — | OK |
+| CHT-05 | Mentions | P0 | ⚠️ | `irc.dart:1057-1069`, `chat_message.dart:315-316` | Détection par sous-chaîne, d'où des faux positifs. Pas de push. | OK |
+| CHT-06 | Autocomplétion | P0 | ⚠️ | `chat_bottom_bar.dart:136-181`, `chat_store.dart:276-300` | Emotes (tous fournisseurs) et @mentions. Pas de commandes `/`. | OK |
+| CHT-07 | Menu d'un message | P0 | ✅ | `chat_message.dart:102-200,599`, `user_actions_modal.dart:36-151` | Copier, copier-coller, répondre. Les actions sur l'utilisateur passent par le pseudo. | OK |
+| CHT-08 | Défilement auto et nouveaux messages | P0 | ✅ | `chat_store.dart:221`, `chat_tabs_store.dart:151-252` | Pastille « N new messages ». | OK |
+| CHT-09 | Rendu des messages supprimés | P0 | ➕ | `irc.dart:106-127`, `chat_message.dart:342-403` | Le contenu supprimé reste révélable au tap pour tous ; l'officiel le réserve aux mods. | OK |
+| CHT-10 | Rendu des timeouts et bans | P0 | ⚠️ | `irc.dart:60-103`, `chat_message.dart:344-370` | Messages marqués avec la durée, contenu révélable. Aucune ligne « X exclu » si l'utilisateur n'a pas de message visible. | OK |
+| CHT-11 | Affichage des messages supprimés (option) | P1 | ➕ | `settings_store.dart:202-204`, `chat_settings.dart:147`, `chat_message.dart:380-388` | Réglage local plus révélation au cas par cas. | OK |
+| CHT-12 | Restriction : timeout ou ban (côté viewer) | P0 | ⚠️ | `chat_store.dart:41-66,560-575` | `msg_banned`/`msg_timedout` en toast. Saisie non verrouillée, pas de compte à rebours. On peut le dériver du CLEARCHAT qui vise son propre `target-user-id`. | OK |
+| CHT-13 | Avertissement (côté viewer) | P0 | ❌ | — | L'acquittement existe seulement en GQL (`AcknowledgeChatWarning`). | GQL privé |
+| CHT-14 | Demande de déban (côté viewer) | P1 | ❌ | — | Helix `/moderation/unban_requests` est réservé aux mods ; la création d'une demande passe par GQL. | GQL privé |
+| CHT-15 | Bannières de restriction de mode | P0 | ⚠️ | `chat_modes.dart:6-183`, `chat_store.dart:41-66` | Modes en icônes (lecture seule), rejets en toast. Pas de bannière dans la saisie ni de temps restant. | OK |
+| CHT-16 | Règles du chat | P1 | ❌ | — | — | GQL privé |
+| CHT-17 | Commandes slash (viewer) | P0 | ⚠️ | `chat_store.dart:1211-1213` | Seul `/me` fonctionne. Les autres commandes partent en texte brut et sont inopérantes. À mapper vers Helix (`/color`, `/block`, `/w`…). | OK |
+| CHT-18 | Annonces | P0 | ⚠️ | `chat_message.dart:481-490` | Rendu « Announcement », mais `msg-param-color` est ignoré. | OK |
+| CHT-19 | Badges | P0 | ✅ | `twitch_api.dart:83-123`, `irc.dart:248-300` | Badges Twitch plus FFZ/BTTV. Badges 7TV codés mais jamais alimentés (`chat_assets_store.dart:94-96`). | OK |
+| CHT-20 | Sélecteur d'emotes | P0 | ➕ | `chat.dart:261-337` | Récents, Twitch (emotes sub grisées), 7TV, BTTV, FFZ. | OK |
+| CHT-21 | Rendu des emotes et types | P0 | ➕ | `irc.dart:950-1154`, `chat_assets_store.dart:153-230` | Plages `emotes` plus 7TV/BTTV/FFZ (zero-width, alias) et mises à jour live 7TV (`chat_store.dart:797-881`). | OK |
+| CHT-22 | Carte d'emote | P1 | ⚠️ | `irc.dart:900-935` | Fiche avec nom, copier, ouvrir. Pas de conditions de déblocage (le type et le palier sont dans Helix `/chat/emotes`). | OK |
+| CHT-23 | Emotes follower | P1 | ⚠️ | `twitch_api.dart:36-80` | Emotes follower affichées. Utilisables seulement si elles figurent dans les sets USERSTATE. Helix `GET /chat/emotes/user` (`user:read:emotes`). | OK |
+| CHT-24 | Modificateurs d'emotes | P2 | ❌ | — | — | GQL privé |
+| CHT-25 | Animation des emotes et GIF | P1 | ❌ | — | Aucune bascule d'animation (réglage local). | OK |
+| CHT-26 | GIF dans le chat (GIPHY) | P2 | ❌ | — | — | GQL privé |
+| CHT-27 | Couleurs lisibles et contraste | P1 | ✅ | `utils.dart:19-47`, `irc.dart:416` | Ajustement automatique du contraste, sans option. | OK |
+| CHT-28 | Masquer le langage offensant | P1 | ⚠️ | `settings_muted_words.dart`, `chat_store.dart:543-556` | Mots masqués manuels seulement. **Bugs** : le `return` abandonne tout le lot, et `split('')` compare caractère par caractère. | OK |
+| CHT-29 | Filtres de chat personnels | P1 | ❌ | — | Pas de catégories de filtres (listes locales possibles). | OK |
+| CHT-30 | Menu des réglages du chat | P0 | ⚠️ | `chat_details.dart:290-420`, `chat_settings.dart` | Menu « More » et page des réglages du chat. Pas de section modération. | OK |
+| CHT-31 | Couleur du pseudo | P1 | ✅ | `chat_details.dart:351-355,573-611`, `twitch_api.dart:419-458` | 15 couleurs nommées. Ni hex (Turbo/Prime) ni `/color`. | OK |
+| CHT-32 | Badge affiché | P1 | ❌ | — | — | GQL privé |
+| CHT-33 | Progression des badges | P2 | ❌ | — | — | GQL privé |
+| CHT-34 | Délai de chat (sync vidéo) | P1 | ➕ | `settings_store.dart:218-231`, `chat_store.dart:446-500`, `ivs_video_store.dart:199-201` | Délai manuel 0-30 s ou synchronisé sur la latence mesurée. Le délai imposé par la chaîne n'est pas lu. | OK |
+| CHT-35 | Horodatage des messages | P1 | ✅ | `settings_store.dart:210-215`, `irc.dart:130-140` | — | OK |
+| CHT-36 | Notices d'abonnement et de gift | P0 | ✅ | `chat_message.dart:441-480` | Rendu générique de `system-msg`, avec icônes. | OK |
+| CHT-37 | Partage d'anniversaire de resub | P2 | ❌ | — | — | GQL privé |
+| CHT-38 | Callouts privés | P1 | ❌ | — | Topic privé. | GQL privé |
+| CHT-39 | Notice de don caritatif | P2 | ✅ | `chat_message.dart:447-475` | Rendu générique de `system-msg` (`charitydonation`). | OK |
+| CHT-40 | Chat partagé (Shared Chat) | P1 | ➕ | `twitch_api.dart:400-418`, `irc.dart:187`, `chat_tabs_store.dart:73-121` | Avatar de la chaîne source, plus **multi-chat** (10 onglets, vue fusionnée). Un ban partagé n'est pas signalé. | OK |
+| CHT-41 | Pile de « highlights » communautaires | P1 | ❌ | — | Côté viewer, sondages, prédictions et hype train ne sont publiés que par des topics privés. EventSub exige le diffuseur. | GQL privé |
+| CHT-42 | Messages épinglés (lecture) | P1 | ❌ | — | Aucune API publique d'épinglage. | GQL privé |
+| CHT-43 | Messages épinglés payants et cheers épinglés | P2 | ❌ | — | — | GQL privé |
+| CHT-44 | AutoMod (côté émetteur) | P1 | ⚠️ | `chat_store.dart:64-65` | `msg_rejected` en toast, sans statut retenu/approuvé. EventSub `channel.chat.user_message_hold`/`_update` (`user:read:chat`). | OK |
+| CHT-45 | Cartes clip et vidéo dans le chat | P1 | ❌ | — | Liens bruts. Helix `GET /clips`, `GET /videos`. | OK |
+| CHT-46 | Liste des spectateurs (chatters) | P1 | ⚠️ | `chat_users_list.dart:16-200`, `chat_details_store.dart:39` | Seulement les pseudos vus en IRC, sans rôles. Helix `GET /chat/chatters` exige `moderator:read:chatters` et un rôle mod ; sinon GQL. | Compte requis |
+| CHT-47 | Effets de message animés | P2 | ❌ | — | — | GQL privé |
+| CHT-48 | Chat hors ligne | P1 | ✅ | `channel.dart:556-559` | L'IRC ne dépend pas du live. | OK |
+
+### Interactions communautaires (INT)
+
+| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+|---|---|---|---|---|---|---|
+| INT-01 | Sondages (vote) | P1 | ❌ | — | EventSub `channel.poll.*` réservé au diffuseur. Le vote passe par GQL. | GQL privé |
+| INT-02 | Prédictions (parier) | P1 | ❌ | — | EventSub `channel.prediction.*` réservé au diffuseur. | GQL privé |
+| INT-03 | Conditions des prédictions | P1 | ❌ | — | — | GQL privé |
+| INT-04 | Points de chaîne : solde et gains | P1 | ❌ | — | Aucune API publique pour le solde. | GQL privé |
+| INT-05 | Bonus à réclamer | P1 | ❌ | — | La réclamation exige en pratique `Client-Integrity` : risque élevé. | GQL privé |
+| INT-06 | Récompenses intégrées | P1 | ❌ | — | Les messages surlignés reçus sont rendus (`chat_message.dart:222`), mais on ne peut pas échanger. | GQL privé |
+| INT-07 | Récompenses personnalisées | P1 | ❌ | — | Helix `/channel_points/custom_rewards` est réservé au diffuseur. | GQL privé |
+| INT-08 | Power-ups (Bits) | P2 | ❌ | — | Paiement en Bits. | Impossible proprement |
+| INT-09 | Objectifs communautaires (challenges) | P2 | ❌ | — | — | GQL privé |
+| INT-10 | Objectifs créateur (sub goals) | P1 | ❌ | — | EventSub `channel.goal.*` exige `channel:read:goals` (diffuseur). | GQL privé |
+| INT-11 | Rendu des cheermotes | P1 | ❌ | — | Les cheers s'affichent en texte brut (`Cheer100`). Helix `GET /bits/cheermotes` (jeton d'app). | OK |
+| INT-12 | Cheer (envoyer des Bits) | P2 | ❌ | — | Dépense de Bits (argent réel). | GQL privé |
+| INT-13 | Campagnes de bonus Bits | P2 | ❌ | — | — | GQL privé |
+| INT-14 | Combos (Bits en un tap) | P2 | ❌ | — | — | GQL privé |
+| INT-15 | Hype Train | P1 | ❌ | — | EventSub `channel.hype_train.*` exige `channel:read:hype_train` (diffuseur). | GQL privé |
+| INT-16 | Variantes de Hype Train | P2 | ❌ | — | — | GQL privé |
+| INT-17 | Hype Train partagé | P2 | ❌ | — | — | GQL privé |
+| INT-18 | Récompenses partagées | P2 | ❌ | — | — | GQL privé |
+| INT-19 | Raids (côté viewer) | P1 | ⚠️ | `chat_message.dart:447-460` | Notice de raid entrant (USERNOTICE). Ni raid sortant, ni suivi par le lecteur. EventSub `channel.raid` sans scope. | OK |
+| INT-20 | Shoutouts (côté viewer) | P1 | ❌ | — | EventSub `channel.shoutout.*` exige `moderator:read:shoutouts`. | GQL privé |
+| INT-21 | Séries de visionnage (watch streaks) | P1 | ❌ | — | — | GQL privé |
+| INT-22 | Récompenses hebdomadaires | P2 | ❌ | — | — | GQL privé |
+| INT-23 | Moments communautaires | P2 | ❌ | — | — | GQL privé |
+| INT-24 | Classements | P2 | ❌ | — | Helix `/bits/leaderboard` est réservé au diffuseur. | GQL privé |
+| INT-25 | Célébrations à l'écran | P2 | ❌ | — | — | GQL privé |
+| INT-26 | Drops en stream | P1 | ❌ | — | Intégrité exigée : risque élevé. | GQL privé |
+| INT-27 | Campagnes et inventaire de drops | P1 | ❌ | — | Intégrité exigée : risque élevé. | GQL privé |
+| INT-28 | Extensions | P2 | ❌ | — | Exige un JWT d'extension et l'helper Twitch. | Impossible proprement |
+| INT-29 | Stream Together : demande à rejoindre | P2 | ❌ | — | Guest Star repose sur du WebRTC propriétaire. | Impossible proprement |
+| INT-30 | Liste des co-streamers et invités | P2 | ❌ | — | — | GQL privé |
+| INT-31 | Alerte de resub personnalisée | P2 | ❌ | — | — | GQL privé |
+
+### Modération (MOD)
+
+| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+|---|---|---|---|---|---|---|
+| MOD-01 | Actions de modération rapides [M] | P0 | ❌ | — | Aucun scope `moderator:*` (`auth_store.dart:164`). Seul l'état `_userState.mod` est parsé (`chat_store.dart:532`). Voir MOD-02 à MOD-06. | Compte requis |
+| MOD-02 | Bannir avec motif [M] | P0 | ❌ | — | Helix `POST /moderation/bans` (`moderator:manage:banned_users`). | Compte requis |
+| MOD-03 | Timeout avec durée [M] | P0 | ❌ | — | Helix `POST /moderation/bans` avec `duration`. | Compte requis |
+| MOD-04 | Débannir, fin de timeout [M] | P0 | ❌ | — | Helix `DELETE /moderation/bans`. | Compte requis |
+| MOD-05 | Avertir [M] | P0 | ❌ | — | Helix `POST /moderation/warnings` (`moderator:manage:warnings`). | Compte requis |
+| MOD-06 | Supprimer un message [M] | P0 | ❌ | — | Helix `DELETE /moderation/chat?message_id=` (`moderator:manage:chat_messages`). | Compte requis |
+| MOD-07 | Modes de chat [M] | P0 | ❌ | — | Affichage seul (`chat_modes.dart`). Helix `PATCH /chat/settings` (`moderator:manage:chat_settings`). | Compte requis |
+| MOD-08 | Commandes slash de modération [M] | P0 | ❌ | — | Parseur client vers Helix. `/commercial` exige `channel:edit:commercial` (diffuseur affilié). | Compte requis |
+| MOD-09 | Vider le chat [M] | P1 | ❌ | — | L'affichage du CLEARCHAT existe (`irc.dart:66-72`). Helix `DELETE /moderation/chat` sans `message_id`. | Compte requis |
+| MOD-10 | Épingler / désépingler [M] | P1 | ❌ | — | Aucune API publique. | GQL privé |
+| MOD-11 | Annonces [M] | P1 | ❌ | — | Helix `POST /chat/announcements` (`moderator:manage:announcements`). | Compte requis |
+| MOD-12 | Rôles : mod, lead mod, VIP [M][C] | P1 | ❌ | — | Helix `POST/DELETE /moderation/moderators` (`channel:manage:moderators`, diffuseur) et `/channels/vips` (`channel:manage:vips`). Lead mod : GQL. | Compte requis |
+| MOD-13 | Listes des mods et VIP [M] | P1 | ❌ | — | Helix `GET /moderation/moderators` (`moderation:read`) et `GET /channels/vips` (`channel:read:vips`), réservés au diffuseur ; un mod passe par GQL. | Compte requis |
+| MOD-14 | Contexte modération de la carte [M] | P1 | ❌ | — | `GET /users` (date de création, public). `GET /channels/followers?user_id=` (`moderator:read:followers`). `GET /moderation/banned` (diffuseur). Sanctions : GQL. | Compte requis |
+| MOD-15 | Logs de modération de l'utilisateur [M] | P1 | ❌ | — | — | GQL privé |
+| MOD-16 | Tableau de bord mobile [M] | P1 | ❌ | — | Assemblage des autres lignes MOD. | Compte requis |
+| MOD-17 | File AutoMod [M] | P1 | ❌ | — | EventSub `automod.message.hold` v2 et `POST /moderation/automod/message` (`moderator:manage:automod`). | Compte requis |
+| MOD-18 | Shield Mode [M] | P1 | ❌ | — | Helix `PUT /moderation/shield_mode` (`moderator:manage:shield_mode`) et EventSub `channel.shield_mode.begin/end`. | Compte requis |
+| MOD-19 | Créer et gérer les sondages [M] | P1 | ❌ | — | Helix `POST/PATCH /polls` (`channel:manage:polls`, diffuseur seulement). | Compte requis |
+| MOD-20 | Créer et gérer les prédictions [M] | P1 | ❌ | — | Helix `POST/PATCH /predictions` (`channel:manage:predictions`, diffuseur). | Compte requis |
+| MOD-21 | File des récompenses [M] | P2 | ❌ | — | Helix `PATCH /channel_points/custom_rewards/redemptions` (`channel:manage:redemptions`), limité aux récompenses créées par le même client-id. | Compte requis |
+| MOD-22 | Raids et réglages du stream depuis Mod View [M] | P2 | ❌ | — | Helix `POST /raids` (`channel:manage:raids`). | Compte requis |
+| MOD-23 | Modération des commentaires de clip [M] | P2 | ❌ | — | — | GQL privé |
+| MOD-24 | Utilisateurs suspects (low-trust) [M] | P2 | ❌ | — | EventSub `channel.suspicious_user.*` (`moderator:read:suspicious_users`). | Compte requis |
+| MOD-25 | Revue des demandes de déban [M] | P2 | ❌ | — | Helix `GET/PATCH /moderation/unban_requests` (`moderator:manage:unban_requests`). | Compte requis |
+| MOD-26 | Équipe de modération [C] | P2 | ❌ | — | Helix `/moderation/moderators` (diffuseur). | Compte requis |
+| MOD-27 | Réglages de modération [C] | P2 | ❌ | — | Helix `/moderation/blocked_terms` (`moderator:manage:blocked_terms`) et `/moderation/automod/settings`. | Compte requis |
+| MOD-28 | Analytics de modération [C] | P2 | ❌ | — | — | GQL privé |
+| MOD-29 | Modération rapide en direct [C] | P2 | ❌ | — | Exige d'être le diffuseur, en live. | Compte requis |
+| MOD-30 | Alertes push de modération [M] | P2 | ❌ | — | Les push FCM sont émis par Twitch. | Impossible proprement |
+| MOD-31 | Callouts et anniversaire de mod [M] | P2 | ❌ | — | — | GQL privé |
+
+### Social & notifications (SOC)
+
+| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+|---|---|---|---|---|---|---|
+| SOC-01 | Suivre / ne plus suivre | P0 | ❌ | — | Helix n'a plus d'endpoint de follow depuis 2023. La mutation exige probablement `Client-Integrity` : **risque élevé**. | GQL privé |
+| SOC-02 | Liste des chaînes suivies | P0 | ✅ | `twitch_api.dart:177-207`, `streams_list.dart:102,369-395` | Live et hors ligne (« followed since »). Tri par spectateurs seulement. | OK |
+| SOC-03 | Page Following | P0 | ⚠️ | `streams_list.dart:136-160,262-311,369-395` | Épinglés (➕), live, hors ligne. Ni recommandés ni catégories suivies. | GQL privé |
+| SOC-04 | Suivre une catégorie | P1 | ❌ | — | — | GQL privé |
+| SOC-05 | Cloche de notification par chaîne | P0 | ❌ | — | — | GQL privé |
+| SOC-06 | Notifications push | P0 | ❌ | — | Le push FCM de Twitch est impossible. Approximation possible par polling local (WorkManager + `GET /streams/followed`). | OK |
+| SOC-07 | Centre de notifications | P0 | ❌ | — | — | GQL privé |
+| SOC-08 | Notifications in-app | P1 | ❌ | — | — | GQL privé |
+| SOC-09 | Whispers (messages privés) | P1 | ❌ | — | Helix `POST /whispers` (`user:manage:whispers`, téléphone vérifié) et EventSub `user.whisper.message` (`user:read:whispers`). Pas d'historique public. | OK |
+| SOC-10 | Confidentialité des whispers | P1 | ❌ | — | — | GQL privé |
+| SOC-11 | Restrictions des whispers | P2 | ❌ | — | — | GQL privé |
+| SOC-12 | Bloquer / ignorer | P0 | ✅ | `twitch_api.dart:335-398`, `blocked_users.dart`, `user_actions_modal.dart:57-67`, `chat_store.dart:531-541` | Pas de motif. Le blocage filtre le chat, pas les listes de streams. | OK |
+| SOC-13 | Carte utilisateur (viewer card) | P0 | ⚠️ | `chat_user_modal.dart:35-128` | Avatar, messages de la session, Reply, Block/Report. Ni badges, ni date de création, ni follow, ni liens, ni whisper. | OK |
+| SOC-14 | Signaler | P1 | ⚠️ | `user_actions_modal.dart:98-151` | Utilisateur seulement, via la page web `twitch.tv/<login>/report`. | OK |
+| SOC-15 | Partager | P1 | ❌ | — | Pas de `share_plus`. | OK |
+| SOC-16 | Stories (côté viewer) | P2 | ❌ | — | — | GQL privé |
+| SOC-17 | Réactions | P2 | ❌ | — | — | GQL privé |
+| SOC-18 | Commentaires de clips | P2 | ❌ | — | — | GQL privé |
+| SOC-19 | Confidentialité des Stories | P2 | ❌ | — | — | GQL privé |
+| SOC-20 | Shouts (messages de créateurs) | P2 | ❌ | — | — | GQL privé |
+| SOC-21 | Recap annuel | P2 | ❌ | — | Simple lien web. | OK |
+| SOC-22 | Suggestions de follow | P2 | ❌ | — | — | GQL privé |
+
+### Découverte & recherche (DSC)
+
+| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+|---|---|---|---|---|---|---|
+| DSC-01 | Navigation principale | P0 | ⚠️ | `home.dart:140-209` | Following, Top, Search ; l'avatar mène aux réglages. Ni Activité, ni Profil, ni rail tablette. | OK |
+| DSC-02 | Catégories | P0 | ✅ | `twitch_api.dart:292-300`, `categories.dart` | Pas de pastille « nouveau ». | OK |
+| DSC-03 | Chaînes live | P0 | ✅ | `twitch_api.dart:167-175`, `streams_list.dart:335-340` | — | OK |
+| DSC-04 | Page catégorie | P0 | ⚠️ | `category_streams.dart:15-150` | Lives seulement. Pas d'onglets vidéos/clips (Helix `/videos?game_id`, `/clips?game_id`). Le follow de catégorie passe par GQL. | OK |
+| DSC-05 | Tri et filtres | P1 | ❌ | — | Helix `/streams?language=`. Les tris et le filtre par tag passent par GQL. | OK |
+| DSC-06 | Tags | P1 | ❌ | — | Tags non affichés (Helix les renvoie). Les pages de tag passent par GQL. | GQL privé |
+| DSC-07 | Recherche globale | P0 | ⚠️ | `search_store.dart:70-120`, `search.dart:204-226` | Chaînes et catégories, résultats pendant la saisie (debounce 300 ms). Pas d'onglets Top/Vidéos. | OK |
+| DSC-08 | Suggestions et recherches récentes | P0 | ⚠️ | `search_store.dart:53-60,104-108`, `search.dart:101`, `search_results_channels.dart:164` | Historique (8 entrées) et « Go to channel ». Pas de suggestions. Effacement global seulement. | OK |
+| DSC-09 | Résultat mis en avant, flux liés, chaînes hors ligne | P1 | ⚠️ | `search_results_channels.dart:79-96` | Indicateur live, chaînes hors ligne incluses. Pas de carte mise en avant. | OK |
+| DSC-10 | Suivre depuis la recherche | P1 | ❌ | — | Dépend de SOC-01. | GQL privé |
+| DSC-11 | Flux de découverte vertical | P1 | ❌ | — | Helix `/streams` + IVS en aperçu. Coûteux en mémoire. | OK |
+| DSC-12 | Flux de clips vertical | P1 | ❌ | — | Le jeton de lecture d'un clip exige une requête GQL (sans intégrité, risque faible). | GQL privé |
+| DSC-13 | Sous-flux (puces) | P2 | ❌ | — | — | GQL privé |
+| DSC-14 | Retours sur le flux | P2 | ❌ | — | — | GQL privé |
+| DSC-15 | Recommandations | P1 | ❌ | — | — | GQL privé |
+| DSC-16 | Lives sponsorisés | P2 | ❌ | — | Publicité. | Impossible proprement |
+| DSC-17 | Recaps de streams récents | P2 | ❌ | — | — | GQL privé |
+| DSC-18 | Rangée de Stories | P2 | ❌ | — | — | GQL privé |
+| DSC-19 | Masquage des contenus labellisés | P1 | ❌ | — | Filtre local sur `content_classification_labels` (Helix). | OK |
+| DSC-20 | Chaînes de l'équipe | P2 | ❌ | — | Helix `GET /teams/channel`. | OK |
+| DSC-21 | Onboarding de personnalisation | P2 | ❌ | — | — | GQL privé |
+| DSC-22 | Recommandations sur l'écran d'accueil Android | P2 | ❌ | — | Le SDK Engage exige une liste blanche Google. | Impossible proprement |
+
+### Profil de chaîne & contenus (VOD / clips) (PRF)
+
+| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+|---|---|---|---|---|---|---|
+| PRF-01 | Page chaîne | P1 | ❌ | — | « My channel » ouvre le lecteur. Pas de page profil. Helix `/users`, `/channels`. | OK |
+| PRF-02 | Accueil de profil | P1 | ❌ | — | Composable avec Helix (`/streams`, `/videos`, `/clips`). | OK |
+| PRF-03 | À propos | P1 | ❌ | — | Bio, type de diffuseur, nombre de followers via Helix. Liens sociaux : GQL. | OK |
+| PRF-04 | Panneaux | P1 | ❌ | — | — | GQL privé |
+| PRF-05 | Programme | P1 | ❌ | — | Helix `GET /schedule`. | OK |
+| PRF-06 | Rappel d'un stream programmé | P2 | ❌ | — | — | GQL privé |
+| PRF-07 | Liste des vidéos | P1 | ❌ | — | Helix `GET /videos`. | OK |
+| PRF-08 | Lecture VOD | P1 | ❌ | — | La requête GQL existante contient déjà `videoPlaybackAccessToken` (`twitch_stream_service.dart:30-32`), puis usher `/vod/<id>.m3u8`. | OK |
+| PRF-09 | Contrôles VOD | P1 | ❌ | — | IVS `seekTo`. | OK |
+| PRF-10 | Vitesse de lecture | P1 | ❌ | — | IVS `setPlaybackRate`. | OK |
+| PRF-11 | Reprise de lecture | P1 | ❌ | — | Position stockée en local. La synchro serveur passe par GQL. | OK |
+| PRF-12 | Revoir le chat (chat replay) | P1 | ❌ | — | Les commentaires de VOD exigent `Client-Integrity` : risque élevé. | GQL privé |
+| PRF-13 | Vidéo suivante, lecture auto, revoir | P2 | ❌ | — | — | OK |
+| PRF-14 | Segments muets | P2 | ❌ | — | Lecture des segments muets dans la playlist VOD. | OK |
+| PRF-15 | VOD réservées aux abonnés | P2 | ❌ | — | Le refus du jeton VOD donne le palier requis. | OK |
+| PRF-16 | Vidéos des chaînes suivies | P1 | ❌ | — | Helix `GET /videos?user_id=`, un appel par chaîne suivie. | OK |
+| PRF-17 | Clips de la chaîne | P1 | ❌ | — | Helix `GET /clips`. | OK |
+| PRF-18 | Lecture de clip | P1 | ❌ | — | Jeton de clip via GQL (sans intégrité). | GQL privé |
+| PRF-19 | Créer un clip | P1 | ❌ | — | Helix `POST /clips` (`clips:edit`). | OK |
+| PRF-20 | Éditer et publier un clip | P1 | ❌ | — | — | GQL privé |
+| PRF-21 | Télécharger ou exporter un clip | P2 | ❌ | — | — | GQL privé |
+| PRF-22 | Clips automatiques | P2 | ❌ | — | — | GQL privé |
+| PRF-23 | Collections | P2 | ❌ | — | — | GQL privé |
+| PRF-24 | Bande-annonce de la chaîne | P2 | ❌ | — | — | GQL privé |
+| PRF-25 | Badges d'état de chaîne | P1 | ⚠️ | `live_indicator.dart`, `offline_channel_card.dart:53` | LIVE et hors ligne seulement. Rediffusion via `/streams` `type`, vérifié via `/users` `broadcaster_type`. | OK |
+| PRF-26 | Couleur d'accent et skins de chaîne | P2 | ❌ | — | — | GQL privé |
+| PRF-27 | Stories et clips sur le profil | P2 | ❌ | — | — | GQL privé |
+| PRF-28 | Options de chaîne | P1 | ⚠️ | `user_actions_modal.dart:36-151`, `stream_card.dart:89,215` | Épingler, bloquer et signaler depuis les cartes. Pas de partage. | OK |
+| PRF-29 | Profil personnel | P1 | ⚠️ | `account_options.dart:47`, `profile_card.dart` | « My channel » et carte de profil. Pas de hub de clips. | OK |
+
+### Monétisation (MON)
+
+| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+|---|---|---|---|---|---|---|
+| MON-01 | S'abonner | P2 | ❌ | — | Google Play Billing de Twitch. Seul un lien web est possible. | Impossible proprement |
+| MON-02 | Avantages d'abonné | P2 | ❌ | — | — | GQL privé |
+| MON-03 | Mes abonnements | P2 | ❌ | — | — | Impossible proprement |
+| MON-04 | Abonnement Prime Gaming | P2 | ❌ | — | — | Impossible proprement |
+| MON-05 | Turbo | P2 | ❌ | — | — | Impossible proprement |
+| MON-06 | Offrir un abonnement | P2 | ❌ | — | — | Impossible proprement |
+| MON-07 | Gifts à la communauté | P2 | ❌ | — | — | Impossible proprement |
+| MON-08 | Réglages des gifts | P2 | ❌ | — | — | GQL privé |
+| MON-09 | Promotions | P2 | ❌ | — | — | Impossible proprement |
+| MON-10 | Récompenses de dépense | P2 | ❌ | — | — | Impossible proprement |
+| MON-11 | Paiement web | P2 | ❌ | — | Ouvrir `twitch.tv/subs/<login>` dans le navigateur. | OK |
+| MON-12 | Acheter des Bits | P2 | ❌ | — | — | Impossible proprement |
+| MON-13 | Solde et informations Bits | P2 | ❌ | — | — | GQL privé |
+| MON-14 | Gestion des erreurs d'achat | P2 | ❌ | — | — | Impossible proprement |
+| MON-15 | Page commerce unifiée et repli web | P2 | ❌ | — | — | Impossible proprement |
+
+### Compte & réglages (ACC)
+
+| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+|---|---|---|---|---|---|---|
+| ACC-01 | Connexion | P0 | ✅ | `auth_store.dart:101-170,264` | OAuth implicite dans une WebView (pas `passport`). Le CAPTCHA est géré par la page Twitch. | OK |
+| ACC-02 | Vérification à la connexion | P1 | ✅ | `auth_store.dart:101-170` | Délégué à la page OAuth Twitch. | OK |
+| ACC-03 | Mode invité | P0 | ✅ | `auth_store.dart:216`, `chat_store.dart:1061`, `chat_bottom_bar.dart:76` | Jeton d'app `client_credentials` (exige `SECRET`). | OK |
+| ACC-04 | Déconnexion | P0 | ⚠️ | `auth_store.dart:293-320`, `account_options.dart:18-62` | Jeton supprimé en local mais pas révoqué (`id.twitch.tv/oauth2/revoke`). | OK |
+| ACC-05 | Passkeys | P2 | ❌ | — | Passkeys non disponibles dans la WebView OAuth. | Impossible proprement |
+| ACC-06 | Connexion Google ou Amazon | P2 | ⚠️ | `auth_store.dart:104-110` | Google via un user-agent navigateur dans la WebView. | OK |
+| ACC-07 | Inscription | P2 | ❌ | — | WebView `twitch.tv/signup`. | OK |
+| ACC-08 | Récupération du compte | P2 | ❌ | — | WebView. | OK |
+| ACC-09 | Structure des réglages | P1 | ⚠️ | `settings.dart` | Compte, Général, Vidéo, Chat, Autre. Ni notifications, ni sécurité, ni contenu. | OK |
+| ACC-10 | Thème | P0 | ➕ | `settings_store.dart:30-36,419`, `theme.dart` | Système, clair ou sombre (noir OLED), plus couleur d'accent libre. | OK |
+| ACC-11 | Lecture auto des vidéos | P1 | ❌ | — | Pas d'aperçu en lecture auto (à faire avec DSC-11). | OK |
+| ACC-12 | Préférences de lecture | P1 | ⚠️ | `video_settings.dart:20-87` | Vidéo on/off, plus haute qualité, écran allumé. Ni audio en arrière-plan, ni page d'accueil par défaut. | OK |
+| ACC-13 | Catégories de notifications | P1 | ❌ | — | — | GQL privé |
+| ACC-14 | Modifier le profil | P2 | ❌ | — | Helix `PUT /users?description=` (`user:edit`) ; le reste en WebView. | OK |
+| ACC-15 | Changement de pseudo | P2 | ❌ | — | WebView des réglages Twitch. | OK |
+| ACC-16 | Authentification à deux facteurs | P2 | ❌ | — | WebView des réglages Twitch. | OK |
+| ACC-17 | Mot de passe, email, téléphone | P2 | ❌ | — | WebView des réglages Twitch. | OK |
+| ACC-18 | Vérification du compte | P1 | ❌ | — | WebView. | OK |
+| ACC-19 | Comptes liés | P2 | ❌ | — | WebView. | OK |
+| ACC-20 | Consentements et vie privée | P2 | ❌ | — | WebView. Frostyv2 n'a qu'un opt-out Crashlytics (`other_settings.dart:105`). | OK |
+| ACC-21 | Demande de données personnelles | P2 | ❌ | — | Lien web. | OK |
+| ACC-22 | Préférences de contenu | P1 | ❌ | — | — | GQL privé |
+| ACC-23 | Gestion des retours de recommandation | P2 | ❌ | — | — | GQL privé |
+| ACC-24 | Âge et contrôle parental | P2 | ❌ | — | Play Age Signals et Family Center sont propres à Twitch. | Impossible proprement |
+| ACC-25 | Cycle de vie du compte | P2 | ❌ | — | WebView. | OK |
+| ACC-26 | Sanctions et violations | P1 | ❌ | — | — | GQL privé |
+| ACC-27 | Mises à jour des conditions | P2 | ❌ | — | Géré par le site Twitch. | OK |
+| ACC-28 | À propos, aide, avis | P2 | ⚠️ | `settings.dart:127-190`, `other_settings.dart:65-70`, `main.dart:174` | Version, notes de version, invite d'avis, lien GitHub. | OK |
+| ACC-29 | Mise à jour forcée ou suggérée | P2 | ❌ | — | Non pertinent pour un build personnel. | OK |
+| ACC-30 | Accessibilité | P1 | ⚠️ | `video_overlay.dart:119,149,187-204` | Tooltips seulement. Aucun `Semantics` explicite dans `lib/`. | OK |
+| ACC-31 | Défis anti-abus | P2 | ❌ | — | Play Integrity et `Client-Integrity`. | Impossible proprement |
+| ACC-32 | Informations légales Corée | P2 | ❌ | — | Non pertinent. | OK |
+
+### Créateur (CRE)
+
+| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+|---|---|---|---|---|---|---|
+| CRE-01 | Mode créateur [C] | P2 | ❌ | — | UI locale. | OK |
+| CRE-02 | Menu Créer [C] | P2 | ❌ | — | UI locale. | OK |
+| CRE-03 | Diffusion caméra IRL [C] | P2 | ❌ | — | Ingest RTMPS et SDK de diffusion. | Impossible proprement |
+| CRE-04 | Diffusion de jeux mobiles [C] | P2 | ❌ | — | MediaProjection plus encodeur et ingest. | Impossible proprement |
+| CRE-05 | Overlay de diffusion et bulles [C] | P2 | ❌ | — | Dépend de CRE-03/04. | Impossible proprement |
+| CRE-06 | Informations du stream [C] | P2 | ❌ | — | Helix `PATCH /channels` (`channel:manage:broadcast`). | OK |
+| CRE-07 | Qualité de diffusion [C] | P2 | ❌ | — | Dépend de l'ingest. | Impossible proprement |
+| CRE-08 | Éligibilité à la diffusion [C] | P2 | ❌ | — | — | GQL privé |
+| CRE-09 | Contrôles en direct et fin [C] | P2 | ❌ | — | Dépend de l'ingest. | Impossible proprement |
+| CRE-10 | Stream Manager [C] | P2 | ❌ | — | Les statistiques passent par GQL. | GQL privé |
+| CRE-11 | Flux d'activité [C] | P2 | ❌ | — | EventSub `channel.follow` v2, `channel.subscribe`, `channel.cheer`, `channel.raid`, sur sa propre chaîne. | OK |
+| CRE-12 | Alertes IRL [C] | P2 | ❌ | — | — | GQL privé |
+| CRE-13 | Lancer une pub [C] | P2 | ❌ | — | Helix `POST /channels/commercial` (`channel:edit:commercial`, affilié). | Compte requis |
+| CRE-14 | Marqueurs de stream [C][M] | P2 | ❌ | — | Helix `POST /streams/markers` (`channel:manage:broadcast`). | OK |
+| CRE-15 | Raid sortant [C][M] | P2 | ❌ | — | Helix `POST/DELETE /raids` (`channel:manage:raids`). | OK |
+| CRE-16 | Réglages des raids entrants [C] | P2 | ❌ | — | — | GQL privé |
+| CRE-17 | Auto-hosting (héritage) [C] | P2 | ❌ | — | Fonction supprimée par Twitch en 2022. | Impossible proprement |
+| CRE-18 | Shoutout sortant [C][M] | P2 | ❌ | — | Helix `POST /chat/shoutouts` (`moderator:manage:shoutouts`). | OK |
+| CRE-19 | Messages aux spectateurs [C] | P2 | ❌ | — | — | GQL privé |
+| CRE-20 | Résumé de stream [C] | P2 | ❌ | — | — | GQL privé |
+| CRE-21 | Analytics détaillées [C] | P2 | ❌ | — | — | GQL privé |
+| CRE-22 | Performance des notifications go-live [C] | P2 | ❌ | — | — | GQL privé |
+| CRE-23 | Lien de parrainage [C] | P2 | ❌ | — | — | GQL privé |
+| CRE-24 | Accueil créateur [C] | P2 | ❌ | — | — | GQL privé |
+| CRE-25 | Gestionnaire de clips [C] | P2 | ❌ | — | Liste via Helix `/clips`. La suppression passe par GQL. | GQL privé |
+| CRE-26 | Gestion du programme [C] | P2 | ❌ | — | Helix `/schedule/segment` (`channel:manage:schedule`, affilié ou partenaire). | Compte requis |
+| CRE-27 | Réglages de contenus de chaîne [C] | P2 | ❌ | — | — | GQL privé |
+| CRE-28 | Classification du contenu [C] | P2 | ❌ | — | Helix `PATCH /channels` `content_classification_labels`. | OK |
+| CRE-29 | Contenu sponsorisé [C] | P2 | ❌ | — | Helix `PATCH /channels` `is_branded_content`. | OK |
+| CRE-30 | Création de Stories [C] | P2 | ❌ | — | — | GQL privé |
+| CRE-31 | Partager vers Stories depuis une autre app [C] | P2 | ❌ | — | — | GQL privé |
+| CRE-32 | Récaps vers Stories [C] | P2 | ❌ | — | — | GQL privé |
+| CRE-33 | Stream Together / Guest Star [C] | P2 | ❌ | — | WebRTC Guest Star. | Impossible proprement |
+| CRE-34 | Monétisation (affilié / partenaire) [C] | P2 | ❌ | — | Affilié ou partenaire. | Compte requis |
+| CRE-35 | Programme DJ [C] | P2 | ❌ | — | Programme DJ. | Compte requis |
+| CRE-36 | Objectifs créateur [C] | P2 | ❌ | — | — | GQL privé |
+| CRE-37 | Réglages des emotes [C] | P2 | ❌ | — | Affilié. | Compte requis |
+
+### Divers / technique (MSC)
+
+| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+|---|---|---|---|---|---|---|
+| MSC-01 | Deep links et App Links | P0 | ⚠️ | `AndroidManifest.xml:40-47`, `main.dart:241-298` | `twitch.tv`, `www.` et `m.` vers une chaîne seulement. Ni `clips.`, ni `twitch://`, ni `/videos/<id>`, ni `t=`. | OK |
+| MSC-02 | Transport GraphQL | P0 | ⚠️ | `twitch_stream_service.dart:20-34,98-113` | Une seule requête GQL, non persistée (choix volontaire contre la rotation des hashes). Ni APQ ni intégrité. | GQL privé |
+| MSC-03 | Temps réel Hermes | P0 | ❌ | — | Aucun temps réel hors IRC et 7TV. EventSub WebSocket est le substitut public ; Hermes reste privé. | OK |
+| MSC-04 | Client chat Kotlin Multiplatform | P1 | ✅ | `chat_store.dart:884-1005`, `chat_tabs_store.dart:151-200` | Buffer flushé toutes les 200 ms, backoff, PING/PONG. | OK |
+| MSC-05 | Gestion des permissions | P1 | ❌ | — | Aucune permission runtime aujourd'hui. Nécessaire pour les notifications et le service média. | OK |
+| MSC-06 | Pile React Native « Ultralight » | P2 | ❌ | — | Pile RN interne à Twitch. | Impossible proprement |
+| MSC-07 | Portails web « Candlelight » | P2 | ❌ | — | Portails Twilight internes. | Impossible proprement |
+| MSC-08 | Mises à jour OTA du bundle RN | P2 | ❌ | — | — | Impossible proprement |
+| MSC-09 | Flags et configuration distante | P2 | ❌ | — | Des flags locaux suffisent. | OK |
+| MSC-10 | Télémétrie et mesure d'audience | P2 | ⚠️ | `main.dart:48-57` | Firebase Crashlytics, Analytics et Performance. Pas de télémétrie Twitch (non souhaitable). | Impossible proprement |
+| MSC-11 | Enquêtes in-app | P2 | ❌ | — | — | Impossible proprement |
+| MSC-12 | Menu debug | P2 | ⚠️ | `dev_player_harness.dart`, `video_overlay.dart:487-516` | Harness mpv et badge de latence. Pas de menu debug. | OK |
+| MSC-13 | Rapports de crash QA | P2 | ⚠️ | `main.dart:48-57`, `other_settings.dart:105` | Crashlytics avec opt-out. | OK |
+| MSC-14 | Mises en page tablette et bureau | P2 | ⚠️ | `video_overlay.dart:112-135`, `channel.dart:576-805` | Bouton fit/fill tablette, chat en colonne. Ni rail ni layout sw600dp. | OK |
+| MSC-15 | WebView in-app | P2 | ✅ | `user_actions_modal.dart:115`, `auth_store.dart:101`, `settings_store.dart:48-50` | WebView pour le signalement et la connexion, option navigateur externe. | OK |
+| MSC-16 | Éducation utilisateur | P2 | ⚠️ | `onboarding_intro.dart`, `release_notes.dart` | Onboarding et notes de version. Pas de coach-marks. | OK |
+| MSC-17 | Liens différés et attribution | P2 | ❌ | — | Clé Branch propre à Twitch. | Impossible proprement |
+
+## 2. Synthèse
+
+Comptes générés à partir des tableaux ci-dessus (317 lignes).
+
+| Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
+|---|---|---|---|---|---|
+| Lecture vidéo (PLY) | 5 | 8 | 19 | 1 | 33 |
+| Chat (CHT) | 12 | 14 | 16 | 6 | 48 |
+| Interactions communautaires (INT) | 0 | 1 | 30 | 0 | 31 |
+| Modération (MOD) | 0 | 0 | 31 | 0 | 31 |
+| Social & notifications (SOC) | 2 | 3 | 17 | 0 | 22 |
+| Découverte & recherche (DSC) | 2 | 5 | 15 | 0 | 22 |
+| Profil de chaîne & contenus (VOD / clips) (PRF) | 0 | 3 | 26 | 0 | 29 |
+| Monétisation (MON) | 0 | 0 | 15 | 0 | 15 |
+| Compte & réglages (ACC) | 3 | 6 | 22 | 1 | 32 |
+| Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
+| Divers / technique (MSC) | 2 | 7 | 8 | 0 | 17 |
+| **Total** | **26** | **47** | **236** | **8** | **317** |
+
+| Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
+|---|---|---|---|---|---|
+| P0 | 14 | 26 | 16 | 4 | 60 |
+| P1 | 10 | 14 | 80 | 4 | 108 |
+| P2 | 2 | 7 | 140 | 0 | 149 |
+| **Total** | **26** | **47** | **236** | **8** | **317** |
+
+| Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
+|---|---|---|---|---|
+| OK | 28 | 48 | 35 | 111 |
+| GQL privé | 6 | 35 | 63 | 104 |
+| Compte requis | 8 | 11 | 12 | 31 |
+| Impossible proprement | 0 | 0 | 37 | 37 |
+
+Lecture : sur 60 lignes P0, **18** sont entièrement couvertes (14 ✅ et 4 ➕), 26 sont partielles et 16 absentes. Les lignes P0 absentes sont la modération active (MOD-01→08, compte mod requis), le follow, la cloche, les notifications et le centre de notifications (SOC-01/05/06/07), le préchargement (PLY-02), le volume (PLY-06), les avertissements (CHT-13) et le temps réel (MSC-03). Les ➕ sont le délai de chat synchronisé, la révélation des messages supprimés, le multi-chat et le chat partagé, les emotes 7TV/BTTV/FFZ, la disposition paysage et le thème avec accent.
+
+## 3. Lecture / latence : écarts concrets avec le lecteur officiel
+
+Colonne « Latence » : ↓ = peut réduire la latence glass-to-glass, ⏱ = réduit seulement le temps de démarrage, 📏 = mesure seulement, ↔ = neutre.
+
+| # | Sujet | Officiel 31.5.2 | frostyv2 (fichier:ligne) | Changement proposé | Latence | Risque |
+|---|---|---|---|---|---|---|
+| L1 | Version IVS | `ivs-player` 1.57.0-rc.2 | 1.52.0 (`android/app/build.gradle.kts:65`) | Passer à 1.57.x. C'est un prérequis de L2 ; vérifier sur Maven Central si une version stable existe. | ↓ (indirect) | Moyen : changements d'API possibles, régression du rendu texture à revérifier |
+| L2 | Rattrapage par accélération | `setLiveCatchUpSpeedUpEnabled(true)` sur chaque lecteur | Absent (setter inexistant en 1.52) | Activer après L1, dans un `try` comme `IvsPlayerCore.kt:81-86` | **↓** rattrape la dérive sans saut | Faible : son légèrement accéléré pendant le rattrapage |
+| L3 | Rebuffer to live | **Jamais** activé (stratégie « speedup ») | `setRebufferToLive(true)` (`IvsPlayerCore.kt:83`) | Désactivé par défaut avec L2, gardé en option avancée | ↔ à ↓ (moins de sauts ; avec L2 la latence moyenne ne remonte pas) | Faible. À mesurer : sans L2, désactiver seul **augmente** la latence après un rebuffer |
+| L4 | Buffer initial | `setInitialBufferDuration(100)` en théâtre live | Valeur par défaut du core | Fixer à 100 ms | ⏱ et ↓ au démarrage | Faible : un peu plus de rebuffers au tout début |
+| L5 | Préchargement du jeton | `TheatrePortalPreloadQuery` avant l'UI, puis `preload()` → `loadSource()` | PAT puis usher puis texture, en série après `initState` (`ivs_video_store.dart:114-115`, `channel.dart:150-177`) | Précharger PAT + URL usher dès que l'intention apparaît (appui sur une carte, carte visible en tête de liste), avec un cache par login jusqu'à `expires` | ⏱ | Nul à faible : jeton expiré → re-fetch sur 403 |
+| L6 | Paramètres usher hérités | `low_latency` et `player=twitchweb` sont absents de toute l'app officielle ; `fast_bread=true` est le vrai drapeau LL-HLS | Présents (`twitch_stream_service.dart:54,61,77,85`) | Les retirer. Ajouter `allow_audio_only=true` et `include_unavailable=true` | ↔ | **Sans risque** si on mesure avant et après |
+| L7 | Plateforme du jeton | `platform=android`, `playerType=mobile_player` | `platform:"web"`, `playerBackend:"mediaplayer"`, `playerType:"embed"` (`twitch_stream_service.dart:26-31,110`) | A/B derrière un réglage développeur (cf. questions ouvertes) | Inconnu : variantes, pubs et LL peuvent différer | Moyen : refus éventuel ou traitement pub différent ; le fallback web couvre le cas |
+| L8 | Affichage de la latence | Overlay stats (latence au diffuseur) | `showLatency=false` par défaut (`settings_store.dart:74`). Latence arrondie à 1 s et bornée à 60 s (`ivs_video_store.dart:195`) | Activer par défaut. Afficher 0,1 s plus débit, résolution et buffer (`getStatistics`). Garder des **secondes entières** pour `syncedChatDelay` | 📏 | **Sans risque** |
+| L9 | Erreurs | `setNetworkRecoveryMode(NONE)` + refetch avec backoff + relance au `stream-up` | **Toute** erreur IVS → WebView pour toute la session (`ivs_video_store.dart:203-206` → `channel.dart:164-177`) | Classer les erreurs : réseau → retry 1/2/4 s avec nouveau jeton ; 403 usher → message ; hors ligne → écran de fin. WebView seulement après N échecs | **↓** en pratique : évite une chute silencieuse à 8-15 s | Faible |
+| L10 | iOS | n/a | Aucun code IVS → spinner infini (`ivs_video_store.dart:115`) | Sur iOS, forcer `twitchWeb` (ou mpv) dans `_buildPlayerController` (`channel.dart:116-148`) | ↔ | **Sans risque** (respecte la règle iOS de `CLAUDE.md`) |
+| L11 | ABR | `setAutoMaxVideoSize(3840,2160)`, débit initial réglé | Auto, `supported_codecs=av1,h265,h264` (`twitch_stream_service.dart:81`) | Garder Auto. Exposer le plafond. Restaurer la qualité mémorisée **après** l'événement `qualities` | ↔ | Faible : le décodage HEVC/AV1 coûte cher sur certains SoC, à surveiller |
+| L12 | Moteur mpv | n/a | `cache=no`, `demuxer-readahead-secs=0` (`native_video_store.dart:144-157`), non sélectionnable dans l'UI (`video_settings.dart:29-31`) | Garder comme harness ou fallback n° 2 | ↔ | — |
+| L13 | Latence WebView | n/a | Lue dans les stats toutes les 60 s (`video_store.dart:494-648`) | Inchangé (fallback) | 📏 | — |
+
+**Sans risque, à faire en premier :** L6, L8, L10, puis L4 et L5. **Ce qui peut réduire la latence :** L2 (+ L1), L3 combiné à L2, L9, et L4 au démarrage. **À mesurer en A/B :** L3 et L7.
+
+## 4. Régressions à surveiller (garde-fous pour chaque feature future)
+
+**7TV (et BTTV/FFZ)**
+
+- Emotes globales et de chaîne (`seventv_api.dart:10-39`, `chat_assets_store.dart:153-230`) : la chaîne prime sur le global, zero-width (flag 256), alias, AVIF ignoré. Ne pas réordonner la résolution des emotes.
+- EventAPI `wss://events.7tv.io/v3` `emote_set.update` (`chat_store.dart:797-881`) : ajout et retrait avec message système, **mis en file derrière le délai de chat** (`_pendingSevenTVCallbacks`). Tout nouveau socket (EventSub) doit vivre à côté, sans remplacer ce flux.
+- Onglets 7TV/BTTV/FFZ du menu d'emotes (`chat.dart:280-320`), autocomplétion multi-fournisseurs (`chat_store.dart:276-300`), réglages `show7TVEmotes`…
+- Chat partagé : sets 7TV par diffuseur (`chat_assets_store.dart:34`).
+- Tout nouveau rendu (cheermotes, couleur d'annonce, AutoMod, cartes clip) doit passer par `IRCMessage.generateSpan` pour garder les emotes tierces.
+- Dettes connues à ne pas aggraver : badges 7TV jamais alimentés (`chat_assets_store.dart:94-96`), seul `.first` de pushed/pulled traité, pas de heartbeat ni de resume 7TV.
+
+**Affichage de la modération**
+
+- CLEARMSG marque le message sans effacer son contenu (`irc.dart:106-127`). Un CLEARCHAT ciblé marque **tous** les messages de l'utilisateur avec `ban-duration`, y compris le buffer (`irc.dart:60-103`). Un CLEARCHAT global affiche une notice.
+- Rendu : opacité 50 %, en-têtes « Message deleted / Permanently banned / Timed out for N », révélation au tap, réglage `showDeletedMessages` (`chat_message.dart:342-403`). Les actions Helix futures (ban, delete) **ne doivent pas** supprimer localement un message de façon optimiste : il faut laisser revenir le CLEARCHAT/CLEARMSG IRC.
+- CLEARCHAT et CLEARMSG passent par la file de délai, car ils sont absents de `_delayBypassCommands` (`chat_store.dart:34-39`). Les événements EventSub de modération doivent emprunter la même file : sinon ils s'appliquent à des messages pas encore affichés.
+- Les modérateurs voient les utilisateurs bloqués (`chat_store.dart:532`) : ne pas casser l'exception.
+- Garder la vue fusionnée multi-chat, les fils de réponse et la fiche utilisateur cohérents avec ces marquages.
+
+**Latence et lecteur**
+
+- Le moteur par défaut reste IVS. Le fallback WebView doit toujours se lancer (`channel.dart:141-147,164-177`) et l'interrupteur doit fonctionner (`video_settings.dart:22-32`) (cf. `CLAUDE.md`, Definition of done).
+- `syncedChatDelay` est alimenté par la latence IVS en secondes entières (`ivs_video_store.dart:199-201`) et remis à 0 à la création (`ivs_video_store.dart:113`). Plus de précision à l'affichage ne doit pas changer l'unité du délai.
+- Le mini-player récupère le lecteur sans rechargement (`channel.dart:118-123`, `mini_player_store.dart:41-58`), et le chat reste vivant. Le préchargement et les retries ne doivent pas créer un 2ᵉ lecteur pour la même chaîne.
+- Auto-PiP Android (`ivs_video_store.dart:119-130`) : le service d'audio en arrière-plan ne doit pas le désactiver.
+- Le ticker de latence (1 s, `IvsPlayerCore.kt:92-100`) doit rester léger. Les nouveaux sockets se lancent **après** `ready`, pour ne pas retarder le premier frame.
+- `IvsVideoStore` crée son propre `Dio()` (`ivs_video_store.dart:112`), fermé dans `dispose` (l. 313). Un cache de préchargement ne doit pas fuir de clients.
+- Mesure obligatoire avant et après chaque changement de lecteur : latence médiane sur 5 min, sur 3 chaînes, sur un appareil réel, overlay activé.
+
+## 5. Ordre d'implémentation proposé
+
+Un commit par groupe, dans l'ordre. Les lignes [C] seules et « Impossible proprement » sont exclues. Les groupes « Compte requis » dépendent de la question 2.
+
+### P0
+
+| # | Commit (feature) | IDs | Approche | Scopes / endpoints | Risque |
+|---|---|---|---|---|---|
+| 1 | Latence visible et stats IVS | PLY-04 | `showLatency=true` par défaut. Événement `stats` natif (débit, résolution, buffer) via `getStatistics()`. Latence à 0,1 s à l'écran. | — | Nul |
+| 2 | iOS et erreurs IVS récupérables | PLY-11, PLY-10 (+ PLY-26, PLY-27 en P1) | WebView forcée sur iOS. Classement des `PlayerException` : retry avec backoff et nouveau jeton, message pour 403/abonnés, écran hors ligne. Fallback WebView seulement après N échecs. | Réponse GQL PAT existante | Faible |
+| 3 | Nettoyage usher | PLY-01 (partiel), MSC-02 | Retirer `low_latency` et `player=twitchweb` ; ajouter `allow_audio_only`, `include_unavailable`. Le jeton reste `web` (L7 en A/B séparé). | usher | Faible |
+| 4 | IVS 1.57 + rattrapage par accélération + buffer 100 ms | PLY-03, PLY-01 | Montée de version Gradle, `setLiveCatchUpSpeedUpEnabled(true)`, `setInitialBufferDuration(100)`, `rebufferToLive` désactivé par défaut et réglable. | — | Moyen (SDK) |
+| 5 | Préchargement du jeton | PLY-02 | Cache `login → (token, sig, expires)` alimenté depuis les cartes de stream ; `_resolveUrl` le consomme. | GQL PAT existant | Faible |
+| 6 | Qualité mémorisée, son, zoom | PLY-05, PLY-06, PLY-07 | Restaurer `last_stream_quality`/la plus haute après `qualities`. `setMuted`/`setVolume` dans le pont. Pincer-zoomer (`InteractiveViewer`) sur la texture. | — | Faible |
+| 7 | Client EventSub WebSocket + état du live | MSC-03, PLY-09 | Service `EventSubApi extends BaseApiClient` (`POST /eventsub/subscriptions`) + `wss://eventsub.wss.twitch.tv/ws` (keepalive, `session_reconnect`). `stream.online` relance le lecteur, `stream.offline` affiche l'écran de fin, `channel.update` met à jour la barre. | Aucun scope pour ces 3 types ; jeton **utilisateur** obligatoire en WebSocket | Moyen (quotas : 3 WS et 300 coûts par user/client) |
+| 8 | Correctifs de rendu du chat | CHT-05, CHT-18, CHT-10 | Mention par mot entier sur le login. Couleur d'annonce `msg-param-color`. Ligne système « X exclu/banni » si aucun message n'est visible. | IRC | Faible (garde-fous §4) |
+| 9 | Saisie : limite et restrictions | CHT-03, CHT-12, CHT-15, CHT-30 | Compteur de 500 caractères. Verrouillage et compte à rebours sur un CLEARCHAT qui vise son propre `user-id`. Bannière ROOMSTATE (slow : temps restant ; followers-only : durée). | IRC | Faible |
+| 10 | Commandes slash côté client | CHT-17, CHT-06 | Parseur local et autocomplétion des commandes. `/color` → `PUT /chat/color`, `/block` et `/unblock` → `/users/blocks`, aide `/help`. `/w` arrive au commit 22. | Scopes actuels | Faible |
+| 11 | Modération active Helix | MOD-01→MOD-08 | Actions dans la fiche utilisateur et l'appui long, visibles si `_userState.mod` ou diffuseur. Confirmations. Commandes `/ban /timeout /unban /untimeout /slow /followers /subscribers /emoteonly /uniquechat /warn` → Helix. | `POST/DELETE /moderation/bans` (`moderator:manage:banned_users`), `DELETE /moderation/chat` (`moderator:manage:chat_messages`), `POST /moderation/warnings` (`moderator:manage:warnings`), `PATCH /chat/settings` (`moderator:manage:chat_settings`) ; reconnexion requise | Moyen, **Compte requis** |
+| 12 | Fiche utilisateur enrichie | SOC-13 (+ MOD-14 partiel) | Date de création (`GET /users`), badges du dernier message, boutons whisper et follow quand ils existent. Contexte mod si autorisé. | `GET /users` ; `GET /channels/followers?user_id=` (`moderator:read:followers`) | Faible |
+| 13 | Révocation à la déconnexion | ACC-04 | `POST id.twitch.tv/oauth2/revoke` avant la suppression locale. | — | Nul |
+| 14 | Deep links étendus | MSC-01 | `clips.twitch.tv`, `/videos/<id>`, `t=`, schéma `twitch://`. Retirer `autoVerify` (invérifiable). Routage VOD et clips après les commits 18-19. | Manifeste | Faible |
+| 15 | Notifications de passage en live (approximation) | SOC-06, SOC-05 (local), MSC-05 | WorkManager périodique (≥ 15 min) sur `GET /streams/followed`, `flutter_local_notifications`, cloche locale par chaîne, permission `POST_NOTIFICATIONS`. | `user:read:follows` (déjà présent) | Moyen (batterie, délai, iOS limité) |
+| 16 | Navigation, recherche et page catégorie | DSC-01, DSC-04, DSC-07, DSC-08 | Onglets Vidéos/Clips dans la recherche et les catégories (après les commits 18-19). Suppression unitaire de l'historique. Onglet Profil/Activité si on le retient. | `/videos?game_id`, `/clips?game_id` | Faible |
+| 17 | Couche GQL privée P0 (flag, désactivée par défaut) | SOC-01, SOC-03, SOC-07, CHT-13 | `TwitchGqlApi extends BaseApiClient`, isolé et masqué à la moindre erreur. Exige l'`auth-token` web de l'utilisateur, pas notre jeton OAuth. Fallback « ouvrir la chaîne sur twitch.tv » pour le follow. | GQL privé (`FollowUserMutation`, `FollowedGamesQuery`, `OnsiteNotifications…`, `AcknowledgeChatWarning`) | **Élevé** (intégrité, CGU, cassures) |
+
+### P1
+
+| # | Commit (feature) | IDs | Approche | Scopes / endpoints | Risque |
+|---|---|---|---|---|---|
+| 18 | Lecture VOD | PRF-07, PRF-08, PRF-09, PRF-10, PRF-11, PRF-16 | Liste `GET /videos`. Jeton `videoPlaybackAccessToken` (déjà dans la requête existante), usher `/vod/<id>.m3u8`. IVS `seekTo`/`setPlaybackRate`. Reprise stockée en local. Contrôleur séparé du live. | Helix `/videos` | Faible à moyen |
+| 19 | Clips | PRF-17, PRF-18, PRF-19, CHT-45 | `GET /clips`, `POST /clips`. Lecture via le jeton de clip GQL. Cartes de clip et de VOD dans le chat. | `clips:edit` ; GQL clip (sans intégrité) | Moyen |
+| 20 | Page profil de chaîne | PRF-01, PRF-02, PRF-03, PRF-05, PRF-25, PRF-28, PRF-29 | En-tête (`/users`, `/channels`), Accueil, À propos, Programme (`/schedule`), Vidéos, Clips. Pastilles rediffusion et vérifié. Partager, bloquer, signaler. | Helix public | Faible |
+| 21 | Audio seul + arrière-plan + MediaSession | PLY-12, PLY-14, PLY-15, ACC-12 | Variante `audio_only`. `audio_service` en service de premier plan `mediaPlayback`. Contrôles notification et casque. | Permissions `FOREGROUND_SERVICE_MEDIA_PLAYBACK` | Moyen (cohabitation PiP et mini-player) |
+| 22 | Whispers | SOC-09 | Envoi Helix, réception EventSub (commit 7), historique local seulement. | `user:manage:whispers`, `user:read:whispers` ; `user.whisper.message` | Moyen (téléphone vérifié, quotas) |
+| 23 | Événements chat EventSub | CHT-44, INT-19 | Statut AutoMod de ses propres messages. Notice de raid sortant, et le lecteur suit la cible. | `user:read:chat` (`channel.chat.user_message_hold`/`_update`) ; `channel.raid` sans scope | Moyen |
+| 24 | Finitions du chat | CHT-22, CHT-23, CHT-25, CHT-28, CHT-29, INT-11 | Correction des 2 bugs des mots masqués et listes de filtres. Bascule d'animation. Emotes utilisables (`GET /chat/emotes/user`). Fiche emote enrichie. Cheermotes (`GET /bits/cheermotes`). | `user:read:emotes` | Faible (garde-fous 7TV) |
+| 25 | Classification du contenu | PLY-25, DSC-19 (+ ACC-22 en local) | Interstitiel et filtre basés sur `content_classification_labels`, préférences locales. | `GET /channels` | Faible |
+| 26 | Extras du lecteur | PLY-20, PLY-23, PLY-26, PLY-27 | Poignée de taille du chat en portrait. CC via cues texte IVS (`onCue`). Messages abonnés-only et géoblocage (si non faits au commit 2). | — | Faible |
+| 27 | Format double et Cast | PLY-21, PLY-24, PLY-17 | Un commit chacun : usher `multigroup_video` + `setSourceGroup` ; Cast via Default Media Receiver ; fenêtre flottante. | usher ; Cast SDK | Moyen à élevé (formats non documentés) |
+| 28 | Partage et signalement | SOC-14, SOC-15 | `share_plus` pour chaîne, clip et VOD (avec `t=`). Signalement de stream et de clip en WebView. | — | Nul |
+| 29 | Modération P1 | MOD-09, MOD-11, MOD-13, MOD-14, MOD-17, MOD-18, CHT-46, puis MOD-12, MOD-19, MOD-20, MOD-16 | `/clear`, annonces, file AutoMod en temps réel, Shield Mode, chatters par rôle. Ensuite rôles, sondages et prédictions (diffuseur seulement en Helix), puis tableau de bord. | `moderator:manage:announcements`, `moderator:manage:automod` (+ `automod.message.hold`), `moderator:manage:shield_mode`, `moderator:read:chatters`, `channel:manage:vips`/`moderators`/`polls`/`predictions` | Moyen, **Compte requis** |
+| 30 | Découverte P1 | DSC-05, DSC-09, DSC-11, ACC-11 | Filtre de langue. Résultat mis en avant. Flux vertical avec aperçu IVS (un seul lecteur actif), réglage de lecture auto. | `/streams?language=` | Moyen (mémoire, plusieurs lecteurs) |
+| 31 | Réglages et accessibilité | ACC-09, ACC-18, ACC-30 | Restructuration des réglages, liens WebView (vérification), `Semantics` sur l'overlay et le chat. | — | Nul |
+| 32 | Couche GQL privée P1 (flag) | INT-01→INT-07, INT-10, INT-15, INT-20, INT-21, CHT-14, CHT-16, CHT-32, CHT-38, CHT-41, CHT-42, MOD-10, MOD-15, SOC-04, SOC-08, SOC-10, DSC-06, DSC-10, DSC-12, DSC-15, PRF-04, PRF-12, PRF-18 (si non fait), PRF-20, ACC-13, ACC-22, ACC-26 | Même service que le commit 17, plus un client PubSub/Hermes pour les topics viewer (sondages, prédictions, points, hype train). Une feature par commit, chacune masquable. INT-26/27 (drops) et PRF-12 (chat replay) exigent `Client-Integrity` : à ne tenter qu'en dernier. | GQL privé + Hermes | **Élevé** |
+
+## 6. Hors périmètre proposé
+
+| Exclusion | IDs | Raison |
+|---|---|---|
+| Outils créateur | CRE-01→CRE-37, MOD-26→MOD-29 | Hors mission (spectateur et latence). Ingest et broadcast (CRE-03/04/05/07/09) impossibles proprement. Les réglages simples de sa chaîne (CRE-06/14/15/18/28/29) resteraient faisables en Helix plus tard. |
+| Achats et monétisation | MON-01→MON-15, INT-08, INT-12→INT-14 | Play Billing et checkout sont propres à Twitch ; dépense de Bits en argent réel. Seul un lien web vers twitch.tv (MON-11) est envisageable. |
+| Publicités | PLY-31, PLY-32, PLY-33, DSC-16 | SDK et tracking pub Twitch. Les segments SSAI restent lus tels quels. |
+| DRM | PLY-28 | Licences Widevine/PlayReady signées pour Twitch. |
+| Stories, réactions, shouts, recap | SOC-16→SOC-20, SOC-22, DSC-17, DSC-18, PRF-26, PRF-27 | Uniquement en GQL privé, faible valeur pour le viewer. |
+| Guest Star, extensions | INT-28→INT-31 | WebRTC propriétaire, JWT d'extension. |
+| Sécurité et cycle de vie du compte | ACC-05→ACC-08, ACC-14→ACC-17, ACC-19→ACC-21, ACC-23→ACC-25, ACC-27, ACC-31, ACC-32 | Déléguer à twitch.tv en WebView ou navigateur. Ne pas reproduire. |
+| Technique interne, staff, debug | MSC-06→MSC-11, MSC-17, ACC-29 | RN, portails, OTA, Eppo, télémétrie Spade, Sprig et Branch sont internes à Twitch. Un menu debug maison (MSC-12) reste utile pour la latence. |
+| Push FCM Twitch, Engage | MOD-30, DSC-22 | Clés et backend Twitch, liste blanche Google. |
+| Divers P2 à faible valeur | PLY-29, PLY-30, CHT-24, CHT-26, CHT-33, CHT-37, CHT-43, CHT-47, INT-09, INT-16→INT-18, INT-22→INT-25, MOD-21→MOD-25, MOD-31, DSC-13, DSC-14, DSC-20, DSC-21, PRF-06, PRF-13→PRF-15, PRF-21→PRF-24 | À reconsidérer après P0/P1. PRF-13→15 viennent presque gratuitement avec le commit 18. |
+
+## 7. Questions ouvertes
+
+1. **Design system ONSET** : il n'existe nulle part dans le repo (ni `lib/`, ni `docs/`, ni l'historique). Le seul thème est Frosty : Material 3 seedé sur `#9146FF`, police Inter, kit `lib/widgets/` (`theme.dart`). Où est la source de vérité (Figma, doc, autre repo) ? Sans elle, les nouveaux écrans suivront le thème Frosty.
+2. **Compte modérateur ou diffuseur** : l'utilisateur est-il modérateur, ou diffuseur, d'une chaîne active pour tester MOD-xx, CHT-46 et le commit 29 ? Lesquelles ? Sinon, ces groupes ne sont pas vérifiables et doivent passer après le reste.
+3. **Jeton GQL `platform=android` / `playerType=mobile_player`** au lieu de `web`/`embed` (L7) ? Proposition : un réglage développeur, puis un A/B de latence et de pubs sur 3 chaînes avant de changer le défaut.
+4. **GQL privé** : faut-il accepter les features qui exigent l'`auth-token` web (cookie twitch.tv) en plus de notre OAuth ? Cela pose une question de sécurité (stockage d'un second jeton), de CGU et de risque pour le compte.
+5. **IVS 1.57** : la version officielle est une RC (1.57.0-rc.2). Accepte-t-on une RC si aucune 1.57.x stable n'est publiée ?
+6. **Rebuffer to live** : le préfère-t-on désactivé (lecture fluide et rattrapage par accélération, comme l'officiel) ou activé (toujours au plus près du direct, avec des sauts) ? Proposition : désactivé par défaut avec le rattrapage, et une option.
+7. **iOS** : est-il dans le périmètre à court terme ? WebView forcée maintenant, ou lecteur natif AVPlayer LL-HLS plus tard ?
+8. **Notifications** : une approximation par polling (≥ 15 min, sans push) est-elle acceptable pour SOC-06 ?
+9. **Reconnexion** : l'ajout de scopes (modération, whispers, `user:read:chat`, `user:read:emotes`) force une reconnexion. Faut-il tout demander d'un coup, ou ajouter les scopes progressivement ?
+10. **Pubs SSAI** : elles passent aujourd'hui telles quelles dans IVS. Est-ce acceptable, ou faut-il au moins détecter et afficher le cue `X-TV-TWITCH-AD-*` ?
+11. **Messages récents** : garde-t-on le service tiers `recent-messages.robotty.de` (CHT-02), ou cherche-t-on une source officielle (GQL privé) ?
