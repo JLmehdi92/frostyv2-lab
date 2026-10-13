@@ -408,4 +408,37 @@ void main() {
       h.store.dispose();
     });
   });
+
+  test('a raid whose "go" was lost leaves 90 s after its departure time', () {
+    run((async) {
+      h.create();
+      async.flushMicrotasks();
+      // Departs on its own 90 s after creation.
+      h.send(HighlightTopic.raid, raidPayload('raid_update_v2'));
+      expect(h.store.raid, isNotNull);
+
+      async.elapse(const Duration(seconds: 179));
+      expect(h.store.raid, isNotNull);
+      async.elapse(const Duration(seconds: 2));
+      expect(h.store.raid, isNull);
+      h.store.dispose();
+    });
+  });
+
+  test('repeated "go" events never push the raid\'s end back', () {
+    run((async) {
+      h.create();
+      async.flushMicrotasks();
+      h.send(HighlightTopic.raid, raidPayload('raid_go_v2'));
+      for (var i = 0; i < 4; i++) {
+        async.elapse(const Duration(seconds: 10));
+        h.send(HighlightTopic.raid, raidPayload('raid_go_v2'));
+      }
+      async.elapse(const Duration(seconds: 19));
+      expect(h.store.raid, isNotNull);
+      async.elapse(const Duration(seconds: 2));
+      expect(h.store.raid, isNull);
+      h.store.dispose();
+    });
+  });
 }

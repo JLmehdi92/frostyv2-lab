@@ -66,6 +66,9 @@ abstract class CommunityHighlightsStoreBase with Store {
   final _topicEvents = <StreamSubscription<RealtimeTopicEvent>>[];
   final _degraded = <HighlightTopic>{};
   final _deadlines = <HighlightKind, Timer>{};
+
+  /// When the outgoing raid left (Twitch time).
+  DateTime? _raidGoneAt;
   final _lastFetch = <HighlightTopic, DateTime>{};
   final _inFlight = <HighlightTopic, Future<void>>{};
   final _trailing = <HighlightTopic, Timer>{};
@@ -297,27 +300,24 @@ abstract class CommunityHighlightsStoreBase with Store {
       () => _nextPinned = null,
     );
     final raid = _nextRaid;
-    _deadline(
-      HighlightKind.raid,
-      raid != null && raid.gone ? now.add(kRaidAfterGoLinger) : null,
-      () => _nextRaid = null,
-      keepRunning: true,
-    );
+    if (raid == null || !raid.gone) _raidGoneAt = null;
+    _deadline(HighlightKind.raid, switch (raid) {
+      null => null,
+      // From the first "go" (it is sent several times).
+      RaidState(gone: true) => (_raidGoneAt ??= now).add(kRaidAfterGoLinger),
+      // A lost "go" or "cancel" must not leave it up forever.
+      RaidState(:final raid) => raid.goAt?.add(
+        kRaidAfterGoLinger + kRaidMissedGoMargin,
+      ),
+    }, () => _nextRaid = null);
   }
 
   /// Removes the [kind] highlight at [at] (Twitch time), with [clear].
-  /// [keepRunning]: an already scheduled removal is not pushed back.
-  void _deadline(
-    HighlightKind kind,
-    DateTime? at,
-    void Function() clear, {
-    bool keepRunning = false,
-  }) {
+  void _deadline(HighlightKind kind, DateTime? at, void Function() clear) {
     if (at == null) {
       _deadlines.remove(kind)?.cancel();
       return;
     }
-    if (keepRunning && _deadlines[kind]?.isActive == true) return;
     _deadlines.remove(kind)?.cancel();
     final wait = at.difference(serverNow());
     _deadlines[kind] = Timer(wait.isNegative ? Duration.zero : wait, () {
