@@ -1155,9 +1155,7 @@ class IRCMessage {
     String? actionLabel,
   }) => IRCMessage(
     raw: '',
-    tags: {
-      'tmi-sent-ts': '${DateTime.now().millisecondsSinceEpoch}',
-    },
+    tags: {'tmi-sent-ts': '${DateTime.now().millisecondsSinceEpoch}'},
     command: Command.notice,
     message: message,
     actionCallback: actionCallback,
@@ -1198,12 +1196,16 @@ class USERSTATE {
   final bool mod;
   final bool subscriber;
 
+  /// A VIP of the channel (no slow mode or room modes, like moderators).
+  final bool vip;
+
   const USERSTATE({
     this.raw,
     this.color = '',
     this.displayName = '',
     this.mod = false,
     this.subscriber = false,
+    this.vip = false,
   });
 
   USERSTATE fromIRCMessage(IRCMessage ircMessage) => USERSTATE(
@@ -1212,6 +1214,10 @@ class USERSTATE {
     displayName: ircMessage.tags['display-name'] ?? displayName,
     mod: ircMessage.tags['mod'] == '0' ? false : true,
     subscriber: ircMessage.tags['subscriber'] == '0' ? false : true,
+    vip: switch (ircMessage.tags['badges']) {
+      final badges? => badges.split(',').any((b) => b.startsWith('vip/')),
+      null => vip,
+    },
   );
 }
 

@@ -307,6 +307,26 @@ mixin _$ChatStore on ChatStoreBase, Store {
     });
   }
 
+  late final _$_restrictionAtom = Atom(
+    name: 'ChatStoreBase._restriction',
+    context: context,
+  );
+
+  ChatRestriction? get restriction {
+    _$_restrictionAtom.reportRead();
+    return super._restriction;
+  }
+
+  @override
+  ChatRestriction? get _restriction => restriction;
+
+  @override
+  set _restriction(ChatRestriction? value) {
+    _$_restrictionAtom.reportWrite(value, super._restriction, () {
+      super._restriction = value;
+    });
+  }
+
   late final _$expandChatAtom = Atom(
     name: 'ChatStoreBase.expandChat',
     context: context,
@@ -387,6 +407,18 @@ mixin _$ChatStore on ChatStoreBase, Store {
     );
     try {
       return super.revealMessage(id);
+    } finally {
+      _$ChatStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void _updateRestriction() {
+    final _$actionInfo = _$ChatStoreBaseActionController.startAction(
+      name: 'ChatStoreBase._updateRestriction',
+    );
+    try {
+      return super._updateRestriction();
     } finally {
       _$ChatStoreBaseActionController.endAction(_$actionInfo);
     }

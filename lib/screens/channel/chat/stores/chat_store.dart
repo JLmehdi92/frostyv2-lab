@@ -9,6 +9,7 @@ import 'package:frosty/models/badges.dart';
 import 'package:frosty/models/emotes.dart';
 import 'package:frosty/models/events.dart';
 import 'package:frosty/models/irc.dart';
+import 'package:frosty/screens/channel/chat/chat_restrictions.dart';
 import 'package:frosty/screens/channel/chat/details/chat_details_store.dart';
 import 'package:frosty/screens/channel/chat/muted_words.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
@@ -265,6 +266,63 @@ abstract class ChatStoreBase with Store {
   /// The logged-in user's appearance in chat.
   @readonly
   var _userState = const USERSTATE();
+
+  /// What keeps the viewer from chatting (a ban, a timeout, the slow-mode
+  /// wait) or limits it (room modes); recomputed on chat events and when a
+  /// wait ends.
+  @readonly
+  ChatRestriction? _restriction;
+
+  var _banned = false;
+  DateTime? _timedOutUntil;
+  DateTime? _lastSentAt;
+  Timer? _restrictionTimer;
+
+  @action
+  void _updateRestriction() {
+    _restrictionTimer?.cancel();
+    final now = DateTime.now();
+    final restriction = chatRestriction(
+      room: chatDetailsStore.roomState,
+      privileged:
+          _userState.mod ||
+          _userState.vip ||
+          channelName == auth.user.details?.login,
+      subscriber: _userState.subscriber,
+      now: now,
+      banned: _banned,
+      timedOutUntil: _timedOutUntil,
+      lastSentAt: _lastSentAt,
+    );
+    _restriction = restriction;
+    final until = restriction?.until;
+    if (until != null) {
+      _restrictionTimer = Timer(
+        until.difference(now) + const Duration(milliseconds: 50),
+        _updateRestriction,
+      );
+    }
+  }
+
+  /// A send refused for a ban, a timeout or slow mode tells how long.
+  void _applyRejection(String msgId, String? message) {
+    final seconds = int.tryParse(
+      RegExp(r'(\d+) (?:more )?seconds?').firstMatch(message ?? '')?[1] ?? '',
+    );
+    final now = DateTime.now();
+    switch (msgId) {
+      case 'msg_banned':
+        _banned = true;
+      case 'msg_timedout' when seconds != null:
+        _timedOutUntil = now.add(Duration(seconds: seconds));
+      case 'msg_slowmode' when seconds != null:
+        final slow = int.tryParse(chatDetailsStore.roomState.slowMode) ?? 0;
+        _lastSentAt = now.add(Duration(seconds: seconds - slow));
+      default:
+        return;
+    }
+    _updateRestriction();
+  }
 
   @observable
   var expandChat = false;
@@ -572,6 +630,7 @@ abstract class ChatStoreBase with Store {
                   HapticFeedback.heavyImpact();
                   updateNotification(parsedIRCMessage.message!);
                 }
+                _applyRejection(msgId, parsedIRCMessage.message);
               }
             }
 
@@ -609,6 +668,16 @@ abstract class ChatStoreBase with Store {
               bufferedMessages: messageBuffer,
               ircMessage: parsedIRCMessage,
             );
+            final own = ownClearChat(
+              parsedIRCMessage,
+              ownUserId: auth.user.details?.id,
+              now: DateTime.now(),
+            );
+            if (own != null) {
+              _banned = own.banned;
+              _timedOutUntil = own.until;
+              _updateRestriction();
+            }
             break;
           case Command.clearMessage:
             IRCMessage.clearMessage(
@@ -620,6 +689,7 @@ abstract class ChatStoreBase with Store {
           case Command.roomState:
             chatDetailsStore.roomState = chatDetailsStore.roomState
                 .fromIRCMessage(parsedIRCMessage);
+            _updateRestriction();
             continue;
           case Command.userState:
             _userState = _userState.fromIRCMessage(parsedIRCMessage);
@@ -641,7 +711,11 @@ abstract class ChatStoreBase with Store {
               _isWaitingForAck = false;
               textController.clear();
               replyingToMessage = null;
+              // Sent: not banned, and slow mode counts from now.
+              _banned = false;
+              _lastSentAt = DateTime.now();
             }
+            _updateRestriction();
             break;
           case Command.globalUserState:
             final setIds = parsedIRCMessage.tags['emote-sets']?.split(',');
@@ -1346,6 +1420,7 @@ abstract class ChatStoreBase with Store {
     _messageBufferTimer?.cancel();
     _notificationTimer?.cancel();
     _sendingTimeoutTimer?.cancel();
+    _restrictionTimer?.cancel();
     _cancelChatDelayCountdown();
     sleepTimer?.cancel();
 
