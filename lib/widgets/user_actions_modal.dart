@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/channel_videos.dart';
@@ -15,6 +16,9 @@ class UserActionsModal extends StatelessWidget {
   final bool showPinOption;
   final bool? isPinned;
 
+  /// Offers the channel's profile (not from the profile itself).
+  final bool showProfile;
+
   const UserActionsModal({
     super.key,
     required this.authStore,
@@ -23,6 +27,7 @@ class UserActionsModal extends StatelessWidget {
     required this.userId,
     this.showPinOption = false,
     this.isPinned,
+    this.showProfile = true,
   });
 
   @override
@@ -31,6 +36,19 @@ class UserActionsModal extends StatelessWidget {
       primary: false,
       shrinkWrap: true,
       children: [
+        if (showProfile)
+          ListTile(
+            leading: const Icon(Icons.account_circle_outlined),
+            title: const Text('Profile'),
+            onTap: () {
+              Navigator.pop(context);
+              ChannelProfileScreen.open(
+                context,
+                login: userLogin,
+                displayName: name,
+              );
+            },
+          ),
         ListTile(
           leading: const Icon(Icons.video_library_outlined),
           title: const Text('Videos'),

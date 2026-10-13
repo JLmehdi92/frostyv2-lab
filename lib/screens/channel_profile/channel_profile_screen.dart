@@ -175,6 +175,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
         userId: id,
         showPinOption: true,
         isPinned: settings.pinnedChannelIds.contains(id),
+        showProfile: false,
       ),
     );
   }

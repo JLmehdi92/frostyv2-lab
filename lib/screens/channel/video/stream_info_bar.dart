@@ -25,6 +25,10 @@ class StreamInfoBar extends StatelessWidget {
   final bool isInSharedChatMode;
   final bool isOffline;
   final bool showTextShadows;
+
+  /// Opens the channel's profile from the avatar; null keeps it inert.
+  final VoidCallback? onTapChannel;
+
   final String? displayName;
 
   const StreamInfoBar({
@@ -44,8 +48,25 @@ class StreamInfoBar extends StatelessWidget {
     this.isOffline = false,
     this.showTextShadows = true,
     this.displayName,
+    this.onTapChannel,
   });
 
+  Widget _tappable(BuildContext context, Widget avatar) {
+    final onTap = onTapChannel;
+    if (onTap == null) return avatar;
+    return Semantics(
+      button: true,
+      label: 'Channel profile',
+      child: Tooltip(
+        message: 'Channel profile',
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: avatar,
+        ),
+      ),
+    );
+  }
 
   TextStyle _getBaseTextStyle(
     BuildContext context,
@@ -96,27 +117,30 @@ class StreamInfoBar extends StatelessWidget {
       child: Row(
         spacing: 8,
         children: [
-          Container(
-            decoration: isInSharedChatMode
-                ? BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 2,
-                    ),
-                  )
-                : null,
-            child: Padding(
-              padding: isInSharedChatMode
-                  ? const EdgeInsets.all(1.5)
-                  : EdgeInsets.zero,
-              child: ProfilePicture(
-                userLogin: isOffline
-                    ? (offlineChannelInfo?.broadcasterLogin.isNotEmpty == true
-                          ? offlineChannelInfo?.broadcasterLogin ?? ''
-                          : displayName ?? '')
-                    : (streamInfo?.userLogin ?? ''),
-                radius: 16,
+          _tappable(
+            context,
+            Container(
+              decoration: isInSharedChatMode
+                  ? BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 2,
+                      ),
+                    )
+                  : null,
+              child: Padding(
+                padding: isInSharedChatMode
+                    ? const EdgeInsets.all(1.5)
+                    : EdgeInsets.zero,
+                child: ProfilePicture(
+                  userLogin: isOffline
+                      ? (offlineChannelInfo?.broadcasterLogin.isNotEmpty == true
+                            ? offlineChannelInfo?.broadcasterLogin ?? ''
+                            : displayName ?? '')
+                      : (streamInfo?.userLogin ?? ''),
+                  radius: 16,
+                ),
               ),
             ),
           ),
@@ -202,7 +226,9 @@ class StreamInfoBar extends StatelessWidget {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            settings: const RouteSettings(name: CategoryStreams.routeName),
+                                            settings: const RouteSettings(
+                                              name: CategoryStreams.routeName,
+                                            ),
                                             builder: (context) =>
                                                 CategoryStreams(
                                                   categoryId:
@@ -294,7 +320,9 @@ class StreamInfoBar extends StatelessWidget {
                                       onDoubleTap: () => Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          settings: const RouteSettings(name: CategoryStreams.routeName),
+                                          settings: const RouteSettings(
+                                            name: CategoryStreams.routeName,
+                                          ),
                                           builder: (context) => CategoryStreams(
                                             categoryId:
                                                 streamInfo?.gameId ?? '',

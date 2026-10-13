@@ -23,6 +23,7 @@ import 'package:frosty/screens/channel/video/stream_info_bar.dart';
 import 'package:frosty/screens/channel/video/video.dart';
 import 'package:frosty/screens/channel/video/video_overlay.dart';
 import 'package:frosty/screens/channel/video/video_store.dart';
+import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/channel_videos.dart';
 import 'package:frosty/services/playback_focus.dart';
@@ -766,6 +767,12 @@ class _VideoChatState extends State<VideoChat>
               isOffline: streamInfo == null,
               isInSharedChatMode: _chatStore.isInSharedChatMode,
               showTextShadows: false,
+              onTapChannel: () => ChannelProfileScreen.open(
+                context,
+                login: widget.userLogin,
+                displayName: widget.userName,
+                fromChannel: true,
+              ),
             ),
             actions: [
               IconButton(

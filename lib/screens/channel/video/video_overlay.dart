@@ -9,6 +9,7 @@ import 'package:frosty/screens/channel/video/overlay_common.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:frosty/screens/channel/video/stream_info_bar.dart';
+import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/channel_videos.dart';
 import 'package:frosty/theme.dart';
@@ -365,6 +366,15 @@ class VideoOverlay extends StatelessWidget {
                                     isOffline: true,
                                     isInSharedChatMode:
                                         chatStore.isInSharedChatMode,
+                                    onTapChannel: () =>
+                                        ChannelProfileScreen.open(
+                                          context,
+                                          login: offlineChannelInfo
+                                              .broadcasterLogin,
+                                          displayName: offlineChannelInfo
+                                              .broadcasterName,
+                                          fromChannel: true,
+                                        ),
                                   ),
                                 ),
                             ],
@@ -436,6 +446,12 @@ class VideoOverlay extends StatelessWidget {
                               child: Observer(
                                 builder: (context) => StreamInfoBar(
                                   streamInfo: streamInfo,
+                                  onTapChannel: () => ChannelProfileScreen.open(
+                                    context,
+                                    login: streamInfo.userLogin,
+                                    displayName: streamInfo.userName,
+                                    fromChannel: true,
+                                  ),
                                   showUptime: false,
                                   showViewerCount: false,
                                   textColor: surfaceColor,

@@ -4,6 +4,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/models/channel.dart';
 import 'package:frosty/screens/channel/channel.dart';
+import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
 import 'package:frosty/screens/home/search/search_store.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
@@ -118,17 +119,26 @@ class _SearchResultsChannelsState extends State<SearchResultsChannels> {
                   );
 
                   return InkWell(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        settings: const RouteSettings(name: VideoChat.routeName),
-                        builder: (context) => VideoChat(
-                          userId: channel.id,
-                          userName: channel.displayName,
-                          userLogin: channel.broadcasterLogin,
-                        ),
-                      ),
-                    ),
+                    // Offline: the profile, like Twitch.
+                    onTap: () => channel.isLive
+                        ? Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              settings: const RouteSettings(
+                                name: VideoChat.routeName,
+                              ),
+                              builder: (context) => VideoChat(
+                                userId: channel.id,
+                                userName: channel.displayName,
+                                userLogin: channel.broadcasterLogin,
+                              ),
+                            ),
+                          )
+                        : ChannelProfileScreen.open(
+                            context,
+                            login: channel.broadcasterLogin,
+                            displayName: displayName,
+                          ),
                     onLongPress: () {
                       HapticFeedback.mediumImpact();
 
