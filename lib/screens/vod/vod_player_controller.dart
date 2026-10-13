@@ -73,3 +73,9 @@ abstract class VodPlayerController {
 
   void dispose();
 }
+
+/// A player that can play the same media over and over (clips).
+abstract interface class LoopingPlayer {
+  bool get looping;
+  void toggleLoop();
+}
