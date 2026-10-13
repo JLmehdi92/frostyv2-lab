@@ -10,7 +10,7 @@ Règles transverses :
 | # | Épopée | IDs GAP | Dépend de | Accès requis |
 |---|---|---|---|---|
 | E1 | **VOD** : liste des vidéos d'une chaîne, lecteur VOD natif (IVS : seek, ±10/30 s, vitesse, qualité, reprise), replay du chat synchronisé avec emotes 7TV/BTTV/FFZ, deep links `/videos/<id>` et `?t=` dans l'appli (plus de navigateur) | PRF-07→11, PRF-16, CHT-replay, MSC-01 | — | GQL anonyme (Client-ID public) + Helix |
-| E2 | **Clips** : liste, lecteur, replay du chat, deep links `clips.twitch.tv` | PRF-17→19, CHT-45 | E1 | GQL anonyme + Helix |
+| E2 ✅ (cartes chat reportées) | **Clips** : onglet Clips (période, tri), lecteur in-app media_kit (boucle, qualité, vitesse, PiP, tablette), replay du chat de la VOD, « Voir la vidéo complète », autres clips, liens `clips.twitch.tv` et `/clip/` dans l'appli — voir `clips.plan.md` | PRF-17, PRF-18, CHT-45 (liens) | E1 | GQL anonyme |
 | E3 ⚠️ (Hermes fait ; EventSub non fait) | **Couche temps réel** : client PubSub/Hermes (+ EventSub `stream.online/offline`) partagé, reconnexion, sujets par chaîne | MSC-03, PLY-09 | — | anonyme pour les sujets publics |
 | E4 ✅ | **Hype Train** : état initial GQL + événements temps réel, bannière au-dessus du chat, feuille détaillée, niveaux, progression, minuteurs, conducteurs, récompenses, variantes (Golden Kappa, Treasure, Mythic, Community, All-Time-High, partagé) et animations ONSET | INT-15→17 | E3 | anonyme (lecture) |
 | E5 | **Bandeau « community highlights »** : sondages, prédictions, raids, épinglés, drops affichés en temps réel | INT-01→07, INT-19, CHT-13 | E3 | anonyme (lecture) ; voter/parier = session utilisateur |

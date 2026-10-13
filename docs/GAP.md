@@ -11,6 +11,8 @@
 | 2026-10-13 | `bbe7ca3` → `d0c9be5` (épopée « lecteur basse latence », C1-C6) + nettoyage SurfaceView | PLY-01, 02, 03, 04, 05, 06, 10, 11. Comptes de synthèse recalculés pour PLY et P0. « À valider sur appareil » : l'émulateur du conteneur ne permet ni l'affichage fluide ni le réseau. |
 | 2026-10-13 | `1838137` → `5c8dbf2` (épopée E1 « rediffusions », V1-V7) | PRF-07, 08, 09, 10, 11, 12, 14, 15 ; PLY-06, PLY-10, MSC-01 (remarques). Comptes de synthèse recalculés. Lecture, replay et reprise à valider sur appareil. |
 | 2026-10-13 | épopées E3 « temps réel » et E4 « Hype Train » | INT-15, 16, 17 ✅ ; MSC-03, CHT-41 ⚠️ ; PLY-09 (remarque). Comptes de synthèse recalculés à partir des tableaux. Affichage à valider sur appareil. |
+| 2026-10-13 | épopée tablette (Xiaomi Pad 7) | MSC-14 ✅ ; DSC-01 (rail). Comptes recalculés. |
+| 2026-10-13 | épopée E2 « clips » | PRF-17, PRF-18 ✅ ; CHT-45 ⚠️ ; PRF-19 (compte requis) ; MSC-01 (remarques). Comptes recalculés. Lecture à valider sur appareil. |
 
 ## 0. Légende et conventions
 
@@ -127,7 +129,7 @@
 | CHT-42 | Messages épinglés (lecture) | P1 | ❌ | — | Aucune API publique d'épinglage. | GQL privé |
 | CHT-43 | Messages épinglés payants et cheers épinglés | P2 | ❌ | — | — | GQL privé |
 | CHT-44 | AutoMod (côté émetteur) | P1 | ⚠️ | `chat_store.dart:64-65` | `msg_rejected` en toast, sans statut retenu/approuvé. EventSub `channel.chat.user_message_hold`/`_update` (`user:read:chat`). | OK |
-| CHT-45 | Cartes clip et vidéo dans le chat | P1 | ❌ | — | Liens bruts. Helix `GET /clips`, `GET /videos`. | OK |
+| CHT-45 | Cartes clip et vidéo dans le chat | P1 | ⚠️ | `utils/link_router.dart`, `utils/twitch_links.dart` | Les liens de clip et de vidéo du chat s'ouvrent dans l'appli. Pas encore de carte d'aperçu (toucherait au rendu du chat ; reporté). | OK |
 | CHT-46 | Liste des spectateurs (chatters) | P1 | ⚠️ | `chat_users_list.dart:16-200`, `chat_details_store.dart:39` | Seulement les pseudos vus en IRC, sans rôles. Helix `GET /chat/chatters` exige `moderator:read:chatters` et un rôle mod ; sinon GQL. | Compte requis |
 | CHT-47 | Effets de message animés | P2 | ❌ | — | — | GQL privé |
 | CHT-48 | Chat hors ligne | P1 | ✅ | `channel.dart:556-559` | L'IRC ne dépend pas du live. | OK |
@@ -278,9 +280,9 @@
 | PRF-14 | Segments muets | P2 | ✅ | `twitch_vod_service.dart`, `vod_seek_bar.dart` (`b1a41fe`, `021c827`) | Repères sur la barre de progression. | OK |
 | PRF-15 | VOD réservées aux abonnés | P2 | ⚠️ | `ivs_vod_store.dart`, `vod_error_view.dart`, `vod_card.dart` (`ad3cf94`, `021c827`) | Cadenas dans la liste et message « réservée aux abonnés » (ou géobloquée) au lieu d'un repli. Lecture impossible sans session abonnée (E9). | OK |
 | PRF-16 | Vidéos des chaînes suivies | P1 | ❌ | — | Helix `GET /videos?user_id=`, un appel par chaîne suivie. | OK |
-| PRF-17 | Clips de la chaîne | P1 | ❌ | — | Helix `GET /clips`. | OK |
-| PRF-18 | Lecture de clip | P1 | ❌ | — | Jeton de clip via GQL (sans intégrité). | GQL privé |
-| PRF-19 | Créer un clip | P1 | ❌ | — | Helix `POST /clips` (`clips:edit`). | OK |
+| PRF-17 | Clips de la chaîne | P1 | ✅ | `apis/twitch_clip_service.dart`, `screens/clips/widgets/channel_clips_tab.dart` | Onglet « Clips » des vidéos de la chaîne : 24 h / 7 j / 30 j / tout, Top ou Tendances, 100 premiers (pagination bloquée par l'intégrité en anonyme), grille sur tablette. GQL anonyme. | OK |
+| PRF-18 | Lecture de clip | P1 | ✅ | `screens/clips/clip_screen.dart`, `stores/clip_player_store.dart` | MP4 signé (jeton GQL anonyme) lu par media_kit : qualité, boucle, vitesse, volume, PiP, fit/fill, panneau latéral sur tablette, « Voir la vidéo complète » au bon instant, replay du chat de la VOD, autres clips de la chaîne. Repli embed Twitch en WebView. À valider sur appareil. | GQL privé |
+| PRF-19 | Créer un clip | P1 | ❌ | — | Helix `POST /clips` (`clips:edit`) : portée absente des scopes OAuth actuels (`auth_store.dart`). Hors périmètre E2. | Compte requis |
 | PRF-20 | Éditer et publier un clip | P1 | ❌ | — | — | GQL privé |
 | PRF-21 | Télécharger ou exporter un clip | P2 | ❌ | — | — | GQL privé |
 | PRF-22 | Clips automatiques | P2 | ❌ | — | — | GQL privé |
@@ -395,7 +397,7 @@
 
 | ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
-| MSC-01 | Deep links et App Links | P0 | ⚠️ | `AndroidManifest.xml:40-47`, `main.dart`, `twitch_links.dart`, `link_router.dart` (`5c8dbf2`) | `twitch.tv`, `www.` et `m.` : chaîne, `/videos/<id>`, `/v/<id>`, `/<chaîne>/v/<id>`, `?t=` et `/<chaîne>/videos?filter=` ouverts dans l'appli, y compris depuis le chat. Ni `clips.`, ni `twitch://`. | OK |
+| MSC-01 | Deep links et App Links | P0 | ⚠️ | `AndroidManifest.xml:40-48`, `main.dart`, `twitch_links.dart`, `link_router.dart` | `twitch.tv`, `www.`, `m.` et `clips.twitch.tv` : chaîne, `/videos/<id>`, `/v/<id>`, `/<chaîne>/v/<id>`, `?t=`, `/<chaîne>/videos?filter=`, clips (`clips.twitch.tv/<slug>`, `/<chaîne>/clip/<slug>`, `/embed?clip=`) et `/<chaîne>/clips?range=` ouverts dans l'appli, y compris depuis le chat. Pas de schéma `twitch://`. | OK |
 | MSC-02 | Transport GraphQL | P0 | ⚠️ | `twitch_stream_service.dart:20-34,98-113` | Une seule requête GQL, non persistée (choix volontaire contre la rotation des hashes). Ni APQ ni intégrité. | GQL privé |
 | MSC-03 | Temps réel Hermes | P0 | ⚠️ | `lib/services/realtime/` | Client Hermes anonyme partagé (`TwitchRealtimeClient`) : connexion paresseuse, abonnements comptés, keepalive, reconnexion avec backoff, pause en arrière-plan. Sujets publics seulement ; EventSub (jeton utilisateur) non fait. | OK |
 | MSC-04 | Client chat Kotlin Multiplatform | P1 | ✅ | `chat_store.dart:884-1005`, `chat_tabs_store.dart:151-200` | Buffer flushé toutes les 200 ms, backoff, PING/PONG. | OK |
@@ -420,7 +422,7 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | Lecture vidéo (PLY) | 8 | 7 | 17 | 1 | 33 |
-| Chat (CHT) | 12 | 15 | 15 | 6 | 48 |
+| Chat (CHT) | 12 | 16 | 14 | 6 | 48 |
 | Interactions communautaires (INT) | 3 | 1 | 27 | 0 | 31 |
 | Modération (MOD) | 0 | 0 | 31 | 0 | 31 |
 | Social & notifications (SOC) | 2 | 3 | 17 | 0 | 22 |
@@ -430,20 +432,20 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Compte & réglages (ACC) | 3 | 6 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 3 | 7 | 7 | 0 | 17 |
-| **Total** | **38** | **50** | **221** | **8** | **317** |
+| **Total** | **40** | **51** | **218** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 17 | 26 | 13 | 4 | 60 |
-| P1 | 15 | 17 | 72 | 4 | 108 |
+| P1 | 17 | 18 | 69 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **38** | **50** | **221** | **8** | **317** |
+| **Total** | **40** | **51** | **218** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 25 | 44 | 33 | 102 |
-| GQL privé | 6 | 34 | 61 | 101 |
-| Compte requis | 8 | 11 | 12 | 31 |
+| OK | 25 | 42 | 33 | 100 |
+| GQL privé | 6 | 33 | 61 | 100 |
+| Compte requis | 8 | 12 | 12 | 32 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
 
 Lecture : sur 60 lignes P0, **21** sont entièrement couvertes (17 ✅ et 4 ➕), 26 sont partielles et 13 absentes. Les lignes P0 absentes sont la modération active (MOD-01→08, compte mod requis), le follow, la cloche, les notifications et le centre de notifications (SOC-01/05/06/07) et les avertissements (CHT-13). Les ➕ sont le délai de chat synchronisé, la révélation des messages supprimés, le multi-chat et le chat partagé, les emotes 7TV/BTTV/FFZ, la disposition paysage et le thème avec accent.
