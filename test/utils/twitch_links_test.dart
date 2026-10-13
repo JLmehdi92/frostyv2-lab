@@ -205,4 +205,22 @@ void main() {
     expect(_p('https://clips.twitch.tv/%9a'), isA<OtherLink>());
     expect(_p('https://www.twitch.tv/%9a'), isA<OtherLink>());
   });
+
+  group('profile links', () {
+    test('about and schedule open the profile in-app', () {
+      final about = _p('https://www.twitch.tv/xqc/about');
+      expect(about, const ChannelProfileLink('xqc', ProfileSection.about));
+      expect(about.opensInApp, isTrue);
+      expect(
+        _p('twitch.tv/lirik/schedule'),
+        const ChannelProfileLink('lirik', ProfileSection.schedule),
+      );
+    });
+
+    test('other pages and reserved names do not', () {
+      expect(_p('https://www.twitch.tv/xqc/about/more'), isA<OtherLink>());
+      expect(_p('https://www.twitch.tv/directory/about'), isA<OtherLink>());
+      expect(_p('https://www.twitch.tv/xqc'), const ChannelLink('xqc'));
+    });
+  });
 }

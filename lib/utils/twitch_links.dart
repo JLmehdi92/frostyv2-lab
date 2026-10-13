@@ -12,7 +12,8 @@ sealed class TwitchLink {
     VodLink() ||
     ChannelVideosLink() ||
     ClipLink() ||
-    ChannelClipsLink() => true,
+    ChannelClipsLink() ||
+    ChannelProfileLink() => true,
     ChannelLink() || OtherLink() => false,
   };
 
@@ -90,6 +91,13 @@ sealed class TwitchLink {
         );
       }
       return ChannelVideosLink(first, type: _types[filter]);
+    }
+    // /<channel>/about, /<channel>/schedule
+    if (segments.length == 2) {
+      final section = ProfileSection.values
+          .where((s) => s.name == segments[1])
+          .firstOrNull;
+      if (section != null) return ChannelProfileLink(first, section);
     }
     if (segments.length == 1) return ChannelLink(first);
     return const OtherLink();
@@ -237,6 +245,29 @@ final class ChannelVideosLink extends TwitchLink {
 
   @override
   String toString() => 'ChannelVideosLink($login, $type)';
+}
+
+/// The profile sections a link can point to.
+enum ProfileSection { about, schedule }
+
+/// A channel's About or Schedule page.
+final class ChannelProfileLink extends TwitchLink {
+  const ChannelProfileLink(this.login, this.section);
+
+  final String login;
+  final ProfileSection section;
+
+  @override
+  bool operator ==(Object other) =>
+      other is ChannelProfileLink &&
+      other.login == login &&
+      other.section == section;
+
+  @override
+  int get hashCode => Object.hash(login, section);
+
+  @override
+  String toString() => 'ChannelProfileLink($login, ${section.name})';
 }
 
 /// A channel page.

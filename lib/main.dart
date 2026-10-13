@@ -29,6 +29,7 @@ import 'package:frosty/firebase_options.dart';
 import 'package:frosty/models/clip.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/channel/channel.dart';
+import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
 import 'package:frosty/screens/clips/clip_screen.dart';
 import 'package:frosty/screens/home/home.dart';
 import 'package:frosty/screens/onboarding/onboarding_intro.dart';
@@ -276,6 +277,17 @@ class _MyAppState extends State<MyApp> {
             displayName: displayName,
             startOnClips: true,
             clipPeriod: period ?? ClipPeriod.lastWeek,
+          ),
+        );
+      case ChannelProfileLink(:final login, :final section):
+        route = MaterialPageRoute(
+          settings: const RouteSettings(name: ChannelProfileScreen.routeName),
+          builder: (context) => ChannelProfileScreen(
+            login: login,
+            initialTab: switch (section) {
+              ProfileSection.about => ProfileTab.about,
+              ProfileSection.schedule => ProfileTab.schedule,
+            },
           ),
         );
       case ChannelLink() || OtherLink():
