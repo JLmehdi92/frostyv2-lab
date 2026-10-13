@@ -164,6 +164,50 @@ void main() {
     });
   });
 
+  group('review', () {
+    test('lastN stays inside the covered range of the second', () {
+      cache.addPage(
+        requestedSecond: 0,
+        page: _page([for (var i = 0; i <= 60; i++) _c('a$i', i)]),
+        videoLengthSeconds: 1000,
+      );
+      cache.addPage(
+        requestedSecond: 600,
+        page: _page([_c('x', 599), _c('y', 600), _c('z', 610)]),
+        videoLengthSeconds: 1000,
+      );
+
+      expect(cache.lastN(600, 50).map((c) => c.id), ['y']);
+    });
+
+    test('a page starting before the requested second covers from the '
+        'second after its first comment', () {
+      cache.addPage(
+        requestedSecond: 600,
+        page: _page([_c('x', 595), _c('y', 600), _c('z', 610)]),
+        videoLengthSeconds: 1000,
+      );
+
+      expect(cache.isCovered(595), isFalse);
+      expect(cache.isCovered(596), isTrue);
+    });
+
+    test('a later page with earlier comments of a second keeps page order', () {
+      cache.addPage(
+        requestedSecond: 199,
+        page: _page([_c('late', 199), _c('next', 200)]),
+        videoLengthSeconds: 1000,
+      );
+      cache.addPage(
+        requestedSecond: 190,
+        page: _page([_c('early', 199), _c('late', 199), _c('n2', 205)]),
+        videoLengthSeconds: 1000,
+      );
+
+      expect(cache.commentsIn(198, 199).map((c) => c.id), ['early', 'late']);
+    });
+  });
+
   group('evictFarFrom', () {
     test('drops comments and coverage outside the window', () {
       cache.addPage(

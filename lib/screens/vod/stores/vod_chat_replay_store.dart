@@ -47,8 +47,13 @@ abstract class VodChatReplayStoreBase with Store {
     List<String> Function()? blockedLogins,
     @visibleForTesting
     List<Duration> backoff = const [Duration(seconds: 1), Duration(seconds: 2)],
+    @visibleForTesting
+    Duration seekDebounce = const Duration(milliseconds: 250),
+    @visibleForTesting Duration minFetchGap = const Duration(milliseconds: 300),
   }) : _blockedLogins = blockedLogins ?? (() => const []),
-       _backoff = backoff {
+       _backoff = backoff,
+       _seekDebounce = seekDebounce,
+       _minFetchGap = minFetchGap {
     if (vod.type == VodType.upload) {
       _status = ReplayStatus.notApplicable;
       _assetsReady = Future.value();
@@ -71,6 +76,13 @@ abstract class VodChatReplayStoreBase with Store {
   final List<String> Function() _blockedLogins;
   final List<Duration> _backoff;
 
+  /// Seeks closer together than this (scrubbing) wait before fetching.
+  final Duration _seekDebounce;
+
+  /// Pause after a page that advanced replay by two seconds or less (a busy
+  /// chat), so catching up does not burst requests.
+  final Duration _minFetchGap;
+
   /// Same cap and purge size as live chat keeps on screen per batch.
   static const _messageLimit = 300;
   static const _messagesToRemove = 60;
@@ -81,8 +93,10 @@ abstract class VodChatReplayStoreBase with Store {
   /// Seconds of comments kept ahead of playback at 1x.
   static const _leadSeconds = 15;
 
-  /// A jump larger than this (or any jump back) is a seek, not playback.
+  /// A jump larger than this, or back by more than [_maxBackwardJitter], is
+  /// a seek, not playback.
   static const _maxForwardStep = 3;
+  static const _maxBackwardJitter = 1;
 
   /// Failures in a row before replay gives up until [retry].
   static const _maxFailures = 3;
@@ -106,6 +120,11 @@ abstract class VodChatReplayStoreBase with Store {
   var _fetchGeneration = 0;
   int? _inFlight;
   Timer? _retryTimer;
+
+  /// Defers a fetch until [_notBefore] (seek debounce, busy-chat spacing).
+  Timer? _fetchTimer;
+  DateTime? _notBefore;
+  DateTime? _lastSeekAt;
   var _failures = 0;
   var _integrityBlocked = false;
 
@@ -118,8 +137,7 @@ abstract class VodChatReplayStoreBase with Store {
   var _autoScroll = true;
 
   /// Current playback rate; the prefetch lead scales with it.
-  @observable
-  var playbackRate = 1.0;
+  double playbackRate = 1.0;
 
   bool get _stopped =>
       _status == ReplayStatus.unavailable ||
@@ -170,14 +188,21 @@ abstract class VodChatReplayStoreBase with Store {
   /// Called with the playback position each time its whole second changes.
   @action
   void onPositionSecond(int second) {
-    if (_disposed || _stopped) return;
+    if (_disposed) return;
     final s = second < 0 ? 0 : second;
     final last = _lastSecond;
     _lastSecond = s;
-    if (last == null || s < last || s - last > _maxForwardStep) {
+    if (_stopped) return;
+    if (last == null ||
+        s - last > _maxForwardStep ||
+        last - s > _maxBackwardJitter) {
       _seek(s);
     } else if (s > last) {
-      _show(_cache.commentsIn(last, s));
+      if (_needsFill) {
+        _fillIfCovered(s);
+      } else {
+        _show(_cache.commentsIn(last, s));
+      }
       if (s - (_lastEvictSecond ?? s) > 300) _evict(s);
     }
     _maybeFetch(s);
@@ -189,15 +214,33 @@ abstract class VodChatReplayStoreBase with Store {
     _fetchGeneration++;
     _inFlight = null;
     _retryTimer?.cancel();
-    _evict(s);
-    if (_cache.isCovered(s)) {
-      _needsFill = false;
-      _show(_cache.lastN(s, _seekBacklog));
-      _status = ReplayStatus.active;
-    } else {
-      _needsFill = true;
-      _status = ReplayStatus.loading;
+    _fetchTimer?.cancel();
+    final now = DateTime.now();
+    final lastSeek = _lastSeekAt;
+    _lastSeekAt = now;
+    // Scrubbing: wait for the position to settle before asking Twitch.
+    if (lastSeek != null &&
+        now.difference(lastSeek) < const Duration(seconds: 1)) {
+      _notBefore = now.add(_seekDebounce);
     }
+    _evict(s);
+    _needsFill = true;
+    if (!_fillIfCovered(s)) _status = ReplayStatus.loading;
+  }
+
+  /// Shows the comments leading up to [s] once its stretch is cached (or the
+  /// position is past a finished video's end, where there is nothing to
+  /// wait for).
+  bool _fillIfCovered(int s) {
+    final pastEnd = !vod.isRecording && s >= vod.lengthSeconds;
+    if (!pastEnd && !_cache.isCovered(s)) return false;
+    messages.clear();
+    _shownKeys.clear();
+    _needsFill = false;
+    final upTo = pastEnd ? vod.lengthSeconds : s;
+    _show(_cache.lastN(upTo, _seekBacklog));
+    _status = ReplayStatus.active;
+    return true;
   }
 
   void _evict(int s) {
@@ -240,12 +283,23 @@ abstract class VodChatReplayStoreBase with Store {
 
   void _maybeFetch(int s) {
     if (_disposed || _stopped || _inFlight != null) return;
-    if (_retryTimer?.isActive ?? false) return;
+    if ((_retryTimer?.isActive ?? false) || (_fetchTimer?.isActive ?? false)) {
+      return;
+    }
     final target = _cache.firstUncoveredFrom(s);
     // Twitch answers an offset past the end with an error, and a recording
     // has nothing beyond the playback position yet.
     if (vod.isRecording ? target > s : target >= vod.lengthSeconds) return;
     if (target - s > (_leadSeconds * playbackRate).ceil()) return;
+    final wait = _notBefore?.difference(DateTime.now());
+    if (wait != null && wait > Duration.zero) {
+      _fetchTimer = Timer(wait, () {
+        final now = _lastSecond;
+        if (now != null) runInAction(() => _maybeFetch(now));
+      });
+      return;
+    }
+    _notBefore = null;
     unawaited(_fetch(target));
   }
 
@@ -278,20 +332,22 @@ abstract class VodChatReplayStoreBase with Store {
     if (generation != _fetchGeneration) return;
     _inFlight = null;
     _failures = 0;
+    if (_cache.firstUncoveredFrom(second) - second <= 2) {
+      _notBefore = DateTime.now().add(_minFetchGap);
+    }
     runInAction(() {
       if (_stopped) return;
-      _status = ReplayStatus.active;
       final s = _lastSecond;
-      if (s == null || s < second) return;
+      if (s == null) return;
       if (_needsFill) {
-        _needsFill = false;
-        _show(_cache.lastN(s, _seekBacklog));
+        _fillIfCovered(s);
       } else {
-        _show(_cache.commentsIn(second - 1, s));
+        _status = ReplayStatus.active;
+        if (s >= second) _show(_cache.commentsIn(second - 1, s));
       }
     });
     final s = _lastSecond;
-    if (s != null) _maybeFetch(s);
+    if (s != null) runInAction(() => _maybeFetch(s));
   }
 
   void _onFetchError(Object error) {
@@ -353,6 +409,7 @@ abstract class VodChatReplayStoreBase with Store {
     _disposed = true;
     _fetchGeneration++;
     _retryTimer?.cancel();
+    _fetchTimer?.cancel();
     scrollController.dispose();
     unawaited(
       _assetsReady.then((_) {

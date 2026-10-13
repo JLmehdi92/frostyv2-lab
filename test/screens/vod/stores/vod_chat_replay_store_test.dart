@@ -74,6 +74,8 @@ void main() {
     Vod? vod,
     List<String> blocked = const [],
     List<Duration> backoff = const [Duration.zero, Duration.zero],
+    Duration seekDebounce = Duration.zero,
+    Duration minFetchGap = Duration.zero,
   }) {
     final s = VodChatReplayStore(
       vod: vod ?? _vod(),
@@ -83,6 +85,8 @@ void main() {
       headers: const {},
       blockedLogins: () => blocked,
       backoff: backoff,
+      seekDebounce: seekDebounce,
+      minFetchGap: minFetchGap,
     );
     created = s;
     return s;
@@ -395,6 +399,134 @@ void main() {
     await settle();
 
     expect(ids(), ['a', 'c']);
+  });
+
+  group('review', () {
+    test(
+      'a seek backlog never mixes in an earlier part of the video',
+      () async {
+        pages[0] = _span(0, 60);
+        pages[600] = _span(599, 615);
+        store = build();
+        for (var s = 0; s <= 20; s++) {
+          store.onPositionSecond(s);
+        }
+        await settle();
+
+        store.onPositionSecond(600);
+        await settle();
+
+        expect(ids(), ['s600']);
+      },
+    );
+
+    test(
+      'a stale page during a fill does not put newer messages first',
+      () async {
+        final slow = Completer<void>();
+        pages[110] = _span(110, 123);
+        pages[120] = _span(120, 140);
+        gate = slow;
+        store = build();
+        store.onPositionSecond(110);
+        store.onPositionSecond(120);
+        await settle();
+        slow.complete();
+        gate = null;
+        await settle();
+
+        store.onPositionSecond(121);
+        store.onPositionSecond(122);
+        await settle();
+
+        final shown = ids();
+        final seconds = [for (final id in shown) int.parse(id!.substring(1))];
+        expect(seconds, orderedEquals([...seconds]..sort()));
+        expect(shown.last, 's122');
+      },
+    );
+
+    test('a page that advances little spaces out the next request', () async {
+      for (var s = 0; s < 40; s++) {
+        pages[s] = VodCommentPage(
+          comments: [for (var i = 0; i < 50; i++) _c('b$s-$i', s)],
+          hasNextPage: true,
+        );
+      }
+      store = build(minFetchGap: const Duration(milliseconds: 100));
+
+      store.onPositionSecond(0);
+      await settle();
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      await settle();
+
+      expect(requests.length, lessThanOrEqualTo(3));
+    });
+
+    test('scrubbing makes one request for where it stops', () async {
+      store = build(seekDebounce: const Duration(milliseconds: 50));
+      store.onPositionSecond(0);
+      await settle();
+      requests.clear();
+
+      for (var s = 100; s <= 2000; s += 100) {
+        store.onPositionSecond(s);
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+      await settle();
+
+      expect(requests, [2000]);
+    });
+
+    test('a seek to the end shows the end, not an endless loading', () async {
+      pages[3500] = _span(3500, 3599, hasNext: false);
+      store = build();
+      store.onPositionSecond(3500);
+      await settle();
+
+      store.onPositionSecond(3600);
+      await settle();
+      expect(store.status, ReplayStatus.active);
+
+      store.onPositionSecond(5000);
+      expect(store.status, ReplayStatus.active);
+    });
+
+    test('retry fetches at the current position', () async {
+      pages[0] = const ApiException('boom');
+      store = build();
+      store.onPositionSecond(0);
+      await settle(20);
+      expect(store.status, ReplayStatus.unavailable);
+
+      store.onPositionSecond(100);
+      requests.clear();
+      store.retry();
+      await settle();
+
+      expect(requests.first, 100);
+    });
+
+    test('a one-second step back is jitter, not a seek', () async {
+      pages[0] = _span(0, 40);
+      store = build();
+      for (var s = 0; s <= 10; s++) {
+        store.onPositionSecond(s);
+      }
+      await settle();
+
+      store.onPositionSecond(9);
+      store.onPositionSecond(10);
+      store.onPositionSecond(11);
+
+      expect(ids(), [for (var s = 0; s <= 11; s++) 's$s']);
+    });
+
+    test('the rate is a plain setting', () {
+      store = build();
+      store.playbackRate = 1.5;
+      expect(store.playbackRate, 1.5);
+    });
   });
 
   test('dispose stops retries and releases the assets store', () async {

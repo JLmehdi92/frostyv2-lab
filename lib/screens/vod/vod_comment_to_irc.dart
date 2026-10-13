@@ -3,6 +3,11 @@ import 'package:frosty/models/vod_comment.dart';
 
 final _twitchLogin = RegExp(r'^[a-zA-Z0-9_]{1,25}$');
 final _lineBreaks = RegExp(r'[\r\n]');
+final _hexColor = RegExp(r'^#[0-9A-Fa-f]{6}$');
+final _badgePart = RegExp(r'^[A-Za-z0-9_-]{1,64}$');
+
+bool _isSafeBadge(({String setId, String version}) badge) =>
+    _badgePart.hasMatch(badge.setId) && _badgePart.hasMatch(badge.version);
 
 /// Turns a replayed chat comment into the [IRCMessage] live chat would have
 /// produced, so it renders through the same pipeline (badges, colours,
@@ -34,8 +39,11 @@ IRCMessage vodCommentToIrcMessage(
   final rawLogin = comment.commenterLogin;
   final known = rawLogin != null && _twitchLogin.hasMatch(rawLogin);
   final login = known ? rawLogin.toLowerCase() : 'deleted_user';
+  final shownName = (comment.commenterDisplayName ?? '')
+      .replaceAll(_tagBreakers, '')
+      .trim();
   final displayName = known
-      ? (comment.commenterDisplayName ?? rawLogin)
+      ? (shownName.isEmpty ? login : shownName)
       : 'Deleted user';
   final sentAt = vodCreatedAt.add(Duration(seconds: comment.offsetSeconds));
   final id =
@@ -43,11 +51,12 @@ IRCMessage vodCommentToIrcMessage(
       'vod-${comment.key.hashCode.toUnsigned(32).toRadixString(16)}';
 
   final tags = <String, String>{
-    if (comment.badges.isNotEmpty)
+    if (comment.badges.any(_isSafeBadge))
       'badges': comment.badges
-          .map((b) => '${_tagValue(b.setId)}/${_tagValue(b.version)}')
+          .where(_isSafeBadge)
+          .map((b) => '${b.setId}/${b.version}')
           .join(','),
-    if (comment.color != null) 'color': _tagValue(comment.color!),
+    'color': ?_validColor(comment.color),
     'display-name': _tagValue(displayName),
     if (emoteRanges.isNotEmpty)
       'emotes': emoteRanges.entries
@@ -76,6 +85,11 @@ IRCMessage vodCommentToIrcMessage(
 /// IRC tag value escaping: spaces become `\s`; `;`, `=` and backslashes
 /// (which would break the tag parser) are dropped.
 String _tagValue(String value) =>
-    value.replaceAll(RegExp(r'[;=\\\r\n]'), '').replaceAll(' ', r'\s');
+    value.replaceAll(_tagBreakers, '').replaceAll(' ', r'\s');
+
+final _tagBreakers = RegExp(r'[;=\\\r\n]');
+
+String? _validColor(String? color) =>
+    color != null && _hexColor.hasMatch(color) ? color : null;
 
 bool _isTagSafe(String value) => RegExp(r'^[A-Za-z0-9_]+$').hasMatch(value);

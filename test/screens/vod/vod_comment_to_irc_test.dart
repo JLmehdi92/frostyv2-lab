@@ -181,6 +181,35 @@ void main() {
     expect(m.mention, isTrue);
   });
 
+  test('an empty or fully stripped display name falls back to the login', () {
+    for (final name in ['', ';=\\', ' ']) {
+      final m = _convert(_comment(displayName: name));
+      expect(m.tags['display-name'], 'viewer_one', reason: name);
+    }
+  });
+
+  test('a colour that is not #RRGGBB is dropped', () {
+    for (final color in ['red', '#FFF', '#GG0000', '#FF000000', '']) {
+      final m = _convert(_comment(color: color));
+      expect(m.tags.containsKey('color'), isFalse, reason: color);
+    }
+    expect(_convert(_comment(color: '#a1B2c3')).tags['color'], '#a1B2c3');
+  });
+
+  test('badges with separators in them are dropped', () {
+    final m = _convert(
+      _comment(
+        badges: const [
+          (setId: 'broadcaster/1,moderator', version: '1'),
+          (setId: 'subscriber', version: '12,x'),
+          (setId: 'sub-gifter', version: '5'),
+        ],
+      ),
+    );
+
+    expect(m.tags['badges'], 'sub-gifter/5');
+  });
+
   test('an empty message still parses', () {
     final m = _convert(_comment(fragments: const []));
 

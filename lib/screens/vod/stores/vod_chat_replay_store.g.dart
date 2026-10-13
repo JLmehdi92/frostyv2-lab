@@ -49,24 +49,6 @@ mixin _$VodChatReplayStore on VodChatReplayStoreBase, Store {
     });
   }
 
-  late final _$playbackRateAtom = Atom(
-    name: 'VodChatReplayStoreBase.playbackRate',
-    context: context,
-  );
-
-  @override
-  double get playbackRate {
-    _$playbackRateAtom.reportRead();
-    return super.playbackRate;
-  }
-
-  @override
-  set playbackRate(double value) {
-    _$playbackRateAtom.reportWrite(value, super.playbackRate, () {
-      super.playbackRate = value;
-    });
-  }
-
   late final _$VodChatReplayStoreBaseActionController = ActionController(
     name: 'VodChatReplayStoreBase',
     context: context,
@@ -111,7 +93,7 @@ mixin _$VodChatReplayStore on VodChatReplayStoreBase, Store {
   @override
   String toString() {
     return '''
-playbackRate: ${playbackRate}
+
     ''';
   }
 }
