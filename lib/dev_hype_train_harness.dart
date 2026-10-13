@@ -504,8 +504,10 @@ class _ReplayTabState extends State<_ReplayTab> {
       realtime: _realtime,
     );
     setState(() => _store = store);
+    // Built now: expiries count from the moment it plays.
+    final fresh = _scenarios().firstWhere((s) => s.name == scenario.name);
     var at = 0;
-    for (final (delay, event) in scenario.events) {
+    for (final (delay, event) in fresh.events) {
       at += delay;
       _timers.add(
         Timer(
