@@ -193,6 +193,14 @@ class _ChatSettingsState extends State<ChatSettings> {
             value: settingsStore.showUserNotices,
             onChanged: (newValue) => settingsStore.showUserNotices = newValue,
           ),
+          SettingsListSwitch(
+            title: 'Show Hype Trains',
+            subtitle: const Text(
+              'Shows Hype Train progress, levels and rewards above chat.',
+            ),
+            value: settingsStore.showHypeTrain,
+            onChanged: (newValue) => settingsStore.showHypeTrain = newValue,
+          ),
           const SectionHeader('Layout'),
           SettingsListSwitch(
             title: 'Move emote menu button left',

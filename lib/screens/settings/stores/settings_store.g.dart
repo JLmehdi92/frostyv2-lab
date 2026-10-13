@@ -67,6 +67,7 @@ SettingsStore _$SettingsStoreFromJson(
   ..highlightFirstTimeChatter =
       json['highlightFirstTimeChatter'] as bool? ?? true
   ..showUserNotices = json['showUserNotices'] as bool? ?? true
+  ..showHypeTrain = json['showHypeTrain'] as bool? ?? true
   ..emoteMenuButtonOnLeft = json['emoteMenuButtonOnLeft'] as bool? ?? false
   ..landscapeChatLeftSide = json['landscapeChatLeftSide'] as bool? ?? false
   ..landscapeForceVerticalChat =
@@ -141,6 +142,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'chatDelay': instance.chatDelay,
   'highlightFirstTimeChatter': instance.highlightFirstTimeChatter,
   'showUserNotices': instance.showUserNotices,
+  'showHypeTrain': instance.showHypeTrain,
   'emoteMenuButtonOnLeft': instance.emoteMenuButtonOnLeft,
   'landscapeChatLeftSide': instance.landscapeChatLeftSide,
   'landscapeForceVerticalChat': instance.landscapeForceVerticalChat,
@@ -733,6 +735,24 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     });
   }
 
+  late final _$showHypeTrainAtom = Atom(
+    name: '_SettingsStoreBase.showHypeTrain',
+    context: context,
+  );
+
+  @override
+  bool get showHypeTrain {
+    _$showHypeTrainAtom.reportRead();
+    return super.showHypeTrain;
+  }
+
+  @override
+  set showHypeTrain(bool value) {
+    _$showHypeTrainAtom.reportWrite(value, super.showHypeTrain, () {
+      super.showHypeTrain = value;
+    });
+  }
+
   late final _$emoteMenuButtonOnLeftAtom = Atom(
     name: '_SettingsStoreBase.emoteMenuButtonOnLeft',
     context: context,
@@ -1279,6 +1299,7 @@ chatDelay: ${chatDelay},
 syncedChatDelay: ${syncedChatDelay},
 highlightFirstTimeChatter: ${highlightFirstTimeChatter},
 showUserNotices: ${showUserNotices},
+showHypeTrain: ${showHypeTrain},
 emoteMenuButtonOnLeft: ${emoteMenuButtonOnLeft},
 landscapeChatLeftSide: ${landscapeChatLeftSide},
 landscapeForceVerticalChat: ${landscapeForceVerticalChat},

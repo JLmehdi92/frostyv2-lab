@@ -151,6 +151,30 @@ void main() {
     });
   });
 
+  group('showHypeTrain', () {
+    test('is on by default, also for settings saved before it existed', () {
+      expect(SettingsStore.fromJson({}).showHypeTrain, isTrue);
+      expect(
+        SettingsStore.fromJson({'showUserNotices': false}).showHypeTrain,
+        isTrue,
+      );
+    });
+
+    test('round-trips through JSON', () {
+      final store = SettingsStore.fromJson({})..showHypeTrain = false;
+
+      expect(SettingsStore.fromJson(store.toJson()).showHypeTrain, isFalse);
+    });
+
+    test('resetChatSettings turns it back on', () {
+      final store = SettingsStore.fromJson({})
+        ..showHypeTrain = false
+        ..resetChatSettings();
+
+      expect(store.showHypeTrain, isTrue);
+    });
+  });
+
   group('SettingsStore reset actions', () {
     test('resetGeneralSettings restores general defaults', () {
       final store = SettingsStore.fromJson({});
