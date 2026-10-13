@@ -193,6 +193,126 @@ mixin _$IvsVideoStore on IvsVideoStoreBase, Store {
     });
   }
 
+  late final _$_latencyMsAtom = Atom(
+    name: 'IvsVideoStoreBase._latencyMs',
+    context: context,
+  );
+
+  int? get latencyMs {
+    _$_latencyMsAtom.reportRead();
+    return super._latencyMs;
+  }
+
+  @override
+  int? get _latencyMs => latencyMs;
+
+  @override
+  set _latencyMs(int? value) {
+    _$_latencyMsAtom.reportWrite(value, super._latencyMs, () {
+      super._latencyMs = value;
+    });
+  }
+
+  late final _$_samplesVersionAtom = Atom(
+    name: 'IvsVideoStoreBase._samplesVersion',
+    context: context,
+  );
+
+  int get samplesVersion {
+    _$_samplesVersionAtom.reportRead();
+    return super._samplesVersion;
+  }
+
+  @override
+  int get _samplesVersion => samplesVersion;
+
+  @override
+  set _samplesVersion(int value) {
+    _$_samplesVersionAtom.reportWrite(value, super._samplesVersion, () {
+      super._samplesVersion = value;
+    });
+  }
+
+  late final _$_statsVisibleAtom = Atom(
+    name: 'IvsVideoStoreBase._statsVisible',
+    context: context,
+  );
+
+  bool get statsVisible {
+    _$_statsVisibleAtom.reportRead();
+    return super._statsVisible;
+  }
+
+  @override
+  bool get _statsVisible => statsVisible;
+
+  @override
+  set _statsVisible(bool value) {
+    _$_statsVisibleAtom.reportWrite(value, super._statsVisible, () {
+      super._statsVisible = value;
+    });
+  }
+
+  late final _$_statsAtom = Atom(
+    name: 'IvsVideoStoreBase._stats',
+    context: context,
+  );
+
+  IvsStats? get stats {
+    _$_statsAtom.reportRead();
+    return super._stats;
+  }
+
+  @override
+  IvsStats? get _stats => stats;
+
+  @override
+  set _stats(IvsStats? value) {
+    _$_statsAtom.reportWrite(value, super._stats, () {
+      super._stats = value;
+    });
+  }
+
+  late final _$_rebufferCountAtom = Atom(
+    name: 'IvsVideoStoreBase._rebufferCount',
+    context: context,
+  );
+
+  int get rebufferCount {
+    _$_rebufferCountAtom.reportRead();
+    return super._rebufferCount;
+  }
+
+  @override
+  int get _rebufferCount => rebufferCount;
+
+  @override
+  set _rebufferCount(int value) {
+    _$_rebufferCountAtom.reportWrite(value, super._rebufferCount, () {
+      super._rebufferCount = value;
+    });
+  }
+
+  late final _$_startupMsAtom = Atom(
+    name: 'IvsVideoStoreBase._startupMs',
+    context: context,
+  );
+
+  int? get startupMs {
+    _$_startupMsAtom.reportRead();
+    return super._startupMs;
+  }
+
+  @override
+  int? get _startupMs => startupMs;
+
+  @override
+  set _startupMs(int? value) {
+    _$_startupMsAtom.reportWrite(value, super._startupMs, () {
+      super._startupMs = value;
+    });
+  }
+
   late final _$_isInPipModeAtom = Atom(
     name: 'IvsVideoStoreBase._isInPipMode',
     context: context,
@@ -313,6 +433,30 @@ mixin _$IvsVideoStore on IvsVideoStoreBase, Store {
     );
     try {
       return super._onEvent(e);
+    } finally {
+      _$IvsVideoStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void toggleStats() {
+    final _$actionInfo = _$IvsVideoStoreBaseActionController.startAction(
+      name: 'IvsVideoStoreBase.toggleStats',
+    );
+    try {
+      return super.toggleStats();
+    } finally {
+      _$IvsVideoStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void resetStats() {
+    final _$actionInfo = _$IvsVideoStoreBaseActionController.startAction(
+      name: 'IvsVideoStoreBase.resetStats',
+    );
+    try {
+      return super.resetStats();
     } finally {
       _$IvsVideoStoreBaseActionController.endAction(_$actionInfo);
     }

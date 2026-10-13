@@ -3,6 +3,12 @@ import 'package:frosty/screens/settings/stores/settings_store.dart';
 
 void main() {
   group('SettingsStore JSON serialization', () {
+    test('keeps a saved showLatency value over the new default', () {
+      final store = SettingsStore.fromJson({'showLatency': false});
+
+      expect(store.showLatency, isFalse);
+    });
+
     test('fromJson with empty map returns all defaults', () {
       final store = SettingsStore.fromJson({});
 
@@ -16,7 +22,7 @@ void main() {
       expect(store.useTextureRendering, isTrue);
       expect(store.showOverlay, isTrue);
       expect(store.toggleableOverlay, isFalse);
-      expect(store.showLatency, isFalse);
+      expect(store.showLatency, isTrue);
       expect(store.badgeScale, 1.0);
       expect(store.emoteScale, 1.0);
       expect(store.messageScale, 1.0);
@@ -129,7 +135,7 @@ void main() {
       store.useTextureRendering = false;
       store.showOverlay = false;
       store.toggleableOverlay = true;
-      store.showLatency = true;
+      store.showLatency = false;
 
       store.resetVideoSettings();
 
@@ -138,7 +144,7 @@ void main() {
       expect(store.useTextureRendering, isTrue);
       expect(store.showOverlay, isTrue);
       expect(store.toggleableOverlay, isFalse);
-      expect(store.showLatency, isFalse);
+      expect(store.showLatency, isTrue);
     });
 
     test('resetChatSettings restores chat defaults', () {
@@ -234,11 +240,11 @@ void main() {
       final store = SettingsStore.fromJson({});
 
       store.fontSize = 20.0;
-      store.showLatency = true;
+      store.showLatency = false;
 
       store.resetVideoSettings();
 
-      expect(store.showLatency, isFalse);
+      expect(store.showLatency, isTrue);
       expect(store.fontSize, 20.0); // Should remain changed
     });
 

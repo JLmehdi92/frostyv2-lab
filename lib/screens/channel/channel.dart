@@ -6,6 +6,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_tabs.dart';
+import 'package:frosty/screens/channel/video/ivs_stats_panel.dart';
 import 'package:frosty/screens/channel/video/ivs_video.dart';
 import 'package:frosty/screens/channel/video/native_video.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
@@ -482,6 +483,20 @@ class _VideoChatState extends State<VideoChat>
           children: [
             player,
             if (_videoStore.settingsStore.showOverlay) overlay,
+            if (_videoStore case final IvsVideoStore ivs
+                when ivs.statsVisible && !ivs.isInPipMode)
+              Positioned.fill(
+                left: 8,
+                top: 48,
+                right: 8,
+                bottom: 8,
+                child: IgnorePointer(
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: IvsStatsPanel(store: ivs),
+                  ),
+                ),
+              ),
           ],
         );
       },

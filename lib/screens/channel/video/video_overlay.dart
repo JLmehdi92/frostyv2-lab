@@ -150,31 +150,62 @@ class VideoOverlay extends StatelessWidget {
                 padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
                 isFirst: true,
               ),
+              // One scrollable list holds the qualities and the IVS
+              // measurement entries so the sheet never overflows in landscape.
               Flexible(
                 child: Observer(
                   builder: (context) => ListView(
                     shrinkWrap: true,
                     primary: false,
-                    children: videoStore.availableStreamQualities
-                        .map(
-                          (quality) => ListTile(
-                            trailing: videoStore.streamQuality == quality
-                                ? const Icon(Icons.check_rounded)
-                                : null,
-                            title: Text(quality),
-                            onTap: () {
-                              videoStore.setStreamQuality(quality);
-                              SharedPreferences.getInstance().then(
-                                (prefs) => prefs.setString(
-                                  'last_stream_quality',
-                                  quality,
-                                ),
-                              );
-                              Navigator.pop(context);
-                            },
+                    children: [
+                      ...videoStore.availableStreamQualities.map(
+                        (quality) => ListTile(
+                          trailing: videoStore.streamQuality == quality
+                              ? const Icon(Icons.check_rounded)
+                              : null,
+                          title: Text(quality),
+                          onTap: () {
+                            videoStore.setStreamQuality(quality);
+                            SharedPreferences.getInstance().then(
+                              (prefs) => prefs.setString(
+                                'last_stream_quality',
+                                quality,
+                              ),
+                            );
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ),
+                      if (videoStore case final IvsVideoStore ivs) ...[
+                        const SectionHeader(
+                          'Measurement',
+                          padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+                        ),
+                        ListTile(
+                          title: const Text('Video stats'),
+                          subtitle: const Text(
+                            'Latency, buffer, bitrate and frames over the video',
                           ),
-                        )
-                        .toList(),
+                          trailing: ivs.statsVisible
+                              ? const Icon(Icons.check_rounded)
+                              : null,
+                          onTap: () {
+                            ivs.toggleStats();
+                            Navigator.pop(context);
+                          },
+                        ),
+                        ListTile(
+                          title: const Text('Reset stats'),
+                          subtitle: const Text(
+                            'Start a new latency measurement',
+                          ),
+                          onTap: () {
+                            ivs.resetStats();
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ),
@@ -486,32 +517,43 @@ class VideoOverlay extends StatelessWidget {
                               ),
                               if (settingsStore.showLatency)
                                 Tooltip(
-                                  message: 'Latency to broadcaster',
+                                  message: videoStore is IvsVideoStore
+                                      ? 'Latency to broadcaster · tap for video stats'
+                                      : 'Latency to broadcaster',
                                   preferBelow: false,
-                                  triggerMode: TooltipTriggerMode.tap,
-                                  child: Row(
-                                    spacing: 4,
-                                    children: [
-                                      Icon(
-                                        Icons.speed_rounded,
-                                        size: 14,
-                                        color: surfaceColor,
-                                        shadows: kOverlayShadow,
-                                      ),
-                                      Observer(
-                                        builder: (context) => Text(
-                                          videoStore.latency ?? '—',
-                                          style: TextStyle(
-                                            color: surfaceColor,
-                                            fontWeight: FontWeight.w500,
-                                            fontFeatures: const [
-                                              FontFeature.tabularFigures(),
-                                            ],
-                                            shadows: kOverlayShadow,
+                                  triggerMode: videoStore is IvsVideoStore
+                                      ? TooltipTriggerMode.longPress
+                                      : TooltipTriggerMode.tap,
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: videoStore is IvsVideoStore
+                                        ? (videoStore as IvsVideoStore)
+                                              .toggleStats
+                                        : null,
+                                    child: Row(
+                                      spacing: 4,
+                                      children: [
+                                        Icon(
+                                          Icons.speed_rounded,
+                                          size: 14,
+                                          color: surfaceColor,
+                                          shadows: kOverlayShadow,
+                                        ),
+                                        Observer(
+                                          builder: (context) => Text(
+                                            videoStore.latency ?? '—',
+                                            style: TextStyle(
+                                              color: surfaceColor,
+                                              fontWeight: FontWeight.w500,
+                                              fontFeatures: const [
+                                                FontFeature.tabularFigures(),
+                                              ],
+                                              shadows: kOverlayShadow,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                             ],

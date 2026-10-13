@@ -27,8 +27,9 @@ class VideoSettings extends StatelessWidget {
               'Twitch web player.',
             ),
             value: settingsStore.playerEngine == PlayerEngine.ivs,
-            onChanged: (enabled) => settingsStore.playerEngine =
-                enabled ? PlayerEngine.ivs : PlayerEngine.twitchWeb,
+            onChanged: (enabled) => settingsStore.playerEngine = enabled
+                ? PlayerEngine.ivs
+                : PlayerEngine.twitchWeb,
           ),
           SettingsListSwitch(
             title: 'Enable video',
@@ -80,7 +81,8 @@ class VideoSettings extends StatelessWidget {
           SettingsListSwitch(
             title: 'Show latency',
             subtitle: const Text(
-              'Displays the stream latency in the video overlay.',
+              'Displays the stream latency in the video overlay. With the '
+              'low-latency player, tap it to show live video stats.',
             ),
             value: settingsStore.showLatency,
             onChanged: (newValue) => settingsStore.showLatency = newValue,

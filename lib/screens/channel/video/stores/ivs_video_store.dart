@@ -7,7 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_stream_service.dart';
 import 'package:frosty/models/channel.dart';
+import 'package:frosty/models/ivs_stats.dart';
 import 'package:frosty/models/stream.dart';
+import 'package:frosty/screens/channel/video/latency_stats.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
@@ -84,6 +86,40 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   @readonly
   String? _latency;
 
+  /// Last raw latency reported by IVS, in milliseconds.
+  @readonly
+  int? _latencyMs;
+
+  /// Rolling latency samples (taken only while playing) for the stats panel.
+  final latencySampler = LatencySampler();
+
+  /// Bumped whenever [latencySampler] changes so observers of the (plain,
+  /// non-observable) sampler rebuild, including after a reset.
+  @readonly
+  var _samplesVersion = 0;
+
+  /// True only while the native player reports PLAYING (not buffering/idle).
+  var _isPlaying = false;
+
+  /// Whether the video stats panel is shown (native stats are only sent while
+  /// it is open).
+  @readonly
+  var _statsVisible = false;
+
+  /// Latest native player statistics (null until the panel is opened).
+  @readonly
+  IvsStats? _stats;
+
+  /// Rebuffer events since the stream was opened or the stats were reset.
+  @readonly
+  var _rebufferCount = 0;
+
+  /// Time from opening the stream to the first PLAYING state.
+  @readonly
+  int? _startupMs;
+
+  final _startupStopwatch = Stopwatch();
+
   @readonly
   var _isInPipMode = false;
 
@@ -110,6 +146,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     TwitchStreamService? streamService,
   }) : _ownsStreamService = streamService == null,
        _streamService = streamService ?? TwitchStreamService(Dio()) {
+    _startupStopwatch.start();
     if (settingsStore.autoSyncChatDelay) settingsStore.syncedChatDelay = 0.0;
     ready = _resolveUrl();
     unawaited(ready.then((_) => _createTexture()).catchError((Object _) {}));
@@ -169,6 +206,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     if (id == null) return;
     attachTextureChannel(id);
     runInAction(() => _textureId = id);
+    if (_statsVisible) unawaited(_sendStatsEnabled());
   }
 
   @action
@@ -176,7 +214,14 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     switch (e['type']) {
       case 'state':
         final state = e['state'] as String?;
-        if (state == 'PLAYING') _paused = false;
+        _isPlaying = state == 'PLAYING';
+        if (state == 'PLAYING') {
+          _paused = false;
+          if (_startupMs == null) {
+            _startupStopwatch.stop();
+            _startupMs = _startupStopwatch.elapsedMilliseconds;
+          }
+        }
         if (state == 'IDLE' || state == 'ENDED') _paused = true;
         if (Platform.isAndroid) pip.setIsPlaying(!_paused);
         break;
@@ -192,18 +237,58 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
       case 'latency':
         final ms = (e['ms'] as num?)?.toInt() ?? -1;
         if (ms < 0) break;
-        final seconds = (ms / 1000).clamp(0, 60).round();
+        _latencyMs = ms;
+        _latency = formatLatency(ms);
+        if (_isPlaying) {
+          latencySampler.add(ms);
+          _samplesVersion++;
+        }
+        // The chat delay keeps moving in whole seconds only, exactly as before,
+        // so the delayed chat queue is not rebuilt on every tick.
+        final seconds = chatDelaySecondsFromLatency(ms);
         if (seconds == _lastLatencySecond) break;
         _lastLatencySecond = seconds;
-        _latency = '${seconds}s';
         if (settingsStore.autoSyncChatDelay) {
           settingsStore.syncedChatDelay = seconds.toDouble();
         }
+        break;
+      case 'rebuffering':
+        _rebufferCount++;
+        break;
+      case 'stats':
+        // A tick can race a toggle-off; never resurrect hidden stats.
+        if (_statsVisible) _stats = IvsStats.fromEvent(e);
         break;
       case 'error':
         debugPrint('IVS error: ${e['code']} ${e['msg']}');
         onFatalError?.call();
         break;
+    }
+  }
+
+  /// Shows or hides the video stats panel and turns native stats on/off.
+  @action
+  void toggleStats() {
+    _statsVisible = !_statsVisible;
+    if (!_statsVisible) _stats = null;
+    unawaited(_sendStatsEnabled());
+  }
+
+  /// Clears the latency samples and rebuffer count to start a new measurement.
+  @action
+  void resetStats() {
+    latencySampler.reset();
+    _samplesVersion++;
+    _rebufferCount = 0;
+  }
+
+  Future<void> _sendStatsEnabled() async {
+    try {
+      await _channel?.invokeMethod('setStatsEnabled', {
+        'enabled': _statsVisible,
+      });
+    } catch (e) {
+      debugPrint('IvsVideoStore setStatsEnabled failed: $e');
     }
   }
 
@@ -234,7 +319,14 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   @action
   Future<void> handleRefresh() async {
     _latency = null;
+    _latencyMs = null;
     _lastLatencySecond = null;
+    _isPlaying = false;
+    resetStats();
+    _startupMs = null;
+    _startupStopwatch
+      ..reset()
+      ..start();
     try {
       final url = await _streamService.getUsherUrl(userLogin: userLogin);
       _url = url;
@@ -263,7 +355,9 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
 
   @override
   void handleAppResume() {
-    if (!settingsStore.showVideo) unawaited(updateStreamInfo(forceUpdate: true));
+    if (!settingsStore.showVideo) {
+      unawaited(updateStreamInfo(forceUpdate: true));
+    }
   }
 
   @override

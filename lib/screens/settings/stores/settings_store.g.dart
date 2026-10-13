@@ -33,7 +33,7 @@ SettingsStore _$SettingsStoreFromJson(
       PlayerEngine.ivs
   ..showOverlay = json['showOverlay'] as bool? ?? true
   ..toggleableOverlay = json['toggleableOverlay'] as bool? ?? false
-  ..showLatency = json['showLatency'] as bool? ?? false
+  ..showLatency = json['showLatency'] as bool? ?? true
   ..badgeScale = (json['badgeScale'] as num?)?.toDouble() ?? 1.0
   ..emoteScale = (json['emoteScale'] as num?)?.toDouble() ?? 1.0
   ..messageScale = (json['messageScale'] as num?)?.toDouble() ?? 1.0

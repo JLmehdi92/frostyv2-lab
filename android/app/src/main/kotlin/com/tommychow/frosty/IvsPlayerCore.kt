@@ -30,6 +30,7 @@ class IvsPlayerCore(
     private val main = Handler(Looper.getMainLooper())
     private var latencyTicker: Runnable? = null
     private var qualitiesSent = false
+    private var statsEnabled = false
 
     fun start(url: String) {
         channel.setMethodCallHandler { call, result ->
@@ -41,6 +42,10 @@ class IvsPlayerCore(
                     val name = call.argument<String>("name")
                     val q = player.qualities.firstOrNull { it.name == name }
                     if (q != null) player.setQuality(q, true)
+                    result.success(null)
+                }
+                "setStatsEnabled" -> {
+                    statsEnabled = call.argument<Boolean>("enabled") == true
                     result.success(null)
                 }
                 "load" -> {
@@ -92,11 +97,54 @@ class IvsPlayerCore(
     private fun startLatencyTicker() {
         latencyTicker = object : Runnable {
             override fun run() {
-                try { send(mapOf("type" to "latency", "ms" to player.liveLatency)) } catch (_: Throwable) {}
+                // Reschedule first so a failing getter can never stop the
+                // latency ticker (dispose() removes it on this same thread).
                 main.postDelayed(this, 1000)
+                try { send(mapOf("type" to "latency", "ms" to player.liveLatency)) } catch (_: Throwable) {}
+                if (statsEnabled) {
+                    try { send(collectStats()) } catch (t: Throwable) { Log.w(CORE_TAG, "stats failed: $t") }
+                }
             }
         }
         main.postDelayed(latencyTicker!!, 1000)
+    }
+
+    /**
+     * Snapshot of the player statistics for the Dart stats panel. Every getter
+     * is guarded so a value the SDK cannot provide is sent as null instead of
+     * breaking the ticker.
+     */
+    private fun collectStats(): Map<String, Any?> {
+        val stats = runCatching { player.statistics }.getOrNull()
+        val quality = runCatching { player.quality }.getOrNull()
+        val position = runCatching { player.position }.getOrNull()
+        val buffered = runCatching { player.bufferedPosition }.getOrNull()
+        return mapOf(
+            "type" to "stats",
+            "bitrate" to stats?.videoBitRate,
+            "fps" to stats?.frameRate,
+            "dropped" to stats?.droppedFrames,
+            "decoded" to stats?.decodedFrames,
+            "rendered" to stats?.renderedFrames,
+            "bufferedMs" to if (position != null && buffered != null) {
+                (buffered - position).coerceAtLeast(0L)
+            } else {
+                null
+            },
+            "lowLatency" to runCatching { player.isLiveLowLatency }.getOrNull(),
+            "playbackRate" to runCatching { player.playbackRate.toDouble() }.getOrNull(),
+            "bandwidth" to runCatching { player.bandwidthEstimate }.getOrNull(),
+            "quality" to quality?.let {
+                mapOf(
+                    "name" to it.name,
+                    "width" to it.width,
+                    "height" to it.height,
+                    "codecs" to it.codecs,
+                    "framerate" to it.framerate.toDouble(),
+                    "bitrate" to it.bitrate,
+                )
+            },
+        )
     }
 
     private fun send(data: Map<String, Any?>) {
