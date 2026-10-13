@@ -611,6 +611,8 @@ class _VideoChatState extends State<VideoChat>
                 store: hypeTrain,
                 settingsStore: settingsStore,
                 chatTabsStore: _chatTabsStore,
+                chatInputFocus: _chatStore.textFieldFocusNode,
+                bottomBarHeight: _chatStore.bottomBarHeight,
               ),
             Observer(
               builder: (_) => AnimatedSwitcher(
@@ -812,6 +814,12 @@ class _VideoChatState extends State<VideoChat>
                                           ],
                                         );
                                       },
+                                    ),
+                                  // Hidden chat: the hype train as a pill.
+                                  if (_hypeTrainStore case final hypeTrain?)
+                                    HypeTrainVideoOverlay(
+                                      store: hypeTrain,
+                                      settingsStore: settingsStore,
                                     ),
                                 ],
                               )

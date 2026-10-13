@@ -83,7 +83,11 @@ class HypeTrainSheet extends StatelessWidget {
                 const _Section(title: 'Unlocked so far'),
                 _RewardRow(rewards: store.unlockedRewards, locked: false),
               ],
-              _UpcomingRewards(store: store, trainId: train.id),
+              _UpcomingRewards(
+                key: ValueKey('ht-upcoming-${train.id}'),
+                store: store,
+                trainId: train.id,
+              ),
               if (train.ath case final ath?) ...[
                 const SizedBox(height: 8),
                 Row(
@@ -294,7 +298,11 @@ class _RewardRow extends StatelessWidget {
 
 /// "Coming up": fetched on first expand only.
 class _UpcomingRewards extends StatefulWidget {
-  const _UpcomingRewards({required this.store, required this.trainId});
+  const _UpcomingRewards({
+    super.key,
+    required this.store,
+    required this.trainId,
+  });
 
   final HypeTrainStore store;
   final String trainId;

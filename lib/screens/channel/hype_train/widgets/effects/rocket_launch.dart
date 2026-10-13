@@ -61,7 +61,8 @@ class _RocketLaunchState extends State<RocketLaunch>
           constraints.maxWidth.isFinite ? constraints.maxWidth - _rocket : 80,
           constraints.maxHeight.isFinite ? constraints.maxHeight - _rocket : 40,
         );
-        return AnimatedBuilder(
+        final rtl = Directionality.of(context) == TextDirection.rtl;
+        final flight = AnimatedBuilder(
           animation: _controller,
           builder: (context, _) {
             final t = Curves.easeIn.transform(_controller.value);
@@ -111,6 +112,8 @@ class _RocketLaunchState extends State<RocketLaunch>
             );
           },
         );
+        // Bottom-start to top-end: mirrored right to left.
+        return rtl ? Transform.flip(flipX: true, child: flight) : flight;
       },
     );
   }

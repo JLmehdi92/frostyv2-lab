@@ -42,6 +42,9 @@ class HypeTrainApproachingBanner extends StatelessWidget {
             child: Semantics(
               container: true,
               liveRegion: true,
+              button: true,
+              onTap: onTap ?? store.toggleExpanded,
+              hint: HtCopy.detailsHint,
               label: '${HtCopy.approaching}. $subtitle',
               child: ExcludeSemantics(
                 child: Material(
@@ -109,14 +112,17 @@ class HypeTrainApproachingBanner extends StatelessWidget {
                           const SizedBox(height: 8),
                           ClipRRect(
                             borderRadius: BorderRadius.circular(3),
-                            child: LinearProgressIndicator(
-                              key: const ValueKey('ht-approaching-bar'),
-                              minHeight: 6,
-                              value: store.approachingCompleted
-                                  ? 1
-                                  : store.approachingFraction,
-                              color: palette.fill,
-                              backgroundColor: palette.track,
+                            child: Observer(
+                              // Ticks every 500 ms: only the bar rebuilds.
+                              builder: (context) => LinearProgressIndicator(
+                                key: const ValueKey('ht-approaching-bar'),
+                                minHeight: 6,
+                                value: store.approachingCompleted
+                                    ? 1
+                                    : store.approachingFraction,
+                                color: palette.fill,
+                                backgroundColor: palette.track,
+                              ),
                             ),
                           ),
                         ],

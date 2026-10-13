@@ -177,7 +177,10 @@ class _LiveTabState extends State<_LiveTab> {
         if (store != null) ...[
           Padding(
             padding: const EdgeInsets.all(8),
-            child: SizedBox(width: 360, child: HypeTrainSlot(store: store)),
+            child: SizedBox(
+              width: 360,
+              child: HypeTrainSlot(store: store, onLearnMore: () {}),
+            ),
           ),
           Observer(
             builder: (_) => Text(
@@ -548,12 +551,19 @@ class _ReplayTabState extends State<_ReplayTab> {
                 padding: const EdgeInsets.all(8),
                 child: Column(
                   children: [
-                    SizedBox(width: 360, child: HypeTrainSlot(store: store)),
+                    SizedBox(
+                      width: 360,
+                      child: HypeTrainSlot(store: store, onLearnMore: () {}),
+                    ),
                     const SizedBox(height: 8),
                     const Text('Landscape preview'),
                     SizedBox(
                       width: 260,
-                      child: HypeTrainSlot(store: store, compact: true),
+                      child: HypeTrainSlot(
+                        store: store,
+                        compact: true,
+                        onLearnMore: () {},
+                      ),
                     ),
                   ],
                 ),

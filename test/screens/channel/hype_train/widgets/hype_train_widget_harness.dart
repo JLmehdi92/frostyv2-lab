@@ -78,7 +78,7 @@ Future<void> pumpSlot(
                 alignment: Alignment.topCenter,
                 child: SizedBox(
                   width: width,
-                  child: HypeTrainSlot(store: store),
+                  child: HypeTrainSlot(store: store, onLearnMore: () {}),
                 ),
               ),
             ),

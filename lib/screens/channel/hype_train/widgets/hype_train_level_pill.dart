@@ -8,17 +8,21 @@ class HypeTrainLevelPill extends StatelessWidget {
     required this.level,
     required this.background,
     required this.foreground,
+    this.animate = true,
   });
 
   final int level;
   final Color background;
   final Color foreground;
 
+  /// Off with reduced motion: the new level shows at once.
+  final bool animate;
+
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<int>(
       tween: IntTween(end: level),
-      duration: HtTimings.fade,
+      duration: animate ? HtTimings.fade : Duration.zero,
       builder: (context, value, _) => DecoratedBox(
         decoration: BoxDecoration(
           color: background,

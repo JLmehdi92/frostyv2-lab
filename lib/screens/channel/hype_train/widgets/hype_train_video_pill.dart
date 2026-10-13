@@ -50,7 +50,7 @@ class _HypeTrainVideoPillState extends State<HypeTrainVideoPill> {
       case HtPhase.hidden:
         return null;
       case HtPhase.approaching:
-        return 'Hype Train in ${store.approachingEventsLeft}';
+        return 'Hype Train soon · ${store.approachingEventsLeft} to go';
       case HtPhase.ongoing || HtPhase.ending:
         if (store.step case HtStep(
           kind: HtStepKind.levelComplete,

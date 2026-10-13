@@ -24,8 +24,8 @@ abstract final class HtCopy {
   static String approachingSubtitle(int remaining, {required bool nMore}) =>
       nMore
       ? 'Just $remaining more to start the train!'
-      : '$remaining ${remaining == 1 ? 'event' : 'events'} '
-            'start a Hype Train';
+      : '$remaining more ${remaining == 1 ? 'event' : 'events'} '
+            'to start a Hype Train';
 
   static String levelComplete(int level) => 'Level $level complete!';
 

@@ -96,11 +96,15 @@ class MythicSelect extends StatefulWidget {
     required this.duration,
     required this.pool,
     this.selected,
+    this.reduceMotion = false,
   });
 
   final Duration duration;
   final List<HtReward> pool;
   final HtReward? selected;
+
+  /// No roulette: the chosen emote at once.
+  final bool reduceMotion;
 
   @override
   State<MythicSelect> createState() => MythicSelectState();
@@ -127,8 +131,12 @@ class MythicSelectState extends State<MythicSelect>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: widget.duration)
-      ..forward();
+    _controller = AnimationController(vsync: this, duration: widget.duration);
+    if (widget.reduceMotion) {
+      _controller.value = 1;
+    } else {
+      _controller.forward();
+    }
   }
 
   @override

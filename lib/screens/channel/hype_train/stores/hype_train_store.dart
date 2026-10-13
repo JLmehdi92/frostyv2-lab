@@ -259,9 +259,12 @@ abstract class HypeTrainStoreBase with Store {
       case HtPhase.approaching:
         return 'Hype Train approaching';
       case HtPhase.ongoing:
+        // Minutes until the last one: a label that changes every second
+        // would keep screen readers busy.
         final seconds = _remaining.inSeconds;
-        final time =
-            '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
+        final time = seconds >= 60
+            ? '${(seconds / 60).ceil()} min'
+            : '$seconds seconds';
         return 'Hype Train level $level, $percent percent, $time left';
       case HtPhase.ending || HtPhase.rewards:
         return 'Hype Train ended at level ${_endSummary?.level ?? level}';

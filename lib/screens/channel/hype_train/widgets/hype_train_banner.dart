@@ -61,33 +61,49 @@ class HypeTrainBanner extends StatelessWidget {
           final on = palette.onBackground;
           final flashing = store.step?.kind == HtStepKind.flash100;
           final treasure = treasureState(train);
+          final levelPill = ExcludeSemantics(
+            child: HypeTrainLevelPill(
+              level: store.shownLevel,
+              background: on.withValues(alpha: 0.12),
+              foreground: on,
+              animate: !store.reduceMotion,
+            ),
+          );
           final header = Row(
             children: [
               ExcludeSemantics(
-                child: Icon(palette.icon, color: palette.iconColor, size: 22),
-              ),
-              const SizedBox(width: 6),
-              ExcludeSemantics(
-                child: HypeTrainLevelPill(
-                  level: store.shownLevel,
-                  background: on.withValues(alpha: 0.12),
-                  foreground: on,
+                child: Icon(
+                  palette.icon,
+                  color: palette.iconColor,
+                  size: compact ? 18 : 22,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: compact ? 4 : 6),
+              // A narrow landscape chat shrinks the pill before the text.
+              if (compact)
+                Flexible(
+                  flex: 2,
+                  child: FittedBox(fit: BoxFit.scaleDown, child: levelPill),
+                )
+              else
+                levelPill,
+              SizedBox(width: compact ? 6 : 8),
               Expanded(
+                flex: 3,
                 child: HypeTrainStepContent(
                   store: store,
                   palette: palette,
                   compact: compact,
                 ),
               ),
-              IconButton(
-                tooltip: HtCopy.collapse,
-                visualDensity: VisualDensity.compact,
-                icon: Icon(Icons.expand_less_rounded, color: on),
-                onPressed: () => store.setCollapsed(true),
-              ),
+              // Too narrow in compact form: swipe up collapses there.
+              if (!compact)
+                IconButton(
+                  tooltip: HtCopy.collapse,
+                  visualDensity: VisualDensity.compact,
+                  icon: Icon(Icons.expand_less_rounded, color: on),
+                  onPressed: () => store.setCollapsed(true),
+                ),
             ],
           );
           final progress = Row(
@@ -97,40 +113,53 @@ class HypeTrainBanner extends StatelessWidget {
                   child: HypeTrainProgressBar(
                     percent: store.shownPercent,
                     palette: palette,
+                    duration: store.reduceMotion
+                        ? Duration.zero
+                        : HtTimings.extraShort,
                   ),
                 ),
               ),
               const SizedBox(width: 10),
-              ExcludeSemantics(
-                child: AnimatedScale(
-                  scale: flashing ? 1.25 : 1,
-                  duration: HtTimings.extraShort,
-                  child: Text(
-                    '${store.shownPercent}%',
-                    key: const ValueKey('ht-percent'),
-                    style: textTheme.titleSmall?.copyWith(
-                      color: on,
-                      fontWeight: FontWeight.w800,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
+              // Natural size when there is room; scaled down when not.
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ExcludeSemantics(
+                        child: AnimatedScale(
+                          scale: flashing ? 1.25 : 1,
+                          duration: HtTimings.extraShort,
+                          child: Text(
+                            '${store.shownPercent}%',
+                            key: const ValueKey('ht-percent'),
+                            style: textTheme.titleSmall?.copyWith(
+                              color: on,
+                              fontWeight: FontWeight.w800,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      HypeTrainCountdown(
+                        store: store,
+                        style: textTheme.labelLarge?.copyWith(
+                          color: on.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              HypeTrainCountdown(
-                store: store,
-                style: textTheme.labelLarge?.copyWith(
-                  color: on.withValues(alpha: 0.8),
                 ),
               ),
             ],
           );
           return RepaintBoundary(
-            child: Semantics(
-              container: true,
-              button: true,
-              label: store.semanticsSummary,
-              hint: HtCopy.detailsHint,
+            child: _BannerSemantics(
+              store: store,
               child: AnimatedContainer(
                 // The style changes (record, treasure) cross-fade.
                 duration: HtTimings.short,
@@ -203,6 +232,26 @@ class HypeTrainBanner extends StatelessWidget {
   }
 }
 
+/// The banner's one screen-reader label. Its own observer: the label
+/// changes with the countdown, the banner does not.
+class _BannerSemantics extends StatelessWidget {
+  const _BannerSemantics({required this.store, required this.child});
+
+  final HypeTrainStore store;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Observer(
+    builder: (context) => Semantics(
+      container: true,
+      button: true,
+      label: store.semanticsSummary,
+      hint: HtCopy.detailsHint,
+      child: child,
+    ),
+  );
+}
+
 /// The collapsed train: a 28 px pill with the icon, level and percent.
 class HypeTrainPill extends StatelessWidget {
   const HypeTrainPill({super.key, required this.store});
@@ -248,9 +297,15 @@ class HypeTrainPill extends StatelessWidget {
                               color: palette.iconColor,
                             ),
                             const SizedBox(width: 6),
-                            Text('LVL ${store.shownLevel}', style: style),
-                            const SizedBox(width: 8),
-                            Text('${store.shownPercent}%', style: style),
+                            Flexible(
+                              child: Text(
+                                'LVL ${store.shownLevel} · '
+                                '${store.shownPercent}%',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: style,
+                              ),
+                            ),
                             const SizedBox(width: 4),
                             Icon(
                               Icons.expand_more_rounded,
@@ -496,7 +551,12 @@ class HypeTrainStepContent extends StatelessWidget {
         final users = channels is List<HtUser> ? channels : const <HtUser>[];
         return Row(
           children: [
-            HypeTrainAvatarStack(users: users),
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: HypeTrainAvatarStack(users: users),
+              ),
+            ),
             const SizedBox(width: 6),
             Expanded(
               child: _text(
@@ -583,6 +643,7 @@ class HypeTrainStepContent extends StatelessWidget {
           duration: step.duration,
           pool: _emotes(data['emotes']),
           selected: selected is HtReward ? selected : null,
+          reduceMotion: store.reduceMotion,
         );
       case HtStepKind.mythicReveal:
         final emote = data['emote'];
@@ -608,7 +669,13 @@ class HypeTrainStepContent extends StatelessWidget {
         final channel = data['channel'];
         return Row(
           children: [
-            if (channel is HtUser) HtAvatar(user: channel),
+            if (channel is HtUser)
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: HtAvatar(user: channel),
+                ),
+              ),
             const SizedBox(width: 6),
             Expanded(
               child: _text(
@@ -644,7 +711,13 @@ class HypeTrainStepContent extends StatelessWidget {
         final channel = data['channel'];
         return Row(
           children: [
-            if (channel is HtUser) HtAvatar(user: channel),
+            if (channel is HtUser)
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: HtAvatar(user: channel),
+                ),
+              ),
             const SizedBox(width: 6),
             Expanded(
               child: _text(

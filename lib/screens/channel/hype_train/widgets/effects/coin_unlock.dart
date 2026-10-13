@@ -71,10 +71,13 @@ class CoinUnlockState extends State<CoinUnlock>
                   Transform(
                     alignment: Alignment.center,
                     transform: Matrix4.diagonal3Values(scaleX, 1, 1),
-                    child: CustomPaint(
-                      key: const ValueKey('coin'),
-                      size: const Size.square(30),
-                      painter: _CoinPainter(widget.discount),
+                    // Painted once; the flip only transforms it.
+                    child: RepaintBoundary(
+                      child: CustomPaint(
+                        key: const ValueKey('coin'),
+                        size: const Size.square(30),
+                        painter: _CoinPainter(widget.discount),
+                      ),
                     ),
                   ),
                   if (t >= _settle)

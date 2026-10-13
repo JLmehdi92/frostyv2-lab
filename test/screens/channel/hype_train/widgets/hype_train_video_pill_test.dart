@@ -73,7 +73,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('Hype Train in 2'), findsOneWidget);
+    expect(find.text('Hype Train soon · 2 to go'), findsOneWidget);
     await h.close(tester);
   });
 

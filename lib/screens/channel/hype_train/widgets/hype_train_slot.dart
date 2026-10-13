@@ -6,7 +6,6 @@ import 'package:frosty/screens/channel/hype_train/widgets/hype_train_approaching
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_banner.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_end_strip.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_sheet.dart';
-import 'package:frosty/utils/link_router.dart';
 import 'package:mobx/mobx.dart';
 
 /// Where the hype train lives on screen: nothing when there is no train,
@@ -16,18 +15,23 @@ class HypeTrainSlot extends StatefulWidget {
   const HypeTrainSlot({
     super.key,
     required this.store,
+    required this.onLearnMore,
     this.compact = false,
-    this.onLearnMore,
     this.onOpenDetails,
+    this.detailsMaxHeight,
   });
 
   final HypeTrainStore store;
 
-  /// Opens the hype train guide; defaults to the in-app browser.
-  final VoidCallback? onLearnMore;
+  /// Opens the hype train guide (honouring the external-browser setting).
+  final VoidCallback onLearnMore;
 
   /// Compact: the details open here (a sheet) instead of below.
   final VoidCallback? onOpenDetails;
+
+  /// Room for the details below the banner (they stay closed under 60 px);
+  /// defaults to 45% of the screen.
+  final double? detailsMaxHeight;
 
   /// Landscape: a one-line banner and short sequences.
   final bool compact;
@@ -63,6 +67,11 @@ class _HypeTrainSlotState extends State<HypeTrainSlot> {
     if (oldWidget.store != widget.store) {
       oldWidget.store.detachPresenter();
       widget.store.attachPresenter();
+      _collapsedReaction();
+      _collapsedReaction = reaction(
+        (_) => widget.store.collapsed,
+        (_) => _updatePresentation(),
+      );
     }
     _updatePresentation();
   }
@@ -114,7 +123,13 @@ class _HypeTrainSlotState extends State<HypeTrainSlot> {
             duration: HtTimings.short,
             child: KeyedSubtree(key: ValueKey('ht-slot-$key'), child: child),
           );
-          if (!store.expanded || widget.compact || store.collapsed) {
+          final room =
+              widget.detailsMaxHeight ??
+              MediaQuery.sizeOf(context).height * 0.45;
+          if (!store.expanded ||
+              widget.compact ||
+              store.collapsed ||
+              room < 60) {
             return switcher;
           }
           // The details open below the banner, over the oldest messages.
@@ -123,9 +138,7 @@ class _HypeTrainSlotState extends State<HypeTrainSlot> {
             children: [
               switcher,
               ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.sizeOf(context).height * 0.45,
-                ),
+                constraints: BoxConstraints(maxHeight: room),
                 child: Material(
                   color: Theme.of(context).colorScheme.surfaceContainerHigh,
                   borderRadius: const BorderRadius.vertical(
@@ -135,10 +148,7 @@ class _HypeTrainSlotState extends State<HypeTrainSlot> {
                   child: SingleChildScrollView(
                     child: HypeTrainSheet(
                       store: store,
-                      onLearnMore:
-                          widget.onLearnMore ??
-                          () =>
-                              LinkRouter.open(htHelpUrl, launchExternal: false),
+                      onLearnMore: widget.onLearnMore,
                     ),
                   ),
                 ),
