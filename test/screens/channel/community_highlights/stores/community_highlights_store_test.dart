@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_community_highlights_service.dart';
 import 'package:frosty/models/community_highlight_event.dart';
 import 'package:frosty/models/community_highlights.dart';
@@ -437,6 +438,116 @@ void main() {
       async.elapse(const Duration(seconds: 19));
       expect(h.store.raid, isNotNull);
       async.elapse(const Duration(seconds: 2));
+      expect(h.store.raid, isNull);
+      h.store.dispose();
+    });
+  });
+
+  Poll pollModel({String status = 'ACTIVE'}) => Poll.fromPubsub(
+    (jsonDecode(pollPayload('POLL_UPDATE', status: status))
+        as Map)['data']['poll'],
+  )!;
+
+  test('being offline never turns the snapshot off', () {
+    run((async) {
+      var online = false;
+      when(() => h.service.getPoll(any())).thenAnswer((_) async {
+        if (!online) throw const NetworkException('offline');
+        return pollModel();
+      });
+      h.create();
+      async.flushMicrotasks();
+      h.topics[HighlightTopic.polls]!.add(
+        const RealtimeUnavailable('reconnecting'),
+      );
+      // Five fallback polls fail while offline.
+      async.elapse(const Duration(seconds: 150));
+      expect(h.store.poll, isNull);
+
+      online = true;
+      async.elapse(const Duration(seconds: 31));
+      expect(h.store.poll?.id, 'p');
+      h.store.dispose();
+    });
+  });
+
+  test('a new connection gives a switched-off snapshot another chance', () {
+    run((async) {
+      var broken = true;
+      when(() => h.service.getPoll(any())).thenAnswer((_) async {
+        if (broken) throw const CommunityHighlightsApiException('schema');
+        return pollModel();
+      });
+      h.create();
+      async.flushMicrotasks();
+      h.topics[HighlightTopic.polls]!.add(
+        const RealtimeUnavailable('reconnecting'),
+      );
+      async.elapse(const Duration(seconds: 100));
+
+      broken = false;
+      h.topics[HighlightTopic.polls]!.add(
+        const RealtimeSubscribed(isResubscribe: true),
+      );
+      async.flushMicrotasks();
+      expect(h.store.poll?.id, 'p');
+      h.store.dispose();
+    });
+  });
+
+  test('a lagging snapshot never moves a prediction back', () {
+    run((async) {
+      final active = Prediction.fromPubsub(
+        (jsonDecode(predictionPayload()) as Map)['data']['event'],
+      )!;
+      when(() => h.service.getPredictions(any())).thenAnswer(
+        (_) async => (active: active, locked: null, lastResolved: null),
+      );
+      h.create();
+      async.flushMicrotasks();
+      h.send(HighlightTopic.predictions, predictionPayload(status: 'LOCKED'));
+      expect(h.store.prediction?.status, PredictionStatus.locked);
+
+      async.elapse(const Duration(seconds: 3));
+      h.topics[HighlightTopic.predictions]!.add(
+        const RealtimeSubscribed(isResubscribe: true),
+      );
+      async.flushMicrotasks();
+      expect(h.store.prediction?.status, PredictionStatus.locked);
+      h.store.dispose();
+    });
+  });
+
+  test('results without an end time leave on time despite other updates', () {
+    run((async) {
+      h.create();
+      async.flushMicrotasks();
+      h.send(HighlightTopic.polls, pollPayload('POLL_CREATE'));
+      h.send(
+        HighlightTopic.polls,
+        pollPayload('POLL_COMPLETE', status: 'COMPLETED'),
+      );
+      for (var i = 0; i < 6; i++) {
+        async.elapse(const Duration(seconds: 10));
+        h.send(HighlightTopic.predictions, predictionPayload());
+      }
+      async.elapse(const Duration(seconds: 2));
+      expect(h.store.poll, isNull);
+      h.store.dispose();
+    });
+  });
+
+  test('a raid without a creation time still goes away', () {
+    run((async) {
+      h.create();
+      async.flushMicrotasks();
+      final payload = jsonDecode(raidPayload('raid_update_v2')) as Map;
+      (payload['raid'] as Map).remove('raid_created_at');
+      h.send(HighlightTopic.raid, jsonEncode(payload));
+      expect(h.store.raid, isNotNull);
+
+      // 90 s to leave, 60 s after, 30 s margin.
+      async.elapse(const Duration(seconds: 181));
       expect(h.store.raid, isNull);
       h.store.dispose();
     });

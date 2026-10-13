@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:clock/clock.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:frosty/apis/base_api_client.dart' as api;
 import 'package:frosty/apis/twitch_community_highlights_service.dart';
 import 'package:frosty/models/community_highlight_event.dart';
 import 'package:frosty/models/community_highlights.dart';
@@ -67,8 +69,12 @@ abstract class CommunityHighlightsStoreBase with Store {
   final _degraded = <HighlightTopic>{};
   final _deadlines = <HighlightKind, Timer>{};
 
-  /// When the outgoing raid left (Twitch time).
-  DateTime? _raidGoneAt;
+  // When each highlight was first seen ended (Twitch time): a later commit
+  // never pushes its removal back.
+  final _pollEnded = _FirstSeen();
+  final _predictionEnded = _FirstSeen();
+  final _raidSeen = _FirstSeen();
+  final _raidGone = _FirstSeen();
   final _lastFetch = <HighlightTopic, DateTime>{};
   final _inFlight = <HighlightTopic, Future<void>>{};
   final _trailing = <HighlightTopic, Timer>{};
@@ -143,6 +149,11 @@ abstract class CommunityHighlightsStoreBase with Store {
         if (serverTime != null) serverClock.observe(serverTime);
         _apply(ChEvent.parse(topic, payload));
       case RealtimeSubscribed(:final isResubscribe):
+        if (isResubscribe) {
+          // A new connection: give the snapshot another chance.
+          _gqlOff.remove(topic);
+          _failures.remove(topic);
+        }
         _degraded.remove(topic);
         _updatePolling();
         if (isResubscribe) unawaited(_fetch(topic));
@@ -281,36 +292,52 @@ abstract class CommunityHighlightsStoreBase with Store {
       HighlightKind.poll,
       poll == null || poll.isActive
           ? null
-          : (poll.endedAt ?? now).add(kPollResultLinger),
+          : _earliest(
+              poll.endedAt,
+              _pollEnded.of(poll.id, now),
+            ).add(kPollResultLinger),
       () => _nextPoll = null,
     );
     final prediction = _nextPrediction;
-    _deadline(HighlightKind.prediction, switch (prediction?.status) {
-      PredictionStatus.resolved => (prediction!.endedAt ?? now).add(
-        kPredictionResolvedLinger,
-      ),
-      PredictionStatus.canceled => (prediction!.endedAt ?? now).add(
-        kPredictionCanceledLinger,
-      ),
+    final linger = switch (prediction?.status) {
+      PredictionStatus.resolved => kPredictionResolvedLinger,
+      PredictionStatus.canceled => kPredictionCanceledLinger,
       _ => null,
-    }, () => _nextPrediction = null);
+    };
+    _deadline(
+      HighlightKind.prediction,
+      prediction == null || linger == null
+          ? null
+          : _earliest(
+              prediction.endedAt,
+              _predictionEnded.of(prediction.id, now),
+            ).add(linger),
+      () => _nextPrediction = null,
+    );
     _deadline(
       HighlightKind.pinned,
       _nextPinned?.endsAt,
       () => _nextPinned = null,
     );
     final raid = _nextRaid;
-    if (raid == null || !raid.gone) _raidGoneAt = null;
     _deadline(HighlightKind.raid, switch (raid) {
       null => null,
       // From the first "go" (it is sent several times).
-      RaidState(gone: true) => (_raidGoneAt ??= now).add(kRaidAfterGoLinger),
-      // A lost "go" or "cancel" must not leave it up forever.
-      RaidState(:final raid) => raid.goAt?.add(
-        kRaidAfterGoLinger + kRaidMissedGoMargin,
-      ),
+      RaidState(gone: true, :final raid) =>
+        _raidGone.of(raid.id, now).add(kRaidAfterGoLinger),
+      // A lost "go" or "cancel" must not leave it up forever, nor a
+      // missing or absurd departure time.
+      RaidState(:final raid) => _earliest(
+        raid.goAt,
+        _raidSeen
+            .of(raid.id, now)
+            .add(Duration(seconds: raid.forceRaidNowSeconds)),
+      ).add(kRaidAfterGoLinger + kRaidMissedGoMargin),
     }, () => _nextRaid = null);
   }
+
+  static DateTime _earliest(DateTime? a, DateTime b) =>
+      a != null && a.isBefore(b) ? a : b;
 
   /// Removes the [kind] highlight at [at] (Twitch time), with [clear].
   void _deadline(HighlightKind kind, DateTime? at, void Function() clear) {
@@ -362,6 +389,13 @@ abstract class CommunityHighlightsStoreBase with Store {
       try {
         await fetch();
         _failures[topic] = 0;
+      } on api.NetworkException catch (e) {
+        // Offline is not a broken API: the next try may work.
+        _log('${topic.prefix} fetch failed (network): $e');
+      } on api.TimeoutException catch (e) {
+        _log('${topic.prefix} fetch failed (timeout): $e');
+      } on TimeoutException catch (e) {
+        _log('${topic.prefix} fetch failed (timeout): $e');
       } on Object catch (e) {
         final failures = (_failures[topic] ?? 0) + 1;
         _failures[topic] = failures;
@@ -369,6 +403,14 @@ abstract class CommunityHighlightsStoreBase with Store {
         if (failures >= 3) {
           _gqlOff.add(topic);
           _updatePolling();
+          // Seen in release too: Twitch probably changed the query.
+          try {
+            FirebaseCrashlytics.instance.log(
+              'community highlights: ${topic.prefix} snapshot off: $e',
+            );
+          } catch (_) {
+            // Firebase may not be initialized (e.g., in tests).
+          }
         }
       } finally {
         _inFlight.remove(topic);
@@ -422,11 +464,24 @@ abstract class CommunityHighlightsStoreBase with Store {
         final recent =
             ended != null &&
             serverNow().difference(ended) <= kPredictionResolvedMaxAge;
-        _nextPrediction =
+        final snapshot =
             predictions.active ??
             predictions.locked ??
             (recent ? resolved : null);
-        _predictionTimestamp = null;
+        final before = _nextPrediction;
+        if (snapshot != null && snapshot.id == before?.id) {
+          // A lagging read never moves the status back.
+          final next = reducePrediction(
+            before,
+            PredictionEvent(snapshot),
+            lastTimestamp: _predictionTimestamp,
+          );
+          _nextPrediction = next.prediction;
+          _predictionTimestamp = next.timestamp;
+        } else {
+          _nextPrediction = snapshot;
+          _predictionTimestamp = null;
+        }
         _changed(urgent: true);
       });
 
@@ -484,5 +539,19 @@ abstract class CommunityHighlightsStoreBase with Store {
     }
     _commitTimer?.cancel();
     _pollTimer?.cancel();
+  }
+}
+
+/// When an id was first seen, kept while that id stays.
+class _FirstSeen {
+  String? _id;
+  DateTime? _at;
+
+  DateTime of(String id, DateTime now) {
+    if (_id != id || _at == null) {
+      _id = id;
+      _at = now;
+    }
+    return _at!;
   }
 }
