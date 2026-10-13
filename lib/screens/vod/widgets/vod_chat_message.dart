@@ -38,6 +38,8 @@ class VodChatMessage extends StatelessWidget {
     final login = ircMessage.user;
     if (login == null || ircMessage.tags['user-id'] == null) return;
     final name = ircMessage.tags['display-name'] ?? login;
+    // Captured now: the replay may drop this message while the sheet is open.
+    final navigator = Navigator.of(context);
     showModalBottomSheetWithProperFocus(
       context: context,
       builder: (sheetContext) => SafeArea(
@@ -57,8 +59,7 @@ class VodChatMessage extends StatelessWidget {
               title: const Text('Open channel'),
               onTap: () {
                 Navigator.pop(sheetContext);
-                Navigator.push(
-                  context,
+                navigator.push(
                   MaterialPageRoute(
                     builder: (context) => VideoChat(
                       userId: ircMessage.tags['user-id']!,
@@ -76,6 +77,7 @@ class VodChatMessage extends StatelessWidget {
   }
 
   void _onLongPress(BuildContext context) {
+    final messenger = ScaffoldMessenger.of(context);
     showModalBottomSheetWithProperFocus(
       context: context,
       builder: (sheetContext) => SafeArea(
@@ -87,10 +89,9 @@ class VodChatMessage extends StatelessWidget {
             await Clipboard.setData(
               ClipboardData(text: ircMessage.message ?? ''),
             );
-            if (!context.mounted) return;
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('Message copied')));
+            messenger.showSnackBar(
+              const SnackBar(content: Text('Message copied')),
+            );
           },
         ),
       ),

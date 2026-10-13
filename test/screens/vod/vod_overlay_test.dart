@@ -28,20 +28,25 @@ void main() {
     controller = FakeVodController();
   });
 
-  Future<void> pump(WidgetTester tester) async {
-    tester.view.physicalSize = const Size(1600, 900);
+  Future<void> pump(
+    WidgetTester tester, {
+    Size size = const Size(1600, 900),
+    VoidCallback? onCycleChatMode,
+  }) async {
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: SizedBox(
-            width: 1600,
-            height: 900,
+            width: size.width,
+            height: size.height,
             child: VodOverlay(
               controller: controller,
               vod: _vod,
               settings: SettingsStore.fromJson({}),
+              onCycleChatMode: onCycleChatMode,
             ),
           ),
         ),
@@ -173,5 +178,62 @@ void main() {
     await tester.tap(find.text('Copy link at current time'));
     await tester.pumpAndSettle();
     expect(clipboard, ['https://www.twitch.tv/videos/1000000001?t=10m0s']);
+  });
+
+  group('small screens', () {
+    const phone = Size(360, 203);
+
+    testWidgets('a long video at 1.5x fits a 360 wide player', (tester) async {
+      controller
+        ..duration = const Duration(hours: 4)
+        ..position = const Duration(hours: 1, minutes: 23, seconds: 45);
+      controller.setPlaybackRate(1.5);
+      await pump(tester, size: phone);
+
+      expect(tester.takeException(), isNull);
+      expect(find.byTooltip('Full screen'), findsOneWidget);
+    });
+
+    testWidgets('the play button is not covered by the seek bar', (
+      tester,
+    ) async {
+      await pump(tester, size: phone);
+      final play = tester.getRect(find.byTooltip('Play'));
+
+      await tester.tapAt(play.bottomCenter - const Offset(0, 6));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tapAt(play.topCenter + const Offset(0, 6));
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(controller.calls, ['togglePlay', 'togglePlay']);
+    });
+
+    testWidgets('a tap on the gradient band reaches the video', (tester) async {
+      await pump(tester, size: phone);
+
+      // The top band, right of the title, where no button is.
+      await tester.tapAt(const Offset(250, 30));
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(controller.calls, contains('tap'));
+    });
+  });
+
+  testWidgets('in landscape the middle double tap cycles the chat mode', (
+    tester,
+  ) async {
+    var cycles = 0;
+    controller.overlayVisible = false;
+    await pump(tester, onCycleChatMode: () => cycles++);
+
+    // The middle third, above the centre buttons.
+    await tester.tapAt(const Offset(800, 250));
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tapAt(const Offset(800, 250));
+    await tester.pump();
+
+    expect(cycles, 1);
+    expect(controller.calls, isNot(contains('togglePlay')));
+    await tester.pump(const Duration(seconds: 1));
   });
 }

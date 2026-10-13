@@ -1089,4 +1089,28 @@ void main() {
       expect(await store.currentPositionForSave(), const Duration(seconds: 5));
     });
   });
+
+  group('playback focus', () {
+    test('without focus, playing is paused again', () async {
+      store = await createStore();
+      store.setFocused(false);
+
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+
+      expect(native.callsNamed('pause'), hasLength(1));
+    });
+
+    test('with focus back, playing is left alone', () async {
+      store = await createStore();
+      store
+        ..setFocused(false)
+        ..setFocused(true);
+
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+
+      expect(native.callsNamed('pause'), isEmpty);
+    });
+  });
 }

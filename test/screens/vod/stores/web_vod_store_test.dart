@@ -170,6 +170,14 @@ void main() {
     });
   });
 
+  test('without focus, playing is paused again', () {
+    store.setFocused(false);
+
+    store.onStateMessage('{"t":1,"d":3600,"p":false}');
+
+    expect(scripts.single, contains('.pause()'));
+  });
+
   test('ready completes: the web player is the last resort', () async {
     await expectLater(store.ready, completes);
   });

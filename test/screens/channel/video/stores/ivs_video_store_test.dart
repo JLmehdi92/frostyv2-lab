@@ -1177,4 +1177,28 @@ void main() {
       );
     });
   });
+
+  group('playback focus', () {
+    test('while another player has focus, playing is paused again', () async {
+      final store = await createStore();
+      store.setFocusSuppressed(true);
+
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+
+      expect(native.callsNamed('pause'), hasLength(1));
+    });
+
+    test('with focus back, playing is left alone', () async {
+      final store = await createStore();
+      store
+        ..setFocusSuppressed(true)
+        ..setFocusSuppressed(false);
+
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+
+      expect(native.callsNamed('pause'), isEmpty);
+    });
+  });
 }

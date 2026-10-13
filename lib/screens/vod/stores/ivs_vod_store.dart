@@ -48,6 +48,8 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
     _scheduleOverlayHide();
     if (Platform.isAndroid) {
       _disposeAutoPip = autorun((_) async {
+        // Another player on top owns auto-PiP.
+        if (!_focused) return;
         // Buffering counts as playing: a rebuffer must not flip auto-PiP.
         final playing = !paused;
         final available = playing && await SimplePip.isAutoPipAvailable;
@@ -161,6 +163,13 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
 
   @readonly
   var _isInPipMode = false;
+
+  @observable
+  var _focused = true;
+
+  @override
+  @action
+  void setFocused(bool focused) => _focused = focused;
 
   @override
   @computed
@@ -339,6 +348,8 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
   void _onState(String? state) {
     switch (state) {
       case 'PLAYING':
+        // Native auto-play after a (re)load while another player has focus.
+        if (!_focused) unawaited(_invoke('pause'));
         final resumed = paused;
         _status = VodPlaybackStatus.playing;
         _ended = false;

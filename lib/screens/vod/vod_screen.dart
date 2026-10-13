@@ -19,9 +19,10 @@ import 'package:frosty/screens/vod/widgets/vod_error_view.dart';
 import 'package:frosty/screens/vod/widgets/vod_info_strip.dart';
 import 'package:frosty/screens/vod/widgets/vod_video.dart';
 import 'package:frosty/services/playback_focus.dart';
+import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/alert_message.dart';
+import 'package:frosty/utils/pip_callbacks.dart';
 import 'package:frosty/widgets/draggable_divider.dart';
 import 'package:frosty/widgets/loading_indicator.dart';
 import 'package:mobx/mobx.dart';
@@ -30,13 +31,27 @@ import 'package:simple_pip_mode/pip_widget.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+/// Builds the player for a VOD (tests pass a fake).
+typedef VodPlayerFactory =
+    VodPlayerController Function(Vod vod, Duration? startAt);
+
+/// Builds the chat replay for a VOD (tests pass a fake).
+typedef VodReplayFactory = VodChatReplayStore Function(Vod vod);
+
 /// Watches a past broadcast, highlight or upload inside the app, like the
 /// official app: native player, seek, speed, and the chat replayed in step
 /// with the video (with 7TV/BTTV/FFZ emotes).
 class VodScreen extends StatefulWidget {
   static const routeName = 'VodScreen';
 
-  const VodScreen({super.key, required this.vodId, this.vod, this.startAt});
+  const VodScreen({
+    super.key,
+    required this.vodId,
+    this.vod,
+    this.startAt,
+    @visibleForTesting this.playerFactory,
+    @visibleForTesting this.replayFactory,
+  });
 
   /// Numeric id, with or without the `v` prefix.
   final String vodId;
@@ -46,6 +61,9 @@ class VodScreen extends StatefulWidget {
 
   /// Where to start (a `?t=` link, a resume point).
   final Duration? startAt;
+
+  final VodPlayerFactory? playerFactory;
+  final VodReplayFactory? replayFactory;
 
   static Future<void> open(
     BuildContext context, {
@@ -64,9 +82,12 @@ class VodScreen extends StatefulWidget {
   State<VodScreen> createState() => _VodScreenState();
 }
 
-class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
+class _VodScreenState extends State<VodScreen> {
   late final SettingsStore _settings = context.settingsStore;
   late final TwitchVodService _service = context.twitchVodService;
+  late final MiniPlayerStore _miniPlayer = context.miniPlayerStore;
+
+  final _pipKey = GlobalKey<PipWidgetState>();
 
   Vod? _vod;
 
@@ -86,17 +107,18 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   /// Whether the video was playing when another player took focus.
   var _playingBeforeFocusLoss = false;
 
+  bool get _hasFocus => identical(PlaybackFocus.shared.top, this);
+
   @override
   void initState() {
     super.initState();
     // One player at a time: the mini player closes and a live stream
     // beneath pauses until this screen closes.
-    context.miniPlayerStore.close();
+    _miniPlayer.close();
     PlaybackFocus.shared
       ..register(this, onLost: _onFocusLost, onRegained: _onFocusRegained)
       ..claim(this);
     if (_settings.keepScreenAwake) WakelockPlus.enable();
-    WidgetsBinding.instance.addObserver(this);
     unawaited(_loadMetadata());
   }
 
@@ -120,6 +142,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     if (!mounted) return;
     final loaded = vod;
     setState(() {
+      _loadError = null;
       _vod = loaded;
       _replay = _buildReplay(loaded);
       _player = _buildPlayer(loaded, startAt: widget.startAt);
@@ -132,7 +155,14 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     );
   }
 
+  void _retryMetadata() {
+    setState(() => _loadError = null);
+    unawaited(_loadMetadata());
+  }
+
   VodChatReplayStore _buildReplay(Vod vod) {
+    final factory = widget.replayFactory;
+    if (factory != null) return factory(vod);
     final auth = context.authStore;
     return VodChatReplayStore(
       vod: vod,
@@ -155,6 +185,15 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   /// The native IVS player, or the Twitch embed in a WebView when this
   /// platform or setting needs it, or after the native player failed.
   VodPlayerController _buildPlayer(Vod vod, {Duration? startAt}) {
+    final player = _createPlayer(vod, startAt: startAt);
+    // A player built while another one is on top must stay silent.
+    if (!_hasFocus) player.setFocused(false);
+    return player;
+  }
+
+  VodPlayerController _createPlayer(Vod vod, {Duration? startAt}) {
+    final factory = widget.playerFactory;
+    if (factory != null) return factory(vod, startAt);
     final engine = resolvePlayerEngine(
       setting: _settings.playerEngine,
       isAndroid: Platform.isAndroid,
@@ -176,7 +215,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     );
     void fallback() {
       if (!mounted || !identical(_player, store)) return;
-      _switchPlayer(forceWeb: true);
+      unawaited(_switchPlayer(forceWeb: true));
     }
 
     store.onFatalError = fallback;
@@ -228,15 +267,43 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
 
   void _onFocusLost() {
     final player = _player;
-    _playingBeforeFocusLoss = player != null && !player.paused;
-    if (_playingBeforeFocusLoss) player!.pause();
+    if (player == null) return;
+    player.setFocused(false);
+    // A player still loading would start on its own: treat it as playing.
+    _playingBeforeFocusLoss =
+        !player.paused || player.status == VodPlaybackStatus.loading;
+    if (!player.paused) player.pause();
   }
 
   void _onFocusRegained() {
-    if (!mounted) return;
-    if (_playingBeforeFocusLoss) _player?.play();
-    _playingBeforeFocusLoss = false;
-    if (_settings.keepScreenAwake) WakelockPlus.enable();
+    // Runs after the frame: the screen above may be closing together with
+    // this one (popUntil), and must finish disposing first.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final player = _player;
+      player?.setFocused(true);
+      // A channel handed to the mini player keeps playing: stay paused.
+      if (_playingBeforeFocusLoss && !_miniPlayer.visible) player?.play();
+      _playingBeforeFocusLoss = false;
+      if (_settings.keepScreenAwake) WakelockPlus.enable();
+      reclaimPipCallbacks(_pipKey);
+      // The screen that closed reset the system bars.
+      setState(() => _immersive = null);
+    });
+  }
+
+  /// Double-tap in landscape, like live: overlay → side column → hidden.
+  void _cycleLandscapeChatMode() {
+    HapticFeedback.lightImpact();
+    if (!_settings.fullScreen) {
+      _settings
+        ..fullScreen = true
+        ..fullScreenChatOverlay = false;
+    } else if (_settings.fullScreenChatOverlay) {
+      _settings.fullScreen = false;
+    } else {
+      _settings.fullScreenChatOverlay = true;
+    }
   }
 
   void _syncSystemUi({required bool immersive}) {
@@ -269,16 +336,42 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     return const ColoredBox(color: Colors.black);
   }
 
-  Widget _buildPlayerArea({required bool landscape}) {
+  /// Black area with a back button, for when there is no player yet.
+  Widget _withBackButton(Widget child) => Stack(
+    fit: StackFit.expand,
+    children: [
+      child,
+      Align(
+        alignment: Alignment.topLeft,
+        child: IconButton(
+          tooltip: 'Back',
+          onPressed: () => Navigator.maybePop(context),
+          icon: Icon(
+            Icons.adaptive.arrow_back_rounded,
+            color: Colors.white,
+            shadows: kOverlayShadow,
+          ),
+        ),
+      ),
+    ],
+  );
+
+  Widget _buildPlayerArea({required bool landscape, required bool hasChat}) {
     final player = _player;
     final vod = _vod;
-    if (vod == null) {
-      return ColoredBox(
-        color: Colors.black,
-        child: _loadError == null
-            ? const Center(child: CircularProgressIndicator())
-            : Center(
-                child: AlertMessage(message: _loadError!, color: Colors.white),
+    if (vod == null || player == null) {
+      final error = _loadError;
+      return _withBackButton(
+        error == null
+            ? const ColoredBox(
+                color: Colors.black,
+                child: Center(child: CircularProgressIndicator()),
+              )
+            : VodErrorView(
+                problem: error == 'This video is no longer available'
+                    ? VodPlaybackProblem.notFound
+                    : VodPlaybackProblem.unknown,
+                onRetry: _retryMetadata,
               ),
       );
     }
@@ -286,31 +379,35 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
       fit: StackFit.expand,
       children: [
         _buildVideo(),
-        if (player != null)
-          Observer(
-            builder: (context) {
-              final problem = player.problem;
-              if (player.status == VodPlaybackStatus.problem &&
-                  problem != null) {
-                return VodErrorView(
+        Observer(
+          builder: (context) {
+            final problem = player.problem;
+            if (player.status == VodPlaybackStatus.problem && problem != null) {
+              return _withBackButton(
+                VodErrorView(
                   problem: problem,
                   onRetry: () => unawaited(_switchPlayer()),
-                );
-              }
-              return VodOverlay(
-                controller: player,
-                vod: vod,
-                settings: _settings,
-                mutedSegments: _mutedSegments,
-                fillScreen: player is IvsVodStore ? _fillScreen : null,
-                onToggleFillScreen: player is IvsVodStore
-                    ? () => setState(() => _fillScreen = !_fillScreen)
-                    : null,
-                showChatOverlayButton: landscape && _settings.fullScreen,
-                isLandscape: landscape,
+                ),
               );
-            },
-          ),
+            }
+            return VodOverlay(
+              controller: player,
+              vod: vod,
+              settings: _settings,
+              mutedSegments: _mutedSegments,
+              fillScreen: player is IvsVodStore ? _fillScreen : null,
+              onToggleFillScreen: player is IvsVodStore
+                  ? () => setState(() => _fillScreen = !_fillScreen)
+                  : null,
+              showChatOverlayButton:
+                  landscape && hasChat && _settings.fullScreen,
+              onCycleChatMode: landscape && hasChat
+                  ? _cycleLandscapeChatMode
+                  : null,
+              isLandscape: landscape,
+            );
+          },
+        ),
       ],
     );
   }
@@ -334,7 +431,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
         children: [
           AspectRatio(
             aspectRatio: 16 / 9,
-            child: _buildPlayerArea(landscape: false),
+            child: _buildPlayerArea(landscape: false, hasChat: true),
           ),
           if (vod != null) VodInfoStrip(vod: vod),
           const Divider(height: 1),
@@ -347,31 +444,38 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   Widget _buildLandscape() {
     return Observer(
       builder: (context) {
+        // Every observable the layout depends on is read here, not inside
+        // the LayoutBuilders below (they build during layout, untracked).
         final replay = _replay;
-        final noChat =
-            replay == null ||
-            replay.status == ReplayStatus.unavailable ||
-            replay.status == ReplayStatus.notApplicable;
-        final playerArea = _buildPlayerArea(landscape: true);
-        if (noChat) return ColoredBox(color: Colors.black, child: playerArea);
-
+        final hasChat =
+            replay != null &&
+            replay.status != ReplayStatus.unavailable &&
+            replay.status != ReplayStatus.notApplicable;
+        final fullScreen = _settings.fullScreen;
+        final overlayChatShown = _settings.fullScreenChatOverlay;
+        final overlayOpacity = _settings.fullScreenChatOverlayOpacity;
         final chatWidth = _settings.chatWidth;
         final leftSide = _settings.landscapeChatLeftSide;
-        final overlayVisible = _player?.overlayVisible ?? true;
+        final cutout = _settings.landscapeCutout;
+
+        final playerArea = _buildPlayerArea(landscape: true, hasChat: hasChat);
+        if (!hasChat) return ColoredBox(color: Colors.black, child: playerArea);
 
         Widget divider(double totalWidth) => Positioned(
           top: 0,
           bottom: 0,
           left: leftSide ? totalWidth * chatWidth - 12 : null,
           right: leftSide ? null : totalWidth * chatWidth - 12,
-          child: DraggableDivider(
-            currentWidth: chatWidth,
-            maxWidth: 0.6,
-            isResizableOnLeft: leftSide,
-            showHandle: overlayVisible,
-            onDragStart: () => setState(() => _isDividerDragging = true),
-            onDrag: (width) => _settings.chatWidth = width,
-            onDragEnd: () => setState(() => _isDividerDragging = false),
+          child: Observer(
+            builder: (context) => DraggableDivider(
+              currentWidth: chatWidth,
+              maxWidth: 0.6,
+              isResizableOnLeft: leftSide,
+              showHandle: _player?.overlayVisible ?? true,
+              onDragStart: () => setState(() => _isDividerDragging = true),
+              onDrag: (width) => _settings.chatWidth = width,
+              onDragEnd: () => setState(() => _isDividerDragging = false),
+            ),
           ),
         );
 
@@ -383,9 +487,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
                   : const Duration(milliseconds: 200),
               width: totalWidth * chatWidth,
               color: overlay
-                  ? Colors.black.withValues(
-                      alpha: _settings.fullScreenChatOverlayOpacity,
-                    )
+                  ? Colors.black.withValues(alpha: overlayOpacity)
                   : context.scaffoldColor,
               child: SafeArea(
                 left: leftSide,
@@ -394,31 +496,18 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
               ),
             );
 
-        if (_settings.fullScreen) {
+        if (fullScreen) {
+          final overlayTheme = FrostyThemes(
+            colorSchemeSeed: Color(_settings.accentColor),
+          ).dark;
+          final onOverlay =
+              Theme.of(context).extension<FrostyColors>()?.overlayOnSurface ??
+              Colors.white;
           return ColoredBox(
             color: Colors.black,
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final width = constraints.maxWidth;
-                final overlayChat = Visibility(
-                  visible: _settings.fullScreenChatOverlay,
-                  maintainState: true,
-                  child: Theme(
-                    data: FrostyThemes(
-                      colorSchemeSeed: Color(_settings.accentColor),
-                    ).dark,
-                    child: DefaultTextStyle(
-                      style: context.defaultTextStyle.copyWith(
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<FrostyColors>()?.overlayOnSurface ??
-                            Colors.white,
-                      ),
-                      child: chatPanel(width, overlay: true),
-                    ),
-                  ),
-                );
                 return Stack(
                   children: [
                     Positioned.fill(child: playerArea),
@@ -426,9 +515,21 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
                       alignment: leftSide
                           ? Alignment.centerLeft
                           : Alignment.centerRight,
-                      child: overlayChat,
+                      child: Visibility(
+                        visible: overlayChatShown,
+                        maintainState: true,
+                        child: Theme(
+                          data: overlayTheme,
+                          child: DefaultTextStyle(
+                            style: context.defaultTextStyle.copyWith(
+                              color: onOverlay,
+                            ),
+                            child: chatPanel(width, overlay: true),
+                          ),
+                        ),
+                      ),
                     ),
-                    if (_settings.fullScreenChatOverlay) divider(width),
+                    if (overlayChatShown) divider(width),
                   ],
                 );
               },
@@ -441,11 +542,11 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
           child: SafeArea(
             bottom: false,
             left:
-                _settings.landscapeCutout != LandscapeCutoutType.left &&
-                _settings.landscapeCutout != LandscapeCutoutType.both,
+                cutout != LandscapeCutoutType.left &&
+                cutout != LandscapeCutoutType.both,
             right:
-                _settings.landscapeCutout != LandscapeCutoutType.right &&
-                _settings.landscapeCutout != LandscapeCutoutType.both,
+                cutout != LandscapeCutoutType.right &&
+                cutout != LandscapeCutoutType.both,
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final width = constraints.maxWidth;
@@ -476,36 +577,39 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
       body: landscape ? _buildLandscape() : _buildPortrait(),
     );
 
-    final player = _player;
-    if (Platform.isAndroid && player != null) {
-      return PipWidget(
-        pipLayout: PipActionsLayout.mediaOnlyPause,
-        onPipAction: (_) => player.togglePlay(),
-        onPipEntered: player.onPipEntered,
-        onPipExited: player.onPipExited,
-        pipChild: _buildVideo(),
-        child: page,
-      );
-    }
-    return page;
+    if (!Platform.isAndroid) return page;
+    // Always present (keyed) so the page never remounts when the player
+    // appears, and so PiP events can be pointed back at it.
+    return PipWidget(
+      key: _pipKey,
+      pipLayout: PipActionsLayout.mediaOnlyPause,
+      onPipAction: (_) => _player?.togglePlay(),
+      onPipEntered: () => _player?.onPipEntered(),
+      onPipExited: () => _player?.onPipExited(),
+      pipChild: _buildVideo(),
+      child: page,
+    );
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    for (final dispose in _disposers) {
-      dispose();
+    try {
+      for (final dispose in _disposers) {
+        dispose();
+      }
+      _player?.dispose();
+      _replay?.dispose();
+      SystemChrome.setEnabledSystemUIMode(
+        SystemUiMode.manual,
+        overlays: SystemUiOverlay.values,
+      );
+      SystemChrome.setPreferredOrientations([]);
+    } finally {
+      // Last: the screen beneath resumes (after this frame) once released.
+      final wasTop = _hasFocus;
+      PlaybackFocus.shared.release(this);
+      if (wasTop && PlaybackFocus.shared.top == null) WakelockPlus.disable();
+      super.dispose();
     }
-    _player?.dispose();
-    _replay?.dispose();
-    PlaybackFocus.shared.release(this);
-    // The screen beneath re-enables it when it plays on.
-    if (PlaybackFocus.shared.top == null) WakelockPlus.disable();
-    SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.manual,
-      overlays: SystemUiOverlay.values,
-    );
-    SystemChrome.setPreferredOrientations([]);
-    super.dispose();
   }
 }

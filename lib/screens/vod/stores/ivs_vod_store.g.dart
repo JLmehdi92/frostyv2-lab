@@ -304,10 +304,40 @@ mixin _$IvsVodStore on IvsVodStoreBase, Store {
     });
   }
 
+  late final _$_focusedAtom = Atom(
+    name: 'IvsVodStoreBase._focused',
+    context: context,
+  );
+
+  @override
+  bool get _focused {
+    _$_focusedAtom.reportRead();
+    return super._focused;
+  }
+
+  @override
+  set _focused(bool value) {
+    _$_focusedAtom.reportWrite(value, super._focused, () {
+      super._focused = value;
+    });
+  }
+
   late final _$IvsVodStoreBaseActionController = ActionController(
     name: 'IvsVodStoreBase',
     context: context,
   );
+
+  @override
+  void setFocused(bool focused) {
+    final _$actionInfo = _$IvsVodStoreBaseActionController.startAction(
+      name: 'IvsVodStoreBase.setFocused',
+    );
+    try {
+      return super.setFocused(focused);
+    } finally {
+      _$IvsVodStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
 
   @override
   void _onEvent(Map<String, dynamic> e) {

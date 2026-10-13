@@ -18,6 +18,7 @@ class FakeVodController implements VodPlayerController {
       runInAction(() => _status.value = value);
   set position(Duration value) => runInAction(() => _position.value = value);
   set overlayVisible(bool value) => runInAction(() => _overlay.value = value);
+  set duration(Duration value) => runInAction(() => _duration.value = value);
 
   @override
   VodPlaybackStatus get status => _status.value;
@@ -94,6 +95,9 @@ class FakeVodController implements VodPlayerController {
   void onPipExited() {}
   @override
   Future<Duration?> currentPositionForSave() async => position;
+  @override
+  void setFocused(bool focused) => calls.add('focused $focused');
+
   @override
   void dispose() => calls.add('dispose');
 }

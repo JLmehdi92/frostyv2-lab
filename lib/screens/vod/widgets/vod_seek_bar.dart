@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/vod/vod_time.dart';
@@ -127,7 +128,7 @@ class _VodSeekBarState extends State<VodSeekBar> {
                   }
                 : null,
             child: SizedBox(
-              height: 32,
+              height: 40,
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -265,5 +266,8 @@ class VodSeekBarPainter extends CustomPainter {
       old.enabled != enabled ||
       old.dragging != dragging ||
       old.playedColor != playedColor ||
-      old.mutedRanges.length != mutedRanges.length;
+      old.trackColor != trackColor ||
+      old.bufferedColor != bufferedColor ||
+      old.mutedColor != mutedColor ||
+      !listEquals(old.mutedRanges, mutedRanges);
 }

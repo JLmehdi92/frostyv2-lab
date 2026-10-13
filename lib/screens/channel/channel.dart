@@ -22,6 +22,7 @@ import 'package:frosty/screens/vod/channel_videos.dart';
 import 'package:frosty/services/playback_focus.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
+import 'package:frosty/utils/pip_callbacks.dart';
 import 'package:frosty/widgets/blurred_container.dart';
 import 'package:frosty/widgets/draggable_divider.dart';
 import 'package:frosty/widgets/frosty_notification.dart';
@@ -227,20 +228,30 @@ class _VideoChatState extends State<VideoChat>
   /// Whether the stream was playing when another player took focus.
   var _playingBeforeFocusLoss = false;
 
+  final _pipKey = GlobalKey<PipWidgetState>();
+
   void _pauseForOtherPlayer() {
-    _playingBeforeFocusLoss = !_videoStore.paused;
-    if (_playingBeforeFocusLoss) _videoStore.handlePausePlay();
+    final store = _videoStore;
+    if (store is IvsVideoStore) store.setFocusSuppressed(true);
+    _playingBeforeFocusLoss = !store.paused;
+    if (_playingBeforeFocusLoss) store.handlePausePlay();
   }
 
   void _resumeAfterOtherPlayer() {
-    if (!mounted) return;
-    if (_playingBeforeFocusLoss && _videoStore.paused) {
-      _videoStore.handlePausePlay();
-    }
-    _playingBeforeFocusLoss = false;
-    // The screen that just closed may have turned these off on its way out.
-    if (_videoStore case final IvsVideoStore ivs) ivs.reassertAutoPip();
-    if (context.settingsStore.keepScreenAwake) WakelockPlus.enable();
+    // Runs after the frame: the screen above may be closing together with
+    // this one (popUntil), and must finish disposing first.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final store = _videoStore;
+      if (store is IvsVideoStore) store.setFocusSuppressed(false);
+      if (_playingBeforeFocusLoss && store.paused) store.handlePausePlay();
+      _playingBeforeFocusLoss = false;
+      // The screen that just closed reset these on its way out.
+      if (store is IvsVideoStore) store.reassertAutoPip();
+      if (store.settingsStore.keepScreenAwake) WakelockPlus.enable();
+      reclaimPipCallbacks(_pipKey);
+      setState(() => _isImmersiveSystemUiEnabled = null);
+    });
   }
 
   @override
@@ -912,6 +923,7 @@ class _VideoChatState extends State<VideoChat>
     // If on Android, use PiPSwitcher to enable PiP functionality.
     if (Platform.isAndroid) {
       return PipWidget(
+        key: _pipKey,
         pipLayout: PipActionsLayout.mediaOnlyPause,
         onPipAction: (_) => _videoStore.handlePausePlay(),
         onPipEntered: () {

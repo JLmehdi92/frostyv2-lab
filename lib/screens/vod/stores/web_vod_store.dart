@@ -104,6 +104,11 @@ abstract class WebVodStoreBase with Store implements VodPlayerController {
   @readonly
   var _isInPipMode = false;
 
+  var _focused = true;
+
+  @override
+  void setFocused(bool focused) => _focused = focused;
+
   @override
   @computed
   Duration get duration => _reportedDuration ?? _knownLength ?? Duration.zero;
@@ -228,6 +233,8 @@ abstract class WebVodStoreBase with Store implements VodPlayerController {
       _status = VodPlaybackStatus.buffering;
     } else {
       _status = VodPlaybackStatus.playing;
+      // The embed auto-plays after a reload, even under another player.
+      if (!_focused) pause();
     }
     if (wasPaused && !paused && _overlayVisible) _scheduleOverlayHide();
     if (Platform.isAndroid) pip.setIsPlaying(!paused);

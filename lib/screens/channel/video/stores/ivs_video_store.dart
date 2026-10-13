@@ -251,6 +251,13 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     }
   }
 
+  /// True while another player (a VOD on top) has playback focus.
+  var _focusSuppressed = false;
+
+  /// Keeps this stream silent while another player has focus: automatic
+  /// playback after a load or a reconnect is paused again.
+  void setFocusSuppressed(bool suppressed) => _focusSuppressed = suppressed;
+
   /// Applies the auto-PiP choice again, e.g. after a VOD screen on top of
   /// this stream turned auto-PiP off when it closed.
   void reassertAutoPip() {
@@ -358,6 +365,8 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         _isPlaying = state == 'PLAYING';
         if (_isPlaying) _hasPlayed = true;
         if (state == 'PLAYING') {
+          // Native auto-play after a (re)load while a VOD on top has focus.
+          if (_focusSuppressed) _channel?.invokeMethod('pause');
           _paused = false;
           _status = IvsPlaybackStatus.playing;
           if (_startupMs == null) {

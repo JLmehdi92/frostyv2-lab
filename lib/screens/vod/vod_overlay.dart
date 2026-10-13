@@ -37,6 +37,7 @@ class VodOverlay extends StatefulWidget {
     this.onToggleFillScreen,
     this.showChatOverlayButton = false,
     this.isLandscape = false,
+    this.onCycleChatMode,
   });
 
   final VodPlayerController controller;
@@ -51,6 +52,10 @@ class VodOverlay extends StatefulWidget {
   /// Landscape full screen: toggles the chat drawn over the video.
   final bool showChatOverlayButton;
   final bool isLandscape;
+
+  /// Double-tap in the middle (landscape with chat): cycles the chat mode
+  /// like live. Without it, the middle double-tap plays/pauses.
+  final VoidCallback? onCycleChatMode;
 
   @override
   State<VodOverlay> createState() => _VodOverlayState();
@@ -86,7 +91,7 @@ class _VodOverlayState extends State<VodOverlay> {
       _c.seekBy(_skip);
       _showSkipBadge(forward: true);
     } else {
-      _c.togglePlay();
+      (widget.onCycleChatMode ?? _c.togglePlay)();
     }
   }
 
@@ -105,10 +110,12 @@ class _VodOverlayState extends State<VodOverlay> {
     required VoidCallback? onPressed,
     double size = 24,
     Color? color,
+    bool compact = false,
   }) => IconButton(
     tooltip: tooltip,
     iconSize: size,
     onPressed: onPressed,
+    visualDensity: compact ? VisualDensity.compact : null,
     icon: Icon(
       icon,
       color: color ?? _onSurface(context),
@@ -144,18 +151,21 @@ class _VodOverlayState extends State<VodOverlay> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final gestures = GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: _c.handleVideoTap,
-          onDoubleTapDown: (d) => _doubleTapAt = d.localPosition,
-          onDoubleTap: () => _onDoubleTap(constraints.maxWidth),
-          child: const SizedBox.expand(),
-        );
         final badgeForward = _skipBadgeForward;
-
+        final compact =
+            constraints.maxHeight < 240 || constraints.maxWidth < 420;
+        // The detector sits under the controls (not around them) so buttons
+        // answer at once instead of waiting out the double-tap; the bars'
+        // gradients ignore pointers, so taps on them reach the detector.
         return Stack(
+          fit: StackFit.expand,
           children: [
-            gestures,
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _c.handleVideoTap,
+              onDoubleTapDown: (d) => _doubleTapAt = d.localPosition,
+              onDoubleTap: () => _onDoubleTap(constraints.maxWidth),
+            ),
             if (badgeForward != null)
               Align(
                 alignment: badgeForward
@@ -176,7 +186,36 @@ class _VodOverlayState extends State<VodOverlay> {
                   child: AnimatedOpacity(
                     opacity: visible ? 1 : 0,
                     duration: const Duration(milliseconds: 200),
-                    child: _controls(context),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        IgnorePointer(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              SizedBox(
+                                height: compact ? 64 : 96,
+                                child: DecoratedBox(
+                                  decoration: overlayGradient(fromTop: true),
+                                ),
+                              ),
+                              const Spacer(),
+                              SizedBox(
+                                height: compact ? 96 : 128,
+                                child: DecoratedBox(
+                                  decoration: overlayGradient(fromTop: false),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        _controls(
+                          context,
+                          compact: compact,
+                          narrow: constraints.maxWidth < 400,
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
@@ -187,58 +226,67 @@ class _VodOverlayState extends State<VodOverlay> {
     );
   }
 
-  Widget _controls(BuildContext context) {
+  Widget _controls(
+    BuildContext context, {
+    required bool compact,
+    required bool narrow,
+  }) {
     final onSurface = _onSurface(context);
     final vod = widget.vod;
 
-    final top = Container(
-      decoration: overlayGradient(fromTop: true),
-      padding: const EdgeInsets.only(bottom: 24),
+    final top = Padding(
+      padding: EdgeInsets.only(bottom: compact ? 8 : 24),
       child: Row(
         children: [
           _icon(
             context,
             icon: Icons.adaptive.arrow_back_rounded,
             tooltip: 'Back',
+            compact: compact,
             onPressed: () => Navigator.maybePop(context),
           ),
           Expanded(
-            child: GestureDetector(
-              onTap: () => _openChannel(context),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    vod.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: onSurface,
-                      fontWeight: FontWeight.w600,
-                      shadows: kOverlayShadow,
+            child: Semantics(
+              button: true,
+              label: 'Open ${vod.ownerDisplayName}',
+
+              child: GestureDetector(
+                onTap: () => _openChannel(context),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      vod.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: onSurface,
+                        fontWeight: FontWeight.w600,
+                        shadows: kOverlayShadow,
+                      ),
                     ),
-                  ),
-                  if (vod.ownerLogin.isNotEmpty)
-                    Row(
-                      spacing: 6,
-                      children: [
-                        ProfilePicture(userLogin: vod.ownerLogin, radius: 9),
-                        Flexible(
-                          child: Text(
-                            vod.ownerDisplayName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: onSurface.withValues(alpha: 0.85),
-                              fontSize: 13,
-                              shadows: kOverlayShadow,
+                    if (vod.ownerLogin.isNotEmpty)
+                      Row(
+                        spacing: 6,
+                        children: [
+                          ProfilePicture(userLogin: vod.ownerLogin, radius: 9),
+                          Flexible(
+                            child: Text(
+                              vod.ownerDisplayName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: onSurface.withValues(alpha: 0.85),
+                                fontSize: 13,
+                                shadows: kOverlayShadow,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                ],
+                        ],
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -252,6 +300,7 @@ class _VodOverlayState extends State<VodOverlay> {
                 tooltip: widget.settings.fullScreenChatOverlay
                     ? 'Hide chat overlay'
                     : 'Show chat overlay',
+                compact: compact,
                 onPressed: () => widget.settings.fullScreenChatOverlay =
                     !widget.settings.fullScreenChatOverlay,
               ),
@@ -260,6 +309,7 @@ class _VodOverlayState extends State<VodOverlay> {
             context,
             icon: Icons.settings,
             tooltip: 'Settings',
+            compact: compact,
             onPressed: () => _openSettings(context),
           ),
         ],
@@ -272,13 +322,13 @@ class _VodOverlayState extends State<VodOverlay> {
         final paused = _c.paused;
         return Row(
           mainAxisSize: MainAxisSize.min,
-          spacing: 24,
+          spacing: compact ? 12 : 24,
           children: [
             _icon(
               context,
               icon: Icons.replay_10_rounded,
               tooltip: 'Back 10 seconds',
-              size: 36,
+              size: compact ? 28 : 36,
               onPressed: () => _c.seekBy(-_skip),
             ),
             _icon(
@@ -293,14 +343,14 @@ class _VodOverlayState extends State<VodOverlay> {
                   : paused
                   ? 'Play'
                   : 'Pause',
-              size: 56,
+              size: compact ? 44 : 56,
               onPressed: _c.togglePlay,
             ),
             _icon(
               context,
               icon: Icons.forward_10_rounded,
               tooltip: 'Forward 10 seconds',
-              size: 36,
+              size: compact ? 28 : 36,
               onPressed: () => _c.seekBy(_skip),
             ),
           ],
@@ -308,9 +358,8 @@ class _VodOverlayState extends State<VodOverlay> {
       },
     );
 
-    final bottom = Container(
-      decoration: overlayGradient(fromTop: false),
-      padding: const EdgeInsets.fromLTRB(12, 24, 4, 0),
+    final bottom = Padding(
+      padding: EdgeInsets.fromLTRB(12, compact ? 4 : 24, 4, 0),
       child: Observer(
         builder: (context) {
           final rate = _c.playbackRate;
@@ -330,18 +379,28 @@ class _VodOverlayState extends State<VodOverlay> {
               ),
               Row(
                 children: [
-                  Text(
-                    '${formatVodTime(_c.position)} / '
-                    '${formatVodTime(_c.duration)}',
-                    style: TextStyle(
-                      color: onSurface,
-                      fontSize: 13,
-                      shadows: kOverlayShadow,
-                      fontFeatures: const [FontFeature.tabularFigures()],
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '${formatVodTime(_c.position)} / '
+                        '${formatVodTime(_c.duration)}',
+                        semanticsLabel:
+                            'Elapsed time ${formatVodTime(_c.position)} of '
+                            '${formatVodTime(_c.duration)}',
+                        style: TextStyle(
+                          color: onSurface,
+                          fontSize: 13,
+                          shadows: kOverlayShadow,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
                     ),
                   ),
                   const Spacer(),
-                  if (rate != 1.0)
+                  // The speed is in the settings sheet on narrow screens.
+                  if (rate != 1.0 && !narrow)
                     Padding(
                       padding: const EdgeInsets.only(right: 4),
                       child: _SpeedChip(
@@ -355,6 +414,7 @@ class _VodOverlayState extends State<VodOverlay> {
                         ? Icons.volume_off_rounded
                         : Icons.volume_up_rounded,
                     tooltip: _c.muted ? 'Unmute' : 'Mute',
+                    compact: compact,
                     onPressed: _c.toggleMute,
                   ),
                   if (Platform.isAndroid)
@@ -362,9 +422,11 @@ class _VodOverlayState extends State<VodOverlay> {
                       context,
                       icon: Icons.picture_in_picture_alt_rounded,
                       tooltip: 'Picture-in-picture',
+                      compact: compact,
                       onPressed: _c.requestPictureInPicture,
                     ),
-                  if (widget.onToggleFillScreen != null)
+                  // Fit/fill only matters in landscape, as on live.
+                  if (widget.onToggleFillScreen != null && widget.isLandscape)
                     _icon(
                       context,
                       icon: Icons.tablet_mac,
@@ -374,6 +436,7 @@ class _VodOverlayState extends State<VodOverlay> {
                       color: widget.fillScreen == true
                           ? Theme.of(context).colorScheme.primary
                           : null,
+                      compact: compact,
                       onPressed: widget.onToggleFillScreen,
                     ),
                   _icon(
@@ -384,6 +447,7 @@ class _VodOverlayState extends State<VodOverlay> {
                     tooltip: widget.isLandscape
                         ? 'Exit full screen'
                         : 'Full screen',
+                    compact: compact,
                     onPressed: () async {
                       if (widget.isLandscape) {
                         exitToPortrait();
@@ -400,11 +464,13 @@ class _VodOverlayState extends State<VodOverlay> {
       ),
     );
 
-    return Stack(
+    // Stacked vertically so the centre buttons never sit under the bars.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Positioned(top: 0, left: 0, right: 0, child: top),
-        Center(child: center),
-        Positioned(bottom: 0, left: 0, right: 0, child: bottom),
+        top,
+        Expanded(child: Center(child: center)),
+        bottom,
       ],
     );
   }

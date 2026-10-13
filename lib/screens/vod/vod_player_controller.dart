@@ -63,6 +63,11 @@ abstract class VodPlayerController {
   void onPipEntered();
   void onPipExited();
 
+  /// Whether this player holds playback focus. Without it, automatic
+  /// playback (after a load or a reload) is paused again and auto-PiP is
+  /// left to the player that has focus.
+  void setFocused(bool focused);
+
   /// Current position for a resume save (asks the native player when it can).
   Future<Duration?> currentPositionForSave();
 
