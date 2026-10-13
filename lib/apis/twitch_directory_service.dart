@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/constants.dart';
 import 'package:frosty/models/community_highlights.dart';
@@ -82,7 +83,7 @@ class TwitchDirectoryService extends BaseApiClient {
       if (errors.isNotEmpty) throw DirectoryApiException(errors);
       throw const NotFoundException('Category not found');
     }
-    return _streams(game['streams'], errors);
+    return _streams(game['streams'], errors, language);
   }
 
   /// Live streams tagged [tag] in [sort] order, in [language].
@@ -101,19 +102,25 @@ class TwitchDirectoryService extends BaseApiClient {
         'freeformTags': [tag],
       },
     });
-    return _streams(data['streams'], errors);
+    return _streams(data['streams'], errors, language);
   }
 
   static Map<String, Object> _options(StreamSort sort, String language) => {
     'sort': sort.gql,
-    // GQL knows each ISO 639-1 code; 'other' is ignored there.
+    // GQL knows each ISO 639-1 code; 'other' is ignored there (it is
+    // filtered from the answer instead).
     if (RegExp(r'^[a-z]{2}$').hasMatch(language))
       'broadcasterLanguages': [language.toUpperCase()],
   };
 
-  /// A `streams` connection as one page without a cursor; one nulled by an
-  /// error throws instead of reading as empty.
-  static StreamsTwitch _streams(Object? connection, String errors) {
+  /// A `streams` connection as one page without a cursor. One nulled by an
+  /// error, or whose streams all fail to read (Twitch changed something),
+  /// throws instead of reading as empty.
+  static StreamsTwitch _streams(
+    Object? connection,
+    String errors,
+    String language,
+  ) {
     if (connection is! Map) {
       throw DirectoryApiException(
         errors.isNotEmpty ? errors : 'Unreadable streams',
@@ -123,6 +130,20 @@ class TwitchDirectoryService extends BaseApiClient {
     final streams = [
       for (final edge in edges) ?streamFromGql(chMap(edge)?['node']),
     ];
+    if (streams.isEmpty && (edges.isNotEmpty || errors.isNotEmpty)) {
+      throw DirectoryApiException(
+        errors.isNotEmpty ? errors : 'Unreadable streams',
+      );
+    }
+    if (streams.length < edges.length) {
+      debugPrint(
+        'Directory: ${edges.length - streams.length} unreadable streams '
+        'skipped $errors',
+      );
+    }
+    if (language == 'other') {
+      streams.retainWhere((stream) => stream.language == 'other');
+    }
     return StreamsTwitch(streams, const {});
   }
 
@@ -163,7 +184,9 @@ class TwitchDirectoryService extends BaseApiClient {
         for (final tag in chList(map['freeformTags'], max: 10))
           ?chString(chMap(tag)?['name'], max: 25),
       ],
-      language: RegExp(r'^[a-z]{2}$').hasMatch(language) ? language : '',
+      language: RegExp(r'^([a-z]{2}|other)$').hasMatch(language)
+          ? language
+          : '',
     );
   }
 

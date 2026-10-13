@@ -447,5 +447,44 @@ void main() {
         throwsA(isA<NotFoundException>()),
       );
     });
+
+    test('clips that all fail to read, or none sent, are an error', () async {
+      reply({
+        'data': {
+          'game': {
+            'id': '1',
+            'clips': {
+              'edges': [
+                {
+                  'node': {'id': 'x'},
+                },
+              ],
+            },
+          },
+        },
+      });
+      await expectLater(
+        service.getCategoryClips(
+          gameId: '1',
+          period: ClipPeriod.lastWeek,
+          sort: ClipSort.top,
+        ),
+        throwsA(isA<ClipApiException>()),
+      );
+
+      reply({
+        'data': {
+          'game': {'id': '1', 'clips': null},
+        },
+      });
+      await expectLater(
+        service.getCategoryClips(
+          gameId: '1',
+          period: ClipPeriod.lastWeek,
+          sort: ClipSort.top,
+        ),
+        throwsA(isA<ClipApiException>()),
+      );
+    });
   });
 }

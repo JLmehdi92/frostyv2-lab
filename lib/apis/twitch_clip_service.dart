@@ -121,8 +121,11 @@ class TwitchClipService extends BaseApiClient {
     });
     final game = data['game'];
     if (game is! Map) throw const NotFoundException('Category not found');
-    final clips = game['clips'] is Map ? game['clips'] as Map : const {};
-    final edges = clips['edges'] is List ? clips['edges'] as List : const [];
+    final clips = game['clips'];
+    if (clips is! Map) throw const ClipApiException('Unreadable clips');
+    final edges = clips['edges'] is List
+        ? (clips['edges'] as List).take(100).toList()
+        : const [];
     final items = <Clip>[];
     for (final edge in edges) {
       if (edge is! Map || edge['node'] is! Map) continue;
@@ -131,6 +134,10 @@ class TwitchClipService extends BaseApiClient {
       } on FormatException {
         // One unreadable clip must not hide the others.
       }
+    }
+    // All of them unreadable: Twitch changed something, not an empty list.
+    if (items.isEmpty && edges.isNotEmpty) {
+      throw const ClipApiException('Unreadable clips');
     }
     final pageInfo = clips['pageInfo'];
     return ClipPage(

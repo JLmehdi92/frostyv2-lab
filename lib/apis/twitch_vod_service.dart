@@ -138,8 +138,11 @@ class TwitchVodService extends BaseApiClient {
     });
     final game = data['game'];
     if (game is! Map) throw const NotFoundException('Category not found');
-    final videos = game['videos'] is Map ? game['videos'] as Map : const {};
-    final edges = videos['edges'] is List ? videos['edges'] as List : const [];
+    final videos = game['videos'];
+    if (videos is! Map) throw const VodApiException('Unreadable videos');
+    final edges = videos['edges'] is List
+        ? (videos['edges'] as List).take(100).toList()
+        : const [];
     final items = <Vod>[];
     for (final edge in edges) {
       if (edge is! Map || edge['node'] is! Map) continue;
@@ -148,6 +151,10 @@ class TwitchVodService extends BaseApiClient {
       } on FormatException {
         // One unreadable video must not hide the others.
       }
+    }
+    // All of them unreadable: Twitch changed something, not an empty list.
+    if (items.isEmpty && edges.isNotEmpty) {
+      throw const VodApiException('Unreadable videos');
     }
     final pageInfo = videos['pageInfo'];
     return VodPage(

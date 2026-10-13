@@ -349,4 +349,90 @@ void main() {
       expect(page.data.map((s) => s.userLogin), ['first', 'second']);
     });
   });
+
+  group('unreadable and filtered answers', () {
+    Map<String, Object?> node(String login, {String language = 'EN'}) => {
+      'node': {
+        'type': 'live',
+        'createdAt': '2026-10-13T20:00:00Z',
+        'language': language,
+        'broadcaster': {'id': '1', 'login': login},
+      },
+    };
+
+    test(
+      'streams that all fail to read are an error, not an empty list',
+      () async {
+        reply({
+          'data': {
+            'streams': {
+              'edges': [
+                {
+                  'node': {'type': 'LIVE'},
+                },
+                {
+                  'node': {'type': 'LIVE'},
+                },
+              ],
+            },
+          },
+        });
+        await expectLater(
+          service.getTagStreams(tag: 'Chill', sort: StreamSort.recent),
+          throwsA(
+            isA<DirectoryApiException>().having(
+              (e) => e.message,
+              'message',
+              'Unreadable streams',
+            ),
+          ),
+        );
+      },
+    );
+
+    test('nulled edges with an error are an error', () async {
+      reply({
+        'errors': [
+          {'message': 'edges failed'},
+        ],
+        'data': {
+          'streams': {'edges': null},
+        },
+      });
+      await expectLater(
+        service.getTagStreams(tag: 'Chill', sort: StreamSort.recent),
+        throwsA(isA<DirectoryApiException>()),
+      );
+    });
+
+    test('no streams at all is just empty', () async {
+      reply({
+        'data': {
+          'streams': {'edges': <Object>[]},
+        },
+      });
+      final page = await service.getTagStreams(
+        tag: 'Chill',
+        sort: StreamSort.recent,
+      );
+      expect(page.data, isEmpty);
+    });
+
+    test('"other" keeps only streams in another language', () async {
+      reply({
+        'data': {
+          'streams': {
+            'edges': [node('english'), node('elsewhere', language: 'OTHER')],
+          },
+        },
+      });
+      final page = await service.getTagStreams(
+        tag: 'Chill',
+        sort: StreamSort.recent,
+        language: 'other',
+      );
+      expect(page.data.single.userLogin, 'elsewhere');
+      expect(page.data.single.language, 'other');
+    });
+  });
 }

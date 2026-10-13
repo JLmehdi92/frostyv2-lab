@@ -423,5 +423,36 @@ void main() {
     test('a bad id never reaches the network', () async {
       expect(() => service.getCategoryVideos('x'), throwsArgumentError);
     });
+
+    test('videos that all fail to read, or none sent, are an error', () async {
+      reply({
+        'data': {
+          'game': {
+            'id': '1',
+            'videos': {
+              'edges': [
+                {
+                  'node': {'id': 'x'},
+                },
+              ],
+            },
+          },
+        },
+      });
+      await expectLater(
+        service.getCategoryVideos('1'),
+        throwsA(isA<VodApiException>()),
+      );
+
+      reply({
+        'data': {
+          'game': {'id': '1', 'videos': null},
+        },
+      });
+      await expectLater(
+        service.getCategoryVideos('1'),
+        throwsA(isA<VodApiException>()),
+      );
+    });
   });
 }
