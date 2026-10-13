@@ -183,6 +183,7 @@ void main() {
 
     test('positionSeconds only changes on whole seconds', () async {
       store = await createStore();
+      await native.emit({'type': 'seeked', 'ms': 0});
       await native.emitProgress(1000);
       final seconds = <int>[];
       final dispose = reaction((_) => store.positionSeconds, seconds.add);
@@ -259,6 +260,7 @@ void main() {
 
     test('a progress tick at the seek target ends the seek', () async {
       store = await createStore();
+      await native.emit({'type': 'seeked', 'ms': 0});
       await native.emitProgress(5000, durationMs: 100000);
 
       store.seekTo(const Duration(seconds: 60));
@@ -397,6 +399,7 @@ void main() {
   group('errors', () {
     test('a recoverable error reloads at the current position', () async {
       store = await createStore();
+      await native.emit({'type': 'seeked', 'ms': 0});
       await native.emit({'type': 'state', 'state': 'PLAYING'});
       await native.emitProgress(42000, durationMs: 100000);
       native.playerCalls.clear();
@@ -821,6 +824,140 @@ void main() {
     });
   });
 
+  group('review 2: wanted start position', () {
+    test(
+      'a stale tick at the old position does not end the reload start',
+      () async {
+        store = await createStore(startAt: const Duration(hours: 1));
+        await native.emit({'type': 'seeked', 'ms': 3600000});
+        await native.emit({'type': 'state', 'state': 'PLAYING'});
+        await native.emitProgress(3700000, durationMs: 7200000);
+
+        await native.emit({'type': 'error', 'errorType': 'ERROR_NETWORK'});
+        await settleMany();
+        await native.emitProgress(3700000, durationMs: 7200000);
+        await native.emitProgress(0, durationMs: 7200000);
+
+        expect(store.position, const Duration(milliseconds: 3700000));
+        expect(
+          await store.currentPositionForSave(),
+          const Duration(milliseconds: 3700000),
+        );
+
+        await native.emit({'type': 'error', 'errorType': 'ERROR_NETWORK'});
+        await settleMany();
+        expect(loadStarts(), [3600000, 3700000, 3700000]);
+      },
+    );
+
+    test(
+      'ticks before the url resolves do not replace the resume point',
+      () async {
+        final url = Completer<String>();
+        when(
+          () => service.getVodUsherUrl(
+            vodId: any(named: 'vodId'),
+            forceFreshToken: any(named: 'forceFreshToken'),
+          ),
+        ).thenAnswer((_) => url.future);
+        final s = build(startAt: const Duration(hours: 1));
+        await settleMany();
+
+        await native.emitProgress(0);
+
+        expect(s.position, const Duration(hours: 1));
+        expect(await s.currentPositionForSave(), const Duration(hours: 1));
+        url.complete(_url);
+        await settleMany();
+      },
+    );
+
+    test('a seek before the url resolves becomes the start', () async {
+      final url = Completer<String>();
+      when(
+        () => service.getVodUsherUrl(
+          vodId: any(named: 'vodId'),
+          forceFreshToken: any(named: 'forceFreshToken'),
+        ),
+      ).thenAnswer((_) => url.future);
+      final s = build();
+      await settleMany();
+
+      s.seekTo(const Duration(minutes: 10));
+      url.complete(_url);
+      await settleMany();
+
+      expect(loadStarts(), [600000]);
+      expect(s.position, const Duration(minutes: 10));
+    });
+
+    test('a seek during the retry delay is where the reload starts', () async {
+      store = await createStore(
+        policy: IvsRecoveryPolicy(
+          backoff: const [
+            Duration(milliseconds: 40),
+            Duration(milliseconds: 40),
+            Duration(milliseconds: 40),
+          ],
+        ),
+      );
+      await native.emit({'type': 'seeked', 'ms': 0});
+      await native.emitProgress(42000, durationMs: 7200000);
+
+      await native.emit({'type': 'error', 'errorType': 'ERROR_NETWORK'});
+      store.seekTo(const Duration(minutes: 10));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await settleMany();
+
+      expect(loadStarts(), [0, 600000]);
+      expect(store.position, const Duration(minutes: 10));
+    });
+
+    test('PLAYING before the start seek confirms does not show 0', () async {
+      store = await createStore(startAt: const Duration(hours: 1));
+
+      await native.emit({'type': 'state', 'state': 'READY'});
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await native.emitProgress(0, durationMs: 7200000);
+
+      expect(store.position, const Duration(hours: 1));
+    });
+
+    test('a lost start confirmation times out after READY', () async {
+      store = await createStore(
+        startAt: const Duration(hours: 1),
+        seekTimeout: const Duration(milliseconds: 20),
+      );
+
+      await native.emit({'type': 'state', 'state': 'READY'});
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await native.emitProgress(3600500, durationMs: 7200000);
+
+      expect(store.position, const Duration(milliseconds: 3600500));
+    });
+
+    test('a refusal after the native player failed stays failed', () async {
+      native.createThrows = true;
+      final url = Completer<String>();
+      when(
+        () => service.getVodUsherUrl(
+          vodId: any(named: 'vodId'),
+          forceFreshToken: any(named: 'forceFreshToken'),
+        ),
+      ).thenAnswer((_) => url.future);
+      var fatal = 0;
+      final s = build()..onFatalError = () => fatal++;
+      await settleMany(10);
+
+      url.completeError(const VodForbiddenException('geoblocked'));
+      await s.ready.catchError((Object _) {});
+      await settleMany();
+
+      expect(fatal, 1);
+      expect(s.status, VodPlaybackStatus.failed);
+    });
+  });
+
   group('lifecycle', () {
     test('dispose during creation releases the native player', () async {
       native.createGate = Completer<void>();
@@ -865,6 +1002,7 @@ void main() {
 
     test('currentPositionForSave asks the native player', () async {
       store = await createStore();
+      await native.emit({'type': 'seeked', 'ms': 0});
       await native.emit({'type': 'state', 'state': 'PLAYING'});
       native.nativePosition = 777000;
 
@@ -876,6 +1014,7 @@ void main() {
 
     test('currentPositionForSave falls back to the last progress', () async {
       store = await createStore();
+      await native.emit({'type': 'seeked', 'ms': 0});
       await native.emit({'type': 'state', 'state': 'PLAYING'});
       await native.emitProgress(5000);
 
