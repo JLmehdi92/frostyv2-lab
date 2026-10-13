@@ -4,6 +4,12 @@
 > Chaque statut ✅ ou ⚠️ a été vérifié dans le code par `grep` et lecture ; l'inventaire de `docs/ARCHITECTURE.md` n'a servi que de point de départ.
 > Ce document ne contient que de l'analyse : aucun code n'a été modifié.
 
+## Mises à jour depuis la validation
+
+| Date | Commits | Lignes mises à jour |
+|---|---|---|
+| 2026-10-13 | `bbe7ca3` → `d0c9be5` (épopée « lecteur basse latence », C1-C6) + nettoyage SurfaceView | PLY-01, 02, 03, 04, 05, 06, 10, 11. Comptes de synthèse recalculés pour PLY et P0. « À valider sur appareil » : l'émulateur du conteneur ne permet ni l'affichage fluide ni le réseau. |
+
 ## 0. Légende et conventions
 
 | Statut | Sens |
@@ -37,17 +43,17 @@
 
 | ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
-| PLY-01 | Lecture live native | P0 | ⚠️ | `IvsPlayerCore.kt:34-90`, `twitch_stream_service.dart:72-123`, `channel.dart:116-131` | IVS natif présent mais SDK 1.52 (officiel 1.57), jeton `platform:"web"`/`playerType:"embed"`, pas de reprise gérée par l'app. iOS : aucun code IVS, la texture n'est jamais créée → spinner infini. | OK |
-| PLY-02 | Préchargement du théâtre | P0 | ❌ | — | Jeton puis `load()` en série après l'ouverture de l'écran (`ivs_video_store.dart:114-115`). Pas de préchargement. Préchauffer PAT + manifeste suffit (`TheatrePortalPreloadQuery` n'est pas nécessaire). | OK |
-| PLY-03 | Mode faible latence | P0 | ⚠️ | `IvsPlayerCore.kt:81-86` | Basse latence forcée, sans bascule Low/Normal. Pas de rattrapage par accélération (setter absent en 1.52). `setRebufferToLive(true)` provoque des sauts ; l'officiel ne l'active pas. | OK |
-| PLY-04 | Statistiques vidéo et latence | P0 | ⚠️ | `ivs_video_store.dart:192-202`, `video_overlay.dart:487-516`, `settings_store.dart:74` | Latence seule, arrondie à 1 s, bornée à 60 s, **masquée par défaut**. Ni débit, ni résolution, ni buffer. | OK |
-| PLY-05 | Choix de qualité | P0 | ⚠️ | `ivs_video_store.dart:183-226`, `video_overlay.dart:137-185` | Choix valable pour la session seulement. `last_stream_quality` est écrit (`video_overlay.dart:169`) mais IVS l'ignore, comme `defaultToHighestQuality`. Libellés sans débit, pas d'`include_unavailable`. | OK |
-| PLY-06 | Son et volume | P0 | ❌ | — | Le pont IVS n'expose ni mute ni volume (`IvsPlayerCore.kt:35-53`). Pas de gestion du focus audio. | OK |
+| PLY-01 | Lecture live native | P0 | ⚠️ | `IvsTuning.kt`, `IvsPlayerCore.kt`, `ivs_video_store.dart` (`d4ca773`, `fe2e1c1`) | IVS 1.57 avec la config de session de l'officiel, reprise gérée (C2). Reste : jeton demandé en `platform:"web"`/`playerType:"embed"` au lieu de `android`/`mobile_player` (A/B à mesurer, impact pubs inconnu). À valider sur appareil. | OK |
+| PLY-02 | Préchargement du théâtre | P0 | ⚠️ | `ivs_video_store.dart`, `playback_token_cache.dart` (`d4ca773`) | Le lecteur natif est créé en parallèle du jeton, et le jeton est mis en cache jusqu'à son expiration. Reste : pas de préchargement au toucher de la carte, ni de requête unique jeton + métadonnées + chat comme `TheatrePortalPreloadQuery`. | OK |
+| PLY-03 | Mode faible latence | P0 | ⚠️ | `IvsTuning.kt`, `ivs_player_config.dart`, `video_settings.dart` (`fe2e1c1`) | Rattrapage par accélération comme l'officiel (défaut), tampon initial 100 ms, réglages « Live catch-up » et « Buffer profile » (Ultra expérimental). Reste : pas de mode « latence normale ». Latence à mesurer sur appareil. | OK |
+| PLY-04 | Statistiques vidéo et latence | P0 | ✅ | `ivs_stats_panel.dart`, `latency_stats.dart`, `IvsPlayerCore.kt` (`bbe7ca3`) | Latence au dixième, visible par défaut ; panneau stats (médiane/p90/max, buffer, débit, images, qualité/codec, mode, démarrage, rebuffers). À valider sur appareil. | OK |
+| PLY-05 | Choix de qualité | P0 | ✅ | `quality_selection.dart`, `ivs_video_store.dart`, `IvsPlayerCore.kt` (`d0c9be5`) | Qualité de la session, sinon sauvegardée, sinon la plus haute (meilleur rendu en premier, 2K en tête), réappliquée après chaque rechargement. À valider sur appareil. | OK |
+| PLY-06 | Son et volume | P0 | ⚠️ | `ivs_video_store.dart`, `video_overlay.dart`, `IvsPlayerCore.kt` (`d0c9be5`) | Mute (paysage + feuille) et volume, conservés en mini-player/PiP/rechargement. Reste : pas de gestion du focus audio. | OK |
 | PLY-07 | Plein écran, ajuster, rogner, zoom | P0 | ⚠️ | `video_overlay.dart:112-135,200-229`, `ivs_video.dart:39-96` | Plein écran immersif et ajuster/remplir (IVS en paysage seulement). Pas de pincer-zoomer. | OK |
 | PLY-08 | Overlay de métadonnées | P0 | ✅ | `stream_info_bar.dart:13-220`, `video_overlay.dart:424-472` | Titre, catégorie, uptime, spectateurs. Tags absents. | OK |
 | PLY-09 | État du live en temps réel | P0 | ⚠️ | `ivs_video_store.dart:250-299` | Infos rafraîchies par polling Helix au tap ou au retour dans l'app. Pas de push, pas de relance auto au retour du stream. Via EventSub `stream.online`/`stream.offline`/`channel.update` (aucun scope). | OK |
-| PLY-10 | Fin de diffusion, chaîne hors ligne | P0 | ⚠️ | `channel.dart:556-559`, `ivs_video_store.dart:290-297` | La barre affiche les infos hors ligne, mais IVS échoue faute de jeton → bascule WebView. Pas d'écran de fin, pas de CTA vers la VOD. | OK |
-| PLY-11 | Erreurs et relance du flux | P0 | ⚠️ | `channel.dart:164-177`, `ivs_video_store.dart:203-206,235-246` | Toute erreur IVS, même récupérable, bascule **définitivement** sur la WebView. Pas de retry/backoff ni de message. Refresh manuel seulement. | OK |
+| PLY-10 | Fin de diffusion, chaîne hors ligne | P0 | ⚠️ | `ivs_recovery.dart`, `ivs_video_store.dart` (`4d50b89`) | Une erreur « non disponible » confirmée hors ligne par Helix affiche l'état hors ligne au lieu de basculer sur la WebView. Reste : pas d'écran de fin ni de CTA vers la VOD ; une chaîne déjà hors ligne à l'ouverture bascule toujours sur la WebView. | OK |
+| PLY-11 | Erreurs et relance du flux | P0 | ✅ | `ivs_recovery.dart`, `ivs_video_store.dart`, `channel.dart` (`4d50b89`) | Erreurs classées, relance 1/2/4 s sur le même lecteur avec nouvelle URL, « ↻ n/3 », jeton neuf si refusé, repli WebView après 3 échecs en 60 s ou erreur fatale ; IVS seulement sur Android. À valider sur appareil. | OK |
 | PLY-12 | Audio seul | P1 | ❌ | — | `allow_audio_only` non demandé, pas de variante audio. | OK |
 | PLY-13 | Chat seul | P1 | ✅ | `settings_store.dart:77-79`, `channel.dart:492-573` | Réglage global « Enable video ». Pas de paramètre de deep link. | OK |
 | PLY-14 | Audio en arrière-plan | P1 | ❌ | — | Pas de service `mediaPlayback`. Seul l'auto-PiP permet de continuer. | OK |
@@ -411,7 +417,7 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 
 | Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| Lecture vidéo (PLY) | 5 | 8 | 19 | 1 | 33 |
+| Lecture vidéo (PLY) | 8 | 7 | 17 | 1 | 33 |
 | Chat (CHT) | 12 | 14 | 16 | 6 | 48 |
 | Interactions communautaires (INT) | 0 | 1 | 30 | 0 | 31 |
 | Modération (MOD) | 0 | 0 | 31 | 0 | 31 |
@@ -422,14 +428,14 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Compte & réglages (ACC) | 3 | 6 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 2 | 7 | 8 | 0 | 17 |
-| **Total** | **26** | **47** | **236** | **8** | **317** |
+| **Total** | **29** | **46** | **234** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| P0 | 14 | 26 | 16 | 4 | 60 |
+| P0 | 17 | 25 | 14 | 4 | 60 |
 | P1 | 10 | 14 | 80 | 4 | 108 |
 | P2 | 2 | 7 | 140 | 0 | 149 |
-| **Total** | **26** | **47** | **236** | **8** | **317** |
+| **Total** | **29** | **46** | **234** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
