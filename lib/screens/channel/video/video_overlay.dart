@@ -1,10 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/channel/chat/details/chat_users_list.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
+import 'package:frosty/screens/channel/video/overlay_common.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:frosty/screens/channel/video/stream_info_bar.dart';
@@ -17,7 +17,6 @@ import 'package:frosty/widgets/live_indicator.dart';
 import 'package:frosty/widgets/section_header.dart';
 import 'package:frosty/widgets/uptime.dart';
 import 'package:intl/intl.dart';
-import 'package:native_device_orientation/native_device_orientation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Creates a widget containing controls which enable interactions with an underlying [Video] widget.
@@ -32,54 +31,6 @@ class VideoOverlay extends StatelessWidget {
     required this.chatStore,
     required this.settingsStore,
   });
-
-  static BoxDecoration _overlayGradient({required bool fromTop}) =>
-      BoxDecoration(
-        gradient: LinearGradient(
-          begin: fromTop ? Alignment.topCenter : Alignment.bottomCenter,
-          end: fromTop ? Alignment.bottomCenter : Alignment.topCenter,
-          colors: const [
-            Colors.black,
-            Color.fromRGBO(0, 0, 0, 0.78),
-            Color.fromRGBO(0, 0, 0, 0.48),
-            Color.fromRGBO(0, 0, 0, 0.12),
-            Colors.transparent,
-          ],
-          stops: const [0.0, 0.25, 0.5, 0.8, 1.0],
-        ),
-      );
-
-  /// Rotates to landscape, picking the side that matches how the device is
-  /// physically tilted (falls back to allowing both).
-  Future<void> _enterLandscape() async {
-    final physicalOrientation = await NativeDeviceOrientationCommunicator()
-        .orientation(useSensor: true);
-    final needsSwap = Platform.isIOS;
-    if (physicalOrientation == NativeDeviceOrientation.landscapeLeft) {
-      SystemChrome.setPreferredOrientations([
-        needsSwap
-            ? DeviceOrientation.landscapeRight
-            : DeviceOrientation.landscapeLeft,
-      ]);
-    } else if (physicalOrientation == NativeDeviceOrientation.landscapeRight) {
-      SystemChrome.setPreferredOrientations([
-        needsSwap
-            ? DeviceOrientation.landscapeLeft
-            : DeviceOrientation.landscapeRight,
-      ]);
-    } else {
-      // Sensor can't tell which way (e.g. tablet flat on a desk): force a
-      // specific landscape so the rotation actually happens (a "both
-      // landscape" hint is ignored by some OEMs when auto-rotate is locked).
-      SystemChrome.setPreferredOrientations([DeviceOrientation.landscapeLeft]);
-    }
-  }
-
-  /// Returns to portrait and then releases the orientation lock.
-  void _exitToPortrait() {
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-    SystemChrome.setPreferredOrientations([]);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -184,28 +135,11 @@ class VideoOverlay extends StatelessWidget {
                         // Own Observer so dragging the slider does not rebuild
                         // the whole quality list.
                         Observer(
-                          builder: (context) => Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            child: Row(
-                              children: [
-                                IconButton(
-                                  tooltip: ivs.muted ? 'Unmute' : 'Mute',
-                                  icon: Icon(
-                                    _isSilent(ivs)
-                                        ? Icons.volume_off_rounded
-                                        : Icons.volume_up_rounded,
-                                  ),
-                                  onPressed: ivs.toggleMute,
-                                ),
-                                Expanded(
-                                  child: Slider.adaptive(
-                                    value: ivs.volume,
-                                    divisions: 20,
-                                    onChanged: ivs.setVolume,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          builder: (context) => VolumeRow(
+                            muted: ivs.muted,
+                            volume: ivs.volume,
+                            onToggleMute: ivs.toggleMute,
+                            onVolumeChanged: ivs.setVolume,
                           ),
                         ),
                         const SectionHeader(
@@ -304,10 +238,10 @@ class VideoOverlay extends StatelessWidget {
               // with the chat as an overlay. Double-tap then cycles the modes.
               settingsStore.fullScreen = true;
               settingsStore.fullScreenChatOverlay = true;
-              await _enterLandscape();
+              await enterLandscape();
             } else {
               settingsStore.fullScreen = false;
-              _exitToPortrait();
+              exitToPortrait();
             }
           },
         ),
@@ -327,9 +261,9 @@ class VideoOverlay extends StatelessWidget {
         ),
         onPressed: () async {
           if (context.isPortrait) {
-            await _enterLandscape();
+            await enterLandscape();
           } else {
-            _exitToPortrait();
+            exitToPortrait();
           }
         },
       ),
@@ -340,8 +274,8 @@ class VideoOverlay extends StatelessWidget {
         final streamInfo = videoStore.streamInfo;
         final offlineChannelInfo = videoStore.offlineChannelInfo;
 
-        final topGradient = _overlayGradient(fromTop: true);
-        final bottomGradient = _overlayGradient(fromTop: false);
+        final topGradient = overlayGradient(fromTop: true);
+        final bottomGradient = overlayGradient(fromTop: false);
 
         if (streamInfo == null) {
           return Stack(
