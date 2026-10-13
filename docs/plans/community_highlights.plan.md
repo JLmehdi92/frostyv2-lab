@@ -83,7 +83,7 @@ Samples and scripts live outside the repo, in `~/twitch-re/e5/`. Test copies are
    - A poll stays until ARCHIVE, or 60 s after it ends.
    - A resolved prediction stays 60 s, a canceled one 30 s.
    - A resolved prediction older than 2 min is skipped.
-6. **Card size:** collapsed on phones; expanded on large screens when the chat is at least 480 dp wide.
+6. **Card size:** collapsed on phones (one line under a running hype train or while typing); on large screens new polls, predictions and raids arrive expanded (never the pinned message), and stay one line in a chat narrower than 480 dp.
 7. **Voting:** no vote or predict buttons or links.
 8. **Dismiss:** per id, for the session only.
 9. **Shared code:** the PRIVMSG builder is extracted from the VOD chat replay.

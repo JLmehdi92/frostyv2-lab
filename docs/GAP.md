@@ -13,6 +13,7 @@
 | 2026-10-13 | épopées E3 « temps réel » et E4 « Hype Train » | INT-15, 16, 17 ✅ ; MSC-03, CHT-41 ⚠️ ; PLY-09 (remarque). Comptes de synthèse recalculés à partir des tableaux. Affichage à valider sur appareil. |
 | 2026-10-13 | épopée tablette (Xiaomi Pad 7) | MSC-14 ✅ ; DSC-01 (rail). Comptes recalculés. |
 | 2026-10-13 | épopée E2 « clips » | PRF-17, PRF-18 ✅ ; CHT-45 ⚠️ ; PRF-19 (compte requis) ; MSC-01 (remarques). Comptes recalculés. Lecture à valider sur appareil. |
+| 2026-10-13 | épopée E5 « highlights communautaires » | CHT-41, CHT-42 ✅ ; INT-01, INT-02 ⚠️ (lecture seule) ; INT-19 (raid sortant). Comptes recalculés. Affichage à valider sur appareil. |
 
 ## 0. Légende et conventions
 
@@ -125,8 +126,8 @@
 | CHT-38 | Callouts privés | P1 | ❌ | — | Topic privé. | GQL privé |
 | CHT-39 | Notice de don caritatif | P2 | ✅ | `chat_message.dart:447-475` | Rendu générique de `system-msg` (`charitydonation`). | OK |
 | CHT-40 | Chat partagé (Shared Chat) | P1 | ➕ | `twitch_api.dart:400-418`, `irc.dart:187`, `chat_tabs_store.dart:73-121` | Avatar de la chaîne source, plus **multi-chat** (10 onglets, vue fusionnée). Un ban partagé n'est pas signalé. | OK |
-| CHT-41 | Pile de « highlights » communautaires | P1 | ⚠️ | `hype_train/widgets/hype_train_channel_overlays.dart` | Emplacement au-dessus du chat en place, avec un seul type (Hype Train). Sondages, prédictions et raids pourront passer par le même client Hermes anonyme. | GQL privé |
-| CHT-42 | Messages épinglés (lecture) | P1 | ❌ | — | Aucune API publique d'épinglage. | GQL privé |
+| CHT-41 | Pile de « highlights » communautaires | P1 | ✅ | `channel/channel_top_overlays.dart`, `community_highlights/highlight_stack.dart` | Deux étages au-dessus du chat (E5) : Hype Train, puis une carte communautaire avec pagination « 1 / 3 » et pastille « New » ; ordre par récence comme le réducteur web de Twitch. Repliée sur téléphone, dépliée sur tablette ; pastille sur la vidéo quand le chat est masqué ; fermeture par carte. | GQL privé |
+| CHT-42 | Messages épinglés (lecture) | P1 | ✅ | `community_highlights/widgets/pinned_chat_text.dart` | Carte « Pinned » (E5) : auteur avec badges et couleur, emotes Twitch et 7TV/BTTV/FFZ via les assets du chat, épinglé par, fin. GQL anonyme `pinnedChatMessages` + `pinned-chat-updates-v1.<id>` ; expiration locale (aucun événement Twitch). | GQL privé |
 | CHT-43 | Messages épinglés payants et cheers épinglés | P2 | ❌ | — | — | GQL privé |
 | CHT-44 | AutoMod (côté émetteur) | P1 | ⚠️ | `chat_store.dart:64-65` | `msg_rejected` en toast, sans statut retenu/approuvé. EventSub `channel.chat.user_message_hold`/`_update` (`user:read:chat`). | OK |
 | CHT-45 | Cartes clip et vidéo dans le chat | P1 | ⚠️ | `utils/link_router.dart`, `utils/twitch_links.dart` | Les liens de clip et de vidéo du chat s'ouvrent dans l'appli. Pas encore de carte d'aperçu (toucherait au rendu du chat ; reporté). | OK |
@@ -138,8 +139,8 @@
 
 | ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
-| INT-01 | Sondages (vote) | P1 | ❌ | — | EventSub `channel.poll.*` réservé au diffuseur. Le vote passe par GQL. | GQL privé |
-| INT-02 | Prédictions (parier) | P1 | ❌ | — | EventSub `channel.prediction.*` réservé au diffuseur. | GQL privé |
+| INT-01 | Sondages (vote) | P1 | ⚠️ | `community_highlights/widgets/highlight_cards.dart` | Lecture en direct (épopée E5) : question, barres et %, votes, temps restant, résultats finaux puis disparition. GQL anonyme `viewablePoll` + sujet Hermes public `polls.<id>`. Voter exige la session web du compte (E9). | GQL privé |
+| INT-02 | Prédictions (parier) | P1 | ⚠️ | `community_highlights/widgets/highlight_cards.dart` | Lecture en direct (E5) : 2 à 10 issues avec couleurs, points, participants, cote « 1:x » et meilleurs parieurs ; verrouillée, en attente, gagnante, remboursée. GQL anonyme + `predictions-channel-v1.<id>`. Parier exige la session web du compte (E9). | GQL privé |
 | INT-03 | Conditions des prédictions | P1 | ❌ | — | — | GQL privé |
 | INT-04 | Points de chaîne : solde et gains | P1 | ❌ | — | Aucune API publique pour le solde. | GQL privé |
 | INT-05 | Bonus à réclamer | P1 | ❌ | — | La réclamation exige en pratique `Client-Integrity` : risque élevé. | GQL privé |
@@ -156,7 +157,7 @@
 | INT-16 | Variantes de Hype Train | P2 | ✅ | `hype_train/widgets/effects/` | Golden Kappa, Treasure (pièce + cadenas), Community (fusée), Mythic (roulette + révélation), record historique (trophée), pinata rendu comme régulier. Formes Golden/Treasure/record vérifiées en direct ; Community/Mythic d'après la RE (non observées). | GQL privé |
 | INT-17 | Hype Train partagé | P2 | ✅ | `hype_train_reducer.dart`, `hype_train_sequence.dart` | Train partagé vérifié en direct (GQL `sharedHypeTrainDetails`) : avatars, top 3, arc-en-ciel, fusion et départ d'une chaîne (formes d'événements non observées). | GQL privé |
 | INT-18 | Récompenses partagées | P2 | ❌ | — | — | GQL privé |
-| INT-19 | Raids (côté viewer) | P1 | ⚠️ | `chat_message.dart:447-460` | Notice de raid entrant (USERNOTICE). Ni raid sortant, ni suivi par le lecteur. EventSub `channel.raid` sans scope. | OK |
+| INT-19 | Raids (côté viewer) | P1 | ⚠️ | `chat_message.dart:447-460`, `community_highlights/widgets/highlight_cards.dart` | Notice de raid entrant (USERNOTICE). Raid sortant (E5, sujet public `raid.<id>`) : « Raiding <cible> with N viewers », compte à rebours, puis « Watch <cible> » ouvre la chaîne dans l'appli. Pas de suivi automatique du lecteur. | OK |
 | INT-20 | Shoutouts (côté viewer) | P1 | ❌ | — | EventSub `channel.shoutout.*` exige `moderator:read:shoutouts`. | GQL privé |
 | INT-21 | Séries de visionnage (watch streaks) | P1 | ❌ | — | — | GQL privé |
 | INT-22 | Récompenses hebdomadaires | P2 | ❌ | — | — | GQL privé |
@@ -422,8 +423,8 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | Lecture vidéo (PLY) | 8 | 7 | 17 | 1 | 33 |
-| Chat (CHT) | 12 | 16 | 14 | 6 | 48 |
-| Interactions communautaires (INT) | 3 | 1 | 27 | 0 | 31 |
+| Chat (CHT) | 14 | 15 | 13 | 6 | 48 |
+| Interactions communautaires (INT) | 3 | 3 | 25 | 0 | 31 |
 | Modération (MOD) | 0 | 0 | 31 | 0 | 31 |
 | Social & notifications (SOC) | 2 | 3 | 17 | 0 | 22 |
 | Découverte & recherche (DSC) | 2 | 5 | 15 | 0 | 22 |
@@ -432,19 +433,19 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Compte & réglages (ACC) | 3 | 6 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 3 | 7 | 7 | 0 | 17 |
-| **Total** | **40** | **51** | **218** | **8** | **317** |
+| **Total** | **42** | **52** | **215** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 17 | 26 | 13 | 4 | 60 |
-| P1 | 17 | 18 | 69 | 4 | 108 |
+| P1 | 19 | 19 | 66 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **40** | **51** | **218** | **8** | **317** |
+| **Total** | **42** | **52** | **215** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
 | OK | 25 | 42 | 33 | 100 |
-| GQL privé | 6 | 33 | 61 | 100 |
+| GQL privé | 6 | 31 | 61 | 98 |
 | Compte requis | 8 | 12 | 12 | 32 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
 
