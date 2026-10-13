@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_clip_service.dart';
+import 'package:frosty/apis/twitch_directory_service.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/models/category.dart';
@@ -30,14 +31,18 @@ class MockClipService extends Mock implements TwitchClipService {}
 
 class MockHypeTrainService extends Mock implements TwitchHypeTrainService {}
 
+class MockDirectoryService extends Mock implements TwitchDirectoryService {}
+
 void main() {
   late MockTwitchApi helix;
   late MockVodService vods;
   late MockClipService clips;
+  late MockDirectoryService directory;
 
   setUpAll(() {
     registerFallbackValue(ClipPeriod.lastWeek);
     registerFallbackValue(ClipSort.top);
+    registerFallbackValue(StreamSort.recent);
   });
 
   setUp(() {
@@ -45,6 +50,14 @@ void main() {
     helix = MockTwitchApi();
     vods = MockVodService();
     clips = MockClipService();
+    directory = MockDirectoryService();
+    when(
+      () => directory.getCategoryStreams(
+        gameId: any(named: 'gameId'),
+        sort: any(named: 'sort'),
+        language: any(named: 'language'),
+      ),
+    ).thenAnswer((_) => Completer<StreamsTwitch>().future);
     // The live list stays loading: these tests are about the sections.
     when(
       () => helix.getCategory(gameId: any(named: 'gameId')),
@@ -53,6 +66,7 @@ void main() {
       () => helix.getStreamsUnderCategory(
         gameId: any(named: 'gameId'),
         cursor: any(named: 'cursor'),
+        language: any(named: 'language'),
       ),
     ).thenAnswer((_) => Completer<StreamsTwitch>().future);
     when(() => vods.getCategoryVideos(any())).thenAnswer(
@@ -100,9 +114,7 @@ void main() {
     );
   });
 
-  testWidgets('live first, then the category\'s videos and clips', (
-    tester,
-  ) async {
+  Future<void> pumpPage(WidgetTester tester) async {
     final auth = MockAuthStore();
     when(() => auth.isLoggedIn).thenReturn(false);
     await tester.pumpWidget(
@@ -113,6 +125,7 @@ void main() {
           Provider<TwitchApi>.value(value: helix),
           Provider<TwitchVodService>.value(value: vods),
           Provider<TwitchClipService>.value(value: clips),
+          Provider<TwitchDirectoryService>.value(value: directory),
           Provider<TwitchHypeTrainService>.value(value: MockHypeTrainService()),
         ],
         child: MaterialApp(
@@ -122,6 +135,12 @@ void main() {
       ),
     );
     await tester.pump();
+  }
+
+  testWidgets('live first, then the category\'s videos and clips', (
+    tester,
+  ) async {
+    await pumpPage(tester);
     expect(find.widgetWithText(ChoiceChip, 'Live'), findsOneWidget);
     verifyNever(() => vods.getCategoryVideos(any()));
 
@@ -138,5 +157,31 @@ void main() {
     expect(find.byType(ClipCard), findsOneWidget);
     expect(find.text('Other'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('live streams can be sorted; videos and clips cannot', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    expect(find.text('Viewers (high to low)'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Sort streams'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(find.text('Recently started'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    verify(
+      () => directory.getCategoryStreams(
+        gameId: '32982',
+        sort: StreamSort.recent,
+      ),
+    ).called(1);
+    expect(find.text('Recently started'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Videos'));
+    await tester.pump();
+    expect(find.byTooltip('Sort streams'), findsNothing);
   });
 }

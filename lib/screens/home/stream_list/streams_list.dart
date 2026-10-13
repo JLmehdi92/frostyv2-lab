@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/apis/twitch_directory_service.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/constants.dart';
 import 'package:frosty/models/stream.dart';
@@ -28,6 +29,12 @@ class StreamsList extends StatefulWidget {
 
   final String? categoryId;
 
+  /// The tag of a [ListType.tag] list.
+  final String? tag;
+
+  /// The order of a category or tag list.
+  final StreamSort sort;
+
   /// The scroll controller to use for scroll to top functionality.
   final ScrollController? scrollController;
 
@@ -37,6 +44,8 @@ class StreamsList extends StatefulWidget {
     super.key,
     required this.listType,
     this.categoryId,
+    this.tag,
+    this.sort = StreamSort.viewersHigh,
     this.scrollController,
     this.showJumpButton = false,
   });
@@ -74,11 +83,24 @@ class _StreamsListState extends State<StreamsList>
       twitchApi: context.read<TwitchApi>(),
       listType: widget.listType,
       categoryId: widget.categoryId,
+      tag: widget.tag,
+      sort: widget.sort,
+      directoryService:
+          widget.listType == ListType.category ||
+              widget.listType == ListType.tag
+          ? context.read<TwitchDirectoryService>()
+          : null,
       scrollController: widget.scrollController ?? _scrollController,
       hypeTrainService: widget.listType == ListType.followed
           ? context.read<TwitchHypeTrainService>()
           : null,
     );
+  }
+
+  @override
+  void didUpdateWidget(StreamsList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.sort != oldWidget.sort) _listStore.sort = widget.sort;
   }
 
   @override
@@ -108,6 +130,8 @@ class _StreamsListState extends State<StreamsList>
         ? kToolbarHeight
         : widget.listType == ListType.category
         ? kToolbarHeight + 122 + kCategorySectionsHeight
+        : widget.listType == ListType.tag
+        ? kToolbarHeight + kCategorySectionsHeight
         : 0.0;
 
     final topPadding = MediaQuery.of(context).padding.top + extraTopPadding;
@@ -224,9 +248,11 @@ class _StreamsListState extends State<StreamsList>
               );
             } else {
               statusWidget = AlertMessage(
-                message: widget.listType == ListType.followed
-                    ? 'No followed streams'
-                    : 'No top streams',
+                message: switch (widget.listType) {
+                  ListType.followed => 'No followed streams',
+                  ListType.top => 'No top streams',
+                  ListType.category || ListType.tag => 'No live streams',
+                },
                 vertical: true,
               );
             }

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/apis/twitch_directory_service.dart';
 import 'package:frosty/constants.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/clips/stores/channel_clips_store.dart';
 import 'package:frosty/screens/clips/widgets/channel_clips_tab.dart';
 import 'package:frosty/screens/home/stream_list/stream_list_store.dart';
+import 'package:frosty/screens/home/stream_list/stream_sort_button.dart';
 import 'package:frosty/screens/home/stream_list/streams_list.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
@@ -43,6 +45,7 @@ enum CategorySection {
 
 class _CategoryStreamsState extends State<CategoryStreams> {
   var _section = CategorySection.live;
+  var _sort = StreamSort.viewersHigh;
 
   // Made the first time their section shows.
   late final _videos = ChannelVideosStore(
@@ -154,6 +157,8 @@ class _CategoryStreamsState extends State<CategoryStreams> {
               _SectionChips(
                 selected: _section,
                 onSelected: (section) => setState(() => _section = section),
+                sort: _section == CategorySection.live ? _sort : null,
+                onSort: (sort) => setState(() => _sort = sort),
               ),
             ],
           ),
@@ -173,6 +178,7 @@ class _CategoryStreamsState extends State<CategoryStreams> {
               child: StreamsList(
                 listType: ListType.category,
                 categoryId: widget.categoryId,
+                sort: _sort,
                 showJumpButton: true,
               ),
             ),
@@ -278,12 +284,21 @@ class _TransparentCategoryCard extends StatelessWidget {
   }
 }
 
-/// Live, Videos and Clips of a category.
+/// Live, Videos and Clips of a category, and the order of its live streams.
 class _SectionChips extends StatelessWidget {
-  const _SectionChips({required this.selected, required this.onSelected});
+  const _SectionChips({
+    required this.selected,
+    required this.onSelected,
+    required this.sort,
+    required this.onSort,
+  });
 
   final CategorySection selected;
   final ValueChanged<CategorySection> onSelected;
+
+  /// Null hides the sort button.
+  final StreamSort? sort;
+  final ValueChanged<StreamSort> onSort;
 
   @override
   Widget build(BuildContext context) {
@@ -302,6 +317,8 @@ class _SectionChips extends StatelessWidget {
                 onSelected: (_) => onSelected(section),
               ),
             ),
+          if (sort case final sort?)
+            StreamSortButton(sort: sort, onSort: onSort),
         ],
       ),
     );

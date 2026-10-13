@@ -56,6 +56,21 @@ mixin _$ListStore on ListStoreBase, Store {
         name: 'ListStoreBase.offlineChannels',
       )).value;
 
+  late final _$sortAtom = Atom(name: 'ListStoreBase.sort', context: context);
+
+  @override
+  StreamSort get sort {
+    _$sortAtom.reportRead();
+    return super.sort;
+  }
+
+  @override
+  set sort(StreamSort value) {
+    _$sortAtom.reportWrite(value, super.sort, () {
+      super.sort = value;
+    });
+  }
+
   late final _$_allStreamsAtom = Atom(
     name: 'ListStoreBase._allStreams',
     context: context,
@@ -369,6 +384,7 @@ mixin _$ListStore on ListStoreBase, Store {
   @override
   String toString() {
     return '''
+sort: ${sort},
 showJumpButton: ${showJumpButton},
 isOfflineChannelsExpanded: ${isOfflineChannelsExpanded},
 hasMore: ${hasMore},

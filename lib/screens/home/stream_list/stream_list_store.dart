@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/apis/twitch_directory_service.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/models/category.dart';
 import 'package:frosty/models/followed_channel.dart';
@@ -35,6 +36,18 @@ abstract class ListStoreBase with Store {
 
   /// The category id to use when fetching streams if the [listType] is [ListType.category].
   final String? categoryId;
+
+  /// The tag whose streams a [ListType.tag] list shows.
+  final String? tag;
+
+  /// Sorted category lists and tag lists; anonymous GQL.
+  final TwitchDirectoryService? directoryService;
+
+  /// The order of a category or tag list. A category in
+  /// [StreamSort.viewersHigh] uses Helix and pages; any other order (and
+  /// every tag list) is one GQL answer.
+  @observable
+  StreamSort sort;
 
   /// The scroll controller used for handling scroll to top (if provided).
   /// If provided, will use the [ScrollToTop] widget to scroll to the top of the list instead of the bottom tab bar.
@@ -159,6 +172,7 @@ abstract class ListStoreBase with Store {
   var _streamsGeneration = 0;
 
   ReactionDisposer? _languageReactionDisposer;
+  ReactionDisposer? _sortReactionDisposer;
   ReactionDisposer? _pinnedStreamsReactionDisposer;
   ReactionDisposer? _offlineChannelsExpansionDisposer;
 
@@ -168,9 +182,13 @@ abstract class ListStoreBase with Store {
     required this.twitchApi,
     required this.listType,
     this.categoryId,
+    this.tag,
+    this.directoryService,
     this.scrollController,
     this.hypeTrainService,
-  }) {
+    this.sort = StreamSort.viewersHigh,
+  }) : assert(listType != ListType.tag || tag != null),
+       assert(listType != ListType.tag || directoryService != null) {
     scrollController?.addListener(_onScroll);
 
     if (listType != ListType.followed) {
@@ -179,6 +197,8 @@ abstract class ListStoreBase with Store {
         (_) => settingsStore.streamLanguage,
         (_) => refreshStreams(),
       );
+      // So does a new order.
+      _sortReactionDisposer = reaction((_) => sort, (_) => refreshStreams());
     }
 
     if (listType == ListType.followed) {
@@ -236,9 +256,23 @@ abstract class ListStoreBase with Store {
           );
           break;
         case ListType.category:
-          newStreams = await twitchApi.getStreamsUnderCategory(
-            gameId: categoryId!,
-            cursor: _streamsCursor,
+          final directory = directoryService;
+          newStreams = sort == StreamSort.viewersHigh || directory == null
+              ? await twitchApi.getStreamsUnderCategory(
+                  gameId: categoryId!,
+                  cursor: _streamsCursor,
+                  language: streamLanguageOrAll(settingsStore.streamLanguage),
+                )
+              : await directory.getCategoryStreams(
+                  gameId: categoryId!,
+                  sort: sort,
+                  language: streamLanguageOrAll(settingsStore.streamLanguage),
+                );
+          break;
+        case ListType.tag:
+          newStreams = await directoryService!.getTagStreams(
+            tag: tag!,
+            sort: sort,
             language: streamLanguageOrAll(settingsStore.streamLanguage),
           );
           break;
@@ -401,6 +435,7 @@ abstract class ListStoreBase with Store {
   /// belongs to whoever passed it and is left alone.
   void dispose() {
     _languageReactionDisposer?.call();
+    _sortReactionDisposer?.call();
     _pinnedStreamsReactionDisposer?.call();
     _offlineChannelsExpansionDisposer?.call();
 
@@ -413,4 +448,5 @@ abstract class ListStoreBase with Store {
 /// [ListType.followed] is the list of streams that the user is following.
 /// [ListType.top] is the list of top streams.
 /// [ListType.category] is the list of streams under a category.
-enum ListType { followed, top, category }
+/// [ListType.tag] is the list of streams with a tag.
+enum ListType { followed, top, category, tag }
