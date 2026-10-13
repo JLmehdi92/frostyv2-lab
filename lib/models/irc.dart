@@ -1062,7 +1062,7 @@ class IRCMessage {
 
       // Check if the message mentions the logged-in user
       if (userLogin != null) {
-        mention = message.toLowerCase().contains(userLogin);
+        mention = mentionsUser(message, userLogin);
       }
 
       // Escape the message
@@ -1219,6 +1219,15 @@ class USERSTATE {
       null => vip,
     },
   );
+}
+
+/// Whether [message] names [login] as a whole word (with or without `@`),
+/// ignoring case: "al" is not mentioned by "really".
+bool mentionsUser(String message, String login) {
+  if (login.isEmpty) return false;
+  return RegExp(
+    '(?:^|[^a-z0-9_])@?${RegExp.escape(login.toLowerCase())}(?![a-z0-9_])',
+  ).hasMatch(message.toLowerCase());
 }
 
 /// The possible types of Twitch IRC commands.

@@ -235,10 +235,7 @@ void main() {
 
         expect(msg.message, contains('https://twitch.tv/channel'));
         expect(msg.split, isNotNull);
-        expect(
-          msg.split!.any((word) => regexLink.hasMatch(word)),
-          isTrue,
-        );
+        expect(msg.split!.any((word) => regexLink.hasMatch(word)), isTrue);
       });
     });
   });
@@ -253,7 +250,9 @@ void main() {
         IRCMessage.fromString(basicPrivmsg), // from testuser
         IRCMessage.fromString(moderatorMessage), // from moduser
         IRCMessage.fromString(
-          basicPrivmsg.replaceAll('testuser', 'user2').replaceAll('TestUser', 'User2'),
+          basicPrivmsg
+              .replaceAll('testuser', 'user2')
+              .replaceAll('TestUser', 'User2'),
         ), // from user2
       ];
       bufferedMessages = [];
@@ -451,11 +450,7 @@ void main() {
       final ircMsg = IRCMessage(
         raw: '',
         command: Command.roomState,
-        tags: {
-          'emote-only': '1',
-          'followers-only': '10',
-          'slow': '30',
-        },
+        tags: {'emote-only': '1', 'followers-only': '10', 'slow': '30'},
       );
 
       final updated = original.fromIRCMessage(ircMsg);
@@ -630,6 +625,30 @@ void main() {
 
       final updated = original.fromIRCMessage(ircMsg);
       expect(updated.mod, isFalse);
+    });
+  });
+
+  group('mentions', () {
+    test('a whole word, with or without @, any case', () {
+      expect(mentionsUser('hey @Al how are you', 'al'), isTrue);
+      expect(mentionsUser('AL!', 'al'), isTrue);
+      expect(mentionsUser('ok al', 'al'), isTrue);
+    });
+
+    test('not inside another word', () {
+      expect(mentionsUser('really', 'al'), isFalse);
+      expect(mentionsUser('al_bundy is here', 'al'), isFalse);
+      expect(mentionsUser('', 'al'), isFalse);
+      expect(mentionsUser('al', ''), isFalse);
+    });
+
+    test('a chat line flags a mention of the viewer only', () {
+      IRCMessage line(String text) => IRCMessage.fromString(
+        '@display-name=X :x!x@x.tmi.twitch.tv PRIVMSG #c :$text',
+        userLogin: 'al',
+      );
+      expect(line('hi @al').mention, isTrue);
+      expect(line('totally real').mention, isFalse);
     });
   });
 }
