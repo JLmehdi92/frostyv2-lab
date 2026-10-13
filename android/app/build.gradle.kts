@@ -62,5 +62,5 @@ flutter {
 dependencies {
     // Amazon IVS player — the same engine the official Twitch app uses, for
     // exact-parity low latency on Twitch HLS streams.
-    implementation("com.amazonaws:ivs-player:1.52.0")
+    implementation("com.amazonaws:ivs-player:1.57.0")
 }

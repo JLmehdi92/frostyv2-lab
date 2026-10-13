@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/settings/widgets/settings_list_select.dart';
 import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/widgets/section_header.dart';
@@ -33,6 +34,35 @@ class VideoSettings extends StatelessWidget {
                   ? PlayerEngine.ivs
                   : PlayerEngine.twitchWeb,
             ),
+          if (Platform.isAndroid &&
+              settingsStore.playerEngine == PlayerEngine.ivs) ...[
+            SettingsListSelect(
+              title: 'Live catch-up',
+              subtitle:
+                  'Speed up plays slightly faster until it is back at live, '
+                  'like the official app. Jump to live skips ahead after a '
+                  'stall. Applies the next time a stream is opened.',
+              selectedOption:
+                  liveCatchUpModeNames[settingsStore.liveCatchUpMode.index],
+              options: liveCatchUpModeNames,
+              onChanged: (newValue) => settingsStore.liveCatchUpMode =
+                  LiveCatchUpMode.values[liveCatchUpModeNames.indexOf(
+                    newValue,
+                  )],
+            ),
+            SettingsListSelect(
+              title: 'Buffer profile',
+              subtitle:
+                  'Ultra (experimental) keeps an even smaller buffer for '
+                  'lower latency but may rebuffer more on weak connections. '
+                  'Applies the next time a stream is opened.',
+              selectedOption:
+                  bufferProfileNames[settingsStore.bufferProfile.index],
+              options: bufferProfileNames,
+              onChanged: (newValue) => settingsStore.bufferProfile =
+                  BufferProfile.values[bufferProfileNames.indexOf(newValue)],
+            ),
+          ],
           SettingsListSwitch(
             title: 'Enable video',
             value: settingsStore.showVideo,

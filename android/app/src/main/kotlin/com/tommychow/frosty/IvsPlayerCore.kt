@@ -32,7 +32,7 @@ class IvsPlayerCore(
     private var qualitiesSent = false
     private var statsEnabled = false
 
-    fun start(url: String) {
+    fun start(url: String, tuning: IvsTuning = IvsTuning()) {
         channel.setMethodCallHandler { call, result ->
             when (call.method) {
                 "play" -> { player.play(); result.success(null) }
@@ -93,12 +93,7 @@ class IvsPlayerCore(
             override fun onSeekCompleted(position: Long) {}
         })
 
-        try {
-            player.setLiveLowLatencyEnabled(true)
-            player.setRebufferToLive(true)
-        } catch (t: Throwable) {
-            Log.w(CORE_TAG, "low-latency config failed: $t")
-        }
+        tuning.applyTo(player)
 
         player.load(Uri.parse(url))
         startLatencyTicker()

@@ -95,6 +95,7 @@ class IvsStatsPanel extends StatelessWidget {
                     null => '—',
                   },
                 ),
+                ('Mode', store.playerConfig.label),
                 ('Startup', ms(store.startupMs)),
                 ('Rebuffers', '${store.rebufferCount}'),
               ];

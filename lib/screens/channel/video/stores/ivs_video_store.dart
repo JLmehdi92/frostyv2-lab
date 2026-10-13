@@ -9,6 +9,7 @@ import 'package:frosty/apis/twitch_stream_service.dart';
 import 'package:frosty/models/channel.dart';
 import 'package:frosty/models/ivs_stats.dart';
 import 'package:frosty/models/stream.dart';
+import 'package:frosty/screens/channel/video/ivs_player_config.dart';
 import 'package:frosty/screens/channel/video/ivs_recovery.dart';
 import 'package:frosty/screens/channel/video/latency_stats.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
@@ -69,6 +70,10 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   var _retryAttempt = 0;
 
   int get maxRetryAttempts => _recovery.maxAttempts;
+
+  /// Tuning the native player is created with, captured when the stream is
+  /// opened (fixed for its lifetime; new settings apply to the next stream).
+  final IvsPlayerConfig playerConfig;
 
   Timer? _retryTimer;
   var _disposed = false;
@@ -175,6 +180,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     @visibleForTesting IvsRecoveryPolicy? recoveryPolicy,
   }) : _ownsStreamService = streamService == null,
        _recovery = recoveryPolicy ?? IvsRecoveryPolicy(),
+       playerConfig = IvsPlayerConfig.fromSettings(settingsStore),
        // Timeouts so a hung GQL/usher request becomes a retry instead of an
        // endless spinner.
        _streamService =
@@ -274,7 +280,10 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     if (_disposed || _textureId != null) return;
     final url = _url;
     if (url == null) return;
-    final id = await _textureManager.invokeMethod<int>('create', {'url': url});
+    final id = await _textureManager.invokeMethod<int>('create', {
+      'url': url,
+      'config': playerConfig.toCreateArgs(),
+    });
     if (id == null) return;
     if (_disposed) {
       // The screen closed while the native player was being created: release

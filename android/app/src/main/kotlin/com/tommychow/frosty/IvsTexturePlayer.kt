@@ -11,18 +11,19 @@ import io.flutter.view.TextureRegistry
  * of a SurfaceView. A texture can be moved/animated smoothly by Flutter's
  * compositor, which is what the in-app draggable mini player needs.
  *
- * The IVS engine, low-latency config and controls are identical to the
- * full-screen player — only the render target differs.
+ * The player is built and tuned from the [IvsTuning] sent by Dart (speed-up
+ * live catch-up, initial buffer, optional low-latency buffer targets).
  */
 class IvsTexturePlayer(
     context: Context,
     textureRegistry: TextureRegistry,
     messenger: BinaryMessenger,
     url: String,
+    tuning: IvsTuning,
 ) {
     private val surfaceProducer = textureRegistry.createSurfaceProducer()
     val textureId: Long = surfaceProducer.id()
-    private val player: Player = Player.Factory.create(context)
+    private val player: Player = tuning.buildPlayer(context)
     private val channel = MethodChannel(messenger, "frosty/ivs-texture/$textureId")
     private val core = IvsPlayerCore(player, channel) { w, h ->
         if (w > 0 && h > 0) surfaceProducer.setSize(w, h)
@@ -31,7 +32,7 @@ class IvsTexturePlayer(
     init {
         surfaceProducer.setSize(1280, 720)
         player.setSurface(surfaceProducer.surface)
-        core.start(url)
+        core.start(url, tuning)
     }
 
     fun dispose() {
@@ -58,7 +59,8 @@ class IvsTextureManager(
             when (call.method) {
                 "create" -> {
                     val url = call.argument<String>("url") ?: ""
-                    val player = IvsTexturePlayer(context, textureRegistry, messenger, url)
+                    val tuning = IvsTuning.fromArgs(call.argument<Map<String, Any?>>("config"))
+                    val player = IvsTexturePlayer(context, textureRegistry, messenger, url, tuning)
                     players[player.textureId] = player
                     result.success(player.textureId)
                 }

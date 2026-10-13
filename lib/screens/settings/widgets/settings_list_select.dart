@@ -25,18 +25,26 @@ class SettingsListSelect extends StatelessWidget {
         padding: title != null
             ? const EdgeInsets.symmetric(vertical: 8)
             : EdgeInsets.zero,
-        child: SegmentedButton(
-          style: const ButtonStyle(visualDensity: VisualDensity.compact),
-          segments: options
-              .map(
-                (option) => ButtonSegment(
-                  value: option,
-                  label: Text(option, overflow: TextOverflow.ellipsis),
-                ),
-              )
-              .toList(),
-          selected: {selectedOption},
-          onSelectionChanged: (selection) => onChanged(selection.first),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          spacing: 8,
+          children: [
+            SegmentedButton(
+              style: const ButtonStyle(visualDensity: VisualDensity.compact),
+              segments: options
+                  .map(
+                    (option) => ButtonSegment(
+                      value: option,
+                      label: Text(option, overflow: TextOverflow.ellipsis),
+                    ),
+                  )
+                  .toList(),
+              selected: {selectedOption},
+              onSelectionChanged: (selection) => onChanged(selection.first),
+            ),
+            if (subtitle != null) Text(subtitle!),
+          ],
         ),
       ),
     );

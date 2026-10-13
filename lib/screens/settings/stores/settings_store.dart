@@ -67,6 +67,8 @@ abstract class _SettingsStoreBase with Store {
   static const defaultUseTextureRendering = true;
   static const defaultKeepScreenAwake = true;
   static const defaultPlayerEngine = PlayerEngine.ivs;
+  static const defaultLiveCatchUpMode = LiveCatchUpMode.speedUp;
+  static const defaultBufferProfile = BufferProfile.standard;
 
   // Overlay defaults
   static const defaultShowOverlay = true;
@@ -97,6 +99,22 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var playerEngine = defaultPlayerEngine;
 
+  /// How the IVS player gets back to the live edge after falling behind.
+  @JsonKey(
+    defaultValue: defaultLiveCatchUpMode,
+    unknownEnumValue: LiveCatchUpMode.speedUp,
+  )
+  @observable
+  var liveCatchUpMode = defaultLiveCatchUpMode;
+
+  /// IVS low-latency buffer targets.
+  @JsonKey(
+    defaultValue: defaultBufferProfile,
+    unknownEnumValue: BufferProfile.standard,
+  )
+  @observable
+  var bufferProfile = defaultBufferProfile;
+
   // Overlay options
   @JsonKey(defaultValue: defaultShowOverlay)
   @observable
@@ -117,6 +135,8 @@ abstract class _SettingsStoreBase with Store {
     useTextureRendering = defaultUseTextureRendering;
     keepScreenAwake = defaultKeepScreenAwake;
     playerEngine = defaultPlayerEngine;
+    liveCatchUpMode = defaultLiveCatchUpMode;
+    bufferProfile = defaultBufferProfile;
 
     showOverlay = defaultShowOverlay;
     toggleableOverlay = defaultToggleableOverlay;
@@ -427,6 +447,28 @@ const landscapeCutoutNames = ['None', 'Left', 'Right', 'Both'];
 enum LandscapeCutoutType { none, left, right, both }
 
 const playerEngineNames = ['IVS (Twitch player)', 'Native (mpv)', 'Twitch web'];
+
+const liveCatchUpModeNames = ['Speed up', 'Jump to live'];
+
+/// How the IVS player returns to the live edge after falling behind.
+enum LiveCatchUpMode {
+  /// Plays slightly faster until it is back at the live edge (official app).
+  speedUp,
+
+  /// Skips straight to the live edge after a rebuffer (previous behaviour).
+  jumpToLive,
+}
+
+const bufferProfileNames = ['Standard', 'Ultra'];
+
+/// IVS low-latency buffer targets.
+enum BufferProfile {
+  /// IVS defaults, like the official app.
+  standard,
+
+  /// Smaller buffer for even lower latency; may rebuffer more.
+  ultra,
+}
 
 /// Which engine plays the live video.
 enum PlayerEngine {

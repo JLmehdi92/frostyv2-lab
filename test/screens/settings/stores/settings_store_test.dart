@@ -3,6 +3,49 @@ import 'package:frosty/screens/settings/stores/settings_store.dart';
 
 void main() {
   group('SettingsStore JSON serialization', () {
+    test('live catch-up and buffer profile defaults', () {
+      final store = SettingsStore.fromJson({});
+
+      expect(store.liveCatchUpMode, LiveCatchUpMode.speedUp);
+      expect(store.bufferProfile, BufferProfile.standard);
+    });
+
+    test('live catch-up and buffer profile round-trip through JSON', () {
+      final store = SettingsStore.fromJson({})
+        ..liveCatchUpMode = LiveCatchUpMode.jumpToLive
+        ..bufferProfile = BufferProfile.ultra;
+
+      final restored = SettingsStore.fromJson(store.toJson());
+
+      expect(restored.liveCatchUpMode, LiveCatchUpMode.jumpToLive);
+      expect(restored.bufferProfile, BufferProfile.ultra);
+    });
+
+    test('unknown catch-up and buffer values fall back to defaults', () {
+      final store = SettingsStore.fromJson({
+        'liveCatchUpMode': 'warp',
+        'bufferProfile': 'ludicrous',
+      });
+
+      expect(store.liveCatchUpMode, LiveCatchUpMode.speedUp);
+      expect(store.bufferProfile, BufferProfile.standard);
+    });
+
+    test('resetVideoSettings restores catch-up and buffer defaults', () {
+      final store = SettingsStore.fromJson({})
+        ..liveCatchUpMode = LiveCatchUpMode.jumpToLive
+        ..bufferProfile = BufferProfile.ultra
+        ..resetVideoSettings();
+
+      expect(store.liveCatchUpMode, LiveCatchUpMode.speedUp);
+      expect(store.bufferProfile, BufferProfile.standard);
+    });
+
+    test('catch-up and buffer names match their enums', () {
+      expect(liveCatchUpModeNames, ['Speed up', 'Jump to live']);
+      expect(bufferProfileNames, ['Standard', 'Ultra']);
+    });
+
     test('keeps a saved showLatency value over the new default', () {
       final store = SettingsStore.fromJson({'showLatency': false});
 

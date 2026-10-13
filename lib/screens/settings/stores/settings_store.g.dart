@@ -31,6 +31,20 @@ SettingsStore _$SettingsStoreFromJson(
         unknownValue: PlayerEngine.ivs,
       ) ??
       PlayerEngine.ivs
+  ..liveCatchUpMode =
+      $enumDecodeNullable(
+        _$LiveCatchUpModeEnumMap,
+        json['liveCatchUpMode'],
+        unknownValue: LiveCatchUpMode.speedUp,
+      ) ??
+      LiveCatchUpMode.speedUp
+  ..bufferProfile =
+      $enumDecodeNullable(
+        _$BufferProfileEnumMap,
+        json['bufferProfile'],
+        unknownValue: BufferProfile.standard,
+      ) ??
+      BufferProfile.standard
   ..showOverlay = json['showOverlay'] as bool? ?? true
   ..toggleableOverlay = json['toggleableOverlay'] as bool? ?? false
   ..showLatency = json['showLatency'] as bool? ?? true
@@ -110,6 +124,8 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'useTextureRendering': instance.useTextureRendering,
   'keepScreenAwake': instance.keepScreenAwake,
   'playerEngine': _$PlayerEngineEnumMap[instance.playerEngine]!,
+  'liveCatchUpMode': _$LiveCatchUpModeEnumMap[instance.liveCatchUpMode]!,
+  'bufferProfile': _$BufferProfileEnumMap[instance.bufferProfile]!,
   'showOverlay': instance.showOverlay,
   'toggleableOverlay': instance.toggleableOverlay,
   'showLatency': instance.showLatency,
@@ -160,6 +176,16 @@ const _$PlayerEngineEnumMap = {
   PlayerEngine.ivs: 'ivs',
   PlayerEngine.nativeLowLatency: 'nativeLowLatency',
   PlayerEngine.twitchWeb: 'twitchWeb',
+};
+
+const _$LiveCatchUpModeEnumMap = {
+  LiveCatchUpMode.speedUp: 'speedUp',
+  LiveCatchUpMode.jumpToLive: 'jumpToLive',
+};
+
+const _$BufferProfileEnumMap = {
+  BufferProfile.standard: 'standard',
+  BufferProfile.ultra: 'ultra',
 };
 
 const _$TimestampTypeEnumMap = {
@@ -372,6 +398,42 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   set playerEngine(PlayerEngine value) {
     _$playerEngineAtom.reportWrite(value, super.playerEngine, () {
       super.playerEngine = value;
+    });
+  }
+
+  late final _$liveCatchUpModeAtom = Atom(
+    name: '_SettingsStoreBase.liveCatchUpMode',
+    context: context,
+  );
+
+  @override
+  LiveCatchUpMode get liveCatchUpMode {
+    _$liveCatchUpModeAtom.reportRead();
+    return super.liveCatchUpMode;
+  }
+
+  @override
+  set liveCatchUpMode(LiveCatchUpMode value) {
+    _$liveCatchUpModeAtom.reportWrite(value, super.liveCatchUpMode, () {
+      super.liveCatchUpMode = value;
+    });
+  }
+
+  late final _$bufferProfileAtom = Atom(
+    name: '_SettingsStoreBase.bufferProfile',
+    context: context,
+  );
+
+  @override
+  BufferProfile get bufferProfile {
+    _$bufferProfileAtom.reportRead();
+    return super.bufferProfile;
+  }
+
+  @override
+  set bufferProfile(BufferProfile value) {
+    _$bufferProfileAtom.reportWrite(value, super.bufferProfile, () {
+      super.bufferProfile = value;
     });
   }
 
@@ -1199,6 +1261,8 @@ defaultToHighestQuality: ${defaultToHighestQuality},
 useTextureRendering: ${useTextureRendering},
 keepScreenAwake: ${keepScreenAwake},
 playerEngine: ${playerEngine},
+liveCatchUpMode: ${liveCatchUpMode},
+bufferProfile: ${bufferProfile},
 showOverlay: ${showOverlay},
 toggleableOverlay: ${toggleableOverlay},
 showLatency: ${showLatency},

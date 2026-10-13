@@ -87,7 +87,71 @@ void main() {
 
     final create = native.managerCalls.singleWhere((c) => c.method == 'create');
     expect((create.arguments as Map)['url'], _usherUrl);
+    expect((create.arguments as Map)['config'], {
+      'speedUpCatchUp': true,
+      'rebufferToLive': false,
+      'initialBufferMs': 100,
+    });
     expect(store.textureId, native.textureId);
+  });
+
+  test(
+    'passes the chosen catch-up and buffer settings to the player',
+    () async {
+      settingsStore
+        ..liveCatchUpMode = LiveCatchUpMode.jumpToLive
+        ..bufferProfile = BufferProfile.ultra;
+      store = await createStore();
+
+      final create = native.managerCalls.singleWhere(
+        (c) => c.method == 'create',
+      );
+      final config = (create.arguments as Map)['config'] as Map;
+      expect(config['rebufferToLive'], isTrue);
+      expect(config['speedUpCatchUp'], isFalse);
+      expect(config['llMinBufferSec'], 0.5);
+    },
+  );
+
+  test('keeps the player config fixed for the stream lifetime', () async {
+    store = await createStore();
+    final before = store.playerConfig;
+
+    settingsStore
+      ..liveCatchUpMode = LiveCatchUpMode.jumpToLive
+      ..bufferProfile = BufferProfile.ultra;
+    await store.handleRefresh();
+
+    expect(store.playerConfig.catchUp, before.catchUp);
+    expect(store.playerConfig.buffer, before.buffer);
+    expect(
+      native.managerCalls.where((c) => c.method == 'create'),
+      hasLength(1),
+    );
+  });
+
+  test('captures the player config when the stream is opened', () async {
+    final s = IvsVideoStore(
+      userLogin: 'streamer',
+      userId: '123',
+      twitchApi: twitchApi,
+      authStore: MockAuthStore(),
+      settingsStore: settingsStore,
+      streamService: streamService,
+      recoveryPolicy: instantPolicy(),
+    );
+    created = s;
+    // Changed while the usher URL is still resolving: too late for this one.
+    settingsStore.bufferProfile = BufferProfile.ultra;
+    await s.ready;
+    for (var i = 0; i < 20 && s.textureId == null; i++) {
+      await settle();
+    }
+
+    final create = native.managerCalls.singleWhere((c) => c.method == 'create');
+    final config = (create.arguments as Map)['config'] as Map;
+    expect(config.containsKey('llMinBufferSec'), isFalse);
+    expect(s.playerConfig.buffer, BufferProfile.standard);
   });
 
   group('latency', () {
