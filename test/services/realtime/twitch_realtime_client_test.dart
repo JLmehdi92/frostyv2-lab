@@ -53,6 +53,17 @@ void main() {
     },
   });
 
+  test('creating the client opens nothing', () {
+    fakeAsync((async) {
+      final client = build();
+      async.elapse(const Duration(minutes: 5));
+
+      expect(sockets.sockets, isEmpty);
+      expect(client.state, RealtimeConnectionState.idle);
+      unawaited(client.dispose());
+    });
+  });
+
   test('connects only when something subscribes', () {
     fakeAsync((async) {
       final client = build();

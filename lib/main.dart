@@ -30,6 +30,7 @@ import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/channel_videos.dart';
 import 'package:frosty/screens/vod/vod_screen.dart';
+import 'package:frosty/services/realtime/twitch_realtime_client.dart';
 import 'package:frosty/stores/global_assets_store.dart';
 import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/theme.dart';
@@ -128,6 +129,15 @@ void main() async {
     ),
   );
 
+  // One anonymous realtime connection (Hermes) for public Twitch topics such
+  // as the hype train. It connects only when something subscribes and
+  // sleeps after a minute in the background.
+  final realtimeClient = TwitchRealtimeClient();
+  AppLifecycleListener(
+    onPause: realtimeClient.onAppPaused,
+    onResume: realtimeClient.onAppResumed,
+  );
+
   // Create global assets store (shared cache for global emotes/badges)
   final globalAssetsStore = GlobalAssetsStore(
     twitchApi: twitchApiService,
@@ -161,6 +171,7 @@ void main() async {
         Provider<FFZApi>.value(value: ffzApiService),
         Provider<SevenTVApi>.value(value: sevenTVApiService),
         Provider<TwitchVodService>.value(value: twitchVodService),
+        Provider<TwitchRealtimeClient>.value(value: realtimeClient),
         Provider<GlobalAssetsStore>.value(value: globalAssetsStore),
         Provider<MiniPlayerStore>(create: (_) => MiniPlayerStore()),
       ],
