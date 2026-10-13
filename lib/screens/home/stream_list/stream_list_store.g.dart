@@ -272,6 +272,26 @@ mixin _$ListStore on ListStoreBase, Store {
     );
   }
 
+  late final _$_hypeTrainsAtom = Atom(
+    name: 'ListStoreBase._hypeTrains',
+    context: context,
+  );
+
+  ObservableMap<String, HtCardStatus> get hypeTrains {
+    _$_hypeTrainsAtom.reportRead();
+    return super._hypeTrains;
+  }
+
+  @override
+  ObservableMap<String, HtCardStatus> get _hypeTrains => hypeTrains;
+
+  @override
+  set _hypeTrains(ObservableMap<String, HtCardStatus> value) {
+    _$_hypeTrainsAtom.reportWrite(value, super._hypeTrains, () {
+      super._hypeTrains = value;
+    });
+  }
+
   late final _$_errorAtom = Atom(
     name: 'ListStoreBase._error',
     context: context,

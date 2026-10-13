@@ -3,8 +3,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frosty/constants.dart';
+import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/channel/channel.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_card_pill.dart';
 import 'package:frosty/screens/channel/video/stream_info_bar.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/utils.dart';
@@ -21,6 +23,9 @@ class LargeStreamCard extends StatelessWidget {
   final bool showPinOption;
   final bool? isPinned;
 
+  /// The channel's running hype train, if any (followed list).
+  final HtCardStatus? hypeTrain;
+
   const LargeStreamCard({
     super.key,
     required this.streamInfo,
@@ -28,6 +33,7 @@ class LargeStreamCard extends StatelessWidget {
     this.showCategory = true,
     this.showPinOption = false,
     this.isPinned,
+    this.hypeTrain,
   });
 
   @override
@@ -51,16 +57,26 @@ class LargeStreamCard extends StatelessWidget {
         borderRadius: kCardBorderRadius,
         child: AspectRatio(
           aspectRatio: 16 / 9,
-          child: FrostyCachedNetworkImage(
-            imageUrl: streamInfo.thumbnailUrl.replaceFirst(
-              '-{width}x{height}',
-              '-${thumbnailWidth}x$thumbnailHeight',
-            ),
-            cacheKey: cacheKey,
-            placeholder: (context, url) => const SkeletonLoader(
-              borderRadius: kCardBorderRadius,
-            ),
-            useOldImageOnUrlChange: true,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              FrostyCachedNetworkImage(
+                imageUrl: streamInfo.thumbnailUrl.replaceFirst(
+                  '-{width}x{height}',
+                  '-${thumbnailWidth}x$thumbnailHeight',
+                ),
+                cacheKey: cacheKey,
+                placeholder: (context, url) =>
+                    const SkeletonLoader(borderRadius: kCardBorderRadius),
+                useOldImageOnUrlChange: true,
+              ),
+              if (hypeTrain case final status?)
+                PositionedDirectional(
+                  start: 0,
+                  bottom: 0,
+                  child: HypeTrainCardPill(status: status),
+                ),
+            ],
           ),
         ),
       ),

@@ -1,10 +1,13 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/models/category.dart';
 import 'package:frosty/models/followed_channel.dart';
+import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
@@ -25,6 +28,9 @@ abstract class ListStoreBase with Store {
 
   /// The type of list that this store is handling.
   final ListType listType;
+
+  /// Running hype trains of followed streams (card pills); anonymous GQL.
+  final TwitchHypeTrainService? hypeTrainService;
 
   /// The category id to use when fetching streams if the [listType] is [ListType.category].
   final String? categoryId;
@@ -139,6 +145,10 @@ abstract class ListStoreBase with Store {
         .asObservable();
   }
 
+  /// Followed streams with a running hype train, by channel id.
+  @readonly
+  var _hypeTrains = ObservableMap<String, HtCardStatus>();
+
   /// The error message to show if any. Will be non-null if there is an error.
   @readonly
   String? _error;
@@ -153,6 +163,7 @@ abstract class ListStoreBase with Store {
     required this.listType,
     this.categoryId,
     this.scrollController,
+    this.hypeTrainService,
   }) {
     if (scrollController != null) {
       scrollController!.addListener(() {
@@ -243,6 +254,25 @@ abstract class ListStoreBase with Store {
     }
 
     _isAllStreamsLoading = false;
+    unawaited(_refreshHypeTrains());
+  }
+
+  /// Which followed streams run a hype train (never throws).
+  Future<void> _refreshHypeTrains() async {
+    final service = hypeTrainService;
+    if (listType != ListType.followed ||
+        service == null ||
+        !settingsStore.showHypeTrain) {
+      if (_hypeTrains.isNotEmpty) runInAction(_hypeTrains.clear);
+      return;
+    }
+    final ids = {
+      for (final stream in _allStreams) stream.userId,
+      for (final stream in _pinnedStreams) stream.userId,
+    }.toList();
+    if (ids.isEmpty) return;
+    final statuses = await service.getActiveStatuses(ids);
+    runInAction(() => _hypeTrains = ObservableMap.of(statuses));
   }
 
   @action

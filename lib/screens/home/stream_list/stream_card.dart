@@ -3,8 +3,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frosty/constants.dart';
+import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/channel/channel.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_card_pill.dart';
 import 'package:frosty/screens/home/top/categories/category_streams.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/utils.dart';
@@ -27,6 +29,9 @@ class StreamCard extends StatelessWidget {
   final bool showPinOption;
   final bool? isPinned;
 
+  /// The channel's running hype train, if any (followed list).
+  final HtCardStatus? hypeTrain;
+
   const StreamCard({
     super.key,
     required this.streamInfo,
@@ -34,6 +39,7 @@ class StreamCard extends StatelessWidget {
     this.showCategory = true,
     this.showPinOption = false,
     this.isPinned,
+    this.hypeTrain,
   });
 
   @override
@@ -59,9 +65,8 @@ class StreamCard extends StatelessWidget {
           '-${thumbnailWidth}x$thumbnailHeight',
         ),
         cacheKey: cacheKey,
-        placeholder: (context, url) => const SkeletonLoader(
-          borderRadius: kCardBorderRadius,
-        ),
+        placeholder: (context, url) =>
+            const SkeletonLoader(borderRadius: kCardBorderRadius),
         useOldImageOnUrlChange: true,
       ),
     );
@@ -99,6 +104,12 @@ class StreamCard extends StatelessWidget {
             },
             child: thumbnail,
           ),
+          if (hypeTrain case final status?)
+            PositionedDirectional(
+              start: 0,
+              bottom: 0,
+              child: HypeTrainCardPill(status: status),
+            ),
           Container(
             margin: const EdgeInsets.all(3),
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
@@ -168,7 +179,9 @@ class StreamCard extends StatelessWidget {
                   ? () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        settings: const RouteSettings(name: CategoryStreams.routeName),
+                        settings: const RouteSettings(
+                          name: CategoryStreams.routeName,
+                        ),
                         builder: (context) =>
                             CategoryStreams(categoryId: streamInfo.gameId),
                       ),
