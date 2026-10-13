@@ -184,4 +184,49 @@ void main() {
     await tester.pump();
     expect(find.byTooltip('Sort streams'), findsNothing);
   });
+
+  testWidgets('leaving without videos or clips asks for neither', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    await tester.pumpWidget(const SizedBox());
+
+    expect(tester.takeException(), isNull);
+    verifyNever(() => vods.getCategoryVideos(any()));
+    verifyNever(
+      () => clips.getCategoryClips(
+        gameId: any(named: 'gameId'),
+        period: any(named: 'period'),
+        sort: any(named: 'sort'),
+      ),
+    );
+  });
+
+  testWidgets('the live list is kept while another section shows', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    await tester.tap(find.byTooltip('Sort streams'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(find.text('Recently started'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Videos'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Live'));
+    await tester.pump();
+
+    expect(find.text('Recently started'), findsOneWidget);
+    // Asked once: coming back did not build a new list.
+    verify(
+      () => directory.getCategoryStreams(
+        gameId: '32982',
+        sort: StreamSort.recent,
+      ),
+    ).called(1);
+    verify(() => helix.getStreamsUnderCategory(gameId: '32982')).called(1);
+  });
 }

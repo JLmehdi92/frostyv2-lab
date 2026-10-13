@@ -68,6 +68,8 @@ class _CategoryStreamsState extends State<CategoryStreams> {
     authStore: context.read<AuthStore>(),
     twitchApi: context.read<TwitchApi>(),
     settingsStore: context.read<SettingsStore>(),
+    // Only the header: the list has its own store.
+    loadStreams: false,
   );
 
   @override
@@ -168,13 +170,17 @@ class _CategoryStreamsState extends State<CategoryStreams> {
   }
 
   /// Live streams scroll under the blurred [header]; videos and clips sit
-  /// below it.
+  /// below it. The live list stays built (hidden) on the other sections, so
+  /// coming back keeps its streams and scroll position.
   Widget _body(Widget header) {
-    switch (_section) {
-      case CategorySection.live:
-        return Stack(
-          children: [
-            Positioned.fill(
+    final live = _section == CategorySection.live;
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Offstage(
+            offstage: !live,
+            child: TickerMode(
+              enabled: live,
               child: StreamsList(
                 listType: ListType.category,
                 categoryId: widget.categoryId,
@@ -182,42 +188,41 @@ class _CategoryStreamsState extends State<CategoryStreams> {
                 showJumpButton: true,
               ),
             ),
-            Positioned(top: 0, left: 0, right: 0, child: header),
-          ],
-        );
-      case CategorySection.videos:
-        _videosMade = true;
-        return Column(
-          children: [
-            header,
-            Expanded(
-              child: MediaQuery.removePadding(
-                context: context,
-                removeTop: true,
-                child: ChannelVideosTab(
-                  store: _videos,
-                  emptyMessage: 'No videos in this category',
-                  showChannel: true,
+          ),
+        ),
+        Positioned.fill(
+          child: Column(
+            children: [
+              header,
+              if (!live)
+                Expanded(
+                  child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    child: _section == CategorySection.videos
+                        ? _videosTab()
+                        : _clipsTab(),
+                  ),
                 ),
-              ),
-            ),
-          ],
-        );
-      case CategorySection.clips:
-        _clipsMade = true;
-        return Column(
-          children: [
-            header,
-            Expanded(
-              child: MediaQuery.removePadding(
-                context: context,
-                removeTop: true,
-                child: ChannelClipsTab(store: _clips, showChannel: true),
-              ),
-            ),
-          ],
-        );
-    }
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _videosTab() {
+    _videosMade = true;
+    return ChannelVideosTab(
+      store: _videos,
+      emptyMessage: 'No videos in this category',
+      showChannel: true,
+    );
+  }
+
+  Widget _clipsTab() {
+    _clipsMade = true;
+    return ChannelClipsTab(store: _clips, showChannel: true);
   }
 
   @override
