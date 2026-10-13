@@ -10,6 +10,7 @@
 |---|---|---|
 | 2026-10-13 | `bbe7ca3` → `d0c9be5` (épopée « lecteur basse latence », C1-C6) + nettoyage SurfaceView | PLY-01, 02, 03, 04, 05, 06, 10, 11. Comptes de synthèse recalculés pour PLY et P0. « À valider sur appareil » : l'émulateur du conteneur ne permet ni l'affichage fluide ni le réseau. |
 | 2026-10-13 | `1838137` → `5c8dbf2` (épopée E1 « rediffusions », V1-V7) | PRF-07, 08, 09, 10, 11, 12, 14, 15 ; PLY-06, PLY-10, MSC-01 (remarques). Comptes de synthèse recalculés. Lecture, replay et reprise à valider sur appareil. |
+| 2026-10-13 | épopées E3 « temps réel » et E4 « Hype Train » | INT-15, 16, 17 ✅ ; MSC-03, CHT-41 ⚠️ ; PLY-09 (remarque). Comptes de synthèse recalculés à partir des tableaux. Affichage à valider sur appareil. |
 
 ## 0. Légende et conventions
 
@@ -52,7 +53,7 @@
 | PLY-06 | Son et volume | P0 | ⚠️ | `ivs_video_store.dart`, `video_overlay.dart`, `IvsPlayerCore.kt` (`d0c9be5`) | Mute (paysage + feuille) et volume, conservés en mini-player/PiP/rechargement. Un seul lecteur audible entre le live et les VOD (`playback_focus.dart`, `55ffb66`). Reste : pas de focus audio Android (appels, autres apps). | OK |
 | PLY-07 | Plein écran, ajuster, rogner, zoom | P0 | ⚠️ | `video_overlay.dart:112-135,200-229`, `ivs_video.dart:39-96` | Plein écran immersif et ajuster/remplir (IVS en paysage seulement). Pas de pincer-zoomer. | OK |
 | PLY-08 | Overlay de métadonnées | P0 | ✅ | `stream_info_bar.dart:13-220`, `video_overlay.dart:424-472` | Titre, catégorie, uptime, spectateurs. Tags absents. | OK |
-| PLY-09 | État du live en temps réel | P0 | ⚠️ | `ivs_video_store.dart:250-299` | Infos rafraîchies par polling Helix au tap ou au retour dans l'app. Pas de push, pas de relance auto au retour du stream. Via EventSub `stream.online`/`stream.offline`/`channel.update` (aucun scope). | OK |
+| PLY-09 | État du live en temps réel | P0 | ⚠️ | `ivs_video_store.dart:250-299` | Infos rafraîchies par polling Helix au tap ou au retour dans l'app. Pas de push, pas de relance auto au retour du stream. Via EventSub `stream.online`/`stream.offline`/`channel.update` (aucun scope). Suite possible : le sujet Hermes `video-playback-by-id` s'abonne anonymement (vérifié) et donnerait le push sans compte. | OK |
 | PLY-10 | Fin de diffusion, chaîne hors ligne | P0 | ⚠️ | `ivs_recovery.dart`, `ivs_video_store.dart` (`4d50b89`) | Une erreur « non disponible » confirmée hors ligne par Helix affiche l'état hors ligne au lieu de basculer sur la WebView. Reste : pas d'écran de fin mais un bouton « Past broadcasts » hors ligne (`46b4ed2`) ; une chaîne déjà hors ligne à l'ouverture bascule toujours sur la WebView. | OK |
 | PLY-11 | Erreurs et relance du flux | P0 | ✅ | `ivs_recovery.dart`, `ivs_video_store.dart`, `channel.dart` (`4d50b89`) | Erreurs classées, relance 1/2/4 s sur le même lecteur avec nouvelle URL, « ↻ n/3 », jeton neuf si refusé, repli WebView après 3 échecs en 60 s ou erreur fatale ; IVS seulement sur Android. À valider sur appareil. | OK |
 | PLY-12 | Audio seul | P1 | ❌ | — | `allow_audio_only` non demandé, pas de variante audio. | OK |
@@ -122,7 +123,7 @@
 | CHT-38 | Callouts privés | P1 | ❌ | — | Topic privé. | GQL privé |
 | CHT-39 | Notice de don caritatif | P2 | ✅ | `chat_message.dart:447-475` | Rendu générique de `system-msg` (`charitydonation`). | OK |
 | CHT-40 | Chat partagé (Shared Chat) | P1 | ➕ | `twitch_api.dart:400-418`, `irc.dart:187`, `chat_tabs_store.dart:73-121` | Avatar de la chaîne source, plus **multi-chat** (10 onglets, vue fusionnée). Un ban partagé n'est pas signalé. | OK |
-| CHT-41 | Pile de « highlights » communautaires | P1 | ❌ | — | Côté viewer, sondages, prédictions et hype train ne sont publiés que par des topics privés. EventSub exige le diffuseur. | GQL privé |
+| CHT-41 | Pile de « highlights » communautaires | P1 | ⚠️ | `hype_train/widgets/hype_train_channel_overlays.dart` | Emplacement au-dessus du chat en place, avec un seul type (Hype Train). Sondages, prédictions et raids pourront passer par le même client Hermes anonyme. | GQL privé |
 | CHT-42 | Messages épinglés (lecture) | P1 | ❌ | — | Aucune API publique d'épinglage. | GQL privé |
 | CHT-43 | Messages épinglés payants et cheers épinglés | P2 | ❌ | — | — | GQL privé |
 | CHT-44 | AutoMod (côté émetteur) | P1 | ⚠️ | `chat_store.dart:64-65` | `msg_rejected` en toast, sans statut retenu/approuvé. EventSub `channel.chat.user_message_hold`/`_update` (`user:read:chat`). | OK |
@@ -149,9 +150,9 @@
 | INT-12 | Cheer (envoyer des Bits) | P2 | ❌ | — | Dépense de Bits (argent réel). | GQL privé |
 | INT-13 | Campagnes de bonus Bits | P2 | ❌ | — | — | GQL privé |
 | INT-14 | Combos (Bits en un tap) | P2 | ❌ | — | — | GQL privé |
-| INT-15 | Hype Train | P1 | ❌ | — | EventSub `channel.hype_train.*` exige `channel:read:hype_train` (diffuseur). | GQL privé |
-| INT-16 | Variantes de Hype Train | P2 | ❌ | — | — | GQL privé |
-| INT-17 | Hype Train partagé | P2 | ❌ | — | — | GQL privé |
+| INT-15 | Hype Train | P1 | ✅ | `lib/screens/channel/hype_train/` (store, bannière, feuille), `lib/apis/twitch_hype_train_service.dart`, `lib/services/realtime/` | Anonyme : état initial par GQL `GetHypeTrainExecution` (vérifié en direct) puis événements Hermes `hype-train-events-v2.<id>` ; approche, départ, niveaux avec % et minuteur (horloge serveur), contributions importantes, conducteurs, récompenses par niveau, fin et bande de récompenses 20 s, repli à expiration + 10 s, sondage GQL toutes les 20 s si le temps réel tombe. Réglage « Show Hype Trains ». Pas de bouton d'achat (D4). À valider sur appareil. | GQL privé |
+| INT-16 | Variantes de Hype Train | P2 | ✅ | `hype_train/widgets/effects/` | Golden Kappa, Treasure (pièce + cadenas), Community (fusée), Mythic (roulette + révélation), record historique (trophée), pinata rendu comme régulier. Formes Golden/Treasure/record vérifiées en direct ; Community/Mythic d'après la RE (non observées). | GQL privé |
+| INT-17 | Hype Train partagé | P2 | ✅ | `hype_train_reducer.dart`, `hype_train_sequence.dart` | Train partagé vérifié en direct (GQL `sharedHypeTrainDetails`) : avatars, top 3, arc-en-ciel, fusion et départ d'une chaîne (formes d'événements non observées). | GQL privé |
 | INT-18 | Récompenses partagées | P2 | ❌ | — | — | GQL privé |
 | INT-19 | Raids (côté viewer) | P1 | ⚠️ | `chat_message.dart:447-460` | Notice de raid entrant (USERNOTICE). Ni raid sortant, ni suivi par le lecteur. EventSub `channel.raid` sans scope. | OK |
 | INT-20 | Shoutouts (côté viewer) | P1 | ❌ | — | EventSub `channel.shoutout.*` exige `moderator:read:shoutouts`. | GQL privé |
@@ -396,7 +397,7 @@
 |---|---|---|---|---|---|---|
 | MSC-01 | Deep links et App Links | P0 | ⚠️ | `AndroidManifest.xml:40-47`, `main.dart`, `twitch_links.dart`, `link_router.dart` (`5c8dbf2`) | `twitch.tv`, `www.` et `m.` : chaîne, `/videos/<id>`, `/v/<id>`, `/<chaîne>/v/<id>`, `?t=` et `/<chaîne>/videos?filter=` ouverts dans l'appli, y compris depuis le chat. Ni `clips.`, ni `twitch://`. | OK |
 | MSC-02 | Transport GraphQL | P0 | ⚠️ | `twitch_stream_service.dart:20-34,98-113` | Une seule requête GQL, non persistée (choix volontaire contre la rotation des hashes). Ni APQ ni intégrité. | GQL privé |
-| MSC-03 | Temps réel Hermes | P0 | ❌ | — | Aucun temps réel hors IRC et 7TV. EventSub WebSocket est le substitut public ; Hermes reste privé. | OK |
+| MSC-03 | Temps réel Hermes | P0 | ⚠️ | `lib/services/realtime/` | Client Hermes anonyme partagé (`TwitchRealtimeClient`) : connexion paresseuse, abonnements comptés, keepalive, reconnexion avec backoff, pause en arrière-plan. Sujets publics seulement ; EventSub (jeton utilisateur) non fait. | OK |
 | MSC-04 | Client chat Kotlin Multiplatform | P1 | ✅ | `chat_store.dart:884-1005`, `chat_tabs_store.dart:151-200` | Buffer flushé toutes les 200 ms, backoff, PING/PONG. | OK |
 | MSC-05 | Gestion des permissions | P1 | ❌ | — | Aucune permission runtime aujourd'hui. Nécessaire pour les notifications et le service média. | OK |
 | MSC-06 | Pile React Native « Ultralight » | P2 | ❌ | — | Pile RN interne à Twitch. | Impossible proprement |
@@ -419,8 +420,8 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | Lecture vidéo (PLY) | 8 | 7 | 17 | 1 | 33 |
-| Chat (CHT) | 12 | 14 | 16 | 6 | 48 |
-| Interactions communautaires (INT) | 0 | 1 | 30 | 0 | 31 |
+| Chat (CHT) | 12 | 15 | 15 | 6 | 48 |
+| Interactions communautaires (INT) | 3 | 1 | 27 | 0 | 31 |
 | Modération (MOD) | 0 | 0 | 31 | 0 | 31 |
 | Social & notifications (SOC) | 2 | 3 | 17 | 0 | 22 |
 | Découverte & recherche (DSC) | 2 | 5 | 15 | 0 | 22 |
@@ -428,24 +429,24 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Monétisation (MON) | 0 | 0 | 15 | 0 | 15 |
 | Compte & réglages (ACC) | 3 | 6 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
-| Divers / technique (MSC) | 2 | 7 | 8 | 0 | 17 |
-| **Total** | **34** | **49** | **226** | **8** | **317** |
+| Divers / technique (MSC) | 2 | 8 | 7 | 0 | 17 |
+| **Total** | **37** | **51** | **221** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| P0 | 17 | 25 | 14 | 4 | 60 |
-| P1 | 14 | 16 | 74 | 4 | 108 |
-| P2 | 3 | 8 | 138 | 0 | 149 |
-| **Total** | **34** | **49** | **226** | **8** | **317** |
+| P0 | 17 | 26 | 13 | 4 | 60 |
+| P1 | 15 | 17 | 72 | 4 | 108 |
+| P2 | 5 | 8 | 136 | 0 | 149 |
+| **Total** | **37** | **51** | **221** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 28 | 44 | 34 | 106 |
-| GQL privé | 6 | 35 | 63 | 104 |
+| OK | 25 | 44 | 34 | 103 |
+| GQL privé | 6 | 34 | 61 | 101 |
 | Compte requis | 8 | 11 | 12 | 31 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
 
-Lecture : sur 60 lignes P0, **18** sont entièrement couvertes (14 ✅ et 4 ➕), 26 sont partielles et 16 absentes. Les lignes P0 absentes sont la modération active (MOD-01→08, compte mod requis), le follow, la cloche, les notifications et le centre de notifications (SOC-01/05/06/07), le préchargement (PLY-02), le volume (PLY-06), les avertissements (CHT-13) et le temps réel (MSC-03). Les ➕ sont le délai de chat synchronisé, la révélation des messages supprimés, le multi-chat et le chat partagé, les emotes 7TV/BTTV/FFZ, la disposition paysage et le thème avec accent.
+Lecture : sur 60 lignes P0, **21** sont entièrement couvertes (17 ✅ et 4 ➕), 26 sont partielles et 13 absentes. Les lignes P0 absentes sont la modération active (MOD-01→08, compte mod requis), le follow, la cloche, les notifications et le centre de notifications (SOC-01/05/06/07) et les avertissements (CHT-13). Les ➕ sont le délai de chat synchronisé, la révélation des messages supprimés, le multi-chat et le chat partagé, les emotes 7TV/BTTV/FFZ, la disposition paysage et le thème avec accent.
 
 ## 3. Lecture / latence : écarts concrets avec le lecteur officiel
 
