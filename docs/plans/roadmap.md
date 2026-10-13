@@ -19,5 +19,6 @@ Règles transverses :
 | E8 | **Découverte** : flux d'accueil, recommandations, filtres langue/tags, flux vertical | DSC-* | — | Helix + GQL anonyme |
 | E9 | **Fonctions liées au compte** : follow, notifications, whispers, channel points (gagner/dépenser), vote aux sondages/prédictions, abonnements affichés | SOC-*, INT-* écriture | E3 | **session Twitch de l'utilisateur pour le GQL** — décision à prendre avec l'utilisateur |
 | E10 | Réglages et accessibilité restants | ACC-* | — | — |
+| T ✅ | **Tablette** (Xiaomi Pad 7, ≥ 600 dp) : grilles, rail de navigation, plein écran sans rotation, chat paysage dimensionné en dp, hype train borné, réglages centrés, vignettes à la taille affichée, 120 Hz demandé — voir `tablet.plan.md` | MSC-14, DSC-01 | — | — |
 
 Hors périmètre proposé (à confirmer avec l'utilisateur) : achats réels (Play Billing, Bits, abonnements), DRM, SDK publicitaire, outils de diffusion/streaming (ingest), Guest Star, fonctions staff/debug internes. Raison : impossibles à reproduire proprement hors de l'appli officielle (paiement et licences liés à Twitch) ou hors mission du spectateur.

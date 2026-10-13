@@ -235,7 +235,7 @@
 
 | ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
-| DSC-01 | Navigation principale | P0 | ⚠️ | `home.dart:140-209` | Following, Top, Search ; l'avatar mène aux réglages. Ni Activité, ni Profil, ni rail tablette. | OK |
+| DSC-01 | Navigation principale | P0 | ⚠️ | `home.dart` (`HomeRailLayout`) | Following, Top, Search ; l'avatar mène aux réglages ; rail latéral sur tablette (≥ 600 dp). Ni Activité, ni Profil. | OK |
 | DSC-02 | Catégories | P0 | ✅ | `twitch_api.dart:292-300`, `categories.dart` | Pas de pastille « nouveau ». | OK |
 | DSC-03 | Chaînes live | P0 | ✅ | `twitch_api.dart:167-175`, `streams_list.dart:335-340` | — | OK |
 | DSC-04 | Page catégorie | P0 | ⚠️ | `category_streams.dart:15-150` | Lives seulement. Pas d'onglets vidéos/clips (Helix `/videos?game_id`, `/clips?game_id`). Le follow de catégorie passe par GQL. | OK |
@@ -408,7 +408,7 @@
 | MSC-11 | Enquêtes in-app | P2 | ❌ | — | — | Impossible proprement |
 | MSC-12 | Menu debug | P2 | ⚠️ | `dev_player_harness.dart`, `video_overlay.dart:487-516` | Harness mpv et badge de latence. Pas de menu debug. | OK |
 | MSC-13 | Rapports de crash QA | P2 | ⚠️ | `main.dart:48-57`, `other_settings.dart:105` | Crashlytics avec opt-out. | OK |
-| MSC-14 | Mises en page tablette et bureau | P2 | ⚠️ | `video_overlay.dart:112-135`, `channel.dart:576-805` | Bouton fit/fill tablette, chat en colonne. Ni rail ni layout sw600dp. | OK |
+| MSC-14 | Mises en page tablette et bureau | P2 | ✅ | `context_extensions.dart` (`isLargeScreen`), `adaptive_sliver_list.dart`, `home.dart`, `overlay_common.dart`, `readable_width.dart`, `MainActivity.kt` | Seuil 600 dp : grilles de chaînes/catégories/vidéos, rail, plein écran sans rotation, chat paysage par largeur réelle, hype train borné, réglages centrés, vignettes à la taille affichée, 120 Hz demandé. Bureau hors périmètre. | OK |
 | MSC-15 | WebView in-app | P2 | ✅ | `user_actions_modal.dart:115`, `auth_store.dart:101`, `settings_store.dart:48-50` | WebView pour le signalement et la connexion, option navigateur externe. | OK |
 | MSC-16 | Éducation utilisateur | P2 | ⚠️ | `onboarding_intro.dart`, `release_notes.dart` | Onboarding et notes de version. Pas de coach-marks. | OK |
 | MSC-17 | Liens différés et attribution | P2 | ❌ | — | Clé Branch propre à Twitch. | Impossible proprement |
@@ -429,19 +429,19 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Monétisation (MON) | 0 | 0 | 15 | 0 | 15 |
 | Compte & réglages (ACC) | 3 | 6 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
-| Divers / technique (MSC) | 2 | 8 | 7 | 0 | 17 |
-| **Total** | **37** | **51** | **221** | **8** | **317** |
+| Divers / technique (MSC) | 3 | 7 | 7 | 0 | 17 |
+| **Total** | **38** | **50** | **221** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 17 | 26 | 13 | 4 | 60 |
 | P1 | 15 | 17 | 72 | 4 | 108 |
-| P2 | 5 | 8 | 136 | 0 | 149 |
-| **Total** | **37** | **51** | **221** | **8** | **317** |
+| P2 | 6 | 7 | 136 | 0 | 149 |
+| **Total** | **38** | **50** | **221** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 25 | 44 | 34 | 103 |
+| OK | 25 | 44 | 33 | 102 |
 | GQL privé | 6 | 34 | 61 | 101 |
 | Compte requis | 8 | 11 | 12 | 31 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
