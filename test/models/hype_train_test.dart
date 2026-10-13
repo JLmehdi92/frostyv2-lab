@@ -28,7 +28,7 @@ void main() {
       expect(train.config.difficulty, 'EASY');
       expect(train.expiresAt, DateTime.utc(2026, 10, 13, 15, 54, 8, 880, 704));
       expect(train.variant, HtVariant.regular);
-      expect(train.endReason, HtEndReason.unknown);
+      expect(train.endReason, HtEndReason.inProgress);
     });
 
     test('conversion rates drop the junk entries', () {
@@ -179,7 +179,7 @@ void main() {
       final train = HypeTrainExecution.parse({
         'id': 'x',
         'progress': {
-          'level': {'value': 'two', 'goal': []},
+          'level': {'value': 2, 'goal': []},
           'goal': '1',
           'progression': null,
           'total': 3.7,
@@ -189,10 +189,121 @@ void main() {
         'expiresAt': 12,
       })!;
 
-      expect(train.level, 1);
+      expect(train.level, 2);
       expect(train.progress.total, 3);
+      expect(
+        HypeTrainExecution.parse({
+          'id': 'x',
+          'progress': {
+            'level': {'value': 'two'},
+            'total': 3,
+          },
+        }),
+        isNull,
+        reason: 'no usable level, no train',
+      );
       expect(train.conductors, isEmpty);
       expect(train.config.conversionRates, isEmpty);
+    });
+
+    test('hostile numbers and dates never throw', () {
+      Map<String, Object?> train(Map<String, Object?> extra) => {
+        'id': 'x',
+        'progress': {
+          'total': 1,
+          'level': {'value': 1},
+        },
+        ...extra,
+      };
+
+      final epoch = HypeTrainExecution.parse(train({'startedAt': 9e15}));
+      expect(epoch!.startedAt, isNull);
+      expect(
+        HypeTrainExecution.parse(
+          train({'startedAt': '+999999-01-01T00:00:00Z'}),
+        )!.startedAt,
+        isNull,
+      );
+      expect(
+        HypeTrainExecution.parse(
+          train({'endedAt': '0001-01-01T00:00:00Z'}),
+        )!.endedAt,
+        isNull,
+        reason: "Go's zero time means unset",
+      );
+
+      final infinite = jsonDecode(
+        '{"source":"SUBS","user":{"id":"1","login":"a"},'
+        '"participations":{"SUBS.TIER_1_SUB":1e400,"SUBS.CHEER":1e20}}',
+      );
+      expect(HtConductor.parse(infinite)!.participations, isEmpty);
+
+      final approaching = HypeTrainApproaching.parse({
+        'approaching_hype_train_id': 'a',
+        'events_remaining_durations': jsonDecode('{"1":1e400,"2":30}'),
+      });
+      expect(approaching!.deadlines, {2: 30});
+    });
+
+    test('an empty progress is no progress', () {
+      expect(HtProgress.parse(const {}), isNull);
+      expect(
+        HtProgress.parse(const {
+          'total': 5,
+          'level': {'value': 0},
+        }),
+        isNull,
+      );
+      final negative = HtProgress.parse(const {
+        'total': -5,
+        'goal': -1,
+        'progression': -2,
+        'level': {'value': 2},
+      })!;
+      expect([negative.total, negative.goal, negative.value], [0, 0, 0]);
+    });
+
+    test('participations of the same action add up', () {
+      final conductor = HtConductor.parse({
+        'source': 'BITS',
+        'user': {'id': '1', 'login': 'a'},
+        'participations': {'BITS.CHEER': 5, 'X.CHEER': 7},
+      })!;
+
+      expect(conductor.participations, {'CHEER': 12});
+    });
+
+    test('lists are capped', () {
+      final rewards = [
+        for (var i = 0; i < 5000; i++)
+          {
+            'id': 'e$i',
+            'type': 'EMOTE',
+            'emote': {'id': 'e$i', 'token': 't'},
+          },
+      ];
+
+      expect(htRewards(htList({'r': rewards}, ['r'])), hasLength(200));
+    });
+
+    test('CDN URLs refuse userinfo and ports', () {
+      expect(htCdnUrl('https://x@static-cdn.jtvnw.net/a.png'), isNull);
+      expect(htCdnUrl('https://static-cdn.jtvnw.net:8443/a.png'), isNull);
+      expect(htCdnUrl('https://static-cdn.jtvnw.net/a.png'), isNotNull);
+    });
+
+    test('a running GQL train without a reason is in progress', () {
+      final train = HypeTrainExecution.parse({
+        'id': 'x',
+        'isActive': true,
+        'endReason': null,
+        'progress': {
+          'total': 1,
+          'level': {'value': 1},
+        },
+      })!;
+
+      expect(train.endReason, HtEndReason.inProgress);
     });
   });
 }

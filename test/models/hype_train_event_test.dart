@@ -22,7 +22,7 @@ void main() {
     expect(event.progress.goal, 2500);
     expect(event.expiresAt, DateTime.utc(2026, 10, 13, 16, 3, 1, 796, 946));
     expect(event.isLarge, isFalse);
-    expect(event.id, isNotNull);
+    expect(event.trainId, '00000000-0000-4000-8000-000000000004');
   });
 
   test('an unknown action keeps its name', () {
@@ -36,12 +36,16 @@ void main() {
     expect(event.action.isKnown, isFalse);
   });
 
-  test('the duplicated progression keeps its id for dedupe', () {
-    final event =
-        HypeTrainEvent.parse(htProgressionDuplicate) as HtProgressionEvent;
+  test('data.id is the train id, shared by the progression and the end', () {
+    final progression =
+        HypeTrainEvent.parse(htProgression) as HtProgressionEvent;
+    final end = HypeTrainEvent.parse(htEndCompleted) as HtEndEvent;
+    final other =
+        HypeTrainEvent.parse(htProgressionOtherTrain) as HtProgressionEvent;
 
-    expect(event.id, '00000000-0000-4000-8000-000000000007');
-    expect(event.sequenceId, 25000);
+    expect(end.trainId, progression.trainId);
+    expect(other.trainId, '00000000-0000-4000-8000-000000000007');
+    expect(other.sequenceId, 25000);
   });
 
   test('level-up: epoch ms expiry and the golden train', () {

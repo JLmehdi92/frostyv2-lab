@@ -7,7 +7,7 @@ import '../../../fixtures/hype_train_payloads.dart';
 import 'hype_train_test_data.dart';
 
 HtProgressionEvent progression({
-  String? id = 'p1',
+  String? trainId = 'train',
   int level = 7,
   int value = 1600,
   int goal = 4700,
@@ -19,7 +19,7 @@ HtProgressionEvent progression({
   Map<String, HtProgress>? sharedProgress,
   bool isLarge = false,
 }) => HtProgressionEvent(
-  id: id,
+  trainId: trainId,
   sequenceId: sequenceId ?? total,
   action: const HtAction('CHEER'),
   source: HtSource.bits,
@@ -62,7 +62,7 @@ void main() {
   setUp(() => seen = {});
 
   group('progression', () {
-    test('applies at the same level and records its id', () {
+    test('applies at the same level and records its key', () {
       final expires = DateTime.utc(2026, 10, 13, 16, 5);
       final result = applyEvent(
         running,
@@ -74,15 +74,25 @@ void main() {
       expect(result.train.progress.value, 1600);
       expect(result.train.progress.total, 16100);
       expect(result.train.expiresAt, expires);
-      expect(seen, {'p1'});
+      expect(seen, {'train:16100'});
     });
 
-    test('a duplicate id is ignored', () {
-      applyEvent(running, progression(total: 16100), seenIds: seen);
+    test('a redelivered progression is ignored', () {
+      final first = applyEvent(
+        running,
+        progression(total: 16100),
+        seenIds: seen,
+      );
+      final second = applyEvent(
+        first.train,
+        progression(total: 16200),
+        seenIds: seen,
+      );
+      expect(second.applied, isTrue, reason: 'same train, next sequence');
 
       final result = applyEvent(
         running,
-        progression(total: 16200),
+        progression(total: 16100),
         seenIds: seen,
       );
 
@@ -94,12 +104,29 @@ void main() {
     test('an older sequence id is ignored', () {
       final result = applyEvent(
         running,
-        progression(total: 16040),
+        progression(total: 16000),
         seenIds: seen,
       );
 
       expect(result.applied, isFalse);
       expect(result.ignoredReason, 'stale');
+    });
+
+    test('the progression after its level-up still applies', () {
+      final levelled = applyEvent(
+        running,
+        levelUp(8, total: 19300),
+        seenIds: seen,
+      ).train;
+
+      final result = applyEvent(
+        levelled,
+        progression(level: 8, value: 100, goal: 5000, total: 19300),
+        seenIds: seen,
+      );
+
+      expect(result.applied, isTrue);
+      expect(result.levelChangedFrom, isNull);
     });
 
     test('a next-level progression is deferred, not applied', () {
@@ -281,21 +308,21 @@ void main() {
 
       final still = applyEvent(
         approaching.train,
-        progression(id: 'p1b', total: 16150, athState: HtAthState.approaching),
+        progression(total: 16150, athState: HtAthState.approaching),
         seenIds: seen,
       );
       expect(still.athTransition, HtAthTransition.none);
 
       final reached = applyEvent(
         approaching.train,
-        progression(id: 'p2', total: 16200, athState: HtAthState.reached),
+        progression(total: 16200, athState: HtAthState.reached),
         seenIds: seen,
       );
       expect(reached.athTransition, HtAthTransition.reached);
 
       final again = applyEvent(
         reached.train,
-        progression(id: 'p3', total: 16300, athState: HtAthState.reached),
+        progression(total: 16300, athState: HtAthState.reached),
         seenIds: seen,
       );
       expect(again.athTransition, HtAthTransition.none);

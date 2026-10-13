@@ -68,8 +68,8 @@ class HtApplyResult {
 
 /// Applies one realtime [event] to the running [train].
 ///
-/// Pure except for [seenIds], which collects the ids of applied
-/// progressions (Twitch sends some twice). [channelId] picks this channel's
+/// Pure except for [seenIds], which collects the `trainId:sequenceId` keys
+/// of applied progressions so a redelivery is not counted twice. [channelId] picks this channel's
 /// entry of a shared train. [force] applies a deferred next-level
 /// progression as a level change.
 HtApplyResult applyEvent(
@@ -128,11 +128,13 @@ HtApplyResult _progression(
   String? channelId,
   bool force,
 ) {
-  final id = event.id;
-  if (id != null && seenIds.contains(id)) {
+  final key = '${event.trainId ?? train.id}:${event.sequenceId}';
+  if (seenIds.contains(key)) {
     return HtApplyResult.ignored(train, 'duplicate');
   }
-  if (event.sequenceId <= train.progress.total) {
+  // Equal is not stale: the level-up may have come first with the same
+  // total, and the progression still names the contributor (verified).
+  if (event.sequenceId < train.progress.total) {
     return HtApplyResult.ignored(train, 'stale');
   }
   final level = event.progress.level.value;
@@ -143,7 +145,7 @@ HtApplyResult _progression(
   if (level != train.level && !nextLevel) {
     return HtApplyResult.ignored(train, 'level mismatch');
   }
-  if (id != null) seenIds.add(id);
+  seenIds.add(key);
 
   final shared = _withSharedProgress(train.shared, event.sharedProgress);
   final own = channelId == null ? null : event.sharedProgress?[channelId];

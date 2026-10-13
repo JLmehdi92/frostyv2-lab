@@ -6,7 +6,7 @@ import 'package:frosty/screens/channel/hype_train/hype_train_queue.dart';
 import 'hype_train_test_data.dart';
 
 HtProgressionEvent small(int total, {int level = 1}) => HtProgressionEvent(
-  id: 'p$total',
+  trainId: 't',
   sequenceId: total,
   action: const HtAction('CHEER'),
   source: HtSource.bits,
@@ -16,7 +16,7 @@ HtProgressionEvent small(int total, {int level = 1}) => HtProgressionEvent(
 );
 
 HtProgressionEvent large(int total) => HtProgressionEvent(
-  id: 'large$total',
+  trainId: 't',
   sequenceId: total,
   action: const HtAction('TIER_1_GIFTED_SUB'),
   source: HtSource.subs,

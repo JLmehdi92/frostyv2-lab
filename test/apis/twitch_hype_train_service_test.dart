@@ -35,12 +35,14 @@ void main() {
     service = TwitchHypeTrainService(dio);
   });
 
-  /// Fixtures are raw JSON strings; maps are sent as is.
-  void reply(Object body, {int status = 200}) => adapter.onPost(
-    _gql,
-    (s) => s.reply(status, body is String ? jsonDecode(body) : body),
-    data: Matchers.any,
-  );
+  /// Fixtures are raw JSON strings, decoded unless [raw]; maps go as is.
+  void reply(Object body, {int status = 200, bool raw = false}) =>
+      adapter.onPost(
+        _gql,
+        (s) =>
+            s.reply(status, body is String && !raw ? jsonDecode(body) : body),
+        data: Matchers.any,
+      );
 
   Map<String, dynamic> lastBody() =>
       (requests.last.data as Map).cast<String, dynamic>();
@@ -210,6 +212,53 @@ void main() {
         service.getHypeTrain('42'),
         throwsA(isA<ApiException>()),
       );
+    });
+
+    test('a body that is not a map is a typed error', () async {
+      for (final body in <Object>[
+        [
+          {'data': null},
+        ],
+        'oops',
+      ]) {
+        reply(body, raw: true);
+
+        await expectLater(
+          service.getHypeTrain('42'),
+          throwsA(isA<HypeTrainApiException>()),
+        );
+      }
+    });
+
+    test('a nested error keeps the rest of the answer', () async {
+      final body = jsonDecode(htGqlActive) as Map<String, dynamic>;
+      reply({
+        ...body,
+        'errors': [
+          {
+            'message': 'service error',
+            'path': [
+              'user',
+              'channel',
+              'hypeTrain',
+              'execution',
+              'allTimeHigh',
+            ],
+          },
+        ],
+      });
+
+      final snapshot = await service.getHypeTrain('42');
+
+      expect((snapshot as HtOngoingSnapshot).train.level, 7);
+    });
+
+    test('community details ask for the max reward level', () async {
+      reply(htGqlNone);
+
+      await service.getHypeTrain('42');
+
+      expect(lastBody()['query'], contains('maxRewardLevel'));
     });
 
     test('a malformed channel id is refused before any request', () async {

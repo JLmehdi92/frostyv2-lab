@@ -118,18 +118,17 @@ Chat code (`chat.dart`, `chat_store.dart`, `chat_tabs_store.dart`, `chat_tabs.da
 
 ### Realtime hype-train payloads (captured: 34 notifications over 10 channels)
 
-Captured types: `hype-train-progression` ×24, `hype-train-level-up` ×5, `hype-train-end` ×3 (all `COMPLETED`), `hype-train-conductor-update` ×2.
+Captured types: `hype-train-progression` ×24, `hype-train-level-up` ×5, `hype-train-end` ×3 (1 `COMPLETED`, 2 `EXPIRED`), `hype-train-conductor-update` ×2.
 
 - **progression `data`:**
-  - `id`, `user_id`, `user_login`, `user_display_name`, `user_profile_image_url`
+  - `id` (**the train id**, not a per-event id: shared by every progression, the level-up `hype_train.id` and the end), `user_id`, `user_login`, `user_display_name`, `user_profile_image_url`
   - `sequence_id`, `action`, `source`, `quantity`, `initiator_currency` (null), `is_large_event`, `is_fast_mode`, `is_boost_train`
   - **`expires_at` (ISO)**, `sharedProgress` (null)
   - `progress{level{value, goal(cumulative), rewards[{type,id,token,set_id,group_id,reward_level,reward_end_date}]}, value(in-level), goal(in-level), total, remaining_seconds, all_time_high_state}`
   - `treasureTrainDetails` **and** `variantTrainDetails`, both carrying the same Treasure object **with both camelCase and snake_case keys** (`discountPercentage`/`discount_percentage`, `status`/`discount_status`, …)
 - **progression quirks:**
-  - **`sequence_id == progress.total`** in every capture. It is a monotonic ordering and dedupe key.
-  - **The same progression was delivered twice**, 1.4 s apart, with different notification ids but the same `data.id` and `sequence_id`. Dedupe is required.
-  - **The progression for the new level arrives about 1–2 s *before* the matching `level-up`** (for example, level-2 progression at :27 and level-up at :28).
+  - **`sequence_id == progress.total`** in every capture. It is a monotonic ordering key; `(train id, sequence_id)` is the dedupe key. *Correction (H1 review): no progression was actually delivered twice; the earlier "duplicate" was two progressions of one train sharing the train id.*
+  - **The level-up and the progression that caused it come in either order**: the progression first in 3 of 5 captures (about 1–2 s before, for example level-2 progression at :27 and level-up at :28), the level-up first in 2 of 5 (about 0.1 s before). Both carry the same total, so a progression whose `sequence_id` equals the current total is not stale: it still names the contributor.
   - **Unknown action value `EXTENSION`** (quantity 500) was seen. It is not in the RE enum list.
 - **level-up `data`:**
   - `time_to_expire` is **epoch milliseconds**, for example `1791907526000`.
@@ -440,7 +439,7 @@ A `PubSubProtocol` codec (`LISTEN`/`UNLISTEN` with nonce, `RESPONSE`, `MESSAGE{d
     |---|---|
     | `HtApproachingEvent` | `approaching` |
     | `HtStartEvent` | `train` (also built from `hype-train-shared-conversion`) |
-    | `HtProgressionEvent` | `id, sequenceId (falls back to progress.total), userId, login, displayName, profileImageUrl?, action, source, quantity, isLarge, progress, expiresAt?, sharedProgress?, treasure?` |
+    | `HtProgressionEvent` | `trainId, sequenceId (falls back to progress.total), userId, login, displayName, profileImageUrl?, action, source, quantity, isLarge, progress, expiresAt?, sharedProgress?, treasure?` |
     | `HtLevelUpEvent` | `timeToExpire: DateTime (epoch ms), progress, train?` |
     | `HtConductorEvent` | `conductor` (blank user id → `HtUnknownEvent`) |
     | `HtEndEvent` | `endedAt?, reason, totals: List<(source, action, quantity)>, rewards` |
@@ -527,7 +526,7 @@ A `PubSubProtocol` codec (`LISTEN`/`UNLISTEN` with nonce, `RESPONSE`, `MESSAGE{d
   - `CommunityState` likewise, with threshold default 5
 - `hype_train_reducer.dart`: `HtApplyResult applyEvent(HypeTrainExecution t, HypeTrainEvent e, {required Set<String> seenIds})` → `{train, applied, ignoredReason?, levelChangedFrom?, athTransition (none/approaching/reached), treasureUnlockedNow, communityUnlockedNow, deferredNextLevel}`:
   - **Progression:**
-    - ignore if `e.id` is already in `seenIds` (verified duplicates) or `e.sequenceId <= t.progress.total` (stale)
+    - ignore if `trainId:sequenceId` is already in `seenIds` (redelivery) or `e.sequenceId < t.progress.total` (stale); equal is allowed (the level-up may have come first)
     - if `e.progress.level.value == t.level + 1`, mark `deferredNextLevel` and do not apply (verified ordering); the store waits up to 3 s for the level-up
     - any other level mismatch → ignore
     - otherwise replace the progress, `expiresAt` (from `expires_at` when present), the ATH state (shared: this channel's entry), and the treasure details
@@ -1024,7 +1023,7 @@ Presenter, recovery and lifecycle:
 - **GQL schema drift or integrity gating** (Medium). Typed exception; the realtime `start` / `level-up` payloads can still build the train locally (verified level-up carries a full GQL-shaped train).
 - **Payload drift** (High likelihood over months).
   - Tolerant parsing with both casings (verified duplicated keys), unknown enums kept raw (verified `EXTENSION`), `HtUnknownEvent` ignored, fixtures from real captures, and harness record mode for new shapes.
-  - Verified traps: duplicate delivery (dedupe by `data.id` and monotonic `sequence_id`), next-level progression before level-up (deferral plus a 3 s refetch).
+  - Verified traps: `data.id` is the train id (dedupe by `trainId:sequence_id`), level-up and its progression in either order (deferral plus a 3 s refetch; an equal `sequence_id` still applies).
 - **Clock skew** (Medium): `ServerClock` from Hermes notification timestamps; `remainingSeconds` used for GQL snapshots.
 - **Animation jank or battery** (Medium): `RepaintBoundary`; controllers only while a presenter is attached; one 1 s timer only while ongoing; profile-mode check in H8.
 - **Banner hides chat** (Low/Medium): it overlays only the top (oldest) messages of the reversed list; collapsible to a 28 px pill; compact in landscape; hidden with the landscape keyboard.

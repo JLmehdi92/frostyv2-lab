@@ -41,7 +41,7 @@ sealed class HypeTrainEvent {
             htMap(data, ['treasureTrainDetails']) ??
             htMap(data, ['variantTrainDetails']);
         return HtProgressionEvent(
-          id: htString(data, ['id']),
+          trainId: htString(data, ['id']),
           sequenceId: htInt(data, ['sequence_id']) ?? progress.total,
           userId: htString(data, ['user_id']),
           login: htString(data, ['user_login']),
@@ -72,6 +72,7 @@ sealed class HypeTrainEvent {
         return conductor == null ? null : HtConductorEvent(conductor);
       case 'hype-train-end':
         return HtEndEvent(
+          trainId: htString(data, ['id']),
           endedAt: htDate(data, ['ended_at']),
           reason: htEndReason(htString(data, ['ending_reason'])),
           totals: [
@@ -145,7 +146,7 @@ final class HtProgressionEvent extends HypeTrainEvent {
     required this.quantity,
     required this.isLarge,
     required this.progress,
-    this.id,
+    this.trainId,
     this.userId,
     this.login,
     this.displayName,
@@ -155,8 +156,8 @@ final class HtProgressionEvent extends HypeTrainEvent {
     this.treasure,
   });
 
-  /// Deduplication key (the same progression can arrive twice).
-  final String? id;
+  /// The train's id (`data.id` is the train, not the event: verified).
+  final String? trainId;
 
   /// Equals the train total: orders contributions.
   final int sequenceId;
@@ -211,12 +212,14 @@ class HtTotal {
 final class HtEndEvent extends HypeTrainEvent {
   const HtEndEvent({
     required this.reason,
+    this.trainId,
     this.endedAt,
     this.totals = const [],
     this.rewards = const [],
   });
 
   final HtEndReason reason;
+  final String? trainId;
   final DateTime? endedAt;
   final List<HtTotal> totals;
 

@@ -75,7 +75,7 @@ class TwitchHypeTrainService extends BaseApiClient {
       'status } '
       'variantTrainDetails { __typename ... on CommunityTrainDetails { '
       'currentRewardAmount nextRewardAmount previousRewardAmount '
-      'rewardLevelThreshold status } ... on MythicTrainDetails { '
+      'rewardLevelThreshold maxRewardLevel status } ... on MythicTrainDetails { '
       'selectedEmote { id token } emotePool { id token } } } '
       'sharedHypeTrainDetails @include(if: \$includeSharedHypeTrain) { id '
       'sharedConductors { user { ...U } conductors { $_conductor } } '
@@ -118,6 +118,15 @@ class TwitchHypeTrainService extends BaseApiClient {
       'channelId': id,
       'includeSharedHypeTrain': true,
     });
+    try {
+      return _snapshot(data);
+    } on Object catch (e) {
+      // Parsing never throws by design; this keeps the contract if it does.
+      throw HypeTrainApiException('Malformed hype train: $e');
+    }
+  }
+
+  static HypeTrainSnapshot _snapshot(JsonMap data) {
     final hypeTrain = _path(data, ['user', 'channel', 'hypeTrain']);
     if (hypeTrain == null) return const HtNoTrain();
     final execution = htMap(hypeTrain, ['execution']);
@@ -134,8 +143,9 @@ class TwitchHypeTrainService extends BaseApiClient {
     return const HtNoTrain();
   }
 
-  /// The running train's emotes still to unlock, grouped by level in level
-  /// order. Never throws: empty when there is no train or on any failure.
+  /// Every emote of the running train's levels (unlocked ones included),
+  /// grouped by level in level order. Never throws: empty when there is no
+  /// train or on any failure.
   Future<List<(int, List<HtReward>)>> getUpcomingRewards(
     String channelId,
   ) async {
@@ -180,7 +190,7 @@ class TwitchHypeTrainService extends BaseApiClient {
     String query,
     JsonMap variables,
   ) async {
-    final body = await post<JsonMap>(
+    final Object? body = await post<dynamic>(
       _gqlUrl,
       headers: {'Client-ID': kTwitchWebClientId},
       data: {
@@ -189,17 +199,22 @@ class TwitchHypeTrainService extends BaseApiClient {
         'variables': variables,
       },
     );
+    if (body is! Map) {
+      throw const HypeTrainApiException('Malformed GQL response');
+    }
+    final data = body['data'];
     final errors = body['errors'];
     if (errors is List && errors.isNotEmpty) {
       final messages = errors
           .map((e) => e is Map ? '${e['message']}' : '$e')
           .join('; ');
-      throw HypeTrainApiException(
-        messages,
-        isIntegrity: messages.toLowerCase().contains('integrity'),
-      );
+      final isIntegrity = messages.toLowerCase().contains('integrity');
+      // A nested resolver error still answers the rest: keep partial data.
+      final partial = data is Map && data.values.any((v) => v != null);
+      if (isIntegrity || !partial) {
+        throw HypeTrainApiException(messages, isIntegrity: isIntegrity);
+      }
     }
-    final data = body['data'];
     if (data is! Map) throw const HypeTrainApiException('Empty GQL response');
     return JsonMap.from(data);
   }

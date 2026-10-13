@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 
 /// Hype train data from Twitch GQL (camelCase) and realtime events
@@ -21,11 +23,14 @@ String? htString(Map? map, List<String> keys) {
   return value is String ? value : null;
 }
 
-int? htInt(Map? map, List<String> keys) {
-  final value = htField(map, keys);
-  if (value is int) return value;
-  if (value is num && value.isFinite) return value.toInt();
-  return null;
+/// Larger magnitudes are garbage (and could overflow sums).
+const _maxInt = 1 << 40;
+
+int? htInt(Map? map, List<String> keys) => _int(htField(map, keys));
+
+int? _int(Object? value) {
+  if (value is! num || !value.isFinite || value.abs() > _maxInt) return null;
+  return value.toInt();
 }
 
 bool htBool(Map? map, List<String> keys) => htField(map, keys) == true;
@@ -35,19 +40,37 @@ Map? htMap(Map? map, List<String> keys) {
   return value is Map ? value : null;
 }
 
+/// No Twitch list we read is anywhere near this long.
+const _maxListLength = 200;
+
 List htList(Map? map, List<String> keys) {
   final value = htField(map, keys);
-  return value is List ? value : const [];
+  if (value is! List) return const [];
+  return value.length > _maxListLength
+      ? value.sublist(0, _maxListLength)
+      : value;
 }
 
-/// An ISO-8601 string or epoch milliseconds.
+final _minDate = DateTime.utc(2000);
+final _maxDate = DateTime.utc(2100);
+
+/// An ISO-8601 string or epoch milliseconds; null outside 2000–2100 (Go's
+/// zero time `0001-01-01` means "unset").
 DateTime? htDate(Map? map, List<String> keys) {
   final value = htField(map, keys);
-  if (value is String) return DateTime.tryParse(value)?.toUtc();
-  if (value is num && value > 0 && value.isFinite) {
-    return DateTime.fromMillisecondsSinceEpoch(value.toInt(), isUtc: true);
+  DateTime? date;
+  if (value is String) {
+    date = DateTime.tryParse(value)?.toUtc();
+  } else if (value is num &&
+      value.isFinite &&
+      value >= _minDate.millisecondsSinceEpoch &&
+      value <= _maxDate.millisecondsSinceEpoch) {
+    date = DateTime.fromMillisecondsSinceEpoch(value.toInt(), isUtc: true);
   }
-  return null;
+  if (date == null || date.isBefore(_minDate) || date.isAfter(_maxDate)) {
+    return null;
+  }
+  return date;
 }
 
 // --- Enums ---------------------------------------------------------------------
@@ -203,7 +226,12 @@ class HtReward {
 /// [raw] when it is an https URL on Twitch's image CDN, else null.
 Uri? htCdnUrl(String? raw) {
   final uri = raw == null ? null : Uri.tryParse(raw);
-  if (uri == null || uri.scheme != 'https') return null;
+  if (uri == null ||
+      uri.scheme != 'https' ||
+      uri.userInfo.isNotEmpty ||
+      uri.hasPort) {
+    return null;
+  }
   return uri.host == 'static-cdn.jtvnw.net' ? uri : null;
 }
 
@@ -246,13 +274,19 @@ class HtProgress {
     this.athState = HtAthState.none,
   });
 
+  /// Null without a total or a level: an empty progress must not reset the
+  /// banner to level 1.
   static HtProgress? parse(Object? raw) {
     if (raw is! Map) return null;
+    final total = htInt(raw, ['total']);
+    final level = htMap(raw, ['level']);
+    final levelValue = htInt(level, ['value']);
+    if (total == null || levelValue == null || levelValue < 1) return null;
     return HtProgress(
-      level: HtLevel.parse(htMap(raw, ['level'])),
-      goal: htInt(raw, ['goal']) ?? 0,
-      value: htInt(raw, ['progression', 'value']) ?? 0,
-      total: htInt(raw, ['total']) ?? 0,
+      level: HtLevel.parse(level),
+      goal: max(0, htInt(raw, ['goal']) ?? 0),
+      value: max(0, htInt(raw, ['progression', 'value']) ?? 0),
+      total: max(0, total),
       remainingSeconds: htInt(raw, ['remainingSeconds', 'remaining_seconds']),
       athState: htAthState(
         htString(raw, ['allTimeHighState', 'all_time_high_state']),
@@ -327,9 +361,10 @@ class HtConductor {
     final map = htField(raw, ['participations']);
     if (map is Map) {
       map.forEach((key, value) {
-        if (key is String && value is num && value > 0) {
-          participations[key.contains('.') ? key.split('.').last : key] = value
-              .toInt();
+        final quantity = _int(value);
+        if (key is String && quantity != null && quantity > 0) {
+          final action = key.contains('.') ? key.split('.').last : key;
+          participations[action] = (participations[action] ?? 0) + quantity;
         }
       });
     }
@@ -703,15 +738,22 @@ class HypeTrainExecution {
     if (id == null || id.isEmpty || progress == null) return null;
     final details = htMap(raw, ['variantTrainDetails']);
     final typeName = htString(details, ['__typename']);
+    // GQL sends no reason for a running train.
+    final reason = htString(raw, [
+      'endReason',
+      'endingReason',
+      'ending_reason',
+    ]);
+    final endedAt = htDate(raw, ['endedAt', 'ended_at']);
     return HypeTrainExecution(
       id: id,
       progress: progress,
       startedAt: htDate(raw, ['startedAt', 'started_at']),
       expiresAt: htDate(raw, ['expiresAt', 'expires_at']),
-      endedAt: htDate(raw, ['endedAt', 'ended_at']),
-      endReason: htEndReason(
-        htString(raw, ['endReason', 'endingReason', 'ending_reason']),
-      ),
+      endedAt: endedAt,
+      endReason: reason == null
+          ? (endedAt == null ? HtEndReason.inProgress : HtEndReason.unknown)
+          : htEndReason(reason),
       conductors: [
         for (final c in htList(raw, ['conductors'])) ?HtConductor.parse(c),
       ],
@@ -815,8 +857,9 @@ class HypeTrainApproaching {
     if (durations is Map) {
       durations.forEach((key, value) {
         final events = int.tryParse('$key');
-        if (events != null && events > 0 && value is num && value > 0) {
-          deadlines[events] = value.toInt();
+        final seconds = _int(value);
+        if (events != null && events > 0 && seconds != null && seconds > 0) {
+          deadlines[events] = seconds;
         }
       });
     }
