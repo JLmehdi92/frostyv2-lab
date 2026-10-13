@@ -11,6 +11,7 @@ import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:mobx/mobx.dart' show reaction;
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../fixtures/api_responses.dart';
 import '../../../../helpers/fake_ivs_native.dart';
@@ -63,6 +64,7 @@ void main() {
   }
 
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
     native = FakeIvsNative()..install();
     twitchApi = MockTwitchApi();
     streamService = MockTwitchStreamService();
@@ -934,6 +936,245 @@ void main() {
       await native.emit({'type': 'state', 'state': 'PLAYING'});
       await native.emit({'type': 'latency', 'ms': 1800});
       expect(store.latencyMs, 1800);
+    });
+  });
+
+  group('quality and sound', () {
+    test('restores the last chosen quality when qualities arrive', () async {
+      SharedPreferences.setMockInitialValues({'last_stream_quality': '720p60'});
+      store = await createStore();
+
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1080p60', '720p60', '480p'],
+      });
+      await settle();
+
+      final call = native.callsNamed('setQuality').single;
+      expect((call.arguments as Map)['name'], '720p60');
+      expect(store.streamQuality, '720p60');
+    });
+
+    test('picks the highest quality when that setting is on', () async {
+      SharedPreferences.setMockInitialValues({});
+      settingsStore.defaultToHighestQuality = true;
+      store = await createStore();
+
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1440p60', '1080p60'],
+      });
+      await settle();
+
+      expect(
+        (native.callsNamed('setQuality').single.arguments as Map)['name'],
+        '1440p60',
+      );
+    });
+
+    test('stays on Auto with no saved quality', () async {
+      SharedPreferences.setMockInitialValues({});
+      store = await createStore();
+
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1080p60', '720p60'],
+      });
+      await settle();
+
+      expect(native.callsNamed('setQuality'), isEmpty);
+      expect(store.streamQuality, 'Auto');
+    });
+
+    test('re-applies a quality chosen this session after a reload', () async {
+      SharedPreferences.setMockInitialValues({});
+      store = await createStore();
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1080p60', '720p60'],
+      });
+      store.setStreamQuality('720p60');
+      native.playerCalls.clear();
+
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1080p60', '720p60'],
+      });
+      await settle();
+
+      expect(
+        (native.callsNamed('setQuality').single.arguments as Map)['name'],
+        '720p60',
+      );
+    });
+
+    test('a quality chosen this session beats the saved one', () async {
+      SharedPreferences.setMockInitialValues({'last_stream_quality': '720p60'});
+      settingsStore.defaultToHighestQuality = true;
+      store = await createStore();
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1080p60', '720p60', '480p'],
+      });
+      await settle();
+      store.setStreamQuality('480p');
+      native.playerCalls.clear();
+
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1080p60', '720p60', '480p'],
+      });
+      await settle();
+
+      expect(
+        native
+            .callsNamed('setQuality')
+            .map((c) => (c.arguments as Map)['name']),
+        ['480p'],
+      );
+    });
+
+    test('a session Auto pick stays Auto after a reload', () async {
+      SharedPreferences.setMockInitialValues({'last_stream_quality': 'Auto'});
+      settingsStore.defaultToHighestQuality = true;
+      store = await createStore();
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1440p60', '1080p60'],
+      });
+      await settle();
+      store.setStreamQuality('Auto');
+      native.playerCalls.clear();
+
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1440p60', '1080p60'],
+      });
+      await settle();
+
+      expect(native.callsNamed('setQuality'), isEmpty);
+      expect(native.callsNamed('setAutoQuality'), hasLength(1));
+      expect(store.streamQuality, 'Auto');
+    });
+
+    test('a user pick during the restore is not overridden', () async {
+      SharedPreferences.setMockInitialValues({'last_stream_quality': '720p60'});
+      store = await createStore();
+
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1080p60', '720p60', '480p'],
+      });
+      store.setStreamQuality('480p');
+      await settle();
+      await settle();
+
+      expect(store.streamQuality, '480p');
+    });
+
+    test(
+      'a session quality missing after reload falls back to the saved one',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'last_stream_quality': '720p60',
+        });
+        store = await createStore();
+        await native.emit({
+          'type': 'qualities',
+          'list': ['1440p60', '720p60'],
+        });
+        await settle();
+        store.setStreamQuality('1440p60');
+        native.playerCalls.clear();
+
+        await native.emit({
+          'type': 'qualities',
+          'list': ['1080p60', '720p60'],
+        });
+        await settle();
+
+        expect(
+          native
+              .callsNamed('setQuality')
+              .map((c) => (c.arguments as Map)['name']),
+          ['720p60'],
+        );
+      },
+    );
+
+    test('a restore pending at dispose does nothing', () async {
+      SharedPreferences.setMockInitialValues({'last_stream_quality': '720p60'});
+      store = await createStore();
+
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1080p60', '720p60'],
+      });
+      store.dispose();
+      created = null;
+      await settle();
+      await settle();
+
+      expect(native.callsNamed('setQuality'), isEmpty);
+    });
+
+    test('changing the volume unmutes', () async {
+      store = await createStore();
+      store.toggleMute();
+
+      store.setVolume(0.5);
+
+      expect(store.muted, isFalse);
+      await settle();
+      expect(
+        (native.callsNamed('setMuted').last.arguments as Map)['muted'],
+        isFalse,
+      );
+    });
+
+    test('mute and volume are sent to the player', () async {
+      store = await createStore();
+
+      store.setVolume(1.5);
+      store.toggleMute();
+      await settle();
+
+      expect(store.muted, isTrue);
+      expect(store.volume, 1.0);
+      expect(
+        (native.callsNamed('setMuted').last.arguments as Map)['muted'],
+        isTrue,
+      );
+      expect(
+        (native.callsNamed('setVolume').last.arguments as Map)['volume'],
+        1.0,
+      );
+
+      store.setVolume(-1);
+      expect(store.volume, 0.0);
+    });
+
+    test('mute and volume survive a reload', () async {
+      store = await createStore();
+      store.setVolume(0.4);
+      store.toggleMute();
+      await settle();
+      native.playerCalls.clear();
+
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1080p60'],
+      });
+      await settle();
+
+      expect(
+        (native.callsNamed('setMuted').single.arguments as Map)['muted'],
+        isTrue,
+      );
+      expect(
+        (native.callsNamed('setVolume').single.arguments as Map)['volume'],
+        0.4,
+      );
     });
   });
 }

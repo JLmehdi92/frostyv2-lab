@@ -44,6 +44,15 @@ class IvsPlayerCore(
                     if (q != null) player.setQuality(q, true)
                     result.success(null)
                 }
+                "setMuted" -> {
+                    player.isMuted = call.argument<Boolean>("muted") == true
+                    result.success(null)
+                }
+                "setVolume" -> {
+                    val volume = call.argument<Number>("volume")?.toFloat() ?: 1f
+                    player.volume = volume.coerceIn(0f, 1f)
+                    result.success(null)
+                }
                 "setStatsEnabled" -> {
                     statsEnabled = call.argument<Boolean>("enabled") == true
                     result.success(null)
@@ -64,7 +73,15 @@ class IvsPlayerCore(
                 if (state == Player.State.READY) player.play()
                 if (state == Player.State.PLAYING && !qualitiesSent) {
                     qualitiesSent = true
-                    send(mapOf("type" to "qualities", "list" to player.qualities.map { it.name }))
+                    // Best first (resolution, then frame rate, then bitrate) so
+                    // "highest quality" is the first entry, e.g. 1440p HEVC/AV1
+                    // even if it uses less bitrate than a 1080p H.264 source.
+                    val sorted = player.qualities.sortedWith(
+                        compareByDescending<Quality> { it.height }
+                            .thenByDescending { it.framerate }
+                            .thenByDescending { it.bitrate },
+                    )
+                    send(mapOf("type" to "qualities", "list" to sorted.map { it.name }))
                 }
             }
 

@@ -13,10 +13,12 @@ import 'package:frosty/screens/channel/video/ivs_player_config.dart';
 import 'package:frosty/screens/channel/video/ivs_recovery.dart';
 import 'package:frosty/screens/channel/video/latency_stats.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
+import 'package:frosty/screens/channel/video/quality_selection.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/services/playback_token_cache.dart';
 import 'package:mobx/mobx.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_pip_mode/simple_pip.dart';
 
 part 'ivs_video_store.g.dart';
@@ -363,6 +365,9 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
       case 'qualities':
         final list = (e['list'] as List).map((q) => q.toString()).toList();
         _availableStreamQualities = ['Auto', ...list];
+        // Sent once per load: restore the quality and the sound state.
+        unawaited(_restoreQuality(list));
+        _resendSound();
         break;
       case 'quality':
         final name = e['name'] as String?;
@@ -502,6 +507,46 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     onFatalError?.call();
   }
 
+  @readonly
+  var _muted = false;
+
+  @readonly
+  var _volume = 1.0;
+
+  @action
+  void toggleMute() {
+    _muted = !_muted;
+    unawaited(_invoke('setMuted', {'muted': _muted}));
+  }
+
+  /// Sets the player volume (0..1). Changing the volume unmutes, like most
+  /// players.
+  @action
+  void setVolume(double volume) {
+    _volume = volume.clamp(0.0, 1.0);
+    unawaited(_invoke('setVolume', {'volume': _volume}));
+    if (_muted) {
+      _muted = false;
+      unawaited(_invoke('setMuted', {'muted': false}));
+    }
+  }
+
+  /// Re-applies the sound choice after every load (the native player should
+  /// keep it, but this guards against a reset).
+  void _resendSound() {
+    if (!_muted && _volume == 1.0) return;
+    unawaited(_invoke('setMuted', {'muted': _muted}));
+    unawaited(_invoke('setVolume', {'volume': _volume}));
+  }
+
+  Future<void> _invoke(String method, Map<String, Object?> args) async {
+    try {
+      await _channel?.invokeMethod(method, args);
+    } catch (e) {
+      debugPrint('IvsVideoStore $method failed: $e');
+    }
+  }
+
   /// Shows or hides the video stats panel and turns native stats on/off.
   @action
   void toggleStats() {
@@ -533,9 +578,57 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     _channel?.invokeMethod(_paused ? 'play' : 'pause');
   }
 
+  /// Quality the user picked during this session; re-applied after reloads.
+  String? _sessionQuality;
+
+  /// Quality saved by the overlay picker (any engine), read once.
+  late final Future<String?> _savedQuality = SharedPreferences.getInstance()
+      .then((prefs) => prefs.getString('last_stream_quality'))
+      .catchError((Object _) => null);
+
+  /// Bumped by every qualities event and user pick so an older pending
+  /// restore never applies after a newer one (or over the user's choice).
+  var _qualityGeneration = 0;
+
+  Future<void> _restoreQuality(List<String> available) async {
+    final generation = ++_qualityGeneration;
+    final saved = await _savedQuality;
+    if (_disposed || generation != _qualityGeneration) return;
+    // Read after the await so a pick made meanwhile is never overridden. The
+    // session pick wins while the stream still offers it; otherwise fall back
+    // to the saved quality / highest setting.
+    final session = _sessionQuality;
+    if (session == 'Auto') {
+      // An explicit Auto pick this session wins over saved/highest.
+      _applyQuality('Auto');
+      return;
+    }
+    final quality =
+        pickInitialQuality(
+          available: available,
+          defaultToHighest: false,
+          lastQuality: session,
+        ) ??
+        pickInitialQuality(
+          available: available,
+          defaultToHighest: settingsStore.defaultToHighestQuality,
+          lastQuality: saved,
+        );
+    // Applied even if the overlay already shows it: a reload resets the
+    // native player to Auto.
+    if (quality == null) return;
+    _applyQuality(quality);
+  }
+
   @override
-  @action
   void setStreamQuality(String quality) {
+    _qualityGeneration++;
+    _sessionQuality = quality;
+    _applyQuality(quality);
+  }
+
+  @action
+  void _applyQuality(String quality) {
     final index = _availableStreamQualities.indexOf(quality);
     if (index == -1) return;
     _streamQualityIndex = index;

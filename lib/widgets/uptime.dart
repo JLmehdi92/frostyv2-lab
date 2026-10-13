@@ -7,7 +7,10 @@ class Uptime extends StatefulWidget {
   final String startTime;
   final TextStyle? style;
 
-  const Uptime({super.key, required this.startTime, this.style});
+  /// How to handle text that does not fit (null = default clipping).
+  final TextOverflow? overflow;
+
+  const Uptime({super.key, required this.startTime, this.style, this.overflow});
 
   @override
   State<Uptime> createState() => _UptimeState();
@@ -39,6 +42,8 @@ class _UptimeState extends State<Uptime> {
       style: widget.style?.copyWith(
         fontFeatures: [const FontFeature.tabularFigures()],
       ),
+      maxLines: widget.overflow == null ? null : 1,
+      overflow: widget.overflow,
     );
   }
 

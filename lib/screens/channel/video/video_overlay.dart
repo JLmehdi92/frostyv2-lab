@@ -178,6 +178,37 @@ class VideoOverlay extends StatelessWidget {
                       ),
                       if (videoStore case final IvsVideoStore ivs) ...[
                         const SectionHeader(
+                          'Volume',
+                          padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+                        ),
+                        // Own Observer so dragging the slider does not rebuild
+                        // the whole quality list.
+                        Observer(
+                          builder: (context) => Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  tooltip: ivs.muted ? 'Unmute' : 'Mute',
+                                  icon: Icon(
+                                    _isSilent(ivs)
+                                        ? Icons.volume_off_rounded
+                                        : Icons.volume_up_rounded,
+                                  ),
+                                  onPressed: ivs.toggleMute,
+                                ),
+                                Expanded(
+                                  child: Slider.adaptive(
+                                    value: ivs.volume,
+                                    divisions: 20,
+                                    onChanged: ivs.setVolume,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SectionHeader(
                           'Measurement',
                           padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
                         ),
@@ -214,6 +245,30 @@ class VideoOverlay extends StatelessWidget {
         );
       },
     );
+
+    // Mute toggle for the IVS player (the hardware keys still control the
+    // system media volume).
+    final muteButton = videoStore is IvsVideoStore
+        ? Observer(
+            builder: (context) {
+              final ivs = videoStore as IvsVideoStore;
+              return Tooltip(
+                message: ivs.muted ? 'Unmute' : 'Mute',
+                preferBelow: false,
+                child: IconButton(
+                  icon: Icon(
+                    _isSilent(ivs)
+                        ? Icons.volume_off_rounded
+                        : Icons.volume_up_rounded,
+                    color: surfaceColor,
+                    shadows: kOverlayShadow,
+                  ),
+                  onPressed: ivs.toggleMute,
+                ),
+              );
+            },
+          )
+        : const SizedBox.shrink();
 
     final refreshButton = Tooltip(
       message: 'Refresh',
@@ -452,66 +507,86 @@ class VideoOverlay extends StatelessWidget {
                           child: Row(
                             spacing: 8,
                             children: [
-                              Tooltip(
-                                message: 'Stream uptime',
-                                preferBelow: false,
-                                triggerMode: TooltipTriggerMode.tap,
-                                child: Row(
-                                  spacing: 6,
-                                  children: [
-                                    const LiveIndicator(),
-                                    Uptime(
-                                      startTime: streamInfo.startedAt,
-                                      style: TextStyle(
-                                        color: surfaceColor,
-                                        fontWeight: FontWeight.w500,
-                                        shadows: kOverlayShadow,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Tooltip(
-                                message: 'Viewer count',
-                                preferBelow: false,
-                                child: GestureDetector(
-                                  onTap: () =>
-                                      showModalBottomSheetWithProperFocus(
-                                        isScrollControlled: true,
-                                        context: context,
-                                        builder: (context) => GestureDetector(
-                                          onTap: FocusScope.of(context).unfocus,
-                                          child: ChattersList(
-                                            chatDetailsStore:
-                                                chatStore.chatDetailsStore,
-                                            chatStore: chatStore,
-                                            userLogin: streamInfo.userLogin,
+                              // Uptime and viewers shrink first on narrow
+                              // phones so the latency (used for measuring)
+                              // always stays readable.
+                              Flexible(
+                                child: Tooltip(
+                                  message: 'Stream uptime',
+                                  preferBelow: false,
+                                  triggerMode: TooltipTriggerMode.tap,
+                                  child: Row(
+                                    spacing: 6,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const LiveIndicator(),
+                                      Flexible(
+                                        child: Uptime(
+                                          startTime: streamInfo.startedAt,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: surfaceColor,
+                                            fontWeight: FontWeight.w500,
+                                            shadows: kOverlayShadow,
                                           ),
                                         ),
                                       ),
-                                  child: Row(
-                                    spacing: 4,
-                                    children: [
-                                      Icon(
-                                        Icons.visibility,
-                                        size: 14,
-                                        shadows: kOverlayShadow,
-                                        color: surfaceColor,
-                                      ),
-                                      Text(
-                                        NumberFormat().format(
-                                          videoStore.streamInfo?.viewerCount,
-                                        ),
-                                        style: TextStyle(
-                                          color: surfaceColor,
-                                          fontWeight: FontWeight.w500,
-                                          fontFeatures: const [
-                                            FontFeature.tabularFigures(),
-                                          ],
-                                          shadows: kOverlayShadow,
-                                        ),
-                                      ),
                                     ],
+                                  ),
+                                ),
+                              ),
+                              Flexible(
+                                child: Tooltip(
+                                  message: 'Viewer count',
+                                  preferBelow: false,
+                                  child: GestureDetector(
+                                    onTap: () =>
+                                        showModalBottomSheetWithProperFocus(
+                                          isScrollControlled: true,
+                                          context: context,
+                                          builder: (context) => GestureDetector(
+                                            onTap: FocusScope.of(
+                                              context,
+                                            ).unfocus,
+                                            child: ChattersList(
+                                              chatDetailsStore:
+                                                  chatStore.chatDetailsStore,
+                                              chatStore: chatStore,
+                                              userLogin: streamInfo.userLogin,
+                                            ),
+                                          ),
+                                        ),
+                                    child: Row(
+                                      spacing: 4,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.visibility,
+                                          size: 14,
+                                          shadows: kOverlayShadow,
+                                          color: surfaceColor,
+                                        ),
+                                        Flexible(
+                                          child: Text(
+                                            NumberFormat().format(
+                                              videoStore
+                                                  .streamInfo
+                                                  ?.viewerCount,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              color: surfaceColor,
+                                              fontWeight: FontWeight.w500,
+                                              fontFeatures: const [
+                                                FontFeature.tabularFigures(),
+                                              ],
+                                              shadows: kOverlayShadow,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -532,6 +607,7 @@ class VideoOverlay extends StatelessWidget {
                                         : null,
                                     child: Row(
                                       spacing: 4,
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Icon(
                                           Icons.speed_rounded,
@@ -542,6 +618,7 @@ class VideoOverlay extends StatelessWidget {
                                         Observer(
                                           builder: (context) => Text(
                                             _latencyLabel(videoStore),
+                                            maxLines: 1,
                                             style: TextStyle(
                                               color: surfaceColor,
                                               fontWeight: FontWeight.w500,
@@ -560,6 +637,9 @@ class VideoOverlay extends StatelessWidget {
                           ),
                         ),
                       ),
+                      // Portrait has no room for one more button next to the
+                      // stream info; mute stays in the settings sheet there.
+                      if (context.isLandscape) muteButton,
                       Builder(
                         builder: (_) {
                           // On iOS, show toggle behavior. On Android, always show enter PiP.
@@ -604,7 +684,11 @@ class VideoOverlay extends StatelessWidget {
 /// Latency text for the overlay badge, or the reconnect progress while the
 /// IVS engine is recovering from an error.
 String _latencyLabel(PlayerController store) => switch (store) {
+  // Compact so it fits next to the stream info on narrow phones.
   IvsVideoStore(status: IvsPlaybackStatus.reconnecting) =>
-    'Reconnecting… (${store.retryAttempt}/${store.maxRetryAttempts})',
+    '↻ ${store.retryAttempt}/${store.maxRetryAttempts}',
   _ => store.latency ?? '—',
 };
+
+/// Whether the IVS player is muted or at zero volume (same icon everywhere).
+bool _isSilent(IvsVideoStore store) => store.muted || store.volume == 0;

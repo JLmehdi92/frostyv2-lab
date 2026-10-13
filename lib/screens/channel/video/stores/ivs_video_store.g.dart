@@ -393,6 +393,46 @@ mixin _$IvsVideoStore on IvsVideoStoreBase, Store {
     });
   }
 
+  late final _$_mutedAtom = Atom(
+    name: 'IvsVideoStoreBase._muted',
+    context: context,
+  );
+
+  bool get muted {
+    _$_mutedAtom.reportRead();
+    return super._muted;
+  }
+
+  @override
+  bool get _muted => muted;
+
+  @override
+  set _muted(bool value) {
+    _$_mutedAtom.reportWrite(value, super._muted, () {
+      super._muted = value;
+    });
+  }
+
+  late final _$_volumeAtom = Atom(
+    name: 'IvsVideoStoreBase._volume',
+    context: context,
+  );
+
+  double get volume {
+    _$_volumeAtom.reportRead();
+    return super._volume;
+  }
+
+  @override
+  double get _volume => volume;
+
+  @override
+  set _volume(double value) {
+    _$_volumeAtom.reportWrite(value, super._volume, () {
+      super._volume = value;
+    });
+  }
+
   late final _$_resolveUrlAsyncAction = AsyncAction(
     'IvsVideoStoreBase._resolveUrl',
     context: context,
@@ -479,6 +519,30 @@ mixin _$IvsVideoStore on IvsVideoStoreBase, Store {
   }
 
   @override
+  void toggleMute() {
+    final _$actionInfo = _$IvsVideoStoreBaseActionController.startAction(
+      name: 'IvsVideoStoreBase.toggleMute',
+    );
+    try {
+      return super.toggleMute();
+    } finally {
+      _$IvsVideoStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void setVolume(double volume) {
+    final _$actionInfo = _$IvsVideoStoreBaseActionController.startAction(
+      name: 'IvsVideoStoreBase.setVolume',
+    );
+    try {
+      return super.setVolume(volume);
+    } finally {
+      _$IvsVideoStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   void toggleStats() {
     final _$actionInfo = _$IvsVideoStoreBaseActionController.startAction(
       name: 'IvsVideoStoreBase.toggleStats',
@@ -503,12 +567,12 @@ mixin _$IvsVideoStore on IvsVideoStoreBase, Store {
   }
 
   @override
-  void setStreamQuality(String quality) {
+  void _applyQuality(String quality) {
     final _$actionInfo = _$IvsVideoStoreBaseActionController.startAction(
-      name: 'IvsVideoStoreBase.setStreamQuality',
+      name: 'IvsVideoStoreBase._applyQuality',
     );
     try {
-      return super.setStreamQuality(quality);
+      return super._applyQuality(quality);
     } finally {
       _$IvsVideoStoreBaseActionController.endAction(_$actionInfo);
     }
