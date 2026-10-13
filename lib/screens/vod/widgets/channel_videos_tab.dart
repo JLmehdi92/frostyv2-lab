@@ -136,7 +136,9 @@ class _ChannelVideosTabState extends State<ChannelVideosTab>
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    'Showing the ${videos.length} most recent videos',
+                    store.gameId != null
+                        ? 'Showing the ${videos.length} most viewed videos'
+                        : 'Showing the ${videos.length} most recent videos',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: context.colorScheme.onSurfaceVariant,
