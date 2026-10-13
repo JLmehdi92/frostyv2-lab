@@ -6,6 +6,7 @@ import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/services/realtime/twitch_realtime_client.dart';
 import 'package:frosty/stores/global_assets_store.dart';
 import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/theme.dart';
@@ -90,6 +91,9 @@ extension ContextExtensions on BuildContext {
 
   /// Gets TwitchVodService from provider
   TwitchVodService get twitchVodService => read<TwitchVodService>();
+
+  /// The shared anonymous realtime connection (Hermes).
+  TwitchRealtimeClient get realtimeClient => read<TwitchRealtimeClient>();
 
   /// Gets GlobalAssetsStore from provider
   GlobalAssetsStore get globalAssetsStore => read<GlobalAssetsStore>();
