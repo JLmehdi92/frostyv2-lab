@@ -176,6 +176,13 @@ Portrait : vidéo 16:9 au-dessus du chat (l.806-836). Paysage (l.576-805) : chat
 - **Store** `ChannelProfileStore` : profil (une requête à la fois), en-tête Helix `/users` si le GQL échoue, programme chargé à la première ouverture de l'onglet.
 - **Écran** `ChannelProfileScreen` : `NestedScrollView` (l'en-tête défile, la barre d'onglets reste), onglets Accueil, À propos, Programme, Vidéos (`ChannelVideosTab`, extrait de `ChannelVideosScreen`, avec sa progression) et Clips (`ChannelClipsTab`), en mode `nested` (contrôleur partagé, sans barre de défilement ni bouton « haut »). Ouvert depuis une chaîne suivie hors ligne, un résultat de recherche hors ligne, l'avatar sous la vidéo (`fromChannel` : Regarder revient au lecteur), la carte d'utilisateur du chat, le menu d'actions (« Profile ») et les liens `/<login>/about`, `/schedule`.
 
+### Découverte (E8) — `lib/screens/home/`
+- **Page catégorie** (`top/categories/category_streams.dart`) : puces Live / Videos / Clips. Videos et Clips réutilisent `ChannelVideosTab` et `ChannelClipsTab` avec un `gameId` (stores créés à la première ouverture) ; les cartes nomment la chaîne (`showChannel`).
+- **Langue** : `settingsStore.streamLanguage` (`utils/stream_languages.dart`, '' = toutes) filtre Top, catégorie et tag ; un changement relance la liste et `ListStore` ignore une page demandée avant (`_streamsGeneration`).
+- **Tri et tags** : `TwitchDirectoryService` (GQL anonyme) donne les lives d'une catégorie ou d'un tag dans un ordre `StreamSort` ; une catégorie en « Viewers (high to low) » reste sur Helix et pagine, les autres ordres et les tags tiennent en une réponse (pagination GQL soumise à l'intégrité). Nœuds validés (ids numériques, login, direct seulement, miniature reconstruite depuis le login). `StreamSortButton` sur la page catégorie et `TagStreams` (`top/tags/`), ouverte depuis les tags d'une carte (`StreamTags.onTap`).
+- **Recherche** : entrée d'historique supprimable, résultat exact mis en avant (`search/featured_channel.dart`).
+- `StreamsList` détruit son `ListStore` (réactions, écouteur de défilement) ; le contrôleur de défilement reste à son propriétaire.
+
 ## 4. Chat
 
 - **Connexion IRC** (`chat_store.dart`) : reconnexion ×5 avec backoff 0/1/2/4/8 s, notices de compte à rebours, action « Reconnect » ; `RECONNECT` non géré explicitement ; buffer flushé toutes les 200 ms ; historique plafonné à 5000 (purge de 20 %) ; 100 derniers messages rendus en autoscroll ; pastille « N new messages ».
@@ -226,11 +233,12 @@ Portrait : vidéo 16:9 au-dessus du chat (l.806-836). Paysage (l.576-805) : chat
 - **Following** : lives suivis (pull-to-refresh, pagination), section épinglés, section hors-ligne repliable (« followed since »).
 - **Cartes de stream** : miniature rafraîchie toutes les 5 min (zoom), uptime, titre, catégorie, spectateurs, appui long = épingler / bloquer / signaler, style compact/large, miniature on/off.
 - **Top** : streams populaires, catégories populaires → page catégorie.
-- **Recherche** : chaînes + catégories, historique (8), « Go to channel ».
+- **Recherche** : chaînes + catégories, résultat exact mis en avant, historique (8, suppression unitaire), « Go to channel ».
+- **Découverte** : page catégorie Live / Videos / Clips, tri des lives, pages de tag, filtre de langue.
 - **Chaîne** : 3 moteurs (IVS, mpv, WebView), overlay complet, barre d'info, PiP système, mini-player in-app, paysage (colonne/overlay), chat seul, « My channel », réveil de l'écran, minuteur de veille.
 - **Chat** : voir §4.
 - **Réglages** : Compte (anonyme/connecté, utilisateurs bloqués, déconnexion), Général (thème, accent, cartes, miniatures, navigateur externe), Vidéo (IVS, vidéo on/off, plus haute qualité, rendu rapide, réveil, overlay custom, appui long, latence), Chat (tailles, apparence, délai, alertes, disposition, paysage, mots masqués, autocomplétion, fournisseurs d'emotes/badges, messages récents), Autre (notes de version, cache, reset, crash logs).
-- **Absent** : follow/unfollow, notifications, whispers, abonnements/gifts/Turbo, multi-comptes, profil/à propos/panneaux, VODs, clips, highlights, planning, filtres tags/langue, recommandations, Bits, Channel Points, prédictions, sondages, Hype Train, Drops, modération active, mots-clés de surlignage, badges/paints 7TV, Chromecast, audio seul, streaming.
+- **Absent** : follow/unfollow, notifications, whispers, abonnements/gifts/Turbo, multi-comptes, profil/à propos/panneaux, VODs, clips, highlights, planning, recommandations, Bits, Channel Points, prédictions, sondages, Hype Train, Drops, modération active, mots-clés de surlignage, badges/paints 7TV, Chromecast, audio seul, streaming.
 
 ## 7. Tests
 

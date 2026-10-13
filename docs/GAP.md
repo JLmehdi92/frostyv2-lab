@@ -15,6 +15,7 @@
 | 2026-10-13 | épopée E2 « clips » | PRF-17, PRF-18 ✅ ; CHT-45 ⚠️ ; PRF-19 (compte requis) ; MSC-01 (remarques). Comptes recalculés. Lecture à valider sur appareil. |
 | 2026-10-13 | épopée E7 « chat » (1re partie) | CHT-03, 06, 12, 15, 18 ✅ ; CHT-05, 17, 28 ⚠️ (remarques). Comptes recalculés. À valider sur appareil. |
 | 2026-10-13 | épopée E6 « profil de chaîne » | PRF-01, 02, 03, 04, 05, 28 ✅ ; PRF-25 ⚠️ (remarque). Comptes recalculés. Affichage à valider sur appareil. |
+| 2026-10-13 | épopée E8 « découverte » | DSC-04, DSC-05, DSC-06 ✅ ; DSC-08, DSC-09 ⚠️ (remarques). Comptes recalculés. Affichage à valider sur appareil. |
 | 2026-10-13 | épopée E5 « highlights communautaires » | CHT-41, CHT-42 ✅ ; INT-01, INT-02 ⚠️ (lecture seule) ; INT-19 (raid sortant). Comptes recalculés. Affichage à valider sur appareil. |
 
 ## 0. Légende et conventions
@@ -243,12 +244,12 @@
 | DSC-01 | Navigation principale | P0 | ⚠️ | `home.dart` (`HomeRailLayout`) | Following, Top, Search ; l'avatar mène aux réglages ; rail latéral sur tablette (≥ 600 dp). Ni Activité, ni Profil. | OK |
 | DSC-02 | Catégories | P0 | ✅ | `twitch_api.dart:292-300`, `categories.dart` | Pas de pastille « nouveau ». | OK |
 | DSC-03 | Chaînes live | P0 | ✅ | `twitch_api.dart:167-175`, `streams_list.dart:335-340` | — | OK |
-| DSC-04 | Page catégorie | P0 | ⚠️ | `category_streams.dart:15-150` | Lives seulement. Pas d'onglets vidéos/clips (Helix `/videos?game_id`, `/clips?game_id`). Le follow de catégorie passe par GQL. | OK |
-| DSC-05 | Tri et filtres | P1 | ❌ | — | Helix `/streams?language=`. Les tris et le filtre par tag passent par GQL. | OK |
-| DSC-06 | Tags | P1 | ❌ | — | Tags non affichés (Helix les renvoie). Les pages de tag passent par GQL. | GQL privé |
+| DSC-04 | Page catégorie | P0 | ✅ | `category_streams.dart` (`CategorySection`), `twitch_vod_service.dart` (`getCategoryVideos`), `twitch_clip_service.dart` (`getCategoryClips`) | Sections Live, Videos (100 plus vues, GQL anonyme sans pagination) et Clips (période et tri), chaîne nommée sur chaque carte. Le follow de catégorie reste à faire (compte requis, E9). | OK |
+| DSC-05 | Tri et filtres | P1 | ✅ | `stream_languages.dart`, `stream_language_setting.dart`, `twitch_directory_service.dart`, `stream_sort_button.dart` | Langue des listes Top, catégorie et tag (Réglages › Général › Browse ; Helix `language`, GQL `broadcasterLanguages`). Tri des lives d'une catégorie ou d'un tag : spectateurs ↓ (Helix, paginé), Recommended, spectateurs ↑, Recently started (GQL anonyme, une seule page : 100 par catégorie, 30 par tag, la pagination GQL exige l'intégrité). | OK |
+| DSC-06 | Tags | P1 | ✅ | `stream_tags.dart`, `tags/tag_streams.dart` | Quatre tags par carte sur une ligne ; un tag ouvre la page de ses lives (GQL anonyme `freeformTags`, triable, suit la langue). | GQL privé |
 | DSC-07 | Recherche globale | P0 | ⚠️ | `search_store.dart:70-120`, `search.dart:204-226` | Chaînes et catégories, résultats pendant la saisie (debounce 300 ms). Pas d'onglets Top/Vidéos. | OK |
-| DSC-08 | Suggestions et recherches récentes | P0 | ⚠️ | `search_store.dart:53-60,104-108`, `search.dart:101`, `search_results_channels.dart:164` | Historique (8 entrées) et « Go to channel ». Pas de suggestions. Effacement global seulement. | OK |
-| DSC-09 | Résultat mis en avant, flux liés, chaînes hors ligne | P1 | ⚠️ | `search_results_channels.dart:79-96` | Indicateur live, chaînes hors ligne incluses. Pas de carte mise en avant. | OK |
+| DSC-08 | Suggestions et recherches récentes | P0 | ⚠️ | `search_store.dart` (`removeFromHistory`), `search.dart`, `search_results_channels.dart` | Historique (8 entrées) effaçable en entier ou entrée par entrée, « Go to channel ». Pas de suggestions. | OK |
+| DSC-09 | Résultat mis en avant, flux liés, chaînes hors ligne | P1 | ⚠️ | `featured_channel.dart`, `search_results_channels.dart` | La chaîne dont le login ou le nom est exactement la recherche passe en tête, en grande carte (titre, catégorie, direct ou hors ligne). Indicateur live, chaînes hors ligne incluses. Pas de flux liés. | OK |
 | DSC-10 | Suivre depuis la recherche | P1 | ❌ | — | Dépend de SOC-01. | GQL privé |
 | DSC-11 | Flux de découverte vertical | P1 | ❌ | — | Helix `/streams` + IVS en aperçu. Coûteux en mémoire. | OK |
 | DSC-12 | Flux de clips vertical | P1 | ❌ | — | Le jeton de lecture d'un clip exige une requête GQL (sans intégrité, risque faible). | GQL privé |
@@ -429,25 +430,25 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Interactions communautaires (INT) | 3 | 3 | 25 | 0 | 31 |
 | Modération (MOD) | 0 | 0 | 31 | 0 | 31 |
 | Social & notifications (SOC) | 2 | 3 | 17 | 0 | 22 |
-| Découverte & recherche (DSC) | 2 | 5 | 15 | 0 | 22 |
+| Découverte & recherche (DSC) | 5 | 4 | 13 | 0 | 22 |
 | Profil de chaîne & contenus (VOD / clips) (PRF) | 5 | 6 | 18 | 0 | 29 |
 | Monétisation (MON) | 0 | 0 | 15 | 0 | 15 |
 | Compte & réglages (ACC) | 3 | 6 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 3 | 7 | 7 | 0 | 17 |
-| **Total** | **53** | **46** | **210** | **8** | **317** |
+| **Total** | **56** | **45** | **208** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| P0 | 22 | 21 | 13 | 4 | 60 |
-| P1 | 25 | 18 | 61 | 4 | 108 |
+| P0 | 23 | 20 | 13 | 4 | 60 |
+| P1 | 27 | 18 | 59 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **53** | **46** | **210** | **8** | **317** |
+| **Total** | **56** | **45** | **208** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 20 | 37 | 33 | 90 |
-| GQL privé | 6 | 30 | 61 | 97 |
+| OK | 19 | 36 | 33 | 88 |
+| GQL privé | 6 | 29 | 61 | 96 |
 | Compte requis | 8 | 12 | 12 | 32 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
 
