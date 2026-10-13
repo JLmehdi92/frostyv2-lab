@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:frosty/models/community_highlights.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
+import 'package:frosty/screens/channel/community_highlights/stores/community_highlights_store.dart';
+import 'package:frosty/screens/channel/community_highlights/widgets/highlight_slot.dart';
 import 'package:frosty/screens/channel/hype_train/hype_train_placement.dart';
 import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_sheet.dart';
@@ -99,22 +102,37 @@ class _ClosesWhenHiddenState extends State<_ClosesWhenHidden> {
   Widget build(BuildContext context) => widget.child;
 }
 
-/// The hype train above chat, under the chat tab bar. It covers only the
-/// oldest messages (chat is newest at the bottom); its details never reach
-/// the chat input and close while typing.
-class HypeTrainChatOverlay extends StatefulWidget {
-  const HypeTrainChatOverlay({
+/// The top of chat, under the chat tab bar: the hype train, then the
+/// community highlight. It covers only the oldest messages (chat is newest
+/// at the bottom) and never reaches the chat input; the hype train details
+/// close while typing.
+class ChannelChatTopOverlay extends StatefulWidget {
+  const ChannelChatTopOverlay({
     super.key,
-    required this.store,
+    this.hypeTrain,
+    this.highlights,
     required this.settingsStore,
     required this.chatTabsStore,
+    this.onWatchRaid,
+    this.pinnedMessage,
     this.chatInputFocus,
     this.bottomBarHeight = 0,
   });
 
-  final HypeTrainStore store;
+  /// Null while its setting is off.
+  final HypeTrainStore? hypeTrain;
+
+  /// Null while its setting is off.
+  final CommunityHighlightsStore? highlights;
+
   final SettingsStore settingsStore;
   final ChatTabsStore chatTabsStore;
+
+  /// "Watch" on an outgoing raid.
+  final ValueChanged<OutgoingRaid>? onWatchRaid;
+
+  /// Renders a pinned message like chat.
+  final PinnedMessageBuilder? pinnedMessage;
 
   /// The chat text field: while it has focus the details stay closed.
   final FocusNode? chatInputFocus;
@@ -123,10 +141,10 @@ class HypeTrainChatOverlay extends StatefulWidget {
   final double bottomBarHeight;
 
   @override
-  State<HypeTrainChatOverlay> createState() => _HypeTrainChatOverlayState();
+  State<ChannelChatTopOverlay> createState() => _ChannelChatTopOverlayState();
 }
 
-class _HypeTrainChatOverlayState extends State<HypeTrainChatOverlay> {
+class _ChannelChatTopOverlayState extends State<ChannelChatTopOverlay> {
   bool get _typing => widget.chatInputFocus?.hasFocus ?? false;
 
   @override
@@ -136,7 +154,7 @@ class _HypeTrainChatOverlayState extends State<HypeTrainChatOverlay> {
   }
 
   @override
-  void didUpdateWidget(HypeTrainChatOverlay oldWidget) {
+  void didUpdateWidget(ChannelChatTopOverlay oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.chatInputFocus != widget.chatInputFocus) {
       oldWidget.chatInputFocus?.removeListener(_onFocus);
@@ -146,7 +164,10 @@ class _HypeTrainChatOverlayState extends State<HypeTrainChatOverlay> {
 
   void _onFocus() {
     if (!mounted) return;
-    if (_typing && widget.store.expanded) widget.store.toggleExpanded();
+    final hypeTrain = widget.hypeTrain;
+    if (_typing && hypeTrain != null && hypeTrain.expanded) {
+      hypeTrain.toggleExpanded();
+    }
     setState(() {});
   }
 
@@ -155,6 +176,8 @@ class _HypeTrainChatOverlayState extends State<HypeTrainChatOverlay> {
     widget.chatInputFocus?.removeListener(_onFocus);
     super.dispose();
   }
+
+  void _watchRaid(OutgoingRaid raid) => widget.onWatchRaid?.call(raid);
 
   @override
   Widget build(BuildContext context) {
@@ -166,12 +189,23 @@ class _HypeTrainChatOverlayState extends State<HypeTrainChatOverlay> {
           if (placement == HtPlacement.none || placement == HtPlacement.pill) {
             return const SizedBox.shrink();
           }
+          final hypeTrain = widget.hypeTrain;
+          final highlights = widget.highlights;
           final largeScreen = context.isLargeScreen;
+          final typing = _typing || _keyboardOpen(context);
           // A wide chat (a tablet's expanded column) has room for the full
-          // banner.
-          final compact =
-              placement == HtPlacement.bannerCompact &&
-              !(largeScreen && constraints.maxWidth >= _fullBannerMinWidth);
+          // banner and an expanded highlight.
+          final wide =
+              largeScreen && constraints.maxWidth >= _fullBannerMinWidth;
+          final compact = placement == HtPlacement.bannerCompact && !wide;
+          final trainUp = hypeTrain?.visible ?? false;
+          // The hype train details take the room; the highlight comes back
+          // when they close.
+          final showHighlights =
+              highlights != null && !(trainUp && hypeTrain!.expanded);
+          // On a phone the highlight stays one line under a running train,
+          // and while typing.
+          final highlightsCompact = compact || (!wide && (trainUp || typing));
           final chatOnly = !settings.showVideo;
           final top =
               (chatOnly ? context.safePaddingTop : 0) +
@@ -180,9 +214,13 @@ class _HypeTrainChatOverlayState extends State<HypeTrainChatOverlay> {
           // the chat input, at most 60% of chat.
           final room =
               constraints.maxHeight - top - 6 - 80 - widget.bottomBarHeight - 8;
-          final detailsMax = _typing || _keyboardOpen(context)
+          final detailsMax = typing
               ? 0.0
               : room.clamp(0.0, constraints.maxHeight * 0.6);
+          // Nothing goes past the chat input.
+          final maxHeight =
+              (constraints.maxHeight - top - 6 - widget.bottomBarHeight - 8)
+                  .clamp(0.0, double.infinity);
           return Align(
             alignment: Alignment.topCenter,
             child: Padding(
@@ -190,14 +228,41 @@ class _HypeTrainChatOverlayState extends State<HypeTrainChatOverlay> {
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   maxWidth: largeScreen ? _maxBannerWidth : double.infinity,
+                  maxHeight: maxHeight,
                 ),
-                child: HypeTrainSlot(
-                  store: widget.store,
-                  compact: compact,
-                  detailsMaxHeight: detailsMax,
-                  onLearnMore: () => _openGuide(settings),
-                  onOpenDetails: () =>
-                      showHypeTrainDetails(context, widget.store, settings),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (hypeTrain != null)
+                      HypeTrainSlot(
+                        store: hypeTrain,
+                        compact: compact,
+                        detailsMaxHeight: detailsMax,
+                        onLearnMore: () => _openGuide(settings),
+                        onOpenDetails: () =>
+                            showHypeTrainDetails(context, hypeTrain, settings),
+                      ),
+                    if (trainUp && showHighlights && highlights.visible)
+                      const SizedBox(height: 6),
+                    if (showHighlights)
+                      Flexible(
+                        child: SingleChildScrollView(
+                          child: HighlightSlot(
+                            store: highlights,
+                            compact: highlightsCompact,
+                            onWatchRaid: _watchRaid,
+                            pinnedMessage: widget.pinnedMessage,
+                            onOpenDetails: () => showHighlightDetails(
+                              context,
+                              highlights,
+                              onWatchRaid: _watchRaid,
+                              pinnedMessage: widget.pinnedMessage,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
@@ -208,34 +273,66 @@ class _HypeTrainChatOverlayState extends State<HypeTrainChatOverlay> {
   }
 }
 
-/// The pill over the video when landscape full screen hides chat. Put it
-/// directly in the video `Stack`.
-class HypeTrainVideoOverlay extends StatelessWidget {
-  const HypeTrainVideoOverlay({
+/// The pills over the video when landscape full screen hides chat: the
+/// hype train, then the community highlight. Put it directly in the video
+/// `Stack`.
+class ChannelVideoTopOverlay extends StatelessWidget {
+  const ChannelVideoTopOverlay({
     super.key,
-    required this.store,
+    this.hypeTrain,
+    this.highlights,
     required this.settingsStore,
+    this.onWatchRaid,
+    this.pinnedMessage,
   });
 
-  final HypeTrainStore store;
+  final HypeTrainStore? hypeTrain;
+  final CommunityHighlightsStore? highlights;
   final SettingsStore settingsStore;
+  final ValueChanged<OutgoingRaid>? onWatchRaid;
+  final PinnedMessageBuilder? pinnedMessage;
 
   @override
   Widget build(BuildContext context) {
     return Observer(
       builder: (context) {
-        if (_placement(context, settingsStore) != HtPlacement.pill ||
-            !store.visible) {
+        if (_placement(context, settingsStore) != HtPlacement.pill) {
           return const SizedBox.shrink();
         }
-        final pill = HypeTrainVideoPill(
-          store: store,
-          onTap: () => showHypeTrainDetails(context, store, settingsStore),
+        final hypeTrain = this.hypeTrain;
+        final highlights = this.highlights;
+        final pills = [
+          if (hypeTrain != null && hypeTrain.visible)
+            HypeTrainVideoPill(
+              store: hypeTrain,
+              onTap: () =>
+                  showHypeTrainDetails(context, hypeTrain, settingsStore),
+            ),
+          if (highlights != null && highlights.visible)
+            HighlightVideoPill(
+              store: highlights,
+              onTap: () => showHighlightDetails(
+                context,
+                highlights,
+                onWatchRaid: (raid) => onWatchRaid?.call(raid),
+                pinnedMessage: pinnedMessage,
+              ),
+            ),
+        ];
+        if (pills.isEmpty) return const SizedBox.shrink();
+        final left = settingsStore.landscapeChatLeftSide;
+        final column = Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: left
+              ? CrossAxisAlignment.start
+              : CrossAxisAlignment.end,
+          spacing: 8,
+          children: pills,
         );
         // Where chat would be, below the overlay's top bar.
-        return settingsStore.landscapeChatLeftSide
-            ? Positioned(top: 56, left: 12, child: pill)
-            : Positioned(top: 56, right: 12, child: pill);
+        return left
+            ? Positioned(top: 56, left: 12, child: column)
+            : Positioned(top: 56, right: 12, child: column);
       },
     );
   }

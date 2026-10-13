@@ -150,11 +150,13 @@ class Harness {
   final cancelled = <String>[];
   late CommunityHighlightsStore store;
 
-  CommunityHighlightsStore create() => store = CommunityHighlightsStore(
-    channelId: harnessChannel,
-    service: service,
-    realtime: realtime,
-  );
+  CommunityHighlightsStore create({bool expandNew = false}) =>
+      store = CommunityHighlightsStore(
+        channelId: harnessChannel,
+        service: service,
+        realtime: realtime,
+        expandNew: expandNew,
+      );
 
   void send(HighlightTopic topic, String payload) =>
       topics[topic]!.add(RealtimeMessage(payload));

@@ -31,6 +31,7 @@ abstract class CommunityHighlightsStoreBase with Store {
     required TwitchCommunityHighlightsService service,
     required TwitchRealtimeClient realtime,
     ServerClock? serverClock,
+    this.expandNew = false,
   }) : _service = service,
        serverClock = serverClock ?? ServerClock() {
     for (final topic in HighlightTopic.values) {
@@ -56,6 +57,10 @@ abstract class CommunityHighlightsStoreBase with Store {
 
   /// Twitch's time, learnt from notification timestamps.
   final ServerClock serverClock;
+
+  /// New polls, predictions and raids arrive expanded (large screens); a
+  /// pinned message never does, so it never holds a new one back.
+  final bool expandNew;
 
   final _subscriptions = <RealtimeTopicSubscription>[];
   final _topicEvents = <StreamSubscription<RealtimeTopicEvent>>[];
@@ -245,7 +250,7 @@ abstract class CommunityHighlightsStoreBase with Store {
     _scheduleDeadlines();
   }
 
-  static HighlightStack _sync(
+  HighlightStack _sync(
     HighlightStack stack,
     HighlightKind kind,
     String? id, {
@@ -254,7 +259,14 @@ abstract class CommunityHighlightsStoreBase with Store {
     if (id == null) return stack.remove(kind);
     final existing = stack.items.where((i) => i.kind == kind).firstOrNull;
     if (existing?.id == id) return stack;
-    return stack.upsert(HighlightItem(kind: kind, id: id, sticky: sticky));
+    return stack.upsert(
+      HighlightItem(
+        kind: kind,
+        id: id,
+        sticky: sticky,
+        expanded: expandNew && kind != HighlightKind.pinned,
+      ),
+    );
   }
 
   // --- Deadlines -------------------------------------------------------------------

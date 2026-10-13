@@ -327,6 +327,29 @@ void main() {
     });
   });
 
+  test('large screens get new highlights expanded, never the pinned one', () {
+    run((async) {
+      when(
+        () => h.service.getPinned(any()),
+      ).thenAnswer((_) async => pinnedModel('pin'));
+      h.create(expandNew: true);
+      async.flushMicrotasks();
+      expect(h.store.current!.expanded, isFalse);
+
+      h.send(HighlightTopic.polls, pollPayload('POLL_CREATE'));
+      async.flushMicrotasks();
+      expect(h.store.current!.kind, HighlightKind.poll);
+      expect(h.store.current!.expanded, isTrue);
+
+      // The expanded poll keeps the slot; the raid waits behind it.
+      h.send(HighlightTopic.raid, raidPayload('raid_update_v2'));
+      async.flushMicrotasks();
+      expect(h.store.current!.kind, HighlightKind.poll);
+      expect(h.store.stack.unseenBehind, isTrue);
+      h.store.dispose();
+    });
+  });
+
   test('a stale first answer never wipes what Hermes sent meanwhile', () {
     run((async) {
       final poll = Completer<Poll?>();

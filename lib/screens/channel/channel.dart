@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:frosty/screens/channel/channel_top_overlays.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_tabs.dart';
 import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_channel_overlays.dart';
 import 'package:frosty/screens/channel/video/ivs_stats_panel.dart';
 import 'package:frosty/screens/channel/video/ivs_video.dart';
 import 'package:frosty/screens/channel/video/native_video.dart';
@@ -570,11 +570,10 @@ class _VideoChatState extends State<VideoChat>
           children: [
             player,
             if (_videoStore.settingsStore.showOverlay) overlay,
-            if (_hypeTrainStore case final hypeTrain?)
-              HypeTrainVideoOverlay(
-                store: hypeTrain,
-                settingsStore: settingsStore,
-              ),
+            ChannelVideoTopOverlay(
+              hypeTrain: _hypeTrainStore,
+              settingsStore: settingsStore,
+            ),
             if (_videoStore case final IvsVideoStore ivs
                 when ivs.statsVisible && !ivs.isInPipMode)
               Positioned.fill(
@@ -608,14 +607,13 @@ class _VideoChatState extends State<VideoChat>
                   ? EdgeInsets.only(top: context.safePaddingTop)
                   : null,
             ),
-            if (_hypeTrainStore case final hypeTrain?)
-              HypeTrainChatOverlay(
-                store: hypeTrain,
-                settingsStore: settingsStore,
-                chatTabsStore: _chatTabsStore,
-                chatInputFocus: _chatStore.textFieldFocusNode,
-                bottomBarHeight: _chatStore.bottomBarHeight,
-              ),
+            ChannelChatTopOverlay(
+              hypeTrain: _hypeTrainStore,
+              settingsStore: settingsStore,
+              chatTabsStore: _chatTabsStore,
+              chatInputFocus: _chatStore.textFieldFocusNode,
+              bottomBarHeight: _chatStore.bottomBarHeight,
+            ),
             Observer(
               builder: (_) => AnimatedSwitcher(
                 duration: const Duration(milliseconds: 200),
@@ -818,11 +816,10 @@ class _VideoChatState extends State<VideoChat>
                                       },
                                     ),
                                   // Hidden chat: the hype train as a pill.
-                                  if (_hypeTrainStore case final hypeTrain?)
-                                    HypeTrainVideoOverlay(
-                                      store: hypeTrain,
-                                      settingsStore: settingsStore,
-                                    ),
+                                  ChannelVideoTopOverlay(
+                                    hypeTrain: _hypeTrainStore,
+                                    settingsStore: settingsStore,
+                                  ),
                                 ],
                               )
                             : SafeArea(

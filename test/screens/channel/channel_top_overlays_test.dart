@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
+import 'package:frosty/models/community_highlight_event.dart';
 import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/models/hype_train_event.dart';
+import 'package:frosty/screens/channel/channel_top_overlays.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
+import 'package:frosty/screens/channel/community_highlights/widgets/highlight_slot.dart';
 import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_banner.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_channel_overlays.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_level_pill.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_sheet.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_slot.dart';
@@ -14,7 +16,8 @@ import 'package:frosty/screens/channel/hype_train/widgets/hype_train_video_pill.
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:mocktail/mocktail.dart';
 
-import 'hype_train_widget_harness.dart';
+import '../../helpers/community_highlights_harness.dart' as ch;
+import 'hype_train/widgets/hype_train_widget_harness.dart';
 
 class MockChatTabsStore extends Mock implements ChatTabsStore {}
 
@@ -74,7 +77,7 @@ void main() {
       Stack(
         children: [
           const SizedBox.expand(),
-          HypeTrainVideoOverlay(store: h.store, settingsStore: settings),
+          ChannelVideoTopOverlay(hypeTrain: h.store, settingsStore: settings),
         ],
       ),
     );
@@ -140,8 +143,8 @@ void main() {
             child: Stack(
               children: [
                 const SizedBox.expand(),
-                HypeTrainChatOverlay(
-                  store: h.store,
+                ChannelChatTopOverlay(
+                  hypeTrain: h.store,
                   settingsStore: settings,
                   chatTabsStore: tabs,
                   chatInputFocus: focus,
@@ -263,8 +266,8 @@ void main() {
             child: Stack(
               children: [
                 const SizedBox.expand(),
-                HypeTrainChatOverlay(
-                  store: h.store,
+                ChannelChatTopOverlay(
+                  hypeTrain: h.store,
                   settingsStore: settings,
                   chatTabsStore: tabs,
                   chatInputFocus: FocusNode(),
@@ -297,6 +300,190 @@ void main() {
         lessThanOrEqualTo(560),
       );
       await h.close(tester);
+    });
+  });
+
+  group('community highlights', () {
+    late ch.Harness hl;
+
+    setUp(() => hl = ch.Harness());
+
+    Future<void> start(WidgetTester tester, {bool expandNew = false}) async {
+      hl.create(expandNew: expandNew);
+      addTearDown(hl.store.dispose);
+      hl.send(HighlightTopic.polls, ch.pollPayload('POLL_CREATE'));
+      await tester.pump();
+    }
+
+    Widget chat({
+      HtHarness? train,
+      double width = 360,
+      double height = 420,
+      FocusNode? focus,
+    }) => Align(
+      alignment: Alignment.topRight,
+      child: SizedBox(
+        width: width,
+        height: height,
+        child: Stack(
+          children: [
+            const SizedBox.expand(),
+            ChannelChatTopOverlay(
+              hypeTrain: train?.store,
+              highlights: hl.store,
+              settingsStore: settings,
+              chatTabsStore: tabs,
+              chatInputFocus: focus,
+              bottomBarHeight: 56,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    HighlightSlot slot(WidgetTester tester) =>
+        tester.widget<HighlightSlot>(find.byType(HighlightSlot));
+
+    testWidgets('alone on a phone: the card, tap to expand', (tester) async {
+      await start(tester);
+      await pumpAt(tester, const Size(360, 740), chat());
+      expect(slot(tester).compact, isFalse);
+      expect(find.text('Which?'), findsOneWidget);
+    });
+
+    testWidgets('under a running train on a phone it stays one line', (
+      tester,
+    ) async {
+      await start(tester);
+      final train = running();
+      await pumpAt(tester, const Size(360, 740), chat(train: train));
+      expect(find.byType(HypeTrainSlot), findsOneWidget);
+      expect(slot(tester).compact, isTrue);
+      expect(
+        tester.getTopLeft(find.byType(HighlightSlot)).dy,
+        greaterThan(tester.getBottomLeft(find.byType(HypeTrainSlot)).dy),
+      );
+
+      // The train details take the room; the highlight comes back after.
+      train.store.toggleExpanded();
+      await tester.pump();
+      expect(find.byType(HighlightSlot), findsNothing);
+      train.store.toggleExpanded();
+      await tester.pump();
+      expect(find.byType(HighlightSlot), findsOneWidget);
+      await train.close(tester);
+    });
+
+    testWidgets('a wide tablet chat shows it expanded under the train', (
+      tester,
+    ) async {
+      await start(tester, expandNew: true);
+      final train = running();
+      await pumpAt(
+        tester,
+        const Size(1600, 1067),
+        chat(train: train, width: 800, height: 1000),
+      );
+      expect(slot(tester).compact, isFalse);
+      expect(find.text('C0'), findsOneWidget);
+      expect(
+        tester.getSize(find.byType(HighlightSlot)).width,
+        lessThanOrEqualTo(560),
+      );
+      await train.close(tester);
+    });
+
+    testWidgets('never past the chat input, even expanded in a short chat', (
+      tester,
+    ) async {
+      hl.create(expandNew: true);
+      addTearDown(hl.store.dispose);
+      hl.send(
+        HighlightTopic.polls,
+        ch.pollPayload('POLL_CREATE', votes: [1, 2, 3, 4, 5]),
+      );
+      await tester.pump();
+      await pumpAt(
+        tester,
+        const Size(1600, 1067),
+        Column(
+          children: [
+            const SizedBox(height: 300),
+            chat(width: 800, height: 260),
+          ],
+        ),
+      );
+      expect(tester.takeException(), isNull);
+      // The card scrolls inside what is left above the input.
+      final box = find.ancestor(
+        of: find.byType(HighlightSlot),
+        matching: find.byType(SingleChildScrollView),
+      );
+      final bottom = tester.getBottomLeft(box).dy;
+      expect(bottom, lessThanOrEqualTo(300 + 260 - 56));
+    });
+
+    testWidgets('hidden chat: both pills over the video, train first', (
+      tester,
+    ) async {
+      settings
+        ..fullScreen = true
+        ..fullScreenChatOverlay = false;
+      await start(tester);
+      final train = running();
+      await pumpAt(
+        tester,
+        const Size(800, 360),
+        Stack(
+          children: [
+            const SizedBox.expand(),
+            ChannelVideoTopOverlay(
+              hypeTrain: train.store,
+              highlights: hl.store,
+              settingsStore: settings,
+            ),
+          ],
+        ),
+      );
+      expect(find.byType(HypeTrainVideoPill), findsOneWidget);
+      expect(find.byType(HighlightVideoPill), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.byType(HighlightVideoPill)).dy,
+        greaterThan(tester.getBottomLeft(find.byType(HypeTrainVideoPill)).dy),
+      );
+      await train.close(tester);
+    });
+
+    testWidgets('only the highlight pill without a train', (tester) async {
+      settings
+        ..fullScreen = true
+        ..fullScreenChatOverlay = false;
+      await start(tester);
+      await pumpAt(
+        tester,
+        const Size(800, 360),
+        Stack(
+          children: [
+            const SizedBox.expand(),
+            ChannelVideoTopOverlay(
+              highlights: hl.store,
+              settingsStore: settings,
+            ),
+          ],
+        ),
+      );
+      expect(find.byType(HighlightVideoPill), findsOneWidget);
+      expect(tester.getTopLeft(find.byType(HighlightVideoPill)).dy, 56);
+    });
+
+    testWidgets('nothing with the landscape keyboard on a phone', (
+      tester,
+    ) async {
+      await start(tester);
+      tester.view.viewInsets = const FakeViewPadding(bottom: 200);
+      addTearDown(tester.view.resetViewInsets);
+      await pumpAt(tester, const Size(800, 360), chat(height: 300));
+      expect(find.byType(HighlightSlot), findsNothing);
     });
   });
 }
