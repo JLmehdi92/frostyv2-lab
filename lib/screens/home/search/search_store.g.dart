@@ -161,6 +161,18 @@ mixin _$SearchStore on SearchStoreBase, Store {
   }
 
   @override
+  void removeFromHistory(String query) {
+    final _$actionInfo = _$SearchStoreBaseActionController.startAction(
+      name: 'SearchStoreBase.removeFromHistory',
+    );
+    try {
+      return super.removeFromHistory(query);
+    } finally {
+      _$SearchStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   String toString() {
     return '''
 

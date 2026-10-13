@@ -129,6 +129,10 @@ abstract class SearchStoreBase with Store {
     }).asObservable();
   }
 
+  /// Forgets one past search.
+  @action
+  void removeFromHistory(String query) => _searchHistory.remove(query);
+
   /// Find a specific channel provided the [query].
   /// This is used for channels that may not show up in the search results.
   Future<Channel> searchChannel(String query) async {

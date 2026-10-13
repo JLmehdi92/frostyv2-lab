@@ -108,6 +108,12 @@ class _SearchState extends State<Search> {
                         (index, searchTerm) => ListTile(
                           leading: const Icon(Icons.history_rounded),
                           title: Text(searchTerm),
+                          trailing: IconButton(
+                            tooltip: 'Remove $searchTerm from history',
+                            icon: const Icon(Icons.close_rounded),
+                            onPressed: () =>
+                                _searchStore.removeFromHistory(searchTerm),
+                          ),
                           onTap: () {
                             _searchStore.textEditingController.text =
                                 searchTerm;
