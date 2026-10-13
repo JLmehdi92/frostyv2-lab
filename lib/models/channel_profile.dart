@@ -10,10 +10,14 @@ const _imageHosts = {'static-cdn.jtvnw.net', 'panels.twitch.tv'};
 String? _image(Object? value) {
   final url = chString(value, max: 400);
   final uri = url == null ? null : Uri.tryParse(url);
-  if (uri == null || uri.scheme != 'https' || !_imageHosts.contains(uri.host)) {
+  if (uri == null ||
+      uri.scheme != 'https' ||
+      !_imageHosts.contains(uri.host) ||
+      uri.userInfo.isNotEmpty ||
+      uri.hasPort) {
     return null;
   }
-  return url;
+  return uri.toString();
 }
 
 /// [value] as an http(s) link, or null.

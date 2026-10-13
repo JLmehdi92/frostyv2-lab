@@ -77,6 +77,21 @@ void main() {
       })!;
       expect(profile.profileImageUrl, isNull);
       expect(profile.bannerUrl, isNull);
+      for (final url in [
+        'https://user:pw@static-cdn.jtvnw.net/a.png',
+        'https://static-cdn.jtvnw.net:444/a.png',
+        'https://static-cdn.jtvnw.net.evil.com/a.png',
+      ]) {
+        expect(
+          ChannelProfile.fromGql({
+            'id': '1',
+            'login': 'someone',
+            'profileImageURL': url,
+          })!.profileImageUrl,
+          isNull,
+          reason: url,
+        );
+      }
       expect(profile.accentColor, isNull);
       expect(profile.socials.single.name, 'site');
       expect(profile.panels.single.title, 'Rules');
