@@ -53,6 +53,12 @@ void main() {
       await settle();
     }
     expect(s.textureId, isNotNull, reason: 'texture was never created');
+    for (var i = 0; i < 20 && native.callsNamed('load').isEmpty; i++) {
+      await settle();
+    }
+    expect(native.callsNamed('load'), hasLength(1), reason: 'initial load');
+    // Tests below count only the calls they cause themselves.
+    native.playerCalls.clear();
     return s;
   }
 
@@ -63,7 +69,10 @@ void main() {
     settingsStore = SettingsStore.fromJson({});
 
     when(
-      () => streamService.getUsherUrl(userLogin: any(named: 'userLogin')),
+      () => streamService.getUsherUrl(
+        userLogin: any(named: 'userLogin'),
+        forceFreshToken: any(named: 'forceFreshToken'),
+      ),
     ).thenAnswer((_) async => _usherUrl);
     final live = StreamTwitch.fromJson(
       (twitchStreamResponse['data']! as List).first as Map<String, dynamic>,
@@ -82,11 +91,11 @@ void main() {
     native.uninstall();
   });
 
-  test('creates the native texture with the usher url', () async {
+  test('creates the native player then loads the usher url', () async {
     store = await createStore();
 
     final create = native.managerCalls.singleWhere((c) => c.method == 'create');
-    expect((create.arguments as Map)['url'], _usherUrl);
+    expect((create.arguments as Map).containsKey('url'), isFalse);
     expect((create.arguments as Map)['config'], {
       'speedUpCatchUp': true,
       'rebufferToLive': false,
@@ -157,6 +166,7 @@ void main() {
   group('latency', () {
     test('shows latency with 0.1 s precision', () async {
       store = await createStore();
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
 
       await native.emit({'type': 'latency', 'ms': 2349});
       expect(store.latency, '2.3s');
@@ -168,6 +178,7 @@ void main() {
 
     test('ignores negative latency', () async {
       store = await createStore();
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
 
       await native.emit({'type': 'latency', 'ms': 1500});
       await native.emit({'type': 'latency', 'ms': -1});
@@ -179,6 +190,7 @@ void main() {
     test('auto-synced chat delay only changes on whole seconds', () async {
       settingsStore.autoSyncChatDelay = true;
       store = await createStore();
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
 
       final synced = <double>[];
       final dispose = reaction(
@@ -197,6 +209,7 @@ void main() {
 
     test('does not touch the chat delay when auto-sync is off', () async {
       store = await createStore();
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
 
       await native.emit({'type': 'latency', 'ms': 4200});
 
@@ -322,7 +335,10 @@ void main() {
         var fatal = 0;
         var n = 0;
         when(
-          () => streamService.getUsherUrl(userLogin: any(named: 'userLogin')),
+          () => streamService.getUsherUrl(
+            userLogin: any(named: 'userLogin'),
+            forceFreshToken: any(named: 'forceFreshToken'),
+          ),
         ).thenAnswer((_) async => '$_usherUrl&n=${n++}');
         store = await createStore();
         store.onFatalError = () => fatal++;
@@ -442,7 +458,10 @@ void main() {
       () async {
         var calls = 0;
         when(
-          () => streamService.getUsherUrl(userLogin: any(named: 'userLogin')),
+          () => streamService.getUsherUrl(
+            userLogin: any(named: 'userLogin'),
+            forceFreshToken: any(named: 'forceFreshToken'),
+          ),
         ).thenAnswer((_) async {
           calls++;
           if (calls < 3) throw const NetworkException('flaky');
@@ -459,7 +478,10 @@ void main() {
     test('does not retry when the channel has no token (offline)', () async {
       var calls = 0;
       when(
-        () => streamService.getUsherUrl(userLogin: any(named: 'userLogin')),
+        () => streamService.getUsherUrl(
+          userLogin: any(named: 'userLogin'),
+          forceFreshToken: any(named: 'forceFreshToken'),
+        ),
       ).thenAnswer((_) async {
         calls++;
         throw const ApiException('No playback access token');
@@ -522,7 +544,10 @@ void main() {
       store = await createStore();
       final gate = Completer<String>();
       when(
-        () => streamService.getUsherUrl(userLogin: any(named: 'userLogin')),
+        () => streamService.getUsherUrl(
+          userLogin: any(named: 'userLogin'),
+          forceFreshToken: any(named: 'forceFreshToken'),
+        ),
       ).thenAnswer((_) => gate.future);
 
       await native.emit({'type': 'error', 'errorType': 'ERROR_NETWORK'});
@@ -591,7 +616,10 @@ void main() {
           () => twitchApi.getStream(userLogin: any(named: 'userLogin')),
         ).thenThrow(const NotFoundException('offline'));
         when(
-          () => streamService.getUsherUrl(userLogin: any(named: 'userLogin')),
+          () => streamService.getUsherUrl(
+            userLogin: any(named: 'userLogin'),
+            forceFreshToken: any(named: 'forceFreshToken'),
+          ),
         ).thenThrow(const ApiException('No playback access token'));
 
         await native.emit({'type': 'error', 'errorType': 'ERROR_NETWORK'});
@@ -654,7 +682,10 @@ void main() {
 
     test('a failed initial url lookup leaves a final status', () async {
       when(
-        () => streamService.getUsherUrl(userLogin: any(named: 'userLogin')),
+        () => streamService.getUsherUrl(
+          userLogin: any(named: 'userLogin'),
+          forceFreshToken: any(named: 'forceFreshToken'),
+        ),
       ).thenThrow(const ApiException('No playback access token'));
       final s = IvsVideoStore(
         userLogin: 'streamer',
@@ -670,6 +701,239 @@ void main() {
       await settle();
 
       expect(s.status, IvsPlaybackStatus.offline);
+    });
+  });
+
+  group('faster start', () {
+    test(
+      'creates the native player while the url is still resolving',
+      () async {
+        final url = Completer<String>();
+        when(
+          () => streamService.getUsherUrl(
+            userLogin: any(named: 'userLogin'),
+            forceFreshToken: any(named: 'forceFreshToken'),
+          ),
+        ).thenAnswer((_) => url.future);
+        final s = IvsVideoStore(
+          userLogin: 'streamer',
+          userId: '123',
+          twitchApi: twitchApi,
+          authStore: MockAuthStore(),
+          settingsStore: settingsStore,
+          streamService: streamService,
+          recoveryPolicy: instantPolicy(),
+        );
+        created = s;
+        for (var i = 0; i < 5; i++) {
+          await settle();
+        }
+
+        expect(
+          native.managerCalls.where((c) => c.method == 'create'),
+          hasLength(1),
+        );
+        expect(s.textureId, native.textureId);
+        expect(native.callsNamed('load'), isEmpty);
+
+        url.complete(_usherUrl);
+        for (var i = 0; i < 5; i++) {
+          await settle();
+        }
+
+        final loads = native.callsNamed('load').toList();
+        expect(loads, hasLength(1));
+        expect((loads.single.arguments as Map)['url'], _usherUrl);
+      },
+    );
+
+    test('disposing before the url resolves never loads', () async {
+      final url = Completer<String>();
+      when(
+        () => streamService.getUsherUrl(
+          userLogin: any(named: 'userLogin'),
+          forceFreshToken: any(named: 'forceFreshToken'),
+        ),
+      ).thenAnswer((_) => url.future);
+      final s = IvsVideoStore(
+        userLogin: 'streamer',
+        userId: '123',
+        twitchApi: twitchApi,
+        authStore: MockAuthStore(),
+        settingsStore: settingsStore,
+        streamService: streamService,
+        recoveryPolicy: instantPolicy(),
+      );
+      for (var i = 0; i < 5; i++) {
+        await settle();
+      }
+      s.dispose();
+      url.complete(_usherUrl);
+      for (var i = 0; i < 5; i++) {
+        await settle();
+      }
+
+      expect(native.callsNamed('load'), isEmpty);
+      expect(
+        native.managerCalls.where((c) => c.method == 'dispose'),
+        hasLength(1),
+      );
+    });
+
+    test('ignores latency until the first frame plays', () async {
+      store = await createStore();
+
+      await native.emit({'type': 'latency', 'ms': 0});
+      expect(store.latency, isNull);
+
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await native.emit({'type': 'latency', 'ms': 2100});
+      expect(store.latency, '2.1s');
+    });
+
+    test('a rejected token reloads with a fresh one', () async {
+      store = await createStore();
+
+      await native.emit({'type': 'error', 'errorType': 'ERROR_AUTHORIZATION'});
+      await settle();
+      await settle();
+
+      verify(
+        () => streamService.getUsherUrl(
+          userLogin: 'streamer',
+          forceFreshToken: true,
+        ),
+      ).called(1);
+    });
+  });
+
+  group('faster start robustness', () {
+    IvsVideoStore build() {
+      final s = IvsVideoStore(
+        userLogin: 'streamer',
+        userId: '123',
+        twitchApi: twitchApi,
+        authStore: MockAuthStore(),
+        settingsStore: settingsStore,
+        streamService: streamService,
+        recoveryPolicy: instantPolicy(),
+      );
+      created = s;
+      return s;
+    }
+
+    test('a refresh before the native player exists still loads', () async {
+      native.createGate = Completer<void>();
+      final s = build();
+      await s.ready;
+      final refresh = s.handleRefresh();
+      await settle();
+      native.createGate!.complete();
+      await refresh;
+      for (var i = 0; i < 6; i++) {
+        await settle();
+      }
+
+      expect(native.callsNamed('load'), hasLength(1));
+      expect(s.textureId, native.textureId);
+    });
+
+    test('a failed first load falls back to the web player', () async {
+      native.loadThrows = true;
+      var fatal = 0;
+      final s = build()..onFatalError = () => fatal++;
+      await s.ready;
+      for (var i = 0; i < 6; i++) {
+        await settle();
+      }
+
+      expect(fatal, 1);
+      expect(s.status, IvsPlaybackStatus.failed);
+    });
+
+    test(
+      'player creation failing while the url is pending falls back',
+      () async {
+        final url = Completer<String>();
+        when(
+          () => streamService.getUsherUrl(
+            userLogin: any(named: 'userLogin'),
+            forceFreshToken: any(named: 'forceFreshToken'),
+          ),
+        ).thenAnswer((_) => url.future);
+        native.createThrows = true;
+        var fatal = 0;
+        final s = build()..onFatalError = () => fatal++;
+        for (var i = 0; i < 4; i++) {
+          await settle();
+        }
+        expect(fatal, 1);
+
+        url.complete(_usherUrl);
+        for (var i = 0; i < 4; i++) {
+          await settle();
+        }
+        expect(fatal, 1);
+        expect(native.callsNamed('load'), isEmpty);
+        expect(s.status, IvsPlaybackStatus.failed);
+      },
+    );
+
+    test(
+      'a failed url lookup still releases the player exactly once',
+      () async {
+        when(
+          () => streamService.getUsherUrl(
+            userLogin: any(named: 'userLogin'),
+            forceFreshToken: any(named: 'forceFreshToken'),
+          ),
+        ).thenThrow(const ApiException('No playback access token'));
+        final s = build();
+        await s.ready.catchError((Object _) {});
+        for (var i = 0; i < 4; i++) {
+          await settle();
+        }
+        s.dispose();
+        created = null;
+        await settle();
+
+        expect(native.callsNamed('load'), isEmpty);
+        expect(
+          native.managerCalls.where((c) => c.method == 'dispose'),
+          hasLength(1),
+        );
+      },
+    );
+
+    test('a manual refresh asks for a fresh token', () async {
+      store = await createStore();
+
+      await store.handleRefresh();
+
+      verify(
+        () => streamService.getUsherUrl(
+          userLogin: 'streamer',
+          forceFreshToken: true,
+        ),
+      ).called(1);
+    });
+
+    test('latency is hidden again until the reloaded stream plays', () async {
+      store = await createStore();
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await native.emit({'type': 'latency', 'ms': 2500});
+
+      await native.emit({'type': 'error', 'errorType': 'ERROR_NETWORK'});
+      await settle();
+      await settle();
+      expect(native.callsNamed('load'), hasLength(1));
+
+      await native.emit({'type': 'latency', 'ms': 0});
+      expect(store.latencyMs, 2500, reason: 'pre-frame value ignored');
+
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await native.emit({'type': 'latency', 'ms': 1800});
+      expect(store.latencyMs, 1800);
     });
   });
 }

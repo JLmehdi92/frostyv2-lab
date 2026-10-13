@@ -2,6 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/models/hls_variant.dart';
+import 'package:frosty/models/playback_access_token.dart';
+import 'package:frosty/services/playback_token_cache.dart';
 
 /// Fetches the raw Twitch HLS playlist for a channel so it can be played by a
 /// native low-latency player instead of the Twitch web embed.
@@ -36,7 +38,13 @@ class TwitchStreamService extends BaseApiClient {
 
   final Dio _http;
 
-  TwitchStreamService(Dio dio) : _http = dio, super(dio, '');
+  /// Optional token cache (null = always ask GQL, the previous behaviour).
+  final PlaybackTokenCache? _tokenCache;
+
+  TwitchStreamService(Dio dio, {PlaybackTokenCache? tokenCache})
+    : _http = dio,
+      _tokenCache = tokenCache,
+      super(dio, '');
 
   /// Returns the available quality variants for [userLogin]'s live stream.
   ///
@@ -64,8 +72,14 @@ class TwitchStreamService extends BaseApiClient {
   /// Returns the full usher master-playlist URL (token + low-latency params) to
   /// hand directly to a player that fetches the playlist itself (the IVS
   /// player). Throws if the channel is offline / Twitch rejects the request.
-  Future<String> getUsherUrl({required String userLogin}) async {
-    final token = await _getAccessToken(userLogin);
+  ///
+  /// A cached token is reused while valid unless [forceFreshToken] is set
+  /// (e.g. after the player reported the token as rejected).
+  Future<String> getUsherUrl({
+    required String userLogin,
+    bool forceFreshToken = false,
+  }) async {
+    final token = await _getAccessToken(userLogin, forceFresh: forceFreshToken);
     final params = usherQueryParameters(
       signature: token.signature,
       token: token.value,
@@ -105,7 +119,19 @@ class TwitchStreamService extends BaseApiClient {
   /// Dio (i.e. it was not injected from the shared app client).
   void close() => _http.close(force: true);
 
-  Future<_AccessToken> _getAccessToken(String login) async {
+  Future<PlaybackAccessToken> _getAccessToken(
+    String login, {
+    bool forceFresh = false,
+  }) async {
+    final cache = _tokenCache;
+    if (cache != null) {
+      if (forceFresh) {
+        cache.invalidate(login);
+      } else if (cache.get(login) case final cached?) {
+        return cached;
+      }
+    }
+
     final data = await post<JsonMap>(
       _gqlUrl,
       headers: {'Client-ID': _gqlClientId},
@@ -126,18 +152,14 @@ class TwitchStreamService extends BaseApiClient {
     if (token is! JsonMap || token['value'] == null) {
       throw const ApiException('No playback access token (channel offline?)');
     }
-    return _AccessToken(
+    final accessToken = PlaybackAccessToken.fromValue(
       value: token['value'] as String,
       signature: token['signature'] as String,
     );
+    cache?.put(login, accessToken);
+    return accessToken;
   }
 
   /// Twitch's usher endpoint expects a random integer in `p`.
   int _randomP() => DateTime.now().microsecondsSinceEpoch % 10000000;
-}
-
-class _AccessToken {
-  final String value;
-  final String signature;
-  const _AccessToken({required this.value, required this.signature});
 }

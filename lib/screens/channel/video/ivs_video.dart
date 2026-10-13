@@ -36,7 +36,7 @@ class IvsVideo extends StatelessWidget {
 
 /// Renders the IVS player into a Flutter [Texture] (instead of a SurfaceView)
 /// so it can be dragged and animated smoothly. The texture is owned by the
-/// [IvsVideoStore] (created when the usher URL resolves), so the same live
+/// [IvsVideoStore] (created as soon as the stream is opened), so the same live
 /// player can move between the channel screen and the mini player without
 /// reloading.
 class IvsTextureVideo extends StatelessWidget {

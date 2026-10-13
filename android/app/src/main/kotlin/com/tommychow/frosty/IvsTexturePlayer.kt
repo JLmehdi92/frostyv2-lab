@@ -43,7 +43,8 @@ class IvsTexturePlayer(
 
 /**
  * Creates and tracks [IvsTexturePlayer]s on demand from Dart over the
- * `frosty/ivs-texture-manager` channel: `create {url} -> textureId`,
+ * `frosty/ivs-texture-manager` channel: `create {config, url?} -> textureId`
+ * (the URL usually arrives later via the player's `load`),
  * `dispose {textureId}`.
  */
 class IvsTextureManager(

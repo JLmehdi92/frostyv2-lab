@@ -24,6 +24,9 @@ class FakeIvsNative {
 
   /// When true, `create` fails like a broken native side.
   bool createThrows = false;
+
+  /// When true, the player's `load` fails like a broken native side.
+  bool loadThrows = false;
   final playerCalls = <MethodCall>[];
 
   static const _manager = MethodChannel('frosty/ivs-texture-manager');
@@ -50,6 +53,9 @@ class FakeIvsNative {
       call,
     ) async {
       playerCalls.add(call);
+      if (call.method == 'load' && loadThrows) {
+        throw PlatformException(code: 'load_failed');
+      }
       return null;
     });
   }

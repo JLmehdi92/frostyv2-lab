@@ -15,6 +15,7 @@ import 'package:frosty/screens/channel/video/latency_stats.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/services/playback_token_cache.dart';
 import 'package:mobx/mobx.dart';
 import 'package:simple_pip_mode/simple_pip.dart';
 
@@ -134,6 +135,9 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   /// True only while the native player reports PLAYING (not buffering/idle).
   var _isPlaying = false;
 
+  /// True once the current source played its first frame.
+  var _hasPlayed = false;
+
   /// Whether the video stats panel is shown (native stats are only sent while
   /// it is open).
   @readonly
@@ -186,6 +190,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
        _streamService =
            streamService ??
            TwitchStreamService(
+             tokenCache: PlaybackTokenCache.shared,
              Dio(
                BaseOptions(
                  connectTimeout: const Duration(seconds: 5),
@@ -195,18 +200,27 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
            ) {
     _startupStopwatch.start();
     if (settingsStore.autoSyncChatDelay) settingsStore.syncedChatDelay = 0.0;
+    // Create the native player while the token/usher URL is resolving (they
+    // used to run one after the other), then load as soon as both are ready.
     ready = _resolveUrl();
+    final startEpoch = _recoveryEpoch;
+    _textureReady = _createTexture().then(
+      (_) => true,
+      onError: (Object e) {
+        debugPrint('IvsVideoStore texture creation failed: $e');
+        _fail();
+        return false;
+      },
+    );
     unawaited(
       ready
-          .then(
-            (_) => _createTexture().catchError((Object e) {
-              debugPrint('IvsVideoStore texture creation failed: $e');
-              _fail();
-            }),
-          )
-          // A failed URL resolution is handled by the channel via [ready]
-          // (WebView fallback); just leave a final status so a minimised
-          // player does not spin forever.
+          .then((_) async {
+            await _loadInitial(startEpoch);
+          })
+          // Only URL resolution failures land here (load errors are handled in
+          // [_loadInitial]). The channel falls back to the WebView via
+          // [ready]; just leave a final status so a minimised player does not
+          // spin forever.
           .catchError((Object e) {
             if (_disposed) return;
             runInAction(
@@ -273,15 +287,12 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     });
   }
 
-  /// Creates the native texture-backed IVS player once the usher URL resolves,
-  /// then wires its control/event channel. The texture lives for as long as
-  /// this store does.
+  /// Creates the native texture-backed IVS player (without a source; the URL
+  /// is loaded once resolved), then wires its control/event channel. The
+  /// texture lives for as long as this store does.
   Future<void> _createTexture() async {
     if (_disposed || _textureId != null) return;
-    final url = _url;
-    if (url == null) return;
     final id = await _textureManager.invokeMethod<int>('create', {
-      'url': url,
       'config': playerConfig.toCreateArgs(),
     });
     if (id == null) return;
@@ -296,12 +307,48 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     if (_statsVisible) unawaited(_sendStatsEnabled());
   }
 
+  /// Completes with true once the native player exists (false if creating it
+  /// failed), so loads never race the `create` call.
+  late final Future<bool> _textureReady;
+
+  /// First load of the stream once both the player and the URL are ready.
+  ///
+  /// Skipped when a refresh (or dispose) happened meanwhile: the refresh
+  /// loads its own, newer URL once the player exists. A native failure here
+  /// falls back to the WebView engine.
+  Future<void> _loadInitial(int startEpoch) async {
+    final url = _url;
+    if (startEpoch != _recoveryEpoch || url == null) return;
+    try {
+      await _loadSource(url, startEpoch);
+    } catch (e) {
+      debugPrint('IvsVideoStore initial load failed: $e');
+      _fail();
+    }
+  }
+
+  /// Sends [url] to the native player once it exists. Latency is hidden again
+  /// until the new source plays its first frame. Returns without loading if
+  /// [epoch] went stale (refresh/dispose) while waiting for the player.
+  Future<void> _loadSource(String url, int epoch) async {
+    if (!await _textureReady) {
+      // No native player to load into: make sure the fallback happens.
+      _fail();
+      return;
+    }
+    if (epoch != _recoveryEpoch) return;
+    _hasPlayed = false;
+    _lastLatencySecond = null;
+    await _channel?.invokeMethod('load', {'url': url});
+  }
+
   @action
   void _onEvent(Map<String, dynamic> e) {
     switch (e['type']) {
       case 'state':
         final state = e['state'] as String?;
         _isPlaying = state == 'PLAYING';
+        if (_isPlaying) _hasPlayed = true;
         if (state == 'PLAYING') {
           _paused = false;
           _status = IvsPlaybackStatus.playing;
@@ -324,7 +371,9 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         break;
       case 'latency':
         final ms = (e['ms'] as num?)?.toInt() ?? -1;
-        if (ms < 0) break;
+        // Before the first frame IVS has no live position, so the value is
+        // meaningless (often 0): never show it nor feed it to the chat delay.
+        if (ms < 0 || !_hasPlayed) break;
         _latencyMs = ms;
         _latency = formatLatency(ms);
         if (_isPlaying) {
@@ -365,7 +414,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   void _applyRecovery(IvsRecoveryAction action) {
     if (_disposed) return;
     switch (action) {
-      case IvsRetry(:final delay):
+      case IvsRetry(:final delay) && final action:
         _recovering = true;
         runInAction(() {
           _status = IvsPlaybackStatus.reconnecting;
@@ -373,7 +422,11 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         });
         _retryTimer?.cancel();
         final epoch = _recoveryEpoch;
-        _retryTimer = Timer(delay, () => unawaited(_reload(epoch)));
+        final fresh = action.freshToken;
+        _retryTimer = Timer(
+          delay,
+          () => unawaited(_reload(epoch, freshToken: fresh)),
+        );
       case IvsOffline():
         _recovering = true;
         unawaited(_confirmOffline(_recoveryEpoch));
@@ -384,13 +437,16 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   }
 
   /// Reloads the same native player with a freshly resolved usher URL.
-  Future<void> _reload(int epoch) async {
+  Future<void> _reload(int epoch, {bool freshToken = false}) async {
     if (epoch != _recoveryEpoch) return;
     try {
-      final url = await _streamService.getUsherUrl(userLogin: userLogin);
+      final url = await _streamService.getUsherUrl(
+        userLogin: userLogin,
+        forceFreshToken: freshToken,
+      );
       if (epoch != _recoveryEpoch) return;
       runInAction(() => _url = url);
-      await _channel?.invokeMethod('load', {'url': url});
+      await _loadSource(url, epoch);
       if (epoch == _recoveryEpoch) _recovering = false;
     } catch (e) {
       debugPrint('IvsVideoStore reload failed: $e');
@@ -502,6 +558,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     _latencyMs = null;
     _lastLatencySecond = null;
     _isPlaying = false;
+    _hasPlayed = false;
     _retryTimer?.cancel();
     _recoveryEpoch++;
     _recovering = false;
@@ -515,10 +572,14 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
       ..start();
     final epoch = _recoveryEpoch;
     try {
-      final url = await _streamService.getUsherUrl(userLogin: userLogin);
+      // A manual refresh is the user's way out of a bad cached token.
+      final url = await _streamService.getUsherUrl(
+        userLogin: userLogin,
+        forceFreshToken: true,
+      );
       if (epoch != _recoveryEpoch) return;
       _url = url;
-      await _channel?.invokeMethod('load', {'url': url});
+      await _loadSource(url, epoch);
       await updateStreamInfo(forceUpdate: true);
     } catch (e) {
       debugPrint('IvsVideoStore refresh failed: $e');

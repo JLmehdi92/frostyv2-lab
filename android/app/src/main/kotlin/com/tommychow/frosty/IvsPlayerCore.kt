@@ -95,7 +95,9 @@ class IvsPlayerCore(
 
         tuning.applyTo(player)
 
-        player.load(Uri.parse(url))
+        // The player can be created before the usher URL is known; Dart then
+        // sends it with "load" as soon as it resolves.
+        if (url.isNotEmpty()) player.load(Uri.parse(url))
         startLatencyTicker()
     }
 

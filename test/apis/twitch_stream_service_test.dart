@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_stream_service.dart';
+import 'package:frosty/services/playback_token_cache.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 
 void main() {
@@ -149,4 +150,93 @@ https://video-edge-1.ttvnw.net/chunked/index-live.m3u8
       expect(usherUri, isNot(contains('low_latency')));
     });
   });
+
+  group('playback token cache', () {
+    late DateTime now;
+    late PlaybackTokenCache cache;
+    late int gqlPosts;
+
+    void stubToken({int expiresInSeconds = 600, bool offline = false}) {
+      final expires = now.millisecondsSinceEpoch ~/ 1000 + expiresInSeconds;
+      adapter.onPost(
+        'https://gql.twitch.tv/gql',
+        (server) => server.reply(200, {
+          'data': {
+            'streamPlaybackAccessToken': offline
+                ? null
+                : {
+                    'value': '{"expires":$expires}',
+                    'signature': 'deadbeef',
+                  },
+          },
+        }),
+        data: Matchers.any,
+      );
+    }
+
+    setUp(() {
+      now = DateTime.now().toUtc();
+      cache = PlaybackTokenCache(now: () => now);
+      gqlPosts = 0;
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            if (options.uri.host == 'gql.twitch.tv') gqlPosts++;
+            handler.next(options);
+          },
+        ),
+      );
+      service = TwitchStreamService(dio, tokenCache: cache);
+    });
+
+    test('reuses a valid token', () async {
+      stubToken();
+
+      await service.getUsherUrl(userLogin: login);
+      await service.getUsherUrl(userLogin: login);
+
+      expect(gqlPosts, 1);
+    });
+
+    test('fetches a new token once the cached one expired', () async {
+      stubToken(expiresInSeconds: 120);
+
+      await service.getUsherUrl(userLogin: login);
+      now = now.add(const Duration(minutes: 3));
+      await service.getUsherUrl(userLogin: login);
+
+      expect(gqlPosts, 2);
+    });
+
+    test('forceFreshToken bypasses the cache', () async {
+      stubToken();
+
+      await service.getUsherUrl(userLogin: login);
+      await service.getUsherUrl(userLogin: login, forceFreshToken: true);
+      await service.getUsherUrl(userLogin: login);
+
+      expect(gqlPosts, 2);
+    });
+
+    test('does not cache an offline channel', () async {
+      stubToken(offline: true);
+
+      await expectLater(
+        service.getUsherUrl(userLogin: login),
+        throwsA(isA<ApiException>()),
+      );
+      expect(cache.get(login), isNull);
+    });
+
+    test('without a cache every call fetches a token', () async {
+      stubToken();
+      service = TwitchStreamService(dio);
+
+      await service.getUsherUrl(userLogin: login);
+      await service.getUsherUrl(userLogin: login);
+
+      expect(gqlPosts, 2);
+    });
+  });
 }
+
