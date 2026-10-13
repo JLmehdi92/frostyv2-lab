@@ -1,0 +1,102 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:frosty/screens/channel/hype_train/hype_train_timings.dart';
+import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_approaching_banner.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_banner.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_end_strip.dart';
+import 'package:mobx/mobx.dart';
+
+/// Where the hype train lives on screen: nothing when there is no train,
+/// else the approaching banner, the banner (or its pill) or the end strip.
+/// While mounted it is the store's presenter.
+class HypeTrainSlot extends StatefulWidget {
+  const HypeTrainSlot({super.key, required this.store, this.compact = false});
+
+  final HypeTrainStore store;
+
+  /// Landscape: a one-line banner and short sequences.
+  final bool compact;
+
+  @override
+  State<HypeTrainSlot> createState() => _HypeTrainSlotState();
+}
+
+class _HypeTrainSlotState extends State<HypeTrainSlot> {
+  late ReactionDisposer _collapsedReaction;
+  var _reduceMotion = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.store.attachPresenter();
+    _collapsedReaction = reaction(
+      (_) => widget.store.collapsed,
+      (_) => _updatePresentation(),
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reduceMotion = MediaQuery.disableAnimationsOf(context);
+    _updatePresentation();
+  }
+
+  @override
+  void didUpdateWidget(HypeTrainSlot oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.store != widget.store) {
+      oldWidget.store.detachPresenter();
+      widget.store.attachPresenter();
+    }
+    _updatePresentation();
+  }
+
+  void _updatePresentation() => widget.store.updatePresentation(
+    compact: widget.compact || widget.store.collapsed,
+    reduceMotion: _reduceMotion,
+  );
+
+  @override
+  void dispose() {
+    _collapsedReaction();
+    widget.store.detachPresenter();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final store = widget.store;
+    return AnimatedSize(
+      duration: HtTimings.short,
+      curve: Curves.easeOut,
+      alignment: Alignment.topCenter,
+      child: Observer(
+        builder: (context) {
+          final Widget child;
+          final String key;
+          switch (store.phase) {
+            case HtPhase.hidden:
+              return const SizedBox(width: double.infinity, height: 0);
+            case HtPhase.approaching:
+              key = 'approaching';
+              child = HypeTrainApproachingBanner(store: store);
+            case HtPhase.ongoing || HtPhase.ending:
+              key = store.collapsed ? 'pill' : 'banner';
+              child = store.collapsed
+                  ? HypeTrainPill(store: store)
+                  : HypeTrainBanner(store: store, compact: widget.compact);
+            case HtPhase.rewards || HtPhase.expired:
+              key = 'strip';
+              child = HypeTrainEndStrip(store: store);
+          }
+          return AnimatedSwitcher(
+            duration: HtTimings.short,
+            child: KeyedSubtree(key: ValueKey('ht-slot-$key'), child: child),
+          );
+        },
+      ),
+    );
+  }
+}

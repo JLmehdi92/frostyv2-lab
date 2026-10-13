@@ -265,6 +265,30 @@ mixin _$HypeTrainStore on HypeTrainStoreBase, Store {
     });
   }
 
+  late final _$_approachingEventsLeftAtom = Atom(
+    name: 'HypeTrainStoreBase._approachingEventsLeft',
+    context: context,
+  );
+
+  int get approachingEventsLeft {
+    _$_approachingEventsLeftAtom.reportRead();
+    return super._approachingEventsLeft;
+  }
+
+  @override
+  int get _approachingEventsLeft => approachingEventsLeft;
+
+  @override
+  set _approachingEventsLeft(int value) {
+    _$_approachingEventsLeftAtom.reportWrite(
+      value,
+      super._approachingEventsLeft,
+      () {
+        super._approachingEventsLeft = value;
+      },
+    );
+  }
+
   late final _$_approachingCompletedAtom = Atom(
     name: 'HypeTrainStoreBase._approachingCompleted',
     context: context,

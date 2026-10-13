@@ -174,6 +174,10 @@ abstract class HypeTrainStoreBase with Store {
   @readonly
   int _approachingChecks = 0;
 
+  /// Qualifying events still needed: the smallest deadline key ahead.
+  @readonly
+  int _approachingEventsLeft = 0;
+
   /// A train event arrived: the approaching bar is drawn full.
   @readonly
   bool _approachingCompleted = false;
@@ -764,6 +768,13 @@ abstract class HypeTrainStoreBase with Store {
       1,
       2,
     ].where((key) => _deadlines[key]?.isAfter(now) ?? false).length;
+    final ahead = [
+      for (final MapEntry(:key, :value) in _deadlines.entries)
+        if (value.isAfter(now)) key,
+    ];
+    _approachingEventsLeft = ahead.isEmpty
+        ? (_approaching?.goal ?? 0)
+        : ahead.reduce(min);
     final last = _deadlines.values.reduce(_later);
     final since = _approachingSince ?? now;
     final span = last.difference(since).inMilliseconds;
@@ -784,6 +795,7 @@ abstract class HypeTrainStoreBase with Store {
     _deadlines = {};
     _approachingSince = null;
     _approachingChecks = 0;
+    _approachingEventsLeft = 0;
     _approachingFraction = 0;
     _approachingCompleted = false;
     _approachingNMore = false;
