@@ -93,19 +93,30 @@ Future<void> pumpSlot(
 }
 
 HypeTrainExecution liveTrain({
+  String id = 'train',
   int level = 7,
   int value = 1540,
   int goal = 4700,
   int total = 16040,
   Duration expiresIn = const Duration(seconds: 16),
   HtVariant? variant,
+  HtTreasure? treasure,
+  HtCommunity? community,
+  HtMythic? mythic,
+  HtShared? shared,
+  HtAthState athState = HtAthState.none,
 }) => train(
+  id: id,
   level: level,
   value: value,
   goal: goal,
   total: total,
   variant: variant,
-).copyWith(expiresAt: clock.now().add(expiresIn));
+  treasure: treasure,
+  community: community,
+  shared: shared,
+  athState: athState,
+).copyWith(expiresAt: clock.now().add(expiresIn), mythic: mythic);
 
 HtProgressionEvent htSmall(
   int total, {

@@ -204,7 +204,14 @@ List<HtStep> _eventSteps(HtPlanInput input) {
       return _levelUp(input);
     case HtMergeEvent():
       return [
-        const HtStep(HtStepKind.mergeAura, HtTimings.fade),
+        HtStep(
+          HtStepKind.mergeAura,
+          HtTimings.fade,
+          data: {
+            'previous': result.previousChannels,
+            'joining': result.joiningChannels,
+          },
+        ),
         HtStep(
           HtStepKind.marquee,
           HtTimings.scrollLong,
@@ -319,7 +326,10 @@ List<HtStep> _completed(HtPlanInput input) {
       HtStep(
         HtStepKind.mythicSelect,
         HtTimings.textShort,
-        data: {'emotes': after.mythic?.pool ?? const <HtReward>[]},
+        data: {
+          'emotes': after.mythic?.pool ?? const <HtReward>[],
+          'selected': after.mythic?.selectedEmote,
+        },
       ),
       HtStep(
         HtStepKind.mythicReveal,
