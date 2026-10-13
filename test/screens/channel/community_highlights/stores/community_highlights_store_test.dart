@@ -326,4 +326,63 @@ void main() {
       h.store.dispose();
     });
   });
+
+  test('a stale first answer never wipes what Hermes sent meanwhile', () {
+    run((async) {
+      final poll = Completer<Poll?>();
+      final pin = Completer<PinnedChatMessage?>();
+      when(() => h.service.getPoll(any())).thenAnswer((_) => poll.future);
+      when(() => h.service.getPinned(any())).thenAnswer((_) => pin.future);
+      h.create();
+      h.send(HighlightTopic.polls, pollPayload('POLL_CREATE'));
+      h.send(HighlightTopic.pinned, pinPayload('live'));
+      poll.complete(null);
+      pin.complete(pinnedModel('old'));
+      async.flushMicrotasks();
+
+      expect(h.store.poll?.id, 'p');
+      expect(h.store.pinned?.id, 'live');
+      h.store.dispose();
+    });
+  });
+
+  test('a pin update during a refetch fetches once more', () {
+    run((async) {
+      var calls = 0;
+      final answers = [
+        pinnedModel('pin'),
+        pinnedModel('pin', endsAt: harnessNow.add(const Duration(hours: 1))),
+        pinnedModel('pin', endsAt: harnessNow.add(const Duration(hours: 2))),
+      ];
+      final pending = <Completer<PinnedChatMessage?>>[];
+      when(() => h.service.getPinned(any())).thenAnswer((_) {
+        final c = Completer<PinnedChatMessage?>();
+        pending.add(c);
+        calls++;
+        return c.future;
+      });
+      h.create();
+      pending.removeAt(0).complete(answers[0]);
+      async.flushMicrotasks();
+      async.elapse(const Duration(seconds: 3));
+
+      final update = jsonEncode({
+        'type': 'update-message',
+        'data': {'id': 'pin', 'updated_at': harnessNow.toIso8601String()},
+      });
+      h.send(HighlightTopic.pinned, update);
+      expect(calls, 2);
+      // A second edit while the first refetch is still out.
+      h.send(HighlightTopic.pinned, update);
+      pending.removeAt(0).complete(answers[1]);
+      async.flushMicrotasks();
+      async.elapse(const Duration(seconds: 3));
+      expect(calls, 3);
+      pending.removeAt(0).complete(answers[2]);
+      async.flushMicrotasks();
+
+      expect(h.store.pinned?.endsAt, answers[2].endsAt);
+      h.store.dispose();
+    });
+  });
 }

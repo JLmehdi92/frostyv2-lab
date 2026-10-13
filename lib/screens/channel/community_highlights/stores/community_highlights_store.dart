@@ -64,6 +64,13 @@ abstract class CommunityHighlightsStoreBase with Store {
   final _lastFetch = <HighlightTopic, DateTime>{};
   final _inFlight = <HighlightTopic, Future<void>>{};
   final _trailing = <HighlightTopic, Timer>{};
+
+  /// A fetch asked for while one was out: it runs once that one ends.
+  final _again = <HighlightTopic, Future<void> Function()>{};
+
+  /// Realtime events applied, per topic: a GQL answer that started before
+  /// one of them is older than what shows, and is dropped.
+  final _events = <HighlightTopic, int>{};
   final _failures = <HighlightTopic, int>{};
   final _gqlOff = <HighlightTopic>{};
   Timer? _commitTimer;
@@ -141,6 +148,7 @@ abstract class CommunityHighlightsStoreBase with Store {
     switch (event) {
       case PollEvent(:final poll):
         if (poll.channelId != null && poll.channelId != channelId) return;
+        _saw(HighlightTopic.polls);
         final before = _nextPoll;
         _nextPoll = reducePoll(before, event);
         _changed(urgent: _isUrgent(before, _nextPoll));
@@ -148,6 +156,7 @@ abstract class CommunityHighlightsStoreBase with Store {
         if (prediction.channelId != null && prediction.channelId != channelId) {
           return;
         }
+        _saw(HighlightTopic.predictions);
         final before = _nextPrediction;
         final next = reducePrediction(
           before,
@@ -158,6 +167,8 @@ abstract class CommunityHighlightsStoreBase with Store {
         _predictionTimestamp = next.timestamp;
         _changed(urgent: _isUrgent(before, _nextPrediction));
       case PinEvent() || UnpinEvent() || PinUpdateEvent():
+        // An update carries no details: the refetch it asks for is newer.
+        if (event is! PinUpdateEvent) _saw(HighlightTopic.pinned);
         final next = reducePinned(_nextPinned, event);
         if (next.refetch) unawaited(_fetchPinned());
         if (!identical(next.pin, _nextPinned)) {
@@ -179,6 +190,8 @@ abstract class CommunityHighlightsStoreBase with Store {
         break;
     }
   }
+
+  void _saw(HighlightTopic topic) => _events[topic] = (_events[topic] ?? 0) + 1;
 
   /// A new or gone highlight, or a new status, shows at once; the rest is
   /// coalesced.
@@ -317,7 +330,11 @@ abstract class CommunityHighlightsStoreBase with Store {
   Future<void> _guarded(HighlightTopic topic, Future<void> Function() fetch) {
     if (_disposed || _gqlOff.contains(topic)) return Future.value();
     final running = _inFlight[topic];
-    if (running != null) return running;
+    if (running != null) {
+      // It may have been sent before the change that asks for this one.
+      _again[topic] = fetch;
+      return running;
+    }
     final last = _lastFetch[topic];
     final since = last == null ? null : clock.now().difference(last);
     if (since != null && since < kHighlightRefetchGap) {
@@ -343,32 +360,51 @@ abstract class CommunityHighlightsStoreBase with Store {
         }
       } finally {
         _inFlight.remove(topic);
+        final again = _again.remove(topic);
+        if (again != null) unawaited(_guarded(topic, again));
       }
     }();
   }
 
+  /// [request]'s answer, or null when the store is gone or a realtime event
+  /// of [topic] arrived meanwhile (it is newer than the answer).
+  Future<({T value})?> _fresh<T>(
+    HighlightTopic topic,
+    Future<T> Function() request,
+  ) async {
+    final seen = _events[topic] ?? 0;
+    final value = await request();
+    if (_disposed || (_events[topic] ?? 0) != seen) return null;
+    return (value: value);
+  }
+
   Future<void> _fetchPoll() => _guarded(HighlightTopic.polls, () async {
-    final poll = await _service.getPoll(channelId);
-    if (_disposed) return;
-    final before = _nextPoll;
-    if (poll == null) {
-      _nextPoll = null;
-    } else {
-      _nextPoll = reducePoll(
-        before,
-        PollEvent(
-          poll.isActive ? PollEventKind.update : PollEventKind.complete,
-          poll,
-        ),
-      );
-    }
+    final poll = await _fresh(
+      HighlightTopic.polls,
+      () => _service.getPoll(channelId),
+    );
+    if (poll == null) return;
+    final answer = poll.value;
+    _nextPoll = answer == null
+        ? null
+        : reducePoll(
+            _nextPoll,
+            PollEvent(
+              answer.isActive ? PollEventKind.update : PollEventKind.complete,
+              answer,
+            ),
+          );
     _changed(urgent: true);
   });
 
   Future<void> _fetchPredictions() =>
       _guarded(HighlightTopic.predictions, () async {
-        final predictions = await _service.getPredictions(channelId);
-        if (_disposed) return;
+        final answer = await _fresh(
+          HighlightTopic.predictions,
+          () => _service.getPredictions(channelId),
+        );
+        if (answer == null) return;
+        final predictions = answer.value;
         final resolved = predictions.lastResolved;
         final ended = resolved?.endedAt;
         final recent =
@@ -384,8 +420,12 @@ abstract class CommunityHighlightsStoreBase with Store {
 
   Future<void> _fetchPinned({bool initial = false}) =>
       _guarded(HighlightTopic.pinned, () async {
-        final pin = await _service.getPinned(channelId);
-        if (_disposed) return;
+        final answer = await _fresh(
+          HighlightTopic.pinned,
+          () => _service.getPinned(channelId),
+        );
+        if (answer == null) return;
+        final pin = answer.value;
         final expired = pin != null && pinExpired(pin, serverNow());
         _nextPinned = expired ? null : pin;
         _pinnedSticky = initial;
