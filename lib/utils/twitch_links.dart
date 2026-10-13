@@ -172,6 +172,10 @@ sealed class TwitchLink {
     'popout',
     'moderator',
     'broadcast',
+    'team',
+    'u',
+    'embed',
+    'products',
   };
 }
 

@@ -224,6 +224,7 @@ void main() {
     test('other pages and reserved names do not', () {
       expect(_p('https://www.twitch.tv/xqc/about/more'), isA<OtherLink>());
       expect(_p('https://www.twitch.tv/directory/about'), isA<OtherLink>());
+      expect(_p('https://www.twitch.tv/team/about'), isA<OtherLink>());
       expect(_p('https://www.twitch.tv/xqc'), const ChannelLink('xqc'));
     });
   });
