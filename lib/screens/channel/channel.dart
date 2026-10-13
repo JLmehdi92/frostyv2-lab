@@ -18,6 +18,7 @@ import 'package:frosty/screens/channel/video/video.dart';
 import 'package:frosty/screens/channel/video/video_overlay.dart';
 import 'package:frosty/screens/channel/video/video_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/vod/channel_videos.dart';
 import 'package:frosty/services/playback_focus.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
@@ -628,6 +629,17 @@ class _VideoChatState extends State<VideoChat>
               isInSharedChatMode: _chatStore.isInSharedChatMode,
               showTextShadows: false,
             ),
+            actions: [
+              IconButton(
+                tooltip: 'Videos',
+                icon: const Icon(Icons.video_library_outlined),
+                onPressed: () => ChannelVideosScreen.open(
+                  context,
+                  userLogin: widget.userLogin,
+                  displayName: widget.userName,
+                ),
+              ),
+            ],
             flexibleSpace: BlurredContainer(
               gradientDirection: GradientDirection.up,
               child: const SizedBox.expand(),

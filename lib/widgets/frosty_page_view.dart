@@ -8,11 +8,15 @@ class FrostyPageView extends StatefulWidget {
   /// when that tab is selected.
   final Map<int, Widget> tabActions;
 
+  /// The tab shown first.
+  final int initialIndex;
+
   const FrostyPageView({
     super.key,
     required this.headers,
     required this.children,
     this.tabActions = const {},
+    this.initialIndex = 0,
   }) : assert(headers.length == children.length);
 
   @override
@@ -26,7 +30,11 @@ class _FrostyPageViewState extends State<FrostyPageView>
   void _handleTabChange() => setState(() {});
 
   void _initTabController(int length) {
-    _tabController = TabController(length: length, vsync: this);
+    _tabController = TabController(
+      length: length,
+      vsync: this,
+      initialIndex: widget.initialIndex.clamp(0, length - 1),
+    );
     _tabController.addListener(_handleTabChange);
   }
 
@@ -79,8 +87,7 @@ class _FrostyPageViewState extends State<FrostyPageView>
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
-                    labelPadding:
-                        const EdgeInsets.symmetric(horizontal: 12),
+                    labelPadding: const EdgeInsets.symmetric(horizontal: 12),
                     tabs: widget.headers
                         .map((header) => Tab(text: header))
                         .toList(),
