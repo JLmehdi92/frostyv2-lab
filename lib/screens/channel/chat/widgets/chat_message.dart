@@ -6,6 +6,7 @@ import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/constants.dart';
 import 'package:frosty/models/irc.dart';
 import 'package:frosty/models/user.dart';
+import 'package:frosty/screens/channel/chat/announcement_color.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_user_modal.dart';
 import 'package:frosty/screens/channel/chat/widgets/reply_thread.dart';
@@ -479,9 +480,13 @@ class ChatMessage extends StatelessWidget {
                   ),
                 );
               } else if (ircMessage.tags['msg-id'] == 'announcement') {
+                highlightColor =
+                    announcementColor(ircMessage.tags['msg-param-color']) ??
+                    highlightColor;
                 messageHeaderIcon = Icon(
                   Icons.campaign_rounded,
                   size: messageHeaderIconSize,
+                  color: announcementColor(ircMessage.tags['msg-param-color']),
                 );
                 messageHeader = const Text(
                   'Announcement',
