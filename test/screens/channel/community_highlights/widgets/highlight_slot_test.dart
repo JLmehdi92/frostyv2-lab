@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/models/community_highlight_event.dart';
@@ -77,6 +78,37 @@ void main() {
     expect(h.store.current!.kind, HighlightKind.poll);
   });
 
+  testWidgets('a shown card follows its updates (votes, then results)', (
+    tester,
+  ) async {
+    await start(tester);
+    await pump(tester, slot());
+    h.send(HighlightTopic.polls, pollPayload('POLL_CREATE', votes: [1, 3]));
+    await tester.pumpAndSettle();
+    h.store.toggleExpanded();
+    await tester.pumpAndSettle();
+    expect(find.textContaining('75%'), findsOneWidget);
+
+    h.send(HighlightTopic.polls, pollPayload('POLL_UPDATE', votes: [9, 1]));
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('90%'), findsOneWidget);
+    expect(find.textContaining('75%'), findsNothing);
+
+    h.send(
+      HighlightTopic.polls,
+      pollPayload(
+        'POLL_COMPLETE',
+        status: 'COMPLETED',
+        votes: [9, 1],
+        endedAt: clock.now(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Final results'), findsOneWidget);
+    h.store.dispose();
+  });
+
   testWidgets('a new one behind an expanded card shows a "New" pill', (
     tester,
   ) async {
@@ -120,7 +152,10 @@ void main() {
   testWidgets('a raid Watch hands the target over', (tester) async {
     await start(tester);
     await pump(tester, slot());
-    h.send(HighlightTopic.raid, raidPayload('raid_update_v2'));
+    h.send(
+      HighlightTopic.raid,
+      raidPayload('raid_update_v2', createdAt: clock.now()),
+    );
     await tester.pumpAndSettle();
     h.store.toggleExpanded();
     await tester.pumpAndSettle();
@@ -128,6 +163,7 @@ void main() {
     await tester.tap(find.textContaining('Watch'));
     await tester.pump();
     expect(watched.single.targetLogin, 'friend');
+    h.store.dispose();
   });
 
   testWidgets('the video pill names the kind and how many more', (

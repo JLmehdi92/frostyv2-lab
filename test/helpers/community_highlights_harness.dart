@@ -92,6 +92,7 @@ String raidPayload(
   String type, {
   String source = harnessChannel,
   int viewers = 5,
+  DateTime? createdAt,
 }) => jsonEncode({
   'type': type,
   'raid': {
@@ -101,8 +102,8 @@ String raidPayload(
     'target_login': 'friend',
     'target_display_name': 'Friend',
     'viewer_count': viewers,
-    'raid_created_at': harnessNow.millisecondsSinceEpoch ~/ 1000,
-    'force_raidharnessNow_seconds': 90,
+    'raid_created_at': (createdAt ?? harnessNow).millisecondsSinceEpoch ~/ 1000,
+    'force_raid_now_seconds': 90,
   },
 });
 

@@ -43,7 +43,8 @@ Widget buildHighlightCard(
     onDismiss: dismissible ? store.dismissCurrent : null,
     now: store.serverNow,
   );
-  return Builder(
+  // Its own Observer: the data changes without the stack changing.
+  return Observer(
     builder: (context) => switch (item.kind) {
       HighlightKind.poll => switch (store.poll) {
         final poll? => PollCard(poll: poll, card: card),
