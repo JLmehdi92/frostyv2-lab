@@ -55,6 +55,26 @@ void main() {
     );
   }
 
+  testWidgets('the header fits a 180 dp phone side chat', (tester) async {
+    when(() => store.status).thenReturn(ReplayStatus.active);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(
+              width: 180,
+              height: 400,
+              child: VodChatReplay(store: store),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('loading shows a spinner with a caption', (tester) async {
     await pump(tester, ReplayStatus.loading);
 

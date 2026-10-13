@@ -115,13 +115,16 @@ class _ReplayHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 8, 4, 4),
       child: Row(
         children: [
-          Text(
-            'Chat replay',
-            style: context.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
+          Expanded(
+            child: Text(
+              'Chat replay',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: context.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-          const Spacer(),
           Tooltip(
             message:
                 "7TV, BTTV and FFZ emotes are the channel's current sets, "
