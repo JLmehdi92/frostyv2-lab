@@ -10,6 +10,7 @@ import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:frosty/screens/channel/video/overlay_common.dart';
 import 'package:frosty/screens/channel/video/player_engine_resolver.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/vod/player_media.dart';
 import 'package:frosty/screens/vod/stores/ivs_vod_store.dart';
 import 'package:frosty/screens/vod/stores/vod_chat_replay_store.dart';
 import 'package:frosty/screens/vod/stores/web_vod_store.dart';
@@ -39,6 +40,28 @@ typedef VodPlayerFactory =
 
 /// Builds the chat replay for a VOD (tests pass a fake).
 typedef VodReplayFactory = VodChatReplayStore Function(Vod vod);
+
+/// The chat replay of [vod], with the channel's emotes and the viewer's
+/// blocks (used by the VOD and clip screens).
+VodChatReplayStore createVodChatReplay(BuildContext context, Vod vod) {
+  final auth = context.authStore;
+  return VodChatReplayStore(
+    vod: vod,
+    vodService: context.twitchVodService,
+    assetsStore: ChatAssetsStore(
+      twitchApi: context.twitchApi,
+      ffzApi: context.ffzApi,
+      bttvApi: context.bttvApi,
+      sevenTVApi: context.sevenTVApi,
+      globalAssetsStore: context.globalAssetsStore,
+    ),
+    settings: context.settingsStore,
+    headers: auth.headersTwitch,
+    viewerLogin: auth.user.details?.login,
+    blockedLogins: () =>
+        auth.user.blockedUsers.map((u) => u.userLogin).toList(),
+  );
+}
 
 /// Watches a past broadcast, highlight or upload inside the app, like the
 /// official app: native player, seek, speed, and the chat replayed in step
@@ -188,23 +211,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   VodChatReplayStore _buildReplay(Vod vod) {
     final factory = widget.replayFactory;
     if (factory != null) return factory(vod);
-    final auth = context.authStore;
-    return VodChatReplayStore(
-      vod: vod,
-      vodService: _service,
-      assetsStore: ChatAssetsStore(
-        twitchApi: context.twitchApi,
-        ffzApi: context.ffzApi,
-        bttvApi: context.bttvApi,
-        sevenTVApi: context.sevenTVApi,
-        globalAssetsStore: context.globalAssetsStore,
-      ),
-      settings: _settings,
-      headers: auth.headersTwitch,
-      viewerLogin: auth.user.details?.login,
-      blockedLogins: () =>
-          auth.user.blockedUsers.map((u) => u.userLogin).toList(),
-    );
+    return createVodChatReplay(context, vod);
   }
 
   /// The native IVS player, or the Twitch embed in a WebView when this
@@ -433,7 +440,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
             }
             return VodOverlay(
               controller: player,
-              vod: vod,
+              media: PlayerMedia.vod(vod),
               settings: _settings,
               mutedSegments: _mutedSegments,
               fillScreen: player is IvsVodStore ? _fillScreen : null,

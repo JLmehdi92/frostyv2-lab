@@ -2,22 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/widgets/alert_message.dart';
 
-/// Why a VOD cannot play, over a black player area. Never opens a browser.
+/// Why a VOD (or a clip) cannot play, over a black player area. Never opens
+/// a browser.
 class VodErrorView extends StatelessWidget {
-  const VodErrorView({super.key, required this.problem, this.onRetry});
+  const VodErrorView({
+    super.key,
+    required this.problem,
+    this.onRetry,
+    this.subject = 'video',
+  });
 
   final VodPlaybackProblem problem;
+
+  /// What is playing, in the messages: "video" or "clip".
+  final String subject;
 
   /// Offered for problems that may be temporary.
   final VoidCallback? onRetry;
 
-  static String messageFor(VodPlaybackProblem problem) => switch (problem) {
-    VodPlaybackProblem.subscriberOnly => 'This video is for subscribers only',
+  static String messageFor(
+    VodPlaybackProblem problem, {
+    String subject = 'video',
+  }) => switch (problem) {
+    VodPlaybackProblem.subscriberOnly =>
+      'This $subject is for subscribers only',
     VodPlaybackProblem.geoBlocked =>
-      'This video is not available in your region',
-    VodPlaybackProblem.notFound => 'This video is no longer available',
+      'This $subject is not available in your region',
+    VodPlaybackProblem.notFound => 'This $subject is no longer available',
     VodPlaybackProblem.tokenRejected ||
-    VodPlaybackProblem.unknown => "Couldn't play this video",
+    VodPlaybackProblem.unknown => "Couldn't play this $subject",
   };
 
   bool get _retryable =>
@@ -31,7 +44,7 @@ class VodErrorView extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: AlertMessage(
-          message: messageFor(problem),
+          message: messageFor(problem, subject: subject),
           color: Colors.white,
           trailingIcon: _retryable && onRetry != null
               ? Icons.refresh_rounded

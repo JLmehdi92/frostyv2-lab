@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/vod/player_media.dart';
 import 'package:frosty/screens/vod/vod_overlay.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,6 +21,8 @@ final _vod = Vod(
   ownerDisplayName: 'Streamer',
 );
 
+String _clipLink(Duration _) => 'https://clips.twitch.tv/Slug';
+
 void main() {
   late FakeVodController controller;
 
@@ -34,6 +37,10 @@ void main() {
     VoidCallback? onCycleChatMode,
     SettingsStore? settings,
     bool isLandscape = false,
+    PlayerMedia? media,
+    bool skipButtons = true,
+    bool? looping,
+    VoidCallback? onToggleLoop,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -46,8 +53,11 @@ void main() {
             height: size.height,
             child: VodOverlay(
               controller: controller,
-              vod: _vod,
+              media: media ?? PlayerMedia.vod(_vod),
               settings: settings ?? SettingsStore.fromJson({}),
+              skipButtons: skipButtons,
+              looping: looping,
+              onToggleLoop: onToggleLoop,
               onCycleChatMode: onCycleChatMode,
               isLandscape: isLandscape,
             ),
@@ -117,6 +127,96 @@ void main() {
     expect(controller.calls, contains('seekBy 10'));
     await tester.pump(const Duration(seconds: 1));
     expect(find.text('+10 s'), findsNothing);
+  });
+
+  group('other media (clips)', () {
+    const clipMedia = PlayerMedia(
+      title: 'breakup advice',
+      ownerId: '1',
+      ownerLogin: 'xqc',
+      ownerDisplayName: 'xQc',
+      shareLabel: 'Copy clip link',
+      shareLink: _clipLink,
+    );
+
+    testWidgets('without skip buttons, a side double tap plays/pauses', (
+      tester,
+    ) async {
+      controller.overlayVisible = false;
+      await pump(tester, media: clipMedia, skipButtons: false);
+
+      expect(find.text('breakup advice'), findsOneWidget);
+      expect(find.byTooltip('Back 10 seconds'), findsNothing);
+      expect(find.byTooltip('Forward 10 seconds'), findsNothing);
+
+      await tester.tapAt(const Offset(100, 450));
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tapAt(const Offset(100, 450));
+      await tester.pump();
+      expect(controller.calls, isNot(contains('seekBy -10')));
+      expect(controller.calls, contains('togglePlay'));
+      await tester.pump(const Duration(seconds: 1));
+    });
+
+    testWidgets('the loop button shows its state and toggles', (tester) async {
+      var toggles = 0;
+      await pump(
+        tester,
+        media: clipMedia,
+        skipButtons: false,
+        looping: false,
+        onToggleLoop: () => toggles++,
+      );
+
+      await tester.tap(find.byTooltip('Loop'));
+      expect(toggles, 1);
+
+      await pump(
+        tester,
+        media: clipMedia,
+        skipButtons: false,
+        looping: true,
+        onToggleLoop: () {},
+      );
+      expect(find.byTooltip('Stop looping'), findsOneWidget);
+    });
+
+    testWidgets('a VOD has no loop button', (tester) async {
+      await pump(tester);
+      expect(find.byTooltip('Loop'), findsNothing);
+    });
+
+    testWidgets('settings copy the media link', (tester) async {
+      final clipboard = <String>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'Clipboard.setData') {
+            clipboard.add((call.arguments as Map)['text'] as String);
+          }
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
+      await pump(tester, media: clipMedia, skipButtons: false);
+
+      await tester.tap(find.byTooltip('Settings'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Copy clip link'),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.tap(find.text('Copy clip link'));
+      await tester.pumpAndSettle();
+
+      expect(clipboard, ['https://clips.twitch.tv/Slug']);
+    });
   });
 
   testWidgets('a single tap goes to the controller', (tester) async {

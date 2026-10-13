@@ -40,4 +40,21 @@ void main() {
     );
     expect(find.byIcon(Icons.refresh_rounded), findsNothing);
   });
+
+  testWidgets('a clip names itself in the message', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: VodErrorView(
+          problem: VodPlaybackProblem.notFound,
+          subject: 'clip',
+        ),
+      ),
+    );
+
+    expect(find.text('This clip is no longer available'), findsOneWidget);
+    expect(
+      VodErrorView.messageFor(VodPlaybackProblem.notFound),
+      'This video is no longer available',
+    );
+  });
 }

@@ -8,6 +8,7 @@ import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/channel/channel.dart';
 import 'package:frosty/screens/channel/video/overlay_common.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/vod/player_media.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:frosty/screens/vod/vod_time.dart';
 import 'package:frosty/screens/vod/widgets/vod_seek_bar.dart';
@@ -18,20 +19,14 @@ import 'package:frosty/widgets/profile_picture.dart';
 import 'package:frosty/widgets/section_header.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Link to [vod] at [at], as Twitch shares it.
-String vodShareLink(Vod vod, Duration at) {
-  final base = 'https://www.twitch.tv/videos/${vod.id}';
-  return at.inSeconds <= 0 ? base : '$base?t=${formatVodTimeForShare(at)}';
-}
-
-/// Controls over the VOD player: back, title and channel, ±10 s and
-/// play/pause, the seek bar with elapsed time, speed, sound, PiP, fit/fill
-/// and rotation. Double-tap the left or right third to skip 10 s.
+/// Controls over the VOD (or clip) player: back, title and channel, ±10 s
+/// and play/pause, the seek bar with elapsed time, speed, sound, PiP,
+/// fit/fill and rotation. Double-tap the left or right third to skip 10 s.
 class VodOverlay extends StatefulWidget {
   const VodOverlay({
     super.key,
     required this.controller,
-    required this.vod,
+    required this.media,
     required this.settings,
     this.mutedSegments = const [],
     this.fillScreen,
@@ -39,10 +34,13 @@ class VodOverlay extends StatefulWidget {
     this.showChatOverlayButton = false,
     this.isLandscape = false,
     this.onCycleChatMode,
+    this.skipButtons = true,
+    this.looping,
+    this.onToggleLoop,
   });
 
   final VodPlayerController controller;
-  final Vod vod;
+  final PlayerMedia media;
   final SettingsStore settings;
   final List<MutedSegment> mutedSegments;
 
@@ -57,6 +55,14 @@ class VodOverlay extends StatefulWidget {
   /// Double-tap in the middle (landscape with chat): cycles the chat mode
   /// like live. Without it, the middle double-tap plays/pauses.
   final VoidCallback? onCycleChatMode;
+
+  /// ±10 s buttons and side double-taps (off for short clips: a double-tap
+  /// anywhere then plays/pauses or cycles the chat).
+  final bool skipButtons;
+
+  /// Loop state and toggle; the loop button shows only with [onToggleLoop].
+  final bool? looping;
+  final VoidCallback? onToggleLoop;
 
   @override
   State<VodOverlay> createState() => _VodOverlayState();
@@ -85,7 +91,9 @@ class _VodOverlayState extends State<VodOverlay> {
 
   void _onDoubleTap(double width) {
     final x = _doubleTapAt?.dx ?? width / 2;
-    if (x < width / 3) {
+    if (!widget.skipButtons) {
+      (widget.onCycleChatMode ?? _c.togglePlay)();
+    } else if (x < width / 3) {
       _c.seekBy(-_skip);
       _showSkipBadge(forward: false);
     } else if (x > width * 2 / 3) {
@@ -125,15 +133,15 @@ class _VodOverlayState extends State<VodOverlay> {
   );
 
   void _openChannel(BuildContext context) {
-    final vod = widget.vod;
-    if (vod.ownerId.isEmpty || vod.ownerLogin.isEmpty) return;
+    final media = widget.media;
+    if (media.ownerId.isEmpty || media.ownerLogin.isEmpty) return;
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => VideoChat(
-          userId: vod.ownerId,
-          userName: vod.ownerDisplayName,
-          userLogin: vod.ownerLogin,
+          userId: media.ownerId,
+          userName: media.ownerDisplayName,
+          userLogin: media.ownerLogin,
         ),
       ),
     );
@@ -144,7 +152,7 @@ class _VodOverlayState extends State<VodOverlay> {
     showModalBottomSheetWithProperFocus(
       context: context,
       builder: (sheetContext) =>
-          VodSettingsSheet(controller: _c, vod: widget.vod),
+          VodSettingsSheet(controller: _c, media: widget.media),
     );
   }
 
@@ -233,7 +241,7 @@ class _VodOverlayState extends State<VodOverlay> {
     required bool narrow,
   }) {
     final onSurface = _onSurface(context);
-    final vod = widget.vod;
+    final media = widget.media;
 
     final top = Padding(
       padding: EdgeInsets.only(bottom: compact ? 8 : 24),
@@ -249,7 +257,7 @@ class _VodOverlayState extends State<VodOverlay> {
           Expanded(
             child: Semantics(
               button: true,
-              label: 'Open ${vod.ownerDisplayName}',
+              label: 'Open ${media.ownerDisplayName}',
 
               child: GestureDetector(
                 onTap: () => _openChannel(context),
@@ -258,7 +266,7 @@ class _VodOverlayState extends State<VodOverlay> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      vod.title,
+                      media.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -267,14 +275,17 @@ class _VodOverlayState extends State<VodOverlay> {
                         shadows: kOverlayShadow,
                       ),
                     ),
-                    if (vod.ownerLogin.isNotEmpty)
+                    if (media.ownerLogin.isNotEmpty)
                       Row(
                         spacing: 6,
                         children: [
-                          ProfilePicture(userLogin: vod.ownerLogin, radius: 9),
+                          ProfilePicture(
+                            userLogin: media.ownerLogin,
+                            radius: 9,
+                          ),
                           Flexible(
                             child: Text(
-                              vod.ownerDisplayName,
+                              media.ownerDisplayName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -306,6 +317,17 @@ class _VodOverlayState extends State<VodOverlay> {
                     !widget.settings.fullScreenChatOverlay,
               ),
             ),
+          if (widget.onToggleLoop != null)
+            _icon(
+              context,
+              icon: Icons.repeat_rounded,
+              tooltip: widget.looping == true ? 'Stop looping' : 'Loop',
+              color: widget.looping == true
+                  ? Theme.of(context).colorScheme.primary
+                  : null,
+              compact: compact,
+              onPressed: widget.onToggleLoop,
+            ),
           _icon(
             context,
             icon: Icons.settings,
@@ -325,13 +347,14 @@ class _VodOverlayState extends State<VodOverlay> {
           mainAxisSize: MainAxisSize.min,
           spacing: compact ? 12 : 24,
           children: [
-            _icon(
-              context,
-              icon: Icons.replay_10_rounded,
-              tooltip: 'Back 10 seconds',
-              size: compact ? 28 : 36,
-              onPressed: () => _c.seekBy(-_skip),
-            ),
+            if (widget.skipButtons)
+              _icon(
+                context,
+                icon: Icons.replay_10_rounded,
+                tooltip: 'Back 10 seconds',
+                size: compact ? 28 : 36,
+                onPressed: () => _c.seekBy(-_skip),
+              ),
             _icon(
               context,
               icon: ended
@@ -347,13 +370,14 @@ class _VodOverlayState extends State<VodOverlay> {
               size: compact ? 44 : 56,
               onPressed: _c.togglePlay,
             ),
-            _icon(
-              context,
-              icon: Icons.forward_10_rounded,
-              tooltip: 'Forward 10 seconds',
-              size: compact ? 28 : 36,
-              onPressed: () => _c.seekBy(_skip),
-            ),
+            if (widget.skipButtons)
+              _icon(
+                context,
+                icon: Icons.forward_10_rounded,
+                tooltip: 'Forward 10 seconds',
+                size: compact ? 28 : 36,
+                onPressed: () => _c.seekBy(_skip),
+              ),
           ],
         );
       },
@@ -508,16 +532,16 @@ class _VodOverlayState extends State<VodOverlay> {
   }
 }
 
-/// Quality, volume, playback speed and share-at-time for a VOD.
+/// Quality, volume, playback speed and share-at-time for a VOD or a clip.
 class VodSettingsSheet extends StatelessWidget {
   const VodSettingsSheet({
     super.key,
     required this.controller,
-    required this.vod,
+    required this.media,
   });
 
   final VodPlayerController controller;
-  final Vod vod;
+  final PlayerMedia media;
 
   @override
   Widget build(BuildContext context) {
@@ -579,9 +603,9 @@ class VodSettingsSheet extends StatelessWidget {
             const Divider(),
             ListTile(
               leading: const Icon(Icons.link_rounded),
-              title: const Text('Copy link at current time'),
+              title: Text(media.shareLabel),
               onTap: () async {
-                final link = vodShareLink(vod, controller.position);
+                final link = media.shareLink(controller.position);
                 Navigator.pop(context);
                 await Clipboard.setData(ClipboardData(text: link));
               },
