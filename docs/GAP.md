@@ -13,6 +13,7 @@
 | 2026-10-13 | épopées E3 « temps réel » et E4 « Hype Train » | INT-15, 16, 17 ✅ ; MSC-03, CHT-41 ⚠️ ; PLY-09 (remarque). Comptes de synthèse recalculés à partir des tableaux. Affichage à valider sur appareil. |
 | 2026-10-13 | épopée tablette (Xiaomi Pad 7) | MSC-14 ✅ ; DSC-01 (rail). Comptes recalculés. |
 | 2026-10-13 | épopée E2 « clips » | PRF-17, PRF-18 ✅ ; CHT-45 ⚠️ ; PRF-19 (compte requis) ; MSC-01 (remarques). Comptes recalculés. Lecture à valider sur appareil. |
+| 2026-10-13 | épopée E6 « profil de chaîne » | PRF-01, 02, 03, 04, 05, 28 ✅ ; PRF-25 ⚠️ (remarque). Comptes recalculés. Affichage à valider sur appareil. |
 | 2026-10-13 | épopée E5 « highlights communautaires » | CHT-41, CHT-42 ✅ ; INT-01, INT-02 ⚠️ (lecture seule) ; INT-19 (raid sortant). Comptes recalculés. Affichage à valider sur appareil. |
 
 ## 0. Légende et conventions
@@ -265,11 +266,11 @@
 
 | ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
-| PRF-01 | Page chaîne | P1 | ❌ | — | « My channel » ouvre le lecteur. Pas de page profil. Helix `/users`, `/channels`. | OK |
-| PRF-02 | Accueil de profil | P1 | ❌ | — | Composable avec Helix (`/streams`, `/videos`, `/clips`). | OK |
-| PRF-03 | À propos | P1 | ❌ | — | Bio, type de diffuseur, nombre de followers via Helix. Liens sociaux : GQL. | OK |
-| PRF-04 | Panneaux | P1 | ❌ | — | — | GQL privé |
-| PRF-05 | Programme | P1 | ❌ | — | Helix `GET /schedule`. | OK |
+| PRF-01 | Page chaîne | P1 | ✅ | `channel_profile/channel_profile_screen.dart` | Profil de chaîne (épopée E6) : bannière, avatar (anneau rouge en direct), nom et badge partenaire, followers, Regarder/Chat, Partager, Plus ; onglets Accueil, À propos, Programme, Vidéos, Clips. Ouvert depuis une chaîne hors ligne, la recherche, l'avatar sous la vidéo, la carte d'utilisateur du chat, le menu d'actions et les liens `/about`, `/schedule`. GQL anonyme, en-tête Helix en repli. | OK |
+| PRF-02 | Accueil de profil | P1 | ✅ | `channel_profile/widgets/profile_home_tab.dart` | Direct en cours (aperçu) ou image hors ligne avec la dernière diffusion, puis 4 rediffusions et 4 clips de la semaine avec « View all ». | OK |
+| PRF-03 | À propos | P1 | ✅ | `channel_profile/widgets/profile_about_tab.dart` | Bio, followers, date d'inscription, partenaire/affilié, liens sociaux avec icônes (ouverts via `LinkRouter`). GQL anonyme. | OK |
+| PRF-04 | Panneaux | P1 | ✅ | `channel_profile/widgets/profile_about_tab.dart` | Image (lien), titre et description Markdown ; images du Markdown jamais chargées, liens http(s) seulement ; panneaux d'extension ignorés ; deux colonnes sur tablette. GQL anonyme. | GQL privé |
+| PRF-05 | Programme | P1 | ✅ | `channel_profile/widgets/profile_schedule_tab.dart` | Prochain stream (« dans 3 heures »), segments à venir par jour local, annulés barrés, catégorie. GQL anonyme (semaine en cours et suivante). | OK |
 | PRF-06 | Rappel d'un stream programmé | P2 | ❌ | — | — | GQL privé |
 | PRF-07 | Liste des vidéos | P1 | ✅ | `channel_videos.dart`, `channel_videos_store.dart`, `vod_card.dart` (`46b4ed2`) | Onglets rediffusions / temps forts / uploads, 100 plus récentes par onglet (la pagination par curseur est bloquée par l'intégrité pour les anonymes), progression de reprise et « Vu » sur les cartes. Accès depuis l'overlay live et hors ligne, le mode chat seul, la fiche utilisateur et le menu d'actions. | OK |
 | PRF-08 | Lecture VOD | P1 | ✅ | `twitch_vod_service.dart`, `ivs_vod_store.dart`, `web_vod_store.dart`, `vod_screen.dart` (`b1a41fe`, `5ecf601`, `ad3cf94`, `021c827`) | Dans l'appli, jamais dans le navigateur : IVS en mode VOD (mêmes codecs AV1/HEVC → 2K), repli embed WebView sur iOS ou après échec natif, reprise d'erreurs, diagnostic usher. À valider sur appareil. | OK |
@@ -289,10 +290,10 @@
 | PRF-22 | Clips automatiques | P2 | ❌ | — | — | GQL privé |
 | PRF-23 | Collections | P2 | ❌ | — | — | GQL privé |
 | PRF-24 | Bande-annonce de la chaîne | P2 | ❌ | — | — | GQL privé |
-| PRF-25 | Badges d'état de chaîne | P1 | ⚠️ | `live_indicator.dart`, `offline_channel_card.dart:53` | LIVE et hors ligne seulement. Rediffusion via `/streams` `type`, vérifié via `/users` `broadcaster_type`. | OK |
+| PRF-25 | Badges d'état de chaîne | P1 | ⚠️ | `live_indicator.dart`, `offline_channel_card.dart:53`, `channel_profile/widgets/profile_header.dart` | LIVE et hors ligne partout ; sur le profil, RERUN et badge partenaire vérifié. Pas encore sur les cartes de flux. | OK |
 | PRF-26 | Couleur d'accent et skins de chaîne | P2 | ❌ | — | — | GQL privé |
 | PRF-27 | Stories et clips sur le profil | P2 | ❌ | — | — | GQL privé |
-| PRF-28 | Options de chaîne | P1 | ⚠️ | `user_actions_modal.dart:36-151`, `stream_card.dart:89,215` | Épingler, bloquer et signaler depuis les cartes. Pas de partage. | OK |
+| PRF-28 | Options de chaîne | P1 | ✅ | `user_actions_modal.dart`, `stream_card.dart:89,215`, `channel_profile/channel_profile_screen.dart` | Profil, vidéos, épingler, bloquer et signaler depuis les cartes ; partage (copie du lien) depuis le profil. | OK |
 | PRF-29 | Profil personnel | P1 | ⚠️ | `account_options.dart:47`, `profile_card.dart` | « My channel » et carte de profil. Pas de hub de clips. | OK |
 
 ### Monétisation (MON)
@@ -433,19 +434,19 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Compte & réglages (ACC) | 3 | 6 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 3 | 7 | 7 | 0 | 17 |
-| **Total** | **42** | **52** | **215** | **8** | **317** |
+| **Total** | **48** | **51** | **210** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 17 | 26 | 13 | 4 | 60 |
-| P1 | 19 | 19 | 66 | 4 | 108 |
+| P1 | 25 | 18 | 61 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **42** | **52** | **215** | **8** | **317** |
+| **Total** | **48** | **51** | **210** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 25 | 42 | 33 | 100 |
-| GQL privé | 6 | 31 | 61 | 98 |
+| OK | 25 | 37 | 33 | 95 |
+| GQL privé | 6 | 30 | 61 | 97 |
 | Compte requis | 8 | 12 | 12 | 32 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
 
