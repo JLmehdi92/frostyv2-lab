@@ -18,6 +18,7 @@ import 'package:frosty/apis/ffz_api.dart';
 import 'package:frosty/apis/seventv_api.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_auth_interceptor.dart';
+import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/apis/unauthorized_interceptor.dart';
 import 'package:frosty/cache_manager.dart';
@@ -118,16 +119,16 @@ void main() async {
   final bttvApiService = BTTVApi(dioClient);
   final ffzApiService = FFZApi(dioClient);
   final sevenTVApiService = SevenTVApi(dioClient);
-  // Anonymous GQL for VODs: own Dio with timeouts and no Twitch auth
-  // interceptor (it must never carry the user's Helix token).
-  final twitchVodService = TwitchVodService(
-    Dio(
-      BaseOptions(
-        connectTimeout: const Duration(seconds: 5),
-        receiveTimeout: const Duration(seconds: 8),
-      ),
+  // Anonymous GQL for VODs and hype trains: own Dio with timeouts and no
+  // Twitch auth interceptor (it must never carry the user's Helix token).
+  final anonymousGqlDio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 5),
+      receiveTimeout: const Duration(seconds: 8),
     ),
   );
+  final twitchVodService = TwitchVodService(anonymousGqlDio);
+  final twitchHypeTrainService = TwitchHypeTrainService(anonymousGqlDio);
 
   // One anonymous realtime connection (Hermes) for public Twitch topics such
   // as the hype train. It connects only when something subscribes and
@@ -171,6 +172,7 @@ void main() async {
         Provider<FFZApi>.value(value: ffzApiService),
         Provider<SevenTVApi>.value(value: sevenTVApiService),
         Provider<TwitchVodService>.value(value: twitchVodService),
+        Provider<TwitchHypeTrainService>.value(value: twitchHypeTrainService),
         Provider<TwitchRealtimeClient>.value(value: realtimeClient),
         Provider<GlobalAssetsStore>.value(value: globalAssetsStore),
         Provider<MiniPlayerStore>(create: (_) => MiniPlayerStore()),

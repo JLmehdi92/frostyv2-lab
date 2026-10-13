@@ -3,6 +3,7 @@ import 'package:frosty/apis/bttv_api.dart';
 import 'package:frosty/apis/ffz_api.dart';
 import 'package:frosty/apis/seventv_api.dart';
 import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
@@ -91,6 +92,10 @@ extension ContextExtensions on BuildContext {
 
   /// Gets TwitchVodService from provider
   TwitchVodService get twitchVodService => read<TwitchVodService>();
+
+  /// Hype train snapshots from anonymous GQL.
+  TwitchHypeTrainService get twitchHypeTrainService =>
+      read<TwitchHypeTrainService>();
 
   /// The shared anonymous realtime connection (Hermes).
   TwitchRealtimeClient get realtimeClient => read<TwitchRealtimeClient>();
