@@ -51,12 +51,38 @@ void main() {
     expect(helixCalls, isEmpty);
   });
 
-  test('an unknown channel says so, without asking Helix', () async {
+  test('an unknown channel says so once Helix agrees', () async {
+    when(() => service.getProfile(any())).thenAnswer((_) async => null);
+    final store = ChannelProfileStore(
+      login: 'gone',
+      profileService: service,
+      helixUser: (login) async {
+        helixCalls.add(login);
+        throw Exception('User does not exist');
+      },
+    );
+    await store.load();
+    expect(store.notFound, isTrue);
+    expect(helixCalls, ['gone']);
+  });
+
+  test('a channel GQL misses but Helix knows keeps the page', () async {
     when(() => service.getProfile(any())).thenAnswer((_) async => null);
     final store = create();
     await store.load();
-    expect(store.notFound, isTrue);
-    expect(helixCalls, isEmpty);
+    expect(store.notFound, isFalse);
+    expect(store.fallback?.id, '42');
+  });
+
+  test('Helix is asked once, not on every failed retry', () async {
+    when(
+      () => service.getProfile(any()),
+    ).thenThrow(const ChannelProfileApiException('down'));
+    final store = create();
+    await store.load();
+    await store.load();
+    await store.load();
+    expect(helixCalls, hasLength(1));
   });
 
   test('a failed profile falls back to the Helix header', () async {

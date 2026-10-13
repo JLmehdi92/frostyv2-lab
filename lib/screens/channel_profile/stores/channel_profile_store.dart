@@ -87,10 +87,16 @@ abstract class ChannelProfileStoreBase with Store {
       if (_disposed) return;
       runInAction(() {
         _profile = profile;
-        _notFound = profile == null;
         _error = null;
         if (profile != null) _fallback = null;
       });
+      if (profile == null) {
+        // Helix confirms before the page says the channel is gone.
+        await _loadFallback();
+        if (!_disposed) runInAction(() => _notFound = _fallback == null);
+      } else {
+        runInAction(() => _notFound = false);
+      }
     } catch (e) {
       debugPrint('ChannelProfileStore($login) profile failed: $e');
       if (_disposed) return;
@@ -108,7 +114,7 @@ abstract class ChannelProfileStoreBase with Store {
 
   Future<void> _loadFallback() async {
     final helixUser = this.helixUser;
-    if (helixUser == null || _profile != null) return;
+    if (helixUser == null || _profile != null || _fallback != null) return;
     try {
       final user = await helixUser(login);
       if (!_disposed) runInAction(() => _fallback = user);
