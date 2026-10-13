@@ -7,6 +7,7 @@ import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/channel/channel.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_card_pill.dart';
+import 'package:frosty/screens/home/stream_list/stream_tags.dart';
 import 'package:frosty/screens/home/top/categories/category_streams.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/utils.dart';
@@ -219,6 +220,10 @@ class StreamCard extends StatelessWidget {
               fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
+          if (streamInfo.tags.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            StreamTags(tags: streamInfo.tags),
+          ],
         ],
       ),
     );

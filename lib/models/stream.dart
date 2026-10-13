@@ -15,6 +15,14 @@ class StreamTwitch {
   final String startedAt;
   final String thumbnailUrl;
 
+  /// The streamer's tags (Helix sends up to 10).
+  @JsonKey(defaultValue: <String>[])
+  final List<String> tags;
+
+  /// The stream language (ISO 639-1, "other" or "").
+  @JsonKey(defaultValue: '')
+  final String language;
+
   const StreamTwitch(
     this.userId,
     this.userLogin,
@@ -24,8 +32,10 @@ class StreamTwitch {
     this.title,
     this.viewerCount,
     this.startedAt,
-    this.thumbnailUrl,
-  );
+    this.thumbnailUrl, {
+    this.tags = const [],
+    this.language = '',
+  });
 
   factory StreamTwitch.fromJson(Map<String, dynamic> json) =>
       _$StreamTwitchFromJson(json);

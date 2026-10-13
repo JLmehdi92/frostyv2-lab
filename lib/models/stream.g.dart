@@ -16,6 +16,9 @@ StreamTwitch _$StreamTwitchFromJson(Map<String, dynamic> json) => StreamTwitch(
   (json['viewer_count'] as num).toInt(),
   json['started_at'] as String,
   json['thumbnail_url'] as String,
+  tags:
+      (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
+  language: json['language'] as String? ?? '',
 );
 
 StreamsTwitch _$StreamsTwitchFromJson(Map<String, dynamic> json) =>

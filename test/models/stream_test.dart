@@ -42,4 +42,29 @@ void main() {
       expect(streams.data, isEmpty);
     });
   });
+
+  test('tags and language, empty when Helix leaves them out', () {
+    final base = {
+      'user_id': '1',
+      'user_login': 'a',
+      'user_name': 'A',
+      'game_id': '2',
+      'game_name': 'G',
+      'title': 'T',
+      'viewer_count': 3,
+      'started_at': '2026-10-13T15:00:00Z',
+      'thumbnail_url': 'https://x/{width}x{height}.jpg',
+    };
+    final tagged = StreamTwitch.fromJson({
+      ...base,
+      'tags': ['English', 'Speedrun'],
+      'language': 'en',
+    });
+    expect(tagged.tags, ['English', 'Speedrun']);
+    expect(tagged.language, 'en');
+
+    final bare = StreamTwitch.fromJson({...base, 'tags': null});
+    expect(bare.tags, isEmpty);
+    expect(bare.language, '');
+  });
 }
