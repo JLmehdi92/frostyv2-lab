@@ -246,6 +246,7 @@ class _VideoChatState extends State<VideoChat>
   @override
   void initState() {
     super.initState();
+    _alive.add(this);
 
     // Build the player first — this adopts the live player back from the mini
     // window when we're restoring this same channel (seamless, no reload).
@@ -345,11 +346,30 @@ class _VideoChatState extends State<VideoChat>
       if (store is IvsVideoStore) store.setFocusSuppressed(false);
       if (_playingBeforeFocusLoss && store.paused) store.handlePausePlay();
       _playingBeforeFocusLoss = false;
-      // The screen that just closed reset these on its way out.
-      if (store is IvsVideoStore) store.reassertAutoPip();
-      if (store.settingsStore.keepScreenAwake) WakelockPlus.enable();
-      reclaimPipCallbacks(_pipKey);
-      setState(() => _isImmersiveSystemUiEnabled = null);
+      _reassertScreenState();
+    });
+  }
+
+  /// The channel screens alive, oldest first.
+  static final _alive = <_VideoChatState>[];
+
+  /// What a closing player screen resets on its way out (auto-PiP, the
+  /// wakelock, the PiP callbacks, the system bars), applied again.
+  void _reassertScreenState() {
+    final store = _videoStore;
+    if (store is IvsVideoStore) store.reassertAutoPip();
+    if (store is VideoStore) store.reassertAutoPip();
+    if (store.settingsStore.keepScreenAwake) WakelockPlus.enable();
+    reclaimPipCallbacks(_pipKey);
+    setState(() => _isImmersiveSystemUiEnabled = null);
+  }
+
+  /// This screen replaced another (raid "Watch"), which reset the shared
+  /// state after this one set it: set it again once that one is gone.
+  void _reassertAfterReplaced() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || ModalRoute.of(context)?.isCurrent != true) return;
+      _reassertScreenState();
     });
   }
 
@@ -1098,6 +1118,9 @@ class _VideoChatState extends State<VideoChat>
     );
 
     SystemChrome.setPreferredOrientations([]);
+
+    _alive.remove(this);
+    if (_alive.isNotEmpty) _alive.last._reassertAfterReplaced();
 
     super.dispose();
   }

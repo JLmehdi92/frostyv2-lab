@@ -167,6 +167,20 @@ abstract class VideoStoreBase with Store {
 
   ReactionDisposer? _disposeAndroidAutoPipReaction;
 
+  Future<void> _applyAutoPip() async {
+    if (settingsStore.showVideo && await SimplePip.isAutoPipAvailable) {
+      pip.setAutoPipMode();
+    } else {
+      pip.setAutoPipMode(autoEnter: false);
+    }
+  }
+
+  /// Applies the auto-PiP choice again, e.g. after another screen turned
+  /// auto-PiP off when it closed.
+  void reassertAutoPip() {
+    if (Platform.isAndroid) unawaited(_applyAutoPip());
+  }
+
   /// Disposes the latency settings reaction.
   ReactionDisposer? _disposeLatencySettingsReaction;
 
@@ -291,13 +305,7 @@ abstract class VideoStoreBase with Store {
 
     // On Android, enable auto PiP mode (setAutoEnterEnabled) if the device supports it.
     if (Platform.isAndroid) {
-      _disposeAndroidAutoPipReaction = autorun((_) async {
-        if (settingsStore.showVideo && await SimplePip.isAutoPipAvailable) {
-          pip.setAutoPipMode();
-        } else {
-          pip.setAutoPipMode(autoEnter: false);
-        }
-      });
+      _disposeAndroidAutoPipReaction = autorun((_) => _applyAutoPip());
     }
 
     updateStreamInfo();
