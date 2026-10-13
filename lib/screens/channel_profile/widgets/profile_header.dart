@@ -56,6 +56,8 @@ class ProfileHeader extends StatelessWidget {
             ConstrainedBox(
               // A landscape phone keeps a thin strip, so the tabs show.
               constraints: BoxConstraints(
+                // Full width: the image is cropped, never narrowed.
+                minWidth: double.infinity,
                 maxHeight: (MediaQuery.sizeOf(context).height * 0.22).clamp(
                   48,
                   200,

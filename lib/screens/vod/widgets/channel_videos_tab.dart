@@ -37,8 +37,10 @@ class ChannelVideosTab extends StatefulWidget {
 
 class _ChannelVideosTabState extends State<ChannelVideosTab>
     with AutomaticKeepAliveClientMixin {
+  // Nested lists share one controller: a kept-alive hidden list would
+  // scroll along with the shown one.
   @override
-  bool get wantKeepAlive => true;
+  bool get wantKeepAlive => !widget.nested;
 
   final _resumeRepository = VodResumeRepository.shared;
 

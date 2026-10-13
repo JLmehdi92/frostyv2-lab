@@ -28,8 +28,10 @@ class ChannelClipsTab extends StatefulWidget {
 
 class _ChannelClipsTabState extends State<ChannelClipsTab>
     with AutomaticKeepAliveClientMixin {
+  // Nested lists share one controller: a kept-alive hidden list would
+  // scroll along with the shown one.
   @override
-  bool get wantKeepAlive => true;
+  bool get wantKeepAlive => !widget.nested;
 
   @override
   void initState() {
