@@ -77,7 +77,12 @@ class _ChatUserModalState extends State<ChatUserModal> {
                     ChannelProfileScreen.open(
                       context,
                       login: widget.username,
+                      userId: widget.userId,
                       displayName: name,
+                      // The streamer of this chat: Watch goes back to it.
+                      fromChannel:
+                          widget.username.toLowerCase() ==
+                          widget.chatStore.channelName.toLowerCase(),
                     );
                   },
                   icon: const Icon(Icons.account_circle_outlined),

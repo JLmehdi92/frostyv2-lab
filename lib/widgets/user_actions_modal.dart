@@ -45,6 +45,7 @@ class UserActionsModal extends StatelessWidget {
               ChannelProfileScreen.open(
                 context,
                 login: userLogin,
+                userId: userId,
                 displayName: name,
               );
             },

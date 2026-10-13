@@ -137,6 +137,7 @@ class _SearchResultsChannelsState extends State<SearchResultsChannels> {
                         : ChannelProfileScreen.open(
                             context,
                             login: channel.broadcasterLogin,
+                            userId: channel.id,
                             displayName: displayName,
                           ),
                     onLongPress: () {

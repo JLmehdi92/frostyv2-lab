@@ -14,6 +14,7 @@ import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
 import 'package:frosty/screens/channel_profile/widgets/profile_header.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/vod/widgets/channel_videos_tab.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 
@@ -73,6 +74,8 @@ void main() {
     WidgetTester tester, {
     ProfileTab tab = ProfileTab.home,
     bool fromChannel = false,
+    String? userId,
+    String? displayName = 'xQc',
   }) async {
     await tester.pumpWidget(
       MultiProvider(
@@ -90,7 +93,8 @@ void main() {
                 onPressed: () => ChannelProfileScreen.open(
                   context,
                   login: 'xqc',
-                  displayName: 'xQc',
+                  userId: userId,
+                  displayName: displayName,
                   initialTab: tab,
                   fromChannel: fromChannel,
                 ),
@@ -201,5 +205,93 @@ void main() {
         expect(tester.takeException(), isNull, reason: '$size ${tab.label}');
       }
     }
+  });
+
+  group('review fixes', () {
+    void failEverything() {
+      when(
+        () => profiles.getProfile(any()),
+      ).thenThrow(const ChannelProfileApiException('down'));
+      when(
+        () => helix.getUser(userLogin: any(named: 'userLogin')),
+      ).thenThrow(Exception('offline'));
+    }
+
+    testWidgets('with nothing loaded, the caller\'s id still allows More', (
+      tester,
+    ) async {
+      failEverything();
+      await pump(tester, userId: '71092938');
+      expect(find.byTooltip('More'), findsOneWidget);
+    });
+
+    testWidgets('without any id, Chat says why instead of doing nothing', (
+      tester,
+    ) async {
+      failEverything();
+      await pump(tester);
+      await tester.tap(find.text('Chat'));
+      await tester.pump();
+      expect(
+        find.text("Couldn't open this channel, check your connection"),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a retry that only Helix answers updates the header', (
+      tester,
+    ) async {
+      failEverything();
+      await pump(tester, displayName: null);
+      expect(find.byTooltip('More'), findsNothing);
+
+      when(
+        () => helix.getUser(userLogin: any(named: 'userLogin')),
+      ).thenAnswer((_) async => const UserTwitch('71092938', 'xqc', 'XQC', ''));
+      await tester.tap(find.byIcon(Icons.refresh_rounded).first);
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('More'), findsOneWidget);
+      expect(find.text('XQC'), findsWidgets);
+    });
+
+    testWidgets('a failed refresh over a shown profile is said', (
+      tester,
+    ) async {
+      answerProfile();
+      await pump(tester);
+      when(
+        () => profiles.getProfile(any()),
+      ).thenThrow(const ChannelProfileApiException('down'));
+      await tester
+          .widget<RefreshIndicator>(find.byType(RefreshIndicator).first)
+          .onRefresh();
+      await tester.pump();
+      expect(find.text("Couldn't refresh this channel"), findsOneWidget);
+      expect(find.byType(ProfileHeader), findsOneWidget);
+    });
+
+    testWidgets('a hidden videos list is not kept alive in the profile', (
+      tester,
+    ) async {
+      answerProfile();
+      await pump(tester, tab: ProfileTab.videos);
+      expect(find.byType(ChannelVideosTab), findsOneWidget);
+      await tester.tap(find.widgetWithText(Tab, 'Clips'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ChannelVideosTab, skipOffstage: false), findsNothing);
+    });
+
+    testWidgets('the banner fills the readable column on the Pad 7', (
+      tester,
+    ) async {
+      tester.view
+        ..physicalSize = const Size(1600, 1067)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      answerProfile();
+      await pump(tester);
+      final header = tester.getSize(find.byType(ProfileHeader)).width;
+      expect(tester.getSize(find.byType(AspectRatio).first).width, header);
+    });
   });
 }

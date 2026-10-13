@@ -42,12 +42,17 @@ class ChannelProfileScreen extends StatefulWidget {
   const ChannelProfileScreen({
     super.key,
     required this.login,
+    this.userId,
     this.displayName,
     this.initialTab = ProfileTab.home,
     this.fromChannel = false,
   });
 
   final String login;
+
+  /// Known by the caller: Chat and More work before (or without) the
+  /// profile.
+  final String? userId;
 
   /// Shown until the profile loads.
   final String? displayName;
@@ -59,6 +64,7 @@ class ChannelProfileScreen extends StatefulWidget {
   static Future<void> open(
     BuildContext context, {
     required String login,
+    String? userId,
     String? displayName,
     ProfileTab initialTab = ProfileTab.home,
     bool fromChannel = false,
@@ -68,6 +74,7 @@ class ChannelProfileScreen extends StatefulWidget {
       settings: const RouteSettings(name: routeName),
       builder: (context) => ChannelProfileScreen(
         login: login,
+        userId: userId,
         displayName: displayName,
         initialTab: initialTab,
         fromChannel: fromChannel,
@@ -104,6 +111,12 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
     clipService: context.twitchClipService,
   );
 
+  /// Home's "Popular clips": this week's top, whatever the Clips tab picks.
+  late final _homeClips = ChannelClipsStore(
+    login: widget.login,
+    clipService: context.twitchClipService,
+  );
+
   @override
   void initState() {
     super.initState();
@@ -128,18 +141,39 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
     _store.dispose();
     _videos.dispose();
     _clips.dispose();
+    _homeClips.dispose();
     super.dispose();
   }
 
   String get _name => _store.displayName ?? widget.displayName ?? widget.login;
+
+  String? get _userId => _store.userId ?? widget.userId;
+
+  void _say(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: AlertMessage(message: message, centered: false)),
+    );
+  }
+
+  /// Pull to refresh; a failure over a shown profile is said, not silent.
+  Future<void> _refresh() async {
+    await _store.refresh();
+    if (_store.error != null && _store.profile != null) {
+      _say("Couldn't refresh this channel");
+    }
+  }
 
   void _openChannel() {
     if (widget.fromChannel) {
       Navigator.of(context).pop();
       return;
     }
-    final id = _store.userId;
-    if (id == null) return;
+    final id = _userId;
+    if (id == null) {
+      _say("Couldn't open this channel, check your connection");
+      return;
+    }
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -154,16 +188,11 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
     await Clipboard.setData(
       ClipboardData(text: 'https://www.twitch.tv/${widget.login}'),
     );
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: AlertMessage(message: 'Link copied', centered: false),
-      ),
-    );
+    _say('Link copied');
   }
 
   void _more() {
-    final id = _store.userId;
+    final id = _userId;
     if (id == null) return;
     final settings = context.settingsStore;
     showModalBottomSheetWithProperFocus(
@@ -190,7 +219,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
   /// One of Home, About and Schedule: padded, readable on a tablet, pull to
   /// refresh.
   Widget _scrollTab(String key, Widget child) => RefreshIndicator.adaptive(
-    onRefresh: _store.refresh,
+    onRefresh: _refresh,
     child: CustomScrollView(
       key: PageStorageKey(key),
       slivers: [
@@ -223,101 +252,121 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
       body: Observer(
         builder: (context) {
           if (_store.notFound) {
-            return Center(child: _status('Channel not found'));
+            return Center(
+              child: _status(
+                'Channel not found',
+                onRetry: () => unawaited(_store.load()),
+              ),
+            );
           }
           final profile = _store.profile;
-          return NestedScrollView(
-            headerSliverBuilder: (context, _) => [
-              SliverReadableWidth(
-                sliver: SliverToBoxAdapter(
-                  child: ProfileHeader(
-                    login: widget.login,
-                    displayName: _name,
-                    profile: profile,
-                    onOpenChannel: _openChannel,
-                    onShare: _share,
-                    onMore: _store.userId == null ? null : _more,
+          // Read here: the header builder runs outside this Observer.
+          final name = _name;
+          final canMore = _userId != null;
+          final retrying = _store.isLoading && profile == null;
+          return SafeArea(
+            bottom: false,
+            child: NestedScrollView(
+              headerSliverBuilder: (context, _) => [
+                SliverReadableWidth(
+                  sliver: SliverToBoxAdapter(
+                    child: ProfileHeader(
+                      login: widget.login,
+                      displayName: name,
+                      profile: profile,
+                      onOpenChannel: _openChannel,
+                      onShare: _share,
+                      onMore: canMore ? _more : null,
+                    ),
                   ),
                 ),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 12)),
-            ],
-            body: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                TabBar(
-                  controller: _tabs,
-                  isScrollable: true,
-                  tabAlignment: TabAlignment.start,
-                  labelStyle: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  labelPadding: const EdgeInsets.symmetric(horizontal: 12),
-                  tabs: [
-                    for (final tab in ProfileTab.values) Tab(text: tab.label),
-                  ],
-                ),
-                const Divider(height: 1),
-                Expanded(
-                  child: TabBarView(
+                const SliverToBoxAdapter(child: SizedBox(height: 12)),
+              ],
+              body: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TabBar(
                     controller: _tabs,
-                    children: [
-                      _scrollTab(
-                        'home',
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            if (_store.error != null && profile == null)
-                              _status(
-                                _store.error!,
-                                onRetry: () => unawaited(_store.load()),
-                              ),
-                            ProfileHomeContent(
-                              login: widget.login,
-                              profile: profile,
-                              videos: _videos,
-                              clips: _clips,
-                              onOpenChannel: _openChannel,
-                              onViewAllVideos: () =>
-                                  _tabs.animateTo(ProfileTab.videos.index),
-                              onViewAllClips: () =>
-                                  _tabs.animateTo(ProfileTab.clips.index),
-                            ),
-                          ],
-                        ),
-                      ),
-                      _scrollTab(
-                        'about',
-                        profile == null
-                            ? Padding(
-                                padding: const EdgeInsets.only(top: 48),
-                                child: _store.loaded
-                                    ? _status(
-                                        _store.error ?? 'No details',
-                                        onRetry: () => unawaited(_store.load()),
-                                      )
-                                    : const Center(
-                                        child:
-                                            CircularProgressIndicator.adaptive(),
-                                      ),
-                              )
-                            : ProfileAboutContent(
-                                profile: profile,
-                                onOpenLink: _openLink,
-                              ),
-                      ),
-                      _scrollTab('schedule', _scheduleContent()),
-                      ChannelVideosTab(
-                        store: _videos,
-                        emptyMessage: 'No past broadcasts',
-                        nested: true,
-                      ),
-                      ChannelClipsTab(store: _clips, nested: true),
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.start,
+                    labelStyle: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    labelPadding: const EdgeInsets.symmetric(horizontal: 12),
+                    tabs: [
+                      for (final tab in ProfileTab.values) Tab(text: tab.label),
                     ],
                   ),
-                ),
-              ],
+                  const Divider(height: 1),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabs,
+                      children: [
+                        _scrollTab(
+                          'home',
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              if (retrying)
+                                const Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: Center(
+                                    child: CircularProgressIndicator.adaptive(),
+                                  ),
+                                )
+                              else if (_store.error != null && profile == null)
+                                _status(
+                                  _store.error!,
+                                  onRetry: () => unawaited(_store.load()),
+                                ),
+                              ProfileHomeContent(
+                                login: widget.login,
+                                profile: profile,
+                                videos: _videos,
+                                clips: _homeClips,
+                                onOpenChannel: _openChannel,
+                                onViewAllVideos: () =>
+                                    _tabs.animateTo(ProfileTab.videos.index),
+                                onViewAllClips: () =>
+                                    _tabs.animateTo(ProfileTab.clips.index),
+                              ),
+                            ],
+                          ),
+                        ),
+                        _scrollTab(
+                          'about',
+                          profile == null
+                              ? Padding(
+                                  padding: const EdgeInsets.only(top: 48),
+                                  child: _store.loaded && !retrying
+                                      ? _status(
+                                          _store.error ?? 'No details',
+                                          onRetry: () =>
+                                              unawaited(_store.load()),
+                                        )
+                                      : const Center(
+                                          child:
+                                              CircularProgressIndicator.adaptive(),
+                                        ),
+                                )
+                              : ProfileAboutContent(
+                                  profile: profile,
+                                  onOpenLink: _openLink,
+                                ),
+                        ),
+                        _scrollTab('schedule', _scheduleContent()),
+                        ChannelVideosTab(
+                          store: _videos,
+                          emptyMessage: 'No past broadcasts',
+                          nested: true,
+                        ),
+                        ChannelClipsTab(store: _clips, nested: true),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },

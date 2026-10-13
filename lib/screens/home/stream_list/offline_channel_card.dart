@@ -58,6 +58,7 @@ class OfflineChannelCard extends StatelessWidget {
       onTap: () => ChannelProfileScreen.open(
         context,
         login: channelInfo.broadcasterLogin,
+        userId: channelInfo.broadcasterId,
         displayName: channelName,
       ),
       onLongPress: () {
