@@ -18,12 +18,16 @@ class HypeTrainSlot extends StatefulWidget {
     required this.store,
     this.compact = false,
     this.onLearnMore,
+    this.onOpenDetails,
   });
 
   final HypeTrainStore store;
 
   /// Opens the hype train guide; defaults to the in-app browser.
   final VoidCallback? onLearnMore;
+
+  /// Compact: the details open here (a sheet) instead of below.
+  final VoidCallback? onOpenDetails;
 
   /// Landscape: a one-line banner and short sequences.
   final bool compact;
@@ -84,6 +88,7 @@ class _HypeTrainSlotState extends State<HypeTrainSlot> {
       alignment: Alignment.topCenter,
       child: Observer(
         builder: (context) {
+          final openHere = widget.compact ? widget.onOpenDetails : null;
           final Widget child;
           final String key;
           switch (store.phase) {
@@ -91,12 +96,16 @@ class _HypeTrainSlotState extends State<HypeTrainSlot> {
               return const SizedBox(width: double.infinity, height: 0);
             case HtPhase.approaching:
               key = 'approaching';
-              child = HypeTrainApproachingBanner(store: store);
+              child = HypeTrainApproachingBanner(store: store, onTap: openHere);
             case HtPhase.ongoing || HtPhase.ending:
               key = store.collapsed ? 'pill' : 'banner';
               child = store.collapsed
                   ? HypeTrainPill(store: store)
-                  : HypeTrainBanner(store: store, compact: widget.compact);
+                  : HypeTrainBanner(
+                      store: store,
+                      compact: widget.compact,
+                      onTap: openHere,
+                    );
             case HtPhase.rewards || HtPhase.expired:
               key = 'strip';
               child = HypeTrainEndStrip(store: store);

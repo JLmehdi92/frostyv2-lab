@@ -7,9 +7,16 @@ import 'package:frosty/screens/channel/hype_train/widgets/hype_train_palette.dar
 /// A train is about to start: how many events are left, three check
 /// circles in the creator's colour and the time window running out.
 class HypeTrainApproachingBanner extends StatelessWidget {
-  const HypeTrainApproachingBanner({super.key, required this.store});
+  const HypeTrainApproachingBanner({
+    super.key,
+    required this.store,
+    this.onTap,
+  });
 
   final HypeTrainStore store;
+
+  /// Instead of expanding the details below (landscape opens a sheet).
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +49,7 @@ class HypeTrainApproachingBanner extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   clipBehavior: Clip.antiAlias,
                   child: InkWell(
-                    onTap: store.toggleExpanded,
+                    onTap: onTap ?? store.toggleExpanded,
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                       child: Column(

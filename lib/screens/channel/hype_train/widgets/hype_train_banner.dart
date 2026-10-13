@@ -33,9 +33,17 @@ HtPalette htPaletteOf(BuildContext context, HypeTrainStore store) =>
 /// then the bar with percent and countdown. Tap for details; swipe up or
 /// the chevron to collapse it into a pill.
 class HypeTrainBanner extends StatelessWidget {
-  const HypeTrainBanner({super.key, required this.store, this.compact = false});
+  const HypeTrainBanner({
+    super.key,
+    required this.store,
+    this.compact = false,
+    this.onTap,
+  });
 
   final HypeTrainStore store;
+
+  /// Instead of expanding the details below (landscape opens a sheet).
+  final VoidCallback? onTap;
 
   /// Landscape: one line, no subtitle.
   final bool compact;
@@ -153,7 +161,7 @@ class HypeTrainBanner extends StatelessWidget {
                           ),
                         ),
                       InkWell(
-                        onTap: store.toggleExpanded,
+                        onTap: onTap ?? store.toggleExpanded,
                         child: GestureDetector(
                           onVerticalDragEnd: (details) {
                             if ((details.primaryVelocity ?? 0) < -200) {

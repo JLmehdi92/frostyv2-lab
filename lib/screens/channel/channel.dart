@@ -6,6 +6,8 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_tabs.dart';
+import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_channel_overlays.dart';
 import 'package:frosty/screens/channel/video/ivs_stats_panel.dart';
 import 'package:frosty/screens/channel/video/ivs_video.dart';
 import 'package:frosty/screens/channel/video/native_video.dart';
@@ -26,6 +28,7 @@ import 'package:frosty/utils/pip_callbacks.dart';
 import 'package:frosty/widgets/blurred_container.dart';
 import 'package:frosty/widgets/draggable_divider.dart';
 import 'package:frosty/widgets/frosty_notification.dart';
+import 'package:mobx/mobx.dart';
 import 'package:simple_pip_mode/actions/pip_actions_layout.dart';
 import 'package:simple_pip_mode/pip_widget.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -113,6 +116,27 @@ class _VideoChatState extends State<VideoChat>
   /// True once the live player has been handed to the mini window, so this
   /// screen must not dispose it when it pops.
   bool _handedOff = false;
+
+  /// The primary (video) channel's hype train, whatever chat tab is open;
+  /// null while the setting is off. Never handed to the mini window.
+  HypeTrainStore? _hypeTrainStore;
+  ReactionDisposer? _hypeTrainSettingReaction;
+
+  void _syncHypeTrainStore() {
+    final show = context.settingsStore.showHypeTrain;
+    if (show && _hypeTrainStore == null) {
+      final authStore = context.authStore;
+      _hypeTrainStore = HypeTrainStore(
+        channelId: widget.userId,
+        service: context.twitchHypeTrainService,
+        realtime: context.realtimeClient,
+        viewerId: () => authStore.user.details?.id,
+      );
+    } else if (!show && _hypeTrainStore != null) {
+      _hypeTrainStore!.dispose();
+      _hypeTrainStore = null;
+    }
+  }
 
   /// Builds the video controller for the engine selected in settings.
   ///
@@ -223,6 +247,12 @@ class _VideoChatState extends State<VideoChat>
 
     // Register as observer for app lifecycle events
     WidgetsBinding.instance.addObserver(this);
+
+    _syncHypeTrainStore();
+    final settings = context.settingsStore;
+    _hypeTrainSettingReaction = reaction((_) => settings.showHypeTrain, (_) {
+      if (mounted) setState(_syncHypeTrainStore);
+    });
   }
 
   /// Whether the stream was playing when another player took focus.
@@ -260,6 +290,7 @@ class _VideoChatState extends State<VideoChat>
 
     if (state == AppLifecycleState.resumed) {
       _videoStore.handleAppResume();
+      _hypeTrainStore?.handleAppResume();
     }
   }
 
@@ -537,6 +568,11 @@ class _VideoChatState extends State<VideoChat>
           children: [
             player,
             if (_videoStore.settingsStore.showOverlay) overlay,
+            if (_hypeTrainStore case final hypeTrain?)
+              HypeTrainVideoOverlay(
+                store: hypeTrain,
+                settingsStore: settingsStore,
+              ),
             if (_videoStore case final IvsVideoStore ivs
                 when ivs.statsVisible && !ivs.isInPipMode)
               Positioned.fill(
@@ -570,6 +606,12 @@ class _VideoChatState extends State<VideoChat>
                   ? EdgeInsets.only(top: context.safePaddingTop)
                   : null,
             ),
+            if (_hypeTrainStore case final hypeTrain?)
+              HypeTrainChatOverlay(
+                store: hypeTrain,
+                settingsStore: settingsStore,
+                chatTabsStore: _chatTabsStore,
+              ),
             Observer(
               builder: (_) => AnimatedSwitcher(
                 duration: const Duration(milliseconds: 200),
@@ -948,6 +990,11 @@ class _VideoChatState extends State<VideoChat>
     WidgetsBinding.instance.removeObserver(this);
 
     PlaybackFocus.shared.release(this);
+
+    // Always: the mini window shows no hype train, and restoring the
+    // channel builds a new store (which refetches).
+    _hypeTrainSettingReaction?.call();
+    _hypeTrainStore?.dispose();
 
     // Skip disposal when handed to the mini window — the player and the live
     // chat (with its history) live on there.
