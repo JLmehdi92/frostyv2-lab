@@ -559,6 +559,8 @@ void main() {
     test(
       'a seek to the end of a finished video loads its last comments',
       () async {
+        // minFetchGap is 0 here; in production the chain of one-second
+        // pages up to the end is spaced out by the 300 ms gap.
         pages[3585] = _span(3585, 3599, hasNext: false);
         store = build();
 

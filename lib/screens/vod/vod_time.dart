@@ -39,3 +39,17 @@ Duration? parseTwitchTimestamp(String raw) {
   final seconds = int.tryParse(match.group(3) ?? '0') ?? 0;
   return Duration(hours: hours, minutes: minutes, seconds: seconds);
 }
+
+/// How long ago [date] was, the way Twitch lists videos ("3 days ago").
+String formatTimeAgo(DateTime date, {DateTime? now}) {
+  final elapsed = (now ?? DateTime.now()).difference(date);
+  String plural(int n, String unit) => '$n $unit${n == 1 ? '' : 's'} ago';
+  if (elapsed.inMinutes < 1) return 'Just now';
+  if (elapsed.inHours < 1) return plural(elapsed.inMinutes, 'minute');
+  if (elapsed.inDays < 1) return plural(elapsed.inHours, 'hour');
+  if (elapsed.inDays == 1) return 'Yesterday';
+  if (elapsed.inDays < 7) return plural(elapsed.inDays, 'day');
+  if (elapsed.inDays < 30) return plural(elapsed.inDays ~/ 7, 'week');
+  if (elapsed.inDays < 365) return plural(elapsed.inDays ~/ 30, 'month');
+  return plural(elapsed.inDays ~/ 365, 'year');
+}
