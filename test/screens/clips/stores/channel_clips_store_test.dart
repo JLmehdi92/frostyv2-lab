@@ -1,0 +1,192 @@
+import 'dart:async';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/apis/base_api_client.dart';
+import 'package:frosty/apis/twitch_clip_service.dart';
+import 'package:frosty/models/clip.dart';
+import 'package:frosty/screens/clips/stores/channel_clips_store.dart';
+import 'package:mocktail/mocktail.dart';
+
+import '../../../fixtures/clip_responses.dart';
+
+class MockClipService extends Mock implements TwitchClipService {}
+
+void main() {
+  late MockClipService service;
+  late ChannelClipsStore store;
+  final clip = Clip.fromGql(clipNode);
+  final other = Clip.fromGql(clipNodeOrphan);
+
+  setUpAll(() {
+    registerFallbackValue(ClipPeriod.lastWeek);
+    registerFallbackValue(ClipSort.top);
+  });
+
+  setUp(() {
+    service = MockClipService();
+    store = ChannelClipsStore(login: 'xqc', clipService: service);
+  });
+
+  tearDown(() => store.dispose());
+
+  void answer(ClipPeriod period, ClipSort sort, List<Clip> clips) => when(
+    () => service.getChannelClips(login: 'xqc', period: period, sort: sort),
+  ).thenAnswer((_) async => ClipPage(items: clips, hasMore: true));
+
+  test('starts on the top clips of the week', () async {
+    answer(ClipPeriod.lastWeek, ClipSort.top, [clip]);
+
+    await store.load();
+
+    expect(store.period, ClipPeriod.lastWeek);
+    expect(store.sort, ClipSort.top);
+    expect(store.clips, [clip]);
+    expect(store.hasMore, isTrue);
+    expect(store.loaded, isTrue);
+  });
+
+  test('a chip already loaded comes back without a request', () async {
+    answer(ClipPeriod.lastWeek, ClipSort.top, [clip]);
+    answer(ClipPeriod.allTime, ClipSort.top, [other]);
+    await store.load();
+
+    await store.select(period: ClipPeriod.allTime);
+    expect(store.clips, [other]);
+    await store.select(period: ClipPeriod.lastWeek);
+
+    expect(store.clips, [clip]);
+    verify(
+      () => service.getChannelClips(
+        login: 'xqc',
+        period: ClipPeriod.lastWeek,
+        sort: ClipSort.top,
+      ),
+    ).called(1);
+  });
+
+  test('loads while loading join the same request', () async {
+    answer(ClipPeriod.lastWeek, ClipSort.top, [clip]);
+
+    await Future.wait([store.load(), store.load()]);
+
+    verify(
+      () => service.getChannelClips(
+        login: any(named: 'login'),
+        period: any(named: 'period'),
+        sort: any(named: 'sort'),
+      ),
+    ).called(1);
+  });
+
+  test(
+    'a slow answer for an old chip never replaces the current one',
+    () async {
+      final slow = Completer<ClipPage>();
+      when(
+        () => service.getChannelClips(
+          login: 'xqc',
+          period: ClipPeriod.lastWeek,
+          sort: ClipSort.top,
+        ),
+      ).thenAnswer((_) => slow.future);
+      answer(ClipPeriod.lastWeek, ClipSort.trending, [other]);
+
+      final first = store.load();
+      await store.select(sort: ClipSort.trending);
+      slow.complete(ClipPage(items: [clip], hasMore: false));
+      await first;
+
+      expect(store.sort, ClipSort.trending);
+      expect(store.clips, [other]);
+      expect(store.isLoading, isFalse);
+    },
+  );
+
+  test('errors read like the rest of the app', () async {
+    when(
+      () => service.getChannelClips(
+        login: any(named: 'login'),
+        period: any(named: 'period'),
+        sort: any(named: 'sort'),
+      ),
+    ).thenThrow(const NotFoundException('nope'));
+    await store.load();
+    expect(store.error, 'Channel not found');
+
+    when(
+      () => service.getChannelClips(
+        login: any(named: 'login'),
+        period: any(named: 'period'),
+        sort: any(named: 'sort'),
+      ),
+    ).thenThrow(const ClipApiException('server error'));
+    await store.refresh();
+    expect(store.error, "Couldn't load clips");
+    expect(store.clips, isEmpty);
+  });
+
+  test('refresh asks again for the current chip', () async {
+    answer(ClipPeriod.lastWeek, ClipSort.top, [clip]);
+    await store.load();
+    answer(ClipPeriod.lastWeek, ClipSort.top, [other]);
+
+    await store.refresh();
+
+    expect(store.clips, [other]);
+  });
+
+  test('another starting period can be asked for (links)', () async {
+    store.dispose();
+    store = ChannelClipsStore(
+      login: 'xqc',
+      clipService: service,
+      period: ClipPeriod.lastDay,
+    );
+    answer(ClipPeriod.lastDay, ClipSort.top, [clip]);
+    await store.load();
+    expect(store.clips, [clip]);
+  });
+
+  test(
+    'back on a chip still loading: the spinner, not the other list',
+    () async {
+      final slow = Completer<ClipPage>();
+      when(
+        () => service.getChannelClips(
+          login: 'xqc',
+          period: ClipPeriod.allTime,
+          sort: ClipSort.top,
+        ),
+      ).thenAnswer((_) => slow.future);
+      answer(ClipPeriod.lastWeek, ClipSort.top, [clip]);
+      await store.load();
+
+      final all = store.select(period: ClipPeriod.allTime);
+      await store.select(period: ClipPeriod.lastWeek);
+      final again = store.select(period: ClipPeriod.allTime);
+
+      expect(store.isLoading, isTrue);
+      slow.complete(ClipPage(items: [other], hasMore: false));
+      await Future.wait([all, again]);
+      expect(store.clips, [other]);
+      expect(store.isLoading, isFalse);
+    },
+  );
+
+  test('a failed pull-to-refresh keeps the list it had', () async {
+    answer(ClipPeriod.lastWeek, ClipSort.top, [clip]);
+    await store.load();
+    when(
+      () => service.getChannelClips(
+        login: any(named: 'login'),
+        period: any(named: 'period'),
+        sort: any(named: 'sort'),
+      ),
+    ).thenThrow(const ClipApiException('down'));
+
+    await store.refresh();
+
+    expect(store.clips, [clip]);
+    expect(store.error, isNull);
+  });
+}

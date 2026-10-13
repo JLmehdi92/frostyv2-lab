@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:frosty/models/clip.dart';
 import 'package:frosty/models/vod.dart';
+import 'package:frosty/screens/clips/stores/channel_clips_store.dart';
+import 'package:frosty/screens/clips/widgets/channel_clips_tab.dart';
 import 'package:frosty/screens/vod/stores/channel_videos_store.dart';
 import 'package:frosty/screens/vod/vod_resume.dart';
 import 'package:frosty/screens/vod/vod_screen.dart';
@@ -25,17 +28,25 @@ class ChannelVideosScreen extends StatefulWidget {
     required this.userLogin,
     required this.displayName,
     this.initialTab = VodType.archive,
+    this.startOnClips = false,
+    this.clipPeriod = ClipPeriod.lastWeek,
   });
 
   final String userLogin;
   final String displayName;
   final VodType initialTab;
 
+  /// Opens on the Clips tab (a `/<channel>/clips` link), for [clipPeriod].
+  final bool startOnClips;
+  final ClipPeriod clipPeriod;
+
   static Future<void> open(
     BuildContext context, {
     required String userLogin,
     required String displayName,
     VodType initialTab = VodType.archive,
+    bool startOnClips = false,
+    ClipPeriod clipPeriod = ClipPeriod.lastWeek,
   }) => Navigator.push(
     context,
     MaterialPageRoute(
@@ -44,6 +55,8 @@ class ChannelVideosScreen extends StatefulWidget {
         userLogin: userLogin,
         displayName: displayName,
         initialTab: initialTab,
+        startOnClips: startOnClips,
+        clipPeriod: clipPeriod,
       ),
     ),
   );
@@ -92,12 +105,19 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen> {
       ),
   };
 
+  late final _clipsStore = ChannelClipsStore(
+    login: widget.userLogin,
+    clipService: context.twitchClipService,
+    period: widget.clipPeriod,
+  );
+
   @override
   void dispose() {
     VodResumeRepository.changes.removeListener(_onResumeChanged);
     for (final store in _stores.values) {
       store.dispose();
     }
+    _clipsStore.dispose();
     super.dispose();
   }
 
@@ -108,8 +128,10 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen> {
       body: SafeArea(
         bottom: false,
         child: FrostyPageView(
-          initialIndex: _tabs.indexWhere((t) => t.$1 == widget.initialTab),
-          headers: [for (final (_, header, _) in _tabs) header],
+          initialIndex: widget.startOnClips
+              ? _tabs.length
+              : _tabs.indexWhere((t) => t.$1 == widget.initialTab),
+          headers: [for (final (_, header, _) in _tabs) header, 'Clips'],
           children: [
             for (final (type, _, empty) in _tabs)
               _VideosTab(
@@ -118,6 +140,7 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen> {
                 resume: _resume,
                 onOpen: _openVod,
               ),
+            ChannelClipsTab(store: _clipsStore),
           ],
         ),
       ),
