@@ -54,7 +54,13 @@ class ProfileHeader extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 200),
+              // A landscape phone keeps a thin strip, so the tabs show.
+              constraints: BoxConstraints(
+                maxHeight: (MediaQuery.sizeOf(context).height * 0.22).clamp(
+                  48,
+                  200,
+                ),
+              ),
               child: AspectRatio(
                 aspectRatio: 3,
                 child: banner != null
