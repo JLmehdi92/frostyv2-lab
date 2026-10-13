@@ -63,6 +63,12 @@ class TwitchVodService extends BaseApiClient {
       'videos(first: \$first, type: \$type, sort: TIME) { edges { node { '
       '$_videoFields } } pageInfo { hasNextPage } } } }';
 
+  // `owner` comes with each video (verified anonymously, 2026-10-13).
+  static const _categoryVideosQuery =
+      'query CategoryVideos(\$id: ID!, \$first: Int, \$sort: VideoSort) { '
+      'game(id: \$id) { id videos(first: \$first, sort: \$sort) { edges { '
+      'node { $_videoFields } } pageInfo { hasNextPage } } } }';
+
   static const _videoQuery =
       'query Video(\$id: ID!) { video(id: \$id) { $_videoFields } }';
 
@@ -109,6 +115,36 @@ class TwitchVodService extends BaseApiClient {
       if (edge is! Map || edge['node'] is! Map) continue;
       try {
         items.add(Vod.fromGql(JsonMap.from(edge['node'] as Map), owner: owner));
+      } on FormatException {
+        // One unreadable video must not hide the others.
+      }
+    }
+    final pageInfo = videos['pageInfo'];
+    return VodPage(
+      items: items,
+      hasMore: pageInfo is Map && pageInfo['hasNextPage'] == true,
+    );
+  }
+
+  /// A category's 100 most viewed videos.
+  Future<VodPage> getCategoryVideos(String gameId) async {
+    if (!RegExp(r'^[0-9]{1,20}$').hasMatch(gameId)) {
+      throw ArgumentError.value(gameId, 'gameId', 'Not a category id');
+    }
+    final data = await _gql('CategoryVideos', _categoryVideosQuery, {
+      'id': gameId,
+      'first': 100,
+      'sort': 'VIEWS',
+    });
+    final game = data['game'];
+    if (game is! Map) throw const NotFoundException('Category not found');
+    final videos = game['videos'] is Map ? game['videos'] as Map : const {};
+    final edges = videos['edges'] is List ? videos['edges'] as List : const [];
+    final items = <Vod>[];
+    for (final edge in edges) {
+      if (edge is! Map || edge['node'] is! Map) continue;
+      try {
+        items.add(Vod.fromGql(JsonMap.from(edge['node'] as Map)));
       } on FormatException {
         // One unreadable video must not hide the others.
       }

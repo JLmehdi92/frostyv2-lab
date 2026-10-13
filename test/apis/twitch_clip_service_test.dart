@@ -374,4 +374,78 @@ void main() {
       );
     });
   });
+
+  group('getCategoryClips', () {
+    test('a category\'s top clips, with each broadcaster', () async {
+      reply({
+        'data': {
+          'game': {
+            'id': '32982',
+            'clips': {
+              'edges': [
+                {
+                  'node': {
+                    'id': '1',
+                    'slug': 'SomeSlug',
+                    'title': 'Wow',
+                    'viewCount': 10,
+                    'createdAt': '2026-10-10T10:00:00Z',
+                    'durationSeconds': 30,
+                    'broadcaster': {
+                      'id': '42',
+                      'login': 'streamer',
+                      'displayName': 'Streamer',
+                    },
+                  },
+                },
+              ],
+              'pageInfo': {'hasNextPage': true},
+            },
+          },
+        },
+      });
+
+      final page = await service.getCategoryClips(
+        gameId: '32982',
+        period: ClipPeriod.lastWeek,
+        sort: ClipSort.top,
+      );
+
+      expect(page.items.single.broadcasterLogin, 'streamer');
+      expect(page.hasMore, isTrue);
+      expect(lastBody()['variables'], {
+        'id': '32982',
+        'first': 100,
+        'period': 'LAST_WEEK',
+        'sort': 'VIEWS_DESC',
+      });
+      expect(requests.last.headers['Authorization'], isNull);
+    });
+
+    test('a bad id never reaches the network', () async {
+      expect(
+        () => service.getCategoryClips(
+          gameId: '1 OR 1',
+          period: ClipPeriod.lastWeek,
+          sort: ClipSort.top,
+        ),
+        throwsArgumentError,
+      );
+      expect(requests, isEmpty);
+    });
+
+    test('an unknown category is not found', () async {
+      reply({
+        'data': {'game': null},
+      });
+      await expectLater(
+        service.getCategoryClips(
+          gameId: '1',
+          period: ClipPeriod.lastWeek,
+          sort: ClipSort.top,
+        ),
+        throwsA(isA<NotFoundException>()),
+      );
+    });
+  });
 }

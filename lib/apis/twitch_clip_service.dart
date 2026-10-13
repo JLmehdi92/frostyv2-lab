@@ -49,6 +49,12 @@ class TwitchClipService extends BaseApiClient {
       '\$period, sort: \$sort}) { edges { node { $_clipFields } } '
       'pageInfo { hasNextPage } } } }';
 
+  static const _categoryClipsQuery =
+      'query CategoryClips(\$id: ID!, \$first: Int, \$period: ClipsPeriod, '
+      '\$sort: ClipsSort) { game(id: \$id) { id clips(first: \$first, '
+      'criteria: {period: \$period, sort: \$sort}) { edges { node { '
+      '$_clipFields } } pageInfo { hasNextPage } } } }';
+
   static const _clipQuery =
       'query Clip(\$slug: ID!) { clip(slug: \$slug) { $_clipFields } }';
 
@@ -87,6 +93,41 @@ class TwitchClipService extends BaseApiClient {
         items.add(
           Clip.fromGql(JsonMap.from(edge['node'] as Map), broadcaster: owner),
         );
+      } on FormatException {
+        // One unreadable clip must not hide the others.
+      }
+    }
+    final pageInfo = clips['pageInfo'];
+    return ClipPage(
+      items: items,
+      hasMore: pageInfo is Map && pageInfo['hasNextPage'] == true,
+    );
+  }
+
+  /// A category's top 100 clips of [period], in [sort] order.
+  Future<ClipPage> getCategoryClips({
+    required String gameId,
+    required ClipPeriod period,
+    required ClipSort sort,
+  }) async {
+    if (!RegExp(r'^[0-9]{1,20}$').hasMatch(gameId)) {
+      throw ArgumentError.value(gameId, 'gameId', 'Not a category id');
+    }
+    final data = await _gql('CategoryClips', _categoryClipsQuery, {
+      'id': gameId,
+      'first': 100,
+      'period': period.gqlName,
+      'sort': sort.gqlName,
+    });
+    final game = data['game'];
+    if (game is! Map) throw const NotFoundException('Category not found');
+    final clips = game['clips'] is Map ? game['clips'] as Map : const {};
+    final edges = clips['edges'] is List ? clips['edges'] as List : const [];
+    final items = <Clip>[];
+    for (final edge in edges) {
+      if (edge is! Map || edge['node'] is! Map) continue;
+      try {
+        items.add(Clip.fromGql(JsonMap.from(edge['node'] as Map)));
       } on FormatException {
         // One unreadable clip must not hide the others.
       }

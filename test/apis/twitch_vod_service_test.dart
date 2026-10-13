@@ -383,4 +383,45 @@ void main() {
       );
     });
   });
+
+  group('getCategoryVideos', () {
+    test('a category\'s most viewed videos, with their owners', () async {
+      reply({
+        'data': {
+          'game': {
+            'id': '32982',
+            'videos': {
+              'edges': [
+                {
+                  'node': {
+                    'id': '9',
+                    'title': 'Heist',
+                    'lengthSeconds': 3600,
+                    'createdAt': '2026-10-10T10:00:00Z',
+                    'viewCount': 5,
+                    'broadcastType': 'ARCHIVE',
+                    'owner': {
+                      'id': '42',
+                      'login': 'streamer',
+                      'displayName': 'Streamer',
+                    },
+                  },
+                },
+              ],
+              'pageInfo': {'hasNextPage': false},
+            },
+          },
+        },
+      });
+
+      final page = await service.getCategoryVideos('32982');
+
+      expect(page.items.single.ownerLogin, 'streamer');
+      expect(lastVariables(), {'id': '32982', 'first': 100, 'sort': 'VIEWS'});
+    });
+
+    test('a bad id never reaches the network', () async {
+      expect(() => service.getCategoryVideos('x'), throwsArgumentError);
+    });
+  });
 }
