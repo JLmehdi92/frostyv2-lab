@@ -299,6 +299,67 @@ void main() {
     });
   });
 
+  group('getActiveStatuses', () {
+    test('parses the statuses of the running trains', () async {
+      reply({
+        'data': {
+          'allActiveHypeTrainStatuses': [
+            {
+              'channel': {'id': '1'},
+              'level': 5,
+              'isAllTimeHighTrain': false,
+              'isSharedTrain': true,
+              'hypeTrainType': 'REGULAR',
+            },
+            {
+              'channel': {'id': '2'},
+              'level': 18,
+              'isAllTimeHighTrain': true,
+              'isSharedTrain': false,
+              'hypeTrainType': 'TREASURE',
+            },
+            {'channel': null, 'level': 3},
+          ],
+        },
+      });
+
+      final statuses = await service.getActiveStatuses(['1', '2', '3']);
+
+      expect(statuses.keys, unorderedEquals(['1', '2']));
+      expect(statuses['1']!.isShared, isTrue);
+      expect(statuses['2']!.level, 18);
+      expect(statuses['2']!.variant, HtVariant.treasure);
+      expect(statuses['2']!.isAllTimeHigh, isTrue);
+      expect(lastBody()['variables'], {
+        'channelIds': ['1', '2', '3'],
+      });
+    });
+
+    test('asks 100 channels at a time, skipping bad ids', () async {
+      reply({
+        'data': {'allActiveHypeTrainStatuses': <Object>[]},
+      });
+
+      await service.getActiveStatuses([
+        for (var i = 1; i <= 250; i++) '$i',
+        'bad id',
+      ]);
+
+      expect(requests, hasLength(3));
+      expect(
+        ((requests.last.data as Map)['variables'] as Map)['channelIds'],
+        hasLength(50),
+      );
+    });
+
+    test('never throws', () async {
+      reply({'error': 'oops'}, status: 500);
+
+      expect(await service.getActiveStatuses(['1']), isEmpty);
+      expect(await service.getActiveStatuses(const []), isEmpty);
+    });
+  });
+
   test('normalizeChannelId', () {
     expect(TwitchHypeTrainService.normalizeChannelId('42'), '42');
     expect(TwitchHypeTrainService.normalizeChannelId(' 42 '), '42');

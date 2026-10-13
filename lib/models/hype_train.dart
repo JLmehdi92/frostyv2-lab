@@ -893,3 +893,19 @@ class HypeTrainApproaching {
   final List<HtReward> levelOneRewards;
   final HtVariant variant;
 }
+
+/// A channel's train as a stream card shows it.
+@immutable
+class HtCardStatus {
+  const HtCardStatus({
+    required this.level,
+    this.variant = HtVariant.regular,
+    this.isShared = false,
+    this.isAllTimeHigh = false,
+  });
+
+  final int level;
+  final HtVariant variant;
+  final bool isShared;
+  final bool isAllTimeHigh;
+}

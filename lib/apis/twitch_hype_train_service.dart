@@ -99,6 +99,51 @@ class TwitchHypeTrainService extends BaseApiClient {
       'id channel { id hypeTrain { execution { id config { '
       'potentialRewards { id level value { $_reward } } } } } } } }';
 
+  static const _statusesQuery =
+      'query HypeTrainStatuses(\$channelIds: [ID!]!) { '
+      'allActiveHypeTrainStatuses(channelIDs: \$channelIds) { channel { id } '
+      'level isAllTimeHighTrain isSharedTrain hypeTrainType } }';
+
+  static const _statusesChunk = 100;
+
+  /// The running trains among [channelIds] (stream card pills), by channel
+  /// id. Never throws: channels that fail are simply missing.
+  Future<Map<String, HtCardStatus>> getActiveStatuses(
+    List<String> channelIds,
+  ) async {
+    final ids = [
+      for (final id in channelIds.toSet())
+        if (_channelId.hasMatch(id)) id,
+    ];
+    final result = <String, HtCardStatus>{};
+    for (var i = 0; i < ids.length; i += _statusesChunk) {
+      final chunk = ids.sublist(
+        i,
+        i + _statusesChunk > ids.length ? ids.length : i + _statusesChunk,
+      );
+      try {
+        final data = await _gql('HypeTrainStatuses', _statusesQuery, {
+          'channelIds': chunk,
+        });
+        for (final item in htList(data, ['allActiveHypeTrainStatuses'])) {
+          if (item is! Map) continue;
+          final id = htString(htMap(item, ['channel']), ['id']);
+          final level = htInt(item, ['level']);
+          if (id == null || level == null || level < 1) continue;
+          result[id] = HtCardStatus(
+            level: level,
+            variant: htVariantOf(item),
+            isShared: htBool(item, ['isSharedTrain']),
+            isAllTimeHigh: htBool(item, ['isAllTimeHighTrain']),
+          );
+        }
+      } on Object {
+        // Card pills are a nicety: a failed chunk shows none.
+      }
+    }
+    return result;
+  }
+
   /// [raw] trimmed, if it is a Twitch user id; [ArgumentError] otherwise.
   static String normalizeChannelId(String raw) {
     final id = raw.trim();

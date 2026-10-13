@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/home/stream_list/large_stream_card.dart';
 import 'package:frosty/screens/home/stream_list/offline_channel_card.dart';
@@ -66,6 +67,9 @@ class _StreamsListState extends State<StreamsList>
       listType: widget.listType,
       categoryId: widget.categoryId,
       scrollController: widget.scrollController ?? _scrollController,
+      hypeTrainService: widget.listType == ListType.followed
+          ? context.read<TwitchHypeTrainService>()
+          : null,
     );
   }
 
@@ -298,6 +302,8 @@ class _StreamsListState extends State<StreamsList>
                                                     widget.categoryId == null,
                                                 showPinOption: true,
                                                 isPinned: true,
+                                                hypeTrain: _listStore
+                                                    .hypeTrains[stream.userId],
                                               )
                                             : StreamCard(
                                                 key: ValueKey(stream.userId),
@@ -309,6 +315,8 @@ class _StreamsListState extends State<StreamsList>
                                                     widget.categoryId == null,
                                                 showPinOption: true,
                                                 isPinned: true,
+                                                hypeTrain: _listStore
+                                                    .hypeTrains[stream.userId],
                                               );
                                       },
                                     );
@@ -351,6 +359,10 @@ class _StreamsListState extends State<StreamsList>
                                         showCategory: widget.categoryId == null,
                                         showPinOption: isFollowingTab,
                                         isPinned: false,
+                                        hypeTrain:
+                                            _listStore
+                                                .hypeTrains[unpinnedStreams[index]
+                                                .userId],
                                       )
                                     : StreamCard(
                                         key: ValueKey(
@@ -362,6 +374,10 @@ class _StreamsListState extends State<StreamsList>
                                         showCategory: widget.categoryId == null,
                                         showPinOption: isFollowingTab,
                                         isPinned: false,
+                                        hypeTrain:
+                                            _listStore
+                                                .hypeTrains[unpinnedStreams[index]
+                                                .userId],
                                       ),
                               );
                             },
