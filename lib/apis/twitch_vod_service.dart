@@ -39,7 +39,8 @@ enum VodPlaybackProblem {
 /// public web Client-ID and full query documents, no user token): channel
 /// lists, a single video, chat replay by offset and the usher VOD playlist.
 ///
-/// Comments are fetched by offset only: cursor paging is integrity-gated.
+/// Comments and channel lists are fetched without cursors: cursor paging is
+/// integrity-gated for anonymous clients (verified 2026-10-13).
 class TwitchVodService extends BaseApiClient {
   TwitchVodService(Dio dio, {PlaybackTokenCache? tokenCache})
     : _http = dio,
@@ -58,10 +59,9 @@ class TwitchVodService extends BaseApiClient {
 
   static const _channelVideosQuery =
       'query ChannelVideos(\$login: String!, \$type: BroadcastType, '
-      '\$first: Int, \$after: Cursor) { user(login: \$login) { id login '
-      'displayName videos(first: \$first, after: \$after, type: \$type, '
-      'sort: TIME) { edges { cursor node { $_videoFields } } '
-      'pageInfo { hasNextPage } } } }';
+      '\$first: Int) { user(login: \$login) { id login displayName '
+      'videos(first: \$first, type: \$type, sort: TIME) { edges { node { '
+      '$_videoFields } } pageInfo { hasNextPage } } } }';
 
   static const _videoQuery =
       'query Video(\$id: ID!) { video(id: \$id) { $_videoFields } }';
@@ -85,17 +85,15 @@ class TwitchVodService extends BaseApiClient {
   final Dio _http;
   final PlaybackTokenCache _tokens;
 
+  /// The channel's newest videos of [type] (up to 100, newest first).
   Future<VodPage> getChannelVideos({
     required String login,
     required VodType type,
-    String? cursor,
-    int first = 20,
   }) async {
     final data = await _gql('ChannelVideos', _channelVideosQuery, {
       'login': login,
       'type': type.gqlName,
-      'first': first,
-      'after': ?cursor,
+      'first': 100,
     });
     final user = data['user'];
     if (user is! Map) throw const NotFoundException('Channel not found');
@@ -105,19 +103,20 @@ class TwitchVodService extends BaseApiClient {
       'displayName': user['displayName'],
     };
     final videos = user['videos'] is Map ? user['videos'] as Map : const {};
-    final edges = (videos['edges'] as List?) ?? const [];
+    final edges = videos['edges'] is List ? videos['edges'] as List : const [];
     final items = <Vod>[];
-    String? lastCursor;
     for (final edge in edges) {
       if (edge is! Map || edge['node'] is! Map) continue;
-      items.add(Vod.fromGql(JsonMap.from(edge['node'] as Map), owner: owner));
-      lastCursor = edge['cursor'] as String? ?? lastCursor;
+      try {
+        items.add(Vod.fromGql(JsonMap.from(edge['node'] as Map), owner: owner));
+      } on FormatException {
+        // One unreadable video must not hide the others.
+      }
     }
     final pageInfo = videos['pageInfo'];
     return VodPage(
       items: items,
-      cursor: lastCursor,
-      hasNextPage: pageInfo is Map && pageInfo['hasNextPage'] == true,
+      hasMore: pageInfo is Map && pageInfo['hasNextPage'] == true,
     );
   }
 
@@ -127,7 +126,12 @@ class TwitchVodService extends BaseApiClient {
       'id': normalizeVodId(vodId),
     });
     final video = data['video'];
-    return video is Map ? Vod.fromGql(JsonMap.from(video)) : null;
+    if (video is! Map) return null;
+    try {
+      return Vod.fromGql(JsonMap.from(video));
+    } on FormatException {
+      throw const VodApiException('Unreadable video');
+    }
   }
 
   /// Chat messages recorded around [offsetSeconds] (Twitch returns a page
@@ -145,7 +149,9 @@ class TwitchVodService extends BaseApiClient {
         ? video['comments'] as Map
         : null;
     if (comments == null) throw const VodApiException('No comments');
-    final edges = (comments['edges'] as List?) ?? const [];
+    final edges = comments['edges'] is List
+        ? comments['edges'] as List
+        : const [];
     final pageInfo = comments['pageInfo'];
     return VodCommentPage(
       comments: [
@@ -205,7 +211,14 @@ class TwitchVodService extends BaseApiClient {
 
   /// Asks usher why a playlist is refused. Never throws and never logs the
   /// URL (it carries the playback token).
+  ///
+  /// Usher answers a bad token and a missing VOD alike (403, empty body), so
+  /// both come back as [VodPlaybackProblem.unknown].
   Future<VodPlaybackProblem?> diagnoseVodPlaylist(String url) async {
+    // Only ever talk to usher, whatever URL is passed in.
+    if (Uri.tryParse(url)?.host != 'usher.ttvnw.net') {
+      return VodPlaybackProblem.unknown;
+    }
     try {
       final response = await _http.get<Object?>(
         url,
@@ -249,14 +262,19 @@ class TwitchVodService extends BaseApiClient {
   };
 
   /// Accepts `123` or `v123`. The id ends up in a URL path, so anything that
-  /// is not 1–20 digits is rejected.
+  /// is not 1–20 ASCII digits throws an [ArgumentError] (a programming error:
+  /// untrusted input such as links must go through [tryNormalizeVodId]).
   @visibleForTesting
   static String normalizeVodId(String raw) {
-    final id = raw.startsWith('v') ? raw.substring(1) : raw;
-    if (!RegExp(r'^\d{1,20}$').hasMatch(id)) {
-      throw ArgumentError.value(raw, 'vodId', 'Not a VOD id');
-    }
+    final id = tryNormalizeVodId(raw);
+    if (id == null) throw ArgumentError.value(raw, 'vodId', 'Not a VOD id');
     return id;
+  }
+
+  /// [normalizeVodId] for untrusted input: null when it is not a VOD id.
+  static String? tryNormalizeVodId(String raw) {
+    final id = raw.startsWith('v') ? raw.substring(1) : raw;
+    return RegExp(r'^[0-9]{1,20}$').hasMatch(id) ? id : null;
   }
 
   Future<PlaybackAccessToken> _getToken(

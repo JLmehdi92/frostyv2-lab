@@ -38,26 +38,56 @@ void main() {
           .cast<String, dynamic>();
 
   group('getChannelVideos', () {
-    test('sends the public client id and the paging variables', () async {
+    test('asks for the 100 newest videos in one page (no cursor)', () async {
       reply(vodListResponse);
 
       await service.getChannelVideos(
         login: 'streamer',
         type: VodType.highlight,
-        cursor: 'abc',
-        first: 10,
       );
 
       expect(gqlRequests.last.headers['Client-ID'], isNotEmpty);
       expect(lastVariables(), {
         'login': 'streamer',
         'type': 'HIGHLIGHT',
-        'first': 10,
-        'after': 'abc',
+        'first': 100,
       });
+      expect(
+        (gqlRequests.last.data as Map)['query'],
+        isNot(contains('after')),
+        reason: 'cursor paging is integrity-gated for anonymous clients',
+      );
     });
 
-    test('parses edges, cursor and hasNextPage', () async {
+    test('skips a malformed node instead of failing the page', () async {
+      reply({
+        'data': {
+          'user': {
+            'id': '42',
+            'login': 'streamer',
+            'displayName': 'Streamer',
+            'videos': {
+              'edges': [
+                {
+                  'node': {'id': 'broken', 'lengthSeconds': null},
+                },
+                {'node': vodNodeArchive},
+                'not a map',
+              ],
+            },
+          },
+        },
+      });
+
+      final page = await service.getChannelVideos(
+        login: 'streamer',
+        type: VodType.archive,
+      );
+
+      expect(page.items.map((v) => v.id), ['1000000001']);
+    });
+
+    test('parses the videos in order', () async {
       reply(vodListResponse);
 
       final page = await service.getChannelVideos(
@@ -66,11 +96,10 @@ void main() {
       );
 
       expect(page.items.map((v) => v.id), ['1000000001', '1000000003']);
-      expect(page.cursor, 'cursor-2');
-      expect(page.hasNextPage, isTrue);
+      expect(page.hasMore, isTrue, reason: 'Twitch has older videos');
     });
 
-    test('an empty list has no next page', () async {
+    test('an empty list has nothing more', () async {
       reply(vodListEmptyResponse);
 
       final page = await service.getChannelVideos(
@@ -79,7 +108,7 @@ void main() {
       );
 
       expect(page.items, isEmpty);
-      expect(page.hasNextPage, isFalse);
+      expect(page.hasMore, isFalse);
     });
 
     test('an unknown channel throws NotFoundException', () async {
@@ -107,6 +136,16 @@ void main() {
 
       expect(await service.getVideo('123'), isNull);
     });
+
+    test('a malformed video is a VodApiException', () async {
+      reply({
+        'data': {
+          'video': {'id': '1', 'lengthSeconds': null},
+        },
+      });
+
+      expect(() => service.getVideo('1'), throwsA(isA<VodApiException>()));
+    });
   });
 
   group('getComments', () {
@@ -121,6 +160,24 @@ void main() {
       expect(lastVariables(), {'id': '1000000001', 'offset': 3600});
       expect(page.comments.map((c) => c.id), ['comment-1', 'comment-2']);
       expect(page.hasNextPage, isTrue);
+    });
+
+    test('the last page says there is nothing more', () async {
+      reply({
+        'data': {
+          'video': {
+            'comments': {
+              'edges': <Object>[],
+              'pageInfo': {'hasNextPage': false},
+            },
+          },
+        },
+      });
+
+      final page = await service.getComments(vodId: '1', offsetSeconds: 10);
+
+      expect(page.comments, isEmpty);
+      expect(page.hasNextPage, isFalse);
     });
 
     test('flags integrity failures', () async {
@@ -245,6 +302,12 @@ void main() {
       expect(TwitchVodService.normalizeVodId('123'), '123');
     });
 
+    test('tryNormalizeVodId returns null for untrusted input', () {
+      expect(TwitchVodService.tryNormalizeVodId('v42'), '42');
+      expect(TwitchVodService.tryNormalizeVodId('../1'), isNull);
+      expect(TwitchVodService.tryNormalizeVodId(''), isNull);
+    });
+
     test('rejects anything that is not a numeric id', () {
       for (final bad in ['12a', '../1', '', 'v', '1' * 21, '1 2']) {
         expect(
@@ -283,6 +346,14 @@ void main() {
         await service.diagnoseVodPlaylist(url),
         VodPlaybackProblem.notFound,
       );
+    });
+
+    test('never fetches anything but usher', () async {
+      expect(
+        await service.diagnoseVodPlaylist('https://evil.example/vod/1.m3u8'),
+        VodPlaybackProblem.unknown,
+      );
+      expect(gqlRequests, isEmpty);
     });
 
     test('a network failure is unknown, never a throw', () async {

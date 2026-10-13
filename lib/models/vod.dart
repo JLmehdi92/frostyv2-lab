@@ -90,19 +90,17 @@ class Vod {
   Duration get duration => Duration(seconds: lengthSeconds);
 }
 
-/// One page of a channel's videos.
+/// A channel's newest videos of one type.
+///
+/// Anonymous clients cannot page further (cursor paging is integrity-gated),
+/// so this is a single page of up to 100 videos.
 class VodPage {
-  const VodPage({
-    required this.items,
-    required this.cursor,
-    required this.hasNextPage,
-  });
+  const VodPage({required this.items, required this.hasMore});
 
   final List<Vod> items;
 
-  /// Cursor of the last item, to request the next page.
-  final String? cursor;
-  final bool hasNextPage;
+  /// Twitch has older videos than the ones returned.
+  final bool hasMore;
 }
 
 /// A copyright-muted part of a VOD, in seconds from the start.

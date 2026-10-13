@@ -185,13 +185,13 @@ const vodMutedSegmentsResponse = {
 
 const vodTokenValue =
     '{"authorization":{"forbidden":false,"reason":""},'
-    '"chansub":{"restricted_bitrates":[]},"expires":1791972167,'
+    '"chansub":{"restricted_bitrates":[]},"expires":4102444800,'
     '"vod_id":1000000001,"version":3}';
 
 const vodTokenForbiddenValue =
     '{"authorization":{"forbidden":true,"reason":"geoblocked"},'
     '"chansub":{"restricted_bitrates":["chunked","720p60"]},'
-    '"expires":1791972167,"vod_id":1000000001}';
+    '"expires":4102444800,"vod_id":1000000001}';
 
 const vodTokenResponse = {
   'data': {

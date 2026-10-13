@@ -34,7 +34,10 @@ data class IvsTuning(
             val player = runCatching {
                 val built: Player = MediaPlayer.Builder(context).build()
                 built
-            }.getOrElse { Player.Factory.create(context) }
+            }.getOrElse {
+                Log.w(TUNING_TAG, "vod builder failed, using defaults: $it")
+                Player.Factory.create(context)
+            }
             Log.i(TUNING_TAG, "vod player sdk=${runCatching { player.version }.getOrNull()}")
             return player
         }

@@ -87,6 +87,8 @@ extension ContextExtensions on BuildContext {
 
   /// Gets SevenTVApi from provider
   SevenTVApi get sevenTVApi => read<SevenTVApi>();
+
+  /// Gets TwitchVodService from provider
   TwitchVodService get twitchVodService => read<TwitchVodService>();
 
   /// Gets GlobalAssetsStore from provider
