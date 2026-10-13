@@ -4,6 +4,7 @@ import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/models/hype_train_event.dart';
 import 'package:frosty/screens/channel/hype_train/hype_train_sequence.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_sheet.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_slot.dart';
 
 import 'hype_train_widget_harness.dart';
@@ -67,6 +68,38 @@ void main() {
     expect(tester.getSize(find.byType(HypeTrainSlot)).height, 0);
     expect(h.store.train, isNull);
     expect(HtVariant.values, isNotEmpty);
+    await h.close(tester);
+  });
+
+  testWidgets('tapping the banner opens and closes the details', (
+    tester,
+  ) async {
+    var learnMore = 0;
+    final h = HtHarness(
+      snapshot: HtOngoingSnapshot(liveTrain(), fetchedAt: DateTime.utc(2026)),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: HypeTrainSlot(store: h.store, onLearnMore: () => learnMore++),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    await tester.tap(find.text('Hype Train'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byType(HypeTrainSheet), findsOneWidget);
+    await tester.ensureVisible(find.text('How Hype Trains work'));
+    await tester.tap(find.text('How Hype Trains work'));
+    expect(learnMore, 1);
+
+    await tester.tap(find.text('Hype Train'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byType(HypeTrainSheet), findsNothing);
     await h.close(tester);
   });
 }

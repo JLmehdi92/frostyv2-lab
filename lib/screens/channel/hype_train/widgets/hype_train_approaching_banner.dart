@@ -40,74 +40,80 @@ class HypeTrainApproachingBanner extends StatelessWidget {
                 child: Material(
                   color: palette.background,
                   borderRadius: BorderRadius.circular(12),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(palette.icon, color: palette.iconColor),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    HtCopy.approaching,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: textTheme.titleSmall?.copyWith(
-                                      color: on,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  Text(
-                                    subtitle,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: textTheme.bodySmall?.copyWith(
-                                      color: on.withValues(alpha: 0.8),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            for (var i = 1; i <= 3; i++)
-                              Padding(
-                                padding: const EdgeInsetsDirectional.only(
-                                  start: 4,
-                                ),
-                                child: store.approachingChecks >= i
-                                    ? Icon(
-                                        Icons.check_circle_rounded,
-                                        key: const ValueKey('ht-check-filled'),
-                                        size: 20,
-                                        color: palette.fill,
-                                      )
-                                    : Icon(
-                                        Icons.radio_button_unchecked_rounded,
-                                        key: const ValueKey('ht-check-empty'),
-                                        size: 20,
-                                        color: on.withValues(alpha: 0.5),
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: store.toggleExpanded,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(palette.icon, color: palette.iconColor),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      HtCopy.approaching,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: textTheme.titleSmall?.copyWith(
+                                        color: on,
+                                        fontWeight: FontWeight.w700,
                                       ),
+                                    ),
+                                    Text(
+                                      subtitle,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: textTheme.bodySmall?.copyWith(
+                                        color: on.withValues(alpha: 0.8),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(3),
-                          child: LinearProgressIndicator(
-                            key: const ValueKey('ht-approaching-bar'),
-                            minHeight: 6,
-                            value: store.approachingCompleted
-                                ? 1
-                                : store.approachingFraction,
-                            color: palette.fill,
-                            backgroundColor: palette.track,
+                              for (var i = 1; i <= 3; i++)
+                                Padding(
+                                  padding: const EdgeInsetsDirectional.only(
+                                    start: 4,
+                                  ),
+                                  child: store.approachingChecks >= i
+                                      ? Icon(
+                                          Icons.check_circle_rounded,
+                                          key: const ValueKey(
+                                            'ht-check-filled',
+                                          ),
+                                          size: 20,
+                                          color: palette.fill,
+                                        )
+                                      : Icon(
+                                          Icons.radio_button_unchecked_rounded,
+                                          key: const ValueKey('ht-check-empty'),
+                                          size: 20,
+                                          color: on.withValues(alpha: 0.5),
+                                        ),
+                                ),
+                            ],
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(3),
+                            child: LinearProgressIndicator(
+                              key: const ValueKey('ht-approaching-bar'),
+                              minHeight: 6,
+                              value: store.approachingCompleted
+                                  ? 1
+                                  : store.approachingFraction,
+                              color: palette.fill,
+                              backgroundColor: palette.track,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

@@ -5,15 +5,25 @@ import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_approaching_banner.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_banner.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_end_strip.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_sheet.dart';
+import 'package:frosty/utils/link_router.dart';
 import 'package:mobx/mobx.dart';
 
 /// Where the hype train lives on screen: nothing when there is no train,
 /// else the approaching banner, the banner (or its pill) or the end strip.
 /// While mounted it is the store's presenter.
 class HypeTrainSlot extends StatefulWidget {
-  const HypeTrainSlot({super.key, required this.store, this.compact = false});
+  const HypeTrainSlot({
+    super.key,
+    required this.store,
+    this.compact = false,
+    this.onLearnMore,
+  });
 
   final HypeTrainStore store;
+
+  /// Opens the hype train guide; defaults to the in-app browser.
+  final VoidCallback? onLearnMore;
 
   /// Landscape: a one-line banner and short sequences.
   final bool compact;
@@ -91,9 +101,40 @@ class _HypeTrainSlotState extends State<HypeTrainSlot> {
               key = 'strip';
               child = HypeTrainEndStrip(store: store);
           }
-          return AnimatedSwitcher(
+          final switcher = AnimatedSwitcher(
             duration: HtTimings.short,
             child: KeyedSubtree(key: ValueKey('ht-slot-$key'), child: child),
+          );
+          if (!store.expanded || widget.compact || store.collapsed) {
+            return switcher;
+          }
+          // The details open below the banner, over the oldest messages.
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              switcher,
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.sizeOf(context).height * 0.45,
+                ),
+                child: Material(
+                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(12),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: SingleChildScrollView(
+                    child: HypeTrainSheet(
+                      store: store,
+                      onLearnMore:
+                          widget.onLearnMore ??
+                          () =>
+                              LinkRouter.open(htHelpUrl, launchExternal: false),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),

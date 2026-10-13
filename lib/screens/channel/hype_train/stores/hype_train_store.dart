@@ -301,6 +301,21 @@ abstract class HypeTrainStoreBase with Store {
 
   void handleAppResume() => unawaited(_refetch());
 
+  String? _upcomingFor;
+  Future<List<(int, List<HtReward>)>>? _upcoming;
+
+  /// The running train's rewards by level, fetched once per train (the
+  /// sheet's "Coming up"). Never throws.
+  Future<List<(int, List<HtReward>)>> loadUpcomingRewards() {
+    final id = _train?.id;
+    if (id == null) return Future.value(const []);
+    if (_upcomingFor != id || _upcoming == null) {
+      _upcomingFor = id;
+      _upcoming = _service.getUpcomingRewards(channelId);
+    }
+    return _upcoming!;
+  }
+
   @visibleForTesting
   void injectEvent(HypeTrainEvent event) => _onEvent(event);
 
@@ -790,6 +805,7 @@ abstract class HypeTrainStoreBase with Store {
     _stripFraction = 0;
     _remaining = Duration.zero;
     _unlockedRewards = const [];
+    expanded = false;
     _clearApproaching();
     _updatePolling();
   }

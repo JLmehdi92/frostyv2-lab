@@ -914,6 +914,44 @@ void main() {
     });
   });
 
+  test('upcoming rewards are fetched once per train', () {
+    run((async) {
+      snapshot(() => ongoing(running()));
+      when(() => service.getUpcomingRewards(any())).thenAnswer(
+        (_) async => [
+          (8, [const HtReward(type: HtRewardType.emote, id: 'e', token: 't')]),
+        ],
+      );
+      final store = build();
+      async.flushMicrotasks();
+
+      List<(int, List<HtReward>)>? first;
+      store.loadUpcomingRewards().then((v) => first = v);
+      store.loadUpcomingRewards();
+      async.flushMicrotasks();
+
+      expect(first!.single.$1, 8);
+      verify(() => service.getUpcomingRewards('42')).called(1);
+      store.dispose();
+    });
+  });
+
+  test('the details close when the train is gone', () {
+    run((async) {
+      snapshot(() => ongoing(running(level: 1)));
+      final store = build();
+      async.flushMicrotasks();
+      store.toggleExpanded();
+      expect(store.expanded, isTrue);
+
+      store.injectEvent(const HtEndEvent(reason: HtEndReason.expired));
+      async.elapse(const Duration(seconds: 21));
+
+      expect(store.expanded, isFalse);
+      store.dispose();
+    });
+  });
+
   test('the style follows the priority order', () {
     run((async) {
       snapshot(
