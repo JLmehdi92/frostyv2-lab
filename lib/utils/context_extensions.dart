@@ -13,6 +13,14 @@ import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/theme.dart';
 import 'package:provider/provider.dart';
 
+/// Shortest window side, in dp, from which a layout is a tablet's (Android's
+/// own large-screen threshold, Material's medium window class).
+const kLargeScreenShortestSide = 600.0;
+
+/// Whether a window of [size] gets the large-screen layouts.
+bool isLargeScreenSize(Size size) =>
+    size.shortestSide >= kLargeScreenShortestSide;
+
 /// Static utility class for orientation-related operations
 class OrientationUtils {
   /// Gets the current orientation from the given context
@@ -63,6 +71,10 @@ extension ContextExtensions on BuildContext {
 
   /// Gets the screen height
   double get screenHeight => MediaQuery.of(this).size.height;
+
+  /// Tablet-sized window (both sides at least 600 dp). A split-screen half
+  /// narrower than that keeps the phone layouts.
+  bool get isLargeScreen => isLargeScreenSize(MediaQuery.sizeOf(this));
 
   /// Gets the safe area padding top (commonly used)
   double get safePaddingTop => MediaQuery.of(this).padding.top;
