@@ -475,7 +475,15 @@ void main() {
         store
           ..injectEvent(levelUp(8))
           ..injectEvent(small(20100, level: 8))
-          ..injectEvent(HypeTrainEvent.parse(htEndCompleted));
+          ..injectEvent(
+            // The captured end, for this test's train id.
+            HypeTrainEvent.parse(
+              htEndCompleted.replaceAll(
+                '00000000-0000-4000-8000-000000000004',
+                'train',
+              ),
+            ),
+          );
         async.flushMicrotasks();
 
         expect(store.level, 8, reason: 'drained before the end');
@@ -722,6 +730,38 @@ void main() {
 
         expect(store.approachingNMore, isTrue);
         expect(store.approachingChecks, 2);
+        store.dispose();
+      });
+    });
+
+    test("another train's events are not applied; GQL is asked", () {
+      run((async) {
+        snapshot(() => ongoing(running()));
+        final store = build();
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 3));
+
+        store
+          ..injectEvent(
+            const HtEndEvent(reason: HtEndReason.completed, trainId: 'old'),
+          )
+          ..injectEvent(
+            HtProgressionEvent(
+              trainId: 'other',
+              sequenceId: 16100,
+              action: const HtAction('CHEER'),
+              source: HtSource.bits,
+              quantity: 1,
+              isLarge: false,
+              progress: progress(level: 7, total: 16100),
+            ),
+          );
+        async.flushMicrotasks();
+
+        expect(store.phase, HtPhase.ongoing);
+        expect(store.train!.progress.total, 16040);
+        async.elapse(const Duration(seconds: 3));
+        expect(fetches, 3, reason: 'one fetch now, one trailing for both');
         store.dispose();
       });
     });

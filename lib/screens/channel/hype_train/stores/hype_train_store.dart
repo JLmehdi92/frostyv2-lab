@@ -367,6 +367,23 @@ abstract class HypeTrainStoreBase with Store {
         break;
     }
 
+    // GQL and realtime share the train id (verified live): an event of
+    // another train means ours is stale.
+    final current = _train;
+    final eventTrainId = switch (event) {
+      HtProgressionEvent(:final trainId) ||
+      HtEndEvent(:final trainId) => trainId,
+      HtLevelUpEvent(:final train?) => train.id,
+      _ => null,
+    };
+    if (_phase == HtPhase.ongoing &&
+        current != null &&
+        eventTrainId != null &&
+        eventTrainId != current.id) {
+      unawaited(_refetch());
+      return;
+    }
+
     if (event is HtEndEvent) {
       if (_train != null && _phase == HtPhase.ongoing) _beginEnd(event);
       return;

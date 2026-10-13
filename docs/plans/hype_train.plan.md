@@ -1023,6 +1023,7 @@ Presenter, recovery and lifecycle:
 - **GQL schema drift or integrity gating** (Medium). Typed exception; the realtime `start` / `level-up` payloads can still build the train locally (verified level-up carries a full GQL-shaped train).
 - **Payload drift** (High likelihood over months).
   - Tolerant parsing with both casings (verified duplicated keys), unknown enums kept raw (verified `EXTENSION`), `HtUnknownEvent` ignored, fixtures from real captures, and harness record mode for new shapes.
+  - Verified 2026-10-13 (24 channels, 4 min): the GQL `execution.id` of a running train equals the realtime train id (`a222e7b0…` in both), so events of another train can be told apart.
   - Verified traps: `data.id` is the train id (dedupe by `trainId:sequence_id`), level-up and its progression in either order (deferral plus a 3 s refetch; an equal `sequence_id` still applies).
 - **Clock skew** (Medium): `ServerClock` from Hermes notification timestamps; `remainingSeconds` used for GQL snapshots.
 - **Animation jank or battery** (Medium): `RepaintBoundary`; controllers only while a presenter is attached; one 1 s timer only while ongoing; profile-mode check in H8.
