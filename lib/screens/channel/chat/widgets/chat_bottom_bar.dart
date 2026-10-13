@@ -6,6 +6,7 @@ import 'package:frosty/constants.dart';
 import 'package:frosty/models/irc.dart';
 import 'package:frosty/screens/channel/chat/details/chat_details.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
+import 'package:frosty/screens/channel/chat/widgets/chat_character_counter.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/blurred_container.dart';
@@ -329,6 +330,9 @@ class ChatBottomBar extends StatelessWidget {
                                   mainAxisSize: MainAxisSize.min,
                                   spacing: 8,
                                   children: [
+                                    ChatCharacterCounter(
+                                      controller: chatStore.textController,
+                                    ),
                                     if (!chatStore
                                             .settings
                                             .emoteMenuButtonOnLeft &&
@@ -358,6 +362,12 @@ class ChatBottomBar extends StatelessWidget {
                                     : 'Chat',
                               ),
                               controller: chatStore.textController,
+                              // Twitch refuses longer messages.
+                              inputFormatters: [
+                                LengthLimitingTextInputFormatter(
+                                  kChatMessageMaxLength,
+                                ),
+                              ],
                               onSubmitted: chatStore.sendMessage,
                               onTapOutside: (_) {
                                 chatStore.textFieldFocusNode.unfocus();
