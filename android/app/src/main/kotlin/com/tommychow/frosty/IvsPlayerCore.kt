@@ -165,7 +165,11 @@ class IvsPlayerCore(
 
         // The player can be created before the usher URL is known; Dart then
         // sends it with "load" as soon as it resolves.
-        if (url.isNotEmpty()) player.load(Uri.parse(url))
+        if (url.isNotEmpty()) {
+            // A VOD created with its URL must auto-play like one sent with "load".
+            if (tuning.vod) autoPlayPending = true
+            player.load(Uri.parse(url))
+        }
         if (tuning.vod) startProgressTicker() else startLatencyTicker()
     }
 

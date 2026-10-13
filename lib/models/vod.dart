@@ -37,7 +37,8 @@ class Vod {
     this.isRestricted = false,
   });
 
-  /// Parses a GQL `Video` node. Optional fields are tolerated; a node without
+  /// Parses a GQL `Video` node. Optional fields that are missing or of the
+  /// wrong type fall back to defaults; a node without
   /// `id`, `lengthSeconds` or `createdAt` throws a [FormatException].
   /// [owner] is used when the node itself has no owner (channel lists).
   factory Vod.fromGql(JsonMap node, {JsonMap? owner}) {
@@ -52,16 +53,16 @@ class Vod {
     final self = node['self'] is Map ? node['self'] as Map : null;
     return Vod(
       id: id,
-      title: node['title'] as String? ?? '',
+      title: _as<String>(node['title']) ?? '',
       lengthSeconds: length.toInt(),
       createdAt: createdAt,
-      viewCount: (node['viewCount'] as num?)?.toInt() ?? 0,
-      ownerId: ownerNode?['id'] as String? ?? '',
-      ownerLogin: ownerNode?['login'] as String? ?? '',
-      ownerDisplayName: ownerNode?['displayName'] as String? ?? '',
-      previewThumbnailUrl: node['previewThumbnailURL'] as String?,
-      gameId: game?['id'] as String?,
-      gameName: game?['name'] as String?,
+      viewCount: _as<num>(node['viewCount'])?.toInt() ?? 0,
+      ownerId: _as<String>(ownerNode?['id']) ?? '',
+      ownerLogin: _as<String>(ownerNode?['login']) ?? '',
+      ownerDisplayName: _as<String>(ownerNode?['displayName']) ?? '',
+      previewThumbnailUrl: _as<String>(node['previewThumbnailURL']),
+      gameId: _as<String>(game?['id']),
+      gameName: _as<String>(game?['name']),
       type: VodType.fromGql(node['broadcastType']),
       isRecording: node['status'] == 'RECORDING',
       isRestricted: self?['isRestricted'] == true,
@@ -110,3 +111,6 @@ class MutedSegment {
   final int offset;
   final int duration;
 }
+
+/// [value] when it is a [T], else null (GQL data is never trusted to match).
+T? _as<T>(Object? value) => value is T ? value : null;

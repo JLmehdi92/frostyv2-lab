@@ -58,6 +58,26 @@ void main() {
       expect(() => Vod.fromGql(node), throwsFormatException);
     });
 
+    test('wrong-typed optional fields fall back instead of throwing', () {
+      final node = Map<String, dynamic>.of(vodNodeArchive)
+        ..['title'] = 7
+        ..['viewCount'] = 'many'
+        ..['previewThumbnailURL'] = 3
+        ..['game'] = {'id': 1, 'name': true}
+        ..['owner'] = {'id': 42, 'login': null, 'displayName': 1};
+
+      final vod = Vod.fromGql(node);
+
+      expect(vod.title, '');
+      expect(vod.viewCount, 0);
+      expect(vod.previewThumbnailUrl, isNull);
+      expect(vod.gameId, isNull);
+      expect(vod.gameName, isNull);
+      expect(vod.ownerId, '');
+      expect(vod.ownerLogin, '');
+      expect(vod.ownerDisplayName, '');
+    });
+
     test('unknown broadcast types are null', () {
       final node = Map<String, dynamic>.of(vodNodeArchive)
         ..['broadcastType'] = 'SOMETHING_NEW';

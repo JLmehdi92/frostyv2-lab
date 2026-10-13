@@ -53,6 +53,46 @@ void main() {
       expect(comment.text, '');
     });
 
+    test('wrong-typed fields fall back instead of throwing', () {
+      final comment = VodComment.fromGql({
+        'id': 7,
+        'contentOffsetSeconds': '5',
+        'commenter': {'id': 9, 'login': 1, 'displayName': false},
+        'message': {
+          'fragments': [
+            {
+              'text': 3,
+              'emote': {'emoteID': 25},
+            },
+            {'text': 'ok'},
+          ],
+          'userBadges': 'none',
+          'userColor': 16711680,
+        },
+      });
+
+      expect(comment.id, isNull);
+      expect(comment.offsetSeconds, 0);
+      expect(comment.commenterId, isNull);
+      expect(comment.commenterLogin, isNull);
+      expect(comment.commenterDisplayName, isNull);
+      expect(comment.fragments.map((f) => (f.text, f.emoteId)), [
+        ('', null),
+        ('ok', null),
+      ]);
+      expect(comment.badges, isEmpty);
+      expect(comment.color, isNull);
+    });
+
+    test('a non-list fragments field is no fragments', () {
+      final comment = VodComment.fromGql({
+        'id': 'x',
+        'message': {'fragments': 'oops'},
+      });
+
+      expect(comment.fragments, isEmpty);
+    });
+
     test('dedupe key falls back when there is no id', () {
       final comment = VodComment.fromGql({
         'contentOffsetSeconds': 5,

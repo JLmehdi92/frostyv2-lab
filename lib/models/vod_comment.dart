@@ -26,35 +26,37 @@ class VodComment {
     this.color,
   });
 
+  /// Parses a GQL `VideoComment` node. Fields that are missing or of the
+  /// wrong type fall back to null/empty instead of throwing.
   factory VodComment.fromGql(JsonMap node) {
     final commenter = node['commenter'] is Map
         ? node['commenter'] as Map
         : null;
     final message = node['message'] is Map ? node['message'] as Map : const {};
     final fragments = <VodFragment>[
-      for (final f in (message['fragments'] as List?) ?? const [])
+      for (final f in _as<List>(message['fragments']) ?? const [])
         if (f is Map)
           VodFragment(
-            text: f['text'] as String? ?? '',
+            text: _as<String>(f['text']) ?? '',
             emoteId: f['emote'] is Map
-                ? (f['emote'] as Map)['emoteID'] as String?
+                ? _as<String>((f['emote'] as Map)['emoteID'])
                 : null,
           ),
     ];
     final badges = <({String setId, String version})>[
-      for (final b in (message['userBadges'] as List?) ?? const [])
+      for (final b in _as<List>(message['userBadges']) ?? const [])
         if (b is Map && b['setID'] is String && b['version'] is String)
           (setId: b['setID'] as String, version: b['version'] as String),
     ];
     return VodComment(
-      id: node['id'] as String?,
-      offsetSeconds: (node['contentOffsetSeconds'] as num?)?.toInt() ?? 0,
+      id: _as<String>(node['id']),
+      offsetSeconds: _as<num>(node['contentOffsetSeconds'])?.toInt() ?? 0,
       fragments: fragments,
       badges: badges,
-      commenterId: commenter?['id'] as String?,
-      commenterLogin: commenter?['login'] as String?,
-      commenterDisplayName: commenter?['displayName'] as String?,
-      color: message['userColor'] as String?,
+      commenterId: _as<String>(commenter?['id']),
+      commenterLogin: _as<String>(commenter?['login']),
+      commenterDisplayName: _as<String>(commenter?['displayName']),
+      color: _as<String>(message['userColor']),
     );
   }
 
@@ -80,3 +82,6 @@ class VodCommentPage {
   final List<VodComment> comments;
   final bool hasNextPage;
 }
+
+/// [value] when it is a [T], else null (GQL data is never trusted to match).
+T? _as<T>(Object? value) => value is T ? value : null;

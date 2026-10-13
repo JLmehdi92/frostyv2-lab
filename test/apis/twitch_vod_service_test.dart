@@ -14,14 +14,17 @@ void main() {
   late DioAdapter adapter;
   late TwitchVodService service;
   late List<RequestOptions> gqlRequests;
+  late List<RequestOptions> allRequests;
 
   setUp(() {
     dio = Dio(BaseOptions());
     adapter = DioAdapter(dio: dio);
     gqlRequests = [];
+    allRequests = [];
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
+          allRequests.add(options);
           if (options.uri.toString() == _gql) gqlRequests.add(options);
           handler.next(options);
         },
@@ -353,7 +356,13 @@ void main() {
         await service.diagnoseVodPlaylist('https://evil.example/vod/1.m3u8'),
         VodPlaybackProblem.unknown,
       );
-      expect(gqlRequests, isEmpty);
+      expect(
+        await service.diagnoseVodPlaylist(
+          'https://usher.ttvnw.net@evil.example/vod/1.m3u8',
+        ),
+        VodPlaybackProblem.unknown,
+      );
+      expect(allRequests, isEmpty, reason: 'no request may leave');
     });
 
     test('a network failure is unknown, never a throw', () async {
