@@ -155,6 +155,14 @@ abstract class HypeTrainStoreBase with Store {
   @readonly
   int _stepIndex = 0;
 
+  /// The level on the pill: the old one until "level complete" is shown.
+  @readonly
+  int _shownLevel = 0;
+
+  /// The % and bar: follow the `fillTo` steps, not the data.
+  @readonly
+  int _shownPercent = 0;
+
   @readonly
   Duration _remaining = Duration.zero;
 
@@ -249,13 +257,18 @@ abstract class HypeTrainStoreBase with Store {
 
   // --- Presenter and lifecycle --------------------------------------------------
 
-  /// A banner is on screen ([compact]: the pill or landscape). Counted.
+  /// A banner is on screen. Counted: each attach needs a detach.
   @action
-  void attachPresenter({bool compact = false, bool reduceMotion = false}) {
-    _presenters++;
+  void attachPresenter() => _presenters++;
+
+  /// [compact]: the collapsed pill or landscape; [reduceMotion]: the
+  /// platform asks for fewer animations. Applies to the next sequence.
+  void updatePresentation({bool compact = false, bool reduceMotion = false}) {
     _compact = compact;
     _reduceMotion = reduceMotion;
   }
+
+  bool get reduceMotion => _reduceMotion;
 
   /// With no banner left, the running sequence finishes at once and later
   /// ones take no time, so the store never stalls in the background.
@@ -448,7 +461,7 @@ abstract class HypeTrainStoreBase with Store {
         ),
       ];
     }
-    _setTrain(result.train);
+    _setTrain(result.train, animated: true);
     // Its level-up is in: the deferred progression follows this sequence.
     if (_deferred?.progress.level.value == result.train.level) {
       _deferredTimer?.cancel();
@@ -458,20 +471,25 @@ abstract class HypeTrainStoreBase with Store {
       _beginEnd(const HtEndEvent(reason: HtEndReason.completed));
       return;
     }
-    _runSteps(
-      planSequence(
-        HtPlanInput(
-          event: event,
-          before: before,
-          after: result.train,
-          result: result,
-          channelId: channelId,
-          compact: _compact,
-          reduceMotion: _reduceMotion,
-          presenterVisible: _presenters > 0,
-        ),
+    final steps = planSequence(
+      HtPlanInput(
+        event: event,
+        before: before,
+        after: result.train,
+        result: result,
+        channelId: channelId,
+        compact: _compact,
+        reduceMotion: _reduceMotion,
+        presenterVisible: _presenters > 0,
       ),
     );
+    final from = result.levelChangedFrom;
+    _shownLevel =
+        from != null && steps.any((s) => s.kind == HtStepKind.levelComplete)
+        ? from
+        : result.train.level;
+    if (before == null) _shownPercent = htm.percent(result.train.progress);
+    _runSteps(steps);
   }
 
   void _runSteps(List<HtStep> steps, {VoidCallback? onDone}) {
@@ -491,6 +509,7 @@ abstract class HypeTrainStoreBase with Store {
       if (_cursor >= _steps.length) {
         _step = null;
         _busy = false;
+        if (_phase == HtPhase.ongoing) _showTrainAsIs();
         final done = _onSequenceDone;
         _onSequenceDone = null;
         done?.call();
@@ -500,6 +519,17 @@ abstract class HypeTrainStoreBase with Store {
       final step = _steps[_cursor];
       _step = step;
       _stepIndex = _cursor;
+      if (_cursor > 0 && _steps[_cursor - 1].kind == HtStepKind.levelComplete) {
+        _shownLevel = _train?.level ?? _shownLevel;
+      }
+      switch (step.kind) {
+        case HtStepKind.fillTo:
+          if (step.data['percent'] case final int value) _shownPercent = value;
+        case HtStepKind.flash100:
+          _shownPercent = 100;
+        case _:
+          break;
+      }
       if (step.isStrip) _startStrip(step);
       if (step.duration == Duration.zero) {
         _cursor++;
@@ -527,11 +557,18 @@ abstract class HypeTrainStoreBase with Store {
 
   // --- Train, countdown and expiry --------------------------------------------
 
-  void _setTrain(HypeTrainExecution train) {
+  void _setTrain(HypeTrainExecution train, {bool animated = false}) {
     _train = train;
+    if (!animated) _showTrainAsIs();
     _updateCountdown();
     _scheduleExpiry();
     _updatePolling();
+  }
+
+  void _showTrainAsIs() {
+    final train = _train;
+    _shownLevel = train?.level ?? 0;
+    _shownPercent = train == null ? 0 : htm.percent(train.progress);
   }
 
   void _updateCountdown() {

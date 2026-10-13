@@ -161,6 +161,46 @@ mixin _$HypeTrainStore on HypeTrainStoreBase, Store {
     });
   }
 
+  late final _$_shownLevelAtom = Atom(
+    name: 'HypeTrainStoreBase._shownLevel',
+    context: context,
+  );
+
+  int get shownLevel {
+    _$_shownLevelAtom.reportRead();
+    return super._shownLevel;
+  }
+
+  @override
+  int get _shownLevel => shownLevel;
+
+  @override
+  set _shownLevel(int value) {
+    _$_shownLevelAtom.reportWrite(value, super._shownLevel, () {
+      super._shownLevel = value;
+    });
+  }
+
+  late final _$_shownPercentAtom = Atom(
+    name: 'HypeTrainStoreBase._shownPercent',
+    context: context,
+  );
+
+  int get shownPercent {
+    _$_shownPercentAtom.reportRead();
+    return super._shownPercent;
+  }
+
+  @override
+  int get _shownPercent => shownPercent;
+
+  @override
+  set _shownPercent(int value) {
+    _$_shownPercentAtom.reportWrite(value, super._shownPercent, () {
+      super._shownPercent = value;
+    });
+  }
+
   late final _$_remainingAtom = Atom(
     name: 'HypeTrainStoreBase._remaining',
     context: context,
@@ -391,15 +431,12 @@ mixin _$HypeTrainStore on HypeTrainStoreBase, Store {
   );
 
   @override
-  void attachPresenter({bool compact = false, bool reduceMotion = false}) {
+  void attachPresenter() {
     final _$actionInfo = _$HypeTrainStoreBaseActionController.startAction(
       name: 'HypeTrainStoreBase.attachPresenter',
     );
     try {
-      return super.attachPresenter(
-        compact: compact,
-        reduceMotion: reduceMotion,
-      );
+      return super.attachPresenter();
     } finally {
       _$HypeTrainStoreBaseActionController.endAction(_$actionInfo);
     }

@@ -396,6 +396,44 @@ void main() {
       });
     });
 
+    test('the pill and % follow the animation, not the data', () {
+      run((async) {
+        snapshot(() => ongoing(running()));
+        final store = build();
+        async.flushMicrotasks();
+        expect(store.shownLevel, 7);
+        expect(store.shownPercent, 33);
+
+        store.injectEvent(levelUp(8));
+        async.flushMicrotasks();
+        expect(store.level, 8);
+        expect(store.shownLevel, 7, reason: 'until level complete');
+        expect(store.shownPercent, 100);
+
+        async.elapse(const Duration(milliseconds: 3250));
+        expect(store.step?.kind, HtStepKind.levelComplete);
+        expect(store.shownLevel, 7);
+        async.elapse(const Duration(milliseconds: 500));
+        expect(store.shownLevel, 8);
+        expect(store.shownPercent, 10);
+        store.dispose();
+      });
+    });
+
+    test('compact sequences still end on the true values', () {
+      run((async) {
+        snapshot(() => ongoing(running()));
+        final store = build()..updatePresentation(compact: true);
+        async.flushMicrotasks();
+
+        store.injectEvent(small(16500, value: 2000));
+        async.flushMicrotasks();
+
+        expect(store.shownPercent, 43);
+        store.dispose();
+      });
+    });
+
     test('a next-level progression alone refetches after 3 s', () {
       run((async) {
         snapshot(() => ongoing(running()));
