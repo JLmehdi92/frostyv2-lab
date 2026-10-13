@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:advanced_in_app_review/advanced_in_app_review.dart';
 import 'package:app_links/app_links.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -17,6 +18,7 @@ import 'package:frosty/apis/ffz_api.dart';
 import 'package:frosty/apis/seventv_api.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_auth_interceptor.dart';
+import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/apis/unauthorized_interceptor.dart';
 import 'package:frosty/cache_manager.dart';
 import 'package:frosty/firebase_options.dart';
@@ -110,6 +112,16 @@ void main() async {
   final bttvApiService = BTTVApi(dioClient);
   final ffzApiService = FFZApi(dioClient);
   final sevenTVApiService = SevenTVApi(dioClient);
+  // Anonymous GQL for VODs: own Dio with timeouts and no Twitch auth
+  // interceptor (it must never carry the user's Helix token).
+  final twitchVodService = TwitchVodService(
+    Dio(
+      BaseOptions(
+        connectTimeout: const Duration(seconds: 5),
+        receiveTimeout: const Duration(seconds: 8),
+      ),
+    ),
+  );
 
   // Create global assets store (shared cache for global emotes/badges)
   final globalAssetsStore = GlobalAssetsStore(
@@ -143,6 +155,7 @@ void main() async {
         Provider<BTTVApi>.value(value: bttvApiService),
         Provider<FFZApi>.value(value: ffzApiService),
         Provider<SevenTVApi>.value(value: sevenTVApiService),
+        Provider<TwitchVodService>.value(value: twitchVodService),
         Provider<GlobalAssetsStore>.value(value: globalAssetsStore),
         Provider<MiniPlayerStore>(create: (_) => MiniPlayerStore()),
       ],
