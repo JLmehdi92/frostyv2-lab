@@ -5,6 +5,7 @@ import 'package:frosty/screens/home/stream_list/large_stream_card.dart';
 import 'package:frosty/screens/home/stream_list/stream_card.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/widgets/adaptive_sliver_list.dart';
+import 'package:frosty/widgets/frosty_cached_network_image.dart';
 
 StreamTwitch _stream(int i) => StreamTwitch(
   '$i',
@@ -88,4 +89,35 @@ void main() {
       );
     });
   }
+
+  int requestedWidth(WidgetTester tester) {
+    final image = tester.widget<FrostyCachedNetworkImage>(
+      find.byType(FrostyCachedNetworkImage).first,
+    );
+    final size = RegExp(r'-(\d+)x(\d+)\.jpg').firstMatch(image.imageUrl)!;
+    expect(image.memCacheWidth, int.parse(size[1]!));
+    expect(image.cacheKey, endsWith('-${size[1]}'));
+    return int.parse(size[1]!);
+  }
+
+  testWidgets('grid thumbnails are fetched at their drawn size', (
+    tester,
+  ) async {
+    await pumpGrid(
+      tester,
+      const Size(1600, 1067),
+      AdaptiveSliverList.rowCardWidth,
+      (s) => StreamCard(streamInfo: s, showThumbnail: true),
+    );
+    // A third of a 533 dp card, not a third of the 1600 dp screen.
+    expect(requestedWidth(tester), lessThanOrEqualTo(320));
+
+    await pumpGrid(
+      tester,
+      const Size(1600, 1067),
+      AdaptiveSliverList.tileCardWidth,
+      (s) => LargeStreamCard(streamInfo: s, showThumbnail: true),
+    );
+    expect(requestedWidth(tester), lessThanOrEqualTo(480));
+  });
 }

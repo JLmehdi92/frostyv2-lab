@@ -10,6 +10,7 @@ import 'package:frosty/screens/channel/hype_train/widgets/hype_train_card_pill.d
 import 'package:frosty/screens/channel/video/stream_info_bar.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/utils.dart';
+import 'package:frosty/utils/image_size.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
 import 'package:frosty/widgets/skeleton_loader.dart';
@@ -44,12 +45,9 @@ class LargeStreamCard extends StatelessWidget {
     final cacheKey =
         '${streamInfo.thumbnailUrl}-${time.day}-${time.hour}-${time.minute ~/ 5}';
 
-    // Calculate the width and height of the thumbnail based on the device width and the stream card size setting.
-    // Constraint the resolution to 1920x1080 since that's the max resolution of the Twitch API.
-    final size = MediaQuery.of(context).size;
-    final pixelRatio = MediaQuery.of(context).devicePixelRatio;
-    final thumbnailWidth = min((size.width * pixelRatio) ~/ 1, 1920);
-    final thumbnailHeight = min((thumbnailWidth * (9 / 16)).toInt(), 1080);
+    // Requested at the size the card is drawn (a tablet grid tile is far
+    // narrower than the screen), up to 1920x1080, the largest Twitch serves.
+    final pixelRatio = MediaQuery.devicePixelRatioOf(context);
 
     final thumbnail = SizedBox(
       width: double.infinity,
@@ -60,15 +58,27 @@ class LargeStreamCard extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              FrostyCachedNetworkImage(
-                imageUrl: streamInfo.thumbnailUrl.replaceFirst(
-                  '-{width}x{height}',
-                  '-${thumbnailWidth}x$thumbnailHeight',
-                ),
-                cacheKey: cacheKey,
-                placeholder: (context, url) =>
-                    const SkeletonLoader(borderRadius: kCardBorderRadius),
-                useOldImageOnUrlChange: true,
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final thumbnailWidth = imagePixelWidth(
+                    constraints.maxWidth,
+                    pixelRatio,
+                  );
+                  final thumbnailHeight = min(thumbnailWidth * 9 ~/ 16, 1080);
+                  return FrostyCachedNetworkImage(
+                    imageUrl: streamInfo.thumbnailUrl.replaceFirst(
+                      '-{width}x{height}',
+                      '-${thumbnailWidth}x$thumbnailHeight',
+                    ),
+                    // One cache entry per size, or a rotation would reuse a
+                    // smaller image.
+                    cacheKey: '$cacheKey-$thumbnailWidth',
+                    memCacheWidth: thumbnailWidth,
+                    placeholder: (context, url) =>
+                        const SkeletonLoader(borderRadius: kCardBorderRadius),
+                    useOldImageOnUrlChange: true,
+                  );
+                },
               ),
               if (hypeTrain case final status?)
                 PositionedDirectional(

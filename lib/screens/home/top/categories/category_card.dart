@@ -18,10 +18,8 @@ class CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Calculate the dimmensions of the box art based on the current dimmensions of the screen.
-    final size = MediaQuery.of(context).size;
-    final pixelRatio = MediaQuery.of(context).devicePixelRatio;
-    final artWidth = (size.width * pixelRatio) ~/ 5;
+    // The box art is drawn 80 dp wide.
+    final artWidth = (80 * MediaQuery.devicePixelRatioOf(context)).ceil();
     final artHeight = (artWidth * (4 / 3)).toInt();
 
     return InkWell(
@@ -56,9 +54,8 @@ class CategoryCard extends StatelessWidget {
                       null,
                       '${artWidth}x$artHeight.jpg',
                     ),
-                    placeholder: (context, url) => const SkeletonLoader(
-                      borderRadius: kCardBorderRadius,
-                    ),
+                    placeholder: (context, url) =>
+                        const SkeletonLoader(borderRadius: kCardBorderRadius),
                   ),
                 ),
               ),

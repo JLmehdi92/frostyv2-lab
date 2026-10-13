@@ -11,6 +11,7 @@ import 'package:frosty/screens/home/top/categories/category_streams.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/context_extensions.dart';
+import 'package:frosty/utils/image_size.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
 import 'package:frosty/widgets/frosty_photo_view_dialog.dart';
@@ -50,24 +51,33 @@ class StreamCard extends StatelessWidget {
     final cacheKey =
         '${streamInfo.thumbnailUrl}-${time.day}-${time.hour}-${time.minute ~/ 5}';
 
-    // Calculate the width and height of the thumbnail based on the device width and the stream card size setting.
-    // Constraint the resolution to 1920x1080 since that's the max resolution of the Twitch API.
-    final size = MediaQuery.of(context).size;
-    final pixelRatio = MediaQuery.of(context).devicePixelRatio;
-    final thumbnailWidth = min((size.width * pixelRatio) ~/ 3, 1920);
-    final thumbnailHeight = min((thumbnailWidth * (9 / 16)).toInt(), 1080);
-
+    // Requested at the size the thumbnail is drawn (a third of the card, so
+    // a tablet grid does not fetch screen-wide images), up to 1920x1080, the
+    // largest the Twitch API serves.
+    final pixelRatio = MediaQuery.devicePixelRatioOf(context);
     final thumbnail = AspectRatio(
       aspectRatio: 16 / 9,
-      child: FrostyCachedNetworkImage(
-        imageUrl: streamInfo.thumbnailUrl.replaceFirst(
-          '-{width}x{height}',
-          '-${thumbnailWidth}x$thumbnailHeight',
-        ),
-        cacheKey: cacheKey,
-        placeholder: (context, url) =>
-            const SkeletonLoader(borderRadius: kCardBorderRadius),
-        useOldImageOnUrlChange: true,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final thumbnailWidth = imagePixelWidth(
+            constraints.maxWidth,
+            pixelRatio,
+          );
+          final thumbnailHeight = min(thumbnailWidth * 9 ~/ 16, 1080);
+          return FrostyCachedNetworkImage(
+            imageUrl: streamInfo.thumbnailUrl.replaceFirst(
+              '-{width}x{height}',
+              '-${thumbnailWidth}x$thumbnailHeight',
+            ),
+            // One cache entry per size, or a rotation would reuse a
+            // smaller image.
+            cacheKey: '$cacheKey-$thumbnailWidth',
+            memCacheWidth: thumbnailWidth,
+            placeholder: (context, url) =>
+                const SkeletonLoader(borderRadius: kCardBorderRadius),
+            useOldImageOnUrlChange: true,
+          );
+        },
       ),
     );
 

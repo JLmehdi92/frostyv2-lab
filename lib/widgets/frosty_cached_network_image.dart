@@ -15,6 +15,9 @@ class FrostyCachedNetworkImage extends StatelessWidget {
   final bool useFade;
   final BoxFit? fit;
 
+  /// Decodes the image at this many pixels wide instead of its full size.
+  final int? memCacheWidth;
+
   const FrostyCachedNetworkImage({
     super.key,
     required this.imageUrl,
@@ -27,6 +30,7 @@ class FrostyCachedNetworkImage extends StatelessWidget {
     this.useFade = true,
     this.useOldImageOnUrlChange = false,
     this.fit,
+    this.memCacheWidth,
   });
 
   @override
@@ -49,6 +53,7 @@ class FrostyCachedNetworkImage extends StatelessWidget {
       fadeInCurve: Curves.easeOut,
       fadeOutCurve: Curves.easeIn,
       fit: fit,
+      memCacheWidth: memCacheWidth,
       cacheManager: CustomCacheManager.instance,
     );
   }
