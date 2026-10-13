@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
+import 'package:frosty/constants.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/home/stream_list/large_stream_card.dart';
 import 'package:frosty/screens/home/stream_list/offline_channel_card.dart';
@@ -105,7 +106,7 @@ class _StreamsListState extends State<StreamsList>
     final extraTopPadding = widget.listType == ListType.top
         ? kToolbarHeight
         : widget.listType == ListType.category
-        ? kToolbarHeight + 122
+        ? kToolbarHeight + 122 + kCategorySectionsHeight
         : 0.0;
 
     final topPadding = MediaQuery.of(context).padding.top + extraTopPadding;
