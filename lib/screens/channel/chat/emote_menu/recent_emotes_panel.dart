@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/constants.dart';
 import 'package:frosty/models/irc.dart';
+import 'package:frosty/screens/channel/chat/emote_menu/emote_menu_section.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/utils/context_extensions.dart';
@@ -20,21 +21,17 @@ class RecentEmotesPanel extends StatelessWidget {
     return Observer(
       builder: (context) {
         if (chatStore.assetsStore.recentEmotes.isEmpty) {
-          return const Center(
-            child: AlertMessage(message: 'No recent emotes'),
-          );
+          return const Center(child: AlertMessage(message: 'No recent emotes'));
         }
 
         return MediaQuery.removePadding(
           context: context,
           removeTop: true,
           child: GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: context.isPortrait
-                  ? 8
-                  : context.read<SettingsStore>().showVideo
-                  ? 6
-                  : 16,
+            gridDelegate: emoteGridDelegate(
+              largeScreen: context.isLargeScreen,
+              portrait: context.isPortrait,
+              showVideo: context.read<SettingsStore>().showVideo,
             ),
             itemBuilder: (context, index) {
               final emote = chatStore.assetsStore.recentEmotes[index];
@@ -74,8 +71,7 @@ class RecentEmotesPanel extends StatelessWidget {
                       colorBlendMode: matchingEmotes.isNotEmpty
                           ? null
                           : BlendMode.modulate,
-                      height:
-                          emote.height?.toDouble() ?? defaultEmoteSize,
+                      height: emote.height?.toDouble() ?? defaultEmoteSize,
                       width: emote.width?.toDouble(),
                     ),
                   ),
