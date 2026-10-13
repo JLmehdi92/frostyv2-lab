@@ -1,0 +1,183 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'community_highlights_store.dart';
+
+// **************************************************************************
+// StoreGenerator
+// **************************************************************************
+
+// ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic, no_leading_underscores_for_local_identifiers
+
+mixin _$CommunityHighlightsStore on CommunityHighlightsStoreBase, Store {
+  Computed<HighlightItem?>? _$currentComputed;
+
+  @override
+  HighlightItem? get current => (_$currentComputed ??= Computed<HighlightItem?>(
+    () => super.current,
+    name: 'CommunityHighlightsStoreBase.current',
+  )).value;
+  Computed<bool>? _$visibleComputed;
+
+  @override
+  bool get visible => (_$visibleComputed ??= Computed<bool>(
+    () => super.visible,
+    name: 'CommunityHighlightsStoreBase.visible',
+  )).value;
+
+  late final _$_pollAtom = Atom(
+    name: 'CommunityHighlightsStoreBase._poll',
+    context: context,
+  );
+
+  Poll? get poll {
+    _$_pollAtom.reportRead();
+    return super._poll;
+  }
+
+  @override
+  Poll? get _poll => poll;
+
+  @override
+  set _poll(Poll? value) {
+    _$_pollAtom.reportWrite(value, super._poll, () {
+      super._poll = value;
+    });
+  }
+
+  late final _$_predictionAtom = Atom(
+    name: 'CommunityHighlightsStoreBase._prediction',
+    context: context,
+  );
+
+  Prediction? get prediction {
+    _$_predictionAtom.reportRead();
+    return super._prediction;
+  }
+
+  @override
+  Prediction? get _prediction => prediction;
+
+  @override
+  set _prediction(Prediction? value) {
+    _$_predictionAtom.reportWrite(value, super._prediction, () {
+      super._prediction = value;
+    });
+  }
+
+  late final _$_pinnedAtom = Atom(
+    name: 'CommunityHighlightsStoreBase._pinned',
+    context: context,
+  );
+
+  PinnedChatMessage? get pinned {
+    _$_pinnedAtom.reportRead();
+    return super._pinned;
+  }
+
+  @override
+  PinnedChatMessage? get _pinned => pinned;
+
+  @override
+  set _pinned(PinnedChatMessage? value) {
+    _$_pinnedAtom.reportWrite(value, super._pinned, () {
+      super._pinned = value;
+    });
+  }
+
+  late final _$_raidAtom = Atom(
+    name: 'CommunityHighlightsStoreBase._raid',
+    context: context,
+  );
+
+  RaidState? get raid {
+    _$_raidAtom.reportRead();
+    return super._raid;
+  }
+
+  @override
+  RaidState? get _raid => raid;
+
+  @override
+  set _raid(RaidState? value) {
+    _$_raidAtom.reportWrite(value, super._raid, () {
+      super._raid = value;
+    });
+  }
+
+  late final _$_stackAtom = Atom(
+    name: 'CommunityHighlightsStoreBase._stack',
+    context: context,
+  );
+
+  HighlightStack get stack {
+    _$_stackAtom.reportRead();
+    return super._stack;
+  }
+
+  @override
+  HighlightStack get _stack => stack;
+
+  @override
+  set _stack(HighlightStack value) {
+    _$_stackAtom.reportWrite(value, super._stack, () {
+      super._stack = value;
+    });
+  }
+
+  late final _$CommunityHighlightsStoreBaseActionController = ActionController(
+    name: 'CommunityHighlightsStoreBase',
+    context: context,
+  );
+
+  @override
+  void select(int index) {
+    final _$actionInfo = _$CommunityHighlightsStoreBaseActionController
+        .startAction(name: 'CommunityHighlightsStoreBase.select');
+    try {
+      return super.select(index);
+    } finally {
+      _$CommunityHighlightsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void toggleExpanded() {
+    final _$actionInfo = _$CommunityHighlightsStoreBaseActionController
+        .startAction(name: 'CommunityHighlightsStoreBase.toggleExpanded');
+    try {
+      return super.toggleExpanded();
+    } finally {
+      _$CommunityHighlightsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void dismissCurrent() {
+    final _$actionInfo = _$CommunityHighlightsStoreBaseActionController
+        .startAction(name: 'CommunityHighlightsStoreBase.dismissCurrent');
+    try {
+      return super.dismissCurrent();
+    } finally {
+      _$CommunityHighlightsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void _commit() {
+    final _$actionInfo = _$CommunityHighlightsStoreBaseActionController
+        .startAction(name: 'CommunityHighlightsStoreBase._commit');
+    try {
+      return super._commit();
+    } finally {
+      _$CommunityHighlightsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  String toString() {
+    return '''
+current: ${current},
+visible: ${visible}
+    ''';
+  }
+}
