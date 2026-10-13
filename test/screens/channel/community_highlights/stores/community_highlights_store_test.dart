@@ -1,174 +1,26 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:clock/clock.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_community_highlights_service.dart';
 import 'package:frosty/models/community_highlight_event.dart';
 import 'package:frosty/models/community_highlights.dart';
 import 'package:frosty/screens/channel/community_highlights/highlight_stack.dart';
-import 'package:frosty/screens/channel/community_highlights/stores/community_highlights_store.dart';
 import 'package:frosty/services/realtime/twitch_realtime_client.dart';
 import 'package:mobx/mobx.dart' as mobx;
 import 'package:mocktail/mocktail.dart';
 
-class MockService extends Mock implements TwitchCommunityHighlightsService {}
-
-class MockRealtime extends Mock implements TwitchRealtimeClient {}
-
-const _channel = '42';
-final _now = DateTime.utc(2026, 10, 13, 20);
-
-String pollPayload(
-  String type, {
-  String id = 'p',
-  String status = 'ACTIVE',
-  List<int> votes = const [1, 2],
-  String owner = _channel,
-  DateTime? endedAt,
-}) => jsonEncode({
-  'type': type,
-  'data': {
-    'poll': {
-      'poll_id': id,
-      'owned_by': owner,
-      'title': 'Which?',
-      'status': status,
-      'started_at': _now.toIso8601String(),
-      'ended_at': endedAt?.toIso8601String(),
-      'duration_seconds': 60,
-      'choices': [
-        for (var i = 0; i < votes.length; i++)
-          {
-            'choice_id': 'c$i',
-            'title': 'C$i',
-            'votes': {'total': votes[i]},
-            'total_voters': votes[i],
-          },
-      ],
-      'votes': {'total': votes.fold(0, (a, b) => a + b)},
-    },
-  },
-});
-
-String predictionPayload({
-  String id = 'e',
-  String status = 'ACTIVE',
-  DateTime? endedAt,
-  String? winner,
-}) => jsonEncode({
-  'type': 'event-updated',
-  'data': {
-    'timestamp': clock.now().toIso8601String(),
-    'event': {
-      'id': id,
-      'channel_id': _channel,
-      'title': 'Win?',
-      'status': status,
-      'created_at': _now.toIso8601String(),
-      'ended_at': endedAt?.toIso8601String(),
-      'prediction_window_seconds': 120,
-      'winning_outcome_id': winner,
-      'outcomes': [
-        {'id': 'a', 'title': 'Yes', 'color': 'BLUE', 'total_points': 10},
-        {'id': 'b', 'title': 'No', 'color': 'PINK', 'total_points': 5},
-      ],
-    },
-  },
-});
-
-String pinPayload(String id, {DateTime? endsAt}) => jsonEncode({
-  'type': 'pin-message',
-  'data': {
-    'id': id,
-    'message': {
-      'id': 'm-$id',
-      'sender': {'id': '7', 'login': 'mod', 'display_name': 'Mod'},
-      'content': {'text': 'Rules'},
-      'starts_at': _now.millisecondsSinceEpoch ~/ 1000,
-      'ends_at': endsAt == null ? null : endsAt.millisecondsSinceEpoch ~/ 1000,
-    },
-  },
-});
-
-String raidPayload(String type, {String source = _channel, int viewers = 5}) =>
-    jsonEncode({
-      'type': type,
-      'raid': {
-        'id': 'r',
-        'source_id': source,
-        'target_id': '9',
-        'target_login': 'friend',
-        'target_display_name': 'Friend',
-        'viewer_count': viewers,
-        'raid_created_at': _now.millisecondsSinceEpoch ~/ 1000,
-        'force_raid_now_seconds': 90,
-      },
-    });
-
-PinnedChatMessage pinnedModel(String id, {DateTime? endsAt}) =>
-    PinnedChatMessage(
-      id: id,
-      senderLogin: 'mod',
-      senderDisplayName: 'Mod',
-      text: 'Rules',
-      fragments: const [],
-      badges: const [],
-      endsAt: endsAt,
-    );
-
-class Harness {
-  Harness() {
-    for (final topic in HighlightTopic.values) {
-      topics[topic] = StreamController<RealtimeTopicEvent>.broadcast(
-        sync: true,
-      );
-    }
-    when(() => service.getPoll(any())).thenAnswer((_) async => null);
-    when(
-      () => service.getPredictions(any()),
-    ).thenAnswer((_) async => (active: null, locked: null, lastResolved: null));
-    when(() => service.getPinned(any())).thenAnswer((_) async => null);
-    when(() => realtime.subscribe(any())).thenAnswer((invocation) {
-      final name = invocation.positionalArguments.single as String;
-      subscribed.add(name);
-      final topic = HighlightTopic.values.firstWhere(
-        (t) => name == t.topicFor(_channel),
-      );
-      return RealtimeTopicSubscription.forTesting(
-        name,
-        topics[topic]!.stream,
-        () => cancelled.add(name),
-      );
-    });
-  }
-
-  final service = MockService();
-  final realtime = MockRealtime();
-  final topics = <HighlightTopic, StreamController<RealtimeTopicEvent>>{};
-  final subscribed = <String>[];
-  final cancelled = <String>[];
-  late CommunityHighlightsStore store;
-
-  CommunityHighlightsStore create() => store = CommunityHighlightsStore(
-    channelId: _channel,
-    service: service,
-    realtime: realtime,
-  );
-
-  void send(HighlightTopic topic, String payload) =>
-      topics[topic]!.add(RealtimeMessage(payload));
-}
+import '../../../../helpers/community_highlights_harness.dart';
 
 void main() {
   late Harness h;
 
   setUp(() => h = Harness());
 
-  // fake_async drives `clock` too, from [_now].
+  // fake_async drives `clock` too, from [harnessNow].
   void run(void Function(FakeAsync async) body) =>
-      fakeAsync(body, initialTime: _now);
+      fakeAsync(body, initialTime: harnessNow);
 
   test('subscribes the four public topics and cancels them on dispose', () {
     run((async) {
@@ -249,7 +101,7 @@ void main() {
       h.send(HighlightTopic.polls, pollPayload('POLL_CREATE'));
       h.send(
         HighlightTopic.polls,
-        pollPayload('POLL_COMPLETE', status: 'COMPLETED', endedAt: _now),
+        pollPayload('POLL_COMPLETE', status: 'COMPLETED', endedAt: harnessNow),
       );
       expect(h.store.poll!.status, PollStatus.completed);
 
@@ -268,7 +120,7 @@ void main() {
       async.flushMicrotasks();
       h.send(
         HighlightTopic.polls,
-        pollPayload('POLL_COMPLETE', status: 'COMPLETED', endedAt: _now),
+        pollPayload('POLL_COMPLETE', status: 'COMPLETED', endedAt: harnessNow),
       );
       h.send(
         HighlightTopic.polls,
@@ -299,7 +151,7 @@ void main() {
           lastResolved: Prediction.fromPubsub({
             'id': 'old',
             'status': 'RESOLVED',
-            'ended_at': _now
+            'ended_at': harnessNow
                 .subtract(const Duration(days: 5))
                 .toIso8601String(),
             'outcomes': const [],
@@ -321,7 +173,7 @@ void main() {
       expect(h.store.prediction!.status, PredictionStatus.active);
       h.send(
         HighlightTopic.predictions,
-        predictionPayload(status: 'RESOLVED', endedAt: _now, winner: 'a'),
+        predictionPayload(status: 'RESOLVED', endedAt: harnessNow, winner: 'a'),
       );
       expect(h.store.prediction!.winningOutcomeId, 'a');
       async.elapse(const Duration(seconds: 61));
@@ -336,7 +188,7 @@ void main() {
       async.flushMicrotasks();
       h.send(
         HighlightTopic.pinned,
-        pinPayload('a', endsAt: _now.add(const Duration(seconds: 30))),
+        pinPayload('a', endsAt: harnessNow.add(const Duration(seconds: 30))),
       );
       expect(h.store.pinned?.id, 'a');
       async.elapse(const Duration(seconds: 31));
@@ -371,7 +223,7 @@ void main() {
         );
       }
       async.elapse(const Duration(seconds: 3));
-      final calls = verify(() => h.service.getPinned(_channel)).callCount;
+      final calls = verify(() => h.service.getPinned(harnessChannel)).callCount;
       expect(calls, inInclusiveRange(1, 2));
       h.store.dispose();
     });
@@ -387,7 +239,7 @@ void main() {
         const RealtimeSubscribed(isResubscribe: true),
       );
       async.flushMicrotasks();
-      verify(() => h.service.getPoll(_channel)).called(1);
+      verify(() => h.service.getPoll(harnessChannel)).called(1);
       verifyNever(() => h.service.getPinned(any()));
       h.store.dispose();
     });
@@ -401,7 +253,7 @@ void main() {
       clearInteractions(h.service);
       h.topics[HighlightTopic.polls]!.add(const RealtimeUnavailable('down'));
       async.elapse(const Duration(seconds: 61));
-      verify(() => h.service.getPoll(_channel)).called(2);
+      verify(() => h.service.getPoll(harnessChannel)).called(2);
 
       h.topics[HighlightTopic.polls]!.add(
         const RealtimeSubscribed(isResubscribe: false),
@@ -422,7 +274,7 @@ void main() {
       async.flushMicrotasks();
       h.topics[HighlightTopic.polls]!.add(const RealtimeUnavailable('down'));
       async.elapse(const Duration(minutes: 5));
-      verify(() => h.service.getPoll(_channel)).called(3);
+      verify(() => h.service.getPoll(harnessChannel)).called(3);
       h.store.dispose();
     });
   });
