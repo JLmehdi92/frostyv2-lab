@@ -11,6 +11,7 @@ import 'package:frosty/screens/channel/video/player_engine_resolver.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/stores/ivs_vod_store.dart';
 import 'package:frosty/screens/vod/stores/vod_chat_replay_store.dart';
+import 'package:frosty/screens/vod/stores/web_vod_store.dart';
 import 'package:frosty/screens/vod/vod_overlay.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:frosty/screens/vod/widgets/vod_chat_replay.dart';
@@ -27,6 +28,7 @@ import 'package:mobx/mobx.dart';
 import 'package:simple_pip_mode/actions/pip_actions_layout.dart';
 import 'package:simple_pip_mode/pip_widget.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 /// Watches a past broadcast, highlight or upload inside the app, like the
 /// official app: native player, seek, speed, and the chat replayed in step
@@ -150,15 +152,21 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// The native IVS player, or null when this platform/setting needs the
-  /// web engine.
-  VodPlayerController? _buildPlayer(Vod vod, {Duration? startAt}) {
+  /// The native IVS player, or the Twitch embed in a WebView when this
+  /// platform or setting needs it, or after the native player failed.
+  VodPlayerController _buildPlayer(Vod vod, {Duration? startAt}) {
     final engine = resolvePlayerEngine(
       setting: _settings.playerEngine,
       isAndroid: Platform.isAndroid,
       forceWeb: _forceWeb,
     );
-    if (engine != PlayerEngine.ivs) return null;
+    if (engine != PlayerEngine.ivs) {
+      return WebVodStore(
+        vodId: vod.id,
+        startAt: startAt ?? Duration.zero,
+        knownLength: Duration(seconds: vod.lengthSeconds),
+      );
+    }
     final store = IvsVodStore(
       vodId: vod.id,
       vodService: _service,
@@ -252,15 +260,13 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     if (player is IvsVodStore) {
       return VodVideo(store: player, fillScreen: _fillScreen);
     }
-    return const ColoredBox(
-      color: Colors.black,
-      child: Center(
-        child: AlertMessage(
-          message: 'This video needs the native player',
-          color: Colors.white,
-        ),
-      ),
-    );
+    if (player is WebVodStore) {
+      return ColoredBox(
+        color: Colors.black,
+        child: WebViewWidget(controller: player.webViewController),
+      );
+    }
+    return const ColoredBox(color: Colors.black);
   }
 
   Widget _buildPlayerArea({required bool landscape}) {
