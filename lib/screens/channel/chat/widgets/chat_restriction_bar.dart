@@ -64,7 +64,7 @@ class _ChatRestrictionBarState extends State<ChatRestrictionBar> {
     final restriction = widget.restriction;
     // Room modes read in the input's placeholder; this line is for what
     // locks the input.
-    if (restriction == null || !restriction.blocksInput) {
+    if (restriction == null || !restriction.showsBar) {
       return const SizedBox.shrink();
     }
     final until = restriction.until;
@@ -74,8 +74,10 @@ class _ChatRestrictionBarState extends State<ChatRestrictionBar> {
     return Semantics(
       liveRegion: until == null,
       container: true,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 6, 12, 2),
+      // A fixed height: the chat list pads for it.
+      child: Container(
+        height: kRestrictionBarHeight,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Row(
           spacing: 6,
           children: [
@@ -83,7 +85,7 @@ class _ChatRestrictionBarState extends State<ChatRestrictionBar> {
             Expanded(
               child: Text(
                 restriction.describe(left),
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 12,

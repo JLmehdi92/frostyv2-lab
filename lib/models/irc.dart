@@ -1214,10 +1214,13 @@ class USERSTATE {
     displayName: ircMessage.tags['display-name'] ?? displayName,
     mod: ircMessage.tags['mod'] == '0' ? false : true,
     subscriber: ircMessage.tags['subscriber'] == '0' ? false : true,
-    vip: switch (ircMessage.tags['badges']) {
-      final badges? => badges.split(',').any((b) => b.startsWith('vip/')),
-      null => vip,
-    },
+    // USERSTATE always carries every badge: none (an empty tag) means
+    // not a VIP any more.
+    vip:
+        ircMessage.tags['badges']
+            ?.split(',')
+            .any((b) => b.startsWith('vip/')) ??
+        false,
   );
 }
 

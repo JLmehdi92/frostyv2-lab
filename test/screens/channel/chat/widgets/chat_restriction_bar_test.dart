@@ -42,6 +42,20 @@ void main() {
     expect(find.byType(Text), findsNothing);
   });
 
+  testWidgets('a ban shows its line (fixed height) without a countdown', (
+    tester,
+  ) async {
+    await pump(tester, const ChatRestriction(ChatRestrictionKind.banned));
+    expect(
+      find.text('You are permanently banned from this chat'),
+      findsOneWidget,
+    );
+    expect(
+      tester.getSize(find.byType(ChatRestrictionBar)).height,
+      kRestrictionBarHeight,
+    );
+  });
+
   test('USERSTATE knows a VIP from its badges', () {
     final state = const USERSTATE().fromIRCMessage(
       IRCMessage.fromString(
@@ -57,5 +71,10 @@ void main() {
       ),
     );
     expect(plain.vip, isFalse);
+    // No badges at all (an empty tag) is no VIP either.
+    final none = state.fromIRCMessage(
+      IRCMessage.fromString('@badges=;mod=0 :tmi.twitch.tv USERSTATE #channel'),
+    );
+    expect(none.vip, isFalse);
   });
 }

@@ -22,13 +22,17 @@ class ChatRestriction {
   /// The followers-only follow age, in minutes.
   final int? minutes;
 
-  /// The input is locked (nothing can be sent until it ends).
+  /// The input is locked (nothing can be sent until it ends). A ban does
+  /// not lock it: Twitch says nothing on an unban, so a send is how the
+  /// viewer finds out (a refused one bans again).
   bool get blocksInput => switch (kind) {
-    ChatRestrictionKind.banned ||
-    ChatRestrictionKind.timedOut ||
-    ChatRestrictionKind.slowMode => true,
+    ChatRestrictionKind.timedOut || ChatRestrictionKind.slowMode => true,
     _ => false,
   };
+
+  /// Said on its own line above the input (the rest goes in its
+  /// placeholder).
+  bool get showsBar => blocksInput || kind == ChatRestrictionKind.banned;
 
   /// What the banner says; [left] is the time to [until].
   String describe(Duration? left) => switch (kind) {
@@ -45,6 +49,9 @@ class ChatRestriction {
     },
   };
 }
+
+/// Height of the line [ChatRestriction.showsBar] puts above the input.
+const kRestrictionBarHeight = 28.0;
 
 /// "4:05", "1:02:03", "12s".
 String formatWait(Duration left) {
@@ -99,7 +106,9 @@ ChatRestriction? chatRestriction({
 }
 
 /// The viewer's own ban or timeout from a CLEARCHAT, or null when it is
-/// about someone else (or the whole chat).
+/// about someone else (or the whole chat), replayed history, or already
+/// over. A timeout counts from when Twitch sent it (`tmi-sent-ts`), so a
+/// delayed chat does not lengthen it.
 ({bool banned, DateTime? until})? ownClearChat(
   IRCMessage clearChat, {
   required String? ownUserId,
@@ -107,7 +116,15 @@ ChatRestriction? chatRestriction({
 }) {
   final target = clearChat.tags['target-user-id'];
   if (ownUserId == null || target == null || target != ownUserId) return null;
+  if (clearChat.tags['historical'] == '1') return null;
   final seconds = int.tryParse(clearChat.tags['ban-duration'] ?? '');
   if (seconds == null) return (banned: true, until: null);
-  return (banned: false, until: now.add(Duration(seconds: seconds)));
+  final sentMs = int.tryParse(clearChat.tags['tmi-sent-ts'] ?? '');
+  final sent = sentMs == null
+      ? now
+      : DateTime.fromMillisecondsSinceEpoch(sentMs, isUtc: true);
+  // A sent time in the future (clock skew) counts from now.
+  final from = sent.isAfter(now) ? now : sent;
+  final until = from.add(Duration(seconds: seconds));
+  return until.isAfter(now) ? (banned: false, until: until) : null;
 }

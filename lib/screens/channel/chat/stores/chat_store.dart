@@ -14,6 +14,7 @@ import 'package:frosty/screens/channel/chat/chat_restrictions.dart';
 import 'package:frosty/screens/channel/chat/details/chat_details_store.dart';
 import 'package:frosty/screens/channel/chat/muted_words.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
+import 'package:frosty/screens/channel/chat/widgets/chat_character_counter.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/utils.dart';
@@ -336,11 +337,17 @@ abstract class ChatStoreBase with Store {
         final block = command is BlockCommand;
         try {
           final user = await twitchApi.getUser(userLogin: login);
+          final already = auth.user.blockedUsers.any(
+            (b) => b.userId == user.id,
+          );
+          if (block && already) {
+            say('${user.displayName} is already blocked.');
+            textController.clear();
+            return;
+          }
           if (block) {
-            await auth.user.block(
-              targetId: user.id,
-              displayName: user.displayName,
-            );
+            // The chat filter compares logins.
+            await auth.user.block(targetId: user.id, displayName: user.login);
           } else {
             await auth.user.unblock(targetId: user.id);
           }
@@ -359,6 +366,13 @@ abstract class ChatStoreBase with Store {
           }
         }
     }
+  }
+
+  void _resetOwnRestrictions() {
+    _banned = false;
+    _timedOutUntil = null;
+    _lastSentAt = null;
+    _updateRestriction();
   }
 
   /// A send refused for a ban, a timeout or slow mode tells how long.
@@ -437,6 +451,11 @@ abstract class ChatStoreBase with Store {
             (_showMentionAutocomplete && matchingChatters.isNotEmpty) ||
             matchingCommands.isNotEmpty)) {
       height += _autocompleteHeight;
+    }
+
+    // The ban, timeout or slow-mode line above the input.
+    if (auth.isLoggedIn && (_restriction?.showsBar ?? false)) {
+      height += kRestrictionBarHeight;
     }
 
     return height;
@@ -664,7 +683,11 @@ abstract class ChatStoreBase with Store {
         // Filter messages containing any muted words (only this one: the
         // rest of the batch goes on).
         final text = parsedIRCMessage.message;
+        final clears =
+            parsedIRCMessage.command == Command.clearChat ||
+            parsedIRCMessage.command == Command.clearMessage;
         if (text != null &&
+            !clears &&
             isMuted(
               text,
               settings.mutedWords,
@@ -813,6 +836,9 @@ abstract class ChatStoreBase with Store {
         _channel?.sink.add('PONG :tmi.twitch.tv');
         return;
       } else if (message.contains('Welcome, GLHF!')) {
+        // A new connection (maybe as another account): what Twitch says
+        // from here on decides the viewer's restrictions.
+        _resetOwnRestrictions();
         messageBuffer.add(
           IRCMessage.createNotice(
             message:
@@ -1296,6 +1322,15 @@ abstract class ChatStoreBase with Store {
     // Do not send if the message is blank/empty.
     if (message.isEmpty) return;
 
+    // Twitch drops longer messages (text set by code skips the input's
+    // limit).
+    if (message.characters.length > kChatMessageMaxLength) {
+      updateNotification(
+        'Messages can be $kChatMessageMaxLength characters at most',
+      );
+      return;
+    }
+
     // Slash commands run here: Twitch ignores them over IRC (except /me).
     final command = parseChatCommand(message);
     if (command is! SendAsIs) {
@@ -1349,7 +1384,8 @@ abstract class ChatStoreBase with Store {
     // Obtain the logged-in user's appearance in chat with USERSTATE and create the full message to render.
     var userStateString = _userState.raw;
     if (userStateString != null) {
-      if (message.length > 3 && message.substring(0, 3) == '/me') {
+      final action = RegExp(r'^[/.]me\s', caseSensitive: false);
+      if (action.hasMatch(message)) {
         userStateString +=
             ' :\x01ACTION ${message.replaceRange(0, 3, '').trim()}\x01';
       } else {

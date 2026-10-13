@@ -29,7 +29,9 @@ void main() {
   test('a ban or timeout comes first and locks the input', () {
     final banned = _for(banned: true, room: const ROOMSTATE(emoteOnly: '1'))!;
     expect(banned.kind, ChatRestrictionKind.banned);
-    expect(banned.blocksInput, isTrue);
+    // Twitch says nothing on an unban: a send is how the viewer finds out.
+    expect(banned.blocksInput, isFalse);
+    expect(banned.showsBar, isTrue);
 
     final timedOut = _for(
       timedOutUntil: _now.add(const Duration(minutes: 10)),
@@ -107,6 +109,44 @@ void main() {
     );
     expect(
       ownClearChat(clear('target-user-id=7'), ownUserId: null, now: _now),
+      isNull,
+    );
+  });
+
+  test('a timeout counts from when Twitch sent it; history is ignored', () {
+    IRCMessage clear(String tags) => IRCMessage.fromString(
+      '@$tags :tmi.twitch.tv CLEARCHAT #channel :someone',
+    );
+    final sent = _now.subtract(const Duration(minutes: 9, seconds: 50));
+    expect(
+      ownClearChat(
+        clear(
+          'ban-duration=600;target-user-id=7;'
+          'tmi-sent-ts=${sent.millisecondsSinceEpoch}',
+        ),
+        ownUserId: '7',
+        now: _now,
+      ),
+      (banned: false, until: _now.add(const Duration(seconds: 10))),
+    );
+    final over = _now.subtract(const Duration(minutes: 11));
+    expect(
+      ownClearChat(
+        clear(
+          'ban-duration=600;target-user-id=7;'
+          'tmi-sent-ts=${over.millisecondsSinceEpoch}',
+        ),
+        ownUserId: '7',
+        now: _now,
+      ),
+      isNull,
+    );
+    expect(
+      ownClearChat(
+        clear('historical=1;target-user-id=7'),
+        ownUserId: '7',
+        now: _now,
+      ),
       isNull,
     );
   });
