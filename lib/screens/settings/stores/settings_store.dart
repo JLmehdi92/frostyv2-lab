@@ -23,6 +23,9 @@ abstract class _SettingsStoreBase with Store {
   static const defaultShowThumbnails = true;
   static const defaultLargeStreamCard = false;
 
+  // Browse defaults ('' is every language)
+  static const defaultStreamLanguage = '';
+
   // Links defaults
   static const defaultLaunchUrlExternal = false;
 
@@ -44,6 +47,11 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var largeStreamCard = defaultLargeStreamCard;
 
+  /// The language Top and category lists show (Helix `language`).
+  @JsonKey(defaultValue: defaultStreamLanguage)
+  @observable
+  var streamLanguage = defaultStreamLanguage;
+
   // Links options
   @JsonKey(defaultValue: defaultLaunchUrlExternal)
   @observable
@@ -56,6 +64,8 @@ abstract class _SettingsStoreBase with Store {
 
     largeStreamCard = defaultLargeStreamCard;
     showThumbnails = defaultShowThumbnails;
+
+    streamLanguage = defaultStreamLanguage;
 
     launchUrlExternal = defaultLaunchUrlExternal;
   }

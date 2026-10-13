@@ -11,6 +11,7 @@ import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/utils/stream_languages.dart';
 import 'package:mobx/mobx.dart';
 
 part 'stream_list_store.g.dart';
@@ -153,6 +154,11 @@ abstract class ListStoreBase with Store {
   @readonly
   String? _error;
 
+  /// Bumped by [refreshStreams] so a page asked for before it is dropped
+  /// (a new language must not get the old one's pages).
+  var _streamsGeneration = 0;
+
+  ReactionDisposer? _languageReactionDisposer;
   ReactionDisposer? _pinnedStreamsReactionDisposer;
   ReactionDisposer? _offlineChannelsExpansionDisposer;
 
@@ -174,6 +180,14 @@ abstract class ListStoreBase with Store {
           showJumpButton = true;
         }
       });
+    }
+
+    if (listType != ListType.followed) {
+      // A new language starts the list over.
+      _languageReactionDisposer = reaction(
+        (_) => settingsStore.streamLanguage,
+        (_) => refreshStreams(),
+      );
     }
 
     if (listType == ListType.followed) {
@@ -212,6 +226,7 @@ abstract class ListStoreBase with Store {
   /// Fetches the streams based on the type and current cursor.
   @action
   Future<void> getStreams() async {
+    final generation = _streamsGeneration;
     _isAllStreamsLoading = true;
 
     try {
@@ -224,15 +239,21 @@ abstract class ListStoreBase with Store {
           );
           break;
         case ListType.top:
-          newStreams = await twitchApi.getTopStreams(cursor: _streamsCursor);
+          newStreams = await twitchApi.getTopStreams(
+            cursor: _streamsCursor,
+            language: streamLanguageOrAll(settingsStore.streamLanguage),
+          );
           break;
         case ListType.category:
           newStreams = await twitchApi.getStreamsUnderCategory(
             gameId: categoryId!,
             cursor: _streamsCursor,
+            language: streamLanguageOrAll(settingsStore.streamLanguage),
           );
           break;
       }
+
+      if (generation != _streamsGeneration) return;
 
       if (_streamsCursor == null) {
         _allStreams = newStreams.data.asObservable();
@@ -243,12 +264,15 @@ abstract class ListStoreBase with Store {
 
       _error = null;
     } on SocketException {
+      if (generation != _streamsGeneration) return;
       _error = 'Unable to connect to Twitch';
       debugPrint('Streams SocketException: No internet connection');
     } on ApiException catch (e) {
+      if (generation != _streamsGeneration) return;
       _error = e.message;
       debugPrint('Streams ApiException: $e');
     } catch (e) {
+      if (generation != _streamsGeneration) return;
       _error = 'Something went wrong loading streams';
       debugPrint('Streams error: $e');
     }
@@ -349,6 +373,7 @@ abstract class ListStoreBase with Store {
       }
     }
 
+    _streamsGeneration++;
     _streamsCursor = null;
     await getStreams();
   }
@@ -377,6 +402,7 @@ abstract class ListStoreBase with Store {
   }
 
   void dispose() {
+    _languageReactionDisposer?.call();
     _pinnedStreamsReactionDisposer?.call();
     _offlineChannelsExpansionDisposer?.call();
 

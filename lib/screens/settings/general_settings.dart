@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
+import 'package:frosty/screens/settings/widgets/stream_language_setting.dart';
 import 'package:frosty/widgets/accent_color_setting.dart';
 import 'package:frosty/widgets/external_browser_setting.dart';
 // import removed: frosty/widgets/dialog.dart
@@ -34,6 +35,8 @@ class GeneralSettings extends StatelessWidget {
             value: settingsStore.showThumbnails,
             onChanged: (newValue) => settingsStore.showThumbnails = newValue,
           ),
+          const SectionHeader('Browse'),
+          StreamLanguageSetting(settingsStore: settingsStore),
           const SectionHeader('Links'),
           ExternalBrowserSetting(settingsStore: settingsStore),
         ],

@@ -119,9 +119,7 @@ void main() {
     test('throws NotFoundException for unknown user', () {
       dioAdapter.onGet(
         'https://api.twitch.tv/helix/users',
-        (server) => server.reply(200, {
-          'data': <dynamic>[],
-        }),
+        (server) => server.reply(200, {'data': <dynamic>[]}),
         queryParameters: {'login': 'doesnotexist'},
       );
 
@@ -204,9 +202,7 @@ void main() {
         }),
       );
 
-      final result = await api.getStreamsByIds(
-        userIds: ['111', '222'],
-      );
+      final result = await api.getStreamsByIds(userIds: ['111', '222']);
 
       expect(result.data, hasLength(2));
       expect(result.data[0].userName, 'User1');
@@ -318,6 +314,47 @@ void main() {
 
       expect(streams.data, isEmpty);
     });
+
+    test('passes the language when one is picked', () async {
+      dioAdapter.onGet(
+        'https://api.twitch.tv/helix/streams',
+        (server) => server.reply(200, twitchStreamResponse),
+        queryParameters: {'after': 'c', 'language': 'fr'},
+      );
+
+      final streams = await api.getTopStreams(cursor: 'c', language: 'fr');
+
+      expect(streams.data, hasLength(1));
+    });
+  });
+
+  group('getStreamsUnderCategory', () {
+    test('asks for the category and the picked language', () async {
+      dioAdapter.onGet(
+        'https://api.twitch.tv/helix/streams',
+        (server) => server.reply(200, twitchStreamResponse),
+        queryParameters: {'game_id': '509658', 'language': 'ja'},
+      );
+
+      final streams = await api.getStreamsUnderCategory(
+        gameId: '509658',
+        language: 'ja',
+      );
+
+      expect(streams.data, hasLength(1));
+    });
+
+    test('leaves the language out for every language', () async {
+      dioAdapter.onGet(
+        'https://api.twitch.tv/helix/streams',
+        (server) => server.reply(200, twitchStreamResponse),
+        queryParameters: {'game_id': '509658'},
+      );
+
+      final streams = await api.getStreamsUnderCategory(gameId: '509658');
+
+      expect(streams.data, hasLength(1));
+    });
   });
 
   group('getChannel', () {
@@ -339,9 +376,7 @@ void main() {
     test('throws ApiException for nonexistent channel', () {
       dioAdapter.onGet(
         'https://api.twitch.tv/helix/channels',
-        (server) => server.reply(200, {
-          'data': <dynamic>[],
-        }),
+        (server) => server.reply(200, {'data': <dynamic>[]}),
         queryParameters: {'broadcaster_id': '99999'},
       );
 

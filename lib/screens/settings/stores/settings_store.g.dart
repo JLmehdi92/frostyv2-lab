@@ -19,6 +19,7 @@ SettingsStore _$SettingsStoreFromJson(
   ..accentColor = (json['accentColor'] as num?)?.toInt() ?? 4287710975
   ..showThumbnails = json['showThumbnails'] as bool? ?? true
   ..largeStreamCard = json['largeStreamCard'] as bool? ?? false
+  ..streamLanguage = json['streamLanguage'] as String? ?? ''
   ..launchUrlExternal = json['launchUrlExternal'] as bool? ?? false
   ..showVideo = json['showVideo'] as bool? ?? true
   ..defaultToHighestQuality = json['defaultToHighestQuality'] as bool? ?? false
@@ -120,6 +121,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'accentColor': instance.accentColor,
   'showThumbnails': instance.showThumbnails,
   'largeStreamCard': instance.largeStreamCard,
+  'streamLanguage': instance.streamLanguage,
   'launchUrlExternal': instance.launchUrlExternal,
   'showVideo': instance.showVideo,
   'defaultToHighestQuality': instance.defaultToHighestQuality,
@@ -290,6 +292,24 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   set largeStreamCard(bool value) {
     _$largeStreamCardAtom.reportWrite(value, super.largeStreamCard, () {
       super.largeStreamCard = value;
+    });
+  }
+
+  late final _$streamLanguageAtom = Atom(
+    name: '_SettingsStoreBase.streamLanguage',
+    context: context,
+  );
+
+  @override
+  String get streamLanguage {
+    _$streamLanguageAtom.reportRead();
+    return super.streamLanguage;
+  }
+
+  @override
+  set streamLanguage(String value) {
+    _$streamLanguageAtom.reportWrite(value, super.streamLanguage, () {
+      super.streamLanguage = value;
     });
   }
 
@@ -1299,6 +1319,7 @@ themeType: ${themeType},
 accentColor: ${accentColor},
 showThumbnails: ${showThumbnails},
 largeStreamCard: ${largeStreamCard},
+streamLanguage: ${streamLanguage},
 launchUrlExternal: ${launchUrlExternal},
 showVideo: ${showVideo},
 defaultToHighestQuality: ${defaultToHighestQuality},

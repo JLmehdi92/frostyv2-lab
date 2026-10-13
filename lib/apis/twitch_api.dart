@@ -164,10 +164,16 @@ class TwitchApi extends BaseApiClient {
   }
 
   /// Returns a [StreamsTwitch] object that contains the top 20 streams and a cursor for further requests.
-  Future<StreamsTwitch> getTopStreams({String? cursor}) async {
+  Future<StreamsTwitch> getTopStreams({
+    String? cursor,
+    String language = '',
+  }) async {
+    final queryParams = <String, String>{};
+    if (cursor != null) queryParams['after'] = cursor;
+    if (language.isNotEmpty) queryParams['language'] = language;
     final data = await get<JsonMap>(
       '/streams',
-      queryParameters: cursor != null ? {'after': cursor} : null,
+      queryParameters: queryParams.isEmpty ? null : queryParams,
     );
 
     return StreamsTwitch.fromJson(data);
@@ -209,9 +215,11 @@ class TwitchApi extends BaseApiClient {
   Future<StreamsTwitch> getStreamsUnderCategory({
     required String gameId,
     String? cursor,
+    String language = '',
   }) async {
     final queryParams = {'game_id': gameId};
     if (cursor != null) queryParams['after'] = cursor;
+    if (language.isNotEmpty) queryParams['language'] = language;
 
     final data = await get<JsonMap>('/streams', queryParameters: queryParams);
 

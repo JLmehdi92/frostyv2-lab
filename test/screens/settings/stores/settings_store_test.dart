@@ -204,6 +204,24 @@ void main() {
     });
   });
 
+  group('streamLanguage', () {
+    test('is every language by default, also for older settings', () {
+      expect(SettingsStore.fromJson({}).streamLanguage, '');
+    });
+
+    test('round-trips through JSON', () {
+      final store = SettingsStore.fromJson({})..streamLanguage = 'fr';
+      expect(SettingsStore.fromJson(store.toJson()).streamLanguage, 'fr');
+    });
+
+    test('resetGeneralSettings goes back to every language', () {
+      final store = SettingsStore.fromJson({})
+        ..streamLanguage = 'de'
+        ..resetGeneralSettings();
+      expect(store.streamLanguage, '');
+    });
+  });
+
   group('SettingsStore reset actions', () {
     test('resetGeneralSettings restores general defaults', () {
       final store = SettingsStore.fromJson({});
