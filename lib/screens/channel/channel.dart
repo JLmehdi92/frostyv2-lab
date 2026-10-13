@@ -3,10 +3,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:frosty/models/community_highlights.dart';
 import 'package:frosty/screens/channel/channel_top_overlays.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_tabs.dart';
+import 'package:frosty/screens/channel/community_highlights/stores/community_highlights_store.dart';
+import 'package:frosty/screens/channel/community_highlights/widgets/pinned_chat_text.dart';
 import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:frosty/screens/channel/video/ivs_stats_panel.dart';
 import 'package:frosty/screens/channel/video/ivs_video.dart';
@@ -139,6 +142,64 @@ class _VideoChatState extends State<VideoChat>
     }
   }
 
+  /// The primary (video) channel's polls, predictions, pinned message and
+  /// outgoing raid; null while the setting is off. Never handed to the mini
+  /// window.
+  CommunityHighlightsStore? _highlightsStore;
+  ReactionDisposer? _highlightsSettingReaction;
+
+  void _syncHighlightsStore() {
+    final show = context.settingsStore.showCommunityHighlights;
+    if (show && _highlightsStore == null) {
+      // Read from the window: no inherited lookups in initState.
+      final view = WidgetsBinding.instance.platformDispatcher.implicitView;
+      _highlightsStore = CommunityHighlightsStore(
+        channelId: widget.userId,
+        service: context.twitchCommunityHighlightsService,
+        realtime: context.realtimeClient,
+        expandNew:
+            view != null &&
+            isLargeScreenSize(view.physicalSize / view.devicePixelRatio),
+      );
+    } else if (!show && _highlightsStore != null) {
+      _highlightsStore!.dispose();
+      _highlightsStore = null;
+    }
+  }
+
+  /// "Watch" on an outgoing raid: the target replaces this channel.
+  void _watchRaid(OutgoingRaid raid) {
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        settings: const RouteSettings(name: VideoChat.routeName),
+        builder: (context) => VideoChat(
+          userId: raid.targetId,
+          userName: raid.targetDisplayName,
+          userLogin: raid.targetLogin,
+        ),
+      ),
+    );
+  }
+
+  /// A pinned message as the video channel's chat shows it (badges, colour,
+  /// Twitch and 7TV/BTTV/FFZ emotes); plain text until that chat is up.
+  Widget? _pinnedMessage(BuildContext context, PinnedChatMessage pin) {
+    final chat = _chatTabsStore.tabs
+        .where((tab) => tab.isPrimary)
+        .firstOrNull
+        ?.chatStore;
+    if (chat == null) return null;
+    return PinnedChatText(
+      pin: pin,
+      assetsStore: chat.assetsStore,
+      settings: context.settingsStore,
+      channelId: widget.userId,
+      channelLogin: widget.userLogin,
+      viewerLogin: context.authStore.user.details?.login,
+    );
+  }
+
   /// Builds the video controller for the engine selected in settings.
   ///
   /// The native low-latency engine is the default; the Twitch WebView engine
@@ -254,6 +315,13 @@ class _VideoChatState extends State<VideoChat>
     _hypeTrainSettingReaction = reaction((_) => settings.showHypeTrain, (_) {
       if (mounted) setState(_syncHypeTrainStore);
     });
+    _syncHighlightsStore();
+    _highlightsSettingReaction = reaction(
+      (_) => settings.showCommunityHighlights,
+      (_) {
+        if (mounted) setState(_syncHighlightsStore);
+      },
+    );
   }
 
   /// Whether the stream was playing when another player took focus.
@@ -572,7 +640,10 @@ class _VideoChatState extends State<VideoChat>
             if (_videoStore.settingsStore.showOverlay) overlay,
             ChannelVideoTopOverlay(
               hypeTrain: _hypeTrainStore,
+              highlights: _highlightsStore,
               settingsStore: settingsStore,
+              onWatchRaid: _watchRaid,
+              pinnedMessage: _pinnedMessage,
             ),
             if (_videoStore case final IvsVideoStore ivs
                 when ivs.statsVisible && !ivs.isInPipMode)
@@ -609,6 +680,9 @@ class _VideoChatState extends State<VideoChat>
             ),
             ChannelChatTopOverlay(
               hypeTrain: _hypeTrainStore,
+              highlights: _highlightsStore,
+              onWatchRaid: _watchRaid,
+              pinnedMessage: _pinnedMessage,
               settingsStore: settingsStore,
               chatTabsStore: _chatTabsStore,
               chatInputFocus: _chatStore.textFieldFocusNode,
@@ -815,10 +889,14 @@ class _VideoChatState extends State<VideoChat>
                                         );
                                       },
                                     ),
-                                  // Hidden chat: the hype train as a pill.
+                                  // Hidden chat: the hype train and the
+                                  // highlights as pills.
                                   ChannelVideoTopOverlay(
                                     hypeTrain: _hypeTrainStore,
+                                    highlights: _highlightsStore,
                                     settingsStore: settingsStore,
+                                    onWatchRaid: _watchRaid,
+                                    pinnedMessage: _pinnedMessage,
                                   ),
                                 ],
                               )
@@ -998,10 +1076,12 @@ class _VideoChatState extends State<VideoChat>
 
     PlaybackFocus.shared.release(this);
 
-    // Always: the mini window shows no hype train, and restoring the
-    // channel builds a new store (which refetches).
+    // Always: the mini window shows no hype train or highlights, and
+    // restoring the channel builds new stores (which refetch).
     _hypeTrainSettingReaction?.call();
     _hypeTrainStore?.dispose();
+    _highlightsSettingReaction?.call();
+    _highlightsStore?.dispose();
 
     // Skip disposal when handed to the mini window — the player and the live
     // chat (with its history) live on there.
