@@ -27,6 +27,9 @@ class FakeIvsNative {
 
   /// When true, the player's `load` fails like a broken native side.
   bool loadThrows = false;
+
+  /// Value returned by the player's `getPosition` (VOD resume saves).
+  int? nativePosition;
   final playerCalls = <MethodCall>[];
 
   static const _manager = MethodChannel('frosty/ivs-texture-manager');
@@ -56,6 +59,7 @@ class FakeIvsNative {
       if (call.method == 'load' && loadThrows) {
         throw PlatformException(code: 'load_failed');
       }
+      if (call.method == 'getPosition') return nativePosition;
       return null;
     });
   }
@@ -76,6 +80,18 @@ class FakeIvsNative {
       (_) {},
     );
   }
+
+  /// VOD progress tick, like `IvsPlayerCore.startProgressTicker`.
+  Future<void> emitProgress(
+    int positionMs, {
+    int? durationMs,
+    int? bufferedMs,
+  }) => emit({
+    'type': 'progress',
+    'positionMs': positionMs,
+    'durationMs': durationMs,
+    'bufferedMs': bufferedMs,
+  });
 
   Iterable<MethodCall> callsNamed(String method) =>
       playerCalls.where((c) => c.method == method);
