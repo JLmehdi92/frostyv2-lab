@@ -51,6 +51,9 @@ class _HighlightCountdownState extends State<HighlightCountdown> {
   @override
   Widget build(BuildContext context) {
     final left = widget.deadline.difference(widget.now());
-    return widget.builder(context, left.isNegative ? Duration.zero : left);
+    // Not announced every second; the card's label reads the time left.
+    return ExcludeSemantics(
+      child: widget.builder(context, left.isNegative ? Duration.zero : left),
+    );
   }
 }
