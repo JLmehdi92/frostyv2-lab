@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_directory_service.dart';
 import 'package:frosty/models/category.dart';
@@ -157,7 +158,17 @@ void main() {
     store.sort = StreamSort.viewersLow;
     await pumpEventQueue();
 
-    expect(store.error, 'failed integrity check');
+    expect(
+      store.error,
+      'Twitch could not sort by Viewers (low to high). '
+      'Viewers (high to low) still works.',
+    );
+
+    // A new order clears it while it loads.
+    store.sort = StreamSort.viewersHigh;
+    expect(store.error, isNull);
+    await pumpEventQueue();
+    expect(store.allStreams.single.userId, 'helix');
     store.dispose();
   });
 
@@ -197,6 +208,43 @@ void main() {
 
     expect(store.allStreams.map((s) => s.userId), ['viewersLow']);
     expect(store.isLoading, isFalse);
+    store.dispose();
+  });
+
+  test('a failing category header does not stop paging', () async {
+    when(
+      () => api.getCategory(gameId: any(named: 'gameId')),
+    ).thenThrow(const NotFoundException('gone'));
+    final store = category();
+    await pumpEventQueue();
+
+    expect(store.categoryDetails, isNull);
+    expect(store.isLoading, isFalse);
+    expect(store.hasMore, isTrue);
+    store.dispose();
+  });
+
+  test('a details-only store loads no streams and follows nothing', () async {
+    final store = ListStore(
+      authStore: MockAuthStore(),
+      settingsStore: settings,
+      twitchApi: api,
+      listType: ListType.category,
+      categoryId: '33',
+      loadStreams: false,
+    );
+    await pumpEventQueue();
+    settings.streamLanguage = 'fr';
+    await pumpEventQueue();
+
+    expect(store.categoryDetails?.id, '33');
+    verifyNever(
+      () => api.getStreamsUnderCategory(
+        gameId: any(named: 'gameId'),
+        cursor: any(named: 'cursor'),
+        language: any(named: 'language'),
+      ),
+    );
     store.dispose();
   });
 }

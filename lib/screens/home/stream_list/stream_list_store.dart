@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
@@ -39,6 +40,10 @@ abstract class ListStoreBase with Store {
 
   /// The tag whose streams a [ListType.tag] list shows.
   final String? tag;
+
+  /// False for a store that only gives a category's details (no streams,
+  /// no reactions).
+  final bool loadStreams;
 
   /// Sorted category lists and tag lists; anonymous GQL.
   final TwitchDirectoryService? directoryService;
@@ -187,11 +192,12 @@ abstract class ListStoreBase with Store {
     this.scrollController,
     this.hypeTrainService,
     this.sort = StreamSort.viewersHigh,
+    this.loadStreams = true,
   }) : assert(listType != ListType.tag || tag != null),
        assert(listType != ListType.tag || directoryService != null) {
     scrollController?.addListener(_onScroll);
 
-    if (listType != ListType.followed) {
+    if (listType != ListType.followed && loadStreams) {
       // A new language starts the list over.
       _languageReactionDisposer = reaction(
         (_) => settingsStore.streamLanguage,
@@ -231,7 +237,7 @@ abstract class ListStoreBase with Store {
       _getCategoryDetails();
     }
 
-    getStreams();
+    if (loadStreams) getStreams();
   }
 
   /// Fetches the streams based on the type and current cursor.
@@ -292,6 +298,19 @@ abstract class ListStoreBase with Store {
       if (generation != _streamsGeneration) return;
       _error = 'Unable to connect to Twitch';
       debugPrint('Streams SocketException: No internet connection');
+    } on DirectoryApiException catch (e) {
+      if (generation != _streamsGeneration) return;
+      _error = listType == ListType.tag
+          ? 'Tag streams are unavailable right now'
+          : 'Twitch could not sort by ${sort.label}. '
+                '${StreamSort.viewersHigh.label} still works.';
+      debugPrint('Streams DirectoryApiException: $e');
+      // Seen in release too: Twitch probably changed the query.
+      try {
+        FirebaseCrashlytics.instance.log('directory streams failed: $e');
+      } catch (_) {
+        // Firebase may not be initialized (e.g., in tests).
+      }
     } on ApiException catch (e) {
       if (generation != _streamsGeneration) return;
       _error = e.message;
@@ -388,6 +407,9 @@ abstract class ListStoreBase with Store {
   /// Resets the cursor and then fetches the streams.
   @action
   Future<void> refreshStreams() async {
+    // A new list does not keep the last one's error on screen.
+    _error = null;
+
     if (listType == ListType.followed) {
       await getPinnedStreams();
 
@@ -409,11 +431,16 @@ abstract class ListStoreBase with Store {
 
     _isCategoryDetailsLoading = true;
 
-    final categoryDetails = await twitchApi.getCategory(gameId: categoryId!);
-
-    _categoryDetails = categoryDetails.data.first;
-
-    _isCategoryDetailsLoading = false;
+    try {
+      final categoryDetails = await twitchApi.getCategory(gameId: categoryId!);
+      _categoryDetails = categoryDetails.data.firstOrNull;
+    } catch (e) {
+      // The header stays a placeholder; the list says what went wrong.
+      debugPrint('Category details error: $e');
+    } finally {
+      // Never left loading: that would also stop paging.
+      _isCategoryDetailsLoading = false;
+    }
   }
 
   /// Checks the last time the streams were refreshed and updates them if it has been more than 5 minutes.
