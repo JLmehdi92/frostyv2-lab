@@ -511,6 +511,8 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
   @override
   @action
   void play() {
+    // Asked for by the viewer: this player takes focus back.
+    _focused = true;
     if (_ended) seekTo(Duration.zero);
     unawaited(_invoke('play'));
   }

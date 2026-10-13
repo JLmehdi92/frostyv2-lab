@@ -89,6 +89,10 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   late final MiniPlayerStore _miniPlayer = context.miniPlayerStore;
 
   final _pipKey = GlobalKey<PipWidgetState>();
+
+  /// One video widget moved between the portrait, landscape and PiP trees,
+  /// so its platform view (WebView) is never recreated.
+  final _videoKey = GlobalKey();
   final _resumeRepository = VodResumeRepository();
   VodResumeController? _resume;
 
@@ -301,12 +305,15 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final player = _player;
-      player?.setFocused(true);
-      // A channel handed to the mini player keeps playing: stay paused.
-      if (_playingBeforeFocusLoss && !_miniPlayer.visible) player?.play();
+      // A channel handed to the mini player keeps playing and keeps PiP:
+      // stay paused and unfocused until the viewer presses play.
+      if (!_miniPlayer.visible) {
+        player?.setFocused(true);
+        if (_playingBeforeFocusLoss) player?.play();
+        reclaimPipCallbacks(_pipKey);
+      }
       _playingBeforeFocusLoss = false;
       if (_settings.keepScreenAwake) WakelockPlus.enable();
-      reclaimPipCallbacks(_pipKey);
       // The screen that closed reset the system bars.
       setState(() => _immersive = null);
     });
@@ -344,16 +351,18 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
 
   Widget _buildVideo() {
     final player = _player;
+    final Widget video;
     if (player is IvsVodStore) {
-      return VodVideo(store: player, fillScreen: _fillScreen);
-    }
-    if (player is WebVodStore) {
-      return ColoredBox(
+      video = VodVideo(store: player, fillScreen: _fillScreen);
+    } else if (player is WebVodStore) {
+      video = ColoredBox(
         color: Colors.black,
         child: WebViewWidget(controller: player.webViewController),
       );
+    } else {
+      video = const ColoredBox(color: Colors.black);
     }
-    return const ColoredBox(color: Colors.black);
+    return KeyedSubtree(key: _videoKey, child: video);
   }
 
   /// Black area with a back button, for when there is no player yet.

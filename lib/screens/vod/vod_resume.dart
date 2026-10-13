@@ -114,7 +114,9 @@ class VodResumeRepository {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_key, jsonEncode(all));
       })
-      .catchError((Object e) => debugPrint('VOD resume save failed: $e'));
+      .catchError((Object e) {
+        debugPrint('VOD resume save failed: $e');
+      });
 }
 
 /// Where to start a VOD, like the official app: a `?t=` link wins,

@@ -47,7 +47,25 @@ abstract class WebVodStoreBase with Store implements VodPlayerController {
     final url = webVodEmbedUrl(vodId: vodId, startAt: startAt);
     webViewController = controller ?? _createController(url);
     _scheduleOverlayHide();
+    if (Platform.isAndroid) {
+      _disposeAutoPip = autorun((_) async {
+        // Another player on top owns auto-PiP.
+        if (!_focused) return;
+        final available = !paused && await SimplePip.isAutoPipAvailable;
+        if (_disposed) return;
+        if (available) {
+          pip.setAutoPipMode();
+        } else {
+          pip.setAutoPipMode(autoEnter: false);
+        }
+      });
+    }
   }
+
+  ReactionDisposer? _disposeAutoPip;
+
+  /// Last play state given to the PiP window, to tell it only of changes.
+  bool? _pipPlaying;
 
   late final WebViewController webViewController;
   final Duration? _knownLength;
@@ -104,9 +122,11 @@ abstract class WebVodStoreBase with Store implements VodPlayerController {
   @readonly
   var _isInPipMode = false;
 
+  @observable
   var _focused = true;
 
   @override
+  @action
   void setFocused(bool focused) => _focused = focused;
 
   @override
@@ -190,6 +210,8 @@ abstract class WebVodStoreBase with Store implements VodPlayerController {
   @visibleForTesting
   @action
   void onStateMessage(String json) {
+    // The page can report once more after the screen closed.
+    if (_disposed) return;
     final Object? decoded;
     try {
       decoded = jsonDecode(json);
@@ -237,7 +259,10 @@ abstract class WebVodStoreBase with Store implements VodPlayerController {
       if (!_focused) pause();
     }
     if (wasPaused && !paused && _overlayVisible) _scheduleOverlayHide();
-    if (Platform.isAndroid) pip.setIsPlaying(!paused);
+    if (Platform.isAndroid && _pipPlaying != !paused) {
+      _pipPlaying = !paused;
+      pip.setIsPlaying(!paused);
+    }
   }
 
   Future<void> _run(String script) async {
@@ -263,6 +288,8 @@ abstract class WebVodStoreBase with Store implements VodPlayerController {
   @override
   @action
   void play() {
+    // Asked for by the viewer: this player takes focus back.
+    _focused = true;
     if (ended) seekTo(Duration.zero);
     _onVideo('v.play();');
   }
@@ -369,8 +396,17 @@ abstract class WebVodStoreBase with Store implements VodPlayerController {
 
   @override
   void dispose() {
+    // The native WebView outlives this store: silence and unload the page
+    // (as the live web player does) before the bridge goes quiet.
+    _onVideo('v.pause();');
+    unawaited(
+      webViewController
+          .loadRequest(Uri.parse('about:blank'))
+          .catchError((Object e) => debugPrint('WebVodStore unload: $e')),
+    );
     _disposed = true;
     _overlayTimer?.cancel();
+    _disposeAutoPip?.call();
     if (Platform.isAndroid) pip.setAutoPipMode(autoEnter: false);
   }
 }

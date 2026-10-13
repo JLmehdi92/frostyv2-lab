@@ -1101,6 +1101,17 @@ void main() {
       expect(native.callsNamed('pause'), hasLength(1));
     });
 
+    test('an explicit play takes focus back', () async {
+      store = await createStore();
+      store.setFocused(false);
+
+      store.play();
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+
+      expect(native.callsNamed('pause'), isEmpty);
+    });
+
     test('with focus back, playing is left alone', () async {
       store = await createStore();
       store

@@ -204,10 +204,40 @@ mixin _$WebVodStore on WebVodStoreBase, Store {
     });
   }
 
+  late final _$_focusedAtom = Atom(
+    name: 'WebVodStoreBase._focused',
+    context: context,
+  );
+
+  @override
+  bool get _focused {
+    _$_focusedAtom.reportRead();
+    return super._focused;
+  }
+
+  @override
+  set _focused(bool value) {
+    _$_focusedAtom.reportWrite(value, super._focused, () {
+      super._focused = value;
+    });
+  }
+
   late final _$WebVodStoreBaseActionController = ActionController(
     name: 'WebVodStoreBase',
     context: context,
   );
+
+  @override
+  void setFocused(bool focused) {
+    final _$actionInfo = _$WebVodStoreBaseActionController.startAction(
+      name: 'WebVodStoreBase.setFocused',
+    );
+    try {
+      return super.setFocused(focused);
+    } finally {
+      _$WebVodStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
 
   @override
   @visibleForTesting

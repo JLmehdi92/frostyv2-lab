@@ -10,10 +10,19 @@ void main() {
   late MockWebViewController web;
   late WebVodStore store;
   late List<String> scripts;
+  late List<Uri> loads;
+  var disposed = false;
+
+  setUpAll(() => registerFallbackValue(Uri()));
 
   setUp(() {
     web = MockWebViewController();
     scripts = [];
+    loads = [];
+    disposed = false;
+    when(() => web.loadRequest(any())).thenAnswer((inv) async {
+      loads.add(inv.positionalArguments.single as Uri);
+    });
     when(() => web.runJavaScript(any())).thenAnswer((inv) async {
       scripts.add(inv.positionalArguments.single as String);
     });
@@ -25,7 +34,9 @@ void main() {
     );
   });
 
-  tearDown(() => store.dispose());
+  tearDown(() {
+    if (!disposed) store.dispose();
+  });
 
   group('embedUrl', () {
     test('plays the video in the embed from the start time', () {
@@ -176,6 +187,29 @@ void main() {
     store.onStateMessage('{"t":1,"d":3600,"p":false}');
 
     expect(scripts.single, contains('.pause()'));
+  });
+
+  test('closing stops the embed and ignores late reports', () async {
+    store.onStateMessage('{"t":10,"d":3600,"p":false}');
+    scripts.clear();
+
+    store.dispose();
+    disposed = true;
+    await Future<void>.delayed(Duration.zero);
+    store.onStateMessage('{"t":99,"d":3600,"p":true}');
+
+    expect(scripts.single, contains('.pause()'));
+    expect(loads.single.toString(), 'about:blank');
+    expect(store.position, const Duration(seconds: 10));
+  });
+
+  test('an explicit play takes focus back', () {
+    store.setFocused(false);
+
+    store.play();
+    store.onStateMessage('{"t":1,"d":3600,"p":false}');
+
+    expect(scripts.where((s) => s.contains('.pause()')), isEmpty);
   });
 
   test('ready completes: the web player is the last resort', () async {
