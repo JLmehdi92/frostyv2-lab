@@ -9,6 +9,7 @@ import 'package:frosty/apis/twitch_stream_service.dart';
 import 'package:frosty/models/channel.dart';
 import 'package:frosty/models/ivs_stats.dart';
 import 'package:frosty/models/stream.dart';
+import 'package:frosty/screens/channel/video/ivs_recovery.dart';
 import 'package:frosty/screens/channel/video/latency_stats.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
@@ -19,6 +20,10 @@ import 'package:simple_pip_mode/simple_pip.dart';
 part 'ivs_video_store.g.dart';
 
 class IvsVideoStore = IvsVideoStoreBase with _$IvsVideoStore;
+
+/// Playback lifecycle of the IVS engine, used for the loading spinner, the
+/// reconnecting indicator and the fallback decision.
+enum IvsPlaybackStatus { loading, playing, reconnecting, offline, failed }
 
 /// Drives the native Amazon IVS player (the same engine the official Twitch
 /// app uses) over a MethodChannel, exposing the shared [PlayerController]
@@ -50,9 +55,32 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   /// Set by the [IvsVideo] widget once the native PlatformView is created.
   MethodChannel? _channel;
 
-  /// Called when the IVS player hits a fatal error so the channel screen can
-  /// fall back to the WebView engine.
+  /// Called when the IVS player hits a fatal error (or exhausted its retry
+  /// budget) so the channel screen can fall back to the WebView engine.
   void Function()? onFatalError;
+
+  final IvsRecoveryPolicy _recovery;
+
+  @readonly
+  var _status = IvsPlaybackStatus.loading;
+
+  /// Retries used in the current recovery window (for "Reconnecting n/3").
+  @readonly
+  var _retryAttempt = 0;
+
+  int get maxRetryAttempts => _recovery.maxAttempts;
+
+  Timer? _retryTimer;
+  var _disposed = false;
+
+  /// True while a retry is scheduled or a reload / offline check is running.
+  /// Further recoverable errors in that window belong to the same incident
+  /// and must not burn the retry budget or start a parallel reload.
+  var _recovering = false;
+
+  /// Bumped by [handleRefresh] and [dispose] so async recovery work started
+  /// before can tell it is stale and must not touch state anymore.
+  var _recoveryEpoch = 0;
 
   /// The usher URL to hand to the native IVS player (null until resolved).
   @readonly
@@ -144,12 +172,44 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     required this.authStore,
     required this.settingsStore,
     TwitchStreamService? streamService,
+    @visibleForTesting IvsRecoveryPolicy? recoveryPolicy,
   }) : _ownsStreamService = streamService == null,
-       _streamService = streamService ?? TwitchStreamService(Dio()) {
+       _recovery = recoveryPolicy ?? IvsRecoveryPolicy(),
+       // Timeouts so a hung GQL/usher request becomes a retry instead of an
+       // endless spinner.
+       _streamService =
+           streamService ??
+           TwitchStreamService(
+             Dio(
+               BaseOptions(
+                 connectTimeout: const Duration(seconds: 5),
+                 receiveTimeout: const Duration(seconds: 8),
+               ),
+             ),
+           ) {
     _startupStopwatch.start();
     if (settingsStore.autoSyncChatDelay) settingsStore.syncedChatDelay = 0.0;
     ready = _resolveUrl();
-    unawaited(ready.then((_) => _createTexture()).catchError((Object _) {}));
+    unawaited(
+      ready
+          .then(
+            (_) => _createTexture().catchError((Object e) {
+              debugPrint('IvsVideoStore texture creation failed: $e');
+              _fail();
+            }),
+          )
+          // A failed URL resolution is handled by the channel via [ready]
+          // (WebView fallback); just leave a final status so a minimised
+          // player does not spin forever.
+          .catchError((Object e) {
+            if (_disposed) return;
+            runInAction(
+              () => _status = isRetryableTokenError(e)
+                  ? IvsPlaybackStatus.failed
+                  : IvsPlaybackStatus.offline,
+            );
+          }),
+    );
     unawaited(updateStreamInfo());
     _scheduleOverlayHide();
 
@@ -173,9 +233,21 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   @action
   void onPipExited() => _isInPipMode = false;
 
+  /// Resolves the usher URL, retrying transient network failures with the
+  /// recovery backoff. A missing token (channel offline) throws at once.
   @action
   Future<void> _resolveUrl() async {
-    _url = await _streamService.getUsherUrl(userLogin: userLogin);
+    for (var attempt = 0; ; attempt++) {
+      try {
+        _url = await _streamService.getUsherUrl(userLogin: userLogin);
+        return;
+      } catch (e) {
+        final delay = _recovery.tokenRetryDelay(attempt);
+        if (_disposed || delay == null || !isRetryableTokenError(e)) rethrow;
+        await Future<void>.delayed(delay);
+        if (_disposed) rethrow;
+      }
+    }
   }
 
   /// Wires the per-view MethodChannel once the native SurfaceView exists.
@@ -199,11 +271,17 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   /// then wires its control/event channel. The texture lives for as long as
   /// this store does.
   Future<void> _createTexture() async {
-    if (_textureId != null) return;
+    if (_disposed || _textureId != null) return;
     final url = _url;
     if (url == null) return;
     final id = await _textureManager.invokeMethod<int>('create', {'url': url});
     if (id == null) return;
+    if (_disposed) {
+      // The screen closed while the native player was being created: release
+      // it now, otherwise it would keep playing audio with no owner.
+      await _textureManager.invokeMethod('dispose', {'textureId': id});
+      return;
+    }
     attachTextureChannel(id);
     runInAction(() => _textureId = id);
     if (_statsVisible) unawaited(_sendStatsEnabled());
@@ -217,6 +295,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         _isPlaying = state == 'PLAYING';
         if (state == 'PLAYING') {
           _paused = false;
+          _status = IvsPlaybackStatus.playing;
           if (_startupMs == null) {
             _startupStopwatch.stop();
             _startupMs = _startupStopwatch.elapsedMilliseconds;
@@ -260,10 +339,102 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         if (_statsVisible) _stats = IvsStats.fromEvent(e);
         break;
       case 'error':
-        debugPrint('IVS error: ${e['code']} ${e['msg']}');
-        onFatalError?.call();
+        final kind = classifyIvsError(
+          errorType: e['errorType'] as String?,
+          code: (e['code'] as num?)?.toInt(),
+          source: e['source'] as String?,
+        );
+        debugPrint(
+          'IVS error: ${e['errorType']} ${e['code']} ${e['source']} -> $kind',
+        );
+        if (_recovering && kind != IvsErrorKind.fatal) break;
+        _applyRecovery(_recovery.onError(kind));
         break;
     }
+  }
+
+  void _applyRecovery(IvsRecoveryAction action) {
+    if (_disposed) return;
+    switch (action) {
+      case IvsRetry(:final delay):
+        _recovering = true;
+        runInAction(() {
+          _status = IvsPlaybackStatus.reconnecting;
+          _retryAttempt = _recovery.attemptsInWindow;
+        });
+        _retryTimer?.cancel();
+        final epoch = _recoveryEpoch;
+        _retryTimer = Timer(delay, () => unawaited(_reload(epoch)));
+      case IvsOffline():
+        _recovering = true;
+        unawaited(_confirmOffline(_recoveryEpoch));
+      case IvsFallback():
+        _recovering = false;
+        _fail();
+    }
+  }
+
+  /// Reloads the same native player with a freshly resolved usher URL.
+  Future<void> _reload(int epoch) async {
+    if (epoch != _recoveryEpoch) return;
+    try {
+      final url = await _streamService.getUsherUrl(userLogin: userLogin);
+      if (epoch != _recoveryEpoch) return;
+      runInAction(() => _url = url);
+      await _channel?.invokeMethod('load', {'url': url});
+      if (epoch == _recoveryEpoch) _recovering = false;
+    } catch (e) {
+      debugPrint('IvsVideoStore reload failed: $e');
+      if (epoch != _recoveryEpoch) return;
+      _recovering = false;
+      _applyRecovery(
+        _recovery.onError(
+          isRetryableTokenError(e)
+              ? IvsErrorKind.recoverable
+              : IvsErrorKind.offline,
+        ),
+      );
+    }
+  }
+
+  /// IVS says the stream is unavailable: confirm with Helix. Offline shows the
+  /// offline state (no WebView fallback); still live means a transient error.
+  Future<void> _confirmOffline(int epoch) async {
+    StreamTwitch? info;
+    try {
+      info = await twitchApi.getStream(userLogin: userLogin);
+    } catch (_) {
+      info = null;
+    }
+    if (epoch != _recoveryEpoch) return;
+    _recovering = false;
+    if (info != null) {
+      runInAction(() => _streamInfo = info);
+      _applyRecovery(_recovery.onError(IvsErrorKind.recoverable));
+      return;
+    }
+    runInAction(() {
+      _streamInfo = null;
+      _status = IvsPlaybackStatus.offline;
+      _paused = true;
+    });
+    try {
+      final channel = await twitchApi.getChannel(userId: userId);
+      if (epoch == _recoveryEpoch) {
+        runInAction(() => _offlineChannelInfo = channel);
+      }
+    } catch (_) {}
+  }
+
+  void _fail() {
+    if (_disposed) return;
+    // Stop any pending retry: a failed player (e.g. minimised, where nothing
+    // falls back) must not be reloaded behind the user's back.
+    _retryTimer?.cancel();
+    _recoveryEpoch++;
+    _recovering = false;
+    runInAction(() => _status = IvsPlaybackStatus.failed);
+    onFatalError?.call();
   }
 
   /// Shows or hides the video stats panel and turns native stats on/off.
@@ -322,18 +493,35 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     _latencyMs = null;
     _lastLatencySecond = null;
     _isPlaying = false;
+    _retryTimer?.cancel();
+    _recoveryEpoch++;
+    _recovering = false;
+    _recovery.reset();
+    _retryAttempt = 0;
+    _status = IvsPlaybackStatus.loading;
     resetStats();
     _startupMs = null;
     _startupStopwatch
       ..reset()
       ..start();
+    final epoch = _recoveryEpoch;
     try {
       final url = await _streamService.getUsherUrl(userLogin: userLogin);
+      if (epoch != _recoveryEpoch) return;
       _url = url;
       await _channel?.invokeMethod('load', {'url': url});
       await updateStreamInfo(forceUpdate: true);
     } catch (e) {
       debugPrint('IvsVideoStore refresh failed: $e');
+      // A newer refresh (or dispose) owns recovery now.
+      if (epoch != _recoveryEpoch) return;
+      _applyRecovery(
+        _recovery.onError(
+          isRetryableTokenError(e)
+              ? IvsErrorKind.recoverable
+              : IvsErrorKind.offline,
+        ),
+      );
     }
   }
 
@@ -395,6 +583,9 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   @override
   @action
   void dispose() {
+    _disposed = true;
+    _recoveryEpoch++;
+    _retryTimer?.cancel();
     _overlayTimer?.cancel();
     _disposeAutoPipReaction?.call();
     if (Platform.isAndroid) pip.setAutoPipMode(autoEnter: false);

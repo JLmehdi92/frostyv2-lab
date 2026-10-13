@@ -69,8 +69,18 @@ class IvsPlayerCore(
             }
 
             override fun onError(e: PlayerException) {
-                Log.e(CORE_TAG, "onError code=${e.code} msg=${e.errorMessage}")
-                send(mapOf("type" to "error", "code" to e.code, "msg" to e.errorMessage))
+                val errorType = runCatching { e.errorType.name }.getOrNull()
+                val source = runCatching { e.source }.getOrNull()
+                Log.e(CORE_TAG, "onError type=$errorType code=${e.code} source=$source msg=${e.errorMessage}")
+                send(
+                    mapOf(
+                        "type" to "error",
+                        "code" to e.code,
+                        "msg" to e.errorMessage,
+                        "errorType" to errorType,
+                        "source" to source,
+                    ),
+                )
             }
 
             override fun onRebuffering() { send(mapOf("type" to "rebuffering")) }

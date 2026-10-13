@@ -19,18 +19,20 @@ class VideoSettings extends StatelessWidget {
       builder: (context) => SettingsPageLayout(
         children: [
           const SectionHeader('Player', isFirst: true),
-          SettingsListSwitch(
-            title: 'Low-latency player (Twitch IVS)',
-            subtitle: const Text(
-              'Plays the stream with the same player the official Twitch app '
-              'uses, for matching low latency. Turn off to use the original '
-              'Twitch web player.',
+          // The IVS engine only exists natively on Android.
+          if (Platform.isAndroid)
+            SettingsListSwitch(
+              title: 'Low-latency player (Twitch IVS)',
+              subtitle: const Text(
+                'Plays the stream with the same player the official Twitch app '
+                'uses, for matching low latency. Turn off to use the original '
+                'Twitch web player.',
+              ),
+              value: settingsStore.playerEngine == PlayerEngine.ivs,
+              onChanged: (enabled) => settingsStore.playerEngine = enabled
+                  ? PlayerEngine.ivs
+                  : PlayerEngine.twitchWeb,
             ),
-            value: settingsStore.playerEngine == PlayerEngine.ivs,
-            onChanged: (enabled) => settingsStore.playerEngine = enabled
-                ? PlayerEngine.ivs
-                : PlayerEngine.twitchWeb,
-          ),
           SettingsListSwitch(
             title: 'Enable video',
             value: settingsStore.showVideo,

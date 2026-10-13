@@ -10,6 +10,7 @@ import 'package:frosty/screens/channel/video/ivs_stats_panel.dart';
 import 'package:frosty/screens/channel/video/ivs_video.dart';
 import 'package:frosty/screens/channel/video/native_video.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
+import 'package:frosty/screens/channel/video/player_engine_resolver.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:frosty/screens/channel/video/stores/native_video_store.dart';
 import 'package:frosty/screens/channel/video/stream_info_bar.dart';
@@ -115,8 +116,12 @@ class _VideoChatState extends State<VideoChat>
   /// remains available as a fallback (and is forced via [forceWeb] when native
   /// playback fails at runtime).
   PlayerController _buildPlayerController({bool forceWeb = false}) {
-    final engine = context.settingsStore.playerEngine;
-    if (!forceWeb && engine == PlayerEngine.ivs) {
+    final engine = resolvePlayerEngine(
+      setting: context.settingsStore.playerEngine,
+      isAndroid: Platform.isAndroid,
+      forceWeb: forceWeb,
+    );
+    if (engine == PlayerEngine.ivs) {
       // If this channel is currently playing in the mini window (restoring),
       // take that live player back instead of creating a new one — no reload.
       _resolveAdoption();
@@ -130,7 +135,7 @@ class _VideoChatState extends State<VideoChat>
         settingsStore: context.settingsStore,
       );
     }
-    if (!forceWeb && engine == PlayerEngine.nativeLowLatency) {
+    if (engine == PlayerEngine.nativeLowLatency) {
       return NativeVideoStore(
         userLogin: widget.userLogin,
         userId: widget.userId,
@@ -163,7 +168,8 @@ class _VideoChatState extends State<VideoChat>
     // Twitch API change), fall back to the WebView engine for this session so
     // the player never dies silently.
     void fallbackToWeb() {
-      if (!mounted) return;
+      // Only once, and only for the store this callback was attached to.
+      if (!mounted || !identical(_videoStore, store)) return;
       setState(() {
         store.dispose();
         _videoStore = _buildPlayerController(forceWeb: true);
@@ -175,6 +181,11 @@ class _VideoChatState extends State<VideoChat>
     } else if (store is IvsVideoStore) {
       store.onFatalError = fallbackToWeb;
       store.ready.catchError((Object _) => fallbackToWeb());
+      // A player adopted back from the mini window may have failed while it
+      // was minimised (no fallback there); fall back now that we can.
+      if (store.status == IvsPlaybackStatus.failed) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => fallbackToWeb());
+      }
     }
 
     // Initialize animation controller for smooth drag interactions

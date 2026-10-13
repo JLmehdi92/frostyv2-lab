@@ -60,7 +60,10 @@ class IvsTextureVideo extends StatelessWidget {
         // little off the edges), per the fill-screen toggle. Sized explicitly
         // in real pixels — a FittedBox around a Texture renders black.
         final fill = videoStore.fillScreen;
-        return ClipRect(
+        final busy =
+            videoStore.status == IvsPlaybackStatus.loading ||
+            videoStore.status == IvsPlaybackStatus.reconnecting;
+        final picture = ClipRect(
           child: LayoutBuilder(
             builder: (context, constraints) {
               const aspect = 16 / 9;
@@ -87,6 +90,15 @@ class IvsTextureVideo extends StatelessWidget {
             },
           ),
         );
+        // Always the same Stack so toggling the spinner never rebuilds the
+        // Texture subtree.
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            picture,
+            if (busy) const Center(child: CircularProgressIndicator()),
+          ],
+        );
       },
     );
   }
@@ -110,13 +122,13 @@ class _IvsPlatformView extends StatelessWidget {
       ),
       onCreatePlatformView: (params) {
         return PlatformViewsService.initSurfaceAndroidView(
-          id: params.id,
-          viewType: 'frosty/ivs-player',
-          layoutDirection: TextDirection.ltr,
-          creationParams: creationParams,
-          creationParamsCodec: const StandardMessageCodec(),
-          onFocus: () => params.onFocusChanged(true),
-        )
+            id: params.id,
+            viewType: 'frosty/ivs-player',
+            layoutDirection: TextDirection.ltr,
+            creationParams: creationParams,
+            creationParamsCodec: const StandardMessageCodec(),
+            onFocus: () => params.onFocusChanged(true),
+          )
           ..addOnPlatformViewCreatedListener(params.onPlatformViewCreated)
           ..addOnPlatformViewCreatedListener(onCreated)
           ..create();

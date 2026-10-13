@@ -29,6 +29,46 @@ mixin _$IvsVideoStore on IvsVideoStoreBase, Store {
     });
   }
 
+  late final _$_statusAtom = Atom(
+    name: 'IvsVideoStoreBase._status',
+    context: context,
+  );
+
+  IvsPlaybackStatus get status {
+    _$_statusAtom.reportRead();
+    return super._status;
+  }
+
+  @override
+  IvsPlaybackStatus get _status => status;
+
+  @override
+  set _status(IvsPlaybackStatus value) {
+    _$_statusAtom.reportWrite(value, super._status, () {
+      super._status = value;
+    });
+  }
+
+  late final _$_retryAttemptAtom = Atom(
+    name: 'IvsVideoStoreBase._retryAttempt',
+    context: context,
+  );
+
+  int get retryAttempt {
+    _$_retryAttemptAtom.reportRead();
+    return super._retryAttempt;
+  }
+
+  @override
+  int get _retryAttempt => retryAttempt;
+
+  @override
+  set _retryAttempt(int value) {
+    _$_retryAttemptAtom.reportWrite(value, super._retryAttempt, () {
+      super._retryAttempt = value;
+    });
+  }
+
   late final _$_urlAtom = Atom(
     name: 'IvsVideoStoreBase._url',
     context: context,

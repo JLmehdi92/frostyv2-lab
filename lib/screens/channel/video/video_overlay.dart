@@ -541,7 +541,7 @@ class VideoOverlay extends StatelessWidget {
                                         ),
                                         Observer(
                                           builder: (context) => Text(
-                                            videoStore.latency ?? '—',
+                                            _latencyLabel(videoStore),
                                             style: TextStyle(
                                               color: surfaceColor,
                                               fontWeight: FontWeight.w500,
@@ -600,3 +600,11 @@ class VideoOverlay extends StatelessWidget {
     );
   }
 }
+
+/// Latency text for the overlay badge, or the reconnect progress while the
+/// IVS engine is recovering from an error.
+String _latencyLabel(PlayerController store) => switch (store) {
+  IvsVideoStore(status: IvsPlaybackStatus.reconnecting) =>
+    'Reconnecting… (${store.retryAttempt}/${store.maxRetryAttempts})',
+  _ => store.latency ?? '—',
+};

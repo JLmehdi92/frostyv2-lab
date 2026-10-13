@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -16,6 +18,12 @@ class FakeIvsNative {
   final int textureId;
 
   final managerCalls = <MethodCall>[];
+
+  /// When set, `create` waits for this gate before returning the id.
+  Completer<void>? createGate;
+
+  /// When true, `create` fails like a broken native side.
+  bool createThrows = false;
   final playerCalls = <MethodCall>[];
 
   static const _manager = MethodChannel('frosty/ivs-texture-manager');
@@ -29,7 +37,13 @@ class FakeIvsNative {
     TestWidgetsFlutterBinding.ensureInitialized();
     _messenger.setMockMethodCallHandler(_manager, (call) async {
       managerCalls.add(call);
-      if (call.method == 'create') return textureId;
+      if (call.method == 'create') {
+        await createGate?.future;
+        if (createThrows) {
+          throw PlatformException(code: 'create_failed');
+        }
+        return textureId;
+      }
       return null;
     });
     _messenger.setMockMethodCallHandler(MethodChannel(playerChannelName), (
