@@ -12,6 +12,7 @@ import 'package:frosty/models/user.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/utils.dart' as utils;
+import 'package:frosty/utils/link_router.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
 import 'package:frosty/widgets/frosty_photo_view_dialog.dart';
@@ -840,12 +841,7 @@ class IRCMessage {
           decorationColor: linkColor,
         ),
         recognizer: TapGestureRecognizer()
-          ..onTap = () => launchUrl(
-            Uri.parse(text),
-            mode: launchExternal
-                ? LaunchMode.externalApplication
-                : LaunchMode.inAppBrowserView,
-          ),
+          ..onTap = () => LinkRouter.open(text, launchExternal: launchExternal),
       );
     } else {
       return TextSpan(text: text, style: style);

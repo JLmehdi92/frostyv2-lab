@@ -22,15 +22,20 @@ import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/apis/unauthorized_interceptor.dart';
 import 'package:frosty/cache_manager.dart';
 import 'package:frosty/firebase_options.dart';
+import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/channel/channel.dart';
 import 'package:frosty/screens/home/home.dart';
 import 'package:frosty/screens/onboarding/onboarding_intro.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/vod/channel_videos.dart';
+import 'package:frosty/screens/vod/vod_screen.dart';
 import 'package:frosty/stores/global_assets_store.dart';
 import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils.dart';
+import 'package:frosty/utils/link_router.dart';
+import 'package:frosty/utils/twitch_links.dart';
 import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/global_mini_player.dart';
 import 'package:media_kit/media_kit.dart';
@@ -191,7 +196,45 @@ class _MyAppState extends State<MyApp> {
         .setMinSecondsBeforeShowDialog(3)
         .monitor();
 
+    LinkRouter.inAppHandler = _openTwitchLinkInApp;
     _initDeepLinks();
+  }
+
+  /// Opens VOD and channel-videos links in-app (from chat or deep links).
+  Future<bool> _openTwitchLinkInApp(TwitchLink link) async {
+    final Route<void> route;
+    switch (link) {
+      case VodLink(:final vodId, :final startAt):
+        route = MaterialPageRoute(
+          settings: const RouteSettings(name: VodScreen.routeName),
+          builder: (context) => VodScreen(vodId: vodId, startAt: startAt),
+        );
+      case ChannelVideosLink(:final login, :final type):
+        var displayName = login;
+        try {
+          final user = await context.read<TwitchApi>().getUser(
+            userLogin: login,
+          );
+          displayName = user.displayName;
+        } catch (e) {
+          debugPrint('Channel videos link: no user for $login: $e');
+        }
+        route = MaterialPageRoute(
+          settings: const RouteSettings(name: ChannelVideosScreen.routeName),
+          builder: (context) => ChannelVideosScreen(
+            userLogin: login,
+            displayName: displayName,
+            initialTab: type ?? VodType.archive,
+          ),
+        );
+      case ChannelLink() || OtherLink():
+        return false;
+    }
+    if (navigatorKey.currentState == null) return false;
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => navigatorKey.currentState?.push(route),
+    );
+    return true;
   }
 
   @override
@@ -252,6 +295,14 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> handleDeepLink(Uri uri) async {
+    // Videos open in-app; every other link keeps the handling below.
+    final link = TwitchLink.parse(uri);
+    if ((link is VodLink || link is ChannelVideosLink) &&
+        await _openTwitchLinkInApp(link)) {
+      return;
+    }
+    if (!mounted) return;
+
     final failureSnackbar = SnackBar(
       content: AlertMessage(
         message: 'Unable to navigate to \'$uri\'',
