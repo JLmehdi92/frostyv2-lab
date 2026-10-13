@@ -18,6 +18,7 @@ import 'package:frosty/screens/channel/video/video.dart';
 import 'package:frosty/screens/channel/video/video_overlay.dart';
 import 'package:frosty/screens/channel/video/video_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/services/playback_focus.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/blurred_container.dart';
@@ -25,6 +26,7 @@ import 'package:frosty/widgets/draggable_divider.dart';
 import 'package:frosty/widgets/frosty_notification.dart';
 import 'package:simple_pip_mode/actions/pip_actions_layout.dart';
 import 'package:simple_pip_mode/pip_widget.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 /// Creates a widget that shows the video stream (if live) and chat of the given user.
 class VideoChat extends StatefulWidget {
@@ -164,6 +166,16 @@ class _VideoChatState extends State<VideoChat>
     // A *different* channel left in the mini is superseded by opening this one.
     context.miniPlayerStore.close();
 
+    // Only one audible player: a VOD opened on top pauses this stream and
+    // closing it resumes the stream.
+    PlaybackFocus.shared
+      ..register(
+        this,
+        onLost: _pauseForOtherPlayer,
+        onRegained: _resumeAfterOtherPlayer,
+      )
+      ..claim(this);
+
     // If the native engine fails to load the stream (offline, geo-block, or a
     // Twitch API change), fall back to the WebView engine for this session so
     // the player never dies silently.
@@ -209,6 +221,25 @@ class _VideoChatState extends State<VideoChat>
 
     // Register as observer for app lifecycle events
     WidgetsBinding.instance.addObserver(this);
+  }
+
+  /// Whether the stream was playing when another player took focus.
+  var _playingBeforeFocusLoss = false;
+
+  void _pauseForOtherPlayer() {
+    _playingBeforeFocusLoss = !_videoStore.paused;
+    if (_playingBeforeFocusLoss) _videoStore.handlePausePlay();
+  }
+
+  void _resumeAfterOtherPlayer() {
+    if (!mounted) return;
+    if (_playingBeforeFocusLoss && _videoStore.paused) {
+      _videoStore.handlePausePlay();
+    }
+    _playingBeforeFocusLoss = false;
+    // The screen that just closed may have turned these off on its way out.
+    if (_videoStore case final IvsVideoStore ivs) ivs.reassertAutoPip();
+    if (context.settingsStore.keepScreenAwake) WakelockPlus.enable();
   }
 
   @override
@@ -891,6 +922,8 @@ class _VideoChatState extends State<VideoChat>
   void dispose() {
     // Remove observer for app lifecycle events
     WidgetsBinding.instance.removeObserver(this);
+
+    PlaybackFocus.shared.release(this);
 
     // Skip disposal when handed to the mini window — the player and the live
     // chat (with its history) live on there.

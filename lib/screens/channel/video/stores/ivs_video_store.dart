@@ -239,14 +239,22 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     // Enable auto picture-in-picture so the stream keeps playing in a floating
     // window when the user leaves the app.
     if (Platform.isAndroid) {
-      _disposeAutoPipReaction = autorun((_) async {
-        if (settingsStore.showVideo && await SimplePip.isAutoPipAvailable) {
-          pip.setAutoPipMode();
-        } else {
-          pip.setAutoPipMode(autoEnter: false);
-        }
-      });
+      _disposeAutoPipReaction = autorun((_) => _applyAutoPip());
     }
+  }
+
+  Future<void> _applyAutoPip() async {
+    if (settingsStore.showVideo && await SimplePip.isAutoPipAvailable) {
+      pip.setAutoPipMode();
+    } else {
+      pip.setAutoPipMode(autoEnter: false);
+    }
+  }
+
+  /// Applies the auto-PiP choice again, e.g. after a VOD screen on top of
+  /// this stream turned auto-PiP off when it closed.
+  void reassertAutoPip() {
+    if (Platform.isAndroid) unawaited(_applyAutoPip());
   }
 
   /// Updates the picture-in-picture state when the OS enters/exits PiP.
