@@ -12,6 +12,7 @@ import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:frosty/screens/vod/vod_time.dart';
 import 'package:frosty/screens/vod/widgets/vod_seek_bar.dart';
 import 'package:frosty/theme.dart';
+import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/profile_picture.dart';
 import 'package:frosty/widgets/section_header.dart';
@@ -439,21 +440,52 @@ class _VodOverlayState extends State<VodOverlay> {
                       compact: compact,
                       onPressed: widget.onToggleFillScreen,
                     ),
-                  _icon(
-                    context,
-                    icon: widget.isLandscape
-                        ? Icons.fullscreen_exit_rounded
-                        : Icons.fullscreen_rounded,
-                    tooltip: widget.isLandscape
-                        ? 'Exit full screen'
-                        : 'Full screen',
-                    compact: compact,
-                    onPressed: () async {
-                      if (widget.isLandscape) {
-                        exitToPortrait();
-                      } else {
-                        await enterLandscape();
-                      }
+                  Observer(
+                    builder: (context) {
+                      final largeScreen = context.isLargeScreen;
+                      // Read first so the Observer always tracks it.
+                      final fullScreen = widget.settings.fullScreen;
+                      // A large screen in landscape toggles the chat instead
+                      // of rotating (it is turned by hand).
+                      final exits =
+                          widget.isLandscape && (!largeScreen || fullScreen);
+                      return _icon(
+                        context,
+                        icon: exits
+                            ? Icons.fullscreen_exit_rounded
+                            : Icons.fullscreen_rounded,
+                        tooltip: exits ? 'Exit full screen' : 'Full screen',
+                        compact: compact,
+                        onPressed: () async {
+                          if (!widget.isLandscape) {
+                            final settings = widget.settings;
+                            if (largeScreen) {
+                              // Lands in full screen, so leaving it (which
+                              // releases the landscape lock) is one tap.
+                              final before = (
+                                settings.fullScreen,
+                                settings.fullScreenChatOverlay,
+                              );
+                              settings
+                                ..fullScreen = true
+                                ..fullScreenChatOverlay = true;
+                              unawaited(
+                                undoIfStillPortrait(
+                                  context,
+                                  undo: () => settings
+                                    ..fullScreen = before.$1
+                                    ..fullScreenChatOverlay = before.$2,
+                                ),
+                              );
+                            }
+                            await enterLandscape(largeScreen: largeScreen);
+                          } else if (largeScreen) {
+                            toggleLargeScreenFullScreen(widget.settings);
+                          } else {
+                            exitToPortrait();
+                          }
+                        },
+                      );
                     },
                   ),
                 ],

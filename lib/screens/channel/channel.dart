@@ -11,6 +11,7 @@ import 'package:frosty/screens/channel/hype_train/widgets/hype_train_channel_ove
 import 'package:frosty/screens/channel/video/ivs_stats_panel.dart';
 import 'package:frosty/screens/channel/video/ivs_video.dart';
 import 'package:frosty/screens/channel/video/native_video.dart';
+import 'package:frosty/screens/channel/video/overlay_common.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:frosty/screens/channel/video/player_engine_resolver.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
@@ -500,6 +501,7 @@ class _VideoChatState extends State<VideoChat>
     } else if (settingsStore.fullScreenChatOverlay) {
       // Overlay → Column
       settingsStore.fullScreen = false;
+      if (context.isLargeScreen) releaseOrientationLock();
     } else {
       // Hidden → Overlay
       settingsStore.fullScreenChatOverlay = true;

@@ -32,6 +32,8 @@ void main() {
     WidgetTester tester, {
     Size size = const Size(1600, 900),
     VoidCallback? onCycleChatMode,
+    SettingsStore? settings,
+    bool isLandscape = false,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -45,8 +47,9 @@ void main() {
             child: VodOverlay(
               controller: controller,
               vod: _vod,
-              settings: SettingsStore.fromJson({}),
+              settings: settings ?? SettingsStore.fromJson({}),
               onCycleChatMode: onCycleChatMode,
+              isLandscape: isLandscape,
             ),
           ),
         ),
@@ -178,6 +181,98 @@ void main() {
     await tester.tap(find.text('Copy link at current time'));
     await tester.pumpAndSettle();
     expect(clipboard, ['https://www.twitch.tv/videos/1000000001?t=10m0s']);
+  });
+
+  group('large screens', () {
+    testWidgets('full screen in landscape hides the chat without rotating', (
+      tester,
+    ) async {
+      final requests = <Object?>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'SystemChrome.setPreferredOrientations') {
+            requests.add(call.arguments);
+          }
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
+      final settings = SettingsStore.fromJson({})..fullScreen = false;
+      await pump(
+        tester,
+        size: const Size(1600, 1067),
+        settings: settings,
+        isLandscape: true,
+      );
+
+      await tester.tap(find.byTooltip('Full screen'));
+      await tester.pump();
+      expect(settings.fullScreen, isTrue);
+      expect(find.byTooltip('Exit full screen'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Exit full screen'));
+      await tester.pump();
+      expect(settings.fullScreen, isFalse);
+      expect(requests, [<String>[]]);
+    });
+
+    testWidgets('full screen from portrait lands in full screen', (
+      tester,
+    ) async {
+      final settings = SettingsStore.fromJson({})
+        ..fullScreen = false
+        ..fullScreenChatOverlay = false;
+      await pump(tester, size: const Size(1067, 1600), settings: settings);
+
+      await tester.tap(find.byTooltip('Full screen'));
+      await tester.pump();
+      expect(settings.fullScreen, isTrue);
+      expect(settings.fullScreenChatOverlay, isTrue);
+
+      // The system rotates the tablet.
+      await pump(
+        tester,
+        size: const Size(1600, 1067),
+        settings: settings,
+        isLandscape: true,
+      );
+      await tester.pump(const Duration(seconds: 2));
+      expect(settings.fullScreen, isTrue);
+      expect(find.byTooltip('Exit full screen'), findsOneWidget);
+    });
+
+    testWidgets('an ignored rotation (Android 16) undoes it and says why', (
+      tester,
+    ) async {
+      final settings = SettingsStore.fromJson({})
+        ..fullScreen = false
+        ..fullScreenChatOverlay = false;
+      await pump(tester, size: const Size(1067, 1600), settings: settings);
+
+      await tester.tap(find.byTooltip('Full screen'));
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 2));
+
+      expect(settings.fullScreen, isFalse);
+      expect(settings.fullScreenChatOverlay, isFalse);
+      expect(
+        find.text('Turn your tablet to landscape for full screen'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a phone in landscape still offers to exit full screen', (
+      tester,
+    ) async {
+      await pump(tester, size: const Size(740, 360), isLandscape: true);
+      expect(find.byTooltip('Exit full screen'), findsOneWidget);
+    });
   });
 
   group('small screens', () {

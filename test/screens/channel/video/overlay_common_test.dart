@@ -1,8 +1,142 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/screens/channel/video/overlay_common.dart';
+import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:native_device_orientation/native_device_orientation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  group('landscapeOrientations', () {
+    const left = DeviceOrientation.landscapeLeft;
+    const right = DeviceOrientation.landscapeRight;
+
+    test('a phone locks the side it is tilted to', () {
+      expect(
+        landscapeOrientations(
+          NativeDeviceOrientation.landscapeLeft,
+          largeScreen: false,
+          isIOS: false,
+        ),
+        [left],
+      );
+      expect(
+        landscapeOrientations(
+          NativeDeviceOrientation.landscapeRight,
+          largeScreen: false,
+          isIOS: true,
+        ),
+        [left],
+      );
+      expect(
+        landscapeOrientations(
+          NativeDeviceOrientation.portraitUp,
+          largeScreen: false,
+          isIOS: false,
+        ),
+        [left],
+      );
+    });
+
+    test('a large screen allows both sides, so turning it over works', () {
+      for (final tilt in NativeDeviceOrientation.values) {
+        expect(landscapeOrientations(tilt, largeScreen: true, isIOS: false), [
+          left,
+          right,
+        ], reason: '$tilt');
+      }
+    });
+  });
+
+  group('live screen buttons', () {
+    test('a phone rotates in portrait and exits in landscape', () {
+      expect(
+        liveScreenButtons(landscape: false, largeScreen: false, iPad: false),
+        (rotate: true, fullScreen: false),
+      );
+      expect(
+        liveScreenButtons(landscape: true, largeScreen: false, iPad: false),
+        (rotate: true, fullScreen: true),
+      );
+    });
+
+    test('a large screen never shows the rotate button', () {
+      for (final landscape in [false, true]) {
+        expect(
+          liveScreenButtons(
+            landscape: landscape,
+            largeScreen: true,
+            iPad: false,
+          ),
+          (rotate: false, fullScreen: true),
+        );
+      }
+    });
+
+    test('an iPad keeps hiding rotate', () {
+      expect(
+        liveScreenButtons(landscape: false, largeScreen: false, iPad: true),
+        (rotate: false, fullScreen: false),
+      );
+    });
+  });
+
+  group('toggleLargeScreenFullScreen', () {
+    late List<MethodCall> calls;
+
+    setUp(() => SharedPreferences.setMockInitialValues({}));
+
+    void recordPlatform(WidgetTester tester) {
+      calls = [];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          calls.add(call);
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
+    }
+
+    Iterable<Object?> orientationRequests() => calls
+        .where((c) => c.method == 'SystemChrome.setPreferredOrientations')
+        .map((c) => c.arguments);
+
+    testWidgets('hides the chat, then brings the side column back', (
+      tester,
+    ) async {
+      recordPlatform(tester);
+      final settings = SettingsStore.fromJson({})
+        ..fullScreen = false
+        ..fullScreenChatOverlay = true;
+
+      toggleLargeScreenFullScreen(settings);
+      expect(settings.fullScreen, isTrue);
+      expect(settings.fullScreenChatOverlay, isFalse);
+
+      toggleLargeScreenFullScreen(settings);
+      expect(settings.fullScreen, isFalse);
+    });
+
+    testWidgets('never asks for portrait; leaving releases the lock', (
+      tester,
+    ) async {
+      recordPlatform(tester);
+      final settings = SettingsStore.fromJson({})..fullScreen = false;
+
+      toggleLargeScreenFullScreen(settings);
+      toggleLargeScreenFullScreen(settings);
+      await tester.pump();
+
+      expect(orientationRequests(), [<String>[]]);
+    });
+  });
+
   group('overlayGradient', () {
     test('fades from black to transparent with the live stops', () {
       final gradient =

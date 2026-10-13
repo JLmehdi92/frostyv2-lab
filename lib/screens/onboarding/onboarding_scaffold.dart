@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:frosty/utils/context_extensions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingScaffold extends StatelessWidget {
@@ -31,10 +32,15 @@ class OnboardingScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+    // A tablet may sit in landscape on a stand or keyboard cover.
+    SystemChrome.setPreferredOrientations(
+      context.isLargeScreen
+          ? const []
+          : const [
+              DeviceOrientation.portraitUp,
+              DeviceOrientation.portraitDown,
+            ],
+    );
 
     if (isLast) {
       SharedPreferences.getInstance().then(
