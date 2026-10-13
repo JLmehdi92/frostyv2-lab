@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_directory_service.dart';
@@ -156,6 +158,45 @@ void main() {
     await pumpEventQueue();
 
     expect(store.error, 'failed integrity check');
+    store.dispose();
+  });
+
+  test('a Helix page loading when the order changes is dropped', () async {
+    final store = category();
+    await pumpEventQueue();
+    final pending = Completer<StreamsTwitch>();
+    when(
+      () => api.getStreamsUnderCategory(gameId: '33', cursor: 'c'),
+    ).thenAnswer((_) => pending.future);
+    final loadingMore = store.getStreams();
+
+    store.sort = StreamSort.recent;
+    await pumpEventQueue();
+    pending.complete(StreamsTwitch([stream('stale')], {'cursor': 'c2'}));
+    await loadingMore;
+
+    expect(store.allStreams.map((s) => s.userId), ['recent']);
+    expect(store.hasMore, isFalse);
+    store.dispose();
+  });
+
+  test('only the last picked order fills the list', () async {
+    final store = category();
+    await pumpEventQueue();
+    final slow = Completer<StreamsTwitch>();
+    when(
+      () => directory.getCategoryStreams(gameId: '33', sort: StreamSort.recent),
+    ).thenAnswer((_) => slow.future);
+
+    store.sort = StreamSort.recent;
+    await pumpEventQueue();
+    store.sort = StreamSort.viewersLow;
+    await pumpEventQueue();
+    slow.complete(StreamsTwitch([stream('recent')], const {}));
+    await pumpEventQueue();
+
+    expect(store.allStreams.map((s) => s.userId), ['viewersLow']);
+    expect(store.isLoading, isFalse);
     store.dispose();
   });
 }

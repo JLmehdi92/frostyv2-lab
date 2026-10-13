@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
@@ -178,5 +179,25 @@ void main() {
         language: any(named: 'language'),
       ),
     );
+  });
+
+  test('a page failing after the change leaves the new list alone', () async {
+    final store = build(ListType.top);
+    await settle();
+    final pending = Completer<StreamsTwitch>();
+    when(
+      () => api.getTopStreams(cursor: 'next'),
+    ).thenAnswer((_) => pending.future);
+    final loadingMore = store.getStreams();
+
+    settings.streamLanguage = 'es';
+    await settle();
+    pending.completeError(const SocketException('offline'));
+    await loadingMore;
+
+    expect(store.error, isNull);
+    expect(store.allStreams.map((s) => s.userId), ['es']);
+    expect(store.isLoading, isFalse);
+    store.dispose();
   });
 }

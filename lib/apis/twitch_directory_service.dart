@@ -184,9 +184,11 @@ class TwitchDirectoryService extends BaseApiClient {
     );
     final data = body is Map ? body['data'] : null;
     final rawErrors = body is Map ? body['errors'] : null;
-    final errors = rawErrors is List
-        ? rawErrors.map((e) => e is Map ? '${e['message']}' : '$e').join('; ')
-        : '';
+    // Shown to the viewer: a few, short.
+    final errors = [
+      for (final error in chList(rawErrors, max: 3))
+        ?chString(chMap(error)?['message'], max: 200),
+    ].join('; ');
     if (data is! Map) {
       throw DirectoryApiException(
         errors.isNotEmpty ? errors : 'Malformed GQL response',

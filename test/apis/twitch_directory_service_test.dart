@@ -243,4 +243,110 @@ void main() {
       expect(stream.tags, hasLength(10));
     });
   });
+
+  group('a changed or refused GQL', () {
+    test('errors without data name the error', () async {
+      reply({
+        'errors': [
+          {'message': 'PersistedQueryNotFound'},
+        ],
+      });
+      await expectLater(
+        service.getCategoryStreams(gameId: '1', sort: StreamSort.recent),
+        throwsA(
+          isA<DirectoryApiException>().having(
+            (e) => e.message,
+            'message',
+            contains('PersistedQueryNotFound'),
+          ),
+        ),
+      );
+      await expectLater(
+        service.getTagStreams(tag: 'Chill', sort: StreamSort.recent),
+        throwsA(isA<DirectoryApiException>()),
+      );
+    });
+
+    test('no data, or no object, is malformed', () async {
+      reply({'data': null});
+      await expectLater(
+        service.getTagStreams(tag: 'Chill', sort: StreamSort.recent),
+        throwsA(
+          isA<DirectoryApiException>().having(
+            (e) => e.message,
+            'message',
+            'Malformed GQL response',
+          ),
+        ),
+      );
+      reply(<Object>[]);
+      await expectLater(
+        service.getTagStreams(tag: 'Chill', sort: StreamSort.recent),
+        throwsA(isA<DirectoryApiException>()),
+      );
+    });
+
+    test('tag streams nulled by an error throw', () {
+      reply({
+        'errors': [
+          {'message': 'boom'},
+        ],
+        'data': {'streams': null},
+      });
+      expect(
+        service.getTagStreams(tag: 'Chill', sort: StreamSort.recent),
+        throwsA(isA<DirectoryApiException>()),
+      );
+    });
+
+    test('a long error message is cut', () async {
+      reply({
+        'errors': [
+          for (var i = 0; i < 50; i++) {'message': 'x' * 1000},
+        ],
+      });
+      await expectLater(
+        service.getTagStreams(tag: 'Chill', sort: StreamSort.recent),
+        throwsA(
+          isA<DirectoryApiException>().having(
+            (e) => e.message.length,
+            'length',
+            lessThanOrEqualTo(1000),
+          ),
+        ),
+      );
+    });
+
+    test('bad nodes are skipped, good ones kept', () async {
+      Map<String, Object?> good(String login) => {
+        'node': {
+          'type': 'live',
+          'createdAt': '2026-10-13T20:00:00Z',
+          'broadcaster': {'id': '1', 'login': login},
+        },
+      };
+      reply({
+        'data': {
+          'streams': {
+            'edges': [
+              good('first'),
+              {'node': null},
+              'edge',
+              {
+                'node': {'type': 'rerun'},
+              },
+              good('second'),
+            ],
+          },
+        },
+      });
+
+      final page = await service.getTagStreams(
+        tag: 'Chill',
+        sort: StreamSort.recent,
+      );
+
+      expect(page.data.map((s) => s.userLogin), ['first', 'second']);
+    });
+  });
 }
