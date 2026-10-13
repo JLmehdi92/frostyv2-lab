@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
+import 'package:frosty/models/clip.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:frosty/screens/vod/vod_time.dart';
 import 'package:mobx/mobx.dart';
@@ -28,6 +29,20 @@ String webVodEmbedUrl({required String vodId, required Duration startAt}) {
   }).toString();
 }
 
+/// The Twitch clip embed URL for [slug]. [slug] must be a clip slug,
+/// otherwise an [ArgumentError] is thrown.
+String webClipEmbedUrl(String slug) {
+  if (!isValidClipSlug(slug)) {
+    throw ArgumentError.value(slug, 'slug', 'Not a clip slug');
+  }
+  return Uri.https('clips.twitch.tv', '/embed', {
+    'clip': slug,
+    'autoplay': 'true',
+    'muted': 'false',
+    'parent': 'frosty',
+  }).toString();
+}
+
 class WebVodStore = WebVodStoreBase with _$WebVodStore;
 
 /// Plays a VOD in the Twitch embed player inside a WebView: the fallback
@@ -36,15 +51,30 @@ class WebVodStore = WebVodStoreBase with _$WebVodStore;
 ///
 /// The `<video>` element is polled once a second for position, duration
 /// and state, and driven directly for seek, rate, play/pause and sound.
-abstract class WebVodStoreBase with Store implements VodPlayerController {
+abstract class WebVodStoreBase
+    with Store
+    implements VodPlayerController, LoopingPlayer {
   WebVodStoreBase({
     required String vodId,
     Duration startAt = Duration.zero,
     Duration? knownLength,
     @visibleForTesting WebViewController? controller,
+  }) : this.forUrl(
+         webVodEmbedUrl(vodId: vodId, startAt: startAt),
+         startAt: startAt,
+         knownLength: knownLength,
+         controller: controller,
+       );
+
+  /// Any Twitch embed with a `<video>` element ([url] built by
+  /// [webVodEmbedUrl] or [webClipEmbedUrl], never from untrusted text).
+  WebVodStoreBase.forUrl(
+    String url, {
+    Duration startAt = Duration.zero,
+    Duration? knownLength,
+    @visibleForTesting WebViewController? controller,
   }) : _knownLength = knownLength,
        _position = startAt {
-    final url = webVodEmbedUrl(vodId: vodId, startAt: startAt);
     webViewController = controller ?? _createController(url);
     _scheduleOverlayHide();
     if (Platform.isAndroid) {
@@ -122,6 +152,9 @@ abstract class WebVodStoreBase with Store implements VodPlayerController {
   @readonly
   var _isInPipMode = false;
 
+  @readonly
+  var _looping = false;
+
   @observable
   var _focused = true;
 
@@ -161,7 +194,9 @@ abstract class WebVodStoreBase with Store implements VodPlayerController {
         onMessageReceived: (message) => onStateMessage(message.message),
       )
       ..setNavigationDelegate(
-        NavigationDelegate(onPageFinished: (_) => unawaited(_installBridge())),
+        NavigationDelegate(
+          onPageFinished: (_) => unawaited(_installBridge().then(_applyLoop)),
+        ),
       );
     if (controller.platform is AndroidWebViewController) {
       (controller.platform as AndroidWebViewController)
@@ -193,6 +228,7 @@ abstract class WebVodStoreBase with Store implements VodPlayerController {
       window._frostyVodPoll = setInterval(() => {
         const v = document.querySelector('video');
         if (!v) return;
+        if (typeof window._frostyLoop === 'boolean') v.loop = window._frostyLoop;
         let b = null;
         try {
           if (v.buffered.length) b = v.buffered.end(v.buffered.length - 1);
@@ -331,6 +367,24 @@ abstract class WebVodStoreBase with Store implements VodPlayerController {
   /// The embed picks its quality itself (Auto).
   @override
   void setQuality(String quality) {}
+
+  /// Plays the video over and over (the clip fallback's loop toggle); kept
+  /// across page reloads by the bridge.
+  @action
+  void setLooping(bool looping) {
+    _looping = looping;
+    _applyLoop();
+  }
+
+  @override
+  void toggleLoop() => setLooping(!_looping);
+
+  /// [looping] is a boolean, never text: the script stays a literal.
+  void _applyLoop([void _]) {
+    final looping = _looping;
+    unawaited(_run('window._frostyLoop = $looping;'));
+    _onVideo('v.loop = $looping;');
+  }
 
   @override
   @action

@@ -204,6 +204,26 @@ mixin _$WebVodStore on WebVodStoreBase, Store {
     });
   }
 
+  late final _$_loopingAtom = Atom(
+    name: 'WebVodStoreBase._looping',
+    context: context,
+  );
+
+  bool get looping {
+    _$_loopingAtom.reportRead();
+    return super._looping;
+  }
+
+  @override
+  bool get _looping => looping;
+
+  @override
+  set _looping(bool value) {
+    _$_loopingAtom.reportWrite(value, super._looping, () {
+      super._looping = value;
+    });
+  }
+
   late final _$_focusedAtom = Atom(
     name: 'WebVodStoreBase._focused',
     context: context,
@@ -283,6 +303,18 @@ mixin _$WebVodStore on WebVodStoreBase, Store {
     );
     try {
       return super.setPlaybackRate(rate);
+    } finally {
+      _$WebVodStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void setLooping(bool looping) {
+    final _$actionInfo = _$WebVodStoreBaseActionController.startAction(
+      name: 'WebVodStoreBase.setLooping',
+    );
+    try {
+      return super.setLooping(looping);
     } finally {
       _$WebVodStoreBaseActionController.endAction(_$actionInfo);
     }

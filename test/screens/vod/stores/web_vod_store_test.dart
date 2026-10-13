@@ -215,4 +215,50 @@ void main() {
   test('ready completes: the web player is the last resort', () async {
     await expectLater(store.ready, completes);
   });
+
+  group('clips', () {
+    test('the clip embed URL carries the slug and the app parent', () {
+      final uri = Uri.parse(webClipEmbedUrl('Some-Clip_Slug'));
+      expect(uri.host, 'clips.twitch.tv');
+      expect(uri.path, '/embed');
+      expect(uri.queryParameters, {
+        'clip': 'Some-Clip_Slug',
+        'autoplay': 'true',
+        'muted': 'false',
+        'parent': 'frosty',
+      });
+    });
+
+    test('a bad slug never becomes a URL', () {
+      for (final slug in ['', '../x', 'a&parent=evil', 'a b']) {
+        expect(() => webClipEmbedUrl(slug), throwsArgumentError, reason: slug);
+      }
+    });
+
+    test('forUrl loads that URL; the VOD constructor still builds its own', () {
+      final clip = WebVodStore.forUrl(
+        webClipEmbedUrl('SomeClip'),
+        knownLength: const Duration(seconds: 30),
+        controller: web,
+      );
+      expect(clip.duration, const Duration(seconds: 30));
+      clip.dispose();
+      expect(loads, isNot(contains(Uri.parse(webClipEmbedUrl('SomeClip')))));
+    });
+
+    test('loop is remembered and survives page reloads', () async {
+      store.toggleLoop();
+      await Future<void>.delayed(Duration.zero);
+      expect(store.looping, isTrue);
+      expect(scripts, contains('window._frostyLoop = true;'));
+    });
+
+    test('loop is a boolean literal on the video element', () async {
+      store.setLooping(true);
+      store.setLooping(false);
+      await Future<void>.delayed(Duration.zero);
+      expect(scripts.where((s) => s.contains('v.loop = true;')), hasLength(1));
+      expect(scripts.where((s) => s.contains('v.loop = false;')), hasLength(1));
+    });
+  });
 }
