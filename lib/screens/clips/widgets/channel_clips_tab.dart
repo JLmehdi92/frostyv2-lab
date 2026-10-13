@@ -13,9 +13,14 @@ import 'package:frosty/widgets/skeleton_loader.dart';
 /// A channel's clips: period and sort chips above the top 100 (rows of
 /// cards on a tablet).
 class ChannelClipsTab extends StatefulWidget {
-  const ChannelClipsTab({super.key, required this.store});
+  const ChannelClipsTab({super.key, required this.store, this.nested = false});
 
   final ChannelClipsStore store;
+
+  /// Inside a [NestedScrollView] (the channel profile): the lists use its
+  /// shared scroll controller, so they go without a scrollbar and a
+  /// scroll-to-top button.
+  final bool nested;
 
   @override
   State<ChannelClipsTab> createState() => _ChannelClipsTabState();
@@ -77,6 +82,40 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
                   ),
                 );
               }
+              final list = CustomScrollView(
+                controller: widget.nested ? null : store.scrollController,
+                slivers: [
+                  AdaptiveSliverList(
+                    itemCount: clips.length,
+                    itemBuilder: (context, index) =>
+                        ClipCard(clip: clips[index]),
+                  ),
+                  if (store.hasMore)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(
+                          'Showing the top ${clips.length} clips',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: context.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ),
+                  SliverPadding(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.paddingOf(context).bottom + 16,
+                    ),
+                  ),
+                ],
+              );
+              if (widget.nested) {
+                return RefreshIndicator.adaptive(
+                  onRefresh: store.refresh,
+                  child: list,
+                );
+              }
               return Stack(
                 alignment: AlignmentDirectional.bottomCenter,
                 children: [
@@ -84,34 +123,7 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
                     onRefresh: store.refresh,
                     child: FrostyScrollbar(
                       controller: store.scrollController,
-                      child: CustomScrollView(
-                        controller: store.scrollController,
-                        slivers: [
-                          AdaptiveSliverList(
-                            itemCount: clips.length,
-                            itemBuilder: (context, index) =>
-                                ClipCard(clip: clips[index]),
-                          ),
-                          if (store.hasMore)
-                            SliverToBoxAdapter(
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Text(
-                                  'Showing the top ${clips.length} clips',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: context.colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          SliverPadding(
-                            padding: EdgeInsets.only(
-                              bottom: MediaQuery.paddingOf(context).bottom + 16,
-                            ),
-                          ),
-                        ],
-                      ),
+                      child: list,
                     ),
                   ),
                   ScrollToTopButton(scrollController: store.scrollController),

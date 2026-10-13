@@ -20,10 +20,16 @@ class ChannelVideosTab extends StatefulWidget {
     super.key,
     required this.store,
     required this.emptyMessage,
+    this.nested = false,
   });
 
   final ChannelVideosStore store;
   final String emptyMessage;
+
+  /// Inside a [NestedScrollView] (the channel profile): the lists use its
+  /// shared scroll controller, so they go without a scrollbar and a
+  /// scroll-to-top button.
+  final bool nested;
 
   @override
   State<ChannelVideosTab> createState() => _ChannelVideosTabState();
@@ -98,6 +104,52 @@ class _ChannelVideosTabState extends State<ChannelVideosTab>
             ),
           );
         }
+        final list = CustomScrollView(
+          controller: widget.nested ? null : store.scrollController,
+          slivers: [
+            AdaptiveSliverList(
+              itemCount: videos.length,
+              itemBuilder: (context, index) {
+                final vod = videos[index];
+                final saved = _resume[vod.id];
+                return VodCard(
+                  vod: vod,
+                  progress: saved == null || saved.finished
+                      ? null
+                      : saved.progress,
+                  watched: saved?.finished ?? false,
+                  onTap: () => unawaited(
+                    VodScreen.open(context, vodId: vod.id, vod: vod),
+                  ),
+                );
+              },
+            ),
+            if (store.hasMore)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Showing the ${videos.length} most recent videos',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: context.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ),
+            SliverPadding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).padding.bottom + 16,
+              ),
+            ),
+          ],
+        );
+        if (widget.nested) {
+          return RefreshIndicator.adaptive(
+            onRefresh: store.refresh,
+            child: list,
+          );
+        }
         return Stack(
           alignment: AlignmentDirectional.bottomCenter,
           children: [
@@ -105,46 +157,7 @@ class _ChannelVideosTabState extends State<ChannelVideosTab>
               onRefresh: store.refresh,
               child: FrostyScrollbar(
                 controller: store.scrollController,
-                child: CustomScrollView(
-                  controller: store.scrollController,
-                  slivers: [
-                    AdaptiveSliverList(
-                      itemCount: videos.length,
-                      itemBuilder: (context, index) {
-                        final vod = videos[index];
-                        final saved = _resume[vod.id];
-                        return VodCard(
-                          vod: vod,
-                          progress: saved == null || saved.finished
-                              ? null
-                              : saved.progress,
-                          watched: saved?.finished ?? false,
-                          onTap: () => unawaited(
-                            VodScreen.open(context, vodId: vod.id, vod: vod),
-                          ),
-                        );
-                      },
-                    ),
-                    if (store.hasMore)
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Text(
-                            'Showing the ${videos.length} most recent videos',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: context.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                      ),
-                    SliverPadding(
-                      padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).padding.bottom + 16,
-                      ),
-                    ),
-                  ],
-                ),
+                child: list,
               ),
             ),
             ScrollToTopButton(scrollController: store.scrollController),
