@@ -936,6 +936,74 @@ void main() {
       expect(store.position, const Duration(milliseconds: 3600500));
     });
 
+    test('an old READY timer does not end the start during a retry', () async {
+      store = await createStore(
+        startAt: const Duration(hours: 1),
+        seekTimeout: const Duration(milliseconds: 50),
+        policy: IvsRecoveryPolicy(
+          backoff: const [
+            Duration(milliseconds: 300),
+            Duration(milliseconds: 300),
+            Duration(milliseconds: 300),
+          ],
+        ),
+      );
+      await native.emit({'type': 'state', 'state': 'READY'});
+      await native.emit({'type': 'error', 'errorType': 'ERROR_NETWORK'});
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await native.emitProgress(0, durationMs: 7200000);
+
+      expect(store.position, const Duration(hours: 1));
+      expect(await store.currentPositionForSave(), const Duration(hours: 1));
+    });
+
+    test(
+      'an old READY timer does not end the start during a diagnose',
+      () async {
+        final diagnosis = Completer<VodPlaybackProblem?>();
+        when(
+          () => service.diagnoseVodPlaylist(any()),
+        ).thenAnswer((_) => diagnosis.future);
+        store = await createStore(
+          startAt: const Duration(hours: 1),
+          seekTimeout: const Duration(milliseconds: 50),
+        );
+        await native.emit({'type': 'state', 'state': 'READY'});
+        await native.emit({
+          'type': 'error',
+          'errorType': 'ERROR_NOT_AVAILABLE',
+        });
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await native.emitProgress(0, durationMs: 7200000);
+        diagnosis.complete(null);
+        await settleMany(10);
+
+        expect(loadStarts(), [3600000, 3600000]);
+      },
+    );
+
+    test('a seek confirmed before the source loads is not the start', () async {
+      final url = Completer<String>();
+      when(
+        () => service.getVodUsherUrl(
+          vodId: any(named: 'vodId'),
+          forceFreshToken: any(named: 'forceFreshToken'),
+        ),
+      ).thenAnswer((_) => url.future);
+      final s = build(startAt: const Duration(hours: 1));
+      await settleMany();
+
+      s.seekTo(const Duration(minutes: 10));
+      await native.emit({'type': 'seeked', 'ms': 600000});
+      await native.emitProgress(0);
+
+      expect(await s.currentPositionForSave(), const Duration(minutes: 10));
+      s.seekTo(const Duration(minutes: 20));
+      url.complete(_url);
+      await settleMany();
+      expect(loadStarts(), [1200000]);
+    });
+
     test('a refusal after the native player failed stays failed', () async {
       native.createThrows = true;
       final url = Completer<String>();

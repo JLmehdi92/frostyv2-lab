@@ -106,6 +106,14 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
   /// Backup for a lost start confirmation, armed on READY.
   Timer? _startTimeout;
 
+  /// The current source's `load` was sent. Before that (URL pending, retry
+  /// delay, diagnose) Kotlin passes seeks straight to the player, so their
+  /// confirmations are not the start seek.
+  var _loadSent = false;
+
+  /// Bumped by every `load`, so a READY timer of an older source is inert.
+  var _loadGeneration = 0;
+
   /// True between a seek request and the native confirmation, so late
   /// progress ticks do not jump the seek bar back.
   var _seeking = false;
@@ -260,6 +268,8 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
     if (epoch != _epoch) return;
     final startAt = _wantedStart;
     _startTimeout?.cancel();
+    _loadGeneration++;
+    _loadSent = true;
     runInAction(() {
       _awaitingStart = true;
       _position = startAt;
@@ -298,7 +308,8 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
       case 'seeked':
         final ms = (e['ms'] as num?)?.toInt();
         final at = ms == null ? null : Duration(milliseconds: ms);
-        if (at == null || (at - _wantedStart).abs() < _seekTolerance) {
+        if (_loadSent &&
+            (at == null || (at - _wantedStart).abs() < _seekTolerance)) {
           // The native start seek of the current source.
           _awaitingStart = false;
           _startTimeout?.cancel();
@@ -345,10 +356,12 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
           // Kotlin seeks to the start on READY; if that confirmation gets
           // lost, trust the ticks again after a while.
           _startTimeout?.cancel();
-          _startTimeout = Timer(
-            _seekTimeoutDelay,
-            () => _awaitingStart = false,
-          );
+          final generation = _loadGeneration;
+          _startTimeout = Timer(_seekTimeoutDelay, () {
+            if (generation == _loadGeneration && _loadSent && !_recovering) {
+              _awaitingStart = false;
+            }
+          });
         }
     }
     if (Platform.isAndroid) pip.setIsPlaying(!paused);
@@ -383,23 +396,30 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
         runInAction(() => _status = VodPlaybackStatus.loading);
         _retryTimer?.cancel();
         final epoch = _epoch;
-        if (!_awaitingStart) {
-          // Ticks reported while reloading are not playback; a seek made
-          // before the reload loads updates the wanted start.
-          _wantedStart = _seeking ? _seekTarget : _position;
-          _awaitingStart = true;
-        }
+        _holdStartForReload();
         _retryTimer = Timer(
           delay,
           () => unawaited(_reload(epoch, freshToken: retry.freshToken)),
         );
       case IvsOffline():
         _recovering = true;
+        _holdStartForReload();
         unawaited(_diagnose(_epoch));
       case IvsFallback():
         _recovering = false;
         _fail();
     }
+  }
+
+  /// The broken source's ticks are not playback: keep the position to
+  /// reload at (a seek made meanwhile updates it) until the next source
+  /// confirms its start.
+  void _holdStartForReload() {
+    _startTimeout?.cancel();
+    _loadSent = false;
+    if (_awaitingStart) return;
+    _wantedStart = _seeking ? _seekTarget : _position;
+    _awaitingStart = true;
   }
 
   Future<void> _reload(int epoch, {bool freshToken = false}) async {
