@@ -1,4 +1,5 @@
 import 'package:frosty/models/irc.dart';
+import 'package:frosty/screens/channel/chat/muted_words.dart';
 
 /// Whether a replayed chat message is hidden by the viewer's blocked users or
 /// muted words, mirroring live chat: the channel owner still sees blocked
@@ -19,15 +20,8 @@ bool isReplayCommentHidden(
     return true;
   }
 
-  final text = message.message?.toLowerCase();
+  final text = message.message;
   if (text == null) return false;
-  final words = matchWholeWord ? text.split(' ').toSet() : null;
-  for (final muted in mutedWords) {
-    final word = muted.toLowerCase();
-    if (word.isEmpty) continue;
-    if (words != null ? words.contains(word) : text.contains(word)) {
-      return true;
-    }
-  }
-  return false;
+  // The same rule as live chat.
+  return isMuted(text, mutedWords, wholeWord: matchWholeWord);
 }

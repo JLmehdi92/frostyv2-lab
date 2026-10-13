@@ -22,4 +22,17 @@ void main() {
     expect(isMuted('anything', ['', '  '], wholeWord: false), isFalse);
     expect(isMuted('anything', ['', '  '], wholeWord: true), isFalse);
   });
+
+  test('whole words with punctuation still match (bot commands, links)', () {
+    expect(isMuted('!sr never gonna', ['!sr'], wholeWord: true), isTrue);
+    expect(
+      isMuted('go to twitch.tv now', ['twitch.tv'], wholeWord: true),
+      isTrue,
+    );
+    expect(isMuted('nice :D', [':D'], wholeWord: true), isTrue);
+    expect(isMuted('i <3 you', ['<3'], wholeWord: true), isTrue);
+    // Still whole: not inside a longer token.
+    expect(isMuted('!srs please', ['!sr'], wholeWord: true), isFalse);
+    expect(isMuted('xtwitch.tv', ['twitch.tv'], wholeWord: true), isFalse);
+  });
 }

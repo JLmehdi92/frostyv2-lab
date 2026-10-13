@@ -1,4 +1,5 @@
 final _wordBreak = RegExp(r'[\s.,!?;:"()\[\]{}<>]+');
+final _wordChar = RegExp(r'[a-z0-9_]');
 
 /// Whether [message] contains one of [mutedWords], ignoring case. With
 /// [wholeWord], a muted word must be a whole word of the message (split on
@@ -16,11 +17,17 @@ bool isMuted(
     if (muted.isEmpty) continue;
     if (wholeWord) {
       words ??= text.split(_wordBreak).toSet();
-      // A muted phrase ("bad word") matches its words in order.
-      if (muted.contains(' ')) {
+      // A phrase ("bad word") or a muted word with punctuation ("!sr",
+      // "twitch.tv", ":D") is found as a whole, between spaces (or
+      // punctuation next to a letter).
+      if (_wordBreak.hasMatch(muted)) {
+        const breaks = r'[\s.,!?;:"()\[\]{}<>]';
+        final before = _wordChar.hasMatch(muted[0]) ? breaks : r'\s';
+        final after = _wordChar.hasMatch(muted[muted.length - 1])
+            ? breaks
+            : r'\s';
         if (RegExp(
-          '(^|[\\s.,!?;:"()\\[\\]{}<>])${RegExp.escape(muted)}'
-          '(\$|[\\s.,!?;:"()\\[\\]{}<>])',
+          '(^|$before)${RegExp.escape(muted)}(\$|$after)',
         ).hasMatch(text)) {
           return true;
         }
