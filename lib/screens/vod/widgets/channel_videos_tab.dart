@@ -21,7 +21,11 @@ class ChannelVideosTab extends StatefulWidget {
     required this.store,
     required this.emptyMessage,
     this.nested = false,
+    this.showChannel = false,
   });
+
+  /// Cards name each video's channel (a category's videos).
+  final bool showChannel;
 
   final ChannelVideosStore store;
   final String emptyMessage;
@@ -116,6 +120,7 @@ class _ChannelVideosTabState extends State<ChannelVideosTab>
                 final saved = _resume[vod.id];
                 return VodCard(
                   vod: vod,
+                  showChannel: widget.showChannel,
                   progress: saved == null || saved.finished
                       ? null
                       : saved.progress,

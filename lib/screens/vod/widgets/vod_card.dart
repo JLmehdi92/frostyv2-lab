@@ -14,7 +14,11 @@ class VodCard extends StatelessWidget {
     this.progress,
     this.watched = false,
     this.onTap,
+    this.showChannel = false,
   });
+
+  /// Names the channel instead of the category (a category's list).
+  final bool showChannel;
 
   final Vod vod;
 
@@ -68,7 +72,7 @@ class VodCard extends StatelessWidget {
       ],
       progress: progress,
       title: title,
-      subtitle: vod.gameName,
+      subtitle: showChannel ? vod.ownerDisplayName : vod.gameName,
       details: details,
       footer: vod.isRestricted
           ? Text(

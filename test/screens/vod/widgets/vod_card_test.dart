@@ -40,6 +40,14 @@ void main() {
     );
   });
 
+  testWidgets('in a category list it names the channel instead', (
+    tester,
+  ) async {
+    await pump(tester, VodCard(vod: _vod(), showChannel: true, onTap: () {}));
+    expect(find.text('Streamer'), findsOneWidget);
+    expect(find.text('Celeste'), findsNothing);
+  });
+
   testWidgets('flags a recording and a subscriber-only video', (tester) async {
     await pump(
       tester,

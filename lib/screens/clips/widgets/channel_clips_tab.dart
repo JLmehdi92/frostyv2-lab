@@ -13,7 +13,15 @@ import 'package:frosty/widgets/skeleton_loader.dart';
 /// A channel's clips: period and sort chips above the top 100 (rows of
 /// cards on a tablet).
 class ChannelClipsTab extends StatefulWidget {
-  const ChannelClipsTab({super.key, required this.store, this.nested = false});
+  const ChannelClipsTab({
+    super.key,
+    required this.store,
+    this.nested = false,
+    this.showChannel = false,
+  });
+
+  /// Cards name each clip's channel (a category's clips).
+  final bool showChannel;
 
   final ChannelClipsStore store;
 
@@ -89,8 +97,10 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
                 slivers: [
                   AdaptiveSliverList(
                     itemCount: clips.length,
-                    itemBuilder: (context, index) =>
-                        ClipCard(clip: clips[index]),
+                    itemBuilder: (context, index) => ClipCard(
+                      clip: clips[index],
+                      showChannel: widget.showChannel,
+                    ),
                   ),
                   if (store.hasMore)
                     SliverToBoxAdapter(

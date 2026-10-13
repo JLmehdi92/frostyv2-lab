@@ -8,7 +8,15 @@ import 'package:intl/intl.dart';
 /// A clip in a list, laid out like the VOD cards: thumbnail with its length
 /// and views, then the title, category, age and clipper.
 class ClipCard extends StatelessWidget {
-  const ClipCard({super.key, required this.clip, this.onTap});
+  const ClipCard({
+    super.key,
+    required this.clip,
+    this.onTap,
+    this.showChannel = false,
+  });
+
+  /// Names the channel instead of the category (a category's list).
+  final bool showChannel;
 
   final Clip clip;
 
@@ -33,7 +41,7 @@ class ClipCard extends StatelessWidget {
       lengthLabel: formatVodTime(clip.duration),
       topChips: [VideoCardChip(child: Text(views))],
       title: title.isEmpty ? 'Untitled clip' : title,
-      subtitle: clip.gameName,
+      subtitle: showChannel ? clip.broadcasterDisplayName : clip.gameName,
       details: details,
       onTap:
           onTap ?? () => ClipScreen.open(context, slug: clip.slug, clip: clip),
