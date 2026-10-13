@@ -39,19 +39,38 @@ class TwitchChannelProfileService extends BaseApiClient {
       'isCancelled categories { id name } } nextSegment { id startAt } } } } }';
 
   /// The profile of [login], or null when there is no such channel.
+  ///
+  /// A `user` nulled by an error, or one that cannot be read (a schema
+  /// change), throws: "no such channel" would hide a channel that exists.
   Future<ChannelProfile?> getProfile(String login) async {
-    final data = await _gql('ChannelProfile', _profileQuery, login);
-    return ChannelProfile.fromGql(data['user']);
+    final (:data, :errors) = await _gql('ChannelProfile', _profileQuery, login);
+    final user = data['user'];
+    if (user == null) {
+      if (errors.isNotEmpty) throw ChannelProfileApiException(errors);
+      return null;
+    }
+    return ChannelProfile.fromGql(user) ??
+        (throw const ChannelProfileApiException('Unreadable profile'));
   }
 
-  /// The schedule of [login]; [ChannelSchedule.empty] without one.
+  /// The schedule of [login]; [ChannelSchedule.empty] without one. A
+  /// schedule nulled by an error throws instead of reading as empty.
   Future<ChannelSchedule> getSchedule(String login) async {
-    final data = await _gql('ChannelSchedule', _scheduleQuery, login);
+    final (:data, :errors) = await _gql(
+      'ChannelSchedule',
+      _scheduleQuery,
+      login,
+    );
     final channel = chMap(chMap(data['user'])?['channel']);
-    return ChannelSchedule.fromGql(channel?['schedule']);
+    final schedule = channel?['schedule'];
+    if (schedule == null && errors.isNotEmpty) {
+      throw ChannelProfileApiException(errors);
+    }
+    return ChannelSchedule.fromGql(schedule);
   }
 
-  Future<Map<dynamic, dynamic>> _gql(
+  /// The answer's data, and its error messages ('' when none).
+  Future<({Map<dynamic, dynamic> data, String errors})> _gql(
     String operationName,
     String query,
     String rawLogin,
@@ -70,15 +89,16 @@ class TwitchChannelProfileService extends BaseApiClient {
       },
     );
     final data = body is Map ? body['data'] : null;
+    final rawErrors = body is Map ? body['errors'] : null;
+    final errors = rawErrors is List
+        ? rawErrors.map((e) => e is Map ? '${e['message']}' : '$e').join('; ')
+        : '';
     if (data is! Map) {
-      final errors = body is Map ? body['errors'] : null;
       throw ChannelProfileApiException(
-        errors is List && errors.isNotEmpty
-            ? errors.map((e) => e is Map ? '${e['message']}' : '$e').join('; ')
-            : 'Malformed GQL response',
+        errors.isNotEmpty ? errors : 'Malformed GQL response',
       );
     }
     // Nested resolver errors leave the rest usable: every block is optional.
-    return data;
+    return (data: data, errors: errors);
   }
 }

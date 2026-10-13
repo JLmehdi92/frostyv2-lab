@@ -106,4 +106,54 @@ void main() {
     expect(profile?.panels, isEmpty);
     expect(profile?.followers, isNotNull);
   });
+
+  test('a user nulled by an error, or unreadable, throws', () async {
+    reply({
+      'data': {'user': null},
+      'errors': [
+        {
+          'message': 'service timeout',
+          'path': ['user'],
+        },
+      ],
+    });
+    await expectLater(
+      service.getProfile('xqc'),
+      throwsA(isA<ChannelProfileApiException>()),
+    );
+
+    reply({
+      'data': {
+        'user': {'id': 'not a number', 'login': 'xqc'},
+      },
+    });
+    await expectLater(
+      service.getProfile('xqc'),
+      throwsA(isA<ChannelProfileApiException>()),
+    );
+  });
+
+  test(
+    'a schedule nulled by an error throws instead of reading empty',
+    () async {
+      reply({
+        'data': {
+          'user': {
+            'id': '1',
+            'channel': {'id': '1', 'schedule': null},
+          },
+        },
+        'errors': [
+          {
+            'message': 'service timeout',
+            'path': ['user', 'channel', 'schedule'],
+          },
+        ],
+      });
+      await expectLater(
+        service.getSchedule('xqc'),
+        throwsA(isA<ChannelProfileApiException>()),
+      );
+    },
+  );
 }
