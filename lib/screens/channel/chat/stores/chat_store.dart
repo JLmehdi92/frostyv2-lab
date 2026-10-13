@@ -9,6 +9,7 @@ import 'package:frosty/models/badges.dart';
 import 'package:frosty/models/emotes.dart';
 import 'package:frosty/models/events.dart';
 import 'package:frosty/models/irc.dart';
+import 'package:frosty/screens/channel/chat/chat_commands.dart';
 import 'package:frosty/screens/channel/chat/chat_restrictions.dart';
 import 'package:frosty/screens/channel/chat/details/chat_details_store.dart';
 import 'package:frosty/screens/channel/chat/muted_words.dart';
@@ -301,6 +302,62 @@ abstract class ChatStoreBase with Store {
         until.difference(now) + const Duration(milliseconds: 50),
         _updateRestriction,
       );
+    }
+  }
+
+  /// Runs a slash command and says the outcome in chat; a failed command
+  /// keeps its text for another try.
+  Future<void> _runCommand(ChatCommand command) async {
+    void say(String text) =>
+        messageBuffer.add(IRCMessage.createNotice(message: text));
+    final me = auth.user.details?.id;
+    switch (command) {
+      case SendAsIs():
+        return;
+      case HelpCommand():
+        say('Commands: ${[for (final c in kChatCommands) c.usage].join(', ')}');
+        textController.clear();
+      case UnsupportedCommand(:final message):
+        say(message);
+      case ColorCommand(:final color):
+        if (me == null) return say('Log in to change your color.');
+        final ok = await twitchApi.updateUserChatColor(
+          userId: me,
+          color: color,
+        );
+        if (_shouldDisconnect) return;
+        if (ok) {
+          say('Your name color was changed.');
+          textController.clear();
+        } else {
+          say("Couldn't change your color (hex colors need Turbo or Prime).");
+        }
+      case BlockCommand(:final login) || UnblockCommand(:final login):
+        final block = command is BlockCommand;
+        try {
+          final user = await twitchApi.getUser(userLogin: login);
+          if (block) {
+            await auth.user.block(
+              targetId: user.id,
+              displayName: user.displayName,
+            );
+          } else {
+            await auth.user.unblock(targetId: user.id);
+          }
+          if (_shouldDisconnect) return;
+          // The user store reports nothing: the list says if it worked.
+          final listed = auth.user.blockedUsers.any((b) => b.userId == user.id);
+          if (listed != block) {
+            throw StateError('not ${block ? '' : 'un'}blocked');
+          }
+          say('${block ? 'Blocked' : 'Unblocked'} ${user.displayName}.');
+          textController.clear();
+        } catch (e) {
+          debugPrint('/${block ? 'block' : 'unblock'} $login failed: $e');
+          if (!_shouldDisconnect) {
+            say("Couldn't ${block ? 'block' : 'unblock'} $login.");
+          }
+        }
     }
   }
 
@@ -1233,6 +1290,13 @@ abstract class ChatStoreBase with Store {
   void sendMessage(String message) {
     // Do not send if the message is blank/empty.
     if (message.isEmpty) return;
+
+    // Slash commands run here: Twitch ignores them over IRC (except /me).
+    final command = parseChatCommand(message);
+    if (command is! SendAsIs) {
+      unawaited(_runCommand(command));
+      return;
+    }
 
     // Prevent double-sending while waiting for server acknowledgment
     if (_isWaitingForAck) {
