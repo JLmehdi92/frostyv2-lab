@@ -215,6 +215,10 @@ void main() {
         _p('twitch.tv/lirik/schedule'),
         const ChannelProfileLink('lirik', ProfileSection.schedule),
       );
+      expect(
+        _p('https://www.twitch.tv/xqc/About'),
+        const ChannelProfileLink('xqc', ProfileSection.about),
+      );
     });
 
     test('other pages and reserved names do not', () {

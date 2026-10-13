@@ -95,7 +95,7 @@ sealed class TwitchLink {
     // /<channel>/about, /<channel>/schedule
     if (segments.length == 2) {
       final section = ProfileSection.values
-          .where((s) => s.name == segments[1])
+          .where((s) => s.name == segments[1].toLowerCase())
           .firstOrNull;
       if (section != null) return ChannelProfileLink(first, section);
     }
