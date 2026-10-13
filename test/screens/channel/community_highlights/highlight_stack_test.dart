@@ -65,6 +65,34 @@ void main() {
     expect(seen.unseenBehind, isFalse);
   });
 
+  test('the "new" pill names the unseen one, and only until it shows', () {
+    // Poll expanded, prediction behind it, poll collapsed, then a raid.
+    var stack = empty
+        .upsert(item(HighlightKind.poll, 'p'))
+        .toggleExpanded()
+        .upsert(item(HighlightKind.prediction, 'e'))
+        .toggleExpanded()
+        .upsert(item(HighlightKind.raid, 'r'));
+
+    expect(stack.current!.kind, HighlightKind.raid);
+    expect(stack.unseen?.kind, HighlightKind.prediction);
+
+    // Going back to the poll keeps it; showing the prediction clears it.
+    stack = stack.select(1);
+    expect(stack.unseen?.kind, HighlightKind.prediction);
+    stack = stack.select(stack.items.indexOf(stack.unseen!));
+    expect(stack.unseen, isNull);
+    expect(stack.select(0).unseen, isNull);
+
+    // Gone with its highlight.
+    final removed = empty
+        .upsert(item(HighlightKind.poll, 'p'))
+        .toggleExpanded()
+        .upsert(item(HighlightKind.prediction, 'e'))
+        .remove(HighlightKind.prediction);
+    expect(removed.unseen, isNull);
+  });
+
   test('a collapsed pinned card never blocks a new one', () {
     final stack = empty
         .upsert(item(HighlightKind.pinned, 'pin'))

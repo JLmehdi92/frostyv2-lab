@@ -148,9 +148,7 @@ class HighlightPager extends StatelessWidget {
         final stack = store.stack;
         final count = stack.items.length;
         final index = stack.currentIndex;
-        final behind = stack.unseenBehind && index + 1 < count
-            ? stack.items[index + 1]
-            : null;
+        final behind = stack.unseen;
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -183,7 +181,7 @@ class HighlightPager extends StatelessWidget {
                 label: Text('New ${highlightLabel(behind.kind).toLowerCase()}'),
                 labelStyle: TextStyle(color: scheme.onPrimary),
                 backgroundColor: scheme.primary,
-                onPressed: () => store.select(index + 1),
+                onPressed: () => store.select(stack.items.indexOf(behind)),
               ),
           ],
         );

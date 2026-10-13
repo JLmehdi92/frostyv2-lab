@@ -33,20 +33,31 @@ class HighlightItem {
 /// - One highlight per kind: a new id replaces that kind.
 /// - A sticky one is appended at the end.
 /// - Otherwise the new one takes the visible slot, unless the visible one is
-///   expanded: then it waits right behind it and [unseenBehind] is set.
+///   expanded: then it waits right behind it as [unseen].
 class HighlightStack {
   const HighlightStack({
     this.items = const [],
     this.currentIndex = 0,
-    this.unseenBehind = false,
+    this.unseenKey,
     this.dismissed = const {},
   });
 
   final List<HighlightItem> items;
   final int currentIndex;
 
-  /// A highlight arrived behind the expanded one (shown as a "new" pill).
-  final bool unseenBehind;
+  /// `kind:id` of the highlight that arrived behind the expanded one and
+  /// was not looked at yet (shown as a "new" pill).
+  final String? unseenKey;
+
+  /// The highlight waiting behind the shown one, unseen.
+  HighlightItem? get unseen {
+    final key = unseenKey;
+    if (key == null) return null;
+    final index = items.indexWhere((i) => _key(i.kind, i.id) == key);
+    return index == -1 || index == currentIndex ? null : items[index];
+  }
+
+  bool get unseenBehind => unseen != null;
 
   /// `kind:id` the viewer closed for this session.
   final Set<String> dismissed;
@@ -59,7 +70,7 @@ class HighlightStack {
   HighlightStack _copy({
     List<HighlightItem>? items,
     int? currentIndex,
-    bool? unseenBehind,
+    String? unseenKey,
     Set<String>? dismissed,
   }) {
     final list = items ?? this.items;
@@ -67,10 +78,16 @@ class HighlightStack {
       0,
       list.isEmpty ? 0 : list.length - 1,
     );
+    // Seen once it shows, and gone with its highlight.
+    var unseen = unseenKey ?? this.unseenKey;
+    if (unseen != null) {
+      final at = list.indexWhere((i) => _key(i.kind, i.id) == unseen);
+      if (at == -1 || at == index) unseen = null;
+    }
     return HighlightStack(
       items: list,
       currentIndex: index,
-      unseenBehind: list.length > 1 && (unseenBehind ?? this.unseenBehind),
+      unseenKey: unseen,
       dismissed: dismissed ?? this.dismissed,
     );
   }
@@ -97,7 +114,7 @@ class HighlightStack {
     final current = stack.current;
     if (current != null && current.expanded) {
       list.insert(stack.currentIndex + 1, item);
-      return stack._copy(items: list, unseenBehind: true);
+      return stack._copy(items: list, unseenKey: _key(item.kind, item.id));
     }
     list.insert(stack.currentIndex, item);
     stack = stack._copy(items: list);
@@ -126,10 +143,7 @@ class HighlightStack {
   HighlightStack select(int index) {
     if (items.isEmpty) return this;
     final shown = index.clamp(0, items.length - 1);
-    return _copy(
-      currentIndex: shown,
-      unseenBehind: unseenBehind && shown <= currentIndex,
-    );
+    return _copy(currentIndex: shown);
   }
 
   /// Expands or collapses the visible highlight.
