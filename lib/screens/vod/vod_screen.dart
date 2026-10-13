@@ -14,6 +14,7 @@ import 'package:frosty/screens/vod/stores/vod_chat_replay_store.dart';
 import 'package:frosty/screens/vod/stores/web_vod_store.dart';
 import 'package:frosty/screens/vod/vod_overlay.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
+import 'package:frosty/screens/vod/vod_resume.dart';
 import 'package:frosty/screens/vod/widgets/vod_chat_replay.dart';
 import 'package:frosty/screens/vod/widgets/vod_error_view.dart';
 import 'package:frosty/screens/vod/widgets/vod_info_strip.dart';
@@ -82,12 +83,14 @@ class VodScreen extends StatefulWidget {
   State<VodScreen> createState() => _VodScreenState();
 }
 
-class _VodScreenState extends State<VodScreen> {
+class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   late final SettingsStore _settings = context.settingsStore;
   late final TwitchVodService _service = context.twitchVodService;
   late final MiniPlayerStore _miniPlayer = context.miniPlayerStore;
 
   final _pipKey = GlobalKey<PipWidgetState>();
+  final _resumeRepository = VodResumeRepository();
+  VodResumeController? _resume;
 
   Vod? _vod;
 
@@ -119,7 +122,13 @@ class _VodScreenState extends State<VodScreen> {
       ..register(this, onLost: _onFocusLost, onRegained: _onFocusRegained)
       ..claim(this);
     if (_settings.keepScreenAwake) WakelockPlus.enable();
+    WidgetsBinding.instance.addObserver(this);
     unawaited(_loadMetadata());
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) unawaited(_resume?.save());
   }
 
   Future<void> _loadMetadata() async {
@@ -139,15 +148,26 @@ class _VodScreenState extends State<VodScreen> {
         return;
       }
     }
+    // A `?t=` link wins; otherwise resume 30 s before where the viewer left.
+    final saved = widget.startAt == null
+        ? await _resumeRepository.entry(vod.id)
+        : null;
     if (!mounted) return;
     final loaded = vod;
+    final startAt = startPositionFor(saved: saved, deepLink: widget.startAt);
     setState(() {
       _loadError = null;
       _vod = loaded;
       _replay = _buildReplay(loaded);
-      _player = _buildPlayer(loaded, startAt: widget.startAt);
+      _player = _buildPlayer(loaded, startAt: startAt);
     });
     _bindReplay();
+    _resume = VodResumeController(
+      vodId: loaded.id,
+      player: () => _player,
+      repository: _resumeRepository,
+      fallbackLengthSec: loaded.lengthSeconds,
+    )..start();
     unawaited(
       _service.getMutedSegments(loaded.id).then((segments) {
         if (mounted) setState(() => _mutedSegments = segments);
@@ -594,6 +614,9 @@ class _VodScreenState extends State<VodScreen> {
   @override
   void dispose() {
     try {
+      WidgetsBinding.instance.removeObserver(this);
+      // Reads the position before the player below is disposed.
+      unawaited(_resume?.close());
       for (final dispose in _disposers) {
         dispose();
       }

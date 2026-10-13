@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/vod/stores/channel_videos_store.dart';
+import 'package:frosty/screens/vod/vod_resume.dart';
+import 'package:frosty/screens/vod/vod_screen.dart';
 import 'package:frosty/screens/vod/widgets/vod_card.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/alert_message.dart';
@@ -54,6 +58,27 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen> {
     (VodType.upload, 'Uploads', 'No uploads'),
   ];
 
+  final _resumeRepository = VodResumeRepository();
+
+  /// Saved watch positions, refreshed when coming back from a video.
+  var _resume = const <String, VodResumeEntry>{};
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadResume());
+  }
+
+  Future<void> _loadResume() async {
+    final resume = await _resumeRepository.snapshot();
+    if (mounted) setState(() => _resume = resume);
+  }
+
+  Future<void> _openVod(Vod vod) async {
+    await VodScreen.open(context, vodId: vod.id, vod: vod);
+    await _loadResume();
+  }
+
   late final _stores = {
     for (final (type, _, _) in _tabs)
       type: ChannelVideosStore(
@@ -82,7 +107,12 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen> {
           headers: [for (final (_, header, _) in _tabs) header],
           children: [
             for (final (type, _, empty) in _tabs)
-              _VideosTab(store: _stores[type]!, emptyMessage: empty),
+              _VideosTab(
+                store: _stores[type]!,
+                emptyMessage: empty,
+                resume: _resume,
+                onOpen: _openVod,
+              ),
           ],
         ),
       ),
@@ -91,10 +121,17 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen> {
 }
 
 class _VideosTab extends StatefulWidget {
-  const _VideosTab({required this.store, required this.emptyMessage});
+  const _VideosTab({
+    required this.store,
+    required this.emptyMessage,
+    required this.resume,
+    required this.onOpen,
+  });
 
   final ChannelVideosStore store;
   final String emptyMessage;
+  final Map<String, VodResumeEntry> resume;
+  final Future<void> Function(Vod vod) onOpen;
 
   @override
   State<_VideosTab> createState() => _VideosTabState();
@@ -169,7 +206,16 @@ class _VideosTabState extends State<_VideosTab>
                         ),
                       );
                     }
-                    return VodCard(vod: videos[index]);
+                    final vod = videos[index];
+                    final saved = widget.resume[vod.id];
+                    return VodCard(
+                      vod: vod,
+                      progress: saved == null || saved.finished
+                          ? null
+                          : saved.progress,
+                      watched: saved?.finished ?? false,
+                      onTap: () => unawaited(widget.onOpen(vod)),
+                    );
                   },
                 ),
               ),

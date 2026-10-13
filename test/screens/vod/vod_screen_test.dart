@@ -7,12 +7,14 @@ import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/stores/vod_chat_replay_store.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
+import 'package:frosty/screens/vod/vod_resume.dart';
 import 'package:frosty/screens/vod/vod_screen.dart';
 import 'package:frosty/services/playback_focus.dart';
 import 'package:frosty/stores/mini_player_store.dart';
 import 'package:mobx/mobx.dart' show ObservableList;
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/fake_vod_controller.dart';
 
@@ -41,8 +43,13 @@ void main() {
   late MockMiniPlayerStore mini;
   late MockReplayStore replay;
   late FakeVodController player;
+  final starts = <Duration?>[];
+  Duration? deepLink;
 
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
+    starts.clear();
+    deepLink = null;
     settings = SettingsStore.fromJson({})..keepScreenAwake = false;
     service = MockVodService();
     mini = MockMiniPlayerStore();
@@ -77,7 +84,11 @@ void main() {
           home: VodScreen(
             vodId: _vod.id,
             vod: _vod,
-            playerFactory: (vod, startAt) => player,
+            startAt: deepLink,
+            playerFactory: (vod, startAt) {
+              starts.add(startAt);
+              return player;
+            },
             replayFactory: (vod) => replay,
           ),
         ),
@@ -90,10 +101,17 @@ void main() {
     await tester.pump();
   }
 
+  /// Lets the async metadata/resume lookup finish and the player appear.
+  Future<void> ready(WidgetTester tester) async {
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pump();
+  }
+
   testWidgets('holds playback focus while open and releases it after', (
     tester,
   ) async {
     await pump(tester);
+    await ready(tester);
     expect(PlaybackFocus.shared.top, isNotNull);
     verify(() => mini.close()).called(1);
 
@@ -109,6 +127,7 @@ void main() {
   ) async {
     player.status = VodPlaybackStatus.playing;
     await pump(tester);
+    await ready(tester);
     final other = Object();
     PlaybackFocus.shared.register(other, onLost: () {}, onRegained: () {});
 
@@ -128,6 +147,7 @@ void main() {
   ) async {
     player.status = VodPlaybackStatus.playing;
     await pump(tester);
+    await ready(tester);
     final other = Object();
     PlaybackFocus.shared
       ..register(other, onLost: () {}, onRegained: () {})
@@ -149,6 +169,7 @@ void main() {
       ..fullScreen = true
       ..fullScreenChatOverlay = false;
     await pump(tester, size: const Size(900, 400));
+    await ready(tester);
 
     Visibility overlayChat() => tester.widget<Visibility>(
       find.byWidgetPredicate((w) => w is Visibility && w.maintainState),
@@ -166,9 +187,41 @@ void main() {
     tester,
   ) async {
     await pump(tester);
+    await ready(tester);
 
     verify(() => replay.onPositionSecond(600)).called(1);
     verify(() => replay.playbackRate = 1.0).called(1);
+    await close(tester);
+  });
+
+  testWidgets('resumes 30 s before where the viewer left', (tester) async {
+    await tester.runAsync(
+      () => VodResumeRepository().save(
+        _vod.id,
+        positionSec: 600,
+        lengthSec: 3600,
+      ),
+    );
+    await pump(tester);
+    await ready(tester);
+
+    expect(starts, [const Duration(seconds: 570)]);
+    await close(tester);
+  });
+
+  testWidgets('a link time wins over the saved position', (tester) async {
+    await tester.runAsync(
+      () => VodResumeRepository().save(
+        _vod.id,
+        positionSec: 600,
+        lengthSec: 3600,
+      ),
+    );
+    deepLink = const Duration(minutes: 2);
+    await pump(tester);
+    await ready(tester);
+
+    expect(starts, [const Duration(minutes: 2)]);
     await close(tester);
   });
 }
