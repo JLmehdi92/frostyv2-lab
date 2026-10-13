@@ -6,6 +6,7 @@ import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_channel_profile_service.dart';
 import 'package:frosty/apis/twitch_clip_service.dart';
 import 'package:frosty/apis/twitch_community_highlights_service.dart';
+import 'package:frosty/apis/twitch_directory_service.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
@@ -114,6 +115,10 @@ extension ContextExtensions on BuildContext {
   /// Channel profiles and schedules from anonymous GQL.
   TwitchChannelProfileService get twitchChannelProfileService =>
       read<TwitchChannelProfileService>();
+
+  /// Sorted and tagged directories from anonymous GQL.
+  TwitchDirectoryService get twitchDirectoryService =>
+      read<TwitchDirectoryService>();
 
   /// Polls, predictions and pinned messages from anonymous GQL.
   TwitchCommunityHighlightsService get twitchCommunityHighlightsService =>

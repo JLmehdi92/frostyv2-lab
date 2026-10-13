@@ -1,0 +1,246 @@
+import 'dart:convert';
+
+import 'package:dio/dio.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/apis/base_api_client.dart';
+import 'package:frosty/apis/twitch_directory_service.dart';
+import 'package:frosty/constants.dart';
+import 'package:http_mock_adapter/http_mock_adapter.dart';
+
+import '../fixtures/directory_payloads.dart';
+
+const _gql = 'https://gql.twitch.tv/gql';
+
+void main() {
+  late Dio dio;
+  late DioAdapter adapter;
+  late TwitchDirectoryService service;
+  late List<RequestOptions> requests;
+
+  setUp(() {
+    dio = Dio(BaseOptions());
+    adapter = DioAdapter(dio: dio);
+    requests = [];
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          requests.add(options);
+          handler.next(options);
+        },
+      ),
+    );
+    service = TwitchDirectoryService(dio);
+  });
+
+  void reply(Object body) => adapter.onPost(
+    _gql,
+    (s) => s.reply(200, body is String ? jsonDecode(body) : body),
+    data: Matchers.any,
+  );
+
+  Map<dynamic, dynamic> sent() => requests.single.data as Map;
+
+  group('category streams', () {
+    test('the captured answer, anonymously, in the asked order', () async {
+      reply(gqlDirectoryCategoryRecent);
+
+      final page = await service.getCategoryStreams(
+        gameId: '509658',
+        sort: StreamSort.recent,
+        language: 'fr',
+      );
+
+      expect(page.pagination, isEmpty);
+      expect(page.data, hasLength(2));
+      final first = page.data.first;
+      expect(first.userId, '1216145641');
+      expect(first.userLogin, 'poppy_station');
+      expect(first.userName, 'Poppy_Station');
+      expect(first.gameId, '509658');
+      expect(first.gameName, 'Just Chatting');
+      expect(first.viewerCount, 0);
+      expect(first.startedAt, '2026-10-13T23:33:15.000Z');
+      expect(first.language, 'en');
+      expect(first.tags, contains('chattingwithviewers'));
+      expect(
+        first.thumbnailUrl,
+        'https://static-cdn.jtvnw.net/previews-ttv/'
+        'live_user_poppy_station-{width}x{height}.jpg',
+      );
+
+      final request = requests.single;
+      expect(request.headers['Client-ID'], kTwitchWebClientId);
+      expect(request.headers.containsKey('Authorization'), isFalse);
+      expect(sent()['operationName'], 'DirectoryStreams');
+      expect(sent()['variables'], {
+        'id': '509658',
+        'first': 100,
+        'options': {
+          'sort': 'RECENT',
+          'broadcasterLanguages': ['FR'],
+        },
+      });
+    });
+
+    test('every language and "other" send no language', () async {
+      reply(gqlDirectoryCategoryRecent);
+      await service.getCategoryStreams(
+        gameId: '1',
+        sort: StreamSort.viewersLow,
+        language: 'other',
+      );
+      expect((sent()['variables'] as Map)['options'], {
+        'sort': 'VIEWER_COUNT_ASC',
+      });
+    });
+
+    test('an unknown category, and a refused one', () async {
+      reply({
+        'data': {'game': null},
+      });
+      await expectLater(
+        service.getCategoryStreams(gameId: '1', sort: StreamSort.recent),
+        throwsA(isA<NotFoundException>()),
+      );
+
+      reply({
+        'errors': [
+          {'message': 'failed integrity check'},
+        ],
+        'data': {'game': null},
+      });
+      await expectLater(
+        service.getCategoryStreams(gameId: '1', sort: StreamSort.recent),
+        throwsA(
+          isA<DirectoryApiException>().having(
+            (e) => e.message,
+            'message',
+            contains('integrity'),
+          ),
+        ),
+      );
+    });
+
+    test('streams nulled by an error throw instead of reading empty', () {
+      reply({
+        'errors': [
+          {'message': 'boom'},
+        ],
+        'data': {
+          'game': {'id': '1', 'streams': null},
+        },
+      });
+      expect(
+        service.getCategoryStreams(gameId: '1', sort: StreamSort.recent),
+        throwsA(isA<DirectoryApiException>()),
+      );
+    });
+
+    test('a bad id never reaches the network', () {
+      expect(
+        () => service.getCategoryStreams(
+          gameId: '1 OR 1',
+          sort: StreamSort.recent,
+        ),
+        throwsArgumentError,
+      );
+      expect(requests, isEmpty);
+    });
+  });
+
+  group('tag streams', () {
+    test('the captured answer, with the tag and language', () async {
+      reply(gqlDirectoryTagChill);
+
+      final page = await service.getTagStreams(
+        tag: 'Chill',
+        sort: StreamSort.viewersHigh,
+        language: 'en',
+      );
+
+      expect(page.data, hasLength(2));
+      expect(page.data.every((s) => s.language == 'en'), isTrue);
+      expect(page.data.first.viewerCount, greaterThan(0));
+      expect(sent()['operationName'], 'TagStreams');
+      expect(sent()['variables'], {
+        'first': 30,
+        'options': {
+          'sort': 'VIEWER_COUNT',
+          'broadcasterLanguages': ['EN'],
+          'freeformTags': ['Chill'],
+        },
+      });
+    });
+
+    test('tags are letters and digits only', () {
+      for (final tag in ['', 'two words', 'a"b', 'x' * 26]) {
+        expect(
+          () => service.getTagStreams(tag: tag, sort: StreamSort.recent),
+          throwsArgumentError,
+          reason: tag,
+        );
+      }
+      expect(TwitchDirectoryService.tagPattern.hasMatch('Français'), isTrue);
+      expect(TwitchDirectoryService.tagPattern.hasMatch('日本語'), isTrue);
+      expect(requests, isEmpty);
+    });
+  });
+
+  group('streamFromGql', () {
+    Map<String, Object?> node({
+      Object? type = 'live',
+      Object? id = '42',
+      Object? login = 'someone',
+      Object? createdAt = '2026-10-13T20:00:00Z',
+    }) => {
+      'type': type,
+      'createdAt': createdAt,
+      'broadcaster': {'id': id, 'login': login},
+    };
+
+    test('a bare live stream reads with blanks', () {
+      final stream = TwitchDirectoryService.streamFromGql(node())!;
+      expect(stream.userName, 'someone');
+      expect(stream.gameId, '');
+      expect(stream.gameName, '');
+      expect(stream.title, '');
+      expect(stream.tags, isEmpty);
+      expect(stream.language, '');
+    });
+
+    test('reruns, odd ids and logins, and missing dates are skipped', () {
+      for (final bad in [
+        node(type: 'rerun'),
+        node(id: 'x'),
+        node(id: 42),
+        node(login: 'a/b'),
+        node(login: '../x'),
+        node(createdAt: null),
+        null,
+        'x',
+      ]) {
+        expect(TwitchDirectoryService.streamFromGql(bad), isNull);
+      }
+    });
+
+    test('hostile values are cut or dropped', () {
+      final stream = TwitchDirectoryService.streamFromGql({
+        ...node(),
+        'title': 't' * 1000,
+        'viewersCount': -5,
+        'language': 'zz-hack',
+        'game': {'id': '1 OR 1', 'name': 'G'},
+        'freeformTags': [
+          for (var i = 0; i < 20; i++) {'name': 'tag$i'},
+          {'name': 5},
+        ],
+      })!;
+      expect(stream.title, hasLength(300));
+      expect(stream.viewerCount, 0);
+      expect(stream.language, '');
+      expect(stream.gameId, '');
+      expect(stream.gameName, 'G');
+      expect(stream.tags, hasLength(10));
+    });
+  });
+}
