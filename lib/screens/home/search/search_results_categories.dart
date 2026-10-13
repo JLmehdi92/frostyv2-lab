@@ -3,6 +3,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/models/category.dart';
 import 'package:frosty/screens/home/search/search_store.dart';
 import 'package:frosty/screens/home/top/categories/category_card.dart';
+import 'package:frosty/widgets/adaptive_sliver_list.dart';
 import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/skeleton_loader.dart';
 import 'package:mobx/mobx.dart';
@@ -21,7 +22,8 @@ class SearchResultsCategories extends StatelessWidget {
         // Show skeletons immediately while waiting for debounce.
         if (future == null) {
           if (searchStore.isSearching) {
-            return SliverList.builder(
+            return AdaptiveSliverList(
+              maxItemWidth: AdaptiveSliverList.compactCardWidth,
               itemCount: 8,
               itemBuilder: (context, index) => const CategorySkeletonLoader(),
             );
@@ -31,7 +33,8 @@ class SearchResultsCategories extends StatelessWidget {
 
         switch (future.status) {
           case FutureStatus.pending:
-            return SliverList.builder(
+            return AdaptiveSliverList(
+              maxItemWidth: AdaptiveSliverList.compactCardWidth,
               itemCount: 8,
               itemBuilder: (context, index) => const CategorySkeletonLoader(),
             );
@@ -72,7 +75,8 @@ class SearchResultsCategories extends StatelessWidget {
               );
             }
 
-            return SliverList.builder(
+            return AdaptiveSliverList(
+              maxItemWidth: AdaptiveSliverList.compactCardWidth,
               itemCount: categories.data.length,
               itemBuilder: (context, index) =>
                   CategoryCard(category: categories.data[index]),

@@ -8,6 +8,7 @@ import 'package:frosty/screens/vod/vod_resume.dart';
 import 'package:frosty/screens/vod/vod_screen.dart';
 import 'package:frosty/screens/vod/widgets/vod_card.dart';
 import 'package:frosty/utils/context_extensions.dart';
+import 'package:frosty/widgets/adaptive_sliver_list.dart';
 import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/frosty_app_bar.dart';
 import 'package:frosty/widgets/frosty_page_view.dart';
@@ -161,10 +162,14 @@ class _VideosTabState extends State<_VideosTab>
       builder: (context) {
         final videos = store.videos;
         if (!store.loaded && store.isLoading) {
-          return ListView.builder(
-            itemCount: 6,
-            itemBuilder: (context, _) =>
-                const StreamCardSkeletonLoader(showCategory: false),
+          return CustomScrollView(
+            slivers: [
+              AdaptiveSliverList(
+                itemCount: 6,
+                itemBuilder: (context, _) =>
+                    const StreamCardSkeletonLoader(showCategory: false),
+              ),
+            ],
           );
         }
         if (videos.isEmpty) {
@@ -191,36 +196,43 @@ class _VideosTabState extends State<_VideosTab>
               onRefresh: store.refresh,
               child: FrostyScrollbar(
                 controller: store.scrollController,
-                child: ListView.builder(
+                child: CustomScrollView(
                   controller: store.scrollController,
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).padding.bottom + 16,
-                  ),
-                  itemCount: videos.length + (store.hasMore ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    if (index == videos.length) {
-                      return Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(
-                          'Showing the ${videos.length} most recent videos',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: context.colorScheme.onSurfaceVariant,
+                  slivers: [
+                    AdaptiveSliverList(
+                      itemCount: videos.length,
+                      itemBuilder: (context, index) {
+                        final vod = videos[index];
+                        final saved = widget.resume[vod.id];
+                        return VodCard(
+                          vod: vod,
+                          progress: saved == null || saved.finished
+                              ? null
+                              : saved.progress,
+                          watched: saved?.finished ?? false,
+                          onTap: () => unawaited(widget.onOpen(vod)),
+                        );
+                      },
+                    ),
+                    if (store.hasMore)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(
+                            'Showing the ${videos.length} most recent videos',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: context.colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ),
-                      );
-                    }
-                    final vod = videos[index];
-                    final saved = widget.resume[vod.id];
-                    return VodCard(
-                      vod: vod,
-                      progress: saved == null || saved.finished
-                          ? null
-                          : saved.progress,
-                      watched: saved?.finished ?? false,
-                      onTap: () => unawaited(widget.onOpen(vod)),
-                    );
-                  },
+                      ),
+                    SliverPadding(
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).padding.bottom + 16,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

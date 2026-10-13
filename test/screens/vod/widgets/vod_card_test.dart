@@ -87,4 +87,25 @@ void main() {
 
     expect(taps, 1);
   });
+
+  testWidgets('fits a tablet grid column with large text', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(1.3)),
+          child: Scaffold(
+            body: Align(
+              alignment: Alignment.topLeft,
+              child: SizedBox(
+                width: 1600 / 3,
+                child: VodCard(vod: _vod(), onTap: () {}),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+  });
 }

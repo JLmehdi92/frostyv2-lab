@@ -10,6 +10,7 @@ import 'package:frosty/screens/home/stream_list/stream_card.dart';
 import 'package:frosty/screens/home/stream_list/stream_list_store.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/widgets/adaptive_sliver_list.dart';
 import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/expandable_section_header.dart';
 import 'package:frosty/widgets/frosty_scrollbar.dart';
@@ -42,6 +43,12 @@ class StreamsList extends StatefulWidget {
   @override
   State<StreamsList> createState() => _StreamsListState();
 }
+
+/// Widest card in the large-screen grid: thumbnail-on-top cards are taller,
+/// so more of them share a row.
+double _cardWidth(bool largeCard) => largeCard
+    ? AdaptiveSliverList.tileCardWidth
+    : AdaptiveSliverList.rowCardWidth;
 
 class _StreamsListState extends State<StreamsList>
     with AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
@@ -160,7 +167,8 @@ class _StreamsListState extends State<StreamsList>
                         ),
                       ),
                     ),
-                    SliverList.builder(
+                    AdaptiveSliverList(
+                      maxItemWidth: _cardWidth(isLargeCard),
                       itemCount: pinnedChannelCount,
                       itemBuilder: (context, index) {
                         if (isLargeCard) {
@@ -192,7 +200,8 @@ class _StreamsListState extends State<StreamsList>
                     ),
                   ],
 
-                  SliverList.builder(
+                  AdaptiveSliverList(
+                    maxItemWidth: _cardWidth(isLargeCard),
                     itemCount: isFollowingTab && pinnedChannelCount > 0 ? 5 : 8,
                     itemBuilder: (context, index) {
                       if (isLargeCard) {
@@ -281,7 +290,10 @@ class _StreamsListState extends State<StreamsList>
                             Observer(
                               builder: (context) {
                                 // Show actual pinned channels (live streams only)
-                                return SliverList.builder(
+                                return AdaptiveSliverList(
+                                  maxItemWidth: _cardWidth(
+                                    settingsStore.largeStreamCard,
+                                  ),
                                   itemCount:
                                       _listStore.allPinnedChannels.length,
                                   itemBuilder: (context, index) {
@@ -339,7 +351,10 @@ class _StreamsListState extends State<StreamsList>
                               ),
                             ),
                           ],
-                          SliverList.builder(
+                          AdaptiveSliverList(
+                            maxItemWidth: _cardWidth(
+                              settingsStore.largeStreamCard,
+                            ),
                             itemCount: unpinnedStreams.length,
                             itemBuilder: (context, index) {
                               if (index > unpinnedStreams.length - 10 &&
@@ -404,7 +419,9 @@ class _StreamsListState extends State<StreamsList>
                               ),
                             ),
                             if (_listStore.isOfflineChannelsExpanded)
-                              SliverList.builder(
+                              AdaptiveSliverList(
+                                maxItemWidth:
+                                    AdaptiveSliverList.compactCardWidth,
                                 itemCount: _listStore.offlineChannels.length,
                                 itemBuilder: (context, index) {
                                   // Load more offline channels when nearing the end
