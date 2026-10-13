@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/vod/channel_videos.dart';
 import 'package:frosty/widgets/blurred_container.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -30,6 +31,18 @@ class UserActionsModal extends StatelessWidget {
       primary: false,
       shrinkWrap: true,
       children: [
+        ListTile(
+          leading: const Icon(Icons.video_library_outlined),
+          title: const Text('Videos'),
+          onTap: () {
+            Navigator.pop(context);
+            ChannelVideosScreen.open(
+              context,
+              userLogin: userLogin,
+              displayName: name,
+            );
+          },
+        ),
         if (showPinOption)
           ListTile(
             leading: const Icon(Icons.push_pin_outlined),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_message.dart';
+import 'package:frosty/screens/vod/channel_videos.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/alert_message.dart';
@@ -68,6 +69,18 @@ class _ChatUserModalState extends State<ChatUserModal> {
                     },
                     icon: const Icon(Icons.reply_rounded),
                   ),
+                IconButton(
+                  tooltip: 'Videos',
+                  onPressed: () {
+                    Navigator.pop(context);
+                    ChannelVideosScreen.open(
+                      context,
+                      userLogin: widget.username,
+                      displayName: name,
+                    );
+                  },
+                  icon: const Icon(Icons.video_library_outlined),
+                ),
                 IconButton(
                   tooltip: 'More',
                   onPressed: () => showModalBottomSheetWithProperFocus(

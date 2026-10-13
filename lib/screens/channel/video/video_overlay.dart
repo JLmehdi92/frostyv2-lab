@@ -9,6 +9,7 @@ import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:frosty/screens/channel/video/stream_info_bar.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/vod/channel_videos.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/context_extensions.dart';
@@ -44,6 +45,22 @@ class VideoOverlay extends StatelessWidget {
         shadows: kOverlayShadow,
       ),
       onPressed: Navigator.of(context).pop,
+    );
+
+    void openVideos() => ChannelVideosScreen.open(
+      context,
+      userLogin: chatStore.channelName,
+      displayName: chatStore.displayName,
+    );
+
+    final videosButton = IconButton(
+      tooltip: 'Videos',
+      icon: Icon(
+        Icons.video_library_outlined,
+        color: surfaceColor,
+        shadows: kOverlayShadow,
+      ),
+      onPressed: openVideos,
     );
 
     final chatOverlayButton = Observer(
@@ -326,10 +343,18 @@ class VideoOverlay extends StatelessWidget {
                           ),
                         ),
                       ),
+                      videosButton,
                       if (videoStore.settingsStore.fullScreen &&
                           context.isLandscape)
                         chatOverlayButton,
                     ],
+                  ),
+                  Center(
+                    child: FilledButton.tonalIcon(
+                      onPressed: openVideos,
+                      icon: const Icon(Icons.video_library_outlined),
+                      label: const Text('Past broadcasts'),
+                    ),
                   ),
                   Align(
                     alignment: Alignment.bottomRight,
@@ -397,6 +422,7 @@ class VideoOverlay extends StatelessWidget {
                         ),
                       ),
                     ),
+                    videosButton,
                     if (videoStore.settingsStore.fullScreen &&
                         context.isLandscape)
                       chatOverlayButton,
