@@ -70,7 +70,35 @@ class _Topic {
   String? subscriptionId;
   Timer? unsubscribeTimer;
 
+  /// The session the topic was first sent in: a later session resubscribes.
+  int? firstSession;
+
+  /// The last [RealtimeSubscribed] or [RealtimeUnavailable], replayed to
+  /// each new listener so a late subscriber still learns where it stands.
+  RealtimeTopicEvent? status;
+
+  late final Stream<RealtimeTopicEvent> events = Stream.multi((listener) {
+    final current = status;
+    if (current != null) {
+      listener.add(
+        current is RealtimeSubscribed
+            ? const RealtimeSubscribed(isResubscribe: false)
+            : current,
+      );
+    }
+    final subscription = controller.stream.listen(
+      listener.add,
+      onDone: listener.close,
+    );
+    // Not returning the cancel future: the done event would wait for it.
+    listener
+      ..onPause = subscription.pause
+      ..onResume = subscription.resume
+      ..onCancel = () => unawaited(subscription.cancel());
+  });
+
   void emit(RealtimeTopicEvent event) {
+    if (event is! RealtimeMessage) status = event;
     if (!controller.isClosed) controller.add(event);
   }
 }
@@ -118,6 +146,7 @@ class TwitchRealtimeClient {
   static const _healthySession = Duration(seconds: 60);
   static const _watchdogMargin = Duration(seconds: 5);
   static const _fatalRetryInterval = Duration(minutes: 5);
+  static const _serverReconnectInterval = Duration(seconds: 30);
 
   final _topics = <String, _Topic>{};
   final _states = StreamController<RealtimeConnectionState>.broadcast();
@@ -130,6 +159,7 @@ class TwitchRealtimeClient {
   var _keepalive = const Duration(seconds: 15);
   DateTime? _connectedAt;
   DateTime? _failedAt;
+  DateTime? _serverReconnectAt;
   var _paused = false;
   var _disposed = false;
 
@@ -158,7 +188,9 @@ class TwitchRealtimeClient {
     entry.unsubscribeTimer?.cancel();
     entry.refCount++;
     if (_state == RealtimeConnectionState.failed) {
-      _retryAfterFatal();
+      if (!_retryAfterFatal()) {
+        entry.emit(const RealtimeUnavailable('failed', permanent: true));
+      }
     } else if (_socket == null) {
       _ensureConnected();
     } else if (_welcomed && entry.subscriptionId == null) {
@@ -166,7 +198,7 @@ class TwitchRealtimeClient {
     }
     return RealtimeTopicSubscription._(
       topic,
-      entry.controller.stream,
+      entry.events,
       () => _release(entry),
     );
   }
@@ -192,6 +224,8 @@ class TwitchRealtimeClient {
       _topics.remove(entry.name);
       unawaited(entry.controller.close());
       if (_topics.isEmpty) {
+        // Nothing left to reconnect for.
+        _reconnectTimer?.cancel();
         _idleTimer?.cancel();
         _idleTimer = Timer(idleClose, () {
           if (_topics.isNotEmpty) return;
@@ -207,6 +241,8 @@ class TwitchRealtimeClient {
     if (_disposed) return;
     _graceTimer?.cancel();
     _graceTimer = Timer(backgroundGrace, () {
+      // A fatal close keeps its own retry gate.
+      if (_state == RealtimeConnectionState.failed) return;
       _paused = true;
       _reconnectTimer?.cancel();
       _dropSocket();
@@ -221,7 +257,14 @@ class TwitchRealtimeClient {
       _retryAfterFatal();
       return;
     }
-    if (!_paused) return;
+    if (!_paused) {
+      // Back from a short background: don't sit out the rest of a backoff.
+      if ((_reconnectTimer?.isActive ?? false) && _topics.isNotEmpty) {
+        _attempt = 0;
+        _openSocket();
+      }
+      return;
+    }
     _paused = false;
     _attempt = 0;
     if (_topics.isEmpty) {
@@ -263,20 +306,27 @@ class TwitchRealtimeClient {
     _openSocket();
   }
 
-  void _retryAfterFatal() {
+  /// Retries after a fatal close once [_fatalRetryInterval] has passed;
+  /// false while still waiting.
+  bool _retryAfterFatal() {
     final failedAt = _failedAt;
     if (failedAt != null &&
         clock.now().difference(failedAt) < _fatalRetryInterval) {
-      return;
+      return false;
     }
     _failedAt = null;
     _attempt = 0;
     if (_topics.isNotEmpty) _openSocket();
+    return true;
   }
 
   void _openSocket() {
     _reconnectTimer?.cancel();
     _dropSocket();
+    if (_topics.isEmpty) {
+      _setState(RealtimeConnectionState.idle);
+      return;
+    }
     _setState(
       _sessionCount == 0
           ? RealtimeConnectionState.connecting
@@ -309,6 +359,7 @@ class TwitchRealtimeClient {
     final socket = _socket;
     _socket = null;
     _welcomed = false;
+    _connectedAt = null;
     for (final entry in _topics.values) {
       entry.subscriptionId = null;
     }
@@ -325,7 +376,6 @@ class TwitchRealtimeClient {
         _connectedAt != null &&
         clock.now().difference(_connectedAt!) >= _healthySession;
     _socket = null;
-    _connectedAt = null;
     _dropSocket();
     if (classifyHermesClose(code) == HermesCloseKind.fatal) {
       _failedAt = clock.now();
@@ -394,7 +444,12 @@ class TwitchRealtimeClient {
         final entry = _topicFor(subscriptionId);
         if (entry == null) return;
         if (ok) {
-          entry.emit(RealtimeSubscribed(isResubscribe: _sessionCount > 1));
+          entry.emit(
+            RealtimeSubscribed(
+              isResubscribe:
+                  (entry.firstSession ?? _sessionCount) < _sessionCount,
+            ),
+          );
         } else {
           entry.emit(
             RealtimeUnavailable(
@@ -410,8 +465,17 @@ class TwitchRealtimeClient {
         )?.emit(RealtimeMessage(payload, serverTime: notification.serverTime));
       case HermesReconnect():
         _log('server asked to reconnect');
-        _attempt = 0;
-        _openSocket();
+        // At once, unless the server keeps asking: then it is a loop.
+        final last = _serverReconnectAt;
+        final now = clock.now();
+        _serverReconnectAt = now;
+        if (last == null || now.difference(last) >= _serverReconnectInterval) {
+          _attempt = 0;
+          _openSocket();
+        } else {
+          _dropSocket();
+          _scheduleReconnect();
+        }
       case HermesKeepalive() ||
           HermesUnsubscribeResult() ||
           HermesUnknown() ||
@@ -429,7 +493,9 @@ class TwitchRealtimeClient {
 
   void _sendSubscribe(_Topic entry) {
     final subscriptionId = newHermesId(_random);
-    entry.subscriptionId = subscriptionId;
+    entry
+      ..subscriptionId = subscriptionId
+      ..firstSession ??= _sessionCount;
     _send(
       encodeSubscribe(
         messageId: newHermesId(_random),

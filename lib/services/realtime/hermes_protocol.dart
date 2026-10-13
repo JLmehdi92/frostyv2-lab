@@ -122,8 +122,8 @@ HermesFrame decodeHermesFrame(String text) {
       final seconds = welcome?['keepaliveSec'];
       return HermesWelcome(
         sessionId: _string(welcome?['sessionId']),
-        keepalive: seconds is num && seconds > 0
-            ? Duration(milliseconds: (seconds * 1000).round())
+        keepalive: seconds is num && seconds.isFinite && seconds > 0
+            ? Duration(milliseconds: (seconds.clamp(1, 120) * 1000).round())
             : _defaultKeepalive,
         recoveryUrl: _string(welcome?['recoveryUrl']),
       );

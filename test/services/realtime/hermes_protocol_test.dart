@@ -26,6 +26,20 @@ void main() {
       expect(frame.keepalive, const Duration(seconds: 15));
     });
 
+    test('an out-of-range keepalive is clamped and never throws', () {
+      Duration keepalive(String seconds) =>
+          (decodeHermesFrame(
+                    '{"type":"welcome","welcome":{"keepaliveSec":$seconds}}',
+                  )
+                  as HermesWelcome)
+              .keepalive;
+
+      expect(keepalive('1e400'), const Duration(seconds: 15));
+      expect(keepalive('1e300'), const Duration(seconds: 120));
+      expect(keepalive('9007199254740993'), const Duration(seconds: 120));
+      expect(keepalive('0.01'), const Duration(seconds: 1));
+    });
+
     test('keepalive', () {
       expect(decodeHermesFrame(hermesKeepalive), isA<HermesKeepalive>());
     });

@@ -485,6 +485,174 @@ void main() {
     });
   });
 
+  group('hardening', () {
+    /// Fails [count] connects in a row before any welcome.
+    void failConnects(FakeAsync async, int count) {
+      for (var i = 0; i < count; i++) {
+        sockets.last.serverClose(1006);
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 40));
+      }
+    }
+
+    test('a pending reconnect does not reopen once every topic left', () {
+      fakeAsync((async) {
+        final client = build();
+        final subscription = client.subscribe(_topic);
+        async.flushMicrotasks();
+        failConnects(async, 5);
+        sockets.last.serverClose(1006);
+        async.flushMicrotasks();
+        final opened = sockets.sockets.length;
+
+        subscription.cancel();
+        async.elapse(const Duration(minutes: 2));
+
+        expect(sockets.sockets, hasLength(opened));
+        expect(client.state, RealtimeConnectionState.idle);
+        unawaited(client.dispose());
+      });
+    });
+
+    test('reconnect frames in a row back off', () {
+      fakeAsync((async) {
+        final client = build()..subscribe(_topic);
+        async.flushMicrotasks();
+        for (var i = 0; i < 50; i++) {
+          sockets.last.serverSend(_welcome());
+          sockets.last.serverSend(hermesReconnect);
+          async.flushMicrotasks();
+        }
+
+        expect(sockets.sockets.length, lessThanOrEqualTo(3));
+        unawaited(client.dispose());
+      });
+    });
+
+    test('a subscriber during the fatal pause is told at once', () {
+      fakeAsync((async) {
+        final client = build()..subscribe(_topic);
+        async.flushMicrotasks();
+        sockets.last.serverClose(4130);
+        async.flushMicrotasks();
+
+        final events = <RealtimeTopicEvent>[];
+        client.subscribe(_other).events.listen(events.add);
+        async.flushMicrotasks();
+
+        expect(sockets.sockets, hasLength(1));
+        expect((events.single as RealtimeUnavailable).permanent, isTrue);
+        unawaited(client.dispose());
+      });
+    });
+
+    test('a late subscriber gets the current status', () {
+      fakeAsync((async) {
+        final client = build()..subscribe(_topic);
+        async.flushMicrotasks();
+        sockets.last.serverSend(_welcome());
+        async.flushMicrotasks();
+        sockets.last.serverSend(ok(subscribed(sockets.last)[_topic]!));
+        async.flushMicrotasks();
+
+        final events = <RealtimeTopicEvent>[];
+        client.subscribe(_topic).events.listen(events.add);
+        async.flushMicrotasks();
+
+        expect(events.map((e) => (e as RealtimeSubscribed).isResubscribe), [
+          false,
+        ]);
+        expect(subscribed(sockets.last), hasLength(1));
+        unawaited(client.dispose());
+      });
+    });
+
+    test('a fatal close in the background is not undone by resuming', () {
+      fakeAsync((async) {
+        final client = build()..subscribe(_topic);
+        async.flushMicrotasks();
+        sockets.last.serverSend(_welcome());
+        async.flushMicrotasks();
+        client.onAppPaused();
+        async.elapse(const Duration(seconds: 5));
+        sockets.last.serverClose(4130);
+        async.elapse(const Duration(seconds: 60));
+
+        client.onAppResumed();
+        async.flushMicrotasks();
+
+        expect(sockets.sockets, hasLength(1));
+        expect(client.state, RealtimeConnectionState.failed);
+        async.elapse(const Duration(minutes: 5));
+        client.onAppResumed();
+        async.flushMicrotasks();
+        expect(sockets.sockets, hasLength(2));
+        unawaited(client.dispose());
+      });
+    });
+
+    test('a dropped session does not count as healthy afterwards', () {
+      fakeAsync((async) {
+        final client = build()..subscribe(_topic);
+        async.flushMicrotasks();
+        sockets.last.serverSend(_welcome());
+        for (var i = 0; i < 7; i++) {
+          async.elapse(const Duration(seconds: 10));
+          sockets.last.serverSend(hermesKeepalive);
+        }
+        // Silence: the watchdog drops the socket, then retries after ~1 s.
+        async.elapse(const Duration(seconds: 22));
+        final opened = sockets.sockets.length;
+
+        sockets.last.serverClose(1006);
+        async.elapse(const Duration(milliseconds: 100));
+
+        expect(sockets.sockets, hasLength(opened), reason: 'backs off');
+        unawaited(client.dispose());
+      });
+    });
+
+    test('a topic first heard in a later session is not a resubscribe', () {
+      fakeAsync((async) {
+        final client = build()..subscribe(_topic);
+        async.flushMicrotasks();
+        sockets.last.serverSend(_welcome());
+        sockets.last.serverSend(hermesReconnect);
+        async.flushMicrotasks();
+        sockets.last.serverSend(_welcome());
+        async.flushMicrotasks();
+
+        final events = <RealtimeTopicEvent>[];
+        client.subscribe(_other).events.listen(events.add);
+        async.flushMicrotasks();
+        sockets.last.serverSend(ok(subscribed(sockets.last)[_other]!));
+        async.flushMicrotasks();
+
+        expect((events.single as RealtimeSubscribed).isResubscribe, isFalse);
+        unawaited(client.dispose());
+      });
+    });
+
+    test('resuming cuts a pending backoff short', () {
+      fakeAsync((async) {
+        final client = build()..subscribe(_topic);
+        async.flushMicrotasks();
+        failConnects(async, 5);
+        sockets.last.serverClose(1006);
+        async.flushMicrotasks();
+        final opened = sockets.sockets.length;
+
+        client.onAppPaused();
+        async.elapse(const Duration(seconds: 10));
+        client.onAppResumed();
+        async.flushMicrotasks();
+
+        expect(sockets.sockets, hasLength(opened + 1));
+        unawaited(client.dispose());
+      });
+    });
+  });
+
   test('refuses malformed and login-only topics', () {
     final client = build();
 

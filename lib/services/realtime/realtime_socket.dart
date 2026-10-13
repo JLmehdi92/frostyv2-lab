@@ -21,7 +21,11 @@ typedef RealtimeSocketFactory = RealtimeSocket Function(Uri uri);
 /// [RealtimeSocket] over `web_socket_channel` (`dart:io` on Android and iOS,
 /// which answers the server's websocket pings by itself).
 class WebSocketChannelSocket implements RealtimeSocket {
-  WebSocketChannelSocket(Uri uri) : _channel = WebSocketChannel.connect(uri);
+  WebSocketChannelSocket(Uri uri) : _channel = WebSocketChannel.connect(uri) {
+    // A failed connect also ends [messages], which the client handles; left
+    // unobserved, `ready` would report the same failure to the zone.
+    _channel.ready.ignore();
+  }
 
   final WebSocketChannel _channel;
 
