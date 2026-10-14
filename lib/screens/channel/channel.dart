@@ -306,7 +306,11 @@ class _VideoChatState extends State<VideoChat>
       store.ready.catchError((Object _) => fallbackToWeb());
     } else if (store is IvsVideoStore) {
       store.onFatalError = fallbackToWeb;
-      store.ready.catchError((Object _) => fallbackToWeb());
+      // A channel confirmed offline keeps the native player (it shows
+      // offline and starts when the channel goes live).
+      store.ready.catchError((Object _) async {
+        if (!await store.offlineAtStart) fallbackToWeb();
+      });
       // A player adopted back from the mini window may have failed while it
       // was minimised (no fallback there); fall back now that we can.
       if (store.status == IvsPlaybackStatus.failed) {

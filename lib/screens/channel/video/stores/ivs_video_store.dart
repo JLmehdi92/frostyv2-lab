@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_stream_service.dart';
 import 'package:frosty/models/channel.dart';
@@ -237,16 +238,11 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
             await _loadInitial(startEpoch);
           })
           // Only URL resolution failures land here (load errors are handled in
-          // [_loadInitial]). The channel falls back to the WebView via
-          // [ready]; just leave a final status so a minimised player does not
-          // spin forever.
+          // [_loadInitial]). An offline channel keeps the player; anything
+          // else falls back to the WebView ([offlineAtStart]). Either way
+          // the status is final, so a minimised player does not spin.
           .catchError((Object e) {
-            if (_disposed) return;
-            runInAction(
-              () => _status = isRetryableTokenError(e)
-                  ? IvsPlaybackStatus.failed
-                  : IvsPlaybackStatus.offline,
-            );
+            unawaited(_settleFailedStart(e));
           }),
     );
     unawaited(updateStreamInfo());
@@ -279,6 +275,41 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
       if (!on) _clearCaption();
       unawaited(_invoke('setCaptions', {'enabled': on}));
     });
+  }
+
+  final _offlineAtStart = Completer<bool>();
+
+  /// Completes once a failed start is understood: true when Helix confirms
+  /// the channel is offline (the player stays, showing it, and restarts
+  /// when it goes live), false otherwise (fall back to the WebView). Never
+  /// completes when the start worked.
+  Future<bool> get offlineAtStart => _offlineAtStart.future;
+
+  /// The URL could not be had. Only an offline channel (confirmed by
+  /// Helix) keeps the native player: anything else, maybe a Twitch change,
+  /// leaves it to the WebView.
+  Future<void> _settleFailedStart(Object error) async {
+    var offline = false;
+    if (!_disposed && !isRetryableTokenError(error)) {
+      try {
+        await twitchApi.getStream(userLogin: userLogin);
+      } on ApiException catch (e) {
+        offline = e.statusCode == 404;
+      } catch (_) {}
+    }
+    if (!_disposed) {
+      runInAction(() {
+        _status = offline
+            ? IvsPlaybackStatus.offline
+            : IvsPlaybackStatus.failed;
+        if (offline) {
+          _streamInfo = null;
+          _paused = true;
+        }
+      });
+      if (offline) unawaited(updateStreamInfo(forceUpdate: true));
+    }
+    _offlineAtStart.complete(offline && !_disposed);
   }
 
   /// How long after the live event the playlist is expected to be ready.

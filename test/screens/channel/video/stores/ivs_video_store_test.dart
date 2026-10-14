@@ -781,9 +781,62 @@ void main() {
       );
       created = s;
       await s.ready.catchError((Object _) {});
-      await settle();
 
+      // Helix still sees it live: not offline, so the WebView takes over.
+      expect(await s.offlineAtStart, isFalse);
+      expect(s.status, IvsPlaybackStatus.failed);
+    });
+
+    test('a channel offline at start keeps the native player', () async {
+      when(
+        () => streamService.getUsherUrl(
+          userLogin: any(named: 'userLogin'),
+          forceFreshToken: any(named: 'forceFreshToken'),
+        ),
+      ).thenThrow(const ApiException('No playback access token'));
+      when(
+        () => twitchApi.getStream(userLogin: any(named: 'userLogin')),
+      ).thenThrow(const ApiException('streamer is offline', 404));
+      final s = IvsVideoStore(
+        userLogin: 'streamer',
+        userId: '123',
+        twitchApi: twitchApi,
+        authStore: MockAuthStore(),
+        settingsStore: settingsStore,
+        streamService: streamService,
+        recoveryPolicy: instantPolicy(),
+      );
+      created = s;
+      await s.ready.catchError((Object _) {});
+
+      expect(await s.offlineAtStart, isTrue);
       expect(s.status, IvsPlaybackStatus.offline);
+      expect(s.paused, isTrue);
+    });
+
+    test('a failed check at start is not taken for offline', () async {
+      when(
+        () => streamService.getUsherUrl(
+          userLogin: any(named: 'userLogin'),
+          forceFreshToken: any(named: 'forceFreshToken'),
+        ),
+      ).thenThrow(const ApiException('No playback access token'));
+      when(
+        () => twitchApi.getStream(userLogin: any(named: 'userLogin')),
+      ).thenThrow(const NetworkException('offline phone'));
+      final s = IvsVideoStore(
+        userLogin: 'streamer',
+        userId: '123',
+        twitchApi: twitchApi,
+        authStore: MockAuthStore(),
+        settingsStore: settingsStore,
+        streamService: streamService,
+        recoveryPolicy: instantPolicy(),
+      );
+      created = s;
+      await s.ready.catchError((Object _) {});
+
+      expect(await s.offlineAtStart, isFalse);
     });
   });
 
