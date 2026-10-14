@@ -317,6 +317,24 @@ void main() {
     });
   });
 
+  test("403 keeps Twitch's reason", () async {
+    dioAdapter.onGet(
+      'https://api.test.com/whispers',
+      (server) => server.reply(403, {
+        'message': 'The sender does not have a verified phone number.',
+      }),
+    );
+
+    expect(
+      () => client.testGet('/whispers'),
+      throwsA(
+        isA<ApiException>()
+            .having((e) => e.message, 'message', contains('phone number'))
+            .having((e) => e.statusCode, 'statusCode', 403),
+      ),
+    );
+  });
+
   test("409 and 429 keep Twitch's reason and their code", () async {
     dioAdapter.onGet(
       'https://api.test.com/bans',
