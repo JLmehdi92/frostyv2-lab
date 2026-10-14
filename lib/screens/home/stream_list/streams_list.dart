@@ -299,6 +299,15 @@ class _StreamsListState extends State<StreamsList>
                         controller: _listStore.scrollController,
                         slivers: [
                           SliverTopPadding(extraTopPadding: extraTopPadding),
+                          if (!isFollowingTab)
+                            SliverToBoxAdapter(
+                              child: Observer(
+                                builder: (context) => HiddenStreamsBanner(
+                                  hidden: _listStore.hiddenByLabels,
+                                  onShow: _listStore.showLabeledStreams,
+                                ),
+                              ),
+                            ),
                           if (isFollowingTab &&
                               _listStore.allPinnedChannels.isNotEmpty) ...[
                             SliverToBoxAdapter(
@@ -529,6 +538,51 @@ class SliverBottomPadding extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: SizedBox(height: MediaQuery.of(context).padding.bottom),
+    );
+  }
+}
+
+/// Says how many streams the viewer's content preferences left out of a
+/// list, with a way to show them (nothing when none are hidden).
+class HiddenStreamsBanner extends StatelessWidget {
+  const HiddenStreamsBanner({
+    super.key,
+    required this.hidden,
+    required this.onShow,
+  });
+
+  final int hidden;
+  final VoidCallback onShow;
+
+  @override
+  Widget build(BuildContext context) {
+    if (hidden == 0) return const SizedBox.shrink();
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        16 + MediaQuery.paddingOf(context).left,
+        4,
+        8 + MediaQuery.paddingOf(context).right,
+        4,
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.visibility_off_outlined,
+            size: 18,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              hidden == 1
+                  ? '1 stream hidden by your content preferences'
+                  : '$hidden streams hidden by your content preferences',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          TextButton(onPressed: onShow, child: const Text('Show')),
+        ],
+      ),
     );
   }
 }

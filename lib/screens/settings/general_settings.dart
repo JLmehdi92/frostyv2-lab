@@ -4,6 +4,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/settings/widgets/go_live_setting.dart';
+import 'package:frosty/screens/settings/widgets/hidden_content_labels_setting.dart';
 import 'package:frosty/screens/settings/widgets/settings_list_select.dart';
 import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
 import 'package:frosty/screens/settings/widgets/stream_language_setting.dart';
@@ -48,6 +49,7 @@ class GeneralSettings extends StatelessWidget {
                 .firstWhere((tab) => tab.label == label),
           ),
           StreamLanguageSetting(settingsStore: settingsStore),
+          HiddenContentLabelsSetting(settingsStore: settingsStore),
           const SectionHeader('Notifications'),
           Observer(
             builder: (context) {

@@ -243,6 +243,19 @@ void main() {
     });
   });
 
+  group('hiddenContentLabels', () {
+    test('none by default, kept, and reset with the general settings', () {
+      expect(SettingsStore.fromJson({}).hiddenContentLabels, isEmpty);
+      final store = SettingsStore.fromJson({
+        'hiddenContentLabels': ['Gambling'],
+      });
+      expect(store.hiddenContentLabels, ['Gambling']);
+      expect(store.toJson()['hiddenContentLabels'], ['Gambling']);
+      store.resetGeneralSettings();
+      expect(store.hiddenContentLabels, isEmpty);
+    });
+  });
+
   group('backgroundAudio', () {
     test('off by default, kept, and reset with the video settings', () {
       expect(SettingsStore.fromJson({}).backgroundAudio, isFalse);

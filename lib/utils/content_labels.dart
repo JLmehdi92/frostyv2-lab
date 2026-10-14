@@ -11,6 +11,9 @@ const _knownLabels = <String, String>{
   'DebatedSocialIssuesAndPolitics': 'Politics and Sensitive Social Issues',
 };
 
+/// The label ids Twitch is known to use, in a stable order.
+Iterable<String> get knownContentLabels => _knownLabels.keys;
+
 /// A readable name for a label id ("SexualThemes" → "Sexual Themes"). An
 /// unknown id is spaced out from its CamelCase so it still reads.
 String contentLabelName(String id) {
