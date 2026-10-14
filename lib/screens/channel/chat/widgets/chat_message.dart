@@ -7,6 +7,7 @@ import 'package:frosty/constants.dart';
 import 'package:frosty/models/irc.dart';
 import 'package:frosty/models/user.dart';
 import 'package:frosty/screens/channel/chat/announcement_color.dart';
+import 'package:frosty/screens/channel/chat/chat_commands.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_link_card.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_user_modal.dart';
@@ -101,6 +102,17 @@ class ChatMessage extends StatelessWidget {
     _effectiveInputStore.updateNotification('Message copied');
   }
 
+  /// A moderator may delete this message: one sent in this chat (not from
+  /// another channel of a shared chat) and not by the broadcaster.
+  bool get _canDelete {
+    final source = ircMessage.tags['source-room-id'];
+    return chatStore.canModerate &&
+        ircMessage.command == Command.privateMessage &&
+        ircMessage.tags['id'] != null &&
+        (source == null || source == chatStore.channelId) &&
+        ircMessage.user?.toLowerCase() != chatStore.channelName.toLowerCase();
+  }
+
   void onLongPressMessage(BuildContext context, TextStyle defaultTextStyle) {
     HapticFeedback.lightImpact();
 
@@ -129,7 +141,8 @@ class ChatMessage extends StatelessWidget {
                   animateEmotes: chatStore.settings.animateEmotes,
                   launchExternal: chatStore.settings.launchUrlExternal,
                   timestamp: chatStore.settings.timestampType,
-                  channelIdToUserTwitch: overrideChannelIdToUserTwitch ??
+                  channelIdToUserTwitch:
+                      overrideChannelIdToUserTwitch ??
                       chatStore.assetsStore.channelIdToUserTwitch,
                   currentChannelId:
                       overrideCurrentChannelId ?? chatStore.channelId,
@@ -194,6 +207,20 @@ class ChatMessage extends StatelessWidget {
             leading: const Icon(Icons.reply),
             title: const Text('Reply to message'),
           ),
+          if (_canDelete)
+            ListTile(
+              onTap: () {
+                Navigator.pop(context);
+                chatStore.moderate(
+                  DeleteMessageCommand(ircMessage.tags['id']!),
+                );
+              },
+              leading: Icon(
+                Icons.delete_outline_rounded,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              title: const Text('Delete message'),
+            ),
         ],
       ),
     );
@@ -238,7 +265,8 @@ class ChatMessage extends StatelessWidget {
                   animateEmotes: chatStore.settings.animateEmotes,
                   launchExternal: chatStore.settings.launchUrlExternal,
                   timestamp: chatStore.settings.timestampType,
-                  channelIdToUserTwitch: overrideChannelIdToUserTwitch ??
+                  channelIdToUserTwitch:
+                      overrideChannelIdToUserTwitch ??
                       chatStore.assetsStore.channelIdToUserTwitch,
                   currentChannelId:
                       overrideCurrentChannelId ?? chatStore.channelId,
@@ -411,7 +439,7 @@ class ChatMessage extends StatelessWidget {
                         timestamp: chatStore.settings.timestampType,
                         channelIdToUserTwitch:
                             overrideChannelIdToUserTwitch ??
-                                chatStore.assetsStore.channelIdToUserTwitch,
+                            chatStore.assetsStore.channelIdToUserTwitch,
                         currentChannelId:
                             overrideCurrentChannelId ?? chatStore.channelId,
                       ),
@@ -541,7 +569,7 @@ class ChatMessage extends StatelessWidget {
                           timestamp: chatStore.settings.timestampType,
                           channelIdToUserTwitch:
                               overrideChannelIdToUserTwitch ??
-                                  chatStore.assetsStore.channelIdToUserTwitch,
+                              chatStore.assetsStore.channelIdToUserTwitch,
                           currentChannelId:
                               overrideCurrentChannelId ?? chatStore.channelId,
                         ),
