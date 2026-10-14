@@ -63,7 +63,7 @@
 | PLY-06 | Son et volume | P0 | ⚠️ | `ivs_video_store.dart`, `video_overlay.dart`, `IvsPlayerCore.kt` (`d0c9be5`) | Mute (paysage + feuille) et volume, conservés en mini-player/PiP/rechargement. Un seul lecteur audible entre le live et les VOD (`playback_focus.dart`, `55ffb66`). Reste : pas de focus audio Android (appels, autres apps). | OK |
 | PLY-07 | Plein écran, ajuster, rogner, zoom | P0 | ✅ | `video_overlay.dart`, `ivs_video.dart`, `pinch_to_fill.dart`, `channel.dart` | Plein écran immersif, ajuster/remplir par bouton ou en pinçant la vidéo (écarter remplit, pincer ajuste ; événements bruts, sans gêner tap, double tap ni glisser vers le PiP). IVS en paysage seulement. | OK |
 | PLY-08 | Overlay de métadonnées | P0 | ✅ | `stream_info_bar.dart:13-220`, `video_overlay.dart:424-472` | Titre, catégorie, uptime, spectateurs. Tags absents. | OK |
-| PLY-09 | État du live en temps réel | P0 | ⚠️ | `ivs_video_store.dart:250-299` | Infos rafraîchies par polling Helix au tap ou au retour dans l'app. Pas de push, pas de relance auto au retour du stream. Via EventSub `stream.online`/`stream.offline`/`channel.update` (aucun scope). Suite possible : le sujet Hermes `video-playback-by-id` s'abonne anonymement (vérifié) et donnerait le push sans compte. | OK |
+| PLY-09 | État du live en temps réel | P0 | ✅ | `live_state_watcher.dart`, `ivs_video_store.dart` (`_onLiveChange`), `channel.dart` | Connecté : EventSub `stream.online`/`stream.offline` (aucun scope). Le lecteur hors ligne redémarre tout seul quand la chaîne repasse en live (3 s pour que la playlist existe), l'état hors ligne s'affiche sans attendre un sondage, et après une coupure il vérifie s'il a manqué un retour. Anonyme : sondage Helix comme avant (le sujet Hermes `video-playback-by-id` reste une piste). | OK |
 | PLY-10 | Fin de diffusion, chaîne hors ligne | P0 | ⚠️ | `ivs_recovery.dart`, `ivs_video_store.dart` (`4d50b89`) | Une erreur « non disponible » confirmée hors ligne par Helix affiche l'état hors ligne au lieu de basculer sur la WebView. Reste : pas d'écran de fin mais un bouton « Past broadcasts » hors ligne (`46b4ed2`) ; une chaîne déjà hors ligne à l'ouverture bascule toujours sur la WebView. | OK |
 | PLY-11 | Erreurs et relance du flux | P0 | ✅ | `ivs_recovery.dart`, `ivs_video_store.dart`, `channel.dart` (`4d50b89`) | Erreurs classées, relance 1/2/4 s sur le même lecteur avec nouvelle URL, « ↻ n/3 », jeton neuf si refusé, repli WebView après 3 échecs en 60 s ou erreur fatale ; IVS seulement sur Android. À valider sur appareil. | OK |
 | PLY-12 | Audio seul | P1 | ✅ | `twitch_stream_service.dart` (`allow_audio_only`), `quality_selection.dart`, `ivs_video.dart` | Qualité « Audio only » dans le menu (comme l'appli officielle : usher `allow_audio_only=true`, jamais choisie par l'adaptatif), pastille sur l'image ; non mémorisée d'un stream à l'autre. Pas encore en arrière-plan (PLY-14). | OK |
@@ -407,7 +407,7 @@
 |---|---|---|---|---|---|---|
 | MSC-01 | Deep links et App Links | P0 | ⚠️ | `AndroidManifest.xml:40-48`, `main.dart`, `twitch_links.dart`, `link_router.dart` | `twitch.tv`, `www.`, `m.` et `clips.twitch.tv` : chaîne, `/videos/<id>`, `/v/<id>`, `/<chaîne>/v/<id>`, `?t=`, `/<chaîne>/videos?filter=`, clips (`clips.twitch.tv/<slug>`, `/<chaîne>/clip/<slug>`, `/embed?clip=`) et `/<chaîne>/clips?range=` ouverts dans l'appli, y compris depuis le chat. Pas de schéma `twitch://`. | OK |
 | MSC-02 | Transport GraphQL | P0 | ⚠️ | `twitch_stream_service.dart:20-34,98-113` | Une seule requête GQL, non persistée (choix volontaire contre la rotation des hashes). Ni APQ ni intégrité. | GQL privé |
-| MSC-03 | Temps réel Hermes | P0 | ✅ | `lib/services/realtime/` | Client Hermes anonyme partagé (`TwitchRealtimeClient`) pour les sujets publics, et client EventSub WebSocket (`TwitchEventSubClient`) pour les événements du compte : connexion paresseuse, abonnements Helix par session, `session_reconnect` sans perte, keepalive, reconnexion avec backoff, dédoublonnage, pause en arrière-plan. `stream.online` pour PLY-09 reste à brancher. | OK |
+| MSC-03 | Temps réel Hermes | P0 | ✅ | `lib/services/realtime/` | Client Hermes anonyme partagé (`TwitchRealtimeClient`) pour les sujets publics, et client EventSub WebSocket (`TwitchEventSubClient`) pour les événements du compte : connexion paresseuse, abonnements Helix par session, `session_reconnect` sans perte, keepalive, reconnexion avec backoff, dédoublonnage, pause en arrière-plan. Branché aussi pour `stream.online`/`stream.offline` (PLY-09). | OK |
 | MSC-04 | Client chat Kotlin Multiplatform | P1 | ✅ | `chat_store.dart:884-1005`, `chat_tabs_store.dart:151-200` | Buffer flushé toutes les 200 ms, backoff, PING/PONG. | OK |
 | MSC-05 | Gestion des permissions | P1 | ❌ | — | Aucune permission runtime aujourd'hui. Nécessaire pour les notifications et le service média. | OK |
 | MSC-06 | Pile React Native « Ultralight » | P2 | ❌ | — | Pile RN interne à Twitch. | Impossible proprement |
@@ -429,7 +429,7 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 
 | Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| Lecture vidéo (PLY) | 12 | 7 | 13 | 1 | 33 |
+| Lecture vidéo (PLY) | 13 | 6 | 13 | 1 | 33 |
 | Chat (CHT) | 23 | 7 | 12 | 6 | 48 |
 | Interactions communautaires (INT) | 3 | 4 | 24 | 0 | 31 |
 | Modération (MOD) | 9 | 1 | 21 | 0 | 31 |
@@ -440,23 +440,23 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Compte & réglages (ACC) | 4 | 5 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 4 | 6 | 7 | 0 | 17 |
-| **Total** | **77** | **42** | **190** | **8** | **317** |
+| **Total** | **78** | **41** | **190** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| P0 | 37 | 15 | 4 | 4 | 60 |
+| P0 | 38 | 14 | 4 | 4 | 60 |
 | P1 | 34 | 20 | 50 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **77** | **42** | **190** | **8** | **317** |
+| **Total** | **78** | **41** | **190** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 13 | 30 | 33 | 76 |
+| OK | 12 | 30 | 33 | 75 |
 | GQL privé | 6 | 29 | 61 | 96 |
 | Compte requis | 0 | 11 | 12 | 23 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
 
-Lecture : sur 60 lignes P0, **41** sont entièrement couvertes (37 ✅ et 4 ➕), 15 sont partielles et 4 absentes. Les lignes P0 absentes sont la cloche, les notifications et le centre de notifications (SOC-05/06/07) et l'avertissement côté viewer (CHT-13). Les ➕ sont le délai de chat synchronisé, la révélation des messages supprimés, le multi-chat et le chat partagé, les emotes 7TV/BTTV/FFZ, la disposition paysage et le thème avec accent.
+Lecture : sur 60 lignes P0, **42** sont entièrement couvertes (38 ✅ et 4 ➕), 14 sont partielles et 4 absentes. Les lignes P0 absentes sont la cloche, les notifications et le centre de notifications (SOC-05/06/07) et l'avertissement côté viewer (CHT-13). Les ➕ sont le délai de chat synchronisé, la révélation des messages supprimés, le multi-chat et le chat partagé, les emotes 7TV/BTTV/FFZ, la disposition paysage et le thème avec accent.
 
 ## 3. Lecture / latence : écarts concrets avec le lecteur officiel
 
