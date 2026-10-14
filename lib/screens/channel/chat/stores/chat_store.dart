@@ -13,6 +13,7 @@ import 'package:frosty/models/irc.dart';
 import 'package:frosty/screens/channel/chat/chat_commands.dart';
 import 'package:frosty/screens/channel/chat/chat_restrictions.dart';
 import 'package:frosty/screens/channel/chat/details/chat_details_store.dart';
+import 'package:frosty/screens/channel/chat/held_messages.dart';
 import 'package:frosty/screens/channel/chat/moderation.dart';
 import 'package:frosty/screens/channel/chat/moderation_notice.dart';
 import 'package:frosty/screens/channel/chat/muted_words.dart';
@@ -20,6 +21,7 @@ import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_character_counter.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:frosty/stores/whisper_store.dart';
 import 'package:frosty/utils.dart';
 import 'package:mobx/mobx.dart';
@@ -105,6 +107,12 @@ abstract class ChatStoreBase with Store {
 
   /// The viewer's whispers, for `/w` (null in tests and when not given).
   final WhisperStore? whispers;
+
+  /// Listens to the viewer's EventSub topics, to say what moderators
+  /// decided about held messages (null in tests and when not given).
+  final EventSubHandle Function(EventSubTopic topic)? listenEvents;
+
+  HeldMessageWatcher? _heldMessages;
 
   /// The amount of messages to free (remove) when the [_messageLimit] is reached.
   final _messagesToRemove = (_messageLimit * 0.2).toInt();
@@ -596,11 +604,21 @@ abstract class ChatStoreBase with Store {
     required this.channelId,
     required this.displayName,
     this.whispers,
+    this.listenEvents,
   }) {
     // Create a reaction that will reconnect to chat when logging in or out.
     // Closing the channel will trigger a reconnect with the new credentials.
     reactions.add(
       reaction((_) => auth.isLoggedIn, (_) => _channel?.sink.close(1000)),
+    );
+
+    // Held messages are the logged-in viewer's: follow whoever that is.
+    reactions.add(
+      reaction(
+        (_) => auth.user.details?.id,
+        _watchHeldMessages,
+        fireImmediately: true,
+      ),
     );
 
     reactions.add(
@@ -1659,6 +1677,8 @@ abstract class ChatStoreBase with Store {
     _cancelChatDelayCountdown();
     sleepTimer?.cancel();
 
+    _heldMessages?.dispose();
+
     // Cancel WebSocket subscriptions
     _channelListener?.cancel();
     _sevenTVChannelListener?.cancel();
@@ -1677,6 +1697,25 @@ abstract class ChatStoreBase with Store {
 
     assetsStore.dispose();
     chatDetailsStore.dispose();
+  }
+
+  void _watchHeldMessages(String? userId) {
+    _heldMessages?.dispose();
+    _heldMessages = null;
+    final listen = listenEvents;
+    if (listen == null || userId == null) return;
+    try {
+      _heldMessages = HeldMessageWatcher(
+        listen: listen,
+        broadcasterId: channelId,
+        userId: userId,
+        onNotice: (notice) => runInAction(
+          () => messageBuffer.add(IRCMessage.createNotice(message: notice)),
+        ),
+      );
+    } on ArgumentError catch (e) {
+      debugPrint('Held messages not followed: $e');
+    }
   }
 
   /// Unfocuses the text field.

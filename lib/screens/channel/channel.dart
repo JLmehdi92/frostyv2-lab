@@ -129,6 +129,7 @@ class _VideoChatState extends State<VideoChat>
           settingsStore: context.settingsStore,
           globalAssetsStore: context.globalAssetsStore,
           whisperStore: context.read<WhisperStore>(),
+          listenEvents: context.read<TwitchEventSubClient>().listen,
           primaryChannelId: widget.userId,
           primaryChannelLogin: widget.userLogin,
           primaryDisplayName: widget.userName,

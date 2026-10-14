@@ -12,6 +12,7 @@ import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:frosty/stores/global_assets_store.dart';
 import 'package:frosty/stores/whisper_store.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -102,6 +103,9 @@ abstract class ChatTabsStoreBase with Store {
 
   /// The viewer's whispers, handed to each chat for `/w`.
   final WhisperStore? whisperStore;
+
+  /// The viewer's EventSub topics, handed to each chat for held messages.
+  final EventSubHandle Function(EventSubTopic topic)? listenEvents;
 
   /// The list of open chat tabs.
   @readonly
@@ -297,6 +301,7 @@ abstract class ChatTabsStoreBase with Store {
     required String primaryChannelLogin,
     required String primaryDisplayName,
     this.whisperStore,
+    this.listenEvents,
   }) {
     // Enable wakelock once for all chat tabs
     if (settingsStore.keepScreenAwake) {
@@ -345,6 +350,7 @@ abstract class ChatTabsStoreBase with Store {
     return ChatStore(
       twitchApi: twitchApi,
       whispers: whisperStore,
+      listenEvents: listenEvents,
       channelName: channelLogin,
       channelId: channelId,
       displayName: displayName,
