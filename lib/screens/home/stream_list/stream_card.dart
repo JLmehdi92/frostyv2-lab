@@ -11,6 +11,8 @@ import 'package:frosty/screens/home/stream_list/stream_tags.dart';
 import 'package:frosty/screens/home/top/categories/category_streams.dart';
 import 'package:frosty/screens/home/top/tags/tag_streams.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
+import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/services/playback_preloader.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/image_size.dart';
@@ -239,6 +241,11 @@ class StreamCard extends StatelessWidget {
     );
 
     return InkWell(
+      // The finger is down: get the stream's token while the page opens.
+      onTapDown: (_) => PlaybackPreloader.instance.preload(
+        login: streamInfo.userLogin,
+        engine: context.read<SettingsStore>().playerEngine,
+      ),
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(

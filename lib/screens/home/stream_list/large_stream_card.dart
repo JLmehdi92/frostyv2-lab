@@ -9,6 +9,8 @@ import 'package:frosty/screens/channel/channel.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_card_pill.dart';
 import 'package:frosty/screens/channel/video/stream_info_bar.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
+import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/services/playback_preloader.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/image_size.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
@@ -98,6 +100,11 @@ class LargeStreamCard extends StatelessWidget {
     );
 
     return InkWell(
+      // The finger is down: get the stream's token while the page opens.
+      onTapDown: (_) => PlaybackPreloader.instance.preload(
+        login: streamInfo.userLogin,
+        engine: context.read<SettingsStore>().playerEngine,
+      ),
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
