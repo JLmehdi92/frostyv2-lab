@@ -87,6 +87,7 @@ abstract class _SettingsStoreBase with Store {
   static const defaultDefaultToHighestQuality = false;
   static const defaultUseTextureRendering = true;
   static const defaultKeepScreenAwake = true;
+  static const defaultBackgroundAudio = false;
   static const defaultPlayerEngine = PlayerEngine.ivs;
   static const defaultLiveCatchUpMode = LiveCatchUpMode.speedUp;
   static const defaultBufferProfile = BufferProfile.standard;
@@ -127,6 +128,12 @@ abstract class _SettingsStoreBase with Store {
   @JsonKey(defaultValue: defaultKeepScreenAwake)
   @observable
   var keepScreenAwake = defaultKeepScreenAwake;
+
+  /// Keeps a live stream's sound playing outside the app, with a media
+  /// notification (Android).
+  @JsonKey(defaultValue: defaultBackgroundAudio)
+  @observable
+  var backgroundAudio = defaultBackgroundAudio;
 
   @JsonKey(
     defaultValue: defaultPlayerEngine,
@@ -173,6 +180,7 @@ abstract class _SettingsStoreBase with Store {
     defaultToHighestQuality = defaultDefaultToHighestQuality;
     useTextureRendering = defaultUseTextureRendering;
     keepScreenAwake = defaultKeepScreenAwake;
+    backgroundAudio = defaultBackgroundAudio;
     playerEngine = defaultPlayerEngine;
     liveCatchUpMode = defaultLiveCatchUpMode;
     bufferProfile = defaultBufferProfile;

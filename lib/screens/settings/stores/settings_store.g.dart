@@ -35,6 +35,7 @@ SettingsStore _$SettingsStoreFromJson(
   ..defaultToHighestQuality = json['defaultToHighestQuality'] as bool? ?? false
   ..useTextureRendering = json['useTextureRendering'] as bool? ?? true
   ..keepScreenAwake = json['keepScreenAwake'] as bool? ?? true
+  ..backgroundAudio = json['backgroundAudio'] as bool? ?? false
   ..playerEngine =
       $enumDecodeNullable(
         _$PlayerEngineEnumMap,
@@ -144,6 +145,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'defaultToHighestQuality': instance.defaultToHighestQuality,
   'useTextureRendering': instance.useTextureRendering,
   'keepScreenAwake': instance.keepScreenAwake,
+  'backgroundAudio': instance.backgroundAudio,
   'playerEngine': _$PlayerEngineEnumMap[instance.playerEngine]!,
   'liveCatchUpMode': _$LiveCatchUpModeEnumMap[instance.liveCatchUpMode]!,
   'bufferProfile': _$BufferProfileEnumMap[instance.bufferProfile]!,
@@ -502,6 +504,24 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   set keepScreenAwake(bool value) {
     _$keepScreenAwakeAtom.reportWrite(value, super.keepScreenAwake, () {
       super.keepScreenAwake = value;
+    });
+  }
+
+  late final _$backgroundAudioAtom = Atom(
+    name: '_SettingsStoreBase.backgroundAudio',
+    context: context,
+  );
+
+  @override
+  bool get backgroundAudio {
+    _$backgroundAudioAtom.reportRead();
+    return super.backgroundAudio;
+  }
+
+  @override
+  set backgroundAudio(bool value) {
+    _$backgroundAudioAtom.reportWrite(value, super.backgroundAudio, () {
+      super.backgroundAudio = value;
     });
   }
 
@@ -1485,6 +1505,7 @@ portraitVideoScale: ${portraitVideoScale},
 defaultToHighestQuality: ${defaultToHighestQuality},
 useTextureRendering: ${useTextureRendering},
 keepScreenAwake: ${keepScreenAwake},
+backgroundAudio: ${backgroundAudio},
 playerEngine: ${playerEngine},
 liveCatchUpMode: ${liveCatchUpMode},
 bufferProfile: ${bufferProfile},

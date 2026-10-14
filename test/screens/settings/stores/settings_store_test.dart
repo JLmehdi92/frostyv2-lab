@@ -243,6 +243,17 @@ void main() {
     });
   });
 
+  group('backgroundAudio', () {
+    test('off by default, kept, and reset with the video settings', () {
+      expect(SettingsStore.fromJson({}).backgroundAudio, isFalse);
+      final store = SettingsStore.fromJson({'backgroundAudio': true});
+      expect(store.backgroundAudio, isTrue);
+      expect(store.toJson()['backgroundAudio'], isTrue);
+      store.resetVideoSettings();
+      expect(store.backgroundAudio, isFalse);
+    });
+  });
+
   group('showCaptions', () {
     test('off by default, kept, and reset with the video settings', () {
       expect(SettingsStore.fromJson({}).showCaptions, isFalse);

@@ -93,6 +93,15 @@ class VideoSettings extends StatelessWidget {
             value: settingsStore.keepScreenAwake,
             onChanged: (newValue) => settingsStore.keepScreenAwake = newValue,
           ),
+          if (Platform.isAndroid)
+            SettingsListSwitch(
+              title: 'Background audio',
+              subtitle: const Text(
+                'Keeps a live stream playing when you leave the app or turn off the screen, with media controls in a notification.',
+              ),
+              value: settingsStore.backgroundAudio,
+              onChanged: (newValue) => settingsStore.backgroundAudio = newValue,
+            ),
           SettingsListSwitch(
             title: 'Warn about mature content',
             subtitle: const Text(
