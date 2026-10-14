@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_stream_service.dart';
+import 'package:frosty/models/playback_access_token.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/channel/video/ivs_recovery.dart';
 import 'package:frosty/screens/channel/video/ivs_video.dart';
@@ -86,6 +87,8 @@ void main() {
         forceFreshToken: any(named: 'forceFreshToken'),
       ),
     ).thenAnswer((_) async => _usherUrl);
+    when(() => streamService.refusalFor(any())).thenReturn(null);
+    when(() => streamService.usherRefusal(any())).thenAnswer((_) async => null);
     final live = StreamTwitch.fromJson(
       (twitchStreamResponse['data']! as List).first as Map<String, dynamic>,
     );
@@ -548,6 +551,105 @@ void main() {
 
       expect(fatal, 0);
       expect(store.status, IvsPlaybackStatus.reconnecting);
+    });
+  });
+
+  group('refused streams', () {
+    test('a refusal twitch announced falls back at once, explained', () async {
+      when(
+        () => streamService.refusalFor('streamer'),
+      ).thenReturn(PlaybackRefusal.subscribersOnly);
+      var fatal = 0;
+      store = await createStore();
+      store.onFatalError = () => fatal++;
+
+      await native.emit({'type': 'error', 'errorType': 'ERROR_AUTHORIZATION'});
+      await settle();
+      await settle();
+
+      expect(fatal, 1);
+      expect(store.status, IvsPlaybackStatus.failed);
+      expect(store.refusalNotice, contains('subscribers'));
+      verifyNever(
+        () => streamService.getUsherUrl(
+          userLogin: 'streamer',
+          forceFreshToken: true,
+        ),
+      );
+    });
+
+    test('rejected tokens end with the reason usher gives', () async {
+      when(
+        () => streamService.usherRefusal(_usherUrl),
+      ).thenAnswer((_) async => 'Content Restricted In Region');
+      var fatal = 0;
+      store = await createStore();
+      store.onFatalError = () => fatal++;
+
+      for (var i = 0; i < 4; i++) {
+        await native.emit({'type': 'error', 'code': 403});
+        await settle();
+        await settle();
+      }
+      for (var i = 0; i < 4; i++) {
+        await settle();
+      }
+
+      expect(fatal, 1);
+      expect(store.refusalNotice, contains('Content Restricted In Region'));
+    });
+
+    test('the player still gives up when usher cannot be asked', () async {
+      when(
+        () => streamService.usherRefusal(any()),
+      ).thenAnswer((_) async => throw Exception('network down'));
+      var fatal = 0;
+      store = await createStore();
+      store.onFatalError = () => fatal++;
+
+      for (var i = 0; i < 4; i++) {
+        await native.emit({'type': 'error', 'code': 403});
+        await settle();
+        await settle();
+      }
+      for (var i = 0; i < 4; i++) {
+        await settle();
+      }
+
+      expect(fatal, 1);
+      expect(store.refusalNotice, isNull);
+    });
+
+    test('other failures fall back without asking usher', () async {
+      var fatal = 0;
+      store = await createStore();
+      store.onFatalError = () => fatal++;
+
+      await native.emit({'type': 'error', 'errorType': 'ERROR_NOT_SUPPORTED'});
+      await settle();
+
+      expect(fatal, 1);
+      expect(store.refusalNotice, isNull);
+      verifyNever(() => streamService.usherRefusal(any()));
+    });
+
+    test('a refusal message names each reason', () {
+      expect(
+        playbackRefusalNotice(PlaybackRefusal.subscribersOnly, 'Streamer'),
+        'Streamer is streaming for subscribers only.',
+      );
+      expect(
+        playbackRefusalNotice(PlaybackRefusal.geoblocked, 'Streamer'),
+        'This stream is not available in your region.',
+      );
+      expect(
+        playbackRefusalNotice(PlaybackRefusal.bannedFromChannel, 'Streamer'),
+        'You are banned from Streamer\'s channel.',
+      );
+      expect(
+        playbackRefusalNotice(PlaybackRefusal.unauthorized, 'Streamer'),
+        'Twitch refused this stream to the app player.',
+      );
     });
   });
 

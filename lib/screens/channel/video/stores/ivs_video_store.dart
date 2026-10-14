@@ -11,6 +11,7 @@ import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_stream_service.dart';
 import 'package:frosty/models/channel.dart';
 import 'package:frosty/models/ivs_stats.dart';
+import 'package:frosty/models/playback_access_token.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/channel/video/captions.dart';
 import 'package:frosty/screens/channel/video/ivs_player_config.dart';
@@ -107,6 +108,14 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   /// The usher URL to hand to the native IVS player (null until resolved).
   @readonly
   String? _url;
+
+  /// Why Twitch refused the stream, set when the player gives up on it for
+  /// that reason (the channel shows it on falling back); null otherwise.
+  @readonly
+  String? _refusalNotice;
+
+  /// Whether the last player error was a rejected token (401 or 403).
+  var _lastErrorRefused = false;
 
   /// Completes when the usher URL is resolved, or throws so the channel can
   /// fall back to the WebView engine.
@@ -532,6 +541,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         _isPlaying = state == 'PLAYING';
         if (_isPlaying) _hasPlayed = true;
         if (state == 'PLAYING') {
+          _lastErrorRefused = false;
           // Native auto-play after a (re)load while a VOD on top has focus.
           if (_focusSuppressed) _channel?.invokeMethod('pause');
           _paused = false;
@@ -605,6 +615,12 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
           'IVS error: ${e['errorType']} ${e['code']} ${e['source']} -> $kind',
         );
         if (_recovering && kind != IvsErrorKind.fatal) break;
+        _lastErrorRefused = kind == IvsErrorKind.refreshToken;
+        if (_lastErrorRefused && _streamService.refusalFor(userLogin) != null) {
+          // Twitch said so with the token: a new one changes nothing.
+          unawaited(_failExplained());
+          break;
+        }
         _applyRecovery(_recovery.onError(kind));
         break;
     }
@@ -631,8 +647,43 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         unawaited(_confirmOffline(_recoveryEpoch));
       case IvsFallback():
         _recovering = false;
-        _fail();
+        _lastErrorRefused ? unawaited(_failExplained()) : _fail();
     }
+  }
+
+  /// Gives up on a stream Twitch refuses, saying why: the reason the token
+  /// carried, else the one usher gives for the playlist.
+  Future<void> _failExplained() async {
+    _retryTimer?.cancel();
+    final epoch = _recoveryEpoch;
+    final name = _streamInfo?.userName ?? _offlineChannelInfo?.broadcasterName;
+    var notice = switch (_streamService.refusalFor(userLogin)) {
+      final refusal? => playbackRefusalNotice(
+        refusal,
+        name == null || name.isEmpty ? userLogin : name,
+      ),
+      null => null,
+    };
+    final url = _url;
+    if (notice == null && url != null) {
+      String? reason;
+      try {
+        reason = await _streamService
+            .usherRefusal(url)
+            .timeout(const Duration(seconds: 4));
+      } catch (e) {
+        // Only the explanation is lost: the player still gives up below.
+        debugPrint('IvsVideoStore usher reason: $e');
+      }
+      if (reason != null) {
+        notice =
+            'Twitch refused this stream: $reason'
+            '${reason.endsWith('.') ? '' : '.'}';
+      }
+    }
+    if (_disposed || epoch != _recoveryEpoch) return;
+    runInAction(() => _refusalNotice = notice);
+    _fail();
   }
 
   /// Reloads the same native player with a freshly resolved usher URL.
@@ -981,3 +1032,15 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     if (_ownsStreamService) _streamService.close();
   }
 }
+
+/// What the viewer is told when Twitch refuses [name]'s stream.
+String playbackRefusalNotice(
+  PlaybackRefusal refusal,
+  String name,
+) => switch (refusal) {
+  PlaybackRefusal.subscribersOnly => '$name is streaming for subscribers only.',
+  PlaybackRefusal.geoblocked => 'This stream is not available in your region.',
+  PlaybackRefusal.bannedFromChannel => "You are banned from $name's channel.",
+  PlaybackRefusal.unauthorized =>
+    'Twitch refused this stream to the app player.',
+};

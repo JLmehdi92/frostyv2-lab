@@ -109,6 +109,26 @@ mixin _$IvsVideoStore on IvsVideoStoreBase, Store {
     });
   }
 
+  late final _$_refusalNoticeAtom = Atom(
+    name: 'IvsVideoStoreBase._refusalNotice',
+    context: context,
+  );
+
+  String? get refusalNotice {
+    _$_refusalNoticeAtom.reportRead();
+    return super._refusalNotice;
+  }
+
+  @override
+  String? get _refusalNotice => refusalNotice;
+
+  @override
+  set _refusalNotice(String? value) {
+    _$_refusalNoticeAtom.reportWrite(value, super._refusalNotice, () {
+      super._refusalNotice = value;
+    });
+  }
+
   late final _$_availableStreamQualitiesAtom = Atom(
     name: 'IvsVideoStoreBase._availableStreamQualities',
     context: context,
