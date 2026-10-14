@@ -485,6 +485,20 @@ void main() {
       expect(fatal, 0);
     });
 
+    test('a failed offline check is retried, not taken for offline', () async {
+      store = await createStore();
+      when(
+        () => twitchApi.getStream(userLogin: any(named: 'userLogin')),
+      ).thenThrow(const NetworkException('no network'));
+
+      await native.emit({'type': 'error', 'errorType': 'ERROR_NOT_AVAILABLE'});
+      for (var i = 0; i < 5; i++) {
+        await settle();
+      }
+
+      expect(store.status, isNot(IvsPlaybackStatus.offline));
+    });
+
     test('a not-available error on a live channel is retried', () async {
       store = await createStore();
 

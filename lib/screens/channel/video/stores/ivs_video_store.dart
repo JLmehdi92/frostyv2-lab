@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:clock/clock.dart';
 import 'package:dio/dio.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:frosty/apis/base_api_client.dart';
@@ -309,7 +310,9 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         await twitchApi.getStream(userLogin: userLogin);
       } on ApiException catch (e) {
         offline = e.statusCode == 404;
-      } catch (_) {}
+      } catch (e, stack) {
+        _reportUnexpected(e, stack, 'offline check at start');
+      }
     }
     if (!_disposed) {
       runInAction(() {
@@ -370,12 +373,31 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     }
   }
 
+  /// A failure that is not an API answer: a bug, or Twitch changed.
+  static void _reportUnexpected(Object error, StackTrace stack, String what) {
+    debugPrint('IvsVideoStore $what: $error');
+    try {
+      FirebaseCrashlytics.instance.recordError(
+        error,
+        stack,
+        reason: 'ivs $what',
+      );
+    } catch (_) {
+      // Firebase may not be initialized (e.g., in tests).
+    }
+  }
+
   /// Restarts an offline player when the channel turns out to be live.
   Future<void> _restartIfLive() async {
     try {
       await twitchApi.getStream(userLogin: userLogin);
-    } catch (_) {
-      return; // Still offline (or unknown): the offline state stays.
+    } on ApiException catch (e) {
+      // 404: still offline. Anything else: unknown; the next poll retries.
+      if (e.statusCode != 404) debugPrint('IvsVideoStore live check: $e');
+      return;
+    } catch (e, stack) {
+      _reportUnexpected(e, stack, 'live check');
+      return;
     }
     if (!_disposed && _status == IvsPlaybackStatus.offline) {
       unawaited(handleRefresh());
@@ -643,13 +665,23 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   /// offline state (no WebView fallback); still live means a transient error.
   Future<void> _confirmOffline(int epoch) async {
     StreamTwitch? info;
+    // Only a 404 means offline; a failed check proves nothing.
+    var unknown = false;
     try {
       info = await twitchApi.getStream(userLogin: userLogin);
-    } catch (_) {
-      info = null;
+    } on ApiException catch (e) {
+      unknown = e.statusCode != 404;
+      if (unknown) debugPrint('IvsVideoStore offline check: $e');
+    } catch (e, stack) {
+      unknown = true;
+      _reportUnexpected(e, stack, 'offline check');
     }
     if (epoch != _recoveryEpoch) return;
     _recovering = false;
+    if (unknown) {
+      _applyRecovery(_recovery.onError(IvsErrorKind.recoverable));
+      return;
+    }
     if (info == null && _justWentLive) {
       // Helix lags a fresh push and the playlist may not be up yet: look
       // again shortly, outside the retry budget, until the window ends.
