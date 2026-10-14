@@ -15,6 +15,7 @@
 | 2026-10-13 | épopée E2 « clips » | PRF-17, PRF-18 ✅ ; CHT-45 ⚠️ ; PRF-19 (compte requis) ; MSC-01 (remarques). Comptes recalculés. Lecture à valider sur appareil. |
 | 2026-10-13 | épopée E7 « chat » (1re partie) | CHT-03, 06, 12, 15, 18 ✅ ; CHT-05, 17, 28 ⚠️ (remarques). Comptes recalculés. À valider sur appareil. |
 | 2026-10-13 | épopée E6 « profil de chaîne » | PRF-01, 02, 03, 04, 05, 28 ✅ ; PRF-25 ⚠️ (remarque). Comptes recalculés. Affichage à valider sur appareil. |
+| 2026-10-14 | épopée E10 « réglages et lecteur » (1re partie) | ACC-04, PLY-07, PLY-20 ✅ ; ACC-12 ⚠️ (remarque). Comptes recalculés. Gestes à valider sur appareil. |
 | 2026-10-14 | épopée E7 « chat » (2e partie) | CHT-10, CHT-25, CHT-45 ✅ ; CHT-22 ⚠️ (remarque). Comptes recalculés. À valider sur appareil. |
 | 2026-10-13 | épopée E8 « découverte » | DSC-04, DSC-05, DSC-06 ✅ ; DSC-08, DSC-09 ⚠️ (remarques). Comptes recalculés. Affichage à valider sur appareil. |
 | 2026-10-13 | épopée E5 « highlights communautaires » | CHT-41, CHT-42 ✅ ; INT-01, INT-02 ⚠️ (lecture seule) ; INT-19 (raid sortant). Comptes recalculés. Affichage à valider sur appareil. |
@@ -58,7 +59,7 @@
 | PLY-04 | Statistiques vidéo et latence | P0 | ✅ | `ivs_stats_panel.dart`, `latency_stats.dart`, `IvsPlayerCore.kt` (`bbe7ca3`) | Latence au dixième, visible par défaut ; panneau stats (médiane/p90/max, buffer, débit, images, qualité/codec, mode, démarrage, rebuffers). À valider sur appareil. | OK |
 | PLY-05 | Choix de qualité | P0 | ✅ | `quality_selection.dart`, `ivs_video_store.dart`, `IvsPlayerCore.kt` (`d0c9be5`) | Qualité de la session, sinon sauvegardée, sinon la plus haute (meilleur rendu en premier, 2K en tête), réappliquée après chaque rechargement. À valider sur appareil. | OK |
 | PLY-06 | Son et volume | P0 | ⚠️ | `ivs_video_store.dart`, `video_overlay.dart`, `IvsPlayerCore.kt` (`d0c9be5`) | Mute (paysage + feuille) et volume, conservés en mini-player/PiP/rechargement. Un seul lecteur audible entre le live et les VOD (`playback_focus.dart`, `55ffb66`). Reste : pas de focus audio Android (appels, autres apps). | OK |
-| PLY-07 | Plein écran, ajuster, rogner, zoom | P0 | ⚠️ | `video_overlay.dart:112-135,200-229`, `ivs_video.dart:39-96` | Plein écran immersif et ajuster/remplir (IVS en paysage seulement). Pas de pincer-zoomer. | OK |
+| PLY-07 | Plein écran, ajuster, rogner, zoom | P0 | ✅ | `video_overlay.dart`, `ivs_video.dart`, `pinch_to_fill.dart`, `channel.dart` | Plein écran immersif, ajuster/remplir par bouton ou en pinçant la vidéo (écarter remplit, pincer ajuste ; événements bruts, sans gêner tap, double tap ni glisser vers le PiP). IVS en paysage seulement. | OK |
 | PLY-08 | Overlay de métadonnées | P0 | ✅ | `stream_info_bar.dart:13-220`, `video_overlay.dart:424-472` | Titre, catégorie, uptime, spectateurs. Tags absents. | OK |
 | PLY-09 | État du live en temps réel | P0 | ⚠️ | `ivs_video_store.dart:250-299` | Infos rafraîchies par polling Helix au tap ou au retour dans l'app. Pas de push, pas de relance auto au retour du stream. Via EventSub `stream.online`/`stream.offline`/`channel.update` (aucun scope). Suite possible : le sujet Hermes `video-playback-by-id` s'abonne anonymement (vérifié) et donnerait le push sans compte. | OK |
 | PLY-10 | Fin de diffusion, chaîne hors ligne | P0 | ⚠️ | `ivs_recovery.dart`, `ivs_video_store.dart` (`4d50b89`) | Une erreur « non disponible » confirmée hors ligne par Helix affiche l'état hors ligne au lieu de basculer sur la WebView. Reste : pas d'écran de fin mais un bouton « Past broadcasts » hors ligne (`46b4ed2`) ; une chaîne déjà hors ligne à l'ouverture bascule toujours sur la WebView. | OK |
@@ -71,7 +72,7 @@
 | PLY-17 | Lecteur pop-out flottant | P1 | ❌ | — | Pas de fenêtre `SYSTEM_ALERT_WINDOW` (le PiP couvre l'essentiel). | OK |
 | PLY-18 | Mini-lecteur intégré | P1 | ✅ | `mini_player_store.dart:41-58`, `global_mini_player.dart:18-202`, `channel.dart:275-293` | Déplaçable, aimanté aux coins, chat conservé. Moteur IVS seulement (les autres basculent en PiP). | OK |
 | PLY-19 | Modes de chat en paysage | P1 | ➕ | `channel.dart:407-439,576-805`, `settings_store.dart:249-267` | Colonne gauche/droite à largeur réglable, overlay à opacité réglable, masqué. Cycle au double-tap, gestion de l'encoche. | OK |
-| PLY-20 | Taille du chat en portrait | P1 | ❌ | — | Vidéo 16:9 fixe au-dessus du chat (`channel.dart:806-836`), sans poignée. | OK |
+| PLY-20 | Taille du chat en portrait | P1 | ✅ | `portrait_split.dart`, `channel.dart` | Poignée entre vidéo et chat : glisser réduit la vidéo jusqu'à 40 % de la largeur (plus de chat), double tap la remet en pleine largeur ; taille mémorisée (`portraitVideoScale`). | OK |
 | PLY-21 | Disposition verticale / classique (dual format) | P1 | ❌ | — | Ni `multigroup_video` ni usher `/api/v2/`. | OK |
 | PLY-22 | Minuteur de veille | P1 | ✅ | `chat_details.dart:70-150`, `chat_store.dart:1296-1325` | — | OK |
 | PLY-23 | Sous-titres (CC) | P1 | ❌ | — | `onCue` vide (`IvsPlayerCore.kt:76`). | OK |
@@ -326,7 +327,7 @@
 | ACC-01 | Connexion | P0 | ✅ | `auth_store.dart:101-170,264` | OAuth implicite dans une WebView (pas `passport`). Le CAPTCHA est géré par la page Twitch. | OK |
 | ACC-02 | Vérification à la connexion | P1 | ✅ | `auth_store.dart:101-170` | Délégué à la page OAuth Twitch. | OK |
 | ACC-03 | Mode invité | P0 | ✅ | `auth_store.dart:216`, `chat_store.dart:1061`, `chat_bottom_bar.dart:76` | Jeton d'app `client_credentials` (exige `SECRET`). | OK |
-| ACC-04 | Déconnexion | P0 | ⚠️ | `auth_store.dart:293-320`, `account_options.dart:18-62` | Jeton supprimé en local mais pas révoqué (`id.twitch.tv/oauth2/revoke`). | OK |
+| ACC-04 | Déconnexion | P0 | ✅ | `auth_store.dart` (`logout`, `_revoke`), `twitch_api.dart` (`revokeToken`), `account_options.dart` | Jeton révoqué chez Twitch (`id.twitch.tv/oauth2/revoke`, sans bloquer la déconnexion) puis supprimé en local. | OK |
 | ACC-05 | Passkeys | P2 | ❌ | — | Passkeys non disponibles dans la WebView OAuth. | Impossible proprement |
 | ACC-06 | Connexion Google ou Amazon | P2 | ⚠️ | `auth_store.dart:104-110` | Google via un user-agent navigateur dans la WebView. | OK |
 | ACC-07 | Inscription | P2 | ❌ | — | WebView `twitch.tv/signup`. | OK |
@@ -334,7 +335,7 @@
 | ACC-09 | Structure des réglages | P1 | ⚠️ | `settings.dart` | Compte, Général, Vidéo, Chat, Autre. Ni notifications, ni sécurité, ni contenu. | OK |
 | ACC-10 | Thème | P0 | ➕ | `settings_store.dart:30-36,419`, `theme.dart` | Système, clair ou sombre (noir OLED), plus couleur d'accent libre. | OK |
 | ACC-11 | Lecture auto des vidéos | P1 | ❌ | — | Pas d'aperçu en lecture auto (à faire avec DSC-11). | OK |
-| ACC-12 | Préférences de lecture | P1 | ⚠️ | `video_settings.dart:20-87` | Vidéo on/off, plus haute qualité, écran allumé. Ni audio en arrière-plan, ni page d'accueil par défaut. | OK |
+| ACC-12 | Préférences de lecture | P1 | ⚠️ | `video_settings.dart`, `general_settings.dart` (« Open the app on ») | Vidéo on/off, plus haute qualité, écran allumé, onglet d'ouverture (Following, Top ou Search). Pas d'audio en arrière-plan. | OK |
 | ACC-13 | Catégories de notifications | P1 | ❌ | — | — | GQL privé |
 | ACC-14 | Modifier le profil | P2 | ❌ | — | Helix `PUT /users?description=` (`user:edit`) ; le reste en WebView. | OK |
 | ACC-15 | Changement de pseudo | P2 | ❌ | — | WebView des réglages Twitch. | OK |
@@ -426,7 +427,7 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 
 | Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| Lecture vidéo (PLY) | 8 | 7 | 17 | 1 | 33 |
+| Lecture vidéo (PLY) | 10 | 6 | 16 | 1 | 33 |
 | Chat (CHT) | 22 | 8 | 12 | 6 | 48 |
 | Interactions communautaires (INT) | 3 | 3 | 25 | 0 | 31 |
 | Modération (MOD) | 0 | 0 | 31 | 0 | 31 |
@@ -434,21 +435,21 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Découverte & recherche (DSC) | 5 | 4 | 13 | 0 | 22 |
 | Profil de chaîne & contenus (VOD / clips) (PRF) | 5 | 6 | 18 | 0 | 29 |
 | Monétisation (MON) | 0 | 0 | 15 | 0 | 15 |
-| Compte & réglages (ACC) | 3 | 6 | 22 | 1 | 32 |
+| Compte & réglages (ACC) | 4 | 5 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 3 | 7 | 7 | 0 | 17 |
-| **Total** | **59** | **43** | **207** | **8** | **317** |
+| **Total** | **62** | **41** | **206** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| P0 | 24 | 19 | 13 | 4 | 60 |
-| P1 | 29 | 17 | 58 | 4 | 108 |
+| P0 | 26 | 17 | 13 | 4 | 60 |
+| P1 | 30 | 17 | 57 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **59** | **43** | **207** | **8** | **317** |
+| **Total** | **62** | **41** | **206** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 18 | 34 | 33 | 85 |
+| OK | 16 | 33 | 33 | 82 |
 | GQL privé | 6 | 29 | 61 | 96 |
 | Compte requis | 8 | 12 | 12 | 32 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
