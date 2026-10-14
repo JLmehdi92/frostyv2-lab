@@ -97,6 +97,7 @@ class _EmoteMenuSectionState extends State<EmoteMenuSection>
                   width: widget.emotes[index].width?.toDouble(),
                   color: off ? const Color.fromRGBO(255, 255, 255, 0.5) : null,
                   colorBlendMode: off ? BlendMode.modulate : null,
+                  semanticLabel: widget.emotes[index].name,
                 ),
               ),
             ),

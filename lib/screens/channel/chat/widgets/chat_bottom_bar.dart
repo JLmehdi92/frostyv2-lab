@@ -222,6 +222,7 @@ class ChatBottomBar extends StatelessWidget {
                                 matchingEmotes[index].height?.toDouble() ??
                                 defaultEmoteSize,
                             width: matchingEmotes[index].width?.toDouble(),
+                            semanticLabel: matchingEmotes[index].name,
                           ),
                         ),
                       ),

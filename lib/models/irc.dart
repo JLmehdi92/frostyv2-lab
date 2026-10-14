@@ -668,9 +668,13 @@ class IRCMessage {
             ),
             launchExternal: launchExternal,
           ),
-          child: Stack(
-            alignment: AlignmentDirectional.center,
-            children: children,
+          child: Semantics(
+            label: [if (nextWordIsEmoji) emoji, ...message].join(' + '),
+            excludeSemantics: true,
+            child: Stack(
+              alignment: AlignmentDirectional.center,
+              children: children,
+            ),
           ),
         ),
       ),
@@ -780,6 +784,7 @@ class IRCMessage {
     double? size,
     Color? backgroundColor,
     bool? isSvg,
+    String? semanticLabel,
   }) {
     if (backgroundColor != null) {
       return ColoredBox(
@@ -789,16 +794,24 @@ class IRCMessage {
           height: size,
           width: size,
           useFade: false,
+          semanticLabel: semanticLabel,
         ),
       );
     } else if (isSvg == true) {
-      return SvgPicture.network(badge.url, height: size, width: size);
+      return SvgPicture.network(
+        badge.url,
+        height: size,
+        width: size,
+        semanticsLabel: semanticLabel,
+        excludeFromSemantics: semanticLabel == null,
+      );
     } else {
       return FrostyCachedNetworkImage(
         imageUrl: badge.url,
         height: size,
         width: size,
         useFade: false,
+        semanticLabel: semanticLabel,
       );
     }
   }
@@ -833,6 +846,7 @@ class IRCMessage {
           size: size,
           backgroundColor: backgroundColor,
           isSvg: isSvg,
+          semanticLabel: badge.name,
         ),
       ),
     );
@@ -860,6 +874,7 @@ class IRCMessage {
           width: width,
           useFade: false,
           placeholder: (context, url) => const SizedBox(),
+          semanticLabel: emote.name,
         ),
       ),
     );

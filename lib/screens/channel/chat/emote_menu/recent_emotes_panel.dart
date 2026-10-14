@@ -73,6 +73,7 @@ class RecentEmotesPanel extends StatelessWidget {
                           : BlendMode.modulate,
                       height: emote.height?.toDouble() ?? defaultEmoteSize,
                       width: emote.width?.toDouble(),
+                      semanticLabel: emote.name,
                     ),
                   ),
                 ),

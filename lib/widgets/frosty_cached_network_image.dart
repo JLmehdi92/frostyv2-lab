@@ -18,6 +18,9 @@ class FrostyCachedNetworkImage extends StatelessWidget {
   /// Decodes the image at this many pixels wide instead of its full size.
   final int? memCacheWidth;
 
+  /// What a screen reader says for the image; it stays silent when null.
+  final String? semanticLabel;
+
   const FrostyCachedNetworkImage({
     super.key,
     required this.imageUrl,
@@ -31,11 +34,12 @@ class FrostyCachedNetworkImage extends StatelessWidget {
     this.useOldImageOnUrlChange = false,
     this.fit,
     this.memCacheWidth,
+    this.semanticLabel,
   });
 
   @override
   Widget build(BuildContext context) {
-    return CachedNetworkImage(
+    final image = CachedNetworkImage(
       imageUrl: imageUrl,
       cacheKey: cacheKey,
       width: width,
@@ -56,5 +60,8 @@ class FrostyCachedNetworkImage extends StatelessWidget {
       memCacheWidth: memCacheWidth,
       cacheManager: CustomCacheManager.instance,
     );
+    final label = semanticLabel;
+    if (label == null) return image;
+    return Semantics(label: label, image: true, child: image);
   }
 }
