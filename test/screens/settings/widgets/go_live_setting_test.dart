@@ -5,9 +5,16 @@ import 'package:frosty/services/go_live/go_live.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FakePlatform extends GoLivePlatform {
-  FakePlatform({this.granted = true, this.supported = true});
+  FakePlatform({
+    this.granted = true,
+    this.supported = true,
+    this.isAllowed = true,
+    this.startFails = false,
+  });
 
   final bool granted;
+  final bool isAllowed;
+  final bool startFails;
   @override
   final bool supported;
   final calls = <String>[];
@@ -19,7 +26,13 @@ class FakePlatform extends GoLivePlatform {
   }
 
   @override
-  Future<void> start() async => calls.add('start');
+  Future<bool> allowed() async => isAllowed;
+
+  @override
+  Future<void> start() async {
+    calls.add('start');
+    if (startFails) throw StateError('no scheduler');
+  }
 
   @override
   Future<void> stop() async => calls.add('stop');
@@ -66,6 +79,33 @@ void main() {
     expect(platform.calls, ['permission']);
     expect(switchValue(tester), isFalse);
     expect(find.textContaining('system settings'), findsOneWidget);
+  });
+
+  testWidgets('a failed schedule leaves it off', (tester) async {
+    final platform = FakePlatform(startFails: true);
+    await pump(tester, GoLiveSetting(userId: '7', platform: platform));
+
+    await tester.tap(find.byType(SwitchListTile));
+    await tester.pumpAndSettle();
+
+    expect(switchValue(tester), isFalse);
+    expect(find.textContaining("Couldn't turn on"), findsOneWidget);
+    expect((await GoLivePrefs.load()).enabled, isFalse);
+  });
+
+  testWidgets('blocked notices and a paused check are shown', (tester) async {
+    final prefs = await GoLivePrefs.load();
+    await prefs.setEnabled(true);
+    await pump(
+      tester,
+      GoLiveSetting(userId: '7', platform: FakePlatform(isAllowed: false)),
+    );
+    expect(find.textContaining('blocked'), findsOneWidget);
+
+    await prefs.setProblem(kGoLiveLoggedOut);
+    await pump(tester, const SizedBox());
+    await pump(tester, GoLiveSetting(userId: '7', platform: FakePlatform()));
+    expect(find.text(kGoLiveLoggedOut), findsOneWidget);
   });
 
   testWidgets('logged out or not Android: cannot be turned on', (tester) async {

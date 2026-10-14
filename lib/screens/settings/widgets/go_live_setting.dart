@@ -1,3 +1,4 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
 import 'package:frosty/services/go_live/go_live.dart';
@@ -9,6 +10,7 @@ class GoLivePlatform {
 
   bool get supported => GoLiveScheduler.supported;
   Future<bool> requestPermission() => GoLiveNotifications.requestPermission();
+  Future<bool> allowed() => GoLiveNotifications.allowed();
   Future<void> start() => GoLiveScheduler.start();
   Future<void> stop() => GoLiveScheduler.stop();
 }
@@ -34,12 +36,46 @@ class _GoLiveSettingState extends State<GoLiveSetting> {
   var _busy = false;
   String? _problem;
 
+  /// Notices blocked in the system settings since they were turned on.
+  var _blocked = false;
+
   @override
   void initState() {
     super.initState();
-    GoLivePrefs.load().then((prefs) {
-      if (mounted) setState(() => _prefs = prefs);
-    });
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final prefs = await GoLivePrefs.load();
+      final blocked =
+          prefs.enabled &&
+          widget.platform.supported &&
+          !await widget.platform.allowed();
+      if (!mounted) return;
+      setState(() {
+        _prefs = prefs;
+        _blocked = blocked;
+      });
+    } catch (e, stack) {
+      _report(e, stack);
+      if (mounted) {
+        setState(() => _problem = "Couldn't read the go-live setting.");
+      }
+    }
+  }
+
+  static void _report(Object error, StackTrace stack) {
+    debugPrint('Go-live setting failed: $error');
+    try {
+      FirebaseCrashlytics.instance.recordError(
+        error,
+        stack,
+        reason: 'go-live setting',
+      );
+    } catch (_) {
+      // Firebase may not be initialized (e.g., in tests).
+    }
   }
 
   Future<void> _set(bool on) async {
@@ -55,15 +91,19 @@ class _GoLiveSettingState extends State<GoLiveSetting> {
           _problem = 'Allow notifications for this app in the system settings.';
           return;
         }
+        // Scheduled first: the switch only says on once it is.
+        await widget.platform.start();
         await prefs.setUserId(widget.userId);
         await prefs.setEnabled(true);
-        await widget.platform.start();
+        await prefs.setProblem(null);
+        _blocked = false;
       } else {
         await prefs.setEnabled(false);
         await widget.platform.stop();
       }
-    } catch (e) {
-      debugPrint('Go-live setting failed: $e');
+    } catch (e, stack) {
+      _report(e, stack);
+      if (on) await prefs.setEnabled(false).catchError((_) {});
       _problem =
           "Couldn't ${on ? 'turn on' : 'turn off'} go-live notifications.";
     } finally {
@@ -84,6 +124,12 @@ class _GoLiveSettingState extends State<GoLiveSetting> {
       subtitle = 'Log in to be told when channels you follow go live.';
     } else if (_problem != null) {
       subtitle = _problem!;
+    } else if (on && _blocked) {
+      subtitle =
+          'Notifications are blocked for this app. Allow them in the system '
+          'settings.';
+    } else if (on && prefs?.problem != null) {
+      subtitle = prefs!.problem!;
     } else if (on) {
       subtitle =
           'Checked about every 15 minutes, when the system allows. Turn a '
@@ -95,7 +141,7 @@ class _GoLiveSettingState extends State<GoLiveSetting> {
       title: 'Go-live notifications',
       subtitle: Text(
         subtitle,
-        style: _problem != null
+        style: _problem != null || (on && (_blocked || prefs?.problem != null))
             ? TextStyle(color: Theme.of(context).colorScheme.error)
             : null,
       ),
@@ -146,7 +192,16 @@ class _GoLiveBellTileState extends State<GoLiveBellTile> {
       title: Text('Notify when ${widget.name} goes live'),
       value: on,
       onChanged: (value) async {
-        await prefs.setMuted(widget.channelId, !value);
+        try {
+          await prefs.setMuted(widget.channelId, !value);
+        } catch (e, stack) {
+          _GoLiveSettingState._report(e, stack);
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Couldn't change the bell.")),
+            );
+          }
+        }
         if (mounted) setState(() {});
       },
     );
