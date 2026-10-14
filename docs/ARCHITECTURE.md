@@ -179,8 +179,8 @@ Portrait : vidéo 16:9 au-dessus du chat (l.806-836). Paysage (l.576-805) : chat
 ### Réglages et gestes (E10)
 - Déconnexion : `AuthStore.logout` révoque le jeton utilisateur (`TwitchApi.revokeToken`, formulaire `client_id` + `token`, 5 s max, jamais bloquant) avant de l'effacer.
 - `settingsStore.startTab` (`HomeTab`) choisit l'onglet d'ouverture ; `HomeStore` y revient à la connexion ou déconnexion (`HomeTab.indexWhen`, sans Following hors connexion).
-- `PinchToFill` (`video/pinch_to_fill.dart`) lit les pointeurs bruts autour de l'overlay en paysage (IVS) : un pincement par geste, `IvsVideoStore.setFillScreen`.
-- Portrait : `PortraitSplitHandle` (`channel/portrait_split.dart`) règle `settingsStore.portraitVideoScale` (40 % à 100 %) ; la vidéo reste 16:9, centrée dans la hauteur réservée, le chat prend le reste.
+- `PinchToFill` (`video/pinch_to_fill.dart`) lit les pointeurs bruts autour de l'overlay en paysage (IVS) : un pincement par geste, `IvsVideoStore.setFillScreen` ; pendant un pincement (`_pinching`), le glisser vers le PiP revient en place et le tap est ignoré.
+- Portrait : `PortraitSplitHandle` (`channel/portrait_split.dart`) règle `settingsStore.portraitVideoScale` (40 % à 100 %, jamais sous 300 dp de large ; suivi local pendant le glisser, une seule écriture à la fin) ; la vidéo reste 16:9, centrée dans la hauteur réservée, le chat prend le reste.
 
 ### Découverte (E8) — `lib/screens/home/`
 - **Page catégorie** (`top/categories/category_streams.dart`) : puces Live / Videos / Clips. Videos et Clips réutilisent `ChannelVideosTab` et `ChannelClipsTab` avec un `gameId` (stores créés à la première ouverture) ; les cartes nomment la chaîne (`showChannel`).

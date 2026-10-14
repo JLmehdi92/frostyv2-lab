@@ -72,7 +72,7 @@
 | PLY-17 | Lecteur pop-out flottant | P1 | ❌ | — | Pas de fenêtre `SYSTEM_ALERT_WINDOW` (le PiP couvre l'essentiel). | OK |
 | PLY-18 | Mini-lecteur intégré | P1 | ✅ | `mini_player_store.dart:41-58`, `global_mini_player.dart:18-202`, `channel.dart:275-293` | Déplaçable, aimanté aux coins, chat conservé. Moteur IVS seulement (les autres basculent en PiP). | OK |
 | PLY-19 | Modes de chat en paysage | P1 | ➕ | `channel.dart:407-439,576-805`, `settings_store.dart:249-267` | Colonne gauche/droite à largeur réglable, overlay à opacité réglable, masqué. Cycle au double-tap, gestion de l'encoche. | OK |
-| PLY-20 | Taille du chat en portrait | P1 | ✅ | `portrait_split.dart`, `channel.dart` | Poignée entre vidéo et chat : glisser réduit la vidéo jusqu'à 40 % de la largeur (plus de chat), double tap la remet en pleine largeur ; taille mémorisée (`portraitVideoScale`). | OK |
+| PLY-20 | Taille du chat en portrait | P1 | ✅ | `portrait_split.dart`, `channel.dart` | Poignée entre vidéo et chat : glisser réduit la vidéo jusqu'à 40 % de la largeur sur tablette (au moins 300 dp, pour garder les contrôles et la latence lisibles), double tap la remet en pleine largeur ; taille mémorisée (`portraitVideoScale`). | OK |
 | PLY-21 | Disposition verticale / classique (dual format) | P1 | ❌ | — | Ni `multigroup_video` ni usher `/api/v2/`. | OK |
 | PLY-22 | Minuteur de veille | P1 | ✅ | `chat_details.dart:70-150`, `chat_store.dart:1296-1325` | — | OK |
 | PLY-23 | Sous-titres (CC) | P1 | ❌ | — | `onCue` vide (`IvsPlayerCore.kt:76`). | OK |
