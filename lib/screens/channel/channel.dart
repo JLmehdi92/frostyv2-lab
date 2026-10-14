@@ -67,6 +67,10 @@ class _VideoChatState extends State<VideoChat>
   // PiP drag state - essential only
   double _pipDragDistance = 0;
   bool _isPipDragging = false;
+
+  /// Two fingers on the landscape video: the swipe to picture-in-picture
+  /// and the tap stand down (see [PinchToFill]).
+  final _pinching = ValueNotifier(false);
   bool _isInPipTriggerZone =
       false; // Track when in trigger zone for haptic feedback
 
@@ -388,7 +392,9 @@ class _VideoChatState extends State<VideoChat>
 
   void _handlePipDragStart(DragStartDetails details) {
     // Disable drag gesture when already in PiP mode or video is not playing
-    if (_videoStore.isInPipMode || _videoStore.paused) return;
+    if (_videoStore.isInPipMode || _videoStore.paused || _pinching.value) {
+      return;
+    }
 
     _animationController.stop(); // Stop any ongoing animation
     setState(() {
@@ -400,6 +406,12 @@ class _VideoChatState extends State<VideoChat>
 
   void _handlePipDragUpdate(DragUpdateDetails details) {
     if (!_isPipDragging || _videoStore.isInPipMode || _videoStore.paused) {
+      return;
+    }
+    // A second finger came down: this is a pinch, not a swipe.
+    if (_pinching.value) {
+      setState(() => _isPipDragging = false);
+      _animateSpringBack();
       return;
     }
 
@@ -617,6 +629,8 @@ class _VideoChatState extends State<VideoChat>
       onLongPress: _videoStore.handleToggleOverlay,
       onDoubleTap: context.isLandscape ? _cycleLandscapeChatMode : null,
       onTap: () {
+        // The end of a pinch is not a tap.
+        if (_pinching.value) return;
         if (_chatStore.assetsStore.showEmoteMenu) {
           _chatStore.assetsStore.showEmoteMenu = false;
         } else {
@@ -657,7 +671,11 @@ class _VideoChatState extends State<VideoChat>
 
     // Landscape, the IVS picture can be pinched to fill or fit the screen.
     final overlay = store is IvsVideoStore && context.isLandscape
-        ? PinchToFill(onPinch: store.setFillScreen, child: overlayGestures)
+        ? PinchToFill(
+            onPinch: store.setFillScreen,
+            pinching: _pinching,
+            child: overlayGestures,
+          )
         : overlayGestures;
 
     final video = Observer(
@@ -1144,6 +1162,7 @@ class _VideoChatState extends State<VideoChat>
     }
 
     _animationController.dispose();
+    _pinching.dispose();
 
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,
