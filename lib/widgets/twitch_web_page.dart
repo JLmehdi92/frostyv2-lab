@@ -6,7 +6,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 /// A twitch.tv page in the app, signed in with the session from the login
 /// page (the WebView keeps its cookies): for what only twitch.tv itself may
 /// do, such as reporting or following.
-class TwitchWebPage extends StatelessWidget {
+class TwitchWebPage extends StatefulWidget {
   const TwitchWebPage({super.key, required this.title, required this.url});
 
   final String title;
@@ -31,8 +31,27 @@ class TwitchWebPage extends StatelessWidget {
   }
 
   @override
+  State<TwitchWebPage> createState() => _TwitchWebPageState();
+}
+
+class _TwitchWebPageState extends State<TwitchWebPage> {
+  // Made once: a new controller would reload the page on every rebuild
+  // (the keyboard opening, a rotation), losing what was typed.
+  late final _controller = WebViewController()
+    ..setJavaScriptMode(JavaScriptMode.unrestricted)
+    ..setNavigationDelegate(
+      NavigationDelegate(
+        onWebResourceError: (error) {
+          debugPrint('WebView error: ${error.description}');
+        },
+      ),
+    )
+    ..loadRequest(widget.url);
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final padding = MediaQuery.paddingOf(context);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -54,27 +73,14 @@ class TwitchWebPage extends StatelessWidget {
           icon: Icon(Icons.adaptive.arrow_back_rounded),
           onPressed: Navigator.of(context).pop,
         ),
-        title: Text(title),
+        title: Text(widget.title),
       ),
       body: Stack(
         children: [
           Positioned.fill(
             child: Padding(
-              padding: EdgeInsets.only(
-                top: MediaQuery.of(context).padding.top + kToolbarHeight,
-              ),
-              child: WebViewWidget(
-                controller: WebViewController()
-                  ..setJavaScriptMode(JavaScriptMode.unrestricted)
-                  ..setNavigationDelegate(
-                    NavigationDelegate(
-                      onWebResourceError: (error) {
-                        debugPrint('WebView error: ${error.description}');
-                      },
-                    ),
-                  )
-                  ..loadRequest(url),
-              ),
+              padding: EdgeInsets.only(top: padding.top + kToolbarHeight),
+              child: WebViewWidget(controller: _controller),
             ),
           ),
           Positioned(
@@ -84,9 +90,9 @@ class TwitchWebPage extends StatelessWidget {
             child: BlurredContainer(
               gradientDirection: GradientDirection.up,
               padding: EdgeInsets.only(
-                top: MediaQuery.of(context).padding.top,
-                left: MediaQuery.of(context).padding.left,
-                right: MediaQuery.of(context).padding.right,
+                top: padding.top,
+                left: padding.left,
+                right: padding.right,
               ),
               child: const SizedBox(height: kToolbarHeight),
             ),
