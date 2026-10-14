@@ -62,13 +62,11 @@ class _FollowedVideosScreenState extends State<FollowedVideosScreen> {
                     message: store.error ?? 'No recent videos',
                     vertical: true,
                   ),
-                  if (store.error != null) ...[
-                    const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: store.load,
-                      child: const Text('Retry'),
-                    ),
-                  ],
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: store.load,
+                    child: Text(store.error == null ? 'Refresh' : 'Retry'),
+                  ),
                 ],
               ),
             );

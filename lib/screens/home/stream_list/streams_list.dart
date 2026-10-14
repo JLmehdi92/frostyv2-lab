@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -278,6 +280,11 @@ class _StreamsListState extends State<StreamsList>
           if (statusWidget != null) {
             return CustomScrollView(
               slivers: [
+                // Past videos are worth a look most when nobody is live.
+                if (widget.listType == ListType.followed) ...[
+                  SliverTopPadding(extraTopPadding: extraTopPadding),
+                  const SliverToBoxAdapter(child: FollowedVideosTile()),
+                ],
                 SliverFillRemaining(child: Center(child: statusWidget)),
               ],
             );
@@ -453,36 +460,8 @@ class _StreamsListState extends State<StreamsList>
                           ),
                           // Add offline followed channels section for following tab
                           if (isFollowingTab) ...[
-                            SliverToBoxAdapter(
-                              child: Builder(
-                                builder: (context) => ListTile(
-                                  contentPadding: EdgeInsets.fromLTRB(
-                                    16 + MediaQuery.of(context).padding.left,
-                                    8,
-                                    16 + MediaQuery.of(context).padding.right,
-                                    0,
-                                  ),
-                                  leading: const Icon(
-                                    Icons.video_library_outlined,
-                                  ),
-                                  title: const Text('Followed videos'),
-                                  trailing: const Icon(
-                                    Icons.chevron_right_rounded,
-                                  ),
-                                  onTap: () {
-                                    final id = context
-                                        .read<AuthStore>()
-                                        .user
-                                        .details
-                                        ?.id;
-                                    if (id == null) return;
-                                    FollowedVideosScreen.open(
-                                      context,
-                                      userId: id,
-                                    );
-                                  },
-                                ),
-                              ),
+                            const SliverToBoxAdapter(
+                              child: FollowedVideosTile(),
                             ),
                             SliverToBoxAdapter(
                               child: Observer(
@@ -631,6 +610,32 @@ class HiddenStreamsBanner extends StatelessWidget {
           TextButton(onPressed: onShow, child: const Text('Show')),
         ],
       ),
+    );
+  }
+}
+
+/// Opens the newest videos of the followed channels.
+class FollowedVideosTile extends StatelessWidget {
+  const FollowedVideosTile({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final padding = MediaQuery.of(context).padding;
+    return ListTile(
+      contentPadding: EdgeInsets.fromLTRB(
+        16 + padding.left,
+        8,
+        16 + padding.right,
+        0,
+      ),
+      leading: const Icon(Icons.video_library_outlined),
+      title: const Text('Followed videos'),
+      trailing: const Icon(Icons.chevron_right_rounded),
+      onTap: () {
+        final id = context.read<AuthStore>().user.details?.id;
+        if (id == null) return;
+        unawaited(FollowedVideosScreen.open(context, userId: id));
+      },
     );
   }
 }
