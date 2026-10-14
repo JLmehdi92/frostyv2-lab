@@ -10,6 +10,7 @@ import kotlin.math.roundToInt
 
 class MainActivity : PipCallbackHelperActivityWrapper() {
     private var textureManager: IvsTextureManager? = null
+    private var backgroundAudio: BackgroundAudioBridge? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,6 +23,15 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
 
         // Texture-backed IVS players (channel screen, mini player and PiP).
         textureManager = IvsTextureManager(this, flutterEngine.renderer, messenger)
+
+        // The media notification that keeps a stream's sound in the background.
+        backgroundAudio = BackgroundAudioBridge(applicationContext, messenger)
+    }
+
+    override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
+        backgroundAudio?.dispose()
+        backgroundAudio = null
+        super.cleanUpFlutterEngine(flutterEngine)
     }
 
     /**
