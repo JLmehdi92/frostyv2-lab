@@ -11,6 +11,7 @@ import kotlin.math.roundToInt
 class MainActivity : PipCallbackHelperActivityWrapper() {
     private var textureManager: IvsTextureManager? = null
     private var backgroundAudio: BackgroundAudioBridge? = null
+    private var audioFocus: AudioFocusBridge? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,11 +27,16 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
 
         // The media notification that keeps a stream's sound in the background.
         backgroundAudio = BackgroundAudioBridge(applicationContext, messenger)
+
+        // Calls and other apps pause the stream; unplugged headphones too.
+        audioFocus = AudioFocusBridge(applicationContext, messenger)
     }
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
         backgroundAudio?.dispose()
         backgroundAudio = null
+        audioFocus?.dispose()
+        audioFocus = null
         super.cleanUpFlutterEngine(flutterEngine)
     }
 
