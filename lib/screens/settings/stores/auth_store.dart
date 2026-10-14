@@ -64,6 +64,25 @@ abstract class AuthBase with Store {
   @readonly
   String? _error;
 
+  /// Given the login page's cookies when it hands back to the app, to keep
+  /// the twitch.tv session (see `WebSessionStore`). Set at startup.
+  Future<bool> Function(String cookies)? onTwitchCookies;
+
+  /// Reads the login page's cookies (where twitch.tv keeps its session)
+  /// before the page closes. Never throws.
+  Future<void> _captureTwitchCookies(WebViewController controller) async {
+    final onCookies = onTwitchCookies;
+    if (onCookies == null) return;
+    try {
+      final cookies = await controller.runJavaScriptReturningResult(
+        'document.cookie',
+      );
+      await onCookies(cookies.toString());
+    } catch (e) {
+      debugPrint('Twitch session capture failed: $e');
+    }
+  }
+
   /// Navigation handler for the login webview. Fires on every navigation request (whenever the URL changes).
   FutureOr<NavigationDecision> handleNavigation({
     required NavigationRequest request,
@@ -113,8 +132,13 @@ abstract class AuthBase with Store {
     return webViewController
       ..setNavigationDelegate(
         NavigationDelegate(
-          onNavigationRequest: (request) =>
-              handleNavigation(request: request, routeAfter: routeAfter),
+          onNavigationRequest: (request) async {
+            // Back to twitch.tv: the session cookie is set by now.
+            if (request.url.startsWith('https://twitch.tv/login')) {
+              await _captureTwitchCookies(webViewController);
+            }
+            return handleNavigation(request: request, routeAfter: routeAfter);
+          },
           onWebResourceError: (error) {
             debugPrint('Auth WebView error: ${error.description}');
           },

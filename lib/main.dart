@@ -24,6 +24,7 @@ import 'package:frosty/apis/twitch_community_highlights_service.dart';
 import 'package:frosty/apis/twitch_directory_service.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
+import 'package:frosty/apis/twitch_web_session_service.dart';
 import 'package:frosty/apis/unauthorized_interceptor.dart';
 import 'package:frosty/cache_manager.dart';
 import 'package:frosty/firebase_options.dart';
@@ -41,6 +42,7 @@ import 'package:frosty/screens/vod/vod_screen.dart';
 import 'package:frosty/services/realtime/twitch_realtime_client.dart';
 import 'package:frosty/stores/global_assets_store.dart';
 import 'package:frosty/stores/mini_player_store.dart';
+import 'package:frosty/stores/web_session_store.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/link_router.dart';
@@ -144,6 +146,8 @@ void main() async {
     anonymousGqlDio,
   );
   final twitchDirectoryService = TwitchDirectoryService(anonymousGqlDio);
+  // The viewer's twitch.tv session never travels on the Helix client.
+  final twitchWebSessionService = TwitchWebSessionService(anonymousGqlDio);
 
   // One anonymous realtime connection (Hermes) for public Twitch topics such
   // as the hype train. It connects only when something subscribes and
@@ -172,6 +176,14 @@ void main() async {
   dioClient.interceptors.add(UnauthorizedInterceptor(authStore));
 
   await authStore.init();
+
+  // The twitch.tv session for account features, kept from the login page.
+  final webSessionStore = WebSessionStore(
+    service: twitchWebSessionService,
+    authStore: authStore,
+  );
+  authStore.onTwitchCookies = webSessionStore.connectFromCookies;
+  unawaited(webSessionStore.init());
   FirebaseCrashlytics.instance.setCustomKey('is_logged_in', authStore.isLoggedIn);
   if (authStore.isLoggedIn && authStore.user.details != null) {
     FirebaseCrashlytics.instance.setUserIdentifier(authStore.user.details!.id);
@@ -181,6 +193,7 @@ void main() async {
     MultiProvider(
       providers: [
         Provider<AuthStore>.value(value: authStore),
+        Provider<WebSessionStore>.value(value: webSessionStore),
         Provider<SettingsStore>.value(value: settingsStore),
         Provider<TwitchApi>.value(value: twitchApiService),
         Provider<BTTVApi>.value(value: bttvApiService),
