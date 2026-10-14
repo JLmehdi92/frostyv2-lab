@@ -232,7 +232,7 @@
 | SOC-12 | Bloquer / ignorer | P0 | ✅ | `twitch_api.dart:335-398`, `blocked_users.dart`, `user_actions_modal.dart:57-67`, `chat_store.dart:531-541` | Pas de motif. Le blocage filtre le chat, pas les listes de streams. | OK |
 | SOC-13 | Carte utilisateur (viewer card) | P0 | ✅ | `chat_user_modal.dart`, `user_card_info.dart`, `chat_moderation_bar.dart` | Avatar, badges du dernier message (mois d'abonnement), date de création du compte, date de follow pour les mods, messages de la session, Reply, Whisper, Profil, et dans « More » vidéos, Block, Follow (twitch.tv), Report. Actions de modération (MOD-01). | OK |
 | SOC-14 | Signaler | P1 | ⚠️ | `user_actions_modal.dart:98-151` | Utilisateur seulement, via la page web `twitch.tv/<login>/report`. | OK |
-| SOC-15 | Partager | P1 | ❌ | — | Pas de `share_plus`. | OK |
+| SOC-15 | Partager | P1 | ✅ | `share_link.dart` (share_plus 12.0.2), `user_actions_modal.dart`, `channel_profile_screen.dart`, `clip_info_panel.dart`, `vod_overlay.dart` | Feuille de partage du système pour une chaîne (menu et profil), un clip et une vidéo au moment en cours ; « Copy link » reste à côté. Sans feuille de partage, le lien est copié. | OK |
 | SOC-16 | Stories (côté viewer) | P2 | ❌ | — | — | GQL privé |
 | SOC-17 | Réactions | P2 | ❌ | — | — | GQL privé |
 | SOC-18 | Commentaires de clips | P2 | ❌ | — | — | GQL privé |
@@ -433,25 +433,25 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Chat (CHT) | 24 | 6 | 12 | 6 | 48 |
 | Interactions communautaires (INT) | 4 | 4 | 23 | 0 | 31 |
 | Modération (MOD) | 9 | 1 | 21 | 0 | 31 |
-| Social & notifications (SOC) | 4 | 5 | 13 | 0 | 22 |
+| Social & notifications (SOC) | 5 | 5 | 12 | 0 | 22 |
 | Découverte & recherche (DSC) | 5 | 4 | 13 | 0 | 22 |
 | Profil de chaîne & contenus (VOD / clips) (PRF) | 5 | 6 | 18 | 0 | 29 |
 | Monétisation (MON) | 0 | 0 | 15 | 0 | 15 |
 | Compte & réglages (ACC) | 4 | 5 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 4 | 6 | 7 | 0 | 17 |
-| **Total** | **81** | **41** | **187** | **8** | **317** |
+| **Total** | **82** | **41** | **186** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 40 | 14 | 2 | 4 | 60 |
-| P1 | 35 | 20 | 49 | 4 | 108 |
+| P1 | 36 | 20 | 48 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **81** | **41** | **187** | **8** | **317** |
+| **Total** | **82** | **41** | **186** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 10 | 29 | 33 | 72 |
+| OK | 10 | 28 | 33 | 71 |
 | GQL privé | 6 | 29 | 61 | 96 |
 | Compte requis | 0 | 11 | 12 | 23 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
