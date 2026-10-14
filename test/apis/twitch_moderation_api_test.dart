@@ -275,4 +275,67 @@ void main() {
       );
     });
   });
+
+  group('getFollowedAt', () {
+    const query = {'broadcaster_id': '11', 'user_id': '33'};
+
+    test('the follow date of a follower', () async {
+      dioAdapter.onGet(
+        '$helix/channels/followers',
+        (server) => server.reply(200, {
+          'total': 8,
+          'data': [
+            {
+              'user_id': '33',
+              'user_login': 'troll',
+              'user_name': 'Troll',
+              'followed_at': '2023-01-02T03:04:05Z',
+            },
+          ],
+          'pagination': <String, Object>{},
+        }),
+        queryParameters: query,
+      );
+
+      expect(
+        await api.getFollowedAt(broadcasterId: '11', userId: '33'),
+        DateTime.utc(2023, 1, 2, 3, 4, 5),
+      );
+    });
+
+    test('not following, or only the total given: unknown', () async {
+      dioAdapter.onGet(
+        '$helix/channels/followers',
+        (server) => server.reply(200, {'total': 8, 'data': []}),
+        queryParameters: query,
+      );
+      expect(
+        await api.getFollowedAt(broadcasterId: '11', userId: '33'),
+        isNull,
+      );
+    });
+
+    test('someone else answered: unknown', () async {
+      dioAdapter.onGet(
+        '$helix/channels/followers',
+        (server) => server.reply(200, {
+          'data': [
+            {'user_id': '44', 'followed_at': '2023-01-02T03:04:05Z'},
+          ],
+        }),
+        queryParameters: query,
+      );
+      expect(
+        await api.getFollowedAt(broadcasterId: '11', userId: '33'),
+        isNull,
+      );
+    });
+
+    test('refuses ids that are not Twitch ids', () {
+      expect(
+        () => api.getFollowedAt(broadcasterId: '11', userId: 'x'),
+        throwsArgumentError,
+      );
+    });
+  });
 }

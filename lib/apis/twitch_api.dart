@@ -582,6 +582,28 @@ class TwitchApi extends BaseApiClient {
     );
   }
 
+  /// When [userId] followed [broadcasterId]; null when they do not, and
+  /// when Twitch only gives the total (the viewer does not moderate there,
+  /// or the token lacks `moderator:read:followers`).
+  Future<DateTime?> getFollowedAt({
+    required String broadcasterId,
+    required String userId,
+  }) async {
+    final data = await get<JsonMap>(
+      '/channels/followers',
+      queryParameters: {
+        'broadcaster_id': _checkId(broadcasterId, 'broadcasterId'),
+        'user_id': _checkId(userId, 'userId'),
+      },
+    );
+    final followers = data['data'];
+    if (followers is! List || followers.isEmpty) return null;
+    final follower = followers.first;
+    if (follower is! Map || follower['user_id'] != userId) return null;
+    final followedAt = follower['followed_at'];
+    return followedAt is String ? DateTime.tryParse(followedAt) : null;
+  }
+
   /// Twitch's bounds for the slow-mode wait and the follow age.
   static const minSlowWait = Duration(seconds: 3);
   static const maxSlowWait = Duration(seconds: 120);
