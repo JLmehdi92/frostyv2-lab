@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/models/channel.dart';
@@ -131,6 +133,98 @@ void main() {
 
     expect(store.streams.map((s) => s.userId), ['1', '2', '3']);
     expect(store.error, isNull);
+    store.dispose();
+  });
+
+  test('a page shown in full keeps showing as more pages load', () async {
+    settings.hiddenContentLabels = ['SexualThemes'];
+    when(
+      () => api.getTopStreams(
+        cursor: any(named: 'cursor'),
+        language: any(named: 'language'),
+      ),
+    ).thenAnswer((invocation) async {
+      final cursor = invocation.namedArguments[#cursor] as String?;
+      return cursor == null
+          ? StreamsTwitch([stream('1'), stream('2')], {'cursor': 'p2'})
+          : StreamsTwitch([stream('3')], {});
+    });
+    final store = build(ListType.top);
+    await settle();
+    expect(store.streams.map((s) => s.userId), ['2']);
+
+    store.showLabeledStreams();
+    await store.getStreams();
+    expect(store.streams.map((s) => s.userId), ['1', '2', '3']);
+
+    await store.refreshStreams();
+    expect(store.streams.map((s) => s.userId), ['2']);
+    expect(store.hiddenByLabels, 1);
+    store.dispose();
+  });
+
+  test('pages hidden in full are skipped to the next ones', () async {
+    settings.hiddenContentLabels = ['SexualThemes'];
+    when(
+      () => api.getTopStreams(
+        cursor: any(named: 'cursor'),
+        language: any(named: 'language'),
+      ),
+    ).thenAnswer((invocation) async {
+      final cursor = invocation.namedArguments[#cursor] as String?;
+      return cursor == null
+          ? StreamsTwitch([stream('1')], {'cursor': 'p2'})
+          : StreamsTwitch([stream('2')], {'cursor': 'p3'});
+    });
+    final store = build(ListType.top);
+    await settle();
+
+    expect(store.streams.map((s) => s.userId), ['2']);
+    store.dispose();
+  });
+
+  test('a list hidden in full stops looking after a few pages', () async {
+    settings.hiddenContentLabels = ['SexualThemes'];
+    var pages = 0;
+    when(
+      () => api.getTopStreams(
+        cursor: any(named: 'cursor'),
+        language: any(named: 'language'),
+      ),
+    ).thenAnswer((_) async {
+      pages++;
+      return StreamsTwitch([stream('1')], {'cursor': 'more'});
+    });
+    final store = build(ListType.top);
+    await settle();
+    await settle();
+
+    expect(store.streams, isEmpty);
+    expect(store.hiddenByLabels, greaterThan(0));
+    expect(pages, lessThanOrEqualTo(4));
+    store.dispose();
+  });
+
+  test('labels read for an older list are dropped', () async {
+    final pending = Completer<Map<String, Channel>>();
+    settings.hiddenContentLabels = ['Gambling'];
+    when(() => api.getChannelsByIds(any())).thenAnswer((_) => pending.future);
+    final store = build(ListType.top);
+    await settle();
+
+    when(() => api.getChannelsByIds(any())).thenAnswer(
+      (_) async => {
+        '1': channel('1', ['SexualThemes']),
+      },
+    );
+    settings.hiddenContentLabels = ['SexualThemes'];
+    await settle();
+    pending.complete({
+      '3': channel('3', ['Gambling']),
+    });
+    await settle();
+
+    expect(store.streams.map((s) => s.userId), ['2', '3']);
     store.dispose();
   });
 }

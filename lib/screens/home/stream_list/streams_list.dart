@@ -246,6 +246,22 @@ class _StreamsListState extends State<StreamsList>
                   SliverBottomPadding(),
                 ],
               );
+            } else if (_listStore.hiddenByLabels > 0) {
+              // Everything loaded was hidden: say so, and offer it.
+              statusWidget = Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const AlertMessage(
+                    message: 'Every stream here has a label you hide',
+                    vertical: true,
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: _listStore.showLabeledStreams,
+                    child: const Text('Show them'),
+                  ),
+                ],
+              );
             } else {
               statusWidget = AlertMessage(
                 message: switch (widget.listType) {

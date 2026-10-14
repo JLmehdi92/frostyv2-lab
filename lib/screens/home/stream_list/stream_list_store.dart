@@ -293,6 +293,7 @@ abstract class ListStoreBase with Store {
   @action
   Future<void> getStreams() async {
     final generation = _streamsGeneration;
+    if (_streamsCursor == null) _pagesHiddenInFull = 0;
     _isAllStreamsLoading = true;
 
     try {
@@ -377,7 +378,23 @@ abstract class ListStoreBase with Store {
 
     _isAllStreamsLoading = false;
     unawaited(_refreshHypeTrains());
+
+    // Nothing to show when every stream so far was hidden for its labels,
+    // and nothing scrolls to ask for more: ask now, a few pages at most.
+    if (generation == _streamsGeneration &&
+        _error == null &&
+        hiddenByLabels > 0 &&
+        _streamsCursor != null &&
+        _pagesHiddenInFull < _maxPagesHiddenInFull &&
+        streams.isEmpty) {
+      _pagesHiddenInFull++;
+      await getStreams();
+    }
   }
+
+  /// Pages asked for in a row because the ones before were hidden in full.
+  var _pagesHiddenInFull = 0;
+  static const _maxPagesHiddenInFull = 3;
 
   /// Which followed streams run a hype train (never throws).
   Future<void> _refreshHypeTrains() async {
