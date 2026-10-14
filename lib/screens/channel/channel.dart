@@ -30,6 +30,7 @@ import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/channel_videos.dart';
 import 'package:frosty/services/playback_focus.dart';
+import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:frosty/stores/whisper_store.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
@@ -243,6 +244,10 @@ class _VideoChatState extends State<VideoChat>
         twitchApi: context.twitchApi,
         authStore: context.authStore,
         settingsStore: context.settingsStore,
+        // EventSub needs a logged-in viewer; otherwise polling only.
+        listenEvents: context.authStore.isLoggedIn
+            ? context.read<TwitchEventSubClient>().listen
+            : null,
       );
     }
     if (engine == PlayerEngine.nativeLowLatency) {

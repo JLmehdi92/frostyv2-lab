@@ -226,6 +226,7 @@ void main() async {
         Provider<TwitchDirectoryService>.value(value: twitchDirectoryService),
         Provider<TwitchRealtimeClient>.value(value: realtimeClient),
         Provider<GlobalAssetsStore>.value(value: globalAssetsStore),
+        Provider<TwitchEventSubClient>.value(value: eventSubClient),
         Provider<WhisperStore>.value(value: whisperStore),
         Provider<MiniPlayerStore>(create: (_) => MiniPlayerStore()),
       ],
