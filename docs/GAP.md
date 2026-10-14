@@ -15,6 +15,7 @@
 | 2026-10-13 | épopée E2 « clips » | PRF-17, PRF-18 ✅ ; CHT-45 ⚠️ ; PRF-19 (compte requis) ; MSC-01 (remarques). Comptes recalculés. Lecture à valider sur appareil. |
 | 2026-10-13 | épopée E7 « chat » (1re partie) | CHT-03, 06, 12, 15, 18 ✅ ; CHT-05, 17, 28 ⚠️ (remarques). Comptes recalculés. À valider sur appareil. |
 | 2026-10-13 | épopée E6 « profil de chaîne » | PRF-01, 02, 03, 04, 05, 28 ✅ ; PRF-25 ⚠️ (remarque). Comptes recalculés. Affichage à valider sur appareil. |
+| 2026-10-14 | épopée E9 « compte » (1re partie) | SOC-01, INT-04 ⚠️ ; INT-01, INT-02 (remarques). Suivre, voter, parier et points passent par les pages twitch.tv dans l'appli, sans GQL privé ni contournement de `Client-Integrity`. Comptes recalculés. |
 | 2026-10-14 | épopée E10 « réglages et lecteur » (1re partie) | ACC-04, PLY-07, PLY-12, PLY-20 ✅ ; ACC-12, PLY-23 ⚠️ (remarques). Comptes recalculés. Gestes à valider sur appareil. |
 | 2026-10-14 | épopée E7 « chat » (2e partie) | CHT-10, CHT-25, CHT-45 ✅ ; CHT-22 ⚠️ (remarque). Comptes recalculés. À valider sur appareil. |
 | 2026-10-13 | épopée E8 « découverte » | DSC-04, DSC-05, DSC-06 ✅ ; DSC-08, DSC-09 ⚠️ (remarques). Comptes recalculés. Affichage à valider sur appareil. |
@@ -144,10 +145,10 @@
 
 | ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
-| INT-01 | Sondages (vote) | P1 | ⚠️ | `community_highlights/widgets/highlight_cards.dart` | Lecture en direct (épopée E5) : question, barres et %, votes, temps restant, résultats finaux puis disparition. GQL anonyme `viewablePoll` + sujet Hermes public `polls.<id>`. Voter exige la session web du compte (E9). | GQL privé |
-| INT-02 | Prédictions (parier) | P1 | ⚠️ | `community_highlights/widgets/highlight_cards.dart` | Lecture en direct (E5) : 2 à 10 issues avec couleurs, points, participants, cote « 1:x » et meilleurs parieurs ; verrouillée, en attente, gagnante, remboursée. GQL anonyme + `predictions-channel-v1.<id>`. Parier exige la session web du compte (E9). | GQL privé |
+| INT-01 | Sondages (vote) | P1 | ⚠️ | `community_highlights/widgets/highlight_cards.dart` | Lecture en direct (épopée E5) : question, barres et %, votes, temps restant, résultats finaux puis disparition. GQL anonyme `viewablePoll` + sujet Hermes public `polls.<id>`. Voter : bouton « Vote on Twitch » sur la carte ouverte, qui ouvre le chat de la chaîne sur twitch.tv dans l'appli (E9) ; pas de vote natif (mutation réservée à twitch.tv, protégée par `Client-Integrity`). | GQL privé |
+| INT-02 | Prédictions (parier) | P1 | ⚠️ | `community_highlights/widgets/highlight_cards.dart` | Lecture en direct (E5) : 2 à 10 issues avec couleurs, points, participants, cote « 1:x » et meilleurs parieurs ; verrouillée, en attente, gagnante, remboursée. GQL anonyme + `predictions-channel-v1.<id>`. Parier exige la session web du compte (E9). Parier : bouton « Predict on Twitch » vers le chat twitch.tv dans l'appli (E9). | GQL privé |
 | INT-03 | Conditions des prédictions | P1 | ❌ | — | — | GQL privé |
-| INT-04 | Points de chaîne : solde et gains | P1 | ❌ | — | Aucune API publique pour le solde. | GQL privé |
+| INT-04 | Points de chaîne : solde et gains | P1 | ⚠️ | `chat_details.dart` (menu « More ») | Entrée « Channel points, polls and predictions » : le chat de la chaîne sur twitch.tv dans l'appli (solde, bonus, récompenses). Pas d'affichage natif (aucune API publique pour le solde). | GQL privé |
 | INT-05 | Bonus à réclamer | P1 | ❌ | — | La réclamation exige en pratique `Client-Integrity` : risque élevé. | GQL privé |
 | INT-06 | Récompenses intégrées | P1 | ❌ | — | Les messages surlignés reçus sont rendus (`chat_message.dart:222`), mais on ne peut pas échanger. | GQL privé |
 | INT-07 | Récompenses personnalisées | P1 | ❌ | — | Helix `/channel_points/custom_rewards` est réservé au diffuseur. | GQL privé |
@@ -216,7 +217,7 @@
 
 | ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
-| SOC-01 | Suivre / ne plus suivre | P0 | ❌ | — | Helix n'a plus d'endpoint de follow depuis 2023. La mutation exige probablement `Client-Integrity` : **risque élevé**. | GQL privé |
+| SOC-01 | Suivre / ne plus suivre | P0 | ⚠️ | `user_actions_modal.dart`, `widgets/twitch_web_page.dart` | « Follow X on Twitch » dans le menu d'actions d'une chaîne : la page de la chaîne sur twitch.tv dans l'appli, connectée. Pas de bouton natif : Helix n'a plus d'endpoint de follow et la mutation GQL exige `Client-Integrity` (non contourné). | GQL privé |
 | SOC-02 | Liste des chaînes suivies | P0 | ✅ | `twitch_api.dart:177-207`, `streams_list.dart:102,369-395` | Live et hors ligne (« followed since »). Tri par spectateurs seulement. | OK |
 | SOC-03 | Page Following | P0 | ⚠️ | `streams_list.dart:136-160,262-311,369-395` | Épinglés (➕), live, hors ligne. Ni recommandés ni catégories suivies. | GQL privé |
 | SOC-04 | Suivre une catégorie | P1 | ❌ | — | — | GQL privé |
@@ -429,23 +430,23 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 |---|---|---|---|---|---|
 | Lecture vidéo (PLY) | 11 | 7 | 14 | 1 | 33 |
 | Chat (CHT) | 22 | 8 | 12 | 6 | 48 |
-| Interactions communautaires (INT) | 3 | 3 | 25 | 0 | 31 |
+| Interactions communautaires (INT) | 3 | 4 | 24 | 0 | 31 |
 | Modération (MOD) | 0 | 0 | 31 | 0 | 31 |
-| Social & notifications (SOC) | 2 | 3 | 17 | 0 | 22 |
+| Social & notifications (SOC) | 2 | 4 | 16 | 0 | 22 |
 | Découverte & recherche (DSC) | 5 | 4 | 13 | 0 | 22 |
 | Profil de chaîne & contenus (VOD / clips) (PRF) | 5 | 6 | 18 | 0 | 29 |
 | Monétisation (MON) | 0 | 0 | 15 | 0 | 15 |
 | Compte & réglages (ACC) | 4 | 5 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 3 | 7 | 7 | 0 | 17 |
-| **Total** | **63** | **42** | **204** | **8** | **317** |
+| **Total** | **63** | **44** | **202** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| P0 | 26 | 17 | 13 | 4 | 60 |
-| P1 | 31 | 18 | 55 | 4 | 108 |
+| P0 | 26 | 18 | 12 | 4 | 60 |
+| P1 | 31 | 19 | 54 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **63** | **42** | **204** | **8** | **317** |
+| **Total** | **63** | **44** | **202** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|

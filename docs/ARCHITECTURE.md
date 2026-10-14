@@ -176,6 +176,9 @@ Portrait : vidéo 16:9 au-dessus du chat (l.806-836). Paysage (l.576-805) : chat
 - **Store** `ChannelProfileStore` : profil (une requête à la fois), en-tête Helix `/users` si le GQL échoue, programme chargé à la première ouverture de l'onglet.
 - **Écran** `ChannelProfileScreen` : `NestedScrollView` (l'en-tête défile, la barre d'onglets reste), onglets Accueil, À propos, Programme, Vidéos (`ChannelVideosTab`, extrait de `ChannelVideosScreen`, avec sa progression) et Clips (`ChannelClipsTab`), en mode `nested` (contrôleur partagé, sans barre de défilement ni bouton « haut »). Ouvert depuis une chaîne suivie hors ligne, un résultat de recherche hors ligne, l'avatar sous la vidéo (`fromChannel` : Regarder revient au lecteur), la carte d'utilisateur du chat, le menu d'actions (« Profile ») et les liens `/<login>/about`, `/schedule`.
 
+### Compte (E9)
+- Aucune action de compte par le GQL privé. `TwitchWebPage` (`widgets/twitch_web_page.dart`) ouvre une page twitch.tv (hôte vérifié) dans un WebView qui partage les cookies de la page de connexion : « Follow X on Twitch » (menu d'actions d'une chaîne), « Vote/Predict on Twitch » (cartes de sondage et de prédiction ouvertes, `HighlightCardContext.onTakePart`, chat `/popout/<login>/chat`), « Channel points, polls and predictions » (menu « More » du chat), et le signalement.
+
 ### Réglages et gestes (E10)
 - Déconnexion : `AuthStore.logout` révoque le jeton utilisateur (`TwitchApi.revokeToken`, formulaire `client_id` + `token`, 5 s max, jamais bloquant) avant de l'effacer.
 - `settingsStore.startTab` (`HomeTab`) choisit l'onglet d'ouverture ; `HomeStore` y revient à la connexion ou déconnexion (`HomeTab.indexWhen`, sans Following hors connexion).
