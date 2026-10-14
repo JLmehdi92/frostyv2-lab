@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_message.dart';
+import 'package:frosty/screens/channel/chat/widgets/chat_moderation_bar.dart';
 import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
 import 'package:frosty/screens/vod/channel_videos.dart';
 import 'package:frosty/utils.dart';
@@ -114,6 +115,27 @@ class _ChatUserModalState extends State<ChatUserModal> {
                 ),
               ],
             ),
+          ),
+          Observer(
+            builder: (context) {
+              final store = widget.chatStore;
+              final login = widget.username.toLowerCase();
+              // Twitch refuses actions on the broadcaster and on oneself.
+              if (!store.canModerate ||
+                  login == store.channelName.toLowerCase() ||
+                  login == store.auth.user.details?.login.toLowerCase()) {
+                return const SizedBox.shrink();
+              }
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: ChatModerationBar(
+                  login: widget.username,
+                  name: name,
+                  onModerate: (command) =>
+                      store.moderate(command, userId: widget.userId),
+                ),
+              );
+            },
           ),
           const Divider(indent: 12, endIndent: 12),
           Expanded(

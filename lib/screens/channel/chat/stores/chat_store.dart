@@ -342,18 +342,8 @@ abstract class ChatStoreBase with Store {
         say('Commands: ${[for (final c in commands) c.usage].join(', ')}');
         textController.clear();
       case ModerationCommand():
-        if (me == null) return say('Log in to moderate.');
-        if (!canModerate) {
-          return say('Only moderators can use moderator commands.');
-        }
-        final outcome = await ChatModeration(
-          api: twitchApi,
-          broadcasterId: channelId,
-          moderatorId: me,
-        ).run(command);
-        if (_shouldDisconnect) return;
-        say(outcome.message);
-        if (outcome.ok) textController.clear();
+        final outcome = await moderate(command);
+        if (outcome?.ok ?? false) textController.clear();
       case UnsupportedCommand(:final message):
         say(message);
       case ColorCommand(:final color):
@@ -402,6 +392,34 @@ abstract class ChatStoreBase with Store {
           }
         }
     }
+  }
+
+  /// Runs [command] in this chat as the viewer and says the outcome in
+  /// chat. [userId] is the target's id when already known. Null when the
+  /// chat closed before it ended.
+  Future<ModerationOutcome?> moderate(
+    ModerationCommand command, {
+    String? userId,
+  }) async {
+    final me = auth.user.details?.id;
+    final ModerationOutcome outcome;
+    if (me == null) {
+      outcome = (ok: false, message: 'Log in to moderate.');
+    } else if (!canModerate) {
+      outcome = (
+        ok: false,
+        message: 'Only moderators can use moderator commands.',
+      );
+    } else {
+      outcome = await ChatModeration(
+        api: twitchApi,
+        broadcasterId: channelId,
+        moderatorId: me,
+      ).run(command, userId: userId);
+      if (_shouldDisconnect) return null;
+    }
+    messageBuffer.add(IRCMessage.createNotice(message: outcome.message));
+    return outcome;
   }
 
   void _resetOwnRestrictions() {
