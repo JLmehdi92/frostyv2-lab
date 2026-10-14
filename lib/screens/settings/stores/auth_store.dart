@@ -165,7 +165,7 @@ abstract class AuthBase with Store {
                 'chat:read chat:edit user:read:follows user:read:blocked_users user:manage:blocked_users user:manage:chat_color '
                 'moderator:manage:banned_users moderator:manage:chat_messages '
                 'moderator:manage:chat_settings moderator:manage:warnings '
-                'moderator:read:followers',
+                'moderator:read:followers user:manage:whispers',
             'force_verify': 'true',
           },
         ),
