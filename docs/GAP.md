@@ -64,7 +64,7 @@
 | PLY-07 | Plein écran, ajuster, rogner, zoom | P0 | ✅ | `video_overlay.dart`, `ivs_video.dart`, `pinch_to_fill.dart`, `channel.dart` | Plein écran immersif, ajuster/remplir par bouton ou en pinçant la vidéo (écarter remplit, pincer ajuste ; événements bruts, sans gêner tap, double tap ni glisser vers le PiP). IVS en paysage seulement. | OK |
 | PLY-08 | Overlay de métadonnées | P0 | ✅ | `stream_info_bar.dart:13-220`, `video_overlay.dart:424-472` | Titre, catégorie, uptime, spectateurs. Tags absents. | OK |
 | PLY-09 | État du live en temps réel | P0 | ✅ | `live_state_watcher.dart`, `ivs_video_store.dart` (`_onLiveChange`), `channel.dart` | Connecté : EventSub `stream.online`/`stream.offline` (aucun scope). Le lecteur hors ligne redémarre tout seul quand la chaîne repasse en live (3 s pour que la playlist existe), l'état hors ligne s'affiche sans attendre un sondage, et après une coupure il vérifie s'il a manqué un retour. Anonyme : sondage Helix comme avant (le sujet Hermes `video-playback-by-id` reste une piste). | OK |
-| PLY-10 | Fin de diffusion, chaîne hors ligne | P0 | ⚠️ | `ivs_recovery.dart`, `ivs_video_store.dart` (`4d50b89`) | Une erreur « non disponible » confirmée hors ligne par Helix affiche l'état hors ligne au lieu de basculer sur la WebView. Reste : pas d'écran de fin mais un bouton « Past broadcasts » hors ligne (`46b4ed2`) ; une chaîne déjà hors ligne à l'ouverture bascule toujours sur la WebView. | OK |
+| PLY-10 | Fin de diffusion, chaîne hors ligne | P0 | ✅ | `ivs_recovery.dart`, `ivs_video_store.dart` (`_settleFailedStart`, `offlineAtStart`), `channel.dart` | Une erreur « non disponible » confirmée hors ligne par Helix affiche l'état hors ligne au lieu de basculer sur la WebView, et une chaîne déjà hors ligne à l'ouverture garde aussi le lecteur natif (seulement si Helix confirme : sinon WebView). Bouton « Past broadcasts » (`46b4ed2`) ; redémarrage automatique au retour en live si connecté (PLY-09). | OK |
 | PLY-11 | Erreurs et relance du flux | P0 | ✅ | `ivs_recovery.dart`, `ivs_video_store.dart`, `channel.dart` (`4d50b89`) | Erreurs classées, relance 1/2/4 s sur le même lecteur avec nouvelle URL, « ↻ n/3 », jeton neuf si refusé, repli WebView après 3 échecs en 60 s ou erreur fatale ; IVS seulement sur Android. À valider sur appareil. | OK |
 | PLY-12 | Audio seul | P1 | ✅ | `twitch_stream_service.dart` (`allow_audio_only`), `quality_selection.dart`, `ivs_video.dart` | Qualité « Audio only » dans le menu (comme l'appli officielle : usher `allow_audio_only=true`, jamais choisie par l'adaptatif), pastille sur l'image ; non mémorisée d'un stream à l'autre. Pas encore en arrière-plan (PLY-14). | OK |
 | PLY-13 | Chat seul | P1 | ✅ | `settings_store.dart:77-79`, `channel.dart:492-573` | Réglage global « Enable video ». Pas de paramètre de deep link. | OK |
@@ -429,7 +429,7 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 
 | Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| Lecture vidéo (PLY) | 13 | 6 | 13 | 1 | 33 |
+| Lecture vidéo (PLY) | 14 | 5 | 13 | 1 | 33 |
 | Chat (CHT) | 23 | 7 | 12 | 6 | 48 |
 | Interactions communautaires (INT) | 3 | 4 | 24 | 0 | 31 |
 | Modération (MOD) | 9 | 1 | 21 | 0 | 31 |
@@ -440,23 +440,23 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Compte & réglages (ACC) | 4 | 5 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 4 | 6 | 7 | 0 | 17 |
-| **Total** | **78** | **41** | **190** | **8** | **317** |
+| **Total** | **79** | **40** | **190** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| P0 | 38 | 14 | 4 | 4 | 60 |
+| P0 | 39 | 13 | 4 | 4 | 60 |
 | P1 | 34 | 20 | 50 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **78** | **41** | **190** | **8** | **317** |
+| **Total** | **79** | **40** | **190** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 12 | 30 | 33 | 75 |
+| OK | 11 | 30 | 33 | 74 |
 | GQL privé | 6 | 29 | 61 | 96 |
 | Compte requis | 0 | 11 | 12 | 23 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
 
-Lecture : sur 60 lignes P0, **42** sont entièrement couvertes (38 ✅ et 4 ➕), 14 sont partielles et 4 absentes. Les lignes P0 absentes sont la cloche, les notifications et le centre de notifications (SOC-05/06/07) et l'avertissement côté viewer (CHT-13). Les ➕ sont le délai de chat synchronisé, la révélation des messages supprimés, le multi-chat et le chat partagé, les emotes 7TV/BTTV/FFZ, la disposition paysage et le thème avec accent.
+Lecture : sur 60 lignes P0, **43** sont entièrement couvertes (39 ✅ et 4 ➕), 13 sont partielles et 4 absentes. Les lignes P0 absentes sont la cloche, les notifications et le centre de notifications (SOC-05/06/07) et l'avertissement côté viewer (CHT-13). Les ➕ sont le délai de chat synchronisé, la révélation des messages supprimés, le multi-chat et le chat partagé, les emotes 7TV/BTTV/FFZ, la disposition paysage et le thème avec accent.
 
 ## 3. Lecture / latence : écarts concrets avec le lecteur officiel
 
