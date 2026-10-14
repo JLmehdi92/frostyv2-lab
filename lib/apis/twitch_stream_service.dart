@@ -178,6 +178,17 @@ class TwitchStreamService extends BaseApiClient {
   /// Dio (i.e. it was not injected from the shared app client).
   void close() => _http.close(force: true);
 
+  /// Asks for [userLogin]'s playback token ahead of the player (a press on
+  /// a stream card), so opening the channel finds it cached or on its way.
+  /// Never throws: the player asks again if this failed.
+  Future<void> preload(String userLogin) async {
+    try {
+      await _getAccessToken(userLogin);
+    } catch (e) {
+      debugPrint('Playback token preload failed: $e');
+    }
+  }
+
   Future<PlaybackAccessToken> _getAccessToken(
     String login, {
     bool forceFresh = false,
@@ -189,8 +200,23 @@ class TwitchStreamService extends BaseApiClient {
       } else if (cache.get(login) case final cached?) {
         _remember(login, cached);
         return cached;
+      } else if (cache.pending(login) case final pending?) {
+        try {
+          final token = await pending;
+          _remember(login, token);
+          return token;
+        } catch (_) {
+          // The preload failed: ask again below.
+        }
       }
     }
+    final token = _fetchAccessToken(login);
+    cache?.track(login, token);
+    return token;
+  }
+
+  Future<PlaybackAccessToken> _fetchAccessToken(String login) async {
+    final cache = _tokenCache;
 
     var data = await _postAccessToken(login, accessTokenQuery);
     var token = (data['data'] as JsonMap?)?['streamPlaybackAccessToken'];

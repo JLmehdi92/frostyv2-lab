@@ -69,4 +69,18 @@ void main() {
     expect(cache.get('b'), isNull);
     expect(cache.get('c')?.signature, 'c');
   });
+
+  test('shares a token being asked for until it arrives', () async {
+    final token = tokenExpiringIn(const Duration(minutes: 10));
+    cache.track('Streamer', Future.value(token));
+
+    expect(await cache.pending('streamer'), same(token));
+    await pumpEventQueue();
+    expect(cache.pending('streamer'), isNull);
+
+    cache.track('other', Future.error(Exception('down')));
+    await expectLater(cache.pending('other'), throwsException);
+    await pumpEventQueue();
+    expect(cache.pending('other'), isNull);
+  });
 }

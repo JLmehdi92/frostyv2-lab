@@ -52,6 +52,23 @@ class PlaybackTokenCache {
 
   void invalidate(String login) => _entries.remove(login.toLowerCase());
 
+  final _pending = <String, Future<PlaybackAccessToken>>{};
+
+  /// The token being asked for [login] right now (a preload), if any.
+  Future<PlaybackAccessToken>? pending(String login) =>
+      _pending[login.toLowerCase()];
+
+  /// Shares [token]'s request with whoever asks for [login] meanwhile.
+  void track(String login, Future<PlaybackAccessToken> token) {
+    final key = login.toLowerCase();
+    _pending[key] = token;
+    void done() {
+      if (identical(_pending[key], token)) _pending.remove(key);
+    }
+
+    token.then((_) => done(), onError: (Object _) => done());
+  }
+
   bool _isValid(PlaybackAccessToken token) {
     final expiresAt = token.expiresAt;
     if (expiresAt == null) return false;

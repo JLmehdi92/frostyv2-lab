@@ -415,4 +415,77 @@ https://video-edge-1.ttvnw.net/chunked/index-live.m3u8
     expect(PlaybackRefusal.fromCode('UNKNOWN__'), isNull);
     expect(PlaybackRefusal.fromCode('SOMETHING_NEW'), isNull);
   });
+
+  group('preload', () {
+    late DateTime now;
+    late PlaybackTokenCache cache;
+    late int posts;
+
+    void stubToken({Duration delay = Duration.zero, int status = 200}) {
+      final expires = now.millisecondsSinceEpoch ~/ 1000 + 600;
+      adapter.onPost(
+        'https://gql.twitch.tv/gql',
+        (server) => server.reply(status, {
+          'data': {
+            'streamPlaybackAccessToken': {
+              'value': '{"expires":$expires}',
+              'signature': 'deadbeef',
+            },
+          },
+        }, delay: delay),
+        data: Matchers.any,
+      );
+    }
+
+    setUp(() {
+      now = DateTime.now().toUtc();
+      cache = PlaybackTokenCache(now: () => now);
+      posts = 0;
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            if (options.uri.host == 'gql.twitch.tv') posts++;
+            handler.next(options);
+          },
+        ),
+      );
+      service = TwitchStreamService(dio, tokenCache: cache);
+    });
+
+    test('the player reuses a preloaded token', () async {
+      stubToken();
+
+      await service.preload(login);
+      await TwitchStreamService(
+        dio,
+        tokenCache: cache,
+      ).getUsherUrl(userLogin: login);
+
+      expect(posts, 1);
+    });
+
+    test('a player opening during the preload waits for it', () async {
+      stubToken(delay: const Duration(milliseconds: 50));
+
+      final preloading = service.preload(login);
+      final url = await TwitchStreamService(
+        dio,
+        tokenCache: cache,
+      ).getUsherUrl(userLogin: login);
+      await preloading;
+
+      expect(url, contains('sig=deadbeef'));
+      expect(posts, 1);
+    });
+
+    test('a failed preload is quiet and asked again by the player', () async {
+      stubToken(status: 500);
+
+      await service.preload(login);
+      stubToken();
+      await service.getUsherUrl(userLogin: login);
+
+      expect(posts, 2);
+    });
+  });
 }
