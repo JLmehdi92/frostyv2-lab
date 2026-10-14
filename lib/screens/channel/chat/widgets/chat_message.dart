@@ -103,14 +103,19 @@ class ChatMessage extends StatelessWidget {
   }
 
   /// A moderator may delete this message: one sent in this chat (not from
-  /// another channel of a shared chat) and not by the broadcaster.
+  /// another channel of a shared chat), not by the broadcaster, and not by
+  /// another moderator unless the viewer is the broadcaster.
   bool get _canDelete {
     final source = ircMessage.tags['source-room-id'];
     return chatStore.canModerate &&
         ircMessage.command == Command.privateMessage &&
         ircMessage.tags['id'] != null &&
         (source == null || source == chatStore.channelId) &&
-        ircMessage.user?.toLowerCase() != chatStore.channelName.toLowerCase();
+        ircMessage.user?.toLowerCase() != chatStore.channelName.toLowerCase() &&
+        // Only the broadcaster may delete a moderator's message.
+        (ircMessage.tags['mod'] != '1' ||
+            chatStore.channelName.toLowerCase() ==
+                chatStore.auth.user.details?.login.toLowerCase());
   }
 
   void onLongPressMessage(BuildContext context, TextStyle defaultTextStyle) {
