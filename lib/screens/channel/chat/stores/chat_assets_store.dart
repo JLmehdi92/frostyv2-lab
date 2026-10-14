@@ -414,23 +414,31 @@ abstract class ChatAssetsStoreBase with Store {
     required String broadcasterId,
   }) async {
     final List<Emote> emotes;
-    final Map<String, String> owners;
+    Map<String, String> owners;
     try {
       emotes = await twitchApi.getUserEmotes(
         userId: userId,
         broadcasterId: broadcasterId,
       );
-      final ownerIds = {
-        for (final emote in emotes)
-          if (_ownedSection(emote) && emote.ownerId != null) emote.ownerId!,
-      };
+    } catch (e) {
+      debugPrint('Helix user emotes unavailable: $e');
+      return false;
+    }
+    final ownerIds = {
+      for (final emote in emotes)
+        if (_ownedSection(emote) &&
+            RegExp(r'^[0-9]{1,20}$').hasMatch(emote.ownerId ?? ''))
+          emote.ownerId!,
+    };
+    try {
       owners = {
         for (final user in await twitchApi.getUsersByIds([...ownerIds]))
           user.id: user.displayName,
       };
     } catch (e) {
-      debugPrint('Helix user emotes unavailable: $e');
-      return false;
+      // The emotes stay; their channels are just not named.
+      debugPrint('Emote owners unavailable: $e');
+      owners = const {};
     }
     final sections = <String, List<Emote>>{
       // Loaded with the channel's other emotes.

@@ -94,4 +94,24 @@ void main() {
     await store.userEmotesFromHelix(userId: '7', broadcasterId: '42');
     expect(store.userEmoteSectionToEmotes['Other Channels'], hasLength(1));
   });
+
+  test('a failed name lookup keeps the emotes', () async {
+    when(() => api.getUserEmotes(userId: '7', broadcasterId: '42')).thenAnswer(
+      (_) async => [
+        _emote('subX', EmoteType.twitchSub, '5'),
+        _emote('odd', EmoteType.twitchSub, ''),
+      ],
+    );
+    when(
+      () => api.getUsersByIds(any()),
+    ).thenThrow(const ServerException('down', 503));
+
+    expect(
+      await store.userEmotesFromHelix(userId: '7', broadcasterId: '42'),
+      isTrue,
+    );
+    expect(store.userEmoteSectionToEmotes['Other Channels'], hasLength(2));
+    // Only real ids were asked for.
+    verify(() => api.getUsersByIds(['5'])).called(1);
+  });
 }

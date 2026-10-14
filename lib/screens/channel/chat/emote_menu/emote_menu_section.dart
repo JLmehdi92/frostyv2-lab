@@ -12,11 +12,16 @@ class EmoteMenuSection extends StatefulWidget {
   final List<Emote> emotes;
   final bool disabled;
 
+  /// Names usable even in a [disabled] section (a follower or Bits emote
+  /// of a channel the viewer is not subscribed to).
+  final Set<String> usable;
+
   const EmoteMenuSection({
     super.key,
     required this.chatStore,
     required this.emotes,
     this.disabled = false,
+    this.usable = const {},
   });
 
   @override
@@ -64,35 +69,39 @@ class _EmoteMenuSectionState extends State<EmoteMenuSection>
           showVideo: context.settingsStore.showVideo,
         ),
         padding: EdgeInsets.zero,
-        itemBuilder: (context, index) => InkWell(
-          onTap: widget.disabled
-              ? null
-              : () => widget.chatStore.addEmote(widget.emotes[index]),
-          onLongPress: () {
-            HapticFeedback.lightImpact();
+        itemBuilder: (context, index) {
+          final off =
+              widget.disabled &&
+              !widget.usable.contains(widget.emotes[index].name);
+          return InkWell(
+            onTap: off
+                ? null
+                : () => widget.chatStore.addEmote(widget.emotes[index]),
+            onLongPress: () {
+              HapticFeedback.lightImpact();
 
-            IRCMessage.showEmoteDetailsBottomSheet(
-              context,
-              emote: widget.emotes[index],
-              launchExternal: widget.chatStore.settings.launchUrlExternal,
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(5.0),
-            child: Center(
-              child: FrostyCachedNetworkImage(
-                imageUrl: widget.emotes[index].url,
-                height:
-                    widget.emotes[index].height?.toDouble() ?? defaultEmoteSize,
-                width: widget.emotes[index].width?.toDouble(),
-                color: widget.disabled
-                    ? const Color.fromRGBO(255, 255, 255, 0.5)
-                    : null,
-                colorBlendMode: widget.disabled ? BlendMode.modulate : null,
+              IRCMessage.showEmoteDetailsBottomSheet(
+                context,
+                emote: widget.emotes[index],
+                launchExternal: widget.chatStore.settings.launchUrlExternal,
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: Center(
+                child: FrostyCachedNetworkImage(
+                  imageUrl: widget.emotes[index].url,
+                  height:
+                      widget.emotes[index].height?.toDouble() ??
+                      defaultEmoteSize,
+                  width: widget.emotes[index].width?.toDouble(),
+                  color: off ? const Color.fromRGBO(255, 255, 255, 0.5) : null,
+                  colorBlendMode: off ? BlendMode.modulate : null,
+                ),
               ),
             ),
-          ),
-        ),
+          );
+        },
         itemCount: widget.emotes.length,
       ),
     );
