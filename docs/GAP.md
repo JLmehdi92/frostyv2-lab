@@ -136,7 +136,7 @@
 | CHT-41 | Pile de « highlights » communautaires | P1 | ✅ | `channel/channel_top_overlays.dart`, `community_highlights/highlight_stack.dart` | Deux étages au-dessus du chat (E5) : Hype Train, puis une carte communautaire avec pagination « 1 / 3 » et pastille « New » ; ordre par récence comme le réducteur web de Twitch. Repliée sur téléphone, dépliée sur tablette ; pastille sur la vidéo quand le chat est masqué ; fermeture par carte. | GQL privé |
 | CHT-42 | Messages épinglés (lecture) | P1 | ✅ | `community_highlights/widgets/pinned_chat_text.dart` | Carte « Pinned » (E5) : auteur avec badges et couleur, emotes Twitch et 7TV/BTTV/FFZ via les assets du chat, épinglé par, fin. GQL anonyme `pinnedChatMessages` + `pinned-chat-updates-v1.<id>` ; expiration locale (aucun événement Twitch). | GQL privé |
 | CHT-43 | Messages épinglés payants et cheers épinglés | P2 | ❌ | — | — | GQL privé |
-| CHT-44 | AutoMod (côté émetteur) | P1 | ⚠️ | `chat_store.dart:64-65` | `msg_rejected` en toast, sans statut retenu/approuvé. EventSub `channel.chat.user_message_hold`/`_update` (`user:read:chat`). | OK |
+| CHT-44 | AutoMod (côté émetteur) | P1 | ✅ | `held_messages.dart` (`HeldMessageWatcher`), `chat_store.dart` (`_watchHeldMessages`) | `msg_rejected` en toast quand AutoMod retient le message (IRC), puis notice dans le chat quand les modérateurs l'approuvent, le refusent ou qu'il expire (EventSub `channel.chat.user_message_update`, scope `user:read:chat`, reconnexion nécessaire), avec le message cité sur une ligne. À valider sur appareil. | OK |
 | CHT-45 | Cartes clip et vidéo dans le chat | P1 | ✅ | `chat_link_card.dart`, `chat_message.dart`, `utils/link_router.dart` | Carte de hauteur fixe sous le message (miniature, titre, chaîne, durée, vues ; GQL anonyme, cache des 64 derniers), ouverte dans l'appli. Réglage « Preview clips and videos ». | OK |
 | CHT-46 | Liste des spectateurs (chatters) | P1 | ⚠️ | `chat_users_list.dart:16-200`, `chat_details_store.dart:39` | Seulement les pseudos vus en IRC, sans rôles. Helix `GET /chat/chatters` exige `moderator:read:chatters` et un rôle mod ; sinon GQL. | Compte requis |
 | CHT-47 | Effets de message animés | P2 | ❌ | — | — | GQL privé |
@@ -430,7 +430,7 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | Lecture vidéo (PLY) | 14 | 7 | 11 | 1 | 33 |
-| Chat (CHT) | 25 | 5 | 12 | 6 | 48 |
+| Chat (CHT) | 26 | 4 | 12 | 6 | 48 |
 | Interactions communautaires (INT) | 4 | 4 | 23 | 0 | 31 |
 | Modération (MOD) | 9 | 1 | 21 | 0 | 31 |
 | Social & notifications (SOC) | 5 | 5 | 12 | 0 | 22 |
@@ -440,18 +440,18 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Compte & réglages (ACC) | 5 | 4 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 4 | 6 | 7 | 0 | 17 |
-| **Total** | **84** | **41** | **184** | **8** | **317** |
+| **Total** | **85** | **40** | **184** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 40 | 14 | 2 | 4 | 60 |
-| P1 | 38 | 20 | 46 | 4 | 108 |
+| P1 | 39 | 19 | 46 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **84** | **41** | **184** | **8** | **317** |
+| **Total** | **85** | **40** | **184** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 10 | 26 | 33 | 69 |
+| OK | 10 | 25 | 33 | 68 |
 | GQL privé | 6 | 29 | 61 | 96 |
 | Compte requis | 0 | 11 | 12 | 23 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
