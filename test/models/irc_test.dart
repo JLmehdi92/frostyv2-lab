@@ -113,6 +113,19 @@ void main() {
         );
       });
 
+      test('emotes from the tags have a still frame and no unlock hint', () {
+        final kappa = IRCMessage.fromString(
+          privmsgWithEmotes,
+        ).localEmotes!['Kappa']!;
+
+        expect(
+          kappa.urlFor(animate: false),
+          'https://static-cdn.jtvnw.net/emoticons/v2/25/static/dark/3.0',
+        );
+        // Maybe another channel's sub emote: not "You can use it."
+        expect(kappa.unlockHint, isNull);
+      });
+
       test('handles multiple instances of same emote', () {
         final msg = IRCMessage.fromString(privmsgWithMultipleEmotes);
 

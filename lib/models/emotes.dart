@@ -302,7 +302,10 @@ class Emote {
   /// third-party emotes.
   String? get unlockHint => switch (type) {
     EmoteType.twitchGlobal => 'Available to everyone on Twitch.',
-    EmoteType.twitchSub || EmoteType.twitchUnlocked => 'You can use it.',
+    // Emotes read from a message's tags have no owner and may belong to
+    // someone else's sets.
+    EmoteType.twitchSub || EmoteType.twitchUnlocked =>
+      ownerId == null ? null : 'You can use it.',
     EmoteType.twitchFollower => 'Follow this channel to use it.',
     EmoteType.twitchBits => 'Cheer Bits in this channel to unlock it.',
     EmoteType.twitchChannel =>

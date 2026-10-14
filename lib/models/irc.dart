@@ -27,6 +27,7 @@ const String _invalidUnicodeChar = '\u{E0000}';
 const String _twitchEmoteBaseUrl = 'https://static-cdn.jtvnw.net/emoticons/v2';
 const String _twitchIrcServer = 'tmi.twitch.tv';
 const String _emoteModeSuffix = '/default/dark/3.0';
+const String _staticEmoteSuffix = '/static/dark/3.0';
 const double _emojiSizeOffset = 5.0;
 
 /// The object representation of a Twitch IRC message.
@@ -1052,6 +1053,7 @@ class IRCMessage {
           name: emoteWord,
           zeroWidth: false,
           url: '$_twitchEmoteBaseUrl/$emoteId$_emoteModeSuffix',
+          staticUrl: '$_twitchEmoteBaseUrl/$emoteId$_staticEmoteSuffix',
           type: EmoteType.twitchSub,
         );
       }
