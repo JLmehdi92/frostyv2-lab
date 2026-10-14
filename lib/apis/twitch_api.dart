@@ -334,6 +334,25 @@ class TwitchApi extends BaseApiClient {
     }
   }
 
+  /// The users with [ids] (unknown ones are left out), asked 100 at a time.
+  Future<List<UserTwitch>> getUsersByIds(List<String> ids) async {
+    final users = <UserTwitch>[];
+    for (var start = 0; start < ids.length; start += 100) {
+      final batch = ids.sublist(start, (start + 100).clamp(0, ids.length));
+      final data = await get<JsonMap>(
+        '/users',
+        queryParameters: {
+          'id': [for (final id in batch) _checkId(id, 'id')],
+        },
+      );
+      users.addAll([
+        for (final json in data['data'] as JsonList)
+          UserTwitch.fromJson(json as JsonMap),
+      ]);
+    }
+    return users;
+  }
+
   /// Returns a [Channel] object containing a channels's info associated with the given [userId].
   Future<Channel> getChannel({required String userId}) async {
     final data = await get<JsonMap>(

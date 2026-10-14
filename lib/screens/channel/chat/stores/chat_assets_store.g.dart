@@ -320,6 +320,24 @@ mixin _$ChatAssetsStore on ChatAssetsStoreBase, Store {
     );
   }
 
+  late final _$userEmotesFromHelixAsyncAction = AsyncAction(
+    'ChatAssetsStoreBase.userEmotesFromHelix',
+    context: context,
+  );
+
+  @override
+  Future<bool> userEmotesFromHelix({
+    required String userId,
+    required String broadcasterId,
+  }) {
+    return _$userEmotesFromHelixAsyncAction.run(
+      () => super.userEmotesFromHelix(
+        userId: userId,
+        broadcasterId: broadcasterId,
+      ),
+    );
+  }
+
   late final _$userEmotesFutureAsyncAction = AsyncAction(
     'ChatAssetsStoreBase.userEmotesFuture',
     context: context,

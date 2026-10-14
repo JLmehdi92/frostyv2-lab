@@ -1,0 +1,97 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/apis/base_api_client.dart';
+import 'package:frosty/apis/bttv_api.dart';
+import 'package:frosty/apis/ffz_api.dart';
+import 'package:frosty/apis/seventv_api.dart';
+import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/models/emotes.dart';
+import 'package:frosty/models/user.dart';
+import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
+import 'package:frosty/stores/global_assets_store.dart';
+import 'package:mocktail/mocktail.dart';
+
+class MockTwitchApi extends Mock implements TwitchApi {}
+
+class MockBttvApi extends Mock implements BTTVApi {}
+
+class MockFfzApi extends Mock implements FFZApi {}
+
+class MockSevenTvApi extends Mock implements SevenTVApi {}
+
+class MockGlobalAssetsStore extends Mock implements GlobalAssetsStore {}
+
+Emote _emote(String name, EmoteType type, String owner) => Emote(
+  name: name,
+  zeroWidth: false,
+  url: 'https://static-cdn.jtvnw.net/emoticons/v2/$name/default/dark/3.0',
+  type: type,
+  ownerId: owner,
+);
+
+void main() {
+  late MockTwitchApi api;
+  late ChatAssetsStore store;
+
+  setUp(() {
+    api = MockTwitchApi();
+    store = ChatAssetsStore(
+      twitchApi: api,
+      bttvApi: MockBttvApi(),
+      ffzApi: MockFfzApi(),
+      sevenTVApi: MockSevenTvApi(),
+      globalAssetsStore: MockGlobalAssetsStore(),
+    );
+  });
+
+  test('the menu gets every usable emote, by channel', () async {
+    when(() => api.getUserEmotes(userId: '7', broadcasterId: '42')).thenAnswer(
+      (_) async => [
+        _emote('Kappa', EmoteType.twitchGlobal, '0'),
+        _emote('pogFollow', EmoteType.twitchFollower, '42'),
+        _emote('subHype', EmoteType.twitchSub, '99'),
+        _emote('subWow', EmoteType.twitchSub, '99'),
+        _emote('Prime', EmoteType.twitchUnlocked, '0'),
+      ],
+    );
+    when(() => api.getUsersByIds(any())).thenAnswer(
+      (_) async => const [
+        UserTwitch('42', 'here', 'Here', ''),
+        UserTwitch('99', 'fave', 'Fave', ''),
+      ],
+    );
+
+    expect(
+      await store.userEmotesFromHelix(userId: '7', broadcasterId: '42'),
+      isTrue,
+    );
+
+    final sections = store.userEmoteSectionToEmotes;
+    expect(sections['Here']!.map((e) => e.name), ['pogFollow']);
+    expect(sections['Fave']!.map((e) => e.name), ['subHype', 'subWow']);
+    expect(sections['Global Emotes']!.single.name, 'Kappa');
+    expect(sections['Unlocked Emotes']!.single.name, 'Prime');
+    expect(store.userEmoteToObject.keys, hasLength(5));
+  });
+
+  test('a token without the scope falls back', () async {
+    when(
+      () => api.getUserEmotes(userId: '7', broadcasterId: '42'),
+    ).thenThrow(const UnauthorizedException('missing scope'));
+
+    expect(
+      await store.userEmotesFromHelix(userId: '7', broadcasterId: '42'),
+      isFalse,
+    );
+    expect(store.userEmoteSectionToEmotes, isEmpty);
+  });
+
+  test('a channel without a name still gets a section', () async {
+    when(
+      () => api.getUserEmotes(userId: '7', broadcasterId: '42'),
+    ).thenAnswer((_) async => [_emote('subX', EmoteType.twitchSub, '5')]);
+    when(() => api.getUsersByIds(any())).thenAnswer((_) async => const []);
+
+    await store.userEmotesFromHelix(userId: '7', broadcasterId: '42');
+    expect(store.userEmoteSectionToEmotes['Other Channels'], hasLength(1));
+  });
+}

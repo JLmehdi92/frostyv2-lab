@@ -404,6 +404,57 @@ abstract class ChatAssetsStoreBase with Store {
     }
   }
 
+  /// Fills the emote menu with every emote the viewer can use here
+  /// (follower emotes included), by section. False when Twitch would not
+  /// say (a token without the scope): [userEmotesFuture] then reads the
+  /// chat's emote sets instead.
+  @action
+  Future<bool> userEmotesFromHelix({
+    required String userId,
+    required String broadcasterId,
+  }) async {
+    final List<Emote> emotes;
+    final Map<String, String> owners;
+    try {
+      emotes = await twitchApi.getUserEmotes(
+        userId: userId,
+        broadcasterId: broadcasterId,
+      );
+      final ownerIds = {
+        for (final emote in emotes)
+          if (_ownedSection(emote) && emote.ownerId != null) emote.ownerId!,
+      };
+      owners = {
+        for (final user in await twitchApi.getUsersByIds([...ownerIds]))
+          user.id: user.displayName,
+      };
+    } catch (e) {
+      debugPrint('Helix user emotes unavailable: $e');
+      return false;
+    }
+    final sections = <String, List<Emote>>{
+      // Loaded with the channel's other emotes.
+      'Channel Emotes': ?_userEmoteSectionToEmotes['Channel Emotes'],
+    };
+    for (final emote in emotes) {
+      final section = _ownedSection(emote)
+          ? owners[emote.ownerId] ?? 'Other Channels'
+          : emote.type == EmoteType.twitchGlobal || emote.ownerId == 'twitch'
+          ? 'Global Emotes'
+          : 'Unlocked Emotes';
+      (sections[section] ??= []).add(emote);
+    }
+    _userEmoteSectionToEmotes = sections;
+    _userEmoteToObject = {for (final emote in emotes) emote.name: emote};
+    return true;
+  }
+
+  /// A channel's emote (subscriber or follower), shown under its name.
+  static bool _ownedSection(Emote emote) =>
+      (emote.type == EmoteType.twitchSub ||
+          emote.type == EmoteType.twitchFollower) &&
+      emote.ownerId != 'twitch';
+
   @action
   Future<void> userEmotesFuture({
     required List<String> emoteSets,

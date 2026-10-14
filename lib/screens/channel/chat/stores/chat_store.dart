@@ -445,6 +445,28 @@ abstract class ChatStoreBase with Store {
     }
   }
 
+  /// Every emote the viewer can use (Helix, follower emotes included), or
+  /// the emote sets GLOBALUSERSTATE named when Helix will not say.
+  Future<void> _loadUserEmotes(List<String>? setIds) async {
+    final me = auth.user.details?.id;
+    if (me != null &&
+        await assetsStore.userEmotesFromHelix(
+          userId: me,
+          broadcasterId: channelId,
+        )) {
+      return;
+    }
+    if (setIds == null || _shouldDisconnect) return;
+    await assetsStore.userEmotesFuture(
+      emoteSets: setIds,
+      headers: auth.headersTwitch,
+      onError: (error) {
+        debugPrint(error.toString());
+        return <Emote>[];
+      },
+    );
+  }
+
   /// Runs [command] in this chat as the viewer and says the outcome in
   /// chat (a viewer who is not a moderator hears it from Twitch). [userId] is the target's id when already known. Null when the
   /// chat closed before it ended.
@@ -911,16 +933,7 @@ abstract class ChatStoreBase with Store {
             break;
           case Command.globalUserState:
             final setIds = parsedIRCMessage.tags['emote-sets']?.split(',');
-            if (setIds != null) {
-              assetsStore.userEmotesFuture(
-                emoteSets: setIds,
-                headers: auth.headersTwitch,
-                onError: (error) {
-                  debugPrint(error.toString());
-                  return <Emote>[];
-                },
-              );
-            }
+            unawaited(_loadUserEmotes(setIds));
             continue;
           case Command.none:
             debugPrint('Unknown command: ${parsedIRCMessage.command}');

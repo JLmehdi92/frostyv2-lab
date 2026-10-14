@@ -94,4 +94,27 @@ void main() {
     );
     expect(extras.single[UnauthorizedInterceptor.quiet], isTrue);
   });
+
+  test('users are asked for by id, many at once', () async {
+    adapter.onGet(
+      '$_helix/users',
+      (server) => server.reply(200, {
+        'data': [
+          {
+            'id': '1',
+            'login': 'a',
+            'display_name': 'A',
+            'profile_image_url': '',
+          },
+        ],
+      }),
+      queryParameters: {
+        'id': ['1', '2'],
+      },
+    );
+
+    final users = await api.getUsersByIds(['1', '2']);
+    expect(users.single.displayName, 'A');
+    expect(() => api.getUsersByIds(['1', 'x']), throwsArgumentError);
+  });
 }
