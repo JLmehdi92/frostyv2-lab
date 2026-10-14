@@ -193,10 +193,13 @@ void main() async {
     onPause: eventSubClient.onAppPaused,
     onResume: eventSubClient.onAppResumed,
   );
-  // The background go-live check follows the logged-in viewer.
+  // The background go-live check follows the logged-in viewer. A launch
+  // that is not logged in yet (offline, Twitch hiccup) keeps the last one:
+  // a real logout removes the token, which stops the check by itself.
   reaction(
     (_) => authStore.isLoggedIn ? authStore.user.details?.id : null,
     (String? id) async {
+      if (id == null) return;
       final prefs = await GoLivePrefs.load();
       await prefs.setUserId(id);
     },
@@ -282,16 +285,29 @@ class _MyAppState extends State<MyApp> {
   /// A tapped go-live notice opens its channel, whether the app was running
   /// or started from it.
   Future<void> _initGoLive() async {
-    void openChannel(String login) => LinkRouter.open(
-      'https://www.twitch.tv/$login',
-      launchExternal: false,
-    );
+    // The channel deep link path: looks the channel up and opens it here.
+    void openChannel(String login) =>
+        handleDeepLink(Uri.https('www.twitch.tv', '/$login'));
     try {
       await GoLiveNotifications.init(onOpen: openChannel);
       final login = await GoLiveNotifications.launchLogin();
-      if (login != null) openChannel(login);
-    } catch (e) {
+      if (login != null) {
+        await WidgetsBinding.instance.endOfFrame;
+        openChannel(login);
+      }
+      // Registered again at each launch: Android drops it after a force
+      // stop, and an update may move the background entry point.
+      final prefs = await GoLivePrefs.load();
+      if (prefs.enabled) await GoLiveScheduler.start();
+    } catch (e, stack) {
       debugPrint('Go-live notices unavailable: $e');
+      try {
+        FirebaseCrashlytics.instance.recordError(
+          e,
+          stack,
+          reason: 'go-live init',
+        );
+      } catch (_) {}
     }
   }
 
