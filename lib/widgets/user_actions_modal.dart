@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
@@ -113,6 +114,20 @@ class UserActionsModal extends StatelessWidget {
               );
             },
           ),
+        ListTile(
+          leading: const Icon(Icons.link_rounded),
+          title: const Text('Copy link'),
+          onTap: () async {
+            await Clipboard.setData(
+              ClipboardData(text: 'https://www.twitch.tv/$userLogin'),
+            );
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('Link copied')));
+            Navigator.pop(context);
+          },
+        ),
         ListTile(
           leading: const Icon(Icons.share_outlined),
           title: Text('Share $name'),

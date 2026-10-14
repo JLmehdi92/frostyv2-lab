@@ -82,4 +82,29 @@ void main() {
     );
     expect(copied, 'https://www.twitch.tv/streamer');
   });
+
+  testWidgets('a second tap while the sheet opens is ignored', (tester) async {
+    final platform = FakeSharePlatform(
+      () => const ShareResult('x', ShareResultStatus.success),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () {
+                shareLink(context, 'a', sharer: SharePlus.custom(platform));
+                shareLink(context, 'a', sharer: SharePlus.custom(platform));
+              },
+              child: const Text('Share'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Share'));
+    await tester.pumpAndSettle();
+    expect(platform.shared, hasLength(1));
+    expect(copied, isNull);
+  });
 }

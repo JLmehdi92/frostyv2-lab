@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
+/// A share sheet is open: a second tap must not open another (Android
+/// answers the first one "unavailable", which would also copy).
+var _sharing = false;
+
 /// Opens the system share sheet for [url] (anchored to [context]'s widget,
 /// as iPad needs). Where sharing is not possible, the link is copied and
 /// a snack bar says so.
@@ -10,6 +14,21 @@ Future<void> shareLink(
   String url, {
   String? subject,
   @visibleForTesting SharePlus? sharer,
+}) async {
+  if (_sharing) return;
+  _sharing = true;
+  try {
+    await _share(context, url, subject: subject, sharer: sharer);
+  } finally {
+    _sharing = false;
+  }
+}
+
+Future<void> _share(
+  BuildContext context,
+  String url, {
+  String? subject,
+  SharePlus? sharer,
 }) async {
   final box = context.findRenderObject();
   final origin = box is RenderBox && box.hasSize
