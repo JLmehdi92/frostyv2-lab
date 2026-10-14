@@ -473,6 +473,159 @@ class TwitchApi extends BaseApiClient {
     }
   }
 
+  static final _helixId = RegExp(r'^[0-9]{1,20}$');
+  static final _messageId = RegExp(r'^[0-9a-fA-F-]{1,64}$');
+
+  /// Twitch's longest timeout (two weeks) and reason.
+  static const maxTimeout = Duration(days: 14);
+  static const maxReasonLength = 500;
+
+  /// The query naming the channel and the moderator acting in it (the
+  /// broadcaster is their own moderator).
+  static QueryParams _modQuery(String broadcasterId, String moderatorId) => {
+    'broadcaster_id': _checkId(broadcasterId, 'broadcasterId'),
+    'moderator_id': _checkId(moderatorId, 'moderatorId'),
+  };
+
+  static String _checkId(String id, String name) {
+    if (!_helixId.hasMatch(id)) {
+      throw ArgumentError.value(id, name, 'Not a Twitch id');
+    }
+    return id;
+  }
+
+  static String _reason(String reason) {
+    final trimmed = reason.trim();
+    return trimmed.length > maxReasonLength
+        ? trimmed.substring(0, maxReasonLength)
+        : trimmed;
+  }
+
+  /// Bans [userId] from the chat, or times them out when [duration] is set
+  /// (1 second to two weeks). Needs `moderator:manage:banned_users`.
+  Future<void> banUser({
+    required String broadcasterId,
+    required String moderatorId,
+    required String userId,
+    Duration? duration,
+    String reason = '',
+  }) async {
+    final seconds = duration?.inSeconds;
+    if (seconds != null && (seconds < 1 || duration! > maxTimeout)) {
+      throw ArgumentError.value(duration, 'duration', '1s to 14 days');
+    }
+    await post<dynamic>(
+      '/moderation/bans',
+      queryParameters: _modQuery(broadcasterId, moderatorId),
+      data: {
+        'data': {
+          'user_id': _checkId(userId, 'userId'),
+          'duration': ?seconds,
+          'reason': _reason(reason),
+        },
+      },
+    );
+  }
+
+  /// Lifts the ban or the timeout of [userId].
+  Future<void> unbanUser({
+    required String broadcasterId,
+    required String moderatorId,
+    required String userId,
+  }) async {
+    await delete<dynamic>(
+      '/moderation/bans',
+      queryParameters: {
+        ..._modQuery(broadcasterId, moderatorId),
+        'user_id': _checkId(userId, 'userId'),
+      },
+    );
+  }
+
+  /// Deletes the chat message [messageId], or every message of the chat
+  /// when it is null. Needs `moderator:manage:chat_messages`.
+  Future<void> deleteChatMessages({
+    required String broadcasterId,
+    required String moderatorId,
+    String? messageId,
+  }) async {
+    if (messageId != null && !_messageId.hasMatch(messageId)) {
+      throw ArgumentError.value(messageId, 'messageId', 'Not a message id');
+    }
+    await delete<dynamic>(
+      '/moderation/chat',
+      queryParameters: {
+        ..._modQuery(broadcasterId, moderatorId),
+        'message_id': ?messageId,
+      },
+    );
+  }
+
+  /// Warns [userId], who must acknowledge [reason] before chatting again.
+  /// Needs `moderator:manage:warnings`.
+  Future<void> warnUser({
+    required String broadcasterId,
+    required String moderatorId,
+    required String userId,
+    required String reason,
+  }) async {
+    final text = _reason(reason);
+    if (text.isEmpty) {
+      throw ArgumentError.value(reason, 'reason', 'A warning needs a reason');
+    }
+    await post<dynamic>(
+      '/moderation/warnings',
+      queryParameters: _modQuery(broadcasterId, moderatorId),
+      data: {
+        'data': {'user_id': _checkId(userId, 'userId'), 'reason': text},
+      },
+    );
+  }
+
+  /// Twitch's bounds for the slow-mode wait and the follow age.
+  static const minSlowWait = Duration(seconds: 3);
+  static const maxSlowWait = Duration(seconds: 120);
+  static const maxFollowAge = Duration(days: 90);
+
+  /// Turns the chat's modes on or off; only the ones given change. Needs
+  /// `moderator:manage:chat_settings`.
+  Future<void> updateChatSettings({
+    required String broadcasterId,
+    required String moderatorId,
+    bool? emoteMode,
+    bool? followerMode,
+    Duration? followerModeDuration,
+    bool? slowMode,
+    Duration? slowModeWaitTime,
+    bool? subscriberMode,
+    bool? uniqueChatMode,
+  }) async {
+    if (slowModeWaitTime != null &&
+        (slowModeWaitTime < minSlowWait || slowModeWaitTime > maxSlowWait)) {
+      throw ArgumentError.value(slowModeWaitTime, 'slowModeWaitTime');
+    }
+    if (followerModeDuration != null &&
+        (followerModeDuration.isNegative ||
+            followerModeDuration > maxFollowAge)) {
+      throw ArgumentError.value(followerModeDuration, 'followerModeDuration');
+    }
+    final body = <String, Object>{
+      'emote_mode': ?emoteMode,
+      'follower_mode': ?followerMode,
+      'follower_mode_duration': ?followerModeDuration?.inMinutes,
+      'slow_mode': ?slowMode,
+      'slow_mode_wait_time': ?slowModeWaitTime?.inSeconds,
+      'subscriber_mode': ?subscriberMode,
+      'unique_chat_mode': ?uniqueChatMode,
+    };
+    if (body.isEmpty) throw ArgumentError('Nothing to change');
+    await patch<dynamic>(
+      '/chat/settings',
+      queryParameters: _modQuery(broadcasterId, moderatorId),
+      data: body,
+    );
+  }
+
   // Gets recent messages from a third-party service.
   Future<JsonList> getRecentMessages({required String userLogin}) async {
     // Use custom base URL for third-party service

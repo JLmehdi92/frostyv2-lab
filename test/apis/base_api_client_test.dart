@@ -9,6 +9,9 @@ class TestApiClient extends BaseApiClient {
 
   /// Test wrapper that exercises the error handling path through get().
   Future<dynamic> testGet(String endpoint) => get(endpoint);
+
+  Future<dynamic> testPatch(String endpoint, Object data) =>
+      patch(endpoint, data: data);
 }
 
 void main() {
@@ -185,11 +188,7 @@ void main() {
       expect(
         () => client.testGet('/server-error'),
         throwsA(
-          isA<ServerException>().having(
-            (e) => e.statusCode,
-            'statusCode',
-            500,
-          ),
+          isA<ServerException>().having((e) => e.statusCode, 'statusCode', 500),
         ),
       );
     });
@@ -203,11 +202,7 @@ void main() {
       expect(
         () => client.testGet('/bad-gateway'),
         throwsA(
-          isA<ServerException>().having(
-            (e) => e.statusCode,
-            'statusCode',
-            502,
-          ),
+          isA<ServerException>().having((e) => e.statusCode, 'statusCode', 502),
         ),
       );
     });
@@ -230,10 +225,7 @@ void main() {
         (server) => server.reply(504, null),
       );
 
-      expect(
-        () => client.testGet('/timeout'),
-        throwsA(isA<ServerException>()),
-      );
+      expect(() => client.testGet('/timeout'), throwsA(isA<ServerException>()));
     });
 
     test('422 uses server message from error field', () async {
@@ -257,10 +249,8 @@ void main() {
     test('400 uses error_description field', () async {
       dioAdapter.onGet(
         'https://api.test.com/oauth-error',
-        (server) => server.reply(
-          400,
-          {'error_description': 'OAuth error description'},
-        ),
+        (server) =>
+            server.reply(400, {'error_description': 'OAuth error description'}),
       );
 
       expect(
@@ -323,11 +313,7 @@ void main() {
       expect(
         () => client.testGet('/teapot'),
         throwsA(
-          isA<ServerException>().having(
-            (e) => e.statusCode,
-            'statusCode',
-            418,
-          ),
+          isA<ServerException>().having((e) => e.statusCode, 'statusCode', 418),
         ),
       );
     });
@@ -352,6 +338,34 @@ void main() {
 
       final result = await client.testGet('https://other.com/endpoint');
       expect(result, {'result': 'ok'});
+    });
+  });
+
+  group('patch()', () {
+    test('sends the body and returns the answer', () async {
+      dioAdapter.onPatch(
+        'https://api.test.com/settings',
+        (server) => server.reply(200, {'data': 'ok'}),
+        data: {'slow_mode': true},
+      );
+
+      final result = await client.testPatch('/settings', {'slow_mode': true});
+      expect(result, {'data': 'ok'});
+    });
+
+    test('maps errors like the other verbs', () async {
+      dioAdapter.onPatch(
+        'https://api.test.com/settings',
+        (server) => server.reply(400, {'message': 'bad mode'}),
+        data: Matchers.any,
+      );
+
+      expect(
+        () => client.testPatch('/settings', {}),
+        throwsA(
+          isA<ApiException>().having((e) => e.message, 'message', 'bad mode'),
+        ),
+      );
     });
   });
 

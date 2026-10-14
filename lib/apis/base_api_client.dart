@@ -128,6 +128,29 @@ abstract class BaseApiClient {
     }
   }
 
+  /// Generic PATCH request with common error handling
+  Future<T> patch<T>(
+    String endpoint, {
+    dynamic data,
+    QueryParams? queryParameters,
+    ApiHeaders? headers,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final url = _buildUrl(endpoint);
+      final response = await _dio.patch(
+        url,
+        data: data,
+        queryParameters: queryParameters,
+        options: Options(headers: headers),
+        cancelToken: cancelToken,
+      );
+      return response.data as T;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   /// Generic DELETE request with common error handling
   Future<T> delete<T>(
     String endpoint, {
@@ -161,17 +184,20 @@ abstract class BaseApiClient {
     final exception = switch (error.type) {
       DioExceptionType.connectionTimeout ||
       DioExceptionType.sendTimeout ||
-      DioExceptionType.receiveTimeout =>
-        TimeoutException(_getTimeoutMessage(error.type)),
+      DioExceptionType.receiveTimeout => TimeoutException(
+        _getTimeoutMessage(error.type),
+      ),
       DioExceptionType.connectionError => NetworkException(
         'No internet connection. Please check your network.',
       ),
       DioExceptionType.badResponse => _handleHttpError(error),
       DioExceptionType.cancel => ApiException('Request was cancelled'),
-      DioExceptionType.badCertificate =>
-        ApiException('Security certificate error'),
-      DioExceptionType.unknown =>
-        ApiException(error.message ?? 'An unexpected error occurred'),
+      DioExceptionType.badCertificate => ApiException(
+        'Security certificate error',
+      ),
+      DioExceptionType.unknown => ApiException(
+        error.message ?? 'An unexpected error occurred',
+      ),
     };
 
     // Record server errors and unexpected failures to Crashlytics.
