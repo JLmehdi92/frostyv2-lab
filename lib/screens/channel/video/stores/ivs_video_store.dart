@@ -22,6 +22,7 @@ import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:frosty/screens/channel/video/quality_selection.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/services/audio_focus.dart';
 import 'package:frosty/services/background_audio.dart';
 import 'package:frosty/services/playback_token_cache.dart';
 import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
@@ -60,6 +61,14 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
 
   /// The media notification that keeps the sound going outside the app.
   final BackgroundAudio _backgroundAudio;
+
+  /// The app's hold on the sound, taken while the stream plays.
+  final AudioFocus _audioFocus;
+  ReactionDisposer? _disposeAudioFocusReaction;
+
+  /// A call (or a short sound from another app) paused the stream: it
+  /// plays again once the sound comes back.
+  var _pausedForFocus = false;
 
   /// The viewer stopped the stream from its notification: it stays hidden
   /// until the stream plays again.
@@ -227,8 +236,10 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     @visibleForTesting this.liveStartDelay = const Duration(seconds: 3),
     @visibleForTesting this.offlinePollInterval = const Duration(seconds: 60),
     BackgroundAudio? backgroundAudio,
+    AudioFocus? audioFocus,
   }) : _ownsStreamService = streamService == null,
        _backgroundAudio = backgroundAudio ?? BackgroundAudio.shared,
+       _audioFocus = audioFocus ?? AudioFocus.shared,
        _recovery = recoveryPolicy ?? IvsRecoveryPolicy(),
        playerConfig = IvsPlayerConfig.fromSettings(settingsStore),
        // Timeouts so a hung GQL/usher request becomes a retry instead of an
@@ -334,6 +345,20 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
             onCommand: _onMediaCommand,
           ),
         );
+      },
+    );
+
+    // The sound is held while the stream plays; a pause lets it go, unless
+    // a call caused it (its end gives the sound, and the stream, back).
+    _disposeAudioFocusReaction = reaction(
+      (_) => _status == IvsPlaybackStatus.playing && !_paused,
+      (bool playing) {
+        if (playing) {
+          _pausedForFocus = false;
+          unawaited(_audioFocus.request(this, _onAudioFocus));
+        } else if (!_pausedForFocus) {
+          unawaited(_audioFocus.abandon(this));
+        }
       },
     );
 
@@ -469,6 +494,26 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
       pip.setAutoPipMode();
     } else {
       pip.setAutoPipMode(autoEnter: false);
+    }
+  }
+
+  void _onAudioFocus(AudioFocusChange change) {
+    if (_disposed) return;
+    switch (change) {
+      case AudioFocusChange.lossTransient:
+        if (!_paused) {
+          _pausedForFocus = true;
+          handlePausePlay();
+        }
+      case AudioFocusChange.loss:
+      case AudioFocusChange.noisy:
+        _pausedForFocus = false;
+        if (!_paused) handlePausePlay();
+      case AudioFocusChange.gain:
+        if (_pausedForFocus) {
+          _pausedForFocus = false;
+          if (_paused) handlePausePlay();
+        }
     }
   }
 
@@ -1088,6 +1133,8 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     _disposeCaptionsReaction?.call();
     _disposeBackgroundAudioReaction?.call();
     unawaited(_backgroundAudio.hide(this));
+    _disposeAudioFocusReaction?.call();
+    unawaited(_audioFocus.abandon(this));
     _captionTimer?.cancel();
     if (Platform.isAndroid) pip.setAutoPipMode(autoEnter: false);
     final textureId = _textureId;

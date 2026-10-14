@@ -13,6 +13,7 @@ import 'package:frosty/screens/channel/video/ivs_video.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/services/audio_focus.dart';
 import 'package:frosty/services/background_audio.dart';
 import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:mobx/mobx.dart' show reaction;
@@ -49,6 +50,7 @@ void main() {
     EventSubHandle Function(EventSubTopic topic)? listenEvents,
     Duration offlinePollInterval = const Duration(minutes: 1),
     BackgroundAudio? backgroundAudio,
+    AudioFocus? audioFocus,
   }) async {
     final s = IvsVideoStore(
       userLogin: 'streamer',
@@ -62,6 +64,7 @@ void main() {
       liveStartDelay: Duration.zero,
       offlinePollInterval: offlinePollInterval,
       backgroundAudio: backgroundAudio,
+      audioFocus: audioFocus,
     );
     created = s;
     await s.ready;
@@ -555,6 +558,90 @@ void main() {
 
       expect(fatal, 0);
       expect(store.status, IvsPlaybackStatus.reconnecting);
+    });
+  });
+
+  group('audio focus', () {
+    const focusChannel = MethodChannel('frosty/audio-focus-ivs-test');
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    late List<String> focusCalls;
+    late AudioFocus focus;
+
+    setUp(() {
+      focusCalls = [];
+      messenger.setMockMethodCallHandler(focusChannel, (call) async {
+        focusCalls.add(call.method);
+        return true;
+      });
+      focus = AudioFocus(channel: focusChannel, supported: true);
+    });
+
+    tearDown(() => messenger.setMockMethodCallHandler(focusChannel, null));
+
+    Future<void> change(String state) => messenger.handlePlatformMessage(
+      focusChannel.name,
+      focusChannel.codec.encodeMethodCall(
+        MethodCall('change', {'state': state}),
+      ),
+      (_) {},
+    );
+
+    test('held while playing, let go on a pause', () async {
+      store = await createStore(audioFocus: focus);
+      expect(focusCalls, isEmpty);
+
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+      expect(focusCalls, ['request']);
+
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      await settle();
+      expect(focusCalls, ['request', 'abandon']);
+    });
+
+    test('a call pauses the stream and its end resumes it', () async {
+      store = await createStore(audioFocus: focus);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+
+      await change('lossTransient');
+      expect(native.callsNamed('pause'), hasLength(1));
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      await settle();
+      expect(focusCalls.last, 'request', reason: 'kept to hear the gain');
+
+      await change('gain');
+      expect(native.callsNamed('play'), hasLength(1));
+    });
+
+    test('another app or unplugged headphones pause for good', () async {
+      store = await createStore(audioFocus: focus);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+
+      await change('noisy');
+      expect(native.callsNamed('pause'), hasLength(1));
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      await settle();
+      await change('gain');
+      expect(native.callsNamed('play'), isEmpty);
+
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+      await change('loss');
+      expect(native.callsNamed('pause'), hasLength(2));
+    });
+
+    test('closing the player lets the focus go', () async {
+      store = await createStore(audioFocus: focus);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+
+      store.dispose();
+      created = null;
+      await settle();
+      expect(focusCalls.last, 'abandon');
     });
   });
 
