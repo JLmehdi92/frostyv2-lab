@@ -36,7 +36,13 @@ void main() {
       playing: true,
       onCommand: (_) {},
     );
-    await audio.setPlaying(owner, playing: false);
+    await audio.show(
+      owner: owner,
+      title: 'Streamer',
+      subtitle: 'Endgames',
+      playing: false,
+      onCommand: (_) {},
+    );
     await audio.hide(owner);
 
     expect(calls.map((c) => c.method), ['show', 'show', 'hide']);
@@ -90,7 +96,6 @@ void main() {
     );
     calls.clear();
 
-    await audio.setPlaying(first, playing: false);
     await audio.hide(first);
     await command('pause');
 
@@ -128,5 +133,44 @@ void main() {
       onCommand: (_) {},
     );
     await audio.hide(owner);
+  });
+
+  test('a show the system refused is sent again on resume', () async {
+    var refuse = true;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      calls.add(call);
+      if (refuse) throw PlatformException(code: 'start_failed');
+      return null;
+    });
+    final owner = Object();
+    await audio.show(
+      owner: owner,
+      title: 'A',
+      subtitle: '',
+      playing: true,
+      onCommand: (_) {},
+    );
+
+    refuse = false;
+    await audio.retryShow();
+    await audio.retryShow();
+
+    expect(calls.map((c) => c.method), ['show', 'show']);
+  });
+
+  test('nothing is sent again once shown or hidden', () async {
+    final owner = Object();
+    await audio.show(
+      owner: owner,
+      title: 'A',
+      subtitle: '',
+      playing: true,
+      onCommand: (_) {},
+    );
+    await audio.retryShow();
+    await audio.hide(owner);
+    await audio.retryShow();
+
+    expect(calls.map((c) => c.method), ['show', 'hide']);
   });
 }

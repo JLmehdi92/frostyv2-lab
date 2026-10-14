@@ -88,6 +88,7 @@ class BackgroundAudioService : Service() {
                     intent.getStringExtra(EXTRA_TITLE) ?: "",
                     intent.getStringExtra(EXTRA_SUBTITLE) ?: "",
                     intent.getBooleanExtra(EXTRA_PLAYING, true),
+                    promote = true,
                 )
                 if (hideRequested) {
                     hideRequested = false
@@ -102,8 +103,12 @@ class BackgroundAudioService : Service() {
         return START_NOT_STICKY
     }
 
-    /** Shows [title] and [subtitle] as playing or paused. */
-    fun update(title: String, subtitle: String, playing: Boolean) {
+    /**
+     * Shows [title] and [subtitle] as playing or paused. Only a start
+     * ([promote]) calls startForeground: Android 12+ refuses it again from
+     * the background, so later changes just repost the notification.
+     */
+    fun update(title: String, subtitle: String, playing: Boolean, promote: Boolean = false) {
         this.title = title
         this.subtitle = subtitle
         this.playing = playing
@@ -127,6 +132,11 @@ class BackgroundAudioService : Service() {
                 .build(),
         )
         val notification = buildNotification()
+        if (!promote) {
+            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.notify(NOTIFICATION_ID, notification)
+            return
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(
                 NOTIFICATION_ID,
@@ -186,6 +196,12 @@ class BackgroundAudioService : Service() {
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
     )
 
+    /** Leaves at once: later shows start a new service instead of this one. */
+    fun dismiss() {
+        if (instance === this) instance = null
+        stopSelf()
+    }
+
     override fun onDestroy() {
         if (instance === this) instance = null
         session?.isActive = false
@@ -222,6 +238,7 @@ class BackgroundAudioBridge(private val context: Context, messenger: BinaryMesse
                     val playing = call.argument<Boolean>("playing") ?: true
                     val running = BackgroundAudioService.instance
                     if (running != null) {
+                        BackgroundAudioService.hideRequested = false
                         running.update(title, subtitle, playing)
                         result.success(null)
                         return@setMethodCallHandler
@@ -248,11 +265,7 @@ class BackgroundAudioBridge(private val context: Context, messenger: BinaryMesse
                     }
                 }
                 "hide" -> {
-                    if (BackgroundAudioService.startPending) {
-                        BackgroundAudioService.hideRequested = true
-                    } else {
-                        context.stopService(Intent(context, BackgroundAudioService::class.java))
-                    }
+                    hide()
                     result.success(null)
                 }
                 else -> result.notImplemented()
@@ -260,9 +273,23 @@ class BackgroundAudioBridge(private val context: Context, messenger: BinaryMesse
         }
     }
 
+    /** Stops the service, or has it stop itself once started. */
+    private fun hide() {
+        if (BackgroundAudioService.startPending) {
+            BackgroundAudioService.hideRequested = true
+            return
+        }
+        val running = BackgroundAudioService.instance
+        if (running != null) {
+            running.dismiss()
+        } else {
+            context.stopService(Intent(context, BackgroundAudioService::class.java))
+        }
+    }
+
     fun dispose() {
         BackgroundAudioService.onCommand = null
         channel.setMethodCallHandler(null)
-        context.stopService(Intent(context, BackgroundAudioService::class.java))
+        hide()
     }
 }

@@ -1,7 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
 /// What the media notification, the lock screen or headphones ask for.
 enum MediaCommand { play, pause, stop }
@@ -19,6 +20,17 @@ class BackgroundAudio {
       _supported = supported ?? Platform.isAndroid {
     if (_supported) _channel.setMethodCallHandler(_onCall);
   }
+
+  /// Android 12+ refuses to start the service from the background (a
+  /// stream that only starts playing behind a locked screen): the show is
+  /// sent again when the app comes back to the front.
+  @visibleForTesting
+  Future<void> retryShow() async {
+    if (!_supported || _owner == null || !_showFailed) return;
+    await _sendShow();
+  }
+
+  AppLifecycleListener? _lifecycle;
 
   static final shared = BackgroundAudio();
 
@@ -39,25 +51,21 @@ class BackgroundAudio {
     if (!_supported) return;
     _owner = owner;
     _onCommand = onCommand;
-    _title = title;
-    _subtitle = subtitle;
-    await _invoke('show', {
-      'title': title,
-      'subtitle': subtitle,
-      'playing': playing,
-    });
+    _shown = (title: title, subtitle: subtitle, playing: playing);
+    _lifecycle ??= AppLifecycleListener(onResume: () => unawaited(retryShow()));
+    await _sendShow();
   }
 
-  String _title = '';
-  String _subtitle = '';
+  ({String title, String subtitle, bool playing})? _shown;
+  var _showFailed = false;
 
-  /// Shows [owner]'s stream as playing or paused.
-  Future<void> setPlaying(Object owner, {required bool playing}) async {
-    if (!_supported || !identical(owner, _owner)) return;
-    await _invoke('show', {
-      'title': _title,
-      'subtitle': _subtitle,
-      'playing': playing,
+  Future<void> _sendShow() async {
+    final shown = _shown;
+    if (shown == null) return;
+    _showFailed = !await _invoke('show', {
+      'title': shown.title,
+      'subtitle': shown.subtitle,
+      'playing': shown.playing,
     });
   }
 
@@ -66,14 +74,19 @@ class BackgroundAudio {
     if (!_supported || !identical(owner, _owner)) return;
     _owner = null;
     _onCommand = null;
+    _shown = null;
+    _showFailed = false;
     await _invoke('hide', null);
   }
 
-  Future<void> _invoke(String method, Object? arguments) async {
+  /// False when the native side failed (logged, never thrown).
+  Future<bool> _invoke(String method, Object? arguments) async {
     try {
       await _channel.invokeMethod<void>(method, arguments);
+      return true;
     } catch (e) {
       debugPrint('BackgroundAudio $method failed: $e');
+      return false;
     }
   }
 

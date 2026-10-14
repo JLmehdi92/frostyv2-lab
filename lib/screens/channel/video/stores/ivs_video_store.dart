@@ -476,7 +476,8 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     if (_disposed) return;
     switch (command) {
       case MediaCommand.play:
-        if (_paused) handlePausePlay();
+        // A VOD on top has the sound: it would pause this again at once.
+        if (_paused && !_focusSuppressed) handlePausePlay();
       case MediaCommand.pause:
         if (!_paused) handlePausePlay();
       case MediaCommand.stop:
