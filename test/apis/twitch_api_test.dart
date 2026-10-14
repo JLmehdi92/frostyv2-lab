@@ -210,6 +210,33 @@ void main() {
     });
   });
 
+  group('revokeToken', () {
+    test('posts the client id and token as a form', () async {
+      Object? sent;
+      String? type;
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            sent = options.data;
+            type = options.contentType;
+            handler.next(options);
+          },
+        ),
+      );
+      dioAdapter.onPost(
+        'https://id.twitch.tv/oauth2/revoke',
+        (server) => server.reply(200, null),
+        data: Matchers.any,
+      );
+
+      await api.revokeToken(token: 'user_token');
+
+      expect((sent as Map)['token'], 'user_token');
+      expect((sent as Map).containsKey('client_id'), isTrue);
+      expect(type, Headers.formUrlEncodedContentType);
+    });
+  });
+
   group('validateToken', () {
     test('returns true for valid token', () async {
       dioAdapter.onGet(

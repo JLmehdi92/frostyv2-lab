@@ -145,6 +145,15 @@ class TwitchApi extends BaseApiClient {
     return data['access_token'] as String;
   }
 
+  /// Revokes the user's [token] so it stops working everywhere (logout).
+  Future<void> revokeToken({required String token}) async {
+    await post<dynamic>(
+      '$_oauthBaseUrl/revoke',
+      data: {'client_id': clientId, 'token': token},
+      headers: {Headers.contentTypeHeader: Headers.formUrlEncodedContentType},
+    );
+  }
+
   /// Returns a bool indicating the validity of the given token.
   Future<bool> validateToken({required String token}) async {
     try {

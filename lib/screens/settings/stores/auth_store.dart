@@ -293,6 +293,10 @@ abstract class AuthBase with Store {
   Future<void> logout() async {
     try {
       _stopReconnectLoop();
+      // Revoke the user token so it stops working everywhere; logging out
+      // goes on even when Twitch cannot be reached.
+      final userToken = await _storage.read(key: _userTokenKey);
+      if (userToken != null) unawaited(_revoke(userToken));
       // Delete the existing user token.
       await _storage.delete(key: _userTokenKey);
       _token = null;
@@ -317,6 +321,17 @@ abstract class AuthBase with Store {
       debugPrint('Successfully logged out');
     } catch (e) {
       debugPrint(e.toString());
+    }
+  }
+
+  /// Revokes [token] at Twitch; never throws.
+  Future<void> _revoke(String token) async {
+    try {
+      await twitchApi
+          .revokeToken(token: token)
+          .timeout(const Duration(seconds: 5));
+    } catch (e) {
+      debugPrint('Token revoke failed: $e');
     }
   }
 
