@@ -621,4 +621,62 @@ void main() {
       );
     });
   });
+
+  group('unlock hints', () {
+    Emote twitch(String type, EmoteType kind, {String? tier}) =>
+        Emote.fromTwitch(EmoteTwitch('1', 'E', type, '9', tier: tier), kind);
+
+    test('say how a viewer gets each Twitch emote', () {
+      expect(
+        twitch(
+          'subscriptions',
+          EmoteType.twitchChannel,
+          tier: '2000',
+        ).unlockHint,
+        'Subscribe to this channel at Tier 2 to use it.',
+      );
+      expect(
+        twitch('subscriptions', EmoteType.twitchChannel, tier: '').unlockHint,
+        'Subscribe to this channel to use it.',
+      );
+      expect(
+        twitch('follower', EmoteType.twitchFollower).unlockHint,
+        'Follow this channel to use it.',
+      );
+      expect(
+        twitch('bitstier', EmoteType.twitchBits).unlockHint,
+        'Cheer Bits in this channel to unlock it.',
+      );
+      expect(
+        twitch('globals', EmoteType.twitchGlobal).unlockHint,
+        'Available to everyone on Twitch.',
+      );
+      expect(
+        twitch('subscriptions', EmoteType.twitchSub).unlockHint,
+        'You can use it.',
+      );
+    });
+
+    test('third-party emotes have none', () {
+      expect(
+        Emote.fromBTTV(
+          const EmoteBTTV('1', 'a'),
+          EmoteType.bttvGlobal,
+        ).unlockHint,
+        isNull,
+      );
+    });
+
+    test('the tier comes from Helix and survives saving', () {
+      final parsed = EmoteTwitch.fromJson({
+        'id': '1',
+        'name': 'E',
+        'emote_type': 'subscriptions',
+        'tier': '3000',
+      });
+      final emote = Emote.fromTwitch(parsed, EmoteType.twitchChannel);
+      expect(emote.subTier, 3);
+      expect(Emote.fromJson(emote.toJson()).subTier, 3);
+    });
+  });
 }

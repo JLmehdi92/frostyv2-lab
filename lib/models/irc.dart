@@ -875,6 +875,7 @@ class IRCMessage {
             Text(
               'by ${utils.getReadableName(emote.ownerDisplayName!, emote.ownerUsername!)}',
             ),
+          if (emote.unlockHint case final hint?) Text(hint),
         ],
       ),
       launchExternal: launchExternal,

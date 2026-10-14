@@ -11,6 +11,7 @@ EmoteTwitch _$EmoteTwitchFromJson(Map<String, dynamic> json) => EmoteTwitch(
   json['name'] as String,
   json['emote_type'] as String?,
   json['owner_id'] as String?,
+  tier: json['tier'] as String?,
 );
 
 EmoteBTTV _$EmoteBTTVFromJson(Map<String, dynamic> json) => EmoteBTTV(
@@ -102,6 +103,7 @@ Emote _$EmoteFromJson(Map<String, dynamic> json) => Emote(
   zeroWidth: json['zeroWidth'] as bool,
   url: json['url'] as String,
   staticUrl: json['staticUrl'] as String?,
+  subTier: (json['subTier'] as num?)?.toInt(),
   type: $enumDecode(_$EmoteTypeEnumMap, json['type']),
   ownerDisplayName: json['ownerDisplayName'] as String?,
   ownerUsername: json['ownerUsername'] as String?,
@@ -115,6 +117,7 @@ Map<String, dynamic> _$EmoteToJson(Emote instance) => <String, dynamic>{
   'height': instance.height,
   'zeroWidth': instance.zeroWidth,
   'url': instance.url,
+  'subTier': instance.subTier,
   'staticUrl': instance.staticUrl,
   'type': _$EmoteTypeEnumMap[instance.type]!,
   'ownerDisplayName': instance.ownerDisplayName,

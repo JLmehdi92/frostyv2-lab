@@ -12,7 +12,17 @@ class EmoteTwitch {
   final String? emoteType;
   final String? ownerId;
 
-  const EmoteTwitch(this.id, this.name, this.emoteType, this.ownerId);
+  /// The subscriber tier that unlocks it ("1000", "2000", "3000"), for a
+  /// channel's subscriber emotes; empty otherwise.
+  final String? tier;
+
+  const EmoteTwitch(
+    this.id,
+    this.name,
+    this.emoteType,
+    this.ownerId, {
+    this.tier,
+  });
 
   factory EmoteTwitch.fromJson(Map<String, dynamic> json) =>
       _$EmoteTwitchFromJson(json);
@@ -186,6 +196,9 @@ class Emote {
   final bool zeroWidth;
   final String url;
 
+  /// The subscriber tier (1 to 3) that unlocks a channel's sub emote.
+  final int? subTier;
+
   /// The emote's first frame, for chat without animations; null when [url]
   /// never moves or no still version is known.
   final String? staticUrl;
@@ -202,6 +215,7 @@ class Emote {
     required this.zeroWidth,
     required this.url,
     this.staticUrl,
+    this.subTier,
     required this.type,
     this.ownerDisplayName,
     this.ownerUsername,
@@ -215,6 +229,12 @@ class Emote {
         'https://static-cdn.jtvnw.net/emoticons/v2/${emote.id}/default/dark/3.0',
     staticUrl:
         'https://static-cdn.jtvnw.net/emoticons/v2/${emote.id}/static/dark/3.0',
+    subTier: switch (emote.tier) {
+      '1000' => 1,
+      '2000' => 2,
+      '3000' => 3,
+      _ => null,
+    },
     type: type,
     ownerId: emote.ownerId,
   );
@@ -277,6 +297,20 @@ class Emote {
       ownerUsername: emoteData.owner?.username,
     );
   }
+
+  /// How a viewer gets to use it, like Twitch's emote card; null for
+  /// third-party emotes.
+  String? get unlockHint => switch (type) {
+    EmoteType.twitchGlobal => 'Available to everyone on Twitch.',
+    EmoteType.twitchSub || EmoteType.twitchUnlocked => 'You can use it.',
+    EmoteType.twitchFollower => 'Follow this channel to use it.',
+    EmoteType.twitchBits => 'Cheer Bits in this channel to unlock it.',
+    EmoteType.twitchChannel =>
+      subTier == null
+          ? 'Subscribe to this channel to use it.'
+          : 'Subscribe to this channel at Tier $subTier to use it.',
+    _ => null,
+  };
 
   /// The image to show: [staticUrl] when animations are off.
   String urlFor({required bool animate}) => animate ? url : staticUrl ?? url;
