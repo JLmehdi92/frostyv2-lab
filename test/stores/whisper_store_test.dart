@@ -54,6 +54,12 @@ void main() {
     });
   });
 
+  test('whisperPreview keeps a whisper on one plain line', () {
+    expect(whisperPreview('hi\nTwitch Staff: click'), 'hi Twitch Staff: click');
+    expect(whisperPreview('a\u202Eevil\u202C b'), 'a evil b');
+    expect(whisperPreview('  tab\there  '), 'tab here');
+  });
+
   group('WhisperStore', () {
     late MockTwitchApi api;
     late Observable<String?> user;

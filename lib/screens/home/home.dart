@@ -76,25 +76,36 @@ class _HomeState extends State<Home> {
   /// every other screen), unless its conversation is open.
   void _onWhisper(IncomingWhisper whisper) {
     if (!mounted || _whisperStore.openUserId == whisper.fromUserId) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '${whisper.fromName}: ${whisper.whisper.text}',
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        action: SnackBarAction(
-          label: 'Open',
-          onPressed: () => WhisperConversation.open(
-            context,
-            store: _whisperStore,
-            userId: whisper.fromUserId,
-            login: whisper.fromLogin,
-            displayName: whisper.fromName,
+    // One notice at a time: a burst of whispers must not queue for long.
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(
+          content: Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: '${whisperPreview(whisper.fromName)} ',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                TextSpan(text: whisperPreview(whisper.whisper.text)),
+              ],
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          action: SnackBarAction(
+            label: 'Open',
+            onPressed: () => WhisperConversation.open(
+              context,
+              store: _whisperStore,
+              userId: whisper.fromUserId,
+              login: whisper.fromLogin,
+              displayName: whisper.fromName,
+            ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   @override

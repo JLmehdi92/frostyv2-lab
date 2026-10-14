@@ -101,12 +101,28 @@ class _ThreadTile extends StatelessWidget {
                 ? const TextStyle(fontWeight: FontWeight.bold)
                 : null,
           ),
+          // Yours carry an icon, not a "You:" a whisper could fake.
           subtitle: last == null
               ? null
-              : Text(
-                  '${last.mine ? 'You: ' : ''}${last.text}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+              : Row(
+                  children: [
+                    if (last.mine) ...[
+                      Icon(
+                        Icons.reply_rounded,
+                        size: 16,
+                        semanticLabel: 'You',
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 4),
+                    ],
+                    Expanded(
+                      child: Text(
+                        whisperPreview(last.text),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
           trailing: Column(
             mainAxisAlignment: MainAxisAlignment.center,

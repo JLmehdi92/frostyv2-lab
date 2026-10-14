@@ -12,6 +12,18 @@ part 'whisper_store.g.dart';
 final _numericId = RegExp(r'^[0-9]{1,20}$');
 final _login = RegExp(r'^[a-zA-Z0-9_]{1,25}$');
 
+final _unsafeForPreview = RegExp(
+  '[\u0000-\u001f\u007f-\u009f\u200e\u200f\u202a-\u202e\u2066-\u2069]',
+);
+
+/// [text] on one line for a preview or a notice: line breaks, control and
+/// direction characters become spaces, so a whisper cannot fake a second
+/// line or turn text around.
+String whisperPreview(String text) => text
+    .replaceAll(_unsafeForPreview, ' ')
+    .replaceAll(RegExp(' {2,}'), ' ')
+    .trim();
+
 /// One whisper of a conversation.
 @immutable
 class Whisper {
