@@ -317,6 +317,26 @@ void main() {
     });
   });
 
+  test('400 and 422 keep their code', () async {
+    dioAdapter.onGet(
+      'https://api.test.com/bad',
+      (server) => server.reply(400, {'message': 'bad condition'}),
+    );
+    dioAdapter.onGet(
+      'https://api.test.com/odd',
+      (server) => server.reply(422, null),
+    );
+
+    expect(
+      () => client.testGet('/bad'),
+      throwsA(isA<ApiException>().having((e) => e.statusCode, 'code', 400)),
+    );
+    expect(
+      () => client.testGet('/odd'),
+      throwsA(isA<ApiException>().having((e) => e.statusCode, 'code', 422)),
+    );
+  });
+
   test("403 keeps Twitch's reason", () async {
     dioAdapter.onGet(
       'https://api.test.com/whispers',

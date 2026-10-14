@@ -258,7 +258,11 @@ abstract class BaseApiClient {
 
     switch (statusCode) {
       case 400:
-        return ApiException(serverMessage ?? 'Invalid request data');
+        return ApiException(
+          serverMessage ?? 'Invalid request data',
+          400,
+          DioExceptionType.badResponse,
+        );
       case 401:
         return UnauthorizedException('Please log in to continue');
       case 403:
@@ -276,7 +280,11 @@ abstract class BaseApiClient {
           DioExceptionType.badResponse,
         );
       case 422:
-        return ApiException(serverMessage ?? 'Invalid data provided');
+        return ApiException(
+          serverMessage ?? 'Invalid data provided',
+          422,
+          DioExceptionType.badResponse,
+        );
       case 429:
         return ApiException(
           serverMessage ??
