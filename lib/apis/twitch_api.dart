@@ -58,6 +58,47 @@ class TwitchApi extends BaseApiClient {
     }).toList();
   }
 
+  /// Pages of the viewer's emotes read at most (each holds a few hundred).
+  static const _maxEmotePages = 10;
+
+  /// Every emote [userId] can use in [broadcasterId]'s chat: subscriptions
+  /// anywhere, follower emotes, unlocked and global ones. Needs
+  /// `user:read:emotes`; a token from before that scope fails quietly
+  /// (callers fall back to the chat's emote sets).
+  Future<List<Emote>> getUserEmotes({
+    required String userId,
+    required String broadcasterId,
+  }) async {
+    final emotes = <Emote>[];
+    String? cursor;
+    for (var page = 0; page < _maxEmotePages; page++) {
+      final data = await get<JsonMap>(
+        '/chat/emotes/user',
+        queryParameters: {
+          'user_id': _checkId(userId, 'userId'),
+          'broadcaster_id': _checkId(broadcasterId, 'broadcasterId'),
+          'after': ?cursor,
+        },
+        extra: {UnauthorizedInterceptor.quiet: true},
+      );
+      for (final json in data['data'] as JsonList) {
+        final emote = EmoteTwitch.fromJson(json as JsonMap);
+        emotes.add(
+          Emote.fromTwitch(emote, switch (emote.emoteType) {
+            'globals' || 'smilies' => EmoteType.twitchGlobal,
+            'subscriptions' => EmoteType.twitchSub,
+            'follower' => EmoteType.twitchFollower,
+            'bitstier' => EmoteType.twitchBits,
+            _ => EmoteType.twitchUnlocked,
+          }),
+        );
+      }
+      cursor = (data['pagination'] as JsonMap?)?['cursor'] as String?;
+      if (cursor == null || cursor.isEmpty) break;
+    }
+    return emotes;
+  }
+
   /// Returns a list of Twitch emotes under the provided [setId].
   Future<List<Emote>> getEmotesSets({required String setId}) async {
     final data = await get<JsonMap>(
