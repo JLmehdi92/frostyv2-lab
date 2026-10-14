@@ -325,11 +325,22 @@ abstract class ChatStoreBase with Store {
     }
   }
 
+  /// Whether a slash command is still running (one runs at a time: a
+  /// second tap on send would repeat a ban or a warning).
+  var _runningCommand = false;
+
   /// Runs a slash command and says the outcome in chat; a failed command
-  /// keeps its text for another try.
-  Future<void> _runCommand(ChatCommand command) async {
+  /// keeps its text for another try. The input clears only while it still
+  /// holds [submitted] (not a draft typed meanwhile).
+  Future<void> _runCommand(ChatCommand command, String submitted) async {
     void say(String text) =>
         messageBuffer.add(IRCMessage.createNotice(message: text));
+    void done() {
+      if (!_shouldDisconnect && textController.text == submitted) {
+        textController.clear();
+      }
+    }
+
     final me = auth.user.details?.id;
     switch (command) {
       case SendAsIs():
@@ -340,10 +351,10 @@ abstract class ChatStoreBase with Store {
           if (canModerate) ...kModeratorChatCommands,
         ];
         say('Commands: ${[for (final c in commands) c.usage].join(', ')}');
-        textController.clear();
+        done();
       case ModerationCommand():
         final outcome = await moderate(command);
-        if (outcome?.ok ?? false) textController.clear();
+        if (outcome?.ok ?? false) done();
       case UnsupportedCommand(:final message):
         say(message);
       case ColorCommand(:final color):
@@ -355,7 +366,7 @@ abstract class ChatStoreBase with Store {
         if (_shouldDisconnect) return;
         if (ok) {
           say('Your name color was changed.');
-          textController.clear();
+          done();
         } else {
           say("Couldn't change your color (hex colors need Turbo or Prime).");
         }
@@ -368,7 +379,7 @@ abstract class ChatStoreBase with Store {
           );
           if (block && already) {
             say('${user.displayName} is already blocked.');
-            textController.clear();
+            done();
             return;
           }
           if (block) {
@@ -384,7 +395,7 @@ abstract class ChatStoreBase with Store {
             throw StateError('not ${block ? '' : 'un'}blocked');
           }
           say('${block ? 'Blocked' : 'Unblocked'} ${user.displayName}.');
-          textController.clear();
+          done();
         } catch (e) {
           debugPrint('/${block ? 'block' : 'unblock'} $login failed: $e');
           if (!_shouldDisconnect) {
@@ -1389,7 +1400,17 @@ abstract class ChatStoreBase with Store {
     // Slash commands run here: Twitch ignores them over IRC (except /me).
     final command = parseChatCommand(message);
     if (command is! SendAsIs) {
-      unawaited(_runCommand(command));
+      if (_runningCommand) {
+        updateNotification('Please wait, running the previous command...');
+        return;
+      }
+      _runningCommand = true;
+      unawaited(
+        _runCommand(
+          command,
+          message,
+        ).whenComplete(() => _runningCommand = false),
+      );
       return;
     }
 
