@@ -15,6 +15,7 @@ import 'package:frosty/screens/channel/video/ivs_stats_panel.dart';
 import 'package:frosty/screens/channel/video/ivs_video.dart';
 import 'package:frosty/screens/channel/video/native_video.dart';
 import 'package:frosty/screens/channel/video/overlay_common.dart';
+import 'package:frosty/screens/channel/video/pinch_to_fill.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:frosty/screens/channel/video/player_engine_resolver.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
@@ -611,7 +612,7 @@ class _VideoChatState extends State<VideoChat>
               : Video(key: _videoKey, videoStore: store as VideoStore),
     );
 
-    final overlay = GestureDetector(
+    final overlayGestures = GestureDetector(
       onLongPress: _videoStore.handleToggleOverlay,
       onDoubleTap: context.isLandscape ? _cycleLandscapeChatMode : null,
       onTap: () {
@@ -652,6 +653,11 @@ class _VideoChatState extends State<VideoChat>
         },
       ),
     );
+
+    // Landscape, the IVS picture can be pinched to fill or fit the screen.
+    final overlay = store is IvsVideoStore && context.isLandscape
+        ? PinchToFill(onPinch: store.setFillScreen, child: overlayGestures)
+        : overlayGestures;
 
     final video = Observer(
       builder: (context) {

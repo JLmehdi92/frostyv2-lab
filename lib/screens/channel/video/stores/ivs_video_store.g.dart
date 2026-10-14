@@ -483,6 +483,18 @@ mixin _$IvsVideoStore on IvsVideoStoreBase, Store {
   }
 
   @override
+  void setFillScreen(bool fill) {
+    final _$actionInfo = _$IvsVideoStoreBaseActionController.startAction(
+      name: 'IvsVideoStoreBase.setFillScreen',
+    );
+    try {
+      return super.setFillScreen(fill);
+    } finally {
+      _$IvsVideoStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   void onPipEntered() {
     final _$actionInfo = _$IvsVideoStoreBaseActionController.startAction(
       name: 'IvsVideoStoreBase.onPipEntered',

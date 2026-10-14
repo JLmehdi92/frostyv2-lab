@@ -173,6 +173,10 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   @action
   void toggleFillScreen() => _fillScreen = !_fillScreen;
 
+  /// Fills the screen ([fill]) or fits the video in it (pinch).
+  @action
+  void setFillScreen(bool fill) => _fillScreen = fill;
+
   @override
   String get streamQuality =>
       _availableStreamQualities.elementAtOrNull(_streamQualityIndex) ?? 'Auto';
