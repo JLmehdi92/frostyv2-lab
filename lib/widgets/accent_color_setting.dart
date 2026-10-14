@@ -14,6 +14,7 @@ class AccentColorSetting extends StatelessWidget {
       builder: (context) => ListTile(
         title: const Text('Accent color'),
         trailing: IconButton(
+          tooltip: 'Change accent color',
           icon: DecoratedBox(
             position: DecorationPosition.foreground,
             decoration: BoxDecoration(

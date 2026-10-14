@@ -96,9 +96,10 @@ class _SettingsMutedWordsState extends State<SettingsMutedWords> {
                               settingsStore.mutedWords.elementAt(index),
                             ),
                             trailing: IconButton(
-                              icon: const Icon(
-                                Icons.delete_outline_rounded,
-                              ),
+                              tooltip:
+                                  'Remove '
+                                  '${settingsStore.mutedWords.elementAt(index)}',
+                              icon: const Icon(Icons.delete_outline_rounded),
                               onPressed: () {
                                 final word =
                                     settingsStore.mutedWords.elementAt(index);

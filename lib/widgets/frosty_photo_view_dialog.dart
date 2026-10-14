@@ -177,6 +177,7 @@ class _FrostyPhotoViewDialogState extends State<FrostyPhotoViewDialog>
           opacity: buttonsOpacity,
           duration: const Duration(milliseconds: 100),
           child: IconButton(
+            tooltip: 'Close',
             icon: Icon(
               Icons.close,
               color: context.frostyColors.overlayOnSurface,

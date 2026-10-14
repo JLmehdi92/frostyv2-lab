@@ -21,6 +21,7 @@ class LoginWebView extends StatelessWidget {
         title: const Text('Connect with Twitch'),
         actions: [
           IconButton(
+            tooltip: 'Login help',
             icon: const Icon(Icons.help_rounded),
             onPressed: () => showDialog(
               context: context,

@@ -106,6 +106,7 @@ class VideoOverlay extends StatelessWidget {
         : const SizedBox.shrink();
 
     final videoSettingsButton = IconButton(
+      tooltip: 'Quality and settings',
       icon: Icon(Icons.settings, shadows: kOverlayShadow),
       color: surfaceColor,
       onPressed: () {

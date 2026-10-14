@@ -10,6 +10,10 @@ class AlertMessage extends StatelessWidget {
   final IconData? trailingIcon;
   final VoidCallback? onTrailingIconPressed;
 
+  /// What the trailing button does, for screen readers ("Retry" when not
+  /// given).
+  final String? trailingTooltip;
+
   const AlertMessage({
     super.key,
     required this.message,
@@ -19,6 +23,7 @@ class AlertMessage extends StatelessWidget {
     this.vertical = false,
     this.trailingIcon,
     this.onTrailingIconPressed,
+    this.trailingTooltip,
   });
 
   @override
@@ -60,6 +65,7 @@ class AlertMessage extends StatelessWidget {
           if (trailingIcon != null) ...[
             const SizedBox(width: 8),
             IconButton(
+              tooltip: trailingTooltip ?? 'Retry',
               icon: Icon(trailingIcon, color: color ?? defaultColor),
               onPressed: onTrailingIconPressed,
               padding: EdgeInsets.zero,

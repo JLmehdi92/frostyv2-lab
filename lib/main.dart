@@ -448,6 +448,7 @@ class _MyAppState extends State<MyApp> {
         message: 'Unable to navigate to \'$uri\'',
         centered: false,
         trailingIcon: Icons.open_in_browser_rounded,
+        trailingTooltip: 'Open in browser',
         // Fallback, allow user to open URL outside app
         onTrailingIconPressed: () async {
           await launchUrl(

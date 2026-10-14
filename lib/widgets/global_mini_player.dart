@@ -135,6 +135,7 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
                   top: -4,
                   right: -4,
                   child: IconButton(
+                    tooltip: 'Close mini player',
                     iconSize: 18,
                     icon: const Icon(Icons.close, color: Colors.white),
                     style: IconButton.styleFrom(
