@@ -32,7 +32,7 @@ void main() {
     service = MockTwitchStreamService();
     when(() => service.preload(any())).thenAnswer((_) async {});
     previous = PlaybackPreloader.instance;
-    PlaybackPreloader.instance = PlaybackPreloader(service);
+    PlaybackPreloader.instance = PlaybackPreloader(service, isAndroid: true);
   });
 
   tearDown(() => PlaybackPreloader.instance = previous);

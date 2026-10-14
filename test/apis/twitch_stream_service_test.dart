@@ -478,6 +478,22 @@ https://video-edge-1.ttvnw.net/chunked/index-live.m3u8
       expect(posts, 1);
     });
 
+    test('a player opening during a failing preload gets its error', () async {
+      stubToken(delay: const Duration(milliseconds: 50), status: 500);
+
+      final preloading = service.preload(login);
+      await expectLater(
+        TwitchStreamService(
+          dio,
+          tokenCache: cache,
+        ).getUsherUrl(userLogin: login),
+        throwsA(isA<ApiException>()),
+      );
+      await preloading;
+
+      expect(posts, 1, reason: 'no second request after the first failed');
+    });
+
     test('a failed preload is quiet and asked again by the player', () async {
       stubToken(status: 500);
 

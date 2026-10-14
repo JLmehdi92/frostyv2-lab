@@ -201,13 +201,11 @@ class TwitchStreamService extends BaseApiClient {
         _remember(login, cached);
         return cached;
       } else if (cache.pending(login) case final pending?) {
-        try {
-          final token = await pending;
-          _remember(login, token);
-          return token;
-        } catch (_) {
-          // The preload failed: ask again below.
-        }
+        // The same answer a request of our own would get, sooner: a failure
+        // goes to the caller's retry policy like its own would.
+        final token = await pending;
+        _remember(login, token);
+        return token;
       }
     }
     final token = _fetchAccessToken(login);

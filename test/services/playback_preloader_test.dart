@@ -13,7 +13,7 @@ void main() {
   setUp(() {
     service = MockTwitchStreamService();
     when(() => service.preload(any())).thenAnswer((_) async {});
-    preloader = PlaybackPreloader(service);
+    preloader = PlaybackPreloader(service, isAndroid: true);
   });
 
   test('preloads for the native IVS player only', () {
@@ -21,6 +21,10 @@ void main() {
       ..preload(login: 'streamer', engine: PlayerEngine.ivs)
       ..preload(login: 'streamer', engine: PlayerEngine.twitchWeb)
       ..preload(login: '', engine: PlayerEngine.ivs);
+    PlaybackPreloader(
+      service,
+      isAndroid: false,
+    ).preload(login: 'other', engine: PlayerEngine.ivs);
 
     verify(() => service.preload('streamer')).called(1);
   });

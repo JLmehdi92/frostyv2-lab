@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:frosty/apis/twitch_stream_service.dart';
+import 'package:frosty/screens/channel/video/player_engine_resolver.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/services/playback_token_cache.dart';
 
@@ -10,7 +12,8 @@ import 'package:frosty/services/playback_token_cache.dart';
 /// [PlaybackTokenCache.pending]) instead of waiting a GQL round trip after
 /// the channel opens, like the official app's theatre preload.
 class PlaybackPreloader {
-  PlaybackPreloader(this._service);
+  PlaybackPreloader(this._service, {bool? isAndroid})
+    : _isAndroid = isAndroid ?? Platform.isAndroid;
 
   /// The app-wide preloader, sharing [PlaybackTokenCache.shared] with the
   /// players (replaced in tests).
@@ -27,11 +30,17 @@ class PlaybackPreloader {
   );
 
   final TwitchStreamService _service;
+  final bool _isAndroid;
 
   /// Preloads [login]'s token when the IVS engine will play it (the other
-  /// engines do not use it).
+  /// engines, and IVS outside Android, do not use it).
   void preload({required String login, required PlayerEngine engine}) {
-    if (engine != PlayerEngine.ivs || login.isEmpty) return;
+    final resolved = resolvePlayerEngine(
+      setting: engine,
+      isAndroid: _isAndroid,
+      forceWeb: false,
+    );
+    if (resolved != PlayerEngine.ivs || login.isEmpty) return;
     unawaited(_service.preload(login));
   }
 }
