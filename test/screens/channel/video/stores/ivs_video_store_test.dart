@@ -11,6 +11,7 @@ import 'package:frosty/screens/channel/video/ivs_video.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:mobx/mobx.dart' show reaction;
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -40,7 +41,10 @@ void main() {
     backoff: const [Duration.zero, Duration.zero, Duration.zero],
   );
 
-  Future<IvsVideoStore> createStore({IvsRecoveryPolicy? policy}) async {
+  Future<IvsVideoStore> createStore({
+    IvsRecoveryPolicy? policy,
+    EventSubHandle Function(EventSubTopic topic)? listenEvents,
+  }) async {
     final s = IvsVideoStore(
       userLogin: 'streamer',
       userId: '123',
@@ -49,6 +53,8 @@ void main() {
       settingsStore: settingsStore,
       streamService: streamService,
       recoveryPolicy: policy ?? instantPolicy(),
+      listenEvents: listenEvents,
+      liveStartDelay: Duration.zero,
     );
     created = s;
     await s.ready;
@@ -1299,6 +1305,101 @@ void main() {
       await settle();
 
       expect(native.callsNamed('pause'), isEmpty);
+    });
+  });
+
+  group('live state over EventSub', () {
+    late Map<String, StreamController<EventSubTopicEvent>> topics;
+
+    EventSubHandle listen(EventSubTopic topic) {
+      final events = StreamController<EventSubTopicEvent>.broadcast();
+      topics[topic.type] = events;
+      return EventSubHandle.forTesting(topic, events.stream, () {});
+    }
+
+    Future<void> goOffline(IvsVideoStore store) async {
+      when(
+        () => twitchApi.getStream(userLogin: any(named: 'userLogin')),
+      ).thenThrow(const NotFoundException('offline'));
+      await native.emit({'type': 'error', 'errorType': 'ERROR_NOT_AVAILABLE'});
+      for (var i = 0; i < 5; i++) {
+        await settle();
+      }
+      expect(store.status, IvsPlaybackStatus.offline);
+      native.playerCalls.clear();
+    }
+
+    void backLive() {
+      final live = StreamTwitch.fromJson(
+        (twitchStreamResponse['data']! as List).first as Map<String, dynamic>,
+      );
+      when(
+        () => twitchApi.getStream(userLogin: any(named: 'userLogin')),
+      ).thenAnswer((_) async => live);
+    }
+
+    setUp(() => topics = {});
+
+    test('listens to the channel only when it can', () async {
+      store = await createStore();
+      expect(topics, isEmpty);
+      store.dispose();
+      created = null;
+
+      store = await createStore(listenEvents: listen);
+      expect(topics.keys, unorderedEquals(['stream.online', 'stream.offline']));
+    });
+
+    test('the channel going live restarts an offline player', () async {
+      store = await createStore(listenEvents: listen);
+      await goOffline(store);
+      backLive();
+
+      topics['stream.online']!.add(const EventSubData({}));
+      for (var i = 0; i < 10; i++) {
+        await settle();
+      }
+
+      expect(native.callsNamed('load'), hasLength(1));
+      expect(store.status, isNot(IvsPlaybackStatus.offline));
+    });
+
+    test('a playing player ignores a late online event', () async {
+      store = await createStore(listenEvents: listen);
+      topics['stream.online']!.add(const EventSubData({}));
+      for (var i = 0; i < 10; i++) {
+        await settle();
+      }
+      expect(native.callsNamed('load'), isEmpty);
+    });
+
+    test('after a gap, an offline player checks whether it is live', () async {
+      store = await createStore(listenEvents: listen);
+      await goOffline(store);
+
+      // Still offline: nothing happens.
+      topics['stream.online']!.add(const EventSubListening(afterGap: true));
+      for (var i = 0; i < 10; i++) {
+        await settle();
+      }
+      expect(native.callsNamed('load'), isEmpty);
+
+      backLive();
+      topics['stream.online']!.add(const EventSubListening(afterGap: true));
+      for (var i = 0; i < 10; i++) {
+        await settle();
+      }
+      expect(native.callsNamed('load'), hasLength(1));
+    });
+
+    test('the channel going offline refreshes its info at once', () async {
+      store = await createStore(listenEvents: listen);
+      clearInteractions(twitchApi);
+
+      topics['stream.offline']!.add(const EventSubData({}));
+      await settle();
+
+      verify(() => twitchApi.getStream(userLogin: 'streamer')).called(1);
     });
   });
 }

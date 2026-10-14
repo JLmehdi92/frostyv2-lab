@@ -13,11 +13,13 @@ import 'package:frosty/screens/channel/video/captions.dart';
 import 'package:frosty/screens/channel/video/ivs_player_config.dart';
 import 'package:frosty/screens/channel/video/ivs_recovery.dart';
 import 'package:frosty/screens/channel/video/latency_stats.dart';
+import 'package:frosty/screens/channel/video/live_state_watcher.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:frosty/screens/channel/video/quality_selection.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/services/playback_token_cache.dart';
+import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:mobx/mobx.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_pip_mode/simple_pip.dart';
@@ -197,6 +199,8 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     required this.settingsStore,
     TwitchStreamService? streamService,
     @visibleForTesting IvsRecoveryPolicy? recoveryPolicy,
+    EventSubHandle Function(EventSubTopic topic)? listenEvents,
+    @visibleForTesting this.liveStartDelay = const Duration(seconds: 3),
   }) : _ownsStreamService = streamService == null,
        _recovery = recoveryPolicy ?? IvsRecoveryPolicy(),
        playerConfig = IvsPlayerConfig.fromSettings(settingsStore),
@@ -248,6 +252,20 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     unawaited(updateStreamInfo());
     _scheduleOverlayHide();
 
+    // Logged in: the channel going live restarts the player at once, and
+    // going offline shows it without waiting for a poll.
+    if (listenEvents != null) {
+      try {
+        _liveWatcher = LiveStateWatcher(
+          listen: listenEvents,
+          broadcasterId: userId,
+          onChange: _onLiveChange,
+        );
+      } on ArgumentError catch (e) {
+        debugPrint('IvsVideoStore live watcher: $e');
+      }
+    }
+
     // Enable auto picture-in-picture so the stream keeps playing in a floating
     // window when the user leaves the app.
     if (Platform.isAndroid) {
@@ -255,13 +273,48 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     }
 
     // Captions follow their setting at once (also sent with each load).
-    _disposeCaptionsReaction = reaction(
-      (_) => settingsStore.showCaptions,
-      (bool on) {
-        if (!on) _clearCaption();
-        unawaited(_invoke('setCaptions', {'enabled': on}));
-      },
-    );
+    _disposeCaptionsReaction = reaction((_) => settingsStore.showCaptions, (
+      bool on,
+    ) {
+      if (!on) _clearCaption();
+      unawaited(_invoke('setCaptions', {'enabled': on}));
+    });
+  }
+
+  /// How long after the live event the playlist is expected to be ready.
+  final Duration liveStartDelay;
+
+  LiveStateWatcher? _liveWatcher;
+  Timer? _liveStartTimer;
+
+  void _onLiveChange(LiveChange change) {
+    if (_disposed) return;
+    switch (change) {
+      case LiveChange.offline:
+        unawaited(updateStreamInfo(forceUpdate: true));
+      case LiveChange.online:
+        if (_status != IvsPlaybackStatus.offline) return;
+        _liveStartTimer?.cancel();
+        _liveStartTimer = Timer(liveStartDelay, () {
+          if (!_disposed && _status == IvsPlaybackStatus.offline) {
+            unawaited(handleRefresh());
+          }
+        });
+      case LiveChange.maybeMissed:
+        if (_status == IvsPlaybackStatus.offline) unawaited(_restartIfLive());
+    }
+  }
+
+  /// Restarts an offline player when the channel turns out to be live.
+  Future<void> _restartIfLive() async {
+    try {
+      await twitchApi.getStream(userLogin: userLogin);
+    } catch (_) {
+      return; // Still offline (or unknown): the offline state stays.
+    }
+    if (!_disposed && _status == IvsPlaybackStatus.offline) {
+      unawaited(handleRefresh());
+    }
   }
 
   @action
@@ -804,6 +857,8 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     _disposed = true;
     _recoveryEpoch++;
     _retryTimer?.cancel();
+    _liveStartTimer?.cancel();
+    _liveWatcher?.dispose();
     _overlayTimer?.cancel();
     _disposeAutoPipReaction?.call();
     _disposeCaptionsReaction?.call();
