@@ -186,6 +186,21 @@ void main() {
   });
 
   group('failures say why', () {
+    test('offline', () async {
+      when(
+        () => api.deleteChatMessages(
+          broadcasterId: '11',
+          moderatorId: '22',
+          messageId: 'abc',
+        ),
+      ).thenThrow(const NetworkException('No internet connection.'));
+
+      expect(
+        (await moderation.run(const DeleteMessageCommand('abc'))).message,
+        "Couldn't delete the message: No internet connection.",
+      );
+    });
+
     test('an unknown login', () async {
       when(
         () => api.getUser(userLogin: 'ghost'),
@@ -237,7 +252,7 @@ void main() {
 
       expect(await moderation.run(const ClearChatCommand()), (
         ok: false,
-        message: "Couldn't clear the chat.",
+        message: "Couldn't clear the chat (unexpected error).",
       ));
     });
   });

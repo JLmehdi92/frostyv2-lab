@@ -1,3 +1,4 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
@@ -31,8 +32,21 @@ class ChatModeration {
   }) async {
     try {
       return (ok: true, message: await _run(command, userId));
-    } catch (error) {
+    } catch (error, stack) {
       debugPrint('Moderation ${command.runtimeType} failed: $error');
+      // A refusal or a network error is expected now and then; anything
+      // else is a bug (or Twitch changed something).
+      if (error is! ApiException) {
+        try {
+          FirebaseCrashlytics.instance.recordError(
+            error,
+            stack,
+            reason: 'moderation ${command.runtimeType}',
+          );
+        } catch (_) {
+          // Firebase may not be initialized (e.g., in tests).
+        }
+      }
       return (ok: false, message: moderationFailure(error, _verb(command)));
     }
   }
@@ -43,8 +57,11 @@ class ChatModeration {
       try {
         final user = await api.getUser(userLogin: login);
         return (id: user.id, name: user.displayName);
-      } on NotFoundException {
-        throw NotFoundException('no user named $login');
+      } on NotFoundException catch (_, stack) {
+        Error.throwWithStackTrace(
+          NotFoundException('no user named $login'),
+          stack,
+        );
       }
     }
 
@@ -150,5 +167,5 @@ String moderationFailure(Object error, String verb) => switch (error) {
   ApiException(statusCode: 403) =>
     "Couldn't $verb: Twitch says you can't moderate this chat.",
   ApiException(:final message) => "Couldn't $verb: $message",
-  _ => "Couldn't $verb.",
+  _ => "Couldn't $verb (unexpected error).",
 };
