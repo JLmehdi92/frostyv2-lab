@@ -64,6 +64,7 @@ void main() {
   group('search results', () {
     late MockTwitchApi api;
     late MockAuthStore auth;
+    late ObservableList<UserBlockedTwitch> blocked;
 
     setUp(() {
       SharedPreferences.setMockInitialValues({});
@@ -72,7 +73,8 @@ void main() {
       final user = MockUserStore();
       when(() => auth.user).thenReturn(user);
       when(() => user.details).thenReturn(null);
-      when(() => user.blockedUsers).thenReturn(ObservableList());
+      blocked = ObservableList();
+      when(() => user.blockedUsers).thenReturn(blocked);
       when(
         () => api.getUser(userLogin: any(named: 'userLogin')),
       ).thenAnswer((_) => Completer<UserTwitch>().future);
@@ -124,6 +126,35 @@ void main() {
         tester.getTopLeft(find.byType(FeaturedChannelCard)).dy,
         lessThan(tester.getTopLeft(find.text('xqcow')).dy),
       );
+
+      await tester.pumpWidget(const SizedBox());
+      controller.dispose();
+    });
+
+    testWidgets('a blocked channel is never featured', (tester) async {
+      blocked.add(const UserBlockedTwitch('id_xqc', 'xqc', 'xQc'));
+      final controller = ScrollController();
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<AuthStore>.value(value: auth),
+            Provider<TwitchApi>.value(value: api),
+          ],
+          child: MaterialApp(
+            home: Scaffold(body: Search(scrollController: controller)),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      await tester.enterText(find.byType(TextField), 'xqc');
+      await tester.testTextInput.receiveAction(TextInputAction.search);
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.byType(FeaturedChannelCard), findsNothing);
+      expect(find.text('xQc'), findsNothing);
+      expect(find.text('xqcow'), findsOneWidget);
 
       await tester.pumpWidget(const SizedBox());
       controller.dispose();
