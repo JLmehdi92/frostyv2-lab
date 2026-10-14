@@ -163,13 +163,17 @@ class _HomeState extends State<Home> {
               builder: (_) {
                 if (!_authStore.isLoggedIn) return const SizedBox.shrink();
                 final unread = _whisperStore.unreadCount;
+                // Whispers that cannot arrive must not look like none came.
+                final refused = _whisperStore.status == WhisperStatus.refused;
                 return IconButton(
-                  tooltip: unread > 0
+                  tooltip: refused
+                      ? 'Whispers (log in again to get them)'
+                      : unread > 0
                       ? 'Whispers ($unread unread)'
                       : 'Whispers',
                   icon: Badge(
-                    isLabelVisible: unread > 0,
-                    label: Text('$unread'),
+                    isLabelVisible: unread > 0 || refused,
+                    label: Text(refused ? '!' : '$unread'),
                     child: const Icon(Icons.forum_outlined),
                   ),
                   onPressed: () => WhispersScreen.open(context, _whisperStore),

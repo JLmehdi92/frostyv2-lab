@@ -368,17 +368,20 @@ abstract class ChatStoreBase with Store {
         try {
           final user = await twitchApi.getUser(userLogin: login);
           if (_shouldDisconnect) return;
-          final error = await whispers.send(
-            whispers.thread(
-              userId: user.id,
-              login: user.login,
-              displayName: user.displayName,
-            ),
-            message,
+          final error = await whispers.sendTo(
+            userId: user.id,
+            login: user.login,
+            displayName: user.displayName,
+            text: message,
           );
           if (_shouldDisconnect) return;
           if (error != null) return say(error);
-          say('Whisper sent to ${user.displayName}.');
+          say(
+            whispers.status == WhisperStatus.refused
+                ? 'Whisper sent to ${user.displayName}. Replies cannot reach '
+                      'this app until you log in again.'
+                : 'Whisper sent to ${user.displayName}.',
+          );
           done();
         } on NotFoundException {
           if (!_shouldDisconnect) {
@@ -386,6 +389,13 @@ abstract class ChatStoreBase with Store {
           }
         } on ApiException catch (e) {
           if (!_shouldDisconnect) say("Couldn't whisper: ${e.message}");
+        } catch (e, stack) {
+          try {
+            FirebaseCrashlytics.instance.recordError(e, stack, reason: '/w');
+          } catch (_) {
+            // Firebase may not be initialized (e.g., in tests).
+          }
+          if (!_shouldDisconnect) say("Couldn't whisper.");
         }
       case ColorCommand(:final color):
         if (me == null) return say('Log in to change your color.');

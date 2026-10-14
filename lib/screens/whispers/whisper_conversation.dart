@@ -137,12 +137,18 @@ class _WhisperConversationState extends State<WhisperConversation> {
                         ),
                       );
                     }
-                    return ListView.builder(
-                      reverse: true,
-                      padding: const EdgeInsets.all(12),
-                      itemCount: whispers.length,
-                      itemBuilder: (context, index) =>
-                          _Bubble(whisper: whispers[index]),
+                    // Bubbles take at most 3/4 of the column (not of a
+                    // tablet's whole width), so sides stay apart.
+                    return LayoutBuilder(
+                      builder: (context, constraints) => ListView.builder(
+                        reverse: true,
+                        padding: const EdgeInsets.all(12),
+                        itemCount: whispers.length,
+                        itemBuilder: (context, index) => _Bubble(
+                          whisper: whispers[index],
+                          maxWidth: constraints.maxWidth * 0.75,
+                        ),
+                      ),
                     );
                   },
                 ),
@@ -215,9 +221,10 @@ class _WhisperConversationState extends State<WhisperConversation> {
 }
 
 class _Bubble extends StatelessWidget {
-  const _Bubble({required this.whisper});
+  const _Bubble({required this.whisper, required this.maxWidth});
 
   final Whisper whisper;
+  final double maxWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -226,9 +233,7 @@ class _Bubble extends StatelessWidget {
     return Align(
       alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
       child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width * 0.75,
-        ),
+        constraints: BoxConstraints(maxWidth: maxWidth),
         child: Container(
           margin: const EdgeInsets.symmetric(vertical: 3),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
