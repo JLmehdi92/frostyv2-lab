@@ -257,6 +257,7 @@ final _login = RegExp(r'^@?([a-zA-Z0-9_]{1,25})$');
 final _hex = RegExp(r'^#?([0-9a-fA-F]{6})$');
 final _length = RegExp(r'^(\d+)(s|m|h|d|w|mo)?$', caseSensitive: false);
 final _messageId = RegExp(r'^[0-9a-fA-F-]{1,64}$');
+final _digit = RegExp(r'^\d');
 
 const _timeoutDefault = Duration(minutes: 10);
 const _timeoutMax = Duration(days: 14);
@@ -322,6 +323,12 @@ ChatCommand _parseModeration(String name, List<String> args) {
       final length = args.length > 1
           ? parseCommandLength(args[1], unit: const Duration(seconds: 1))
           : null;
+      // "5min" or "1h30m" is a mistyped length, not the reason.
+      if (length == null && args.length > 1 && args[1].startsWith(_digit)) {
+        return UnsupportedCommand(
+          'Unknown length "${args[1]}". Use e.g. 30, 10m, 2h, 1d or 1w.',
+        );
+      }
       final duration = length ?? _timeoutDefault;
       if (duration < const Duration(seconds: 1) || duration > _timeoutMax) {
         return const UnsupportedCommand(
@@ -364,7 +371,8 @@ ChatCommand _parseModeration(String name, List<String> args) {
       final age = args.isEmpty
           ? Duration.zero
           : parseCommandLength(args.single, unit: const Duration(minutes: 1));
-      if (age == null || age > _followAgeMax) {
+      // Twitch counts it in whole minutes.
+      if (age == null || age > _followAgeMax || age.inSeconds % 60 != 0) {
         return const UnsupportedCommand(
           'The follow age is 0 minutes to 3 months (e.g. 10m, 1w, 3mo).',
         );
@@ -379,7 +387,8 @@ ChatCommand _parseModeration(String name, List<String> args) {
     'emoteonly' => (ChatMode.emoteOnly, true),
     'emoteonlyoff' => (ChatMode.emoteOnly, false),
     'uniquechat' || 'r9kbeta' => (ChatMode.uniqueChat, true),
-    _ => (ChatMode.uniqueChat, false),
+    'uniquechatoff' || 'r9kbetaoff' => (ChatMode.uniqueChat, false),
+    _ => throw StateError('Unparsed moderation command /$name'),
   };
   if (args.isNotEmpty) return UnsupportedCommand('Usage: /$name');
   return ChatModeCommand(mode, on: on);

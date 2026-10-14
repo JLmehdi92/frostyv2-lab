@@ -96,6 +96,15 @@ void main() {
         contains('2 weeks'),
       );
       expect(parseChatCommand('/timeout troll 0'), isA<UnsupportedCommand>());
+      // A mistyped length is refused, not taken as the reason.
+      for (final typo in ['5min', '1h30m', '1.5h']) {
+        expect(
+          (parseChatCommand('/timeout troll $typo') as UnsupportedCommand)
+              .message,
+          contains('Unknown length'),
+        );
+      }
+      expect(timeout('/timeout troll 1W').duration, const Duration(days: 7));
       // Too long to be a timeout, not a reason.
       expect(
         parseChatCommand('/timeout troll 99999999999999999999mo'),
@@ -147,6 +156,15 @@ void main() {
       expect(mode('/followers 1w').duration, const Duration(days: 7));
       expect(mode('/followers 3mo').duration, const Duration(days: 90));
       expect(parseChatCommand('/followers 4mo'), isA<UnsupportedCommand>());
+      // Whole minutes only.
+      expect(parseChatCommand('/followers 30s'), isA<UnsupportedCommand>());
+      expect(parseChatCommand('/followers 90s'), isA<UnsupportedCommand>());
+      expect(mode('/followers 120s').duration, const Duration(minutes: 2));
+      expect(parseChatCommand('/followers abc'), isA<UnsupportedCommand>());
+      expect(parseChatCommand('/slow abc'), isA<UnsupportedCommand>());
+      expect(parseChatCommand('/slow 1 2'), isA<UnsupportedCommand>());
+      expect(mode('/r9kbeta').on, isTrue);
+      expect(parseChatCommand('/clear now'), isA<UnsupportedCommand>());
       expect(mode('/followersoff').on, isFalse);
       expect(mode('/subscribers').mode, ChatMode.subscribers);
       expect(mode('/subscribersoff').on, isFalse);
