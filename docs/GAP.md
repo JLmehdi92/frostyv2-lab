@@ -44,7 +44,7 @@
 **Constats de vérification** (par rapport à `ARCHITECTURE.md`, tous confirmés dans le code) :
 
 - Aucun EventSub ni PubSub : `grep -ri eventsub lib/` ne renvoie rien. Le temps réel se limite à l'IRC et à l'EventAPI 7TV.
-- Scopes OAuth limités à `chat:read chat:edit user:read:follows user:read:blocked_users user:manage:blocked_users user:manage:chat_color` (`auth_store.dart:164`). Aucun scope `moderator:*`, `user:read:chat`, `user:manage:whispers` ni `user:read:emotes`. **Ajouter un scope oblige à se reconnecter.**
+- Scopes OAuth : `chat:read chat:edit user:read:follows user:read:blocked_users user:manage:blocked_users user:manage:chat_color` puis, depuis l'épique modération, `moderator:manage:banned_users moderator:manage:chat_messages moderator:manage:chat_settings moderator:manage:warnings` (`auth_store.dart:164`). Aucun scope `user:read:chat`, `user:manage:whispers` ni `user:read:emotes`. **Ajouter un scope oblige à se reconnecter.**
 - iOS : `ready` réussit (usher résolu), mais `_createTexture` échoue faute de canal natif. L'échec est avalé par `catchError` (`ivs_video_store.dart:115`) : `onFatalError` n'est jamais appelé et le spinner tourne à l'infini.
 - Mots masqués : `chat_store.dart:548-555`. Le `return` abandonne tout le lot IRC en cours, et `split('')` compare caractère par caractère si « mot entier » est désactivé.
 - Deep links : `android:autoVerify="true"` sur `twitch.tv`/`www.`/`m.` (`AndroidManifest.xml:40-47`). La vérification échouera toujours, car `assetlinks.json` appartient à Twitch. Android affichera donc un sélecteur ou ouvrira l'app officielle.
@@ -182,15 +182,15 @@
 
 | ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
-| MOD-01 | Actions de modération rapides [M] | P0 | ❌ | — | Aucun scope `moderator:*` (`auth_store.dart:164`). Seul l'état `_userState.mod` est parsé (`chat_store.dart:532`). Voir MOD-02 à MOD-06. | Compte requis |
-| MOD-02 | Bannir avec motif [M] | P0 | ❌ | — | Helix `POST /moderation/bans` (`moderator:manage:banned_users`). | Compte requis |
-| MOD-03 | Timeout avec durée [M] | P0 | ❌ | — | Helix `POST /moderation/bans` avec `duration`. | Compte requis |
-| MOD-04 | Débannir, fin de timeout [M] | P0 | ❌ | — | Helix `DELETE /moderation/bans`. | Compte requis |
-| MOD-05 | Avertir [M] | P0 | ❌ | — | Helix `POST /moderation/warnings` (`moderator:manage:warnings`). | Compte requis |
-| MOD-06 | Supprimer un message [M] | P0 | ❌ | — | Helix `DELETE /moderation/chat?message_id=` (`moderator:manage:chat_messages`). | Compte requis |
-| MOD-07 | Modes de chat [M] | P0 | ❌ | — | Affichage seul (`chat_modes.dart`). Helix `PATCH /chat/settings` (`moderator:manage:chat_settings`). | Compte requis |
-| MOD-08 | Commandes slash de modération [M] | P0 | ❌ | — | Parseur client vers Helix. `/commercial` exige `channel:edit:commercial` (diffuseur affilié). | Compte requis |
-| MOD-09 | Vider le chat [M] | P1 | ❌ | — | L'affichage du CLEARCHAT existe (`irc.dart:66-72`). Helix `DELETE /moderation/chat` sans `message_id`. | Compte requis |
+| MOD-01 | Actions de modération rapides [M] | P0 | ✅ | `chat_moderation_bar.dart`, `chat_user_modal.dart`, `moderation.dart` (`ChatModeration`), `chat_store.dart` (`moderate`, `canModerate`) | Barre Timeout (1 s purge → 2 semaines) / Ban / Unban / Warn dans la fiche, visible si mod (USERSTATE) ou diffuseur, cachée sur soi et le diffuseur. Résultat sous la barre et en ligne de chat. Scopes `moderator:*` demandés à la connexion : un ancien jeton reçoit un 401 → dialogue « Log in again ». | Compte requis |
+| MOD-02 | Bannir avec motif [M] | P0 | ✅ | `twitch_api.dart` (`banUser`), `chat_moderation_bar.dart` (dialogue de motif) | Confirmation avec motif facultatif (500 caractères max). | Compte requis |
+| MOD-03 | Timeout avec durée [M] | P0 | ✅ | `twitch_api.dart` (`banUser` + `duration`), `chat_moderation_bar.dart` (`kTimeoutPresets`) | Durées de 1 s à 14 jours, refusées hors bornes. | Compte requis |
+| MOD-04 | Débannir, fin de timeout [M] | P0 | ✅ | `twitch_api.dart` (`unbanUser`) | Bouton Unban et `/unban`, `/untimeout`. | Compte requis |
+| MOD-05 | Avertir [M] | P0 | ✅ | `twitch_api.dart` (`warnUser`) | Motif obligatoire (dialogue et `/warn`). | Compte requis |
+| MOD-06 | Supprimer un message [M] | P0 | ✅ | `twitch_api.dart` (`deleteChatMessages`), `chat_message.dart` (`_canDelete`) | « Delete message » dans l'appui long, sauf messages du diffuseur et d'une autre chaîne du chat partagé. `/delete <id>`. | Compte requis |
+| MOD-07 | Modes de chat [M] | P0 | ✅ | `twitch_api.dart` (`updateChatSettings`, verbe `patch`), `chat_mode_controls.dart`, `chat_details.dart` | Feuille « Chat modes » : interrupteurs lent (3–120 s), followers (0 → 3 mois), abonnés, emotes, unique ; l'état suit ROOMSTATE. | Compte requis |
+| MOD-08 | Commandes slash de modération [M] | P0 | ✅ | `chat_commands.dart` (`ModerationCommand`, `parseCommandLength`), `chat_store.dart` (`_runCommand`) | `/ban /unban /timeout /untimeout /warn /delete /clear /slow(off) /followers(off) /subscribers(off) /emoteonly(off) /uniquechat(off)` (et `/r9kbeta`). Suggérées aux mods, une à la fois, Helix décide des droits. `/mod /vip /raid /commercial /announce…` restent refusées avec un message. | Compte requis |
+| MOD-09 | Vider le chat [M] | P1 | ✅ | `chat_mode_controls.dart` (« Clear chat », confirmation), `/clear` | Helix `DELETE /moderation/chat` sans `message_id`. | Compte requis |
 | MOD-10 | Épingler / désépingler [M] | P1 | ❌ | — | Aucune API publique. | GQL privé |
 | MOD-11 | Annonces [M] | P1 | ❌ | — | Helix `POST /chat/announcements` (`moderator:manage:announcements`). | Compte requis |
 | MOD-12 | Rôles : mod, lead mod, VIP [M][C] | P1 | ❌ | — | Helix `POST/DELETE /moderation/moderators` (`channel:manage:moderators`, diffuseur) et `/channels/vips` (`channel:manage:vips`). Lead mod : GQL. | Compte requis |
@@ -432,7 +432,7 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Lecture vidéo (PLY) | 12 | 7 | 13 | 1 | 33 |
 | Chat (CHT) | 22 | 8 | 12 | 6 | 48 |
 | Interactions communautaires (INT) | 3 | 4 | 24 | 0 | 31 |
-| Modération (MOD) | 0 | 0 | 31 | 0 | 31 |
+| Modération (MOD) | 9 | 0 | 22 | 0 | 31 |
 | Social & notifications (SOC) | 2 | 4 | 16 | 0 | 22 |
 | Découverte & recherche (DSC) | 5 | 4 | 13 | 0 | 22 |
 | Profil de chaîne & contenus (VOD / clips) (PRF) | 5 | 6 | 18 | 0 | 29 |
@@ -440,23 +440,23 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Compte & réglages (ACC) | 4 | 5 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 3 | 7 | 7 | 0 | 17 |
-| **Total** | **64** | **44** | **201** | **8** | **317** |
+| **Total** | **73** | **44** | **192** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| P0 | 26 | 18 | 12 | 4 | 60 |
-| P1 | 32 | 19 | 53 | 4 | 108 |
+| P0 | 34 | 18 | 4 | 4 | 60 |
+| P1 | 33 | 19 | 52 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **64** | **44** | **201** | **8** | **317** |
+| **Total** | **73** | **44** | **192** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
 | OK | 16 | 31 | 33 | 80 |
 | GQL privé | 6 | 29 | 61 | 96 |
-| Compte requis | 8 | 12 | 12 | 32 |
+| Compte requis | 0 | 11 | 12 | 23 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
 
-Lecture : sur 60 lignes P0, **21** sont entièrement couvertes (17 ✅ et 4 ➕), 26 sont partielles et 13 absentes. Les lignes P0 absentes sont la modération active (MOD-01→08, compte mod requis), le follow, la cloche, les notifications et le centre de notifications (SOC-01/05/06/07) et les avertissements (CHT-13). Les ➕ sont le délai de chat synchronisé, la révélation des messages supprimés, le multi-chat et le chat partagé, les emotes 7TV/BTTV/FFZ, la disposition paysage et le thème avec accent.
+Lecture : sur 60 lignes P0, **38** sont entièrement couvertes (34 ✅ et 4 ➕), 18 sont partielles et 4 absentes. Les lignes P0 absentes sont la cloche, les notifications et le centre de notifications (SOC-05/06/07) et l'avertissement côté viewer (CHT-13). Les ➕ sont le délai de chat synchronisé, la révélation des messages supprimés, le multi-chat et le chat partagé, les emotes 7TV/BTTV/FFZ, la disposition paysage et le thème avec accent.
 
 ## 3. Lecture / latence : écarts concrets avec le lecteur officiel
 

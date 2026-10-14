@@ -98,7 +98,7 @@ lib/
 
 ### Authentification (`lib/screens/settings/stores/auth_store.dart`)
 - OAuth implicit grant dans une WebView (`id.twitch.tv/oauth2/authorize`, `response_type=token`, `redirect_uri=https://twitch.tv/login`), user-agent navigateur pour la connexion Google.
-- Scopes : `chat:read chat:edit user:read:follows user:read:blocked_users user:manage:blocked_users user:manage:chat_color` (l.155-169).
+- Scopes : `chat:read chat:edit user:read:follows user:read:blocked_users user:manage:blocked_users user:manage:chat_color moderator:manage:banned_users moderator:manage:chat_messages moderator:manage:chat_settings moderator:manage:warnings` (l.155-171). Les actions de modération passent par `ChatModeration` (`lib/screens/channel/chat/moderation.dart`) ; Helix décide des droits.
 - Tokens dans `FlutterSecureStorage` (`user_token`, `default_token`) ; anonyme = app token client_credentials (nécessite `--dart-define=SECRET`).
 - `init()` valide le token ; boucle de reconnexion 10 s × 5 en cas d'erreur réseau (l.323-363).
 
