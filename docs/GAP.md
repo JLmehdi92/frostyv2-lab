@@ -342,9 +342,9 @@
 | ACC-14 | Modifier le profil | P2 | ❌ | — | Helix `PUT /users?description=` (`user:edit`) ; le reste en WebView. | OK |
 | ACC-15 | Changement de pseudo | P2 | ❌ | — | WebView des réglages Twitch. | OK |
 | ACC-16 | Authentification à deux facteurs | P2 | ❌ | — | WebView des réglages Twitch. | OK |
-| ACC-17 | Mot de passe, email, téléphone | P2 | ❌ | — | WebView des réglages Twitch. | OK |
-| ACC-18 | Vérification du compte | P1 | ❌ | — | WebView. | OK |
-| ACC-19 | Comptes liés | P2 | ❌ | — | WebView. | OK |
+| ACC-17 | Mot de passe, email, téléphone | P2 | ⚠️ | `account_options.dart` | « Security and privacy » ouvre `twitch.tv/settings/security` dans l'appli, connecté. | OK |
+| ACC-18 | Vérification du compte | P1 | ⚠️ | `account_options.dart` | Par la page sécurité de twitch.tv dans l'appli (vérification email/téléphone). Pas de bannière d'incitation native. | OK |
+| ACC-19 | Comptes liés | P2 | ⚠️ | `account_options.dart` | « Connections » ouvre `twitch.tv/settings/connections` dans l'appli. | OK |
 | ACC-20 | Consentements et vie privée | P2 | ❌ | — | WebView. Frostyv2 n'a qu'un opt-out Crashlytics (`other_settings.dart:105`). | OK |
 | ACC-21 | Demande de données personnelles | P2 | ❌ | — | Lien web. | OK |
 | ACC-22 | Préférences de contenu | P1 | ⚠️ | `hidden_content_labels_setting.dart`, `stream_list_store.dart`, `content_warning_gate.dart` | Version locale : choix des labels masqués en exploration (DSC-19) et avertissement avant une chaîne labellisée (PLY-25). Non synchronisée avec le compte (mutation GQL privée), sans tuteur. | GQL privé |
@@ -437,17 +437,17 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Découverte & recherche (DSC) | 6 | 4 | 12 | 0 | 22 |
 | Profil de chaîne & contenus (VOD / clips) (PRF) | 5 | 6 | 18 | 0 | 29 |
 | Monétisation (MON) | 0 | 0 | 15 | 0 | 15 |
-| Compte & réglages (ACC) | 5 | 5 | 21 | 1 | 32 |
+| Compte & réglages (ACC) | 5 | 8 | 18 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 4 | 7 | 6 | 0 | 17 |
-| **Total** | **91** | **40** | **178** | **8** | **317** |
+| **Total** | **91** | **43** | **175** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 41 | 13 | 2 | 4 | 60 |
-| P1 | 44 | 20 | 40 | 4 | 108 |
-| P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **91** | **40** | **178** | **8** | **317** |
+| P1 | 44 | 21 | 39 | 4 | 108 |
+| P2 | 6 | 9 | 134 | 0 | 149 |
+| **Total** | **91** | **43** | **175** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
