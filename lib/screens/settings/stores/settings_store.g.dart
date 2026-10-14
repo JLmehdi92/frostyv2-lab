@@ -56,6 +56,7 @@ SettingsStore _$SettingsStoreFromJson(
   ..fontSize = (json['fontSize'] as num?)?.toDouble() ?? 12.0
   ..showDeletedMessages = json['showDeletedMessages'] as bool? ?? false
   ..animateEmotes = json['animateEmotes'] as bool? ?? true
+  ..showLinkPreviews = json['showLinkPreviews'] as bool? ?? true
   ..showModerationNotices = json['showModerationNotices'] as bool? ?? true
   ..showChatMessageDividers = json['showChatMessageDividers'] as bool? ?? false
   ..timestampType =
@@ -142,6 +143,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'fontSize': instance.fontSize,
   'showDeletedMessages': instance.showDeletedMessages,
   'animateEmotes': instance.animateEmotes,
+  'showLinkPreviews': instance.showLinkPreviews,
   'showModerationNotices': instance.showModerationNotices,
   'showChatMessageDividers': instance.showChatMessageDividers,
   'timestampType': _$TimestampTypeEnumMap[instance.timestampType]!,
@@ -642,6 +644,24 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   set animateEmotes(bool value) {
     _$animateEmotesAtom.reportWrite(value, super.animateEmotes, () {
       super.animateEmotes = value;
+    });
+  }
+
+  late final _$showLinkPreviewsAtom = Atom(
+    name: '_SettingsStoreBase.showLinkPreviews',
+    context: context,
+  );
+
+  @override
+  bool get showLinkPreviews {
+    _$showLinkPreviewsAtom.reportRead();
+    return super.showLinkPreviews;
+  }
+
+  @override
+  set showLinkPreviews(bool value) {
+    _$showLinkPreviewsAtom.reportWrite(value, super.showLinkPreviews, () {
+      super.showLinkPreviews = value;
     });
   }
 
@@ -1382,6 +1402,7 @@ messageSpacing: ${messageSpacing},
 fontSize: ${fontSize},
 showDeletedMessages: ${showDeletedMessages},
 animateEmotes: ${animateEmotes},
+showLinkPreviews: ${showLinkPreviews},
 showModerationNotices: ${showModerationNotices},
 showChatMessageDividers: ${showChatMessageDividers},
 timestampType: ${timestampType},

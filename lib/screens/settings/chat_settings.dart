@@ -157,6 +157,14 @@ class _ChatSettingsState extends State<ChatSettings> {
             onChanged: (newValue) => settingsStore.animateEmotes = newValue,
           ),
           SettingsListSwitch(
+            title: 'Preview clips and videos',
+            subtitle: const Text(
+              'Shows a card under messages that link a Twitch clip or video.',
+            ),
+            value: settingsStore.showLinkPreviews,
+            onChanged: (newValue) => settingsStore.showLinkPreviews = newValue,
+          ),
+          SettingsListSwitch(
             title: 'Show timeouts and bans',
             subtitle: const Text(
               'Adds a line when a moderator times out or bans someone.',

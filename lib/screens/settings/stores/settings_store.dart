@@ -165,6 +165,7 @@ abstract class _SettingsStoreBase with Store {
   static const defaultShowDeletedMessages = false;
   static const defaultShowModerationNotices = true;
   static const defaultAnimateEmotes = true;
+  static const defaultShowLinkPreviews = true;
   static const defaultShowChatMessageDividers = false;
   static const defaultTimestampType = TimestampType.disabled;
 
@@ -241,6 +242,11 @@ abstract class _SettingsStoreBase with Store {
   @JsonKey(defaultValue: defaultAnimateEmotes)
   @observable
   var animateEmotes = defaultAnimateEmotes;
+
+  /// A card under chat messages that link a clip or a video.
+  @JsonKey(defaultValue: defaultShowLinkPreviews)
+  @observable
+  var showLinkPreviews = defaultShowLinkPreviews;
 
   /// A line in chat when someone is timed out or banned.
   @JsonKey(defaultValue: defaultShowModerationNotices)
@@ -385,6 +391,7 @@ abstract class _SettingsStoreBase with Store {
     showDeletedMessages = defaultShowDeletedMessages;
     showModerationNotices = defaultShowModerationNotices;
     animateEmotes = defaultAnimateEmotes;
+    showLinkPreviews = defaultShowLinkPreviews;
     showChatMessageDividers = defaultShowChatMessageDividers;
     timestampType = defaultTimestampType;
 

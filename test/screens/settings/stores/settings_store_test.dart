@@ -216,6 +216,14 @@ void main() {
       expect(store.showModerationNotices, isTrue);
     });
 
+    test('clip and video previews are on unless turned off', () {
+      expect(SettingsStore.fromJson({}).showLinkPreviews, isTrue);
+      final store = SettingsStore.fromJson({'showLinkPreviews': false});
+      expect(store.showLinkPreviews, isFalse);
+      store.resetChatSettings();
+      expect(store.showLinkPreviews, isTrue);
+    });
+
     test('emotes animate unless turned off', () {
       expect(SettingsStore.fromJson({}).animateEmotes, isTrue);
       final store = SettingsStore.fromJson({'animateEmotes': false});

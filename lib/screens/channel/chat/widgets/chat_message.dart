@@ -8,6 +8,7 @@ import 'package:frosty/models/irc.dart';
 import 'package:frosty/models/user.dart';
 import 'package:frosty/screens/channel/chat/announcement_color.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
+import 'package:frosty/screens/channel/chat/widgets/chat_link_card.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_user_modal.dart';
 import 'package:frosty/screens/channel/chat/widgets/reply_thread.dart';
 import 'package:frosty/utils/context_extensions.dart';
@@ -319,8 +320,9 @@ class ChatMessage extends StatelessWidget {
               highlightColor = context.colorScheme.error;
             }
 
+            final Widget body;
             if (messageHeader != null) {
-              renderMessage = Column(
+              body = Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: 4,
                 children: [
@@ -338,8 +340,22 @@ class ChatMessage extends StatelessWidget {
                 ],
               );
             } else {
-              renderMessage = messageSpan;
+              body = messageSpan;
             }
+
+            final preview = chatStore.settings.showLinkPreviews
+                ? chatPreviewLink(ircMessage.message)
+                : null;
+            renderMessage = preview == null
+                ? body
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 4,
+                    children: [
+                      body,
+                      ChatLinkCard(link: preview.link, url: preview.url),
+                    ],
+                  );
 
             break;
           case Command.clearChat:
