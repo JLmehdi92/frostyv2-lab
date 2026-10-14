@@ -8,6 +8,7 @@ import com.amazonaws.ivs.player.Cue
 import com.amazonaws.ivs.player.Player
 import com.amazonaws.ivs.player.PlayerException
 import com.amazonaws.ivs.player.Quality
+import com.amazonaws.ivs.player.TextCue
 import io.flutter.plugin.common.MethodChannel
 
 private const val CORE_TAG = "FrostyIVS"
@@ -43,6 +44,9 @@ class IvsPlayerCore(
     private var qualitiesSent = false
     private var statsEnabled = false
 
+    /** Closed captions asked for by Dart (off by default). */
+    private var captionsEnabled = false
+
     fun start(url: String, tuning: IvsTuning = IvsTuning()) {
         this.tuning = tuning
         channel.setMethodCallHandler { call, result ->
@@ -63,6 +67,11 @@ class IvsPlayerCore(
                 "setVolume" -> {
                     val volume = call.argument<Number>("volume")?.toFloat() ?: 1f
                     player.volume = volume.coerceIn(0f, 1f)
+                    result.success(null)
+                }
+                "setCaptions" -> {
+                    captionsEnabled = call.argument<Boolean>("enabled") == true
+                    applyCaptions()
                     result.success(null)
                 }
                 "setStatsEnabled" -> {
@@ -124,6 +133,8 @@ class IvsPlayerCore(
                         player.play()
                     }
                 }
+                // Text tracks are known once the stream plays.
+                if (state == Player.State.PLAYING) applyCaptions()
                 if (state == Player.State.PLAYING && !qualitiesSent) {
                     qualitiesSent = true
                     // Best first (resolution, then frame rate, then bitrate) so
@@ -158,7 +169,17 @@ class IvsPlayerCore(
                 send(mapOf("type" to "quality", "name" to quality.name))
             }
             override fun onVideoSizeChanged(w: Int, h: Int) { onVideoSize?.invoke(w, h) }
-            override fun onCue(cue: Cue) {}
+            override fun onCue(cue: Cue) {
+                if (!captionsEnabled || cue !is TextCue) return
+                send(
+                    mapOf(
+                        "type" to "caption",
+                        "text" to cue.text,
+                        "startMs" to cue.startTime,
+                        "endMs" to cue.endTime,
+                    ),
+                )
+            }
             override fun onDurationChanged(duration: Long) {
                 if (tuning.vod) send(mapOf("type" to "duration", "ms" to duration))
             }
@@ -177,6 +198,20 @@ class IvsPlayerCore(
             player.load(Uri.parse(url))
         }
         if (tuning.vod) startProgressTicker() else startLatencyTicker()
+    }
+
+    /**
+     * Selects the stream's first caption track when captions are on (a stream
+     * without one has nothing to select). Never throws: captions must not
+     * disturb playback.
+     */
+    private fun applyCaptions() {
+        if (!captionsEnabled) return
+        runCatching {
+            if (player.textTrack == null) {
+                player.textTracks.firstOrNull()?.let { player.setTextTrack(it) }
+            }
+        }.onFailure { Log.w(CORE_TAG, "captions: ${it.message}") }
     }
 
     /**

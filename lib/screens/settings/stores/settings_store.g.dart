@@ -29,6 +29,7 @@ SettingsStore _$SettingsStoreFromJson(
   ..streamLanguage = json['streamLanguage'] as String? ?? ''
   ..launchUrlExternal = json['launchUrlExternal'] as bool? ?? false
   ..showVideo = json['showVideo'] as bool? ?? true
+  ..showCaptions = json['showCaptions'] as bool? ?? false
   ..portraitVideoScale = (json['portraitVideoScale'] as num?)?.toDouble() ?? 1.0
   ..defaultToHighestQuality = json['defaultToHighestQuality'] as bool? ?? false
   ..useTextureRendering = json['useTextureRendering'] as bool? ?? true
@@ -136,6 +137,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'streamLanguage': instance.streamLanguage,
   'launchUrlExternal': instance.launchUrlExternal,
   'showVideo': instance.showVideo,
+  'showCaptions': instance.showCaptions,
   'portraitVideoScale': instance.portraitVideoScale,
   'defaultToHighestQuality': instance.defaultToHighestQuality,
   'useTextureRendering': instance.useTextureRendering,
@@ -386,6 +388,24 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   set showVideo(bool value) {
     _$showVideoAtom.reportWrite(value, super.showVideo, () {
       super.showVideo = value;
+    });
+  }
+
+  late final _$showCaptionsAtom = Atom(
+    name: '_SettingsStoreBase.showCaptions',
+    context: context,
+  );
+
+  @override
+  bool get showCaptions {
+    _$showCaptionsAtom.reportRead();
+    return super.showCaptions;
+  }
+
+  @override
+  set showCaptions(bool value) {
+    _$showCaptionsAtom.reportWrite(value, super.showCaptions, () {
+      super.showCaptions = value;
     });
   }
 
@@ -1439,6 +1459,7 @@ startTab: ${startTab},
 streamLanguage: ${streamLanguage},
 launchUrlExternal: ${launchUrlExternal},
 showVideo: ${showVideo},
+showCaptions: ${showCaptions},
 portraitVideoScale: ${portraitVideoScale},
 defaultToHighestQuality: ${defaultToHighestQuality},
 useTextureRendering: ${useTextureRendering},

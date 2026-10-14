@@ -165,6 +165,62 @@ void main() {
     expect(s.playerConfig.buffer, BufferProfile.standard);
   });
 
+  group('captions', () {
+    test('off by default: cues are ignored and nothing is asked', () async {
+      store = await createStore();
+      await native.emit({'type': 'caption', 'text': 'hello'});
+
+      expect(store.caption, isNull);
+      expect(native.callsNamed('setCaptions'), isEmpty);
+    });
+
+    test('turned on: asked for, shown, then cleared at the cue end', () async {
+      store = await createStore();
+      settingsStore.showCaptions = true;
+      await settle();
+      expect(native.callsNamed('setCaptions').last.arguments, {
+        'enabled': true,
+      });
+
+      await native.emit({
+        'type': 'caption',
+        'text': '  hello\nthere ',
+        'startMs': 0,
+        'endMs': 1000,
+      });
+      expect(store.caption, 'hello there');
+
+      await Future<void>.delayed(const Duration(milliseconds: 1100));
+      expect(store.caption, isNull);
+    });
+
+    test('turning them off clears the line and tells the player', () async {
+      settingsStore.showCaptions = true;
+      store = await createStore();
+      await native.emit({'type': 'caption', 'text': 'hello'});
+      expect(store.caption, 'hello');
+
+      settingsStore.showCaptions = false;
+      await settle();
+
+      expect(store.caption, isNull);
+      expect(native.callsNamed('setCaptions').last.arguments, {
+        'enabled': false,
+      });
+    });
+
+    test('each load asks for them again', () async {
+      settingsStore.showCaptions = true;
+      store = await createStore();
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1080p60'],
+      });
+
+      expect(native.callsNamed('setCaptions'), isNotEmpty);
+    });
+  });
+
   group('latency', () {
     test('shows latency with 0.1 s precision', () async {
       store = await createStore();

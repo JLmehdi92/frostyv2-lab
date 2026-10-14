@@ -233,6 +233,16 @@ void main() {
     });
   });
 
+  group('showCaptions', () {
+    test('off by default, kept, and reset with the video settings', () {
+      expect(SettingsStore.fromJson({}).showCaptions, isFalse);
+      final store = SettingsStore.fromJson({'showCaptions': true});
+      expect(store.showCaptions, isTrue);
+      store.resetVideoSettings();
+      expect(store.showCaptions, isFalse);
+    });
+  });
+
   group('streamLanguage', () {
     test('is every language by default, also for older settings', () {
       expect(SettingsStore.fromJson({}).streamLanguage, '');

@@ -82,6 +82,7 @@ abstract class _SettingsStoreBase with Store {
   // Player defaults
   static const defaultShowVideo = true;
   static const defaultPortraitVideoScale = 1.0;
+  static const defaultShowCaptions = false;
   static const defaultDefaultToHighestQuality = false;
   static const defaultUseTextureRendering = true;
   static const defaultKeepScreenAwake = true;
@@ -98,6 +99,11 @@ abstract class _SettingsStoreBase with Store {
   @JsonKey(defaultValue: defaultShowVideo)
   @observable
   var showVideo = defaultShowVideo;
+
+  /// Closed captions over the video, when a stream has them (IVS only).
+  @JsonKey(defaultValue: defaultShowCaptions)
+  @observable
+  var showCaptions = defaultShowCaptions;
 
   /// The portrait video's width share (smaller leaves more room to chat).
   @JsonKey(defaultValue: defaultPortraitVideoScale)
@@ -156,6 +162,7 @@ abstract class _SettingsStoreBase with Store {
   void resetVideoSettings() {
     showVideo = defaultShowVideo;
     portraitVideoScale = defaultPortraitVideoScale;
+    showCaptions = defaultShowCaptions;
     defaultToHighestQuality = defaultDefaultToHighestQuality;
     useTextureRendering = defaultUseTextureRendering;
     keepScreenAwake = defaultKeepScreenAwake;

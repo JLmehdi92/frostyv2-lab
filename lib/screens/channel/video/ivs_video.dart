@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:frosty/screens/channel/video/captions.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 
 /// Renders the IVS player into a Flutter [Texture] (instead of a SurfaceView)
@@ -65,6 +66,15 @@ class IvsTextureVideo extends StatelessWidget {
           children: [
             picture,
             if (busy) const Center(child: CircularProgressIndicator()),
+            if (videoStore.caption case final caption?)
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: 24,
+                child: IgnorePointer(
+                  child: Center(child: CaptionText(text: caption)),
+                ),
+              ),
           ],
         );
       },

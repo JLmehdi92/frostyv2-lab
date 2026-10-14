@@ -9,6 +9,26 @@ part of 'ivs_video_store.dart';
 // ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic, no_leading_underscores_for_local_identifiers
 
 mixin _$IvsVideoStore on IvsVideoStoreBase, Store {
+  late final _$_captionAtom = Atom(
+    name: 'IvsVideoStoreBase._caption',
+    context: context,
+  );
+
+  String? get caption {
+    _$_captionAtom.reportRead();
+    return super._caption;
+  }
+
+  @override
+  String? get _caption => caption;
+
+  @override
+  set _caption(String? value) {
+    _$_captionAtom.reportWrite(value, super._caption, () {
+      super._caption = value;
+    });
+  }
+
   late final _$_textureIdAtom = Atom(
     name: 'IvsVideoStoreBase._textureId',
     context: context,
@@ -489,6 +509,18 @@ mixin _$IvsVideoStore on IvsVideoStoreBase, Store {
     );
     try {
       return super.setFillScreen(fill);
+    } finally {
+      _$IvsVideoStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void _clearCaption() {
+    final _$actionInfo = _$IvsVideoStoreBaseActionController.startAction(
+      name: 'IvsVideoStoreBase._clearCaption',
+    );
+    try {
+      return super._clearCaption();
     } finally {
       _$IvsVideoStoreBaseActionController.endAction(_$actionInfo);
     }

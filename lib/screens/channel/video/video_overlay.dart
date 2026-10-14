@@ -161,6 +161,17 @@ class VideoOverlay extends StatelessWidget {
                             onVolumeChanged: ivs.setVolume,
                           ),
                         ),
+                        Observer(
+                          builder: (context) => SwitchListTile(
+                            title: const Text('Captions'),
+                            subtitle: const Text(
+                              'Closed captions, when the stream has them',
+                            ),
+                            value: videoStore.settingsStore.showCaptions,
+                            onChanged: (on) =>
+                                videoStore.settingsStore.showCaptions = on,
+                          ),
+                        ),
                         const SectionHeader(
                           'Measurement',
                           padding: EdgeInsets.fromLTRB(16, 16, 16, 8),

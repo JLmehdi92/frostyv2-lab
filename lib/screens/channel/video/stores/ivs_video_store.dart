@@ -9,6 +9,7 @@ import 'package:frosty/apis/twitch_stream_service.dart';
 import 'package:frosty/models/channel.dart';
 import 'package:frosty/models/ivs_stats.dart';
 import 'package:frosty/models/stream.dart';
+import 'package:frosty/screens/channel/video/captions.dart';
 import 'package:frosty/screens/channel/video/ivs_player_config.dart';
 import 'package:frosty/screens/channel/video/ivs_recovery.dart';
 import 'package:frosty/screens/channel/video/latency_stats.dart';
@@ -47,6 +48,13 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   /// Android picture-in-picture controller.
   final pip = SimplePip();
   ReactionDisposer? _disposeAutoPipReaction;
+  ReactionDisposer? _disposeCaptionsReaction;
+
+  /// The closed-caption line on screen, when captions are on and the stream
+  /// sends them.
+  @readonly
+  String? _caption;
+  Timer? _captionTimer;
 
   static const _textureManager = MethodChannel('frosty/ivs-texture-manager');
 
@@ -245,6 +253,21 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     if (Platform.isAndroid) {
       _disposeAutoPipReaction = autorun((_) => _applyAutoPip());
     }
+
+    // Captions follow their setting at once (also sent with each load).
+    _disposeCaptionsReaction = reaction(
+      (_) => settingsStore.showCaptions,
+      (bool on) {
+        if (!on) _clearCaption();
+        unawaited(_invoke('setCaptions', {'enabled': on}));
+      },
+    );
+  }
+
+  @action
+  void _clearCaption() {
+    _captionTimer?.cancel();
+    _caption = null;
   }
 
   Future<void> _applyAutoPip() async {
@@ -387,6 +410,18 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         // Sent once per load: restore the quality and the sound state.
         unawaited(_restoreQuality(list));
         _resendSound();
+        if (settingsStore.showCaptions) {
+          unawaited(_invoke('setCaptions', {'enabled': true}));
+        }
+        break;
+      case 'caption':
+        if (!settingsStore.showCaptions) break;
+        final caption = captionFromEvent(e);
+        _captionTimer?.cancel();
+        _caption = caption?.text;
+        if (caption != null) {
+          _captionTimer = Timer(caption.shownFor, _clearCaption);
+        }
         break;
       case 'quality':
         final name = e['name'] as String?;
@@ -770,6 +805,8 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     _retryTimer?.cancel();
     _overlayTimer?.cancel();
     _disposeAutoPipReaction?.call();
+    _disposeCaptionsReaction?.call();
+    _captionTimer?.cancel();
     if (Platform.isAndroid) pip.setAutoPipMode(autoEnter: false);
     final textureId = _textureId;
     if (textureId != null) {
