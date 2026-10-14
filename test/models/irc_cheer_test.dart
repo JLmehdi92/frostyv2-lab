@@ -91,6 +91,16 @@ void main() {
       (s) => s.text == '150',
     );
     expect(amount.style?.color, const Color(0xFF9C3EE8));
+
+    // Spaced like words: ": [img]150 [img]100 gg".
+    final message = spans.skipWhile((s) => !(s is TextSpan && s.text == ':'));
+    expect(
+      [
+        for (final span in message)
+          span is WidgetSpan ? '[img]' : (span as TextSpan).text,
+      ].join(),
+      ': [img]150 [img]100 gg',
+    );
   });
 
   testWidgets('outside a cheer it is just text', (tester) async {

@@ -33,6 +33,10 @@ final _response = {
       ],
     },
     {
+      'prefix': '4Head',
+      'tiers': [_tier(1, '#00ff00')],
+    },
+    {
       'prefix': 'ChannelPog',
       'type': 'channel_custom',
       'order': 1,
@@ -59,6 +63,9 @@ void main() {
     );
     expect(cheermotes.match('cheer1000')!.tier.minBits, 1000);
     expect(cheermotes.match('channelpog5')!.tier.minBits, 1);
+    final head = cheermotes.match('4Head100')!;
+    expect(head.prefix, '4Head');
+    expect(head.amount, 100);
   });
 
   test('not a cheer', () {

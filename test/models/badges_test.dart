@@ -56,7 +56,10 @@ void main() {
     test('creates badge with correct properties', () {
       final bttvBadge = BadgeInfoBTTV(
         '12345',
-        BadgeDetailsBTTV('BetterTTV Developer', 'https://cdn.bttv.net/badge.svg'),
+        BadgeDetailsBTTV(
+          'BetterTTV Developer',
+          'https://cdn.bttv.net/badge.svg',
+        ),
       );
 
       final badge = ChatBadge.fromBTTV(bttvBadge);
@@ -70,7 +73,10 @@ void main() {
     test('uses badge description as name', () {
       final bttvBadge = BadgeInfoBTTV(
         '67890',
-        BadgeDetailsBTTV('Custom Badge Description', 'https://example.com/badge.svg'),
+        BadgeDetailsBTTV(
+          'Custom Badge Description',
+          'https://example.com/badge.svg',
+        ),
       );
 
       final badge = ChatBadge.fromBTTV(bttvBadge);
@@ -182,15 +188,11 @@ void main() {
     });
 
     test('uses urls[2][1] for badge URL (3x size)', () {
-      final badge7TV = BadgeInfo7TV(
-        'Test Badge',
-        [
-          ['1x', 'https://cdn.7tv.app/1x.png'],
-          ['2x', 'https://cdn.7tv.app/2x.png'],
-          ['3x', 'https://cdn.7tv.app/3x.png'],
-        ],
-        [],
-      );
+      final badge7TV = BadgeInfo7TV('Test Badge', [
+        ['1x', 'https://cdn.7tv.app/1x.png'],
+        ['2x', 'https://cdn.7tv.app/2x.png'],
+        ['3x', 'https://cdn.7tv.app/3x.png'],
+      ], []);
 
       final badge = ChatBadge.from7TV(badge7TV);
 
@@ -199,15 +201,11 @@ void main() {
     });
 
     test('uses tooltip as badge name', () {
-      final badge7TV = BadgeInfo7TV(
-        'Custom Tooltip Text',
-        [
-          ['1x', 'url1'],
-          ['2x', 'url2'],
-          ['3x', 'url3'],
-        ],
-        [],
-      );
+      final badge7TV = BadgeInfo7TV('Custom Tooltip Text', [
+        ['1x', 'url1'],
+        ['2x', 'url2'],
+        ['3x', 'url3'],
+      ], []);
 
       final badge = ChatBadge.from7TV(badge7TV);
 

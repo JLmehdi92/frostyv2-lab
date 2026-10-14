@@ -29,7 +29,9 @@ class CheermoteTier {
 /// A cheer found in a message word.
 typedef Cheer = ({String prefix, int amount, CheermoteTier tier});
 
-final _cheerWord = RegExp(r'^([a-zA-Z]+?)(\d{1,7})$');
+/// A prefix (letters and digits, ending in a letter: `4Head`) then the
+/// amount.
+final _cheerWord = RegExp(r'^([a-zA-Z0-9]*[a-zA-Z])(\d{1,7})$');
 final _hexColor = RegExp(r'^#([0-9a-fA-F]{6})$');
 
 /// The cheermotes usable in a channel (Helix `GET /bits/cheermotes`).
@@ -54,7 +56,7 @@ class Cheermotes {
       final prefix = entry['prefix'];
       final tiers = entry['tiers'];
       if (prefix is! String ||
-          !RegExp(r'^[a-zA-Z]{1,40}$').hasMatch(prefix) ||
+          !RegExp(r'^[a-zA-Z0-9]{0,39}[a-zA-Z]$').hasMatch(prefix) ||
           tiers is! List) {
         continue;
       }

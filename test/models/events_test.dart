@@ -24,8 +24,8 @@ void main() {
 
       // Use jsonEncode/jsonDecode for a true roundtrip, since toJson()
       // doesn't recursively serialize nested objects without explicitToJson.
-      final json = jsonDecode(jsonEncode(event.toJson()))
-          as Map<String, dynamic>;
+      final json =
+          jsonDecode(jsonEncode(event.toJson())) as Map<String, dynamic>;
       final restored = SevenTVEvent.fromJson(json);
 
       expect(restored.op, event.op);
@@ -47,8 +47,7 @@ void main() {
   group('SevenTVEventData', () {
     test('fromJson deserializes type and condition', () {
       final data = SevenTVEventData.fromJson(
-        (sevenTVEventJson as Map<String, dynamic>)['d']
-            as Map<String, dynamic>,
+        (sevenTVEventJson as Map<String, dynamic>)['d'] as Map<String, dynamic>,
       );
 
       expect(data.type, 'emote_set.update');
@@ -81,10 +80,7 @@ void main() {
   group('SevenTVEventEmoteSetBody', () {
     test('fromJson deserializes actor and pushed/pulled lists', () {
       final body = SevenTVEventEmoteSetBody.fromJson(const {
-        'actor': {
-          'username': 'moderator',
-          'display_name': 'Moderator',
-        },
+        'actor': {'username': 'moderator', 'display_name': 'Moderator'},
         'pushed': <dynamic>[],
         'pulled': <dynamic>[],
       });
@@ -97,10 +93,7 @@ void main() {
 
     test('fromJson handles null pushed/pulled', () {
       final body = SevenTVEventEmoteSetBody.fromJson(const {
-        'actor': {
-          'username': 'mod',
-          'display_name': 'Mod',
-        },
+        'actor': {'username': 'mod', 'display_name': 'Mod'},
       });
 
       expect(body.pushed, isNull);

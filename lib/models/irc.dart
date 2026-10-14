@@ -494,9 +494,9 @@ class IRCMessage {
             : emoteToObject[word] ?? localEmotes?[word];
 
         if (cheer != null) {
-          // Reversed order: the amount, then the image before it.
+          // Reversed order (like the other words): the amount, the image
+          // before it, then the space before the cheer.
           localSpan
-            ..add(const TextSpan(text: ' '))
             ..add(
               TextSpan(
                 text: '${cheer.amount}',
@@ -522,7 +522,8 @@ class IRCMessage {
                   ),
                 ),
               ),
-            );
+            )
+            ..add(const TextSpan(text: ' '));
           index--;
         } else if (emote != null) {
           // If the emote is zero-width and not the first word, process the stack.
