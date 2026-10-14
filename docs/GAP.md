@@ -355,7 +355,7 @@
 | ACC-27 | Mises à jour des conditions | P2 | ❌ | — | Géré par le site Twitch. | OK |
 | ACC-28 | À propos, aide, avis | P2 | ⚠️ | `settings.dart:127-190`, `other_settings.dart:65-70`, `main.dart:174` | Version, notes de version, invite d'avis, lien GitHub. | OK |
 | ACC-29 | Mise à jour forcée ou suggérée | P2 | ❌ | — | Non pertinent pour un build personnel. | OK |
-| ACC-30 | Accessibilité | P1 | ⚠️ | `video_overlay.dart:119,149,187-204` | Tooltips seulement. Aucun `Semantics` explicite dans `lib/`. | OK |
+| ACC-30 | Accessibilité | P1 | ✅ | `overlay_common.dart` (`VideoSurfaceSemantics`), `irc.dart`, `frosty_cached_network_image.dart` (`semanticLabel`), `draggable_divider.dart`, `stream_info_bar.dart` (`_CategoryLink`) | Boutons icônes nommés (réglages vidéo, réessayer, fermer, etc.). Emotes, badges et piles zero-width lus par leur nom (chat, menu, récents, autocomplétion). Surfaces vidéo live et VOD : « Video player » avec indice afficher/masquer, double-tap proposé en actions (±10 s, disposition du chat). Catégorie ouvrable comme lien, séparateur du chat réglable comme un curseur, aperçus de miniature nommés, appui long des messages annoncé. À valider avec TalkBack sur appareil. | OK |
 | ACC-31 | Défis anti-abus | P2 | ❌ | — | Play Integrity et `Client-Integrity`. | Impossible proprement |
 | ACC-32 | Informations légales Corée | P2 | ❌ | — | Non pertinent. | OK |
 
@@ -437,21 +437,21 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Découverte & recherche (DSC) | 5 | 4 | 13 | 0 | 22 |
 | Profil de chaîne & contenus (VOD / clips) (PRF) | 5 | 6 | 18 | 0 | 29 |
 | Monétisation (MON) | 0 | 0 | 15 | 0 | 15 |
-| Compte & réglages (ACC) | 4 | 5 | 22 | 1 | 32 |
+| Compte & réglages (ACC) | 5 | 4 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 4 | 6 | 7 | 0 | 17 |
-| **Total** | **83** | **40** | **186** | **8** | **317** |
+| **Total** | **84** | **39** | **186** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 40 | 14 | 2 | 4 | 60 |
-| P1 | 37 | 19 | 48 | 4 | 108 |
+| P1 | 38 | 18 | 48 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **83** | **40** | **186** | **8** | **317** |
+| **Total** | **84** | **39** | **186** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 10 | 27 | 33 | 70 |
+| OK | 10 | 26 | 33 | 69 |
 | GQL privé | 6 | 29 | 61 | 96 |
 | Compte requis | 0 | 11 | 12 | 23 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
