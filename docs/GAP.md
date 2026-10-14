@@ -287,7 +287,7 @@
 | PRF-13 | Vidéo suivante, lecture auto, revoir | P2 | ❌ | — | — | OK |
 | PRF-14 | Segments muets | P2 | ✅ | `twitch_vod_service.dart`, `vod_seek_bar.dart` (`b1a41fe`, `021c827`) | Repères sur la barre de progression. | OK |
 | PRF-15 | VOD réservées aux abonnés | P2 | ⚠️ | `ivs_vod_store.dart`, `vod_error_view.dart`, `vod_card.dart` (`ad3cf94`, `021c827`) | Cadenas dans la liste et message « réservée aux abonnés » (ou géobloquée) au lieu d'un repli. Lecture impossible sans session abonnée (E9). | OK |
-| PRF-16 | Vidéos des chaînes suivies | P1 | ❌ | — | Helix `GET /videos?user_id=`, un appel par chaîne suivie. | OK |
+| PRF-16 | Vidéos des chaînes suivies | P1 | ✅ | `followed_videos_screen.dart`, `followed_videos_store.dart`, `twitch_vod_service.dart` (`getFollowedVideos`) | « Followed videos » en tête des chaînes hors ligne de Following : les 100 premières chaînes suivies (Helix), puis 5 vidéos de chacune en une requête GQL anonyme par lot de 50 (`users(ids:)`), les plus récentes d'abord, ouvertes dans le lecteur VOD de l'appli. Tirer pour rafraîchir, erreur avec « Retry ». | OK |
 | PRF-17 | Clips de la chaîne | P1 | ✅ | `apis/twitch_clip_service.dart`, `screens/clips/widgets/channel_clips_tab.dart` | Onglet « Clips » des vidéos de la chaîne : 24 h / 7 j / 30 j / tout, Top ou Tendances, 100 premiers (pagination bloquée par l'intégrité en anonyme), grille sur tablette. GQL anonyme. | OK |
 | PRF-18 | Lecture de clip | P1 | ✅ | `screens/clips/clip_screen.dart`, `stores/clip_player_store.dart` | MP4 signé (jeton GQL anonyme) lu par media_kit : qualité, boucle, vitesse, volume, PiP, fit/fill, panneau latéral sur tablette, « Voir la vidéo complète » au bon instant, replay du chat de la VOD, autres clips de la chaîne. Repli embed Twitch en WebView. À valider sur appareil. | GQL privé |
 | PRF-19 | Créer un clip | P1 | ❌ | — | Helix `POST /clips` (`clips:edit`) : portée absente des scopes OAuth actuels (`auth_store.dart`). Hors périmètre E2. | Compte requis |
@@ -440,18 +440,18 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Compte & réglages (ACC) | 5 | 5 | 21 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 4 | 7 | 6 | 0 | 17 |
-| **Total** | **90** | **40** | **179** | **8** | **317** |
+| **Total** | **91** | **40** | **178** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 41 | 13 | 2 | 4 | 60 |
-| P1 | 43 | 20 | 41 | 4 | 108 |
+| P1 | 44 | 20 | 40 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **90** | **40** | **179** | **8** | **317** |
+| **Total** | **91** | **40** | **178** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 9 | 21 | 33 | 63 |
+| OK | 9 | 20 | 33 | 62 |
 | GQL privé | 6 | 29 | 61 | 96 |
 | Compte requis | 0 | 11 | 12 | 23 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
