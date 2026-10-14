@@ -248,11 +248,13 @@ abstract class WhisperStoreBase with Store {
       () =>
           WhisperThread(userId: userId, login: login, displayName: displayName),
     );
-    if (_threads.length > maxThreads) {
-      final oldest = threads.last;
-      if (oldest.userId != userId && oldest.userId != _openUserId) {
-        _threads.remove(oldest.userId);
-      }
+    // The least recent others go (never this one, nor the one on screen).
+    while (_threads.length > maxThreads) {
+      final oldest = threads
+          .where((t) => t.userId != userId && t.userId != _openUserId)
+          .lastOrNull;
+      if (oldest == null) break;
+      _threads.remove(oldest.userId);
     }
     return thread;
   }
@@ -284,6 +286,10 @@ abstract class WhisperStoreBase with Store {
   Future<String?> send(WhisperThread thread, String text) async {
     final me = _me;
     if (me == null) return 'Log in to whisper.';
+    // A screen kept from before an account switch.
+    if (!identical(_threads[thread.userId], thread)) {
+      return 'This conversation belongs to another account.';
+    }
     final message = text.trim();
     if (message.isEmpty) return null;
     if (message.length > TwitchApi.maxWhisperLength) {

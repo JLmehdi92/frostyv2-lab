@@ -202,6 +202,39 @@ void main() {
       expect(thread.unread, 1);
     });
 
+    test('at most 50 conversations: the least recent go first', () async {
+      for (var i = 0; i < WhisperStoreBase.maxThreads + 5; i++) {
+        streams.single.add(
+          EventSubData(
+            _event(from: '${100 + i}', login: 'user$i', id: 'w$i'),
+            sentAt: DateTime(2026, 2, 3).add(Duration(minutes: i)),
+          ),
+        );
+      }
+      await pumpEventQueue();
+
+      expect(store.threads, hasLength(WhisperStoreBase.maxThreads));
+      expect(store.threads.first.login, 'user54');
+      expect(store.threads.map((t) => t.login), isNot(contains('user0')));
+    });
+
+    test('a conversation of another account cannot be sent to', () async {
+      final old = store.open(userId: '8', login: 'friend', displayName: 'F');
+      runInAction(() => user.value = '10');
+
+      expect(
+        await store.send(old, 'hi'),
+        'This conversation belongs to another account.',
+      );
+      verifyNever(
+        () => api.sendWhisper(
+          fromUserId: any(named: 'fromUserId'),
+          toUserId: any(named: 'toUserId'),
+          message: any(named: 'message'),
+        ),
+      );
+    });
+
     test('logging out stops listening and forgets the whispers', () async {
       streams.single.add(EventSubData(_event()));
       await pumpEventQueue();
