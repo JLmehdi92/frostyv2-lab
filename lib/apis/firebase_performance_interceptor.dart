@@ -8,7 +8,8 @@ class FirebasePerformanceInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     final metric = FirebasePerformance.instance.newHttpMetric(
-      options.uri.toString(),
+      // No query: it can name people (whisper partners, chatters).
+      '${options.uri.origin}${options.uri.path}',
       _getHttpMethod(options.method),
     );
     metric.start();

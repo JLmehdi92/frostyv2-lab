@@ -214,7 +214,11 @@ abstract class BaseApiClient {
         FirebaseCrashlytics.instance.recordError(
           exception,
           error.stackTrace,
-          reason: '${error.requestOptions.method} ${error.requestOptions.uri}',
+          // No query: it can name people (whisper partners, chatters).
+          reason:
+              '${error.requestOptions.method} '
+              '${error.requestOptions.uri.origin}'
+              '${error.requestOptions.uri.path}',
         );
       } catch (_) {
         // Firebase may not be initialized (e.g., in tests).
