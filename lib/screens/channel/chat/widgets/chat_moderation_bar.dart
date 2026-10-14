@@ -59,7 +59,7 @@ class _ChatModerationBarState extends State<ChatModerationBar> {
       action: 'Ban',
       required: false,
     );
-    if (reason != null) await _run(BanCommand(widget.login, reason));
+    if (mounted && reason != null) await _run(BanCommand(widget.login, reason));
   }
 
   Future<void> _warn() async {
@@ -69,7 +69,9 @@ class _ChatModerationBarState extends State<ChatModerationBar> {
       action: 'Warn',
       required: true,
     );
-    if (reason != null) await _run(WarnCommand(widget.login, reason));
+    if (mounted && reason != null) {
+      await _run(WarnCommand(widget.login, reason));
+    }
   }
 
   @override
@@ -87,15 +89,12 @@ class _ChatModerationBarState extends State<ChatModerationBar> {
             child: Row(
               spacing: 8,
               children: [
-                PopupMenuButton<Duration>(
-                  enabled: enabled,
-                  tooltip: 'Time out ${widget.name}',
-                  onSelected: (duration) =>
-                      _run(TimeoutCommand(widget.login, duration, '')),
-                  itemBuilder: (context) => [
+                MenuAnchor(
+                  menuChildren: [
                     for (final duration in kTimeoutPresets)
-                      PopupMenuItem(
-                        value: duration,
+                      MenuItemButton(
+                        onPressed: () =>
+                            _run(TimeoutCommand(widget.login, duration, '')),
                         child: Text(
                           duration.inSeconds == 1
                               ? '1 second (purge)'
@@ -103,12 +102,14 @@ class _ChatModerationBarState extends State<ChatModerationBar> {
                         ),
                       ),
                   ],
-                  child: IgnorePointer(
-                    child: FilledButton.tonalIcon(
-                      onPressed: enabled ? () {} : null,
-                      icon: const Icon(Icons.timer_outlined),
-                      label: const Text('Timeout'),
-                    ),
+                  builder: (context, controller, _) => FilledButton.tonalIcon(
+                    onPressed: enabled
+                        ? () => controller.isOpen
+                              ? controller.close()
+                              : controller.open()
+                        : null,
+                    icon: const Icon(Icons.timer_outlined),
+                    label: const Text('Timeout'),
                   ),
                 ),
                 FilledButton.tonalIcon(

@@ -33,12 +33,14 @@ void main() {
 
   testWidgets('a timeout length is one tap from the menu', (tester) async {
     await pump(tester);
-    await tester.tap(find.byType(PopupMenuButton<Duration>));
+    await tester.tap(find.text('Timeout'));
     await tester.pumpAndSettle();
     expect(find.text('1 second (purge)'), findsOneWidget);
     await tester.tap(find.text('10 minutes'));
-    // The progress bar never settles.
+    // The progress bar never settles. The menu runs its item once closed,
+    // so the busy state draws a frame later.
     await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump();
 
     final timeout = commands.single as TimeoutCommand;
     expect(timeout.login, 'troll');
