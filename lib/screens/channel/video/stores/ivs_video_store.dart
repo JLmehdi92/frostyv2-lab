@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -248,8 +249,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     unawaited(updateStreamInfo());
     _scheduleOverlayHide();
 
-    // Logged in: the channel going live restarts the player at once, and
-    // going offline shows it without waiting for a poll.
+    // Logged in: the channel going live restarts the player at once.
     if (listenEvents != null) {
       try {
         _liveWatcher = LiveStateWatcher(
@@ -318,13 +318,25 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   LiveStateWatcher? _liveWatcher;
   Timer? _liveStartTimer;
 
+  /// When EventSub last said the channel went live.
+  DateTime? _wentLiveAt;
+
+  /// How long a "went live" push outweighs Helix (which lags it) and an
+  /// unready playlist: an offline answer then is retried, not shown.
+  static const _trustLivePush = Duration(seconds: 90);
+
+  bool get _justWentLive {
+    final at = _wentLiveAt;
+    return at != null && clock.now().difference(at) < _trustLivePush;
+  }
+
   void _onLiveChange(LiveChange change) {
     if (_disposed) return;
     switch (change) {
-      case LiveChange.offline:
-        unawaited(updateStreamInfo(forceUpdate: true));
       case LiveChange.online:
-        if (_status != IvsPlaybackStatus.offline) return;
+        // Remembered even while recovering: the recovery then retries
+        // instead of settling offline.
+        _wentLiveAt = clock.now();
         _liveStartTimer?.cancel();
         _liveStartTimer = Timer(liveStartDelay, () {
           if (!_disposed && _status == IvsPlaybackStatus.offline) {
@@ -616,8 +628,9 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     }
     if (epoch != _recoveryEpoch) return;
     _recovering = false;
-    if (info != null) {
-      runInAction(() => _streamInfo = info);
+    if (info != null || _justWentLive) {
+      // Helix lags a fresh stream.online: trust the push for a while.
+      if (info != null) runInAction(() => _streamInfo = info);
       _applyRecovery(_recovery.onError(IvsErrorKind.recoverable));
       return;
     }

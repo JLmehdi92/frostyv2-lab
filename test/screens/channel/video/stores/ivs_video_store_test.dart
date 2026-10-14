@@ -1400,7 +1400,7 @@ void main() {
       created = null;
 
       store = await createStore(listenEvents: listen);
-      expect(topics.keys, unorderedEquals(['stream.online', 'stream.offline']));
+      expect(topics.keys, ['stream.online']);
     });
 
     test('the channel going live restarts an offline player', () async {
@@ -1445,14 +1445,23 @@ void main() {
       expect(native.callsNamed('load'), hasLength(1));
     });
 
-    test('the channel going offline refreshes its info at once', () async {
+    test('going live while the player still recovers is not lost', () async {
       store = await createStore(listenEvents: listen);
-      clearInteractions(twitchApi);
+      // Helix does not list the stream yet (it lags the push).
+      when(
+        () => twitchApi.getStream(userLogin: any(named: 'userLogin')),
+      ).thenThrow(const ApiException('streamer is offline', 404));
 
-      topics['stream.offline']!.add(const EventSubData({}));
+      topics['stream.online']!.add(const EventSubData({}));
       await settle();
+      await native.emit({'type': 'error', 'errorType': 'ERROR_NOT_AVAILABLE'});
+      for (var i = 0; i < 10; i++) {
+        await settle();
+      }
 
-      verify(() => twitchApi.getStream(userLogin: 'streamer')).called(1);
+      // Retried instead of settling offline.
+      expect(store.status, isNot(IvsPlaybackStatus.offline));
+      expect(native.callsNamed('load'), isNotEmpty);
     });
   });
 }

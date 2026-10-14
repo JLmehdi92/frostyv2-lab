@@ -5,7 +5,6 @@ import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 /// What a channel's live state did, as EventSub tells it.
 enum LiveChange {
   online,
-  offline,
 
   /// Listening again after a gap: a change may have been missed.
   maybeMissed,
@@ -13,9 +12,10 @@ enum LiveChange {
 
 final _numericId = RegExp(r'^[0-9]{1,20}$');
 
-/// Pushes a channel going live or offline (EventSub `stream.online` and
-/// `stream.offline`, which need a logged-in viewer but no scope), so the
-/// player does not wait for a poll.
+/// Pushes a channel going live (EventSub `stream.online`, which needs a
+/// logged-in viewer but no scope), so an offline player restarts without
+/// waiting for a poll. Going offline is left to the player, which sees it
+/// first (and each topic costs from a budget of 10 per connection).
 class LiveStateWatcher {
   LiveStateWatcher({
     required EventSubHandle Function(EventSubTopic topic) listen,
@@ -25,37 +25,25 @@ class LiveStateWatcher {
     if (!_numericId.hasMatch(broadcasterId)) {
       throw ArgumentError.value(broadcasterId, 'broadcasterId');
     }
-    for (final (type, change) in [
-      ('stream.online', LiveChange.online),
-      ('stream.offline', LiveChange.offline),
-    ]) {
-      final handle = listen(
-        EventSubTopic(type, '1', {'broadcaster_user_id': broadcasterId}),
-      );
-      _handles.add(handle);
-      _events.add(
-        handle.events.listen(
-          (event) => switch (event) {
-            EventSubData() => onChange(change),
-            // Once per gap is enough: the online topic speaks for both.
-            EventSubListening(afterGap: true) when type == 'stream.online' =>
-              onChange(LiveChange.maybeMissed),
-            _ => null,
-          },
-        ),
-      );
-    }
+    _handle = listen(
+      EventSubTopic('stream.online', '1', {
+        'broadcaster_user_id': broadcasterId,
+      }),
+    );
+    _events = _handle.events.listen(
+      (event) => switch (event) {
+        EventSubData() => onChange(LiveChange.online),
+        EventSubListening(afterGap: true) => onChange(LiveChange.maybeMissed),
+        _ => null,
+      },
+    );
   }
 
-  final _handles = <EventSubHandle>[];
-  final _events = <StreamSubscription<EventSubTopicEvent>>[];
+  late final EventSubHandle _handle;
+  late final StreamSubscription<EventSubTopicEvent> _events;
 
   void dispose() {
-    for (final handle in _handles) {
-      handle.cancel();
-    }
-    for (final events in _events) {
-      unawaited(events.cancel());
-    }
+    _handle.cancel();
+    unawaited(_events.cancel());
   }
 }

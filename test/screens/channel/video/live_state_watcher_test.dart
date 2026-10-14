@@ -30,27 +30,24 @@ void main() {
     );
   });
 
-  test('online and offline events are passed on', () async {
-    expect(topics.keys, ['stream.online', 'stream.offline']);
-    topics['stream.offline']!.add(const EventSubData({}));
+  test('going live is passed on', () async {
+    expect(topics.keys, ['stream.online']);
     topics['stream.online']!.add(const EventSubData({}));
     await pumpEventQueue();
-    expect(changes, [LiveChange.offline, LiveChange.online]);
+    expect(changes, [LiveChange.online]);
   });
 
-  test('listening again after a gap may have missed a change, once', () async {
-    for (final events in topics.values) {
-      events
-        ..add(const EventSubListening(afterGap: false))
-        ..add(const EventSubListening(afterGap: true));
-    }
+  test('listening again after a gap may have missed it', () async {
+    topics['stream.online']!
+      ..add(const EventSubListening(afterGap: false))
+      ..add(const EventSubListening(afterGap: true));
     await pumpEventQueue();
     expect(changes, [LiveChange.maybeMissed]);
   });
 
-  test('dispose lets both topics go', () {
+  test('dispose lets the topic go', () {
     watcher.dispose();
-    expect(cancelled, ['stream.online', 'stream.offline']);
+    expect(cancelled, ['stream.online']);
   });
 
   test('refuses an id that is not one', () {
