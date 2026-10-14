@@ -72,6 +72,13 @@ lastAt: ${lastAt}
 }
 
 mixin _$WhisperStore on WhisperStoreBase, Store {
+  Computed<String?>? _$openUserIdComputed;
+
+  @override
+  String? get openUserId => (_$openUserIdComputed ??= Computed<String?>(
+    () => super.openUserId,
+    name: 'WhisperStoreBase.openUserId',
+  )).value;
   Computed<List<WhisperThread>>? _$threadsComputed;
 
   @override
@@ -122,26 +129,6 @@ mixin _$WhisperStore on WhisperStoreBase, Store {
   set _status(WhisperStatus value) {
     _$_statusAtom.reportWrite(value, super._status, () {
       super._status = value;
-    });
-  }
-
-  late final _$_openUserIdAtom = Atom(
-    name: 'WhisperStoreBase._openUserId',
-    context: context,
-  );
-
-  String? get openUserId {
-    _$_openUserIdAtom.reportRead();
-    return super._openUserId;
-  }
-
-  @override
-  String? get _openUserId => openUserId;
-
-  @override
-  set _openUserId(String? value) {
-    _$_openUserIdAtom.reportWrite(value, super._openUserId, () {
-      super._openUserId = value;
     });
   }
 
@@ -225,6 +212,7 @@ mixin _$WhisperStore on WhisperStoreBase, Store {
   @override
   String toString() {
     return '''
+openUserId: ${openUserId},
 threads: ${threads},
 unreadCount: ${unreadCount}
     ''';

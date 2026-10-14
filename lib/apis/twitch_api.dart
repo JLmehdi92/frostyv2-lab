@@ -703,7 +703,8 @@ class TwitchApi extends BaseApiClient {
   }) async {
     final text = message.trim();
     if (text.isEmpty || text.length > maxWhisperLength) {
-      throw ArgumentError.value(message, 'message', '1 to 10000 characters');
+      // Not the text itself: it must not reach a crash report.
+      throw ArgumentError('A whisper is 1 to 10000 characters');
     }
     await post<dynamic>(
       '/whispers',

@@ -63,6 +63,7 @@ void main() {
   group('WhisperStore', () {
     late MockTwitchApi api;
     late Observable<String?> user;
+    late Observable<String?> token;
     late List<EventSubTopic> topics;
     late List<StreamController<EventSubTopicEvent>> streams;
     late int cancelled;
@@ -71,12 +72,14 @@ void main() {
     setUp(() {
       api = MockTwitchApi();
       user = Observable<String?>('7');
+      token = Observable<String?>('t1');
       topics = [];
       streams = [];
       cancelled = 0;
       store = WhisperStore(
         twitchApi: api,
         currentUserId: () => user.value,
+        credentials: () => token.value,
         listen: (topic) {
           topics.add(topic);
           final stream = StreamController<EventSubTopicEvent>.broadcast();
@@ -106,7 +109,11 @@ void main() {
       expect(store.status, WhisperStatus.interrupted);
 
       streams.single.add(
-        const EventSubUnavailable('Forbidden', permanent: true),
+        const EventSubUnavailable(
+          'Forbidden',
+          permanent: true,
+          unauthorized: true,
+        ),
       );
       await pumpEventQueue();
       expect(store.status, WhisperStatus.refused);
@@ -239,6 +246,75 @@ void main() {
           message: any(named: 'message'),
         ),
       );
+    });
+
+    test('logging in again as the same viewer listens anew', () async {
+      streams.single
+        ..add(
+          const EventSubUnavailable('no', permanent: true, unauthorized: true),
+        )
+        ..add(EventSubData(_event()));
+      await pumpEventQueue();
+      expect(store.status, WhisperStatus.refused);
+
+      runInAction(() => token.value = 't2');
+      expect(topics, hasLength(2));
+      // The old handle goes after the new one took the topic.
+      expect(cancelled, 1);
+      expect(store.status, WhisperStatus.connecting);
+      // Same account: the conversations stay.
+      expect(store.threads, hasLength(1));
+
+      streams.last.add(const EventSubListening(afterGap: true));
+      await pumpEventQueue();
+      expect(store.status, WhisperStatus.listening);
+    });
+
+    test('a refusal not about the token is not a login problem', () async {
+      streams.single.add(const EventSubUnavailable('gone', permanent: true));
+      await pumpEventQueue();
+      expect(store.status, WhisperStatus.unavailable);
+    });
+
+    test('a conversation opened over another hands back to it', () {
+      store
+        ..open(userId: '8', login: 'friend', displayName: 'Friend')
+        ..open(userId: '9', login: 'other', displayName: 'Other');
+      expect(store.openUserId, '9');
+      store.close('9');
+      expect(store.openUserId, '8');
+      store.close('8');
+      expect(store.openUserId, isNull);
+    });
+
+    test('/w keeps a conversation only once the whisper went', () async {
+      when(
+        () => api.sendWhisper(fromUserId: '7', toUserId: '9', message: 'yo'),
+      ).thenThrow(const ApiException('Nope', 400));
+      expect(
+        await store.sendTo(
+          userId: '9',
+          login: 'other',
+          displayName: 'Other',
+          text: 'yo',
+        ),
+        "Couldn't whisper: Nope",
+      );
+      expect(store.threads, isEmpty);
+
+      when(
+        () => api.sendWhisper(fromUserId: '7', toUserId: '9', message: 'yo'),
+      ).thenAnswer((_) async {});
+      expect(
+        await store.sendTo(
+          userId: '9',
+          login: 'other',
+          displayName: 'Other',
+          text: 'yo',
+        ),
+        isNull,
+      );
+      expect(store.threads.single.whispers.single.text, 'yo');
     });
 
     test('logging out stops listening and forgets the whispers', () async {

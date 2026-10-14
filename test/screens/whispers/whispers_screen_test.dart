@@ -59,7 +59,13 @@ void main() {
     await pumpScreen(tester, WhispersScreen(store: store));
     expect(find.textContaining('No whispers yet'), findsOneWidget);
 
-    events.add(const EventSubUnavailable('Forbidden', permanent: true));
+    events.add(
+      const EventSubUnavailable(
+        'Forbidden',
+        permanent: true,
+        unauthorized: true,
+      ),
+    );
     await settle(tester);
     expect(find.textContaining('Log out and log in again'), findsOneWidget);
   });

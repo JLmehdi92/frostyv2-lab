@@ -196,6 +196,8 @@ void main() async {
     listen: eventSubClient.listen,
     currentUserId: () =>
         authStore.isLoggedIn ? authStore.user.details?.id : null,
+    // Logging in again (new scopes) listens anew.
+    credentials: () => authStore.token,
   );
 
   FirebaseCrashlytics.instance.setCustomKey('is_logged_in', authStore.isLoggedIn);

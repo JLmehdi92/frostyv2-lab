@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:clock/clock.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
@@ -137,8 +138,13 @@ enum WhisperStatus {
   /// Not for now (reconnecting); it retries by itself.
   interrupted,
 
-  /// Twitch refuses (a token without the whisper scope: log in again).
+  /// Twitch refuses the token (from before the whisper scope, or
+  /// revoked): logging in again fixes it.
   refused,
+
+  /// Twitch refuses for another reason; retried when the app comes back
+  /// from the background.
+  unavailable,
 }
 
 class WhisperStore = WhisperStoreBase with _$WhisperStore;
@@ -152,10 +158,11 @@ abstract class WhisperStoreBase with Store {
     required this.twitchApi,
     required EventSubHandle Function(EventSubTopic topic) listen,
     required String? Function() currentUserId,
+    Object? Function()? credentials,
   }) : _listen = listen {
     _userReaction = reaction(
-      (_) => currentUserId(),
-      _follow,
+      (_) => (currentUserId(), credentials?.call()),
+      (session) => _follow(session.$1),
       fireImmediately: true,
     );
   }
@@ -183,9 +190,13 @@ abstract class WhisperStoreBase with Store {
   @readonly
   var _status = WhisperStatus.off;
 
+  /// The conversations on screen, the visible one last (one can open
+  /// over another).
+  final _openUserIds = ObservableList<String>();
+
   /// The conversation on screen: what arrives there is read already.
-  @readonly
-  String? _openUserId;
+  @computed
+  String? get openUserId => _openUserIds.lastOrNull;
 
   /// Conversations, most recent first.
   @computed
@@ -197,27 +208,41 @@ abstract class WhisperStoreBase with Store {
   @computed
   int get unreadCount => _threads.values.fold(0, (sum, t) => sum + t.unread);
 
+  /// Follows the viewer [me]. The same viewer again (a new token, after
+  /// logging in again) listens anew, so a refusal gets another try.
   @action
   void _follow(String? me) {
-    if (me == _me) return;
+    if (me != null && me == _me) {
+      _listenTo(me);
+      return;
+    }
     _handle?.cancel();
     _handle = null;
     unawaited(_events?.cancel());
     _events = null;
     // Another account (or none): its whispers are not this one's.
     _threads.clear();
-    _openUserId = null;
+    _openUserIds.clear();
     _me = me;
     if (me == null) {
       _status = WhisperStatus.off;
       return;
     }
+    _listenTo(me);
+  }
+
+  void _listenTo(String me) {
+    final previous = _handle;
+    final previousEvents = _events;
     _status = WhisperStatus.connecting;
+    // The new handle first: the topic stays subscribed across the switch.
     final handle = _listen(
       EventSubTopic('user.whisper.message', '1', {'user_id': me}),
     );
     _handle = handle;
     _events = handle.events.listen(_onEvent);
+    previous?.cancel();
+    unawaited(previousEvents?.cancel());
   }
 
   @action
@@ -225,14 +250,21 @@ abstract class WhisperStoreBase with Store {
     switch (event) {
       case EventSubListening():
         _status = WhisperStatus.listening;
-      case EventSubUnavailable(:final permanent):
-        _status = permanent ? WhisperStatus.refused : WhisperStatus.interrupted;
+      case EventSubUnavailable(:final permanent, :final unauthorized):
+        _status = !permanent
+            ? WhisperStatus.interrupted
+            : unauthorized
+            ? WhisperStatus.refused
+            : WhisperStatus.unavailable;
       case EventSubData(:final event, :final sentAt):
         final me = _me;
         if (me == null) return;
         final incoming = whisperFromEvent(event, me: me, sentAt: sentAt);
         if (incoming == null) {
-          debugPrint('Whisper: unreadable event skipped');
+          // Field names only: never the whisper.
+          if (kDebugMode) {
+            debugPrint('Whisper skipped, fields: ${event.keys.join(', ')}');
+          }
           return;
         }
         final thread = this.thread(
@@ -242,7 +274,7 @@ abstract class WhisperStoreBase with Store {
         );
         if (thread.whispers.any((w) => w.id == incoming.whisper.id)) return;
         thread._add(incoming.whisper);
-        if (_openUserId != thread.userId) thread.unread++;
+        if (openUserId != thread.userId) thread.unread++;
         if (!_incoming.isClosed) _incoming.add(incoming);
     }
   }
@@ -263,7 +295,7 @@ abstract class WhisperStoreBase with Store {
     // The least recent others go (never this one, nor the one on screen).
     while (_threads.length > maxThreads) {
       final oldest = threads
-          .where((t) => t.userId != userId && t.userId != _openUserId)
+          .where((t) => t.userId != userId && !_openUserIds.contains(t.userId))
           .lastOrNull;
       if (oldest == null) break;
       _threads.remove(oldest.userId);
@@ -284,22 +316,47 @@ abstract class WhisperStoreBase with Store {
       displayName: displayName,
     );
     thread.unread = 0;
-    _openUserId = userId;
+    _openUserIds.add(userId);
     return thread;
   }
 
-  /// The conversation with [userId] left the screen.
+  /// The conversation with [userId] left the screen (the one under it, if
+  /// any, is on screen again).
   @action
   void close(String userId) {
-    if (_openUserId == userId) _openUserId = null;
+    final index = _openUserIds.lastIndexOf(userId);
+    if (index >= 0) _openUserIds.removeAt(index);
+  }
+
+  /// Whispers [text] to someone, starting the conversation only once it
+  /// went (`/w`). Null when sent, else why not.
+  Future<String?> sendTo({
+    required String userId,
+    required String login,
+    required String displayName,
+    required String text,
+  }) async {
+    final existing = _threads[userId];
+    final thread =
+        existing ??
+        WhisperThread(userId: userId, login: login, displayName: displayName);
+    return _send(thread, text, adopt: existing == null);
   }
 
   /// Whispers [text] to [thread]'s person. Null when sent, else why not.
-  Future<String?> send(WhisperThread thread, String text) async {
+  Future<String?> send(WhisperThread thread, String text) =>
+      _send(thread, text, adopt: false);
+
+  /// [adopt]: [thread] is new, kept only if the whisper goes.
+  Future<String?> _send(
+    WhisperThread thread,
+    String text, {
+    required bool adopt,
+  }) async {
     final me = _me;
     if (me == null) return 'Log in to whisper.';
     // A screen kept from before an account switch.
-    if (!identical(_threads[thread.userId], thread)) {
+    if (!adopt && !identical(_threads[thread.userId], thread)) {
       return 'This conversation belongs to another account.';
     }
     final message = text.trim();
@@ -318,21 +375,37 @@ abstract class WhisperStoreBase with Store {
     } on ApiException catch (e) {
       return "Couldn't whisper: ${e.message}";
     } catch (e, stack) {
-      debugPrint('Whisper failed: $e\n$stack');
-      return "Couldn't whisper.";
+      // A bug, or Twitch changed something (never the whisper's text).
+      try {
+        FirebaseCrashlytics.instance.recordError(
+          e,
+          stack,
+          reason: 'whisper send',
+        );
+      } catch (_) {
+        // Firebase may not be initialized (e.g., in tests).
+      }
+      return "Couldn't whisper (unexpected error).";
     }
     // The account changed meanwhile: not this conversation any more.
     if (_me != me) return null;
-    runInAction(
-      () => thread._add(
+    runInAction(() {
+      final target = adopt
+          ? this.thread(
+              userId: thread.userId,
+              login: thread.login,
+              displayName: thread.displayName,
+            )
+          : thread;
+      target._add(
         Whisper(
           id: 'out-${clock.now().microsecondsSinceEpoch}',
           text: message,
           mine: true,
           sentAt: clock.now(),
         ),
-      ),
-    );
+      );
+    });
     return null;
   }
 

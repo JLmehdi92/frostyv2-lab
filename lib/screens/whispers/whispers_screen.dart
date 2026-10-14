@@ -14,6 +14,9 @@ String? whisperStatusHint(WhisperStatus status) => switch (status) {
     'Twitch refused to send your whispers to this app. Log out and log in '
         'again to allow them.',
   WhisperStatus.interrupted => 'Reconnecting… whispers will arrive again soon.',
+  WhisperStatus.unavailable =>
+    "Twitch isn't sending whispers to this app right now. It tries again "
+        'when you come back to the app.',
   WhisperStatus.off => 'Log in to get whispers.',
   WhisperStatus.connecting || WhisperStatus.listening => null,
 };
