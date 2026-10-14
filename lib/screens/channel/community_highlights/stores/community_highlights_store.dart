@@ -35,6 +35,7 @@ abstract class CommunityHighlightsStoreBase with Store {
     required TwitchRealtimeClient realtime,
     ServerClock? serverClock,
     this.expandNew = false,
+    this.onGoAlong,
   }) : _service = service,
        serverClock = serverClock ?? ServerClock() {
     for (final topic in HighlightTopic.values) {
@@ -115,6 +116,29 @@ abstract class CommunityHighlightsStoreBase with Store {
 
   @readonly
   RaidState? _raid;
+
+  /// Takes the viewer to the raid's target when it leaves, as Twitch does,
+  /// unless they chose to stay ([stayOnRaid]). Only a raid seen counting
+  /// down: one first seen already gone does not move them.
+  final void Function(OutgoingRaid raid)? onGoAlong;
+
+  /// The raid the viewer chose not to go along with.
+  @readonly
+  String? _stayingFor;
+
+  /// Whether the viewer stays here when the current raid leaves.
+  @computed
+  bool get stayingOnRaid {
+    final raid = _raid;
+    return raid != null && raid.raid.id == _stayingFor;
+  }
+
+  /// Stays on this channel when the current raid leaves.
+  @action
+  void stayOnRaid() {
+    final raid = _nextRaid ?? _raid;
+    if (raid != null) _stayingFor = raid.raid.id;
+  }
 
   @readonly
   var _stack = const HighlightStack();
@@ -209,6 +233,15 @@ abstract class CommunityHighlightsStoreBase with Store {
               _nextRaid == null ||
               before.gone != _nextRaid!.gone,
         );
+        final next = _nextRaid;
+        if (before != null &&
+            !before.gone &&
+            next != null &&
+            next.gone &&
+            next.raid.id == before.raid.id &&
+            next.raid.id != _stayingFor) {
+          onGoAlong?.call(next.raid);
+        }
       case ChUnknown():
         break;
     }

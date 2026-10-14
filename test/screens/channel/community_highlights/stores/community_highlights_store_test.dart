@@ -314,6 +314,44 @@ void main() {
     });
   });
 
+  test('the viewer goes along when the raid leaves, once', () {
+    run((async) {
+      h.create();
+      async.flushMicrotasks();
+      h.send(HighlightTopic.raid, raidPayload('raid_update_v2'));
+      expect(h.wentAlong, isEmpty);
+      for (var i = 0; i < 3; i++) {
+        h.send(HighlightTopic.raid, raidPayload('raid_go_v2'));
+      }
+      expect(h.wentAlong.map((r) => r.targetLogin), ['friend']);
+      h.store.dispose();
+    });
+  });
+
+  test('staying here keeps the viewer on this channel', () {
+    run((async) {
+      h.create();
+      async.flushMicrotasks();
+      h.send(HighlightTopic.raid, raidPayload('raid_update_v2'));
+      expect(h.store.stayingOnRaid, isFalse);
+      h.store.stayOnRaid();
+      expect(h.store.stayingOnRaid, isTrue);
+      h.send(HighlightTopic.raid, raidPayload('raid_go_v2'));
+      expect(h.wentAlong, isEmpty);
+      h.store.dispose();
+    });
+  });
+
+  test('a raid first seen leaving does not take the viewer', () {
+    run((async) {
+      h.create();
+      async.flushMicrotasks();
+      h.send(HighlightTopic.raid, raidPayload('raid_go_v2'));
+      expect(h.wentAlong, isEmpty);
+      h.store.dispose();
+    });
+  });
+
   test('dismiss hides that highlight for the session', () {
     run((async) {
       h.create();

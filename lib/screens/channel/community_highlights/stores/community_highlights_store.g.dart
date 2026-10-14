@@ -9,6 +9,13 @@ part of 'community_highlights_store.dart';
 // ignore_for_file: non_constant_identifier_names, unnecessary_brace_in_string_interps, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic, no_leading_underscores_for_local_identifiers
 
 mixin _$CommunityHighlightsStore on CommunityHighlightsStoreBase, Store {
+  Computed<bool>? _$stayingOnRaidComputed;
+
+  @override
+  bool get stayingOnRaid => (_$stayingOnRaidComputed ??= Computed<bool>(
+    () => super.stayingOnRaid,
+    name: 'CommunityHighlightsStoreBase.stayingOnRaid',
+  )).value;
   Computed<HighlightItem?>? _$currentComputed;
 
   @override
@@ -104,6 +111,26 @@ mixin _$CommunityHighlightsStore on CommunityHighlightsStoreBase, Store {
     });
   }
 
+  late final _$_stayingForAtom = Atom(
+    name: 'CommunityHighlightsStoreBase._stayingFor',
+    context: context,
+  );
+
+  String? get stayingFor {
+    _$_stayingForAtom.reportRead();
+    return super._stayingFor;
+  }
+
+  @override
+  String? get _stayingFor => stayingFor;
+
+  @override
+  set _stayingFor(String? value) {
+    _$_stayingForAtom.reportWrite(value, super._stayingFor, () {
+      super._stayingFor = value;
+    });
+  }
+
   late final _$_stackAtom = Atom(
     name: 'CommunityHighlightsStoreBase._stack',
     context: context,
@@ -128,6 +155,17 @@ mixin _$CommunityHighlightsStore on CommunityHighlightsStoreBase, Store {
     name: 'CommunityHighlightsStoreBase',
     context: context,
   );
+
+  @override
+  void stayOnRaid() {
+    final _$actionInfo = _$CommunityHighlightsStoreBaseActionController
+        .startAction(name: 'CommunityHighlightsStoreBase.stayOnRaid');
+    try {
+      return super.stayOnRaid();
+    } finally {
+      _$CommunityHighlightsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
 
   @override
   void select(int index) {
@@ -176,6 +214,7 @@ mixin _$CommunityHighlightsStore on CommunityHighlightsStoreBase, Store {
   @override
   String toString() {
     return '''
+stayingOnRaid: ${stayingOnRaid},
 current: ${current},
 visible: ${visible}
     ''';

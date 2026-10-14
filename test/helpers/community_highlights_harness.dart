@@ -151,12 +151,16 @@ class Harness {
   final cancelled = <String>[];
   late CommunityHighlightsStore store;
 
+  /// The raids [CommunityHighlightsStore.onGoAlong] took the viewer along.
+  final wentAlong = <OutgoingRaid>[];
+
   CommunityHighlightsStore create({bool expandNew = false}) =>
       store = CommunityHighlightsStore(
         channelId: harnessChannel,
         service: service,
         realtime: realtime,
         expandNew: expandNew,
+        onGoAlong: wentAlong.add,
       );
 
   void send(HighlightTopic topic, String payload) =>
