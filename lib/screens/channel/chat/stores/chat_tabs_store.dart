@@ -13,6 +13,7 @@ import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/stores/global_assets_store.dart';
+import 'package:frosty/stores/whisper_store.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -99,6 +100,9 @@ abstract class ChatTabsStoreBase with Store {
   final SettingsStore settingsStore;
   final GlobalAssetsStore globalAssetsStore;
 
+  /// The viewer's whispers, handed to each chat for `/w`.
+  final WhisperStore? whisperStore;
+
   /// The list of open chat tabs.
   @readonly
   var _tabs = ObservableList<ChatTabInfo>();
@@ -184,8 +188,9 @@ abstract class ChatTabsStoreBase with Store {
     int? tailCount,
   }) {
     final msgs = store.messages;
-    final start =
-        tailCount != null && msgs.length > tailCount ? msgs.length - tailCount : 0;
+    final start = tailCount != null && msgs.length > tailCount
+        ? msgs.length - tailCount
+        : 0;
     for (var i = start; i < msgs.length; i++) {
       final id = msgs[i].tags['id'];
       if (id != null && !seenIds.add(id)) continue;
@@ -221,7 +226,12 @@ abstract class ChatTabsStoreBase with Store {
     final seenIds = <String>{};
     for (final tab in _tabs) {
       if (tab.chatStore == null) continue;
-      _collectMessages(tab.chatStore!, recent, seenIds, tailCount: _mergedRenderLimit);
+      _collectMessages(
+        tab.chatStore!,
+        recent,
+        seenIds,
+        tailCount: _mergedRenderLimit,
+      );
     }
     recent.sort(_compareByTimestamp);
     if (recent.length > _mergedRenderLimit) {
@@ -256,7 +266,8 @@ abstract class ChatTabsStoreBase with Store {
     for (final tab in _tabs) {
       if (tab.chatStore != null) {
         total +=
-            tab.chatStore!.messages.length + tab.chatStore!.messageBuffer.length;
+            tab.chatStore!.messages.length +
+            tab.chatStore!.messageBuffer.length;
       }
     }
     return total;
@@ -285,6 +296,7 @@ abstract class ChatTabsStoreBase with Store {
     required String primaryChannelId,
     required String primaryChannelLogin,
     required String primaryDisplayName,
+    this.whisperStore,
   }) {
     // Enable wakelock once for all chat tabs
     if (settingsStore.keepScreenAwake) {
@@ -332,6 +344,7 @@ abstract class ChatTabsStoreBase with Store {
   }) {
     return ChatStore(
       twitchApi: twitchApi,
+      whispers: whisperStore,
       channelName: channelLogin,
       channelId: channelId,
       displayName: displayName,

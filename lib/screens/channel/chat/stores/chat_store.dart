@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/models/badges.dart';
 import 'package:frosty/models/emotes.dart';
@@ -19,6 +20,7 @@ import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_character_counter.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/stores/whisper_store.dart';
 import 'package:frosty/utils.dart';
 import 'package:mobx/mobx.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -100,6 +102,9 @@ abstract class ChatStoreBase with Store {
   bool get _hasActiveChatDelay => settings.showVideo && _chatDelaySeconds > 0;
 
   final TwitchApi twitchApi;
+
+  /// The viewer's whispers, for `/w` (null in tests and when not given).
+  final WhisperStore? whispers;
 
   /// The amount of messages to free (remove) when the [_messageLimit] is reached.
   final _messagesToRemove = (_messageLimit * 0.2).toInt();
@@ -357,6 +362,31 @@ abstract class ChatStoreBase with Store {
         if (outcome?.ok ?? false) done();
       case UnsupportedCommand(:final message):
         say(message);
+      case WhisperCommand(:final login, :final message):
+        final whispers = this.whispers;
+        if (me == null || whispers == null) return say('Log in to whisper.');
+        try {
+          final user = await twitchApi.getUser(userLogin: login);
+          if (_shouldDisconnect) return;
+          final error = await whispers.send(
+            whispers.thread(
+              userId: user.id,
+              login: user.login,
+              displayName: user.displayName,
+            ),
+            message,
+          );
+          if (_shouldDisconnect) return;
+          if (error != null) return say(error);
+          say('Whisper sent to ${user.displayName}.');
+          done();
+        } on NotFoundException {
+          if (!_shouldDisconnect) {
+            say("Couldn't whisper: no user named $login.");
+          }
+        } on ApiException catch (e) {
+          if (!_shouldDisconnect) say("Couldn't whisper: ${e.message}");
+        }
       case ColorCommand(:final color):
         if (me == null) return say('Log in to change your color.');
         final ok = await twitchApi.updateUserChatColor(
@@ -533,6 +563,7 @@ abstract class ChatStoreBase with Store {
     required this.channelName,
     required this.channelId,
     required this.displayName,
+    this.whispers,
   }) {
     // Create a reaction that will reconnect to chat when logging in or out.
     // Closing the channel will trigger a reconnect with the new credentials.

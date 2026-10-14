@@ -30,6 +30,7 @@ import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/channel_videos.dart';
 import 'package:frosty/services/playback_focus.dart';
+import 'package:frosty/stores/whisper_store.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/pip_callbacks.dart';
@@ -37,6 +38,7 @@ import 'package:frosty/widgets/blurred_container.dart';
 import 'package:frosty/widgets/draggable_divider.dart';
 import 'package:frosty/widgets/frosty_notification.dart';
 import 'package:mobx/mobx.dart';
+import 'package:provider/provider.dart';
 import 'package:simple_pip_mode/actions/pip_actions_layout.dart';
 import 'package:simple_pip_mode/pip_widget.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -125,6 +127,7 @@ class _VideoChatState extends State<VideoChat>
           authStore: context.authStore,
           settingsStore: context.settingsStore,
           globalAssetsStore: context.globalAssetsStore,
+          whisperStore: context.read<WhisperStore>(),
           primaryChannelId: widget.userId,
           primaryChannelLogin: widget.userLogin,
           primaryDisplayName: widget.userName,

@@ -190,6 +190,18 @@ void main() {
       );
     });
 
+    test('thread() gives a conversation without opening it', () async {
+      final thread = store.thread(
+        userId: '8',
+        login: 'friend',
+        displayName: 'Friend',
+      );
+      expect(store.openUserId, isNull);
+      streams.single.add(EventSubData(_event()));
+      await pumpEventQueue();
+      expect(thread.unread, 1);
+    });
+
     test('logging out stops listening and forgets the whispers', () async {
       streams.single.add(EventSubData(_event()));
       await pumpEventQueue();

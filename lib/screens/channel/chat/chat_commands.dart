@@ -32,6 +32,14 @@ final class UnblockCommand extends ChatCommand {
   final String login;
 }
 
+/// `/w <user> <message>`: a whisper.
+final class WhisperCommand extends ChatCommand {
+  const WhisperCommand(this.login, this.message);
+
+  final String login;
+  final String message;
+}
+
 final class HelpCommand extends ChatCommand {
   const HelpCommand();
 }
@@ -135,6 +143,7 @@ const kChatCommands = <ChatCommandInfo>[
   ),
   (name: 'block', usage: '/block <user>', description: 'Block a user'),
   (name: 'unblock', usage: '/unblock <user>', description: 'Unblock a user'),
+  (name: 'w', usage: '/w <user> <message>', description: 'Whisper a user'),
   (name: 'help', usage: '/help', description: 'List the commands'),
 ];
 
@@ -433,9 +442,11 @@ ChatCommand parseChatCommand(String text) {
       final user = login[1]!.toLowerCase();
       return name == 'block' ? BlockCommand(user) : UnblockCommand(user);
     case 'w' || 'whisper':
-      return const UnsupportedCommand(
-        "Whispers aren't available in this app yet.",
-      );
+      final login = args.isEmpty ? null : _loginOf(args.first);
+      if (login == null || args.length < 2) {
+        return const UnsupportedCommand('Usage: /w <user> <message>');
+      }
+      return WhisperCommand(login, args.skip(1).join(' '));
     case final command when _moderationNames.contains(command):
       return _parseModeration(command, args);
     case final command when _otherModeratorCommands.contains(command):

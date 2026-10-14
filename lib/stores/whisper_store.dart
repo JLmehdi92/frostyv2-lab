@@ -223,7 +223,7 @@ abstract class WhisperStoreBase with Store {
           debugPrint('Whisper: unreadable event skipped');
           return;
         }
-        final thread = _thread(
+        final thread = this.thread(
           userId: incoming.fromUserId,
           login: incoming.fromLogin,
           displayName: incoming.fromName,
@@ -235,7 +235,10 @@ abstract class WhisperStoreBase with Store {
     }
   }
 
-  WhisperThread _thread({
+  /// The conversation with someone (made when there is none), without
+  /// opening it.
+  @action
+  WhisperThread thread({
     required String userId,
     required String login,
     required String displayName,
@@ -261,7 +264,7 @@ abstract class WhisperStoreBase with Store {
     required String login,
     required String displayName,
   }) {
-    final thread = _thread(
+    final thread = this.thread(
       userId: userId,
       login: login,
       displayName: displayName,

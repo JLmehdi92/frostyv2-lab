@@ -175,6 +175,26 @@ mixin _$WhisperStore on WhisperStoreBase, Store {
   }
 
   @override
+  WhisperThread thread({
+    required String userId,
+    required String login,
+    required String displayName,
+  }) {
+    final _$actionInfo = _$WhisperStoreBaseActionController.startAction(
+      name: 'WhisperStoreBase.thread',
+    );
+    try {
+      return super.thread(
+        userId: userId,
+        login: login,
+        displayName: displayName,
+      );
+    } finally {
+      _$WhisperStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   WhisperThread open({
     required String userId,
     required String login,

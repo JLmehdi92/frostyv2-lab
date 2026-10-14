@@ -47,10 +47,15 @@ void main() {
 
   test('help, whispers, moderator and unknown commands', () {
     expect(parseChatCommand('/help'), isA<HelpCommand>());
+    final whisper = parseChatCommand('/w @Friend hi  there') as WhisperCommand;
+    expect(whisper.login, 'friend');
+    expect(whisper.message, 'hi there');
+    expect(parseChatCommand('/whisper friend yo'), isA<WhisperCommand>());
     expect(
-      (parseChatCommand('/w friend hi') as UnsupportedCommand).message,
-      contains('Whispers'),
+      (parseChatCommand('/w friend') as UnsupportedCommand).message,
+      'Usage: /w <user> <message>',
     );
+    expect(parseChatCommand('/w'), isA<UnsupportedCommand>());
     expect(
       (parseChatCommand('/raid someone') as UnsupportedCommand).message,
       contains('not available'),
