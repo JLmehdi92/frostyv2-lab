@@ -122,7 +122,7 @@
 | CHT-27 | Couleurs lisibles et contraste | P1 | ✅ | `utils.dart:19-47`, `irc.dart:416` | Ajustement automatique du contraste, sans option. | OK |
 | CHT-28 | Masquer le langage offensant | P1 | ⚠️ | `settings_muted_words.dart`, `muted_words.dart` | Mots masqués manuels (mot entier ou sous-chaîne, expressions). Bugs corrigés en E7 : le lot n'est plus abandonné et la comparaison n'est plus lettre par lettre. Pas de catégories de filtres Twitch. | OK |
 | CHT-29 | Filtres de chat personnels | P1 | ❌ | — | Pas de catégories de filtres (listes locales possibles). | OK |
-| CHT-30 | Menu des réglages du chat | P0 | ⚠️ | `chat_details.dart:290-420`, `chat_settings.dart` | Menu « More » et page des réglages du chat. Pas de section modération. | OK |
+| CHT-30 | Menu des réglages du chat | P0 | ✅ | `chat_details.dart`, `chat_settings.dart`, `chat_mode_controls.dart` | Menu « More » et page des réglages du chat, avec pour les modérateurs l'entrée « Chat modes » (modes du salon, vider le chat). | OK |
 | CHT-31 | Couleur du pseudo | P1 | ✅ | `chat_details.dart:351-355,573-611`, `twitch_api.dart:419-458` | 15 couleurs nommées. Ni hex (Turbo/Prime) ni `/color`. | OK |
 | CHT-32 | Badge affiché | P1 | ❌ | — | — | GQL privé |
 | CHT-33 | Progression des badges | P2 | ❌ | — | — | GQL privé |
@@ -222,8 +222,8 @@
 | SOC-02 | Liste des chaînes suivies | P0 | ✅ | `twitch_api.dart:177-207`, `streams_list.dart:102,369-395` | Live et hors ligne (« followed since »). Tri par spectateurs seulement. | OK |
 | SOC-03 | Page Following | P0 | ⚠️ | `streams_list.dart:136-160,262-311,369-395` | Épinglés (➕), live, hors ligne. Ni recommandés ni catégories suivies. | GQL privé |
 | SOC-04 | Suivre une catégorie | P1 | ❌ | — | — | GQL privé |
-| SOC-05 | Cloche de notification par chaîne | P0 | ❌ | — | — | GQL privé |
-| SOC-06 | Notifications push | P0 | ❌ | — | Le push FCM de Twitch est impossible. Approximation possible par polling local (WorkManager + `GET /streams/followed`). | OK |
+| SOC-05 | Cloche de notification par chaîne | P0 | ⚠️ | `go_live_setting.dart` (`GoLiveBellTile`), `user_actions_modal.dart`, `go_live.dart` (`muted`) | Cloche locale dans le menu d'une chaîne : comme Twitch, toute chaîne suivie notifie sauf si sa cloche est coupée. Non synchronisée avec la cloche du compte Twitch (GQL privé). | GQL privé |
+| SOC-06 | Notifications push | P0 | ⚠️ | `go_live.dart`, `go_live_worker.dart`, `go_live_setting.dart`, `main.dart` | Notifications de passage en live par vérification locale en arrière-plan (WorkManager, environ toutes les 15 min selon Android, `GET /streams/followed`) : une notice par chaîne (5 au plus, puis un résumé), un toucher ouvre la chaîne, rien au premier passage ni après un changement de compte. Android seulement (iOS n'offre pas de tâche périodique fiable). Le push FCM de Twitch reste impossible : pas d'autres types (raids, whispers hors appli…). | OK |
 | SOC-07 | Centre de notifications | P0 | ❌ | — | — | GQL privé |
 | SOC-08 | Notifications in-app | P1 | ❌ | — | — | GQL privé |
 | SOC-09 | Whispers (messages privés) | P1 | ✅ | `twitch_eventsub_client.dart`, `whisper_store.dart`, `lib/screens/whispers/`, `home.dart`, `chat_user_modal.dart`, `chat_commands.dart` (`/w`) | Réception par EventSub `user.whisper.message` (WebSocket, migration de session, keepalive, reconnexion), envoi par Helix `POST /whispers` (`user:manage:whispers`, téléphone vérifié). Boîte de réception (non lus en pastille sur l'accueil), conversation, notice in-app, bouton Whisper dans la fiche et `/w`. En mémoire seulement (pas d'historique public, rien d'écrit sur le disque) ; rien n'arrive après une minute en arrière-plan. | OK |
@@ -430,33 +430,33 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | Lecture vidéo (PLY) | 14 | 5 | 13 | 1 | 33 |
-| Chat (CHT) | 23 | 7 | 12 | 6 | 48 |
+| Chat (CHT) | 24 | 6 | 12 | 6 | 48 |
 | Interactions communautaires (INT) | 3 | 4 | 24 | 0 | 31 |
 | Modération (MOD) | 9 | 1 | 21 | 0 | 31 |
-| Social & notifications (SOC) | 4 | 3 | 15 | 0 | 22 |
+| Social & notifications (SOC) | 4 | 5 | 13 | 0 | 22 |
 | Découverte & recherche (DSC) | 5 | 4 | 13 | 0 | 22 |
 | Profil de chaîne & contenus (VOD / clips) (PRF) | 5 | 6 | 18 | 0 | 29 |
 | Monétisation (MON) | 0 | 0 | 15 | 0 | 15 |
 | Compte & réglages (ACC) | 4 | 5 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 4 | 6 | 7 | 0 | 17 |
-| **Total** | **79** | **40** | **190** | **8** | **317** |
+| **Total** | **80** | **41** | **188** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| P0 | 39 | 13 | 4 | 4 | 60 |
+| P0 | 40 | 14 | 2 | 4 | 60 |
 | P1 | 34 | 20 | 50 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **79** | **40** | **190** | **8** | **317** |
+| **Total** | **80** | **41** | **188** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 11 | 30 | 33 | 74 |
+| OK | 10 | 30 | 33 | 73 |
 | GQL privé | 6 | 29 | 61 | 96 |
 | Compte requis | 0 | 11 | 12 | 23 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
 
-Lecture : sur 60 lignes P0, **43** sont entièrement couvertes (39 ✅ et 4 ➕), 13 sont partielles et 4 absentes. Les lignes P0 absentes sont la cloche, les notifications et le centre de notifications (SOC-05/06/07) et l'avertissement côté viewer (CHT-13). Les ➕ sont le délai de chat synchronisé, la révélation des messages supprimés, le multi-chat et le chat partagé, les emotes 7TV/BTTV/FFZ, la disposition paysage et le thème avec accent.
+Lecture : sur 60 lignes P0, **44** sont entièrement couvertes (40 ✅ et 4 ➕), 14 sont partielles et 2 absentes. Les lignes P0 absentes sont le centre de notifications (SOC-07) et l'avertissement côté viewer (CHT-13), tous deux en GQL privé. Les ➕ sont le délai de chat synchronisé, la révélation des messages supprimés, le multi-chat et le chat partagé, les emotes 7TV/BTTV/FFZ, la disposition paysage et le thème avec accent.
 
 ## 3. Lecture / latence : écarts concrets avec le lecteur officiel
 
