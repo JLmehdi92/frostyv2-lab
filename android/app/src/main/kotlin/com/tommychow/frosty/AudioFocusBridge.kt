@@ -61,8 +61,9 @@ class AudioFocusBridge(private val context: Context, messenger: BinaryMessenger)
         main.post { channel.invokeMethod("change", mapOf("state" to state)) }
     }
 
+    /** True when granted; false when refused or delayed (GAIN follows). */
     private fun request(): Boolean {
-        val granted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val focusRequest = request ?: AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
                 .setAudioAttributes(
                     AudioAttributes.Builder()
@@ -71,6 +72,8 @@ class AudioFocusBridge(private val context: Context, messenger: BinaryMessenger)
                         .build(),
                 )
                 .setWillPauseWhenDucked(false)
+                // Refused during a call: GAIN comes once it ends.
+                .setAcceptsDelayedFocusGain(true)
                 .setOnAudioFocusChangeListener(listener, main)
                 .build()
                 .also { request = it }
@@ -82,9 +85,11 @@ class AudioFocusBridge(private val context: Context, messenger: BinaryMessenger)
                 AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN,
             )
-        } == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
-        held = true
-        if (!noisyRegistered) {
+        }
+        val granted = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+        // A delayed request is still pending: it must be abandoned too.
+        held = granted || result == AudioManager.AUDIOFOCUS_REQUEST_DELAYED
+        if (held && !noisyRegistered) {
             val filter = IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 // A system broadcast still arrives; other apps cannot send it.

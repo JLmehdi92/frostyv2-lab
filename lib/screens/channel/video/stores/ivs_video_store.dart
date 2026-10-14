@@ -351,11 +351,16 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     // The sound is held while the stream plays; a pause lets it go, unless
     // a call caused it (its end gives the sound, and the stream, back).
     _disposeAudioFocusReaction = reaction(
-      (_) => _status == IvsPlaybackStatus.playing && !_paused,
+      (_) =>
+          (_status == IvsPlaybackStatus.playing ||
+              _status == IvsPlaybackStatus.reconnecting) &&
+          !_paused,
       (bool playing) {
         if (playing) {
+          // Played again while a call had paused it: the viewer's choice.
+          final chosen = _pausedForFocus;
           _pausedForFocus = false;
-          unawaited(_audioFocus.request(this, _onAudioFocus));
+          unawaited(_takeAudioFocus(viewerChose: chosen));
         } else if (!_pausedForFocus) {
           unawaited(_audioFocus.abandon(this));
         }
@@ -497,6 +502,15 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     }
   }
 
+  /// Takes the sound; refused (a call going on), an automatic start waits
+  /// for it to be given, but a play the viewer chose goes on.
+  Future<void> _takeAudioFocus({required bool viewerChose}) async {
+    final granted = await _audioFocus.request(this, _onAudioFocus);
+    if (granted || viewerChose || _disposed || _paused) return;
+    _pausedForFocus = true;
+    handlePausePlay();
+  }
+
   void _onAudioFocus(AudioFocusChange change) {
     if (_disposed) return;
     switch (change) {
@@ -508,13 +522,27 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
       case AudioFocusChange.loss:
       case AudioFocusChange.noisy:
         _pausedForFocus = false;
-        if (!_paused) handlePausePlay();
+        if (_paused) {
+          // Already paused (by a call): nothing else lets the focus go.
+          unawaited(_audioFocus.abandon(this));
+        } else {
+          handlePausePlay();
+        }
       case AudioFocusChange.gain:
         if (_pausedForFocus) {
           _pausedForFocus = false;
-          if (_paused) handlePausePlay();
+          // A VOD on top has the sound now.
+          if (_paused && !_focusSuppressed) handlePausePlay();
         }
     }
+  }
+
+  /// The viewer paused or stopped from the notification or headphones:
+  /// the end of a call must not play the stream again.
+  void _keepPausedAfterCall() {
+    if (!_pausedForFocus) return;
+    _pausedForFocus = false;
+    unawaited(_audioFocus.abandon(this));
   }
 
   void _onMediaCommand(MediaCommand command) {
@@ -524,8 +552,10 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         // A VOD on top has the sound: it would pause this again at once.
         if (_paused && !_focusSuppressed) handlePausePlay();
       case MediaCommand.pause:
+        _keepPausedAfterCall();
         if (!_paused) handlePausePlay();
       case MediaCommand.stop:
+        _keepPausedAfterCall();
         if (!_paused) handlePausePlay();
         runInAction(() => _audioNotificationStopped = true);
     }

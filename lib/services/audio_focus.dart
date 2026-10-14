@@ -40,30 +40,41 @@ class AudioFocus {
   void Function(AudioFocusChange change)? _onChange;
 
   /// Takes the focus for [owner], whose [onChange] then hears its changes.
-  Future<void> request(
+  /// False when Android refuses it for now (a call): [AudioFocusChange.gain]
+  /// follows once it is given (Android 8+).
+  Future<bool> request(
     Object owner,
     void Function(AudioFocusChange change) onChange,
   ) async {
-    if (!_supported) return;
-    final held = _owner != null;
+    if (!_supported) return true;
+    final held = _owner != null && _granted;
     _owner = owner;
     _onChange = onChange;
-    if (!held) await _invoke('request');
+    if (held) return true;
+    // A platform failure is not a refusal: play on without the focus.
+    _granted = await _invoke('request') ?? true;
+    return _granted;
   }
+
+  /// Whether Android gave the focus (false while it is refused or lost).
+  var _granted = false;
 
   /// Lets the focus go if [owner] holds it.
   Future<void> abandon(Object owner) async {
     if (!_supported || !identical(owner, _owner)) return;
     _owner = null;
     _onChange = null;
+    _granted = false;
     await _invoke('abandon');
   }
 
-  Future<void> _invoke(String method) async {
+  /// The platform's answer, or null when it failed (logged).
+  Future<bool?> _invoke(String method) async {
     try {
-      await _channel.invokeMethod<Object?>(method);
+      return await _channel.invokeMethod<bool>(method);
     } catch (e) {
       debugPrint('AudioFocus $method failed: $e');
+      return null;
     }
   }
 
@@ -75,6 +86,14 @@ class AudioFocus {
     };
     final change = AudioFocusChange.values.where((c) => c.name == state);
     if (change.isEmpty) return;
+    switch (change.first) {
+      case AudioFocusChange.gain:
+        _granted = true;
+      case AudioFocusChange.loss:
+        _granted = false;
+      case AudioFocusChange.lossTransient || AudioFocusChange.noisy:
+        break;
+    }
     _onChange?.call(change.first);
   }
 }

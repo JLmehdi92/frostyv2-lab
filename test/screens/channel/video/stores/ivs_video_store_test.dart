@@ -567,12 +567,14 @@ void main() {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     late List<String> focusCalls;
     late AudioFocus focus;
+    var granted = true;
 
     setUp(() {
       focusCalls = [];
+      granted = true;
       messenger.setMockMethodCallHandler(focusChannel, (call) async {
         focusCalls.add(call.method);
-        return true;
+        return call.method == 'request' ? granted : null;
       });
       focus = AudioFocus(channel: focusChannel, supported: true);
     });
@@ -631,6 +633,93 @@ void main() {
       await settle();
       await change('loss');
       expect(native.callsNamed('pause'), hasLength(2));
+    });
+
+    test('a lasting loss during a call lets the focus go', () async {
+      store = await createStore(audioFocus: focus);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+      await change('lossTransient');
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      await settle();
+
+      await change('loss');
+      await settle();
+      expect(focusCalls.last, 'abandon');
+
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+      expect(focusCalls.last, 'request', reason: 'asked for again');
+    });
+
+    test('a pause asked for during a call is kept after it', () async {
+      final audioChannel = const MethodChannel('frosty/bg-focus-test');
+      messenger.setMockMethodCallHandler(audioChannel, (_) async => null);
+      final audio = BackgroundAudio(channel: audioChannel, supported: true);
+      settingsStore.backgroundAudio = true;
+      store = await createStore(audioFocus: focus, backgroundAudio: audio);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+      await change('lossTransient');
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      await settle();
+
+      await messenger.handlePlatformMessage(
+        audioChannel.name,
+        audioChannel.codec.encodeMethodCall(
+          const MethodCall('command', {'action': 'stop'}),
+        ),
+        (_) {},
+      );
+      await settle();
+      await change('gain');
+
+      expect(native.callsNamed('play'), isEmpty);
+      expect(focusCalls.last, 'abandon');
+      messenger.setMockMethodCallHandler(audioChannel, null);
+    });
+
+    test('a refused focus pauses an automatic start until given', () async {
+      granted = false;
+      store = await createStore(audioFocus: focus);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+      expect(native.callsNamed('pause'), hasLength(1));
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      await settle();
+
+      await change('gain');
+      expect(native.callsNamed('play'), hasLength(1));
+    });
+
+    test('playing again during a call is the viewer\'s choice', () async {
+      store = await createStore(audioFocus: focus);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+      await change('lossTransient');
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      await settle();
+
+      granted = false;
+      store.handlePausePlay();
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+
+      expect(native.callsNamed('pause'), hasLength(1));
+    });
+
+    test('the end of a call does not play under a VOD', () async {
+      store = await createStore(audioFocus: focus);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+      await change('lossTransient');
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      await settle();
+
+      store.setFocusSuppressed(true);
+      await change('gain');
+
+      expect(native.callsNamed('play'), isEmpty);
     });
 
     test('closing the player lets the focus go', () async {
