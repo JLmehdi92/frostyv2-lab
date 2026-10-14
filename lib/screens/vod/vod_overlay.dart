@@ -170,11 +170,29 @@ class _VodOverlayState extends State<VodOverlay> {
         return Stack(
           fit: StackFit.expand,
           children: [
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _c.handleVideoTap,
-              onDoubleTapDown: (d) => _doubleTapAt = d.localPosition,
-              onDoubleTap: () => _onDoubleTap(constraints.maxWidth),
+            Observer(
+              builder: (context) => VideoSurfaceSemantics(
+                controlsVisible: _c.overlayVisible,
+                actions: {
+                  if (widget.skipButtons) ...{
+                    'Back 10 seconds': () {
+                      _c.seekBy(-_skip);
+                      _showSkipBadge(forward: false);
+                    },
+                    'Forward 10 seconds': () {
+                      _c.seekBy(_skip);
+                      _showSkipBadge(forward: true);
+                    },
+                  },
+                  'Change chat layout': ?widget.onCycleChatMode,
+                },
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _c.handleVideoTap,
+                  onDoubleTapDown: (d) => _doubleTapAt = d.localPosition,
+                  onDoubleTap: () => _onDoubleTap(constraints.maxWidth),
+                ),
+              ),
             ),
             if (badgeForward != null)
               Align(

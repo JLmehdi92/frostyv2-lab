@@ -662,7 +662,7 @@ class _VideoChatState extends State<VideoChat>
           : Video(key: _videoKey, videoStore: store as VideoStore),
     );
 
-    final overlayGestures = GestureDetector(
+    final gestures = GestureDetector(
       onLongPress: _videoStore.handleToggleOverlay,
       onDoubleTap: context.isLandscape ? _cycleLandscapeChatMode : null,
       onTap: () {
@@ -703,6 +703,17 @@ class _VideoChatState extends State<VideoChat>
             ),
           );
         },
+      ),
+    );
+
+    final overlayGestures = Observer(
+      builder: (context) => VideoSurfaceSemantics(
+        controlsVisible: _videoStore.overlayVisible,
+        actions: {
+          if (context.isLandscape)
+            'Change chat layout': _cycleLandscapeChatMode,
+        },
+        child: gestures,
       ),
     );
 

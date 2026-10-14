@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
@@ -154,4 +155,38 @@ class VolumeRow extends StatelessWidget {
       ],
     ),
   );
+}
+
+/// Names the tap surface over a player for screen readers: what a tap
+/// does, and the double-tap gestures (named by [actions]) as actions they
+/// can pick, since a double tap is how a screen reader activates.
+class VideoSurfaceSemantics extends StatelessWidget {
+  const VideoSurfaceSemantics({
+    super.key,
+    required this.controlsVisible,
+    this.actions = const {},
+    required this.child,
+  });
+
+  /// Whether a tap would hide the controls rather than show them.
+  final bool controlsVisible;
+
+  final Map<String, VoidCallback> actions;
+
+  /// The gesture surface; its tap is the one described.
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      container: true,
+      label: 'Video player',
+      onTapHint: controlsVisible ? 'hide controls' : 'show controls',
+      customSemanticsActions: {
+        for (final MapEntry(key: label, value: run) in actions.entries)
+          CustomSemanticsAction(label: label): run,
+      },
+      child: child,
+    );
+  }
 }
