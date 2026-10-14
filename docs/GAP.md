@@ -60,7 +60,7 @@
 | PLY-03 | Mode faible latence | P0 | ⚠️ | `IvsTuning.kt`, `ivs_player_config.dart`, `video_settings.dart` (`fe2e1c1`) | Rattrapage par accélération comme l'officiel (défaut), tampon initial 100 ms, réglages « Live catch-up » et « Buffer profile » (Ultra expérimental). Reste : pas de mode « latence normale ». Latence à mesurer sur appareil. | OK |
 | PLY-04 | Statistiques vidéo et latence | P0 | ✅ | `ivs_stats_panel.dart`, `latency_stats.dart`, `IvsPlayerCore.kt` (`bbe7ca3`) | Latence au dixième, visible par défaut ; panneau stats (médiane/p90/max, buffer, débit, images, qualité/codec, mode, démarrage, rebuffers). À valider sur appareil. | OK |
 | PLY-05 | Choix de qualité | P0 | ✅ | `quality_selection.dart`, `ivs_video_store.dart`, `IvsPlayerCore.kt` (`d0c9be5`) | Qualité de la session, sinon sauvegardée, sinon la plus haute (meilleur rendu en premier, 2K en tête), réappliquée après chaque rechargement. À valider sur appareil. | OK |
-| PLY-06 | Son et volume | P0 | ⚠️ | `ivs_video_store.dart`, `video_overlay.dart`, `IvsPlayerCore.kt` (`d0c9be5`) | Mute (paysage + feuille) et volume, conservés en mini-player/PiP/rechargement. Un seul lecteur audible entre le live et les VOD (`playback_focus.dart`, `55ffb66`). Reste : pas de focus audio Android (appels, autres apps). | OK |
+| PLY-06 | Son et volume | P0 | ✅ | `ivs_video_store.dart` (`_onAudioFocus`), `audio_focus.dart`, `AudioFocusBridge.kt`, `video_overlay.dart`, `IvsPlayerCore.kt` (`d0c9be5`) | Mute (paysage + feuille) et volume, conservés en mini-player/PiP/rechargement. Un seul lecteur audible entre le live et les VOD (`playback_focus.dart`, `55ffb66`). Focus audio Android pour le live : un appel ou une autre appli met en pause (reprise à la fin d'un appel), un casque débranché aussi ; le système baisse le son pour une notification. VOD sans focus audio. À valider sur appareil. | OK |
 | PLY-07 | Plein écran, ajuster, rogner, zoom | P0 | ✅ | `video_overlay.dart`, `ivs_video.dart`, `pinch_to_fill.dart`, `channel.dart` | Plein écran immersif, ajuster/remplir par bouton ou en pinçant la vidéo (écarter remplit, pincer ajuste ; événements bruts, sans gêner tap, double tap ni glisser vers le PiP). IVS en paysage seulement. | OK |
 | PLY-08 | Overlay de métadonnées | P0 | ✅ | `stream_info_bar.dart:13-220`, `video_overlay.dart:424-472` | Titre, catégorie, uptime, spectateurs. Tags absents. | OK |
 | PLY-09 | État du live en temps réel | P0 | ✅ | `live_state_watcher.dart`, `ivs_video_store.dart` (`_onLiveChange`, `_justWentLive`), `channel.dart` | Connecté : EventSub `stream.online` (aucun scope). Le lecteur hors ligne redémarre tout seul quand la chaîne repasse en live (3 s pour que la playlist existe) ; pendant 90 s après l'événement, une réponse « hors ligne » (Helix en retard, playlist pas prête) est réessayée toutes les 3 s hors du budget de reprise, même si l'événement arrive pendant une reprise. Après une coupure, il vérifie s'il a manqué un retour. Hors ligne, connecté ou non, le lecteur revérifie aussi la chaîne chaque minute. `stream.offline` n'est pas suivi (le lecteur le voit d'abord, et chaque sujet coûte sur un budget de 10). Anonyme : sondage Helix comme avant. | OK |
@@ -429,7 +429,7 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 
 | Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| Lecture vidéo (PLY) | 16 | 7 | 9 | 1 | 33 |
+| Lecture vidéo (PLY) | 17 | 6 | 9 | 1 | 33 |
 | Chat (CHT) | 26 | 4 | 12 | 6 | 48 |
 | Interactions communautaires (INT) | 4 | 4 | 23 | 0 | 31 |
 | Modération (MOD) | 9 | 1 | 21 | 0 | 31 |
@@ -440,18 +440,18 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Compte & réglages (ACC) | 5 | 5 | 21 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 4 | 7 | 6 | 0 | 17 |
-| **Total** | **88** | **42** | **179** | **8** | **317** |
+| **Total** | **89** | **41** | **179** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| P0 | 40 | 14 | 2 | 4 | 60 |
+| P0 | 41 | 13 | 2 | 4 | 60 |
 | P1 | 42 | 21 | 41 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **88** | **42** | **179** | **8** | **317** |
+| **Total** | **89** | **41** | **179** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 10 | 22 | 33 | 65 |
+| OK | 9 | 22 | 33 | 64 |
 | GQL privé | 6 | 29 | 61 | 96 |
 | Compte requis | 0 | 11 | 12 | 23 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
