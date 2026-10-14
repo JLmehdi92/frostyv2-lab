@@ -80,8 +80,8 @@
 | PLY-23 | Sous-titres (CC) | P1 | ⚠️ | `IvsPlayerCore.kt` (`setCaptions`, `onCue`), `captions.dart`, `ivs_video.dart`, `video_overlay.dart` | Interrupteur « Captions » dans la feuille du lecteur (IVS) : première piste texte sélectionnée, `TextCue` affichées sur la vidéo. Ni choix de piste, ni style, ni VOD ; à valider sur un stream sous-titré. | OK |
 | PLY-24 | Chromecast | P1 | ❌ | — | Pas de Cast SDK. Le récepteur Twitch est propriétaire, mais le Default Media Receiver peut lire l'URL usher. | OK |
 | PLY-25 | Écran de garde classification (CCL) | P1 | ✅ | `content_warning_gate.dart`, `content_labels.dart`, `models/channel.dart`, `video_settings.dart` | Avertissement « Content intended for certain audiences » sur la vidéo tant qu'on n'a pas touché « Start watching », quand la chaîne porte des labels (Helix `content_classification_labels`). Accepté une fois par session et par chaîne ; réglage « Warn about mature content » (actif). Échec de requête = pas de blocage. | OK |
-| PLY-26 | Live réservé aux abonnés + aperçu gratuit | P1 | ❌ | — | Refus du jeton → WebView, sans explication. La réponse GQL déjà utilisée contient la raison du refus. | OK |
-| PLY-27 | Erreurs de lecture usher | P1 | ❌ | — | 403 usher (géo, VPN) non distingués → WebView. | OK |
+| PLY-26 | Live réservé aux abonnés + aperçu gratuit | P1 | ⚠️ | `twitch_stream_service.dart` (`refusalFor`), `playback_access_token.dart` (`PlaybackRefusal`), `ivs_video_store.dart` (`_failExplained`), `channel.dart` | Le jeton demande `authorization.forbiddenReasonCode` : un 403 sur un live réservé aux abonnés (ou géobloqué, ou chaîne qui a banni le viewer) passe tout de suite au lecteur web (plus de 3 rechargements inutiles) avec « X is streaming for subscribers only. Trying the web player. ». Pas de bannière ni de minuteur d'aperçu gratuit natifs ; l'abonné passe par le lecteur web (jeton natif anonyme). À valider sur appareil. | OK |
+| PLY-27 | Erreurs de lecture usher | P1 | ⚠️ | `twitch_stream_service.dart` (`usherRefusal`), `ivs_video_store.dart` | Après des jetons refusés sans raison connue, la playlist usher est relue une fois (4 s max) et son message d'erreur (région, proxy, VPN…) est affiché en basculant vers le lecteur web. Messages de Twitch tels quels, en anglais ; pas de cas « Wi-Fi exigé » ou DRM (contenus premium seulement). | OK |
 | PLY-28 | Contenu premium DRM | P2 | ❌ | — | Licences Widevine/PlayReady délivrées par KeyOS pour Twitch. | Impossible proprement |
 | PLY-29 | Proposition de version en langue locale | P2 | ❌ | — | Confiance faible dans le catalogue. | GQL privé |
 | PLY-30 | Signaler un problème de lecture | P2 | ❌ | — | — | GQL privé |
@@ -429,7 +429,7 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 
 | Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| Lecture vidéo (PLY) | 14 | 5 | 13 | 1 | 33 |
+| Lecture vidéo (PLY) | 14 | 7 | 11 | 1 | 33 |
 | Chat (CHT) | 25 | 5 | 12 | 6 | 48 |
 | Interactions communautaires (INT) | 4 | 4 | 23 | 0 | 31 |
 | Modération (MOD) | 9 | 1 | 21 | 0 | 31 |
@@ -440,14 +440,14 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Compte & réglages (ACC) | 5 | 4 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 4 | 6 | 7 | 0 | 17 |
-| **Total** | **84** | **39** | **186** | **8** | **317** |
+| **Total** | **84** | **41** | **184** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 40 | 14 | 2 | 4 | 60 |
-| P1 | 38 | 18 | 48 | 4 | 108 |
+| P1 | 38 | 20 | 46 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **84** | **39** | **186** | **8** | **317** |
+| **Total** | **84** | **41** | **184** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
