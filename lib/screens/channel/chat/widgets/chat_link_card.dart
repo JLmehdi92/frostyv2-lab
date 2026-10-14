@@ -1,4 +1,9 @@
+import 'dart:async';
+
+import 'package:clock/clock.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
+import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_clip_service.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/constants.dart';
@@ -54,37 +59,124 @@ String? _twitchImage(String? url) {
 String _views(int count) =>
     '${NumberFormat.compact().format(count)} ${count == 1 ? 'view' : 'views'}';
 
-/// Previews shared by every chat, newest kept: the same clip posted many
-/// times is asked for once.
+/// Previews shared by every chat.
+///
+/// A busy chat can post many links: the same link is asked for once at a
+/// time, at most [_maxRunning] requests run together (the oldest waiting
+/// one is dropped when too many wait), finished answers are kept for the
+/// newest [_size] links, and an empty or failed answer is kept for
+/// [_retryAfter] before it is asked for again.
 abstract final class ChatLinkPreviews {
   static const _size = 64;
-  static final _cache = <TwitchLink, Future<ChatLinkPreview?>>{};
+  static const _maxRunning = 3;
+  static const _maxWaiting = 8;
+  static const _retryAfter = Duration(seconds: 60);
+
+  static final _known = <TwitchLink, _Known>{};
+  static final _pending = <TwitchLink, Future<ChatLinkPreview?>>{};
+  static final _waiting = <_Job>[];
+  static var _running = 0;
+
+  /// One entry per video, whatever its start time.
+  static TwitchLink _key(TwitchLink link) =>
+      link is VodLink ? VodLink(link.vodId) : link;
+
+  /// The answer for [link] when there is a current one, without waiting:
+  /// a card shown again (the chat moves every flush) draws at once.
+  static ({ChatLinkPreview? preview})? peek(TwitchLink link) {
+    final key = _key(link);
+    final known = _known[key];
+    if (known == null) return null;
+    if (known.expiresAt != null && !clock.now().isBefore(known.expiresAt!)) {
+      _known.remove(key);
+      return null;
+    }
+    // Most recently used last.
+    _known
+      ..remove(key)
+      ..[key] = known;
+    return (preview: known.preview);
+  }
 
   /// The preview of [link], or null when it cannot be read (gone, refused,
-  /// offline). Never throws.
+  /// offline, or dropped from a full queue). Never throws.
   static Future<ChatLinkPreview?> load(
     TwitchLink link, {
     required TwitchClipService clips,
     required TwitchVodService vods,
   }) {
-    final cached = _cache.remove(link);
-    if (cached != null) return _cache[link] = cached;
-    late final Future<ChatLinkPreview?> future;
-    future = _fetch(link, clips, vods).catchError((Object e) {
-      debugPrint('Chat link preview failed: $e');
-      // Not kept: a later message may try again.
-      if (identical(_cache[link], future)) _cache.remove(link);
-      return null;
-    });
-    _cache[link] = future;
-    while (_cache.length > _size) {
-      _cache.remove(_cache.keys.first);
+    final known = peek(link);
+    if (known != null) return Future.value(known.preview);
+    final key = _key(link);
+    final pending = _pending[key];
+    if (pending != null) return pending;
+
+    final job = _Job(key, clips, vods);
+    final future = job.done.future;
+    _pending[key] = future;
+    _waiting.add(job);
+    if (_waiting.length > _maxWaiting) {
+      // Probably scrolled away already; asked for again if shown again.
+      final dropped = _waiting.removeAt(0);
+      _pending.remove(dropped.key);
+      dropped.done.complete(null);
     }
+    _next();
     return future;
   }
 
   @visibleForTesting
-  static void clear() => _cache.clear();
+  static void clear() {
+    _known.clear();
+    _pending.clear();
+    _waiting.clear();
+    _running = 0;
+  }
+
+  static void _next() {
+    while (_running < _maxRunning && _waiting.isNotEmpty) {
+      final job = _waiting.removeAt(0);
+      _running++;
+      _run(job).whenComplete(() {
+        _running--;
+        _next();
+      });
+    }
+  }
+
+  static Future<void> _run(_Job job) async {
+    ChatLinkPreview? preview;
+    var failed = false;
+    try {
+      preview = await _fetch(job.key, job.clips, job.vods);
+    } catch (e, stack) {
+      failed = true;
+      debugPrint('Chat link preview failed: $e');
+      // An API refusal is expected now and then; anything else is a bug.
+      if (e is! ApiException) {
+        try {
+          FirebaseCrashlytics.instance.recordError(
+            e,
+            stack,
+            reason: 'chat link preview',
+          );
+        } catch (_) {
+          // Firebase may not be initialized (e.g., in tests).
+        }
+      }
+    }
+    // A gone, failed or thumbnail-less answer may change soon (a new clip).
+    final short = failed || preview == null || preview.thumbnailUrl == null;
+    _known[job.key] = _Known(
+      preview,
+      short ? clock.now().add(_retryAfter) : null,
+    );
+    while (_known.length > _size) {
+      _known.remove(_known.keys.first);
+    }
+    _pending.remove(job.key);
+    job.done.complete(preview);
+  }
 
   static Future<ChatLinkPreview?> _fetch(
     TwitchLink link,
@@ -120,6 +212,24 @@ abstract final class ChatLinkPreviews {
   }
 }
 
+class _Known {
+  const _Known(this.preview, this.expiresAt);
+
+  final ChatLinkPreview? preview;
+
+  /// Null keeps it until newer links push it out.
+  final DateTime? expiresAt;
+}
+
+class _Job {
+  _Job(this.key, this.clips, this.vods);
+
+  final TwitchLink key;
+  final TwitchClipService clips;
+  final TwitchVodService vods;
+  final done = Completer<ChatLinkPreview?>();
+}
+
 /// A clip or video posted in chat: thumbnail, title, channel, length and
 /// views. Its height is fixed so the chat does not jump when it loads.
 class ChatLinkCard extends StatefulWidget {
@@ -135,7 +245,9 @@ class ChatLinkCard extends StatefulWidget {
 }
 
 class _ChatLinkCardState extends State<ChatLinkCard> {
-  late Future<ChatLinkPreview?> _preview;
+  /// Set when the answer is already known: drawn without a loading frame.
+  ({ChatLinkPreview? preview})? _known;
+  Future<ChatLinkPreview?>? _preview;
 
   @override
   void initState() {
@@ -149,27 +261,48 @@ class _ChatLinkCardState extends State<ChatLinkCard> {
     if (oldWidget.link != widget.link) _load();
   }
 
-  void _load() => _preview = ChatLinkPreviews.load(
-    widget.link,
-    clips: context.read<TwitchClipService>(),
-    vods: context.read<TwitchVodService>(),
-  );
+  void _load() {
+    _known = ChatLinkPreviews.peek(widget.link);
+    _preview = _known != null
+        ? null
+        : ChatLinkPreviews.load(
+            widget.link,
+            clips: context.read<TwitchClipService>(),
+            vods: context.read<TwitchVodService>(),
+          );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final known = _known;
+    if (known != null) return _card(context, known.preview);
+    return FutureBuilder<ChatLinkPreview?>(
+      future: _preview,
+      builder: (context, snapshot) => _card(
+        context,
+        snapshot.data,
+        loading: snapshot.connectionState != ConnectionState.done,
+      ),
+    );
+  }
+
+  /// Nothing to show collapses the row (one jump, once).
+  Widget _card(
+    BuildContext context,
+    ChatLinkPreview? preview, {
+    bool loading = false,
+  }) {
+    if (!loading && preview == null) return const SizedBox.shrink();
     final theme = Theme.of(context);
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 400),
       child: SizedBox(
         height: ChatLinkCard.height,
-        child: FutureBuilder<ChatLinkPreview?>(
-          future: _preview,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState != ConnectionState.done) {
+        child: Builder(
+          builder: (context) {
+            if (preview == null) {
               return const SkeletonLoader(borderRadius: kCardBorderRadius);
             }
-            final preview = snapshot.data;
-            if (preview == null) return const SizedBox.shrink();
             return Material(
               color: theme.colorScheme.surfaceContainer,
               borderRadius: kCardBorderRadius,
