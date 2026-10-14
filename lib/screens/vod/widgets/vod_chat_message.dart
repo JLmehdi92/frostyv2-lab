@@ -128,6 +128,7 @@ class VodChatMessage extends StatelessWidget {
             assetsStore: assetsStore,
             emoteScale: settings.emoteScale,
             badgeScale: settings.badgeScale,
+            animateEmotes: settings.animateEmotes,
             launchExternal: settings.launchUrlExternal,
           ),
         ],

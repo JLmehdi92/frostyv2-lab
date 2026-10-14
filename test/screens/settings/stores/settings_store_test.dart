@@ -215,6 +215,14 @@ void main() {
         ..resetChatSettings();
       expect(store.showModerationNotices, isTrue);
     });
+
+    test('emotes animate unless turned off', () {
+      expect(SettingsStore.fromJson({}).animateEmotes, isTrue);
+      final store = SettingsStore.fromJson({'animateEmotes': false});
+      expect(store.animateEmotes, isFalse);
+      store.resetChatSettings();
+      expect(store.animateEmotes, isTrue);
+    });
   });
 
   group('streamLanguage', () {

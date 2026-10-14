@@ -159,6 +159,7 @@ class ChatBottomBar extends StatelessWidget {
                                     assetsStore: chatStore.assetsStore,
                                     emoteScale: chatStore.settings.emoteScale,
                                     badgeScale: chatStore.settings.badgeScale,
+                                    animateEmotes: chatStore.settings.animateEmotes,
                                     launchExternal:
                                         chatStore.settings.launchUrlExternal,
                                     timestamp: chatStore.settings.timestampType,

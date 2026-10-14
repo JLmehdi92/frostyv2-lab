@@ -445,6 +445,7 @@ class IRCMessage {
     void Function(String)? onTapPingedUser,
     void Function()? onTapDeletedMessage, {
     Color? linkColor,
+    bool animateEmotes = true,
   }) {
     if (!showMessage) {
       span.add(
@@ -496,12 +497,14 @@ class IRCMessage {
               textStyle,
               launchExternal,
               linkColor: linkColor,
+              animateEmotes: animateEmotes,
             );
           } else {
             localSpan.add(
               _createEmoteSpan(
                 context,
                 emote: emote,
+                animate: animateEmotes,
                 height: emote.height != null
                     ? emote.height! * emoteScale
                     : emoteSize,
@@ -556,6 +559,7 @@ class IRCMessage {
     TextStyle? textStyle,
     bool launchExternal, {
     Color? linkColor,
+    bool animateEmotes = true,
   }) {
     final emoteStack = <Emote>[];
     var index = startIndex;
@@ -583,7 +587,7 @@ class IRCMessage {
         ),
       ...emoteStack.reversed.map(
         (emote) => FrostyCachedNetworkImage(
-          imageUrl: emote.url,
+          imageUrl: emote.urlFor(animate: animateEmotes),
           height: emote.height != null ? emote.height! * emoteScale : emoteSize,
           width: emote.width != null ? emote.width! * emoteScale : emoteSize,
           useFade: false,
@@ -663,6 +667,7 @@ class IRCMessage {
     Map<String, UserTwitch>? channelIdToUserTwitch,
     TimestampType timestamp = TimestampType.disabled,
     String? currentChannelId,
+    bool animateEmotes = true,
   }) {
     final emoteToObject = assetsStore.emoteToObject;
     final badgeSize = defaultBadgeSize * badgeScale;
@@ -710,6 +715,7 @@ class IRCMessage {
       onTapPingedUser,
       onTapDeletedMessage,
       linkColor: linkColor,
+      animateEmotes: animateEmotes,
     );
 
     return span;
@@ -794,6 +800,7 @@ class IRCMessage {
     required double height,
     required double? width,
     required bool launchExternal,
+    bool animate = true,
   }) {
     return WidgetSpan(
       alignment: PlaceholderAlignment.middle,
@@ -804,7 +811,7 @@ class IRCMessage {
           launchExternal: launchExternal,
         ),
         child: FrostyCachedNetworkImage(
-          imageUrl: emote.url,
+          imageUrl: emote.urlFor(animate: animate),
           height: height,
           width: width,
           useFade: false,

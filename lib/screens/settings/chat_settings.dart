@@ -149,6 +149,14 @@ class _ChatSettingsState extends State<ChatSettings> {
                 settingsStore.showDeletedMessages = newValue,
           ),
           SettingsListSwitch(
+            title: 'Animate emotes',
+            subtitle: const Text(
+              'Off shows the first frame of animated emotes in chat.',
+            ),
+            value: settingsStore.animateEmotes,
+            onChanged: (newValue) => settingsStore.animateEmotes = newValue,
+          ),
+          SettingsListSwitch(
             title: 'Show timeouts and bans',
             subtitle: const Text(
               'Adds a line when a moderator times out or bans someone.',

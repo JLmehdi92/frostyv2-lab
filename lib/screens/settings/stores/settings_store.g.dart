@@ -55,6 +55,7 @@ SettingsStore _$SettingsStoreFromJson(
   ..messageSpacing = (json['messageSpacing'] as num?)?.toDouble() ?? 8.0
   ..fontSize = (json['fontSize'] as num?)?.toDouble() ?? 12.0
   ..showDeletedMessages = json['showDeletedMessages'] as bool? ?? false
+  ..animateEmotes = json['animateEmotes'] as bool? ?? true
   ..showModerationNotices = json['showModerationNotices'] as bool? ?? true
   ..showChatMessageDividers = json['showChatMessageDividers'] as bool? ?? false
   ..timestampType =
@@ -140,6 +141,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'messageSpacing': instance.messageSpacing,
   'fontSize': instance.fontSize,
   'showDeletedMessages': instance.showDeletedMessages,
+  'animateEmotes': instance.animateEmotes,
   'showModerationNotices': instance.showModerationNotices,
   'showChatMessageDividers': instance.showChatMessageDividers,
   'timestampType': _$TimestampTypeEnumMap[instance.timestampType]!,
@@ -622,6 +624,24 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   set showDeletedMessages(bool value) {
     _$showDeletedMessagesAtom.reportWrite(value, super.showDeletedMessages, () {
       super.showDeletedMessages = value;
+    });
+  }
+
+  late final _$animateEmotesAtom = Atom(
+    name: '_SettingsStoreBase.animateEmotes',
+    context: context,
+  );
+
+  @override
+  bool get animateEmotes {
+    _$animateEmotesAtom.reportRead();
+    return super.animateEmotes;
+  }
+
+  @override
+  set animateEmotes(bool value) {
+    _$animateEmotesAtom.reportWrite(value, super.animateEmotes, () {
+      super.animateEmotes = value;
     });
   }
 
@@ -1361,6 +1381,7 @@ messageScale: ${messageScale},
 messageSpacing: ${messageSpacing},
 fontSize: ${fontSize},
 showDeletedMessages: ${showDeletedMessages},
+animateEmotes: ${animateEmotes},
 showModerationNotices: ${showModerationNotices},
 showChatMessageDividers: ${showChatMessageDividers},
 timestampType: ${timestampType},

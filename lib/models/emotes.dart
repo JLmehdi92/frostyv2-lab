@@ -24,7 +24,11 @@ class EmoteBTTV {
   final String id;
   final String code;
 
-  const EmoteBTTV(this.id, this.code);
+  /// A GIF (BTTV then also serves a still frame).
+  @JsonKey(defaultValue: false)
+  final bool animated;
+
+  const EmoteBTTV(this.id, this.code, {this.animated = false});
 
   factory EmoteBTTV.fromJson(Map<String, dynamic> json) =>
       _$EmoteBTTVFromJson(json);
@@ -157,7 +161,16 @@ class Emote7TVFile {
   final int height;
   final String format;
 
-  Emote7TVFile(this.name, this.width, this.height, this.format);
+  /// The still version of this file ("1x_static.webp").
+  final String? staticName;
+
+  Emote7TVFile(
+    this.name,
+    this.width,
+    this.height,
+    this.format, {
+    this.staticName,
+  });
 
   factory Emote7TVFile.fromJson(Map<String, dynamic> json) =>
       _$Emote7TVFileFromJson(json);
@@ -172,6 +185,10 @@ class Emote {
   final int? height;
   final bool zeroWidth;
   final String url;
+
+  /// The emote's first frame, for chat without animations; null when [url]
+  /// never moves or no still version is known.
+  final String? staticUrl;
   final EmoteType type;
   final String? ownerDisplayName;
   final String? ownerUsername;
@@ -184,6 +201,7 @@ class Emote {
     this.height,
     required this.zeroWidth,
     required this.url,
+    this.staticUrl,
     required this.type,
     this.ownerDisplayName,
     this.ownerUsername,
@@ -195,6 +213,8 @@ class Emote {
     zeroWidth: false,
     url:
         'https://static-cdn.jtvnw.net/emoticons/v2/${emote.id}/default/dark/3.0',
+    staticUrl:
+        'https://static-cdn.jtvnw.net/emoticons/v2/${emote.id}/static/dark/3.0',
     type: type,
     ownerId: emote.ownerId,
   );
@@ -203,6 +223,9 @@ class Emote {
     name: emote.code,
     zeroWidth: zeroWidthEmotes.contains(emote.code),
     url: 'https://cdn.betterttv.net/emote/${emote.id}/3x',
+    staticUrl: emote.animated
+        ? 'https://cdn.betterttv.net/emote/${emote.id}/static/3x.webp'
+        : null,
     type: type,
   );
 
@@ -218,6 +241,9 @@ class Emote {
         emote.urls.url4x ??
         emote.urls.url2x ??
         emote.urls.url1x,
+    staticUrl: emote.animated == null
+        ? null
+        : emote.urls.url4x ?? emote.urls.url2x ?? emote.urls.url1x,
     type: type,
     ownerDisplayName: emote.owner.displayName,
     ownerUsername: emote.owner.name,
@@ -243,11 +269,17 @@ class Emote {
       height: emoteData.host.files.firstOrNull?.height,
       zeroWidth: isZeroWidth,
       url: file != null ? 'https:$url/${file.name}' : '',
+      staticUrl: file?.staticName != null
+          ? 'https:$url/${file!.staticName}'
+          : null,
       type: type,
       ownerDisplayName: emoteData.owner?.displayName,
       ownerUsername: emoteData.owner?.username,
     );
   }
+
+  /// The image to show: [staticUrl] when animations are off.
+  String urlFor({required bool animate}) => animate ? url : staticUrl ?? url;
 
   factory Emote.fromJson(Map<String, dynamic> json) => _$EmoteFromJson(json);
   Map<String, dynamic> toJson() => _$EmoteToJson(this);

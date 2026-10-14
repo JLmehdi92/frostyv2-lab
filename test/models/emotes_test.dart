@@ -4,12 +4,7 @@ import 'package:frosty/models/emotes.dart';
 void main() {
   group('Emote.fromTwitch', () {
     test('creates emote with correct URL', () {
-      final twitchEmote = EmoteTwitch(
-        '25',
-        'Kappa',
-        'bitstier',
-        null,
-      );
+      final twitchEmote = EmoteTwitch('25', 'Kappa', 'bitstier', null);
 
       final emote = Emote.fromTwitch(twitchEmote, EmoteType.twitchGlobal);
 
@@ -36,12 +31,7 @@ void main() {
     });
 
     test('handles null owner ID', () {
-      final twitchEmote = EmoteTwitch(
-        '25',
-        'Kappa',
-        'bitstier',
-        null,
-      );
+      final twitchEmote = EmoteTwitch('25', 'Kappa', 'bitstier', null);
 
       final emote = Emote.fromTwitch(twitchEmote, EmoteType.twitchGlobal);
 
@@ -71,7 +61,10 @@ void main() {
       'cvHazmat',
     ]) {
       test('marks $name as zero-width', () {
-        final emote = Emote.fromBTTV(EmoteBTTV('id', name), EmoteType.bttvGlobal);
+        final emote = Emote.fromBTTV(
+          EmoteBTTV('id', name),
+          EmoteType.bttvGlobal,
+        );
         expect(emote.zeroWidth, isTrue);
       });
     }
@@ -230,19 +223,16 @@ void main() {
           'TestEmote',
           0, // No flags
           const Owner7TV(username: 'owner', displayName: 'Owner'),
-          Emote7TVHost(
-            '//cdn.7tv.app/emote/7tvid123',
-            [
-              Emote7TVFile('1x.webp', 32, 32, 'WEBP'),
-              Emote7TVFile('2x.webp', 64, 64, 'WEBP'),
-              Emote7TVFile('3x.webp', 96, 96, 'WEBP'),
-              Emote7TVFile('4x.webp', 128, 128, 'WEBP'),
-              Emote7TVFile('1x.avif', 32, 32, 'AVIF'),
-              Emote7TVFile('2x.avif', 64, 64, 'AVIF'),
-              Emote7TVFile('3x.avif', 96, 96, 'AVIF'),
-              Emote7TVFile('4x.avif', 128, 128, 'AVIF'),
-            ],
-          ),
+          Emote7TVHost('//cdn.7tv.app/emote/7tvid123', [
+            Emote7TVFile('1x.webp', 32, 32, 'WEBP'),
+            Emote7TVFile('2x.webp', 64, 64, 'WEBP'),
+            Emote7TVFile('3x.webp', 96, 96, 'WEBP'),
+            Emote7TVFile('4x.webp', 128, 128, 'WEBP'),
+            Emote7TVFile('1x.avif', 32, 32, 'AVIF'),
+            Emote7TVFile('2x.avif', 64, 64, 'AVIF'),
+            Emote7TVFile('3x.avif', 96, 96, 'AVIF'),
+            Emote7TVFile('4x.avif', 128, 128, 'AVIF'),
+          ]),
         ),
       );
 
@@ -263,10 +253,9 @@ void main() {
           'ZeroWidth',
           256, // Bit 8 set = zero-width
           null,
-          Emote7TVHost(
-            '//cdn.7tv.app/emote/zw123',
-            [Emote7TVFile('1x.webp', 32, 32, 'WEBP')],
-          ),
+          Emote7TVHost('//cdn.7tv.app/emote/zw123', [
+            Emote7TVFile('1x.webp', 32, 32, 'WEBP'),
+          ]),
         ),
       );
 
@@ -284,10 +273,9 @@ void main() {
           'RegularEmote',
           128, // Different flag, not 256
           null,
-          Emote7TVHost(
-            '//cdn.7tv.app/emote/regular123',
-            [Emote7TVFile('1x.webp', 32, 32, 'WEBP')],
-          ),
+          Emote7TVHost('//cdn.7tv.app/emote/regular123', [
+            Emote7TVFile('1x.webp', 32, 32, 'WEBP'),
+          ]),
         ),
       );
 
@@ -305,10 +293,9 @@ void main() {
           'OriginalName', // The original name
           0,
           null,
-          Emote7TVHost(
-            '//cdn.7tv.app/emote/alias123',
-            [Emote7TVFile('1x.webp', 32, 32, 'WEBP')],
-          ),
+          Emote7TVHost('//cdn.7tv.app/emote/alias123', [
+            Emote7TVFile('1x.webp', 32, 32, 'WEBP'),
+          ]),
         ),
       );
 
@@ -327,10 +314,9 @@ void main() {
           'SameName', // Same as emote.name
           0,
           null,
-          Emote7TVHost(
-            '//cdn.7tv.app/emote/same123',
-            [Emote7TVFile('1x.webp', 32, 32, 'WEBP')],
-          ),
+          Emote7TVHost('//cdn.7tv.app/emote/same123', [
+            Emote7TVFile('1x.webp', 32, 32, 'WEBP'),
+          ]),
         ),
       );
 
@@ -349,10 +335,9 @@ void main() {
           'OwnedEmote',
           0,
           const Owner7TV(username: 'creator', displayName: 'EmoteCreator'),
-          Emote7TVHost(
-            '//cdn.7tv.app/emote/owned123',
-            [Emote7TVFile('1x.webp', 32, 32, 'WEBP')],
-          ),
+          Emote7TVHost('//cdn.7tv.app/emote/owned123', [
+            Emote7TVFile('1x.webp', 32, 32, 'WEBP'),
+          ]),
         ),
       );
 
@@ -371,10 +356,9 @@ void main() {
           'NoOwner',
           0,
           null, // No owner
-          Emote7TVHost(
-            '//cdn.7tv.app/emote/noowner123',
-            [Emote7TVFile('1x.webp', 32, 32, 'WEBP')],
-          ),
+          Emote7TVHost('//cdn.7tv.app/emote/noowner123', [
+            Emote7TVFile('1x.webp', 32, 32, 'WEBP'),
+          ]),
         ),
       );
 
@@ -393,13 +377,10 @@ void main() {
           'Dimensions',
           0,
           null,
-          Emote7TVHost(
-            '//cdn.7tv.app/emote/dim123',
-            [
-              Emote7TVFile('1x.webp', 28, 32, 'WEBP'),
-              Emote7TVFile('2x.webp', 56, 64, 'WEBP'),
-            ],
-          ),
+          Emote7TVHost('//cdn.7tv.app/emote/dim123', [
+            Emote7TVFile('1x.webp', 28, 32, 'WEBP'),
+            Emote7TVFile('2x.webp', 56, 64, 'WEBP'),
+          ]),
         ),
       );
 
@@ -442,13 +423,10 @@ void main() {
           'AvifOnly',
           0,
           null,
-          Emote7TVHost(
-            '//cdn.7tv.app/emote/avifonly123',
-            [
-              Emote7TVFile('1x.avif', 32, 32, 'AVIF'),
-              Emote7TVFile('2x.avif', 64, 64, 'AVIF'),
-            ],
-          ),
+          Emote7TVHost('//cdn.7tv.app/emote/avifonly123', [
+            Emote7TVFile('1x.avif', 32, 32, 'AVIF'),
+            Emote7TVFile('2x.avif', 64, 64, 'AVIF'),
+          ]),
         ),
       );
 
@@ -526,6 +504,121 @@ void main() {
       expect(restored.ownerDisplayName, original.ownerDisplayName);
       expect(restored.ownerUsername, original.ownerUsername);
       expect(restored.ownerId, original.ownerId);
+    });
+  });
+
+  group('still frames', () {
+    test('Twitch has one for every emote', () {
+      final emote = Emote.fromTwitch(
+        EmoteTwitch('25', 'Kappa', 'bitstier', null),
+        EmoteType.twitchGlobal,
+      );
+      expect(
+        emote.urlFor(animate: false),
+        'https://static-cdn.jtvnw.net/emoticons/v2/25/static/dark/3.0',
+      );
+      expect(emote.urlFor(animate: true), emote.url);
+    });
+
+    test('BTTV only for GIFs', () {
+      final gif = Emote.fromBTTV(
+        const EmoteBTTV('5f1b', 'catJAM', animated: true),
+        EmoteType.bttvShared,
+      );
+      final png = Emote.fromBTTV(
+        const EmoteBTTV('566c', 'FeelsBadMan'),
+        EmoteType.bttvGlobal,
+      );
+      expect(
+        gif.urlFor(animate: false),
+        'https://cdn.betterttv.net/emote/5f1b/static/3x.webp',
+      );
+      expect(png.staticUrl, isNull);
+      expect(png.urlFor(animate: false), png.url);
+      expect(
+        EmoteBTTV.fromJson({'id': '1', 'code': 'a', 'animated': true}).animated,
+        isTrue,
+      );
+      expect(EmoteBTTV.fromJson({'id': '1', 'code': 'a'}).animated, isFalse);
+    });
+
+    test('FFZ uses the plain image of an animated emote', () {
+      final emote = Emote.fromFFZ(
+        const EmoteFFZ(
+          'A',
+          32,
+          32,
+          OwnerFFZ(displayName: 'O', name: 'o'),
+          ImagesFFZ('https://ffz/1.png', null, 'https://ffz/4.png'),
+          ImagesFFZ('https://ffz/a1.webp', null, 'https://ffz/a4.webp'),
+        ),
+        EmoteType.ffzChannel,
+      );
+      expect(emote.url, 'https://ffz/a4.webp');
+      expect(emote.urlFor(animate: false), 'https://ffz/4.png');
+    });
+
+    test('7TV uses the file\'s still twin', () {
+      final emote = Emote.from7TV(
+        Emote7TV(
+          'id',
+          'catJAM',
+          Emote7TVData(
+            'id',
+            'catJAM',
+            0,
+            null,
+            Emote7TVHost('//cdn.7tv.app/emote/id', [
+              Emote7TVFile(
+                '1x.webp',
+                32,
+                32,
+                'WEBP',
+                staticName: '1x_static.webp',
+              ),
+              Emote7TVFile(
+                '4x.webp',
+                128,
+                128,
+                'WEBP',
+                staticName: '4x_static.webp',
+              ),
+            ]),
+          ),
+        ),
+        EmoteType.sevenTVChannel,
+      );
+      expect(
+        emote.urlFor(animate: false),
+        'https://cdn.7tv.app/emote/id/4x_static.webp',
+      );
+      expect(
+        Emote7TVFile.fromJson({
+          'name': '1x.webp',
+          'static_name': '1x_static.webp',
+          'width': 1,
+          'height': 1,
+          'format': 'WEBP',
+        }).staticName,
+        '1x_static.webp',
+      );
+    });
+
+    test('a saved emote keeps its still frame', () {
+      final emote = Emote.fromTwitch(
+        EmoteTwitch('25', 'Kappa', 'bitstier', null),
+        EmoteType.twitchGlobal,
+      );
+      expect(Emote.fromJson(emote.toJson()).staticUrl, emote.staticUrl);
+      expect(
+        Emote.fromJson({
+          'name': 'old',
+          'zeroWidth': false,
+          'url': 'https://x/1.png',
+          'type': 'twitchGlobal',
+        }).urlFor(animate: false),
+        'https://x/1.png',
+      );
     });
   });
 }

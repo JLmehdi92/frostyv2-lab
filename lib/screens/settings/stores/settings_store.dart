@@ -164,6 +164,7 @@ abstract class _SettingsStoreBase with Store {
   // Message appearance defaults
   static const defaultShowDeletedMessages = false;
   static const defaultShowModerationNotices = true;
+  static const defaultAnimateEmotes = true;
   static const defaultShowChatMessageDividers = false;
   static const defaultTimestampType = TimestampType.disabled;
 
@@ -235,6 +236,11 @@ abstract class _SettingsStoreBase with Store {
   @JsonKey(defaultValue: defaultShowDeletedMessages)
   @observable
   var showDeletedMessages = defaultShowDeletedMessages;
+
+  /// Animated emotes move in chat; off shows their first frame.
+  @JsonKey(defaultValue: defaultAnimateEmotes)
+  @observable
+  var animateEmotes = defaultAnimateEmotes;
 
   /// A line in chat when someone is timed out or banned.
   @JsonKey(defaultValue: defaultShowModerationNotices)
@@ -378,6 +384,7 @@ abstract class _SettingsStoreBase with Store {
 
     showDeletedMessages = defaultShowDeletedMessages;
     showModerationNotices = defaultShowModerationNotices;
+    animateEmotes = defaultAnimateEmotes;
     showChatMessageDividers = defaultShowChatMessageDividers;
     timestampType = defaultTimestampType;
 
