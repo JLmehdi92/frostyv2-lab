@@ -253,7 +253,11 @@ abstract class BaseApiClient {
       case 401:
         return UnauthorizedException('Please log in to continue');
       case 403:
-        return ApiException('Access denied. Insufficient permissions');
+        return const ApiException(
+          'Access denied. Insufficient permissions',
+          403,
+          DioExceptionType.badResponse,
+        );
       case 404:
         return NotFoundException(serverMessage ?? 'Resource not found');
       case 409:

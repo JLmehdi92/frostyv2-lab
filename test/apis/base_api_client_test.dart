@@ -295,11 +295,9 @@ void main() {
       expect(
         () => client.testGet('/forbidden'),
         throwsA(
-          isA<ApiException>().having(
-            (e) => e.message,
-            'message',
-            contains('permissions'),
-          ),
+          isA<ApiException>()
+              .having((e) => e.message, 'message', contains('permissions'))
+              .having((e) => e.statusCode, 'statusCode', 403),
         ),
       );
     });
