@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/models/cheermote.dart';
 import 'package:frosty/models/irc.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
@@ -21,6 +22,7 @@ void main() {
   setUp(() {
     store = MockReplayStore();
     final assets = MockChatAssetsStore();
+    when(() => assets.cheermotes).thenReturn(Cheermotes.empty);
     when(() => assets.emoteToObject).thenReturn({});
     when(() => assets.twitchBadgesToObject).thenReturn({});
     when(() => assets.userToFFZBadges).thenReturn({});

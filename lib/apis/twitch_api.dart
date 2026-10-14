@@ -6,6 +6,7 @@ import 'package:frosty/constants.dart';
 import 'package:frosty/models/badges.dart';
 import 'package:frosty/models/category.dart';
 import 'package:frosty/models/channel.dart';
+import 'package:frosty/models/cheermote.dart';
 import 'package:frosty/models/emotes.dart';
 import 'package:frosty/models/followed_channel.dart';
 import 'package:frosty/models/shared_chat_session.dart';
@@ -261,6 +262,16 @@ class TwitchApi extends BaseApiClient {
     final data = await get<JsonMap>(url);
 
     return StreamsTwitch.fromJson(data);
+  }
+
+  /// The cheermotes usable in [broadcasterId]'s chat (global and the
+  /// channel's own).
+  Future<Cheermotes> getCheermotes({required String broadcasterId}) async {
+    final data = await get<JsonMap>(
+      '/bits/cheermotes',
+      queryParameters: {'broadcaster_id': _checkId(broadcasterId, 'id')},
+    );
+    return Cheermotes.fromHelix(data);
   }
 
   /// Returns a [UserTwitch] object containing the user info associated with the given [userLogin].

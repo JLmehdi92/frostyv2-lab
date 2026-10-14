@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/models/cheermote.dart';
 import 'package:frosty/models/community_highlights.dart';
 import 'package:frosty/models/emotes.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
@@ -29,6 +30,7 @@ void main() {
 
   setUp(() {
     assets = MockChatAssetsStore();
+    when(() => assets.cheermotes).thenReturn(Cheermotes.empty);
     when(() => assets.emoteToObject).thenReturn({
       'catJAM': const Emote(
         name: 'catJAM',

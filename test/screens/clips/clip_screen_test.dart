@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_clip_service.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
+import 'package:frosty/models/cheermote.dart';
 import 'package:frosty/models/clip.dart';
 import 'package:frosty/models/irc.dart';
 import 'package:frosty/models/vod.dart';
@@ -83,6 +84,7 @@ void main() {
     replay = MockReplayStore();
     replaySeconds = [];
     final assets = MockChatAssetsStore();
+    when(() => assets.cheermotes).thenReturn(Cheermotes.empty);
     when(() => assets.emoteToObject).thenReturn({});
     when(() => replay.status).thenReturn(ReplayStatus.active);
     when(() => replay.messages).thenReturn(ObservableList<IRCMessage>());

@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:frosty/cache_manager.dart';
 import 'package:frosty/constants.dart';
 import 'package:frosty/models/badges.dart';
+import 'package:frosty/models/cheermote.dart';
 import 'package:frosty/models/emotes.dart';
 import 'package:frosty/models/user.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
@@ -447,6 +448,7 @@ class IRCMessage {
     void Function()? onTapDeletedMessage, {
     Color? linkColor,
     bool animateEmotes = true,
+    Cheermotes cheermotes = Cheermotes.empty,
   }) {
     if (!showMessage) {
       span.add(
@@ -475,15 +477,54 @@ class IRCMessage {
       // Keep a local span which will be reversed and added to the final span.
       final localSpan = <InlineSpan>[];
 
+      // Cheermotes are drawn only in a cheer, like Twitch ("Cheer100"
+      // elsewhere is just text).
+      final isCheer = tags['bits'] != null && !cheermotes.isEmpty;
+      final dark = Theme.of(context).brightness == Brightness.dark;
+
       // Iterate through the words in reverse-order.
       var index = words.length - 1;
 
       // Terminate after the first word in the message reached.
       while (index != -1) {
         final word = words[index];
-        final emote = emoteToObject[word] ?? localEmotes?[word];
+        final cheer = isCheer ? cheermotes.match(word) : null;
+        final emote = cheer != null
+            ? null
+            : emoteToObject[word] ?? localEmotes?[word];
 
-        if (emote != null) {
+        if (cheer != null) {
+          // Reversed order: the amount, then the image before it.
+          localSpan
+            ..add(const TextSpan(text: ' '))
+            ..add(
+              TextSpan(
+                text: '${cheer.amount}',
+                style: (textStyle ?? const TextStyle()).copyWith(
+                  color: Color(cheer.tier.color),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            )
+            ..add(
+              WidgetSpan(
+                alignment: PlaceholderAlignment.middle,
+                child: Semantics(
+                  label: '${cheer.prefix} ${cheer.amount} bits',
+                  child: FrostyCachedNetworkImage(
+                    imageUrl: cheer.tier.url(
+                      dark: dark,
+                      animated: animateEmotes,
+                    ),
+                    height: emoteSize,
+                    useFade: false,
+                    placeholder: (context, url) => const SizedBox(),
+                  ),
+                ),
+              ),
+            );
+          index--;
+        } else if (emote != null) {
           // If the emote is zero-width and not the first word, process the stack.
           if (emote.zeroWidth && index != 0) {
             index = _processZeroWidthEmoteStack(
@@ -717,6 +758,7 @@ class IRCMessage {
       onTapDeletedMessage,
       linkColor: linkColor,
       animateEmotes: animateEmotes,
+      cheermotes: assetsStore.cheermotes,
     );
 
     return span;

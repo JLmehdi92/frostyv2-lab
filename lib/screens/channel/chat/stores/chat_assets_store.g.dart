@@ -117,6 +117,26 @@ mixin _$ChatAssetsStore on ChatAssetsStoreBase, Store {
     );
   }
 
+  late final _$_cheermotesAtom = Atom(
+    name: 'ChatAssetsStoreBase._cheermotes',
+    context: context,
+  );
+
+  Cheermotes get cheermotes {
+    _$_cheermotesAtom.reportRead();
+    return super._cheermotes;
+  }
+
+  @override
+  Cheermotes get _cheermotes => cheermotes;
+
+  @override
+  set _cheermotes(Cheermotes value) {
+    _$_cheermotesAtom.reportWrite(value, super._cheermotes, () {
+      super._cheermotes = value;
+    });
+  }
+
   late final _$_userEmoteToObjectAtom = Atom(
     name: 'ChatAssetsStoreBase._userEmoteToObject',
     context: context,

@@ -1,10 +1,12 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:frosty/apis/bttv_api.dart';
 import 'package:frosty/apis/ffz_api.dart';
 import 'package:frosty/apis/seventv_api.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/models/badges.dart';
+import 'package:frosty/models/cheermote.dart';
 import 'package:frosty/models/emotes.dart';
 import 'package:frosty/models/shared_chat_session.dart';
 import 'package:frosty/models/user.dart';
@@ -58,6 +60,10 @@ abstract class ChatAssetsStoreBase with Store {
   /// Channel-specific Twitch badges (overrides globals).
   @readonly
   var _channelTwitchBadges = <String, ChatBadge>{};
+
+  /// The channel's cheermotes, drawn in cheer messages.
+  @readonly
+  var _cheermotes = Cheermotes.empty;
 
   /// Combined emotes: global + channel. Channel emotes take precedence.
   @computed
@@ -219,6 +225,14 @@ abstract class ChatAssetsStoreBase with Store {
               for (final emote in emotes) emote.name: emote,
             }.asObservable(),
           ),
+      // Cheermotes: without them cheers stay text, so a failure is quiet.
+      twitchApi
+          .getCheermotes(broadcasterId: channelId)
+          .then((cheermotes) => _cheermotes = cheermotes)
+          .catchError((Object e) {
+            debugPrint('Cheermotes unavailable: $e');
+            return Cheermotes.empty;
+          }),
       // Channel badges (Twitch only - FFZ/BTTV badges are global)
       if (showTwitchBadges)
         twitchApi
