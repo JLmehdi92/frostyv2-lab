@@ -38,6 +38,8 @@ import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/channel_videos.dart';
 import 'package:frosty/screens/vod/vod_screen.dart';
+import 'package:frosty/services/go_live/go_live.dart';
+import 'package:frosty/services/go_live/go_live_worker.dart';
 import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:frosty/services/realtime/twitch_realtime_client.dart';
 import 'package:frosty/stores/global_assets_store.dart';
@@ -191,6 +193,16 @@ void main() async {
     onPause: eventSubClient.onAppPaused,
     onResume: eventSubClient.onAppResumed,
   );
+  // The background go-live check follows the logged-in viewer.
+  reaction(
+    (_) => authStore.isLoggedIn ? authStore.user.details?.id : null,
+    (String? id) async {
+      final prefs = await GoLivePrefs.load();
+      await prefs.setUserId(id);
+    },
+    fireImmediately: true,
+  );
+
   final whisperStore = WhisperStore(
     twitchApi: twitchApiService,
     listen: eventSubClient.listen,
@@ -264,6 +276,23 @@ class _MyAppState extends State<MyApp> {
 
     LinkRouter.inAppHandler = _openTwitchLinkInApp;
     _initDeepLinks();
+    _initGoLive();
+  }
+
+  /// A tapped go-live notice opens its channel, whether the app was running
+  /// or started from it.
+  Future<void> _initGoLive() async {
+    void openChannel(String login) => LinkRouter.open(
+      'https://www.twitch.tv/$login',
+      launchExternal: false,
+    );
+    try {
+      await GoLiveNotifications.init(onOpen: openChannel);
+      final login = await GoLiveNotifications.launchLogin();
+      if (login != null) openChannel(login);
+    } catch (e) {
+      debugPrint('Go-live notices unavailable: $e');
+    }
   }
 
   /// The channel's display name, or [login] when it cannot be had.
