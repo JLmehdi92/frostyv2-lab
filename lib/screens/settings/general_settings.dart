@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 // import removed: flutter_colorpicker
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/settings/widgets/go_live_setting.dart';
 import 'package:frosty/screens/settings/widgets/settings_list_select.dart';
 import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
 import 'package:frosty/screens/settings/widgets/stream_language_setting.dart';
@@ -11,6 +13,7 @@ import 'package:frosty/widgets/external_browser_setting.dart';
 import 'package:frosty/widgets/section_header.dart';
 import 'package:frosty/widgets/settings_page_layout.dart';
 import 'package:frosty/widgets/theme_selection_setting.dart';
+import 'package:provider/provider.dart';
 
 class GeneralSettings extends StatelessWidget {
   final SettingsStore settingsStore;
@@ -45,6 +48,15 @@ class GeneralSettings extends StatelessWidget {
                 .firstWhere((tab) => tab.label == label),
           ),
           StreamLanguageSetting(settingsStore: settingsStore),
+          const SectionHeader('Notifications'),
+          Observer(
+            builder: (context) {
+              final auth = context.read<AuthStore>();
+              return GoLiveSetting(
+                userId: auth.isLoggedIn ? auth.user.details?.id : null,
+              );
+            },
+          ),
           const SectionHeader('Links'),
           ExternalBrowserSetting(settingsStore: settingsStore),
         ],

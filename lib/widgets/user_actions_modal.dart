@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/settings/widgets/go_live_setting.dart';
 import 'package:frosty/screens/vod/channel_videos.dart';
 import 'package:frosty/widgets/twitch_web_page.dart';
 import 'package:provider/provider.dart';
@@ -96,6 +97,8 @@ class UserActionsModal extends StatelessWidget {
                 }),
             title: Text('Block $name'),
           ),
+        if (authStore.isLoggedIn)
+          GoLiveBellTile(channelId: userId, name: name),
         if (authStore.isLoggedIn)
           ListTile(
             leading: const Icon(Icons.favorite_border_rounded),
