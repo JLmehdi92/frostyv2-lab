@@ -193,9 +193,11 @@ class TwitchApi extends BaseApiClient {
   Future<StreamsTwitch> getFollowedStreams({
     required String id,
     String? cursor,
+    int? first,
   }) async {
     final queryParams = {'user_id': id};
     if (cursor != null) queryParams['after'] = cursor;
+    if (first != null) queryParams['first'] = '${first.clamp(1, 100)}';
 
     final data = await get<JsonMap>(
       '/streams/followed',
