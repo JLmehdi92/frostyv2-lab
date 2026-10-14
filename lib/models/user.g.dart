@@ -11,6 +11,7 @@ UserTwitch _$UserTwitchFromJson(Map<String, dynamic> json) => UserTwitch(
   json['login'] as String,
   json['display_name'] as String,
   json['profile_image_url'] as String,
+  createdAt: _dateOrNull(json['created_at']),
 );
 
 UserBlockedTwitch _$UserBlockedTwitchFromJson(Map<String, dynamic> json) =>

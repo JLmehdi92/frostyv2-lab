@@ -2,6 +2,9 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'user.g.dart';
 
+DateTime? _dateOrNull(Object? value) =>
+    value is String ? DateTime.tryParse(value) : null;
+
 // Twitch (default) user
 @JsonSerializable(createToJson: false, fieldRename: FieldRename.snake)
 class UserTwitch {
@@ -10,7 +13,17 @@ class UserTwitch {
   final String displayName;
   final String profileImageUrl;
 
-  const UserTwitch(this.id, this.login, this.displayName, this.profileImageUrl);
+  /// When the account was made; null when Twitch did not say.
+  @JsonKey(fromJson: _dateOrNull)
+  final DateTime? createdAt;
+
+  const UserTwitch(
+    this.id,
+    this.login,
+    this.displayName,
+    this.profileImageUrl, {
+    this.createdAt,
+  });
 
   factory UserTwitch.fromJson(Map<String, dynamic> json) =>
       _$UserTwitchFromJson(json);

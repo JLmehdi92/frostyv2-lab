@@ -36,6 +36,7 @@ const twitchUserResponse = {
       'login': 'testuser',
       'display_name': 'TestUser',
       'profile_image_url': 'https://cdn/profile.png',
+      'created_at': '2019-03-12T15:04:05Z',
     },
   ],
 };

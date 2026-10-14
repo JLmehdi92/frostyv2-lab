@@ -102,6 +102,28 @@ void main() {
       expect(user.login, 'testuser');
       expect(user.displayName, 'TestUser');
       expect(user.profileImageUrl, 'https://cdn/profile.png');
+      expect(user.createdAt, DateTime.utc(2019, 3, 12, 15, 4, 5));
+    });
+
+    test('a missing or odd creation date reads as unknown', () async {
+      for (final createdAt in [null, 'yesterday', 42]) {
+        dioAdapter.onGet(
+          'https://api.twitch.tv/helix/users',
+          (server) => server.reply(200, {
+            'data': [
+              {
+                'id': '1',
+                'login': 'a',
+                'display_name': 'A',
+                'profile_image_url': '',
+                'created_at': ?createdAt,
+              },
+            ],
+          }),
+          queryParameters: {'login': 'a'},
+        );
+        expect((await api.getUser(userLogin: 'a')).createdAt, isNull);
+      }
     });
 
     test('returns user by id', () async {
