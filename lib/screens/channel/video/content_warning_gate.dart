@@ -17,20 +17,30 @@ abstract final class AcceptedContentWarnings {
   static void reset() => _ids.clear();
 }
 
-/// Covers [child] (the video) with Twitch's mature-content warning until the
-/// viewer accepts, when the channel carries content classification labels
-/// and the setting is on. Fetches the labels itself (any engine), fails
-/// open (no warning) so a hiccup never blocks playback.
+/// Covers [child] (the whole video, controls included) with Twitch's
+/// mature-content warning until the viewer accepts, when the channel carries
+/// content classification labels and the setting is on. Fetches the labels
+/// itself (any engine) and fails open (no warning) so a hiccup never blocks
+/// playback.
+///
+/// While the warning shows it calls [onActiveChanged] so the channel can
+/// pause the player: the cover alone would hide the picture but still play
+/// the audio.
 class ContentWarningGate extends StatefulWidget {
   const ContentWarningGate({
     super.key,
     required this.userId,
     required this.displayName,
+    required this.onActiveChanged,
     required this.child,
   });
 
   final String userId;
   final String displayName;
+
+  /// Called with true when the warning starts covering the video and false
+  /// when it is accepted (never called when there is nothing to warn about).
+  final ValueChanged<bool> onActiveChanged;
   final Widget child;
 
   @override
@@ -53,23 +63,27 @@ class _ContentWarningGateState extends State<ContentWarningGate> {
   }
 
   Future<void> _load() async {
+    List<String> labels = const [];
     try {
       final channel = await context.read<TwitchApi>().getChannel(
         userId: widget.userId,
       );
-      if (!mounted) return;
-      setState(() {
-        _labels = contentLabelNames(channel.contentClassificationLabels);
-        _resolved = true;
-      });
+      labels = contentLabelNames(channel.contentClassificationLabels);
     } catch (_) {
-      if (mounted) setState(() => _resolved = true);
+      // Fail open: a channel we cannot read is not blocked.
     }
+    if (!mounted) return;
+    setState(() {
+      _labels = labels;
+      _resolved = true;
+    });
+    if (labels.isNotEmpty) widget.onActiveChanged(true);
   }
 
   void _accept() {
     AcceptedContentWarnings.add(widget.userId);
     setState(() => _labels = const []);
+    widget.onActiveChanged(false);
   }
 
   @override
@@ -79,6 +93,7 @@ class _ContentWarningGateState extends State<ContentWarningGate> {
       fit: StackFit.expand,
       children: [
         widget.child,
+        // Last, so it sits above the player and its controls.
         if (showWarning)
           _ContentWarning(
             displayName: widget.displayName,
@@ -103,41 +118,45 @@ class _ContentWarning extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: Colors.black,
-      child: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.warning_amber_rounded,
-                color: Colors.white,
-                size: 40,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Content intended for certain audiences',
-                textAlign: TextAlign.center,
-                style: context.textTheme.titleMedium?.copyWith(
+    // Opaque and on top: it also swallows taps so the controls underneath
+    // cannot be reached before accepting.
+    return Positioned.fill(
+      child: ColoredBox(
+        color: Colors.black,
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.warning_amber_rounded,
                   color: Colors.white,
-                  fontWeight: FontWeight.w600,
+                  size: 40,
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '$displayName has labeled this channel:\n'
-                '${labels.join(', ')}',
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white70),
-              ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: onAccept,
-                child: const Text('Start watching'),
-              ),
-            ],
+                const SizedBox(height: 12),
+                Text(
+                  'Content intended for certain audiences',
+                  textAlign: TextAlign.center,
+                  style: context.textTheme.titleMedium?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '$displayName has labeled this channel:\n'
+                  '${labels.join(', ')}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white70),
+                ),
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed: onAccept,
+                  child: const Text('Start watching'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

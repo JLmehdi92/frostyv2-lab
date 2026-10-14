@@ -24,9 +24,11 @@ Channel _channel(List<String> labels) => Channel(
 void main() {
   late MockTwitchApi api;
   late SettingsStore settings;
+  final active = <bool>[];
 
   setUp(() {
     AcceptedContentWarnings.reset();
+    active.clear();
     api = MockTwitchApi();
     settings = SettingsStore.fromJson({});
   });
@@ -37,12 +39,13 @@ void main() {
         Provider<TwitchApi>.value(value: api),
         Provider<SettingsStore>.value(value: settings),
       ],
-      child: const MaterialApp(
+      child: MaterialApp(
         home: Scaffold(
           body: ContentWarningGate(
             userId: '1',
             displayName: 'Streamer',
-            child: Text('VIDEO'),
+            onActiveChanged: active.add,
+            child: const Text('VIDEO'),
           ),
         ),
       ),
@@ -64,6 +67,8 @@ void main() {
     await tester.pump();
     expect(find.text('Start watching'), findsNothing);
     expect(AcceptedContentWarnings.has('1'), isTrue);
+    // The channel is told to pause while covered, then resume on accept.
+    expect(active, [true, false]);
   });
 
   testWidgets('no labels, no warning', (tester) async {
@@ -73,6 +78,7 @@ void main() {
     await pump(tester);
     await tester.pump();
     expect(find.text('Start watching'), findsNothing);
+    expect(active, isEmpty);
   });
 
   testWidgets('already accepted this session: never asks again', (

@@ -73,6 +73,10 @@ class _VideoChatState extends State<VideoChat>
   /// and the tap stand down (see [PinchToFill]).
   final _pinching = ValueNotifier(false);
 
+  /// True while the mature-content warning paused the player, so accepting
+  /// it resumes only what the gate paused.
+  bool _pausedForContentGate = false;
+
   /// The portrait video size while its handle is dragged; saved to the
   /// settings once, when the drag ends.
   final _portraitDragScale = ValueNotifier<double?>(null);
@@ -396,6 +400,21 @@ class _VideoChatState extends State<VideoChat>
     }
   }
 
+  /// Pauses the player while the mature-content warning covers the video
+  /// (the cover hides the picture but the audio would keep playing), and
+  /// resumes it on accept if the gate was what paused it.
+  void _onContentGate(bool active) {
+    if (active) {
+      if (!_videoStore.paused) {
+        _pausedForContentGate = true;
+        _videoStore.handlePausePlay();
+      }
+    } else if (_pausedForContentGate) {
+      _pausedForContentGate = false;
+      if (_videoStore.paused) _videoStore.handlePausePlay();
+    }
+  }
+
   void _handlePipDragStart(DragStartDetails details) {
     // Disable drag gesture when already in PiP mode or video is not playing
     if (_videoStore.isInPipMode || _videoStore.paused || _pinching.value) {
@@ -627,8 +646,8 @@ class _VideoChatState extends State<VideoChat>
       child: store is IvsVideoStore
           ? IvsTextureVideo(key: _videoKey, videoStore: store)
           : store is NativeVideoStore
-              ? NativeVideo(key: _videoKey, videoStore: store)
-              : Video(key: _videoKey, videoStore: store as VideoStore),
+          ? NativeVideo(key: _videoKey, videoStore: store)
+          : Video(key: _videoKey, videoStore: store as VideoStore),
     );
 
     final overlayGestures = GestureDetector(
@@ -684,40 +703,41 @@ class _VideoChatState extends State<VideoChat>
           )
         : overlayGestures;
 
-    final video = Observer(
-      builder: (context) {
-        return Stack(
-          children: [
-            ContentWarningGate(
-              userId: widget.userId,
-              displayName: widget.userName,
-              child: player,
-            ),
-            if (_videoStore.settingsStore.showOverlay) overlay,
-            ChannelVideoTopOverlay(
-              hypeTrain: _hypeTrainStore,
-              highlights: _highlightsStore,
-              settingsStore: settingsStore,
-              onWatchRaid: _watchRaid,
-              pinnedMessage: _pinnedMessage,
-            ),
-            if (_videoStore case final IvsVideoStore ivs
-                when ivs.statsVisible && !ivs.isInPipMode)
-              Positioned.fill(
-                left: 8,
-                top: 48,
-                right: 8,
-                bottom: 8,
-                child: IgnorePointer(
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: IvsStatsPanel(store: ivs),
+    final video = ContentWarningGate(
+      userId: widget.userId,
+      displayName: widget.userName,
+      onActiveChanged: _onContentGate,
+      child: Observer(
+        builder: (context) {
+          return Stack(
+            children: [
+              player,
+              if (_videoStore.settingsStore.showOverlay) overlay,
+              ChannelVideoTopOverlay(
+                hypeTrain: _hypeTrainStore,
+                highlights: _highlightsStore,
+                settingsStore: settingsStore,
+                onWatchRaid: _watchRaid,
+                pinnedMessage: _pinnedMessage,
+              ),
+              if (_videoStore case final IvsVideoStore ivs
+                  when ivs.statsVisible && !ivs.isInPipMode)
+                Positioned.fill(
+                  left: 8,
+                  top: 48,
+                  right: 8,
+                  bottom: 8,
+                  child: IgnorePointer(
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: IvsStatsPanel(store: ivs),
+                    ),
                   ),
                 ),
-              ),
-          ],
-        );
-      },
+            ],
+          );
+        },
+      ),
     );
 
     final chat = Observer(
