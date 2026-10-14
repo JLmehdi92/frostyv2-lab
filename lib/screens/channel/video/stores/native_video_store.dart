@@ -9,6 +9,7 @@ import 'package:frosty/models/channel.dart';
 import 'package:frosty/models/hls_variant.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
+import 'package:frosty/screens/channel/video/quality_selection.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:media_kit/media_kit.dart';
@@ -177,11 +178,18 @@ abstract class NativeVideoStoreBase with Store implements PlayerController {
   /// engine uses: highest quality, or the last-used quality. Index 0 is the
   /// Twitch source (highest) variant.
   int _initialQualityIndex(String? lastQuality) {
-    if (!settingsStore.defaultToHighestQuality && lastQuality != null) {
-      final index = _variants.indexWhere((v) => v.name == lastQuality);
-      if (index != -1) return index;
-    }
-    return 0;
+    // Same rules as IVS (a saved audio only is not restored); index 0 when
+    // nothing matches.
+    if (settingsStore.defaultToHighestQuality) return 0;
+    final name = pickInitialQuality(
+      available: [for (final variant in _variants) variant.name],
+      defaultToHighest: false,
+      lastQuality: lastQuality,
+    );
+    final index = name == null
+        ? -1
+        : _variants.indexWhere((v) => v.name == name);
+    return index == -1 ? 0 : index;
   }
 
   @override

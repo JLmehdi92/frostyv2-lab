@@ -16,7 +16,8 @@ String qualityLabel(String name) =>
 /// Picks the quality to apply once the stream's qualities are known.
 ///
 /// Audio only is a choice for the moment: a saved one opens the next
-/// stream on Auto.
+/// stream on Auto, unless [keepAudioOnly] (this session's pick, kept across
+/// reloads).
 ///
 /// [available] is ordered best first (resolution, then frame rate, then
 /// bitrate). Returns null to stay on Auto (adaptive).
@@ -24,12 +25,14 @@ String? pickInitialQuality({
   required List<String> available,
   required bool defaultToHighest,
   required String? lastQuality,
+  bool keepAudioOnly = false,
 }) {
   if (available.isEmpty) return null;
   if (defaultToHighest) return available.first;
   if (lastQuality == null ||
       lastQuality == 'Auto' ||
-      normalizeQualityName(lastQuality) == kAudioOnlyQuality) {
+      (!keepAudioOnly &&
+          normalizeQualityName(lastQuality) == kAudioOnlyQuality)) {
     return null;
   }
   final wanted = normalizeQualityName(lastQuality);

@@ -89,6 +89,18 @@ void main() {
       }
     });
 
+    test('this session\'s audio only pick is kept', () {
+      expect(
+        pickInitialQuality(
+          available: const ['1080p60', 'audio_only'],
+          defaultToHighest: false,
+          lastQuality: 'audio_only',
+          keepAudioOnly: true,
+        ),
+        'audio_only',
+      );
+    });
+
     test('highest quality never means audio only', () {
       expect(
         pickInitialQuality(

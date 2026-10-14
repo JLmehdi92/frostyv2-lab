@@ -662,6 +662,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
           available: available,
           defaultToHighest: false,
           lastQuality: session,
+          keepAudioOnly: true,
         ) ??
         pickInitialQuality(
           available: available,

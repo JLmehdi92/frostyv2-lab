@@ -1109,6 +1109,31 @@ void main() {
       );
     });
 
+    test('a session audio only pick survives a reload', () async {
+      settingsStore.defaultToHighestQuality = true;
+      store = await createStore();
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1080p60', 'audio_only'],
+      });
+      await settle();
+      store.setStreamQuality('audio_only');
+      native.playerCalls.clear();
+
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1080p60', 'audio_only'],
+      });
+      await settle();
+
+      expect(
+        native
+            .callsNamed('setQuality')
+            .map((c) => (c.arguments as Map)['name']),
+        ['audio_only'],
+      );
+    });
+
     test('a session Auto pick stays Auto after a reload', () async {
       SharedPreferences.setMockInitialValues({'last_stream_quality': 'Auto'});
       settingsStore.defaultToHighestQuality = true;
