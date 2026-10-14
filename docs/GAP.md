@@ -156,7 +156,7 @@
 | INT-08 | Power-ups (Bits) | P2 | ❌ | — | Paiement en Bits. | Impossible proprement |
 | INT-09 | Objectifs communautaires (challenges) | P2 | ❌ | — | — | GQL privé |
 | INT-10 | Objectifs créateur (sub goals) | P1 | ❌ | — | EventSub `channel.goal.*` exige `channel:read:goals` (diffuseur). | GQL privé |
-| INT-11 | Rendu des cheermotes | P1 | ❌ | — | Les cheers s'affichent en texte brut (`Cheer100`). Helix `GET /bits/cheermotes` (jeton d'app). | OK |
+| INT-11 | Rendu des cheermotes | P1 | ✅ | `cheermote.dart`, `chat_assets_store.dart` (`cheermotes`), `irc.dart` | Helix `GET /bits/cheermotes` par chaîne (globaux et personnalisés). Dans un message de cheer (tag `bits`), `Cheer100` devient l'image du palier atteint (animée ou non, thème sombre ou clair) suivie du montant à la couleur du palier ; ailleurs le mot reste du texte, comme Twitch. Images acceptées seulement depuis les hôtes Twitch. | OK |
 | INT-12 | Cheer (envoyer des Bits) | P2 | ❌ | — | Dépense de Bits (argent réel). | GQL privé |
 | INT-13 | Campagnes de bonus Bits | P2 | ❌ | — | — | GQL privé |
 | INT-14 | Combos (Bits en un tap) | P2 | ❌ | — | — | GQL privé |
@@ -431,7 +431,7 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 |---|---|---|---|---|---|
 | Lecture vidéo (PLY) | 14 | 5 | 13 | 1 | 33 |
 | Chat (CHT) | 24 | 6 | 12 | 6 | 48 |
-| Interactions communautaires (INT) | 3 | 4 | 24 | 0 | 31 |
+| Interactions communautaires (INT) | 4 | 4 | 23 | 0 | 31 |
 | Modération (MOD) | 9 | 1 | 21 | 0 | 31 |
 | Social & notifications (SOC) | 4 | 5 | 13 | 0 | 22 |
 | Découverte & recherche (DSC) | 5 | 4 | 13 | 0 | 22 |
@@ -440,18 +440,18 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Compte & réglages (ACC) | 4 | 5 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 4 | 6 | 7 | 0 | 17 |
-| **Total** | **80** | **41** | **188** | **8** | **317** |
+| **Total** | **81** | **41** | **187** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 40 | 14 | 2 | 4 | 60 |
-| P1 | 34 | 20 | 50 | 4 | 108 |
+| P1 | 35 | 20 | 49 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **80** | **41** | **188** | **8** | **317** |
+| **Total** | **81** | **41** | **187** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 10 | 30 | 33 | 73 |
+| OK | 10 | 29 | 33 | 72 |
 | GQL privé | 6 | 29 | 61 | 96 |
 | Compte requis | 0 | 11 | 12 | 23 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
