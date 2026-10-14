@@ -68,8 +68,8 @@
 | PLY-11 | Erreurs et relance du flux | P0 | ✅ | `ivs_recovery.dart`, `ivs_video_store.dart`, `channel.dart` (`4d50b89`) | Erreurs classées, relance 1/2/4 s sur le même lecteur avec nouvelle URL, « ↻ n/3 », jeton neuf si refusé, repli WebView après 3 échecs en 60 s ou erreur fatale ; IVS seulement sur Android. À valider sur appareil. | OK |
 | PLY-12 | Audio seul | P1 | ✅ | `twitch_stream_service.dart` (`allow_audio_only`), `quality_selection.dart`, `ivs_video.dart` | Qualité « Audio only » dans le menu (comme l'appli officielle : usher `allow_audio_only=true`, jamais choisie par l'adaptatif), pastille sur l'image ; non mémorisée d'un stream à l'autre. Pas encore en arrière-plan (PLY-14). | OK |
 | PLY-13 | Chat seul | P1 | ✅ | `settings_store.dart:77-79`, `channel.dart:492-573` | Réglage global « Enable video ». Pas de paramètre de deep link. | OK |
-| PLY-14 | Audio en arrière-plan | P1 | ❌ | — | Pas de service `mediaPlayback`. Seul l'auto-PiP permet de continuer. | OK |
-| PLY-15 | Contrôles média et casque | P1 | ❌ | — | Pas de MediaSession (seulement `pip.setIsPlaying`, `ivs_video_store.dart:181`). | OK |
+| PLY-14 | Audio en arrière-plan | P1 | ✅ | `BackgroundAudioService.kt`, `background_audio.dart`, `ivs_video_store.dart`, `video_settings.dart` | Réglage « Background audio » (Vidéo, Android, désactivé par défaut) : un service de premier plan `mediaPlayback` garde le live audible hors de l'appli ou écran éteint, avec une notification média. Live IVS seulement (pas les VOD ni le lecteur web). À valider sur appareil. | OK |
+| PLY-15 | Contrôles média et casque | P1 | ✅ | `BackgroundAudioService.kt` (`MediaSession`), `ivs_video_store.dart` (`_onMediaCommand`) | Avec l'audio en arrière-plan : MediaSession (écran verrouillé, casque, Bluetooth) et notification lecture/pause et arrêt, qui pilotent le lecteur ; « Stop » met en pause et retire la notification jusqu'à la prochaine lecture. À valider sur appareil. | OK |
 | PLY-16 | PiP natif Android | P1 | ✅ | `ivs_video_store.dart:119-130,270-275`, `channel.dart:845`, `video_overlay.dart:521-544` | Auto-PiP Android 12+ pour IVS uniquement. | OK |
 | PLY-17 | Lecteur pop-out flottant | P1 | ❌ | — | Pas de fenêtre `SYSTEM_ALERT_WINDOW` (le PiP couvre l'essentiel). | OK |
 | PLY-18 | Mini-lecteur intégré | P1 | ✅ | `mini_player_store.dart:41-58`, `global_mini_player.dart:18-202`, `channel.dart:275-293` | Déplaçable, aimanté aux coins, chat conservé. Moteur IVS seulement (les autres basculent en PiP). | OK |
@@ -337,7 +337,7 @@
 | ACC-09 | Structure des réglages | P1 | ⚠️ | `settings.dart` | Compte, Général, Vidéo, Chat, Autre. Ni notifications, ni sécurité, ni contenu. | OK |
 | ACC-10 | Thème | P0 | ➕ | `settings_store.dart:30-36,419`, `theme.dart` | Système, clair ou sombre (noir OLED), plus couleur d'accent libre. | OK |
 | ACC-11 | Lecture auto des vidéos | P1 | ❌ | — | Pas d'aperçu en lecture auto (à faire avec DSC-11). | OK |
-| ACC-12 | Préférences de lecture | P1 | ⚠️ | `video_settings.dart`, `general_settings.dart` (« Open the app on ») | Vidéo on/off, plus haute qualité, écran allumé, onglet d'ouverture (Following, Top ou Search). Pas d'audio en arrière-plan. | OK |
+| ACC-12 | Préférences de lecture | P1 | ⚠️ | `video_settings.dart`, `general_settings.dart` (« Open the app on ») | Vidéo on/off, plus haute qualité, écran allumé, onglet d'ouverture (Following, Top ou Search). Audio en arrière-plan (Android). | OK |
 | ACC-13 | Catégories de notifications | P1 | ❌ | — | — | GQL privé |
 | ACC-14 | Modifier le profil | P2 | ❌ | — | Helix `PUT /users?description=` (`user:edit`) ; le reste en WebView. | OK |
 | ACC-15 | Changement de pseudo | P2 | ❌ | — | WebView des réglages Twitch. | OK |
@@ -429,7 +429,7 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 
 | Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| Lecture vidéo (PLY) | 14 | 7 | 11 | 1 | 33 |
+| Lecture vidéo (PLY) | 16 | 7 | 9 | 1 | 33 |
 | Chat (CHT) | 26 | 4 | 12 | 6 | 48 |
 | Interactions communautaires (INT) | 4 | 4 | 23 | 0 | 31 |
 | Modération (MOD) | 9 | 1 | 21 | 0 | 31 |
@@ -440,18 +440,18 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Compte & réglages (ACC) | 5 | 4 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 4 | 6 | 7 | 0 | 17 |
-| **Total** | **85** | **40** | **184** | **8** | **317** |
+| **Total** | **87** | **40** | **182** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 40 | 14 | 2 | 4 | 60 |
-| P1 | 39 | 19 | 46 | 4 | 108 |
+| P1 | 41 | 19 | 44 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **85** | **40** | **184** | **8** | **317** |
+| **Total** | **87** | **40** | **182** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 10 | 25 | 33 | 68 |
+| OK | 10 | 23 | 33 | 66 |
 | GQL privé | 6 | 29 | 61 | 96 |
 | Compte requis | 0 | 11 | 12 | 23 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
