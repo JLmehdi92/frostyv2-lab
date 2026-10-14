@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:frosty/apis/base_api_client.dart';
+import 'package:frosty/apis/unauthorized_interceptor.dart';
 import 'package:frosty/constants.dart';
 import 'package:frosty/models/badges.dart';
 import 'package:frosty/models/category.dart';
@@ -582,15 +583,18 @@ class TwitchApi extends BaseApiClient {
     );
   }
 
-  /// When [userId] followed [broadcasterId]; null when they do not, and
-  /// when Twitch only gives the total (the viewer does not moderate there,
-  /// or the token lacks `moderator:read:followers`).
+  /// When [userId] followed [broadcasterId]; null when they do not.
+  ///
+  /// Throws [UnauthorizedException] when the viewer does not moderate
+  /// there or the token lacks `moderator:read:followers` (tokens from
+  /// before that scope): expected, so it shows no login dialog.
   Future<DateTime?> getFollowedAt({
     required String broadcasterId,
     required String userId,
   }) async {
     final data = await get<JsonMap>(
       '/channels/followers',
+      extra: {UnauthorizedInterceptor.quiet: true},
       queryParameters: {
         'broadcaster_id': _checkId(broadcasterId, 'broadcasterId'),
         'user_id': _checkId(userId, 'userId'),

@@ -12,12 +12,20 @@ class UnauthorizedInterceptor extends Interceptor {
 
   UnauthorizedInterceptor(this._authStore);
 
+  /// Set to true in a request's `extra` when a 401 is an expected answer
+  /// the caller handles (e.g. a scope older tokens lack): no login dialog.
+  static const quiet = 'frosty.quietUnauthorized';
+
+  /// Whether a 401 to [request] asks the user to log in again.
+  static bool promptsLogin(RequestOptions request) =>
+      // Token validation handles its own 401.
+      !request.uri.path.endsWith('/validate') && request.extra[quiet] != true;
+
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     // Check if this is a 401 Unauthorized error
     if (err.response?.statusCode == 401) {
-      // For token validation requests, let the error propagate so validateToken can handle it
-      if (err.requestOptions.uri.path.endsWith('/validate')) {
+      if (!promptsLogin(err.requestOptions)) {
         handler.next(err);
         return;
       }

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/apis/unauthorized_interceptor.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 
 void main() {
@@ -329,6 +330,29 @@ void main() {
         await api.getFollowedAt(broadcasterId: '11', userId: '33'),
         isNull,
       );
+    });
+
+    test('a token without the scope fails quietly', () async {
+      final extras = <Map<String, Object?>>[];
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            extras.add(options.extra);
+            handler.next(options);
+          },
+        ),
+      );
+      dioAdapter.onGet(
+        '$helix/channels/followers',
+        (server) => server.reply(401, {'message': 'Missing scope'}),
+        queryParameters: query,
+      );
+
+      await expectLater(
+        api.getFollowedAt(broadcasterId: '11', userId: '33'),
+        throwsA(isA<UnauthorizedException>()),
+      );
+      expect(extras.single[UnauthorizedInterceptor.quiet], isTrue);
     });
 
     test('refuses ids that are not Twitch ids', () {
