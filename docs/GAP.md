@@ -334,7 +334,7 @@
 | ACC-06 | Connexion Google ou Amazon | P2 | ⚠️ | `auth_store.dart:104-110` | Google via un user-agent navigateur dans la WebView. | OK |
 | ACC-07 | Inscription | P2 | ❌ | — | WebView `twitch.tv/signup`. | OK |
 | ACC-08 | Récupération du compte | P2 | ❌ | — | WebView. | OK |
-| ACC-09 | Structure des réglages | P1 | ⚠️ | `settings.dart` | Compte, Général, Vidéo, Chat, Autre. Ni notifications, ni sécurité, ni contenu. | OK |
+| ACC-09 | Structure des réglages | P1 | ⚠️ | `settings.dart`, `general_settings.dart` | Compte, Général, Vidéo, Chat, Autre. Notifications (live) et contenu (labels masqués) sont dans Général ; pas de section sécurité (gérée sur twitch.tv). | OK |
 | ACC-10 | Thème | P0 | ➕ | `settings_store.dart:30-36,419`, `theme.dart` | Système, clair ou sombre (noir OLED), plus couleur d'accent libre. | OK |
 | ACC-11 | Lecture auto des vidéos | P1 | ❌ | — | Pas d'aperçu en lecture auto (à faire avec DSC-11). | OK |
 | ACC-12 | Préférences de lecture | P1 | ⚠️ | `video_settings.dart`, `general_settings.dart` (« Open the app on ») | Vidéo on/off, plus haute qualité, écran allumé, onglet d'ouverture (Following, Top ou Search). Audio en arrière-plan (Android). | OK |
@@ -347,7 +347,7 @@
 | ACC-19 | Comptes liés | P2 | ❌ | — | WebView. | OK |
 | ACC-20 | Consentements et vie privée | P2 | ❌ | — | WebView. Frostyv2 n'a qu'un opt-out Crashlytics (`other_settings.dart:105`). | OK |
 | ACC-21 | Demande de données personnelles | P2 | ❌ | — | Lien web. | OK |
-| ACC-22 | Préférences de contenu | P1 | ❌ | — | — | GQL privé |
+| ACC-22 | Préférences de contenu | P1 | ⚠️ | `hidden_content_labels_setting.dart`, `stream_list_store.dart`, `content_warning_gate.dart` | Version locale : choix des labels masqués en exploration (DSC-19) et avertissement avant une chaîne labellisée (PLY-25). Non synchronisée avec le compte (mutation GQL privée), sans tuteur. | GQL privé |
 | ACC-23 | Gestion des retours de recommandation | P2 | ❌ | — | — | GQL privé |
 | ACC-24 | Âge et contrôle parental | P2 | ❌ | — | Play Age Signals et Family Center sont propres à Twitch. | Impossible proprement |
 | ACC-25 | Cycle de vie du compte | P2 | ❌ | — | WebView. | OK |
@@ -437,17 +437,17 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Découverte & recherche (DSC) | 6 | 4 | 12 | 0 | 22 |
 | Profil de chaîne & contenus (VOD / clips) (PRF) | 5 | 6 | 18 | 0 | 29 |
 | Monétisation (MON) | 0 | 0 | 15 | 0 | 15 |
-| Compte & réglages (ACC) | 5 | 4 | 22 | 1 | 32 |
+| Compte & réglages (ACC) | 5 | 5 | 21 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 4 | 7 | 6 | 0 | 17 |
-| **Total** | **88** | **41** | **180** | **8** | **317** |
+| **Total** | **88** | **42** | **179** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 40 | 14 | 2 | 4 | 60 |
-| P1 | 42 | 20 | 42 | 4 | 108 |
+| P1 | 42 | 21 | 41 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **88** | **41** | **180** | **8** | **317** |
+| **Total** | **88** | **42** | **179** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
