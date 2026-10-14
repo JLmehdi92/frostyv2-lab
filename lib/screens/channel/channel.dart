@@ -296,10 +296,18 @@ class _VideoChatState extends State<VideoChat>
     void fallbackToWeb() {
       // Only once, and only for the store this callback was attached to.
       if (!mounted || !identical(_videoStore, store)) return;
+      // Twitch refusing the stream (subscribers only, region, ban) is said,
+      // since the web player may not play it either.
+      final notice = store is IvsVideoStore ? store.refusalNotice : null;
       setState(() {
         store.dispose();
         _videoStore = _buildPlayerController(forceWeb: true);
       });
+      if (notice != null) {
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+          SnackBar(content: Text('$notice Trying the web player.')),
+        );
+      }
     }
 
     if (store is NativeVideoStore) {
