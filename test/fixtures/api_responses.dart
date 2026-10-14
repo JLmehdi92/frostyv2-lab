@@ -78,6 +78,7 @@ const twitchChannelResponse = {
       'title': 'Test Stream',
       'game_id': '509658',
       'game_name': 'Just Chatting',
+      'content_classification_labels': <String>['MatureGame'],
     },
   ],
 };

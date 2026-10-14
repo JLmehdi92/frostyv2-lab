@@ -17,6 +17,20 @@ void main() {
       expect(channel.title, 'Test Stream');
       expect(channel.gameId, '509658');
       expect(channel.gameName, 'Just Chatting');
+      expect(channel.contentClassificationLabels, ['MatureGame']);
+    });
+
+    test('a channel with no labels reads as an empty list', () {
+      final channel = Channel.fromJson(const {
+        'broadcaster_id': '1',
+        'broadcaster_login': 'a',
+        'broadcaster_name': 'A',
+        'broadcaster_language': 'en',
+        'title': 't',
+        'game_id': '1',
+        'game_name': 'g',
+      });
+      expect(channel.contentClassificationLabels, isEmpty);
     });
   });
 

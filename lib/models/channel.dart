@@ -13,6 +13,10 @@ class Channel {
   final String gameId;
   final String gameName;
 
+  /// Content classification labels (e.g. "SexualThemes"); empty when none.
+  @JsonKey(defaultValue: <String>[])
+  final List<String> contentClassificationLabels;
+
   const Channel({
     required this.broadcasterId,
     required this.broadcasterLogin,
@@ -21,6 +25,7 @@ class Channel {
     required this.title,
     required this.gameId,
     required this.gameName,
+    this.contentClassificationLabels = const [],
   });
 
   factory Channel.fromJson(Map<String, dynamic> json) =>

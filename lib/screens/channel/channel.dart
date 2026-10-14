@@ -12,6 +12,7 @@ import 'package:frosty/screens/channel/community_highlights/stores/community_hig
 import 'package:frosty/screens/channel/community_highlights/widgets/pinned_chat_text.dart';
 import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:frosty/screens/channel/portrait_split.dart';
+import 'package:frosty/screens/channel/video/content_warning_gate.dart';
 import 'package:frosty/screens/channel/video/ivs_stats_panel.dart';
 import 'package:frosty/screens/channel/video/ivs_video.dart';
 import 'package:frosty/screens/channel/video/native_video.dart';
@@ -687,7 +688,11 @@ class _VideoChatState extends State<VideoChat>
       builder: (context) {
         return Stack(
           children: [
-            player,
+            ContentWarningGate(
+              userId: widget.userId,
+              displayName: widget.userName,
+              child: player,
+            ),
             if (_videoStore.settingsStore.showOverlay) overlay,
             ChannelVideoTopOverlay(
               hypeTrain: _hypeTrainStore,

@@ -233,6 +233,16 @@ void main() {
     });
   });
 
+  group('warnMatureContent', () {
+    test('on by default, kept, and reset with the video settings', () {
+      expect(SettingsStore.fromJson({}).warnMatureContent, isTrue);
+      final store = SettingsStore.fromJson({'warnMatureContent': false});
+      expect(store.warnMatureContent, isFalse);
+      store.resetVideoSettings();
+      expect(store.warnMatureContent, isTrue);
+    });
+  });
+
   group('showCaptions', () {
     test('off by default, kept, and reset with the video settings', () {
       expect(SettingsStore.fromJson({}).showCaptions, isFalse);

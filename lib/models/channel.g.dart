@@ -14,6 +14,11 @@ Channel _$ChannelFromJson(Map<String, dynamic> json) => Channel(
   title: json['title'] as String,
   gameId: json['game_id'] as String,
   gameName: json['game_name'] as String,
+  contentClassificationLabels:
+      (json['content_classification_labels'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      [],
 );
 
 ChannelQuery _$ChannelQueryFromJson(Map<String, dynamic> json) => ChannelQuery(

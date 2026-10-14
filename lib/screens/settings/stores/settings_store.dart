@@ -83,6 +83,7 @@ abstract class _SettingsStoreBase with Store {
   static const defaultShowVideo = true;
   static const defaultPortraitVideoScale = 1.0;
   static const defaultShowCaptions = false;
+  static const defaultWarnMatureContent = true;
   static const defaultDefaultToHighestQuality = false;
   static const defaultUseTextureRendering = true;
   static const defaultKeepScreenAwake = true;
@@ -99,6 +100,11 @@ abstract class _SettingsStoreBase with Store {
   @JsonKey(defaultValue: defaultShowVideo)
   @observable
   var showVideo = defaultShowVideo;
+
+  /// Warn before entering a channel with content classification labels.
+  @JsonKey(defaultValue: defaultWarnMatureContent)
+  @observable
+  var warnMatureContent = defaultWarnMatureContent;
 
   /// Closed captions over the video, when a stream has them (IVS only).
   @JsonKey(defaultValue: defaultShowCaptions)
@@ -163,6 +169,7 @@ abstract class _SettingsStoreBase with Store {
     showVideo = defaultShowVideo;
     portraitVideoScale = defaultPortraitVideoScale;
     showCaptions = defaultShowCaptions;
+    warnMatureContent = defaultWarnMatureContent;
     defaultToHighestQuality = defaultDefaultToHighestQuality;
     useTextureRendering = defaultUseTextureRendering;
     keepScreenAwake = defaultKeepScreenAwake;

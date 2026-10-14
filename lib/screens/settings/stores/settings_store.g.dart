@@ -29,6 +29,7 @@ SettingsStore _$SettingsStoreFromJson(
   ..streamLanguage = json['streamLanguage'] as String? ?? ''
   ..launchUrlExternal = json['launchUrlExternal'] as bool? ?? false
   ..showVideo = json['showVideo'] as bool? ?? true
+  ..warnMatureContent = json['warnMatureContent'] as bool? ?? true
   ..showCaptions = json['showCaptions'] as bool? ?? false
   ..portraitVideoScale = (json['portraitVideoScale'] as num?)?.toDouble() ?? 1.0
   ..defaultToHighestQuality = json['defaultToHighestQuality'] as bool? ?? false
@@ -137,6 +138,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'streamLanguage': instance.streamLanguage,
   'launchUrlExternal': instance.launchUrlExternal,
   'showVideo': instance.showVideo,
+  'warnMatureContent': instance.warnMatureContent,
   'showCaptions': instance.showCaptions,
   'portraitVideoScale': instance.portraitVideoScale,
   'defaultToHighestQuality': instance.defaultToHighestQuality,
@@ -388,6 +390,24 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   set showVideo(bool value) {
     _$showVideoAtom.reportWrite(value, super.showVideo, () {
       super.showVideo = value;
+    });
+  }
+
+  late final _$warnMatureContentAtom = Atom(
+    name: '_SettingsStoreBase.warnMatureContent',
+    context: context,
+  );
+
+  @override
+  bool get warnMatureContent {
+    _$warnMatureContentAtom.reportRead();
+    return super.warnMatureContent;
+  }
+
+  @override
+  set warnMatureContent(bool value) {
+    _$warnMatureContentAtom.reportWrite(value, super.warnMatureContent, () {
+      super.warnMatureContent = value;
     });
   }
 
@@ -1459,6 +1479,7 @@ startTab: ${startTab},
 streamLanguage: ${streamLanguage},
 launchUrlExternal: ${launchUrlExternal},
 showVideo: ${showVideo},
+warnMatureContent: ${warnMatureContent},
 showCaptions: ${showCaptions},
 portraitVideoScale: ${portraitVideoScale},
 defaultToHighestQuality: ${defaultToHighestQuality},

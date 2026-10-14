@@ -93,6 +93,15 @@ class VideoSettings extends StatelessWidget {
             value: settingsStore.keepScreenAwake,
             onChanged: (newValue) => settingsStore.keepScreenAwake = newValue,
           ),
+          SettingsListSwitch(
+            title: 'Warn about mature content',
+            subtitle: const Text(
+              'Shows a warning before a channel labeled for mature content.',
+            ),
+            value: settingsStore.warnMatureContent,
+            onChanged: (newValue) =>
+                settingsStore.warnMatureContent = newValue,
+          ),
           const SectionHeader('Overlay'),
           SettingsListSwitch(
             title: 'Use custom video overlay',
