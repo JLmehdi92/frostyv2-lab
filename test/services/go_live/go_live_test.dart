@@ -30,12 +30,12 @@ void main() {
       expect(newlyLive(wasLive: null, live: [_stream('1')]), isEmpty);
     });
 
-    test('only the chosen channels when asked', () {
+    test('not the muted channels', () {
       expect(
         newlyLive(
           wasLive: {},
           live: [_stream('1'), _stream('2')],
-          only: {'2'},
+          muted: {'1'},
         ).map((s) => s.userId),
         ['2'],
       );
@@ -128,10 +128,12 @@ void main() {
       expect(notified.single.$2, 3);
     });
 
-    test('only the channels with their bell on, when asked', () async {
+    test('a channel with its bell off is not announced', () async {
       await prefs.setSeen({});
-      await prefs.setOnlyChosen(true);
-      await prefs.setChosen({'2'});
+      await prefs.setMuted('1', true);
+      await prefs.setMuted('3', true);
+      await prefs.setMuted('3', false);
+      expect(prefs.muted, {'1'});
       followedLive([_stream('1'), _stream('2')]);
       expect(await check(), 1);
       expect(notified.single.$1.single.userId, '2');

@@ -11,8 +11,7 @@ class GoLivePrefs {
   final SharedPreferences _prefs;
 
   static const _enabledKey = 'go_live_enabled';
-  static const _onlyChosenKey = 'go_live_only_chosen';
-  static const _chosenKey = 'go_live_channels';
+  static const _mutedKey = 'go_live_muted';
   static const _userKey = 'go_live_user_id';
   static const _seenKey = 'go_live_seen';
 
@@ -22,15 +21,15 @@ class GoLivePrefs {
   bool get enabled => _prefs.getBool(_enabledKey) ?? false;
   Future<void> setEnabled(bool value) => _prefs.setBool(_enabledKey, value);
 
-  /// Only the channels with their bell on (otherwise every followed one).
-  bool get onlyChosen => _prefs.getBool(_onlyChosenKey) ?? false;
-  Future<void> setOnlyChosen(bool value) =>
-      _prefs.setBool(_onlyChosenKey, value);
+  /// The channels (ids) whose bell is off, like Twitch: every followed
+  /// channel notifies unless muted.
+  Set<String> get muted => {...?_prefs.getStringList(_mutedKey)};
 
-  /// The channels (ids) whose bell is on.
-  Set<String> get chosen => {...?_prefs.getStringList(_chosenKey)};
-  Future<void> setChosen(Set<String> ids) =>
-      _prefs.setStringList(_chosenKey, [...ids]);
+  Future<void> setMuted(String channelId, bool muted) {
+    final ids = this.muted;
+    muted ? ids.add(channelId) : ids.remove(channelId);
+    return _prefs.setStringList(_mutedKey, [...ids]);
+  }
 
   /// The viewer whose followed channels are checked; null when logged out.
   String? get userId => _prefs.getString(_userKey);
@@ -61,18 +60,17 @@ class GoLivePrefs {
 }
 
 /// The streams to announce: live now, not at the last check ([wasLive]),
-/// and chosen when [only] is given. Nothing before a first check, so
-/// turning the feature on does not announce everyone already live.
+/// and not [muted]. Nothing before a first check, so turning the feature
+/// on does not announce everyone already live.
 List<StreamTwitch> newlyLive({
   required Set<String>? wasLive,
   required List<StreamTwitch> live,
-  Set<String>? only,
+  Set<String> muted = const {},
 }) {
   if (wasLive == null) return const [];
   return [
     for (final stream in live)
-      if (!wasLive.contains(stream.userId) &&
-          (only == null || only.contains(stream.userId)))
+      if (!wasLive.contains(stream.userId) && !muted.contains(stream.userId))
         stream,
   ];
 }
@@ -126,11 +124,7 @@ Future<int> checkGoLive({
     cursor = streams.pagination['cursor'];
     if (cursor == null || streams.data.isEmpty) break;
   }
-  final fresh = newlyLive(
-    wasLive: prefs.seen,
-    live: live,
-    only: prefs.onlyChosen ? prefs.chosen : null,
-  );
+  final fresh = newlyLive(wasLive: prefs.seen, live: live, muted: prefs.muted);
   await prefs.setSeen({for (final stream in live) stream.userId});
   if (fresh.isEmpty) return 0;
   final shown = fresh.take(kMaxGoLiveNotices).map(goLiveNotice).toList();
