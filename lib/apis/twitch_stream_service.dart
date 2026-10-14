@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:frosty/apis/base_api_client.dart';
@@ -28,7 +30,7 @@ class TwitchStreamService extends BaseApiClient {
       '\$vodID: ID!, \$isVod: Boolean!, \$playerType: String!) {'
       '  streamPlaybackAccessToken(channelName: \$login, params: {platform: "web", '
       'playerBackend: "mediaplayer", playerType: \$playerType}) @include(if: \$isLive) {'
-      '    value signature __typename'
+      '    value signature authorization { forbiddenReasonCode } __typename'
       '  }'
       '  videoPlaybackAccessToken(id: \$vodID, params: {platform: "web", '
       'playerBackend: "mediaplayer", playerType: \$playerType}) @include(if: \$isVod) {'
@@ -40,6 +42,9 @@ class TwitchStreamService extends BaseApiClient {
 
   /// Optional token cache (null = always ask GQL, the previous behaviour).
   final PlaybackTokenCache? _tokenCache;
+
+  /// The refusal of each channel's last token (absent when it plays).
+  final _refusals = <String, PlaybackRefusal>{};
 
   TwitchStreamService(Dio dio, {PlaybackTokenCache? tokenCache})
     : _http = dio,
@@ -118,6 +123,42 @@ class TwitchStreamService extends BaseApiClient {
     'type': 'any',
   };
 
+  /// Why Twitch said [userLogin]'s stream would be refused, from its last
+  /// token; null when it plays (or no token was fetched yet).
+  PlaybackRefusal? refusalFor(String userLogin) => _refusals[userLogin];
+
+  /// The reason usher gives when it refuses a playlist URL (from
+  /// [getUsherUrl]), such as a region or proxy block; null when the
+  /// playlist plays or the answer is unreadable.
+  Future<String?> usherRefusal(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null || uri.host != Uri.parse(_usherBase).host) return null;
+    try {
+      final response = await _http.get<String>(
+        url,
+        options: Options(
+          responseType: ResponseType.plain,
+          validateStatus: (_) => true,
+        ),
+      );
+      final status = response.statusCode ?? 0;
+      if (status < 400) return null;
+      final body = jsonDecode(response.data ?? '');
+      if (body is! List || body.isEmpty) return null;
+      final first = body.first;
+      if (first is! Map) return null;
+      final error = first['error'];
+      if (error is! String) return null;
+      final reason = error.replaceAll(RegExp(r'\s+'), ' ').trim();
+      if (reason.isEmpty) return null;
+      return reason.length > 200 ? '${reason.substring(0, 200)}…' : reason;
+    } on DioException {
+      return null;
+    } on FormatException {
+      return null;
+    }
+  }
+
   /// Releases the underlying HTTP client. Only call when this service owns the
   /// Dio (i.e. it was not injected from the shared app client).
   void close() => _http.close(force: true);
@@ -131,6 +172,7 @@ class TwitchStreamService extends BaseApiClient {
       if (forceFresh) {
         cache.invalidate(login);
       } else if (cache.get(login) case final cached?) {
+        _remember(login, cached);
         return cached;
       }
     }
@@ -158,9 +200,26 @@ class TwitchStreamService extends BaseApiClient {
     final accessToken = PlaybackAccessToken.fromValue(
       value: token['value'] as String,
       signature: token['signature'] as String,
+      // Only explains a refusal: an odd shape must not cost the token.
+      refusal: switch (token['authorization']) {
+        {'forbiddenReasonCode': final String code} => PlaybackRefusal.fromCode(
+          code,
+        ),
+        _ => null,
+      },
     );
     cache?.put(login, accessToken);
+    _remember(login, accessToken);
     return accessToken;
+  }
+
+  void _remember(String login, PlaybackAccessToken token) {
+    final refusal = token.refusal;
+    if (refusal == null) {
+      _refusals.remove(login);
+    } else {
+      _refusals[login] = refusal;
+    }
   }
 
   /// Twitch's usher endpoint expects a random integer in `p`.
