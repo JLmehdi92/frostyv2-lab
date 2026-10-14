@@ -44,7 +44,7 @@
 **Constats de vérification** (par rapport à `ARCHITECTURE.md`, tous confirmés dans le code) :
 
 - Temps réel : IRC, EventAPI 7TV, Hermes anonyme (hype train, highlights) et, depuis l'épique whispers, EventSub WebSocket avec le jeton utilisateur (`user.whisper.message`).
-- Scopes OAuth : `chat:read chat:edit user:read:follows user:read:blocked_users user:manage:blocked_users user:manage:chat_color` puis, depuis l'épique modération, `moderator:manage:banned_users moderator:manage:chat_messages moderator:manage:chat_settings moderator:manage:warnings` (`auth_store.dart:164`). Puis `moderator:read:followers` et `user:manage:whispers` (fiche utilisateur, whispers). Aucun scope `user:read:chat` ni `user:read:emotes`. **Ajouter un scope oblige à se reconnecter.**
+- Scopes OAuth : `chat:read chat:edit user:read:follows user:read:blocked_users user:manage:blocked_users user:manage:chat_color` puis, depuis l'épique modération, `moderator:manage:banned_users moderator:manage:chat_messages moderator:manage:chat_settings moderator:manage:warnings` (`auth_store.dart:164`). Puis `moderator:read:followers`, `user:manage:whispers` et `user:read:emotes` (fiche utilisateur, whispers, menu d'emotes). Aucun scope `user:read:chat`. **Ajouter un scope oblige à se reconnecter.**
 - iOS : `ready` réussit (usher résolu), mais `_createTexture` échoue faute de canal natif. L'échec est avalé par `catchError` (`ivs_video_store.dart:115`) : `onFatalError` n'est jamais appelé et le spinner tourne à l'infini.
 - Mots masqués : `chat_store.dart:548-555`. Le `return` abandonne tout le lot IRC en cours, et `split('')` compare caractère par caractère si « mot entier » est désactivé.
 - Deep links : `android:autoVerify="true"` sur `twitch.tv`/`www.`/`m.` (`AndroidManifest.xml:40-47`). La vérification échouera toujours, car `assetlinks.json` appartient à Twitch. Android affichera donc un sélecteur ou ouvrira l'app officielle.
@@ -115,7 +115,7 @@
 | CHT-20 | Sélecteur d'emotes | P0 | ➕ | `chat.dart:261-337` | Récents, Twitch (emotes sub grisées), 7TV, BTTV, FFZ. | OK |
 | CHT-21 | Rendu des emotes et types | P0 | ➕ | `irc.dart:950-1154`, `chat_assets_store.dart:153-230` | Plages `emotes` plus 7TV/BTTV/FFZ (zero-width, alias) et mises à jour live 7TV (`chat_store.dart:797-881`). | OK |
 | CHT-22 | Carte d'emote | P1 | ⚠️ | `irc.dart` (`showEmoteDetailsBottomSheet`), `emotes.dart` (`unlockHint`, `subTier`) | Fiche avec nom, source, auteur, copier, ouvrir et condition de déblocage des emotes Twitch (palier d'abonnement Helix, follow, Bits). Ni emotes liées, ni signalement. | OK |
-| CHT-23 | Emotes follower | P1 | ⚠️ | `twitch_api.dart:36-80` | Emotes follower affichées. Utilisables seulement si elles figurent dans les sets USERSTATE. Helix `GET /chat/emotes/user` (`user:read:emotes`). | OK |
+| CHT-23 | Emotes follower | P1 | ✅ | `twitch_api.dart` (`getUserEmotes`, `getUsersByIds`), `chat_assets_store.dart` (`userEmotesFromHelix`), `chat_store.dart` (`_loadUserEmotes`) | Le menu d'emotes et l'autocomplétion reçoivent toutes les emotes utilisables (Helix `GET /chat/emotes/user`, `user:read:emotes`) : abonnements partout, emotes follower de la chaîne, débloquées et globales, rangées par chaîne. Un ancien jeton sans le scope échoue sans dialogue et retombe sur les sets de GLOBALUSERSTATE. | OK |
 | CHT-24 | Modificateurs d'emotes | P2 | ❌ | — | — | GQL privé |
 | CHT-25 | Animation des emotes et GIF | P1 | ✅ | `emotes.dart` (`staticUrl`, `urlFor`), `irc.dart`, `chat_settings.dart` | Réglage local « Animate emotes » : éteint, le chat (live, replay, réponses, épinglé) affiche l'image fixe fournie par Twitch, 7TV, BTTV ou FFZ. Non synchronisé avec le compte. | OK |
 | CHT-26 | GIF dans le chat (GIPHY) | P2 | ❌ | — | — | GQL privé |
@@ -430,7 +430,7 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | Lecture vidéo (PLY) | 14 | 5 | 13 | 1 | 33 |
-| Chat (CHT) | 24 | 6 | 12 | 6 | 48 |
+| Chat (CHT) | 25 | 5 | 12 | 6 | 48 |
 | Interactions communautaires (INT) | 4 | 4 | 23 | 0 | 31 |
 | Modération (MOD) | 9 | 1 | 21 | 0 | 31 |
 | Social & notifications (SOC) | 5 | 5 | 12 | 0 | 22 |
@@ -440,18 +440,18 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Compte & réglages (ACC) | 4 | 5 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 4 | 6 | 7 | 0 | 17 |
-| **Total** | **82** | **41** | **186** | **8** | **317** |
+| **Total** | **83** | **40** | **186** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 40 | 14 | 2 | 4 | 60 |
-| P1 | 36 | 20 | 48 | 4 | 108 |
+| P1 | 37 | 19 | 48 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **82** | **41** | **186** | **8** | **317** |
+| **Total** | **83** | **40** | **186** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 10 | 28 | 33 | 71 |
+| OK | 10 | 27 | 33 | 70 |
 | GQL privé | 6 | 29 | 61 | 96 |
 | Compte requis | 0 | 11 | 12 | 23 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
