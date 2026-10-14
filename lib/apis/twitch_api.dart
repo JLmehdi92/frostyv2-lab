@@ -353,6 +353,26 @@ class TwitchApi extends BaseApiClient {
     return users;
   }
 
+  /// The channels of [ids] (Helix `GET /channels`, 100 per request), by
+  /// broadcaster id; ids Twitch does not know are left out.
+  Future<Map<String, Channel>> getChannelsByIds(List<String> ids) async {
+    final channels = <String, Channel>{};
+    for (var start = 0; start < ids.length; start += 100) {
+      final batch = ids.sublist(start, (start + 100).clamp(0, ids.length));
+      final data = await get<JsonMap>(
+        '/channels',
+        queryParameters: {
+          'broadcaster_id': [for (final id in batch) _checkId(id, 'id')],
+        },
+      );
+      for (final json in data['data'] as JsonList) {
+        final channel = Channel.fromJson(json as JsonMap);
+        channels[channel.broadcasterId] = channel;
+      }
+    }
+    return channels;
+  }
+
   /// Returns a [Channel] object containing a channels's info associated with the given [userId].
   Future<Channel> getChannel({required String userId}) async {
     final data = await get<JsonMap>(
