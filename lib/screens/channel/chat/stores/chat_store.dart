@@ -395,7 +395,7 @@ abstract class ChatStoreBase with Store {
   }
 
   /// Runs [command] in this chat as the viewer and says the outcome in
-  /// chat. [userId] is the target's id when already known. Null when the
+  /// chat (a viewer who is not a moderator hears it from Twitch). [userId] is the target's id when already known. Null when the
   /// chat closed before it ended.
   Future<ModerationOutcome?> moderate(
     ModerationCommand command, {
@@ -405,12 +405,9 @@ abstract class ChatStoreBase with Store {
     final ModerationOutcome outcome;
     if (me == null) {
       outcome = (ok: false, message: 'Log in to moderate.');
-    } else if (!canModerate) {
-      outcome = (
-        ok: false,
-        message: 'Only moderators can use moderator commands.',
-      );
     } else {
+      // Helix decides: USERSTATE (behind [canModerate]) comes after joining
+      // and misses someone modded meanwhile.
       outcome = await ChatModeration(
         api: twitchApi,
         broadcasterId: channelId,
