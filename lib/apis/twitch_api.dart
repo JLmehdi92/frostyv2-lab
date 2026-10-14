@@ -652,6 +652,65 @@ class TwitchApi extends BaseApiClient {
     );
   }
 
+  /// Twitch's longest whisper (to someone not yet whispered: 500).
+  static const maxWhisperLength = 10000;
+
+  /// Subscribes the EventSub websocket session [sessionId] to [type] for
+  /// [condition] and returns the subscription id.
+  Future<String> createEventSubSubscription({
+    required String type,
+    required String version,
+    required Map<String, String> condition,
+    required String sessionId,
+  }) async {
+    final data = await post<JsonMap>(
+      '/eventsub/subscriptions',
+      data: {
+        'type': type,
+        'version': version,
+        'condition': condition,
+        'transport': {'method': 'websocket', 'session_id': sessionId},
+      },
+    );
+    final subscriptions = data['data'];
+    final first = subscriptions is List && subscriptions.isNotEmpty
+        ? subscriptions.first
+        : null;
+    final id = first is Map ? first['id'] : null;
+    if (id is! String || id.isEmpty) {
+      throw const ApiException('Malformed EventSub subscription');
+    }
+    return id;
+  }
+
+  Future<void> deleteEventSubSubscription(String id) async {
+    await delete<dynamic>(
+      '/eventsub/subscriptions',
+      queryParameters: {'id': id},
+    );
+  }
+
+  /// Whispers [message] from [fromUserId] (the viewer, who needs a verified
+  /// phone number) to [toUserId]. Needs `user:manage:whispers`.
+  Future<void> sendWhisper({
+    required String fromUserId,
+    required String toUserId,
+    required String message,
+  }) async {
+    final text = message.trim();
+    if (text.isEmpty || text.length > maxWhisperLength) {
+      throw ArgumentError.value(message, 'message', '1 to 10000 characters');
+    }
+    await post<dynamic>(
+      '/whispers',
+      queryParameters: {
+        'from_user_id': _checkId(fromUserId, 'fromUserId'),
+        'to_user_id': _checkId(toUserId, 'toUserId'),
+      },
+      data: {'message': text},
+    );
+  }
+
   // Gets recent messages from a third-party service.
   Future<JsonList> getRecentMessages({required String userLogin}) async {
     // Use custom base URL for third-party service
