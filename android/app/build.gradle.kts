@@ -25,6 +25,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // flutter_local_notifications uses java.time on older Androids.
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -63,4 +65,6 @@ dependencies {
     // Amazon IVS player — the same engine the official Twitch app uses, for
     // exact-parity low latency on Twitch HLS streams.
     implementation("com.amazonaws:ivs-player:1.57.0")
+
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

@@ -27,6 +27,10 @@ abstract class AuthBase with Store {
   /// The shared_preferences key for the user token.
   static const _userTokenKey = 'user_token';
 
+  /// Where the user token is kept, for the go-live background check (its
+  /// own isolate, without this store).
+  static const userTokenKey = _userTokenKey;
+
   /// The Twitch API service for making requests.
   final TwitchApi twitchApi;
 

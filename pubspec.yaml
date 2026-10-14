@@ -68,6 +68,10 @@ dependencies:
     flutter_markdown_plus: ^1.0.7
     flutter_colorpicker: ^1.1.0
     path_provider: ^2.1.5
+    # Go-live notices: a periodic background check and local notifications.
+    # Pinned (newer releases need a newer Flutter, see CLAUDE.md).
+    workmanager: 0.10.10
+    flutter_local_notifications: 22.3.1
     dio: ^5.9.0
     app_links: ^7.0.0
     extended_text_field: ^16.0.2
