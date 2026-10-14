@@ -620,6 +620,27 @@ void main() {
       expect(store.refusalNotice, isNull);
     });
 
+    test('a reload failing on its own is not taken for a refusal', () async {
+      var fatal = 0;
+      store = await createStore();
+      store.onFatalError = () => fatal++;
+      when(
+        () => streamService.getUsherUrl(
+          userLogin: any(named: 'userLogin'),
+          forceFreshToken: any(named: 'forceFreshToken'),
+        ),
+      ).thenThrow(const NetworkException('offline'));
+
+      await native.emit({'type': 'error', 'code': 403});
+      for (var i = 0; i < 12; i++) {
+        await settle();
+      }
+
+      expect(fatal, 1);
+      expect(store.refusalNotice, isNull);
+      verifyNever(() => streamService.usherRefusal(any()));
+    });
+
     test('other failures fall back without asking usher', () async {
       var fatal = 0;
       store = await createStore();

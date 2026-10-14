@@ -114,7 +114,9 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   @readonly
   String? _refusalNotice;
 
-  /// Whether the last player error was a rejected token (401 or 403).
+  /// Whether the last player error was a rejected token (401 or 403); each
+  /// new load attempt clears it, so a failure of its own (no network, a
+  /// token fetch) is not taken for a refusal.
   var _lastErrorRefused = false;
 
   /// Completes when the usher URL is resolved, or throws so the channel can
@@ -671,9 +673,11 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         reason = await _streamService
             .usherRefusal(url)
             .timeout(const Duration(seconds: 4));
-      } catch (e) {
+      } on TimeoutException catch (e) {
         // Only the explanation is lost: the player still gives up below.
         debugPrint('IvsVideoStore usher reason: $e');
+      } catch (e, stack) {
+        _reportUnexpected(e, stack, 'usher reason');
       }
       if (reason != null) {
         notice =
@@ -689,6 +693,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   /// Reloads the same native player with a freshly resolved usher URL.
   Future<void> _reload(int epoch, {bool freshToken = false}) async {
     if (epoch != _recoveryEpoch) return;
+    _lastErrorRefused = false;
     try {
       final url = await _streamService.getUsherUrl(
         userLogin: userLogin,
@@ -715,6 +720,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   /// IVS says the stream is unavailable: confirm with Helix. Offline shows the
   /// offline state (no WebView fallback); still live means a transient error.
   Future<void> _confirmOffline(int epoch) async {
+    _lastErrorRefused = false;
     StreamTwitch? info;
     // Only a 404 means offline; a failed check proves nothing.
     var unknown = false;
@@ -920,6 +926,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     _retryTimer?.cancel();
     _recoveryEpoch++;
     _recovering = false;
+    _lastErrorRefused = false;
     _recovery.reset();
     _retryAttempt = 0;
     _status = IvsPlaybackStatus.loading;
