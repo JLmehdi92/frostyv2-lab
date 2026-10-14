@@ -1,8 +1,10 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_message.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_moderation_bar.dart';
+import 'package:frosty/screens/channel/chat/widgets/user_card_info.dart';
 import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
 import 'package:frosty/screens/vod/channel_videos.dart';
 import 'package:frosty/utils.dart';
@@ -115,6 +117,26 @@ class _ChatUserModalState extends State<ChatUserModal> {
                 ),
               ],
             ),
+          ),
+          Builder(
+            builder: (context) {
+              final store = widget.chatStore;
+              final isBroadcaster =
+                  widget.username.toLowerCase() ==
+                  store.channelName.toLowerCase();
+              return UserCardInfo(
+                api: store.twitchApi,
+                userId: widget.userId,
+                channelId: store.channelId,
+                showFollowAge: store.canModerate && !isBroadcaster,
+                badges: userCardBadges(
+                  store.messages.lastWhereOrNull(
+                    (message) => message.user == widget.username,
+                  ),
+                  store.assetsStore.twitchBadgesToObject,
+                ),
+              );
+            },
           ),
           Observer(
             builder: (context) {
