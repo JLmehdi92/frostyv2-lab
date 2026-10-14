@@ -11,6 +11,7 @@ import 'package:frosty/screens/channel/chat/widgets/chat_tabs.dart';
 import 'package:frosty/screens/channel/community_highlights/stores/community_highlights_store.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/pinned_chat_text.dart';
 import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
+import 'package:frosty/screens/channel/portrait_split.dart';
 import 'package:frosty/screens/channel/video/ivs_stats_panel.dart';
 import 'package:frosty/screens/channel/video/ivs_video.dart';
 import 'package:frosty/screens/channel/video/native_video.dart';
@@ -1043,35 +1044,54 @@ class _VideoChatState extends State<VideoChat>
                       : SafeArea(child: chat),
                 );
               }
+              // Read here, not in the LayoutBuilder below: the Observer only
+              // tracks what its own build reads.
+              final videoScale = settingsStore.portraitVideoScale;
               return SafeArea(
                 // Keep chat-only scrolling under the blurred app bar, but
                 // ensure video does not bleed into the system status bar.
                 top: settingsStore.showVideo,
                 bottom: false,
-                child: Stack(
-                  children: [
-                    Column(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final width = constraints.maxWidth;
+                    final videoHeight = portraitVideoHeight(width, videoScale);
+                    return Stack(
                       children: [
-                        if (settingsStore.showVideo) ...[
-                          AspectRatio(
-                            aspectRatio: 16 / 9,
-                            child: Container(), // Placeholder for video space
-                          ),
-                        ],
-                        Expanded(child: chat),
-                      ],
-                    ),
-                    if (settingsStore.showVideo)
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: _buildPipGestureWrapper(
-                          child: video,
-                          aspectRatio: 16 / 9,
+                        Column(
+                          children: [
+                            if (settingsStore.showVideo) ...[
+                              // Placeholder for video space
+                              SizedBox(height: videoHeight),
+                              PortraitSplitHandle(
+                                width: width,
+                                scale: videoScale,
+                                onChanged: (scale) =>
+                                    settingsStore.portraitVideoScale = scale,
+                              ),
+                            ],
+                            Expanded(child: chat),
+                          ],
                         ),
-                      ),
-                  ],
+                        if (settingsStore.showVideo)
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            height: videoHeight,
+                            child: Center(
+                              child: SizedBox(
+                                width: videoHeight * 16 / 9,
+                                child: _buildPipGestureWrapper(
+                                  child: video,
+                                  aspectRatio: 16 / 9,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
               );
             },

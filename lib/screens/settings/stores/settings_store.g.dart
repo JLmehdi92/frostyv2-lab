@@ -29,6 +29,7 @@ SettingsStore _$SettingsStoreFromJson(
   ..streamLanguage = json['streamLanguage'] as String? ?? ''
   ..launchUrlExternal = json['launchUrlExternal'] as bool? ?? false
   ..showVideo = json['showVideo'] as bool? ?? true
+  ..portraitVideoScale = (json['portraitVideoScale'] as num?)?.toDouble() ?? 1.0
   ..defaultToHighestQuality = json['defaultToHighestQuality'] as bool? ?? false
   ..useTextureRendering = json['useTextureRendering'] as bool? ?? true
   ..keepScreenAwake = json['keepScreenAwake'] as bool? ?? true
@@ -135,6 +136,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'streamLanguage': instance.streamLanguage,
   'launchUrlExternal': instance.launchUrlExternal,
   'showVideo': instance.showVideo,
+  'portraitVideoScale': instance.portraitVideoScale,
   'defaultToHighestQuality': instance.defaultToHighestQuality,
   'useTextureRendering': instance.useTextureRendering,
   'keepScreenAwake': instance.keepScreenAwake,
@@ -384,6 +386,24 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   set showVideo(bool value) {
     _$showVideoAtom.reportWrite(value, super.showVideo, () {
       super.showVideo = value;
+    });
+  }
+
+  late final _$portraitVideoScaleAtom = Atom(
+    name: '_SettingsStoreBase.portraitVideoScale',
+    context: context,
+  );
+
+  @override
+  double get portraitVideoScale {
+    _$portraitVideoScaleAtom.reportRead();
+    return super.portraitVideoScale;
+  }
+
+  @override
+  set portraitVideoScale(double value) {
+    _$portraitVideoScaleAtom.reportWrite(value, super.portraitVideoScale, () {
+      super.portraitVideoScale = value;
     });
   }
 
@@ -1419,6 +1439,7 @@ startTab: ${startTab},
 streamLanguage: ${streamLanguage},
 launchUrlExternal: ${launchUrlExternal},
 showVideo: ${showVideo},
+portraitVideoScale: ${portraitVideoScale},
 defaultToHighestQuality: ${defaultToHighestQuality},
 useTextureRendering: ${useTextureRendering},
 keepScreenAwake: ${keepScreenAwake},

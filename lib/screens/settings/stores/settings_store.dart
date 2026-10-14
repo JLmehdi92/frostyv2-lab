@@ -81,6 +81,7 @@ abstract class _SettingsStoreBase with Store {
   // * Video Settings
   // Player defaults
   static const defaultShowVideo = true;
+  static const defaultPortraitVideoScale = 1.0;
   static const defaultDefaultToHighestQuality = false;
   static const defaultUseTextureRendering = true;
   static const defaultKeepScreenAwake = true;
@@ -97,6 +98,11 @@ abstract class _SettingsStoreBase with Store {
   @JsonKey(defaultValue: defaultShowVideo)
   @observable
   var showVideo = defaultShowVideo;
+
+  /// The portrait video's width share (smaller leaves more room to chat).
+  @JsonKey(defaultValue: defaultPortraitVideoScale)
+  @observable
+  var portraitVideoScale = defaultPortraitVideoScale;
 
   @JsonKey(defaultValue: defaultDefaultToHighestQuality)
   @observable
@@ -149,6 +155,7 @@ abstract class _SettingsStoreBase with Store {
   @action
   void resetVideoSettings() {
     showVideo = defaultShowVideo;
+    portraitVideoScale = defaultPortraitVideoScale;
     defaultToHighestQuality = defaultDefaultToHighestQuality;
     useTextureRendering = defaultUseTextureRendering;
     keepScreenAwake = defaultKeepScreenAwake;
