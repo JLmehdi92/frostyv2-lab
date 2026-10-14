@@ -15,7 +15,7 @@
 | 2026-10-13 | épopée E2 « clips » | PRF-17, PRF-18 ✅ ; CHT-45 ⚠️ ; PRF-19 (compte requis) ; MSC-01 (remarques). Comptes recalculés. Lecture à valider sur appareil. |
 | 2026-10-13 | épopée E7 « chat » (1re partie) | CHT-03, 06, 12, 15, 18 ✅ ; CHT-05, 17, 28 ⚠️ (remarques). Comptes recalculés. À valider sur appareil. |
 | 2026-10-13 | épopée E6 « profil de chaîne » | PRF-01, 02, 03, 04, 05, 28 ✅ ; PRF-25 ⚠️ (remarque). Comptes recalculés. Affichage à valider sur appareil. |
-| 2026-10-14 | épopée E10 « réglages et lecteur » (1re partie) | ACC-04, PLY-07, PLY-20 ✅ ; ACC-12, PLY-23 ⚠️ (remarques). Comptes recalculés. Gestes à valider sur appareil. |
+| 2026-10-14 | épopée E10 « réglages et lecteur » (1re partie) | ACC-04, PLY-07, PLY-12, PLY-20 ✅ ; ACC-12, PLY-23 ⚠️ (remarques). Comptes recalculés. Gestes à valider sur appareil. |
 | 2026-10-14 | épopée E7 « chat » (2e partie) | CHT-10, CHT-25, CHT-45 ✅ ; CHT-22 ⚠️ (remarque). Comptes recalculés. À valider sur appareil. |
 | 2026-10-13 | épopée E8 « découverte » | DSC-04, DSC-05, DSC-06 ✅ ; DSC-08, DSC-09 ⚠️ (remarques). Comptes recalculés. Affichage à valider sur appareil. |
 | 2026-10-13 | épopée E5 « highlights communautaires » | CHT-41, CHT-42 ✅ ; INT-01, INT-02 ⚠️ (lecture seule) ; INT-19 (raid sortant). Comptes recalculés. Affichage à valider sur appareil. |
@@ -64,7 +64,7 @@
 | PLY-09 | État du live en temps réel | P0 | ⚠️ | `ivs_video_store.dart:250-299` | Infos rafraîchies par polling Helix au tap ou au retour dans l'app. Pas de push, pas de relance auto au retour du stream. Via EventSub `stream.online`/`stream.offline`/`channel.update` (aucun scope). Suite possible : le sujet Hermes `video-playback-by-id` s'abonne anonymement (vérifié) et donnerait le push sans compte. | OK |
 | PLY-10 | Fin de diffusion, chaîne hors ligne | P0 | ⚠️ | `ivs_recovery.dart`, `ivs_video_store.dart` (`4d50b89`) | Une erreur « non disponible » confirmée hors ligne par Helix affiche l'état hors ligne au lieu de basculer sur la WebView. Reste : pas d'écran de fin mais un bouton « Past broadcasts » hors ligne (`46b4ed2`) ; une chaîne déjà hors ligne à l'ouverture bascule toujours sur la WebView. | OK |
 | PLY-11 | Erreurs et relance du flux | P0 | ✅ | `ivs_recovery.dart`, `ivs_video_store.dart`, `channel.dart` (`4d50b89`) | Erreurs classées, relance 1/2/4 s sur le même lecteur avec nouvelle URL, « ↻ n/3 », jeton neuf si refusé, repli WebView après 3 échecs en 60 s ou erreur fatale ; IVS seulement sur Android. À valider sur appareil. | OK |
-| PLY-12 | Audio seul | P1 | ❌ | — | `allow_audio_only` non demandé, pas de variante audio. | OK |
+| PLY-12 | Audio seul | P1 | ✅ | `twitch_stream_service.dart` (`allow_audio_only`), `quality_selection.dart`, `ivs_video.dart` | Qualité « Audio only » dans le menu (comme l'appli officielle : usher `allow_audio_only=true`, jamais choisie par l'adaptatif), pastille sur l'image ; non mémorisée d'un stream à l'autre. Pas encore en arrière-plan (PLY-14). | OK |
 | PLY-13 | Chat seul | P1 | ✅ | `settings_store.dart:77-79`, `channel.dart:492-573` | Réglage global « Enable video ». Pas de paramètre de deep link. | OK |
 | PLY-14 | Audio en arrière-plan | P1 | ❌ | — | Pas de service `mediaPlayback`. Seul l'auto-PiP permet de continuer. | OK |
 | PLY-15 | Contrôles média et casque | P1 | ❌ | — | Pas de MediaSession (seulement `pip.setIsPlaying`, `ivs_video_store.dart:181`). | OK |
@@ -427,7 +427,7 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 
 | Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| Lecture vidéo (PLY) | 10 | 7 | 15 | 1 | 33 |
+| Lecture vidéo (PLY) | 11 | 7 | 14 | 1 | 33 |
 | Chat (CHT) | 22 | 8 | 12 | 6 | 48 |
 | Interactions communautaires (INT) | 3 | 3 | 25 | 0 | 31 |
 | Modération (MOD) | 0 | 0 | 31 | 0 | 31 |
@@ -438,18 +438,18 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Compte & réglages (ACC) | 4 | 5 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 3 | 7 | 7 | 0 | 17 |
-| **Total** | **62** | **42** | **205** | **8** | **317** |
+| **Total** | **63** | **42** | **204** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 26 | 17 | 13 | 4 | 60 |
-| P1 | 30 | 18 | 56 | 4 | 108 |
+| P1 | 31 | 18 | 55 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **62** | **42** | **205** | **8** | **317** |
+| **Total** | **63** | **42** | **204** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 16 | 33 | 33 | 82 |
+| OK | 16 | 32 | 33 | 81 |
 | GQL privé | 6 | 29 | 61 | 96 |
 | Compte requis | 8 | 12 | 12 | 32 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
