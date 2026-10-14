@@ -612,11 +612,12 @@ abstract class ChatStoreBase with Store {
       reaction((_) => auth.isLoggedIn, (_) => _channel?.sink.close(1000)),
     );
 
-    // Held messages are the logged-in viewer's: follow whoever that is.
+    // Held messages are the logged-in viewer's: follow whoever that is,
+    // anew with each token (logging in again grants a missing scope).
     reactions.add(
       reaction(
-        (_) => auth.user.details?.id,
-        _watchHeldMessages,
+        (_) => (auth.isLoggedIn ? auth.user.details?.id : null, auth.token),
+        (session) => _watchHeldMessages(session.$1),
         fireImmediately: true,
       ),
     );
