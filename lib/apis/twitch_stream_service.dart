@@ -104,6 +104,9 @@ class TwitchStreamService extends BaseApiClient {
     required int p,
   }) => {
     'allow_source': 'true',
+    // Lists the "audio_only" rendition, as the official app does; adaptive
+    // quality never picks it.
+    'allow_audio_only': 'true',
     'fast_bread': 'true', // enables Twitch low-latency segments
     // Advertise the higher-quality codecs so Twitch includes the 1440p/4K
     // "enhanced broadcasting" renditions (which are HEVC/AV1, not H.264).

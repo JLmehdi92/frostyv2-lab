@@ -18,39 +18,42 @@ void main() {
     service = TwitchStreamService(dio);
   });
 
-  test('requests a playback access token then resolves usher variants', () async {
-    adapter
-      ..onPost(
-        'https://gql.twitch.tv/gql',
-        (server) => server.reply(200, {
-          'data': {
-            'streamPlaybackAccessToken': {
-              'value': '{"token":"abc"}',
-              'signature': 'deadbeef',
+  test(
+    'requests a playback access token then resolves usher variants',
+    () async {
+      adapter
+        ..onPost(
+          'https://gql.twitch.tv/gql',
+          (server) => server.reply(200, {
+            'data': {
+              'streamPlaybackAccessToken': {
+                'value': '{"token":"abc"}',
+                'signature': 'deadbeef',
+              },
             },
-          },
-        }),
-        data: Matchers.any,
-      )
-      ..onGet(
-        'https://usher.ttvnw.net/api/channel/hls/$login.m3u8',
-        (server) => server.reply(200, '''
+          }),
+          data: Matchers.any,
+        )
+        ..onGet(
+          'https://usher.ttvnw.net/api/channel/hls/$login.m3u8',
+          (server) => server.reply(200, '''
 #EXTM3U
 #EXT-X-MEDIA:TYPE=VIDEO,GROUP-ID="chunked",NAME="1080p60 (source)",DEFAULT=YES
 #EXT-X-STREAM-INF:BANDWIDTH=6000000,VIDEO="chunked"
 https://video-edge-1.ttvnw.net/chunked/index-live.m3u8
 '''),
+        );
+
+      final variants = await service.getStreamVariants(userLogin: login);
+
+      expect(variants, hasLength(1));
+      expect(variants.first.name, '1080p60 (source)');
+      expect(
+        variants.first.url,
+        'https://video-edge-1.ttvnw.net/chunked/index-live.m3u8',
       );
-
-    final variants = await service.getStreamVariants(userLogin: login);
-
-    expect(variants, hasLength(1));
-    expect(variants.first.name, '1080p60 (source)');
-    expect(
-      variants.first.url,
-      'https://video-edge-1.ttvnw.net/chunked/index-live.m3u8',
-    );
-  });
+    },
+  );
 
   test('throws when no access token is returned (offline channel)', () async {
     adapter.onPost(
@@ -86,6 +89,8 @@ https://video-edge-1.ttvnw.net/chunked/index-live.m3u8
     void expectUsherParams(Map<String, dynamic> params) {
       expect(params['allow_source'], 'true');
       expect(params['fast_bread'], 'true');
+      // Audio only can be picked, like in the official app.
+      expect(params['allow_audio_only'], 'true');
       // The user's 2K (1440p HEVC/AV1) support: must never change.
       expect(params['supported_codecs'], 'av1,h265,h264');
       expect(params['type'], 'any');
@@ -164,10 +169,7 @@ https://video-edge-1.ttvnw.net/chunked/index-live.m3u8
           'data': {
             'streamPlaybackAccessToken': offline
                 ? null
-                : {
-                    'value': '{"expires":$expires}',
-                    'signature': 'deadbeef',
-                  },
+                : {'value': '{"expires":$expires}', 'signature': 'deadbeef'},
           },
         }),
         data: Matchers.any,
@@ -239,4 +241,3 @@ https://video-edge-1.ttvnw.net/chunked/index-live.m3u8
     });
   });
 }
-

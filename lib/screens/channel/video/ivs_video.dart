@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/channel/video/captions.dart';
+import 'package:frosty/screens/channel/video/quality_selection.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 
 /// Renders the IVS player into a Flutter [Texture] (instead of a SurfaceView)
@@ -66,6 +67,8 @@ class IvsTextureVideo extends StatelessWidget {
           children: [
             picture,
             if (busy) const Center(child: CircularProgressIndicator()),
+            if (videoStore.streamQuality == kAudioOnlyQuality)
+              const Center(child: _AudioOnlyBadge()),
             if (videoStore.caption case final caption?)
               Positioned(
                 left: 16,
@@ -78,6 +81,32 @@ class IvsTextureVideo extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+/// Shown over the last picture while only the sound plays.
+class _AudioOnlyBadge extends StatelessWidget {
+  const _AudioOnlyBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 8,
+          children: [
+            Icon(Icons.headphones_rounded, color: Colors.white),
+            Text('Audio only', style: TextStyle(color: Colors.white)),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -68,4 +68,36 @@ void main() {
       );
     });
   });
+
+  group('audio only', () {
+    test('is shown with a readable name', () {
+      expect(qualityLabel('audio_only'), 'Audio only');
+      expect(qualityLabel('1080p60'), '1080p60');
+    });
+
+    test('a saved audio only opens the next stream on Auto', () {
+      for (final saved in ['audio_only', 'Audio only']) {
+        expect(
+          pickInitialQuality(
+            available: const ['1080p60', 'audio_only'],
+            defaultToHighest: false,
+            lastQuality: saved,
+          ),
+          isNull,
+          reason: saved,
+        );
+      }
+    });
+
+    test('highest quality never means audio only', () {
+      expect(
+        pickInitialQuality(
+          available: const ['1080p60', '720p', 'audio_only'],
+          defaultToHighest: true,
+          lastQuality: null,
+        ),
+        '1080p60',
+      );
+    });
+  });
 }

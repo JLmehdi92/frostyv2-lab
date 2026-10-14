@@ -7,6 +7,7 @@ import 'package:frosty/screens/channel/chat/details/chat_users_list.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/video/overlay_common.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
+import 'package:frosty/screens/channel/video/quality_selection.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:frosty/screens/channel/video/stream_info_bar.dart';
 import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
@@ -133,7 +134,7 @@ class VideoOverlay extends StatelessWidget {
                           trailing: videoStore.streamQuality == quality
                               ? const Icon(Icons.check_rounded)
                               : null,
-                          title: Text(quality),
+                          title: Text(qualityLabel(quality)),
                           onTap: () {
                             videoStore.setStreamQuality(quality);
                             SharedPreferences.getInstance().then(

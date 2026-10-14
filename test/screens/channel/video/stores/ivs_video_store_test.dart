@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_stream_service.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/channel/video/ivs_recovery.dart';
+import 'package:frosty/screens/channel/video/ivs_video.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
@@ -163,6 +165,23 @@ void main() {
     final config = (create.arguments as Map)['config'] as Map;
     expect(config.containsKey('llMinBufferSec'), isFalse);
     expect(s.playerConfig.buffer, BufferProfile.standard);
+  });
+
+  testWidgets('audio only shows a badge over the picture', (tester) async {
+    await tester.runAsync(() async {
+      store = await createStore();
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1080p60', 'audio_only'],
+      });
+      await native.emit({'type': 'quality', 'name': 'audio_only'});
+    });
+    await tester.pumpWidget(
+      MaterialApp(home: IvsTextureVideo(videoStore: store)),
+    );
+
+    expect(store.streamQuality, 'audio_only');
+    expect(find.text('Audio only'), findsOneWidget);
   });
 
   group('captions', () {
