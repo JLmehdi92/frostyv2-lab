@@ -350,18 +350,25 @@ class PinnedCard extends StatelessWidget {
 }
 
 /// This channel is raiding another: who, with how many viewers, the time
-/// left before it leaves, and a button to follow it in-app.
+/// left before it leaves, and a button to follow it in-app. The viewer goes
+/// along when it leaves unless they choose to stay ([onStay]).
 class RaidCard extends StatelessWidget {
   const RaidCard({
     super.key,
     required this.raid,
     required this.card,
     required this.onWatch,
+    this.onStay,
+    this.staying = false,
   });
 
   final RaidState raid;
   final HighlightCardContext card;
   final VoidCallback onWatch;
+
+  /// Stays here when the raid leaves (null: nothing to choose).
+  final VoidCallback? onStay;
+  final bool staying;
 
   @override
   Widget build(BuildContext context) {
@@ -406,14 +413,36 @@ class RaidCard extends StatelessWidget {
           ),
         ],
       ),
-      footer: Align(
-        alignment: AlignmentDirectional.centerStart,
-        child: FilledButton.tonalIcon(
-          style: FilledButton.styleFrom(minimumSize: const Size(48, 48)),
-          onPressed: onWatch,
-          icon: const Icon(Icons.play_arrow_rounded),
-          label: Text('Watch ${target.targetDisplayName}'),
-        ),
+      footer: Wrap(
+        spacing: 8,
+        runSpacing: 4,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          FilledButton.tonalIcon(
+            style: FilledButton.styleFrom(minimumSize: const Size(48, 48)),
+            onPressed: onWatch,
+            icon: const Icon(Icons.play_arrow_rounded),
+            label: Text('Watch ${target.targetDisplayName}'),
+          ),
+          if (!raid.gone && onStay != null) ...[
+            if (staying)
+              Text(
+                'You stay here',
+                style: Theme.of(context).textTheme.bodySmall,
+              )
+            else ...[
+              Text(
+                'You go along when it leaves',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              TextButton(
+                style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
+                onPressed: onStay,
+                child: const Text('Stay here'),
+              ),
+            ],
+          ],
+        ],
       ),
     );
   }

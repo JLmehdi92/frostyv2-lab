@@ -269,6 +269,35 @@ void main() {
       expect(watched, 1);
     });
 
+    testWidgets('the viewer can choose to stay here', (tester) async {
+      var stayed = 0;
+      await pump(
+        tester,
+        RaidCard(
+          raid: raid(),
+          card: card(),
+          onWatch: () {},
+          onStay: () => stayed++,
+        ),
+      );
+      expect(find.text('You go along when it leaves'), findsOneWidget);
+      await tester.tap(find.text('Stay here'));
+      expect(stayed, 1);
+
+      await pump(
+        tester,
+        RaidCard(
+          raid: raid(),
+          card: card(),
+          onWatch: () {},
+          onStay: () {},
+          staying: true,
+        ),
+      );
+      expect(find.text('You stay here'), findsOneWidget);
+      expect(find.text('Stay here'), findsNothing);
+    });
+
     testWidgets('once it left', (tester) async {
       await pump(
         tester,

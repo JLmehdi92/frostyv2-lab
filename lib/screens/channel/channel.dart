@@ -182,11 +182,20 @@ class _VideoChatState extends State<VideoChat>
         expandNew:
             view != null &&
             isLargeScreenSize(view.physicalSize / view.devicePixelRatio),
+        onGoAlong: _goAlongWithRaid,
       );
     } else if (!show && _highlightsStore != null) {
       _highlightsStore!.dispose();
       _highlightsStore = null;
     }
+  }
+
+  /// The raid left while this channel was on screen: go along with it, as
+  /// Twitch does (not from behind a VOD, the mini player or PiP).
+  void _goAlongWithRaid(OutgoingRaid raid) {
+    if (!mounted || ModalRoute.of(context)?.isCurrent != true) return;
+    if (_videoStore.isInPipMode) return;
+    _watchRaid(raid);
   }
 
   /// "Watch" on an outgoing raid: the target replaces this channel.

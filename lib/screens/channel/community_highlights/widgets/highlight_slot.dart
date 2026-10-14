@@ -79,6 +79,8 @@ Widget buildHighlightCard(
           raid: raid,
           card: cardFor(context),
           onWatch: () => onWatchRaid(raid.raid),
+          onStay: store.onGoAlong == null ? null : store.stayOnRaid,
+          staying: store.stayingOnRaid,
         ),
         null => const SizedBox.shrink(),
       },
