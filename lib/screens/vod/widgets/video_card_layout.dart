@@ -107,18 +107,24 @@ class VideoCardLayout extends StatelessWidget {
       borderRadius: kCardBorderRadius,
       child: Stack(
         children: [
-          GestureDetector(
-            onLongPress: url == null
-                ? null
-                : () {
-                    HapticFeedback.lightImpact();
-                    showDialog(
-                      context: context,
-                      builder: (context) =>
-                          FrostyPhotoViewDialog(imageUrl: url),
-                    );
-                  },
-            child: thumbnail,
+          Semantics(
+            container: url != null,
+            image: url != null,
+            label: url == null ? null : 'Thumbnail',
+            onLongPressHint: url == null ? null : 'enlarge',
+            child: GestureDetector(
+              onLongPress: url == null
+                  ? null
+                  : () {
+                      HapticFeedback.lightImpact();
+                      showDialog(
+                        context: context,
+                        builder: (context) =>
+                            FrostyPhotoViewDialog(imageUrl: url),
+                      );
+                    },
+              child: thumbnail,
+            ),
           ),
           Positioned(
             right: 0,

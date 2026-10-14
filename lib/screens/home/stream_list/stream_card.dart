@@ -102,19 +102,25 @@ class StreamCard extends StatelessWidget {
       child: Stack(
         alignment: AlignmentDirectional.bottomEnd,
         children: [
-          GestureDetector(
-            onLongPress: () {
-              HapticFeedback.lightImpact();
-              showDialog(
-                context: context,
-                builder: (context) => FrostyPhotoViewDialog(
-                  imageUrl: streamInfo
-                      .thumbnailUrl, // Pass original URL with {width}x{height} placeholder
-                  cacheKey: cacheKey,
-                ),
-              );
-            },
-            child: thumbnail,
+          Semantics(
+            container: true,
+            image: true,
+            label: '$streamerName stream preview',
+            onLongPressHint: 'enlarge',
+            child: GestureDetector(
+              onLongPress: () {
+                HapticFeedback.lightImpact();
+                showDialog(
+                  context: context,
+                  builder: (context) => FrostyPhotoViewDialog(
+                    imageUrl: streamInfo
+                        .thumbnailUrl, // Pass original URL with {width}x{height} placeholder
+                    cacheKey: cacheKey,
+                  ),
+                );
+              },
+              child: thumbnail,
+            ),
           ),
           if (hypeTrain case final status?)
             PositionedDirectional(

@@ -60,4 +60,25 @@ void main() {
 
     expect(find.text('LVL 9'), findsOneWidget);
   });
+
+  testWidgets('the thumbnail preview is named for screen readers', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pump(
+      tester,
+      const StreamCard(streamInfo: _stream, showThumbnail: true),
+    );
+
+    expect(
+      tester.getSemantics(find.bySemanticsLabel('Name stream preview')),
+      matchesSemantics(
+        label: 'Name stream preview',
+        isImage: true,
+        hasLongPressAction: true,
+        onLongPressHint: 'enlarge',
+      ),
+    );
+    semantics.dispose();
+  });
 }
