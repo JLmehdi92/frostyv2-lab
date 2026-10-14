@@ -7,6 +7,7 @@ import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/vod_comment_to_irc.dart';
 import 'package:frosty/screens/vod/widgets/vod_chat_message.dart';
+import 'package:frosty/widgets/frosty_cached_network_image.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockChatAssetsStore extends Mock implements ChatAssetsStore {}
@@ -47,6 +48,7 @@ void main() {
         name: 'catJAM',
         zeroWidth: false,
         url: 'https://cdn.7tv.app/emote/x/3x.webp',
+        staticUrl: 'https://cdn.7tv.app/emote/x/3x_static.webp',
         type: EmoteType.sevenTVChannel,
       ),
     });
@@ -96,6 +98,28 @@ void main() {
     final color = name.style!.color!;
     expect(color.r, greaterThan(color.g));
     expect(color.r, greaterThan(color.b));
+  });
+
+  testWidgets('emotes stand still when animations are off', (tester) async {
+    List<String> urls() => tester
+        .widgetList<FrostyCachedNetworkImage>(
+          find.byType(FrostyCachedNetworkImage),
+        )
+        .map((image) => image.imageUrl)
+        .toList();
+
+    await pump(tester, _message());
+    expect(urls(), contains('https://cdn.7tv.app/emote/x/3x.webp'));
+
+    settings.animateEmotes = false;
+    await pump(tester, _message());
+    expect(
+      urls(),
+      containsAll([
+        'https://cdn.7tv.app/emote/x/3x_static.webp',
+        'https://static-cdn.jtvnw.net/emoticons/v2/25/static/dark/3.0',
+      ]),
+    );
   });
 
   testWidgets('timestamps show the video time when enabled', (tester) async {
