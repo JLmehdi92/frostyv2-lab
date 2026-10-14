@@ -193,8 +193,15 @@ class _VideoChatState extends State<VideoChat>
   /// The raid left while this channel was on screen: go along with it, as
   /// Twitch does (not from behind a VOD, the mini player or PiP).
   void _goAlongWithRaid(OutgoingRaid raid) {
-    if (!mounted || ModalRoute.of(context)?.isCurrent != true) return;
-    if (_videoStore.isInPipMode) return;
+    if (!mounted || _videoStore.isInPipMode) return;
+    final route = ModalRoute.of(context);
+    if (route == null || !route.isActive) return;
+    if (!route.isCurrent) {
+      // This screen's own sheets and dialogs (the raid's details) close;
+      // a page on top (a VOD, settings) keeps the viewer where they are.
+      Navigator.of(context).popUntil((r) => r == route || r is! PopupRoute);
+      if (!route.isCurrent) return;
+    }
     _watchRaid(raid);
   }
 
