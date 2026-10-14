@@ -15,6 +15,7 @@
 | 2026-10-13 | épopée E2 « clips » | PRF-17, PRF-18 ✅ ; CHT-45 ⚠️ ; PRF-19 (compte requis) ; MSC-01 (remarques). Comptes recalculés. Lecture à valider sur appareil. |
 | 2026-10-13 | épopée E7 « chat » (1re partie) | CHT-03, 06, 12, 15, 18 ✅ ; CHT-05, 17, 28 ⚠️ (remarques). Comptes recalculés. À valider sur appareil. |
 | 2026-10-13 | épopée E6 « profil de chaîne » | PRF-01, 02, 03, 04, 05, 28 ✅ ; PRF-25 ⚠️ (remarque). Comptes recalculés. Affichage à valider sur appareil. |
+| 2026-10-14 | épopée E7 « chat » (2e partie) | CHT-10, CHT-25, CHT-45 ✅ ; CHT-22 ⚠️ (remarque). Comptes recalculés. À valider sur appareil. |
 | 2026-10-13 | épopée E8 « découverte » | DSC-04, DSC-05, DSC-06 ✅ ; DSC-08, DSC-09 ⚠️ (remarques). Comptes recalculés. Affichage à valider sur appareil. |
 | 2026-10-13 | épopée E5 « highlights communautaires » | CHT-41, CHT-42 ✅ ; INT-01, INT-02 ⚠️ (lecture seule) ; INT-19 (raid sortant). Comptes recalculés. Affichage à valider sur appareil. |
 
@@ -98,7 +99,7 @@
 | CHT-07 | Menu d'un message | P0 | ✅ | `chat_message.dart:102-200,599`, `user_actions_modal.dart:36-151` | Copier, copier-coller, répondre. Les actions sur l'utilisateur passent par le pseudo. | OK |
 | CHT-08 | Défilement auto et nouveaux messages | P0 | ✅ | `chat_store.dart:221`, `chat_tabs_store.dart:151-252` | Pastille « N new messages ». | OK |
 | CHT-09 | Rendu des messages supprimés | P0 | ➕ | `irc.dart:106-127`, `chat_message.dart:342-403` | Le contenu supprimé reste révélable au tap pour tous ; l'officiel le réserve aux mods. | OK |
-| CHT-10 | Rendu des timeouts et bans | P0 | ⚠️ | `irc.dart:60-103`, `chat_message.dart:344-370` | Messages marqués avec la durée, contenu révélable. Aucune ligne « X exclu » si l'utilisateur n'a pas de message visible. | OK |
+| CHT-10 | Rendu des timeouts et bans | P0 | ✅ | `irc.dart` (`clearChat`), `chat_message.dart`, `moderation_notice.dart`, `chat_store.dart` (`_addModerationNotice`) | Messages marqués avec la durée, contenu révélable, et ligne « X has been timed out for 10 minutes. » / « X has been permanently banned. » à l'heure de Twitch, même sans message visible (réglage « Show timeouts and bans », actif par défaut). | OK |
 | CHT-11 | Affichage des messages supprimés (option) | P1 | ➕ | `settings_store.dart:202-204`, `chat_settings.dart:147`, `chat_message.dart:380-388` | Réglage local plus révélation au cas par cas. | OK |
 | CHT-12 | Restriction : timeout ou ban (côté viewer) | P0 | ✅ | `chat_restrictions.dart`, `chat_restriction_bar.dart` | Le CLEARCHAT qui vise son propre compte (ou le rejet `msg_timedout`/`msg_banned`) verrouille la saisie avec un compte à rebours ; le ban reste jusqu'à un envoi réussi (E7). | OK |
 | CHT-13 | Avertissement (côté viewer) | P0 | ❌ | — | L'acquittement existe seulement en GQL (`AcknowledgeChatWarning`). | GQL privé |
@@ -110,10 +111,10 @@
 | CHT-19 | Badges | P0 | ✅ | `twitch_api.dart:83-123`, `irc.dart:248-300` | Badges Twitch plus FFZ/BTTV. Badges 7TV codés mais jamais alimentés (`chat_assets_store.dart:94-96`). | OK |
 | CHT-20 | Sélecteur d'emotes | P0 | ➕ | `chat.dart:261-337` | Récents, Twitch (emotes sub grisées), 7TV, BTTV, FFZ. | OK |
 | CHT-21 | Rendu des emotes et types | P0 | ➕ | `irc.dart:950-1154`, `chat_assets_store.dart:153-230` | Plages `emotes` plus 7TV/BTTV/FFZ (zero-width, alias) et mises à jour live 7TV (`chat_store.dart:797-881`). | OK |
-| CHT-22 | Carte d'emote | P1 | ⚠️ | `irc.dart:900-935` | Fiche avec nom, copier, ouvrir. Pas de conditions de déblocage (le type et le palier sont dans Helix `/chat/emotes`). | OK |
+| CHT-22 | Carte d'emote | P1 | ⚠️ | `irc.dart` (`showEmoteDetailsBottomSheet`), `emotes.dart` (`unlockHint`, `subTier`) | Fiche avec nom, source, auteur, copier, ouvrir et condition de déblocage des emotes Twitch (palier d'abonnement Helix, follow, Bits). Ni emotes liées, ni signalement. | OK |
 | CHT-23 | Emotes follower | P1 | ⚠️ | `twitch_api.dart:36-80` | Emotes follower affichées. Utilisables seulement si elles figurent dans les sets USERSTATE. Helix `GET /chat/emotes/user` (`user:read:emotes`). | OK |
 | CHT-24 | Modificateurs d'emotes | P2 | ❌ | — | — | GQL privé |
-| CHT-25 | Animation des emotes et GIF | P1 | ❌ | — | Aucune bascule d'animation (réglage local). | OK |
+| CHT-25 | Animation des emotes et GIF | P1 | ✅ | `emotes.dart` (`staticUrl`, `urlFor`), `irc.dart`, `chat_settings.dart` | Réglage local « Animate emotes » : éteint, le chat (live, replay, réponses, épinglé) affiche l'image fixe fournie par Twitch, 7TV, BTTV ou FFZ. Non synchronisé avec le compte. | OK |
 | CHT-26 | GIF dans le chat (GIPHY) | P2 | ❌ | — | — | GQL privé |
 | CHT-27 | Couleurs lisibles et contraste | P1 | ✅ | `utils.dart:19-47`, `irc.dart:416` | Ajustement automatique du contraste, sans option. | OK |
 | CHT-28 | Masquer le langage offensant | P1 | ⚠️ | `settings_muted_words.dart`, `muted_words.dart` | Mots masqués manuels (mot entier ou sous-chaîne, expressions). Bugs corrigés en E7 : le lot n'est plus abandonné et la comparaison n'est plus lettre par lettre. Pas de catégories de filtres Twitch. | OK |
@@ -133,7 +134,7 @@
 | CHT-42 | Messages épinglés (lecture) | P1 | ✅ | `community_highlights/widgets/pinned_chat_text.dart` | Carte « Pinned » (E5) : auteur avec badges et couleur, emotes Twitch et 7TV/BTTV/FFZ via les assets du chat, épinglé par, fin. GQL anonyme `pinnedChatMessages` + `pinned-chat-updates-v1.<id>` ; expiration locale (aucun événement Twitch). | GQL privé |
 | CHT-43 | Messages épinglés payants et cheers épinglés | P2 | ❌ | — | — | GQL privé |
 | CHT-44 | AutoMod (côté émetteur) | P1 | ⚠️ | `chat_store.dart:64-65` | `msg_rejected` en toast, sans statut retenu/approuvé. EventSub `channel.chat.user_message_hold`/`_update` (`user:read:chat`). | OK |
-| CHT-45 | Cartes clip et vidéo dans le chat | P1 | ⚠️ | `utils/link_router.dart`, `utils/twitch_links.dart` | Les liens de clip et de vidéo du chat s'ouvrent dans l'appli. Pas encore de carte d'aperçu (toucherait au rendu du chat ; reporté). | OK |
+| CHT-45 | Cartes clip et vidéo dans le chat | P1 | ✅ | `chat_link_card.dart`, `chat_message.dart`, `utils/link_router.dart` | Carte de hauteur fixe sous le message (miniature, titre, chaîne, durée, vues ; GQL anonyme, cache des 64 derniers), ouverte dans l'appli. Réglage « Preview clips and videos ». | OK |
 | CHT-46 | Liste des spectateurs (chatters) | P1 | ⚠️ | `chat_users_list.dart:16-200`, `chat_details_store.dart:39` | Seulement les pseudos vus en IRC, sans rôles. Helix `GET /chat/chatters` exige `moderator:read:chatters` et un rôle mod ; sinon GQL. | Compte requis |
 | CHT-47 | Effets de message animés | P2 | ❌ | — | — | GQL privé |
 | CHT-48 | Chat hors ligne | P1 | ✅ | `channel.dart:556-559` | L'IRC ne dépend pas du live. | OK |
@@ -426,7 +427,7 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | Lecture vidéo (PLY) | 8 | 7 | 17 | 1 | 33 |
-| Chat (CHT) | 19 | 10 | 13 | 6 | 48 |
+| Chat (CHT) | 22 | 8 | 12 | 6 | 48 |
 | Interactions communautaires (INT) | 3 | 3 | 25 | 0 | 31 |
 | Modération (MOD) | 0 | 0 | 31 | 0 | 31 |
 | Social & notifications (SOC) | 2 | 3 | 17 | 0 | 22 |
@@ -436,18 +437,18 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Compte & réglages (ACC) | 3 | 6 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 3 | 7 | 7 | 0 | 17 |
-| **Total** | **56** | **45** | **208** | **8** | **317** |
+| **Total** | **59** | **43** | **207** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| P0 | 23 | 20 | 13 | 4 | 60 |
-| P1 | 27 | 18 | 59 | 4 | 108 |
+| P0 | 24 | 19 | 13 | 4 | 60 |
+| P1 | 29 | 17 | 58 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **56** | **45** | **208** | **8** | **317** |
+| **Total** | **59** | **43** | **207** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 19 | 36 | 33 | 88 |
+| OK | 18 | 34 | 33 | 85 |
 | GQL privé | 6 | 29 | 61 | 96 |
 | Compte requis | 8 | 12 | 12 | 32 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
