@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/services/realtime/eventsub_protocol.dart';
@@ -52,10 +53,18 @@ final class EventSubListening extends EventSubTopicEvent {
 /// The topic cannot be listened to right now ([permanent]: not before the
 /// app comes back from the background or the topic is listened to again).
 final class EventSubUnavailable extends EventSubTopicEvent {
-  const EventSubUnavailable(this.reason, {this.permanent = false});
+  const EventSubUnavailable(
+    this.reason, {
+    this.permanent = false,
+    this.unauthorized = false,
+  });
 
   final String reason;
   final bool permanent;
+
+  /// Refused for the token (no scope, expired, revoked): logging in again
+  /// may help, nothing else will.
+  final bool unauthorized;
 }
 
 /// Creates the subscription of [topic] for the session [sessionId] (Helix
@@ -181,6 +190,10 @@ class TwitchEventSubClient {
   StreamSubscription<String>? _nextSubscription;
 
   String? _sessionId;
+
+  /// The current socket came from a move whose old socket closed before
+  /// the new one's welcome: that welcome keeps the subscriptions.
+  var _awaitingMoveWelcome = false;
 
   /// Bumped on every new session (not on a move, which keeps them).
   var _session = 0;
@@ -311,7 +324,10 @@ class TwitchEventSubClient {
     _armWatchdog();
     _socketSubscription = socket.messages.listen(
       (text) => _onText(socket, text),
-      onError: (Object e) => _onClosed(socket),
+      onError: (Object e) {
+        _log('socket error: $e');
+        _onClosed(socket);
+      },
       onDone: () => _onClosed(socket),
       cancelOnError: true,
     );
@@ -326,12 +342,18 @@ class TwitchEventSubClient {
       socket = _connect(url);
     } catch (e) {
       _log('move failed: $e');
+      // The old socket closes soon anyway: start a new session now.
+      _dropSockets();
+      _scheduleReconnect();
       return;
     }
     _next = socket;
     _nextSubscription = socket.messages.listen(
       (text) => _onText(socket, text),
-      onError: (Object e) => _onClosed(socket),
+      onError: (Object e) {
+        _log('socket error: $e');
+        _onClosed(socket);
+      },
       onDone: () => _onClosed(socket),
       cancelOnError: true,
     );
@@ -354,6 +376,9 @@ class TwitchEventSubClient {
     final socket = _socket;
     _socket = null;
     _sessionId = null;
+    _awaitingMoveWelcome = false;
+    // Answers to requests made for the dropped session are stale now.
+    _session++;
     for (final entry in _entries.values) {
       entry.subscriptionId = null;
     }
@@ -377,17 +402,19 @@ class TwitchEventSubClient {
     _socketSubscription = null;
     final next = _next;
     if (next != null) {
-      // Twitch closes the old socket once the new one is up: keep waiting
-      // for the new one's welcome.
+      // The old socket went before the new one's welcome: keep waiting
+      // for that welcome, which keeps the subscriptions.
       _socket = next;
       _socketSubscription = _nextSubscription;
       _next = null;
       _nextSubscription = null;
+      _awaitingMoveWelcome = true;
       _armWatchdog();
       return;
     }
     _dropSockets();
     if (classifyEventSubClose(code) == EventSubCloseKind.fatal) {
+      _report(StateError('EventSub closed the socket: $code'), null, 'close');
       _fatal = true;
       for (final entry in _entries.values) {
         entry.emit(EventSubUnavailable('closed $code', permanent: true));
@@ -435,6 +462,11 @@ class TwitchEventSubClient {
     if (!identical(socket, _socket)) return;
     _armWatchdog();
     switch (frame) {
+      case EventSubWelcome() when _awaitingMoveWelcome:
+        _awaitingMoveWelcome = false;
+        _sessionId = frame.sessionId;
+        _keepalive = frame.keepalive;
+        _armWatchdog();
       case EventSubWelcome(:final sessionId, :final keepalive):
         _sessionId = sessionId;
         _keepalive = keepalive;
@@ -466,7 +498,13 @@ class TwitchEventSubClient {
         entry
           ..subscriptionId = null
           ..failed = true
-          ..emit(EventSubUnavailable(status, permanent: true));
+          ..emit(
+            EventSubUnavailable(
+              status,
+              permanent: true,
+              unauthorized: status == 'authorization_revoked',
+            ),
+          );
       case EventSubKeepalive() || EventSubUnknown() || EventSubMalformed():
         break;
     }
@@ -512,16 +550,32 @@ class TwitchEventSubClient {
       entry.subscriptionId = id;
       entry.emit(EventSubListening(afterGap: entry.everListened));
       entry.everListened = true;
-    } catch (e) {
+    } catch (e, stack) {
       _log('subscribe ${entry.topic.type} failed: $e');
+      if (e is! ApiException) _report(e, stack, 'subscribe');
       if (session != _session) return;
       // A refusal (no scope, logged out, bad condition) will not change
       // by itself; anything else may on the next session.
-      final permanent = e is ApiException && _refused(e.statusCode);
+      final status = e is ApiException ? e.statusCode : null;
+      final permanent = _refused(status);
       if (permanent) entry.failed = true;
-      entry.emit(EventSubUnavailable('$e', permanent: permanent));
+      entry.emit(
+        EventSubUnavailable(
+          '$e',
+          permanent: permanent,
+          unauthorized: status == 401 || status == 403,
+        ),
+      );
     } finally {
       entry.creating = false;
+      // Made for a session that ended meanwhile: subscribe the new one.
+      if (!_disposed &&
+          session != _session &&
+          entry.wanted &&
+          entry.subscriptionId == null &&
+          _sessionId != null) {
+        unawaited(_subscribe(entry));
+      }
     }
   }
 
@@ -530,10 +584,24 @@ class TwitchEventSubClient {
 
   void _deleteQuietly(String subscriptionId) {
     unawaited(
-      _delete(subscriptionId).catchError((Object e) {
+      _delete(subscriptionId).catchError((Object e, StackTrace stack) {
         _log('delete failed: $e');
+        if (e is! ApiException) _report(e, stack, 'delete');
       }),
     );
+  }
+
+  /// An unexpected failure (a bug, or Twitch changed something).
+  void _report(Object error, StackTrace? stack, String what) {
+    try {
+      FirebaseCrashlytics.instance.recordError(
+        error,
+        stack,
+        reason: 'eventsub $what',
+      );
+    } catch (_) {
+      // Firebase may not be initialized (e.g., in tests).
+    }
   }
 
   void _log(String message) {

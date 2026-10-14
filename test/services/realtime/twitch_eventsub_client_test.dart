@@ -6,6 +6,7 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/services/realtime/eventsub_protocol.dart';
+import 'package:frosty/services/realtime/realtime_socket.dart';
 import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 
 import '../../helpers/fake_realtime_socket.dart';
@@ -54,22 +55,31 @@ void main() {
   late List<String> deleted;
   late Object? createError;
 
-  TwitchEventSubClient build() => TwitchEventSubClient(
-    connect: sockets.call,
-    random: Random(1),
-    create: (topic, sessionId) async {
-      if (createError case final error?) throw error;
-      created.add('${topic.type}@$sessionId');
-      return 'sub-${created.length}';
-    },
-    delete: (id) async => deleted.add(id),
-  );
+  /// When set, the next create waits for it.
+  Completer<void>? hold;
+
+  TwitchEventSubClient build({RealtimeSocketFactory? connect}) =>
+      TwitchEventSubClient(
+        connect: connect ?? sockets.call,
+        random: Random(1),
+        create: (topic, sessionId) async {
+          final wait = hold;
+          hold = null;
+          created.add('${topic.type}@$sessionId');
+          final id = 'sub-${created.length}';
+          if (wait != null) await wait.future;
+          if (createError case final error?) throw error;
+          return id;
+        },
+        delete: (id) async => deleted.add(id),
+      );
 
   setUp(() {
     sockets = FakeRealtimeSocketFactory();
     created = [];
     deleted = [];
     createError = null;
+    hold = null;
   });
 
   String? texts(EventSubTopicEvent event) => switch (event) {
@@ -304,6 +314,125 @@ void main() {
       sockets.last.serverSend(_welcome('s2'));
       async.flushMicrotasks();
       expect(created.last, 'user.whisper.message@s2');
+      unawaited(client.dispose());
+    });
+  });
+
+  test('a move whose old socket closes first keeps its subscriptions', () {
+    fakeAsync((async) {
+      final client = build();
+      final events = <EventSubTopicEvent>[];
+      client.listen(_whispers).events.listen(events.add);
+      async.flushMicrotasks();
+      final first = sockets.last..serverSend(_welcome('s1'));
+      async.flushMicrotasks();
+
+      first.serverSend(_reconnect('wss://eventsub.wss.twitch.tv/ws?id=x'));
+      async.flushMicrotasks();
+      final moved = sockets.last;
+      first.serverClose(4004);
+      async.flushMicrotasks();
+      moved.serverSend(_welcome('s2'));
+      async.flushMicrotasks();
+
+      expect(created, hasLength(1));
+      moved.serverSend(_notification('m1', 'sub-1', 'still here'));
+      async.flushMicrotasks();
+      expect(events.map(texts).nonNulls, ['still here']);
+      unawaited(client.dispose());
+    });
+  });
+
+  test('a subscribe still running when the session ends is redone', () {
+    fakeAsync((async) {
+      final client = build();
+      final events = <EventSubTopicEvent>[];
+      client.listen(_whispers).events.listen(events.add);
+      async.flushMicrotasks();
+      final wait = hold = Completer<void>();
+      sockets.last.serverSend(_welcome('s1'));
+      async.flushMicrotasks();
+
+      // The socket dies while the request hangs; a new session starts.
+      sockets.last.serverClose(1006);
+      async.flushMicrotasks();
+      async.elapse(const Duration(seconds: 2));
+      sockets.last.serverSend(_welcome('s2'));
+      async.flushMicrotasks();
+      wait.complete();
+      async.flushMicrotasks();
+
+      expect(created, ['user.whisper.message@s1', 'user.whisper.message@s2']);
+      expect(events.last, isA<EventSubListening>());
+      unawaited(client.dispose());
+    });
+  });
+
+  test('an answer for a dropped session does not claim to listen', () {
+    fakeAsync((async) {
+      final client = build();
+      final events = <EventSubTopicEvent>[];
+      client.listen(_whispers).events.listen(events.add);
+      async.flushMicrotasks();
+      final wait = hold = Completer<void>();
+      sockets.last.serverSend(_welcome('s1'));
+      async.flushMicrotasks();
+
+      sockets.last.serverClose(1006);
+      async.flushMicrotasks();
+      wait.complete();
+      async.flushMicrotasks();
+      expect(events.whereType<EventSubListening>(), isEmpty);
+
+      async.elapse(const Duration(seconds: 2));
+      sockets.last.serverSend(_welcome('s2'));
+      async.flushMicrotasks();
+      expect(created.last, 'user.whisper.message@s2');
+      expect(events.last, isA<EventSubListening>());
+      unawaited(client.dispose());
+    });
+  });
+
+  test('a move that cannot connect starts a new session', () {
+    fakeAsync((async) {
+      var calls = 0;
+      final client = build(
+        connect: (uri) {
+          calls++;
+          if (uri.queryParameters.containsKey('id')) throw StateError('no');
+          return sockets.call(uri);
+        },
+      );
+      client.listen(_whispers);
+      async.flushMicrotasks();
+      final first = sockets.last..serverSend(_welcome('s1'));
+      async.flushMicrotasks();
+
+      first.serverSend(_reconnect('wss://eventsub.wss.twitch.tv/ws?id=x'));
+      async.flushMicrotasks();
+      expect(first.closedByClient, isTrue);
+      async.elapse(const Duration(seconds: 2));
+      expect(calls, 3);
+      expect(sockets.sockets, hasLength(2));
+      unawaited(client.dispose());
+    });
+  });
+
+  test('a refusal for the token says so', () {
+    fakeAsync((async) {
+      createError = const UnauthorizedException('Please log in');
+      final client = build();
+      final events = <EventSubTopicEvent>[];
+      client.listen(_whispers).events.listen(events.add);
+      async.flushMicrotasks();
+      sockets.last.serverSend(_welcome('s1'));
+      async.flushMicrotasks();
+      expect(
+        events.single,
+        isA<EventSubUnavailable>()
+            .having((e) => e.permanent, 'permanent', true)
+            .having((e) => e.unauthorized, 'unauthorized', true),
+      );
       unawaited(client.dispose());
     });
   });
