@@ -14,11 +14,13 @@ class ClipInfoPanel extends StatelessWidget {
     super.key,
     required this.clip,
     required this.onCopyLink,
+    required this.onShare,
     this.onWatchFullVideo,
   });
 
   final Clip clip;
   final VoidCallback onCopyLink;
+  final VoidCallback onShare;
 
   /// Opens the VOD at the clip; null when the VOD is gone.
   final VoidCallback? onWatchFullVideo;
@@ -142,6 +144,11 @@ class ClipInfoPanel extends StatelessWidget {
                 onPressed: onCopyLink,
                 icon: const Icon(Icons.link_rounded, size: 18),
                 label: const Text('Copy link'),
+              ),
+              FilledButton.tonalIcon(
+                onPressed: onShare,
+                icon: const Icon(Icons.share_outlined, size: 18),
+                label: const Text('Share'),
               ),
             ],
           ),

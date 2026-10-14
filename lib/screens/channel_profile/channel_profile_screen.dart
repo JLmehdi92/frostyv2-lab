@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/channel/channel.dart';
@@ -17,6 +16,7 @@ import 'package:frosty/screens/vod/widgets/channel_videos_tab.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/link_router.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
+import 'package:frosty/utils/share_link.dart';
 import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/frosty_app_bar.dart';
 import 'package:frosty/widgets/readable_width.dart';
@@ -184,12 +184,8 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
     );
   }
 
-  Future<void> _share() async {
-    await Clipboard.setData(
-      ClipboardData(text: 'https://www.twitch.tv/${widget.login}'),
-    );
-    _say('Link copied');
-  }
+  Future<void> _share() =>
+      shareLink(context, 'https://www.twitch.tv/${widget.login}');
 
   void _more() {
     final id = _userId;

@@ -139,11 +139,26 @@ void main() {
     expect(find.text('No streams scheduled'), findsOneWidget);
   });
 
-  testWidgets('Share copies the channel link', (tester) async {
+  testWidgets('Share copies the link where no share sheet exists', (
+    tester,
+  ) async {
     answerProfile();
     await pump(tester);
+    // A platform without a share sheet answers "unavailable".
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('dev.fluttercommunity.plus/share'),
+          (call) async => 'dev.fluttercommunity.plus/share/unavailable',
+        );
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('dev.fluttercommunity.plus/share'),
+            null,
+          ),
+    );
     await tester.tap(find.text('Share'));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(
       (clipboard.single.arguments as Map)['text'],
       'https://www.twitch.tv/xqc',

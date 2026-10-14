@@ -26,6 +26,7 @@ import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/pip_callbacks.dart';
+import 'package:frosty/utils/share_link.dart';
 import 'package:frosty/widgets/alert_message.dart';
 import 'package:mobx/mobx.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -466,6 +467,7 @@ class _ClipScreenState extends State<ClipScreen> {
     return ClipInfoPanel(
       clip: clip,
       onCopyLink: _copyLink,
+      onShare: () => shareLink(context, clipShareLink(widget.slug)),
       onWatchFullVideo: _watchFullVideo(clip),
     );
   }

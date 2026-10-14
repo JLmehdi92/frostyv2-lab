@@ -15,6 +15,7 @@ import 'package:frosty/screens/vod/widgets/vod_seek_bar.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
+import 'package:frosty/utils/share_link.dart';
 import 'package:frosty/widgets/profile_picture.dart';
 import 'package:frosty/widgets/section_header.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -608,6 +609,18 @@ class VodSettingsSheet extends StatelessWidget {
                 final link = media.shareLink(controller.position);
                 Navigator.pop(context);
                 await Clipboard.setData(ClipboardData(text: link));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.share_outlined),
+              title: const Text('Share'),
+              onTap: () async {
+                await shareLink(
+                  context,
+                  media.shareLink(controller.position),
+                  subject: media.title,
+                );
+                if (context.mounted) Navigator.pop(context);
               },
             ),
           ],
