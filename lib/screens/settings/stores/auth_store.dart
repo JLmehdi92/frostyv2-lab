@@ -299,6 +299,12 @@ abstract class AuthBase with Store {
       if (userToken != null) unawaited(_revoke(userToken));
       // Delete the existing user token.
       await _storage.delete(key: _userTokenKey);
+      // Sign the in-app twitch.tv pages out too (follow, report, chat).
+      try {
+        await WebViewCookieManager().clearCookies();
+      } catch (e) {
+        debugPrint('Clearing twitch.tv cookies failed: $e');
+      }
       _token = null;
 
       // Clear the user info.
