@@ -17,6 +17,13 @@ mixin _$ChatStore on ChatStoreBase, Store {
         () => super.renderMessages,
         name: 'ChatStoreBase.renderMessages',
       )).value;
+  Computed<bool>? _$canModerateComputed;
+
+  @override
+  bool get canModerate => (_$canModerateComputed ??= Computed<bool>(
+    () => super.canModerate,
+    name: 'ChatStoreBase.canModerate',
+  )).value;
   Computed<List<Emote>>? _$matchingEmotesComputed;
 
   @override
@@ -617,6 +624,7 @@ timeRemaining: ${timeRemaining},
 expandChat: ${expandChat},
 replyingToMessage: ${replyingToMessage},
 renderMessages: ${renderMessages},
+canModerate: ${canModerate},
 matchingEmotes: ${matchingEmotes},
 matchingChatters: ${matchingChatters},
 matchingCommands: ${matchingCommands},

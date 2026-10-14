@@ -52,12 +52,119 @@ void main() {
       contains('Whispers'),
     );
     expect(
-      (parseChatCommand('/ban someone') as UnsupportedCommand).message,
-      contains('moderator'),
+      (parseChatCommand('/raid someone') as UnsupportedCommand).message,
+      contains('not available'),
     );
     expect(
       (parseChatCommand('/dance') as UnsupportedCommand).message,
       contains('/help'),
+    );
+  });
+
+  group('moderator commands', () {
+    test('/ban takes a user and an optional reason', () {
+      final ban = parseChatCommand('/ban @Troll spam  links') as BanCommand;
+      expect(ban.login, 'troll');
+      expect(ban.reason, 'spam links');
+      expect((parseChatCommand('/ban troll') as BanCommand).reason, '');
+      expect(
+        (parseChatCommand('/ban') as UnsupportedCommand).message,
+        'Usage: /ban <user> [reason]',
+      );
+      expect(parseChatCommand('/ban a-b'), isA<UnsupportedCommand>());
+    });
+
+    test('/timeout reads a length, 10 minutes by default', () {
+      TimeoutCommand timeout(String text) =>
+          parseChatCommand(text) as TimeoutCommand;
+      expect(timeout('/timeout troll').duration, const Duration(minutes: 10));
+      expect(
+        timeout('/timeout troll 30').duration,
+        const Duration(seconds: 30),
+      );
+      expect(timeout('/timeout troll 5m').duration, const Duration(minutes: 5));
+      expect(timeout('/timeout troll 2H').duration, const Duration(hours: 2));
+      expect(timeout('/timeout troll 1d').duration, const Duration(days: 1));
+      expect(timeout('/timeout troll 2w').duration, const Duration(days: 14));
+      // Not a length: the reason, with the default length.
+      final reasoned = timeout('/timeout troll calm down');
+      expect(reasoned.duration, const Duration(minutes: 10));
+      expect(reasoned.reason, 'calm down');
+      expect(timeout('/timeout troll 1h spam').reason, 'spam');
+      expect(
+        (parseChatCommand('/timeout troll 3w') as UnsupportedCommand).message,
+        contains('2 weeks'),
+      );
+      expect(parseChatCommand('/timeout troll 0'), isA<UnsupportedCommand>());
+      // Too long to be a timeout, not a reason.
+      expect(
+        parseChatCommand('/timeout troll 99999999999999999999mo'),
+        isA<UnsupportedCommand>(),
+      );
+      expect(parseChatCommand('/timeout'), isA<UnsupportedCommand>());
+    });
+
+    test('/unban and /untimeout take one user', () {
+      expect((parseChatCommand('/unban Troll') as UnbanCommand).login, 'troll');
+      final untimeout = parseChatCommand('/untimeout troll') as UnbanCommand;
+      expect(untimeout.timeout, isTrue);
+      expect(parseChatCommand('/unban'), isA<UnsupportedCommand>());
+      expect(parseChatCommand('/unban a b'), isA<UnsupportedCommand>());
+    });
+
+    test('/warn needs a reason', () {
+      final warn = parseChatCommand('/warn troll no spam') as WarnCommand;
+      expect(warn.login, 'troll');
+      expect(warn.reason, 'no spam');
+      expect(
+        (parseChatCommand('/warn troll') as UnsupportedCommand).message,
+        'Usage: /warn <user> <reason>',
+      );
+    });
+
+    test('/delete takes a message id, /clear nothing', () {
+      expect(
+        (parseChatCommand('/delete 9d4b2624-caa6-41ca') as DeleteMessageCommand)
+            .messageId,
+        '9d4b2624-caa6-41ca',
+      );
+      expect(parseChatCommand('/delete nope!'), isA<UnsupportedCommand>());
+      expect(parseChatCommand('/clear'), isA<ClearChatCommand>());
+    });
+
+    test('room modes', () {
+      ChatModeCommand mode(String text) =>
+          parseChatCommand(text) as ChatModeCommand;
+      expect(mode('/slow').mode, ChatMode.slow);
+      expect(mode('/slow').on, isTrue);
+      expect(mode('/slow').duration, const Duration(seconds: 30));
+      expect(mode('/slow 10').duration, const Duration(seconds: 10));
+      expect(mode('/slowoff').on, isFalse);
+      expect(parseChatCommand('/slow 2'), isA<UnsupportedCommand>());
+      expect(parseChatCommand('/slow 121'), isA<UnsupportedCommand>());
+      expect(mode('/followers').duration, Duration.zero);
+      expect(mode('/followers 10').duration, const Duration(minutes: 10));
+      expect(mode('/followers 1w').duration, const Duration(days: 7));
+      expect(mode('/followers 3mo').duration, const Duration(days: 90));
+      expect(parseChatCommand('/followers 4mo'), isA<UnsupportedCommand>());
+      expect(mode('/followersoff').on, isFalse);
+      expect(mode('/subscribers').mode, ChatMode.subscribers);
+      expect(mode('/subscribersoff').on, isFalse);
+      expect(mode('/emoteonly').mode, ChatMode.emoteOnly);
+      expect(mode('/emoteonlyoff').on, isFalse);
+      expect(mode('/uniquechat').mode, ChatMode.uniqueChat);
+      expect(mode('/r9kbetaoff').mode, ChatMode.uniqueChat);
+      expect(mode('/uniquechatoff').on, isFalse);
+      expect(parseChatCommand('/emoteonly now'), isA<UnsupportedCommand>());
+    });
+  });
+
+  test('moderator commands are suggested to moderators only', () {
+    expect(matchCommands('/ba').map((c) => c.name), isEmpty);
+    expect(matchCommands('/ba', moderator: true).map((c) => c.name), ['ban']);
+    expect(
+      matchCommands('/', moderator: true),
+      hasLength(kChatCommands.length + kModeratorChatCommands.length),
     );
   });
 

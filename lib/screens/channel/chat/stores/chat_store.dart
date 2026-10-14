@@ -12,6 +12,7 @@ import 'package:frosty/models/irc.dart';
 import 'package:frosty/screens/channel/chat/chat_commands.dart';
 import 'package:frosty/screens/channel/chat/chat_restrictions.dart';
 import 'package:frosty/screens/channel/chat/details/chat_details_store.dart';
+import 'package:frosty/screens/channel/chat/moderation.dart';
 import 'package:frosty/screens/channel/chat/moderation_notice.dart';
 import 'package:frosty/screens/channel/chat/muted_words.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
@@ -286,11 +287,9 @@ abstract class ChatStoreBase with Store {
   void _addModerationNotice(IRCMessage clearChat, List<IRCMessage> buffer) {
     // Blocked people stay out of chat, notices included (moderators and the
     // channel owner see them, as they see their messages).
-    final privileged =
-        _userState.mod || channelName == auth.user.details?.login;
     final notice = moderationNoticeLine(
       clearChat,
-      hiddenLogins: privileged
+      hiddenLogins: canModerate
           ? const {}
           : {for (final user in auth.user.blockedUsers) user.userLogin},
       newestFirst: buffer.reversed.followedBy(_messages.reversed),
@@ -298,16 +297,18 @@ abstract class ChatStoreBase with Store {
     if (notice != null) buffer.add(notice);
   }
 
+  /// Whether the viewer moderates this chat (the broadcaster does too).
+  @computed
+  bool get canModerate =>
+      _userState.mod || channelName == auth.user.details?.login;
+
   @action
   void _updateRestriction() {
     _restrictionTimer?.cancel();
     final now = DateTime.now();
     final restriction = chatRestriction(
       room: chatDetailsStore.roomState,
-      privileged:
-          _userState.mod ||
-          _userState.vip ||
-          channelName == auth.user.details?.login,
+      privileged: canModerate || _userState.vip,
       subscriber: _userState.subscriber,
       now: now,
       banned: _banned,
@@ -334,8 +335,25 @@ abstract class ChatStoreBase with Store {
       case SendAsIs():
         return;
       case HelpCommand():
-        say('Commands: ${[for (final c in kChatCommands) c.usage].join(', ')}');
+        final commands = [
+          ...kChatCommands,
+          if (canModerate) ...kModeratorChatCommands,
+        ];
+        say('Commands: ${[for (final c in commands) c.usage].join(', ')}');
         textController.clear();
+      case ModerationCommand():
+        if (me == null) return say('Log in to moderate.');
+        if (!canModerate) {
+          return say('Only moderators can use moderator commands.');
+        }
+        final outcome = await ChatModeration(
+          api: twitchApi,
+          broadcasterId: channelId,
+          moderatorId: me,
+        ).run(command);
+        if (_shouldDisconnect) return;
+        say(outcome.message);
+        if (outcome.ok) textController.clear();
       case UnsupportedCommand(:final message):
         say(message);
       case ColorCommand(:final color):
@@ -450,7 +468,8 @@ abstract class ChatStoreBase with Store {
 
   /// Slash commands matching what is typed ("/co" suggests /color).
   @computed
-  List<ChatCommandInfo> get matchingCommands => matchCommands(_inputText);
+  List<ChatCommandInfo> get matchingCommands =>
+      matchCommands(_inputText, moderator: canModerate);
 
   /// Current bottom bar height based on visible overlays.
   /// Used to dynamically adjust chat message list padding.

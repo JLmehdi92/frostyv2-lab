@@ -1,3 +1,5 @@
+import 'dart:math';
+
 /// A chat line typed in the input: a message to send as is, or a slash
 /// command the app runs itself (Twitch no longer runs commands sent over
 /// IRC, except `/me`).
@@ -34,6 +36,82 @@ final class HelpCommand extends ChatCommand {
   const HelpCommand();
 }
 
+/// A command only moderators (and the broadcaster) can run, through Helix.
+sealed class ModerationCommand extends ChatCommand {
+  const ModerationCommand();
+}
+
+/// `/ban <user> [reason]`.
+final class BanCommand extends ModerationCommand {
+  const BanCommand(this.login, this.reason);
+
+  final String login;
+  final String reason;
+}
+
+/// `/timeout <user> [length] [reason]`.
+final class TimeoutCommand extends ModerationCommand {
+  const TimeoutCommand(this.login, this.duration, this.reason);
+
+  final String login;
+  final Duration duration;
+  final String reason;
+}
+
+/// `/unban <user>`, or `/untimeout <user>` when [timeout] is set (both lift
+/// either).
+final class UnbanCommand extends ModerationCommand {
+  const UnbanCommand(this.login, {this.timeout = false});
+
+  final String login;
+  final bool timeout;
+}
+
+/// `/warn <user> <reason>`.
+final class WarnCommand extends ModerationCommand {
+  const WarnCommand(this.login, this.reason);
+
+  final String login;
+  final String reason;
+}
+
+/// `/delete <message id>`.
+final class DeleteMessageCommand extends ModerationCommand {
+  const DeleteMessageCommand(this.messageId);
+
+  final String messageId;
+}
+
+/// `/clear`: deletes every message of the chat.
+final class ClearChatCommand extends ModerationCommand {
+  const ClearChatCommand();
+}
+
+enum ChatMode {
+  slow('Slow mode'),
+  followers('Followers-only mode'),
+  subscribers('Subscribers-only mode'),
+  emoteOnly('Emote-only mode'),
+  uniqueChat('Unique chat mode');
+
+  const ChatMode(this.label);
+
+  final String label;
+}
+
+/// A room mode turned on (with its wait or follow age when it has one) or
+/// off.
+final class ChatModeCommand extends ModerationCommand {
+  const ChatModeCommand(this.mode, {required this.on, this.duration});
+
+  final ChatMode mode;
+  final bool on;
+
+  /// The slow-mode wait or the follow age; null for the other modes and
+  /// when turning off.
+  final Duration? duration;
+}
+
 /// A command the app cannot run, with what to tell the viewer.
 final class UnsupportedCommand extends ChatCommand {
   const UnsupportedCommand(this.message);
@@ -60,6 +138,75 @@ const kChatCommands = <ChatCommandInfo>[
   (name: 'help', usage: '/help', description: 'List the commands'),
 ];
 
+/// The commands suggested to moderators and the broadcaster as well.
+const kModeratorChatCommands = <ChatCommandInfo>[
+  (
+    name: 'ban',
+    usage: '/ban <user> [reason]',
+    description: 'Ban a user from the chat',
+  ),
+  (name: 'unban', usage: '/unban <user>', description: 'Lift a ban'),
+  (
+    name: 'timeout',
+    usage: '/timeout <user> [length] [reason]',
+    description: 'Time a user out (10m by default; s, m, h, d, w)',
+  ),
+  (
+    name: 'untimeout',
+    usage: '/untimeout <user>',
+    description: 'Lift a timeout',
+  ),
+  (name: 'warn', usage: '/warn <user> <reason>', description: 'Warn a user'),
+  (
+    name: 'delete',
+    usage: '/delete <message id>',
+    description: 'Delete a message',
+  ),
+  (name: 'clear', usage: '/clear', description: 'Delete every message'),
+  (
+    name: 'slow',
+    usage: '/slow [seconds]',
+    description: 'Slow mode (30s by default)',
+  ),
+  (name: 'slowoff', usage: '/slowoff', description: 'Turn slow mode off'),
+  (
+    name: 'followers',
+    usage: '/followers [length]',
+    description: 'Followers-only mode (m, h, d, w, mo)',
+  ),
+  (
+    name: 'followersoff',
+    usage: '/followersoff',
+    description: 'Turn followers-only mode off',
+  ),
+  (
+    name: 'subscribers',
+    usage: '/subscribers',
+    description: 'Subscribers-only mode',
+  ),
+  (
+    name: 'subscribersoff',
+    usage: '/subscribersoff',
+    description: 'Turn subscribers-only mode off',
+  ),
+  (name: 'emoteonly', usage: '/emoteonly', description: 'Emote-only mode'),
+  (
+    name: 'emoteonlyoff',
+    usage: '/emoteonlyoff',
+    description: 'Turn emote-only mode off',
+  ),
+  (
+    name: 'uniquechat',
+    usage: '/uniquechat',
+    description: 'Unique chat mode (no repeated messages)',
+  ),
+  (
+    name: 'uniquechatoff',
+    usage: '/uniquechatoff',
+    description: 'Turn unique chat mode off',
+  ),
+];
+
 /// Twitch's named colours (non-Turbo), as Helix spells them.
 const kChatNamedColors = {
   'blue': 'blue',
@@ -79,23 +226,8 @@ const kChatNamedColors = {
   'yellowgreen': 'yellow_green',
 };
 
-const _moderatorCommands = {
-  'ban',
-  'unban',
-  'timeout',
-  'untimeout',
-  'slow',
-  'slowoff',
-  'followers',
-  'followersoff',
-  'subscribers',
-  'subscribersoff',
-  'emoteonly',
-  'emoteonlyoff',
-  'clear',
-  'uniquechat',
-  'uniquechatoff',
-  'delete',
+/// Moderator and broadcaster commands this app does not run (yet).
+const _otherModeratorCommands = {
   'mod',
   'unmod',
   'vip',
@@ -110,7 +242,6 @@ const _moderatorCommands = {
   'announceorange',
   'announcepurple',
   'shoutout',
-  'warn',
   'pin',
   'monitor',
   'restrict',
@@ -124,17 +255,141 @@ const _moderatorCommands = {
 
 final _login = RegExp(r'^@?([a-zA-Z0-9_]{1,25})$');
 final _hex = RegExp(r'^#?([0-9a-fA-F]{6})$');
+final _length = RegExp(r'^(\d+)(s|m|h|d|w|mo)?$', caseSensitive: false);
+final _messageId = RegExp(r'^[0-9a-fA-F-]{1,64}$');
+
+const _timeoutDefault = Duration(minutes: 10);
+const _timeoutMax = Duration(days: 14);
+const _slowDefault = Duration(seconds: 30);
+const _slowMin = Duration(seconds: 3);
+const _slowMax = Duration(seconds: 120);
+const _followAgeMax = Duration(days: 90);
+
+/// A length as Twitch's commands write it ("30", "10m", "2h", "1d", "1w",
+/// "3mo"); a bare number counts in [unit]. Null when it is not one; a huge
+/// one is capped (far past any bound the commands accept).
+Duration? parseCommandLength(String text, {required Duration unit}) {
+  final match = _length.firstMatch(text);
+  if (match == null) return null;
+  // Nine digits keep the products below within an int and a Duration.
+  final digits = match[1]!;
+  final count = digits.length > 9 ? 999999999 : int.parse(digits);
+  final unitSeconds = switch (match[2]?.toLowerCase()) {
+    null => unit.inSeconds,
+    's' => 1,
+    'm' => 60,
+    'h' => 3600,
+    'd' => 86400,
+    'w' => 604800,
+    _ => 2592000,
+  };
+  return Duration(seconds: min(count * unitSeconds, _maxLengthSeconds));
+}
+
+/// About 31 years.
+const _maxLengthSeconds = 1000000000;
 
 /// The commands to suggest for [text] being typed: a `/` and the start of
 /// a name, before any space.
-List<ChatCommandInfo> matchCommands(String text) {
+/// [moderator] adds the moderator commands.
+List<ChatCommandInfo> matchCommands(String text, {bool moderator = false}) {
   if (!text.startsWith('/') || text.contains(' ')) return const [];
   final term = text.substring(1).toLowerCase();
   return [
-    for (final command in kChatCommands)
+    for (final command in [
+      ...kChatCommands,
+      if (moderator) ...kModeratorChatCommands,
+    ])
       if (command.name.startsWith(term)) command,
   ];
 }
+
+String? _loginOf(String arg) => _login.firstMatch(arg)?[1]!.toLowerCase();
+
+ChatCommand _usage(String name) => UnsupportedCommand(
+  'Usage: ${kModeratorChatCommands.firstWhere((c) => c.name == name).usage}',
+);
+
+ChatCommand _parseModeration(String name, List<String> args) {
+  switch (name) {
+    case 'ban':
+      final login = args.isEmpty ? null : _loginOf(args.first);
+      if (login == null) return _usage('ban');
+      return BanCommand(login, args.skip(1).join(' '));
+    case 'timeout':
+      final login = args.isEmpty ? null : _loginOf(args.first);
+      if (login == null) return _usage('timeout');
+      final length = args.length > 1
+          ? parseCommandLength(args[1], unit: const Duration(seconds: 1))
+          : null;
+      final duration = length ?? _timeoutDefault;
+      if (duration < const Duration(seconds: 1) || duration > _timeoutMax) {
+        return const UnsupportedCommand(
+          'Timeouts last from 1 second to 2 weeks.',
+        );
+      }
+      return TimeoutCommand(
+        login,
+        duration,
+        args.skip(length == null ? 1 : 2).join(' '),
+      );
+    case 'unban' || 'untimeout':
+      final login = args.length == 1 ? _loginOf(args.single) : null;
+      if (login == null) return _usage(name);
+      return UnbanCommand(login, timeout: name == 'untimeout');
+    case 'warn':
+      final login = args.isEmpty ? null : _loginOf(args.first);
+      if (login == null || args.length < 2) return _usage('warn');
+      return WarnCommand(login, args.skip(1).join(' '));
+    case 'delete':
+      if (args.length != 1 || !_messageId.hasMatch(args.single)) {
+        return _usage('delete');
+      }
+      return DeleteMessageCommand(args.single);
+    case 'clear':
+      return args.isEmpty ? const ClearChatCommand() : _usage('clear');
+    case 'slow':
+      if (args.length > 1) return _usage('slow');
+      final wait = args.isEmpty
+          ? _slowDefault
+          : parseCommandLength(args.single, unit: const Duration(seconds: 1));
+      if (wait == null || wait < _slowMin || wait > _slowMax) {
+        return const UnsupportedCommand(
+          'The slow mode wait is 3 to 120 seconds.',
+        );
+      }
+      return ChatModeCommand(ChatMode.slow, on: true, duration: wait);
+    case 'followers':
+      if (args.length > 1) return _usage('followers');
+      final age = args.isEmpty
+          ? Duration.zero
+          : parseCommandLength(args.single, unit: const Duration(minutes: 1));
+      if (age == null || age > _followAgeMax) {
+        return const UnsupportedCommand(
+          'The follow age is 0 minutes to 3 months (e.g. 10m, 1w, 3mo).',
+        );
+      }
+      return ChatModeCommand(ChatMode.followers, on: true, duration: age);
+  }
+  final (mode, on) = switch (name) {
+    'slowoff' => (ChatMode.slow, false),
+    'followersoff' => (ChatMode.followers, false),
+    'subscribers' => (ChatMode.subscribers, true),
+    'subscribersoff' => (ChatMode.subscribers, false),
+    'emoteonly' => (ChatMode.emoteOnly, true),
+    'emoteonlyoff' => (ChatMode.emoteOnly, false),
+    'uniquechat' || 'r9kbeta' => (ChatMode.uniqueChat, true),
+    _ => (ChatMode.uniqueChat, false),
+  };
+  if (args.isNotEmpty) return UnsupportedCommand('Usage: /$name');
+  return ChatModeCommand(mode, on: on);
+}
+
+final _moderationNames = {
+  for (final command in kModeratorChatCommands) command.name,
+  'r9kbeta',
+  'r9kbetaoff',
+};
 
 ChatCommand parseChatCommand(String text) {
   final trimmed = text.trim();
@@ -172,10 +427,10 @@ ChatCommand parseChatCommand(String text) {
       return const UnsupportedCommand(
         "Whispers aren't available in this app yet.",
       );
-    case final command when _moderatorCommands.contains(command):
-      return UnsupportedCommand(
-        '/$command is a moderator command, which this app does not support.',
-      );
+    case final command when _moderationNames.contains(command):
+      return _parseModeration(command, args);
+    case final command when _otherModeratorCommands.contains(command):
+      return UnsupportedCommand('/$command is not available in this app.');
     default:
       return UnsupportedCommand(
         'Unknown command /$name. Type /help for the commands you can use.',

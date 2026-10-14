@@ -1,0 +1,244 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/apis/base_api_client.dart';
+import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/models/user.dart';
+import 'package:frosty/screens/channel/chat/chat_commands.dart';
+import 'package:frosty/screens/channel/chat/moderation.dart';
+import 'package:mocktail/mocktail.dart';
+
+class MockTwitchApi extends Mock implements TwitchApi {}
+
+void main() {
+  late MockTwitchApi api;
+  late ChatModeration moderation;
+
+  setUp(() {
+    api = MockTwitchApi();
+    moderation = ChatModeration(
+      api: api,
+      broadcasterId: '11',
+      moderatorId: '22',
+    );
+    when(
+      () => api.getUser(userLogin: 'troll'),
+    ).thenAnswer((_) async => const UserTwitch('33', 'troll', 'Troll', ''));
+  });
+
+  test('/ban looks the login up and bans', () async {
+    when(
+      () => api.banUser(
+        broadcasterId: '11',
+        moderatorId: '22',
+        userId: '33',
+        reason: 'spam',
+      ),
+    ).thenAnswer((_) async {});
+
+    final outcome = await moderation.run(const BanCommand('troll', 'spam'));
+
+    expect(outcome, (ok: true, message: 'You banned Troll.'));
+  });
+
+  test('a known id skips the lookup', () async {
+    when(
+      () => api.banUser(
+        broadcasterId: '11',
+        moderatorId: '22',
+        userId: '44',
+        duration: const Duration(minutes: 10),
+      ),
+    ).thenAnswer((_) async {});
+
+    final outcome = await moderation.run(
+      const TimeoutCommand('troll', Duration(minutes: 10), ''),
+      userId: '44',
+    );
+
+    expect(outcome.ok, isTrue);
+    expect(outcome.message, 'You timed out troll for 10 minutes.');
+    verifyNever(() => api.getUser(userLogin: any(named: 'userLogin')));
+  });
+
+  test('/unban and /untimeout', () async {
+    when(
+      () => api.unbanUser(broadcasterId: '11', moderatorId: '22', userId: '33'),
+    ).thenAnswer((_) async {});
+
+    expect(
+      (await moderation.run(const UnbanCommand('troll'))).message,
+      'You unbanned Troll.',
+    );
+    expect(
+      (await moderation.run(
+        const UnbanCommand('troll', timeout: true),
+      )).message,
+      'You removed the timeout of Troll.',
+    );
+  });
+
+  test('/warn, /delete and /clear', () async {
+    when(
+      () => api.warnUser(
+        broadcasterId: '11',
+        moderatorId: '22',
+        userId: '33',
+        reason: 'be nice',
+      ),
+    ).thenAnswer((_) async {});
+    when(
+      () => api.deleteChatMessages(
+        broadcasterId: '11',
+        moderatorId: '22',
+        messageId: any(named: 'messageId'),
+      ),
+    ).thenAnswer((_) async {});
+
+    expect(
+      (await moderation.run(const WarnCommand('troll', 'be nice'))).message,
+      'You warned Troll.',
+    );
+    expect(
+      (await moderation.run(const DeleteMessageCommand('abc'))).message,
+      'Message deleted.',
+    );
+    expect(
+      (await moderation.run(const ClearChatCommand())).message,
+      'You cleared the chat.',
+    );
+    verify(
+      () => api.deleteChatMessages(
+        broadcasterId: '11',
+        moderatorId: '22',
+        messageId: 'abc',
+      ),
+    ).called(1);
+    verify(
+      () => api.deleteChatMessages(broadcasterId: '11', moderatorId: '22'),
+    ).called(1);
+  });
+
+  test('room modes change only their own setting', () async {
+    when(
+      () => api.updateChatSettings(
+        broadcasterId: any(named: 'broadcasterId'),
+        moderatorId: any(named: 'moderatorId'),
+        slowMode: any(named: 'slowMode'),
+        slowModeWaitTime: any(named: 'slowModeWaitTime'),
+        followerMode: any(named: 'followerMode'),
+        followerModeDuration: any(named: 'followerModeDuration'),
+        subscriberMode: any(named: 'subscriberMode'),
+        emoteMode: any(named: 'emoteMode'),
+        uniqueChatMode: any(named: 'uniqueChatMode'),
+      ),
+    ).thenAnswer((_) async {});
+
+    expect(
+      (await moderation.run(
+        const ChatModeCommand(
+          ChatMode.slow,
+          on: true,
+          duration: Duration(seconds: 30),
+        ),
+      )).message,
+      'Slow mode on (30 seconds).',
+    );
+    verify(
+      () => api.updateChatSettings(
+        broadcasterId: '11',
+        moderatorId: '22',
+        slowMode: true,
+        slowModeWaitTime: const Duration(seconds: 30),
+      ),
+    ).called(1);
+
+    expect(
+      (await moderation.run(
+        const ChatModeCommand(
+          ChatMode.followers,
+          on: true,
+          duration: Duration(days: 7),
+        ),
+      )).message,
+      'Followers-only mode on (followers of 1 week).',
+    );
+    verify(
+      () => api.updateChatSettings(
+        broadcasterId: '11',
+        moderatorId: '22',
+        followerMode: true,
+        followerModeDuration: const Duration(days: 7),
+      ),
+    ).called(1);
+
+    expect(
+      (await moderation.run(
+        const ChatModeCommand(ChatMode.emoteOnly, on: false),
+      )).message,
+      'Emote-only mode off.',
+    );
+    verify(
+      () => api.updateChatSettings(
+        broadcasterId: '11',
+        moderatorId: '22',
+        emoteMode: false,
+      ),
+    ).called(1);
+  });
+
+  group('failures say why', () {
+    test('an unknown login', () async {
+      when(
+        () => api.getUser(userLogin: 'ghost'),
+      ).thenThrow(const NotFoundException('User does not exist'));
+
+      final outcome = await moderation.run(const BanCommand('ghost', ''));
+
+      expect(outcome, (
+        ok: false,
+        message: "Couldn't ban: no user named ghost",
+      ));
+    });
+
+    test("Twitch's refusal", () async {
+      when(
+        () => api.banUser(broadcasterId: '11', moderatorId: '22', userId: '33'),
+      ).thenThrow(const ApiException('The user is already banned.'));
+
+      expect(
+        (await moderation.run(const BanCommand('troll', ''))).message,
+        "Couldn't ban: The user is already banned.",
+      );
+    });
+
+    test('not a moderator, or missing the new scopes', () async {
+      when(
+        () =>
+            api.unbanUser(broadcasterId: '11', moderatorId: '22', userId: '33'),
+      ).thenThrow(const ApiException('Access denied', 403));
+      expect(
+        (await moderation.run(const UnbanCommand('troll'))).message,
+        "Couldn't unban: Twitch says you can't moderate this chat.",
+      );
+
+      when(
+        () =>
+            api.unbanUser(broadcasterId: '11', moderatorId: '22', userId: '33'),
+      ).thenThrow(const UnauthorizedException('Please log in'));
+      expect(
+        (await moderation.run(const UnbanCommand('troll'))).message,
+        'Log in again to moderate from this app.',
+      );
+    });
+
+    test('anything else never escapes', () async {
+      when(
+        () => api.deleteChatMessages(broadcasterId: '11', moderatorId: '22'),
+      ).thenThrow(StateError('boom'));
+
+      expect(await moderation.run(const ClearChatCommand()), (
+        ok: false,
+        message: "Couldn't clear the chat.",
+      ));
+    });
+  });
+}
