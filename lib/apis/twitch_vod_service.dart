@@ -69,6 +69,15 @@ class TwitchVodService extends BaseApiClient {
       'game(id: \$id) { id videos(first: \$first, sort: \$sort) { edges { '
       'node { $_videoFields } } pageInfo { hasNextPage } } } }';
 
+  // Many channels in one request (verified anonymously, 2026-10-14).
+  static const _followedVideosQuery =
+      'query FollowedVideos(\$ids: [ID!], \$first: Int) { users(ids: \$ids) '
+      '{ id login displayName videos(first: \$first, sort: TIME) { edges { '
+      'node { $_videoFields } } } } }';
+
+  /// Channels per [getFollowedVideos] request.
+  static const _followedBatch = 50;
+
   static const _videoQuery =
       'query Video(\$id: ID!) { video(id: \$id) { $_videoFields } }';
 
@@ -124,6 +133,56 @@ class TwitchVodService extends BaseApiClient {
       items: items,
       hasMore: pageInfo is Map && pageInfo['hasNextPage'] == true,
     );
+  }
+
+  /// The newest videos ([perChannel] each) of the channels [ids], newest
+  /// first across channels, for the Following page.
+  Future<List<Vod>> getFollowedVideos(
+    List<String> ids, {
+    int perChannel = 5,
+  }) async {
+    final numeric = RegExp(r'^[0-9]{1,20}$');
+    for (final id in ids) {
+      if (!numeric.hasMatch(id)) {
+        throw ArgumentError.value(id, 'ids', 'Not a channel id');
+      }
+    }
+    final videos = <Vod>[];
+    for (var start = 0; start < ids.length; start += _followedBatch) {
+      final batch = ids.sublist(
+        start,
+        (start + _followedBatch).clamp(0, ids.length),
+      );
+      final data = await _gql('FollowedVideos', _followedVideosQuery, {
+        'ids': batch,
+        'first': perChannel,
+      });
+      final users = data['users'];
+      // Twitch changed the query: an error, not "no videos".
+      if (users is! List) throw const VodApiException('Unreadable videos');
+      for (final user in users) {
+        if (user is! Map) continue;
+        final owner = {
+          'id': user['id'],
+          'login': user['login'],
+          'displayName': user['displayName'],
+        };
+        final list = user['videos'] is Map ? user['videos'] as Map : const {};
+        final edges = list['edges'] is List ? list['edges'] as List : const [];
+        for (final edge in edges) {
+          if (edge is! Map || edge['node'] is! Map) continue;
+          try {
+            videos.add(
+              Vod.fromGql(JsonMap.from(edge['node'] as Map), owner: owner),
+            );
+          } on FormatException {
+            // One unreadable video must not hide the others.
+          }
+        }
+      }
+    }
+    videos.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return videos;
   }
 
   /// A category's 100 most viewed videos.

@@ -40,6 +40,75 @@ void main() {
       ((gqlRequests.last.data as Map)['variables'] as Map)
           .cast<String, dynamic>();
 
+  group('getFollowedVideos', () {
+    Map<String, Object?> user(String id, List<Map<String, Object?>> nodes) => {
+      'id': id,
+      'login': 'c$id',
+      'displayName': 'C$id',
+      'videos': {
+        'edges': [
+          for (final node in nodes) {'node': node},
+        ],
+      },
+    };
+
+    test('one request for many channels, newest first', () async {
+      reply({
+        'data': {
+          'users': [
+            user('42', [vodNodeArchive, vodNodeHighlightNoGame]),
+            null,
+            user('7', [
+              {...vodNodeRecording, 'owner': null},
+            ]),
+          ],
+        },
+      });
+
+      final videos = await service.getFollowedVideos(['42', '99', '7']);
+
+      expect(gqlRequests, hasLength(1));
+      expect(lastVariables()['ids'], ['42', '99', '7']);
+      expect(videos.map((v) => v.id), [
+        '1000000003',
+        '1000000001',
+        '1000000002',
+      ]);
+      expect(videos.first.ownerLogin, 'c7', reason: 'owner from the user');
+    });
+
+    test('an answer without users is an error, not no videos', () async {
+      reply({'data': <String, Object?>{}});
+
+      await expectLater(
+        service.getFollowedVideos(['42']),
+        throwsA(isA<VodApiException>()),
+      );
+    });
+
+    test('nothing followed asks nothing', () async {
+      expect(await service.getFollowedVideos([]), isEmpty);
+      expect(gqlRequests, isEmpty);
+    });
+
+    test('ids that are not numeric are refused', () async {
+      await expectLater(
+        service.getFollowedVideos(['42', 'x"']),
+        throwsArgumentError,
+      );
+    });
+
+    test('many channels go in several requests', () async {
+      reply({
+        'data': {'users': <Object?>[]},
+      });
+
+      await service.getFollowedVideos([for (var i = 1; i <= 120; i++) '$i']);
+
+      expect(gqlRequests, hasLength(3));
+    });
+  });
+
   group('getChannelVideos', () {
     test('asks for the 100 newest videos in one page (no cursor)', () async {
       reply(vodListResponse);
