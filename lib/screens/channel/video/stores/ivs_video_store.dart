@@ -203,6 +203,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     @visibleForTesting IvsRecoveryPolicy? recoveryPolicy,
     EventSubHandle Function(EventSubTopic topic)? listenEvents,
     @visibleForTesting this.liveStartDelay = const Duration(seconds: 3),
+    @visibleForTesting this.offlinePollInterval = const Duration(seconds: 60),
   }) : _ownsStreamService = streamService == null,
        _recovery = recoveryPolicy ?? IvsRecoveryPolicy(),
        playerConfig = IvsPlayerConfig.fromSettings(settingsStore),
@@ -248,6 +249,19 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     );
     unawaited(updateStreamInfo());
     _scheduleOverlayHide();
+
+    // Offline: look for the channel coming back now and then.
+    _disposeOfflinePoll = reaction((_) => _status, (status) {
+      if (status == IvsPlaybackStatus.offline) {
+        _offlinePoll ??= Timer.periodic(
+          offlinePollInterval,
+          (_) => unawaited(_restartIfLive()),
+        );
+      } else {
+        _offlinePoll?.cancel();
+        _offlinePoll = null;
+      }
+    });
 
     // Logged in: the channel going live restarts the player at once.
     if (listenEvents != null) {
@@ -312,8 +326,16 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     _offlineAtStart.complete(offline && !_disposed);
   }
 
-  /// How long after the live event the playlist is expected to be ready.
+  /// How long after the live event the playlist is expected to be ready
+  /// (and how often it is looked for again within [_trustLivePush]).
   final Duration liveStartDelay;
+
+  /// How often an offline player checks whether its channel is back (the
+  /// only way without the EventSub push: logged out).
+  final Duration offlinePollInterval;
+
+  Timer? _offlinePoll;
+  ReactionDisposer? _disposeOfflinePoll;
 
   LiveStateWatcher? _liveWatcher;
   Timer? _liveStartTimer;
@@ -628,9 +650,17 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     }
     if (epoch != _recoveryEpoch) return;
     _recovering = false;
-    if (info != null || _justWentLive) {
-      // Helix lags a fresh stream.online: trust the push for a while.
-      if (info != null) runInAction(() => _streamInfo = info);
+    if (info == null && _justWentLive) {
+      // Helix lags a fresh push and the playlist may not be up yet: look
+      // again shortly, outside the retry budget, until the window ends.
+      _recovering = true;
+      runInAction(() => _status = IvsPlaybackStatus.reconnecting);
+      _retryTimer?.cancel();
+      _retryTimer = Timer(liveStartDelay, () => unawaited(_reload(epoch)));
+      return;
+    }
+    if (info != null) {
+      runInAction(() => _streamInfo = info);
       _applyRecovery(_recovery.onError(IvsErrorKind.recoverable));
       return;
     }
@@ -903,6 +933,8 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     _retryTimer?.cancel();
     _liveStartTimer?.cancel();
     _liveWatcher?.dispose();
+    _disposeOfflinePoll?.call();
+    _offlinePoll?.cancel();
     _overlayTimer?.cancel();
     _disposeAutoPipReaction?.call();
     _disposeCaptionsReaction?.call();

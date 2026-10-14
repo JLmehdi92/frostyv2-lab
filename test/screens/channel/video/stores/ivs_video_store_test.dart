@@ -44,6 +44,7 @@ void main() {
   Future<IvsVideoStore> createStore({
     IvsRecoveryPolicy? policy,
     EventSubHandle Function(EventSubTopic topic)? listenEvents,
+    Duration offlinePollInterval = const Duration(minutes: 1),
   }) async {
     final s = IvsVideoStore(
       userLogin: 'streamer',
@@ -55,6 +56,7 @@ void main() {
       recoveryPolicy: policy ?? instantPolicy(),
       listenEvents: listenEvents,
       liveStartDelay: Duration.zero,
+      offlinePollInterval: offlinePollInterval,
     );
     created = s;
     await s.ready;
@@ -1445,6 +1447,30 @@ void main() {
       expect(native.callsNamed('load'), hasLength(1));
     });
 
+    test('a fresh push keeps retrying past the retry budget', () async {
+      var fatal = 0;
+      store = await createStore(listenEvents: listen);
+      store.onFatalError = () => fatal++;
+      when(
+        () => twitchApi.getStream(userLogin: any(named: 'userLogin')),
+      ).thenThrow(const ApiException('streamer is offline', 404));
+
+      topics['stream.online']!.add(const EventSubData({}));
+      await settle();
+      for (var i = 0; i < 6; i++) {
+        await native.emit({
+          'type': 'error',
+          'errorType': 'ERROR_NOT_AVAILABLE',
+        });
+        for (var j = 0; j < 5; j++) {
+          await settle();
+        }
+      }
+
+      expect(fatal, 0);
+      expect(store.status, IvsPlaybackStatus.reconnecting);
+    });
+
     test('going live while the player still recovers is not lost', () async {
       store = await createStore(listenEvents: listen);
       // Helix does not list the stream yet (it lags the push).
@@ -1463,5 +1489,33 @@ void main() {
       expect(store.status, isNot(IvsPlaybackStatus.offline));
       expect(native.callsNamed('load'), isNotEmpty);
     });
+  });
+
+  test('an offline player looks for its channel now and then', () async {
+    store = await createStore(
+      offlinePollInterval: const Duration(milliseconds: 20),
+    );
+    when(
+      () => twitchApi.getStream(userLogin: any(named: 'userLogin')),
+    ).thenThrow(const ApiException('streamer is offline', 404));
+    await native.emit({'type': 'error', 'errorType': 'ERROR_NOT_AVAILABLE'});
+    for (var i = 0; i < 5; i++) {
+      await settle();
+    }
+    expect(store.status, IvsPlaybackStatus.offline);
+    native.playerCalls.clear();
+
+    // Still offline: nothing reloads.
+    await Future<void>.delayed(const Duration(milliseconds: 60));
+    expect(native.callsNamed('load'), isEmpty);
+
+    final live = StreamTwitch.fromJson(
+      (twitchStreamResponse['data']! as List).first as Map<String, dynamic>,
+    );
+    when(
+      () => twitchApi.getStream(userLogin: any(named: 'userLogin')),
+    ).thenAnswer((_) async => live);
+    await Future<void>.delayed(const Duration(milliseconds: 60));
+    expect(native.callsNamed('load'), hasLength(1));
   });
 }
