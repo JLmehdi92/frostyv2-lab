@@ -71,6 +71,10 @@ class _VideoChatState extends State<VideoChat>
   /// Two fingers on the landscape video: the swipe to picture-in-picture
   /// and the tap stand down (see [PinchToFill]).
   final _pinching = ValueNotifier(false);
+
+  /// The portrait video size while its handle is dragged; saved to the
+  /// settings once, when the drag ends.
+  final _portraitDragScale = ValueNotifier<double?>(null);
   bool _isInPipTriggerZone =
       false; // Track when in trigger zone for haptic feedback
 
@@ -1070,46 +1074,54 @@ class _VideoChatState extends State<VideoChat>
                 // ensure video does not bleed into the system status bar.
                 top: settingsStore.showVideo,
                 bottom: false,
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final width = constraints.maxWidth;
-                    final videoHeight = portraitVideoHeight(width, videoScale);
-                    return Stack(
-                      children: [
-                        Column(
-                          children: [
-                            if (settingsStore.showVideo) ...[
-                              // Placeholder for video space
-                              SizedBox(height: videoHeight),
-                              PortraitSplitHandle(
-                                width: width,
-                                scale: videoScale,
-                                onChanged: (scale) =>
-                                    settingsStore.portraitVideoScale = scale,
-                              ),
+                child: ValueListenableBuilder(
+                  valueListenable: _portraitDragScale,
+                  builder: (context, dragScale, _) => LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.maxWidth;
+                      final scale = dragScale ?? videoScale;
+                      final videoHeight = portraitVideoHeight(width, scale);
+                      return Stack(
+                        children: [
+                          Column(
+                            children: [
+                              if (settingsStore.showVideo) ...[
+                                // Placeholder for video space
+                                SizedBox(height: videoHeight),
+                                PortraitSplitHandle(
+                                  width: width,
+                                  scale: scale,
+                                  onChanged: (scale) =>
+                                      _portraitDragScale.value = scale,
+                                  onChangeEnd: (scale) {
+                                    settingsStore.portraitVideoScale = scale;
+                                    _portraitDragScale.value = null;
+                                  },
+                                ),
+                              ],
+                              Expanded(child: chat),
                             ],
-                            Expanded(child: chat),
-                          ],
-                        ),
-                        if (settingsStore.showVideo)
-                          Positioned(
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            height: videoHeight,
-                            child: Center(
-                              child: SizedBox(
-                                width: videoHeight * 16 / 9,
-                                child: _buildPipGestureWrapper(
-                                  child: video,
-                                  aspectRatio: 16 / 9,
+                          ),
+                          if (settingsStore.showVideo)
+                            Positioned(
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              height: videoHeight,
+                              child: Center(
+                                child: SizedBox(
+                                  width: videoHeight * 16 / 9,
+                                  child: _buildPipGestureWrapper(
+                                    child: video,
+                                    aspectRatio: 16 / 9,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                      ],
-                    );
-                  },
+                        ],
+                      );
+                    },
+                  ),
                 ),
               );
             },
@@ -1163,6 +1175,7 @@ class _VideoChatState extends State<VideoChat>
 
     _animationController.dispose();
     _pinching.dispose();
+    _portraitDragScale.dispose();
 
     SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,
