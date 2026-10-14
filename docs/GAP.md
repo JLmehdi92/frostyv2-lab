@@ -263,7 +263,7 @@
 | DSC-16 | Lives sponsorisés | P2 | ❌ | — | Publicité. | Impossible proprement |
 | DSC-17 | Recaps de streams récents | P2 | ❌ | — | — | GQL privé |
 | DSC-18 | Rangée de Stories | P2 | ❌ | — | — | GQL privé |
-| DSC-19 | Masquage des contenus labellisés | P1 | ❌ | — | Filtre local sur `content_classification_labels` (Helix). | OK |
+| DSC-19 | Masquage des contenus labellisés | P1 | ✅ | `stream_list_store.dart` (`hiddenByLabels`), `hidden_content_labels_setting.dart`, `streams_list.dart` (`HiddenStreamsBanner`), `twitch_api.dart` (`getChannelsByIds`) | Réglage local « Hide labeled streams » (Général › Browse) : Top, catégories et tags lisent les labels de chaque page (`GET /channels`, 100 par appel) et laissent de côté les lives labellisés, avec une bannière « N streams hidden… · Show ». Les chaînes suivies s'affichent toujours ; labels illisibles = rien de masqué. Pas dans la recherche (résultats de chaînes, pas de lives). | OK |
 | DSC-20 | Chaînes de l'équipe | P2 | ❌ | — | Helix `GET /teams/channel`. | OK |
 | DSC-21 | Onboarding de personnalisation | P2 | ❌ | — | — | GQL privé |
 | DSC-22 | Recommandations sur l'écran d'accueil Android | P2 | ❌ | — | Le SDK Engage exige une liste blanche Google. | Impossible proprement |
@@ -409,7 +409,7 @@
 | MSC-02 | Transport GraphQL | P0 | ⚠️ | `twitch_stream_service.dart:20-34,98-113` | Une seule requête GQL, non persistée (choix volontaire contre la rotation des hashes). Ni APQ ni intégrité. | GQL privé |
 | MSC-03 | Temps réel Hermes | P0 | ✅ | `lib/services/realtime/` | Client Hermes anonyme partagé (`TwitchRealtimeClient`) pour les sujets publics, et client EventSub WebSocket (`TwitchEventSubClient`) pour les événements du compte : connexion paresseuse, abonnements Helix par session, `session_reconnect` sans perte, keepalive, reconnexion avec backoff, dédoublonnage, pause en arrière-plan. Branché aussi pour `stream.online` (PLY-09). | OK |
 | MSC-04 | Client chat Kotlin Multiplatform | P1 | ✅ | `chat_store.dart:884-1005`, `chat_tabs_store.dart:151-200` | Buffer flushé toutes les 200 ms, backoff, PING/PONG. | OK |
-| MSC-05 | Gestion des permissions | P1 | ❌ | — | Aucune permission runtime aujourd'hui. Nécessaire pour les notifications et le service média. | OK |
+| MSC-05 | Gestion des permissions | P1 | ⚠️ | `go_live_setting.dart`, `go_live_worker.dart` (`requestPermission`, `allowed`) | Notifications (Android 13+) demandées en activant les notifications de live, avec explication ; si elles sont bloquées, le réglage le dit et renvoie aux réglages système (sans bouton direct). Service média : permissions de manifeste seulement. | OK |
 | MSC-06 | Pile React Native « Ultralight » | P2 | ❌ | — | Pile RN interne à Twitch. | Impossible proprement |
 | MSC-07 | Portails web « Candlelight » | P2 | ❌ | — | Portails Twilight internes. | Impossible proprement |
 | MSC-08 | Mises à jour OTA du bundle RN | P2 | ❌ | — | — | Impossible proprement |
@@ -434,24 +434,24 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Interactions communautaires (INT) | 4 | 4 | 23 | 0 | 31 |
 | Modération (MOD) | 9 | 1 | 21 | 0 | 31 |
 | Social & notifications (SOC) | 5 | 5 | 12 | 0 | 22 |
-| Découverte & recherche (DSC) | 5 | 4 | 13 | 0 | 22 |
+| Découverte & recherche (DSC) | 6 | 4 | 12 | 0 | 22 |
 | Profil de chaîne & contenus (VOD / clips) (PRF) | 5 | 6 | 18 | 0 | 29 |
 | Monétisation (MON) | 0 | 0 | 15 | 0 | 15 |
 | Compte & réglages (ACC) | 5 | 4 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
-| Divers / technique (MSC) | 4 | 6 | 7 | 0 | 17 |
-| **Total** | **87** | **40** | **182** | **8** | **317** |
+| Divers / technique (MSC) | 4 | 7 | 6 | 0 | 17 |
+| **Total** | **88** | **41** | **180** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 40 | 14 | 2 | 4 | 60 |
-| P1 | 41 | 19 | 44 | 4 | 108 |
+| P1 | 42 | 20 | 42 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **87** | **40** | **182** | **8** | **317** |
+| **Total** | **88** | **41** | **180** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 10 | 23 | 33 | 66 |
+| OK | 10 | 22 | 33 | 65 |
 | GQL privé | 6 | 29 | 61 | 96 |
 | Compte requis | 0 | 11 | 12 | 23 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
