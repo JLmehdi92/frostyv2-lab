@@ -665,6 +665,9 @@ class TwitchApi extends BaseApiClient {
   }) async {
     final data = await post<JsonMap>(
       '/eventsub/subscriptions',
+      // Runs by itself at start: a token from before the whisper scope is
+      // refused, which must not pop the login dialog.
+      extra: {UnauthorizedInterceptor.quiet: true},
       data: {
         'type': type,
         'version': version,
@@ -687,6 +690,7 @@ class TwitchApi extends BaseApiClient {
     await delete<dynamic>(
       '/eventsub/subscriptions',
       queryParameters: {'id': id},
+      extra: {UnauthorizedInterceptor.quiet: true},
     );
   }
 

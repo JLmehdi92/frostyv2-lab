@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/apis/unauthorized_interceptor.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 
 void main() {
@@ -43,6 +44,34 @@ void main() {
         ),
         'f1c2a387-161a-49f9-a165-0f21d7a4e1c4',
       );
+    });
+
+    test('a refusal shows no login dialog', () async {
+      final extras = <Map<String, Object?>>[];
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            extras.add(options.extra);
+            handler.next(options);
+          },
+        ),
+      );
+      dioAdapter.onPost(
+        '$helix/eventsub/subscriptions',
+        (server) => server.reply(401, {'message': 'Missing scope'}),
+        data: Matchers.any,
+      );
+
+      await expectLater(
+        api.createEventSubSubscription(
+          type: 't',
+          version: '1',
+          condition: {},
+          sessionId: 's',
+        ),
+        throwsA(isA<UnauthorizedException>()),
+      );
+      expect(extras.single[UnauthorizedInterceptor.quiet], isTrue);
     });
 
     test('an answer without an id is an error', () {

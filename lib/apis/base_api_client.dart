@@ -92,6 +92,7 @@ abstract class BaseApiClient {
     QueryParams? queryParameters,
     ApiHeaders? headers,
     CancelToken? cancelToken,
+    Map<String, Object?>? extra,
   }) async {
     try {
       final url = _buildUrl(endpoint);
@@ -99,7 +100,7 @@ abstract class BaseApiClient {
         url,
         data: data,
         queryParameters: queryParameters,
-        options: Options(headers: headers),
+        options: Options(headers: headers, extra: extra),
         cancelToken: cancelToken,
       );
       return response.data as T;
@@ -160,13 +161,14 @@ abstract class BaseApiClient {
     QueryParams? queryParameters,
     ApiHeaders? headers,
     CancelToken? cancelToken,
+    Map<String, Object?>? extra,
   }) async {
     try {
       final url = _buildUrl(endpoint);
       final response = await _dio.delete(
         url,
         queryParameters: queryParameters,
-        options: Options(headers: headers),
+        options: Options(headers: headers, extra: extra),
         cancelToken: cancelToken,
       );
       return response.data as T;
