@@ -30,6 +30,7 @@ class CommunityHighlightsStore = CommunityHighlightsStoreBase
 abstract class CommunityHighlightsStoreBase with Store {
   CommunityHighlightsStoreBase({
     required this.channelId,
+    this.channelLogin,
     required TwitchCommunityHighlightsService service,
     required TwitchRealtimeClient realtime,
     ServerClock? serverClock,
@@ -55,6 +56,9 @@ abstract class CommunityHighlightsStoreBase with Store {
   }
 
   final String channelId;
+
+  /// The channel's login, to vote or predict on its twitch.tv chat page.
+  final String? channelLogin;
   final TwitchCommunityHighlightsService _service;
 
   /// Twitch's time, learnt from notification timestamps.

@@ -287,4 +287,66 @@ void main() {
       expect(tester.takeException(), isNull);
     }
   });
+
+  group('taking part on twitch.tv', () {
+    HighlightCardContext withTakePart(
+      VoidCallback onTakePart, {
+      bool expanded = true,
+    }) => HighlightCardContext(
+      expanded: expanded,
+      onToggle: () {},
+      now: () => now,
+      onTakePart: onTakePart,
+    );
+
+    testWidgets('an open poll can be voted on twitch.tv', (tester) async {
+      var opened = 0;
+      await pump(
+        tester,
+        PollCard(poll: _poll(), card: withTakePart(() => opened++)),
+      );
+
+      await tester.tap(find.text('Vote on Twitch'));
+      expect(opened, 1);
+    });
+
+    testWidgets('an open prediction can be made on twitch.tv', (tester) async {
+      await pump(
+        tester,
+        PredictionCard(prediction: _prediction(), card: withTakePart(() {})),
+      );
+      expect(find.text('Predict on Twitch'), findsOneWidget);
+    });
+
+    testWidgets('nothing to take part in: no button', (tester) async {
+      await pump(
+        tester,
+        PollCard(
+          poll: _poll(status: PollStatus.completed),
+          card: withTakePart(() {}),
+        ),
+      );
+      expect(find.text('Vote on Twitch'), findsNothing);
+
+      await pump(
+        tester,
+        PredictionCard(
+          prediction: _prediction(status: PredictionStatus.locked),
+          card: withTakePart(() {}),
+        ),
+      );
+      expect(find.text('Predict on Twitch'), findsNothing);
+
+      // Collapsed cards stay one line.
+      await pump(
+        tester,
+        PollCard(poll: _poll(), card: withTakePart(() {}, expanded: false)),
+      );
+      expect(find.text('Vote on Twitch'), findsNothing);
+
+      // No channel to open: no button.
+      await pump(tester, PollCard(poll: _poll(), card: card()));
+      expect(find.text('Vote on Twitch'), findsNothing);
+    });
+  });
 }

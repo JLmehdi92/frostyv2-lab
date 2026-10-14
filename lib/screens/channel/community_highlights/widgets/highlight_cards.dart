@@ -28,6 +28,7 @@ class HighlightCardContext {
     required this.onToggle,
     required this.now,
     this.onDismiss,
+    this.onTakePart,
   });
 
   final bool expanded;
@@ -36,10 +37,33 @@ class HighlightCardContext {
 
   /// Twitch's current time, for countdowns.
   final DateTime Function() now;
+
+  /// Opens the channel's twitch.tv chat to vote or predict there; null
+  /// hides the button.
+  final VoidCallback? onTakePart;
+}
+
+/// The button that sends a viewer to twitch.tv to take part (Twitch keeps
+/// voting and predicting to its own pages).
+Widget? _takePart(
+  HighlightCardContext card,
+  String label, {
+  required bool open,
+}) {
+  final onTap = card.onTakePart;
+  if (!open || !card.expanded || onTap == null) return null;
+  return Align(
+    alignment: AlignmentDirectional.centerEnd,
+    child: TextButton.icon(
+      onPressed: onTap,
+      icon: const Icon(Icons.open_in_new_rounded, size: 18),
+      label: Text(label),
+    ),
+  );
 }
 
 /// A live poll: the question, then each choice with its share of the
-/// votes; the final results once it ended. Read-only (no voting).
+/// votes; the final results once it ended. Voting opens twitch.tv.
 class PollCard extends StatelessWidget {
   const PollCard({super.key, required this.poll, required this.card});
 
@@ -81,6 +105,7 @@ class PollCard extends StatelessWidget {
               now: card.now,
               builder: (context, left) => Text('${formatTimeLeft(left)} left'),
             ),
+      footer: _takePart(card, 'Vote on Twitch', open: !finished),
       headline: Text(
         poll.title,
         maxLines: card.expanded ? 3 : 1,
@@ -110,8 +135,8 @@ class PollCard extends StatelessWidget {
 }
 
 /// A prediction: the outcomes with their colours, share of the points,
-/// return ratio and predictors; locked, pending, winner or refunded. Read
-/// only (predicting needs a Twitch session).
+/// return ratio and predictors; locked, pending, winner or refunded.
+/// Predicting opens twitch.tv.
 class PredictionCard extends StatelessWidget {
   const PredictionCard({
     super.key,
@@ -166,6 +191,11 @@ class PredictionCard extends StatelessWidget {
                   Text('${formatTimeLeft(left)} to predict'),
             )
           : Text(winner == null ? _statusText : 'Winner: ${winner.title}'),
+      footer: _takePart(
+        card,
+        'Predict on Twitch',
+        open: prediction.status == PredictionStatus.active,
+      ),
       headline: Text(
         prediction.title,
         maxLines: card.expanded ? 3 : 1,

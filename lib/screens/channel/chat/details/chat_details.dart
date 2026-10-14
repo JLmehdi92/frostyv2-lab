@@ -16,6 +16,7 @@ import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/animated_scroll_border.dart';
 import 'package:frosty/widgets/frosty_scrollbar.dart';
 import 'package:frosty/widgets/section_header.dart';
+import 'package:frosty/widgets/twitch_web_page.dart';
 import 'package:intl/intl.dart';
 
 class ChatDetails extends StatefulWidget {
@@ -353,6 +354,24 @@ class _ChatDetailsState extends State<ChatDetails> {
               title: const Text('Username color'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _showChatColorPicker(context),
+            ),
+          if (widget.chatStore.auth.isLoggedIn)
+            ListTile(
+              leading: const Icon(Icons.toll_rounded),
+              title: const Text('Channel points, polls and predictions'),
+              subtitle: const Text('Opens the chat on twitch.tv'),
+              trailing: const Icon(Icons.open_in_new_rounded),
+              onTap: () {
+                Navigator.of(context).pop();
+                TwitchWebPage.open(
+                  context,
+                  title: 'Twitch chat',
+                  url: Uri.https(
+                    'www.twitch.tv',
+                    '/popout/${widget.userLogin}/chat',
+                  ),
+                );
+              },
             ),
           ListTile(
             leading: const Icon(Icons.people_rounded),

@@ -5,6 +5,7 @@ import 'package:frosty/screens/channel/community_highlights/highlight_stack.dart
 import 'package:frosty/screens/channel/community_highlights/stores/community_highlights_store.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/highlight_cards.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
+import 'package:frosty/widgets/twitch_web_page.dart';
 import 'package:mobx/mobx.dart';
 
 /// Renders a pinned message like chat (the channel screen passes its chat
@@ -37,27 +38,38 @@ Widget buildHighlightCard(
   PinnedMessageBuilder? pinnedMessage,
   bool dismissible = true,
 }) {
-  final card = HighlightCardContext(
+  final login = store.channelLogin;
+  HighlightCardContext cardFor(BuildContext context) => HighlightCardContext(
     expanded: expanded,
     onToggle: onToggle,
     onDismiss: dismissible ? store.dismissCurrent : null,
     now: store.serverNow,
+    onTakePart: login == null
+        ? null
+        : () => TwitchWebPage.open(
+            context,
+            title: 'Twitch chat',
+            url: Uri.https('www.twitch.tv', '/popout/$login/chat'),
+          ),
   );
   // Its own Observer: the data changes without the stack changing.
   return Observer(
     builder: (context) => switch (item.kind) {
       HighlightKind.poll => switch (store.poll) {
-        final poll? => PollCard(poll: poll, card: card),
+        final poll? => PollCard(poll: poll, card: cardFor(context)),
         null => const SizedBox.shrink(),
       },
       HighlightKind.prediction => switch (store.prediction) {
-        final prediction? => PredictionCard(prediction: prediction, card: card),
+        final prediction? => PredictionCard(
+          prediction: prediction,
+          card: cardFor(context),
+        ),
         null => const SizedBox.shrink(),
       },
       HighlightKind.pinned => switch (store.pinned) {
         final pin? => PinnedCard(
           pin: pin,
-          card: card,
+          card: cardFor(context),
           message: pinnedMessage?.call(context, pin),
         ),
         null => const SizedBox.shrink(),
@@ -65,7 +77,7 @@ Widget buildHighlightCard(
       HighlightKind.raid => switch (store.raid) {
         final raid? => RaidCard(
           raid: raid,
-          card: card,
+          card: cardFor(context),
           onWatch: () => onWatchRaid(raid.raid),
         ),
         null => const SizedBox.shrink(),

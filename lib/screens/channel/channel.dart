@@ -166,6 +166,7 @@ class _VideoChatState extends State<VideoChat>
       final view = WidgetsBinding.instance.platformDispatcher.implicitView;
       _highlightsStore = CommunityHighlightsStore(
         channelId: widget.userId,
+        channelLogin: widget.userLogin,
         service: context.twitchCommunityHighlightsService,
         realtime: context.realtimeClient,
         expandNew:
