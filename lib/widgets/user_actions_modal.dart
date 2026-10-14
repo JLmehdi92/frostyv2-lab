@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/channel_videos.dart';
-import 'package:frosty/widgets/blurred_container.dart';
+import 'package:frosty/widgets/twitch_web_page.dart';
 import 'package:provider/provider.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 class UserActionsModal extends StatelessWidget {
   final AuthStore authStore;
@@ -98,87 +96,26 @@ class UserActionsModal extends StatelessWidget {
                 }),
             title: Text('Block $name'),
           ),
+        if (authStore.isLoggedIn)
+          ListTile(
+            leading: const Icon(Icons.favorite_border_rounded),
+            title: Text('Follow $name on Twitch'),
+            subtitle: const Text('Opens the channel on twitch.tv'),
+            onTap: () {
+              Navigator.pop(context);
+              TwitchWebPage.open(
+                context,
+                title: name,
+                url: Uri.https('www.twitch.tv', '/$userLogin'),
+              );
+            },
+          ),
         ListTile(
           leading: const Icon(Icons.outlined_flag_rounded),
-          onTap: () => Navigator.push(
+          onTap: () => TwitchWebPage.open(
             context,
-            MaterialPageRoute(
-              builder: (context) {
-                final theme = Theme.of(context);
-
-                return Scaffold(
-                  backgroundColor: theme.scaffoldBackgroundColor,
-                  extendBody: true,
-                  extendBodyBehindAppBar: true,
-                  appBar: AppBar(
-                    centerTitle: false,
-                    elevation: 0,
-                    backgroundColor: Colors.transparent,
-                    surfaceTintColor: Colors.transparent,
-                    systemOverlayStyle: SystemUiOverlayStyle(
-                      statusBarColor: Colors.transparent,
-                      statusBarIconBrightness:
-                          theme.brightness == Brightness.dark
-                          ? Brightness.light
-                          : Brightness.dark,
-                    ),
-                    leading: IconButton(
-                      tooltip: 'Back',
-                      icon: Icon(Icons.adaptive.arrow_back_rounded),
-                      onPressed: Navigator.of(context).pop,
-                    ),
-                    title: Text('Report $name'),
-                  ),
-                  body: Stack(
-                    children: [
-                      // WebView content
-                      Positioned.fill(
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            top:
-                                MediaQuery.of(context).padding.top +
-                                kToolbarHeight,
-                          ),
-                          child: WebViewWidget(
-                            controller: WebViewController()
-                              ..setJavaScriptMode(JavaScriptMode.unrestricted)
-                              ..loadRequest(
-                                Uri.parse(
-                                  'https://www.twitch.tv/$userLogin/report',
-                                ),
-                              )
-                              ..setNavigationDelegate(
-                                NavigationDelegate(
-                                  onWebResourceError: (error) {
-                                    debugPrint(
-                                      'WebView error: ${error.description}',
-                                    );
-                                  },
-                                ),
-                              ),
-                          ),
-                        ),
-                      ),
-                      // Blurred app bar overlay
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: BlurredContainer(
-                          gradientDirection: GradientDirection.up,
-                          padding: EdgeInsets.only(
-                            top: MediaQuery.of(context).padding.top,
-                            left: MediaQuery.of(context).padding.left,
-                            right: MediaQuery.of(context).padding.right,
-                          ),
-                          child: const SizedBox(height: kToolbarHeight),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
+            title: 'Report $name',
+            url: Uri.https('www.twitch.tv', '/$userLogin/report'),
           ),
           title: Text('Report $name'),
         ),
