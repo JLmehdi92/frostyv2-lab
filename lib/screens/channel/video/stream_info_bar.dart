@@ -217,29 +217,8 @@ class StreamInfoBar extends StatelessWidget {
                             message: offlineChannelInfo?.gameName ?? '',
                             triggerMode: tooltipTriggerMode,
                             child: tappableCategory
-                                ? GestureDetector(
-                                    onDoubleTap: () {
-                                      if (offlineChannelInfo
-                                              ?.gameId
-                                              .isNotEmpty ??
-                                          false) {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            settings: const RouteSettings(
-                                              name: CategoryStreams.routeName,
-                                            ),
-                                            builder: (context) =>
-                                                CategoryStreams(
-                                                  categoryId:
-                                                      offlineChannelInfo
-                                                          ?.gameId ??
-                                                      '',
-                                                ),
-                                          ),
-                                        );
-                                      }
-                                    },
+                                ? _CategoryLink(
+                                    categoryId: offlineChannelInfo?.gameId,
                                     child: Text(
                                       offlineChannelInfo?.gameName ?? '',
                                       style: _getSecondaryTextStyle(
@@ -316,19 +295,8 @@ class StreamInfoBar extends StatelessWidget {
                               message: streamInfo?.gameName ?? '',
                               triggerMode: tooltipTriggerMode,
                               child: tappableCategory
-                                  ? GestureDetector(
-                                      onDoubleTap: () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          settings: const RouteSettings(
-                                            name: CategoryStreams.routeName,
-                                          ),
-                                          builder: (context) => CategoryStreams(
-                                            categoryId:
-                                                streamInfo?.gameId ?? '',
-                                          ),
-                                        ),
-                                      ),
+                                  ? _CategoryLink(
+                                      categoryId: streamInfo?.gameId,
                                       child: Text(
                                         streamInfo?.gameName ?? '',
                                         style: _getBaseTextStyle(
@@ -360,6 +328,36 @@ class StreamInfoBar extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// The category name: a double tap opens its streams (a single tap shows
+/// the full name), and a screen reader opens it as a link.
+class _CategoryLink extends StatelessWidget {
+  const _CategoryLink({required this.categoryId, required this.child});
+
+  final String? categoryId;
+  final Widget child;
+
+  void _open(BuildContext context) {
+    final id = categoryId;
+    if (id == null || id.isEmpty) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        settings: const RouteSettings(name: CategoryStreams.routeName),
+        builder: (context) => CategoryStreams(categoryId: id),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      link: true,
+      onTap: () => _open(context),
+      child: GestureDetector(onDoubleTap: () => _open(context), child: child),
     );
   }
 }

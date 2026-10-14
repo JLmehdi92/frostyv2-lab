@@ -33,6 +33,12 @@ class DraggableDivider extends StatefulWidget {
   /// Whether to show the background divider line
   final bool showDividerLine;
 
+  /// What a screen reader calls the width being resized.
+  final String semanticLabel;
+
+  /// How much one screen-reader adjustment changes the width.
+  static const semanticStep = 0.05;
+
   const DraggableDivider({
     super.key,
     required this.onDrag,
@@ -45,6 +51,7 @@ class DraggableDivider extends StatefulWidget {
     this.isResizableOnLeft = true,
     this.showHandle = true,
     this.showDividerLine = true,
+    this.semanticLabel = 'Chat width',
   });
 
   @override
@@ -121,16 +128,44 @@ class _DraggableDividerState extends State<DraggableDivider> {
     });
   }
 
+  /// Resizes by one step for a screen reader, which cannot drag.
+  void _step(double delta) => widget.onDrag(
+    (widget.currentWidth + delta).clamp(widget.minWidth, widget.maxWidth),
+  );
+
+  String _percent(double width) =>
+      '${(width.clamp(widget.minWidth, widget.maxWidth) * 100).round()}%';
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    const step = DraggableDivider.semanticStep;
 
+    return Semantics(
+      slider: true,
+      label: widget.semanticLabel,
+      value: _percent(widget.currentWidth),
+      increasedValue: _percent(widget.currentWidth + step),
+      decreasedValue: _percent(widget.currentWidth - step),
+      onIncrease: widget.currentWidth < widget.maxWidth
+          ? () => _step(step)
+          : null,
+      onDecrease: widget.currentWidth > widget.minWidth
+          ? () => _step(-step)
+          : null,
+      child: _buildHandle(colorScheme),
+    );
+  }
+
+  Widget _buildHandle(ColorScheme colorScheme) {
     return MouseRegion(
       onEnter: (_) => _handleHover(true),
       onExit: (_) => _handleHover(false),
       cursor: SystemMouseCursors.resizeColumn,
       child: GestureDetector(
+        // The slider semantics above step the width instead.
+        excludeFromSemantics: true,
         onPanStart: _handlePanStart,
         onPanUpdate: _handlePanUpdate,
         onPanEnd: _handlePanEnd,

@@ -664,21 +664,24 @@ class _SpeedChip extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Material(
-    color: Colors.black.withValues(alpha: 0.6),
-    borderRadius: BorderRadius.circular(6),
-    child: InkWell(
+  Widget build(BuildContext context) => Tooltip(
+    message: 'Playback speed',
+    child: Material(
+      color: Colors.black.withValues(alpha: 0.6),
       borderRadius: BorderRadius.circular(6),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        child: Text(
-          formatPlaybackRate(rate),
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            fontFeatures: [FontFeature.tabularFigures()],
+      child: InkWell(
+        borderRadius: BorderRadius.circular(6),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          child: Text(
+            formatPlaybackRate(rate),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              fontFeatures: [FontFeature.tabularFigures()],
+            ),
           ),
         ),
       ),

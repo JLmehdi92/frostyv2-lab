@@ -647,15 +647,21 @@ class ChatMessage extends StatelessWidget {
                 child: dividedMessage,
               );
 
-        final finalMessage = InkWell(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-            if (_effectiveInputStore.assetsStore.showEmoteMenu) {
-              _effectiveInputStore.assetsStore.showEmoteMenu = false;
-            }
-          },
-          onLongPress: () => onLongPressMessage(context, defaultTextStyle),
-          child: coloredMessage,
+        final hasOptions =
+            ircMessage.command == Command.privateMessage ||
+            ircMessage.command == Command.userState;
+        final finalMessage = Semantics(
+          onLongPressHint: hasOptions ? 'message options' : 'copy message',
+          child: InkWell(
+            onTap: () {
+              FocusScope.of(context).unfocus();
+              if (_effectiveInputStore.assetsStore.showEmoteMenu) {
+                _effectiveInputStore.assetsStore.showEmoteMenu = false;
+              }
+            },
+            onLongPress: () => onLongPressMessage(context, defaultTextStyle),
+            child: coloredMessage,
+          ),
         );
 
         return finalMessage;

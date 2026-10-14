@@ -109,26 +109,33 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
                 IvsTextureVideo(videoStore: player),
                 // Gesture layer above the video: tap to restore, drag to move.
                 Positioned.fill(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => _restore(store),
-                    onPanDown: (_) => _snapController.stop(),
-                    onPanUpdate: (details) {
-                      _offset.value = clampToScreen(
-                        (_offset.value ?? defaultOffset) + details.delta,
-                      );
-                    },
-                    onPanEnd: (_) {
-                      _animateTo(
-                        _snapToCorner(
-                          _offset.value ?? defaultOffset,
-                          screen,
-                          width,
-                          height,
-                          topBound,
-                        ),
-                      );
-                    },
+                  child: Semantics(
+                    // Its own node, the size of the window: nothing above
+                    // it starts one, so it would cover the whole screen.
+                    container: true,
+                    button: true,
+                    label: 'Return to stream',
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _restore(store),
+                      onPanDown: (_) => _snapController.stop(),
+                      onPanUpdate: (details) {
+                        _offset.value = clampToScreen(
+                          (_offset.value ?? defaultOffset) + details.delta,
+                        );
+                      },
+                      onPanEnd: (_) {
+                        _animateTo(
+                          _snapToCorner(
+                            _offset.value ?? defaultOffset,
+                            screen,
+                            width,
+                            height,
+                            topBound,
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
                 Positioned(
