@@ -152,10 +152,109 @@ void main() {
       expect(prefs.seen, {'1'});
     });
 
+    test('a notice that fails is announced again next time', () async {
+      await prefs.setSeen({});
+      followedLive([_stream('1')]);
+      await expectLater(
+        checkGoLive(
+          api: api,
+          prefs: prefs,
+          notify: (_, _) async => throw StateError('plugin'),
+        ),
+        throwsStateError,
+      );
+      expect(prefs.seen, isEmpty);
+      expect(await check(), 1);
+    });
+
+    test(
+      'turning it on again does not announce what happened while off',
+      () async {
+        await prefs.setSeen({'1'});
+        await prefs.setEnabled(false);
+        await prefs.setEnabled(true);
+        expect(prefs.seen, isNull);
+      },
+    );
+
     test('another viewer starts over', () async {
       await prefs.setSeen({'1'});
       await prefs.setUserId('8');
       expect(prefs.seen, isNull);
+    });
+  });
+
+  group('runGoLiveTask', () {
+    late MockTwitchApi api;
+    late GoLivePrefs prefs;
+    late List<String> problems;
+    late List<Object> reported;
+    String? token;
+
+    Future<bool> run() => runGoLiveTask(
+      readToken: () async => token,
+      buildApi: (_) => api,
+      prefs: prefs,
+      notify: (_, _) async {},
+      notifyProblem: (message) async => problems.add(message),
+      report: (error, _) => reported.add(error),
+    );
+
+    void answer(Object error) => when(
+      () => api.getFollowedStreams(
+        id: '7',
+        cursor: any(named: 'cursor'),
+        first: 100,
+      ),
+    ).thenThrow(error);
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      api = MockTwitchApi();
+      prefs = await GoLivePrefs.load();
+      await prefs.setEnabled(true);
+      await prefs.setUserId('7');
+      problems = [];
+      reported = [];
+      token = 'token';
+    });
+
+    test('no token (logged out): done, nothing asked', () async {
+      token = null;
+      expect(await run(), isTrue);
+      verifyNever(
+        () => api.getFollowedStreams(
+          id: any(named: 'id'),
+          cursor: any(named: 'cursor'),
+          first: any(named: 'first'),
+        ),
+      );
+    });
+
+    test('a refused token pauses and says so once', () async {
+      answer(const UnauthorizedException('expired'));
+      expect(await run(), isTrue);
+      expect(await run(), isTrue);
+      expect(problems, [kGoLiveLoggedOut]);
+      expect(prefs.problem, kGoLiveLoggedOut);
+
+      when(
+        () => api.getFollowedStreams(id: '7', first: 100),
+      ).thenAnswer((_) async => const StreamsTwitch([], {}));
+      expect(await run(), isTrue);
+      expect(prefs.problem, isNull);
+    });
+
+    test('offline: retried later without a report', () async {
+      answer(const NetworkException('offline'));
+      expect(await run(), isFalse);
+      expect(reported, isEmpty);
+    });
+
+    test('anything else: retried later and reported', () async {
+      answer(StateError('changed'));
+      expect(await run(), isFalse);
+      expect(reported.single, isA<StateError>());
     });
   });
 }

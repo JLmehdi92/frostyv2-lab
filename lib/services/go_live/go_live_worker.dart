@@ -1,12 +1,14 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/constants.dart';
+import 'package:frosty/firebase_options.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/services/go_live/go_live.dart';
 import 'package:workmanager/workmanager.dart';
@@ -23,33 +25,51 @@ final _login = RegExp(r'^[a-zA-Z0-9_]{1,25}$');
 void goLiveCallbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     if (task != _task) return true;
+    var crashlytics = false;
     try {
-      final token = await const FlutterSecureStorage().read(
-        key: AuthBase.userTokenKey,
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
       );
-      if (token == null) return true;
-      final api = TwitchApi(
-        Dio(
-          BaseOptions(
-            headers: {'Client-Id': clientId, 'Authorization': 'Bearer $token'},
-            connectTimeout: const Duration(seconds: 10),
-            receiveTimeout: const Duration(seconds: 15),
+      crashlytics = true;
+    } catch (_) {
+      // Reporting is a bonus: the check runs without it.
+    }
+    void report(Object error, StackTrace stack) {
+      debugPrint('Go-live check failed: $error');
+      if (!crashlytics) return;
+      try {
+        FirebaseCrashlytics.instance.recordError(
+          error,
+          stack,
+          reason: 'go-live background check',
+        );
+      } catch (_) {}
+    }
+
+    try {
+      await GoLiveNotifications.init();
+      return await runGoLiveTask(
+        readToken: () =>
+            const FlutterSecureStorage().read(key: AuthBase.userTokenKey),
+        buildApi: (token) => TwitchApi(
+          Dio(
+            BaseOptions(
+              headers: {
+                'Client-Id': clientId,
+                'Authorization': 'Bearer $token',
+              },
+              connectTimeout: const Duration(seconds: 10),
+              receiveTimeout: const Duration(seconds: 15),
+            ),
           ),
         ),
-      );
-      await GoLiveNotifications.init();
-      await checkGoLive(
-        api: api,
         prefs: await GoLivePrefs.load(),
         notify: GoLiveNotifications.show,
+        notifyProblem: GoLiveNotifications.showProblem,
+        report: report,
       );
-      return true;
-    } on UnauthorizedException {
-      // Logged out elsewhere or expired: the app asks to log in again.
-      return true;
-    } catch (e) {
-      debugPrint('Go-live check failed: $e');
-      // Asks Android to try again later.
+    } catch (error, stack) {
+      report(error, stack);
       return false;
     }
   });
@@ -149,6 +169,25 @@ abstract final class GoLiveNotifications {
             ?.requestPermissions(alert: true, sound: true) ??
         false;
   }
+
+  /// Whether notices can show (the user may have blocked them since).
+  static Future<bool> allowed() async {
+    if (!Platform.isAndroid) return true;
+    return await _plugin
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >()
+            ?.areNotificationsEnabled() ??
+        true;
+  }
+
+  /// Says once that the notices are paused, and why.
+  static Future<void> showProblem(String message) => _plugin.show(
+    id: 1,
+    title: 'Go-live notifications paused',
+    body: message,
+    notificationDetails: _details,
+  );
 
   static Future<void> show(List<GoLiveNotice> notices, int more) async {
     for (final notice in notices) {
