@@ -15,9 +15,42 @@ String? moderationNotice(
   final login = clearChat.message?.trim().toLowerCase();
   if (login == null || !_login.hasMatch(login)) return null;
   final name = displayNameOf(login);
-  final seconds = int.tryParse(clearChat.tags['ban-duration'] ?? '');
-  if (seconds == null) return '$name has been permanently banned.';
+  final duration = clearChat.tags['ban-duration'];
+  if (duration == null) return '$name has been permanently banned.';
+  final seconds = int.tryParse(duration);
+  // A duration that cannot be read is still a timeout, not a ban.
+  if (seconds == null) return '$name has been timed out.';
   return '$name has been timed out for ${timeoutLength(seconds)}.';
+}
+
+/// The notice line chat adds for a targeted CLEARCHAT, or null: none for a
+/// whole-chat clear, an odd target, or someone in [hiddenLogins] (blocked
+/// people, whose messages are hidden too). [newestFirst] names the target.
+///
+/// The line keeps Twitch's time (merged chats sort by it) and history mark,
+/// and gets an id from the target and time so a shared chat seen from two
+/// tabs shows it once.
+IRCMessage? moderationNoticeLine(
+  IRCMessage clearChat, {
+  required Set<String> hiddenLogins,
+  required Iterable<IRCMessage> newestFirst,
+}) {
+  final target = clearChat.message?.trim().toLowerCase();
+  if (target == null || hiddenLogins.contains(target)) return null;
+  final text = moderationNotice(
+    clearChat,
+    displayNameOf: (login) => chatNameOf(login, newestFirst),
+  );
+  if (text == null) return null;
+  final notice = IRCMessage.createNotice(message: text);
+  final sentAt = clearChat.tags['tmi-sent-ts'];
+  if (sentAt != null) notice.tags['tmi-sent-ts'] = sentAt;
+  if (clearChat.tags['historical'] == '1') notice.tags['historical'] = '1';
+  final targetId = clearChat.tags['target-user-id'];
+  if (targetId != null && sentAt != null) {
+    notice.tags['id'] = 'clearchat-$targetId-$sentAt';
+  }
+  return notice;
 }
 
 /// [seconds] as Twitch words it: "1 second", "10 minutes", "2 weeks"…
