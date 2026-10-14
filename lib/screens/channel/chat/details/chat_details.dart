@@ -7,6 +7,7 @@ import 'package:frosty/constants.dart';
 import 'package:frosty/main.dart';
 import 'package:frosty/models/irc.dart';
 import 'package:frosty/screens/channel/chat/details/chat_details_store.dart';
+import 'package:frosty/screens/channel/chat/details/chat_mode_controls.dart';
 import 'package:frosty/screens/channel/chat/details/chat_modes.dart';
 import 'package:frosty/screens/channel/chat/details/chat_users_list.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
@@ -372,6 +373,23 @@ class _ChatDetailsState extends State<ChatDetails> {
                   ),
                 );
               },
+            ),
+          if (widget.chatStore.canModerate)
+            ListTile(
+              leading: const Icon(Icons.shield_outlined),
+              title: const Text('Chat modes'),
+              subtitle: const Text('Slow, followers-only, clear chat…'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => showModalBottomSheetWithProperFocus(
+                isScrollControlled: true,
+                context: context,
+                builder: (context) => Observer(
+                  builder: (context) => ChatModeControls(
+                    roomState: widget.chatDetailsStore.roomState,
+                    onModerate: widget.chatStore.moderate,
+                  ),
+                ),
+              ),
             ),
           ListTile(
             leading: const Icon(Icons.people_rounded),
