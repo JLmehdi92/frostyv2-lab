@@ -6,6 +6,7 @@ import 'package:frosty/apis/twitch_directory_service.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/constants.dart';
 import 'package:frosty/models/stream.dart';
+import 'package:frosty/screens/home/followed_videos/followed_videos_screen.dart';
 import 'package:frosty/screens/home/stream_list/large_stream_card.dart';
 import 'package:frosty/screens/home/stream_list/offline_channel_card.dart';
 import 'package:frosty/screens/home/stream_list/stream_card.dart';
@@ -452,6 +453,37 @@ class _StreamsListState extends State<StreamsList>
                           ),
                           // Add offline followed channels section for following tab
                           if (isFollowingTab) ...[
+                            SliverToBoxAdapter(
+                              child: Builder(
+                                builder: (context) => ListTile(
+                                  contentPadding: EdgeInsets.fromLTRB(
+                                    16 + MediaQuery.of(context).padding.left,
+                                    8,
+                                    16 + MediaQuery.of(context).padding.right,
+                                    0,
+                                  ),
+                                  leading: const Icon(
+                                    Icons.video_library_outlined,
+                                  ),
+                                  title: const Text('Followed videos'),
+                                  trailing: const Icon(
+                                    Icons.chevron_right_rounded,
+                                  ),
+                                  onTap: () {
+                                    final id = context
+                                        .read<AuthStore>()
+                                        .user
+                                        .details
+                                        ?.id;
+                                    if (id == null) return;
+                                    FollowedVideosScreen.open(
+                                      context,
+                                      userId: id,
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
                             SliverToBoxAdapter(
                               child: Observer(
                                 builder: (context) => ExpandableSectionHeader(
