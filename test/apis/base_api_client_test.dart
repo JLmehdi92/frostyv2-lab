@@ -317,6 +317,36 @@ void main() {
     });
   });
 
+  test("409 and 429 keep Twitch's reason and their code", () async {
+    dioAdapter.onGet(
+      'https://api.test.com/bans',
+      (server) => server.reply(409, {
+        'message': 'You may not update the ban state right now.',
+      }),
+    );
+    dioAdapter.onGet(
+      'https://api.test.com/busy',
+      (server) => server.reply(429, {'message': 'Slow down.'}),
+    );
+
+    expect(
+      () => client.testGet('/bans'),
+      throwsA(
+        isA<ApiException>()
+            .having((e) => e.message, 'message', contains('ban state'))
+            .having((e) => e.statusCode, 'statusCode', 409),
+      ),
+    );
+    expect(
+      () => client.testGet('/busy'),
+      throwsA(
+        isA<ApiException>()
+            .having((e) => e.message, 'message', 'Slow down.')
+            .having((e) => e.statusCode, 'statusCode', 429),
+      ),
+    );
+  });
+
   group('successful get()', () {
     test('returns data on success', () async {
       dioAdapter.onGet(

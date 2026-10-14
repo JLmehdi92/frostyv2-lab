@@ -261,12 +261,19 @@ abstract class BaseApiClient {
       case 404:
         return NotFoundException(serverMessage ?? 'Resource not found');
       case 409:
-        return ApiException('Conflict with current state. Please refresh');
+        return ApiException(
+          serverMessage ?? 'Conflict with current state. Please refresh',
+          409,
+          DioExceptionType.badResponse,
+        );
       case 422:
         return ApiException(serverMessage ?? 'Invalid data provided');
       case 429:
         return ApiException(
-          'Rate limit exceeded. Please wait before trying again',
+          serverMessage ??
+              'Rate limit exceeded. Please wait before trying again',
+          429,
+          DioExceptionType.badResponse,
         );
       case 500:
         return ServerException('Server error. Please try again later', 500);
