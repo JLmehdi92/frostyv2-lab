@@ -180,6 +180,7 @@ Portrait : vidéo 16:9 au-dessus du chat (l.806-836). Paysage (l.576-805) : chat
 - Déconnexion : `AuthStore.logout` révoque le jeton utilisateur (`TwitchApi.revokeToken`, formulaire `client_id` + `token`, 5 s max, jamais bloquant) avant de l'effacer.
 - `settingsStore.startTab` (`HomeTab`) choisit l'onglet d'ouverture ; `HomeStore` y revient à la connexion ou déconnexion (`HomeTab.indexWhen`, sans Following hors connexion).
 - `PinchToFill` (`video/pinch_to_fill.dart`) lit les pointeurs bruts autour de l'overlay en paysage (IVS) : un pincement par geste, `IvsVideoStore.setFillScreen` ; pendant un pincement (`_pinching`), le glisser vers le PiP revient en place et le tap est ignoré.
+- Sous-titres : `setCaptions` côté Kotlin choisit la première `TextTrack` (rien si le stream n'en a pas) et relaie les `TextCue` ; `IvsVideoStore.caption` les garde la durée du cue (1 à 8 s), `CaptionText` les affiche en bas de la vidéo (`settingsStore.showCaptions`, éteint par défaut).
 - Portrait : `PortraitSplitHandle` (`channel/portrait_split.dart`) règle `settingsStore.portraitVideoScale` (40 % à 100 %, jamais sous 300 dp de large ; suivi local pendant le glisser, une seule écriture à la fin) ; la vidéo reste 16:9, centrée dans la hauteur réservée, le chat prend le reste.
 
 ### Découverte (E8) — `lib/screens/home/`

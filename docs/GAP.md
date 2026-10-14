@@ -15,7 +15,7 @@
 | 2026-10-13 | épopée E2 « clips » | PRF-17, PRF-18 ✅ ; CHT-45 ⚠️ ; PRF-19 (compte requis) ; MSC-01 (remarques). Comptes recalculés. Lecture à valider sur appareil. |
 | 2026-10-13 | épopée E7 « chat » (1re partie) | CHT-03, 06, 12, 15, 18 ✅ ; CHT-05, 17, 28 ⚠️ (remarques). Comptes recalculés. À valider sur appareil. |
 | 2026-10-13 | épopée E6 « profil de chaîne » | PRF-01, 02, 03, 04, 05, 28 ✅ ; PRF-25 ⚠️ (remarque). Comptes recalculés. Affichage à valider sur appareil. |
-| 2026-10-14 | épopée E10 « réglages et lecteur » (1re partie) | ACC-04, PLY-07, PLY-20 ✅ ; ACC-12 ⚠️ (remarque). Comptes recalculés. Gestes à valider sur appareil. |
+| 2026-10-14 | épopée E10 « réglages et lecteur » (1re partie) | ACC-04, PLY-07, PLY-20 ✅ ; ACC-12, PLY-23 ⚠️ (remarques). Comptes recalculés. Gestes à valider sur appareil. |
 | 2026-10-14 | épopée E7 « chat » (2e partie) | CHT-10, CHT-25, CHT-45 ✅ ; CHT-22 ⚠️ (remarque). Comptes recalculés. À valider sur appareil. |
 | 2026-10-13 | épopée E8 « découverte » | DSC-04, DSC-05, DSC-06 ✅ ; DSC-08, DSC-09 ⚠️ (remarques). Comptes recalculés. Affichage à valider sur appareil. |
 | 2026-10-13 | épopée E5 « highlights communautaires » | CHT-41, CHT-42 ✅ ; INT-01, INT-02 ⚠️ (lecture seule) ; INT-19 (raid sortant). Comptes recalculés. Affichage à valider sur appareil. |
@@ -75,7 +75,7 @@
 | PLY-20 | Taille du chat en portrait | P1 | ✅ | `portrait_split.dart`, `channel.dart` | Poignée entre vidéo et chat : glisser réduit la vidéo jusqu'à 40 % de la largeur sur tablette (au moins 300 dp, pour garder les contrôles et la latence lisibles), double tap la remet en pleine largeur ; taille mémorisée (`portraitVideoScale`). | OK |
 | PLY-21 | Disposition verticale / classique (dual format) | P1 | ❌ | — | Ni `multigroup_video` ni usher `/api/v2/`. | OK |
 | PLY-22 | Minuteur de veille | P1 | ✅ | `chat_details.dart:70-150`, `chat_store.dart:1296-1325` | — | OK |
-| PLY-23 | Sous-titres (CC) | P1 | ❌ | — | `onCue` vide (`IvsPlayerCore.kt:76`). | OK |
+| PLY-23 | Sous-titres (CC) | P1 | ⚠️ | `IvsPlayerCore.kt` (`setCaptions`, `onCue`), `captions.dart`, `ivs_video.dart`, `video_overlay.dart` | Interrupteur « Captions » dans la feuille du lecteur (IVS) : première piste texte sélectionnée, `TextCue` affichées sur la vidéo. Ni choix de piste, ni style, ni VOD ; à valider sur un stream sous-titré. | OK |
 | PLY-24 | Chromecast | P1 | ❌ | — | Pas de Cast SDK. Le récepteur Twitch est propriétaire, mais le Default Media Receiver peut lire l'URL usher. | OK |
 | PLY-25 | Écran de garde classification (CCL) | P1 | ❌ | — | Aucun interstitiel. Helix `GET /channels` renvoie `content_classification_labels`. | OK |
 | PLY-26 | Live réservé aux abonnés + aperçu gratuit | P1 | ❌ | — | Refus du jeton → WebView, sans explication. La réponse GQL déjà utilisée contient la raison du refus. | OK |
@@ -427,7 +427,7 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 
 | Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| Lecture vidéo (PLY) | 10 | 6 | 16 | 1 | 33 |
+| Lecture vidéo (PLY) | 10 | 7 | 15 | 1 | 33 |
 | Chat (CHT) | 22 | 8 | 12 | 6 | 48 |
 | Interactions communautaires (INT) | 3 | 3 | 25 | 0 | 31 |
 | Modération (MOD) | 0 | 0 | 31 | 0 | 31 |
@@ -438,14 +438,14 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Compte & réglages (ACC) | 4 | 5 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 3 | 7 | 7 | 0 | 17 |
-| **Total** | **62** | **41** | **206** | **8** | **317** |
+| **Total** | **62** | **42** | **205** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 26 | 17 | 13 | 4 | 60 |
-| P1 | 30 | 17 | 57 | 4 | 108 |
+| P1 | 30 | 18 | 56 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **62** | **41** | **206** | **8** | **317** |
+| **Total** | **62** | **42** | **205** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
