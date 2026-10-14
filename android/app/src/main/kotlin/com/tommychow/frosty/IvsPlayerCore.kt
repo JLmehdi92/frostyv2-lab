@@ -9,6 +9,7 @@ import com.amazonaws.ivs.player.Player
 import com.amazonaws.ivs.player.PlayerException
 import com.amazonaws.ivs.player.Quality
 import com.amazonaws.ivs.player.TextCue
+import com.amazonaws.ivs.player.TextTrack
 import io.flutter.plugin.common.MethodChannel
 
 private const val CORE_TAG = "FrostyIVS"
@@ -179,6 +180,10 @@ class IvsPlayerCore(
                         "endMs" to cue.endTime,
                     ),
                 )
+            }
+            // A stream can announce its caption tracks after it starts.
+            override fun onTextTracksChanged(tracks: List<TextTrack>) {
+                applyCaptions()
             }
             override fun onDurationChanged(duration: Long) {
                 if (tuning.vod) send(mapOf("type" to "duration", "ms" to duration))
