@@ -55,6 +55,7 @@ SettingsStore _$SettingsStoreFromJson(
   ..messageSpacing = (json['messageSpacing'] as num?)?.toDouble() ?? 8.0
   ..fontSize = (json['fontSize'] as num?)?.toDouble() ?? 12.0
   ..showDeletedMessages = json['showDeletedMessages'] as bool? ?? false
+  ..showModerationNotices = json['showModerationNotices'] as bool? ?? true
   ..showChatMessageDividers = json['showChatMessageDividers'] as bool? ?? false
   ..timestampType =
       $enumDecodeNullable(
@@ -139,6 +140,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'messageSpacing': instance.messageSpacing,
   'fontSize': instance.fontSize,
   'showDeletedMessages': instance.showDeletedMessages,
+  'showModerationNotices': instance.showModerationNotices,
   'showChatMessageDividers': instance.showChatMessageDividers,
   'timestampType': _$TimestampTypeEnumMap[instance.timestampType]!,
   'autoSyncChatDelay': instance.autoSyncChatDelay,
@@ -621,6 +623,28 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     _$showDeletedMessagesAtom.reportWrite(value, super.showDeletedMessages, () {
       super.showDeletedMessages = value;
     });
+  }
+
+  late final _$showModerationNoticesAtom = Atom(
+    name: '_SettingsStoreBase.showModerationNotices',
+    context: context,
+  );
+
+  @override
+  bool get showModerationNotices {
+    _$showModerationNoticesAtom.reportRead();
+    return super.showModerationNotices;
+  }
+
+  @override
+  set showModerationNotices(bool value) {
+    _$showModerationNoticesAtom.reportWrite(
+      value,
+      super.showModerationNotices,
+      () {
+        super.showModerationNotices = value;
+      },
+    );
   }
 
   late final _$showChatMessageDividersAtom = Atom(
@@ -1337,6 +1361,7 @@ messageScale: ${messageScale},
 messageSpacing: ${messageSpacing},
 fontSize: ${fontSize},
 showDeletedMessages: ${showDeletedMessages},
+showModerationNotices: ${showModerationNotices},
 showChatMessageDividers: ${showChatMessageDividers},
 timestampType: ${timestampType},
 autoSyncChatDelay: ${autoSyncChatDelay},

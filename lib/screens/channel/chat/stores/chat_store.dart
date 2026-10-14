@@ -12,6 +12,7 @@ import 'package:frosty/models/irc.dart';
 import 'package:frosty/screens/channel/chat/chat_commands.dart';
 import 'package:frosty/screens/channel/chat/chat_restrictions.dart';
 import 'package:frosty/screens/channel/chat/details/chat_details_store.dart';
+import 'package:frosty/screens/channel/chat/moderation_notice.dart';
 import 'package:frosty/screens/channel/chat/muted_words.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_character_counter.dart';
@@ -279,6 +280,29 @@ abstract class ChatStoreBase with Store {
   DateTime? _timedOutUntil;
   DateTime? _lastSentAt;
   Timer? _restrictionTimer;
+
+  /// Adds Twitch's "X has been timed out / banned" line for a targeted
+  /// CLEARCHAT, at the time Twitch sent it.
+  void _addModerationNotice(IRCMessage clearChat, List<IRCMessage> buffer) {
+    final target = clearChat.message?.trim().toLowerCase();
+    // Blocked people stay out of chat, notices included.
+    if (target != null &&
+        !_userState.mod &&
+        auth.user.blockedUsers.any((user) => user.userLogin == target)) {
+      return;
+    }
+    final text = moderationNotice(
+      clearChat,
+      displayNameOf: (login) =>
+          chatNameOf(login, buffer.reversed.followedBy(_messages.reversed)),
+    );
+    if (text == null) return;
+    final notice = IRCMessage.createNotice(message: text);
+    final sentAt = clearChat.tags['tmi-sent-ts'];
+    if (sentAt != null) notice.tags['tmi-sent-ts'] = sentAt;
+    if (clearChat.tags['historical'] == '1') notice.tags['historical'] = '1';
+    buffer.add(notice);
+  }
 
   @action
   void _updateRestriction() {
@@ -753,6 +777,9 @@ abstract class ChatStoreBase with Store {
               bufferedMessages: messageBuffer,
               ircMessage: parsedIRCMessage,
             );
+            if (settings.showModerationNotices) {
+              _addModerationNotice(parsedIRCMessage, messageBuffer);
+            }
             final own = ownClearChat(
               parsedIRCMessage,
               ownUserId: auth.user.details?.id,

@@ -204,6 +204,19 @@ void main() {
     });
   });
 
+  group('showModerationNotices', () {
+    test('is on by default, also for older settings', () {
+      expect(SettingsStore.fromJson({}).showModerationNotices, isTrue);
+    });
+
+    test('resetChatSettings turns it back on', () {
+      final store = SettingsStore.fromJson({})
+        ..showModerationNotices = false
+        ..resetChatSettings();
+      expect(store.showModerationNotices, isTrue);
+    });
+  });
+
   group('streamLanguage', () {
     test('is every language by default, also for older settings', () {
       expect(SettingsStore.fromJson({}).streamLanguage, '');

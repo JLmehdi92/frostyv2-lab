@@ -149,6 +149,15 @@ class _ChatSettingsState extends State<ChatSettings> {
                 settingsStore.showDeletedMessages = newValue,
           ),
           SettingsListSwitch(
+            title: 'Show timeouts and bans',
+            subtitle: const Text(
+              'Adds a line when a moderator times out or bans someone.',
+            ),
+            value: settingsStore.showModerationNotices,
+            onChanged: (newValue) =>
+                settingsStore.showModerationNotices = newValue,
+          ),
+          SettingsListSwitch(
             title: 'Show message dividers',
             value: settingsStore.showChatMessageDividers,
             onChanged: (newValue) =>

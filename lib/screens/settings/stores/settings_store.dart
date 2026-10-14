@@ -163,6 +163,7 @@ abstract class _SettingsStoreBase with Store {
 
   // Message appearance defaults
   static const defaultShowDeletedMessages = false;
+  static const defaultShowModerationNotices = true;
   static const defaultShowChatMessageDividers = false;
   static const defaultTimestampType = TimestampType.disabled;
 
@@ -234,6 +235,11 @@ abstract class _SettingsStoreBase with Store {
   @JsonKey(defaultValue: defaultShowDeletedMessages)
   @observable
   var showDeletedMessages = defaultShowDeletedMessages;
+
+  /// A line in chat when someone is timed out or banned.
+  @JsonKey(defaultValue: defaultShowModerationNotices)
+  @observable
+  var showModerationNotices = defaultShowModerationNotices;
 
   @JsonKey(defaultValue: defaultShowChatMessageDividers)
   @observable
@@ -371,6 +377,7 @@ abstract class _SettingsStoreBase with Store {
     fontSize = defaultFontSize;
 
     showDeletedMessages = defaultShowDeletedMessages;
+    showModerationNotices = defaultShowModerationNotices;
     showChatMessageDividers = defaultShowChatMessageDividers;
     timestampType = defaultTimestampType;
 
