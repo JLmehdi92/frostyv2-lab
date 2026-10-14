@@ -32,14 +32,23 @@ class WhisperConversation extends StatefulWidget {
     required String displayName,
   }) => Navigator.push(
     context,
-    MaterialPageRoute(
-      settings: const RouteSettings(name: routeName),
-      builder: (context) => WhisperConversation(
-        store: store,
-        userId: userId,
-        login: login,
-        displayName: displayName,
-      ),
+    route(store: store, userId: userId, login: login, displayName: displayName),
+  );
+
+  /// The screen as a route, for a caller whose context is going away (a
+  /// bottom sheet that closes first).
+  static Route<void> route({
+    required WhisperStore store,
+    required String userId,
+    required String login,
+    required String displayName,
+  }) => MaterialPageRoute(
+    settings: const RouteSettings(name: routeName),
+    builder: (context) => WhisperConversation(
+      store: store,
+      userId: userId,
+      login: login,
+      displayName: displayName,
     ),
   );
 

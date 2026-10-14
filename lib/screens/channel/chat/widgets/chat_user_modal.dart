@@ -6,7 +6,7 @@ import 'package:frosty/screens/channel/chat/widgets/chat_message.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_moderation_bar.dart';
 import 'package:frosty/screens/channel/chat/widgets/user_card_info.dart';
 import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
-import 'package:frosty/screens/vod/channel_videos.dart';
+import 'package:frosty/screens/whispers/whisper_conversation.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/alert_message.dart';
@@ -73,6 +73,25 @@ class _ChatUserModalState extends State<ChatUserModal> {
                     },
                     icon: const Icon(Icons.reply_rounded),
                   ),
+                if (widget.chatStore.auth.isLoggedIn &&
+                    widget.chatStore.whispers != null)
+                  IconButton(
+                    tooltip: 'Whisper',
+                    onPressed: () {
+                      final navigator = Navigator.of(context);
+                      navigator
+                        ..pop()
+                        ..push(
+                          WhisperConversation.route(
+                            store: widget.chatStore.whispers!,
+                            userId: widget.userId,
+                            login: widget.username,
+                            displayName: name,
+                          ),
+                        );
+                    },
+                    icon: const Icon(Icons.forum_outlined),
+                  ),
                 IconButton(
                   tooltip: 'Profile',
                   onPressed: () {
@@ -89,18 +108,6 @@ class _ChatUserModalState extends State<ChatUserModal> {
                     );
                   },
                   icon: const Icon(Icons.account_circle_outlined),
-                ),
-                IconButton(
-                  tooltip: 'Videos',
-                  onPressed: () {
-                    Navigator.pop(context);
-                    ChannelVideosScreen.open(
-                      context,
-                      userLogin: widget.username,
-                      displayName: name,
-                    );
-                  },
-                  icon: const Icon(Icons.video_library_outlined),
                 ),
                 IconButton(
                   tooltip: 'More',
