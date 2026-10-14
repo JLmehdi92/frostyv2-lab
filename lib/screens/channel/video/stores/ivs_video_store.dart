@@ -22,6 +22,7 @@ import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:frosty/screens/channel/video/quality_selection.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/services/background_audio.dart';
 import 'package:frosty/services/playback_token_cache.dart';
 import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:mobx/mobx.dart';
@@ -55,6 +56,15 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   final pip = SimplePip();
   ReactionDisposer? _disposeAutoPipReaction;
   ReactionDisposer? _disposeCaptionsReaction;
+  ReactionDisposer? _disposeBackgroundAudioReaction;
+
+  /// The media notification that keeps the sound going outside the app.
+  final BackgroundAudio _backgroundAudio;
+
+  /// The viewer stopped the stream from its notification: it stays hidden
+  /// until the stream plays again.
+  @observable
+  var _audioNotificationStopped = false;
 
   /// The closed-caption line on screen, when captions are on and the stream
   /// sends them.
@@ -216,7 +226,9 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     EventSubHandle Function(EventSubTopic topic)? listenEvents,
     @visibleForTesting this.liveStartDelay = const Duration(seconds: 3),
     @visibleForTesting this.offlinePollInterval = const Duration(seconds: 60),
+    BackgroundAudio? backgroundAudio,
   }) : _ownsStreamService = streamService == null,
+       _backgroundAudio = backgroundAudio ?? BackgroundAudio.shared,
        _recovery = recoveryPolicy ?? IvsRecoveryPolicy(),
        playerConfig = IvsPlayerConfig.fromSettings(settingsStore),
        // Timeouts so a hung GQL/usher request becomes a retry instead of an
@@ -293,6 +305,37 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     if (Platform.isAndroid) {
       _disposeAutoPipReaction = autorun((_) => _applyAutoPip());
     }
+
+    // The media notification shows the stream while it plays or reconnects
+    // (paused too), when the viewer asked for background audio.
+    _disposeBackgroundAudioReaction = reaction(
+      (_) => (
+        show:
+            settingsStore.backgroundAudio &&
+            !_audioNotificationStopped &&
+            (_status == IvsPlaybackStatus.playing ||
+                _status == IvsPlaybackStatus.reconnecting),
+        playing: !_paused,
+        title: _streamInfo?.userName,
+        subtitle: _streamInfo?.title,
+      ),
+      (notification) {
+        if (!notification.show) {
+          unawaited(_backgroundAudio.hide(this));
+          return;
+        }
+        final name = notification.title;
+        unawaited(
+          _backgroundAudio.show(
+            owner: this,
+            title: name == null || name.isEmpty ? userLogin : name,
+            subtitle: notification.subtitle?.trim() ?? '',
+            playing: notification.playing,
+            onCommand: _onMediaCommand,
+          ),
+        );
+      },
+    );
 
     // Captions follow their setting at once (also sent with each load).
     _disposeCaptionsReaction = reaction((_) => settingsStore.showCaptions, (
@@ -429,6 +472,19 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     }
   }
 
+  void _onMediaCommand(MediaCommand command) {
+    if (_disposed) return;
+    switch (command) {
+      case MediaCommand.play:
+        if (_paused) handlePausePlay();
+      case MediaCommand.pause:
+        if (!_paused) handlePausePlay();
+      case MediaCommand.stop:
+        if (!_paused) handlePausePlay();
+        runInAction(() => _audioNotificationStopped = true);
+    }
+  }
+
   /// True while another player (a VOD on top) has playback focus.
   var _focusSuppressed = false;
 
@@ -544,6 +600,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         if (_isPlaying) _hasPlayed = true;
         if (state == 'PLAYING') {
           _lastErrorRefused = false;
+          _audioNotificationStopped = false;
           // Native auto-play after a (re)load while a VOD on top has focus.
           if (_focusSuppressed) _channel?.invokeMethod('pause');
           _paused = false;
@@ -1028,6 +1085,8 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     _overlayTimer?.cancel();
     _disposeAutoPipReaction?.call();
     _disposeCaptionsReaction?.call();
+    _disposeBackgroundAudioReaction?.call();
+    unawaited(_backgroundAudio.hide(this));
     _captionTimer?.cancel();
     if (Platform.isAndroid) pip.setAutoPipMode(autoEnter: false);
     final textureId = _textureId;

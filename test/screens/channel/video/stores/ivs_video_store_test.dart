@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
@@ -12,6 +13,7 @@ import 'package:frosty/screens/channel/video/ivs_video.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/services/background_audio.dart';
 import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:mobx/mobx.dart' show reaction;
 import 'package:mocktail/mocktail.dart';
@@ -46,6 +48,7 @@ void main() {
     IvsRecoveryPolicy? policy,
     EventSubHandle Function(EventSubTopic topic)? listenEvents,
     Duration offlinePollInterval = const Duration(minutes: 1),
+    BackgroundAudio? backgroundAudio,
   }) async {
     final s = IvsVideoStore(
       userLogin: 'streamer',
@@ -58,6 +61,7 @@ void main() {
       listenEvents: listenEvents,
       liveStartDelay: Duration.zero,
       offlinePollInterval: offlinePollInterval,
+      backgroundAudio: backgroundAudio,
     );
     created = s;
     await s.ready;
@@ -551,6 +555,108 @@ void main() {
 
       expect(fatal, 0);
       expect(store.status, IvsPlaybackStatus.reconnecting);
+    });
+  });
+
+  group('background audio', () {
+    const audioChannel = MethodChannel('frosty/background-audio-ivs-test');
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    late List<MethodCall> audioCalls;
+    late BackgroundAudio audio;
+
+    setUp(() {
+      audioCalls = [];
+      messenger.setMockMethodCallHandler(audioChannel, (call) async {
+        audioCalls.add(call);
+        return null;
+      });
+      audio = BackgroundAudio(channel: audioChannel, supported: true);
+    });
+
+    tearDown(() => messenger.setMockMethodCallHandler(audioChannel, null));
+
+    Future<void> press(String action) => messenger.handlePlatformMessage(
+      audioChannel.name,
+      audioChannel.codec.encodeMethodCall(
+        MethodCall('command', {'action': action}),
+      ),
+      (_) {},
+    );
+
+    test('off by default: no notification', () async {
+      store = await createStore(backgroundAudio: audio);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+
+      expect(audioCalls, isEmpty);
+    });
+
+    test('shows the playing stream and follows pauses', () async {
+      settingsStore.backgroundAudio = true;
+      store = await createStore(backgroundAudio: audio);
+      expect(audioCalls, isEmpty, reason: 'nothing plays yet');
+
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+      expect(audioCalls.last.method, 'show');
+      expect((audioCalls.last.arguments as Map)['playing'], isTrue);
+      expect((audioCalls.last.arguments as Map)['title'], isNotEmpty);
+
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      await settle();
+      expect(audioCalls.last.method, 'show');
+      expect((audioCalls.last.arguments as Map)['playing'], isFalse);
+    });
+
+    test('media buttons play, pause and stop the stream', () async {
+      settingsStore.backgroundAudio = true;
+      store = await createStore(backgroundAudio: audio);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+
+      await press('pause');
+      expect(native.callsNamed('pause'), hasLength(1));
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      await press('play');
+      expect(native.callsNamed('play'), hasLength(1));
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+
+      audioCalls.clear();
+      await press('stop');
+      await settle();
+      expect(native.callsNamed('pause'), hasLength(2));
+      expect(audioCalls.map((c) => c.method), contains('hide'));
+
+      // Stopped: pausing does not bring it back...
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      await settle();
+      expect(audioCalls.last.method, 'hide');
+      // ...playing again does.
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+      expect(audioCalls.last.method, 'show');
+    });
+
+    test('turning it off or closing the player hides it', () async {
+      settingsStore.backgroundAudio = true;
+      store = await createStore(backgroundAudio: audio);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await settle();
+
+      settingsStore.backgroundAudio = false;
+      await settle();
+      expect(audioCalls.last.method, 'hide');
+
+      settingsStore.backgroundAudio = true;
+      await settle();
+      expect(audioCalls.last.method, 'show');
+
+      store.dispose();
+      created = null;
+      await settle();
+      expect(audioCalls.last.method, 'hide');
     });
   });
 
