@@ -5,6 +5,14 @@ import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/widgets/settings_tile_route.dart';
 import 'package:frosty/widgets/frosty_dialog.dart';
 import 'package:frosty/widgets/frosty_scrollbar.dart';
+import 'package:frosty/widgets/twitch_web_page.dart';
+
+/// Account settings only twitch.tv can change: password, email, phone,
+/// two-factor and verification; linked accounts.
+const _twitchSettings = [
+  (Icons.security_rounded, 'Security and privacy', '/settings/security'),
+  (Icons.link_rounded, 'Connections', '/settings/connections'),
+];
 
 class AccountOptions extends StatelessWidget {
   final AuthStore authStore;
@@ -57,6 +65,18 @@ class AccountOptions extends StatelessWidget {
             title: 'Blocked users',
             child: BlockedUsers(authStore: authStore),
           ),
+          // Twitch's own pages, signed in (the app has no API for these).
+          for (final (icon, title, path) in _twitchSettings)
+            ListTile(
+              leading: Icon(icon),
+              title: Text(title),
+              trailing: const Icon(Icons.open_in_new_rounded),
+              onTap: () => TwitchWebPage.open(
+                context,
+                title: title,
+                url: Uri.https('www.twitch.tv', path),
+              ),
+            ),
           ListTile(
             leading: const Icon(Icons.logout_rounded),
             title: const Text('Log out'),
