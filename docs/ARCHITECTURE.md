@@ -93,7 +93,8 @@ lib/
 
 - **IRC** : pas un service ; `ChatStore.connectToChat` ouvre `wss://irc-ws.chat.twitch.tv:443` (`chat_store.dart:897`), `CAP REQ :twitch.tv/tags twitch.tv/commands`, `PASS`, `NICK` (`justinfan888` en anonyme), `JOIN`.
 - **7TV EventAPI** : `wss://events.7tv.io/v3`, souscription `emote_set.update` (`chat_store.dart:797-881`).
-- **Aucun EventSub ni PubSub.**
+- **Hermes** (`lib/services/realtime/twitch_realtime_client.dart`) : WebSocket anonyme partagé pour les sujets publics (hype train, highlights).
+- **EventSub WebSocket** (`lib/services/realtime/twitch_eventsub_client.dart`) : événements du compte connecté (whispers, `user.whisper.message`), abonnements créés par Helix pour chaque session, `session_reconnect` suivi sans perte, pause après une minute en arrière-plan. Branché dans `main.dart` avec le `WhisperStore` global (`lib/stores/whisper_store.dart`, en mémoire seulement).
 - Intercepteurs : `TwitchAuthInterceptor` (Bearer + Client-Id pour Helix/OAuth seulement), `UnauthorizedInterceptor` (401 → dialogue de reconnexion).
 
 ### Authentification (`lib/screens/settings/stores/auth_store.dart`)

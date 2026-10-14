@@ -43,8 +43,8 @@
 
 **Constats de vérification** (par rapport à `ARCHITECTURE.md`, tous confirmés dans le code) :
 
-- Aucun EventSub ni PubSub : `grep -ri eventsub lib/` ne renvoie rien. Le temps réel se limite à l'IRC et à l'EventAPI 7TV.
-- Scopes OAuth : `chat:read chat:edit user:read:follows user:read:blocked_users user:manage:blocked_users user:manage:chat_color` puis, depuis l'épique modération, `moderator:manage:banned_users moderator:manage:chat_messages moderator:manage:chat_settings moderator:manage:warnings` (`auth_store.dart:164`). Aucun scope `user:read:chat`, `user:manage:whispers` ni `user:read:emotes`. **Ajouter un scope oblige à se reconnecter.**
+- Temps réel : IRC, EventAPI 7TV, Hermes anonyme (hype train, highlights) et, depuis l'épique whispers, EventSub WebSocket avec le jeton utilisateur (`user.whisper.message`).
+- Scopes OAuth : `chat:read chat:edit user:read:follows user:read:blocked_users user:manage:blocked_users user:manage:chat_color` puis, depuis l'épique modération, `moderator:manage:banned_users moderator:manage:chat_messages moderator:manage:chat_settings moderator:manage:warnings` (`auth_store.dart:164`). Puis `moderator:read:followers` et `user:manage:whispers` (fiche utilisateur, whispers). Aucun scope `user:read:chat` ni `user:read:emotes`. **Ajouter un scope oblige à se reconnecter.**
 - iOS : `ready` réussit (usher résolu), mais `_createTexture` échoue faute de canal natif. L'échec est avalé par `catchError` (`ivs_video_store.dart:115`) : `onFatalError` n'est jamais appelé et le spinner tourne à l'infini.
 - Mots masqués : `chat_store.dart:548-555`. Le `return` abandonne tout le lot IRC en cours, et `split('')` compare caractère par caractère si « mot entier » est désactivé.
 - Deep links : `android:autoVerify="true"` sur `twitch.tv`/`www.`/`m.` (`AndroidManifest.xml:40-47`). La vérification échouera toujours, car `assetlinks.json` appartient à Twitch. Android affichera donc un sélecteur ou ouvrira l'app officielle.
@@ -109,7 +109,7 @@
 | CHT-14 | Demande de déban (côté viewer) | P1 | ❌ | — | Helix `/moderation/unban_requests` est réservé aux mods ; la création d'une demande passe par GQL. | GQL privé |
 | CHT-15 | Bannières de restriction de mode | P0 | ✅ | `chat_restrictions.dart`, `chat_bottom_bar.dart` | Mode lent : saisie verrouillée avec le temps restant après un envoi ; emotes seules, abonnés, followers (durée) dans le texte d'aide de la saisie. Modérateurs, VIP et diffuseur exemptés (E7). | OK |
 | CHT-16 | Règles du chat | P1 | ❌ | — | — | GQL privé |
-| CHT-17 | Commandes slash (viewer) | P0 | ⚠️ | `chat_commands.dart`, `chat_store.dart` | `/me`, `/color` (noms Twitch ou hex), `/block`, `/unblock`, `/help` exécutées par l'appli (Helix) ; les commandes de modération et `/w` expliquent pourquoi elles ne sont pas disponibles (scopes) au lieu de partir en texte (E7). | OK |
+| CHT-17 | Commandes slash (viewer) | P0 | ✅ | `chat_commands.dart`, `chat_store.dart` | `/me`, `/color` (noms Twitch ou hex), `/block`, `/unblock`, `/w`, `/help` exécutées par l'appli (Helix), plus les commandes de modération (MOD-08). Les commandes diffuseur non faites (`/mod`, `/vip`, `/raid`, `/commercial`, `/announce`…) expliquent qu'elles ne sont pas disponibles au lieu de partir en texte. | OK |
 | CHT-18 | Annonces | P0 | ✅ | `chat_message.dart`, `announcement_color.dart` | Rendu « Announcement » avec la couleur `msg-param-color` (bleu, vert, orange, violet) (E7). | OK |
 | CHT-19 | Badges | P0 | ✅ | `twitch_api.dart:83-123`, `irc.dart:248-300` | Badges Twitch plus FFZ/BTTV. Badges 7TV codés mais jamais alimentés (`chat_assets_store.dart:94-96`). | OK |
 | CHT-20 | Sélecteur d'emotes | P0 | ➕ | `chat.dart:261-337` | Récents, Twitch (emotes sub grisées), 7TV, BTTV, FFZ. | OK |
@@ -195,7 +195,7 @@
 | MOD-11 | Annonces [M] | P1 | ❌ | — | Helix `POST /chat/announcements` (`moderator:manage:announcements`). | Compte requis |
 | MOD-12 | Rôles : mod, lead mod, VIP [M][C] | P1 | ❌ | — | Helix `POST/DELETE /moderation/moderators` (`channel:manage:moderators`, diffuseur) et `/channels/vips` (`channel:manage:vips`). Lead mod : GQL. | Compte requis |
 | MOD-13 | Listes des mods et VIP [M] | P1 | ❌ | — | Helix `GET /moderation/moderators` (`moderation:read`) et `GET /channels/vips` (`channel:read:vips`), réservés au diffuseur ; un mod passe par GQL. | Compte requis |
-| MOD-14 | Contexte modération de la carte [M] | P1 | ❌ | — | `GET /users` (date de création, public). `GET /channels/followers?user_id=` (`moderator:read:followers`). `GET /moderation/banned` (diffuseur). Sanctions : GQL. | Compte requis |
+| MOD-14 | Contexte modération de la carte [M] | P1 | ⚠️ | `user_card_info.dart`, `twitch_api.dart` (`getFollowedAt`) | Date de création du compte (pour tous) et date de follow (mods et diffuseur, `moderator:read:followers` ; un ancien jeton échoue sans dialogue). Historique des sanctions : GQL. | Compte requis |
 | MOD-15 | Logs de modération de l'utilisateur [M] | P1 | ❌ | — | — | GQL privé |
 | MOD-16 | Tableau de bord mobile [M] | P1 | ❌ | — | Assemblage des autres lignes MOD. | Compte requis |
 | MOD-17 | File AutoMod [M] | P1 | ❌ | — | EventSub `automod.message.hold` v2 et `POST /moderation/automod/message` (`moderator:manage:automod`). | Compte requis |
@@ -226,11 +226,11 @@
 | SOC-06 | Notifications push | P0 | ❌ | — | Le push FCM de Twitch est impossible. Approximation possible par polling local (WorkManager + `GET /streams/followed`). | OK |
 | SOC-07 | Centre de notifications | P0 | ❌ | — | — | GQL privé |
 | SOC-08 | Notifications in-app | P1 | ❌ | — | — | GQL privé |
-| SOC-09 | Whispers (messages privés) | P1 | ❌ | — | Helix `POST /whispers` (`user:manage:whispers`, téléphone vérifié) et EventSub `user.whisper.message` (`user:read:whispers`). Pas d'historique public. | OK |
+| SOC-09 | Whispers (messages privés) | P1 | ✅ | `twitch_eventsub_client.dart`, `whisper_store.dart`, `lib/screens/whispers/`, `home.dart`, `chat_user_modal.dart`, `chat_commands.dart` (`/w`) | Réception par EventSub `user.whisper.message` (WebSocket, migration de session, keepalive, reconnexion), envoi par Helix `POST /whispers` (`user:manage:whispers`, téléphone vérifié). Boîte de réception (non lus en pastille sur l'accueil), conversation, notice in-app, bouton Whisper dans la fiche et `/w`. En mémoire seulement (pas d'historique public, rien d'écrit sur le disque) ; rien n'arrive après une minute en arrière-plan. | OK |
 | SOC-10 | Confidentialité des whispers | P1 | ❌ | — | — | GQL privé |
 | SOC-11 | Restrictions des whispers | P2 | ❌ | — | — | GQL privé |
 | SOC-12 | Bloquer / ignorer | P0 | ✅ | `twitch_api.dart:335-398`, `blocked_users.dart`, `user_actions_modal.dart:57-67`, `chat_store.dart:531-541` | Pas de motif. Le blocage filtre le chat, pas les listes de streams. | OK |
-| SOC-13 | Carte utilisateur (viewer card) | P0 | ⚠️ | `chat_user_modal.dart:35-128` | Avatar, messages de la session, Reply, Block/Report. Ni badges, ni date de création, ni follow, ni liens, ni whisper. | OK |
+| SOC-13 | Carte utilisateur (viewer card) | P0 | ✅ | `chat_user_modal.dart`, `user_card_info.dart`, `chat_moderation_bar.dart` | Avatar, badges du dernier message (mois d'abonnement), date de création du compte, date de follow pour les mods, messages de la session, Reply, Whisper, Profil, et dans « More » vidéos, Block, Follow (twitch.tv), Report. Actions de modération (MOD-01). | OK |
 | SOC-14 | Signaler | P1 | ⚠️ | `user_actions_modal.dart:98-151` | Utilisateur seulement, via la page web `twitch.tv/<login>/report`. | OK |
 | SOC-15 | Partager | P1 | ❌ | — | Pas de `share_plus`. | OK |
 | SOC-16 | Stories (côté viewer) | P2 | ❌ | — | — | GQL privé |
@@ -407,7 +407,7 @@
 |---|---|---|---|---|---|---|
 | MSC-01 | Deep links et App Links | P0 | ⚠️ | `AndroidManifest.xml:40-48`, `main.dart`, `twitch_links.dart`, `link_router.dart` | `twitch.tv`, `www.`, `m.` et `clips.twitch.tv` : chaîne, `/videos/<id>`, `/v/<id>`, `/<chaîne>/v/<id>`, `?t=`, `/<chaîne>/videos?filter=`, clips (`clips.twitch.tv/<slug>`, `/<chaîne>/clip/<slug>`, `/embed?clip=`) et `/<chaîne>/clips?range=` ouverts dans l'appli, y compris depuis le chat. Pas de schéma `twitch://`. | OK |
 | MSC-02 | Transport GraphQL | P0 | ⚠️ | `twitch_stream_service.dart:20-34,98-113` | Une seule requête GQL, non persistée (choix volontaire contre la rotation des hashes). Ni APQ ni intégrité. | GQL privé |
-| MSC-03 | Temps réel Hermes | P0 | ⚠️ | `lib/services/realtime/` | Client Hermes anonyme partagé (`TwitchRealtimeClient`) : connexion paresseuse, abonnements comptés, keepalive, reconnexion avec backoff, pause en arrière-plan. Sujets publics seulement ; EventSub (jeton utilisateur) non fait. | OK |
+| MSC-03 | Temps réel Hermes | P0 | ✅ | `lib/services/realtime/` | Client Hermes anonyme partagé (`TwitchRealtimeClient`) pour les sujets publics, et client EventSub WebSocket (`TwitchEventSubClient`) pour les événements du compte : connexion paresseuse, abonnements Helix par session, `session_reconnect` sans perte, keepalive, reconnexion avec backoff, dédoublonnage, pause en arrière-plan. `stream.online` pour PLY-09 reste à brancher. | OK |
 | MSC-04 | Client chat Kotlin Multiplatform | P1 | ✅ | `chat_store.dart:884-1005`, `chat_tabs_store.dart:151-200` | Buffer flushé toutes les 200 ms, backoff, PING/PONG. | OK |
 | MSC-05 | Gestion des permissions | P1 | ❌ | — | Aucune permission runtime aujourd'hui. Nécessaire pour les notifications et le service média. | OK |
 | MSC-06 | Pile React Native « Ultralight » | P2 | ❌ | — | Pile RN interne à Twitch. | Impossible proprement |
@@ -430,33 +430,33 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | Lecture vidéo (PLY) | 12 | 7 | 13 | 1 | 33 |
-| Chat (CHT) | 22 | 8 | 12 | 6 | 48 |
+| Chat (CHT) | 23 | 7 | 12 | 6 | 48 |
 | Interactions communautaires (INT) | 3 | 4 | 24 | 0 | 31 |
-| Modération (MOD) | 9 | 0 | 22 | 0 | 31 |
-| Social & notifications (SOC) | 2 | 4 | 16 | 0 | 22 |
+| Modération (MOD) | 9 | 1 | 21 | 0 | 31 |
+| Social & notifications (SOC) | 4 | 3 | 15 | 0 | 22 |
 | Découverte & recherche (DSC) | 5 | 4 | 13 | 0 | 22 |
 | Profil de chaîne & contenus (VOD / clips) (PRF) | 5 | 6 | 18 | 0 | 29 |
 | Monétisation (MON) | 0 | 0 | 15 | 0 | 15 |
 | Compte & réglages (ACC) | 4 | 5 | 22 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
-| Divers / technique (MSC) | 3 | 7 | 7 | 0 | 17 |
-| **Total** | **73** | **44** | **192** | **8** | **317** |
+| Divers / technique (MSC) | 4 | 6 | 7 | 0 | 17 |
+| **Total** | **77** | **42** | **190** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| P0 | 34 | 18 | 4 | 4 | 60 |
-| P1 | 33 | 19 | 52 | 4 | 108 |
+| P0 | 37 | 15 | 4 | 4 | 60 |
+| P1 | 34 | 20 | 50 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **73** | **44** | **192** | **8** | **317** |
+| **Total** | **77** | **42** | **190** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 16 | 31 | 33 | 80 |
+| OK | 13 | 30 | 33 | 76 |
 | GQL privé | 6 | 29 | 61 | 96 |
 | Compte requis | 0 | 11 | 12 | 23 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
 
-Lecture : sur 60 lignes P0, **38** sont entièrement couvertes (34 ✅ et 4 ➕), 18 sont partielles et 4 absentes. Les lignes P0 absentes sont la cloche, les notifications et le centre de notifications (SOC-05/06/07) et l'avertissement côté viewer (CHT-13). Les ➕ sont le délai de chat synchronisé, la révélation des messages supprimés, le multi-chat et le chat partagé, les emotes 7TV/BTTV/FFZ, la disposition paysage et le thème avec accent.
+Lecture : sur 60 lignes P0, **41** sont entièrement couvertes (37 ✅ et 4 ➕), 15 sont partielles et 4 absentes. Les lignes P0 absentes sont la cloche, les notifications et le centre de notifications (SOC-05/06/07) et l'avertissement côté viewer (CHT-13). Les ➕ sont le délai de chat synchronisé, la révélation des messages supprimés, le multi-chat et le chat partagé, les emotes 7TV/BTTV/FFZ, la disposition paysage et le thème avec accent.
 
 ## 3. Lecture / latence : écarts concrets avec le lecteur officiel
 
