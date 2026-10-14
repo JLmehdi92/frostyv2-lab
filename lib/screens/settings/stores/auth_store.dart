@@ -170,7 +170,7 @@ abstract class AuthBase with Store {
                 'moderator:manage:banned_users moderator:manage:chat_messages '
                 'moderator:manage:chat_settings moderator:manage:warnings '
                 'moderator:read:followers user:manage:whispers '
-                'user:read:emotes',
+                'user:read:emotes user:read:chat',
             'force_verify': 'true',
           },
         ),
