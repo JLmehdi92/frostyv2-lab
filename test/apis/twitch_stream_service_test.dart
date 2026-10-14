@@ -299,12 +299,10 @@ https://video-edge-1.ttvnw.net/chunked/index-live.m3u8
       expect(service.refusalFor(login), isNull);
     });
 
-    test('a cached token keeps its refusal', () async {
+    test('a refused token is not cached', () async {
       final now = DateTime.now().toUtc();
-      service = TwitchStreamService(
-        dio,
-        tokenCache: PlaybackTokenCache(now: () => now),
-      );
+      final cache = PlaybackTokenCache(now: () => now);
+      service = TwitchStreamService(dio, tokenCache: cache);
       final expires = now.millisecondsSinceEpoch ~/ 1000 + 600;
       adapter.onPost(
         'https://gql.twitch.tv/gql',
@@ -323,8 +321,45 @@ https://video-edge-1.ttvnw.net/chunked/index-live.m3u8
       await service.getUsherUrl(userLogin: login);
       await service.getUsherUrl(userLogin: login);
 
-      expect(sent, hasLength(1));
+      expect(sent, hasLength(2), reason: 'each try asks twitch again');
+      expect(cache.get(login), isNull);
       expect(service.refusalFor(login), PlaybackRefusal.geoblocked);
+    });
+
+    test('a query twitch rejects is asked again without the reason', () async {
+      adapter
+        ..onPost(
+          'https://gql.twitch.tv/gql',
+          (server) => server.reply(200, {
+            'errors': [
+              {'message': 'Cannot query field "authorization"'},
+            ],
+            'data': null,
+          }),
+          data: TwitchStreamService.accessTokenRequest(
+            login,
+            TwitchStreamService.accessTokenQuery,
+          ),
+        )
+        ..onPost(
+          'https://gql.twitch.tv/gql',
+          (server) => server.reply(200, {
+            'data': {
+              'streamPlaybackAccessToken': {
+                'value': '{"token":"abc"}',
+                'signature': 'deadbeef',
+              },
+            },
+          }),
+          data: TwitchStreamService.accessTokenRequest(
+            login,
+            TwitchStreamService.plainAccessTokenQuery,
+          ),
+        );
+
+      expect(await service.getUsherUrl(userLogin: login), contains('sig='));
+      expect(sent, hasLength(2));
+      expect(service.refusalFor(login), isNull);
     });
 
     test('reads the reason usher gives for a refused playlist', () async {

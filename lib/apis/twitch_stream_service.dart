@@ -22,15 +22,30 @@ class TwitchStreamService extends BaseApiClient {
   static const _gqlUrl = 'https://gql.twitch.tv/gql';
   static const _usherBase = 'https://usher.ttvnw.net/api/channel/hls';
 
-  /// The full GQL document for the access token. Using the raw query (instead
-  /// of a persisted-query hash) avoids `PersistedQueryNotFound` if Twitch
-  /// rotates hashes.
-  static const _accessTokenQuery =
+  /// The full GQL document for the access token, asking why a stream would
+  /// be refused. Using the raw query (instead of a persisted-query hash)
+  /// avoids `PersistedQueryNotFound` if Twitch rotates hashes.
+  @visibleForTesting
+  static const accessTokenQuery =
+      '$_accessTokenQueryHead'
+      '    value signature authorization { forbiddenReasonCode } __typename'
+      '$_accessTokenQueryTail';
+
+  /// The same without the reason, for when Twitch no longer accepts that
+  /// field: playing matters more than knowing why it would not.
+  @visibleForTesting
+  static const plainAccessTokenQuery =
+      '$_accessTokenQueryHead'
+      '    value signature __typename'
+      '$_accessTokenQueryTail';
+
+  static const _accessTokenQueryHead =
       'query PlaybackAccessToken_Template(\$login: String!, \$isLive: Boolean!, '
       '\$vodID: ID!, \$isVod: Boolean!, \$playerType: String!) {'
       '  streamPlaybackAccessToken(channelName: \$login, params: {platform: "web", '
-      'playerBackend: "mediaplayer", playerType: \$playerType}) @include(if: \$isLive) {'
-      '    value signature authorization { forbiddenReasonCode } __typename'
+      'playerBackend: "mediaplayer", playerType: \$playerType}) @include(if: \$isLive) {';
+
+  static const _accessTokenQueryTail =
       '  }'
       '  videoPlaybackAccessToken(id: \$vodID, params: {platform: "web", '
       'playerBackend: "mediaplayer", playerType: \$playerType}) @include(if: \$isVod) {'
@@ -177,23 +192,14 @@ class TwitchStreamService extends BaseApiClient {
       }
     }
 
-    final data = await post<JsonMap>(
-      _gqlUrl,
-      headers: {'Client-ID': _gqlClientId},
-      data: {
-        'operationName': 'PlaybackAccessToken_Template',
-        'query': _accessTokenQuery,
-        'variables': {
-          'isLive': true,
-          'login': login,
-          'isVod': false,
-          'vodID': '',
-          'playerType': 'embed',
-        },
-      },
-    );
-
-    final token = (data['data'] as JsonMap?)?['streamPlaybackAccessToken'];
+    var data = await _postAccessToken(login, accessTokenQuery);
+    var token = (data['data'] as JsonMap?)?['streamPlaybackAccessToken'];
+    if (token is! JsonMap && data['errors'] is List) {
+      // Maybe the refusal field was renamed or removed: ask without it.
+      debugPrint('Playback token query refused: ${data['errors']}');
+      data = await _postAccessToken(login, plainAccessTokenQuery);
+      token = (data['data'] as JsonMap?)?['streamPlaybackAccessToken'];
+    }
     if (token is! JsonMap || token['value'] == null) {
       throw const ApiException('No playback access token (channel offline?)');
     }
@@ -208,10 +214,33 @@ class TwitchStreamService extends BaseApiClient {
         _ => null,
       },
     );
-    cache?.put(login, accessToken);
+    // A refused token is not kept: once the stream opens to the viewer
+    // (sub-only off, VPN off, unbanned), the next try must ask again.
+    if (accessToken.refusal == null) cache?.put(login, accessToken);
     _remember(login, accessToken);
     return accessToken;
   }
+
+  Future<JsonMap> _postAccessToken(String login, String query) => post<JsonMap>(
+    _gqlUrl,
+    headers: {'Client-ID': _gqlClientId},
+    data: accessTokenRequest(login, query),
+  );
+
+  /// The GQL request body for [login]'s live token.
+  @visibleForTesting
+  static Map<String, Object?> accessTokenRequest(String login, String query) =>
+      {
+        'operationName': 'PlaybackAccessToken_Template',
+        'query': query,
+        'variables': {
+          'isLive': true,
+          'login': login,
+          'isVod': false,
+          'vodID': '',
+          'playerType': 'embed',
+        },
+      };
 
   void _remember(String login, PlaybackAccessToken token) {
     final refusal = token.refusal;
