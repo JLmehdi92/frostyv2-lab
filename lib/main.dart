@@ -38,9 +38,11 @@ import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/channel_videos.dart';
 import 'package:frosty/screens/vod/vod_screen.dart';
+import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:frosty/services/realtime/twitch_realtime_client.dart';
 import 'package:frosty/stores/global_assets_store.dart';
 import 'package:frosty/stores/mini_player_store.dart';
+import 'package:frosty/stores/whisper_store.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/link_router.dart';
@@ -172,6 +174,30 @@ void main() async {
   dioClient.interceptors.add(UnauthorizedInterceptor(authStore));
 
   await authStore.init();
+
+  // The logged-in user's events (whispers) over one EventSub websocket,
+  // subscribed through Helix. Connects only while something listens and
+  // sleeps after a minute in the background.
+  final eventSubClient = TwitchEventSubClient(
+    create: (topic, sessionId) => twitchApiService.createEventSubSubscription(
+      type: topic.type,
+      version: topic.version,
+      condition: topic.condition,
+      sessionId: sessionId,
+    ),
+    delete: twitchApiService.deleteEventSubSubscription,
+  );
+  AppLifecycleListener(
+    onPause: eventSubClient.onAppPaused,
+    onResume: eventSubClient.onAppResumed,
+  );
+  final whisperStore = WhisperStore(
+    twitchApi: twitchApiService,
+    listen: eventSubClient.listen,
+    currentUserId: () =>
+        authStore.isLoggedIn ? authStore.user.details?.id : null,
+  );
+
   FirebaseCrashlytics.instance.setCustomKey('is_logged_in', authStore.isLoggedIn);
   if (authStore.isLoggedIn && authStore.user.details != null) {
     FirebaseCrashlytics.instance.setUserIdentifier(authStore.user.details!.id);
@@ -198,6 +224,7 @@ void main() async {
         Provider<TwitchDirectoryService>.value(value: twitchDirectoryService),
         Provider<TwitchRealtimeClient>.value(value: realtimeClient),
         Provider<GlobalAssetsStore>.value(value: globalAssetsStore),
+        Provider<WhisperStore>.value(value: whisperStore),
         Provider<MiniPlayerStore>(create: (_) => MiniPlayerStore()),
       ],
       child: MyApp(firstRun: firstRun),

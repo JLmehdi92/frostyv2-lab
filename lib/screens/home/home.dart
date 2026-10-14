@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -10,6 +12,9 @@ import 'package:frosty/screens/settings/settings.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/settings/widgets/release_notes.dart';
+import 'package:frosty/screens/whispers/whisper_conversation.dart';
+import 'package:frosty/screens/whispers/whispers_screen.dart';
+import 'package:frosty/stores/whisper_store.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/blurred_container.dart';
 import 'package:frosty/widgets/profile_picture.dart';
@@ -26,6 +31,9 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   late final _authStore = context.read<AuthStore>();
+
+  late final _whisperStore = context.read<WhisperStore>();
+  StreamSubscription<IncomingWhisper>? _whispers;
 
   late final _homeStore = HomeStore(
     authStore: _authStore,
@@ -61,6 +69,32 @@ class _HomeState extends State<Home> {
     super.initState();
     SystemChrome.setPreferredOrientations([]);
     checkAndShowReleaseNotes();
+    _whispers = _whisperStore.incoming.listen(_onWhisper);
+  }
+
+  /// A whisper arrived: a notice wherever the viewer is (Home stays under
+  /// every other screen), unless its conversation is open.
+  void _onWhisper(IncomingWhisper whisper) {
+    if (!mounted || _whisperStore.openUserId == whisper.fromUserId) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '${whisper.fromName}: ${whisper.whisper.text}',
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        action: SnackBarAction(
+          label: 'Open',
+          onPressed: () => WhisperConversation.open(
+            context,
+            store: _whisperStore,
+            userId: whisper.fromUserId,
+            login: whisper.fromLogin,
+            displayName: whisper.fromName,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -114,6 +148,23 @@ class _HomeState extends State<Home> {
             },
           ),
           actions: [
+            Observer(
+              builder: (_) {
+                if (!_authStore.isLoggedIn) return const SizedBox.shrink();
+                final unread = _whisperStore.unreadCount;
+                return IconButton(
+                  tooltip: unread > 0
+                      ? 'Whispers ($unread unread)'
+                      : 'Whispers',
+                  icon: Badge(
+                    isLabelVisible: unread > 0,
+                    label: Text('$unread'),
+                    child: const Icon(Icons.forum_outlined),
+                  ),
+                  onPressed: () => WhispersScreen.open(context, _whisperStore),
+                );
+              },
+            ),
             Observer(
               builder: (_) {
                 final isLoggedIn =
@@ -235,6 +286,7 @@ class _HomeState extends State<Home> {
 
   @override
   void dispose() {
+    _whispers?.cancel();
     _homeStore.dispose();
     super.dispose();
   }
