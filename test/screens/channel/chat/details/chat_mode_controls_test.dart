@@ -31,8 +31,13 @@ void main() {
     );
   }
 
-  SwitchListTile tile(WidgetTester tester, String label) =>
-      tester.widget<SwitchListTile>(find.widgetWithText(SwitchListTile, label));
+  Finder switchOf(String label) => find.descendant(
+    of: find.widgetWithText(ListTile, label),
+    matching: find.byType(Switch),
+  );
+
+  Switch tile(WidgetTester tester, String label) =>
+      tester.widget<Switch>(switchOf(label));
 
   testWidgets('the switches show the room as Twitch has it', (tester) async {
     await pump(
@@ -55,7 +60,7 @@ void main() {
   ) async {
     await pump(tester, const ROOMSTATE());
 
-    await tester.tap(find.text('Slow mode'));
+    await tester.tap(switchOf('Slow mode'));
     await tester.pump();
 
     final slow = commands.single as ChatModeCommand;
@@ -74,7 +79,7 @@ void main() {
   testWidgets('turning a mode off sends no length', (tester) async {
     await pump(tester, const ROOMSTATE(emoteOnly: '1'));
 
-    await tester.tap(find.text('Emote-only mode'));
+    await tester.tap(switchOf('Emote-only mode'));
     await tester.pump();
 
     final emote = commands.single as ChatModeCommand;
@@ -98,6 +103,35 @@ void main() {
     expect(followers.mode, ChatMode.followers);
     expect(followers.on, isTrue);
     expect(followers.duration, const Duration(days: 7));
+  });
+
+  testWidgets('a tap on the title of a mode with a length changes nothing', (
+    tester,
+  ) async {
+    await pump(tester, const ROOMSTATE());
+    await tester.tap(find.text('Slow mode'));
+    await tester.pump();
+    expect(commands, isEmpty);
+  });
+
+  testWidgets('a refused length goes back to what the room has', (
+    tester,
+  ) async {
+    await pump(tester, const ROOMSTATE(slowMode: '30'));
+
+    await tester.tap(find.text('30s between messages'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('60s between messages').last);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(
+      (commands.single as ChatModeCommand).duration,
+      const Duration(seconds: 60),
+    );
+
+    answer.complete((ok: false, message: "Couldn't turn slow mode on."));
+    await tester.pumpAndSettle();
+    expect(find.text('30s between messages'), findsOneWidget);
+    expect(find.text('60s between messages'), findsNothing);
   });
 
   testWidgets('clearing the chat asks first', (tester) async {

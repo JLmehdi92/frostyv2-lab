@@ -91,6 +91,8 @@ class _ChatModeControlsState extends State<ChatModeControls> {
     setState(() {
       _busy = false;
       _last = outcome;
+      // A refused change leaves the pickers on what the room still has.
+      if (!(outcome?.ok ?? false)) _readDurations();
     });
   }
 
@@ -112,7 +114,7 @@ class _ChatModeControlsState extends State<ChatModeControls> {
         ],
       ),
     );
-    if (confirmed ?? false) await _run(const ClearChatCommand());
+    if (mounted && (confirmed ?? false)) await _run(const ClearChatCommand());
   }
 
   /// A choice of [values] that, while the mode is on, applies at once.
@@ -123,12 +125,16 @@ class _ChatModeControlsState extends State<ChatModeControls> {
     required ValueChanged<Duration> onChanged,
   }) => DropdownButton<Duration>(
     value: values.contains(value) ? value : null,
-    hint: Text(label(value)),
+    hint: Text(label(value), overflow: TextOverflow.ellipsis),
+    isExpanded: true,
     underline: const SizedBox.shrink(),
     onChanged: _busy ? null : (value) => onChanged(value!),
     items: [
       for (final value in values)
-        DropdownMenuItem(value: value, child: Text(label(value))),
+        DropdownMenuItem(
+          value: value,
+          child: Text(label(value), overflow: TextOverflow.ellipsis),
+        ),
     ],
   );
 
@@ -140,27 +146,36 @@ class _ChatModeControlsState extends State<ChatModeControls> {
     final theme = Theme.of(context);
     final last = _last;
 
-    SwitchListTile mode(
+    void toggle(ChatMode mode, bool value, Duration? duration) => _run(
+      ChatModeCommand(mode, on: value, duration: value ? duration : null),
+    );
+
+    /// A mode with a length keeps its picker apart from the switch, so a
+    /// tap beside the picker does not change the room for everyone.
+    Widget mode(
       ChatMode mode,
       bool on,
       IconData icon, {
       Duration? duration,
-      Widget? subtitle,
-    }) => SwitchListTile(
-      secondary: Icon(icon),
-      title: Text(mode.label),
-      subtitle: subtitle,
-      value: on,
-      onChanged: _busy
-          ? null
-          : (value) => _run(
-              ChatModeCommand(
-                mode,
-                on: value,
-                duration: value ? duration : null,
-              ),
+      Widget? picker,
+    }) => picker == null
+        ? SwitchListTile(
+            secondary: Icon(icon),
+            title: Text(mode.label),
+            value: on,
+            onChanged: _busy ? null : (value) => toggle(mode, value, null),
+          )
+        : ListTile(
+            leading: Icon(icon),
+            title: Text(mode.label),
+            subtitle: picker,
+            trailing: Switch(
+              value: on,
+              onChanged: _busy
+                  ? null
+                  : (value) => toggle(mode, value, duration),
             ),
-    );
+          );
 
     return ListView(
       primary: false,
@@ -171,7 +186,7 @@ class _ChatModeControlsState extends State<ChatModeControls> {
           slowOn,
           Icons.hourglass_top_rounded,
           duration: _slowWait,
-          subtitle: _picker(
+          picker: _picker(
             value: _slowWait,
             values: kSlowModeWaits,
             label: (wait) => '${wait.inSeconds}s between messages',
@@ -188,7 +203,7 @@ class _ChatModeControlsState extends State<ChatModeControls> {
           followersOn,
           Icons.favorite_rounded,
           duration: _followAge,
-          subtitle: _picker(
+          picker: _picker(
             value: _followAge,
             values: kFollowAges,
             label: _followAgeLabel,
