@@ -46,7 +46,7 @@ dependencies:
     flutter_mobx: ^2.0.0
     shared_preferences: ^2.0.8
     flutter_svg: ^2.0.5
-    url_launcher: ^6.0.17
+    url_launcher: ^6.3.3
     package_info_plus: ^9.0.0
     collection: ^1.16.0
     clock: ^1.1.2
