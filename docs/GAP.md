@@ -164,7 +164,7 @@
 | INT-16 | Variantes de Hype Train | P2 | ✅ | `hype_train/widgets/effects/` | Golden Kappa, Treasure (pièce + cadenas), Community (fusée), Mythic (roulette + révélation), record historique (trophée), pinata rendu comme régulier. Formes Golden/Treasure/record vérifiées en direct ; Community/Mythic d'après la RE (non observées). | GQL privé |
 | INT-17 | Hype Train partagé | P2 | ✅ | `hype_train_reducer.dart`, `hype_train_sequence.dart` | Train partagé vérifié en direct (GQL `sharedHypeTrainDetails`) : avatars, top 3, arc-en-ciel, fusion et départ d'une chaîne (formes d'événements non observées). | GQL privé |
 | INT-18 | Récompenses partagées | P2 | ❌ | — | — | GQL privé |
-| INT-19 | Raids (côté viewer) | P1 | ⚠️ | `chat_message.dart:447-460`, `community_highlights/widgets/highlight_cards.dart` | Notice de raid entrant (USERNOTICE). Raid sortant (E5, sujet public `raid.<id>`) : « Raiding <cible> with N viewers », compte à rebours, puis « Watch <cible> » ouvre la chaîne dans l'appli. Pas de suivi automatique du lecteur. | OK |
+| INT-19 | Raids (côté viewer) | P1 | ✅ | `chat_message.dart:447-460`, `community_highlights/widgets/highlight_cards.dart`, `community_highlights_store.dart` (`onGoAlong`, `stayOnRaid`) | Notice de raid entrant (USERNOTICE). Raid sortant (E5, sujet public `raid.<id>`) : « Raiding <cible> with N viewers », compte à rebours, « Watch <cible> » ouvre la chaîne dans l'appli, et le viewer suit le raid à son départ comme sur Twitch (« Stay here » pour rester ; pas depuis une VOD ou le PiP). À valider sur un vrai raid. | OK |
 | INT-20 | Shoutouts (côté viewer) | P1 | ❌ | — | EventSub `channel.shoutout.*` exige `moderator:read:shoutouts`. | GQL privé |
 | INT-21 | Séries de visionnage (watch streaks) | P1 | ❌ | — | — | GQL privé |
 | INT-22 | Récompenses hebdomadaires | P2 | ❌ | — | — | GQL privé |
@@ -431,7 +431,7 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 |---|---|---|---|---|---|
 | Lecture vidéo (PLY) | 17 | 6 | 9 | 1 | 33 |
 | Chat (CHT) | 26 | 4 | 12 | 6 | 48 |
-| Interactions communautaires (INT) | 4 | 4 | 23 | 0 | 31 |
+| Interactions communautaires (INT) | 5 | 3 | 23 | 0 | 31 |
 | Modération (MOD) | 9 | 1 | 21 | 0 | 31 |
 | Social & notifications (SOC) | 5 | 5 | 12 | 0 | 22 |
 | Découverte & recherche (DSC) | 6 | 4 | 12 | 0 | 22 |
@@ -440,18 +440,18 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Compte & réglages (ACC) | 5 | 5 | 21 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 4 | 7 | 6 | 0 | 17 |
-| **Total** | **89** | **41** | **179** | **8** | **317** |
+| **Total** | **90** | **40** | **179** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 41 | 13 | 2 | 4 | 60 |
-| P1 | 42 | 21 | 41 | 4 | 108 |
+| P1 | 43 | 20 | 41 | 4 | 108 |
 | P2 | 6 | 7 | 136 | 0 | 149 |
-| **Total** | **89** | **41** | **179** | **8** | **317** |
+| **Total** | **90** | **40** | **179** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 9 | 22 | 33 | 64 |
+| OK | 9 | 21 | 33 | 63 |
 | GQL privé | 6 | 29 | 61 | 96 |
 | Compte requis | 0 | 11 | 12 | 23 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
