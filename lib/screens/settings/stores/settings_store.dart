@@ -25,6 +25,7 @@ abstract class _SettingsStoreBase with Store {
 
   // Browse defaults ('' is every language)
   static const defaultStreamLanguage = '';
+  static const defaultStartTab = HomeTab.following;
 
   // Links defaults
   static const defaultLaunchUrlExternal = false;
@@ -47,6 +48,12 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var largeStreamCard = defaultLargeStreamCard;
 
+  /// The tab the app opens on (Following falls back to Top when logged
+  /// out).
+  @JsonKey(defaultValue: defaultStartTab, unknownEnumValue: HomeTab.following)
+  @observable
+  var startTab = defaultStartTab;
+
   /// The language Top and category lists show (Helix `language`).
   @JsonKey(defaultValue: defaultStreamLanguage)
   @observable
@@ -66,6 +73,7 @@ abstract class _SettingsStoreBase with Store {
     showThumbnails = defaultShowThumbnails;
 
     streamLanguage = defaultStreamLanguage;
+    startTab = defaultStartTab;
 
     launchUrlExternal = defaultLaunchUrlExternal;
   }
@@ -480,6 +488,21 @@ abstract class _SettingsStoreBase with Store {
 const themeNames = ['System', 'Light', 'Dark'];
 
 enum ThemeType { system, light, dark }
+
+/// The home tabs, as named in the bottom bar.
+enum HomeTab {
+  following('Following'),
+  top('Top'),
+  search('Search');
+
+  const HomeTab(this.label);
+
+  final String label;
+
+  /// Where this tab sits in the bar; logged out, there is no Following.
+  int indexWhen({required bool loggedIn}) =>
+      loggedIn ? index : (this == following ? 0 : index - 1);
+}
 
 const timestampNames = ['Disabled', '12-hour', '24-hour'];
 

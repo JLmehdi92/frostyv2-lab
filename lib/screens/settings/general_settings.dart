@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 // import removed: flutter_colorpicker
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/settings/widgets/settings_list_select.dart';
 import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
 import 'package:frosty/screens/settings/widgets/stream_language_setting.dart';
 import 'package:frosty/widgets/accent_color_setting.dart';
@@ -36,6 +37,13 @@ class GeneralSettings extends StatelessWidget {
             onChanged: (newValue) => settingsStore.showThumbnails = newValue,
           ),
           const SectionHeader('Browse'),
+          SettingsListSelect(
+            title: 'Open the app on',
+            selectedOption: settingsStore.startTab.label,
+            options: [for (final tab in HomeTab.values) tab.label],
+            onChanged: (label) => settingsStore.startTab = HomeTab.values
+                .firstWhere((tab) => tab.label == label),
+          ),
           StreamLanguageSetting(settingsStore: settingsStore),
           const SectionHeader('Links'),
           ExternalBrowserSetting(settingsStore: settingsStore),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
+import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:mobx/mobx.dart';
 
 part 'home_store.g.dart';
@@ -10,6 +11,9 @@ class HomeStore = HomeStoreBase with _$HomeStore;
 
 abstract class HomeStoreBase with Store {
   final AuthStore authStore;
+
+  /// The tab shown at launch and after logging in or out.
+  final HomeTab startTab;
 
   /// The scroll controller for controlling the scroll to top on the followed section.
   final followedScrollController = ScrollController();
@@ -30,12 +34,13 @@ abstract class HomeStoreBase with Store {
   var _selectedIndex = 0;
 
   late final ReactionDisposer _disposeReaction;
-  HomeStoreBase({required this.authStore}) {
-    // Setup a reaction that will return to the first tab when logging in/out.
+  HomeStoreBase({required this.authStore, this.startTab = HomeTab.following}) {
+    _selectedIndex = startTab.indexWhen(loggedIn: authStore.isLoggedIn);
+    // Setup a reaction that will return to the start tab when logging in/out.
     // This will prevent an out of range index error when last visiting the search screen and logging out.
     _disposeReaction = reaction(
       (_) => authStore.isLoggedIn,
-      (_) => _selectedIndex = 0,
+      (loggedIn) => _selectedIndex = startTab.indexWhen(loggedIn: loggedIn),
     );
   }
 

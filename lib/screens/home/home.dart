@@ -27,7 +27,10 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   late final _authStore = context.read<AuthStore>();
 
-  late final _homeStore = HomeStore(authStore: _authStore);
+  late final _homeStore = HomeStore(
+    authStore: _authStore,
+    startTab: context.read<SettingsStore>().startTab,
+  );
 
   Future<void> checkAndShowReleaseNotes() async {
     final packageInfo = await PackageInfo.fromPlatform();

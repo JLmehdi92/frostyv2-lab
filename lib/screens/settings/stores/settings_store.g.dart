@@ -19,6 +19,13 @@ SettingsStore _$SettingsStoreFromJson(
   ..accentColor = (json['accentColor'] as num?)?.toInt() ?? 4287710975
   ..showThumbnails = json['showThumbnails'] as bool? ?? true
   ..largeStreamCard = json['largeStreamCard'] as bool? ?? false
+  ..startTab =
+      $enumDecodeNullable(
+        _$HomeTabEnumMap,
+        json['startTab'],
+        unknownValue: HomeTab.following,
+      ) ??
+      HomeTab.following
   ..streamLanguage = json['streamLanguage'] as String? ?? ''
   ..launchUrlExternal = json['launchUrlExternal'] as bool? ?? false
   ..showVideo = json['showVideo'] as bool? ?? true
@@ -124,6 +131,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'accentColor': instance.accentColor,
   'showThumbnails': instance.showThumbnails,
   'largeStreamCard': instance.largeStreamCard,
+  'startTab': _$HomeTabEnumMap[instance.startTab]!,
   'streamLanguage': instance.streamLanguage,
   'launchUrlExternal': instance.launchUrlExternal,
   'showVideo': instance.showVideo,
@@ -182,6 +190,12 @@ const _$ThemeTypeEnumMap = {
   ThemeType.system: 'system',
   ThemeType.light: 'light',
   ThemeType.dark: 'dark',
+};
+
+const _$HomeTabEnumMap = {
+  HomeTab.following: 'following',
+  HomeTab.top: 'top',
+  HomeTab.search: 'search',
 };
 
 const _$PlayerEngineEnumMap = {
@@ -298,6 +312,24 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   set largeStreamCard(bool value) {
     _$largeStreamCardAtom.reportWrite(value, super.largeStreamCard, () {
       super.largeStreamCard = value;
+    });
+  }
+
+  late final _$startTabAtom = Atom(
+    name: '_SettingsStoreBase.startTab',
+    context: context,
+  );
+
+  @override
+  HomeTab get startTab {
+    _$startTabAtom.reportRead();
+    return super.startTab;
+  }
+
+  @override
+  set startTab(HomeTab value) {
+    _$startTabAtom.reportWrite(value, super.startTab, () {
+      super.startTab = value;
     });
   }
 
@@ -1383,6 +1415,7 @@ themeType: ${themeType},
 accentColor: ${accentColor},
 showThumbnails: ${showThumbnails},
 largeStreamCard: ${largeStreamCard},
+startTab: ${startTab},
 streamLanguage: ${streamLanguage},
 launchUrlExternal: ${launchUrlExternal},
 showVideo: ${showVideo},
