@@ -27,6 +27,11 @@ SettingsStore _$SettingsStoreFromJson(
       ) ??
       HomeTab.following
   ..streamLanguage = json['streamLanguage'] as String? ?? ''
+  ..hiddenContentLabels =
+      (json['hiddenContentLabels'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      []
   ..launchUrlExternal = json['launchUrlExternal'] as bool? ?? false
   ..showVideo = json['showVideo'] as bool? ?? true
   ..warnMatureContent = json['warnMatureContent'] as bool? ?? true
@@ -137,6 +142,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'largeStreamCard': instance.largeStreamCard,
   'startTab': _$HomeTabEnumMap[instance.startTab]!,
   'streamLanguage': instance.streamLanguage,
+  'hiddenContentLabels': instance.hiddenContentLabels,
   'launchUrlExternal': instance.launchUrlExternal,
   'showVideo': instance.showVideo,
   'warnMatureContent': instance.warnMatureContent,
@@ -356,6 +362,24 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   set streamLanguage(String value) {
     _$streamLanguageAtom.reportWrite(value, super.streamLanguage, () {
       super.streamLanguage = value;
+    });
+  }
+
+  late final _$hiddenContentLabelsAtom = Atom(
+    name: '_SettingsStoreBase.hiddenContentLabels',
+    context: context,
+  );
+
+  @override
+  List<String> get hiddenContentLabels {
+    _$hiddenContentLabelsAtom.reportRead();
+    return super.hiddenContentLabels;
+  }
+
+  @override
+  set hiddenContentLabels(List<String> value) {
+    _$hiddenContentLabelsAtom.reportWrite(value, super.hiddenContentLabels, () {
+      super.hiddenContentLabels = value;
     });
   }
 
@@ -1497,6 +1521,7 @@ showThumbnails: ${showThumbnails},
 largeStreamCard: ${largeStreamCard},
 startTab: ${startTab},
 streamLanguage: ${streamLanguage},
+hiddenContentLabels: ${hiddenContentLabels},
 launchUrlExternal: ${launchUrlExternal},
 showVideo: ${showVideo},
 warnMatureContent: ${warnMatureContent},

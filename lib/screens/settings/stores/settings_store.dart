@@ -25,6 +25,7 @@ abstract class _SettingsStoreBase with Store {
 
   // Browse defaults ('' is every language)
   static const defaultStreamLanguage = '';
+  static const defaultHiddenContentLabels = <String>[];
   static const defaultStartTab = HomeTab.following;
 
   // Links defaults
@@ -59,6 +60,12 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var streamLanguage = defaultStreamLanguage;
 
+  /// Content classification labels (ids) whose streams are left out of
+  /// browsing; followed channels always show.
+  @JsonKey(defaultValue: defaultHiddenContentLabels)
+  @observable
+  List<String> hiddenContentLabels = defaultHiddenContentLabels;
+
   // Links options
   @JsonKey(defaultValue: defaultLaunchUrlExternal)
   @observable
@@ -73,6 +80,7 @@ abstract class _SettingsStoreBase with Store {
     showThumbnails = defaultShowThumbnails;
 
     streamLanguage = defaultStreamLanguage;
+    hiddenContentLabels = defaultHiddenContentLabels;
     startTab = defaultStartTab;
 
     launchUrlExternal = defaultLaunchUrlExternal;

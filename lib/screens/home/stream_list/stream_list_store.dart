@@ -123,9 +123,11 @@ abstract class ListStoreBase with Store {
   @computed
   ObservableList<StreamTwitch> get streams => _allStreams
       .where(
-        (streamInfo) => !authStore.user.blockedUsers
-            .map((blockedUser) => blockedUser.userId)
-            .contains(streamInfo.userId),
+        (streamInfo) =>
+            !authStore.user.blockedUsers
+                .map((blockedUser) => blockedUser.userId)
+                .contains(streamInfo.userId) &&
+            (_showLabeled || !_labeledIds.contains(streamInfo.userId)),
       )
       .toList()
       .asObservable();
@@ -178,6 +180,48 @@ abstract class ListStoreBase with Store {
 
   ReactionDisposer? _languageReactionDisposer;
   ReactionDisposer? _sortReactionDisposer;
+  ReactionDisposer? _labelsReactionDisposer;
+
+  /// Streams (user ids) left out for a label the viewer hides.
+  @readonly
+  var _labeledIds = ObservableSet<String>();
+
+  /// The viewer chose to see the streams [_labeledIds] hides, for this list.
+  @readonly
+  var _showLabeled = false;
+
+  /// How many loaded streams are hidden for their labels (0 once shown).
+  @computed
+  int get hiddenByLabels => _showLabeled
+      ? 0
+      : _allStreams.where((s) => _labeledIds.contains(s.userId)).length;
+
+  /// Shows the streams hidden for their labels in this list.
+  @action
+  void showLabeledStreams() => _showLabeled = true;
+
+  /// Which of [page]'s streams carry a label the viewer hides (none for the
+  /// followed list, or when Twitch cannot say).
+  Future<Set<String>> _labeledIn(List<StreamTwitch> page) async {
+    final hidden = settingsStore.hiddenContentLabels.toSet();
+    if (listType == ListType.followed || hidden.isEmpty || page.isEmpty) {
+      return const {};
+    }
+    try {
+      final channels = await twitchApi.getChannelsByIds([
+        for (final stream in page) stream.userId,
+      ]);
+      return {
+        for (final MapEntry(:key, :value) in channels.entries)
+          if (value.contentClassificationLabels.any(hidden.contains)) key,
+      };
+    } catch (e) {
+      // Browsing goes on unfiltered rather than not at all.
+      debugPrint('Content labels unavailable: $e');
+      return const {};
+    }
+  }
+
   ReactionDisposer? _pinnedStreamsReactionDisposer;
   ReactionDisposer? _offlineChannelsExpansionDisposer;
 
@@ -205,6 +249,11 @@ abstract class ListStoreBase with Store {
       );
       // So does a new order.
       _sortReactionDisposer = reaction((_) => sort, (_) => refreshStreams());
+      // And so do other hidden labels.
+      _labelsReactionDisposer = reaction(
+        (_) => settingsStore.hiddenContentLabels,
+        (_) => refreshStreams(),
+      );
     }
 
     if (listType == ListType.followed) {
@@ -285,11 +334,16 @@ abstract class ListStoreBase with Store {
       }
 
       if (generation != _streamsGeneration) return;
+      final labeled = await _labeledIn(newStreams.data);
+      if (generation != _streamsGeneration) return;
 
       if (_streamsCursor == null) {
         _allStreams = newStreams.data.asObservable();
+        _labeledIds = labeled.asObservable();
+        _showLabeled = false;
       } else {
         _allStreams.addAll(newStreams.data);
+        _labeledIds.addAll(labeled);
       }
       _streamsCursor = newStreams.pagination['cursor'];
 
@@ -463,6 +517,7 @@ abstract class ListStoreBase with Store {
   void dispose() {
     _languageReactionDisposer?.call();
     _sortReactionDisposer?.call();
+    _labelsReactionDisposer?.call();
     _pinnedStreamsReactionDisposer?.call();
     _offlineChannelsExpansionDisposer?.call();
 

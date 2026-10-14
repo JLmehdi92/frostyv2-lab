@@ -55,6 +55,13 @@ mixin _$ListStore on ListStoreBase, Store {
         () => super.offlineChannels,
         name: 'ListStoreBase.offlineChannels',
       )).value;
+  Computed<int>? _$hiddenByLabelsComputed;
+
+  @override
+  int get hiddenByLabels => (_$hiddenByLabelsComputed ??= Computed<int>(
+    () => super.hiddenByLabels,
+    name: 'ListStoreBase.hiddenByLabels',
+  )).value;
 
   late final _$sortAtom = Atom(name: 'ListStoreBase.sort', context: context);
 
@@ -327,6 +334,46 @@ mixin _$ListStore on ListStoreBase, Store {
     });
   }
 
+  late final _$_labeledIdsAtom = Atom(
+    name: 'ListStoreBase._labeledIds',
+    context: context,
+  );
+
+  ObservableSet<String> get labeledIds {
+    _$_labeledIdsAtom.reportRead();
+    return super._labeledIds;
+  }
+
+  @override
+  ObservableSet<String> get _labeledIds => labeledIds;
+
+  @override
+  set _labeledIds(ObservableSet<String> value) {
+    _$_labeledIdsAtom.reportWrite(value, super._labeledIds, () {
+      super._labeledIds = value;
+    });
+  }
+
+  late final _$_showLabeledAtom = Atom(
+    name: 'ListStoreBase._showLabeled',
+    context: context,
+  );
+
+  bool get showLabeled {
+    _$_showLabeledAtom.reportRead();
+    return super._showLabeled;
+  }
+
+  @override
+  bool get _showLabeled => showLabeled;
+
+  @override
+  set _showLabeled(bool value) {
+    _$_showLabeledAtom.reportWrite(value, super._showLabeled, () {
+      super._showLabeled = value;
+    });
+  }
+
   late final _$getStreamsAsyncAction = AsyncAction(
     'ListStoreBase.getStreams',
     context: context,
@@ -381,6 +428,23 @@ mixin _$ListStore on ListStoreBase, Store {
     );
   }
 
+  late final _$ListStoreBaseActionController = ActionController(
+    name: 'ListStoreBase',
+    context: context,
+  );
+
+  @override
+  void showLabeledStreams() {
+    final _$actionInfo = _$ListStoreBaseActionController.startAction(
+      name: 'ListStoreBase.showLabeledStreams',
+    );
+    try {
+      return super.showLabeledStreams();
+    } finally {
+      _$ListStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
   @override
   String toString() {
     return '''
@@ -392,7 +456,8 @@ isLoading: ${isLoading},
 hasMoreOfflineChannels: ${hasMoreOfflineChannels},
 streams: ${streams},
 allPinnedChannels: ${allPinnedChannels},
-offlineChannels: ${offlineChannels}
+offlineChannels: ${offlineChannels},
+hiddenByLabels: ${hiddenByLabels}
     ''';
   }
 }
