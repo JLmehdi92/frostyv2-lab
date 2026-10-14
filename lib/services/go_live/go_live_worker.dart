@@ -126,7 +126,7 @@ abstract final class GoLiveNotifications {
   static Future<void> init({void Function(String login)? onOpen}) async {
     await _plugin.initialize(
       settings: const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        android: AndroidInitializationSettings('ic_stat_go_live'),
         iOS: DarwinInitializationSettings(
           requestAlertPermission: false,
           requestBadgePermission: false,
