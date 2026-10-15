@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/models/hermes.dart';
 import 'package:frosty/services/hermes_client.dart';
@@ -234,6 +235,30 @@ void main() {
       expect(sockets.single.closed, isFalse);
       expect(sockets.single.types.where((t) => t == 'ping'), isEmpty);
     });
+  });
+
+  test('a parse error logs its code, never the message it echoes', () async {
+    final logs = <String>[];
+    final original = debugPrint;
+    debugPrint = (message, {wrapWidth}) => logs.add(message ?? '');
+    addTearDown(() => debugPrint = original);
+
+    await client.subscribe('celebration-events-v1.1');
+    sockets.single.receive(
+      jsonEncode({
+        'type': 'parseError',
+        'id': 'p',
+        'parseError': {
+          'errorCode': 'PE001',
+          'error': 'bad frame',
+          'message': '{"authenticate":{"token":"SECRET-TOKEN"}}',
+        },
+      }),
+    );
+    await pumpEventQueue();
+
+    expect(logs.join('\n'), isNot(contains('SECRET-TOKEN')));
+    expect(logs.join('\n'), contains('PE001'));
   });
 
   group('authentication', () {

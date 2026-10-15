@@ -68,4 +68,24 @@ void main() {
       expect(keepalive(100000), const Duration(seconds: 120));
     });
   });
+
+  test('errorCode reads the code of an error frame only', () {
+    expect(
+      HermesMessage.tryParse(
+        '{"type":"parseError","parseError":{"errorCode":"PE1","error":"x"}}',
+      )!.errorCode,
+      'PE1',
+    );
+    expect(
+      HermesMessage.tryParse(
+        '{"type":"subscribeResponse","subscribeResponse":'
+        '{"result":"error","error":"invalid topic","errorCode":"SUB002"}}',
+      )!.errorCode,
+      'SUB002',
+    );
+    expect(
+      HermesMessage.tryParse('{"type":"parseError","parseError":5}')!.errorCode,
+      isNull,
+    );
+  });
 }

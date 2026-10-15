@@ -301,7 +301,9 @@ class HermesClient {
         }
 
       case HermesMessage.typeParseError:
-        debugPrint('Hermes rejected a client message: ${message.raw}');
+        // The code only: the frame echoes what we sent, and what we send
+        // includes the authenticate token.
+        debugPrint('Hermes rejected a client message: ${message.errorCode}');
 
       case HermesMessage.typeKeepalive:
         break;

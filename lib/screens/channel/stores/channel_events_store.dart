@@ -163,13 +163,16 @@ abstract class ChannelEventsStoreBase with Store {
       authToken: await _tokenProvider?.call(),
     );
 
-    debugPrint(
-      'Points for $login: balance=${context.balance} '
-      'rewards=${context.rewards.length} '
-      'predictions=${context.predictions.length} '
-      'claim=${context.availableClaimId} '
-      'name=${context.pointsName}',
-    );
+    // Debug only: the login, balance and claim id are the viewer's own.
+    if (kDebugMode) {
+      debugPrint(
+        'Points for $login: balance=${context.balance} '
+        'rewards=${context.rewards.length} '
+        'predictions=${context.predictions.length} '
+        'claim=${context.availableClaimId} '
+        'name=${context.pointsName}',
+      );
+    }
 
     runInAction(() => _points = context);
   }
@@ -347,10 +350,8 @@ abstract class ChannelEventsStoreBase with Store {
   /// hype train bar nearly shipped stuck at zero, so these get logged and
   /// nothing more until a real one has been read.
   ///
-  /// Runs in release too, deliberately. This is a personal build, the print
-  /// only fires on a topic nothing consumes — which is rare — and it is the
-  /// only route to payloads that have never been seen. Gating it on debug
-  /// builds meant the one build actually used day to day captured nothing.
+  /// Debug builds only: payloads can carry other viewers' names and
+  /// messages, which have no business in a release build's log.
   void _capture(HermesEvent event) {
     // Payloads can carry other viewers' names and messages: never in a
     // release build.

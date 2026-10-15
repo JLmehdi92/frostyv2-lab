@@ -120,6 +120,25 @@ class HermesMessage {
     return null;
   }
 
+  /// The machine-readable code of an error frame (`parseError` and the
+  /// failed responses), safe to log: unlike the rest of the frame it never
+  /// echoes what the client sent.
+  String? get errorCode {
+    for (final key in const [
+      'parseError',
+      'subscribeResponse',
+      'unsubscribeResponse',
+      'authenticateResponse',
+    ]) {
+      final body = raw[key];
+      if (body is Map<String, dynamic>) {
+        final code = body['errorCode'];
+        if (code is String) return code;
+      }
+    }
+    return null;
+  }
+
   /// The server-assigned subscription id a message refers to.
   ///
   /// This is the only link a notification carries back to what was subscribed:

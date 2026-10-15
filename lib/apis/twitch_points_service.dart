@@ -115,7 +115,9 @@ query OnsetCommunityPoints(\$login: String!) {
 
       return _parseContext(data);
     } catch (e) {
-      debugPrint('Community points unavailable for $userLogin: $e');
+      if (kDebugMode) {
+        debugPrint('Community points unavailable for $userLogin: $e');
+      }
       return CommunityPointsContext.empty;
     }
   }
@@ -223,7 +225,7 @@ query OnsetCommunityPoints(\$login: String!) {
       // again, and "could not reach Twitch" would send the viewer elsewhere.
       return 'unauthorized';
     } catch (e) {
-      debugPrint('$operation failed: $e');
+      if (kDebugMode) debugPrint('$operation failed: $e');
       return 'request_failed';
     }
   }
