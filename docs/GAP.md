@@ -21,6 +21,7 @@
 | 2026-10-14 | épopée E7 « chat » (2e partie) | CHT-10, CHT-25, CHT-45 ✅ ; CHT-22 ⚠️ (remarque). Comptes recalculés. À valider sur appareil. |
 | 2026-10-13 | épopée E8 « découverte » | DSC-04, DSC-05, DSC-06 ✅ ; DSC-08, DSC-09 ⚠️ (remarques). Comptes recalculés. Affichage à valider sur appareil. |
 | 2026-10-13 | épopée E5 « highlights communautaires » | CHT-41, CHT-42 ✅ ; INT-01, INT-02 ⚠️ (lecture seule) ; INT-19 (raid sortant). Comptes recalculés. Affichage à valider sur appareil. |
+| 2026-10-15 | GIF du chat (branche `gifs`) | CHT-26 ⚠️ (affichage) ; CHT-25 (remarque). Comptes recalculés. À valider sur appareil avec un vrai GIF. |
 | 2026-10-15 | retour à ONSET (portage de l'appli ONSET, hype train et notices au style Twitch, retour de la tablette) et passe finale | INT-25 ✅ ; INT-05, INT-06, INT-07 ⚠️ ; INT-02, INT-04, INT-15, INT-16, CHT-36, MON-07 (remarques) ; MSC-14 ⚠️, DSC-01, PRF-18 (tablette). Comptes recalculés. À valider sur la tablette. |
 
 ## 0. Légende et conventions
@@ -118,8 +119,8 @@
 | CHT-22 | Carte d'emote | P1 | ⚠️ | `irc.dart` (`showEmoteDetailsBottomSheet`), `emotes.dart` (`unlockHint`, `subTier`) | Fiche avec nom, source, auteur, copier, ouvrir et condition de déblocage des emotes Twitch (palier d'abonnement Helix, follow, Bits). Ni emotes liées, ni signalement. | OK |
 | CHT-23 | Emotes follower | P1 | ✅ | `twitch_api.dart` (`getUserEmotes`, `getUsersByIds`), `chat_assets_store.dart` (`userEmotesFromHelix`), `chat_store.dart` (`_loadUserEmotes`) | Le menu d'emotes et l'autocomplétion reçoivent toutes les emotes utilisables (Helix `GET /chat/emotes/user`, `user:read:emotes`) : abonnements partout, emotes follower de la chaîne, débloquées et globales, rangées par chaîne. Un ancien jeton sans le scope échoue sans dialogue et retombe sur les sets de GLOBALUSERSTATE. | OK |
 | CHT-24 | Modificateurs d'emotes | P2 | ❌ | — | — | GQL privé |
-| CHT-25 | Animation des emotes et GIF | P1 | ✅ | `emotes.dart` (`staticUrl`, `urlFor`), `irc.dart`, `chat_settings.dart` | Réglage local « Animate emotes » : éteint, le chat (live, replay, réponses, épinglé) affiche l'image fixe fournie par Twitch, 7TV, BTTV ou FFZ. Non synchronisé avec le compte. | OK |
-| CHT-26 | GIF dans le chat (GIPHY) | P2 | ❌ | — | — | GQL privé |
+| CHT-25 | Animation des emotes et GIF | P1 | ✅ | `emotes.dart` (`staticUrl`, `urlFor`), `irc.dart`, `chat_settings.dart` | Réglage local « Animate emotes » : éteint, le chat (live, replay, réponses, épinglé) affiche l'image fixe fournie par Twitch, 7TV, BTTV ou FFZ. Réglage distinct « Animated GIFs » pour les GIF (CHT-26). Non synchronisés avec le compte. | OK |
+| CHT-26 | GIF dans le chat (GIPHY) | P2 | ⚠️ | `chat_gif.dart`, `irc.dart` (`gifParts`), `chat_gif_image.dart`, `first_frame_image.dart`, `chat_settings.dart` | Affichage au comportement de l'appli Twitch : tag `gifs`, GIF sous le pseudo à la place de son titre (128 px, 72 en paysage ou en surimpression), réglages « Show GIFs in Chat » et « Animated GIFs », fiche au tap. Écarts voulus : seulement `https` sur giphy.com ou jtvnw.net, titre affiché en cas d'échec, « Reply » gardé. Manque l'envoi (onglet GIF, palier 2+) et « Report GIF ». | GQL privé |
 | CHT-27 | Couleurs lisibles et contraste | P1 | ✅ | `utils.dart:19-47`, `irc.dart:416` | Ajustement automatique du contraste, sans option. | OK |
 | CHT-28 | Masquer le langage offensant | P1 | ⚠️ | `settings_muted_words.dart`, `muted_words.dart` | Mots masqués manuels (mot entier ou sous-chaîne, expressions). Bugs corrigés en E7 : le lot n'est plus abandonné et la comparaison n'est plus lettre par lettre. Pas de catégories de filtres Twitch. | OK |
 | CHT-29 | Filtres de chat personnels | P1 | ❌ | — | Pas de catégories de filtres (listes locales possibles). | OK |
@@ -431,7 +432,7 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | Lecture vidéo (PLY) | 17 | 6 | 9 | 1 | 33 |
-| Chat (CHT) | 26 | 4 | 12 | 6 | 48 |
+| Chat (CHT) | 26 | 5 | 11 | 6 | 48 |
 | Interactions communautaires (INT) | 6 | 6 | 19 | 0 | 31 |
 | Modération (MOD) | 9 | 1 | 21 | 0 | 31 |
 | Social & notifications (SOC) | 5 | 5 | 12 | 0 | 22 |
@@ -441,14 +442,14 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Compte & réglages (ACC) | 5 | 8 | 18 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 3 | 8 | 6 | 0 | 17 |
-| **Total** | **91** | **47** | **171** | **8** | **317** |
+| **Total** | **91** | **48** | **170** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 41 | 13 | 2 | 4 | 60 |
 | P1 | 44 | 24 | 36 | 4 | 108 |
-| P2 | 6 | 10 | 133 | 0 | 149 |
-| **Total** | **91** | **47** | **171** | **8** | **317** |
+| P2 | 6 | 11 | 132 | 0 | 149 |
+| **Total** | **91** | **48** | **170** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
