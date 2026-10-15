@@ -115,6 +115,14 @@ void main() {
     expect(unlocked.text, Colors.white);
   });
 
+  test('the landscape pill fill: magenta to green when shared', () {
+    expect(HtPalette.of(HtStyle.shared, light).pillFillColors, const [
+      Color(0xFFBE0078),
+      Color(0xFF0E8661),
+    ]);
+    expect(HtPalette.of(HtStyle.regular, dark).pillFillColors, isNull);
+  });
+
   test('a Twitch-purple creator colour falls back to green', () {
     expect(
       HtPalette.of(HtStyle.regular, light, creatorColor: 0xFF9147FF).fill,
@@ -170,6 +178,7 @@ void main() {
         p.checkPill,
         p.barTrack,
         p.link,
+        ...?p.pillFillColors,
         ?p.textShadow?.color,
       ];
       for (final colour in colours) {

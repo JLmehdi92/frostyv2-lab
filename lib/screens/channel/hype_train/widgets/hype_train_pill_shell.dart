@@ -15,6 +15,7 @@ class HtPillShell extends StatelessWidget {
     required this.onTap,
     required this.child,
     this.targetKey,
+    this.fillColors,
   });
 
   /// On the visible 32 dp pill.
@@ -25,6 +26,10 @@ class HtPillShell extends StatelessWidget {
 
   /// 0–1 of the pill filled.
   final double fraction;
+
+  /// The fill as a start-to-end gradient (shared trains); flat #0C6D4F
+  /// without it.
+  final List<Color>? fillColors;
   final String label;
   final String hint;
   final VoidCallback onTap;
@@ -72,9 +77,19 @@ class HtPillShell extends StatelessWidget {
                             child: FractionallySizedBox(
                               widthFactor: fraction.clamp(0.0, 1.0),
                               heightFactor: 1,
-                              child: const DecoratedBox(
-                                key: ValueKey('ht-pill-fill'),
-                                decoration: BoxDecoration(color: HtGreen.g8),
+                              child: DecoratedBox(
+                                key: const ValueKey('ht-pill-fill'),
+                                decoration: BoxDecoration(
+                                  color: fillColors == null ? HtGreen.g8 : null,
+                                  gradient: fillColors == null
+                                      ? null
+                                      : LinearGradient(
+                                          begin:
+                                              AlignmentDirectional.centerStart,
+                                          end: AlignmentDirectional.centerEnd,
+                                          colors: fillColors!,
+                                        ),
+                                ),
                               ),
                             ),
                           ),

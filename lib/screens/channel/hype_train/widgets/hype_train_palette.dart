@@ -22,6 +22,7 @@ class HtPalette {
     this.textShadow,
     this.trophy = false,
     this.speedlines = false,
+    this.pillFillColors,
   });
 
   factory HtPalette.of(
@@ -41,6 +42,7 @@ class HtPalette {
       required String name,
       Color? fill,
       bool speedlines = false,
+      List<Color>? pillFillColors,
     }) => HtPalette(
       track: neutrals.backgroundFloat,
       fill: fill ?? green,
@@ -51,6 +53,7 @@ class HtPalette {
       icon: icon,
       a11yName: name,
       speedlines: speedlines,
+      pillFillColors: pillFillColors,
     );
 
     /// The record: green to azure over the base background.
@@ -91,6 +94,8 @@ class HtPalette {
           icon: Icons.groups_rounded,
           name: 'Shared Hype Train',
           speedlines: true,
+          // Twitch's collab colours, purple turned green.
+          pillFillColors: const [Color(0xFFBE0078), HtGreen.g9],
         );
       case HtStyle.treasure:
         if (!treasureUnlocked) {
@@ -201,6 +206,9 @@ class HtPalette {
 
   /// Our own speedlines and sparkles over the track (shared trains).
   final bool speedlines;
+
+  /// The landscape pill's fill as a gradient; flat #0C6D4F without it.
+  final List<Color>? pillFillColors;
 
   final IconData icon;
 

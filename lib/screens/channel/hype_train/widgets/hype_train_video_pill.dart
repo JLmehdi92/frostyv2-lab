@@ -141,6 +141,7 @@ class _HypeTrainVideoPillState extends State<HypeTrainVideoPill> {
             pillKey: const ValueKey('ht-video-pill'),
             targetKey: const ValueKey('ht-video-pill-target'),
             fraction: fraction,
+            fillColors: palette.pillFillColors,
             label: label,
             hint: HtCopy.detailsHint,
             onTap: widget.onTap,

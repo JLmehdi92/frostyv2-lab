@@ -492,6 +492,7 @@ class HypeTrainPill extends StatelessWidget {
             child: HtPillShell(
               pillKey: const ValueKey('ht-pill'),
               fraction: store.shownPercent / 100,
+              fillColors: palette.pillFillColors,
               label: store.semanticsSummary,
               hint: HtCopy.expand,
               onTap: () => store.setCollapsed(false),

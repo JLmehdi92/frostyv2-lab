@@ -7,6 +7,7 @@ import 'package:frosty/models/hype_train_event.dart';
 import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_video_pill.dart';
 
+import '../hype_train_test_data.dart';
 import 'hype_train_widget_harness.dart';
 
 Future<void> pumpPill(
@@ -176,6 +177,35 @@ void main() {
         (tester.widget<DecoratedBox>(fill).decoration as BoxDecoration).color,
         const Color(0xFF0C6D4F),
       );
+      await h.close(tester);
+    });
+
+    testWidgets('a shared train fills the pill magenta to green', (
+      tester,
+    ) async {
+      final h = HtHarness(
+        snapshot: HtOngoingSnapshot(
+          liveTrain(
+            shared: HtShared(
+              id: 's',
+              channels: [
+                HtSharedChannel(user: user('a')),
+                HtSharedChannel(user: user('b')),
+              ],
+            ),
+          ),
+          fetchedAt: DateTime.utc(2026),
+        ),
+      );
+      await pumpPill(tester, h.store);
+
+      final decoration =
+          tester.widget<DecoratedBox>(fill).decoration as BoxDecoration;
+      expect(decoration.color, isNull);
+      expect(decoration.gradient!.colors, const [
+        Color(0xFFBE0078),
+        Color(0xFF0E8661),
+      ]);
       await h.close(tester);
     });
 
