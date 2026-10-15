@@ -1,0 +1,118 @@
+# Builds a signed arm64 APK on every push to main and publishes it as a
+# "build-N" release, which installed ONSET apps offer as an update.
+# One-time setup (secrets, keystore, token): docs/MISES_A_JOUR.md.
+name: ONSET update
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - 'web/**'
+
+concurrency:
+  group: onset-update
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  android:
+    name: Build and publish the update
+    runs-on: ubuntu-latest
+    # Secrets are given to the steps that need them only, never to the
+    # third-party actions.
+    steps:
+      # Names the missing secrets only, never a value.
+      - name: Check the secrets
+        env:
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          SECRET: ${{ secrets.SECRET }}
+          UPDATE_TOKEN: ${{ secrets.UPDATE_TOKEN }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          missing=""
+          for name in CLIENT_ID SECRET UPDATE_TOKEN ANDROID_KEYSTORE_BASE64 \
+            ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              missing="$missing $name"
+            fi
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing (see docs/MISES_A_JOUR.md)"
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.4
+          channel: stable
+          cache: true
+
+      # build.gradle.kts reads android/key.properties and resolves storeFile
+      # against android/app.
+      - name: Install the signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode --ignore-garbage > android/app/onset-release.jks
+          {
+            printf 'storePassword=%s\n' "$ANDROID_KEYSTORE_PASSWORD"
+            printf 'keyPassword=%s\n' "$ANDROID_KEY_PASSWORD"
+            printf 'keyAlias=%s\n' "$ANDROID_KEY_ALIAS"
+            printf 'storeFile=onset-release.jks\n'
+          } > android/key.properties
+
+      - name: Build the APK
+        env:
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          SECRET: ${{ secrets.SECRET }}
+          UPDATE_TOKEN: ${{ secrets.UPDATE_TOKEN }}
+          UPDATE_REPO: ${{ github.repository }}
+        run: |
+          BUILD=$((1000 + GITHUB_RUN_NUMBER))
+          echo "BUILD=$BUILD" >> "$GITHUB_ENV"
+          flutter pub get
+          flutter build apk --release \
+            --target-platform android-arm64 \
+            --build-number="$BUILD" \
+            --dart-define=CLIENT_ID="$CLIENT_ID" \
+            --dart-define=SECRET="$SECRET" \
+            --dart-define=UPDATE_TOKEN="$UPDATE_TOKEN" \
+            --dart-define=UPDATE_REPO="$UPDATE_REPO"
+          cp build/app/outputs/flutter-apk/app-release.apk onset-arm64.apk
+          sha256sum onset-arm64.apk | cut -d ' ' -f 1 > onset-arm64.apk.sha256
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NOTES="$(git log -1 --format=%s)"
+          gh release create "build-$BUILD" onset-arm64.apk onset-arm64.apk.sha256 \
+            --title "ONSET build $BUILD" \
+            --notes "$NOTES" \
+            --target "$GITHUB_SHA" \
+            --latest
+
+      - name: Remove the signing key
+        if: always()
+        run: rm -f android/app/onset-release.jks android/key.properties
