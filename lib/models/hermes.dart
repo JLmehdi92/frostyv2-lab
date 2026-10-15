@@ -167,10 +167,6 @@ class HermesMessage {
 class HermesTopics {
   const HermesTopics._();
 
-  /// Hype trains. Note the **v2**: v1 is what most third-party documentation
-  /// still lists, and subscribing to it would succeed while never delivering.
-  static String hypeTrain(String channelId) => 'hype-train-events-v2.$channelId';
-
   static String predictionsChannel(String channelId) =>
       'predictions-channel-v1.$channelId';
 
@@ -183,17 +179,8 @@ class HermesTopics {
   static String celebrations(String channelId) =>
       'celebration-events-v1.$channelId';
 
-  static String leaderboards(String channelId) =>
-      'leaderboard-events-v1.$channelId';
-
   static String channelSubGifts(String channelId) =>
       'channel-sub-gifts-v1.$channelId';
-
-  static String communityMoments(String channelId) =>
-      'community-moments-channel-v1.$channelId';
-
-  static String pinnedChat(String channelId) =>
-      'pinned-chat-updates-v1.$channelId';
 
   static String sharedChat(String channelId) =>
       'shared-chat-channel-v1.$channelId';
@@ -218,9 +205,6 @@ class HermesTopics {
     communityPointsChannel(channelId),
     creatorGoals(channelId),
     celebrations(channelId),
-    leaderboards(channelId),
-    communityMoments(channelId),
-    pinnedChat(channelId),
   ];
 
   /// The viewer's own topics, which carry what happens to *them* rather than to

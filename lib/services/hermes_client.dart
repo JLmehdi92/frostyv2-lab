@@ -108,9 +108,31 @@ class HermesClient {
 
   bool get isConnected => _channel != null;
 
+  /// Set while the app is in the background: no socket, no reconnects.
+  var _paused = false;
+
+  /// Closes the socket while the app is in the background, keeping the wanted
+  /// topics for [resume]. Saves the pings and reconnects of a socket nobody
+  /// is looking at (background audio, picture-in-picture).
+  void pause() {
+    if (_disposed || _paused) return;
+    _paused = true;
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
+    _teardownSocket();
+  }
+
+  /// Reopens the socket after [pause]; the welcome replays every topic.
+  Future<void> resume() async {
+    if (_disposed || !_paused) return;
+    _paused = false;
+    _reconnectAttempts = 0;
+    if (_desiredTopics.isNotEmpty) await connect();
+  }
+
   /// Opens the socket. Safe to call repeatedly; a live connection is kept.
   Future<void> connect() async {
-    if (_disposed || _channel != null) return;
+    if (_disposed || _paused || _channel != null) return;
     await _openSocket(Uri.parse(_endpoint));
   }
 
@@ -330,7 +352,7 @@ class HermesClient {
   }
 
   void _scheduleReconnect() {
-    if (_disposed || _reconnectTimer != null) return;
+    if (_disposed || _paused || _reconnectTimer != null) return;
 
     _teardownSocket();
 

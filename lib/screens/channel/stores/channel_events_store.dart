@@ -122,8 +122,32 @@ abstract class ChannelEventsStoreBase with Store {
     _pointsPollTimer?.cancel();
     _pointsPollTimer = Timer.periodic(
       const Duration(seconds: 60),
-      (_) => unawaited(refreshPoints()),
+      (_) => unawaited(_pollPoints()),
     );
+  }
+
+  /// A signed-out viewer has no balance nor chest: polling would only spend
+  /// requests.
+  Future<void> _pollPoints() async {
+    final token = await _tokenProvider?.call();
+    if (token == null || token.isEmpty) return;
+    await refreshPoints();
+  }
+
+  /// The app went to the background: no socket nor poll while nobody looks.
+  void pause() {
+    _pointsPollTimer?.cancel();
+    _pointsPollTimer = null;
+    _pointsRefreshTimer?.cancel();
+    _client.pause();
+  }
+
+  /// Back in front: reconnect, catch up on the balance, poll again.
+  Future<void> resume() async {
+    if (_subscription == null) return;
+    await _client.resume();
+    unawaited(refreshPoints());
+    _startPointsPolling();
   }
 
   /// Reads the balance, the rewards and any prediction.
@@ -312,6 +336,9 @@ abstract class ChannelEventsStoreBase with Store {
   /// only route to payloads that have never been seen. Gating it on debug
   /// builds meant the one build actually used day to day captured nothing.
   void _capture(HermesEvent event) {
+    // Payloads can carry other viewers' names and messages: never in a
+    // release build.
+    if (!kDebugMode) return;
     // One line, on purpose: logcat splits a multi-line print into separate
     // records, which would leave a grep for the topic matching a line that no
     // longer carries the payload. This survives `adb logcat | grep`.
