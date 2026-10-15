@@ -157,6 +157,22 @@ class _ChatSettingsState extends State<ChatSettings> {
             onChanged: (newValue) => settingsStore.animateEmotes = newValue,
           ),
           SettingsListSwitch(
+            title: 'Animated GIFs',
+            subtitle: const Text(
+              'Off shows the first frame of GIFs sent in chat.',
+            ),
+            value: settingsStore.animateGifs,
+            onChanged: (newValue) => settingsStore.animateGifs = newValue,
+          ),
+          SettingsListSwitch(
+            title: 'Show GIFs in Chat',
+            subtitle: const Text(
+              'Off shows the title of a GIF instead of the GIF.',
+            ),
+            value: settingsStore.showGifs,
+            onChanged: (newValue) => settingsStore.showGifs = newValue,
+          ),
+          SettingsListSwitch(
             title: 'Preview clips and videos',
             subtitle: const Text(
               'Shows a card under messages that link a Twitch clip or video.',

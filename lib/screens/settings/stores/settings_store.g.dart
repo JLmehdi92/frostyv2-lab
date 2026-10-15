@@ -72,6 +72,8 @@ SettingsStore _$SettingsStoreFromJson(
   ..fontSize = (json['fontSize'] as num?)?.toDouble() ?? 12.0
   ..showDeletedMessages = json['revealDeletedMessages'] as bool? ?? true
   ..animateEmotes = json['animateEmotes'] as bool? ?? true
+  ..showGifs = json['showGifs'] as bool? ?? true
+  ..animateGifs = json['animateGifs'] as bool? ?? true
   ..showLinkPreviews = json['showLinkPreviews'] as bool? ?? true
   ..showModerationNotices = json['showModerationNotices'] as bool? ?? true
   ..showChatMessageDividers = json['showChatMessageDividers'] as bool? ?? false
@@ -167,6 +169,8 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'fontSize': instance.fontSize,
   'revealDeletedMessages': instance.showDeletedMessages,
   'animateEmotes': instance.animateEmotes,
+  'showGifs': instance.showGifs,
+  'animateGifs': instance.animateGifs,
   'showLinkPreviews': instance.showLinkPreviews,
   'showModerationNotices': instance.showModerationNotices,
   'showChatMessageDividers': instance.showChatMessageDividers,
@@ -784,6 +788,42 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   set animateEmotes(bool value) {
     _$animateEmotesAtom.reportWrite(value, super.animateEmotes, () {
       super.animateEmotes = value;
+    });
+  }
+
+  late final _$showGifsAtom = Atom(
+    name: '_SettingsStoreBase.showGifs',
+    context: context,
+  );
+
+  @override
+  bool get showGifs {
+    _$showGifsAtom.reportRead();
+    return super.showGifs;
+  }
+
+  @override
+  set showGifs(bool value) {
+    _$showGifsAtom.reportWrite(value, super.showGifs, () {
+      super.showGifs = value;
+    });
+  }
+
+  late final _$animateGifsAtom = Atom(
+    name: '_SettingsStoreBase.animateGifs',
+    context: context,
+  );
+
+  @override
+  bool get animateGifs {
+    _$animateGifsAtom.reportRead();
+    return super.animateGifs;
+  }
+
+  @override
+  set animateGifs(bool value) {
+    _$animateGifsAtom.reportWrite(value, super.animateGifs, () {
+      super.animateGifs = value;
     });
   }
 
@@ -1584,6 +1624,8 @@ messageSpacing: ${messageSpacing},
 fontSize: ${fontSize},
 showDeletedMessages: ${showDeletedMessages},
 animateEmotes: ${animateEmotes},
+showGifs: ${showGifs},
+animateGifs: ${animateGifs},
 showLinkPreviews: ${showLinkPreviews},
 showModerationNotices: ${showModerationNotices},
 showChatMessageDividers: ${showChatMessageDividers},

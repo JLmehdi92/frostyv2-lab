@@ -214,6 +214,8 @@ abstract class _SettingsStoreBase with Store {
   static const defaultShowDeletedMessages = true;
   static const defaultShowModerationNotices = true;
   static const defaultAnimateEmotes = true;
+  static const defaultShowGifs = true;
+  static const defaultAnimateGifs = true;
   static const defaultShowLinkPreviews = true;
   static const defaultShowChatMessageDividers = false;
   static const defaultTimestampType = TimestampType.disabled;
@@ -301,6 +303,17 @@ abstract class _SettingsStoreBase with Store {
   @JsonKey(defaultValue: defaultAnimateEmotes)
   @observable
   var animateEmotes = defaultAnimateEmotes;
+
+  /// GIFs sent with Twitch's GIF keyboard are drawn in chat; off shows their
+  /// title instead (Twitch's "Show GIFs in Chat").
+  @JsonKey(defaultValue: defaultShowGifs)
+  @observable
+  var showGifs = defaultShowGifs;
+
+  /// Chat GIFs play; off shows their first frame (Twitch's "Animated GIFs").
+  @JsonKey(defaultValue: defaultAnimateGifs)
+  @observable
+  var animateGifs = defaultAnimateGifs;
 
   /// A card under chat messages that link a clip or a video.
   @JsonKey(defaultValue: defaultShowLinkPreviews)
@@ -464,6 +477,8 @@ abstract class _SettingsStoreBase with Store {
     showDeletedMessages = defaultShowDeletedMessages;
     showModerationNotices = defaultShowModerationNotices;
     animateEmotes = defaultAnimateEmotes;
+    showGifs = defaultShowGifs;
+    animateGifs = defaultAnimateGifs;
     showLinkPreviews = defaultShowLinkPreviews;
     showChatMessageDividers = defaultShowChatMessageDividers;
     timestampType = defaultTimestampType;

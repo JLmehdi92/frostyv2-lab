@@ -313,6 +313,25 @@ void main() {
       store.resetChatSettings();
       expect(store.animateEmotes, isTrue);
     });
+
+    test('GIFs show and animate unless turned off', () {
+      final fresh = SettingsStore.fromJson({});
+      expect(fresh.showGifs, isTrue);
+      expect(fresh.animateGifs, isTrue);
+
+      final store = SettingsStore.fromJson({
+        'showGifs': false,
+        'animateGifs': false,
+      });
+      expect(store.showGifs, isFalse);
+      expect(store.animateGifs, isFalse);
+      expect(store.toJson()['showGifs'], isFalse);
+      expect(store.toJson()['animateGifs'], isFalse);
+
+      store.resetChatSettings();
+      expect(store.showGifs, isTrue);
+      expect(store.animateGifs, isTrue);
+    });
   });
 
   group('warnMatureContent', () {
