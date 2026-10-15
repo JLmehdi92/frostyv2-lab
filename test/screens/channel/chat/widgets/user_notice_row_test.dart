@@ -268,6 +268,37 @@ void main() {
     expect((_decoration(tester).border! as Border).left.color, Colors.orange);
   });
 
+  testWidgets('a sponsor colour tints the row like the green does', (
+    tester,
+  ) async {
+    const sponsor = Color(0xFFFF7A00);
+    const row = UserNoticeRow(
+      segments: _segments,
+      presentation: NoticePresentation(NoticeLayout.special),
+      accentColor: sponsor,
+    );
+
+    await _pump(tester, row);
+    expect(
+      _decoration(tester).color,
+      Color.alphaBlend(
+        sponsor.withValues(alpha: 0.10),
+        FrostyTokens.backgroundDark,
+      ),
+    );
+
+    await _pump(tester, row, brightness: Brightness.light);
+    // Let the app's theme finish moving to the light one.
+    await tester.pumpAndSettle();
+    expect(
+      _decoration(tester).color,
+      Color.alphaBlend(
+        sponsor.withValues(alpha: 0.08),
+        FrostyTokens.backgroundLight,
+      ),
+    );
+  });
+
   testWidgets('a sub goal row shows its progress', (tester) async {
     await _pump(
       tester,

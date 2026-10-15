@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:frosty/cache_manager.dart';
 import 'package:frosty/models/user_notice_presentation.dart';
 import 'package:frosty/models/user_notice_text.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
 
 /// A sub, gift or other `USERNOTICE`, drawn as Twitch's Android app draws its
@@ -129,7 +130,7 @@ class UserNoticeRow extends StatelessWidget {
         ? null
         : overlay
         ? overlayBackground
-        : colors.subNoticeBackground;
+        : _tint(context);
 
     final body = Container(
       key: bodyKey,
@@ -167,6 +168,19 @@ class UserNoticeRow extends StatelessWidget {
               child: body,
             )
           : body,
+    );
+  }
+
+  /// The row's tint: the green one, or a sponsor's [accentColor] mixed into
+  /// the theme's background the same way (10% in the dark theme, 8% in the
+  /// light one).
+  Color _tint(BuildContext context) {
+    final sponsor = accentColor;
+    if (sponsor == null) return context.frostyColors.subNoticeBackground;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Color.alphaBlend(
+      sponsor.withValues(alpha: dark ? 0.10 : 0.08),
+      dark ? FrostyTokens.backgroundDark : FrostyTokens.backgroundLight,
     );
   }
 
@@ -272,7 +286,7 @@ class UserNoticeRow extends StatelessWidget {
         ? Theme.of(context).scaffoldBackgroundColor
         : overlay
         ? Colors.black
-        : context.frostyColors.subNoticeBackground;
+        : _tint(context);
 
     return SizedBox.square(
       dimension: _avatarSlot,
