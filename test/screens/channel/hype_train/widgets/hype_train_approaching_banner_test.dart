@@ -161,6 +161,31 @@ void main() {
       await h.close(tester);
     });
 
+    testWidgets('only the events pill takes the creator colour', (
+      tester,
+    ) async {
+      Color? side(WidgetTester tester) => tester
+          .widget<ColoredBox>(find.byKey(const ValueKey('ht-approaching-side')))
+          .color;
+      Color? bottom(WidgetTester tester) =>
+          tester.widget<LinearProgressIndicator>(_bar).color;
+
+      final h = await showing(tester, approaching(const {1: 40}));
+      expect(pillColor(tester), const Color(0xFFBD0078));
+      expect(side(tester), const Color(0xFF12A87A));
+      expect(bottom(tester), const Color(0xFF12A87A));
+      await h.close(tester);
+
+      final d = HtHarness();
+      await pumpSlot(tester, d.store, theme: ThemeData.dark());
+      d.inject(approaching(const {1: 40}));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(side(tester), const Color(0xFF12A87A));
+      expect(bottom(tester), const Color(0xFF0C6D4F));
+      await d.close(tester);
+    });
+
     testWidgets('two circles up to a goal of 5, then three', (tester) async {
       var h = await showing(tester, approaching(const {1: 40}));
       expect(circles(tester), 2);

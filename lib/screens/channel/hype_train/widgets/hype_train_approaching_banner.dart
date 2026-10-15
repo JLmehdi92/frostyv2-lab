@@ -10,7 +10,7 @@ import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart
 /// A train is about to start, laid out like Twitch's approaching banner:
 /// the title over the subtitle on the float card, the events pill (train
 /// icon and check circles in the creator's colour, or green) at the end,
-/// and the time window running out along a 3 dp bar at the bottom.
+/// and the time window running out along a green 3 dp bar at the bottom.
 class HypeTrainApproachingBanner extends StatelessWidget {
   const HypeTrainApproachingBanner({
     super.key,
@@ -39,6 +39,11 @@ class HypeTrainApproachingBanner extends StatelessWidget {
             HtStyle.regular,
             Theme.of(context).colorScheme,
             creatorColor: approaching.creatorColor,
+          );
+          // Only the events pill takes the creator's colour.
+          final green = HtPalette.of(
+            HtStyle.regular,
+            Theme.of(context).colorScheme,
           );
           final title = HtCopy.approachingTitle(approaching.variant);
           final subtitle = store.approachingNMore
@@ -119,7 +124,10 @@ class HypeTrainApproachingBanner extends StatelessWidget {
                                   height: compact
                                       ? HtDims.icon
                                       : double.infinity,
-                                  child: ColoredBox(color: palette.fill),
+                                  child: const ColoredBox(
+                                    key: ValueKey('ht-approaching-side'),
+                                    color: HtGreen.g10,
+                                  ),
                                 ),
                               ),
                               Expanded(child: text),
@@ -147,7 +155,7 @@ class HypeTrainApproachingBanner extends StatelessWidget {
                                 value: store.approachingCompleted
                                     ? 1
                                     : store.approachingFraction,
-                                color: palette.fill,
+                                color: green.fill,
                                 backgroundColor: Colors.transparent,
                               ),
                             ),
