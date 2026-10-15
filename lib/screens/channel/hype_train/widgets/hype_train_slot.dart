@@ -136,33 +136,36 @@ class _HypeTrainSlotState extends State<HypeTrainSlot> {
               !widget.compact &&
               !store.collapsed &&
               room >= 60;
-          // The collapsed pill is its own; the rest sits on Twitch's card.
-          if (key == 'pill') return switcher;
+          // One structure whatever shows, so the banner survives opening
+          // the details and cross-fades into the pill. The pill draws its
+          // own: the card turns clear and flat under it.
+          final pill = key == 'pill';
           return Material(
             key: const ValueKey('ht-card'),
-            color: HtNeutrals.of(Theme.of(context).brightness).backgroundFloat,
-            elevation: HtDims.elevation,
+            color: pill
+                ? Colors.transparent
+                : HtNeutrals.of(Theme.of(context).brightness).backgroundFloat,
+            elevation: pill ? 0 : HtDims.elevation,
             borderRadius: BorderRadius.circular(HtDims.radius),
             clipBehavior: Clip.antiAlias,
-            child: details
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                switcher,
                 // The details open below the banner, over the oldest
                 // messages, in the same card.
-                ? Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      switcher,
-                      ConstrainedBox(
-                        constraints: BoxConstraints(maxHeight: room),
-                        child: SingleChildScrollView(
-                          child: HypeTrainSheet(
-                            store: store,
-                            onLearnMore: widget.onLearnMore,
-                          ),
-                        ),
+                if (details)
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxHeight: room),
+                    child: SingleChildScrollView(
+                      child: HypeTrainSheet(
+                        store: store,
+                        onLearnMore: widget.onLearnMore,
                       ),
-                    ],
-                  )
-                : switcher,
+                    ),
+                  ),
+              ],
+            ),
           );
         },
       ),

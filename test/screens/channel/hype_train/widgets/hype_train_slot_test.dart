@@ -5,6 +5,7 @@ import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/models/hype_train_event.dart';
 import 'package:frosty/screens/channel/hype_train/hype_train_sequence.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_banner.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_progress_bar.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_sheet.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_slot.dart';
 
@@ -131,6 +132,48 @@ void main() {
       find.ancestor(of: find.byType(HypeTrainBanner), matching: card),
       findsOneWidget,
     );
+    await h.close(tester);
+  });
+
+  testWidgets('opening the details keeps the banner alive', (tester) async {
+    final h = HtHarness(
+      snapshot: HtOngoingSnapshot(liveTrain(), fetchedAt: DateTime.utc(2026)),
+    );
+    await pumpSlot(tester, h.store);
+    final banner = tester.state(find.byType(HypeTrainBanner));
+    final bar = tester.state(find.byType(HypeTrainProgressBar));
+
+    h.store.toggleExpanded();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byType(HypeTrainSheet), findsOneWidget);
+    expect(tester.state(find.byType(HypeTrainBanner)), same(banner));
+    expect(tester.state(find.byType(HypeTrainProgressBar)), same(bar));
+
+    h.store.toggleExpanded();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(tester.state(find.byType(HypeTrainBanner)), same(banner));
+    await h.close(tester);
+  });
+
+  testWidgets('collapsing cross-fades the banner into the pill', (
+    tester,
+  ) async {
+    final h = HtHarness(
+      snapshot: HtOngoingSnapshot(liveTrain(), fetchedAt: DateTime.utc(2026)),
+    );
+    await pumpSlot(tester, h.store);
+
+    h.store.setCollapsed(true);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(HypeTrainBanner), findsOneWidget);
+    expect(find.byType(HypeTrainPill), findsOneWidget);
+
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byType(HypeTrainBanner), findsNothing);
+    expect(find.byType(HypeTrainPill), findsOneWidget);
     await h.close(tester);
   });
 }
