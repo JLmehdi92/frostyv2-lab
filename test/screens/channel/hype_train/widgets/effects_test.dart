@@ -176,19 +176,24 @@ void main() {
     });
   });
 
-  testWidgets('merge aura staggers both groups of avatars', (tester) async {
+  testWidgets('merge aura: both groups around a counting pill', (tester) async {
     await pumpEffect(
       tester,
       MergeAura(
         duration: const Duration(milliseconds: 1000),
         previous: [user('1'), user('2')],
         joining: [user('3')],
+        fromLevel: 3,
+        level: 5,
       ),
     );
 
     expect(find.byType(HtAvatar), findsNWidgets(3));
-    expect(find.text('+'), findsOneWidget);
-    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('LVL 3'), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('LVL 4'), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('LVL 5'), findsOneWidget);
   });
 
   testWidgets('avatars without a CDN picture show an initial', (tester) async {

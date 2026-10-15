@@ -435,4 +435,136 @@ void main() {
       await h.close(tester);
     });
   });
+
+  group('announcements', () {
+    double opacityOf(WidgetTester tester, Finder finder) => tester
+        .widget<AnimatedOpacity>(
+          find.ancestor(of: finder, matching: find.byType(AnimatedOpacity)),
+        )
+        .opacity;
+
+    testWidgets('the resting content fades out; the fill stays', (
+      tester,
+    ) async {
+      final h = running(tester, level: 2);
+      await pumpSlot(tester, h.store);
+      expect(opacityOf(tester, find.text('LVL 2')), 1);
+
+      h.inject(htLevelUp(3));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 900));
+      expect(stepKey('marquee'), findsOneWidget);
+
+      expect(opacityOf(tester, find.text('LVL 2')), 0);
+      expect(opacityOf(tester, find.byKey(const ValueKey('ht-percent'))), 0);
+      expect(opacityOf(tester, find.byIcon(Icons.expand_more_rounded)), 0);
+      expect(find.byType(HypeTrainProgressBar), findsOneWidget);
+      await h.close(tester);
+    });
+
+    testWidgets('the marquee runs across the whole banner', (tester) async {
+      final h = running(tester, level: 2);
+      await pumpSlot(tester, h.store);
+
+      h.inject(htLevelUp(3));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 750));
+      final banner = tester.getRect(_banner);
+
+      expect(marqueeX(tester), closeTo(banner.width, 40));
+      final text = tester.widget<Text>(find.text(HtCopy.levelUp));
+      expect(text.style?.fontSize, 24);
+      expect(text.style?.fontWeight, FontWeight.w700);
+      await h.close(tester);
+    });
+
+    testWidgets('"Level 2 Complete!" is centred at 24 sp', (tester) async {
+      final h = running(tester, level: 2);
+      await pumpSlot(tester, h.store);
+
+      h.inject(htLevelUp(3));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 3300));
+      await tester.pump(const Duration(milliseconds: 200));
+      final complete = find.text('Level 2 Complete!');
+
+      expect(tester.widget<Text>(complete).style?.fontSize, 24);
+      expect(
+        tester.getCenter(complete).dx,
+        closeTo(tester.getCenter(_banner).dx, 1),
+      );
+      expect(
+        tester.getCenter(complete).dy,
+        closeTo(tester.getCenter(_banner).dy, 1),
+      );
+      await h.close(tester);
+    });
+
+    testWidgets('a large gift is a small announcement with a gift icon', (
+      tester,
+    ) async {
+      final h = running(tester);
+      await pumpSlot(tester, h.store);
+
+      h.inject(htSmall(16500, isLarge: true));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 1000));
+      final small = find.byKey(const ValueKey('ht-small-announcement'));
+
+      expect(small, findsOneWidget);
+      expect(
+        find.descendant(
+          of: small,
+          matching: find.byIcon(Icons.card_giftcard_rounded),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: small,
+          matching: find.text('Viewer_1 just gifted 50 Tier 1 Subs!'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        tester
+            .widget<Text>(find.text('Viewer_1 just gifted 50 Tier 1 Subs!'))
+            .style
+            ?.fontSize,
+        13,
+      );
+      await h.close(tester);
+    });
+
+    testWidgets('compact announcements are smaller', (tester) async {
+      final h = running(tester, level: 2);
+      await pumpSlot(tester, h.store, compact: true);
+
+      h.inject(htLevelUp(3));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(
+        tester.widget<Text>(find.text('Level 2 Complete!')).style?.fontSize,
+        18,
+      );
+      expect(tester.takeException(), isNull);
+      await h.close(tester);
+    });
+
+    testWidgets('announcements fit large text on a narrow banner', (
+      tester,
+    ) async {
+      final h = running(tester, level: 2);
+      await pumpSlot(tester, h.store, width: 280, textScale: 2);
+
+      h.inject(htSmall(16500, isLarge: true));
+      h.inject(htLevelUp(3));
+      for (var t = 0; t < 120; t++) {
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(tester.takeException(), isNull, reason: 'at ${t * 100} ms');
+      }
+      await h.close(tester);
+    });
+  });
 }

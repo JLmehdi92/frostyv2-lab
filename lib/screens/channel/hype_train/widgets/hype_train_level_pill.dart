@@ -13,6 +13,8 @@ class HypeTrainLevelPill extends StatelessWidget {
     required this.foreground,
     this.trophy = false,
     this.animate = true,
+    this.from,
+    this.horizontalPadding = HtDims.margin,
   });
 
   final int level;
@@ -25,10 +27,16 @@ class HypeTrainLevelPill extends StatelessWidget {
   /// Off with reduced motion: the new level shows at once.
   final bool animate;
 
+  /// Counts up from this level when first shown (a merge).
+  final int? from;
+
+  /// 30 dp on the merge's pill.
+  final double horizontalPadding;
+
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<int>(
-      tween: IntTween(end: level),
+      tween: IntTween(begin: animate ? from : null, end: level),
       duration: animate ? HtTimings.fade : Duration.zero,
       builder: (context, value, _) => DecoratedBox(
         decoration: BoxDecoration(
@@ -39,8 +47,8 @@ class HypeTrainLevelPill extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: HtDims.margin,
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
                 vertical: HtDims.marginQuarter,
               ),
               child: Text(

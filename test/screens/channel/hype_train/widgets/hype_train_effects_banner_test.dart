@@ -4,6 +4,7 @@ import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/models/hype_train_event.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/effects/coin_unlock.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/effects/hype_train_avatar_stack.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/effects/merge_aura.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/effects/mythic_reveal.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/effects/rainbow_sweep.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/effects/rocket_launch.dart';
@@ -168,9 +169,15 @@ void main() {
     expect(find.byType(HtAvatar), findsNWidgets(2));
 
     await tester.pump(const Duration(milliseconds: 500));
+    // One counting pill, the merge's own, between the auras.
     expect(find.text('LVL 4'), findsOneWidget);
+    expect(
+      find.descendant(of: find.byType(MergeAura), matching: find.text('LVL 4')),
+      findsOneWidget,
+    );
     await tester.pump(const Duration(milliseconds: 600));
-    expect(find.text('LVL 5'), findsOneWidget);
+    expect(find.text('LVL 5'), findsWidgets);
+    expect(find.text('LVL 4'), findsNothing);
     await h.close(tester);
   });
 }
