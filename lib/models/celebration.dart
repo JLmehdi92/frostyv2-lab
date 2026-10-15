@@ -133,14 +133,14 @@ class Celebration {
   /// Returns null for an effect this build cannot draw, so an effect Twitch
   /// adds later degrades to nothing rather than to a wrong animation.
   static Celebration? tryParse(Map<String, dynamic> data) {
-    final effect = CelebrationEffect.parse(data['type'] as String?);
+    final effect = CelebrationEffect.parse(_string(data['type']));
     if (effect == CelebrationEffect.unknown) return null;
 
     final seconds = data['duration'];
     return Celebration(
       effect: effect,
-      area: CelebrationArea.parse(data['area'] as String?),
-      intensity: CelebrationIntensity.parse(data['intensity'] as String?),
+      area: CelebrationArea.parse(_string(data['area'])),
+      intensity: CelebrationIntensity.parse(_string(data['intensity'])),
       // Clamped: a hostile or buggy duration must not pin an overlay over the
       // stream indefinitely.
       duration: Duration(
@@ -148,11 +148,15 @@ class Celebration {
             .clamp(500, 15000)
             .round(),
       ),
-      eventId: data['alert_event_id'] as String?,
-      source: data['celebration_source'] as String?,
-      primaryColor: _hexColor(data['primary_color_hex'] as String?),
+      eventId: _string(data['alert_event_id']),
+      source: _string(data['celebration_source']),
+      primaryColor: _hexColor(_string(data['primary_color_hex'])),
     );
   }
+
+  /// The value when it is a string, else null — `as String?` would throw on a
+  /// payload of an unexpected shape.
+  static String? _string(Object? value) => value is String ? value : null;
 
   static Color? _hexColor(String? hex) {
     if (hex == null) return null;

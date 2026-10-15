@@ -87,6 +87,44 @@ void main() {
 
   const welcome = '{"type":"welcome","id":"w","welcome":{"keepaliveSec":15}}';
 
+  group('malformed frames', () {
+    for (final frame in <Object>[
+      'not json',
+      '[1]',
+      '"just a string"',
+      [1, 2, 3],
+      '{"type":5}',
+      '{"type":"x","id":5}',
+      '{"type":"subscribeResponse","id":"a","parentId":7}',
+      '{"type":"welcome","id":"w","welcome":5}',
+      '{"type":"notification","id":"n","notification":"nope"}',
+      '{"type":"revocation","id":"r","revocation":[1]}',
+    ]) {
+      test('$frame is dropped and the socket kept', () async {
+        await client.subscribe('celebration-events-v1.1');
+        sockets.single.receive(frame);
+        await pumpEventQueue();
+
+        expect(sockets, hasLength(1));
+        expect(sockets.single.closed, isFalse);
+        expect(client.isConnected, isTrue);
+      });
+    }
+
+    test('a zero keepalive does not hammer nor drop the socket', () async {
+      await client.subscribe('celebration-events-v1.1');
+      sockets.single.receive(
+        '{"type":"welcome","id":"w","welcome":{"keepaliveSec":0}}',
+      );
+      await pumpEventQueue();
+      sockets.single.receive('{"type":"keepalive","id":"k"}');
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(sockets.single.closed, isFalse);
+      expect(sockets.single.types.where((t) => t == 'ping'), isEmpty);
+    });
+  });
+
   group('authentication', () {
     test('is sent before any subscribe after the welcome', () async {
       final token = Completer<String?>();

@@ -257,6 +257,16 @@ class HermesClient {
     // Any frame proves the socket is alive, including a keepalive.
     _armSilenceTimer();
 
+    // A frame of an unexpected shape must cost that frame, never the socket:
+    // an exception escaping here would surface as an uncaught error.
+    try {
+      _handleFrame(frame);
+    } catch (e) {
+      debugPrint('Hermes: frame dropped (${e.runtimeType})');
+    }
+  }
+
+  void _handleFrame(String frame) {
     final message = HermesMessage.tryParse(frame);
     if (message == null) {
       debugPrint('Hermes: unparsable frame dropped');

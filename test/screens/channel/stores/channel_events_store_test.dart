@@ -87,6 +87,23 @@ void main() {
     ),
   ).called(times);
 
+  test('a malformed celebration is dropped without throwing', () async {
+    final store = build();
+    await store.connect();
+
+    events.add(
+      const HermesEvent(
+        topic: 'celebration-events-v1.42',
+        type: 'alert_sets_celebration',
+        data: {'type': 5, 'area': 1},
+      ),
+    );
+    await pumpEventQueue();
+
+    expect(store.celebration, isNull);
+    store.dispose();
+  });
+
   group('a second tap while the token is still being read', () {
     test('cannot redeem twice', () async {
       final token = Completer<String?>();

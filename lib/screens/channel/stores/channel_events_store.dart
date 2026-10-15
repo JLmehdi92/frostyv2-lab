@@ -303,6 +303,16 @@ abstract class ChannelEventsStoreBase with Store {
 
 
   void _onEvent(HermesEvent event) {
+    // A payload of an unexpected shape costs that event, never the
+    // subscription: an exception escaping a stream listener is uncaught.
+    try {
+      _routeEvent(event);
+    } catch (e) {
+      debugPrint('Channel event dropped (${e.runtimeType})');
+    }
+  }
+
+  void _routeEvent(HermesEvent event) {
     // Topics are suffixed with the id they concern, so a stale subscription
     // from a previous channel can never drive this one. The viewer's own
     // topics end with *their* id, not the channel's — filtering on the channel

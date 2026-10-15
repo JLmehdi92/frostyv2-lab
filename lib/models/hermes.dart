@@ -49,10 +49,14 @@ class HermesMessage {
       final type = decoded['type'];
       if (type is! String) return null;
 
+      // `is` rather than `as`: a cast throws a TypeError, which the
+      // FormatException handler below would not catch.
+      final id = decoded['id'];
+      final parentId = decoded['parentId'];
       return HermesMessage(
         type: type,
-        id: decoded['id'] as String?,
-        parentId: decoded['parentId'] as String?,
+        id: id is String ? id : null,
+        parentId: parentId is String ? parentId : null,
         raw: decoded,
       );
     } on FormatException {
@@ -63,22 +67,42 @@ class HermesMessage {
   /// How often the server expects to hear from us, from the `welcome` frame.
   ///
   /// Measured at 15 seconds. Read rather than hardcoded so a server-side change
-  /// does not silently turn into dropped connections.
+  /// does not silently turn into dropped connections — but clamped, because a
+  /// zero would arm a zero-interval ping timer and a zero silence timeout.
   Duration? get keepaliveInterval {
-    final seconds = (raw['welcome'] as Map<String, dynamic>?)?['keepaliveSec'];
-    return seconds is num ? Duration(seconds: seconds.toInt()) : null;
+    final seconds = _welcome?['keepaliveSec'];
+    if (seconds is! num) return null;
+    return Duration(
+      seconds: seconds.toInt().clamp(minKeepaliveSec, maxKeepaliveSec),
+    );
+  }
+
+  /// Bounds for [keepaliveInterval].
+  static const minKeepaliveSec = 5;
+  static const maxKeepaliveSec = 120;
+
+  /// The `welcome` body, when it is an object.
+  Map<String, dynamic>? get _welcome {
+    final welcome = raw['welcome'];
+    return welcome is Map<String, dynamic> ? welcome : null;
   }
 
   /// The URL that resumes this session instead of starting a fresh one.
-  String? get recoveryUrl =>
-      (raw['welcome'] as Map<String, dynamic>?)?['recoveryUrl'] as String?;
+  String? get recoveryUrl {
+    final url = _welcome?['recoveryUrl'];
+    return url is String ? url : null;
+  }
 
-  String? get sessionId =>
-      (raw['welcome'] as Map<String, dynamic>?)?['sessionId'] as String?;
+  String? get sessionId {
+    final id = _welcome?['sessionId'];
+    return id is String ? id : null;
+  }
 
   /// Whether a `subscribeResponse` reported success.
-  bool get isSubscribeOk =>
-      (raw['subscribeResponse'] as Map<String, dynamic>?)?['result'] == 'ok';
+  bool get isSubscribeOk {
+    final response = raw['subscribeResponse'];
+    return response is Map<String, dynamic> && response['result'] == 'ok';
+  }
 
   /// The error a failed response carries, if any.
   String? get responseError {
