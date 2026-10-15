@@ -1198,28 +1198,17 @@ class IRCMessage {
     return split;
   }
 
-  /// An IRCv3 tag [value] with its escapes undone (`\:` is `;`, `\\` a
-  /// backslash...). `\s` is already a space: the whole tag string is
-  /// unescaped for it first.
-  static String? _unescapeTagValue(String? value) {
-    if (value == null || !value.contains(r'\')) return value;
-    final out = StringBuffer();
-    for (var i = 0; i < value.length; i++) {
-      final char = value[i];
-      if (char != r'\') {
-        out.write(char);
-        continue;
-      }
-      if (++i == value.length) break;
-      out.write(switch (value[i]) {
-        ':' => ';',
-        's' => ' ',
-        'r' => '\r',
-        'n' => '\n',
-        final other => other,
-      });
+  /// The value of tag [key] in [rawTags] as sent, escapes included, or null.
+  ///
+  /// The tag map is built from a string whose `\s` were all turned into
+  /// spaces first, which also hits an escaped backslash followed by `s`: a
+  /// value that must come out exact is unescaped from here instead.
+  static String? _rawTagValue(String rawTags, String key) {
+    final prefix = '$key=';
+    for (final tag in rawTags.split(';')) {
+      if (tag.startsWith(prefix)) return tag.substring(prefix.length);
     }
-    return out.toString();
+    return null;
   }
 
   /// Parses an IRC string and returns its corresponding [IRCMessage] object.
@@ -1237,9 +1226,8 @@ class IRCMessage {
 
     // Get the tags substring and escape characters.
     // IRC messages escape spaces with \s.
-    final tags = whole
-        .substring(1, tagAndIrcMessageDivider)
-        .replaceAll('\\s', ' ');
+    final rawTags = whole.substring(1, tagAndIrcMessageDivider);
+    final tags = rawTags.replaceAll('\\s', ' ');
 
     // Next, parse and map the tags.
     final mappedTags = <String, String>{};
@@ -1351,7 +1339,9 @@ class IRCMessage {
       // Cut around the GIFs now: their positions count in the text as sent.
       gifParts = GifMessagePart.split(
         message,
-        ChatGif.parseTag(_unescapeTagValue(mappedTags['gifs'])),
+        ChatGif.parseTag(
+          UserNotice.unescapeTag(_rawTagValue(rawTags, 'gifs')),
+        ),
       );
 
       message = _normalizeText(message);

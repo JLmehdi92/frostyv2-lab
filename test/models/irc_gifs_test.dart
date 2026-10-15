@@ -84,6 +84,14 @@ void main() {
       expect(msg.gifParts.single.gif!.url, r'https://x.test/a;b\c.gif');
     });
 
+    test('an escaped backslash before an s stays a backslash and an s', () {
+      final msg = IRCMessage.fromString(
+        _line(r'gifs=0-4|id|https://x.test/a\\sb.gif', '[YAY]'),
+      );
+
+      expect(msg.gifParts.single.gif!.url, r'https://x.test/a\sb.gif');
+    });
+
     test('an http url is kept but not loadable', () {
       final msg = IRCMessage.fromString(
         _line('gifs=0-4|id|http://x.test/g.gif', '[YAY]'),
