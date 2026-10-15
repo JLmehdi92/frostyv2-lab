@@ -286,8 +286,10 @@ abstract class _SettingsStoreBase with Store {
 
   // Message appearance options
   /// Saved under a new key since the default became true: older installs hold
-  /// `showDeletedMessages: false`, the old default nobody chose, which is
-  /// ignored once so deleted messages show without a tap.
+  /// `showDeletedMessages: false`, mostly the old default nobody chose. The old
+  /// key is ignored, so every install shows deleted messages without a tap
+  /// once, including one whose owner had turned them off on purpose: they have
+  /// to turn the switch off again. Choices saved after that are kept.
   @JsonKey(
     name: 'revealDeletedMessages',
     defaultValue: defaultShowDeletedMessages,
