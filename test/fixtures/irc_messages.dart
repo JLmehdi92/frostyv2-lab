@@ -463,3 +463,23 @@ const sharedAnnouncement =
     'source-msg-id=announcement;source-room-id=99999;subscriber=0;'
     'tmi-sent-ts=1700000000904;user-id=20012;user-type= '
     ':tmi.twitch.tv USERNOTICE #channel :hello from next door';
+
+/// A GIF sent with the Twitch GIF keyboard: the official example of the
+/// `gifs` tag (dev.twitch.tv/docs/irc/tags). Its URL holds `?`, `&` and `=`.
+const gifMessage =
+    '@badge-info=subscriber/30;badges=broadcaster/1,subscriber/0;'
+    'color=#033700;display-name=TwitchDev;emotes=;first-msg=0;flags=;'
+    'gifs=0-33|joSNxeswxuc74Juo8X|https://media4.giphy.com/media/'
+    'joSNxeswxuc74Juo8X/giphy.gif?cid=095d7a5dzizsiwgabonagkmigggv8v1spfai91ac3x0dsiy0'
+    '&ep=v1_gifs_trending&rid=giphy.gif&ct=g;'
+    'id=401abf17-7e99-45d6-9bdf-43934e839327;mod=0;returning-chatter=0;'
+    'room-id=12826;subscriber=1;tmi-sent-ts=1783632907018;turbo=0;'
+    'user-id=141981764;user-type= '
+    ':twitchdev!twitchdev@twitchdev.tmi.twitch.tv PRIVMSG #twitch '
+    ':[Y A Y Yes GIF by Djemilah Birnie]';
+
+/// The URL of [gifMessage]'s GIF, exactly as the tag carries it.
+const gifMessageUrl =
+    'https://media4.giphy.com/media/joSNxeswxuc74Juo8X/giphy.gif'
+    '?cid=095d7a5dzizsiwgabonagkmigggv8v1spfai91ac3x0dsiy0'
+    '&ep=v1_gifs_trending&rid=giphy.gif&ct=g';

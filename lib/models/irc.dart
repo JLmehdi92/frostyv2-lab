@@ -7,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:frosty/cache_manager.dart';
 import 'package:frosty/constants.dart';
 import 'package:frosty/models/badges.dart';
+import 'package:frosty/models/chat_gif.dart';
 import 'package:frosty/models/cheermote.dart';
 import 'package:frosty/models/emotes.dart';
 import 'package:frosty/models/user.dart';
@@ -48,6 +49,11 @@ class IRCMessage {
   bool? mention;
   final VoidCallback? actionCallback;
   final String? actionLabel;
+
+  /// The message cut around its GIFs (`gifs` tag), or empty when it has
+  /// none. The cut is made on the text as sent, so [message] and [split]
+  /// still hold every word, GIF titles included.
+  final List<GifMessagePart> gifParts;
 
   /// Whether this message is a `USERNOTICE`, even after a deletion or a ban
   /// of its author has changed its [command] to [Command.clearMessage] or
@@ -107,6 +113,7 @@ class IRCMessage {
     this.mention,
     this.actionCallback,
     this.actionLabel,
+    this.gifParts = const [],
   });
 
   /// Applies the given CLEARCHAT message to the provided messages and buffer.
@@ -1059,6 +1066,73 @@ class IRCMessage {
     );
   }
 
+  /// [text] without the invisible character some clients add and without
+  /// empty or doubled spaces.
+  static String _normalizeText(String text) => text
+      .split(' ')
+      // Also remove any "INVALID/UNDEFINED" Unicode characters.
+      // Rendering this character on iOS shows a question mark inside a square.
+      // This character is used by some clients to bypass restrictions on repeating message.
+      .map((word) => word.replaceAll(_invalidUnicodeChar, '').trim())
+      .where((element) => element != '')
+      .join(' ');
+
+  /// The words of [text] (already normalized), a run of emojis being a word
+  /// of its own.
+  static List<String> _splitWords(String text) {
+    final emojiBuffer = StringBuffer();
+    final wordBuffer = StringBuffer();
+    final split = <String>[];
+
+    for (final character in text.characters) {
+      if (regexEmoji.hasMatch(character)) {
+        if (wordBuffer.isNotEmpty) {
+          split.addAll(wordBuffer.toString().split(' '));
+          wordBuffer.clear();
+        }
+        emojiBuffer.write(character);
+      } else {
+        if (emojiBuffer.isNotEmpty) {
+          split.add(emojiBuffer.toString());
+          emojiBuffer.clear();
+        }
+        wordBuffer.write(character);
+      }
+    }
+
+    if (wordBuffer.isNotEmpty) {
+      split.addAll(
+        wordBuffer.toString().split(' ').where((element) => element != ''),
+      );
+    }
+    if (emojiBuffer.isNotEmpty) split.add(emojiBuffer.toString());
+    return split;
+  }
+
+  /// An IRCv3 tag [value] with its escapes undone (`\:` is `;`, `\\` a
+  /// backslash...). `\s` is already a space: the whole tag string is
+  /// unescaped for it first.
+  static String? _unescapeTagValue(String? value) {
+    if (value == null || !value.contains(r'\')) return value;
+    final out = StringBuffer();
+    for (var i = 0; i < value.length; i++) {
+      final char = value[i];
+      if (char != r'\') {
+        out.write(char);
+        continue;
+      }
+      if (++i == value.length) break;
+      out.write(switch (value[i]) {
+        ':' => ';',
+        's' => ' ',
+        'r' => '\r',
+        'n' => '\n',
+        final other => other,
+      });
+    }
+    return out.toString();
+  }
+
   /// Parses an IRC string and returns its corresponding [IRCMessage] object.
   factory IRCMessage.fromString(String whole, {String? userLogin}) {
     // We have three parts:
@@ -1171,6 +1245,7 @@ class IRCMessage {
     var action = false;
     var mention = false;
     List<String>? split;
+    var gifParts = const <GifMessagePart>[];
     if (message != null) {
       // Check if IRC actions like "/me" were called.
       if (message.startsWith(_ircActionPrefix) &&
@@ -1184,42 +1259,14 @@ class IRCMessage {
         mention = mentionsUser(message, userLogin);
       }
 
-      // Escape the message
-      message = message
-          .split(' ')
-          // Also remove any "INVALID/UNDEFINED" Unicode characters.
-          // Rendering this character on iOS shows a question mark inside a square.
-          // This character is used by some clients to bypass restrictions on repeating message.
-          .map((word) => word.replaceAll(_invalidUnicodeChar, '').trim())
-          .where((element) => element != '')
-          .join(' ');
+      // Cut around the GIFs now: their positions count in the text as sent.
+      gifParts = GifMessagePart.split(
+        message,
+        ChatGif.parseTag(_unescapeTagValue(mappedTags['gifs'])),
+      );
 
-      final emojiBuffer = StringBuffer();
-      final wordBuffer = StringBuffer();
-      split = <String>[];
-
-      for (final character in message.characters) {
-        if (regexEmoji.hasMatch(character)) {
-          if (wordBuffer.isNotEmpty) {
-            split.addAll(wordBuffer.toString().split(' '));
-            wordBuffer.clear();
-          }
-          emojiBuffer.write(character);
-        } else {
-          if (emojiBuffer.isNotEmpty) {
-            split.add(emojiBuffer.toString());
-            emojiBuffer.clear();
-          }
-          wordBuffer.write(character);
-        }
-      }
-
-      if (wordBuffer.isNotEmpty) {
-        split.addAll(
-          wordBuffer.toString().split(' ').where((element) => element != ''),
-        );
-      }
-      if (emojiBuffer.isNotEmpty) split.add(emojiBuffer.toString());
+      message = _normalizeText(message);
+      split = _splitWords(message);
     }
 
     // Check and parse the command.
@@ -1265,6 +1312,7 @@ class IRCMessage {
       split: split,
       action: action,
       mention: mention,
+      gifParts: gifParts,
     );
   }
 
