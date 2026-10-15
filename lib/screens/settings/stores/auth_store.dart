@@ -31,6 +31,9 @@ abstract class AuthBase with Store {
   /// own isolate, without this store).
   static const userTokenKey = _userTokenKey;
 
+  /// The secure-storage key for the optional twitch.tv web session token.
+  static const _twitchWebTokenKey = 'twitch_web_token';
+
   /// The Twitch API service for making requests.
   final TwitchApi twitchApi;
 
@@ -56,6 +59,31 @@ abstract class AuthBase with Store {
   /// Whether the user is logged in or not.
   @readonly
   var _isLoggedIn = false;
+
+  /// Optional twitch.tv web session token (the `auth-token` cookie).
+  ///
+  /// Twitch's GQL endpoint only accepts tokens minted for its own web
+  /// client-id, so Frosty's own login token cannot unlock the
+  /// enhanced-broadcast renditions (1440p HEVC / AV1). Pasting the web token
+  /// in the video settings lets the player request them; when it is absent
+  /// everything falls back to the anonymous request.
+  @readonly
+  String? _twitchWebToken;
+
+  /// Stores (or clears, when [token] is null or blank) the twitch.tv web
+  /// session token used to unlock the enhanced-broadcast renditions.
+  @action
+  Future<void> setTwitchWebToken(String? token) async {
+    final trimmed = token?.trim();
+    final value = (trimmed == null || trimmed.isEmpty) ? null : trimmed;
+    _twitchWebToken = value;
+
+    if (value == null) {
+      await _storage.delete(key: _twitchWebTokenKey);
+    } else {
+      await _storage.write(key: _twitchWebTokenKey, value: value);
+    }
+  }
 
   /// Authentication headers for Twitch API requests.
   @computed
@@ -225,6 +253,10 @@ abstract class AuthBase with Store {
     try {
       // Read and set the currently stored user token, if any.
       _token = await _storage.read(key: _userTokenKey);
+
+      // Restore the optional twitch.tv web token used for enhanced-broadcast
+      // renditions; its absence is not an error.
+      _twitchWebToken = await _storage.read(key: _twitchWebTokenKey);
 
       // If the token does not exist, get the default token.
       // Otherwise, log in.

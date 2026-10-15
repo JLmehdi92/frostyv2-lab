@@ -587,7 +587,10 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   Future<void> _resolveUrl() async {
     for (var attempt = 0; ; attempt++) {
       try {
-        _url = await _streamService.getUsherUrl(userLogin: userLogin);
+        _url = await _streamService.getUsherUrl(
+          userLogin: userLogin,
+          authToken: _userAuthToken,
+        );
         return;
       } catch (e) {
         final delay = _recovery.tokenRetryDelay(attempt);
@@ -597,6 +600,16 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
       }
     }
   }
+
+  /// The token sent with the playback access token request.
+  ///
+  /// Some streams only expose the enhanced-broadcast renditions (1440p HEVC /
+  /// AV1) to an authenticated viewer. The twitch.tv web token wins because
+  /// GQL accepts it; the app's own login token is tried otherwise, and the
+  /// service falls back to an anonymous request whenever a token is refused.
+  String? get _userAuthToken =>
+      authStore.twitchWebToken ??
+      (authStore.isLoggedIn ? authStore.token : null);
 
   /// Wires the per-texture MethodChannel for the texture-backed mini player.
   void attachTextureChannel(int textureId) =>
@@ -707,6 +720,16 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         if (caption != null) {
           _captionTimer = Timer(caption.shownFor, _clearCaption);
         }
+        break;
+      case 'qualitiesChanged':
+        // The ladder grew or shrank while playing (Twitch negotiates the
+        // 1440p HEVC/AV1 renditions later): refresh the menu only, keeping
+        // the current pick on the same entry.
+        final list = (e['list'] as List).map((q) => q.toString()).toList();
+        final selected = streamQuality;
+        _availableStreamQualities = ['Auto', ...list];
+        final restored = _availableStreamQualities.indexOf(selected);
+        _streamQualityIndex = restored == -1 ? 0 : restored;
         break;
       case 'quality':
         final name = e['name'] as String?;
@@ -830,6 +853,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     try {
       final url = await _streamService.getUsherUrl(
         userLogin: userLogin,
+        authToken: _userAuthToken,
         forceFreshToken: freshToken,
       );
       if (epoch != _recoveryEpoch) return;
@@ -1073,6 +1097,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
       // A manual refresh is the user's way out of a bad cached token.
       final url = await _streamService.getUsherUrl(
         userLogin: userLogin,
+        authToken: _userAuthToken,
         forceFreshToken: true,
       );
       if (epoch != _recoveryEpoch) return;

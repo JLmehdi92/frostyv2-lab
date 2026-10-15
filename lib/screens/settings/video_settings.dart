@@ -5,7 +5,9 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/settings/widgets/settings_list_select.dart';
 import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
+import 'package:frosty/screens/settings/widgets/settings_twitch_web_token.dart';
 import 'package:frosty/utils.dart';
+import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/section_header.dart';
 import 'package:frosty/widgets/settings_page_layout.dart';
 
@@ -63,6 +65,9 @@ class VideoSettings extends StatelessWidget {
                   BufferProfile.values[bufferProfileNames.indexOf(newValue)],
             ),
           ],
+          if (Platform.isAndroid &&
+              settingsStore.playerEngine == PlayerEngine.ivs)
+            SettingsTwitchWebToken(authStore: context.authStore),
           SettingsListSwitch(
             title: 'Enable video',
             value: settingsStore.showVideo,
@@ -108,8 +113,7 @@ class VideoSettings extends StatelessWidget {
               'Shows a warning before a channel labeled for mature content.',
             ),
             value: settingsStore.warnMatureContent,
-            onChanged: (newValue) =>
-                settingsStore.warnMatureContent = newValue,
+            onChanged: (newValue) => settingsStore.warnMatureContent = newValue,
           ),
           const SectionHeader('Overlay'),
           SettingsListSwitch(

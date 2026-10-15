@@ -27,6 +27,14 @@ class MockTwitchApi extends Mock implements TwitchApi {}
 
 class MockAuthStore extends Mock implements AuthStore {}
 
+/// A viewer without a web token nor a login: playback asks anonymously.
+MockAuthStore anonymousAuthStore() {
+  final auth = MockAuthStore();
+  when(() => auth.twitchWebToken).thenReturn(null);
+  when(() => auth.isLoggedIn).thenReturn(false);
+  return auth;
+}
+
 class MockTwitchStreamService extends Mock implements TwitchStreamService {}
 
 const _usherUrl = 'https://usher.ttvnw.net/api/channel/hls/streamer.m3u8?x=1';
@@ -56,7 +64,7 @@ void main() {
       userLogin: 'streamer',
       userId: '123',
       twitchApi: twitchApi,
-      authStore: MockAuthStore(),
+      authStore: anonymousAuthStore(),
       settingsStore: settingsStore,
       streamService: streamService,
       recoveryPolicy: policy ?? instantPolicy(),
@@ -166,7 +174,7 @@ void main() {
       userLogin: 'streamer',
       userId: '123',
       twitchApi: twitchApi,
-      authStore: MockAuthStore(),
+      authStore: anonymousAuthStore(),
       settingsStore: settingsStore,
       streamService: streamService,
       recoveryPolicy: instantPolicy(),
@@ -995,7 +1003,7 @@ void main() {
         userLogin: 'streamer',
         userId: '123',
         twitchApi: twitchApi,
-        authStore: MockAuthStore(),
+        authStore: anonymousAuthStore(),
         settingsStore: settingsStore,
         streamService: streamService,
         recoveryPolicy: instantPolicy(),
@@ -1143,7 +1151,7 @@ void main() {
         userLogin: 'streamer',
         userId: '123',
         twitchApi: twitchApi,
-        authStore: MockAuthStore(),
+        authStore: anonymousAuthStore(),
         settingsStore: settingsStore,
         streamService: streamService,
         recoveryPolicy: instantPolicy(),
@@ -1169,7 +1177,7 @@ void main() {
         userLogin: 'streamer',
         userId: '123',
         twitchApi: twitchApi,
-        authStore: MockAuthStore(),
+        authStore: anonymousAuthStore(),
         settingsStore: settingsStore,
         streamService: streamService,
         recoveryPolicy: instantPolicy(),
@@ -1195,7 +1203,7 @@ void main() {
         userLogin: 'streamer',
         userId: '123',
         twitchApi: twitchApi,
-        authStore: MockAuthStore(),
+        authStore: anonymousAuthStore(),
         settingsStore: settingsStore,
         streamService: streamService,
         recoveryPolicy: instantPolicy(),
@@ -1222,7 +1230,7 @@ void main() {
         userLogin: 'streamer',
         userId: '123',
         twitchApi: twitchApi,
-        authStore: MockAuthStore(),
+        authStore: anonymousAuthStore(),
         settingsStore: settingsStore,
         streamService: streamService,
         recoveryPolicy: instantPolicy(),
@@ -1249,7 +1257,7 @@ void main() {
         userLogin: 'streamer',
         userId: '123',
         twitchApi: twitchApi,
-        authStore: MockAuthStore(),
+        authStore: anonymousAuthStore(),
         settingsStore: settingsStore,
         streamService: streamService,
         recoveryPolicy: instantPolicy(),
@@ -1276,7 +1284,7 @@ void main() {
           userLogin: 'streamer',
           userId: '123',
           twitchApi: twitchApi,
-          authStore: MockAuthStore(),
+          authStore: anonymousAuthStore(),
           settingsStore: settingsStore,
           streamService: streamService,
           recoveryPolicy: instantPolicy(),
@@ -1316,7 +1324,7 @@ void main() {
         userLogin: 'streamer',
         userId: '123',
         twitchApi: twitchApi,
-        authStore: MockAuthStore(),
+        authStore: anonymousAuthStore(),
         settingsStore: settingsStore,
         streamService: streamService,
         recoveryPolicy: instantPolicy(),
@@ -1370,7 +1378,7 @@ void main() {
         userLogin: 'streamer',
         userId: '123',
         twitchApi: twitchApi,
-        authStore: MockAuthStore(),
+        authStore: anonymousAuthStore(),
         settingsStore: settingsStore,
         streamService: streamService,
         recoveryPolicy: instantPolicy(),

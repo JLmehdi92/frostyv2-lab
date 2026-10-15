@@ -43,6 +43,13 @@ class IvsPlayerCore(
     /** VOD only: auto-play once per load, so later READYs keep a pause. */
     private var autoPlayPending = false
     private var qualitiesSent = false
+
+    /**
+     * Names last sent to Dart. Twitch can add renditions after playback
+     * starts (the enhanced-broadcast 1440p HEVC/AV1 ones are negotiated
+     * later), so the ladder is watched and a change re-sent.
+     */
+    private var sentQualityNames: List<String>? = null
     private var statsEnabled = false
 
     /** Closed captions asked for by Dart (off by default). */
@@ -82,6 +89,7 @@ class IvsPlayerCore(
                 "load" -> {
                     val newUrl = call.argument<String>("url")
                     qualitiesSent = false
+                    sentQualityNames = null
                     if (tuning.vod) {
                         pendingStartMs = call.argument<Number>("startMs")?.toLong()
                         autoPlayPending = true
@@ -138,15 +146,9 @@ class IvsPlayerCore(
                 if (state == Player.State.PLAYING) applyCaptions()
                 if (state == Player.State.PLAYING && !qualitiesSent) {
                     qualitiesSent = true
-                    // Best first (resolution, then frame rate, then bitrate) so
-                    // "highest quality" is the first entry, e.g. 1440p HEVC/AV1
-                    // even if it uses less bitrate than a 1080p H.264 source.
-                    val sorted = player.qualities.sortedWith(
-                        compareByDescending<Quality> { it.height }
-                            .thenByDescending { it.framerate }
-                            .thenByDescending { it.bitrate },
-                    )
-                    send(mapOf("type" to "qualities", "list" to sorted.map { it.name }))
+                    val names = sortedQualityNames()
+                    sentQualityNames = names
+                    send(mapOf("type" to "qualities", "list" to names))
                 }
             }
 
@@ -246,6 +248,27 @@ class IvsPlayerCore(
         main.postDelayed(progressTicker!!, 250)
     }
 
+    /**
+     * Best first (resolution, then frame rate, then bitrate) so "highest
+     * quality" is the first entry, e.g. 1440p HEVC/AV1 even if it uses less
+     * bitrate than a 1080p H.264 source.
+     */
+    private fun sortedQualityNames(): List<String> =
+        player.qualities.sortedWith(
+            compareByDescending<Quality> { it.height }
+                .thenByDescending { it.framerate }
+                .thenByDescending { it.bitrate },
+        ).map { it.name }
+
+    /** Re-sends the ladder when it changed since the first report. */
+    private fun sendQualitiesIfChanged() {
+        val sent = sentQualityNames ?: return
+        val names = sortedQualityNames()
+        if (names.isEmpty() || names == sent) return
+        sentQualityNames = names
+        send(mapOf("type" to "qualitiesChanged", "list" to names))
+    }
+
     private fun startLatencyTicker() {
         latencyTicker = object : Runnable {
             override fun run() {
@@ -253,6 +276,7 @@ class IvsPlayerCore(
                 // latency ticker (dispose() removes it on this same thread).
                 main.postDelayed(this, 1000)
                 try { send(mapOf("type" to "latency", "ms" to player.liveLatency)) } catch (_: Throwable) {}
+                try { sendQualitiesIfChanged() } catch (t: Throwable) { Log.w(CORE_TAG, "qualities failed: $t") }
                 if (statsEnabled) {
                     try { send(collectStats()) } catch (t: Throwable) { Log.w(CORE_TAG, "stats failed: $t") }
                 }

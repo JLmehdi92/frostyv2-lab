@@ -68,12 +68,18 @@ class TwitchStreamService extends BaseApiClient {
 
   /// Returns the available quality variants for [userLogin]'s live stream.
   ///
+  /// Pass the viewer's twitch.tv web token as [authToken] to receive the
+  /// enhanced-broadcast (1440p HEVC / AV1) renditions — Twitch only includes
+  /// them for authenticated viewers. The request falls back to an anonymous
+  /// one if the token is rejected.
+  ///
   /// Throws if the channel is offline or Twitch rejects the request; callers
   /// should treat a throw as "fall back to the WebView engine".
   Future<List<HlsVariant>> getStreamVariants({
     required String userLogin,
+    String? authToken,
   }) async {
-    final token = await _getAccessToken(userLogin);
+    final token = await _getAccessToken(userLogin, authToken: authToken);
 
     // Dio returns a non-JSON `.m3u8` body as a plain string under the default
     // transformer (verified against live usher), so `get<String>` is safe here.
@@ -94,12 +100,18 @@ class TwitchStreamService extends BaseApiClient {
   /// player). Throws if the channel is offline / Twitch rejects the request.
   ///
   /// A cached token is reused while valid unless [forceFreshToken] is set
-  /// (e.g. after the player reported the token as rejected).
+  /// (e.g. after the player reported the token as rejected). [authToken]
+  /// works as in [getStreamVariants].
   Future<String> getUsherUrl({
     required String userLogin,
+    String? authToken,
     bool forceFreshToken = false,
   }) async {
-    final token = await _getAccessToken(userLogin, forceFresh: forceFreshToken);
+    final token = await _getAccessToken(
+      userLogin,
+      authToken: authToken,
+      forceFresh: forceFreshToken,
+    );
     final params = usherQueryParameters(
       signature: token.signature,
       token: token.value,
@@ -132,6 +144,10 @@ class TwitchStreamService extends BaseApiClient {
     // "enhanced broadcasting" renditions (which are HEVC/AV1, not H.264).
     // For plain H.264 streams this changes nothing (no other encodes exist).
     'supported_codecs': 'av1,h265,h264',
+    // Lets Twitch move the viewer to another transcode without killing
+    // playback, and names the renditions with their framerate (1440p60).
+    'reassignments_supported': 'true',
+    'playlist_include_framerate': 'true',
     'p': '$p',
     'sig': signature,
     'token': token,
@@ -181,26 +197,59 @@ class TwitchStreamService extends BaseApiClient {
   /// Asks for [userLogin]'s playback token ahead of the player (a press on
   /// a stream card), so opening the channel finds it cached or on its way.
   /// Never throws: the player asks again if this failed.
-  Future<void> preload(String userLogin) async {
+  Future<void> preload(String userLogin, {String? authToken}) async {
     try {
-      await _getAccessToken(userLogin);
+      await _getAccessToken(userLogin, authToken: authToken);
     } catch (e) {
       debugPrint('Playback token preload failed: $e');
     }
   }
 
+  /// The authenticated attempt comes first when [authToken] is given: Twitch
+  /// only advertises the enhanced-broadcast renditions to a logged-in viewer.
+  /// It can legitimately fail (GQL refuses tokens minted for another
+  /// client-id), so any failure falls back to the anonymous request that
+  /// has always worked.
   Future<PlaybackAccessToken> _getAccessToken(
     String login, {
+    String? authToken,
+    bool forceFresh = false,
+  }) async {
+    if (authToken != null && authToken.isNotEmpty) {
+      try {
+        return await _cachedAccessToken(
+          login,
+          authToken: authToken,
+          forceFresh: forceFresh,
+        );
+      } catch (e) {
+        debugPrint(
+          'Authenticated playback token failed, retrying anonymously: $e',
+        );
+      }
+    }
+    return _cachedAccessToken(login, forceFresh: forceFresh);
+  }
+
+  /// Authenticated and anonymous tokens are cached apart: they do not unlock
+  /// the same renditions.
+  static String _cacheKey(String login, String? authToken) =>
+      authToken == null ? login : '$login#auth';
+
+  Future<PlaybackAccessToken> _cachedAccessToken(
+    String login, {
+    String? authToken,
     bool forceFresh = false,
   }) async {
     final cache = _tokenCache;
+    final key = _cacheKey(login, authToken);
     if (cache != null) {
       if (forceFresh) {
-        cache.invalidate(login);
-      } else if (cache.get(login) case final cached?) {
+        cache.invalidate(key);
+      } else if (cache.get(key) case final cached?) {
         _remember(login, cached);
         return cached;
-      } else if (cache.pending(login) case final pending?) {
+      } else if (cache.pending(key) case final pending?) {
         // The same answer a request of our own would get, sooner: a failure
         // goes to the caller's retry policy like its own would.
         final token = await pending;
@@ -208,20 +257,23 @@ class TwitchStreamService extends BaseApiClient {
         return token;
       }
     }
-    final token = _fetchAccessToken(login);
-    cache?.track(login, token);
+    final token = _fetchAccessToken(login, authToken: authToken);
+    cache?.track(key, token);
     return token;
   }
 
-  Future<PlaybackAccessToken> _fetchAccessToken(String login) async {
+  Future<PlaybackAccessToken> _fetchAccessToken(
+    String login, {
+    String? authToken,
+  }) async {
     final cache = _tokenCache;
 
-    var data = await _postAccessToken(login, accessTokenQuery);
+    var data = await _postAccessToken(login, accessTokenQuery, authToken);
     var token = (data['data'] as JsonMap?)?['streamPlaybackAccessToken'];
     if (token is! JsonMap && data['errors'] is List) {
       // Maybe the refusal field was renamed or removed: ask without it.
       debugPrint('Playback token query refused: ${data['errors']}');
-      data = await _postAccessToken(login, plainAccessTokenQuery);
+      data = await _postAccessToken(login, plainAccessTokenQuery, authToken);
       token = (data['data'] as JsonMap?)?['streamPlaybackAccessToken'];
     }
     if (token is! JsonMap || token['value'] == null) {
@@ -240,14 +292,23 @@ class TwitchStreamService extends BaseApiClient {
     );
     // A refused token is not kept: once the stream opens to the viewer
     // (sub-only off, VPN off, unbanned), the next try must ask again.
-    if (accessToken.refusal == null) cache?.put(login, accessToken);
+    if (accessToken.refusal == null) {
+      cache?.put(_cacheKey(login, authToken), accessToken);
+    }
     _remember(login, accessToken);
     return accessToken;
   }
 
-  Future<JsonMap> _postAccessToken(String login, String query) => post<JsonMap>(
+  Future<JsonMap> _postAccessToken(
+    String login,
+    String query,
+    String? authToken,
+  ) => post<JsonMap>(
     _gqlUrl,
-    headers: {'Client-ID': _gqlClientId},
+    headers: {
+      'Client-ID': _gqlClientId,
+      if (authToken != null) 'Authorization': 'OAuth $authToken',
+    },
     data: accessTokenRequest(login, query),
   );
 

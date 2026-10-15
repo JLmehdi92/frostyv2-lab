@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/base_api_client.dart';
@@ -504,4 +506,94 @@ https://video-edge-1.ttvnw.net/chunked/index-live.m3u8
       expect(posts, 2);
     });
   });
+
+  group('enhanced broadcasting (1440p HEVC / AV1)', () {
+    late _RecordingAdapter recorder;
+
+    setUp(() {
+      recorder = _RecordingAdapter();
+      dio = Dio(BaseOptions())..httpClientAdapter = recorder;
+      service = TwitchStreamService(dio);
+    });
+
+    test('advertises the enhanced codecs on the usher request', () async {
+      await service.getUsherUrl(userLogin: login);
+
+      final url = await service.getUsherUrl(userLogin: login);
+      expect(url, contains('supported_codecs=av1%2Ch265%2Ch264'));
+      expect(url, contains('reassignments_supported=true'));
+    });
+
+    test(
+      'sends the user token so Twitch returns the enhanced renditions',
+      () async {
+        await service.getUsherUrl(userLogin: login, authToken: 'usertoken');
+
+        expect(
+          recorder.requests.first.headers['Authorization'],
+          'OAuth usertoken',
+        );
+      },
+    );
+
+    test(
+      'falls back to an anonymous request when the token is rejected',
+      () async {
+        recorder.failAuthenticatedRequests = true;
+
+        final url = await service.getUsherUrl(
+          userLogin: login,
+          authToken: 'usertoken',
+        );
+
+        expect(recorder.requests, hasLength(2));
+        expect(
+          recorder.requests.first.headers['Authorization'],
+          'OAuth usertoken',
+        );
+        expect(
+          recorder.requests.last.headers.containsKey('Authorization'),
+          isFalse,
+        );
+        expect(url, contains('usher.ttvnw.net'));
+      },
+    );
+  });
+}
+
+/// Minimal adapter that records every GQL request and can reject the
+/// authenticated one, which `DioAdapter` cannot express (it matches a URL
+/// once, and both attempts hit the same URL).
+class _RecordingAdapter implements HttpClientAdapter {
+  final requests = <RequestOptions>[];
+  bool failAuthenticatedRequests = false;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    requests.add(options);
+
+    final isAuthenticated = options.headers.containsKey('Authorization');
+    if (failAuthenticatedRequests && isAuthenticated) {
+      return ResponseBody.fromString(
+        '{"errors":[{"message":"unauthorized"}]}',
+        401,
+      );
+    }
+
+    return ResponseBody.fromString(
+      '{"data":{"streamPlaybackAccessToken":'
+      '{"value":"{\\"token\\":\\"abc\\"}","signature":"deadbeef"}}}',
+      200,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
 }

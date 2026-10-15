@@ -55,6 +55,26 @@ mixin _$AuthStore on AuthBase, Store {
     });
   }
 
+  late final _$_twitchWebTokenAtom = Atom(
+    name: 'AuthBase._twitchWebToken',
+    context: context,
+  );
+
+  String? get twitchWebToken {
+    _$_twitchWebTokenAtom.reportRead();
+    return super._twitchWebToken;
+  }
+
+  @override
+  String? get _twitchWebToken => twitchWebToken;
+
+  @override
+  set _twitchWebToken(String? value) {
+    _$_twitchWebTokenAtom.reportWrite(value, super._twitchWebToken, () {
+      super._twitchWebToken = value;
+    });
+  }
+
   late final _$_errorAtom = Atom(name: 'AuthBase._error', context: context);
 
   String? get error {
@@ -70,6 +90,18 @@ mixin _$AuthStore on AuthBase, Store {
     _$_errorAtom.reportWrite(value, super._error, () {
       super._error = value;
     });
+  }
+
+  late final _$setTwitchWebTokenAsyncAction = AsyncAction(
+    'AuthBase.setTwitchWebToken',
+    context: context,
+  );
+
+  @override
+  Future<void> setTwitchWebToken(String? token) {
+    return _$setTwitchWebTokenAsyncAction.run(
+      () => super.setTwitchWebToken(token),
+    );
   }
 
   late final _$initAsyncAction = AsyncAction('AuthBase.init', context: context);
