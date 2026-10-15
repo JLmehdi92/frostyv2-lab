@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/models/community_highlights.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
+import 'package:frosty/screens/channel/community_highlights/highlight_stack.dart';
 import 'package:frosty/screens/channel/community_highlights/stores/community_highlights_store.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/highlight_slot.dart';
 import 'package:frosty/screens/channel/hype_train/hype_train_placement.dart';
@@ -201,9 +202,12 @@ class _ChannelChatTopOverlayState extends State<ChannelChatTopOverlay> {
           final compact = placement == HtPlacement.bannerCompact && !wide;
           final trainUp = hypeTrain?.visible ?? false;
           // The hype train details take the room; the highlight comes back
-          // when they close.
+          // when they close. Not a gift bomb: its banner lasts seconds, so
+          // waiting for the details to close would mean never seeing it.
           final showHighlights =
-              highlights != null && !(trainUp && hypeTrain!.expanded);
+              highlights != null &&
+              (!(trainUp && hypeTrain!.expanded) ||
+                  highlights.current?.kind == HighlightKind.giftBomb);
           // On a phone the highlight stays one line under a running train,
           // and while typing.
           final highlightsCompact = compact || (!wide && (trainUp || typing));

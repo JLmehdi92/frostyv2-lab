@@ -5,6 +5,7 @@ import 'package:frosty/models/community_highlight_event.dart';
 import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/models/hype_train_event.dart';
 import 'package:frosty/screens/channel/channel_top_overlays.dart';
+import 'package:frosty/screens/channel/chat/gift_bomb_tracker.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/highlight_slot.dart';
 import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
@@ -443,6 +444,35 @@ void main() {
       train.store.toggleExpanded();
       await tester.pump();
       expect(find.byType(HighlightSlot), findsOneWidget);
+      await train.close(tester);
+    });
+
+    testWidgets('a gift bomb stays up while the train details are open', (
+      tester,
+    ) async {
+      hl.create();
+      hl.store.showGiftBomb(
+        const GiftBomb(
+          key: 'bomb',
+          gifterName: 'BigGifter',
+          isAnonymous: false,
+          count: 20,
+          tier: 'Tier 1',
+        ),
+      );
+      await tester.pump();
+      final train = running();
+      await pumpAt(tester, const Size(360, 740), chat(train: train));
+      expect(find.byType(HighlightSlot), findsOneWidget);
+
+      // Unlike a poll, a gift bomb is over in seconds: hiding it behind the
+      // details would mean never seeing it.
+      train.store.toggleExpanded();
+      await tester.pump();
+      expect(find.byType(HighlightSlot), findsOneWidget);
+      // Disposed in the test body: its banner deadline is a timer the test
+      // binding checks before tear-down runs.
+      hl.store.dispose();
       await train.close(tester);
     });
 
