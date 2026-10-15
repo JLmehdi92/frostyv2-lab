@@ -26,7 +26,7 @@ void main() {
 
     test('a GIF in the middle of text keeps the text around it', () {
       final msg = IRCMessage.fromString(
-        _line('gifs=5-9|id|https://x.test/g.gif', 'look [YAY] wow'),
+        _line('gifs=5-9|id|https://media.giphy.com/g.gif', 'look [YAY] wow'),
       );
 
       expect(msg.gifParts.map((part) => part.text), ['look ', '[YAY]', ' wow']);
@@ -39,7 +39,7 @@ void main() {
     test('several GIFs are all kept, in order', () {
       final msg = IRCMessage.fromString(
         _line(
-          'gifs=6-8|b|https://x.test/b.gif,0-4|a|https://x.test/a.gif',
+          'gifs=6-8|b|https://media.giphy.com/b.gif,0-4|a|https://media.giphy.com/a.gif',
           '[YAY] [W]',
         ),
       );
@@ -49,7 +49,7 @@ void main() {
 
     test('an emoji before the GIF counts as one position', () {
       final msg = IRCMessage.fromString(
-        _line('gifs=2-6|id|https://x.test/g.gif', '😀 [YAY]'),
+        _line('gifs=2-6|id|https://media.giphy.com/g.gif', '😀 [YAY]'),
       );
 
       expect(msg.gifParts.map((part) => part.text), ['😀 ', '[YAY]']);
@@ -57,7 +57,10 @@ void main() {
 
     test('a /me GIF counts from after the ACTION prefix', () {
       final msg = IRCMessage.fromString(
-        _line('gifs=0-4|id|https://x.test/g.gif', '\x01ACTION [YAY]\x01'),
+        _line(
+          'gifs=0-4|id|https://media.giphy.com/g.gif',
+          '\x01ACTION [YAY]\x01',
+        ),
       );
 
       expect(msg.action, isTrue);
@@ -67,7 +70,7 @@ void main() {
     test('malformed entries and ranges outside the text are ignored', () {
       final msg = IRCMessage.fromString(
         _line(
-          'gifs=0-4|only-two,0-4||https://x.test/a.gif,0-99|id|https://x.test/b.gif',
+          'gifs=0-4|only-two,0-4||https://media.giphy.com/a.gif,0-99|id|https://media.giphy.com/b.gif',
           '[YAY]',
         ),
       );
@@ -78,23 +81,26 @@ void main() {
 
     test('IRCv3 escapes in the value are undone', () {
       final msg = IRCMessage.fromString(
-        _line(r'gifs=0-4|id|https://x.test/a\:b\\c.gif', '[YAY]'),
+        _line(r'gifs=0-4|id|https://media.giphy.com/a\:b\\c.gif', '[YAY]'),
       );
 
-      expect(msg.gifParts.single.gif!.url, r'https://x.test/a;b\c.gif');
+      expect(
+        msg.gifParts.single.gif!.url,
+        r'https://media.giphy.com/a;b\c.gif',
+      );
     });
 
     test('an escaped backslash before an s stays a backslash and an s', () {
       final msg = IRCMessage.fromString(
-        _line(r'gifs=0-4|id|https://x.test/a\\sb.gif', '[YAY]'),
+        _line(r'gifs=0-4|id|https://media.giphy.com/a\\sb.gif', '[YAY]'),
       );
 
-      expect(msg.gifParts.single.gif!.url, r'https://x.test/a\sb.gif');
+      expect(msg.gifParts.single.gif!.url, r'https://media.giphy.com/a\sb.gif');
     });
 
     test('an http url is kept but not loadable', () {
       final msg = IRCMessage.fromString(
-        _line('gifs=0-4|id|http://x.test/g.gif', '[YAY]'),
+        _line('gifs=0-4|id|http://media.giphy.com/g.gif', '[YAY]'),
       );
 
       expect(msg.gifParts.single.gif!.isLoadable, isFalse);

@@ -158,16 +158,33 @@ void main() {
   });
 
   group('ChatGif.isLoadable', () {
-    test('only an https url with a host is loaded', () {
-      ChatGif gif(String url) => ChatGif(start: 0, end: 1, id: 'id', url: url);
+    ChatGif gif(String url) => ChatGif(start: 0, end: 1, id: 'id', url: url);
 
+    test('loads https GIFs from GIPHY and the Twitch CDN', () {
       expect(gif(_url).isLoadable, isTrue);
       expect(gif('HTTPS://media.giphy.com/a.gif').isLoadable, isTrue);
+      expect(gif('https://i.giphy.com/a.gif').isLoadable, isTrue);
+      expect(gif('https://giphy.com/a.gif').isLoadable, isTrue);
+      expect(gif('https://media.giphy.com:443/a.gif').isLoadable, isTrue);
+      expect(gif('https://static-cdn.jtvnw.net/a.gif').isLoadable, isTrue);
+    });
+
+    test('refuses other schemes', () {
       expect(gif('http://media.giphy.com/a.gif').isLoadable, isFalse);
       expect(gif('file:///data/a.gif').isLoadable, isFalse);
       expect(gif('javascript:alert(1)').isLoadable, isFalse);
       expect(gif('https:///no-host.gif').isLoadable, isFalse);
       expect(gif('not a url').isLoadable, isFalse);
+    });
+
+    test('refuses any other host, port or user', () {
+      expect(gif('https://attacker.example/a.gif').isLoadable, isFalse);
+      expect(gif('https://giphy.com.attacker.example/a').isLoadable, isFalse);
+      expect(gif('https://notgiphy.com/a.gif').isLoadable, isFalse);
+      expect(gif('https://192.168.1.1/a.gif').isLoadable, isFalse);
+      expect(gif('https://[::1]/a.gif').isLoadable, isFalse);
+      expect(gif('https://media.giphy.com:8443/a.gif').isLoadable, isFalse);
+      expect(gif('https://user@media.giphy.com/a.gif').isLoadable, isFalse);
     });
   });
 }

@@ -82,7 +82,7 @@ void main() {
     await pumpChatMessage(
       tester,
       IRCMessage.fromString(
-        _line('gifs=5-9|id|https://x.test/g.gif', 'look [YAY] wow'),
+        _line('gifs=5-9|id|https://media.giphy.com/g.gif', 'look [YAY] wow'),
       ),
       fakeChatStore(),
     );
@@ -104,7 +104,7 @@ void main() {
         _line(
           'reply-parent-display-name=Other;reply-parent-msg-body=hi;'
               'reply-parent-msg-id=p-1;reply-parent-user-login=other;'
-              'gifs=7-11|id|https://x.test/g.gif',
+              'gifs=7-11|id|https://media.giphy.com/g.gif',
           '@Other [YAY]',
         ),
       ),
@@ -226,7 +226,9 @@ void main() {
     _portrait(tester);
     await pumpChatMessage(
       tester,
-      IRCMessage.fromString(_line('gifs=0-4|id|http://x.test/g.gif', '[YAY]')),
+      IRCMessage.fromString(
+        _line('gifs=0-4|id|http://media.giphy.com/g.gif', '[YAY]'),
+      ),
       fakeChatStore(),
     );
 
@@ -324,7 +326,7 @@ void main() {
     await pumpChatMessage(
       tester,
       IRCMessage.fromString(
-        _line('gifs=0-14|id|https://x.test/g.gif', 'dance (remix) x'),
+        _line('gifs=0-14|id|https://media.giphy.com/g.gif', 'dance (remix) x'),
       ),
       fakeChatStore(),
     );
@@ -341,7 +343,9 @@ void main() {
     _portrait(tester);
     await pumpChatMessage(
       tester,
-      IRCMessage.fromString(_line('gifs=0-0|id|https://x.test/g.gif', ' x')),
+      IRCMessage.fromString(
+        _line('gifs=0-0|id|https://media.giphy.com/g.gif', ' x'),
+      ),
       fakeChatStore(),
     );
 

@@ -45,14 +45,27 @@ class ChatGif {
     return gifs;
   }
 
-  /// Whether the app may load [url]: an `https` address with a host.
+  /// The sites a chat GIF may come from: GIPHY, which Twitch's GIF keyboard
+  /// searches, and Twitch's own CDN, with their subdomains.
+  static const allowedHosts = {'giphy.com', 'jtvnw.net'};
+
+  /// Whether the app may load [url]: `https` on the default port, no user,
+  /// and a host in [allowedHosts] or one of their subdomains.
   ///
-  /// Twitch's app loads any address it is given. Anything but `https` is
-  /// refused here, so a GIF never goes out in clear text or reaches a local
-  /// file; its title is shown instead.
+  /// Twitch's app loads any address it is given. Here the tag can also come
+  /// from the third-party recent-messages history, so a line could otherwise
+  /// make every viewer fetch any address (their IP to any server, or a device
+  /// on their network). A refused GIF shows its title instead.
   bool get isLoadable {
     final uri = Uri.tryParse(url);
-    return uri != null && uri.isScheme('https') && uri.host.isNotEmpty;
+    if (uri == null || !uri.isScheme('https') || uri.userInfo.isNotEmpty) {
+      return false;
+    }
+    if (uri.hasPort && uri.port != 443) return false;
+    final host = uri.host.toLowerCase();
+    return allowedHosts.any(
+      (allowed) => host == allowed || host.endsWith('.$allowed'),
+    );
   }
 
   @override
