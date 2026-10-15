@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_points_service.dart';
@@ -12,6 +14,20 @@ class MockPointsService extends Mock implements TwitchPointsService {}
 class MockHermesClient extends Mock implements HermesClient {}
 
 const _hydrate = PointsReward(id: 'hydrate', title: 'Hydrate', cost: 100);
+const _song = PointsReward(
+  id: 'song',
+  title: 'Request a song',
+  cost: 200,
+  requiresInput: true,
+);
+const _pricey = PointsReward(id: 'pricey', title: 'Pick a game', cost: 5000);
+const _builtIn = PointsReward(
+  id: 'auto',
+  title: 'Highlight my message',
+  cost: 50,
+  automaticType: 'SEND_HIGHLIGHTED_MESSAGE',
+);
+
 Prediction _prediction({String status = 'ACTIVE'}) => Prediction(
   id: 'pred',
   title: 'Will he win?',
@@ -115,7 +131,292 @@ void main() {
     ),
   );
 
+  ListTile tile(WidgetTester tester, String title) => tester.widget<ListTile>(
+    find.ancestor(of: find.text(title), matching: find.byType(ListTile)),
+  );
+
+  void verifyNoRedeem() => verifyNever(
+    () => service.redeemReward(
+      channelId: any(named: 'channelId'),
+      reward: any(named: 'reward'),
+      authToken: any(named: 'authToken'),
+      userInput: any(named: 'userInput'),
+    ),
+  );
+
+  group('rewards', () {
+    testWidgets('only an affordable custom reward can be tapped', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        const CommunityPointsContext(
+          balance: 1000,
+          rewards: [_builtIn, _hydrate, _pricey],
+        ),
+      );
+
+      expect(tile(tester, 'Hydrate').onTap, isNotNull);
+      expect(tile(tester, 'Pick a game').onTap, isNull);
+      expect(tile(tester, 'Highlight my message').onTap, isNull);
+    });
+
+    testWidgets('signed out: nothing can be tapped, and it says why', (
+      tester,
+    ) async {
+      await pump(tester, const CommunityPointsContext(rewards: [_hydrate]));
+
+      expect(find.text('Log in to see your balance.'), findsOneWidget);
+      expect(tile(tester, 'Hydrate').onTap, isNull);
+    });
+
+    testWidgets('a reward that asks for text waits for it', (tester) async {
+      await pump(
+        tester,
+        const CommunityPointsContext(balance: 1000, rewards: [_song]),
+      );
+
+      await tester.tap(find.text('Request a song'));
+      await tester.pumpAndSettle();
+      expect(find.text('Spend 200 points?'), findsOneWidget);
+      FilledButton redeem() => tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Redeem'),
+      );
+      expect(redeem().onPressed, isNull);
+
+      await tester.enterText(find.byType(TextField), '  Darude  ');
+      await tester.pump();
+      await tester.tap(find.text('Redeem'));
+      await tester.pumpAndSettle();
+
+      verify(
+        () => service.redeemReward(
+          channelId: '42',
+          reward: _song,
+          authToken: 'tok',
+          userInput: 'Darude',
+        ),
+      ).called(1);
+      expect(find.text('Done.'), findsOneWidget);
+    });
+
+    testWidgets('a reward without text is confirmed and sent bare', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        const CommunityPointsContext(balance: 1000, rewards: [_hydrate]),
+      );
+
+      await tester.tap(find.text('Hydrate'));
+      await tester.pumpAndSettle();
+      expect(find.byType(TextField), findsNothing);
+      await tester.tap(find.text('Redeem'));
+      await tester.pumpAndSettle();
+
+      verify(
+        () => service.redeemReward(
+          channelId: '42',
+          reward: _hydrate,
+          authToken: 'tok',
+        ),
+      ).called(1);
+    });
+
+    testWidgets('cancel spends nothing', (tester) async {
+      await pump(
+        tester,
+        const CommunityPointsContext(balance: 1000, rewards: [_hydrate]),
+      );
+
+      await tester.tap(find.text('Hydrate'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      verifyNoRedeem();
+      expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('an integrity refusal is reported as such', (tester) async {
+      when(
+        () => service.redeemReward(
+          channelId: any(named: 'channelId'),
+          reward: any(named: 'reward'),
+          authToken: any(named: 'authToken'),
+          userInput: any(named: 'userInput'),
+        ),
+      ).thenAnswer((_) async => 'failed integrity check');
+      await pump(
+        tester,
+        const CommunityPointsContext(balance: 1000, rewards: [_hydrate]),
+      );
+
+      await tester.tap(find.text('Hydrate'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Redeem'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('anti-bot check'), findsOneWidget);
+    });
+
+    testWidgets('a channel without rewards says so', (tester) async {
+      await pump(tester, const CommunityPointsContext(balance: 10));
+
+      expect(find.text('This channel has no rewards set up.'), findsOneWidget);
+    });
+  });
+
+  group('the bonus chest', () {
+    const withChest = CommunityPointsContext(
+      balance: 1000,
+      availableClaimId: 'chest',
+    );
+
+    // `FilledButton.icon` builds a subclass, which `byType` would miss.
+    FilledButton collect(WidgetTester tester) => tester.widget<FilledButton>(
+      find.ancestor(
+        of: find.text('Collect bonus'),
+        matching: find.byWidgetPredicate((widget) => widget is FilledButton),
+      ),
+    );
+
+    testWidgets('is offered only while there is one', (tester) async {
+      await pump(tester, const CommunityPointsContext(balance: 1000));
+      expect(find.text('Collect bonus'), findsNothing);
+
+      await pump(tester, withChest);
+      expect(collect(tester).onPressed, isNotNull);
+    });
+
+    testWidgets('is disabled while an action is in flight', (tester) async {
+      final reply = Completer<String?>();
+      when(
+        () => service.claimBonus(
+          channelId: any(named: 'channelId'),
+          claimId: any(named: 'claimId'),
+          authToken: any(named: 'authToken'),
+        ),
+      ).thenAnswer((_) => reply.future);
+      await pump(tester, withChest);
+
+      await tester.tap(find.text('Collect bonus'));
+      await tester.pump();
+      expect(collect(tester).onPressed, isNull);
+
+      reply.complete(null);
+      await tester.pumpAndSettle();
+      expect(collect(tester).onPressed, isNotNull);
+    });
+
+    testWidgets('an integrity refusal replaces it with an explanation', (
+      tester,
+    ) async {
+      when(
+        () => service.claimBonus(
+          channelId: any(named: 'channelId'),
+          claimId: any(named: 'claimId'),
+          authToken: any(named: 'authToken'),
+        ),
+      ).thenAnswer((_) async => 'failed integrity check');
+      await pump(tester, withChest);
+
+      await tester.tap(find.text('Collect bonus'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Collect bonus'), findsNothing);
+      expect(
+        find.textContaining('Twitch blocks collecting the bonus'),
+        findsOneWidget,
+      );
+    });
+  });
+
+  group('predictions', () {
+    testWidgets('an open one can be bet on', (tester) async {
+      await pump(
+        tester,
+        CommunityPointsContext(balance: 1000, predictions: [_prediction()]),
+      );
+
+      expect(find.text('PREDICTION — OPEN'), findsOneWidget);
+      expect(find.text('Tap an outcome to bet.'), findsOneWidget);
+      expect(find.text('1.33 ×'), findsOneWidget);
+      expect(find.text('4.00 ×'), findsOneWidget);
+    });
+
+    testWidgets('a locked one shows its odds but takes no bet', (tester) async {
+      await pump(
+        tester,
+        CommunityPointsContext(
+          balance: 1000,
+          predictions: [_prediction(status: 'LOCKED')],
+        ),
+      );
+
+      expect(find.text('PREDICTION — LOCKED'), findsOneWidget);
+      expect(find.text('Tap an outcome to bet.'), findsNothing);
+      await tester.tap(find.text('Yes'));
+      await tester.pumpAndSettle();
+      expect(find.text('BET ON'), findsNothing);
+    });
+  });
+
   group('the bet sheet', () {
+    testWidgets('starts at the minimum, offers what the balance allows', (
+      tester,
+    ) async {
+      await openBet(tester, balance: 1500);
+
+      expect(find.text('BET ON'), findsOneWidget);
+      expect(find.text('Bet 10'), findsOneWidget);
+      expect(find.widgetWithText(ChoiceChip, '10'), findsOneWidget);
+      expect(find.widgetWithText(ChoiceChip, '100'), findsOneWidget);
+      expect(find.widgetWithText(ChoiceChip, '1 000'), findsOneWidget);
+      expect(find.widgetWithText(ChoiceChip, '10 000'), findsNothing);
+
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Max'));
+      await tester.pump();
+      expect(find.text('Bet 1 500'), findsOneWidget);
+    });
+
+    testWidgets('more than the balance cannot be bet', (tester) async {
+      await openBet(tester, balance: 1500);
+
+      await tester.enterText(find.byType(TextField), '2000');
+      await tester.pump();
+
+      expect(betButton(tester).onPressed, isNull);
+    });
+
+    testWidgets('a balance under the minimum cannot bet at all', (
+      tester,
+    ) async {
+      await openBet(tester, balance: 5);
+
+      expect(find.text('You need at least 10 points to bet.'), findsOneWidget);
+      expect(find.byType(TextField), findsNothing);
+    });
+
+    testWidgets('a bet is sent with its outcome and stake', (tester) async {
+      await openBet(tester);
+
+      await tester.tap(find.widgetWithText(ChoiceChip, '100'));
+      await tester.pump();
+      await tester.tap(find.text('Bet 100'));
+      await tester.pumpAndSettle();
+
+      verify(
+        () => service.makePrediction(
+          eventId: 'pred',
+          outcomeId: 'yes',
+          points: 100,
+          authToken: 'tok',
+        ),
+      ).called(1);
+      expect(find.text('Done.'), findsOneWidget);
+    });
+
     testWidgets('clearing the field does not keep the last stake', (
       tester,
     ) async {
