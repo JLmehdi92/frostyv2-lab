@@ -292,4 +292,58 @@ void main() {
     );
     expect(_decoration(tester).color, FrostyColors.dark.subNoticeBackground);
   });
+
+  group('over the video', () {
+    testWidgets('a translucent black row, rounded, with the green bar', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        const UserNoticeRow(
+          segments: _segments,
+          presentation: NoticePresentation(NoticeLayout.special),
+          overlay: true,
+        ),
+      );
+
+      final decoration = _decoration(tester);
+      expect(decoration.color, const Color(0x29000000));
+      final border = decoration.border! as Border;
+      expect(border.left.width, 4);
+      expect(border.left.color, const Color(0xFF12A87A));
+
+      final clip = tester.widget<ClipRRect>(
+        find.ancestor(
+          of: find.byKey(UserNoticeRow.bodyKey),
+          matching: find.byType(ClipRRect),
+        ),
+      );
+      expect(clip.borderRadius, BorderRadius.circular(6));
+    });
+
+    testWidgets('keeps the generic row untinted', (tester) async {
+      await _pump(
+        tester,
+        const UserNoticeRow(
+          segments: _segments,
+          presentation: NoticePresentation(NoticeLayout.generic),
+          overlay: true,
+        ),
+      );
+
+      expect(_decoration(tester).color, isNull);
+    });
+
+    testWidgets('the chat list is not rounded', (tester) async {
+      await _pump(
+        tester,
+        const UserNoticeRow(
+          segments: _segments,
+          presentation: NoticePresentation(NoticeLayout.special),
+        ),
+      );
+
+      expect(find.byType(ClipRRect), findsNothing);
+    });
+  });
 }

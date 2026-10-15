@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/models/irc.dart';
+import 'package:frosty/screens/channel/chat/widgets/chat_message.dart';
+import 'package:frosty/screens/channel/chat/widgets/overlay_chat_scope.dart';
 import 'package:frosty/screens/channel/chat/widgets/user_notice_row.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:mocktail/mocktail.dart';
@@ -244,5 +246,45 @@ void main() {
       expect(find.byType(UserNoticeRow), findsNothing);
       expect(find.text('Message deleted'), findsOneWidget);
     });
+  });
+
+  testWidgets('a notice in the chat over the video uses the overlay row', (
+    tester,
+  ) async {
+    final store = fakeChatStore();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: OverlayChatScope(
+            child: ListView(
+              children: [
+                ChatMessage(
+                  ircMessage: IRCMessage.fromString(subGift),
+                  chatStore: store,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      tester.widget<UserNoticeRow>(find.byType(UserNoticeRow)).overlay,
+      isTrue,
+    );
+  });
+
+  testWidgets('a notice in the chat list does not', (tester) async {
+    await pumpChatMessage(
+      tester,
+      IRCMessage.fromString(subGift),
+      fakeChatStore(),
+    );
+
+    expect(
+      tester.widget<UserNoticeRow>(find.byType(UserNoticeRow)).overlay,
+      isFalse,
+    );
   });
 }

@@ -9,6 +9,7 @@ import 'package:frosty/screens/channel/channel_top_overlays.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_tabs.dart';
+import 'package:frosty/screens/channel/chat/widgets/overlay_chat_scope.dart';
 import 'package:frosty/screens/channel/community_highlights/gift_bomb_feed.dart';
 import 'package:frosty/screens/channel/community_highlights/stores/community_highlights_store.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/pinned_chat_text.dart';
@@ -951,15 +952,17 @@ class _VideoChatState extends State<VideoChat>
                 final overlayChat = Visibility(
                   visible: settingsStore.fullScreenChatOverlay,
                   maintainState: true,
-                  child: Theme(
-                    data: FrostyThemes(
-                      colorSchemeSeed: Color(settingsStore.accentColor),
-                    ).dark,
-                    child: DefaultTextStyle(
-                      style: context.defaultTextStyle.copyWith(
-                        color: context.frostyColors.overlayOnSurface,
+                  child: OverlayChatScope(
+                    child: Theme(
+                      data: FrostyThemes(
+                        colorSchemeSeed: Color(settingsStore.accentColor),
+                      ).dark,
+                      child: DefaultTextStyle(
+                        style: context.defaultTextStyle.copyWith(
+                          color: context.frostyColors.overlayOnSurface,
+                        ),
+                        child: landscapeChat,
                       ),
-                      child: landscapeChat,
                     ),
                   ),
                 );

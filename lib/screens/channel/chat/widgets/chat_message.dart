@@ -12,6 +12,7 @@ import 'package:frosty/screens/channel/chat/chat_commands.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_link_card.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_user_modal.dart';
+import 'package:frosty/screens/channel/chat/widgets/overlay_chat_scope.dart';
 import 'package:frosty/screens/channel/chat/widgets/reply_thread.dart';
 import 'package:frosty/screens/channel/chat/widgets/user_notice_row.dart';
 import 'package:frosty/utils/context_extensions.dart';
@@ -747,6 +748,7 @@ class ChatMessage extends StatelessWidget {
       accentColor: notice.sponsorColor,
       goalCurrent: notice.goalCurrentContributions,
       goalTarget: notice.goalTargetContributions,
+      overlay: OverlayChatScope.of(context),
     );
   }
 

@@ -14,6 +14,9 @@ import 'package:frosty/utils/context_extensions.dart';
 /// ordinary chat line. The special and sub goal layouts sit on a green tint;
 /// the generic and raid layouts have no tint and an accent in the text colour.
 ///
+/// In the chat drawn over the video ([overlay]) the tint gives way to a
+/// translucent black and the row is rounded, its accent bar too.
+///
 /// Knows nothing of the chat: the caller words the notice, picks its
 /// presentation and builds the user message.
 class UserNoticeRow extends StatelessWidget {
@@ -37,6 +40,9 @@ class UserNoticeRow extends StatelessWidget {
   final int? goalCurrent;
   final int? goalTarget;
 
+  /// Whether the row sits in the chat drawn over the video.
+  final bool overlay;
+
   const UserNoticeRow({
     super.key,
     required this.segments,
@@ -46,6 +52,7 @@ class UserNoticeRow extends StatelessWidget {
     this.accentColor,
     this.goalCurrent,
     this.goalTarget,
+    this.overlay = false,
   });
 
   /// The tinted body, inside the row's 2dp margins.
@@ -59,6 +66,10 @@ class UserNoticeRow extends StatelessWidget {
   static const _avatarSlot = 24.0;
   static const _avatarSize = 16.0;
   static const _gap = 8.0;
+
+  /// The row's background over the video: black at 16%.
+  static const overlayBackground = Color(0x29000000);
+  static const _overlayRadius = 6.0;
 
   bool get _tinted =>
       presentation.layout == NoticeLayout.special ||
@@ -114,35 +125,48 @@ class UserNoticeRow extends StatelessWidget {
       ),
     );
 
+    final background = !_tinted
+        ? null
+        : overlay
+        ? overlayBackground
+        : colors.subNoticeBackground;
+
+    final body = Container(
+      key: bodyKey,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: background,
+        border: Border(
+          left: BorderSide(color: accent, width: _accentWidth),
+        ),
+      ),
+      child: icon == null
+          ? content
+          : Stack(
+              children: [
+                content,
+                Positioned(
+                  left: _gap,
+                  top: 0,
+                  bottom: 0,
+                  width: _iconSlotWidth,
+                  child: Align(
+                    alignment: Alignment(0, presentation.iconBias * 2 - 1),
+                    child: icon,
+                  ),
+                ),
+              ],
+            ),
+    );
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Container(
-        key: bodyKey,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: _tinted ? colors.subNoticeBackground : null,
-          border: Border(
-            left: BorderSide(color: accent, width: _accentWidth),
-          ),
-        ),
-        child: icon == null
-            ? content
-            : Stack(
-                children: [
-                  content,
-                  Positioned(
-                    left: _gap,
-                    top: 0,
-                    bottom: 0,
-                    width: _iconSlotWidth,
-                    child: Align(
-                      alignment: Alignment(0, presentation.iconBias * 2 - 1),
-                      child: icon,
-                    ),
-                  ),
-                ],
-              ),
-      ),
+      child: overlay
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(_overlayRadius),
+              child: body,
+            )
+          : body,
     );
   }
 
@@ -244,9 +268,11 @@ class UserNoticeRow extends StatelessWidget {
 
   /// The source channel's avatar with a star badge over its lower right.
   Widget _sharedChatBadge(BuildContext context, Color tint) {
-    final background = _tinted
-        ? context.frostyColors.subNoticeBackground
-        : Theme.of(context).scaffoldBackgroundColor;
+    final background = !_tinted
+        ? Theme.of(context).scaffoldBackgroundColor
+        : overlay
+        ? Colors.black
+        : context.frostyColors.subNoticeBackground;
 
     return SizedBox.square(
       dimension: _avatarSlot,
