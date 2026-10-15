@@ -225,6 +225,7 @@ abstract class _SettingsStoreBase with Store {
   // Alert defaults
   static const defaultHighlightFirstTimeChatter = true;
   static const defaultShowUserNotices = true;
+  static const defaultCollapseGiftBombs = false;
   static const defaultShowHypeTrain = true;
   static const defaultShowCommunityHighlights = true;
   static const defaultShowCelebrations = true;
@@ -340,6 +341,12 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var showUserNotices = defaultShowUserNotices;
 
+  /// Whether a gift bomb shows only its header. Off by default: Twitch shows
+  /// the header and then one line per gifted sub.
+  @JsonKey(defaultValue: defaultCollapseGiftBombs)
+  @observable
+  var collapseGiftBombs = defaultCollapseGiftBombs;
+
   @JsonKey(defaultValue: defaultShowHypeTrain)
   @observable
   var showHypeTrain = defaultShowHypeTrain;
@@ -347,6 +354,7 @@ abstract class _SettingsStoreBase with Store {
   @JsonKey(defaultValue: defaultShowCommunityHighlights)
   @observable
   var showCommunityHighlights = defaultShowCommunityHighlights;
+
   /// Whether Twitch's celebration animations play over the channel.
   ///
   /// Twitch offers the same switch; a full-screen animation on every gifted
@@ -458,6 +466,7 @@ abstract class _SettingsStoreBase with Store {
 
     highlightFirstTimeChatter = defaultHighlightFirstTimeChatter;
     showUserNotices = defaultShowUserNotices;
+    collapseGiftBombs = defaultCollapseGiftBombs;
     showHypeTrain = defaultShowHypeTrain;
     showCommunityHighlights = defaultShowCommunityHighlights;
     showCelebrations = defaultShowCelebrations;

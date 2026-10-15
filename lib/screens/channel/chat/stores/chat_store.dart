@@ -10,10 +10,10 @@ import 'package:frosty/models/badges.dart';
 import 'package:frosty/models/emotes.dart';
 import 'package:frosty/models/events.dart';
 import 'package:frosty/models/irc.dart';
-import 'package:frosty/models/user_notice.dart';
 import 'package:frosty/screens/channel/chat/chat_commands.dart';
 import 'package:frosty/screens/channel/chat/chat_restrictions.dart';
 import 'package:frosty/screens/channel/chat/details/chat_details_store.dart';
+import 'package:frosty/screens/channel/chat/gift_bomb_tracker.dart';
 import 'package:frosty/screens/channel/chat/held_messages.dart';
 import 'package:frosty/screens/channel/chat/moderation.dart';
 import 'package:frosty/screens/channel/chat/moderation_notice.dart';
@@ -191,45 +191,9 @@ abstract class ChatStoreBase with Store {
   /// Pending delayed IRC payloads waiting to be rendered.
   final _pendingChatCallbacks = <_DelayedCallback>[];
 
-  /// Mass gifts whose header has already been shown, newest last.
-  ///
-  /// A gift of N subs arrives as one `submysterygift` header followed by N
-  /// `subgift` messages sharing a `msg-param-community-gift-id`. Twitch's own
-  /// clients show the header only; without this set a 50-sub gift would bury
-  /// the chat under 51 near-identical lines.
-  final _announcedMassGiftIds = <String>{};
-
-  /// Bound on [_announcedMassGiftIds]. A long session in a busy channel would
-  /// otherwise grow it without limit, and an id is only useful for as long as
-  /// its own gifts are still arriving.
-  static const _maxTrackedMassGifts = 100;
-
-  /// Decides whether an incoming `USERNOTICE` should be shown.
-  ///
-  /// Returns false only for the individual gifts of a mass gift whose header
-  /// this session has already displayed. A gift whose header was never seen —
-  /// because the user joined mid-gift — is still shown, since suppressing it
-  /// would drop the event entirely.
-  bool _shouldRenderUserNotice(IRCMessage message) {
-    final notice = UserNotice.fromTags(message.tags);
-
-    if (notice.isMassGiftHeader) {
-      final id = notice.communityGiftId;
-      if (id != null) {
-        if (_announcedMassGiftIds.length >= _maxTrackedMassGifts) {
-          _announcedMassGiftIds.remove(_announcedMassGiftIds.first);
-        }
-        _announcedMassGiftIds.add(id);
-      }
-      return true;
-    }
-
-    if (notice.isPartOfMassGift) {
-      return !_announcedMassGiftIds.contains(notice.communityGiftId);
-    }
-
-    return true;
-  }
+  /// Follows the gift bombs of this chat: decides whether each gift of a
+  /// bomb gets its own line and which bombs earn the pinned banner.
+  final _giftBombs = GiftBombTracker();
 
   /// Pending delayed 7TV payloads waiting to be rendered.
   final _pendingSevenTVCallbacks = <_DelayedCallback>[];
@@ -931,11 +895,18 @@ abstract class ChatStoreBase with Store {
                 showFFZBadges: settings.showFFZBadges,
               );
             }
-            // Collapse the individual gifts of a mass gift into their header,
-            // the way Twitch's own clients do.
-            if (parsedIRCMessage.command == Command.userNotice &&
-                !_shouldRenderUserNotice(parsedIRCMessage)) {
-              continue;
+            // Every gift of a gift bomb gets its own line, as on Twitch,
+            // unless the viewer collapses them into their header.
+            final notice = parsedIRCMessage.command == Command.userNotice
+                ? parsedIRCMessage.notice
+                : null;
+            if (notice != null) {
+              final decision = _giftBombs.onNotice(
+                notice,
+                collapse: settings.collapseGiftBombs,
+                channelId: channelId,
+              );
+              if (!decision.show) continue;
             }
 
             messageBuffer.add(parsedIRCMessage);

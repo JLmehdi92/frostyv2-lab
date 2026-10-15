@@ -87,6 +87,7 @@ SettingsStore _$SettingsStoreFromJson(
   ..highlightFirstTimeChatter =
       json['highlightFirstTimeChatter'] as bool? ?? true
   ..showUserNotices = json['showUserNotices'] as bool? ?? true
+  ..collapseGiftBombs = json['collapseGiftBombs'] as bool? ?? false
   ..showHypeTrain = json['showHypeTrain'] as bool? ?? true
   ..showCommunityHighlights = json['showCommunityHighlights'] as bool? ?? true
   ..showCelebrations = json['showCelebrations'] as bool? ?? true
@@ -174,6 +175,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'chatDelay': instance.chatDelay,
   'highlightFirstTimeChatter': instance.highlightFirstTimeChatter,
   'showUserNotices': instance.showUserNotices,
+  'collapseGiftBombs': instance.collapseGiftBombs,
   'showHypeTrain': instance.showHypeTrain,
   'showCommunityHighlights': instance.showCommunityHighlights,
   'showCelebrations': instance.showCelebrations,
@@ -959,6 +961,24 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     });
   }
 
+  late final _$collapseGiftBombsAtom = Atom(
+    name: '_SettingsStoreBase.collapseGiftBombs',
+    context: context,
+  );
+
+  @override
+  bool get collapseGiftBombs {
+    _$collapseGiftBombsAtom.reportRead();
+    return super.collapseGiftBombs;
+  }
+
+  @override
+  set collapseGiftBombs(bool value) {
+    _$collapseGiftBombsAtom.reportWrite(value, super.collapseGiftBombs, () {
+      super.collapseGiftBombs = value;
+    });
+  }
+
   late final _$showHypeTrainAtom = Atom(
     name: '_SettingsStoreBase.showHypeTrain',
     context: context,
@@ -1573,6 +1593,7 @@ chatDelay: ${chatDelay},
 syncedChatDelay: ${syncedChatDelay},
 highlightFirstTimeChatter: ${highlightFirstTimeChatter},
 showUserNotices: ${showUserNotices},
+collapseGiftBombs: ${collapseGiftBombs},
 showHypeTrain: ${showHypeTrain},
 showCommunityHighlights: ${showCommunityHighlights},
 showCelebrations: ${showCelebrations},

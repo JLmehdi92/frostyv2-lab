@@ -205,6 +205,30 @@ void main() {
     });
   });
 
+  group('collapseGiftBombs', () {
+    test('is off by default, like Twitch, also for older settings', () {
+      expect(SettingsStore.fromJson({}).collapseGiftBombs, isFalse);
+      expect(
+        SettingsStore.fromJson({'showUserNotices': true}).collapseGiftBombs,
+        isFalse,
+      );
+    });
+
+    test('round-trips through JSON', () {
+      final store = SettingsStore.fromJson({})..collapseGiftBombs = true;
+
+      expect(SettingsStore.fromJson(store.toJson()).collapseGiftBombs, isTrue);
+    });
+
+    test('resetChatSettings turns it back off', () {
+      final store = SettingsStore.fromJson({})
+        ..collapseGiftBombs = true
+        ..resetChatSettings();
+
+      expect(store.collapseGiftBombs, isFalse);
+    });
+  });
+
   group('showModerationNotices', () {
     test('is on by default, also for older settings', () {
       expect(SettingsStore.fromJson({}).showModerationNotices, isTrue);

@@ -219,6 +219,14 @@ class _ChatSettingsState extends State<ChatSettings> {
             onChanged: (newValue) => settingsStore.showUserNotices = newValue,
           ),
           SettingsListSwitch(
+            title: 'Collapse gift bombs',
+            subtitle: const Text(
+              'Shows only the first message of a mass gift, without one line per recipient.',
+            ),
+            value: settingsStore.collapseGiftBombs,
+            onChanged: (newValue) => settingsStore.collapseGiftBombs = newValue,
+          ),
+          SettingsListSwitch(
             title: 'Show Hype Trains',
             subtitle: const Text(
               'Shows Hype Train progress, levels and rewards above chat.',
