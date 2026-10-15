@@ -140,6 +140,8 @@ class ChatBottomBar extends StatelessWidget {
                                     emoteScale: chatStore.settings.emoteScale,
                                     badgeScale: chatStore.settings.badgeScale,
                                     animateEmotes: chatStore.settings.animateEmotes,
+                                    // One line: a GIF shows as its title.
+                                    showGifs: false,
                                     launchExternal:
                                         chatStore.settings.launchUrlExternal,
                                     timestamp: chatStore.settings.timestampType,

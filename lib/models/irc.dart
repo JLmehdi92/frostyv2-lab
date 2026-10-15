@@ -14,6 +14,7 @@ import 'package:frosty/models/user.dart';
 import 'package:frosty/models/user_notice.dart';
 import 'package:frosty/models/user_notice_text.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
+import 'package:frosty/screens/channel/chat/widgets/chat_gif_image.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils.dart' as utils;
@@ -509,6 +510,8 @@ class IRCMessage {
     Color? linkColor,
     bool animateEmotes = true,
     Cheermotes cheermotes = Cheermotes.empty,
+    bool showGifs = true,
+    bool animateGifs = true,
   }) {
     if (!showMessage) {
       span.add(
@@ -528,125 +531,207 @@ class IRCMessage {
       return;
     }
 
-    // Check if the message is a reply. If it is, remove the reply username from the message.
-    final words = tags.containsKey('reply-parent-display-name')
-        ? split?.sublist(1)
-        : split;
+    void addWords(Iterable<String> words) {
+      _addWords(
+        context,
+        span,
+        words.toList(),
+        emoteToObject,
+        emoteSize,
+        emoteScale,
+        launchExternal,
+        textStyle,
+        onTapPingedUser,
+        linkColor: linkColor,
+        animateEmotes: animateEmotes,
+        cheermotes: cheermotes,
+      );
+    }
 
-    if (words != null) {
-      // Keep a local span which will be reversed and added to the final span.
-      final localSpan = <InlineSpan>[];
+    // A reply starts with the parent's @name, which the reply header shows.
+    var skipReplyName = tags.containsKey('reply-parent-display-name');
 
-      // Cheermotes are drawn only in a cheer, like Twitch ("Cheer100"
-      // elsewhere is just text).
-      final isCheer = tags['bits'] != null && !cheermotes.isEmpty;
-      final dark = Theme.of(context).brightness == Brightness.dark;
+    if (gifParts.isEmpty) {
+      final split = this.split;
+      if (split == null) return;
+      addWords(skipReplyName ? split.skip(1) : split);
+      return;
+    }
 
-      // Iterate through the words in reverse-order.
-      var index = words.length - 1;
+    for (final part in gifParts) {
+      final gif = part.gif;
+      if (gif == null) {
+        final partWords = _splitWords(_normalizeText(part.text));
+        addWords(skipReplyName ? partWords.skip(1) : partWords);
+        skipReplyName = false;
+        continue;
+      }
+      skipReplyName = false;
 
-      // Terminate after the first word in the message reached.
-      while (index != -1) {
-        final word = words[index];
-        final cheer = isCheer ? cheermotes.match(word) : null;
-        final emote = cheer != null
-            ? null
-            : emoteToObject[word] ?? localEmotes?[word];
-
-        if (cheer != null) {
-          // Reversed order (like the other words): the amount, the image
-          // before it, then the space before the cheer.
-          localSpan
-            ..add(
-              TextSpan(
-                text: '${cheer.amount}',
-                style: (textStyle ?? const TextStyle()).copyWith(
-                  color: Color(cheer.tier.color),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            )
-            ..add(
-              WidgetSpan(
-                alignment: PlaceholderAlignment.middle,
-                child: Semantics(
-                  label: '${cheer.prefix} ${cheer.amount} bits',
-                  child: FrostyCachedNetworkImage(
-                    imageUrl: cheer.tier.url(
-                      dark: dark,
-                      animated: animateEmotes,
-                    ),
-                    height: emoteSize,
-                    useFade: false,
-                    placeholder: (context, url) => const SizedBox(),
-                  ),
-                ),
-              ),
-            )
-            ..add(const TextSpan(text: ' '));
-          index--;
-        } else if (emote != null) {
-          // If the emote is zero-width and not the first word, process the stack.
-          if (emote.zeroWidth && index != 0) {
-            index = _processZeroWidthEmoteStack(
-              context,
-              localSpan,
-              words,
-              index,
-              emote,
-              emoteToObject,
-              emoteSize,
-              emoteScale,
-              textStyle,
-              launchExternal,
-              linkColor: linkColor,
-              animateEmotes: animateEmotes,
-            );
-          } else {
-            localSpan.add(
-              _createEmoteSpan(
+      final title = _normalizeText(part.text);
+      if (!showGifs || !gif.isLoadable) {
+        // Twitch draws the title as plain text when GIFs are turned off.
+        span.add(TextSpan(text: ' $title', style: textStyle));
+        continue;
+      }
+      // Like Twitch, the GIF starts a new line and takes its title's place.
+      span
+        ..add(const TextSpan(text: '\n'))
+        ..add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: ChatGifImage(
+              gif: gif,
+              title: title.isEmpty ? 'GIF' : title,
+              animate: animateGifs,
+              textStyle: textStyle,
+              onTap: () => _showAssetDetailsBottomSheet(
                 context,
-                emote: emote,
-                animate: animateEmotes,
-                height: emote.height != null
-                    ? emote.height! * emoteScale
-                    : emoteSize,
-                width: emote.width != null ? emote.width! * emoteScale : null,
+                leading: ChatGifImage(
+                  gif: gif,
+                  title: title,
+                  animate: animateGifs,
+                  height: 56,
+                ),
+                url: gif.url,
+                title: title,
+                subtitle: const Text('GIF'),
                 launchExternal: launchExternal,
               ),
-            );
-            localSpan.add(const TextSpan(text: ' '));
-            index--;
-          }
-        } else {
-          if (regexEmoji.hasMatch(word)) {
-            localSpan.add(
-              _createEmojiSpan(
-                emoji: word,
-                style: textStyle?.copyWith(
-                  fontSize: emoteSize - _emojiSizeOffset,
+            ),
+          ),
+        );
+    }
+  }
+
+  /// Adds [words] to [span], each with the space before it: emotes, cheers,
+  /// emojis, mentions, links and text.
+  void _addWords(
+    BuildContext context,
+    List<InlineSpan> span,
+    List<String> words,
+    Map<String, Emote> emoteToObject,
+    double emoteSize,
+    double emoteScale,
+    bool launchExternal,
+    TextStyle? textStyle,
+    void Function(String)? onTapPingedUser, {
+    Color? linkColor,
+    bool animateEmotes = true,
+    Cheermotes cheermotes = Cheermotes.empty,
+  }) {
+    // Keep a local span which will be reversed and added to the final span.
+    final localSpan = <InlineSpan>[];
+
+    // Cheermotes are drawn only in a cheer, like Twitch ("Cheer100"
+    // elsewhere is just text).
+    final isCheer = tags['bits'] != null && !cheermotes.isEmpty;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+
+    // Iterate through the words in reverse-order.
+    var index = words.length - 1;
+
+    // Terminate after the first word in the message reached.
+    while (index != -1) {
+      final word = words[index];
+      final cheer = isCheer ? cheermotes.match(word) : null;
+      final emote = cheer != null
+          ? null
+          : emoteToObject[word] ?? localEmotes?[word];
+
+      if (cheer != null) {
+        // Reversed order (like the other words): the amount, the image
+        // before it, then the space before the cheer.
+        localSpan
+          ..add(
+            TextSpan(
+              text: '${cheer.amount}',
+              style: (textStyle ?? const TextStyle()).copyWith(
+                color: Color(cheer.tier.color),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          )
+          ..add(
+            WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: Semantics(
+                label: '${cheer.prefix} ${cheer.amount} bits',
+                child: FrostyCachedNetworkImage(
+                  imageUrl: cheer.tier.url(
+                    dark: dark,
+                    animated: animateEmotes,
+                  ),
+                  height: emoteSize,
+                  useFade: false,
+                  placeholder: (context, url) => const SizedBox(),
                 ),
               ),
-            );
-          } else {
-            localSpan.add(
-              _createTextSpan(
-                text: word,
-                style: textStyle,
-                linkColor: linkColor,
-                launchExternal: launchExternal,
-                onTapPingedUser: onTapPingedUser,
-              ),
-            );
-          }
+            ),
+          )
+          ..add(const TextSpan(text: ' '));
+        index--;
+      } else if (emote != null) {
+        // If the emote is zero-width and not the first word, process the stack.
+        if (emote.zeroWidth && index != 0) {
+          index = _processZeroWidthEmoteStack(
+            context,
+            localSpan,
+            words,
+            index,
+            emote,
+            emoteToObject,
+            emoteSize,
+            emoteScale,
+            textStyle,
+            launchExternal,
+            linkColor: linkColor,
+            animateEmotes: animateEmotes,
+          );
+        } else {
+          localSpan.add(
+            _createEmoteSpan(
+              context,
+              emote: emote,
+              animate: animateEmotes,
+              height: emote.height != null
+                  ? emote.height! * emoteScale
+                  : emoteSize,
+              width: emote.width != null ? emote.width! * emoteScale : null,
+              launchExternal: launchExternal,
+            ),
+          );
           localSpan.add(const TextSpan(text: ' '));
           index--;
         }
+      } else {
+        if (regexEmoji.hasMatch(word)) {
+          localSpan.add(
+            _createEmojiSpan(
+              emoji: word,
+              style: textStyle?.copyWith(
+                fontSize: emoteSize - _emojiSizeOffset,
+              ),
+            ),
+          );
+        } else {
+          localSpan.add(
+            _createTextSpan(
+              text: word,
+              style: textStyle,
+              linkColor: linkColor,
+              launchExternal: launchExternal,
+              onTapPingedUser: onTapPingedUser,
+            ),
+          );
+        }
+        localSpan.add(const TextSpan(text: ' '));
+        index--;
       }
-
-      // Add the local span reversed to the final span.
-      span.addAll(localSpan.reversed);
     }
+
+    // Add the local span reversed to the final span.
+    span.addAll(localSpan.reversed);
   }
 
   /// Handles zero-width emote stacking logic and returns updated index
@@ -775,6 +860,8 @@ class IRCMessage {
     TimestampType timestamp = TimestampType.disabled,
     String? currentChannelId,
     bool animateEmotes = true,
+    bool showGifs = true,
+    bool animateGifs = true,
   }) {
     final emoteToObject = assetsStore.emoteToObject;
     final badgeSize = defaultBadgeSize * badgeScale;
@@ -824,6 +911,8 @@ class IRCMessage {
       linkColor: linkColor,
       animateEmotes: animateEmotes,
       cheermotes: assetsStore.cheermotes,
+      showGifs: showGifs,
+      animateGifs: animateGifs,
     );
 
     return span;

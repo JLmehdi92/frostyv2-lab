@@ -196,6 +196,8 @@ class ChatMessage extends StatelessWidget {
                   emoteScale: chatStore.settings.emoteScale,
                   badgeScale: chatStore.settings.badgeScale,
                   animateEmotes: chatStore.settings.animateEmotes,
+                  showGifs: chatStore.settings.showGifs,
+                  animateGifs: chatStore.settings.animateGifs,
                   launchExternal: chatStore.settings.launchUrlExternal,
                   timestamp: chatStore.settings.timestampType,
                   channelIdToUserTwitch:
@@ -321,6 +323,8 @@ class ChatMessage extends StatelessWidget {
                   emoteScale: chatStore.settings.emoteScale,
                   badgeScale: chatStore.settings.badgeScale,
                   animateEmotes: chatStore.settings.animateEmotes,
+                  showGifs: chatStore.settings.showGifs,
+                  animateGifs: chatStore.settings.animateGifs,
                   launchExternal: chatStore.settings.launchUrlExternal,
                   timestamp: chatStore.settings.timestampType,
                   channelIdToUserTwitch:
@@ -499,6 +503,8 @@ class ChatMessage extends StatelessWidget {
                         emoteScale: chatStore.settings.emoteScale,
                         badgeScale: chatStore.settings.badgeScale,
                         animateEmotes: chatStore.settings.animateEmotes,
+                        showGifs: chatStore.settings.showGifs,
+                        animateGifs: chatStore.settings.animateGifs,
                         showMessage:
                             chatStore.settings.showDeletedMessages ||
                             chatStore.revealedMessageIds.contains(
@@ -702,6 +708,8 @@ class ChatMessage extends StatelessWidget {
         emoteScale: chatStore.settings.emoteScale,
         badgeScale: chatStore.settings.badgeScale,
         animateEmotes: chatStore.settings.animateEmotes,
+        showGifs: chatStore.settings.showGifs,
+        animateGifs: chatStore.settings.animateGifs,
         showMessage: showMessage,
         onTapDeletedMessage: onTapDeletedMessage,
         launchExternal: chatStore.settings.launchUrlExternal,
