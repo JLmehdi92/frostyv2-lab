@@ -94,9 +94,15 @@ class HypeTrainBanner extends StatefulWidget {
 }
 
 class _HypeTrainBannerState extends State<HypeTrainBanner> {
-  /// The level before the last change, for a merge's counting pill.
-  int? _previousLevel;
-  int? _level;
+  /// The level shown before the running merge, frozen while it plays:
+  /// where the merge's pill counts up from.
+  int? _levelBeforeMerge;
+
+  @override
+  void didUpdateWidget(HypeTrainBanner oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.store != widget.store) _levelBeforeMerge = null;
+  }
 
   /// Avatar and icon rows fade the resting content out more slowly.
   static const _slowFades = {
@@ -118,13 +124,12 @@ class _HypeTrainBannerState extends State<HypeTrainBanner> {
           final train = store.train;
           if (train == null) return const SizedBox.shrink();
           final level = store.shownLevel;
-          if (_level != null && _level != level) _previousLevel = _level;
-          _level = level;
           final palette = htPaletteOf(context, store);
           final height = compact
               ? null
               : htBannerHeight(MediaQuery.textScalerOf(context));
           final step = store.step;
+          if (step?.kind != HtStepKind.mergeAura) _levelBeforeMerge = level;
           final resting = HypeTrainStepContent.isResting(step);
           final fade = store.reduceMotion
               ? Duration.zero
@@ -247,7 +252,9 @@ class _HypeTrainBannerState extends State<HypeTrainBanner> {
                                     store: store,
                                     palette: palette,
                                     compact: compact,
-                                    previousLevel: _previousLevel,
+                                    previousLevel: _levelBeforeMerge == level
+                                        ? null
+                                        : _levelBeforeMerge,
                                   ),
                                 ),
                               ],

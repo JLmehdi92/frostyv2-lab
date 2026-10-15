@@ -257,4 +257,63 @@ void main() {
     expect(find.byKey(const ValueKey('ht-speedlines')), findsNothing);
     await h.close(tester);
   });
+
+  group('a merge after a level-up', () {
+    Future<HtHarness> levelledUp(WidgetTester tester) async {
+      final h = harnessFor(liveTrain(level: 2, total: 9000));
+      await pumpSlot(tester, h.store);
+      h.inject(htLevelUp(3));
+      await tester.pump();
+      for (var t = 0; t < 60; t++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(h.store.step, isNull);
+      expect(h.store.shownLevel, 3);
+      return h;
+    }
+
+    Finder mergePill(String text) =>
+        find.descendant(of: find.byType(MergeAura), matching: find.text(text));
+
+    testWidgets('keeping the level does not count from an older one', (
+      tester,
+    ) async {
+      final h = await levelledUp(tester);
+
+      h.inject(
+        HtMergeEvent(
+          train: liveTrain(id: 'merged', level: 3, total: 20000),
+          previousChannels: [user('a')],
+          joiningChannels: [user('b')],
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(mergePill('LVL 2'), findsNothing);
+      expect(mergePill('LVL 3'), findsOneWidget);
+      await h.close(tester);
+    });
+
+    testWidgets('raising the level counts from the current one', (
+      tester,
+    ) async {
+      final h = await levelledUp(tester);
+
+      h.inject(
+        HtMergeEvent(
+          train: liveTrain(id: 'merged', level: 5, total: 30000),
+          previousChannels: [user('a')],
+          joiningChannels: [user('b')],
+        ),
+      );
+      await tester.pump();
+
+      expect(mergePill('LVL 3'), findsOneWidget);
+      expect(mergePill('LVL 2'), findsNothing);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(mergePill('LVL 4'), findsOneWidget);
+      await h.close(tester);
+    });
+  });
 }
