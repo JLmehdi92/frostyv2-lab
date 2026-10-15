@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -72,7 +73,16 @@ abstract class AuthBase with Store {
   String? _twitchWebToken;
 
   /// Reads the twitch.tv session cookie out of the login WebView's jar.
-  final _webTokenService = const TwitchWebTokenService();
+  final TwitchWebTokenService _webTokenService;
+
+  /// Loads twitch.tv so Twitch reissues its session cookie. Injected by tests;
+  /// the app drives a detached WebView.
+  final Future<void> Function() _loadTwitchPage;
+
+  /// Whether the cookie jar can be read at all — only Android has the native
+  /// channel. Off Android a jar miss says nothing about a token the user
+  /// pasted by hand, so it must never mark the session expired.
+  final bool _isAndroid;
 
   /// True once a harvest has run and come back empty, meaning the twitch.tv
   /// session behind the enhanced-broadcast renditions is gone.
@@ -94,8 +104,9 @@ abstract class AuthBase with Store {
 
     if (harvested == null) {
       // Only a stored token going stale is worth reporting. Having never had
-      // one is the normal state for a user who has not logged in yet.
-      _webSessionExpired = _twitchWebToken != null;
+      // one is the normal state for a user who has not logged in yet — and
+      // without a jar (off Android) there is nothing to judge staleness from.
+      if (_isAndroid) _webSessionExpired = _twitchWebToken != null;
       return false;
     }
 
@@ -107,8 +118,9 @@ abstract class AuthBase with Store {
     return true;
   }
 
-  /// Guards against overlapping silent refreshes.
-  var _refreshingWebSession = false;
+  /// The silent refresh in flight, so overlapping callers share one page load
+  /// instead of each starting their own.
+  Future<bool>? _webSessionRefresh;
 
   /// Loads twitch.tv in a detached WebView so Twitch reissues the session
   /// cookie, then harvests it. Returns true when a token was obtained.
@@ -119,50 +131,52 @@ abstract class AuthBase with Store {
   /// twitch.tv. The login WebView does that once and is then never used again,
   /// so without this the cookie would simply age out and playback would drop
   /// to 1080p with nothing to explain why.
-  ///
-  /// No widget is mounted: the controller drives a native WebView that only
-  /// needs to fetch and run the page, not paint it.
-  Future<bool> refreshTwitchWebSession() async {
+  Future<bool> refreshTwitchWebSession() {
     // Android-only: the cookie jar is read through an Android channel, so
     // there is nothing to refresh into on other platforms.
-    if (!Platform.isAndroid || _refreshingWebSession) return false;
+    if (!_isAndroid) return Future.value(false);
 
-    _refreshingWebSession = true;
+    return _webSessionRefresh ??= _refreshWebSession().whenComplete(
+      () => _webSessionRefresh = null,
+    );
+  }
+
+  Future<bool> _refreshWebSession() async {
     try {
-      final loaded = Completer<void>();
-      void finish() {
-        if (!loaded.isCompleted) loaded.complete();
-      }
-
-      final controller = WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.unrestricted)
-        // Same UA as the login WebView: Twitch serves a different session
-        // flow to clients it reads as embedded WebViews.
-        ..setUserAgent(
-          'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Mobile Safari/537.36',
-        )
-        ..setNavigationDelegate(
-          NavigationDelegate(
-            onPageFinished: (_) => finish(),
-            // A failed load still ends the wait: the harvest below decides,
-            // and a stale token is better diagnosed than hung on.
-            onWebResourceError: (_) => finish(),
-          ),
-        );
-
-      await controller.loadRequest(Uri.parse('https://www.twitch.tv/'));
-      await loaded.future.timeout(
-        const Duration(seconds: 20),
-        onTimeout: () {},
-      );
-
+      await _loadTwitchPage();
       return await harvestTwitchWebToken();
     } catch (e) {
-      debugPrint('Silent twitch.tv session refresh failed: $e');
+      debugPrint('Silent twitch.tv session refresh failed: ${e.runtimeType}');
       return false;
-    } finally {
-      _refreshingWebSession = false;
     }
+  }
+
+  /// Drives a native WebView that only needs to fetch and run twitch.tv, not
+  /// paint it: no widget is mounted.
+  static Future<void> _loadTwitchPageInWebView() async {
+    final loaded = Completer<void>();
+    void finish() {
+      if (!loaded.isCompleted) loaded.complete();
+    }
+
+    final controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      // Same UA as the login WebView: Twitch serves a different session
+      // flow to clients it reads as embedded WebViews.
+      ..setUserAgent(
+        'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Mobile Safari/537.36',
+      )
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageFinished: (_) => finish(),
+          // A failed load still ends the wait: the harvest decides, and a
+          // stale token is better diagnosed than hung on.
+          onWebResourceError: (_) => finish(),
+        ),
+      );
+
+    await controller.loadRequest(Uri.parse('https://www.twitch.tv/'));
+    await loaded.future.timeout(const Duration(seconds: 20), onTimeout: () {});
   }
 
   /// When the last renewal ran, so a channel that keeps failing cannot spawn a
@@ -186,14 +200,28 @@ abstract class AuthBase with Store {
   /// 1080p.
   @action
   Future<String?> renewTwitchWebToken() async {
+    // No jar to refresh into: a pasted token stays as it is, and is not
+    // declared dead on the strength of a read that cannot happen.
+    if (!_isAndroid) return null;
+
     final previous = _twitchWebToken;
+
+    // A refresh is already loading the page (the launch-time one, usually):
+    // wait for it rather than start a second load, and leave the cooldown and
+    // the expired flag alone — this call did not get a verdict of its own.
+    final running = _webSessionRefresh;
+    if (running != null) {
+      await running;
+      final current = _twitchWebToken;
+      return current != null && current != previous ? current : null;
+    }
 
     final lastRun = _lastWebTokenRenewal;
     if (lastRun != null &&
-        DateTime.now().difference(lastRun) < _webTokenRenewalCooldown) {
+        clock.now().difference(lastRun) < _webTokenRenewalCooldown) {
       return null;
     }
-    _lastWebTokenRenewal = DateTime.now();
+    _lastWebTokenRenewal = clock.now();
 
     await refreshTwitchWebSession();
 
@@ -399,7 +427,15 @@ abstract class AuthBase with Store {
     );
   }
 
-  AuthBase({required this.twitchApi}) : user = UserStore(twitchApi: twitchApi);
+  AuthBase({
+    required this.twitchApi,
+    TwitchWebTokenService webTokenService = const TwitchWebTokenService(),
+    Future<void> Function()? loadTwitchPage,
+    bool? isAndroid,
+  }) : user = UserStore(twitchApi: twitchApi),
+       _webTokenService = webTokenService,
+       _loadTwitchPage = loadTwitchPage ?? _loadTwitchPageInWebView,
+       _isAndroid = isAndroid ?? Platform.isAndroid;
 
   /// Initialize by retrieving a token if it does not already exist.
   @action
