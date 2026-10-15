@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frosty/theme.dart';
 
 class FrostyPageView extends StatefulWidget {
   final List<String> headers;
@@ -83,9 +84,13 @@ class _FrostyPageViewState extends State<FrostyPageView>
                   child: TabBar(
                     controller: _tabController,
                     isScrollable: true,
-                    labelStyle: const TextStyle(
+                    // SpaceGrotesk est une police variable : le poids doit
+                    // passer par fontVariations, sinon le moteur simule le gras.
+                    labelStyle: TextStyle(
+                      fontFamily: FrostyTokens.displayFamily,
+                      fontVariations: FrostyTokens.displayWeight(600),
                       fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.011,
                     ),
                     labelPadding: const EdgeInsets.symmetric(horizontal: 12),
                     tabs: widget.headers

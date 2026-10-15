@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:frosty/utils/context_extensions.dart';
 
-/// A live indicator widget that displays a red dot with a ping animation.
-/// Used to indicate when a channel or stream is currently live.
+/// A live indicator widget that displays an accent-coloured dot with a ping
+/// animation. Used to indicate when a channel or stream is currently live.
 class LiveIndicator extends StatefulWidget {
   /// The size of the indicator dot.
   final double size;
 
-  /// The color of the indicator. Defaults to red.
-  final Color color;
+  /// The color of the indicator. Defaults to the theme's live colour, which is
+  /// the one place the accent is allowed to appear.
+  final Color? color;
 
   const LiveIndicator({
     super.key,
     this.size = _LiveIndicatorState._defaultSize,
-    this.color = Colors.red,
+    this.color,
   });
 
   @override
@@ -128,13 +130,15 @@ class _LiveIndicatorState extends State<LiveIndicator>
 
   @override
   Widget build(BuildContext context) {
+    final color = widget.color ?? context.frostyColors.live;
+
     // Handle case where animations aren't initialized (hot reload issue)
     if (_pingController == null || _pingScale == null || _pingOpacity == null) {
       _initAnimations();
       return Container(
         width: widget.size,
         height: widget.size,
-        decoration: BoxDecoration(color: widget.color, shape: BoxShape.circle),
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
       );
     }
 
@@ -164,9 +168,7 @@ class _LiveIndicatorState extends State<LiveIndicator>
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: widget.color.withValues(
-                                alpha: _borderOpacity,
-                              ),
+                              color: color.withValues(alpha: _borderOpacity),
                               width: _borderWidth,
                             ),
                           ),
@@ -180,10 +182,7 @@ class _LiveIndicatorState extends State<LiveIndicator>
               Container(
                 width: widget.size,
                 height: widget.size,
-                decoration: BoxDecoration(
-                  color: widget.color,
-                  shape: BoxShape.circle,
-                ),
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
               ),
             ],
           ),

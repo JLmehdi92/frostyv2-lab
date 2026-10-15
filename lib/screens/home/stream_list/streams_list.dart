@@ -114,6 +114,32 @@ class _StreamsListState extends State<StreamsList>
     super.dispose();
   }
 
+  /// Whether a card should render large.
+  ///
+  /// On top of the existing [SettingsStore.largeStreamCard] setting, the very
+  /// first live channel of the followed list is promoted to a large card. That
+  /// gives the list a hierarchy — the channel you are most likely to open is
+  /// the one you can actually see — without taking either card setting away.
+  ///
+  /// It deliberately does nothing in two cases. In large-card mode every card
+  /// is already large, so promoting the first one would change nothing. And
+  /// with thumbnails off, a large card carries no extra information and only
+  /// costs height.
+  ///
+  /// Only the followed list gets it: on Top or in a category, singling out one
+  /// channel would be arbitrary, since the list is not the user's own.
+  bool _useLargeCard({
+    required SettingsStore settingsStore,
+    required int index,
+    required bool isFirstSection,
+  }) {
+    if (settingsStore.largeStreamCard) return true;
+    if (widget.listType != ListType.followed) return false;
+    if (!settingsStore.showThumbnails) return false;
+
+    return isFirstSection && index == 0;
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
@@ -200,7 +226,11 @@ class _StreamsListState extends State<StreamsList>
                       maxItemWidth: _cardWidth(isLargeCard),
                       itemCount: pinnedChannelCount,
                       itemBuilder: (context, index) {
-                        if (isLargeCard) {
+                        if (_useLargeCard(
+                          settingsStore: settingsStore,
+                          index: index,
+                          isFirstSection: true,
+                        )) {
                           return LargeStreamCardSkeletonLoader(
                             showThumbnail: settingsStore.showThumbnails,
                             showCategory: widget.listType != ListType.category,
@@ -233,7 +263,11 @@ class _StreamsListState extends State<StreamsList>
                     maxItemWidth: _cardWidth(isLargeCard),
                     itemCount: isFollowingTab && pinnedChannelCount > 0 ? 5 : 8,
                     itemBuilder: (context, index) {
-                      if (isLargeCard) {
+                      if (_useLargeCard(
+                        settingsStore: settingsStore,
+                        index: index,
+                        isFirstSection: pinnedChannelCount == 0,
+                      )) {
                         return LargeStreamCardSkeletonLoader(
                           showThumbnail: settingsStore.showThumbnails,
                           showCategory: widget.listType != ListType.category,
@@ -364,7 +398,11 @@ class _StreamsListState extends State<StreamsList>
                                     return Observer(
                                       builder: (context) {
                                         // Only live stream cards since we removed offline pinned channels
-                                        return settingsStore.largeStreamCard
+                                        return _useLargeCard(
+                                              settingsStore: settingsStore,
+                                              index: index,
+                                              isFirstSection: true,
+                                            )
                                             ? LargeStreamCard(
                                                 key: ValueKey(stream.userId),
                                                 streamInfo: stream,
@@ -424,7 +462,14 @@ class _StreamsListState extends State<StreamsList>
                               }
                               return Observer(
                                 builder: (context) =>
-                                    settingsStore.largeStreamCard
+                                    _useLargeCard(
+                                      settingsStore: settingsStore,
+                                      index: index,
+                                      // Pinned channels already sit above and
+                                      // carry the hero, if there are any.
+                                      isFirstSection:
+                                          _listStore.allPinnedChannels.isEmpty,
+                                    )
                                     ? LargeStreamCard(
                                         key: ValueKey(
                                           unpinnedStreams[index].userId,

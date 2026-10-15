@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// Shared shadow for overlay controls and text on top of video content.
 const kOverlayShadow = [
@@ -10,6 +11,61 @@ const kOverlayShadow = [
     color: Color.fromRGBO(0, 0, 0, 0.3),
   ),
 ];
+
+/// Design tokens for the "Noir & Signal" visual system.
+///
+/// The rules these encode, in short:
+/// - Backgrounds are pure neutral; surfaces all sit at the *same* elevation.
+///   There is no elevation scale — depth is expressed with hairlines, never
+///   with tints or drop shadows.
+/// - [kAccent] means "live". It is used for the live badge, the active
+///   navigation icon, the active tab underline, a selected check and an enabled
+///   toggle — nothing else. Metadata stays neutral grey, otherwise the accent
+///   is everywhere and stops signalling anything.
+/// - Red is not part of the chrome. It survives only where it carries meaning:
+///   the follower-only chat mode and destructive actions.
+class FrostyTokens {
+  const FrostyTokens._();
+
+  // Neutrals ─────────────────────────────────────────────────────────────────
+  static const backgroundDark = Color(0xFF0A0A0A);
+  static const surfaceDark = Color(0xFF141414);
+  static const backgroundLight = Color(0xFFF8F8F8);
+  static const surfaceLight = Color(0xFFFFFFFF);
+
+  /// Hairline used for every border and separator in the app.
+  static const hairlineWidth = 0.5;
+  static const hairlineDark = Color(0x14FFFFFF);
+  static const hairlineLight = Color(0x14000000);
+
+  // Accent ───────────────────────────────────────────────────────────────────
+  /// Electric lime. Reserved for the live state and active selection.
+  static const accent = Color(0xFFC8FF3D);
+
+  // Type ─────────────────────────────────────────────────────────────────────
+  static const displayFamily = 'SpaceGrotesk';
+  static const bodyFamily = 'Geist';
+
+  /// Monospace face for every number the user reads: viewer counts, uptime,
+  /// latency, resolutions and chat timestamps. Tabular by construction, so
+  /// counters stop jittering as their digits change.
+  static const monoFamily = 'SpaceMono';
+
+  /// SpaceGrotesk ships as a variable font, so weights must be selected through
+  /// [FontVariation]. Using [FontWeight] alone would render the default
+  /// instance and let the engine fake the bold.
+  static List<FontVariation> displayWeight(double weight) => [
+    FontVariation('wght', weight),
+  ];
+
+  // Shape ────────────────────────────────────────────────────────────────────
+  static const radiusCard = 12.0;
+  static const radiusDialog = 16.0;
+  static const radiusSmall = 8.0;
+
+  /// Full pill, used by text inputs.
+  static const radiusPill = 100.0;
+}
 
 /// App-specific semantic colors that extend Material's [ColorScheme].
 ///
@@ -29,6 +85,15 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
   final Color uniqueMode;
   final Color overlayOnSurface;
 
+  /// The live state: badges, dots, the "LIVE" pill. Always the accent.
+  final Color live;
+
+  /// Every number the user reads. Deliberately unaccented.
+  final Color metadata;
+
+  /// Hairline borders and separators.
+  final Color hairline;
+
   const FrostyColors({
     required this.highlightedMessage,
     required this.emoteOnly,
@@ -37,26 +102,39 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
     required this.subOnly,
     required this.uniqueMode,
     required this.overlayOnSurface,
+    required this.live,
+    required this.metadata,
+    required this.hairline,
   });
 
   static const light = FrostyColors(
-    highlightedMessage: Color(0xff9146ff),
-    emoteOnly: Color(0xFFFFB74D),
-    followersOnly: Color(0xFFF44336),
-    slowMode: Color(0xFF2196F3),
-    subOnly: Color(0xFF4CAF50),
-    uniqueMode: Color(0xFFAB47BC),
+    // Was Twitch's own #9146ff. Shifted to a colder violet so the app stops
+    // borrowing the identity it is trying to move away from.
+    highlightedMessage: Color(0xFFB15CFF),
+    emoteOnly: Color(0xFFE59A2E),
+    followersOnly: Color(0xFFD9534F),
+    slowMode: Color(0xFF2C7BE5),
+    subOnly: Color(0xFF2E9E5B),
+    uniqueMode: Color(0xFF9B4DCA),
     overlayOnSurface: Colors.white,
+    // Lime on white is unreadable, so the light theme darkens it rather than
+    // falling back to red, which the system reserves for other meanings.
+    live: Color(0xFF6B9E00),
+    metadata: Color(0xFF6B6B6B),
+    hairline: FrostyTokens.hairlineLight,
   );
 
   static const dark = FrostyColors(
-    highlightedMessage: Color(0xff9146ff),
+    highlightedMessage: Color(0xFFB15CFF),
     emoteOnly: Color(0xFFFFCC80),
     followersOnly: Color(0xFFE57373),
     slowMode: Color(0xFF64B5F6),
     subOnly: Color(0xFF81C784),
     uniqueMode: Color(0xFFBA68C8),
     overlayOnSurface: Colors.white,
+    live: FrostyTokens.accent,
+    metadata: Color(0xFFA1A1A1),
+    hairline: FrostyTokens.hairlineDark,
   );
 
   @override
@@ -68,6 +146,9 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
     Color? subOnly,
     Color? uniqueMode,
     Color? overlayOnSurface,
+    Color? live,
+    Color? metadata,
+    Color? hairline,
   }) {
     return FrostyColors(
       highlightedMessage: highlightedMessage ?? this.highlightedMessage,
@@ -77,6 +158,9 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
       subOnly: subOnly ?? this.subOnly,
       uniqueMode: uniqueMode ?? this.uniqueMode,
       overlayOnSurface: overlayOnSurface ?? this.overlayOnSurface,
+      live: live ?? this.live,
+      metadata: metadata ?? this.metadata,
+      hairline: hairline ?? this.hairline,
     );
   }
 
@@ -84,13 +168,67 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
   FrostyColors lerp(FrostyColors? other, double t) {
     if (other is! FrostyColors) return this;
     return FrostyColors(
-      highlightedMessage: Color.lerp(highlightedMessage, other.highlightedMessage, t)!,
+      highlightedMessage: Color.lerp(
+        highlightedMessage,
+        other.highlightedMessage,
+        t,
+      )!,
       emoteOnly: Color.lerp(emoteOnly, other.emoteOnly, t)!,
       followersOnly: Color.lerp(followersOnly, other.followersOnly, t)!,
       slowMode: Color.lerp(slowMode, other.slowMode, t)!,
       subOnly: Color.lerp(subOnly, other.subOnly, t)!,
       uniqueMode: Color.lerp(uniqueMode, other.uniqueMode, t)!,
-      overlayOnSurface: Color.lerp(overlayOnSurface, other.overlayOnSurface, t)!,
+      overlayOnSurface: Color.lerp(
+        overlayOnSurface,
+        other.overlayOnSurface,
+        t,
+      )!,
+      live: Color.lerp(live, other.live, t)!,
+      metadata: Color.lerp(metadata, other.metadata, t)!,
+      hairline: Color.lerp(hairline, other.hairline, t)!,
+    );
+  }
+}
+
+/// Text styles that sit outside Material's scale: the monospace metadata style
+/// and the wide-tracked uppercase label used for categories and section
+/// headers.
+class FrostyTextStyles extends ThemeExtension<FrostyTextStyles> {
+  /// Viewer counts, uptime, latency, resolutions, chat timestamps.
+  final TextStyle metadata;
+
+  /// Category names and section headers: uppercase, small, widely tracked.
+  final TextStyle label;
+
+  const FrostyTextStyles({required this.metadata, required this.label});
+
+  static const _mono = TextStyle(
+    fontFamily: FrostyTokens.monoFamily,
+    fontFeatures: [FontFeature.tabularFigures()],
+  );
+
+  static FrostyTextStyles resolve(Color metadataColor) => FrostyTextStyles(
+    metadata: _mono.copyWith(fontSize: 13, color: metadataColor),
+    label: _mono.copyWith(
+      fontSize: 11,
+      letterSpacing: 1.2,
+      color: metadataColor,
+    ),
+  );
+
+  @override
+  FrostyTextStyles copyWith({TextStyle? metadata, TextStyle? label}) =>
+      FrostyTextStyles(
+        metadata: metadata ?? this.metadata,
+        label: label ?? this.label,
+      );
+
+  @override
+  FrostyTextStyles lerp(FrostyTextStyles? other, double t) {
+    if (other is! FrostyTextStyles) return this;
+    return FrostyTextStyles(
+      metadata: TextStyle.lerp(metadata, other.metadata, t)!,
+      label: TextStyle.lerp(label, other.label, t)!,
     );
   }
 }
@@ -102,7 +240,8 @@ class FrostyThemes {
 
   ThemeData get light => createBaseTheme(
     colorScheme: ColorScheme.fromSeed(seedColor: colorSchemeSeed),
-    backgroundColor: const Color.fromRGBO(248, 248, 248, 1),
+    backgroundColor: FrostyTokens.backgroundLight,
+    surfaceColor: FrostyTokens.surfaceLight,
   );
 
   ThemeData get dark => createBaseTheme(
@@ -110,121 +249,297 @@ class FrostyThemes {
       seedColor: colorSchemeSeed,
       brightness: Brightness.dark,
     ),
-    backgroundColor: Colors.black,
+    backgroundColor: FrostyTokens.backgroundDark,
+    surfaceColor: FrostyTokens.surfaceDark,
   );
 
   ThemeData createBaseTheme({
     required ColorScheme colorScheme,
     Color? backgroundColor,
+    Color? surfaceColor,
   }) {
-    final borderColor = colorScheme.outlineVariant.withValues(alpha: 0.5);
+    final isDark = colorScheme.brightness == Brightness.dark;
+    final frostyColors = isDark ? FrostyColors.dark : FrostyColors.light;
 
-    const borderWidth = 0.5;
+    final borderColor = frostyColors.hairline;
+    const borderWidth = FrostyTokens.hairlineWidth;
+
+    final surface = surfaceColor ?? colorScheme.surface;
 
     return ThemeData(
       extensions: [
-        colorScheme.brightness == Brightness.dark
-            ? FrostyColors.dark
-            : FrostyColors.light,
+        frostyColors,
+        FrostyTextStyles.resolve(frostyColors.metadata),
       ],
       colorScheme: colorScheme,
-      fontFamily: 'Inter',
+      fontFamily: FrostyTokens.bodyFamily,
       splashFactory: Platform.isIOS ? NoSplash.splashFactory : null,
       scaffoldBackgroundColor: backgroundColor,
+      // Flat by construction: depth comes from hairlines, never from tints or
+      // drop shadows.
+      cardTheme: CardThemeData(
+        elevation: 0,
+        color: surface,
+        surfaceTintColor: surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: const BorderRadius.all(
+            Radius.circular(FrostyTokens.radiusCard),
+          ),
+          side: BorderSide(color: borderColor, width: borderWidth),
+        ),
+      ),
       bottomSheetTheme: BottomSheetThemeData(
         showDragHandle: true,
+        elevation: 0,
         backgroundColor: backgroundColor,
         surfaceTintColor: backgroundColor,
       ),
       menuTheme: MenuThemeData(
         style: MenuStyle(
+          backgroundColor: WidgetStatePropertyAll(surface),
+          surfaceTintColor: WidgetStatePropertyAll(surface),
+          elevation: const WidgetStatePropertyAll(0),
           padding: const WidgetStatePropertyAll(
             EdgeInsets.symmetric(vertical: 4),
           ),
           shape: WidgetStatePropertyAll(
             RoundedRectangleBorder(
-              borderRadius: const BorderRadius.all(Radius.circular(12)),
-              side: BorderSide(color: borderColor),
+              borderRadius: const BorderRadius.all(
+                Radius.circular(FrostyTokens.radiusCard),
+              ),
+              side: BorderSide(color: borderColor, width: borderWidth),
             ),
           ),
         ),
       ),
       menuButtonTheme: MenuButtonThemeData(
-        style: MenuItemButton.styleFrom(
-          visualDensity: VisualDensity.compact,
-        ),
+        style: MenuItemButton.styleFrom(visualDensity: VisualDensity.compact),
       ),
       dialogTheme: DialogThemeData(
+        elevation: 0,
         backgroundColor: backgroundColor,
         surfaceTintColor: backgroundColor,
         shape: RoundedRectangleBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(16)),
-          side: BorderSide(color: borderColor),
+          borderRadius: const BorderRadius.all(
+            Radius.circular(FrostyTokens.radiusDialog),
+          ),
+          side: BorderSide(color: borderColor, width: borderWidth),
         ),
       ),
       appBarTheme: AppBarTheme(
         elevation: 0,
+        scrolledUnderElevation: 0,
         backgroundColor: backgroundColor,
         surfaceTintColor: backgroundColor,
+        // Titles are left-aligned everywhere; a centred title would read as a
+        // different app on every second screen.
+        centerTitle: false,
         titleSpacing: 0,
+        // Declared once here rather than per screen. A locally-set
+        // systemOverlayStyle replaces this object wholesale, so any screen
+        // that sets its own would silently drop the navigation bar colour and
+        // let Android paint its default bar under our background.
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+          statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+          systemNavigationBarColor: backgroundColor,
+          systemNavigationBarDividerColor: Colors.transparent,
+          systemNavigationBarIconBrightness: isDark
+              ? Brightness.light
+              : Brightness.dark,
+        ),
+      ),
+      listTileTheme: const ListTileThemeData(
+        // Rows are dense: the chat settings page alone carries ~30 of them.
+        visualDensity: VisualDensity.compact,
+        minVerticalPadding: 10,
+      ),
+      // Material 3 gives ElevatedButton a real elevation and a surface tint,
+      // which is the one shadow left in the app (the chat "resume scroll"
+      // button). Flattened like every other surface.
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          elevation: 0,
+          backgroundColor: surface,
+          foregroundColor: colorScheme.onSurface,
+          surfaceTintColor: surface,
+          shadowColor: Colors.transparent,
+          side: BorderSide(color: borderColor, width: borderWidth),
+        ),
+      ),
+      // The primary call to action — "Connect with Twitch", "Save", "Yes".
+      //
+      // Left unconfigured it takes [ColorScheme.primary], which Material 3
+      // derives by running the accent through its tonal palette. That
+      // desaturates the lime into a sage green: measured on device at
+      // #BDCE8B against the #C8FF3D the toggles and live badges show, so the
+      // main button was visibly off-accent next to an enabled switch on the
+      // same screen. Bound to the accent directly instead, exactly like
+      // [switchTheme], [checkboxTheme] and [radioTheme] below.
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          elevation: 0,
+          backgroundColor: frostyColors.live,
+          foregroundColor: isDark ? FrostyTokens.backgroundDark : Colors.white,
+          disabledBackgroundColor: colorScheme.onSurface.withValues(
+            alpha: 0.12,
+          ),
+          shadowColor: Colors.transparent,
+        ),
+      ),
+      // Left unconfigured, a selected segment fills with
+      // [ColorScheme.secondaryContainer] — a tinted container that reintroduces
+      // the Material palette. Selection is lime here, like every other
+      // selected state.
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          elevation: const WidgetStatePropertyAll(0),
+          backgroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.selected)
+                ? frostyColors.live
+                : surface,
+          ),
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.selected)
+                ? (isDark ? FrostyTokens.backgroundDark : Colors.white)
+                : colorScheme.onSurface,
+          ),
+          side: WidgetStatePropertyAll(
+            BorderSide(color: borderColor, width: borderWidth),
+          ),
+          shape: const WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(
+                Radius.circular(FrostyTokens.radiusSmall),
+              ),
+            ),
+          ),
+        ),
+      ),
+      // The default tile draws a full-width divider above and below itself when
+      // expanded, which is a second, heavier separator language next to the
+      // hairline.
+      expansionTileTheme: const ExpansionTileThemeData(
+        backgroundColor: Colors.transparent,
+        collapsedBackgroundColor: Colors.transparent,
+        shape: Border(),
+        collapsedShape: Border(),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? (isDark ? FrostyTokens.backgroundDark : Colors.white)
+              : null,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) =>
+              states.contains(WidgetState.selected) ? frostyColors.live : null,
+        ),
+        trackOutlineColor: WidgetStateProperty.resolveWith(
+          (states) =>
+              states.contains(WidgetState.selected) ? Colors.transparent : null,
+        ),
+      ),
+      sliderTheme: SliderThemeData(
+        activeTrackColor: colorScheme.onSurface,
+        thumbColor: colorScheme.onSurface,
+        inactiveTrackColor: colorScheme.onSurface.withValues(alpha: 0.16),
+      ),
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith(
+          (states) =>
+              states.contains(WidgetState.selected) ? frostyColors.live : null,
+        ),
+        checkColor: WidgetStatePropertyAll(
+          isDark ? FrostyTokens.backgroundDark : Colors.white,
+        ),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith(
+          (states) =>
+              states.contains(WidgetState.selected) ? frostyColors.live : null,
+        ),
+      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: frostyColors.live,
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: surface,
+        selectedColor: surface,
+        showCheckmark: false,
+        // A selected chip is marked by a lime outline rather than by a filled
+        // background, so chat tabs and chat-mode chips read as "active" the
+        // same way the navigation and tab bars do.
+        side: WidgetStateBorderSide.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? BorderSide(color: frostyColors.live)
+              : BorderSide(color: borderColor, width: borderWidth),
+        ),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(FrostyTokens.radiusSmall),
+          ),
+        ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         filled: true,
-        fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+        fillColor: surface,
         hintStyle: TextStyle(
           color: colorScheme.onSurfaceVariant,
           fontWeight: FontWeight.normal,
         ),
-        border: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(100)),
-          borderSide: BorderSide.none,
+        border: _pill(BorderSide(color: borderColor, width: borderWidth)),
+        enabledBorder: _pill(
+          BorderSide(color: borderColor, width: borderWidth),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(100)),
-          borderSide: BorderSide.none,
+        disabledBorder: _pill(
+          BorderSide(color: borderColor, width: borderWidth),
         ),
-        disabledBorder: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(100)),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: const BorderRadius.all(Radius.circular(100)),
-          borderSide: BorderSide(
-            color: colorScheme.primary.withValues(alpha: 0.8),
-            width: 1.5,
-          ),
+        focusedBorder: _pill(
+          BorderSide(color: colorScheme.onSurface.withValues(alpha: 0.4)),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         elevation: 0,
         backgroundColor: backgroundColor,
+        surfaceTintColor: backgroundColor,
         height: 64,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
         indicatorColor: Colors.transparent,
         indicatorShape: const CircleBorder(),
         overlayColor: const WidgetStatePropertyAll(Colors.transparent),
       ),
-      tabBarTheme: const TabBarThemeData(
+      tabBarTheme: TabBarThemeData(
         dividerColor: Colors.transparent,
         tabAlignment: TabAlignment.start,
+        indicatorColor: frostyColors.live,
+        indicatorSize: TabBarIndicatorSize.label,
+        labelColor: colorScheme.onSurface,
+        unselectedLabelColor: frostyColors.metadata,
       ),
       tooltipTheme: TooltipThemeData(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         showDuration: const Duration(seconds: 2),
         decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: const BorderRadius.all(Radius.circular(12)),
-          border: Border.all(color: borderColor),
+          color: surface,
+          borderRadius: const BorderRadius.all(
+            Radius.circular(FrostyTokens.radiusCard),
+          ),
+          border: Border.all(color: borderColor, width: borderWidth),
         ),
         textStyle: TextStyle(color: colorScheme.onSurface),
       ),
       snackBarTheme: SnackBarThemeData(
         showCloseIcon: true,
+        elevation: 0,
         backgroundColor: backgroundColor,
         shape: RoundedRectangleBorder(
-          side: BorderSide(color: borderColor),
-          borderRadius: const BorderRadius.all(Radius.circular(12)),
+          side: BorderSide(color: borderColor, width: borderWidth),
+          borderRadius: const BorderRadius.all(
+            Radius.circular(FrostyTokens.radiusCard),
+          ),
         ),
         behavior: SnackBarBehavior.floating,
       ),
@@ -236,50 +551,64 @@ class FrostyThemes {
       textTheme: TextTheme(
         // Alert dialog title
         headlineSmall: TextStyle(
+          fontFamily: FrostyTokens.displayFamily,
+          fontVariations: FrostyTokens.displayWeight(650),
           fontSize: 18,
-          fontWeight: FontWeight.w600,
           letterSpacing: -0.019,
         ),
 
         // App bar title
         titleLarge: TextStyle(
+          fontFamily: FrostyTokens.displayFamily,
+          fontVariations: FrostyTokens.displayWeight(700),
           fontSize: 24,
-          fontWeight: FontWeight.w600,
-          letterSpacing: -0.019,
+          letterSpacing: -0.4,
         ),
 
         // Section titles
         titleMedium: TextStyle(
-          fontWeight: FontWeight.w600,
+          fontFamily: FrostyTokens.displayFamily,
+          fontVariations: FrostyTokens.displayWeight(600),
           letterSpacing: -0.011,
         ),
 
         // Tab bar title
         titleSmall: TextStyle(
+          fontFamily: FrostyTokens.displayFamily,
+          fontVariations: FrostyTokens.displayWeight(600),
           fontSize: 16,
-          fontWeight: FontWeight.w600,
           letterSpacing: -0.011,
         ),
 
         // Labels
-        labelLarge: TextStyle(
+        labelLarge: const TextStyle(
           fontWeight: FontWeight.w500,
           letterSpacing: -0.006,
         ),
-        labelMedium: TextStyle(fontWeight: FontWeight.w500, letterSpacing: 0),
-        labelSmall: TextStyle(
+        labelMedium: const TextStyle(
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0,
+        ),
+        labelSmall: const TextStyle(
           fontWeight: FontWeight.w500,
           letterSpacing: 0.005,
         ),
 
         // Body text
-        bodyLarge: TextStyle(
+        bodyLarge: const TextStyle(
           fontWeight: FontWeight.w500,
           letterSpacing: -0.011,
         ),
-        bodyMedium: TextStyle(letterSpacing: -0.006),
-        bodySmall: TextStyle(letterSpacing: 0),
+        bodyMedium: const TextStyle(letterSpacing: -0.006),
+        bodySmall: const TextStyle(letterSpacing: 0),
       ),
     );
   }
+
+  static OutlineInputBorder _pill(BorderSide side) => OutlineInputBorder(
+    borderRadius: const BorderRadius.all(
+      Radius.circular(FrostyTokens.radiusPill),
+    ),
+    borderSide: side,
+  );
 }

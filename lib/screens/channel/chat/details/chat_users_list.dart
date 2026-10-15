@@ -5,6 +5,7 @@ import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/screens/channel/chat/details/chat_details_store.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_user_modal.dart';
+import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/animated_scroll_border.dart';
@@ -99,10 +100,8 @@ class _ChattersListState extends State<ChattersList> {
                                 sliver: SliverToBoxAdapter(
                                   child: Text(
                                     '${NumberFormat().format(widget.chatDetailsStore.chatUsers.length)} chatters found',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18.0,
-                                    ),
+                                    style: context.frostyText.metadata
+                                        .copyWith(fontSize: 15),
                                   ),
                                 ),
                               ),

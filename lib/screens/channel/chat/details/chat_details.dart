@@ -1,5 +1,5 @@
-import 'dart:async';
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -13,6 +13,7 @@ import 'package:frosty/screens/channel/chat/details/chat_users_list.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/settings/settings.dart';
 import 'package:frosty/utils.dart';
+import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/animated_scroll_border.dart';
 import 'package:frosty/widgets/frosty_scrollbar.dart';
@@ -117,14 +118,7 @@ class _ChatDetailsState extends State<ChatDetails> {
                                 text: formatTimeLeft(
                                   widget.chatStore.timeRemaining,
                                 ),
-                                style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.color
-                                      ?.withValues(alpha: 0.6),
-                                  fontFeatures: [FontFeature.tabularFigures()],
-                                ),
+                                style: context.frostyText.metadata,
                               ),
                             ],
                           ),
@@ -261,7 +255,7 @@ class _ChatDetailsState extends State<ChatDetails> {
           : _showRefreshSuccess
           ? Icon(
               Icons.check_rounded,
-              color: Theme.of(context).colorScheme.primary,
+              color: context.frostyColors.live,
               key: const ValueKey('success'),
             )
           : const SizedBox.shrink(),
@@ -424,22 +418,21 @@ class _ChatDetailsState extends State<ChatDetails> {
                 leading: Icon(
                   hasTimer ? Icons.timer_rounded : Icons.timer_rounded,
                   color: hasTimer
-                      ? Theme.of(context).colorScheme.primary
+                      ? context.frostyColors.live
                       : null,
                 ),
                 title: Text(
                   label,
                   style: hasTimer
-                      ? TextStyle(
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                          color: Theme.of(context).colorScheme.primary,
+                      ? context.frostyText.metadata.copyWith(
+                          color: context.frostyColors.live,
                         )
                       : null,
                 ),
                 trailing: hasTimer
                     ? Icon(
                         Icons.chevron_right,
-                        color: Theme.of(context).colorScheme.primary,
+                        color: context.frostyColors.live,
                       )
                     : const Icon(Icons.chevron_right),
                 onTap: () => _showSleepTimer(context),
@@ -616,7 +609,7 @@ class _ChatColorPickerModalState extends State<_ChatColorPickerModal> {
       ),
       title: Text(displayName),
       trailing: isSelected
-          ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
+          ? Icon(Icons.check, color: context.frostyColors.live)
           : null,
       onTap: () => setState(() => selectedColor = colorName),
     );

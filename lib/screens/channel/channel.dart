@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ import 'package:frosty/screens/channel/community_highlights/stores/community_hig
 import 'package:frosty/screens/channel/community_highlights/widgets/pinned_chat_text.dart';
 import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:frosty/screens/channel/portrait_split.dart';
+import 'package:frosty/screens/channel/stores/channel_events_store.dart';
 import 'package:frosty/screens/channel/video/content_warning_gate.dart';
 import 'package:frosty/screens/channel/video/ivs_stats_panel.dart';
 import 'package:frosty/screens/channel/video/ivs_video.dart';
@@ -36,6 +38,7 @@ import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/pip_callbacks.dart';
 import 'package:frosty/widgets/blurred_container.dart';
+import 'package:frosty/widgets/celebration_overlay.dart';
 import 'package:frosty/widgets/draggable_divider.dart';
 import 'package:frosty/widgets/frosty_notification.dart';
 import 'package:mobx/mobx.dart';
@@ -67,6 +70,21 @@ class _VideoChatState extends State<VideoChat>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   final _videoKey = GlobalKey();
   final _chatKey = GlobalKey();
+
+  /// Real-time channel events: celebrations, creator goals and channel
+  /// points (the hype train has its own store below).
+  ///
+  /// Entirely additive — if Hermes never connects, every widget it feeds
+  /// renders as an empty box and the screen is exactly what it was before.
+  late final ChannelEventsStore _eventsStore = ChannelEventsStore(
+    channelId: widget.userId,
+    // GQL addresses channels by name, Hermes by id — both are needed.
+    channelLogin: widget.userLogin,
+    // The viewer's own id, for the topics that carry what happens to them
+    // rather than to the channel — the bonus chest above all.
+    viewerId: context.authStore.user.details?.id,
+    tokenProvider: () async => context.authStore.twitchWebToken,
+  );
 
   // PiP drag state - essential only
   double _pipDragDistance = 0;
@@ -306,6 +324,9 @@ class _VideoChatState extends State<VideoChat>
         onRegained: _resumeAfterOtherPlayer,
       )
       ..claim(this);
+    // Not awaited: the channel must open at the same speed it always did, and
+    // a real-time connection failing is not a reason to delay playback.
+    unawaited(_eventsStore.connect());
 
     // If the native engine fails to load the stream (offline, geo-block, or a
     // Twitch API change), fall back to the WebView engine for this session so
@@ -628,14 +649,13 @@ class _VideoChatState extends State<VideoChat>
                         curve: Curves.easeOut,
                         child: Container(
                           color: Colors.black.withValues(alpha: 0.4),
-                          child: const Center(
+                          child: Center(
                             child: Text(
                               'Swipe down to enter picture-in-picture',
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.white,
+                              style: context.textTheme.bodyLarge?.copyWith(
+                                color: context.frostyColors.overlayOnSurface,
                                 fontSize: 16,
-                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
@@ -709,6 +729,7 @@ class _VideoChatState extends State<VideoChat>
             videoStore: _videoStore,
             chatStore: _chatStore,
             settingsStore: settingsStore,
+            onLongPressStats: _eventsStore.playPreviewCelebration,
           );
 
           if (_videoStore.paused || _videoStore.streamInfo == null) {
@@ -855,13 +876,6 @@ class _VideoChatState extends State<VideoChat>
             elevation: 0,
             backgroundColor: Colors.transparent,
             surfaceTintColor: Colors.transparent,
-            systemOverlayStyle: SystemUiOverlayStyle(
-              statusBarColor: Colors.transparent,
-              statusBarIconBrightness:
-                  context.theme.brightness == Brightness.dark
-                  ? Brightness.light
-                  : Brightness.dark,
-            ),
             title: StreamInfoBar(
               streamInfo: streamInfo,
               offlineChannelInfo: _videoStore.offlineChannelInfo,
@@ -1204,6 +1218,23 @@ class _VideoChatState extends State<VideoChat>
       },
     );
 
+    // Celebrations float over everything, including the player, and never take
+    // a tap. Wrapping here rather than inside the layout keeps the existing
+    // composition untouched: with no celebration playing this Stack has a
+    // single child and costs nothing.
+    final celebratedVideoChat = Provider<ChannelEventsStore>.value(
+      // Provided rather than passed down: the chat bottom bar is three widgets
+      // deep, and threading a store through ChatTabs and ChatBottomBar purely
+      // to show a balance would couple every layer in between to it.
+      value: _eventsStore,
+      child: Stack(
+        children: [
+          Positioned.fill(child: videoChat),
+          Positioned.fill(child: CelebrationOverlay(store: _eventsStore)),
+        ],
+      ),
+    );
+
     // If on Android, use PiPSwitcher to enable PiP functionality.
     if (Platform.isAndroid) {
       return PipWidget(
@@ -1219,11 +1250,11 @@ class _VideoChatState extends State<VideoChat>
           if (store is IvsVideoStore) store.onPipExited();
         },
         pipChild: player,
-        child: videoChat,
+        child: celebratedVideoChat,
       );
     }
 
-    return videoChat;
+    return celebratedVideoChat;
   }
 
   @override
@@ -1239,6 +1270,10 @@ class _VideoChatState extends State<VideoChat>
     _hypeTrainStore?.dispose();
     _highlightsSettingReaction?.call();
     _highlightsStore?.dispose();
+    // Always disposed, even on hand-off to the mini window: the mini player
+    // shows no hype train or celebration, and leaving the socket open would
+    // keep a channel's events flowing after leaving it.
+    _eventsStore.dispose();
 
     // Skip disposal when handed to the mini window — the player and the live
     // chat (with its history) live on there.

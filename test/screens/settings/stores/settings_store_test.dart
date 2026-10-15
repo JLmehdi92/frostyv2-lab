@@ -56,7 +56,8 @@ void main() {
       final store = SettingsStore.fromJson({});
 
       expect(store.themeType, ThemeType.system);
-      expect(store.accentColor, 0xff9146ff);
+      // ONSET's lime accent.
+      expect(store.accentColor, 0xffc8ff3d);
       expect(store.showThumbnails, isTrue);
       expect(store.largeStreamCard, isFalse);
       expect(store.launchUrlExternal, isFalse);
@@ -308,7 +309,8 @@ void main() {
       store.resetGeneralSettings();
 
       expect(store.themeType, ThemeType.system);
-      expect(store.accentColor, 0xff9146ff);
+      // ONSET's lime accent.
+      expect(store.accentColor, 0xffc8ff3d);
       expect(store.showThumbnails, isTrue);
       expect(store.largeStreamCard, isFalse);
       expect(store.launchUrlExternal, isFalse);

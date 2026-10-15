@@ -75,6 +75,26 @@ mixin _$AuthStore on AuthBase, Store {
     });
   }
 
+  late final _$_webSessionExpiredAtom = Atom(
+    name: 'AuthBase._webSessionExpired',
+    context: context,
+  );
+
+  bool get webSessionExpired {
+    _$_webSessionExpiredAtom.reportRead();
+    return super._webSessionExpired;
+  }
+
+  @override
+  bool get _webSessionExpired => webSessionExpired;
+
+  @override
+  set _webSessionExpired(bool value) {
+    _$_webSessionExpiredAtom.reportWrite(value, super._webSessionExpired, () {
+      super._webSessionExpired = value;
+    });
+  }
+
   late final _$_errorAtom = Atom(name: 'AuthBase._error', context: context);
 
   String? get error {
@@ -90,6 +110,30 @@ mixin _$AuthStore on AuthBase, Store {
     _$_errorAtom.reportWrite(value, super._error, () {
       super._error = value;
     });
+  }
+
+  late final _$harvestTwitchWebTokenAsyncAction = AsyncAction(
+    'AuthBase.harvestTwitchWebToken',
+    context: context,
+  );
+
+  @override
+  Future<bool> harvestTwitchWebToken() {
+    return _$harvestTwitchWebTokenAsyncAction.run(
+      () => super.harvestTwitchWebToken(),
+    );
+  }
+
+  late final _$renewTwitchWebTokenAsyncAction = AsyncAction(
+    'AuthBase.renewTwitchWebToken',
+    context: context,
+  );
+
+  @override
+  Future<String?> renewTwitchWebToken() {
+    return _$renewTwitchWebTokenAsyncAction.run(
+      () => super.renewTwitchWebToken(),
+    );
   }
 
   late final _$setTwitchWebTokenAsyncAction = AsyncAction(

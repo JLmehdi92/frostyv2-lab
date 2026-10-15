@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,6 +8,15 @@ class OnboardingScaffold extends StatelessWidget {
   final String header;
   final String? subtitle;
   final String? disclaimer;
+
+  /// Whether [disclaimer] holds a number rather than a sentence.
+  ///
+  /// The slot carries both: the intro screen puts the version string in it,
+  /// the login screen a paragraph of prose. Numbers are monospace in this
+  /// system, prose is not — rendering a sentence in Space Mono reads as a
+  /// terminal dump. The caller knows which it is passing, so it says so.
+  final bool disclaimerIsMetadata;
+
   final Widget? content;
   final String? buttonText;
   final Widget? buttonIcon;
@@ -21,6 +30,7 @@ class OnboardingScaffold extends StatelessWidget {
     required this.header,
     this.subtitle,
     this.disclaimer,
+    this.disclaimerIsMetadata = false,
     this.content,
     this.buttonText,
     this.buttonIcon,
@@ -65,24 +75,26 @@ class OnboardingScaffold extends StatelessWidget {
                       spacing: 12,
                       children: [
                         if (showLogo) ...[
-                          SvgPicture.asset('assets/icons/logo.svg', height: 80),
+                          Image.asset('assets/icons/onset-mark.png', height: 80),
                         ],
                         Text(
                           header,
-                          style: const TextStyle(
+                          style: TextStyle(
+                            fontFamily: FrostyTokens.displayFamily,
+                            fontVariations: FrostyTokens.displayWeight(700),
                             fontSize: 48,
-                            fontWeight: FontWeight.bold,
+                            letterSpacing: -0.03 * 48,
                           ),
                         ),
                       ],
                     ),
                     if (subtitle != null) ...[
-                      Opacity(
-                        opacity: 0.8,
-                        child: Text(
-                          subtitle!,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 16),
+                      Text(
+                        subtitle!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: context.frostyColors.metadata,
                         ),
                       ),
                     ],
@@ -103,13 +115,15 @@ class OnboardingScaffold extends StatelessWidget {
                     horizontal: 12,
                     vertical: 8,
                   ),
-                  child: Opacity(
-                    opacity: 0.5,
-                    child: Text(
-                      disclaimer!,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 12),
-                    ),
+                  child: Text(
+                    disclaimer!,
+                    textAlign: TextAlign.center,
+                    style: disclaimerIsMetadata
+                        ? context.frostyText.metadata.copyWith(fontSize: 12)
+                        : context.textTheme.bodySmall?.copyWith(
+                            fontSize: 12,
+                            color: context.frostyColors.metadata,
+                          ),
                   ),
                 ),
               Container(

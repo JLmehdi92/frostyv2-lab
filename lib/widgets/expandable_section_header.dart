@@ -48,13 +48,10 @@ class ExpandableSectionHeader extends StatelessWidget {
                 Expanded(
                   child: Text(
                     text.toUpperCase(),
-                    style: TextStyle(
-                      fontSize: fontSize ?? 13,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
-                      color: context.colorScheme.onSurface.withValues(
-                        alpha: 0.6,
-                      ),
+                    // Meme style que SectionHeader : les deux s'empilent dans
+                    // la liste Following, ils doivent parler d'une seule voix.
+                    style: context.frostyText.label.copyWith(
+                      fontSize: fontSize,
                     ),
                   ),
                 ),

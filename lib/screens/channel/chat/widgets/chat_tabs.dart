@@ -7,6 +7,7 @@ import 'package:frosty/screens/channel/chat/chat.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/add_chat_dialog.dart';
 import 'package:frosty/utils.dart';
+import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/profile_picture.dart';
 
 /// Widget that displays multiple chat tabs with a tab bar.
@@ -267,11 +268,7 @@ class ChatTabs extends StatelessWidget {
             displayName,
             style: isActivated
                 ? null
-                : TextStyle(
-                    color: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
-                  ),
+                : TextStyle(color: context.frostyColors.metadata),
           ),
           selected: isActive,
           showCheckmark: false,

@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:frosty/models/followed_channel.dart';
 import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/utils.dart';
+import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/profile_picture.dart';
 import 'package:frosty/widgets/user_actions_modal.dart';
@@ -97,8 +99,10 @@ class OfflineChannelCard extends StatelessWidget {
                   Text(
                     channelName,
                     style: TextStyle(
+                      fontFamily: FrostyTokens.displayFamily,
+                      fontVariations: FrostyTokens.displayWeight(600),
                       fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.011,
                       color: fontColor,
                     ),
                     maxLines: 1,
@@ -107,11 +111,9 @@ class OfflineChannelCard extends StatelessWidget {
                   // Status and follow duration
                   Text(
                     showOfflineStatus ? 'Offline' : followedText,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: fontColor?.withValues(alpha: 0.6),
-                    ),
+                    // followedText porte une duree ("Following for 3 years"),
+                    // donc chasse fixe comme tous les autres nombres.
+                    style: context.frostyText.metadata,
                   ),
                 ],
               ),

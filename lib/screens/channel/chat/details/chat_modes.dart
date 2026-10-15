@@ -166,14 +166,7 @@ class ChatModes extends StatelessWidget {
               children: [
                 Text(isActive ? activeLabel : label),
                 const SizedBox(width: 4),
-                Text(
-                  duration,
-                  style: TextStyle(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurfaceVariant,
-                  ),
-                ),
+                Text(duration, style: context.frostyText.metadata),
               ],
             )
           : Text(isActive ? activeLabel : label),

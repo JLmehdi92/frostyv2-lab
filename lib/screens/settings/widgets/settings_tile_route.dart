@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:frosty/widgets/blurred_container.dart';
 
 class SettingsTileRoute extends StatelessWidget {
@@ -53,12 +52,6 @@ class _BlurredSettingsPage extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: theme.brightness == Brightness.dark
-              ? Brightness.light
-              : Brightness.dark,
-        ),
         leading: IconButton(
           tooltip: 'Back',
           icon: Icon(Icons.adaptive.arrow_back_rounded),

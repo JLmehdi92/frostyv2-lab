@@ -82,13 +82,32 @@ class StreamInfoBar extends StatelessWidget {
         const TextStyle();
   }
 
+  /// The category, in the wide-tracked uppercase label shared with the stream
+  /// cards, so a category reads the same wherever it appears.
+  TextStyle _getCategoryTextStyle(BuildContext context) {
+    return context.frostyText.label.copyWith(
+      color: textColor ?? context.frostyColors.metadata,
+      shadows: showTextShadows ? kOverlayShadow : null,
+    );
+  }
+
+  /// Numbers the user reads — uptime and viewer count — in the monospace
+  /// metadata face, so the digits stop shifting as the values tick.
+  TextStyle _getMetricTextStyle(BuildContext context, double fontSize) {
+    return context.frostyText.metadata.copyWith(
+      fontSize: fontSize,
+      color: textColor ?? context.frostyColors.metadata,
+      shadows: showTextShadows ? kOverlayShadow : null,
+    );
+  }
+
   TextStyle _getSecondaryTextStyle(BuildContext context, double fontSize) {
     return context.textTheme.bodyMedium?.copyWith(
           fontSize: fontSize,
           fontWeight: FontWeight.w500,
           color:
               textColor?.withValues(alpha: 0.7) ??
-              context.bodySmallColor?.withValues(alpha: 0.7),
+              context.frostyColors.metadata,
           shadows: showTextShadows ? kOverlayShadow : null,
         ) ??
         const TextStyle();
@@ -124,8 +143,8 @@ class StreamInfoBar extends StatelessWidget {
                   ? BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: Theme.of(context).colorScheme.primary,
-                        width: 2,
+                        color: context.frostyColors.live,
+                        width: 1.5,
                       ),
                     )
                   : null,
@@ -207,9 +226,10 @@ class StreamInfoBar extends StatelessWidget {
                         Icon(
                           Icons.gamepad,
                           size: secondLineSize,
-                          color: (textColor ?? context.bodySmallColor)
-                              ?.withValues(alpha: 0.7),
-                          shadows: kOverlayShadow,
+                          color:
+                              textColor?.withValues(alpha: 0.7) ??
+                              context.frostyColors.metadata,
+                          shadows: showTextShadows ? kOverlayShadow : null,
                         ),
                         const SizedBox(width: 4),
                         Flexible(
@@ -248,11 +268,7 @@ class StreamInfoBar extends StatelessWidget {
                             startTime:
                                 streamInfo?.startedAt ??
                                 DateTime.now().toIso8601String(),
-                            style: _getBaseTextStyle(
-                              context,
-                              secondLineSize,
-                              FontWeight.w500,
-                            ),
+                            style: _getMetricTextStyle(context, secondLineSize),
                           ),
                           if (!isOffline && showViewerCount)
                             const SizedBox(width: 8),
@@ -261,17 +277,13 @@ class StreamInfoBar extends StatelessWidget {
                           Icon(
                             Icons.visibility,
                             size: secondLineSize,
-                            color: textColor ?? context.bodySmallColor,
-                            shadows: kOverlayShadow,
+                            color: textColor ?? context.frostyColors.metadata,
+                            shadows: showTextShadows ? kOverlayShadow : null,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             NumberFormat().format(streamInfo?.viewerCount ?? 0),
-                            style: _getBaseTextStyle(
-                              context,
-                              secondLineSize,
-                              FontWeight.w500,
-                            ),
+                            style: _getMetricTextStyle(context, secondLineSize),
                           ),
                         ],
                         if (!isOffline &&
@@ -286,8 +298,8 @@ class StreamInfoBar extends StatelessWidget {
                           Icon(
                             Icons.gamepad,
                             size: secondLineSize,
-                            color: textColor ?? context.bodySmallColor,
-                            shadows: kOverlayShadow,
+                            color: textColor ?? context.frostyColors.metadata,
+                            shadows: showTextShadows ? kOverlayShadow : null,
                           ),
                           const SizedBox(width: 4),
                           Flexible(
@@ -298,22 +310,16 @@ class StreamInfoBar extends StatelessWidget {
                                   ? _CategoryLink(
                                       categoryId: streamInfo?.gameId,
                                       child: Text(
-                                        streamInfo?.gameName ?? '',
-                                        style: _getBaseTextStyle(
-                                          context,
-                                          secondLineSize,
-                                          FontWeight.w500,
-                                        ),
+                                        (streamInfo?.gameName ?? '')
+                                            .toUpperCase(),
+                                        style: _getCategoryTextStyle(context),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     )
                                   : Text(
-                                      streamInfo?.gameName ?? '',
-                                      style: _getBaseTextStyle(
-                                        context,
-                                        secondLineSize,
-                                        FontWeight.w500,
-                                      ),
+                                      (streamInfo?.gameName ?? '')
+                                          .toUpperCase(),
+                                      style: _getCategoryTextStyle(context),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                             ),

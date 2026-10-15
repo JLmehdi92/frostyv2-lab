@@ -255,6 +255,9 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
                ),
              ),
            ) {
+    // Let a refused web token renew itself rather than costing the viewer the
+    // 2K rendition for the rest of the session.
+    _streamService.onWebTokenRejected = authStore.renewTwitchWebToken;
     _startupStopwatch.start();
     if (settingsStore.autoSyncChatDelay) settingsStore.syncedChatDelay = 0.0;
     // Create the native player while the token/usher URL is resolving (they

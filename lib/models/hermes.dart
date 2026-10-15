@@ -1,0 +1,235 @@
+import 'dart:convert';
+
+/// The envelope every Hermes message shares.
+///
+/// Hermes is the WebSocket gateway the official Twitch clients use for
+/// real-time channel events — hype trains, predictions, channel points and the
+/// rest. It replaced the older `pubsub-edge.twitch.tv` service, which no longer
+/// appears anywhere in the current Android app; only the internal class names
+/// still say "pubsub". Topics kept their old names, so a topic string like
+/// `hype-train-events-v2.<channelId>` is still the unit of subscription.
+///
+/// Shapes below were confirmed against a live session on 2026-07-30, not
+/// inferred from the decompiled binary alone.
+class HermesMessage {
+  /// Server message types, as sent in the `type` field.
+  static const typeWelcome = 'welcome';
+  static const typeKeepalive = 'keepalive';
+  static const typeNotification = 'notification';
+  static const typeSubscribeResponse = 'subscribeResponse';
+  static const typeUnsubscribeResponse = 'unsubscribeResponse';
+  static const typeAuthenticateResponse = 'authenticateResponse';
+  static const typeReconnect = 'reconnect';
+  static const typeRevocation = 'revocation';
+  static const typeParseError = 'parseError';
+
+  final String type;
+  final String? id;
+
+  /// Ties a response back to the request that caused it.
+  final String? parentId;
+
+  final Map<String, dynamic> raw;
+
+  const HermesMessage({
+    required this.type,
+    required this.raw,
+    this.id,
+    this.parentId,
+  });
+
+  /// Parses a frame. Returns null when the payload is not a JSON object,
+  /// rather than throwing: a single malformed frame must not tear down a
+  /// connection that is otherwise healthy.
+  static HermesMessage? tryParse(String payload) {
+    try {
+      final decoded = jsonDecode(payload);
+      if (decoded is! Map<String, dynamic>) return null;
+
+      final type = decoded['type'];
+      if (type is! String) return null;
+
+      return HermesMessage(
+        type: type,
+        id: decoded['id'] as String?,
+        parentId: decoded['parentId'] as String?,
+        raw: decoded,
+      );
+    } on FormatException {
+      return null;
+    }
+  }
+
+  /// How often the server expects to hear from us, from the `welcome` frame.
+  ///
+  /// Measured at 15 seconds. Read rather than hardcoded so a server-side change
+  /// does not silently turn into dropped connections.
+  Duration? get keepaliveInterval {
+    final seconds = (raw['welcome'] as Map<String, dynamic>?)?['keepaliveSec'];
+    return seconds is num ? Duration(seconds: seconds.toInt()) : null;
+  }
+
+  /// The URL that resumes this session instead of starting a fresh one.
+  String? get recoveryUrl =>
+      (raw['welcome'] as Map<String, dynamic>?)?['recoveryUrl'] as String?;
+
+  String? get sessionId =>
+      (raw['welcome'] as Map<String, dynamic>?)?['sessionId'] as String?;
+
+  /// Whether a `subscribeResponse` reported success.
+  bool get isSubscribeOk =>
+      (raw['subscribeResponse'] as Map<String, dynamic>?)?['result'] == 'ok';
+
+  /// The error a failed response carries, if any.
+  String? get responseError {
+    for (final key in const [
+      'subscribeResponse',
+      'unsubscribeResponse',
+      'authenticateResponse',
+    ]) {
+      final body = raw[key];
+      if (body is Map<String, dynamic>) {
+        final error = body['error'];
+        if (error != null) return error.toString();
+      }
+    }
+    return null;
+  }
+
+  /// The server-assigned subscription id a message refers to.
+  ///
+  /// This is the only link a notification carries back to what was subscribed:
+  /// **notifications do not repeat the topic string**. The id is handed out in
+  /// `subscribeResponse` and echoed in every `notification`, so a client has to
+  /// keep the id-to-topic mapping itself. Reading the topic off a notification
+  /// would always yield null, and routing would fail silently.
+  String? get subscriptionId {
+    for (final key in const [
+      'notification',
+      'subscribeResponse',
+      'unsubscribeResponse',
+      'revocation',
+    ]) {
+      final body = raw[key];
+      if (body is Map<String, dynamic>) {
+        final subscription = body['subscription'];
+        if (subscription is Map<String, dynamic>) {
+          final id = subscription['id'];
+          if (id is String) return id;
+        }
+      }
+    }
+    return null;
+  }
+
+  /// The decoded body of a notification.
+  ///
+  /// Hermes nests the payload as a JSON **string**, exactly as the old PubSub
+  /// did, so it needs a second decode. Confirmed on a live `goal_updated`
+  /// frame. Returns null when absent or malformed rather than throwing.
+  Map<String, dynamic>? get notificationPayload {
+    final notification = raw['notification'];
+    if (notification is! Map<String, dynamic>) return null;
+
+    final pubsub = notification['pubsub'];
+    if (pubsub is Map<String, dynamic>) return pubsub;
+
+    if (pubsub is String) {
+      try {
+        final decoded = jsonDecode(pubsub);
+        return decoded is Map<String, dynamic> ? decoded : null;
+      } on FormatException {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  /// The `type` inside a notification payload — `goal_updated`,
+  /// `hype-train-start`, `prediction-updated` and so on.
+  String? get payloadType {
+    final type = notificationPayload?['type'];
+    return type is String ? type : null;
+  }
+
+  /// The `data` object inside a notification payload.
+  Map<String, dynamic>? get payloadData {
+    final data = notificationPayload?['data'];
+    return data is Map<String, dynamic> ? data : null;
+  }
+}
+
+/// The topics the official app subscribes to, extracted from the 29.7.1 APK.
+///
+/// Kept as builders rather than raw strings so a channel id can never be
+/// forgotten — a topic without its suffix subscribes to nothing and fails
+/// silently, which is the hardest kind of bug to notice here.
+class HermesTopics {
+  const HermesTopics._();
+
+  /// Hype trains. Note the **v2**: v1 is what most third-party documentation
+  /// still lists, and subscribing to it would succeed while never delivering.
+  static String hypeTrain(String channelId) => 'hype-train-events-v2.$channelId';
+
+  static String predictionsChannel(String channelId) =>
+      'predictions-channel-v1.$channelId';
+
+  static String communityPointsChannel(String channelId) =>
+      'community-points-channel-v1.$channelId';
+
+  static String creatorGoals(String channelId) =>
+      'creator-goals-events-v1.$channelId';
+
+  static String celebrations(String channelId) =>
+      'celebration-events-v1.$channelId';
+
+  static String leaderboards(String channelId) =>
+      'leaderboard-events-v1.$channelId';
+
+  static String channelSubGifts(String channelId) =>
+      'channel-sub-gifts-v1.$channelId';
+
+  static String communityMoments(String channelId) =>
+      'community-moments-channel-v1.$channelId';
+
+  static String pinnedChat(String channelId) =>
+      'pinned-chat-updates-v1.$channelId';
+
+  static String sharedChat(String channelId) =>
+      'shared-chat-channel-v1.$channelId';
+
+  // User-scoped topics. These are the only ones that need authentication;
+  // channel topics subscribe fine anonymously (verified 2026-07-30).
+  static String predictionsUser(String userId) => 'predictions-user-v1.$userId';
+
+  static String communityPointsUser(String userId) =>
+      'community-points-user-v1.$userId';
+
+  static String userSubscribeEvents(String userId) =>
+      'user-subscribe-events-v1.$userId';
+
+  static String userBitsUpdates(String userId) =>
+      'user-bits-updates-v1.$userId';
+
+  /// Everything worth watching for a channel the user is viewing. The hype
+  /// train is left out: the hype train store follows it over EventSub/GQL.
+  static List<String> forChannel(String channelId) => [
+    predictionsChannel(channelId),
+    communityPointsChannel(channelId),
+    creatorGoals(channelId),
+    celebrations(channelId),
+    leaderboards(channelId),
+    communityMoments(channelId),
+    pinnedChat(channelId),
+  ];
+
+  /// The viewer's own topics, which carry what happens to *them* rather than to
+  /// the channel: the bonus chest becoming available, their points balance
+  /// changing, their own prediction being settled.
+  ///
+  /// These are the ones that need authentication.
+  static List<String> forViewer(String userId) => [
+    communityPointsUser(userId),
+    predictionsUser(userId),
+  ];
+}

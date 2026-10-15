@@ -12,6 +12,7 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
     private var textureManager: IvsTextureManager? = null
     private var backgroundAudio: BackgroundAudioBridge? = null
     private var audioFocus: AudioFocusBridge? = null
+    private var twitchCookies: TwitchCookies? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,6 +22,9 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         val messenger = flutterEngine.dartExecutor.binaryMessenger
+
+        // Reads the twitch.tv session cookie left behind by the login WebView.
+        twitchCookies = TwitchCookies(messenger)
 
         // Texture-backed IVS players (channel screen, mini player and PiP).
         textureManager = IvsTextureManager(this, flutterEngine.renderer, messenger)

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:frosty/constants.dart';
+import 'package:frosty/theme.dart';
 
 /// A skeleton loading widget that displays a pulsing placeholder
 class SkeletonLoader extends StatefulWidget {
@@ -57,7 +58,9 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
           height: widget.height,
           decoration: BoxDecoration(
             color: baseColor.withValues(alpha: _animation.value),
-            borderRadius: widget.borderRadius ?? BorderRadius.circular(8),
+            borderRadius:
+                widget.borderRadius ??
+                BorderRadius.circular(FrostyTokens.radiusSmall),
           ),
         );
       },

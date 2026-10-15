@@ -35,12 +35,9 @@ class SectionHeader extends StatelessWidget {
           if (!isFirst) ...[SizedBox(height: topPadding ?? 32)],
           Text(
             text.toUpperCase(),
-            style: TextStyle(
-              fontSize: fontSize ?? 13,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.5,
-              color: context.colorScheme.onSurfaceVariant,
-            ),
+            // Section headers share the wide-tracked monospace label used for
+            // stream categories, so groups and metadata read as one voice.
+            style: context.frostyText.label.copyWith(fontSize: fontSize),
           ),
         ],
       ),

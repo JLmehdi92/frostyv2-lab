@@ -29,11 +29,19 @@ class VideoOverlay extends StatelessWidget {
   final ChatStore chatStore;
   final SettingsStore settingsStore;
 
+  /// Long-pressing the uptime and viewer row previews a celebration.
+  ///
+  /// Celebrations only fire when a viewer actually gifts subs, so without this
+  /// the animation could never be reviewed on a real screen — the one place
+  /// that decides whether it is too loud or too dim.
+  final VoidCallback? onLongPressStats;
+
   const VideoOverlay({
     super.key,
     required this.videoStore,
     required this.chatStore,
     required this.settingsStore,
+    this.onLongPressStats,
   });
 
   @override
@@ -94,7 +102,7 @@ class VideoOverlay extends StatelessWidget {
                   icon: Icon(
                     Icons.tablet_mac,
                     color: ivs.fillScreen
-                        ? context.colorScheme.primary
+                        ? context.frostyColors.live
                         : surfaceColor,
                     shadows: kOverlayShadow,
                   ),
@@ -133,9 +141,17 @@ class VideoOverlay extends StatelessWidget {
                       ...videoStore.availableStreamQualities.map(
                         (quality) => ListTile(
                           trailing: videoStore.streamQuality == quality
-                              ? const Icon(Icons.check_rounded)
+                              ? Icon(
+                                  Icons.check_rounded,
+                                  // A selected check is one of the four
+                                  // states the accent is reserved for.
+                                  color: context.frostyColors.live,
+                                )
                               : null,
-                          title: Text(qualityLabel(quality)),
+                          title: Text(
+                            qualityLabel(quality),
+                            style: context.frostyText.metadata,
+                          ),
                           onTap: () {
                             videoStore.setStreamQuality(quality);
                             SharedPreferences.getInstance().then(
@@ -496,13 +512,7 @@ class VideoOverlay extends StatelessWidget {
                             ? Icons.play_arrow_rounded
                             : Icons.pause_rounded,
                         color: surfaceColor,
-                        shadows: [
-                          Shadow(
-                            offset: const Offset(0, 3),
-                            blurRadius: 8,
-                            color: Colors.black.withValues(alpha: 0.6),
-                          ),
-                        ],
+                        shadows: kOverlayShadow,
                       ),
                       onPressed: videoStore.handlePausePlay,
                     ),
@@ -514,141 +524,146 @@ class VideoOverlay extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                          child: Row(
-                            spacing: 8,
-                            children: [
-                              // Uptime and viewers shrink first on narrow
-                              // phones so the latency (used for measuring)
-                              // always stays readable.
-                              Flexible(
-                                child: Tooltip(
-                                  message: 'Stream uptime',
-                                  preferBelow: false,
-                                  triggerMode: TooltipTriggerMode.tap,
-                                  child: Row(
-                                    spacing: 6,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const LiveIndicator(),
-                                      Flexible(
-                                        child: Uptime(
-                                          startTime: streamInfo.startedAt,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
+                        child: _LongPressListener(
+                          onLongPress: onLongPressStats,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                            child: Row(
+                              spacing: 8,
+                              children: [
+                                // Uptime and viewers shrink first on narrow
+                                // phones so the latency (used for measuring)
+                                // always stays readable.
+                                Flexible(
+                                  child: Tooltip(
+                                    message: 'Stream uptime',
+                                    preferBelow: false,
+                                    triggerMode: TooltipTriggerMode.tap,
+                                    child: Row(
+                                      spacing: 6,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const LiveIndicator(),
+                                        Flexible(
+                                          child: Uptime(
+                                            startTime: streamInfo.startedAt,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: context.frostyText.metadata
+                                                .copyWith(
+                                                  color: surfaceColor,
+                                                  shadows: kOverlayShadow,
+                                                ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                Flexible(
+                                  child: Tooltip(
+                                    message: 'Viewer count',
+                                    preferBelow: false,
+                                    child: GestureDetector(
+                                      onTap: () =>
+                                          showModalBottomSheetWithProperFocus(
+                                            isScrollControlled: true,
+                                            context: context,
+                                            builder: (context) =>
+                                                GestureDetector(
+                                                  onTap: FocusScope.of(
+                                                    context,
+                                                  ).unfocus,
+                                                  child: ChattersList(
+                                                    chatDetailsStore: chatStore
+                                                        .chatDetailsStore,
+                                                    chatStore: chatStore,
+                                                    userLogin:
+                                                        streamInfo.userLogin,
+                                                  ),
+                                                ),
+                                          ),
+                                      child: Row(
+                                        spacing: 4,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.visibility,
+                                            size: 14,
+                                            shadows: kOverlayShadow,
                                             color: surfaceColor,
-                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          Flexible(
+                                            child: Text(
+                                              NumberFormat().format(
+                                                videoStore
+                                                    .streamInfo
+                                                    ?.viewerCount,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: context.frostyText.metadata
+                                                  .copyWith(
+                                                    color: surfaceColor,
+                                                    fontFeatures: const [
+                                                      FontFeature.tabularFigures(),
+                                                    ],
+                                                    shadows: kOverlayShadow,
+                                                  ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                if (settingsStore.showLatency)
+                                  Tooltip(
+                                    message: videoStore is IvsVideoStore
+                                        ? 'Latency to broadcaster · tap for video stats'
+                                        : 'Latency to broadcaster',
+                                    preferBelow: false,
+                                    triggerMode: videoStore is IvsVideoStore
+                                        ? TooltipTriggerMode.longPress
+                                        : TooltipTriggerMode.tap,
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.opaque,
+                                      onTap: videoStore is IvsVideoStore
+                                          ? (videoStore as IvsVideoStore)
+                                                .toggleStats
+                                          : null,
+                                      child: Row(
+                                        spacing: 4,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.speed_rounded,
+                                            size: 14,
+                                            color: surfaceColor,
                                             shadows: kOverlayShadow,
                                           ),
-                                        ),
+                                          Observer(
+                                            builder: (context) => Text(
+                                              _latencyLabel(videoStore),
+                                              maxLines: 1,
+                                              style: context.frostyText.metadata
+                                                  .copyWith(
+                                                    color: surfaceColor,
+                                                    fontFeatures: const [
+                                                      FontFeature.tabularFigures(),
+                                                    ],
+                                                    shadows: kOverlayShadow,
+                                                  ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              Flexible(
-                                child: Tooltip(
-                                  message: 'Viewer count',
-                                  preferBelow: false,
-                                  child: GestureDetector(
-                                    onTap: () =>
-                                        showModalBottomSheetWithProperFocus(
-                                          isScrollControlled: true,
-                                          context: context,
-                                          builder: (context) => GestureDetector(
-                                            onTap: FocusScope.of(
-                                              context,
-                                            ).unfocus,
-                                            child: ChattersList(
-                                              chatDetailsStore:
-                                                  chatStore.chatDetailsStore,
-                                              chatStore: chatStore,
-                                              userLogin: streamInfo.userLogin,
-                                            ),
-                                          ),
-                                        ),
-                                    child: Row(
-                                      spacing: 4,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.visibility,
-                                          size: 14,
-                                          shadows: kOverlayShadow,
-                                          color: surfaceColor,
-                                        ),
-                                        Flexible(
-                                          child: Text(
-                                            NumberFormat().format(
-                                              videoStore
-                                                  .streamInfo
-                                                  ?.viewerCount,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              color: surfaceColor,
-                                              fontWeight: FontWeight.w500,
-                                              fontFeatures: const [
-                                                FontFeature.tabularFigures(),
-                                              ],
-                                              shadows: kOverlayShadow,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
                                     ),
                                   ),
-                                ),
-                              ),
-                              if (settingsStore.showLatency)
-                                Tooltip(
-                                  message: videoStore is IvsVideoStore
-                                      ? 'Latency to broadcaster · tap for video stats'
-                                      : 'Latency to broadcaster',
-                                  preferBelow: false,
-                                  triggerMode: videoStore is IvsVideoStore
-                                      ? TooltipTriggerMode.longPress
-                                      : TooltipTriggerMode.tap,
-                                  child: GestureDetector(
-                                    behavior: HitTestBehavior.opaque,
-                                    onTap: videoStore is IvsVideoStore
-                                        ? (videoStore as IvsVideoStore)
-                                              .toggleStats
-                                        : null,
-                                    child: Row(
-                                      spacing: 4,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.speed_rounded,
-                                          size: 14,
-                                          color: surfaceColor,
-                                          shadows: kOverlayShadow,
-                                        ),
-                                        Observer(
-                                          builder: (context) => Text(
-                                            _latencyLabel(videoStore),
-                                            maxLines: 1,
-                                            style: TextStyle(
-                                              color: surfaceColor,
-                                              fontWeight: FontWeight.w500,
-                                              fontFeatures: const [
-                                                FontFeature.tabularFigures(),
-                                              ],
-                                              shadows: kOverlayShadow,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -705,3 +720,72 @@ String _latencyLabel(PlayerController store) => switch (store) {
 
 /// Whether the IVS player is muted or at zero volume (same icon everywhere).
 bool _isSilent(IvsVideoStore store) => store.muted || store.volume == 0;
+
+/// Detects a long press without entering the gesture arena.
+///
+/// A plain [GestureDetector] here loses to the [Tooltip]s wrapping the uptime
+/// and viewer count: they are descendants, so they win the arena and swallow
+/// the press. Only the gaps between them would respond, which reads as the
+/// feature being broken. [Listener] sees raw pointer events and never
+/// competes, so the whole row is pressable.
+class _LongPressListener extends StatefulWidget {
+  final VoidCallback? onLongPress;
+  final Widget child;
+
+  const _LongPressListener({required this.onLongPress, required this.child});
+
+  @override
+  State<_LongPressListener> createState() => _LongPressListenerState();
+}
+
+class _LongPressListenerState extends State<_LongPressListener> {
+  static const _holdDuration = Duration(milliseconds: 600);
+
+  /// How far the finger may drift and still count as a press rather than a
+  /// scroll or a drag of the player.
+  static const _slop = 24.0;
+
+  Timer? _timer;
+  Offset? _origin;
+
+  void _start(PointerDownEvent event) {
+    if (widget.onLongPress == null) return;
+
+    _origin = event.position;
+    _timer?.cancel();
+    _timer = Timer(_holdDuration, () {
+      _timer = null;
+      widget.onLongPress?.call();
+    });
+  }
+
+  void _move(PointerMoveEvent event) {
+    final origin = _origin;
+    if (origin == null || _timer == null) return;
+
+    if ((event.position - origin).distance > _slop) _cancel();
+  }
+
+  void _cancel() {
+    _timer?.cancel();
+    _timer = null;
+    _origin = null;
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      onPointerDown: _start,
+      onPointerMove: _move,
+      onPointerUp: (_) => _cancel(),
+      onPointerCancel: (_) => _cancel(),
+      child: widget.child,
+    );
+  }
+}

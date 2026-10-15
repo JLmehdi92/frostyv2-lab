@@ -127,12 +127,6 @@ class _HomeState extends State<Home> {
           backgroundColor: Colors.transparent,
           surfaceTintColor: Colors.transparent,
           titleSpacing: 16,
-          systemOverlayStyle: SystemUiOverlayStyle(
-            statusBarColor: Colors.transparent,
-            statusBarIconBrightness: theme.brightness == Brightness.dark
-                ? Brightness.light
-                : Brightness.dark,
-          ),
           flexibleSpace: Observer(
             builder: (_) {
               // Only show flexible space on Following tab (when logged in)
@@ -278,7 +272,8 @@ class _HomeState extends State<Home> {
     Color colorAt(int index) => _homeStore.selectedIndex == index + offset
         ? theme.colorScheme.onSurface
         : theme.colorScheme.onSurfaceVariant;
-    final selected = theme.colorScheme.onSurface;
+    // The accent marks the current tab, as in ONSET's design.
+    final selected = context.frostyColors.live;
     return [
       if (_authStore.isLoggedIn)
         (

@@ -66,6 +66,17 @@ class TwitchStreamService extends BaseApiClient {
       _tokenCache = tokenCache,
       super(dio, '');
 
+  /// Called when an authenticated `PlaybackAccessToken` request is refused.
+  ///
+  /// Should return a freshly minted web token to retry with, or null when none
+  /// can be obtained. This exists because the common way the 2K credential
+  /// dies is not the cookie disappearing but the cookie going stale: it is
+  /// still in the jar, still gets sent, and Twitch simply refuses it. Without
+  /// this hook the request below would fall back to anonymous and playback
+  /// would quietly drop to 1080p forever, with a token that looks set in
+  /// settings.
+  Future<String?> Function()? onWebTokenRejected;
+
   /// Returns the available quality variants for [userLogin]'s live stream.
   ///
   /// Pass the viewer's twitch.tv web token as [authToken] to receive the
@@ -223,9 +234,26 @@ class TwitchStreamService extends BaseApiClient {
           forceFresh: forceFresh,
         );
       } catch (e) {
-        debugPrint(
-          'Authenticated playback token failed, retrying anonymously: $e',
-        );
+        debugPrint('Authenticated playback token failed: $e');
+
+        // The stored token was refused. Give the owner one chance to mint a
+        // fresh one before giving up on the enhanced renditions — otherwise a
+        // stale cookie silently costs the user 2K on every stream from here
+        // on, with nothing in the UI to explain it.
+        try {
+          final refreshed = await onWebTokenRejected?.call();
+          if (refreshed != null &&
+              refreshed.isNotEmpty &&
+              refreshed != authToken) {
+            return await _cachedAccessToken(
+              login,
+              authToken: refreshed,
+              forceFresh: true,
+            );
+          }
+        } catch (e) {
+          debugPrint('Refreshed playback token also failed: $e');
+        }
       }
     }
     return _cachedAccessToken(login, forceFresh: forceFresh);

@@ -97,6 +97,10 @@ abstract class NativeVideoStoreBase with Store implements PlayerController {
     TwitchStreamService? streamService,
   }) : _ownsStreamService = streamService == null,
        _streamService = streamService ?? TwitchStreamService(Dio()) {
+    // Same renewal hook as the IVS engine: a refused web token should mint a
+    // replacement instead of silently downgrading playback.
+    _streamService.onWebTokenRejected = authStore.renewTwitchWebToken;
+
     if (settingsStore.autoSyncChatDelay) settingsStore.syncedChatDelay = 0.0;
 
     _subscriptions.add(

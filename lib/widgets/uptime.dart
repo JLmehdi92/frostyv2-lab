@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frosty/services/shared_timer_service.dart';
+import 'package:frosty/utils/context_extensions.dart';
 
 /// A widget that displays a timer representing the time since the given start time.
 /// Uses a shared timer service to keep all uptime displays synchronized.
@@ -38,7 +39,9 @@ class _UptimeState extends State<Uptime> {
     if (start == null) return const SizedBox.shrink();
     return Text(
       _timerService.currentTime.difference(start).toString().split('.')[0],
-      style: widget.style?.copyWith(
+      // The duration ticks every second: without fixed-width figures the
+      // digits dance, so tabular figures are the default for every caller.
+      style: context.frostyText.metadata.merge(widget.style).copyWith(
         fontFeatures: [const FontFeature.tabularFigures()],
       ),
       maxLines: widget.overflow == null ? null : 1,

@@ -13,6 +13,7 @@ import 'package:frosty/screens/home/top/tags/tag_streams.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/services/playback_preloader.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/image_size.dart';
@@ -135,17 +136,16 @@ class StreamCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.55),
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(FrostyTokens.radiusSmall - 2),
               border: Border.all(
                 color: Colors.white.withValues(alpha: 0.08),
-                width: 0.5,
+                width: FrostyTokens.hairlineWidth,
               ),
             ),
             child: Uptime(
               startTime: streamInfo.startedAt,
-              style: TextStyle(
+              style: context.frostyText.metadata.copyWith(
                 fontSize: 12,
-                fontWeight: FontWeight.w500,
                 color: context.frostyColors.overlayOnSurface,
               ),
             ),
@@ -172,8 +172,10 @@ class StreamCard extends StatelessWidget {
                     streamerName,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
+                      fontFamily: FrostyTokens.displayFamily,
+                      fontVariations: FrostyTokens.displayWeight(600),
                       fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.011,
                       color: fontColor,
                     ),
                   ),
@@ -211,23 +213,16 @@ class StreamCard extends StatelessWidget {
                 message: category,
                 preferBelow: false,
                 child: Text(
-                  category,
+                  category.toUpperCase(),
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: subFontSize,
-                    color: fontColor?.withValues(alpha: 0.8),
-                  ),
+                  style: context.frostyText.label,
                 ),
               ),
             ),
           ],
           Text(
             '${NumberFormat().format(streamInfo.viewerCount)} viewers',
-            style: TextStyle(
-              fontSize: subFontSize,
-              color: fontColor?.withValues(alpha: 0.8),
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
+            style: context.frostyText.metadata,
           ),
           if (streamInfo.tags.isNotEmpty) ...[
             const SizedBox(height: 2),

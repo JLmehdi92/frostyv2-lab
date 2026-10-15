@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:frosty/screens/settings/account/widgets/profile_card.dart';
 import 'package:frosty/screens/settings/chat_settings.dart';
 import 'package:frosty/screens/settings/general_settings.dart';
@@ -8,6 +7,7 @@ import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/settings/video_settings.dart';
 import 'package:frosty/screens/settings/widgets/settings_tile_route.dart';
+import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/blurred_container.dart';
 import 'package:frosty/widgets/frosty_scrollbar.dart';
 import 'package:frosty/widgets/readable_width.dart';
@@ -37,12 +37,6 @@ class Settings extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: theme.brightness == Brightness.dark
-              ? Brightness.light
-              : Brightness.dark,
-        ),
         leading: IconButton(
           tooltip: 'Back',
           icon: Icon(Icons.adaptive.arrow_back_rounded),
@@ -129,8 +123,7 @@ class Settings extends StatelessWidget {
                       builder: (context, snapshot) {
                         final version = snapshot.data?.version ?? '';
                         final buildNumber = snapshot.data?.buildNumber ?? '';
-                        final mutedColor = theme.colorScheme.onSurfaceVariant
-                            .withValues(alpha: 0.5);
+                        final mutedColor = context.frostyColors.metadata;
                         return Padding(
                           padding: EdgeInsets.only(
                             top: 16,
@@ -191,10 +184,7 @@ class Settings extends StatelessWidget {
                                   ),
                                   child: Text(
                                     'v$version ($buildNumber)',
-                                    style:
-                                        theme.textTheme.bodySmall?.copyWith(
-                                      color: mutedColor,
-                                    ),
+                                    style: context.frostyText.metadata,
                                   ),
                                 ),
                             ],

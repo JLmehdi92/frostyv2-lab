@@ -12,13 +12,15 @@ class OnboardingIntro extends StatelessWidget {
       future: PackageInfo.fromPlatform(),
       builder: (context, snapshot) {
         return OnboardingScaffold(
-          header: 'Frosty',
+          header: 'ONSET',
           subtitle:
               'A mobile Twitch client with 7TV, BetterTTV (BTTV), and FrankerFaceZ (FFZ) support.',
           showLogo: true,
           disclaimer: snapshot.hasData
               ? 'v${snapshot.data?.version} (${snapshot.data?.buildNumber})'
               : null,
+          // A version string is a number, so it stays monospace.
+          disclaimerIsMetadata: true,
           route: const OnboardingLogin(),
         );
       },

@@ -12,7 +12,9 @@ import 'package:frosty/models/emotes.dart';
 import 'package:frosty/models/user.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/utils.dart' as utils;
+import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/link_router.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
@@ -135,6 +137,7 @@ class IRCMessage {
     List<InlineSpan> span,
     TextStyle? style,
     TimestampType timestamp,
+    Color metadataColor,
   ) {
     if (timestamp == TimestampType.disabled) return;
 
@@ -149,8 +152,12 @@ class IRCMessage {
     span.add(
       TextSpan(
         text: timeText,
+        // Monospace, like every other number in the app: at a glance the
+        // timestamps form a straight column instead of drifting with the
+        // width of each digit.
         style: style?.copyWith(
-          color: style.color?.withValues(alpha: 0.5),
+          fontFamily: FrostyTokens.monoFamily,
+          color: metadataColor,
           fontFeatures: [FontFeature.tabularFigures()],
         ),
       ),
@@ -177,9 +184,7 @@ class IRCMessage {
             child: Icon(
               Icons.history_rounded,
               size: badgeSize,
-              color:
-                  Theme.of(context).iconTheme.color?.withValues(alpha: 0.5) ??
-                  Colors.grey.withValues(alpha: 0.5),
+              color: context.frostyColors.metadata,
             ),
           ),
         ),
@@ -211,7 +216,7 @@ class IRCMessage {
                   shape: BoxShape.circle,
                   border: isCurrentChannel
                       ? Border.all(
-                          color: Theme.of(context).colorScheme.primary,
+                          color: context.frostyColors.live,
                           width: 1.5,
                         )
                       : null,
@@ -234,7 +239,7 @@ class IRCMessage {
                   shape: BoxShape.circle,
                   border: isCurrentChannel
                       ? Border.all(
-                          color: Theme.of(context).colorScheme.primary,
+                          color: context.frostyColors.live,
                           width: 1.5,
                         )
                       : null,
@@ -302,7 +307,7 @@ class IRCMessage {
                 context,
                 badge: newBadge,
                 size: badgeSize,
-                backgroundColor: const Color(0xFF00AD03),
+                backgroundColor: context.frostyColors.subOnly,
                 launchExternal: launchExternal,
               ),
             );
@@ -724,7 +729,7 @@ class IRCMessage {
     // The span list that will be used to render the chat message
     final span = <InlineSpan>[];
 
-    _addTimestamp(span, style, timestamp);
+    _addTimestamp(span, style, timestamp, context.frostyColors.metadata);
     _addHistoricalAndChannelBadges(
       context,
       span,
@@ -964,10 +969,7 @@ class IRCMessage {
               ),
               child: leading,
             ),
-            title: Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
+            title: Text(title, style: context.textTheme.titleMedium),
             subtitle: subtitle,
           ),
           const Divider(indent: 16, endIndent: 16),

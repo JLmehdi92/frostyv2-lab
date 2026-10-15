@@ -6,7 +6,7 @@ import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/constants.dart';
 import 'package:frosty/models/irc.dart';
 import 'package:frosty/models/user.dart';
-import 'package:frosty/screens/channel/chat/announcement_color.dart';
+import 'package:frosty/models/user_notice.dart';
 import 'package:frosty/screens/channel/chat/chat_commands.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_link_card.dart';
@@ -236,9 +236,7 @@ class ChatMessage extends StatelessWidget {
     final defaultTextStyle = DefaultTextStyle.of(context).style;
     final messageHeaderIconSize =
         defaultBadgeSize * chatStore.settings.badgeScale;
-    final messageHeaderTextColor = defaultTextStyle.color?.withValues(
-      alpha: 0.5,
-    );
+    final messageHeaderTextColor = context.frostyColors.metadata;
     const messageHeaderFontWeight = FontWeight.w600;
 
     return Observer(
@@ -455,11 +453,8 @@ class ChatMessage extends StatelessWidget {
             );
             break;
           case Command.notice:
-            // Use tabular figures so countdown numbers don't shift horizontally
-            final noticeStyle = TextStyle(
-              color: messageHeaderTextColor,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            );
+            // Les notices portent des comptes a rebours : chasse fixe.
+            final noticeStyle = context.frostyText.metadata;
             if (ircMessage.actionCallback != null &&
                 ircMessage.actionLabel != null) {
               renderMessage = Text.rich(
@@ -493,56 +488,71 @@ class ChatMessage extends StatelessWidget {
             break;
           case Command.userNotice:
             if (chatStore.settings.showUserNotices) {
-              highlightColor = context.frostyColors.highlightedMessage;
+              // The accent, like an announcement with no colour of its own.
+              // This used to take the highlightedMessage token, which is still
+              // Twitch's purple and read as blue on a real screen — the one
+              // hue this design does not use.
+              highlightColor = context.frostyColors.live;
               Widget? messageHeaderIcon;
               Widget? messageHeader;
 
-              if (ircMessage.tags.containsKey('system-msg')) {
-                final messageId = ircMessage.tags['msg-id'];
-                final isGift = messageId?.contains('gift') == true;
-                final isSub = messageId?.contains('sub') == true;
-                final isRaid = messageId?.contains('raid') == true;
-                final isPrime =
-                    ircMessage.tags['msg-param-sub-plan'] == 'Prime';
+              final notice = UserNotice.fromTags(ircMessage.tags);
 
-                IconData? icon;
-                if (isGift) {
-                  icon = Icons.card_giftcard_rounded;
-                } else if (isSub) {
-                  icon = Icons.star_rounded;
-                } else if (isRaid) {
-                  icon = Icons.people_rounded;
-                } else if (isPrime) {
-                  icon = Icons.workspace_premium_rounded;
-                }
-
-                if (icon != null) {
-                  messageHeaderIcon = Icon(
-                    icon,
-                    size: messageHeaderIconSize,
-                    color: messageHeaderTextColor,
-                  );
-                }
-
-                messageHeader = Text(
-                  ircMessage.tags['system-msg']!,
-                  style: TextStyle(
-                    fontWeight: messageHeaderFontWeight,
-                    color: messageHeaderTextColor,
-                  ),
+              if (notice.kind == UserNoticeKind.announcement) {
+                // An announcement carries its text in the IRC body, not in
+                // system-msg, and picks its own colour.
+                final announcementColor = _announcementColor(
+                  context,
+                  notice.announcementColor,
                 );
-              } else if (ircMessage.tags['msg-id'] == 'announcement') {
-                highlightColor =
-                    announcementColor(ircMessage.tags['msg-param-color']) ??
-                    highlightColor;
+                highlightColor = announcementColor;
+
                 messageHeaderIcon = Icon(
                   Icons.campaign_rounded,
                   size: messageHeaderIconSize,
-                  color: announcementColor(ircMessage.tags['msg-param-color']),
+                  color: announcementColor,
                 );
-                messageHeader = const Text(
+                messageHeader = Text(
                   'Announcement',
-                  style: TextStyle(fontWeight: messageHeaderFontWeight),
+                  style: TextStyle(
+                    fontWeight: messageHeaderFontWeight,
+                    color: announcementColor,
+                  ),
+                );
+              } else if (notice.systemMessage.isNotEmpty) {
+                // A sponsored bonus sub is branded by its advertiser, so it
+                // borrows that colour rather than the generic notice colour.
+                final accentColor =
+                    notice.sponsorColor ?? messageHeaderTextColor;
+                if (notice.sponsorColor != null) {
+                  highlightColor = notice.sponsorColor;
+                }
+
+                messageHeaderIcon = Icon(
+                  _noticeIcon(notice.kind),
+                  size: messageHeaderIconSize,
+                  color: accentColor,
+                );
+
+                messageHeader = Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(text: notice.systemMessage),
+                      // The tier is the one thing Twitch's sentence leaves out
+                      // for a plain `sub`, and it is what viewers look for.
+                      if (_shouldShowTierChip(notice))
+                        TextSpan(
+                          text: '  ${notice.tier}',
+                          style: context.frostyText.label.copyWith(
+                            color: accentColor,
+                          ),
+                        ),
+                    ],
+                    style: TextStyle(
+                      fontWeight: messageHeaderFontWeight,
+                      color: accentColor,
+                    ),
+                  ),
                 );
               }
 
@@ -668,4 +678,62 @@ class ChatMessage extends StatelessWidget {
       },
     );
   }
+
+  /// The icon that stands for a notice.
+  ///
+  /// Chosen per kind, not by substring: `submysterygift`, `subgift`, `resub`
+  /// and `giftsubbasematch` all contain "sub", so matching on it collapsed a
+  /// gift, a bulk gift and a sponsored bonus onto one icon.
+  ///
+  /// A subscription and a resubscription do share the star — that is Twitch's
+  /// own choice, matched deliberately here rather than by accident.
+  static IconData _noticeIcon(UserNoticeKind kind) => switch (kind) {
+    // A resub is a star on Twitch's own client, not a refresh arrow: it reads
+    // as a celebration there, and the arrow read as "reloading" here.
+    UserNoticeKind.sub || UserNoticeKind.resub => Icons.star_rounded,
+    UserNoticeKind.subGift ||
+    UserNoticeKind.anonSubGift => Icons.card_giftcard_rounded,
+    UserNoticeKind.communityGift ||
+    UserNoticeKind.anonCommunityGift => Icons.redeem_rounded,
+    UserNoticeKind.giftPaidUpgrade ||
+    UserNoticeKind.anonGiftPaidUpgrade ||
+    UserNoticeKind.primePaidUpgrade => Icons.upgrade_rounded,
+    UserNoticeKind.giftSubBaseMatch => Icons.local_activity_rounded,
+    UserNoticeKind.raid => Icons.people_rounded,
+    UserNoticeKind.unraid => Icons.person_off_rounded,
+    UserNoticeKind.bitsBadgeTier => Icons.military_tech_rounded,
+    UserNoticeKind.payItForward => Icons.volunteer_activism_rounded,
+    UserNoticeKind.viewerMilestone => Icons.emoji_events_rounded,
+    UserNoticeKind.charityDonation => Icons.favorite_rounded,
+    UserNoticeKind.announcement => Icons.campaign_rounded,
+    UserNoticeKind.unknown => Icons.info_outline_rounded,
+  };
+
+  /// Whether the tier is worth appending to Twitch's sentence.
+  ///
+  /// Only when the sentence does not already say it. A resub reads "subscribed
+  /// with Prime" and a gift reads "gifted a Tier 1 sub", so repeating it there
+  /// would be noise; a plain `sub` does not always mention it.
+  static bool _shouldShowTierChip(UserNotice notice) {
+    final tier = notice.tier;
+    if (tier == null) return false;
+    if (notice.kind != UserNoticeKind.sub) return false;
+
+    return !notice.systemMessage.toLowerCase().contains(tier.toLowerCase());
+  }
+
+  /// The colour a moderator picked for an announcement.
+  ///
+  /// `PRIMARY` means "no colour chosen", so it follows the accent instead of
+  /// inventing one. The other four are Twitch's own fixed palette and are kept
+  /// recognisable rather than remapped onto the app's tokens — a green
+  /// announcement has to read as green.
+  static Color _announcementColor(BuildContext context, AnnouncementColor? c) =>
+      switch (c) {
+        AnnouncementColor.blue => const Color(0xFF3B8BFF),
+        AnnouncementColor.green => const Color(0xFF2FCE6E),
+        AnnouncementColor.orange => const Color(0xFFFF9147),
+        AnnouncementColor.purple => const Color(0xFFB15CFF),
+        AnnouncementColor.primary || null => context.frostyColors.live,
+      };
 }

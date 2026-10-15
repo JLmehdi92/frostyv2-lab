@@ -6,6 +6,7 @@ import 'package:frosty/main.dart' show navigatorKey;
 import 'package:frosty/screens/channel/channel.dart';
 import 'package:frosty/screens/channel/video/ivs_video.dart';
 import 'package:frosty/stores/mini_player_store.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:provider/provider.dart';
 import 'package:simple_pip_mode/actions/pip_actions_layout.dart';
@@ -99,9 +100,13 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
           width: width,
           height: height,
           child: Material(
+            // The one place elevation survives. Everything else in the app is
+            // flat, but this window floats over arbitrary content and has to
+            // read as detached from it; a hairline alone would disappear over a
+            // bright thumbnail.
             elevation: 10,
             color: Colors.black,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(FrostyTokens.radiusCard),
             clipBehavior: Clip.antiAlias,
             child: Stack(
               fit: StackFit.expand,

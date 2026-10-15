@@ -16,7 +16,7 @@ SettingsStore _$SettingsStoreFromJson(
         unknownValue: ThemeType.system,
       ) ??
       ThemeType.system
-  ..accentColor = (json['accentColor'] as num?)?.toInt() ?? 4287710975
+  ..accentColor = (json['accentColor'] as num?)?.toInt() ?? 4291362621
   ..showThumbnails = json['showThumbnails'] as bool? ?? true
   ..largeStreamCard = json['largeStreamCard'] as bool? ?? false
   ..startTab =
@@ -89,6 +89,7 @@ SettingsStore _$SettingsStoreFromJson(
   ..showUserNotices = json['showUserNotices'] as bool? ?? true
   ..showHypeTrain = json['showHypeTrain'] as bool? ?? true
   ..showCommunityHighlights = json['showCommunityHighlights'] as bool? ?? true
+  ..showCelebrations = json['showCelebrations'] as bool? ?? true
   ..emoteMenuButtonOnLeft = json['emoteMenuButtonOnLeft'] as bool? ?? false
   ..landscapeChatLeftSide = json['landscapeChatLeftSide'] as bool? ?? false
   ..landscapeForceVerticalChat =
@@ -175,6 +176,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'showUserNotices': instance.showUserNotices,
   'showHypeTrain': instance.showHypeTrain,
   'showCommunityHighlights': instance.showCommunityHighlights,
+  'showCelebrations': instance.showCelebrations,
   'emoteMenuButtonOnLeft': instance.emoteMenuButtonOnLeft,
   'landscapeChatLeftSide': instance.landscapeChatLeftSide,
   'landscapeForceVerticalChat': instance.landscapeForceVerticalChat,
@@ -997,6 +999,24 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     );
   }
 
+  late final _$showCelebrationsAtom = Atom(
+    name: '_SettingsStoreBase.showCelebrations',
+    context: context,
+  );
+
+  @override
+  bool get showCelebrations {
+    _$showCelebrationsAtom.reportRead();
+    return super.showCelebrations;
+  }
+
+  @override
+  set showCelebrations(bool value) {
+    _$showCelebrationsAtom.reportWrite(value, super.showCelebrations, () {
+      super.showCelebrations = value;
+    });
+  }
+
   late final _$emoteMenuButtonOnLeftAtom = Atom(
     name: '_SettingsStoreBase.emoteMenuButtonOnLeft',
     context: context,
@@ -1555,6 +1575,7 @@ highlightFirstTimeChatter: ${highlightFirstTimeChatter},
 showUserNotices: ${showUserNotices},
 showHypeTrain: ${showHypeTrain},
 showCommunityHighlights: ${showCommunityHighlights},
+showCelebrations: ${showCelebrations},
 emoteMenuButtonOnLeft: ${emoteMenuButtonOnLeft},
 landscapeChatLeftSide: ${landscapeChatLeftSide},
 landscapeForceVerticalChat: ${landscapeForceVerticalChat},

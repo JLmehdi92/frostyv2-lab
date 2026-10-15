@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:frosty/utils/context_extensions.dart';
 
 /// A custom-styled adaptive [Slider].
 class SettingsListSlider extends StatefulWidget {
@@ -53,12 +54,7 @@ class _SettingsListSliderState extends State<SettingsListSlider> {
         children: [
           Text(widget.title),
           const Spacer(),
-          Text(
-            widget.trailing,
-            style: const TextStyle(
-              fontFeatures: [FontFeature.tabularFigures()],
-            ),
-          ),
+          Text(widget.trailing, style: context.frostyText.metadata),
         ],
       ),
       subtitle: Padding(

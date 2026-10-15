@@ -100,7 +100,7 @@ class _OtherSettingsState extends State<OtherSettings> {
           builder: (_) => SettingsListSwitch(
             title: 'Share crash logs and analytics',
             subtitle: const Text(
-              'Help improve Frosty by sending anonymous crash logs and analytics through Firebase.',
+              'Help improve ONSET by sending anonymous crash logs and analytics through Firebase.',
             ),
             value: widget.settingsStore.shareCrashLogsAndAnalytics,
             onChanged: (newValue) {

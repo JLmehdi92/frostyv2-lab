@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frosty/theme.dart';
 
 /// Twitch API client ID.
 const clientId = String.fromEnvironment('CLIENT_ID');
@@ -43,7 +44,13 @@ final regexLink = RegExp(
 );
 
 /// Standard corner radius for card thumbnails and box art.
-const kCardBorderRadius = BorderRadius.all(Radius.circular(8));
+///
+/// Deliberately the small radius, not [FrostyTokens.radiusCard]: thumbnails and
+/// box art sit directly on the background, not inside a Material card, so the
+/// tighter corner is what reads right at list density.
+const kCardBorderRadius = BorderRadius.all(
+  Radius.circular(FrostyTokens.radiusSmall),
+);
 
 /// The default badge width and height.
 const defaultBadgeSize = 18.0;

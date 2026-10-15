@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:frosty/theme.dart';
+import 'package:frosty/utils/context_extensions.dart';
 
 /// A draggable vertical divider that allows users to resize content areas
 class DraggableDivider extends StatefulWidget {
@@ -200,15 +202,12 @@ class _DraggableDividerState extends State<DraggableDivider> {
                   width: _isDragging ? 12.0 : 10.0,
                   height: _isDragging ? 52.0 : 48.0,
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colorScheme.shadow.withValues(alpha: 0.08),
-                        blurRadius: 4,
-                        offset: const Offset(0, 1),
-                      ),
-                    ],
+                    // Le systeme est plat : la poignee se detache par sa
+                    // couleur d'accent, pas par une ombre portee.
+                    color: context.frostyColors.live,
+                    borderRadius: BorderRadius.circular(
+                      FrostyTokens.radiusCard,
+                    ),
                   ),
                   child: Center(
                     child: Container(

@@ -235,6 +235,14 @@ class _ChatSettingsState extends State<ChatSettings> {
             onChanged: (newValue) =>
                 settingsStore.showCommunityHighlights = newValue,
           ),
+          SettingsListSwitch(
+            title: 'Show celebrations',
+            subtitle: const Text(
+              'Plays an animation over the channel when someone gifts subs.',
+            ),
+            value: settingsStore.showCelebrations,
+            onChanged: (newValue) => settingsStore.showCelebrations = newValue,
+          ),
           const SectionHeader('Layout'),
           SettingsListSwitch(
             title: 'Move emote menu button left',

@@ -7,6 +7,7 @@ import 'package:frosty/screens/channel/chat/widgets/chat_moderation_bar.dart';
 import 'package:frosty/screens/channel/chat/widgets/user_card_info.dart';
 import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
 import 'package:frosty/screens/whispers/whisper_conversation.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/alert_message.dart';
@@ -53,7 +54,10 @@ class _ChatUserModalState extends State<ChatUserModal> {
                     child: Text(
                       name,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontFamily: FrostyTokens.displayFamily,
+                        fontVariations: FrostyTokens.displayWeight(700),
+                      ),
                     ),
                   ),
                 ),

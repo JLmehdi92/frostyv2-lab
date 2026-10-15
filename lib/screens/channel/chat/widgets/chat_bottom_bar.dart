@@ -11,6 +11,7 @@ import 'package:frosty/screens/channel/chat/widgets/chat_restriction_bar.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/blurred_container.dart';
+import 'package:frosty/widgets/channel_points_button.dart';
 import 'package:frosty/widgets/chat_input/emote_text_span_builder.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
 
@@ -79,7 +80,7 @@ class ChatBottomBar extends StatelessWidget {
             preferBelow: false,
             child: IconButton(
               color: chatStore.assetsStore.showEmoteMenu
-                  ? Theme.of(context).colorScheme.secondary
+                  ? context.frostyColors.live
                   : null,
               icon: Icon(
                 chatStore.assetsStore.showEmoteMenu
@@ -136,7 +137,7 @@ class ChatBottomBar extends StatelessWidget {
                   decoration: BoxDecoration(
                     border: Border(
                       left: BorderSide(
-                        color: Theme.of(context).colorScheme.secondary,
+                        color: context.frostyColors.live,
                         width: 4,
                       ),
                     ),
@@ -305,6 +306,8 @@ class ChatBottomBar extends StatelessWidget {
               padding: const EdgeInsets.only(left: 12, top: 8, bottom: 8),
               child: Row(
                 children: [
+                  // Bottom-left of the chat, where Twitch puts it.
+                  const ChannelPointsButton(),
                   if (inputControls.pencil)
                     Builder(
                       builder: (context) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/widgets/blurred_container.dart';
 import 'package:frosty/widgets/frosty_scrollbar.dart';
 import 'package:provider/provider.dart';
@@ -50,12 +51,6 @@ class _ReleaseNotesState extends State<ReleaseNotes> {
         elevation: 0,
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
-        systemOverlayStyle: SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: theme.brightness == Brightness.dark
-              ? Brightness.light
-              : Brightness.dark,
-        ),
         leading: IconButton(
           tooltip: 'Back',
           icon: Icon(Icons.adaptive.arrow_back_rounded),
@@ -82,20 +77,28 @@ class _ReleaseNotesState extends State<ReleaseNotes> {
                 controller: _scrollController,
                 data: releaseNotes,
                 styleSheet: MarkdownStyleSheet(
-                  h2: const TextStyle(fontSize: 20),
-                  h3: const TextStyle(
+                  h2: TextStyle(
+                    fontFamily: FrostyTokens.displayFamily,
+                    fontVariations: FrostyTokens.displayWeight(700),
+                    fontSize: 20,
+                  ),
+                  h3: TextStyle(
+                    fontFamily: FrostyTokens.displayFamily,
+                    fontVariations: FrostyTokens.displayWeight(600),
                     fontSize: 16,
-                    fontWeight: FontWeight.w600,
                   ),
                   h3Padding: const EdgeInsets.only(top: 16),
-                  h4: const TextStyle(fontSize: 14),
+                  h4: TextStyle(
+                    fontFamily: FrostyTokens.displayFamily,
+                    fontVariations: FrostyTokens.displayWeight(600),
+                    fontSize: 14,
+                  ),
                   h4Padding: const EdgeInsets.only(top: 16),
                   p: const TextStyle(fontSize: 14),
-                  horizontalRuleDecoration: const BoxDecoration(
-                    border: Border(
-                      top: BorderSide(color: Colors.transparent, width: 32),
-                    ),
-                  ),
+                  // Le separateur horizontal du markdown ne sert qu'a espacer
+                  // les versions : on le rend invisible plutot que de detourner
+                  // une bordure de 32px, qui violait la hairline du systeme.
+                  horizontalRuleDecoration: const BoxDecoration(),
                 ),
                 onTapLink: (text, href, title) {
                   if (href != null) {

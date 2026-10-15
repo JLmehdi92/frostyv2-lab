@@ -243,11 +243,7 @@ class Chat extends StatelessWidget {
                           bufferCount > 0
                               ? '$bufferCount new ${bufferCount == 1 ? 'message' : 'messages'}'
                               : 'Resume scroll',
-                          style: const TextStyle(
-                            fontFeatures: [
-                              FontFeature.tabularFigures(),
-                            ],
-                          ),
+                          style: context.frostyText.metadata,
                         ),
                       ),
               );

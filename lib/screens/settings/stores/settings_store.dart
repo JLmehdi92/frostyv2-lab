@@ -17,7 +17,11 @@ abstract class _SettingsStoreBase with Store {
   // * General Settings
   // Theme defaults
   static const defaultThemeType = ThemeType.system;
-  static const defaultAccentColor = 0xff9146ff;
+
+  /// Electric lime. Was Twitch's own `0xff9146ff`; the fork does not borrow the
+  /// identity it is trying to move away from. Users who already picked a colour
+  /// keep it — this only applies to fresh installs and to a settings reset.
+  static const defaultAccentColor = 0xffc8ff3d;
 
   // Stream card defaults
   static const defaultShowThumbnails = true;
@@ -223,6 +227,7 @@ abstract class _SettingsStoreBase with Store {
   static const defaultShowUserNotices = true;
   static const defaultShowHypeTrain = true;
   static const defaultShowCommunityHighlights = true;
+  static const defaultShowCelebrations = true;
 
   // Layout defaults
   static const defaultEmoteMenuButtonOnLeft = false;
@@ -342,6 +347,13 @@ abstract class _SettingsStoreBase with Store {
   @JsonKey(defaultValue: defaultShowCommunityHighlights)
   @observable
   var showCommunityHighlights = defaultShowCommunityHighlights;
+  /// Whether Twitch's celebration animations play over the channel.
+  ///
+  /// Twitch offers the same switch; a full-screen animation on every gifted
+  /// sub is not to everyone's taste, and on a busy channel it is frequent.
+  @JsonKey(defaultValue: defaultShowCelebrations)
+  @observable
+  var showCelebrations = defaultShowCelebrations;
 
   // Layout options
   @JsonKey(defaultValue: defaultEmoteMenuButtonOnLeft)
@@ -448,6 +460,7 @@ abstract class _SettingsStoreBase with Store {
     showUserNotices = defaultShowUserNotices;
     showHypeTrain = defaultShowHypeTrain;
     showCommunityHighlights = defaultShowCommunityHighlights;
+    showCelebrations = defaultShowCelebrations;
 
     emoteMenuButtonOnLeft = defaultEmoteMenuButtonOnLeft;
 

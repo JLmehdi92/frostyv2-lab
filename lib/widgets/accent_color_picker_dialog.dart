@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/widgets/frosty_dialog.dart';
 
 class AccentColorPickerDialog extends StatefulWidget {
@@ -58,7 +59,7 @@ class _AccentColorPickerDialogState extends State<AccentColorPickerDialog> {
               },
               enableAlpha: false,
               pickerAreaBorderRadius: const BorderRadius.all(
-                Radius.circular(8),
+                Radius.circular(FrostyTokens.radiusSmall),
               ),
               labelTypes: const [],
             ),

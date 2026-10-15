@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frosty/constants.dart';
 import 'package:frosty/models/category.dart';
 import 'package:frosty/screens/home/top/categories/category_streams.dart';
+import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
 import 'package:frosty/widgets/skeleton_loader.dart';
 
@@ -62,10 +63,10 @@ class CategoryCard extends StatelessWidget {
             ),
             Flexible(
               child: Text(
-                category.name,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+                category.name.toUpperCase(),
+                style: context.frostyText.label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
