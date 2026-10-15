@@ -47,8 +47,12 @@ class IvsTextureVideo extends StatelessWidget {
               final width = limitByWidth ? boxW : boxH * aspect;
               final height = limitByWidth ? boxW / aspect : boxH;
               // OverflowBox lets the (centered) video exceed the box when
-              // filling so the cropped edges aren't clamped away.
+              // filling so the cropped edges aren't clamped away. Its minimums
+              // are zeroed: the Stack below passes tight constraints, which
+              // would otherwise stretch a fitted picture over the bars.
               return OverflowBox(
+                minWidth: 0,
+                minHeight: 0,
                 maxWidth: double.infinity,
                 maxHeight: double.infinity,
                 child: SizedBox(
