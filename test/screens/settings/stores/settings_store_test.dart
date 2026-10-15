@@ -94,7 +94,7 @@ void main() {
       expect(store.messageScale, 1.0);
       expect(store.messageSpacing, 8.0);
       expect(store.fontSize, 12.0);
-      expect(store.showDeletedMessages, isFalse);
+      expect(store.showDeletedMessages, isTrue);
       expect(store.showChatMessageDividers, isFalse);
       expect(store.timestampType, TimestampType.disabled);
       expect(store.autoSyncChatDelay, isFalse);
@@ -251,6 +251,41 @@ void main() {
     });
   });
 
+  group('showDeletedMessages', () {
+    test('is on by default', () {
+      expect(SettingsStore.fromJson({}).showDeletedMessages, isTrue);
+    });
+
+    test('ignores the false saved under the old key', () {
+      // Older installs saved the old default, false, without anyone choosing it.
+      expect(
+        SettingsStore.fromJson({
+          'showDeletedMessages': false,
+        }).showDeletedMessages,
+        isTrue,
+      );
+    });
+
+    test('keeps a false chosen under the new key', () {
+      final store = SettingsStore.fromJson({})..showDeletedMessages = false;
+
+      expect(store.toJson()['revealDeletedMessages'], isFalse);
+      expect(store.toJson().containsKey('showDeletedMessages'), isFalse);
+      expect(
+        SettingsStore.fromJson(store.toJson()).showDeletedMessages,
+        isFalse,
+      );
+    });
+
+    test('resetChatSettings turns it back on', () {
+      final store = SettingsStore.fromJson({})
+        ..showDeletedMessages = false
+        ..resetChatSettings();
+
+      expect(store.showDeletedMessages, isTrue);
+    });
+  });
+
   group('showModerationNotices', () {
     test('is on by default, also for older settings', () {
       expect(SettingsStore.fromJson({}).showModerationNotices, isTrue);
@@ -388,7 +423,7 @@ void main() {
       store.badgeScale = 2.0;
       store.emoteScale = 2.0;
       store.fontSize = 20.0;
-      store.showDeletedMessages = true;
+      store.showDeletedMessages = false;
       store.timestampType = TimestampType.twentyFour;
       store.chatDelay = 10.0;
       store.syncedChatDelay = 7.0;
@@ -404,7 +439,7 @@ void main() {
       expect(store.badgeScale, 1.0);
       expect(store.emoteScale, 1.0);
       expect(store.fontSize, 12.0);
-      expect(store.showDeletedMessages, isFalse);
+      expect(store.showDeletedMessages, isTrue);
       expect(store.timestampType, TimestampType.disabled);
       expect(store.chatDelay, 0.0);
       expect(store.syncedChatDelay, 0.0);

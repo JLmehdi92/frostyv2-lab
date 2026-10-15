@@ -70,7 +70,7 @@ SettingsStore _$SettingsStoreFromJson(
   ..messageScale = (json['messageScale'] as num?)?.toDouble() ?? 1.0
   ..messageSpacing = (json['messageSpacing'] as num?)?.toDouble() ?? 8.0
   ..fontSize = (json['fontSize'] as num?)?.toDouble() ?? 12.0
-  ..showDeletedMessages = json['showDeletedMessages'] as bool? ?? false
+  ..showDeletedMessages = json['revealDeletedMessages'] as bool? ?? true
   ..animateEmotes = json['animateEmotes'] as bool? ?? true
   ..showLinkPreviews = json['showLinkPreviews'] as bool? ?? true
   ..showModerationNotices = json['showModerationNotices'] as bool? ?? true
@@ -165,7 +165,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'messageScale': instance.messageScale,
   'messageSpacing': instance.messageSpacing,
   'fontSize': instance.fontSize,
-  'showDeletedMessages': instance.showDeletedMessages,
+  'revealDeletedMessages': instance.showDeletedMessages,
   'animateEmotes': instance.animateEmotes,
   'showLinkPreviews': instance.showLinkPreviews,
   'showModerationNotices': instance.showModerationNotices,

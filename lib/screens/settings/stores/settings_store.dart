@@ -211,7 +211,7 @@ abstract class _SettingsStoreBase with Store {
   static const defaultFontSize = 12.0;
 
   // Message appearance defaults
-  static const defaultShowDeletedMessages = false;
+  static const defaultShowDeletedMessages = true;
   static const defaultShowModerationNotices = true;
   static const defaultAnimateEmotes = true;
   static const defaultShowLinkPreviews = true;
@@ -285,7 +285,13 @@ abstract class _SettingsStoreBase with Store {
   var fontSize = defaultFontSize;
 
   // Message appearance options
-  @JsonKey(defaultValue: defaultShowDeletedMessages)
+  /// Saved under a new key since the default became true: older installs hold
+  /// `showDeletedMessages: false`, the old default nobody chose, which is
+  /// ignored once so deleted messages show without a tap.
+  @JsonKey(
+    name: 'revealDeletedMessages',
+    defaultValue: defaultShowDeletedMessages,
+  )
   @observable
   var showDeletedMessages = defaultShowDeletedMessages;
 

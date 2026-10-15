@@ -165,8 +165,12 @@ void main() {
       return message;
     }
 
+    MockChatStore hidingStore() => fakeChatStore(
+      settings: SettingsStore.fromJson({'revealDeletedMessages': false}),
+    );
+
     testWidgets('keeps the sentence and hides the message', (tester) async {
-      await pumpChatMessage(tester, deleted(), fakeChatStore());
+      await pumpChatMessage(tester, deleted(), hidingStore());
 
       expect(find.byType(UserNoticeRow), findsOneWidget);
       expect(_systemLine(tester), startsWith('ReSubber subscribed at Tier 1.'));
@@ -182,7 +186,7 @@ void main() {
     });
 
     testWidgets('reveals the message on tap', (tester) async {
-      final store = fakeChatStore();
+      final store = hidingStore();
       await pumpChatMessage(tester, deleted(), store);
 
       await tester.tapOnText(find.textRange.ofSubstring('<message deleted>'));
@@ -195,25 +199,19 @@ void main() {
       );
     });
 
-    testWidgets('shows the message when deleted messages are shown', (
-      tester,
-    ) async {
-      await pumpChatMessage(
-        tester,
-        deleted(),
-        fakeChatStore(
-          settings: SettingsStore.fromJson({'showDeletedMessages': true}),
-        ),
-      );
+    testWidgets('shows the message without a tap by default', (tester) async {
+      final store = fakeChatStore();
+      await pumpChatMessage(tester, deleted(), store);
 
       expect(
         find.textContaining('14 months!', findRichText: true),
         findsOneWidget,
       );
+      verifyNever(() => store.revealMessage(any()));
     });
 
     testWidgets('a timeout keeps the sentence too', (tester) async {
-      await pumpChatMessage(tester, timedOut(), fakeChatStore());
+      await pumpChatMessage(tester, timedOut(), hidingStore());
 
       expect(find.byType(UserNoticeRow), findsOneWidget);
       expect(find.textContaining('Timed out'), findsNothing);
@@ -227,7 +225,7 @@ void main() {
       tester,
     ) async {
       final copied = captureClipboard(tester);
-      await pumpChatMessage(tester, deleted(), fakeChatStore());
+      await pumpChatMessage(tester, deleted(), hidingStore());
 
       await tester.longPress(find.byType(UserNoticeRow));
       await tester.pump();
@@ -247,6 +245,20 @@ void main() {
 
       expect(find.byType(UserNoticeRow), findsNothing);
       expect(find.text('Message deleted'), findsOneWidget);
+    });
+
+    testWidgets('a deleted chat message shows its text by default', (
+      tester,
+    ) async {
+      final message = IRCMessage.fromString(basicPrivmsg);
+      message.command = Command.clearMessage;
+      await pumpChatMessage(tester, message, fakeChatStore());
+
+      expect(find.text('Message deleted'), findsOneWidget);
+      expect(
+        find.textContaining('Hello World', findRichText: true),
+        findsOneWidget,
+      );
     });
   });
 
