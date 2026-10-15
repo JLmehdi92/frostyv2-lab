@@ -91,10 +91,11 @@ enum AnnouncementColor { primary, blue, green, orange, purple }
 
 /// A parsed `USERNOTICE`.
 ///
-/// [systemMessage] is Twitch's own wording, generated server-side and already
-/// localised for the channel — it is never rebuilt here. The typed fields exist
-/// to drive the *presentation* (icon, tier badge, colour, grouping), not to
-/// re-word what Twitch already said.
+/// [systemMessage] is Twitch's own wording, generated server-side. Like
+/// Twitch's Android app, the chat words subs and gifts from the typed fields
+/// instead (see `userNoticeText`), and keeps [systemMessage] for the kinds it
+/// has no sentence of its own for. The typed fields also drive the
+/// presentation: layout, icon, colour and gift bomb grouping.
 @immutable
 class UserNotice {
   final UserNoticeKind kind;
