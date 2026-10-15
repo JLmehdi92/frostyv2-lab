@@ -238,4 +238,59 @@ void main() {
       expect(message.message, 'Kappa 14 months!');
     });
   });
+  group('IRCMessage.isUserNotice', () {
+    test('is true for a USERNOTICE and false for a chat message', () {
+      expect(IRCMessage.fromString(resubStreak).isUserNotice, isTrue);
+      expect(IRCMessage.fromString(basicPrivmsg).isUserNotice, isFalse);
+    });
+
+    test('is false for a chat message that mentions USERNOTICE', () {
+      final message = IRCMessage.fromString(
+        '@display-name=Nerd;id=nerd-1;room-id=12345;tmi-sent-ts=1;user-id=1 '
+        ':nerd!nerd@nerd.tmi.twitch.tv PRIVMSG #channel :a USERNOTICE is fun',
+      );
+      message.command = Command.clearMessage;
+
+      expect(message.isUserNotice, isFalse);
+      expect(message.notice, isNull);
+    });
+
+    test('survives a deletion of the notice', () {
+      final notice = IRCMessage.fromString(resubStreak);
+      IRCMessage.clearMessage(
+        messages: [notice],
+        bufferedMessages: [],
+        ircMessage: IRCMessage.fromString(clearMsgResub),
+      );
+
+      expect(notice.command, Command.clearMessage);
+      expect(notice.isUserNotice, isTrue);
+      expect(notice.notice?.kind, UserNoticeKind.resub);
+    });
+
+    test('survives a timeout of its author', () {
+      final notice = IRCMessage.fromString(resubStreak);
+      IRCMessage.clearChat(
+        messages: [notice],
+        bufferedMessages: [],
+        ircMessage: IRCMessage.fromString(clearChatResubber),
+      );
+
+      expect(notice.command, Command.clearChat);
+      expect(notice.isUserNotice, isTrue);
+      expect(notice.notice?.kind, UserNoticeKind.resub);
+    });
+
+    test('recognises a notice with no system-msg by its command', () {
+      final announcement = IRCMessage.fromString(
+        '@display-name=Mod;id=ann-1;login=mod;msg-id=announcement;'
+        'room-id=12345;system-msg=;tmi-sent-ts=1 '
+        ':tmi.twitch.tv USERNOTICE #channel :hello',
+      );
+      announcement.command = Command.clearMessage;
+
+      expect(announcement.isUserNotice, isTrue);
+      expect(announcement.notice?.kind, UserNoticeKind.announcement);
+    });
+  });
 }

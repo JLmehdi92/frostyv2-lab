@@ -49,13 +49,32 @@ class IRCMessage {
   final VoidCallback? actionCallback;
   final String? actionLabel;
 
+  /// Whether this message is a `USERNOTICE`, even after a deletion or a ban
+  /// of its author has changed its [command] to [Command.clearMessage] or
+  /// [Command.clearChat].
+  bool get isUserNotice =>
+      command == Command.userNotice ||
+      tags.containsKey('system-msg') ||
+      _rawCommand(raw) == 'USERNOTICE';
+
+  /// The IRC command of a raw line: the word after the tags and the prefix.
+  static String? _rawCommand(String raw) {
+    var rest = raw;
+    if (rest.startsWith('@')) {
+      final end = rest.indexOf(' ');
+      if (end < 0) return null;
+      rest = rest.substring(end + 1);
+    }
+    final words = rest.split(' ');
+    if (words.length < 2) return null;
+    return words[0].startsWith(':') ? words[1] : words[0];
+  }
+
   /// The parsed `USERNOTICE`, or null for any other message.
   ///
   /// Parsed on first use and kept, so a notice row costs one parse however
-  /// often the chat list rebuilds it. A notice keeps its `system-msg` tag when
-  /// a ban or deletion changes its [command], so it is still recognised then.
-  late final UserNotice? notice =
-      command == Command.userNotice || tags.containsKey('system-msg')
+  /// often the chat list rebuilds it.
+  late final UserNotice? notice = isUserNotice
       ? UserNotice.fromTags(tags)
       : null;
 

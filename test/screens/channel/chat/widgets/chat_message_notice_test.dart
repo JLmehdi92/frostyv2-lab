@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/models/irc.dart';
 import 'package:frosty/screens/channel/chat/widgets/user_notice_row.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:mocktail/mocktail.dart';
 
 import '../../../../fixtures/irc_messages.dart';
 import '../../../../helpers/chat_message_harness.dart';
@@ -138,5 +139,110 @@ void main() {
       isTrue,
     );
     expect(IRCMessage.fromString(basicPrivmsg).notice, isNull);
+  });
+  group('a deleted or banned notice', () {
+    IRCMessage deleted() {
+      final message = IRCMessage.fromString(resubStreak);
+      IRCMessage.clearMessage(
+        messages: [message],
+        bufferedMessages: [],
+        ircMessage: IRCMessage.fromString(clearMsgResub),
+      );
+      return message;
+    }
+
+    IRCMessage timedOut() {
+      final message = IRCMessage.fromString(resubStreak);
+      IRCMessage.clearChat(
+        messages: [message],
+        bufferedMessages: [],
+        ircMessage: IRCMessage.fromString(clearChatResubber),
+      );
+      return message;
+    }
+
+    testWidgets('keeps the sentence and hides the message', (tester) async {
+      await pumpChatMessage(tester, deleted(), fakeChatStore());
+
+      expect(find.byType(UserNoticeRow), findsOneWidget);
+      expect(_systemLine(tester), startsWith('ReSubber subscribed at Tier 1.'));
+      expect(
+        find.textContaining('<message deleted>', findRichText: true),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('14 months!', findRichText: true),
+        findsNothing,
+      );
+      expect(find.text('Message deleted'), findsNothing);
+    });
+
+    testWidgets('reveals the message on tap', (tester) async {
+      final store = fakeChatStore();
+      await pumpChatMessage(tester, deleted(), store);
+
+      await tester.tapOnText(find.textRange.ofSubstring('<message deleted>'));
+      await tester.pump();
+
+      verify(() => store.revealMessage('resub-1')).called(1);
+      expect(
+        find.textContaining('14 months!', findRichText: true),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('shows the message when deleted messages are shown', (
+      tester,
+    ) async {
+      await pumpChatMessage(
+        tester,
+        deleted(),
+        fakeChatStore(
+          settings: SettingsStore.fromJson({'showDeletedMessages': true}),
+        ),
+      );
+
+      expect(
+        find.textContaining('14 months!', findRichText: true),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a timeout keeps the sentence too', (tester) async {
+      await pumpChatMessage(tester, timedOut(), fakeChatStore());
+
+      expect(find.byType(UserNoticeRow), findsOneWidget);
+      expect(find.textContaining('Timed out'), findsNothing);
+      expect(
+        find.textContaining('<message deleted>', findRichText: true),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a long press copies the sentence without the hidden message', (
+      tester,
+    ) async {
+      final copied = captureClipboard(tester);
+      await pumpChatMessage(tester, deleted(), fakeChatStore());
+
+      await tester.longPress(find.byType(UserNoticeRow));
+      await tester.pump();
+
+      expect(copied, [
+        "ReSubber subscribed at Tier 1. They've subscribed for 14 months, "
+            'currently on a 5 month streak!',
+      ]);
+    });
+
+    testWidgets('a deleted chat message still reads "Message deleted"', (
+      tester,
+    ) async {
+      final message = IRCMessage.fromString(basicPrivmsg);
+      message.command = Command.clearMessage;
+      await pumpChatMessage(tester, message, fakeChatStore());
+
+      expect(find.byType(UserNoticeRow), findsNothing);
+      expect(find.text('Message deleted'), findsOneWidget);
+    });
   });
 }

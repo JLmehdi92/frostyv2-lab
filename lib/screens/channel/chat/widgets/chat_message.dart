@@ -105,13 +105,20 @@ class ChatMessage extends StatelessWidget {
   }
 
   /// Whether this message is drawn as a [UserNoticeRow]: any `USERNOTICE`
-  /// but an announcement, which keeps its own look.
+  /// but an announcement, which keeps its own look. Still true once the
+  /// notice is deleted or its author banned: only its message is hidden then.
   bool get _isNoticeRow {
     final notice = ircMessage.notice;
-    return ircMessage.command == Command.userNotice &&
-        notice != null &&
-        notice.kind != UserNoticeKind.announcement;
+    return notice != null && notice.kind != UserNoticeKind.announcement;
   }
+
+  /// Whether the viewer's own message is hidden, by a deletion or a ban that
+  /// the viewer has neither revealed nor chosen to see through.
+  bool get _isMessageHidden =>
+      (ircMessage.command == Command.clearChat ||
+          ircMessage.command == Command.clearMessage) &&
+      !chatStore.settings.showDeletedMessages &&
+      !chatStore.revealedMessageIds.contains(ircMessage.tags['id']);
 
   /// The channel profiles known to this chat, by channel id.
   Map<String, UserTwitch> get _channelProfiles =>
@@ -134,7 +141,7 @@ class ChatMessage extends StatelessWidget {
         .join();
     final text = [
       if (sentence.isNotEmpty) sentence,
-      if (ircMessage.message != null) ircMessage.message!,
+      if (ircMessage.message != null && !_isMessageHidden) ircMessage.message!,
     ].join('\n');
     await Clipboard.setData(ClipboardData(text: text));
 
@@ -438,6 +445,22 @@ class ChatMessage extends StatelessWidget {
             break;
           case Command.clearChat:
           case Command.clearMessage:
+            // A deleted notice, or one whose author was banned, keeps its
+            // sentence: only the viewer's own message goes.
+            if (_isNoticeRow) {
+              if (chatStore.settings.showUserNotices) {
+                isNoticeRow = true;
+                renderMessage = _noticeRow(
+                  context,
+                  defaultTextStyle,
+                  showMessage: !_isMessageHidden,
+                );
+              } else {
+                renderMessage = const SizedBox();
+              }
+              break;
+            }
+
             // Render timeouts and bans
             final banDuration = ircMessage.tags['ban-duration'];
 
@@ -688,8 +711,14 @@ class ChatMessage extends StatelessWidget {
     ),
   );
 
-  /// A sub, gift or other notice, drawn as Twitch's notice row.
-  Widget _noticeRow(BuildContext context, TextStyle defaultTextStyle) {
+  /// A sub, gift or other notice, drawn as Twitch's notice row. With
+  /// [showMessage] false the viewer's message is replaced by the tappable
+  /// deleted-message placeholder.
+  Widget _noticeRow(
+    BuildContext context,
+    TextStyle defaultTextStyle, {
+    bool showMessage = true,
+  }) {
     final notice = ircMessage.notice!;
     final presentation = noticePresentation(notice);
     final source = notice.sourceRoomId;
@@ -699,7 +728,15 @@ class ChatMessage extends StatelessWidget {
       presentation: presentation,
       userMessage: ircMessage.message == null
           ? null
-          : _userMessage(context, defaultTextStyle),
+          : _userMessage(
+              context,
+              defaultTextStyle,
+              showMessage: showMessage,
+              onTapDeletedMessage: () {
+                final id = ircMessage.tags['id'];
+                if (id != null) chatStore.revealMessage(id);
+              },
+            ),
       avatarUrl: switch (presentation.icon) {
         NoticeGlyph.sharedChat =>
           source == null ? null : _channelProfiles[source]?.profileImageUrl,
