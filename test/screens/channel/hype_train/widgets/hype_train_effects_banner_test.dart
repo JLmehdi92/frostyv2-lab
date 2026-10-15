@@ -5,6 +5,7 @@ import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/models/hype_train_event.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/effects/coin_unlock.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/effects/hype_train_avatar_stack.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/effects/merge_aura.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/effects/mythic_reveal.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/effects/rainbow_sweep.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/effects/rocket_launch.dart';
@@ -40,6 +41,14 @@ Future<bool> seenWithin(WidgetTester tester, Finder finder, int ms) async {
   return seen;
 }
 
+/// Pumps frame by frame (100 ms) until [finder] shows, for at most [ms].
+Future<void> untilSeen(WidgetTester tester, Finder finder, int ms) async {
+  for (var t = 0; t < ms && finder.evaluate().isEmpty; t += 100) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+  expect(finder, findsOneWidget);
+}
+
 void main() {
   HtHarness harnessFor(HypeTrainExecution train) => HtHarness(
     snapshot: HtOngoingSnapshot(train, fetchedAt: DateTime.utc(2026)),
@@ -48,13 +57,19 @@ void main() {
   testWidgets('treasure: the coin unlocks at the threshold', (tester) async {
     final h = harnessFor(liveTrain(level: 2, treasure: _treasure));
     await pumpSlot(tester, h.store);
-    expect(find.byKey(const ValueKey('ht-treasure-watermark')), findsOneWidget);
+    expect(
+      find.text('Reach Level 3 to unlock 50% OFF Gift Subs!'),
+      findsOneWidget,
+    );
 
     h.inject(htLevelUp(3));
     await tester.pump();
 
     expect(await seenWithin(tester, find.byType(CoinUnlock), 6000), isTrue);
-    expect(find.byIcon(Icons.lock_open_rounded), findsWidgets);
+    expect(
+      find.text('50% OFF 5+ Gift Subs for the rest of this Hype Train'),
+      findsOneWidget,
+    );
     await h.close(tester);
   });
 
@@ -144,7 +159,7 @@ void main() {
     await tester.pump();
 
     expect(await seenWithin(tester, find.byType(TrophyBurst), 1500), isTrue);
-    expect(find.text('New all-time high!'), findsOneWidget);
+    expect(find.text('All-time record shattered!'), findsOneWidget);
     await h.close(tester);
   });
 
@@ -163,9 +178,155 @@ void main() {
     expect(find.byType(HtAvatar), findsNWidgets(2));
 
     await tester.pump(const Duration(milliseconds: 500));
+    // One counting pill, the merge's own, between the auras.
     expect(find.text('LVL 4'), findsOneWidget);
+    expect(
+      find.descendant(of: find.byType(MergeAura), matching: find.text('LVL 4')),
+      findsOneWidget,
+    );
     await tester.pump(const Duration(milliseconds: 600));
-    expect(find.text('LVL 5'), findsOneWidget);
+    expect(find.text('LVL 5'), findsWidgets);
+    expect(find.text('LVL 4'), findsNothing);
     await h.close(tester);
+  });
+
+  testWidgets('the coin is as tall as the banner', (tester) async {
+    final h = harnessFor(liveTrain(level: 2, treasure: _treasure));
+    await pumpSlot(tester, h.store);
+
+    h.inject(htLevelUp(3));
+    await tester.pump();
+    await untilSeen(tester, find.byType(CoinUnlock), 6000);
+    // Past its cross-fade in.
+    await tester.pump(const Duration(milliseconds: 100));
+    // The padlock reads on the unlocked treasure's blue-green.
+    final lock = tester.widget<Icon>(
+      find.descendant(
+        of: find.byType(CoinUnlock),
+        matching: find.byWidgetPredicate(
+          (w) =>
+              w is Icon &&
+              (w.icon == Icons.lock_rounded ||
+                  w.icon == Icons.lock_open_rounded),
+        ),
+      ),
+    );
+    expect(lock.color, Colors.white);
+    expect(
+      tester.getSize(find.byType(CoinUnlock)).height,
+      tester.getSize(find.byKey(const ValueKey('ht-banner'))).height,
+    );
+    await h.close(tester);
+  });
+
+  testWidgets('the rocket flies across the whole banner', (tester) async {
+    final h = harnessFor(
+      liveTrain(level: 4, community: HtCommunity.parse(const {})),
+    );
+    await pumpSlot(tester, h.store);
+
+    h.inject(htLevelUp(5));
+    await tester.pump();
+    await untilSeen(tester, find.byType(RocketLaunch), 6000);
+    // Past its cross-fade in.
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(
+      tester.getSize(find.byType(RocketLaunch)),
+      tester.getSize(find.byKey(const ValueKey('ht-banner'))),
+    );
+    await h.close(tester);
+  });
+
+  testWidgets('a shared level-up: the rainbow fills the banner, text black', (
+    tester,
+  ) async {
+    final h = harnessFor(liveTrain(level: 2, shared: sharedWith(['a', 'b'])));
+    await pumpSlot(tester, h.store);
+
+    h.inject(htLevelUp(3));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 850));
+
+    final rainbow = find.byKey(const ValueKey('rainbow'));
+    expect(
+      tester.getSize(rainbow),
+      tester.getSize(find.byKey(const ValueKey('ht-banner'))),
+    );
+    expect(
+      tester.widget<Text>(find.text('hyyyyypeeee')).style?.color,
+      Colors.black,
+    );
+    await h.close(tester);
+  });
+
+  testWidgets('shared trains draw speedlines; others do not', (tester) async {
+    var h = harnessFor(liveTrain(shared: sharedWith(['a', 'b'])));
+    await pumpSlot(tester, h.store);
+    expect(find.byKey(const ValueKey('ht-speedlines')), findsOneWidget);
+    await h.close(tester);
+
+    h = harnessFor(liveTrain());
+    await pumpSlot(tester, h.store);
+    expect(find.byKey(const ValueKey('ht-speedlines')), findsNothing);
+    await h.close(tester);
+  });
+
+  group('a merge after a level-up', () {
+    Future<HtHarness> levelledUp(WidgetTester tester) async {
+      final h = harnessFor(liveTrain(level: 2, total: 9000));
+      await pumpSlot(tester, h.store);
+      h.inject(htLevelUp(3));
+      await tester.pump();
+      for (var t = 0; t < 60; t++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(h.store.step, isNull);
+      expect(h.store.shownLevel, 3);
+      return h;
+    }
+
+    Finder mergePill(String text) =>
+        find.descendant(of: find.byType(MergeAura), matching: find.text(text));
+
+    testWidgets('keeping the level does not count from an older one', (
+      tester,
+    ) async {
+      final h = await levelledUp(tester);
+
+      h.inject(
+        HtMergeEvent(
+          train: liveTrain(id: 'merged', level: 3, total: 20000),
+          previousChannels: [user('a')],
+          joiningChannels: [user('b')],
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(mergePill('LVL 2'), findsNothing);
+      expect(mergePill('LVL 3'), findsOneWidget);
+      await h.close(tester);
+    });
+
+    testWidgets('raising the level counts from the current one', (
+      tester,
+    ) async {
+      final h = await levelledUp(tester);
+
+      h.inject(
+        HtMergeEvent(
+          train: liveTrain(id: 'merged', level: 5, total: 30000),
+          previousChannels: [user('a')],
+          joiningChannels: [user('b')],
+        ),
+      );
+      await tester.pump();
+
+      expect(mergePill('LVL 3'), findsOneWidget);
+      expect(mergePill('LVL 2'), findsNothing);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(mergePill('LVL 4'), findsOneWidget);
+      await h.close(tester);
+    });
   });
 }

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
 
-const _mythic = Color(0xFFE040FB);
+/// The Mythic train's gold.
+const _mythic = Color(0xFFFFD760);
 
 Widget _emoteImage(HtReward emote, double size) {
   final url = emote.emoteUrl;

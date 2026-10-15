@@ -6,6 +6,7 @@ import 'package:frosty/screens/channel/hype_train/widgets/hype_train_approaching
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_banner.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_end_strip.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_sheet.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 import 'package:mobx/mobx.dart';
 
 /// Where the hype train lives on screen: nothing when there is no train,
@@ -105,7 +106,11 @@ class _HypeTrainSlotState extends State<HypeTrainSlot> {
               return const SizedBox(width: double.infinity, height: 0);
             case HtPhase.approaching:
               key = 'approaching';
-              child = HypeTrainApproachingBanner(store: store, onTap: openHere);
+              child = HypeTrainApproachingBanner(
+                store: store,
+                compact: widget.compact,
+                onTap: openHere,
+              );
             case HtPhase.ongoing || HtPhase.ending:
               key = store.collapsed ? 'pill' : 'banner';
               child = store.collapsed
@@ -126,34 +131,41 @@ class _HypeTrainSlotState extends State<HypeTrainSlot> {
           final room =
               widget.detailsMaxHeight ??
               MediaQuery.sizeOf(context).height * 0.45;
-          if (!store.expanded ||
-              widget.compact ||
-              store.collapsed ||
-              room < 60) {
-            return switcher;
-          }
-          // The details open below the banner, over the oldest messages.
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              switcher,
-              ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: room),
-                child: Material(
-                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                  borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(12),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: SingleChildScrollView(
-                    child: HypeTrainSheet(
-                      store: store,
-                      onLearnMore: widget.onLearnMore,
+          final details =
+              store.expanded &&
+              !widget.compact &&
+              !store.collapsed &&
+              room >= 60;
+          // One structure whatever shows, so the banner survives opening
+          // the details and cross-fades into the pill. The pill draws its
+          // own: the card turns clear and flat under it.
+          final pill = key == 'pill';
+          return Material(
+            key: const ValueKey('ht-card'),
+            color: pill
+                ? Colors.transparent
+                : HtNeutrals.of(Theme.of(context).brightness).backgroundFloat,
+            elevation: pill ? 0 : HtDims.elevation,
+            borderRadius: BorderRadius.circular(HtDims.radius),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                switcher,
+                // The details open below the banner, over the oldest
+                // messages, in the same card.
+                if (details)
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxHeight: room),
+                    child: SingleChildScrollView(
+                      child: HypeTrainSheet(
+                        store: store,
+                        onLearnMore: widget.onLearnMore,
+                      ),
                     ),
                   ),
-                ),
-              ),
-            ],
+              ],
+            ),
           );
         },
       ),

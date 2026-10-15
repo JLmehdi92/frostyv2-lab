@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:frosty/screens/channel/hype_train/hype_train_timings.dart';
 import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_copy.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_palette.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_pill_shell.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 
-/// A train is about to start: how many events are left, three check
-/// circles in the creator's colour and the time window running out.
+/// A train is about to start, laid out like Twitch's approaching banner:
+/// the title over the subtitle on the float card, the events pill (train
+/// icon and check circles in the creator's colour, or green) at the end,
+/// and the time window running out along a green 3 dp bar at the bottom.
 class HypeTrainApproachingBanner extends StatelessWidget {
   const HypeTrainApproachingBanner({
     super.key,
     required this.store,
     this.onTap,
+    this.compact = false,
   });
 
   final HypeTrainStore store;
@@ -18,26 +24,70 @@ class HypeTrainApproachingBanner extends StatelessWidget {
   /// Instead of expanding the details below (landscape opens a sheet).
   final VoidCallback? onTap;
 
+  /// Landscape: no subtitle, its natural height.
+  final bool compact;
+
   @override
   Widget build(BuildContext context) {
     return MediaQuery.withClampedTextScaling(
-      maxScaleFactor: 1.3,
+      maxScaleFactor: compact ? 1.3 : 2.0,
       child: Observer(
         builder: (context) {
           final approaching = store.approaching;
           if (approaching == null) return const SizedBox.shrink();
-          final scheme = Theme.of(context).colorScheme;
           final palette = HtPalette.of(
             HtStyle.regular,
-            scheme,
+            Theme.of(context).colorScheme,
             creatorColor: approaching.creatorColor,
           );
-          final on = palette.onBackground;
-          final textTheme = Theme.of(context).textTheme;
-          final subtitle = HtCopy.approachingSubtitle(
-            store.approachingEventsLeft,
-            nMore: store.approachingNMore,
+          // Only the events pill takes the creator's colour.
+          final green = HtPalette.of(
+            HtStyle.regular,
+            Theme.of(context).colorScheme,
           );
+          final title = HtCopy.approachingTitle(approaching.variant);
+          final subtitle = store.approachingNMore
+              ? HtCopy.approachingMore(store.approachingEventsLeft)
+              : HtCopy.approachingSubtitle(approaching.variant);
+          final titleText = Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(
+              HtDims.margin,
+              compact ? HtDims.margin : 12,
+              HtDims.margin,
+              compact ? HtDims.margin : 0,
+            ),
+            child: Text(
+              title,
+              maxLines: compact ? 1 : 2,
+              overflow: TextOverflow.ellipsis,
+              style: palette.textStyle(HtType.titleDefault),
+            ),
+          );
+          final text = compact
+              ? titleText
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Flexible(child: titleText),
+                    Flexible(
+                      child: Padding(
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                          HtDims.margin,
+                          HtDims.marginQuarter,
+                          HtDims.marginHalf,
+                          12,
+                        ),
+                        child: Text(
+                          subtitle,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: palette.textStyle(HtType.bodySmall),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
           return RepaintBoundary(
             child: Semantics(
               container: true,
@@ -45,83 +95,68 @@ class HypeTrainApproachingBanner extends StatelessWidget {
               button: true,
               onTap: onTap ?? store.toggleExpanded,
               hint: HtCopy.detailsHint,
-              label: '${HtCopy.approaching}. $subtitle',
+              label: '$title. $subtitle',
               child: ExcludeSemantics(
                 child: Material(
-                  color: palette.background,
-                  borderRadius: BorderRadius.circular(12),
+                  color: palette.track,
+                  borderRadius: BorderRadius.circular(HtDims.radius),
                   clipBehavior: Clip.antiAlias,
                   child: InkWell(
                     onTap: onTap ?? store.toggleExpanded,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
+                    child: SizedBox(
+                      height: compact
+                          ? null
+                          : htBannerHeight(MediaQuery.textScalerOf(context)),
+                      child: Stack(
+                        fit: StackFit.passthrough,
                         children: [
                           Row(
                             children: [
-                              Icon(palette.icon, color: palette.iconColor),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      HtCopy.approaching,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: textTheme.titleSmall?.copyWith(
-                                        color: on,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                    Text(
-                                      subtitle,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: textTheme.bodySmall?.copyWith(
-                                        color: on.withValues(alpha: 0.8),
-                                      ),
-                                    ),
-                                  ],
+                              // Twitch keeps room for it; it shows with the
+                              // details open.
+                              AnimatedOpacity(
+                                opacity: store.expanded ? 1 : 0,
+                                duration: store.reduceMotion
+                                    ? Duration.zero
+                                    : HtTimings.extraShort,
+                                child: SizedBox(
+                                  width: HtDims.marginHalf,
+                                  height: compact
+                                      ? HtDims.icon
+                                      : double.infinity,
+                                  child: const ColoredBox(
+                                    key: ValueKey('ht-approaching-side'),
+                                    color: HtGreen.g10,
+                                  ),
                                 ),
                               ),
-                              for (var i = 1; i <= 3; i++)
-                                Padding(
-                                  padding: const EdgeInsetsDirectional.only(
-                                    start: 4,
-                                  ),
-                                  child: store.approachingChecks >= i
-                                      ? Icon(
-                                          Icons.check_circle_rounded,
-                                          key: const ValueKey(
-                                            'ht-check-filled',
-                                          ),
-                                          size: 20,
-                                          color: palette.fill,
-                                        )
-                                      : Icon(
-                                          Icons.radio_button_unchecked_rounded,
-                                          key: const ValueKey('ht-check-empty'),
-                                          size: 20,
-                                          color: on.withValues(alpha: 0.5),
-                                        ),
+                              Expanded(child: text),
+                              Padding(
+                                padding: const EdgeInsetsDirectional.only(
+                                  end: HtDims.margin,
                                 ),
+                                child: _EventsPill(
+                                  store: store,
+                                  color: palette.checkPill,
+                                  circles: htCheckCircleCount(approaching),
+                                ),
+                              ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(3),
+                          PositionedDirectional(
+                            start: 0,
+                            end: 0,
+                            bottom: 0,
                             child: Observer(
                               // Ticks every 500 ms: only the bar rebuilds.
                               builder: (context) => LinearProgressIndicator(
                                 key: const ValueKey('ht-approaching-bar'),
-                                minHeight: 6,
+                                minHeight: HtDims.bar,
                                 value: store.approachingCompleted
                                     ? 1
                                     : store.approachingFraction,
-                                color: palette.fill,
-                                backgroundColor: palette.track,
+                                color: green.fill,
+                                backgroundColor: Colors.transparent,
                               ),
                             ),
                           ),
@@ -134,6 +169,61 @@ class HypeTrainApproachingBanner extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// The train icon and the check circles on a pill of [color]: filled for
+/// the events already in, rings for the rest.
+class _EventsPill extends StatelessWidget {
+  const _EventsPill({
+    required this.store,
+    required this.color,
+    required this.circles,
+  });
+
+  final HypeTrainStore store;
+  final Color color;
+  final int circles;
+
+  @override
+  Widget build(BuildContext context) {
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: DecoratedBox(
+        key: const ValueKey('ht-events-pill'),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(HtDims.pillRadius),
+        ),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            HtDims.margin,
+            HtDims.margin,
+            HtDims.margin,
+            HtDims.margin,
+          ),
+          child: Observer(
+            builder: (context) => Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.train_rounded, size: 20, color: Colors.white),
+                HtCheckCircles(
+                  filled: switch (store.approaching) {
+                    final approaching? => htFilledChecks(
+                      approaching,
+                      store.approachingEventsLeft,
+                      circles,
+                    ),
+                    null => 0,
+                  },
+                  count: circles,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

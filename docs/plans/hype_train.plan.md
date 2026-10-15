@@ -21,7 +21,7 @@ It is fully isolated: it has its own socket and never touches the IRC or 7TV soc
 - **Initial state:** an anonymous GQL `GetHypeTrainExecution`-equivalent full document (`TwitchHypeTrainService extends BaseApiClient`).
 - **Live updates:** the `hype-train-events-v2.<channelId>` topic.
 - **Logic:** pure, unit-tested parts (models, a reducer, a back-pressure queue, a sequence planner that turns each event into timed animation steps) driven by a MobX `HypeTrainStore`. The store owns the state machine (Init/Idling/Approaching/Ongoing), one-at-a-time pacing, the 1 s countdown, the +10 s expiry fallback and the 20 s approaching rule.
-- **UI**, all ONSET (Frosty theme plus `lib/widgets`), with no Twitch assets or strings:
+- **UI**, first built ONSET-style (Frosty theme plus `lib/widgets`), now restyled to match the official Twitch Android app in green (#12A87A) with Twitch's English wording (see "UI and strings: Twitch's layout in green" below); still no Twitch assets:
   - a banner above chat (portrait), compact in landscape, and a pill over the video when landscape chat is hidden
   - an expanded detail sheet
   - end strips: rewards or expired, 20 s each
@@ -60,6 +60,21 @@ Chat code (`chat.dart`, `chat_store.dart`, `chat_tabs_store.dart`, `chat_tabs.da
    - 7TV/BTTV/FFZ, deleted-message reveal, ban/TO durations, chat delay, badges, autocomplete
    - live latency and the stats panel, PiP, mini player, VOD, WebView fallback, iOS (web engine)
 8. **Optional, separate commit:** a Hype Train level pill on followed stream cards, via the bulk status query.
+
+## UI and strings: Twitch's layout in green (restyle, 2026-10-15)
+
+The widgets under `lib/screens/channel/hype_train/widgets/` were restyled to look like the official Twitch Android app (layouts in `res/layout/hype_train_*.xml`), green where Twitch is purple. The store, sequence, reducer, queue, clock, math, timings logic, placement and models are unchanged. Decisions: Twitch's English wording is reproduced in Dart strings (S1, personal build); the all-time-high gradient ends in azure instead of pink; golden, community, Mythic and rainbow keep their hues; there is no collapse button (swipe up, or the screen reader's "Collapse Hype Train" action); the compact banner keeps its natural height; the card has Twitch's 4 dp elevation; Twitch's neutrals are used inside the hype train. No Twitch image, Lottie, font or vector path is copied: everything is Flutter widgets, `CustomPainter`s and Material icons.
+
+- **Tokens** (`hype_train_tokens.dart`): `HtGreen` g7–g11 (#09553D, #0C6D4F, #0E8661, **#12A87A**, #15C08B: Twitch's purple ramp at the hue of #12A87A, each step at its purple's luminance), `HtNeutrals` (Twitch's float/base/alt backgrounds, text and borders, light and dark; pills #CC000000, #99000000 golden, #80000000 over video), `HtDims`, `HtType` (Twitch's type styles on Inter), `isTwitchPurple` (a creator colour with hue 255–290°, saturation ≥ 0.5 and lightness 0.35–0.8 falls back to green) and `htBannerHeight` (74 dp × the text scale, clamped to 1–2).
+- **Palette** (`hype_train_palette.dart`): per style a track, a fill (or a full-width gradient), text, pill, check-pill, bar-track and link colours. Regular: float track, #12A87A fill (#0C6D4F dark) or the creator colour; shared: as regular plus our own speedlines; treasure: green, then #1345AA → #0E8661 over the whole banner once unlocked; community #071A40/#1756D3; Mythic #403520 with a 50% gold gradient and a text shadow; golden #FFB31A/#FFDF9E with black text; record: green → azure with a trophy in the pill. Only the theme's brightness is read.
+- **Wording** (`hype_train_copy.dart`): "LVL n", "n%", `m:ss` (`h:mm:ss` from an hour), "Sub, gift, or use Bits!", "Final level!", "Level n Complete!", the start / "hyyyyypeeee" / success marquees per variant, "Such strong support\nLevel n completed!", the large-contribution lines, "[★] n Subs" / "[◆] n Bits", the approaching title and subtitle (and "n more people need to sub, gift or use Bits"), the rewards and expired strips, "HYPE CONDUCTORS", "AVAILABLE REWARDS", "CONTRIBUTIONS", "Level n emotes", "More Info", the Tier 1 level target, the conductor lines and empty-slot invitations, the channel record, the shared-train lines, "Approaching" and "Hype Train Level n". Treasure copy uses the train's own discount.
+- **Banner**: 74 dp (growing with the text up to 148 dp; compact keeps its natural height), radius 6. The level's progress is the background: the fill grows from the start edge in 200 ms (decelerating; at once with reduced motion), gradients span the full width and are clipped. Start side: the black "LVL n" pill and the 18 sp title over a two-line subtitle (compact: the train's name instead, one line). End side: the countdown over the 24 sp percentage, then a chevron that opens the details and turns. A record in sight shows a large cropped trophy instead of the pill and title.
+- **Announcements** take the whole banner while the resting content fades out (500 ms, 1 s for avatar rows) and the fill stays: the marquee (24 sp, 18 compact) starts past the trailing edge and travels until it is 42 dp past the leading edge, mirrored right to left; "Level n Complete!" is centred; contributions, instructions, totals and summaries are small announcements (13 sp, 12 compact); merges show staggered green auras around a counting pill; the rainbow fills the banner top to bottom with black text.
+- **Approaching banner**: 74 dp on the float card, title over subtitle, the events pill (train icon and two or three check circles) tinted with the creator colour or green, and a 3 dp bar along the bottom.
+- **End strips**: 74 dp in the train's style with a 3 dp bar draining over 20 s; the rewards text gives way to three earned emotes at 14.9 s; the expired strip shows the golden Kappa for golden trains.
+- **Details**: in the same card as the banner (float, radius 6, elevation 4): variant card with a "learn more" link, level target, contributions (shared), HYPE CONDUCTORS as one row of two cells with 28 dp badges, AVAILABLE REWARDS with 28 dp emotes and 9 dp padlocks, our "Unlocked so far" and "Coming up", the channel record and "More Info"; nothing to buy.
+- **Pills**: the pill over the video and the collapsed pill are Twitch's landscape pill (32 dp, radius 16, #80000000, a #0C6D4F fill sweep, white content, 48 dp target). Followed cards show "Hype Train Level n" with a green train.
+- **Chat overlay**: the details' room above the chat input uses `htBannerHeight` instead of a fixed 80 px.
 
 ## Verified facts (live from this container, 2026-10-13 15:50–16:05 UTC; public web Client-ID `kimne78kx3ncx6brgo4mv6wki5h1ko`; no user token; no integrity header; sockets opened only briefly)
 
@@ -184,8 +199,8 @@ lib/screens/channel/hype_train/
   hype_train_queue.dart                  HtEventQueue (cap 100, back-pressure, conductor replace, drain-on-end)
   hype_train_sequence.dart               planSequence(...) → List<HtStep> (pure; timing table)
   hype_train_clock.dart                  server-skew estimator (Hermes notification timestamps)
-  hype_train_palette.dart                HtStyle → colours/icons derived from ColorScheme (+ creator colour)
-  hype_train_format.dart                 mm:ss, compact numbers, a11y strings (our own English copy)
+  hype_train_palette.dart                HtStyle → Twitch's per-style colours in green (+ creator colour); widgets/
+  hype_train_copy.dart                   Twitch's English wording, plurals, m:ss countdown; widgets/
   stores/hype_train_store.dart (+.g)     MobX state machine + timers + presentation loop
   widgets/ hype_train_slot.dart, hype_train_banner.dart, hype_train_progress_bar.dart,
            hype_train_marquee.dart, hype_train_level_pill.dart, hype_train_countdown.dart,

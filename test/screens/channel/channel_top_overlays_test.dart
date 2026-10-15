@@ -179,6 +179,78 @@ void main() {
     await h.close(tester);
   });
 
+  testWidgets('with large text the banner and details still fit above the '
+      'chat input', (tester) async {
+    final focus = FocusNode();
+    addTearDown(focus.dispose);
+    final h = running();
+    await pumpAt(
+      tester,
+      const Size(360, 740),
+      Align(
+        alignment: Alignment.topCenter,
+        child: SizedBox(
+          height: 400,
+          child: ChannelChatTopOverlay(
+            hypeTrain: h.store,
+            settingsStore: settings,
+            chatTabsStore: tabs,
+            chatInputFocus: focus,
+            bottomBarHeight: 56,
+          ),
+        ),
+      ),
+      textScale: 2,
+    );
+
+    h.store.toggleExpanded();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(tester.takeException(), isNull);
+    expect(find.byType(HypeTrainSheet), findsOneWidget);
+    // The banner (148 dp at twice the text) and its details, unscrolled.
+    expect(
+      tester.getSize(find.byType(HypeTrainSlot)).height,
+      lessThanOrEqualTo(400 - 6 - 56 - 8),
+    );
+    await h.close(tester);
+  });
+
+  testWidgets('a landscape phone chat gets the compact banner', (tester) async {
+    final focus = FocusNode();
+    addTearDown(focus.dispose);
+    final h = running();
+    await pumpAt(
+      tester,
+      const Size(800, 360),
+      Align(
+        alignment: Alignment.topRight,
+        child: SizedBox(
+          width: 300,
+          height: 360,
+          child: ChannelChatTopOverlay(
+            hypeTrain: h.store,
+            settingsStore: settings,
+            chatTabsStore: tabs,
+            chatInputFocus: focus,
+            bottomBarHeight: 56,
+          ),
+        ),
+      ),
+      textScale: 1.3,
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(HypeTrainBanner), findsOneWidget);
+    expect(find.byKey(const ValueKey('ht-title')), findsNothing);
+    // Its natural height, under the full banner's 74 dp × 1.3.
+    expect(
+      tester.getSize(find.byKey(const ValueKey('ht-banner'))).height,
+      lessThan(74 * 1.3),
+    );
+    await h.close(tester);
+  });
+
   testWidgets('the modal details close when the train is gone', (tester) async {
     final h = running();
     late BuildContext context;
@@ -240,7 +312,7 @@ void main() {
 
     expect(
       tester.getSemantics(
-        find.bySemanticsLabel(RegExp('Hype Train approaching')),
+        find.bySemanticsLabel(RegExp('A Hype Train is approaching!')),
       ),
       containsSemantics(isButton: true, hasTapAction: true),
     );

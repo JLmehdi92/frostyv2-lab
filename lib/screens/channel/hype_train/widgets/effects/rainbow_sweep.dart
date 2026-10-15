@@ -1,20 +1,28 @@
 import 'package:flutter/material.dart';
 
-/// A rainbow sweeping behind [child] [cycles] times (shared trains and
-/// records), at 35% opacity.
+/// Twitch's shared-train and record rainbow: a top-to-bottom gradient of
+/// four colours behind [child], filling it. Over each quarter of a cycle
+/// every stop slides linearly to the next colour; [cycles] cycles play,
+/// then it rests. Text over it reads in black.
 class RainbowSweep extends StatefulWidget {
   const RainbowSweep({
     super.key,
     required this.cycleDuration,
     required this.child,
     this.cycles = 3,
-    this.opacity = 0.35,
   });
 
   final Duration cycleDuration;
   final int cycles;
-  final double opacity;
   final Widget child;
+
+  /// Pink, lilac, orange and yellow, as on Twitch.
+  static const colors = [
+    Color(0xFFFA1ED2),
+    Color(0xFFF093F9),
+    Color(0xFFED722F),
+    Color(0xFFFAF31A),
+  ];
 
   @override
   State<RainbowSweep> createState() => RainbowSweepState();
@@ -25,25 +33,27 @@ class RainbowSweepState extends State<RainbowSweep>
   late final AnimationController _controller;
   var _done = 0;
 
-  static const _colors = [
-    Color(0xFFFF5252),
-    Color(0xFFFFD740),
-    Color(0xFF69F0AE),
-    Color(0xFF40C4FF),
-    Color(0xFFE040FB),
-  ];
-
   @visibleForTesting
   bool get isAnimating => _controller.isAnimating;
 
+  /// For quarter q of the cycle, stop k moves from colour k + q to k + q + 1.
   @visibleForTesting
   LinearGradient get gradient {
-    final shift = _controller.value * 2;
+    const colors = RainbowSweep.colors;
+    final position = (_controller.value * 4).clamp(0.0, 4.0);
+    final quarter = position.floor().clamp(0, 3);
+    final t = position - quarter;
     return LinearGradient(
-      begin: Alignment(-3 + shift * 2, 0),
-      end: Alignment(-1 + shift * 2, 0),
-      colors: _colors,
-      tileMode: TileMode.mirror,
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        for (var k = 0; k < colors.length; k++)
+          Color.lerp(
+            colors[(k + quarter) % colors.length],
+            colors[(k + quarter + 1) % colors.length],
+            t,
+          )!,
+      ],
     );
   }
 
@@ -69,17 +79,15 @@ class RainbowSweepState extends State<RainbowSweep>
   @override
   Widget build(BuildContext context) {
     return Stack(
+      fit: StackFit.passthrough,
       children: [
         Positioned.fill(
           child: IgnorePointer(
-            child: Opacity(
-              opacity: widget.opacity,
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, _) => DecoratedBox(
-                  key: const ValueKey('rainbow'),
-                  decoration: BoxDecoration(gradient: gradient),
-                ),
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) => DecoratedBox(
+                key: const ValueKey('rainbow'),
+                decoration: BoxDecoration(gradient: gradient),
               ),
             ),
           ),

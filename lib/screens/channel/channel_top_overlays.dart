@@ -8,6 +8,7 @@ import 'package:frosty/screens/channel/hype_train/hype_train_placement.dart';
 import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_sheet.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_slot.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_video_pill.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/utils/context_extensions.dart';
@@ -210,10 +211,15 @@ class _ChannelChatTopOverlayState extends State<ChannelChatTopOverlay> {
           final top =
               (chatOnly ? context.safePaddingTop : 0) +
               (widget.chatTabsStore.showTabBar ? 48 : 0);
-          // The banner is about 80 px; the details take what is left above
-          // the chat input, at most 60% of chat.
+          // The banner is 74 dp, growing with the text; the details take
+          // what is left above the chat input, at most 60% of chat.
           final room =
-              constraints.maxHeight - top - 6 - 80 - widget.bottomBarHeight - 8;
+              constraints.maxHeight -
+              top -
+              6 -
+              htBannerHeight(MediaQuery.textScalerOf(context)) -
+              widget.bottomBarHeight -
+              8;
           final detailsMax = typing
               ? 0.0
               : room.clamp(0.0, constraints.maxHeight * 0.6);

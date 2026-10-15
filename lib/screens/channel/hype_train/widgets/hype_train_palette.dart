@@ -1,148 +1,229 @@
 import 'package:flutter/material.dart';
 import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 
-/// Colours and icon of one hype train style, built on the app's
-/// [ColorScheme] so it follows the theme and accent colour.
+/// Colours and icon of one hype train style: Twitch's per-variant styles,
+/// green where Twitch is purple. Only the theme's brightness is read.
 @immutable
 class HtPalette {
   const HtPalette({
-    required this.background,
-    required this.onBackground,
-    required this.fill,
     required this.track,
+    required this.fill,
+    required this.text,
+    required this.checkPill,
+    required this.barTrack,
+    required this.link,
     required this.icon,
-    required this.iconColor,
     required this.a11yName,
-    this.fillEnd,
+    this.fillColors,
+    this.fillCoversAll = false,
+    this.pill = HtNeutrals.pill,
+    this.pillText = Colors.white,
+    this.textShadow,
+    this.trophy = false,
+    this.speedlines = false,
+    this.pillFillColors,
   });
 
-  factory HtPalette.of(HtStyle style, ColorScheme scheme, {int? creatorColor}) {
+  factory HtPalette.of(
+    HtStyle style,
+    ColorScheme scheme, {
+    int? creatorColor,
+    bool treasureUnlocked = false,
+  }) {
     final dark = scheme.brightness == Brightness.dark;
-    HtPalette tinted({
-      required Color light,
-      required Color darkBackground,
-      required Color fill,
-      Color? fillEnd,
+    final neutrals = HtNeutrals.of(scheme.brightness);
+    final green = dark ? HtGreen.g8 : HtGreen.g10;
+    final link = dark ? HtGreen.g11 : HtGreen.g7;
+
+    /// The float card with the green (or creator) fill and base text.
+    HtPalette onFloat({
       required IconData icon,
       required String name,
+      Color? fill,
+      bool speedlines = false,
+      List<Color>? pillFillColors,
+    }) => HtPalette(
+      track: neutrals.backgroundFloat,
+      fill: fill ?? green,
+      text: neutrals.textBase,
+      checkPill: fill ?? green,
+      barTrack: neutrals.buttonBackgroundSecondary,
+      link: link,
+      icon: icon,
+      a11yName: name,
+      speedlines: speedlines,
+      pillFillColors: pillFillColors,
+    );
+
+    /// The record: green to azure over the base background.
+    HtPalette record({
+      required IconData icon,
+      required String name,
+      required bool trophy,
     }) {
-      final background = dark ? darkBackground : light;
-      final on = onColor(background);
+      final colors = dark
+          ? const [HtGreen.g9, HtGreen.azureDark]
+          : const [HtGreen.g10, HtGreen.azureLight];
       return HtPalette(
-        background: background,
-        onBackground: on,
-        fill: fill,
-        fillEnd: fillEnd,
-        track: on.withValues(alpha: 0.16),
+        track: neutrals.backgroundBase,
+        fill: colors.first,
+        fillColors: colors,
+        text: neutrals.textBase,
+        checkPill: green,
+        barTrack: neutrals.buttonBackgroundSecondary,
+        link: link,
         icon: icon,
-        iconColor: dark ? fillEnd ?? fill : on,
         a11yName: name,
+        trophy: trophy,
       );
     }
 
     switch (style) {
       case HtStyle.regular:
-        final background = scheme.primaryContainer;
-        final on = onColor(background);
-        return HtPalette(
-          background: background,
-          onBackground: on,
-          fill: creatorColor != null ? Color(creatorColor) : scheme.primary,
-          track: on.withValues(alpha: 0.16),
+        final creator = creatorColor;
+        return onFloat(
           icon: Icons.train_rounded,
-          iconColor: on,
-          a11yName: 'Hype Train',
+          name: 'Hype Train',
+          fill: creator == null || isTwitchPurple(creator)
+              ? null
+              : Color(creator),
         );
       case HtStyle.shared:
-        final background = scheme.tertiaryContainer;
-        final on = onColor(background);
-        return HtPalette(
-          background: background,
-          onBackground: on,
-          fill: scheme.tertiary,
-          track: on.withValues(alpha: 0.16),
+        return onFloat(
           icon: Icons.groups_rounded,
-          iconColor: on,
-          a11yName: 'Shared Hype Train',
-        );
-      case HtStyle.goldenKappa:
-        return tinted(
-          light: const Color(0xFFFFF3C4),
-          darkBackground: const Color(0xFF3D2E00),
-          fill: const Color(0xFFFFC94D),
-          fillEnd: const Color(0xFFFFA000),
-          icon: Icons.star_rounded,
-          name: 'Golden Kappa Train',
+          name: 'Shared Hype Train',
+          speedlines: true,
+          // Twitch's collab colours, purple turned green.
+          pillFillColors: const [Color(0xFFBE0078), HtGreen.g9],
         );
       case HtStyle.treasure:
-        return tinted(
-          light: const Color(0xFFDDF4F1),
-          darkBackground: const Color(0xFF0B3330),
-          fill: const Color(0xFF26A69A),
-          fillEnd: const Color(0xFFFFC94D),
+        if (!treasureUnlocked) {
+          return onFloat(icon: Icons.savings_rounded, name: 'Treasure Train');
+        }
+        return HtPalette(
+          track: neutrals.backgroundFloat,
+          fill: HtGreen.g9,
+          fillColors: const [Color(0xFF1345AA), HtGreen.g9],
+          fillCoversAll: true,
+          text: Colors.white,
+          checkPill: green,
+          barTrack: neutrals.buttonBackgroundSecondary,
+          link: link,
           icon: Icons.savings_rounded,
-          name: 'Treasure Train',
+          a11yName: 'Treasure Train',
         );
       case HtStyle.community:
-        return tinted(
-          light: const Color(0xFFE3F2FD),
-          darkBackground: const Color(0xFF0D2A45),
-          fill: const Color(0xFF42A5F5),
-          fillEnd: const Color(0xFF1E88E5),
+        return HtPalette(
+          track: const Color(0xFF071A40),
+          fill: const Color(0xFF1756D3),
+          text: Colors.white,
+          checkPill: const Color(0xFF1756D3),
+          barTrack: neutrals.buttonBackgroundSecondary,
+          link: link,
           icon: Icons.rocket_launch_rounded,
-          name: 'Community Train',
+          a11yName: 'Community Train',
         );
       case HtStyle.mythic:
-        return tinted(
-          light: const Color(0xFFF6E3FF),
-          darkBackground: const Color(0xFF2D0F3D),
-          fill: const Color(0xFFE040FB),
-          fillEnd: const Color(0xFF7C4DFF),
+        return HtPalette(
+          track: const Color(0xFF403520),
+          fill: const Color(0x80976700),
+          fillColors: const [
+            Color(0x80976700),
+            Color(0x80FFF9EB),
+            Color(0x80FFD760),
+          ],
+          text: Colors.white,
+          // The gold gradient is light: the text needs a shadow.
+          textShadow: const Shadow(color: Color(0xCC000000), blurRadius: 1),
+          checkPill: const Color(0xFF976700),
+          barTrack: neutrals.buttonBackgroundSecondary,
+          link: link,
           icon: Icons.auto_awesome_rounded,
-          name: 'Mythic Train',
+          a11yName: 'Mythic Train',
         );
-      case HtStyle.athApproaching:
-        return tinted(
-          light: const Color(0xFFFFF0E0),
-          darkBackground: const Color(0xFF3D2200),
-          fill: const Color(0xFFFFA726),
-          fillEnd: const Color(0xFFFB8C00),
-          icon: Icons.emoji_events_outlined,
-          name: 'Hype Train near its record',
+      case HtStyle.goldenKappa:
+        return HtPalette(
+          track: const Color(0xFFFFB31A),
+          fill: const Color(0xFFFFDF9E),
+          text: Colors.black,
+          pill: HtNeutrals.pillGolden,
+          checkPill: const Color(0xFFFFB31A),
+          barTrack: neutrals.buttonBackgroundSecondary,
+          link: link,
+          icon: Icons.star_rounded,
+          a11yName: 'Golden Kappa Train',
         );
       case HtStyle.athReached:
-        return tinted(
-          light: const Color(0xFFFFE5E0),
-          darkBackground: const Color(0xFF3D1010),
-          fill: const Color(0xFFFF7043),
-          fillEnd: const Color(0xFFE53935),
+        return record(
           icon: Icons.emoji_events_rounded,
-          name: 'Record Hype Train',
+          name: 'All-Time High Hype Train',
+          trophy: true,
+        );
+      case HtStyle.athApproaching:
+        return record(
+          icon: Icons.emoji_events_outlined,
+          name: 'Approaching Hype Train Record',
+          trophy: false,
         );
     }
   }
 
-  final Color background;
-  final Color onBackground;
+  /// Behind the fill: the banner's background.
+  final Color track;
+
+  /// The fill; the gradient's first colour when [fillColors] is set.
   final Color fill;
 
-  /// The gradient's end; a flat fill without it.
-  final Color? fillEnd;
-  final Color track;
+  /// A gradient across the whole banner width, clipped to the progress
+  /// (not squeezed into it).
+  final List<Color>? fillColors;
+
+  /// The gradient covers the whole banner whatever the progress (an
+  /// unlocked treasure).
+  final bool fillCoversAll;
+
+  final Color text;
+
+  /// The level pill and its text.
+  final Color pill;
+  final Color pillText;
+
+  /// The approaching banner's events pill.
+  final Color checkPill;
+
+  /// The track of the details' 3 dp bar.
+  final Color barTrack;
+
+  /// "learn more" and "More Info".
+  final Color link;
+
+  /// On light gradients (Mythic) the text gets a 1 px shadow.
+  final Shadow? textShadow;
+
+  /// A white trophy sits in the level pill (the record).
+  final bool trophy;
+
+  /// Our own speedlines and sparkles over the track (shared trains).
+  final bool speedlines;
+
+  /// The landscape pill's fill as a gradient; flat #0C6D4F without it.
+  final List<Color>? pillFillColors;
+
   final IconData icon;
-  final Color iconColor;
 
   /// The style's name for screen readers.
   final String a11yName;
 
-  Gradient get fillGradient => LinearGradient(colors: [fill, fillEnd ?? fill]);
+  /// The fill as a gradient (flat when there is one colour).
+  Gradient get fillGradient =>
+      LinearGradient(colors: fillColors ?? [fill, fill]);
 
-  /// Black or white, whichever reads better on [background] (always at
-  /// least 4.5:1).
-  static Color onColor(Color background) =>
-      contrast(Colors.black, background) >= contrast(Colors.white, background)
-      ? Colors.black
-      : Colors.white;
+  /// The text style's colour and shadow.
+  TextStyle textStyle(TextStyle base) => base.copyWith(
+    color: text,
+    shadows: textShadow == null ? null : [textShadow!],
+  );
 
   /// WCAG contrast ratio between two colours.
   static double contrast(Color a, Color b) {

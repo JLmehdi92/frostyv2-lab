@@ -1,18 +1,22 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/screens/channel/hype_train/hype_train_math.dart';
 import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/effects/hype_train_avatar_stack.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_banner.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_copy.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_palette.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
 
 /// Twitch's guide to hype trains.
 const htHelpUrl = 'https://help.twitch.tv/s/article/hype-train-guide';
 
-/// The train's details: what the variant unlocks, what completes the level,
-/// shared channels, conductors, rewards, the record and a link to the
-/// guide. It follows the store live. There is nothing to buy here (D4).
+/// The train's details, laid out like Twitch's expanded hype train: the
+/// variant card, the level target, the shared contributions, the
+/// conductors, the rewards, the record and "More Info". It follows the
+/// store live. There is nothing to buy here (D4).
 class HypeTrainSheet extends StatelessWidget {
   const HypeTrainSheet({
     super.key,
@@ -29,85 +33,173 @@ class HypeTrainSheet extends StatelessWidget {
       builder: (context) {
         final train = store.train;
         final approaching = store.approaching;
+        final neutrals = HtNeutrals.of(Theme.of(context).brightness);
         if (store.phase == HtPhase.approaching && approaching != null) {
-          return _ApproachingDetails(store: store, approaching: approaching);
+          return _ApproachingDetails(
+            store: store,
+            approaching: approaching,
+            neutrals: neutrals,
+          );
         }
         if (train == null) return const SizedBox(width: double.infinity);
+        final palette = htPaletteOf(context, store);
+        final footnote = HtType.footnote.copyWith(color: neutrals.textBase);
         return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          padding: const EdgeInsets.only(bottom: HtDims.margin),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (_variantLine(train) case final line?) ...[
-                _Section(title: _variantTitle(train)),
-                Text(line),
-                if (train.variant == HtVariant.mythic &&
-                    train.mythic != null) ...[
-                  const SizedBox(height: 8),
-                  _RewardRow(rewards: train.mythic!.pool, locked: true),
-                ],
-                const SizedBox(height: 12),
-              ],
-              Text(
-                isFinalLevel(train)
-                    ? HtCopy.finalLevel
-                    : HtCopy.levelTarget(
-                        store.levelTarget.subs,
-                        store.levelTarget.bits,
-                      ),
+              if (_variantLine(train) case final line?)
+                _VariantCard(
+                  train: train,
+                  line: line,
+                  palette: palette,
+                  neutrals: neutrals,
+                  onLearnMore: onLearnMore,
+                ),
+              _padded(
+                top: 16,
+                child: Text(
+                  isFinalLevel(train)
+                      ? HtCopy.finalLevel
+                      : HtCopy.levelTarget(
+                          train.level,
+                          store.levelTarget.subs,
+                          store.levelTarget.bits,
+                        ),
+                  style: footnote,
+                ),
               ),
               if (train.shared case final shared?) ...[
-                const _Section(title: 'Channels in this train'),
-                for (final (channel, share) in topShares(shared, n: 6))
-                  ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    leading: HtAvatar(user: channel.user, size: 28),
-                    title: Text(channel.user.displayName),
-                    trailing: Text('$share%'),
-                  ),
-              ],
-              const _Section(title: 'Conductors'),
-              for (final source in const [HtSource.subs, HtSource.bits])
-                _ConductorRow(
-                  source: source,
-                  conductor: train.conductors
-                      .where((c) => c.source == source)
-                      .firstOrNull,
-                  badgeUrl: train.config.conductorBadges[source],
-                ),
-              _Section(title: 'Level ${train.level} rewards'),
-              _RewardRow(rewards: train.progress.level.rewards, locked: true),
-              if (store.unlockedRewards.isNotEmpty) ...[
-                const _Section(title: 'Unlocked so far'),
-                _RewardRow(rewards: store.unlockedRewards, locked: false),
-              ],
-              _UpcomingRewards(
-                key: ValueKey('ht-upcoming-${train.id}'),
-                store: store,
-                trainId: train.id,
-              ),
-              if (train.ath case final ath?) ...[
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Icon(Icons.emoji_events_rounded, size: 18),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        'Record: level ${ath.level} · '
-                        '${athPercent(train.progress.total, ath)}% of the way',
-                      ),
+                _Header(HtCopy.contributionsHeader, neutrals: neutrals),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                  child: SizedBox(
+                    height: HtDims.avatar,
+                    child: HypeTrainContributions(
+                      shares: topShares(shared),
+                      color: neutrals.textBase,
                     ),
+                  ),
+                ),
+              ],
+              _Header(HtCopy.conductorsHeader, neutrals: neutrals),
+              _padded(
+                top: HtDims.marginHalf,
+                child: Text(HtCopy.conductorsDescription, style: footnote),
+              ),
+              _padded(
+                top: HtDims.margin,
+                child: Row(
+                  key: const ValueKey('ht-conductors'),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (final source in const [HtSource.subs, HtSource.bits])
+                      Expanded(
+                        key: ValueKey('ht-conductor-${source.name}'),
+                        child: _ConductorCell(
+                          source: source,
+                          conductor: train.conductors
+                              .where((c) => c.source == source)
+                              .firstOrNull,
+                          badgeUrl: train.config.conductorBadges[source],
+                          style: footnote,
+                        ),
+                      ),
                   ],
                 ),
+              ),
+              _Header(HtCopy.rewardsHeader, neutrals: neutrals),
+              _padded(
+                top: HtDims.marginHalf,
+                child: Text(
+                  train.variant == HtVariant.goldenKappa
+                      ? HtCopy.goldenRewardsDescription
+                      : HtCopy.rewardsDescription,
+                  style: footnote,
+                ),
+              ),
+              _padded(
+                top: HtDims.margin,
+                child: Text(
+                  HtCopy.levelEmotes(train.level),
+                  textAlign: TextAlign.center,
+                  style: HtType.bodySmall.copyWith(color: neutrals.textBase),
+                ),
+              ),
+              _padded(
+                top: HtDims.margin,
+                child: _RewardRow(
+                  rewards: train.progress.level.rewards,
+                  locked: true,
+                ),
+              ),
+              if (store.unlockedRewards.isNotEmpty) ...[
+                _Header(HtCopy.unlockedSoFar, neutrals: neutrals),
+                _padded(
+                  top: HtDims.margin,
+                  child: _RewardRow(
+                    rewards: store.unlockedRewards,
+                    locked: false,
+                  ),
+                ),
               ],
-              const SizedBox(height: 8),
-              TextButton.icon(
-                onPressed: onLearnMore,
-                icon: const Icon(Icons.help_outline_rounded),
-                label: const Text('How Hype Trains work'),
+              _padded(
+                top: HtDims.margin,
+                child: _UpcomingRewards(
+                  key: ValueKey('ht-upcoming-${train.id}'),
+                  store: store,
+                  trainId: train.id,
+                  neutrals: neutrals,
+                ),
+              ),
+              if (train.ath case final ath?)
+                _padded(
+                  top: HtDims.margin,
+                  child: Text.rich(
+                    TextSpan(
+                      children: [
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.middle,
+                          child: Padding(
+                            padding: const EdgeInsetsDirectional.only(
+                              end: HtDims.marginHalf,
+                            ),
+                            child: Icon(
+                              Icons.emoji_events_rounded,
+                              size: 16,
+                              color: neutrals.textBase,
+                            ),
+                          ),
+                        ),
+                        TextSpan(
+                          text: HtCopy.channelRecord(
+                            athPercent(train.progress.total, ath),
+                            ath.level,
+                          ),
+                        ),
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
+                    style: HtType.footnoteSemibold.copyWith(
+                      color: neutrals.textBase,
+                    ),
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.only(top: HtDims.marginHalf),
+                child: Center(
+                  child: TextButton(
+                    onPressed: onLearnMore,
+                    style: TextButton.styleFrom(
+                      foregroundColor: palette.link,
+                      visualDensity: VisualDensity.compact,
+                      textStyle: HtType.titleExtraSmall,
+                    ),
+                    child: const Text(HtCopy.moreInfo),
+                  ),
+                ),
               ),
             ],
           ),
@@ -116,137 +208,264 @@ class HypeTrainSheet extends StatelessWidget {
     );
   }
 
-  static String _variantTitle(HypeTrainExecution train) =>
-      switch (train.variant) {
-        HtVariant.treasure => 'Treasure Train',
-        HtVariant.community => 'Community Train',
-        HtVariant.mythic => 'Mythic Train',
-        HtVariant.goldenKappa => 'Golden Kappa Train',
-        HtVariant.regular => 'Hype Train',
-      };
+  static Widget _padded({required double top, required Widget child}) =>
+      Padding(padding: EdgeInsets.fromLTRB(16, top, 16, 0), child: child);
 
   static String? _variantLine(HypeTrainExecution train) {
     switch (train.variant) {
       case HtVariant.treasure:
         final treasure = train.treasure;
         if (treasure == null) return null;
-        final unlocked = train.level >= treasure.threshold;
-        return unlocked
-            ? 'Treasure unlocked: ${treasure.discountPercentage}% off gift '
-                  'subs for the rest of the train'
-            : 'Reach level ${treasure.threshold} to unlock '
-                  '${treasure.discountPercentage}% off gift subs';
+        return HtCopy.treasureCard(
+          treasure.threshold,
+          treasure.discountPercentage,
+          unlocked: train.level >= treasure.threshold,
+        );
       case HtVariant.community:
         final community = train.community;
         if (community == null) return null;
-        final unlocked = train.level >= community.threshold;
-        return unlocked
-            ? 'Community emotes unlocked: ${community.current} viewers '
-                  'in chat get one'
-            : 'Reach level ${community.threshold} and '
-                  '${community.next} viewers in chat get an emote';
+        return HtCopy.communityCard(
+          community.threshold,
+          community.current,
+          unlocked: train.level >= community.threshold,
+        );
       case HtVariant.mythic:
-        final pool = train.mythic?.pool.length ?? 0;
-        return 'One of these $pool emotes becomes the Mythic reward';
+        return HtCopy.mythicCard(train.mythic?.pool.length ?? 0);
       case HtVariant.goldenKappa:
-        return 'Everyone who takes part gets the Golden Kappa for 24 hours';
+        return HtCopy.goldenCard;
       case HtVariant.regular:
         return null;
     }
   }
 }
 
-class _Section extends StatelessWidget {
-  const _Section({required this.title});
+/// A section title in Twitch's Header style, 16 dp below the previous one.
+class _Header extends StatelessWidget {
+  const _Header(this.title, {required this.neutrals});
 
   final String title;
+  final HtNeutrals neutrals;
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(top: 12, bottom: 6),
+    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
     child: Semantics(
       header: true,
       child: Text(
         title,
-        style: Theme.of(
-          context,
-        ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+        style: HtType.header.copyWith(color: neutrals.textBase),
       ),
     ),
   );
 }
 
-class _ConductorRow extends StatelessWidget {
-  const _ConductorRow({
+/// What the variant adds, on Twitch's bordered card: its icon, its name
+/// and a line with a "learn more" link.
+class _VariantCard extends StatelessWidget {
+  const _VariantCard({
+    required this.train,
+    required this.line,
+    required this.palette,
+    required this.neutrals,
+    required this.onLearnMore,
+  });
+
+  final HypeTrainExecution train;
+  final String line;
+  final HtPalette palette;
+  final HtNeutrals neutrals;
+  final VoidCallback onLearnMore;
+
+  @override
+  Widget build(BuildContext context) {
+    final mythic = train.variant == HtVariant.mythic ? train.mythic : null;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        HtDims.margin,
+        HtDims.margin,
+        HtDims.margin,
+        0,
+      ),
+      child: DecoratedBox(
+        key: const ValueKey('ht-variant-card'),
+        decoration: BoxDecoration(
+          color: neutrals.backgroundAlt,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: neutrals.borderBase),
+        ),
+        child: Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(
+            HtDims.margin,
+            HtDims.marginQuarter,
+            HtDims.margin,
+            HtDims.margin,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  SizedBox.square(
+                    dimension: 48,
+                    child: Icon(
+                      palette.icon,
+                      size: 32,
+                      color: palette.checkPill,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      HtCopy.trainTitle(
+                        train.variant,
+                        shared: train.shared != null,
+                      ),
+                      style: HtType.bodySemibold.copyWith(
+                        color: neutrals.textAlt2,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              _LinkedLine(
+                line: line,
+                link: palette.link,
+                style: HtType.bodySmall.copyWith(
+                  fontSize: 13,
+                  height: 1.2,
+                  color: neutrals.textAlt,
+                ),
+                onLearnMore: onLearnMore,
+              ),
+              if (mythic != null && mythic.pool.isNotEmpty) ...[
+                const SizedBox(height: HtDims.margin),
+                _RewardRow(rewards: mythic.pool, locked: true),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The variant line, then a "learn more" link in the link colour.
+class _LinkedLine extends StatefulWidget {
+  const _LinkedLine({
+    required this.line,
+    required this.link,
+    required this.style,
+    required this.onLearnMore,
+  });
+
+  final String line;
+  final Color link;
+  final TextStyle style;
+  final VoidCallback onLearnMore;
+
+  @override
+  State<_LinkedLine> createState() => _LinkedLineState();
+}
+
+class _LinkedLineState extends State<_LinkedLine> {
+  late final _recognizer = TapGestureRecognizer()
+    ..onTap = () => widget.onLearnMore();
+
+  @override
+  void dispose() {
+    _recognizer.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Text.rich(
+    TextSpan(
+      children: [
+        TextSpan(text: '${widget.line} '),
+        TextSpan(
+          text: HtCopy.learnMore,
+          recognizer: _recognizer,
+          style: TextStyle(
+            color: widget.link,
+            decoration: TextDecoration.underline,
+            decorationColor: widget.link,
+          ),
+        ),
+      ],
+    ),
+    style: widget.style,
+  );
+}
+
+/// One conductor: the badge, then "**name** has contributed n Subs!" or
+/// the invitation to take the spot.
+class _ConductorCell extends StatelessWidget {
+  const _ConductorCell({
     required this.source,
     required this.conductor,
     required this.badgeUrl,
+    required this.style,
   });
 
   final HtSource source;
   final HtConductor? conductor;
   final String? badgeUrl;
-
-  String _amount(HtConductor conductor) {
-    if (source == HtSource.bits) {
-      return '${HtCopy.number(conductor.amount)} Bits';
-    }
-    final subs = conductor.amount;
-    return '${HtCopy.number(subs)} ${subs == 1 ? 'sub' : 'subs'}';
-  }
+  final TextStyle style;
 
   @override
   Widget build(BuildContext context) {
     final conductor = this.conductor;
-    final textTheme = Theme.of(context).textTheme;
-    final label = source == HtSource.bits ? 'Top cheerer' : 'Top gifter';
+    final bits = source == HtSource.bits;
+    final amount = conductor == null
+        ? ''
+        : bits
+        ? HtCopy.bitsConductor(conductor.amount)
+        : HtCopy.subsConductor(conductor.amount);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsetsDirectional.only(end: HtDims.margin),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox.square(
-            dimension: 28,
+            key: const ValueKey('ht-conductor-badge'),
+            dimension: HtDims.reward,
             child: badgeUrl != null
                 ? FrostyCachedNetworkImage(imageUrl: badgeUrl!)
                 : Icon(
-                    source == HtSource.bits
-                        ? Icons.diamond_rounded
-                        : Icons.star_rounded,
+                    bits ? Icons.diamond_rounded : Icons.star_rounded,
                     size: 20,
+                    color: style.color,
                   ),
           ),
-          const SizedBox(width: 8),
-          if (conductor == null)
-            Expanded(
-              child: Text(
-                source == HtSource.bits
-                    ? 'No top cheerer yet'
-                    : 'No top gifter yet',
-                style: textTheme.bodyMedium?.copyWith(
-                  color: textTheme.bodySmall?.color,
-                ),
-              ),
-            )
-          else ...[
-            HtAvatar(user: conductor.user),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(conductor.user.displayName),
-                  Text(label, style: textTheme.bodySmall),
-                ],
-              ),
-            ),
-            Text(_amount(conductor)),
-          ],
+          const SizedBox(width: HtDims.marginHalf),
+          Expanded(
+            child: conductor == null
+                ? Text(
+                    bits ? HtCopy.noBitsConductor : HtCopy.noSubsConductor,
+                    style: style,
+                  )
+                : Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: conductor.user.displayName,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        TextSpan(text: ' $amount'),
+                      ],
+                    ),
+                    style: style,
+                  ),
+          ),
         ],
       ),
     );
   }
 }
 
+/// Emotes centred 16 dp apart, 28 dp each; a locked one carries a 9 dp
+/// padlock at its bottom end.
 class _RewardRow extends StatelessWidget {
   const _RewardRow({required this.rewards, required this.locked});
 
@@ -261,8 +480,9 @@ class _RewardRow extends StatelessWidget {
     ];
     if (emotes.isEmpty) return const SizedBox.shrink();
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      alignment: WrapAlignment.center,
+      spacing: 16,
+      runSpacing: HtDims.margin,
       children: [
         for (final reward in emotes)
           Semantics(
@@ -271,21 +491,33 @@ class _RewardRow extends StatelessWidget {
                 '${reward.token ?? reward.id}',
             excludeSemantics: true,
             child: SizedBox.square(
-              dimension: 36,
+              key: const ValueKey('ht-reward'),
+              dimension: HtDims.reward,
               child: Stack(
                 children: [
-                  Opacity(
-                    opacity: locked ? 0.5 : 1,
-                    child: FrostyCachedNetworkImage(
-                      imageUrl: reward.emoteUrl.toString(),
-                      width: 36,
-                      height: 36,
-                    ),
+                  FrostyCachedNetworkImage(
+                    imageUrl: reward.emoteUrl.toString(),
+                    width: HtDims.reward,
+                    height: HtDims.reward,
                   ),
                   if (locked)
-                    const Align(
-                      alignment: Alignment.bottomRight,
-                      child: Icon(Icons.lock_rounded, size: 14),
+                    PositionedDirectional(
+                      end: 0,
+                      bottom: 0,
+                      child: Container(
+                        key: const ValueKey('ht-reward-lock'),
+                        width: HtDims.lock,
+                        height: HtDims.lock,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                        child: const Icon(
+                          Icons.lock_rounded,
+                          size: 7,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                 ],
               ),
@@ -302,10 +534,12 @@ class _UpcomingRewards extends StatefulWidget {
     super.key,
     required this.store,
     required this.trainId,
+    required this.neutrals,
   });
 
   final HypeTrainStore store;
   final String trainId;
+  final HtNeutrals neutrals;
 
   @override
   State<_UpcomingRewards> createState() => _UpcomingRewardsState();
@@ -326,10 +560,11 @@ class _UpcomingRewardsState extends State<_UpcomingRewards> {
   }
 
   Widget _body() {
+    final style = HtType.bodySmall.copyWith(color: widget.neutrals.textBase);
     final loaded = _levels;
     if (loaded == null) {
       return const Padding(
-        padding: EdgeInsets.all(8),
+        padding: EdgeInsets.all(HtDims.margin),
         child: SizedBox.square(
           dimension: 20,
           child: CircularProgressIndicator(strokeWidth: 2),
@@ -339,19 +574,23 @@ class _UpcomingRewardsState extends State<_UpcomingRewards> {
     final current = widget.store.train?.level ?? 0;
     final levels = loaded.where((l) => l.$1 > current).toList();
     if (levels.isEmpty) {
-      return const Align(
+      return Align(
         alignment: AlignmentDirectional.centerStart,
-        child: Text('Nothing more to show yet'),
+        child: Text(HtCopy.nothingMore, style: style),
       );
     }
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (final (level, rewards) in levels.take(10)) ...[
-          Text('Level $level'),
-          const SizedBox(height: 4),
+          Text(
+            HtCopy.levelEmotes(level),
+            textAlign: TextAlign.center,
+            style: style,
+          ),
+          const SizedBox(height: HtDims.marginHalf),
           _RewardRow(rewards: rewards, locked: true),
-          const SizedBox(height: 8),
+          const SizedBox(height: HtDims.margin),
         ],
       ],
     );
@@ -364,7 +603,16 @@ class _UpcomingRewardsState extends State<_UpcomingRewards> {
       child: ExpansionTile(
         key: PageStorageKey('ht-upcoming-${widget.trainId}'),
         tilePadding: EdgeInsets.zero,
-        title: Semantics(header: true, child: const Text('Coming up')),
+        dense: true,
+        iconColor: widget.neutrals.textBase,
+        collapsedIconColor: widget.neutrals.textBase,
+        title: Semantics(
+          header: true,
+          child: Text(
+            HtCopy.comingUp,
+            style: HtType.header.copyWith(color: widget.neutrals.textBase),
+          ),
+        ),
         onExpansionChanged: (open) {
           if (open) _load();
         },
@@ -374,30 +622,75 @@ class _UpcomingRewardsState extends State<_UpcomingRewards> {
   }
 }
 
+/// Before the train: what a hype train is, the level 1 emotes and the
+/// time window on a 3 dp bar.
 class _ApproachingDetails extends StatelessWidget {
-  const _ApproachingDetails({required this.store, required this.approaching});
+  const _ApproachingDetails({
+    required this.store,
+    required this.approaching,
+    required this.neutrals,
+  });
 
   final HypeTrainStore store;
   final HypeTrainApproaching approaching;
+  final HtNeutrals neutrals;
 
   @override
   Widget build(BuildContext context) {
+    final palette = HtPalette.of(
+      approaching.variant == HtVariant.goldenKappa
+          ? HtStyle.goldenKappa
+          : HtStyle.regular,
+      Theme.of(context).colorScheme,
+      creatorColor: approaching.creatorColor,
+    );
+    final body = HtType.bodySmall.copyWith(
+      color: neutrals.textBase,
+      height: 1.3,
+    );
+    final variant = approaching.variant;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
-            'When enough viewers subscribe or cheer in a short time, they '
-            'start a Hype Train. Each level unlocks emotes for everyone '
-            'who took part.',
+          const SizedBox(height: 16),
+          Semantics(
+            header: true,
+            child: Text(
+              HtCopy.approachingQuestion(variant),
+              style: HtType.header.copyWith(color: neutrals.textBase),
+            ),
           ),
-          const _Section(title: 'Level 1 rewards'),
-          _RewardRow(rewards: approaching.levelOneRewards, locked: true),
-          const SizedBox(height: 12),
-          LinearProgressIndicator(
-            value: store.approachingCompleted ? 1 : store.approachingFraction,
+          const SizedBox(height: 6),
+          Text(HtCopy.approachingExplanationFirst(variant), style: body),
+          const SizedBox(height: HtDims.margin),
+          Text(HtCopy.approachingExplanationSecond(variant), style: body),
+          const SizedBox(height: 16),
+          Semantics(
+            header: true,
+            child: Text(
+              HtCopy.levelEmotes(1),
+              style: HtType.header.copyWith(color: neutrals.textBase),
+            ),
+          ),
+          const SizedBox(height: HtDims.margin),
+          Center(
+            child: _RewardRow(
+              rewards: approaching.levelOneRewards,
+              locked: true,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Observer(
+            builder: (context) => LinearProgressIndicator(
+              key: const ValueKey('ht-approaching-details-bar'),
+              minHeight: HtDims.bar,
+              value: store.approachingCompleted ? 1 : store.approachingFraction,
+              color: palette.fill,
+              backgroundColor: palette.barTrack,
+            ),
           ),
         ],
       ),

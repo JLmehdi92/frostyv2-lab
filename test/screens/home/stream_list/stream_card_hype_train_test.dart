@@ -39,7 +39,7 @@ void main() {
       ),
     );
     expect(find.byType(HypeTrainCardPill), findsOneWidget);
-    expect(find.text('LVL 4'), findsOneWidget);
+    expect(find.text('Treasure Train Level 4'), findsOneWidget);
 
     await pump(
       tester,
@@ -58,7 +58,72 @@ void main() {
       ),
     );
 
-    expect(find.text('LVL 9'), findsOneWidget);
+    expect(find.text('All-Time High Train Level 9'), findsOneWidget);
+  });
+
+  testWidgets("Twitch's indicator: a 12 sp footnote and a green train", (
+    tester,
+  ) async {
+    Future<Color?> trainTint(ThemeData theme) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: const Scaffold(
+            body: Center(
+              child: HypeTrainCardPill(status: HtCardStatus(level: 4)),
+            ),
+          ),
+        ),
+      );
+      // Past the app's theme animation.
+      await tester.pumpAndSettle();
+      final text = tester.widget<Text>(find.text('Hype Train Level 4'));
+      expect(text.style?.fontSize, 12);
+      final icon = find.byIcon(Icons.train_rounded);
+      expect(tester.getSize(icon).width, 15);
+      return tester.widget<Icon>(icon).color;
+    }
+
+    expect(
+      await trainTint(ThemeData(brightness: Brightness.light)),
+      const Color(0xFF0E8661),
+    );
+    expect(
+      await trainTint(ThemeData(brightness: Brightness.dark)),
+      const Color(0xFF15C08B),
+    );
+  });
+
+  testWidgets('a long indicator fits a small thumbnail', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(
+              width: 90,
+              child: Stack(
+                children: [
+                  SizedBox(width: 90, height: 50),
+                  PositionedDirectional(
+                    start: 0,
+                    bottom: 0,
+                    child: HypeTrainCardPill(
+                      status: HtCardStatus(
+                        level: 12,
+                        variant: HtVariant.goldenKappa,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('the thumbnail preview is named for screen readers', (

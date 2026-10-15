@@ -3,16 +3,21 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 /// Community emotes unlocking: a rocket climbs a curve from bottom left to
-/// top right with a flame trail, bursting into a star at the top.
+/// top right across its whole box (the banner) with a flame trail,
+/// bursting into a star at the top.
 class RocketLaunch extends StatefulWidget {
   const RocketLaunch({
     super.key,
     required this.duration,
     this.reduceMotion = false,
+    this.color = Colors.white,
   });
 
   final Duration duration;
   final bool reduceMotion;
+
+  /// The rocket; white on the community train's navy.
+  final Color color;
 
   @override
   State<RocketLaunch> createState() => _RocketLaunchState();
@@ -54,7 +59,7 @@ class _RocketLaunchState extends State<RocketLaunch>
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.primary;
+    final color = widget.color;
     return LayoutBuilder(
       builder: (context, constraints) {
         final box = Size(
