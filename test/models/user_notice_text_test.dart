@@ -391,6 +391,36 @@ void main() {
     });
   });
 
+  group('raid', () {
+    test("bolds the raider's name in Twitch's sentence", () {
+      final words = _wordRaw(raidNotice);
+
+      expect(_text(words), '15 raiders from Raider have joined!');
+      expect(_bold(words), ['Raider']);
+    });
+
+    test('bolds only a whole name', () {
+      final words = _word({
+        'msg-id': 'raid',
+        'msg-param-displayName': 'Rai',
+        'system-msg': '15 raiders from Raider and Rai have joined!',
+      });
+
+      expect(_text(words), '15 raiders from Raider and Rai have joined!');
+      expect(_bold(words), ['Rai']);
+    });
+
+    test('leaves the sentence plain when the name is not in it', () {
+      final words = _word({
+        'msg-id': 'raid',
+        'msg-param-displayName': 'Someone',
+        'system-msg': '15 raiders have joined!',
+      });
+
+      expect(_bold(words), isEmpty);
+    });
+  });
+
   group('kinds without a template', () {
     test('show Twitch\'s sentence with the leading name in bold', () {
       final words = _wordRaw(giftPaidUpgrade);

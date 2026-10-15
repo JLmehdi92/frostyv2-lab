@@ -41,6 +41,7 @@ List<NoticeSegment> userNoticeText(
     UserNoticeKind.subGift => _subGift(notice),
     UserNoticeKind.communityGift => _communityGift(notice, channelName),
     UserNoticeKind.extendSub => _extendSub(notice),
+    UserNoticeKind.raid => _raid(notice),
     _ => null,
   };
 
@@ -209,6 +210,26 @@ List<NoticeSegment>? _extendSub(UserNotice notice) {
 }
 
 final _wordCharacter = RegExp(r'\w');
+
+/// Twitch's raid sentence ("15 raiders from X have joined!"), with the
+/// raiding channel's name in bold, or null when the name is not in it.
+List<NoticeSegment>? _raid(UserNotice notice) {
+  final message = notice.systemMessage;
+  final name = notice.raiderDisplayName;
+  if (message.isEmpty || name == null) return null;
+
+  final match = RegExp(
+    '(?<!\\w)${RegExp.escape(name)}(?!\\w)',
+    caseSensitive: false,
+  ).firstMatch(message);
+  if (match == null) return null;
+
+  return [
+    if (match.start > 0) NoticeSegment(message.substring(0, match.start)),
+    NoticeSegment(match[0]!, bold: true),
+    if (match.end < message.length) NoticeSegment(message.substring(match.end)),
+  ];
+}
 
 /// Twitch's own sentence, with the sender's name in bold when the sentence
 /// starts with it.
