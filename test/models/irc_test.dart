@@ -155,6 +155,19 @@ void main() {
         final msg = IRCMessage.fromString(basicPrivmsg);
         expect(msg.action, isFalse);
       });
+
+      test('emote positions count from after the ACTION prefix', () {
+        // Twitch's doc: in a /me message, positions begin after
+        // "\x01ACTION ".
+        final msg = IRCMessage.fromString(
+          _viewerLine(
+            'emotes=25:0-4',
+            '\x01ACTION Kappa waves\x01',
+          ).replaceFirst('emotes=;', ''),
+        );
+
+        expect(msg.localEmotes?.keys, ['Kappa']);
+      });
     });
 
     group('mention detection', () {

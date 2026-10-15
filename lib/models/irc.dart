@@ -1284,6 +1284,17 @@ class IRCMessage {
       }
     }
 
+    // Check if IRC actions like "/me" were called. Done before the emotes:
+    // their positions count from after the "\x01ACTION " prefix.
+    var action = false;
+    if (message != null &&
+        message.length > _ircActionPrefixLength &&
+        message.startsWith(_ircActionPrefix) &&
+        message.endsWith(_ircActionSuffix)) {
+      action = true;
+      message = message.substring(_ircActionPrefixLength, message.length - 1);
+    }
+
     // Now process any Twitch emotes contained in the message tags.
     // The map containing emotes from the user's tags to their URL.
     // This may include sub emotes that they can access but other users cannot.
@@ -1332,18 +1343,10 @@ class IRCMessage {
       }
     }
 
-    var action = false;
     var mention = false;
     List<String>? split;
     var gifParts = const <GifMessagePart>[];
     if (message != null) {
-      // Check if IRC actions like "/me" were called.
-      if (message.startsWith(_ircActionPrefix) &&
-          message.endsWith(_ircActionSuffix)) {
-        action = true;
-        message = message.substring(_ircActionPrefixLength, message.length - 1);
-      }
-
       // Check if the message mentions the logged-in user
       if (userLogin != null) {
         mention = mentionsUser(message, userLogin);
