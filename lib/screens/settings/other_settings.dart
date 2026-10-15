@@ -8,8 +8,11 @@ import 'package:frosty/cache_manager.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/settings/widgets/release_notes.dart';
 import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
+import 'package:frosty/screens/settings/widgets/update_check_tile.dart';
+import 'package:frosty/services/onset_updater.dart';
 import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/frosty_dialog.dart';
+import 'package:provider/provider.dart';
 
 class OtherSettings extends StatefulWidget {
   final SettingsStore settingsStore;
@@ -58,8 +61,12 @@ class _OtherSettingsState extends State<OtherSettings> {
 
   @override
   Widget build(BuildContext context) {
+    final updater = context.read<OnsetUpdater?>();
+
     return Column(
       children: [
+        if (updater != null && updater.enabled)
+          UpdateCheckTile(updater: updater),
         ListTile(
           leading: const Icon(Icons.notes_rounded),
           title: const Text('Release notes'),

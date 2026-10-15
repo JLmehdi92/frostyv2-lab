@@ -40,6 +40,7 @@ import 'package:frosty/screens/vod/channel_videos.dart';
 import 'package:frosty/screens/vod/vod_screen.dart';
 import 'package:frosty/services/go_live/go_live.dart';
 import 'package:frosty/services/go_live/go_live_worker.dart';
+import 'package:frosty/services/onset_updater.dart';
 import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:frosty/services/realtime/twitch_realtime_client.dart';
 import 'package:frosty/stores/global_assets_store.dart';
@@ -244,6 +245,8 @@ void main() async {
         Provider<TwitchEventSubClient>.value(value: eventSubClient),
         Provider<WhisperStore>.value(value: whisperStore),
         Provider<MiniPlayerStore>(create: (_) => MiniPlayerStore()),
+        // In-app updates; silent in builds without the update token.
+        Provider<OnsetUpdater>(create: (_) => OnsetUpdater()),
       ],
       child: MyApp(firstRun: firstRun),
     ),

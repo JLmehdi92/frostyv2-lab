@@ -17,6 +17,7 @@ import 'package:frosty/screens/whispers/whispers_screen.dart';
 import 'package:frosty/stores/whisper_store.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/blurred_container.dart';
+import 'package:frosty/widgets/onset_update_prompt.dart';
 import 'package:frosty/widgets/profile_picture.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -29,7 +30,7 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> {
+class _HomeState extends State<Home> with OnsetUpdateChecks {
   late final _authStore = context.read<AuthStore>();
 
   late final _whisperStore = context.read<WhisperStore>();

@@ -1,0 +1,294 @@
+import 'dart:async';
+
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/apis/onset_update_service.dart';
+import 'package:frosty/models/onset_release.dart';
+import 'package:frosty/services/onset_updater.dart';
+import 'package:frosty/widgets/onset_update_prompt.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:provider/provider.dart';
+
+class _MockUpdater extends Mock implements OnsetUpdater {}
+
+class _Screen extends StatefulWidget {
+  const _Screen();
+
+  @override
+  State<_Screen> createState() => _ScreenState();
+}
+
+class _ScreenState extends State<_Screen> with OnsetUpdateChecks {
+  @override
+  Widget build(BuildContext context) => const Text('home');
+}
+
+const _mb = 1024 * 1024;
+
+const _release = OnsetRelease(
+  build: 1023,
+  tag: 'build-1023',
+  notes: 'Faster chat\nFix PiP',
+  apkAssetId: 1,
+  shaAssetId: 2,
+  apkSize: 10 * _mb,
+);
+
+void main() {
+  late _MockUpdater updater;
+  late Completer<void> resumed;
+
+  setUpAll(() => registerFallbackValue(_release));
+
+  setUp(() {
+    updater = _MockUpdater();
+    when(() => updater.enabled).thenReturn(true);
+    when(() => updater.canInstall()).thenAnswer((_) async => true);
+    when(() => updater.postpone(any())).thenAnswer((_) async {});
+    when(() => updater.openInstallSettings()).thenAnswer((_) async {});
+  });
+
+  void downloadDoes(
+    Future<void> Function(
+      void Function(int, int)? onProgress,
+      CancelToken? cancelToken,
+    )
+    body,
+  ) {
+    when(
+      () => updater.downloadAndInstall(
+        any(),
+        onProgress: any(named: 'onProgress'),
+        cancelToken: any(named: 'cancelToken'),
+      ),
+    ).thenAnswer(
+      (invocation) => body(
+        invocation.namedArguments[#onProgress] as void Function(int, int)?,
+        invocation.namedArguments[#cancelToken] as CancelToken?,
+      ),
+    );
+  }
+
+  Future<void> pumpOffer(WidgetTester tester) async {
+    // Made inside the test: a future from setUp completes outside fake async.
+    resumed = Completer<void>();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => offerUpdate(
+                context,
+                updater,
+                const UpdateAvailable(_release, 1020),
+                waitForResume: () => resumed.future,
+              ),
+              child: const Text('offer'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('offer'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('the popup names the build and its notes', (tester) async {
+    await pumpOffer(tester);
+
+    expect(find.text('Update available'), findsOneWidget);
+    expect(find.text('ONSET build 1023 is ready.'), findsOneWidget);
+    expect(find.text('Faster chat\nFix PiP'), findsOneWidget);
+    expect(find.text('Later'), findsOneWidget);
+    expect(find.text('Update'), findsOneWidget);
+  });
+
+  testWidgets('"Later" postpones the build', (tester) async {
+    await pumpOffer(tester);
+
+    await tester.tap(find.text('Later'));
+    await tester.pumpAndSettle();
+
+    verify(() => updater.postpone(_release)).called(1);
+    expect(find.text('Update available'), findsNothing);
+  });
+
+  testWidgets('"Update" shows the progress, then installs', (tester) async {
+    final finish = Completer<void>();
+    downloadDoes((onProgress, _) {
+      onProgress!(5 * _mb, 10 * _mb);
+      return finish.future;
+    });
+    await pumpOffer(tester);
+
+    await tester.tap(find.text('Update'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('Downloading update'), findsOneWidget);
+    expect(find.text('5.0 / 10.0 MB'), findsOneWidget);
+    final bar = tester.widget<LinearProgressIndicator>(
+      find.byType(LinearProgressIndicator),
+    );
+    expect(bar.value, 0.5);
+    expect(find.text('Cancel'), findsOneWidget);
+
+    finish.complete();
+    await tester.pumpAndSettle();
+    expect(find.text('Downloading update'), findsNothing);
+    verifyNever(() => updater.postpone(any()));
+  });
+
+  testWidgets('"Cancel" stops the download quietly', (tester) async {
+    downloadDoes((_, cancelToken) async {
+      await cancelToken!.whenCancel;
+      throw const UpdateCancelledException();
+    });
+    await pumpOffer(tester);
+    await tester.tap(find.text('Update'));
+    await tester.pump();
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Downloading update'), findsNothing);
+    expect(find.byType(SnackBar), findsNothing);
+  });
+
+  for (final (error, message) in [
+    (
+      const UpdateIntegrityException(),
+      'The download was corrupted — try again',
+    ),
+    (const UpdateDownloadException(), 'Download failed'),
+    (const UpdateInstallException(), "Couldn't open the installer"),
+  ]) {
+    testWidgets('${error.runtimeType} says "$message"', (tester) async {
+      downloadDoes((_, _) async => throw error);
+      await pumpOffer(tester);
+
+      await tester.tap(find.text('Update'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Downloading update'), findsNothing);
+      expect(find.text(message), findsOneWidget);
+    });
+  }
+
+  group('without the install permission', () {
+    setUp(() {
+      var allowed = false;
+      when(() => updater.canInstall()).thenAnswer((_) async => allowed);
+      when(() => updater.openInstallSettings()).thenAnswer((_) async {
+        allowed = true;
+      });
+      downloadDoes((_, _) async {});
+    });
+
+    testWidgets('explains, opens the settings, then goes on', (tester) async {
+      await pumpOffer(tester);
+      await tester.tap(find.text('Update'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Allow updates'), findsOneWidget);
+      await tester.tap(find.text('Open settings'));
+      await tester.pumpAndSettle();
+      verify(() => updater.openInstallSettings()).called(1);
+      verifyNever(
+        () => updater.downloadAndInstall(
+          any(),
+          onProgress: any(named: 'onProgress'),
+          cancelToken: any(named: 'cancelToken'),
+        ),
+      );
+
+      resumed.complete();
+      await tester.pumpAndSettle();
+      verify(
+        () => updater.downloadAndInstall(
+          any(),
+          onProgress: any(named: 'onProgress'),
+          cancelToken: any(named: 'cancelToken'),
+        ),
+      ).called(1);
+    });
+
+    testWidgets('still refused when back: says so', (tester) async {
+      when(() => updater.openInstallSettings()).thenAnswer((_) async {});
+      await pumpOffer(tester);
+      await tester.tap(find.text('Update'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open settings'));
+      await tester.pumpAndSettle();
+
+      resumed.complete();
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('ONSET is not allowed to install updates'),
+        findsOneWidget,
+      );
+    });
+  });
+
+  group('OnsetUpdateChecks', () {
+    Future<void> pumpWatcher(WidgetTester tester, {OnsetUpdater? provided}) =>
+        tester.pumpWidget(
+          MaterialApp(
+            home: provided == null
+                ? const _Screen()
+                : Provider<OnsetUpdater>.value(
+                    value: provided,
+                    child: const _Screen(),
+                  ),
+          ),
+        );
+
+    testWidgets('checks after the first frame and offers the update', (
+      tester,
+    ) async {
+      when(
+        () => updater.check(),
+      ).thenAnswer((_) async => const UpdateAvailable(_release, 1020));
+
+      await pumpWatcher(tester, provided: updater);
+      await tester.pumpAndSettle();
+
+      verify(() => updater.check()).called(1);
+      expect(find.text('Update available'), findsOneWidget);
+    });
+
+    testWidgets('checks again when the app comes back', (tester) async {
+      when(() => updater.check()).thenAnswer((_) async => const UpToDate());
+      await pumpWatcher(tester, provided: updater);
+      await tester.pumpAndSettle();
+
+      for (final state in [
+        AppLifecycleState.inactive,
+        AppLifecycleState.hidden,
+        AppLifecycleState.paused,
+        AppLifecycleState.hidden,
+        AppLifecycleState.inactive,
+        AppLifecycleState.resumed,
+      ]) {
+        tester.binding.handleAppLifecycleStateChanged(state);
+      }
+      await tester.pumpAndSettle();
+
+      verify(() => updater.check()).called(2);
+      expect(find.text('Update available'), findsNothing);
+    });
+
+    testWidgets('does nothing when updates are off or missing', (tester) async {
+      when(() => updater.enabled).thenReturn(false);
+      await pumpWatcher(tester, provided: updater);
+      await tester.pumpAndSettle();
+      verifyNever(() => updater.check(force: any(named: 'force')));
+
+      await pumpWatcher(tester);
+      await tester.pumpAndSettle();
+      expect(find.text('home'), findsOneWidget);
+    });
+  });
+}

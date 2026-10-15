@@ -253,16 +253,17 @@ void main() {
       expect(calls, isEmpty);
     });
 
-    test('allowed installs go straight on', () async {
-      expect(await updater().ensureCanInstall(), isTrue);
-      expect(calls.map((c) => c.method), ['canInstall']);
+    test('reports whether installs are allowed', () async {
+      expect(await updater().canInstall(), isTrue);
+      canInstall = false;
+      expect(await updater().canInstall(), isFalse);
+      expect(calls.map((c) => c.method), ['canInstall', 'canInstall']);
     });
 
-    test('without the permission, opens the system settings', () async {
-      canInstall = false;
+    test('opens the system page that allows installs', () async {
+      await updater().openInstallSettings();
 
-      expect(await updater().ensureCanInstall(), isFalse);
-      expect(calls.map((c) => c.method), ['canInstall', 'openInstallSettings']);
+      expect(calls.single.method, 'openInstallSettings');
     });
 
     test('a build without the native side cannot install', () async {

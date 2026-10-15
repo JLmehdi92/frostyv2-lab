@@ -122,16 +122,11 @@ class OnsetUpdater {
     await prefs.setInt(_postponedAtKey, _now().millisecondsSinceEpoch);
   }
 
-  /// Whether ONSET may install apps. When it may not, opens the system page
-  /// that allows it and returns false.
-  Future<bool> ensureCanInstall() async {
-    if (await _installer.canInstall()) return true;
-    await _installer.openInstallSettings();
-    return false;
-  }
-
-  /// Whether ONSET may install apps, without opening anything.
+  /// Whether ONSET may install apps ("Install unknown apps").
   Future<bool> canInstall() => _installer.canInstall();
+
+  /// Opens the system page that lets ONSET install apps.
+  Future<void> openInstallSettings() => _installer.openInstallSettings();
 
   /// Downloads and verifies [release], then opens the system installer.
   ///
