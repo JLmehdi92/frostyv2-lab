@@ -51,14 +51,14 @@ void main() {
     h.inject(htLevelUp(3));
     await tester.pump();
     // The compact plan is only the 2.5 s level pill.
-    expect(find.text('Level 2 complete!'), findsOneWidget);
+    expect(find.text('Level 2 Complete!'), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 2600));
     expect(find.text('LVL 3'), findsOneWidget);
 
     h.inject(const HtEndEvent(reason: HtEndReason.completed));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
-    expect(find.text('Hype Train complete!'), findsOneWidget);
+    expect(find.text('Hype Train success!'), findsOneWidget);
     await h.close(tester);
   });
 
@@ -73,7 +73,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('Hype Train soon · 2 to go'), findsOneWidget);
+    expect(find.text('Approaching'), findsOneWidget);
     await h.close(tester);
   });
 

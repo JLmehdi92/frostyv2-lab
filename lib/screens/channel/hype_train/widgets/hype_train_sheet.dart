@@ -40,7 +40,12 @@ class HypeTrainSheet extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (_variantLine(train) case final line?) ...[
-                _Section(title: _variantTitle(train)),
+                _Section(
+                  title: HtCopy.trainTitle(
+                    train.variant,
+                    shared: train.shared != null,
+                  ),
+                ),
                 Text(line),
                 if (train.variant == HtVariant.mythic &&
                     train.mythic != null) ...[
@@ -53,12 +58,13 @@ class HypeTrainSheet extends StatelessWidget {
                 isFinalLevel(train)
                     ? HtCopy.finalLevel
                     : HtCopy.levelTarget(
+                        train.level,
                         store.levelTarget.subs,
                         store.levelTarget.bits,
                       ),
               ),
               if (train.shared case final shared?) ...[
-                const _Section(title: 'Channels in this train'),
+                const _Section(title: HtCopy.contributionsHeader),
                 for (final (channel, share) in topShares(shared, n: 6))
                   ListTile(
                     dense: true,
@@ -68,7 +74,7 @@ class HypeTrainSheet extends StatelessWidget {
                     trailing: Text('$share%'),
                   ),
               ],
-              const _Section(title: 'Conductors'),
+              const _Section(title: HtCopy.conductorsHeader),
               for (final source in const [HtSource.subs, HtSource.bits])
                 _ConductorRow(
                   source: source,
@@ -77,10 +83,11 @@ class HypeTrainSheet extends StatelessWidget {
                       .firstOrNull,
                   badgeUrl: train.config.conductorBadges[source],
                 ),
-              _Section(title: 'Level ${train.level} rewards'),
+              const _Section(title: HtCopy.rewardsHeader),
+              Text(HtCopy.levelEmotes(train.level)),
               _RewardRow(rewards: train.progress.level.rewards, locked: true),
               if (store.unlockedRewards.isNotEmpty) ...[
-                const _Section(title: 'Unlocked so far'),
+                const _Section(title: HtCopy.unlockedSoFar),
                 _RewardRow(rewards: store.unlockedRewards, locked: false),
               ],
               _UpcomingRewards(
@@ -96,8 +103,10 @@ class HypeTrainSheet extends StatelessWidget {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        'Record: level ${ath.level} · '
-                        '${athPercent(train.progress.total, ath)}% of the way',
+                        HtCopy.channelRecord(
+                          athPercent(train.progress.total, ath),
+                          ath.level,
+                        ),
                       ),
                     ),
                   ],
@@ -107,7 +116,7 @@ class HypeTrainSheet extends StatelessWidget {
               TextButton.icon(
                 onPressed: onLearnMore,
                 icon: const Icon(Icons.help_outline_rounded),
-                label: const Text('How Hype Trains work'),
+                label: const Text(HtCopy.moreInfo),
               ),
             ],
           ),
@@ -116,40 +125,28 @@ class HypeTrainSheet extends StatelessWidget {
     );
   }
 
-  static String _variantTitle(HypeTrainExecution train) =>
-      switch (train.variant) {
-        HtVariant.treasure => 'Treasure Train',
-        HtVariant.community => 'Community Train',
-        HtVariant.mythic => 'Mythic Train',
-        HtVariant.goldenKappa => 'Golden Kappa Train',
-        HtVariant.regular => 'Hype Train',
-      };
-
   static String? _variantLine(HypeTrainExecution train) {
     switch (train.variant) {
       case HtVariant.treasure:
         final treasure = train.treasure;
         if (treasure == null) return null;
-        final unlocked = train.level >= treasure.threshold;
-        return unlocked
-            ? 'Treasure unlocked: ${treasure.discountPercentage}% off gift '
-                  'subs for the rest of the train'
-            : 'Reach level ${treasure.threshold} to unlock '
-                  '${treasure.discountPercentage}% off gift subs';
+        return HtCopy.treasureCard(
+          treasure.threshold,
+          treasure.discountPercentage,
+          unlocked: train.level >= treasure.threshold,
+        );
       case HtVariant.community:
         final community = train.community;
         if (community == null) return null;
-        final unlocked = train.level >= community.threshold;
-        return unlocked
-            ? 'Community emotes unlocked: ${community.current} viewers '
-                  'in chat get one'
-            : 'Reach level ${community.threshold} and '
-                  '${community.next} viewers in chat get an emote';
+        return HtCopy.communityCard(
+          community.threshold,
+          community.current,
+          unlocked: train.level >= community.threshold,
+        );
       case HtVariant.mythic:
-        final pool = train.mythic?.pool.length ?? 0;
-        return 'One of these $pool emotes becomes the Mythic reward';
+        return HtCopy.mythicCard(train.mythic?.pool.length ?? 0);
       case HtVariant.goldenKappa:
-        return 'Everyone who takes part gets the Golden Kappa for 24 hours';
+        return HtCopy.goldenCard;
       case HtVariant.regular:
         return null;
     }
@@ -187,19 +184,14 @@ class _ConductorRow extends StatelessWidget {
   final HtConductor? conductor;
   final String? badgeUrl;
 
-  String _amount(HtConductor conductor) {
-    if (source == HtSource.bits) {
-      return '${HtCopy.number(conductor.amount)} Bits';
-    }
-    final subs = conductor.amount;
-    return '${HtCopy.number(subs)} ${subs == 1 ? 'sub' : 'subs'}';
-  }
+  String _amount(HtConductor conductor) => source == HtSource.bits
+      ? HtCopy.bitsConductor(conductor.amount)
+      : HtCopy.subsConductor(conductor.amount);
 
   @override
   Widget build(BuildContext context) {
     final conductor = this.conductor;
     final textTheme = Theme.of(context).textTheme;
-    final label = source == HtSource.bits ? 'Top cheerer' : 'Top gifter';
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -220,8 +212,8 @@ class _ConductorRow extends StatelessWidget {
             Expanded(
               child: Text(
                 source == HtSource.bits
-                    ? 'No top cheerer yet'
-                    : 'No top gifter yet',
+                    ? HtCopy.noBitsConductor
+                    : HtCopy.noSubsConductor,
                 style: textTheme.bodyMedium?.copyWith(
                   color: textTheme.bodySmall?.color,
                 ),
@@ -231,15 +223,18 @@ class _ConductorRow extends StatelessWidget {
             HtAvatar(user: conductor.user),
             const SizedBox(width: 6),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(conductor.user.displayName),
-                  Text(label, style: textTheme.bodySmall),
-                ],
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: conductor.user.displayName,
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    TextSpan(text: ' ${_amount(conductor)}'),
+                  ],
+                ),
               ),
             ),
-            Text(_amount(conductor)),
           ],
         ],
       ),
@@ -341,7 +336,7 @@ class _UpcomingRewardsState extends State<_UpcomingRewards> {
     if (levels.isEmpty) {
       return const Align(
         alignment: AlignmentDirectional.centerStart,
-        child: Text('Nothing more to show yet'),
+        child: Text(HtCopy.nothingMore),
       );
     }
     return Column(
@@ -364,7 +359,7 @@ class _UpcomingRewardsState extends State<_UpcomingRewards> {
       child: ExpansionTile(
         key: PageStorageKey('ht-upcoming-${widget.trainId}'),
         tilePadding: EdgeInsets.zero,
-        title: Semantics(header: true, child: const Text('Coming up')),
+        title: Semantics(header: true, child: const Text(HtCopy.comingUp)),
         onExpansionChanged: (open) {
           if (open) _load();
         },
@@ -388,12 +383,11 @@ class _ApproachingDetails extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
-            'When enough viewers subscribe or cheer in a short time, they '
-            'start a Hype Train. Each level unlocks emotes for everyone '
-            'who took part.',
-          ),
-          const _Section(title: 'Level 1 rewards'),
+          _Section(title: HtCopy.approachingQuestion(approaching.variant)),
+          Text(HtCopy.approachingExplanationFirst(approaching.variant)),
+          const SizedBox(height: 8),
+          Text(HtCopy.approachingExplanationSecond(approaching.variant)),
+          _Section(title: HtCopy.levelEmotes(1)),
           _RewardRow(rewards: approaching.levelOneRewards, locked: true),
           const SizedBox(height: 12),
           LinearProgressIndicator(

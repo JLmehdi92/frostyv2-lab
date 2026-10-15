@@ -240,7 +240,7 @@ void main() {
 
     expect(
       tester.getSemantics(
-        find.bySemanticsLabel(RegExp('Hype Train approaching')),
+        find.bySemanticsLabel(RegExp('A Hype Train is approaching!')),
       ),
       containsSemantics(isButton: true, hasTapAction: true),
     );

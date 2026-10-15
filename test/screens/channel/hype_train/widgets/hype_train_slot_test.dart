@@ -92,8 +92,8 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
     expect(find.byType(HypeTrainSheet), findsOneWidget);
-    await tester.ensureVisible(find.text('How Hype Trains work'));
-    await tester.tap(find.text('How Hype Trains work'));
+    await tester.ensureVisible(find.text('More Info'));
+    await tester.tap(find.text('More Info'));
     expect(learnMore, 1);
 
     await tester.tap(find.text('Hype Train'));

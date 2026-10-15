@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/screens/channel/hype_train/hype_train_sequence.dart';
 import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_banner.dart';
@@ -50,7 +51,7 @@ class _HypeTrainVideoPillState extends State<HypeTrainVideoPill> {
       case HtPhase.hidden:
         return null;
       case HtPhase.approaching:
-        return 'Hype Train soon · ${store.approachingEventsLeft} to go';
+        return HtCopy.approachingShort;
       case HtPhase.ongoing || HtPhase.ending:
         if (store.step case HtStep(
           kind: HtStepKind.levelComplete,
@@ -60,9 +61,12 @@ class _HypeTrainVideoPillState extends State<HypeTrainVideoPill> {
         }
         return null;
       case HtPhase.rewards:
-        return 'Hype Train complete!';
+        return HtCopy.completed(
+          store.train?.variant ?? HtVariant.regular,
+          shared: store.train?.shared != null,
+        );
       case HtPhase.expired:
-        return HtCopy.ended;
+        return HtCopy.expired;
     }
   }
 

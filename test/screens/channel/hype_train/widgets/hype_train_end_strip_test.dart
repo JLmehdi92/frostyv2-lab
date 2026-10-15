@@ -44,7 +44,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
 
     expect(find.byType(HypeTrainEndStrip), findsOneWidget);
-    expect(find.text('Rewards are on their way'), findsOneWidget);
+    expect(
+      find.text('Great work! Emotes are being delivered to supporters'),
+      findsOneWidget,
+    );
     expect(
       find.descendant(
         of: find.byKey(const ValueKey('ht-strip-emotes')),
@@ -70,7 +73,7 @@ void main() {
     );
     await tester.pump(const Duration(seconds: 12));
 
-    expect(find.textContaining('24 hours'), findsOneWidget);
+    expect(find.textContaining('24 hrs'), findsOneWidget);
     await h.close(tester);
   });
 
@@ -78,7 +81,10 @@ void main() {
     final h = await ended(tester, HtEndReason.expired);
     await tester.pump(const Duration(milliseconds: 600));
 
-    expect(find.text('This Hype Train has ended'), findsOneWidget);
+    expect(
+      find.text('You missed the Train. Better luck next time!'),
+      findsOneWidget,
+    );
     expect(
       find.descendant(
         of: find.byType(HypeTrainEndStrip),

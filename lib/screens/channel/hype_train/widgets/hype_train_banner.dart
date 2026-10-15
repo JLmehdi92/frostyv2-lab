@@ -29,6 +29,34 @@ HtPalette htPaletteOf(BuildContext context, HypeTrainStore store) =>
       creatorColor: store.train?.config.creatorColor,
     );
 
+/// The resting subtitle: the record, the final level, the treasure or
+/// community unlock, or the default prompt.
+String htSubtitle(HypeTrainStore store, HypeTrainExecution train) {
+  final shared = train.shared != null;
+  switch (store.style) {
+    case HtStyle.athApproaching:
+      return HtCopy.athApproaching;
+    case HtStyle.athReached:
+      return HtCopy.athReached(shared: shared);
+    case _:
+  }
+  if (store.isFinalLevel) return HtCopy.finalLevel;
+  if (train.treasure case final treasure?) {
+    return train.level >= treasure.threshold
+        ? HtCopy.treasureUnlockedSubtitle(treasure.discountPercentage)
+        : HtCopy.treasureLocked(
+            treasure.threshold,
+            treasure.discountPercentage,
+          );
+  }
+  if (train.community case final community?) {
+    return train.level >= community.threshold
+        ? HtCopy.communityUnlockedSubtitle(community.current)
+        : HtCopy.communityLocked(community.threshold);
+  }
+  return HtCopy.subtitle;
+}
+
 /// The running train: level, the active step (or title and level target),
 /// then the bar with percent and countdown. Tap for details; swipe up or
 /// the chevron to collapse it into a pill.
@@ -402,17 +430,19 @@ class HypeTrainStepContent extends StatelessWidget {
     final train = store.train;
     final textTheme = Theme.of(context).textTheme;
     final on = palette.onBackground;
-    final target = store.levelTarget;
-    final subtitle = store.isFinalLevel
-        ? HtCopy.finalLevel
-        : HtCopy.levelTarget(target.subs, target.bits);
+    final subtitle = train == null ? '' : htSubtitle(store, train);
     return ExcludeSemantics(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            palette.a11yName,
+            train == null
+                ? HtCopy.title
+                : HtCopy.trainTitle(
+                    train.variant,
+                    shared: train.shared != null,
+                  ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: textTheme.titleSmall?.copyWith(
@@ -464,19 +494,21 @@ class HypeTrainStepContent extends StatelessWidget {
       case HtStepKind.fadeOut:
         return const SizedBox.shrink();
       case HtStepKind.marquee:
+        final variant = store.train?.variant ?? HtVariant.regular;
+        final shared = store.train?.shared != null;
         final String text;
         if (data.containsKey('fromLevel')) {
-          text = HtCopy.merged(data['fromLevel'], data['toLevel']);
+          text = HtCopy.merging;
         } else if (data.containsKey('treasure')) {
-          text = HtCopy.treasureDiscount(data['treasure']);
+          text = HtCopy.treasureUnlockedMarquee;
         } else if (data.containsKey('community')) {
-          text = HtCopy.communityAmount(data['community']);
-        } else if (data['level'] case final int level) {
-          text = HtCopy.levelRewards(level);
+          text = HtCopy.communityUnlockedMarquee;
+        } else if (data.containsKey('level')) {
+          text = HtCopy.levelUp;
         } else if (store.phase == HtPhase.ending) {
-          text = 'Rewards earned';
+          text = HtCopy.completed(variant, shared: shared);
         } else {
-          text = '${palette.a11yName}!';
+          text = HtCopy.started(variant, shared: shared);
         }
         return ExcludeSemantics(
           child: HypeTrainMarquee(
@@ -492,9 +524,18 @@ class HypeTrainStepContent extends StatelessWidget {
         );
       case HtStepKind.instruction:
         final key = data['text'] as String? ?? '';
+        final train = store.train;
         return _text(
           context,
-          HtCopy.instruction(key, data),
+          HtCopy.instruction(
+            key,
+            data,
+            variant: train?.variant ?? HtVariant.regular,
+            discount: train?.treasure?.discountPercentage ?? 35,
+            amount: key == 'mythicPool'
+                ? train?.mythic?.pool.length ?? 0
+                : train?.community?.current ?? 0,
+          ),
           live: key == 'start' || key.endsWith('Unlocked'),
           strong: false,
         );
@@ -536,13 +577,17 @@ class HypeTrainStepContent extends StatelessWidget {
       case HtStepKind.totals:
         final totals = data['totals'];
         if (totals is! ({int bits, int subs})) return _rest(context);
-        return _text(context, HtCopy.totals(totals.bits, totals.subs));
+        return _text(
+          context,
+          '${HtCopy.subsTotal(totals.subs)}   ${HtCopy.bitsTotal(totals.bits)}',
+        );
       case HtStepKind.summary:
         return _text(
           context,
           HtCopy.summary(
             data['level'] as int? ?? store.shownLevel,
             ath: data['ath'] == true,
+            variant: store.train?.variant ?? HtVariant.regular,
           ),
           live: true,
         );
@@ -558,13 +603,7 @@ class HypeTrainStepContent extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            Expanded(
-              child: _text(
-                context,
-                'Shared Hype Train with ${users.length} channels',
-                live: true,
-              ),
-            ),
+            Expanded(child: _text(context, HtCopy.sharedNew, live: true)),
           ],
         );
       case HtStepKind.sharedTop3:
@@ -609,7 +648,7 @@ class HypeTrainStepContent extends StatelessWidget {
             discount: store.train?.treasure?.discountPercentage,
             reduceMotion: store.reduceMotion,
           ),
-          'Treasure unlocked!',
+          HtCopy.treasureUnlockedMarquee,
         );
       case HtStepKind.rocketLaunch:
         return _effectRow(
@@ -622,7 +661,7 @@ class HypeTrainStepContent extends StatelessWidget {
               reduceMotion: store.reduceMotion,
             ),
           ),
-          'Community emotes unlocked!',
+          HtCopy.communityUnlockedMarquee,
         );
       case HtStepKind.unlockIcon:
         return Icon(
@@ -654,7 +693,7 @@ class HypeTrainStepContent extends StatelessWidget {
             emote: emote is HtReward ? emote : null,
             reduceMotion: store.reduceMotion,
           ),
-          'Mythic emote unlocked!',
+          HtCopy.completed(HtVariant.mythic),
         );
       case HtStepKind.athReached:
         return _effectRow(
@@ -663,7 +702,9 @@ class HypeTrainStepContent extends StatelessWidget {
             duration: step.duration,
             reduceMotion: store.reduceMotion,
           ),
-          'New all-time high!',
+          store.train?.shared != null
+              ? HtCopy.sharedRecordReached
+              : HtCopy.athReachedTitle,
         );
       case HtStepKind.athOtherChannel:
         final channel = data['channel'];
@@ -680,8 +721,9 @@ class HypeTrainStepContent extends StatelessWidget {
             Expanded(
               child: _text(
                 context,
-                '${channel is HtUser ? channel.displayName : 'A channel'} '
-                'reached its record too!',
+                HtCopy.otherChannelRecord(
+                  channel is HtUser ? channel.displayName : 'A channel',
+                ),
               ),
             ),
           ],
@@ -700,13 +742,15 @@ class HypeTrainStepContent extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            Expanded(
-              child: _text(context, 'Hype Trains are merging!', live: true),
-            ),
+            Expanded(child: _text(context, HtCopy.merging, live: true)),
           ],
         );
       case HtStepKind.channelLeftSummary:
-        return _text(context, 'A channel left the shared train');
+        return _text(
+          context,
+          '${HtCopy.sharedLevelReached}\n'
+          '${HtCopy.sharedLevel(store.shownLevel, store.shownPercent)}',
+        );
       case HtStepKind.continuesIn:
         final channel = data['channel'];
         return Row(
@@ -722,8 +766,7 @@ class HypeTrainStepContent extends StatelessWidget {
             Expanded(
               child: _text(
                 context,
-                'The train continues with '
-                '${channel is HtUser ? channel.displayName : 'another channel'}',
+                HtCopy.continuesIn(store.shownLevel),
                 live: true,
               ),
             ),

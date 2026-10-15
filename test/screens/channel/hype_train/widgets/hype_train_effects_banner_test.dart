@@ -144,7 +144,7 @@ void main() {
     await tester.pump();
 
     expect(await seenWithin(tester, find.byType(TrophyBurst), 1500), isTrue);
-    expect(find.text('New all-time high!'), findsOneWidget);
+    expect(find.text('All-time record shattered!'), findsOneWidget);
     await h.close(tester);
   });
 

@@ -34,10 +34,10 @@ class HypeTrainApproachingBanner extends StatelessWidget {
           );
           final on = palette.onBackground;
           final textTheme = Theme.of(context).textTheme;
-          final subtitle = HtCopy.approachingSubtitle(
-            store.approachingEventsLeft,
-            nMore: store.approachingNMore,
-          );
+          final title = HtCopy.approachingTitle(approaching.variant);
+          final subtitle = store.approachingNMore
+              ? HtCopy.approachingMore(store.approachingEventsLeft)
+              : HtCopy.approachingSubtitle(approaching.variant);
           return RepaintBoundary(
             child: Semantics(
               container: true,
@@ -45,7 +45,7 @@ class HypeTrainApproachingBanner extends StatelessWidget {
               button: true,
               onTap: onTap ?? store.toggleExpanded,
               hint: HtCopy.detailsHint,
-              label: '${HtCopy.approaching}. $subtitle',
+              label: '$title. $subtitle',
               child: ExcludeSemantics(
                 child: Material(
                   color: palette.background,
@@ -67,7 +67,7 @@ class HypeTrainApproachingBanner extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      HtCopy.approaching,
+                                      title,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: textTheme.titleSmall?.copyWith(

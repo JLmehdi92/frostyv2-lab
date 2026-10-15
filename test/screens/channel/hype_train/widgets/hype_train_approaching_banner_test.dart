@@ -33,7 +33,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
 
     expect(find.byType(HypeTrainApproachingBanner), findsOneWidget);
-    expect(find.text('Hype Train approaching'), findsOneWidget);
+    expect(find.text('A Hype Train is approaching!'), findsOneWidget);
     expect(filledChecks(tester), 2);
     final bar = find.byKey(const ValueKey('ht-approaching-bar'));
     final start = tester.widget<LinearProgressIndicator>(bar).value!;

@@ -28,15 +28,17 @@ class HypeTrainEndStrip extends StatelessWidget {
               .where((r) => r.emoteUrl != null)
               .take(3)
               .toList();
-          final title = rewards ? HtCopy.rewardsOnTheWay : HtCopy.ended;
+          final title = switch ((rewards, golden)) {
+            (true, true) => HtCopy.goldenRewards,
+            (true, false) => HtCopy.rewards,
+            (false, true) => HtCopy.goldenExpired,
+            (false, false) => HtCopy.expired,
+          };
           return RepaintBoundary(
             child: Semantics(
               container: true,
               liveRegion: true,
-              label: [
-                title,
-                if (rewards && golden) HtCopy.goldenRewards,
-              ].join('. '),
+              label: title,
               child: ExcludeSemantics(
                 child: Material(
                   color: palette.background,
@@ -82,22 +84,13 @@ class HypeTrainEndStrip extends StatelessWidget {
                                 children: [
                                   Text(
                                     title,
-                                    maxLines: 1,
+                                    maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: textTheme.bodyMedium?.copyWith(
                                       color: on,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
-                                  if (rewards && golden)
-                                    Text(
-                                      HtCopy.goldenRewards,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: textTheme.bodySmall?.copyWith(
-                                        color: on.withValues(alpha: 0.8),
-                                      ),
-                                    ),
                                 ],
                               ),
                             ),
