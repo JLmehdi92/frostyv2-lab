@@ -811,6 +811,7 @@ class HypeTrainStepContent extends StatelessWidget {
                 duration: step.duration,
                 discount: train?.treasure?.discountPercentage,
                 reduceMotion: store.reduceMotion,
+                color: palette.text,
               ),
               const SizedBox(width: HtDims.margin),
               Expanded(

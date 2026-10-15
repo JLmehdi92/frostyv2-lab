@@ -199,6 +199,19 @@ void main() {
     await untilSeen(tester, find.byType(CoinUnlock), 6000);
     // Past its cross-fade in.
     await tester.pump(const Duration(milliseconds: 100));
+    // The padlock reads on the unlocked treasure's blue-green.
+    final lock = tester.widget<Icon>(
+      find.descendant(
+        of: find.byType(CoinUnlock),
+        matching: find.byWidgetPredicate(
+          (w) =>
+              w is Icon &&
+              (w.icon == Icons.lock_rounded ||
+                  w.icon == Icons.lock_open_rounded),
+        ),
+      ),
+    );
+    expect(lock.color, Colors.white);
     expect(
       tester.getSize(find.byType(CoinUnlock)).height,
       tester.getSize(find.byKey(const ValueKey('ht-banner'))).height,

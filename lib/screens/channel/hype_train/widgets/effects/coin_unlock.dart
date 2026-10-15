@@ -11,11 +11,15 @@ class CoinUnlock extends StatefulWidget {
     required this.duration,
     this.discount,
     this.reduceMotion = false,
+    this.color,
   });
 
   final Duration duration;
   final int? discount;
   final bool reduceMotion;
+
+  /// The padlock; the theme's text colour without it.
+  final Color? color;
 
   @override
   State<CoinUnlock> createState() => CoinUnlockState();
@@ -52,7 +56,7 @@ class CoinUnlockState extends State<CoinUnlock>
 
   @override
   Widget build(BuildContext context) {
-    final iconColor = Theme.of(context).colorScheme.onSurface;
+    final iconColor = widget.color ?? Theme.of(context).colorScheme.onSurface;
     return LayoutBuilder(
       builder: (context, constraints) {
         // As tall as it may be (the banner); drawn at 40 dp and scaled.
