@@ -311,6 +311,10 @@ class PointsActionResult {
 
   static const ok = PointsActionResult(PointsActionStatus.success);
 
+  /// The code the store answers with when another action is still running.
+  /// Ours, not Twitch's: nothing was sent, so nothing was refused.
+  static const busyCode = 'busy';
+
   bool get isSuccess => status == PointsActionStatus.success;
 
   /// Classifies what [_mutate] returned.
@@ -352,6 +356,8 @@ class PointsActionResult {
     PointsActionStatus.notAuthenticated =>
       'Twitch rejected the login. Sign in again to spend points.',
     PointsActionStatus.network => 'Could not reach Twitch. Try again.',
+    PointsActionStatus.unknown when rawCode == busyCode =>
+      'Already in progress.',
     PointsActionStatus.unknown => 'Twitch refused: ${rawCode ?? 'no reason'}',
   };
 }

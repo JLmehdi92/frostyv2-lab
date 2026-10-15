@@ -255,7 +255,10 @@ abstract class ChannelEventsStoreBase with Store {
     required String what,
   }) async {
     if (_pointsActionInFlight) {
-      return const PointsActionResult(PointsActionStatus.unknown, 'busy');
+      return const PointsActionResult(
+        PointsActionStatus.unknown,
+        PointsActionResult.busyCode,
+      );
     }
 
     runInAction(() => _pointsActionInFlight = true);
