@@ -85,8 +85,8 @@ class OnsetUpdater {
   Future<int> currentBuild() => _currentBuild();
 
   /// Looks for a newer build. Unless [force]d, asks GitHub at most every
-  /// [checkInterval] and keeps a build the viewer postponed quiet for
-  /// [postponeFor].
+  /// [checkInterval] after finding the installed build up to date, and keeps
+  /// a build the viewer postponed quiet for [postponeFor].
   Future<UpdateCheck> check({bool force = false}) async {
     if (!enabled) return const UpdateCheckSkipped();
     final prefs = await SharedPreferences.getInstance();
@@ -101,10 +101,15 @@ class OnsetUpdater {
 
     final release = await _service.latest();
     if (release == null) return const UpdateCheckFailed();
-    await prefs.setInt(_lastCheckKey, now.millisecondsSinceEpoch);
 
     final current = await _currentBuild();
-    if (release.build <= current) return const UpToDate();
+    if (release.build <= current) {
+      // Only an up-to-date answer quiets the next checks: a newer build that
+      // was not installed (the process can die while Android's "install
+      // unknown apps" page is open) is offered again at the next start.
+      await prefs.setInt(_lastCheckKey, now.millisecondsSinceEpoch);
+      return const UpToDate();
+    }
 
     if (!force && prefs.getInt(_postponedBuildKey) == release.build) {
       final postponedAt = prefs.getInt(_postponedAtKey);

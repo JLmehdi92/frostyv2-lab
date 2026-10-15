@@ -139,6 +139,16 @@ void main() {
       expect(await updater().check(), isA<UpdateCheckSkipped>());
     });
 
+    test('a newer build is offered again at the next start', () async {
+      // The process can die while "install unknown apps" is being granted.
+      latestIs(_release(1023));
+      await updater().check();
+
+      now = now.add(const Duration(minutes: 1));
+      expect(await updater().check(), isA<UpdateAvailable>());
+      verify(() => service.latest()).called(2);
+    });
+
     test('a failed check is retried at the next chance', () async {
       latestIs(null);
       await updater().check();
