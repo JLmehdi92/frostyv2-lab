@@ -11,12 +11,19 @@ class FrostyCachedNetworkImage extends StatelessWidget {
   final Color? color;
   final BlendMode? colorBlendMode;
   final Widget Function(BuildContext, String)? placeholder;
+
+  /// Drawn instead of the image when it cannot be loaded or decoded.
+  final Widget Function(BuildContext, String, Object)? errorWidget;
   final bool useOldImageOnUrlChange;
   final bool useFade;
   final BoxFit? fit;
 
   /// Decodes the image at this many pixels wide instead of its full size.
   final int? memCacheWidth;
+
+  /// Decodes the image at this many pixels tall instead of its full size.
+  /// Alone, the width follows the image's aspect ratio.
+  final int? memCacheHeight;
 
   /// What a screen reader says for the image; it stays silent when null.
   final String? semanticLabel;
@@ -30,10 +37,12 @@ class FrostyCachedNetworkImage extends StatelessWidget {
     this.color,
     this.colorBlendMode,
     this.placeholder,
+    this.errorWidget,
     this.useFade = true,
     this.useOldImageOnUrlChange = false,
     this.fit,
     this.memCacheWidth,
+    this.memCacheHeight,
     this.semanticLabel,
   });
 
@@ -47,6 +56,7 @@ class FrostyCachedNetworkImage extends StatelessWidget {
       color: color,
       colorBlendMode: colorBlendMode,
       placeholder: placeholder,
+      errorWidget: errorWidget,
       useOldImageOnUrlChange: useOldImageOnUrlChange,
       fadeOutDuration: useFade
           ? const Duration(milliseconds: 500)
@@ -58,6 +68,7 @@ class FrostyCachedNetworkImage extends StatelessWidget {
       fadeOutCurve: Curves.easeIn,
       fit: fit,
       memCacheWidth: memCacheWidth,
+      memCacheHeight: memCacheHeight,
       cacheManager: CustomCacheManager.instance,
     );
     final label = semanticLabel;
