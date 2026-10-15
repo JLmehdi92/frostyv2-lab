@@ -5,10 +5,13 @@ import 'package:frosty/screens/channel/hype_train/hype_train_sequence.dart';
 import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_banner.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_copy.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_palette.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_pill_shell.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 
-/// The train over the video when landscape chat is hidden: a small pill
-/// (approaching, level and %, "level complete", ended). Tap for details.
+/// The train over the video when landscape chat is hidden, as Twitch's
+/// landscape pill: "Approaching" with its check circles, the level and
+/// percentage over a sweeping fill, "Level n Complete!", then the end.
+/// Tap for details.
 /// While mounted it presents the store in compact form.
 class HypeTrainVideoPill extends StatefulWidget {
   const HypeTrainVideoPill({
@@ -73,78 +76,70 @@ class _HypeTrainVideoPillState extends State<HypeTrainVideoPill> {
   @override
   Widget build(BuildContext context) {
     final store = widget.store;
-    return MediaQuery.withNoTextScaling(
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.3,
       child: Observer(
         builder: (context) {
           if (store.phase == HtPhase.hidden) return const SizedBox.shrink();
-          final palette = store.phase == HtPhase.approaching
-              ? HtPalette.of(
-                  HtStyle.regular,
-                  Theme.of(context).colorScheme,
-                  creatorColor: store.approaching?.creatorColor,
-                )
-              : htPaletteOf(context, store);
-          final on = palette.text;
-          final style = Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: on,
-            fontWeight: FontWeight.w700,
-          );
+          final palette = htPaletteOf(context, store);
           final text = _text(store);
-          final ongoing =
-              store.phase == HtPhase.ongoing || store.phase == HtPhase.ending;
           final label = store.semanticsSummary.isNotEmpty
               ? store.semanticsSummary
               : (text ?? HtCopy.title);
-          return Semantics(
-            container: true,
-            button: true,
+          final Widget content;
+          final double fraction;
+          switch (store.phase) {
+            case HtPhase.approaching:
+              fraction = store.approachingCompleted
+                  ? 1
+                  : store.approachingFraction;
+              content = Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.train_rounded),
+                  const SizedBox(width: HtDims.marginHalf),
+                  Text(text ?? HtCopy.approachingShort),
+                  HtCheckCircles(
+                    filled: store.approachingChecks,
+                    count: (store.approaching?.goal ?? 0) > 5 ? 3 : 2,
+                  ),
+                ],
+              );
+            case HtPhase.ongoing || HtPhase.ending:
+              fraction = text != null ? 1 : store.shownPercent / 100;
+              content = Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(palette.icon),
+                  const SizedBox(width: HtDims.marginHalf),
+                  if (text != null)
+                    Text(text)
+                  else ...[
+                    Text(HtCopy.level(store.shownLevel)),
+                    const SizedBox(width: HtDims.margin),
+                    Text(HtCopy.percent(store.shownPercent)),
+                  ],
+                ],
+              );
+            case HtPhase.hidden || HtPhase.rewards || HtPhase.expired:
+              fraction = 1 - store.stripFraction;
+              content = Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(palette.icon),
+                  const SizedBox(width: HtDims.marginHalf),
+                  Text(text ?? HtCopy.title),
+                ],
+              );
+          }
+          return HtPillShell(
+            pillKey: const ValueKey('ht-video-pill'),
+            targetKey: const ValueKey('ht-video-pill-target'),
+            fraction: fraction,
             label: label,
             hint: HtCopy.detailsHint,
-            child: Material(
-              key: const ValueKey('ht-video-pill'),
-              color: palette.track.withValues(alpha: 0.92),
-              shape: const StadiumBorder(),
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: widget.onTap,
-                child: SizedBox(
-                  height: 28,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: ExcludeSemantics(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            palette.icon,
-                            size: 16,
-                            color: palette.text,
-                          ),
-                          const SizedBox(width: 6),
-                          if (text != null)
-                            Text(text, style: style)
-                          else if (ongoing) ...[
-                            Text('LVL ${store.shownLevel}', style: style),
-                            const SizedBox(width: 8),
-                            SizedBox.square(
-                              dimension: 14,
-                              child: CircularProgressIndicator(
-                                value: store.shownPercent / 100,
-                                strokeWidth: 2.5,
-                                color: palette.fill,
-                                backgroundColor: palette.barTrack,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Text('${store.shownPercent}%', style: style),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            onTap: widget.onTap,
+            child: content,
           );
         },
       ),

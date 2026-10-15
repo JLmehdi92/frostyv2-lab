@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/models/hype_train.dart';
@@ -74,6 +75,12 @@ void main() {
     await tester.pump();
 
     expect(find.text('Approaching'), findsOneWidget);
+    final pill = find.byKey(const ValueKey('ht-video-pill'));
+    int circles(String key) => find
+        .descendant(of: pill, matching: find.byKey(ValueKey(key)))
+        .evaluate()
+        .length;
+    expect(circles('ht-check-filled') + circles('ht-check-empty'), 2);
     await h.close(tester);
   });
 
@@ -95,5 +102,102 @@ void main() {
     );
     await h.close(tester);
     semantics.dispose();
+  });
+
+  group('twitch landscape pill', () {
+    final pill = find.byKey(const ValueKey('ht-video-pill'));
+    final fill = find.byKey(const ValueKey('ht-pill-fill'));
+
+    testWidgets(
+      '32 dp, radius 16, on translucent black, white text',
+      (tester) async {
+        final h = HtHarness(
+          snapshot: HtOngoingSnapshot(
+            liveTrain(),
+            fetchedAt: DateTime.utc(2026),
+          ),
+        );
+        await pumpPill(tester, h.store);
+
+        expect(tester.getSize(pill).height, 32);
+        final shape =
+            tester.widget<DecoratedBox>(pill).decoration as BoxDecoration;
+        expect(shape.color, const Color(0x80000000));
+        expect(shape.borderRadius, BorderRadius.circular(16));
+        expect(
+          tester
+              .renderObject<RenderParagraph>(find.text('LVL 7'))
+              .text
+              .style
+              ?.color,
+          Colors.white,
+        );
+        await h.close(tester);
+      },
+      variant: const TargetPlatformVariant({
+        TargetPlatform.android,
+        TargetPlatform.iOS,
+      }),
+    );
+
+    testWidgets('the fill sweeps the level fraction in #0C6D4F', (
+      tester,
+    ) async {
+      final h = HtHarness(
+        snapshot: HtOngoingSnapshot(liveTrain(), fetchedAt: DateTime.utc(2026)),
+      );
+      await pumpPill(tester, h.store);
+
+      expect(
+        tester.getSize(fill).width,
+        closeTo(tester.getSize(pill).width * 0.33, 0.5),
+      );
+      expect(tester.getSize(fill).height, 32);
+      expect(
+        (tester.widget<DecoratedBox>(fill).decoration as BoxDecoration).color,
+        const Color(0xFF0C6D4F),
+      );
+      await h.close(tester);
+    });
+
+    testWidgets('a 48 dp touch target', (tester) async {
+      var taps = 0;
+      final h = HtHarness(
+        snapshot: HtOngoingSnapshot(liveTrain(), fetchedAt: DateTime.utc(2026)),
+      );
+      await pumpPill(tester, h.store, onTap: () => taps++);
+
+      final target = find.byKey(const ValueKey('ht-video-pill-target'));
+      expect(tester.getSize(target).height, greaterThanOrEqualTo(48));
+      // Just above the visible pill still taps it.
+      await tester.tapAt(tester.getTopLeft(pill) + const Offset(20, -6));
+      expect(taps, 1);
+      await h.close(tester);
+    });
+
+    testWidgets('large text stays in the pill', (tester) async {
+      final h = HtHarness(
+        snapshot: HtOngoingSnapshot(liveTrain(), fetchedAt: DateTime.utc(2026)),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MediaQuery(
+            data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+            child: Scaffold(
+              body: Align(
+                alignment: Alignment.topRight,
+                child: HypeTrainVideoPill(store: h.store, onTap: () {}),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(tester.getSize(pill).height, 32);
+      await h.close(tester);
+    });
   });
 }

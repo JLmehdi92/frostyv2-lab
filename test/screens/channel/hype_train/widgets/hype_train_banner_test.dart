@@ -185,7 +185,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(HypeTrainBanner), findsNothing);
     expect(find.byKey(const ValueKey('ht-pill')), findsOneWidget);
-    expect(tester.getSize(find.byKey(const ValueKey('ht-pill'))).height, 28);
+    expect(tester.getSize(find.byKey(const ValueKey('ht-pill'))).height, 32);
+    expect(
+      tester.getSize(find.byKey(const ValueKey('ht-pill-fill'))).width,
+      closeTo(
+        tester.getSize(find.byKey(const ValueKey('ht-pill'))).width * 0.33,
+        0.5,
+      ),
+    );
 
     await tester.tap(find.byKey(const ValueKey('ht-pill')));
     await tester.pumpAndSettle();

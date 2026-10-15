@@ -22,6 +22,7 @@ import 'package:frosty/screens/channel/hype_train/widgets/hype_train_countdown.d
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_level_pill.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_marquee.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_palette.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_pill_shell.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_progress_bar.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 
@@ -460,7 +461,8 @@ class _BannerSemantics extends StatelessWidget {
   );
 }
 
-/// The collapsed train: a 28 px pill with the icon, level and percent.
+/// The collapsed train: Twitch's 32 dp landscape pill with the icon,
+/// level and percentage over the sweeping fill. Tap to expand it again.
 class HypeTrainPill extends StatelessWidget {
   const HypeTrainPill({super.key, required this.store});
 
@@ -468,60 +470,29 @@ class HypeTrainPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MediaQuery.withNoTextScaling(
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.3,
       child: Observer(
         builder: (context) {
           final palette = htPaletteOf(context, store);
-          final on = palette.text;
-          final style = Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: on,
-            fontWeight: FontWeight.w700,
-          );
-          return Semantics(
-            container: true,
-            button: true,
-            label: store.semanticsSummary,
-            hint: HtCopy.expand,
-            child: Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: Material(
-                key: const ValueKey('ht-pill'),
-                color: palette.track,
-                shape: const StadiumBorder(),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: () => store.setCollapsed(false),
-                  child: SizedBox(
-                    height: 28,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: ExcludeSemantics(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(palette.icon, size: 16, color: palette.text),
-                            const SizedBox(width: 6),
-                            Flexible(
-                              child: Text(
-                                'LVL ${store.shownLevel} · '
-                                '${store.shownPercent}%',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: style,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Icon(
-                              Icons.expand_more_rounded,
-                              size: 16,
-                              color: on,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+          return Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: HtPillShell(
+              pillKey: const ValueKey('ht-pill'),
+              fraction: store.shownPercent / 100,
+              label: store.semanticsSummary,
+              hint: HtCopy.expand,
+              onTap: () => store.setCollapsed(false),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(palette.icon),
+                  const SizedBox(width: HtDims.marginHalf),
+                  Text(HtCopy.level(store.shownLevel)),
+                  const SizedBox(width: HtDims.margin),
+                  Text(HtCopy.percent(store.shownPercent)),
+                  const Icon(Icons.expand_more_rounded),
+                ],
               ),
             ),
           );

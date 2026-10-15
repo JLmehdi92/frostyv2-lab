@@ -4,6 +4,7 @@ import 'package:frosty/screens/channel/hype_train/hype_train_timings.dart';
 import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_copy.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_palette.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_pill_shell.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 
 /// A train is about to start, laid out like Twitch's approaching banner:
@@ -180,8 +181,6 @@ class _EventsPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Icons draw their glyph about 12 dp inside a 14 dp box.
-    const circle = 14.0;
     return FittedBox(
       fit: BoxFit.scaleDown,
       child: DecoratedBox(
@@ -202,25 +201,7 @@ class _EventsPill extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(Icons.train_rounded, size: 20, color: Colors.white),
-                for (var i = 1; i <= circles; i++)
-                  Padding(
-                    padding: const EdgeInsetsDirectional.only(
-                      start: HtDims.marginHalf,
-                    ),
-                    child: store.approachingChecks >= i
-                        ? const Icon(
-                            Icons.check_circle_rounded,
-                            key: ValueKey('ht-check-filled'),
-                            size: circle,
-                            color: Colors.white,
-                          )
-                        : const Icon(
-                            Icons.radio_button_unchecked_rounded,
-                            key: ValueKey('ht-check-empty'),
-                            size: circle,
-                            color: Colors.white,
-                          ),
-                  ),
+                HtCheckCircles(filled: store.approachingChecks, count: circles),
               ],
             ),
           ),
