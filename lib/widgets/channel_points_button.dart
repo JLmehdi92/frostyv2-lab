@@ -60,19 +60,27 @@ class ChannelPointsButton extends StatelessWidget {
   /// Shortens a balance the way Twitch does, so a seven-figure total does not
   /// push the message box off a narrow landscape chat column.
   static String compact(int value) {
-    if (value >= 1000000) {
-      final millions = value / 1000000;
-      return millions >= 10
-          ? '${millions.round()}M'
-          : '${millions.toStringAsFixed(1).replaceFirst('.0', '')}M';
+    if (value < 1000) return value.toString();
+
+    // A unit only fits if the value does not round up to the next one:
+    // 999 500 is "1M", not "1000K".
+    final thousands = _shorten(value / 1000);
+    if (thousands.rounded < 1000) return '${thousands.text}K';
+
+    return '${_shorten(value / 1000000).text}M';
+  }
+
+  /// One decimal below ten, none from ten up — and what that rounds to.
+  static ({String text, double rounded}) _shorten(double amount) {
+    if (amount >= 10) {
+      final rounded = amount.round();
+      return (text: '$rounded', rounded: rounded.toDouble());
     }
-    if (value >= 1000) {
-      final thousands = value / 1000;
-      return thousands >= 10
-          ? '${thousands.round()}K'
-          : '${thousands.toStringAsFixed(1).replaceFirst('.0', '')}K';
-    }
-    return value.toString();
+    final fixed = amount.toStringAsFixed(1);
+    return (
+      text: fixed.endsWith('.0') ? fixed.substring(0, fixed.length - 2) : fixed,
+      rounded: double.parse(fixed),
+    );
   }
 
   @override

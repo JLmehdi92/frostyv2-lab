@@ -29,6 +29,26 @@ void main() {
         ),
       );
 
+  test('compact shortens a balance the way Twitch does', () {
+    const table = {
+      0: '0',
+      999: '999',
+      1000: '1K',
+      1500: '1.5K',
+      9999: '10K',
+      12345: '12K',
+      999499: '999K',
+      999500: '1M',
+      1000000: '1M',
+      1250000: '1.3M',
+      9999999: '10M',
+      25000000: '25M',
+    };
+    for (final MapEntry(:key, :value) in table.entries) {
+      expect(ChannelPointsButton.compact(key), value, reason: '$key');
+    }
+  });
+
   testWidgets("another channel's chat tab never reads the store", (
     tester,
   ) async {
