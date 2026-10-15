@@ -1,6 +1,10 @@
 # Builds a signed arm64 APK on every push to main and publishes it as a
 # "build-N" release, which installed ONSET apps offer as an update.
 # One-time setup (secrets, keystore, token): docs/MISES_A_JOUR.md.
+#
+# Two jobs: `build` holds the secrets with read-only repository access and
+# no third-party action beyond GitHub's own, pinned to commits; `publish` can
+# write releases but never sees a secret, only the built APK.
 name: ONSET update
 on:
   workflow_dispatch:
@@ -17,14 +21,18 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  android:
-    name: Build and publish the update
+  build:
+    name: Build the update
+    # A manual run on another branch must not publish a "latest" build.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    # Secrets are given to the steps that need them only, never to the
-    # third-party actions.
+    permissions:
+      contents: read
+    outputs:
+      build: ${{ steps.build.outputs.build }}
     steps:
       # Names the missing secrets only, never a value.
       - name: Check the secrets
@@ -49,21 +57,28 @@ jobs:
             exit 1
           fi
 
+      # Actions are pinned to commits (tags can be moved). Secrets are passed
+      # to the run steps that need them, but every step of this job shares the
+      # runner, so only GitHub's own actions run here.
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
       - name: Set up Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           distribution: temurin
           java-version: 17
 
+      # Flutter straight from its repository, checked against the commit of
+      # the 3.38.4 tag, instead of a third-party setup action.
       - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: 3.38.4
-          channel: stable
-          cache: true
+        run: |
+          git clone --depth 1 -b 3.38.4 https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          test "$(git -C "$RUNNER_TEMP/flutter" rev-parse HEAD)" = 66dd93f9a27ffe2a9bfc8297506ce066ff51265f
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/flutter/bin/flutter" --version
 
       # build.gradle.kts reads android/key.properties and resolves storeFile
       # against android/app.
@@ -82,7 +97,9 @@ jobs:
             printf 'storeFile=onset-release.jks\n'
           } > android/key.properties
 
+      # Never add -v here: a verbose build prints its --dart-define values.
       - name: Build the APK
+        id: build
         env:
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
           SECRET: ${{ secrets.SECRET }}
@@ -90,7 +107,7 @@ jobs:
           UPDATE_REPO: ${{ github.repository }}
         run: |
           BUILD=$((1000 + GITHUB_RUN_NUMBER))
-          echo "BUILD=$BUILD" >> "$GITHUB_ENV"
+          echo "build=$BUILD" >> "$GITHUB_OUTPUT"
           flutter pub get
           flutter build apk --release \
             --target-platform android-arm64 \
@@ -99,20 +116,46 @@ jobs:
             --dart-define=SECRET="$SECRET" \
             --dart-define=UPDATE_TOKEN="$UPDATE_TOKEN" \
             --dart-define=UPDATE_REPO="$UPDATE_REPO"
-          cp build/app/outputs/flutter-apk/app-release.apk onset-arm64.apk
-          sha256sum onset-arm64.apk | cut -d ' ' -f 1 > onset-arm64.apk.sha256
-
-      - name: Publish the release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          NOTES="$(git log -1 --format=%s)"
-          gh release create "build-$BUILD" onset-arm64.apk onset-arm64.apk.sha256 \
-            --title "ONSET build $BUILD" \
-            --notes "$NOTES" \
-            --target "$GITHUB_SHA" \
-            --latest
+          mkdir -p onset-update
+          cp build/app/outputs/flutter-apk/app-release.apk onset-update/onset-arm64.apk
+          (cd onset-update && sha256sum onset-arm64.apk | cut -d ' ' -f 1 > onset-arm64.apk.sha256)
+          git log -1 --format=%s > onset-update/notes.txt
 
       - name: Remove the signing key
         if: always()
         run: rm -f android/app/onset-release.jks android/key.properties
+
+      - name: Keep the APK for the publish job
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: onset-update
+          path: onset-update/
+          retention-days: 1
+          if-no-files-found: error
+
+  publish:
+    name: Publish the release
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Fetch the APK
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: onset-update
+          path: onset-update
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD: ${{ needs.build.outputs.build }}
+        run: |
+          cd onset-update
+          gh release create "build-$BUILD" onset-arm64.apk onset-arm64.apk.sha256 \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "ONSET build $BUILD" \
+            --notes-file notes.txt \
+            --target "$GITHUB_SHA" \
+            --latest
