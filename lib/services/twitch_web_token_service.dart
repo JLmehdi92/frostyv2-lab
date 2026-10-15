@@ -18,7 +18,14 @@ import 'package:flutter/services.dart';
 /// it, which turns a setting the user had to paste by hand into something that
 /// happens on its own.
 class TwitchWebTokenService {
-  const TwitchWebTokenService();
+  /// [isAndroid] overrides the platform check, for tests.
+  const TwitchWebTokenService({bool? isAndroid})
+    : _isAndroidOverride = isAndroid;
+
+  final bool? _isAndroidOverride;
+
+  /// Only Android has the native side of the channel.
+  bool get _isAndroid => _isAndroidOverride ?? Platform.isAndroid;
 
   static const _channel = MethodChannel('frosty/cookies');
 
@@ -47,7 +54,7 @@ class TwitchWebTokenService {
   /// throwing: the manual field in video settings stays as the fallback, so a
   /// missing token degrades to the previous behaviour instead of an error.
   Future<String?> readAuthToken() async {
-    if (!Platform.isAndroid) return null;
+    if (!_isAndroid) return null;
 
     try {
       final raw = await _channel.invokeMethod<String>('getCookie', {
@@ -91,7 +98,7 @@ class TwitchWebTokenService {
   /// Used on logout so the next login starts from a clean slate instead of
   /// silently reusing the previous account's session.
   Future<void> clearCookies() async {
-    if (!Platform.isAndroid) return;
+    if (!_isAndroid) return;
 
     try {
       await _channel.invokeMethod<void>('clearCookies');
