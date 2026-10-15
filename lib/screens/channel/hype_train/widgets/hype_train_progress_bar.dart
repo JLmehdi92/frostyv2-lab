@@ -56,7 +56,7 @@ class HypeTrainProgressBarState extends State<HypeTrainProgressBar>
       child: SizedBox(
         height: 6,
         child: DecoratedBox(
-          decoration: BoxDecoration(color: palette.track),
+          decoration: BoxDecoration(color: palette.barTrack),
           child: AnimatedBuilder(
             animation: _controller,
             builder: (context, _) => FractionallySizedBox(

@@ -20,7 +20,7 @@ class HypeTrainEndStrip extends StatelessWidget {
       child: Observer(
         builder: (context) {
           final palette = htPaletteOf(context, store);
-          final on = palette.onBackground;
+          final on = palette.text;
           final textTheme = Theme.of(context).textTheme;
           final rewards = store.phase == HtPhase.rewards;
           final golden = store.train?.variant == HtVariant.goldenKappa;
@@ -41,7 +41,7 @@ class HypeTrainEndStrip extends StatelessWidget {
               label: title,
               child: ExcludeSemantics(
                 child: Material(
-                  color: palette.background,
+                  color: palette.track,
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
@@ -56,7 +56,7 @@ class HypeTrainEndStrip extends StatelessWidget {
                                   ? Icons.card_giftcard_rounded
                                   : Icons.train_rounded,
                               size: 20,
-                              color: palette.iconColor,
+                              color: palette.text,
                             ),
                             const SizedBox(width: 8),
                             if (emotes.isNotEmpty)
@@ -106,7 +106,7 @@ class HypeTrainEndStrip extends StatelessWidget {
                               minHeight: 3,
                               value: 1 - store.stripFraction,
                               color: on.withValues(alpha: 0.6),
-                              backgroundColor: palette.track,
+                              backgroundColor: palette.barTrack,
                             ),
                           ),
                         ),

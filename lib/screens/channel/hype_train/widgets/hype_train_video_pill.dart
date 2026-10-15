@@ -84,7 +84,7 @@ class _HypeTrainVideoPillState extends State<HypeTrainVideoPill> {
                   creatorColor: store.approaching?.creatorColor,
                 )
               : htPaletteOf(context, store);
-          final on = palette.onBackground;
+          final on = palette.text;
           final style = Theme.of(context).textTheme.labelMedium?.copyWith(
             color: on,
             fontWeight: FontWeight.w700,
@@ -102,7 +102,7 @@ class _HypeTrainVideoPillState extends State<HypeTrainVideoPill> {
             hint: HtCopy.detailsHint,
             child: Material(
               key: const ValueKey('ht-video-pill'),
-              color: palette.background.withValues(alpha: 0.92),
+              color: palette.track.withValues(alpha: 0.92),
               shape: const StadiumBorder(),
               clipBehavior: Clip.antiAlias,
               child: InkWell(
@@ -118,7 +118,7 @@ class _HypeTrainVideoPillState extends State<HypeTrainVideoPill> {
                           Icon(
                             palette.icon,
                             size: 16,
-                            color: palette.iconColor,
+                            color: palette.text,
                           ),
                           const SizedBox(width: 6),
                           if (text != null)
@@ -132,7 +132,7 @@ class _HypeTrainVideoPillState extends State<HypeTrainVideoPill> {
                                 value: store.shownPercent / 100,
                                 strokeWidth: 2.5,
                                 color: palette.fill,
-                                backgroundColor: palette.track,
+                                backgroundColor: palette.barTrack,
                               ),
                             ),
                             const SizedBox(width: 6),

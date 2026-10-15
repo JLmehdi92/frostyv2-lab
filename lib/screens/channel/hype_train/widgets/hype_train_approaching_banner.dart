@@ -32,7 +32,7 @@ class HypeTrainApproachingBanner extends StatelessWidget {
             scheme,
             creatorColor: approaching.creatorColor,
           );
-          final on = palette.onBackground;
+          final on = palette.text;
           final textTheme = Theme.of(context).textTheme;
           final title = HtCopy.approachingTitle(approaching.variant);
           final subtitle = store.approachingNMore
@@ -48,7 +48,7 @@ class HypeTrainApproachingBanner extends StatelessWidget {
               label: '$title. $subtitle',
               child: ExcludeSemantics(
                 child: Material(
-                  color: palette.background,
+                  color: palette.track,
                   borderRadius: BorderRadius.circular(12),
                   clipBehavior: Clip.antiAlias,
                   child: InkWell(
@@ -60,7 +60,7 @@ class HypeTrainApproachingBanner extends StatelessWidget {
                         children: [
                           Row(
                             children: [
-                              Icon(palette.icon, color: palette.iconColor),
+                              Icon(palette.icon, color: palette.text),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Column(
@@ -121,7 +121,7 @@ class HypeTrainApproachingBanner extends StatelessWidget {
                                     ? 1
                                     : store.approachingFraction,
                                 color: palette.fill,
-                                backgroundColor: palette.track,
+                                backgroundColor: palette.barTrack,
                               ),
                             ),
                           ),

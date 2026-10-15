@@ -31,20 +31,20 @@ class HypeTrainCardPill extends StatelessWidget {
           margin: const EdgeInsets.all(3),
           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
           decoration: BoxDecoration(
-            color: palette.background,
+            color: palette.track,
             borderRadius: BorderRadius.circular(6),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(palette.icon, size: 13, color: palette.iconColor),
+              Icon(palette.icon, size: 13, color: palette.text),
               const SizedBox(width: 3),
               Text(
                 'LVL ${status.level}',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: palette.onBackground,
+                  color: palette.text,
                 ),
               ),
             ],

@@ -22,12 +22,18 @@ import 'package:frosty/screens/channel/hype_train/widgets/hype_train_progress_ba
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
 
 /// The palette of the store's train in the current theme.
-HtPalette htPaletteOf(BuildContext context, HypeTrainStore store) =>
-    HtPalette.of(
-      store.style,
-      Theme.of(context).colorScheme,
-      creatorColor: store.train?.config.creatorColor,
-    );
+HtPalette htPaletteOf(BuildContext context, HypeTrainStore store) {
+  final train = store.train;
+  final treasure = train == null ? null : treasureState(train);
+  return HtPalette.of(
+    store.style,
+    Theme.of(context).colorScheme,
+    creatorColor: train?.config.creatorColor,
+    treasureUnlocked:
+        treasure == HtUnlockState.unlocked ||
+        treasure == HtUnlockState.unlockNow,
+  );
+}
 
 /// The resting subtitle: the record, the final level, the treasure or
 /// community unlock, or the default prompt.
@@ -86,7 +92,7 @@ class HypeTrainBanner extends StatelessWidget {
           if (train == null) return const SizedBox.shrink();
           final palette = htPaletteOf(context, store);
           final textTheme = Theme.of(context).textTheme;
-          final on = palette.onBackground;
+          final on = palette.text;
           final flashing = store.step?.kind == HtStepKind.flash100;
           final treasure = treasureState(train);
           final levelPill = ExcludeSemantics(
@@ -102,7 +108,7 @@ class HypeTrainBanner extends StatelessWidget {
               ExcludeSemantics(
                 child: Icon(
                   palette.icon,
-                  color: palette.iconColor,
+                  color: palette.text,
                   size: compact ? 18 : 22,
                 ),
               ),
@@ -192,7 +198,7 @@ class HypeTrainBanner extends StatelessWidget {
                 // The style changes (record, treasure) cross-fade.
                 duration: HtTimings.short,
                 decoration: BoxDecoration(
-                  color: palette.background,
+                  color: palette.track,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 clipBehavior: Clip.antiAlias,
@@ -292,7 +298,7 @@ class HypeTrainPill extends StatelessWidget {
       child: Observer(
         builder: (context) {
           final palette = htPaletteOf(context, store);
-          final on = palette.onBackground;
+          final on = palette.text;
           final style = Theme.of(context).textTheme.labelMedium?.copyWith(
             color: on,
             fontWeight: FontWeight.w700,
@@ -306,7 +312,7 @@ class HypeTrainPill extends StatelessWidget {
               alignment: AlignmentDirectional.centerStart,
               child: Material(
                 key: const ValueKey('ht-pill'),
-                color: palette.background,
+                color: palette.track,
                 shape: const StadiumBorder(),
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
@@ -319,11 +325,7 @@ class HypeTrainPill extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(
-                              palette.icon,
-                              size: 16,
-                              color: palette.iconColor,
-                            ),
+                            Icon(palette.icon, size: 16, color: palette.text),
                             const SizedBox(width: 6),
                             Flexible(
                               child: Text(
@@ -412,7 +414,7 @@ class HypeTrainStepContent extends StatelessWidget {
     bool strong = true,
   }) {
     final style = Theme.of(context).textTheme.bodyMedium?.copyWith(
-      color: palette.onBackground,
+      color: palette.text,
       fontWeight: strong ? FontWeight.w700 : FontWeight.w500,
     );
     final widget = Text(
@@ -429,7 +431,7 @@ class HypeTrainStepContent extends StatelessWidget {
   Widget _rest(BuildContext context) {
     final train = store.train;
     final textTheme = Theme.of(context).textTheme;
-    final on = palette.onBackground;
+    final on = palette.text;
     final subtitle = train == null ? '' : htSubtitle(store, train);
     return ExcludeSemantics(
       child: Column(
@@ -517,7 +519,7 @@ class HypeTrainStepContent extends StatelessWidget {
             duration: step.duration,
             reduceMotion: data['static'] == true || store.reduceMotion,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: palette.onBackground,
+              color: palette.text,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -628,7 +630,7 @@ class HypeTrainStepContent extends StatelessWidget {
                             '$share%',
                             maxLines: 1,
                             style: TextStyle(
-                              color: palette.onBackground,
+                              color: palette.text,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -668,7 +670,7 @@ class HypeTrainStepContent extends StatelessWidget {
           data['icon'] == 'rocket'
               ? Icons.rocket_launch_rounded
               : Icons.savings_rounded,
-          color: palette.iconColor,
+          color: palette.text,
         );
       case HtStepKind.mythicPool:
         return MythicPool(
