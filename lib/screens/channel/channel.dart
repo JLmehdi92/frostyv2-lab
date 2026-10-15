@@ -9,6 +9,7 @@ import 'package:frosty/screens/channel/channel_top_overlays.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_tabs.dart';
+import 'package:frosty/screens/channel/community_highlights/gift_bomb_feed.dart';
 import 'package:frosty/screens/channel/community_highlights/stores/community_highlights_store.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/pinned_chat_text.dart';
 import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
@@ -187,6 +188,14 @@ class _VideoChatState extends State<VideoChat>
   CommunityHighlightsStore? _highlightsStore;
   ReactionDisposer? _highlightsSettingReaction;
 
+  /// Pins the gift bombs of the primary chat as banners; up while
+  /// [_highlightsStore] is.
+  ReactionDisposer? _giftBombFeed;
+
+  /// The video channel's own chat, once it is up.
+  ChatStore? get _primaryChatStore =>
+      _chatTabsStore.tabs.where((tab) => tab.isPrimary).firstOrNull?.chatStore;
+
   void _syncHighlightsStore() {
     final show = context.settingsStore.showCommunityHighlights;
     if (show && _highlightsStore == null) {
@@ -202,7 +211,13 @@ class _VideoChatState extends State<VideoChat>
             isLargeScreenSize(view.physicalSize / view.devicePixelRatio),
         onGoAlong: _goAlongWithRaid,
       );
+      _giftBombFeed = feedGiftBombs(
+        latest: () => _primaryChatStore?.latestGiftBomb,
+        show: (bomb) => _highlightsStore?.showGiftBomb(bomb),
+      );
     } else if (!show && _highlightsStore != null) {
+      _giftBombFeed?.call();
+      _giftBombFeed = null;
       _highlightsStore!.dispose();
       _highlightsStore = null;
     }
@@ -241,10 +256,7 @@ class _VideoChatState extends State<VideoChat>
   /// A pinned message as the video channel's chat shows it (badges, colour,
   /// Twitch and 7TV/BTTV/FFZ emotes); plain text until that chat is up.
   Widget? _pinnedMessage(BuildContext context, PinnedChatMessage pin) {
-    final chat = _chatTabsStore.tabs
-        .where((tab) => tab.isPrimary)
-        .firstOrNull
-        ?.chatStore;
+    final chat = _primaryChatStore;
     if (chat == null) return null;
     return PinnedChatText(
       pin: pin,
@@ -1272,6 +1284,7 @@ class _VideoChatState extends State<VideoChat>
     _hypeTrainSettingReaction?.call();
     _hypeTrainStore?.dispose();
     _highlightsSettingReaction?.call();
+    _giftBombFeed?.call();
     _highlightsStore?.dispose();
     // Always disposed, even on hand-off to the mini window: the mini player
     // shows no hype train or celebration, and leaving the socket open would

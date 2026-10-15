@@ -60,6 +60,26 @@ mixin _$ChatStore on ChatStoreBase, Store {
     name: 'ChatStoreBase.bottomBarHeight',
   )).value;
 
+  late final _$_latestGiftBombAtom = Atom(
+    name: 'ChatStoreBase._latestGiftBomb',
+    context: context,
+  );
+
+  GiftBomb? get latestGiftBomb {
+    _$_latestGiftBombAtom.reportRead();
+    return super._latestGiftBomb;
+  }
+
+  @override
+  GiftBomb? get _latestGiftBomb => latestGiftBomb;
+
+  @override
+  set _latestGiftBomb(GiftBomb? value) {
+    _$_latestGiftBombAtom.reportWrite(value, super._latestGiftBomb, () {
+      super._latestGiftBomb = value;
+    });
+  }
+
   late final _$timeRemainingAtom = Atom(
     name: 'ChatStoreBase.timeRemaining',
     context: context,

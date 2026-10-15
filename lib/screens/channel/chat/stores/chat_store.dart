@@ -195,6 +195,11 @@ abstract class ChatStoreBase with Store {
   /// bomb gets its own line and which bombs earn the pinned banner.
   final _giftBombs = GiftBombTracker();
 
+  /// The latest gift bomb that earns the pinned banner (five gifts or more,
+  /// live, from this channel), set as its header reaches the chat.
+  @readonly
+  GiftBomb? _latestGiftBomb;
+
   /// Pending delayed 7TV payloads waiting to be rendered.
   final _pendingSevenTVCallbacks = <_DelayedCallback>[];
 
@@ -906,6 +911,9 @@ abstract class ChatStoreBase with Store {
                 collapse: settings.collapseGiftBombs,
                 channelId: channelId,
               );
+              if (decision.banner case final banner?) {
+                _latestGiftBomb = banner;
+              }
               if (!decision.show) continue;
             }
 
