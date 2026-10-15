@@ -47,6 +47,8 @@ class PinnedChatText extends StatelessWidget {
               emoteScale: settings.emoteScale,
               badgeScale: settings.badgeScale,
               animateEmotes: settings.animateEmotes,
+              showGifs: settings.showGifs,
+              animateGifs: settings.animateGifs,
               launchExternal: settings.launchUrlExternal,
             ),
           ),
