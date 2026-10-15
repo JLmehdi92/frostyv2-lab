@@ -84,6 +84,25 @@ void main() {
     await h.close(tester);
   });
 
+  testWidgets('the landscape pill fills the third circle too', (tester) async {
+    final h = HtHarness();
+    await pumpPill(tester, h.store);
+    h.inject(
+      HtApproachingEvent(
+        HypeTrainApproaching(
+          id: 'a',
+          goal: 6,
+          deadlines: const {1: 40, 2: 80, 3: 120},
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('ht-check-filled')), findsNWidgets(3));
+    await h.close(tester);
+  });
+
   testWidgets('tap opens the details; one label for screen readers', (
     tester,
   ) async {

@@ -186,6 +186,22 @@ void main() {
       await d.close(tester);
     });
 
+    testWidgets('the third circle fills from the third deadline', (
+      tester,
+    ) async {
+      final h = await showing(
+        tester,
+        approaching(const {1: 40, 2: 80, 3: 120}, goal: 6),
+      );
+      expect(filledChecks(tester), 3);
+
+      await tester.pump(const Duration(seconds: 41));
+      expect(filledChecks(tester), 2);
+      await tester.pump(const Duration(seconds: 40));
+      expect(filledChecks(tester), 1);
+      await h.close(tester);
+    });
+
     testWidgets('two circles up to a goal of 5, then three', (tester) async {
       var h = await showing(tester, approaching(const {1: 40}));
       expect(circles(tester), 2);

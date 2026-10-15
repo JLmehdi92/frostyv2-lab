@@ -138,7 +138,7 @@ class HypeTrainApproachingBanner extends StatelessWidget {
                                 child: _EventsPill(
                                   store: store,
                                   color: palette.checkPill,
-                                  circles: approaching.goal > 5 ? 3 : 2,
+                                  circles: htCheckCircleCount(approaching),
                                 ),
                               ),
                             ],
@@ -209,7 +209,17 @@ class _EventsPill extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(Icons.train_rounded, size: 20, color: Colors.white),
-                HtCheckCircles(filled: store.approachingChecks, count: circles),
+                HtCheckCircles(
+                  filled: switch (store.approaching) {
+                    final approaching? => htFilledChecks(
+                      approaching,
+                      store.approachingEventsLeft,
+                      circles,
+                    ),
+                    null => 0,
+                  },
+                  count: circles,
+                ),
               ],
             ),
           ),

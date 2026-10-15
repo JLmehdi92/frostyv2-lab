@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 
 /// Twitch's landscape hype train pill: 32 dp of translucent black with a
@@ -113,6 +114,24 @@ class HtPillShell extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Twitch's approaching circles: two, three past a goal of 5.
+int htCheckCircleCount(HypeTrainApproaching approaching) =>
+    approaching.goal > 5 ? 3 : 2;
+
+/// The filled circles: the deadlines 1 to [count] still ahead. Deadlines
+/// for more events run longer, so every key from the smallest one ahead
+/// ([eventsLeft], 0 before the first tick) is ahead too.
+int htFilledChecks(
+  HypeTrainApproaching approaching,
+  int eventsLeft,
+  int count,
+) {
+  if (eventsLeft <= 0) return 0;
+  return approaching.deadlines.keys
+      .where((key) => key >= eventsLeft && key <= count)
+      .length;
 }
 
 /// The approaching check circles, white, for the pills: filled for the

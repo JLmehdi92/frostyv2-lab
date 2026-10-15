@@ -99,10 +99,15 @@ class _HypeTrainVideoPillState extends State<HypeTrainVideoPill> {
                   const Icon(Icons.train_rounded),
                   const SizedBox(width: HtDims.marginHalf),
                   Text(text ?? HtCopy.approachingShort),
-                  HtCheckCircles(
-                    filled: store.approachingChecks,
-                    count: (store.approaching?.goal ?? 0) > 5 ? 3 : 2,
-                  ),
+                  if (store.approaching case final approaching?)
+                    HtCheckCircles(
+                      filled: htFilledChecks(
+                        approaching,
+                        store.approachingEventsLeft,
+                        htCheckCircleCount(approaching),
+                      ),
+                      count: htCheckCircleCount(approaching),
+                    ),
                 ],
               );
             case HtPhase.ongoing || HtPhase.ending:
