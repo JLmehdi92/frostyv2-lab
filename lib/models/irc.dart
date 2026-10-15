@@ -558,17 +558,17 @@ class IRCMessage {
       return;
     }
 
-    for (final part in gifParts) {
+    for (final (index, part) in gifParts.indexed) {
+      final (:text, :words) = _gifPartsShown[index];
       final gif = part.gif;
       if (gif == null) {
-        final partWords = _splitWords(_normalizeText(part.text));
-        addWords(skipReplyName ? partWords.skip(1) : partWords);
+        addWords(skipReplyName ? words.skip(1) : words);
         skipReplyName = false;
         continue;
       }
       skipReplyName = false;
 
-      final title = _normalizeText(part.text);
+      final title = text;
       if (!showGifs || !gif.isLoadable) {
         // Twitch draws the title as plain text when GIFs are turned off.
         span.add(TextSpan(text: ' $title', style: textStyle));
@@ -733,6 +733,14 @@ class IRCMessage {
     // Add the local span reversed to the final span.
     span.addAll(localSpan.reversed);
   }
+
+  /// The tidied text of each of [gifParts], with the words of a text part:
+  /// worked out once, not on every rebuild of the chat line.
+  late final List<({String text, List<String> words})> _gifPartsShown = [
+    for (final part in gifParts)
+      if (_normalizeText(part.text) case final text)
+        (text: text, words: part.gif == null ? _splitWords(text) : const []),
+  ];
 
   /// Handles zero-width emote stacking logic and returns updated index
   int _processZeroWidthEmoteStack(
