@@ -91,16 +91,11 @@ class ApkInstaller(private val context: Context, messenger: BinaryMessenger) {
         pending = result
         // Copying tens of megabytes stays off the main thread.
         io.execute {
+            // Any exception: one left uncaught on this thread would kill the app.
             val failed = try {
                 commitSession(file)
                 false
-            } catch (e: IOException) {
-                true
-            } catch (e: SecurityException) {
-                true
-            } catch (e: IllegalArgumentException) {
-                true
-            } catch (e: IllegalStateException) {
+            } catch (e: Exception) {
                 true
             }
             if (failed) {
