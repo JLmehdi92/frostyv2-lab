@@ -52,7 +52,7 @@ class HtHarness {
 }
 
 /// [HypeTrainSlot] in a phone-width app, optionally RTL or with reduced
-/// motion and larger text.
+/// motion, larger text or the compact (landscape) banner.
 Future<void> pumpSlot(
   WidgetTester tester,
   HypeTrainStore store, {
@@ -61,6 +61,7 @@ Future<void> pumpSlot(
   double textScale = 1,
   double width = 360,
   ThemeData? theme,
+  bool compact = false,
 }) async {
   await tester.pumpWidget(
     MaterialApp(
@@ -78,7 +79,11 @@ Future<void> pumpSlot(
                 alignment: Alignment.topCenter,
                 child: SizedBox(
                   width: width,
-                  child: HypeTrainSlot(store: store, onLearnMore: () {}),
+                  child: HypeTrainSlot(
+                    store: store,
+                    compact: compact,
+                    onLearnMore: () {},
+                  ),
                 ),
               ),
             ),

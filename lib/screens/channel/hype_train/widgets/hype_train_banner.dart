@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/models/hype_train_event.dart';
@@ -19,6 +22,7 @@ import 'package:frosty/screens/channel/hype_train/widgets/hype_train_level_pill.
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_marquee.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_palette.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_progress_bar.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
 
 /// The palette of the store's train in the current theme.
@@ -63,9 +67,11 @@ String htSubtitle(HypeTrainStore store, HypeTrainExecution train) {
   return HtCopy.subtitle;
 }
 
-/// The running train: level, the active step (or title and level target),
-/// then the bar with percent and countdown. Tap for details; swipe up or
-/// the chevron to collapse it into a pill.
+/// The running train, laid out like Twitch's default banner: the level's
+/// progress fills it from behind; the level pill and title, the subtitle
+/// below them; the countdown over the percentage, then a chevron at the
+/// end. 74 dp tall, growing with the text. Tap (or the chevron) for
+/// details; swipe up to collapse it into a pill.
 class HypeTrainBanner extends StatelessWidget {
   const HypeTrainBanner({
     super.key,
@@ -79,121 +85,93 @@ class HypeTrainBanner extends StatelessWidget {
   /// Instead of expanding the details below (landscape opens a sheet).
   final VoidCallback? onTap;
 
-  /// Landscape: one line, no subtitle.
+  /// Landscape: Twitch's compact layout (no title, its natural height).
   final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return MediaQuery.withClampedTextScaling(
-      maxScaleFactor: 1.3,
+      maxScaleFactor: compact ? 1.3 : 2.0,
       child: Observer(
         builder: (context) {
           final train = store.train;
           if (train == null) return const SizedBox.shrink();
           final palette = htPaletteOf(context, store);
-          final textTheme = Theme.of(context).textTheme;
-          final on = palette.text;
-          final flashing = store.step?.kind == HtStepKind.flash100;
-          final treasure = treasureState(train);
-          final levelPill = ExcludeSemantics(
-            child: HypeTrainLevelPill(
-              level: store.shownLevel,
-              background: on.withValues(alpha: 0.12),
-              foreground: on,
-              animate: !store.reduceMotion,
-            ),
-          );
-          final header = Row(
-            children: [
-              ExcludeSemantics(
-                child: Icon(
-                  palette.icon,
-                  color: palette.text,
-                  size: compact ? 18 : 22,
-                ),
-              ),
-              SizedBox(width: compact ? 4 : 6),
-              // A narrow landscape chat shrinks the pill before the text.
-              if (compact)
-                Flexible(
-                  flex: 2,
-                  child: FittedBox(fit: BoxFit.scaleDown, child: levelPill),
-                )
-              else
-                levelPill,
-              SizedBox(width: compact ? 6 : 8),
-              Expanded(
-                flex: 3,
-                child: HypeTrainStepContent(
-                  store: store,
-                  palette: palette,
-                  compact: compact,
-                ),
-              ),
-              // Too narrow in compact form: swipe up collapses there.
-              if (!compact)
-                IconButton(
-                  tooltip: HtCopy.collapse,
-                  visualDensity: VisualDensity.compact,
-                  icon: Icon(Icons.expand_less_rounded, color: on),
-                  onPressed: () => store.setCollapsed(true),
-                ),
-            ],
-          );
-          final progress = Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              // Natural size when there is room; scaled down when not.
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+          final height = compact
+              ? null
+              : htBannerHeight(MediaQuery.textScalerOf(context));
+          final resting = HypeTrainStepContent.isResting(store.step);
+          final fade = store.reduceMotion ? Duration.zero : HtTimings.short;
+          final content = LayoutBuilder(
+            builder: (context, constraints) => Row(
+              children: [
+                Expanded(
+                  child: Stack(
+                    alignment: AlignmentDirectional.centerStart,
                     children: [
-                      ExcludeSemantics(
-                        child: AnimatedScale(
-                          scale: flashing ? 1.25 : 1,
-                          duration: HtTimings.extraShort,
-                          child: Text(
-                            '${store.shownPercent}%',
-                            key: const ValueKey('ht-percent'),
-                            style: textTheme.titleSmall?.copyWith(
-                              color: on,
-                              fontWeight: FontWeight.w800,
-                              fontFeatures: const [
-                                FontFeature.tabularFigures(),
-                              ],
-                            ),
-                          ),
-                        ),
+                      AnimatedOpacity(
+                        opacity: resting ? 1 : 0,
+                        duration: fade,
+                        child: _restColumn(store, palette, compact),
                       ),
-                      const SizedBox(width: 10),
-                      HypeTrainCountdown(
-                        store: store,
-                        style: textTheme.labelLarge?.copyWith(
-                          color: on.withValues(alpha: 0.8),
+                      Positioned.fill(
+                        child: HypeTrainStepContent(
+                          store: store,
+                          palette: palette,
+                          compact: compact,
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
-            ],
+                // Natural size when there is room; scaled down when not.
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: constraints.maxWidth * 0.4,
+                    maxHeight: height ?? double.infinity,
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: _Numbers(
+                      store: store,
+                      percent: store.shownPercent,
+                      palette: palette,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(
+                    start: HtDims.marginHalf,
+                    end: HtDims.margin,
+                  ),
+                  child: ExcludeSemantics(
+                    child: AnimatedRotation(
+                      turns: store.expanded ? 0.5 : 0,
+                      duration: store.reduceMotion
+                          ? Duration.zero
+                          : HtTimings.extraShort,
+                      child: Icon(
+                        Icons.expand_more_rounded,
+                        size: HtDims.icon,
+                        color: palette.text,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           );
           return RepaintBoundary(
             child: _BannerSemantics(
               store: store,
-              child: AnimatedContainer(
-                // The style changes (record, treasure) cross-fade.
-                duration: HtTimings.short,
-                decoration: BoxDecoration(
-                  color: palette.track,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: Material(
-                  type: MaterialType.transparency,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(HtDims.radius),
+                child: SizedBox(
+                  key: const ValueKey('ht-banner'),
+                  height: height,
                   child: Stack(
+                    fit: StackFit.passthrough,
                     children: [
                       // The fill is the banner's background.
                       Positioned.fill(
@@ -207,51 +185,18 @@ class HypeTrainBanner extends StatelessWidget {
                           ),
                         ),
                       ),
-                      if (treasure != null)
-                        PositionedDirectional(
-                          end: 48,
-                          top: 0,
-                          bottom: 0,
-                          child: ExcludeSemantics(
-                            child: Icon(
-                              treasure == HtUnlockState.unlocked ||
-                                      treasure == HtUnlockState.unlockNow
-                                  ? Icons.lock_open_rounded
-                                  : Icons.lock_rounded,
-                              key: const ValueKey('ht-treasure-watermark'),
-                              size: 56,
-                              color: on.withValues(alpha: 0.08),
-                            ),
-                          ),
-                        ),
-                      InkWell(
-                        onTap: onTap ?? store.toggleExpanded,
-                        child: GestureDetector(
-                          onVerticalDragEnd: (details) {
-                            if ((details.primaryVelocity ?? 0) < -200) {
-                              store.setCollapsed(true);
-                            }
-                          },
-                          child: Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(
-                              12,
-                              compact ? 4 : 6,
-                              4,
-                              compact ? 6 : 10,
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                header,
-                                SizedBox(height: compact ? 2 : 4),
-                                Padding(
-                                  padding: const EdgeInsetsDirectional.only(
-                                    end: 8,
-                                  ),
-                                  child: progress,
-                                ),
-                              ],
-                            ),
+                      Material(
+                        type: MaterialType.transparency,
+                        child: InkWell(
+                          onTap: onTap ?? store.toggleExpanded,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onVerticalDragEnd: (details) {
+                              if ((details.primaryVelocity ?? 0) < -200) {
+                                store.setCollapsed(true);
+                              }
+                            },
+                            child: content,
                           ),
                         ),
                       ),
@@ -267,8 +212,173 @@ class HypeTrainBanner extends StatelessWidget {
   }
 }
 
-/// The banner's one screen-reader label. Its own observer: the label
-/// changes with the countdown, the banner does not.
+/// The resting content at the start of the banner: the level pill and the
+/// title over the subtitle (compact: the train's name as the subtitle).
+Widget _restColumn(HypeTrainStore store, HtPalette palette, bool compact) {
+  final train = store.train;
+  if (train == null) return const SizedBox.shrink();
+  if (store.style == HtStyle.athApproaching) {
+    return _athApproaching(palette, compact);
+  }
+  final title = HtCopy.trainTitle(train.variant, shared: train.shared != null);
+  final subtitle = Padding(
+    padding: const EdgeInsetsDirectional.fromSTEB(
+      HtDims.margin,
+      HtDims.marginHalf,
+      HtDims.margin,
+      HtDims.margin,
+    ),
+    child: Text(
+      compact ? title : htSubtitle(store, train),
+      key: const ValueKey('ht-subtitle'),
+      maxLines: compact ? 1 : 2,
+      overflow: TextOverflow.ellipsis,
+      style: palette.textStyle(HtType.bodySmall),
+    ),
+  );
+  // Read here, in the banner's observer, not in the layout builder.
+  final pill = HypeTrainLevelPill(
+    level: store.shownLevel,
+    background: palette.pill,
+    foreground: palette.pillText,
+    trophy: palette.trophy,
+    animate: !store.reduceMotion,
+  );
+  return ExcludeSemantics(
+    child: LayoutBuilder(
+      builder: (context, constraints) {
+        final top = Padding(
+          padding: const EdgeInsetsDirectional.only(
+            start: HtDims.margin,
+            top: HtDims.margin,
+          ),
+          child: Row(
+            children: [
+              // A narrow banner shrinks the pill before the title.
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: max(
+                    0,
+                    constraints.maxWidth * (compact ? 1 : 0.6) - HtDims.margin,
+                  ),
+                ),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: AlignmentDirectional.centerStart,
+                  child: pill,
+                ),
+              ),
+              if (!compact) ...[
+                const SizedBox(width: HtDims.margin),
+                Flexible(
+                  child: Text(
+                    title,
+                    key: const ValueKey('ht-title'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: palette.textStyle(HtType.titleDefault),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+        return Column(
+          mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            top,
+            if (compact) subtitle else Flexible(child: subtitle),
+          ],
+        );
+      },
+    ),
+  );
+}
+
+/// A record in sight: a large trophy (cropped by the banner) and the
+/// subtitle, no pill or title.
+Widget _athApproaching(HtPalette palette, bool compact) {
+  final trophy = Icon(
+    Icons.emoji_events_rounded,
+    key: const ValueKey('ht-ath-trophy'),
+    size: compact ? HtDims.iconLarge : HtDims.trophy,
+    color: htTrophyGold,
+  );
+  return ExcludeSemantics(
+    child: Row(
+      children: [
+        if (compact)
+          Padding(
+            padding: const EdgeInsetsDirectional.only(start: HtDims.margin),
+            child: trophy,
+          )
+        else
+          SizedBox(
+            width: HtDims.trophy,
+            child: OverflowBox(
+              maxWidth: HtDims.trophy,
+              maxHeight: HtDims.trophy,
+              child: trophy,
+            ),
+          ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(HtDims.margin),
+            child: Text(
+              compact ? HtCopy.athApproachingCompact : HtCopy.athApproaching,
+              key: const ValueKey('ht-subtitle'),
+              maxLines: compact ? 1 : 2,
+              overflow: TextOverflow.ellipsis,
+              style: palette.textStyle(HtType.bodySmall),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+/// The countdown over the percentage, end-aligned. The countdown has its
+/// own observer: it ticks without rebuilding the banner.
+class _Numbers extends StatelessWidget {
+  const _Numbers({
+    required this.store,
+    required this.percent,
+    required this.palette,
+  });
+
+  final HypeTrainStore store;
+  final int percent;
+  final HtPalette palette;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.end,
+    children: [
+      HypeTrainCountdown(
+        store: store,
+        style: palette.textStyle(HtType.bodySmall),
+      ),
+      ExcludeSemantics(
+        child: Text(
+          HtCopy.percent(percent),
+          key: const ValueKey('ht-percent'),
+          maxLines: 1,
+          style: palette
+              .textStyle(HtType.titleLarge)
+              .copyWith(fontFeatures: HtType.tabular),
+        ),
+      ),
+    ],
+  );
+}
+
+/// The banner's one screen-reader label, and the collapse action that
+/// replaces Twitch's minimise button. Its own observer: the label changes
+/// with the countdown, the banner does not.
 class _BannerSemantics extends StatelessWidget {
   const _BannerSemantics({required this.store, required this.child});
 
@@ -282,6 +392,10 @@ class _BannerSemantics extends StatelessWidget {
       button: true,
       label: store.semanticsSummary,
       hint: HtCopy.detailsHint,
+      customSemanticsActions: {
+        const CustomSemanticsAction(label: HtCopy.collapse): () =>
+            store.setCollapsed(true),
+      },
       child: child,
     ),
   );
@@ -358,8 +472,8 @@ class HypeTrainPill extends StatelessWidget {
   }
 }
 
-/// What the banner says right now: the active step, or at rest the title
-/// and how much completes the level. Steps cross-fade.
+/// What the banner announces right now: the active step over the resting
+/// content, which fades out meanwhile. Empty at rest. Steps cross-fade.
 class HypeTrainStepContent extends StatelessWidget {
   const HypeTrainStepContent({
     super.key,
@@ -380,6 +494,10 @@ class HypeTrainStepContent extends StatelessWidget {
     HtStepKind.fadeIn => 'rest',
     final kind => kind.name,
   };
+
+  /// The banner's own content shows (the flash at 100% included).
+  static bool isResting(HtStep? step) =>
+      keyFor(step) == 'rest' || step?.kind == HtStepKind.flash100;
 
   @override
   Widget build(BuildContext context) {
@@ -429,43 +547,8 @@ class HypeTrainStepContent extends StatelessWidget {
         : ExcludeSemantics(child: widget);
   }
 
-  Widget _rest(BuildContext context) {
-    final train = store.train;
-    final textTheme = Theme.of(context).textTheme;
-    final on = palette.text;
-    final subtitle = train == null ? '' : htSubtitle(store, train);
-    return ExcludeSemantics(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            train == null
-                ? HtCopy.title
-                : HtCopy.trainTitle(
-                    train.variant,
-                    shared: train.shared != null,
-                  ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: textTheme.titleSmall?.copyWith(
-              color: on,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          if (!compact && train != null)
-            Text(
-              subtitle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: textTheme.bodySmall?.copyWith(
-                color: on.withValues(alpha: 0.8),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
+  /// At rest the banner's own content shows; this layer is empty.
+  Widget _rest(BuildContext context) => const SizedBox.shrink();
 
   /// An effect beside its text; the effect shrinks when space is short.
   Widget _effectRow(BuildContext context, Widget effect, String text) => Row(

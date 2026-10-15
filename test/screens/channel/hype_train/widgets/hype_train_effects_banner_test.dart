@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/models/hype_train.dart';
@@ -48,13 +47,19 @@ void main() {
   testWidgets('treasure: the coin unlocks at the threshold', (tester) async {
     final h = harnessFor(liveTrain(level: 2, treasure: _treasure));
     await pumpSlot(tester, h.store);
-    expect(find.byKey(const ValueKey('ht-treasure-watermark')), findsOneWidget);
+    expect(
+      find.text('Reach Level 3 to unlock 50% OFF Gift Subs!'),
+      findsOneWidget,
+    );
 
     h.inject(htLevelUp(3));
     await tester.pump();
 
     expect(await seenWithin(tester, find.byType(CoinUnlock), 6000), isTrue);
-    expect(find.byIcon(Icons.lock_open_rounded), findsWidgets);
+    expect(
+      find.text('50% OFF 5+ Gift Subs for the rest of this Hype Train'),
+      findsOneWidget,
+    );
     await h.close(tester);
   });
 

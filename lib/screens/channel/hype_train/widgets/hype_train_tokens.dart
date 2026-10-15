@@ -179,6 +179,9 @@ abstract final class HtType {
   static const tabular = [FontFeature.tabularFigures()];
 }
 
+/// The trophy of the all-time high.
+const htTrophyGold = Color(0xFFFFB300);
+
 /// Whether a creator colour is Twitch's own purple (hue 255–290°, saturated
 /// and mid-light): it falls back to green.
 bool isTwitchPurple(int argb) {
