@@ -92,6 +92,11 @@ class GifMessagePart {
   final String text;
   final ChatGif? gif;
 
+  /// The most GIFs drawn in one message; the ones after stay text. Twitch's
+  /// GIF keyboard sends one per message, and a forged tag could otherwise
+  /// ask for hundreds of downloads in a single line.
+  static const maxGifs = 5;
+
   /// [message] cut around the [gifs] that fit in it, or nothing when none
   /// does.
   ///
@@ -101,7 +106,7 @@ class GifMessagePart {
   /// as the Twitch app reads it, unless it would cut an emoji in two. Like
   /// the Twitch app, a GIF is kept only when `0 <= start <= end` and it ends
   /// in the message, and one that starts before the end of the previous kept
-  /// GIF is dropped.
+  /// GIF is dropped. At most [maxGifs] are kept.
   static List<GifMessagePart> split(String message, List<ChatGif> gifs) {
     if (gifs.isEmpty) return const [];
     // Where each character starts, in UTF-16 units.
@@ -111,7 +116,9 @@ class GifMessagePart {
     ];
     final parts = <GifMessagePart>[];
     var next = 0;
+    var kept = 0;
     for (final gif in gifs) {
+      if (kept == maxGifs) break;
       final range = _unitRange(message, starts, gif);
       if (range == null) continue;
       final (start, end) = range;
@@ -121,6 +128,7 @@ class GifMessagePart {
       }
       parts.add(GifMessagePart(message.substring(start, end), gif));
       next = end;
+      kept++;
     }
     if (parts.isEmpty) return const [];
     if (next < message.length) {

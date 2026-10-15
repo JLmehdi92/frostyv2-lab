@@ -152,6 +152,19 @@ void main() {
       expect(GifMessagePart.split('😀😀[Y]', [gif]), isEmpty);
     });
 
+    test('keeps at most a few GIFs, the rest staying text', () {
+      final gifs = [
+        for (var i = 0; i < 8; i++)
+          ChatGif(start: i * 2, end: i * 2, id: '$i', url: 'https://x.test/$i'),
+      ];
+
+      final parts = GifMessagePart.split('a b c d e f g h', gifs);
+
+      final kept = parts.where((part) => part.gif != null);
+      expect(kept, hasLength(GifMessagePart.maxGifs));
+      expect(parts.map((part) => part.text).join(), 'a b c d e f g h');
+    });
+
     test('no GIF gives no part', () {
       expect(GifMessagePart.split('hello', const []), isEmpty);
     });
