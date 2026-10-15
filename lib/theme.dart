@@ -94,6 +94,17 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
   /// Hairline borders and separators.
   final Color hairline;
 
+  /// The accent bar of a sub or gift notice. Twitch draws these in its own
+  /// purple; this app draws them green.
+  final Color subNoticeAccent;
+
+  /// The tinted background of a sub or gift notice: [subNoticeAccent] over
+  /// the theme's background.
+  final Color subNoticeBackground;
+
+  /// Green text that stays readable on [subNoticeBackground].
+  final Color subNoticeText;
+
   const FrostyColors({
     required this.highlightedMessage,
     required this.emoteOnly,
@@ -105,6 +116,9 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
     required this.live,
     required this.metadata,
     required this.hairline,
+    required this.subNoticeAccent,
+    required this.subNoticeBackground,
+    required this.subNoticeText,
   });
 
   static const light = FrostyColors(
@@ -122,6 +136,11 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
     live: Color(0xFF6B9E00),
     metadata: Color(0xFF6B6B6B),
     hairline: FrostyTokens.hairlineLight,
+    subNoticeAccent: Color(0xFF12A87A),
+    // The accent at 8% over the light background.
+    subNoticeBackground: Color(0xFFE6F2EE),
+    // Darkened until it passes 4.5:1 on the tint.
+    subNoticeText: Color(0xFF0A7957),
   );
 
   static const dark = FrostyColors(
@@ -135,6 +154,10 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
     live: FrostyTokens.accent,
     metadata: Color(0xFFA1A1A1),
     hairline: FrostyTokens.hairlineDark,
+    subNoticeAccent: Color(0xFF12A87A),
+    // The accent at 10% over the dark background.
+    subNoticeBackground: Color(0xFF0B1A15),
+    subNoticeText: Color(0xFF12A87A),
   );
 
   @override
@@ -149,6 +172,9 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
     Color? live,
     Color? metadata,
     Color? hairline,
+    Color? subNoticeAccent,
+    Color? subNoticeBackground,
+    Color? subNoticeText,
   }) {
     return FrostyColors(
       highlightedMessage: highlightedMessage ?? this.highlightedMessage,
@@ -161,6 +187,9 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
       live: live ?? this.live,
       metadata: metadata ?? this.metadata,
       hairline: hairline ?? this.hairline,
+      subNoticeAccent: subNoticeAccent ?? this.subNoticeAccent,
+      subNoticeBackground: subNoticeBackground ?? this.subNoticeBackground,
+      subNoticeText: subNoticeText ?? this.subNoticeText,
     );
   }
 
@@ -186,6 +215,13 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
       live: Color.lerp(live, other.live, t)!,
       metadata: Color.lerp(metadata, other.metadata, t)!,
       hairline: Color.lerp(hairline, other.hairline, t)!,
+      subNoticeAccent: Color.lerp(subNoticeAccent, other.subNoticeAccent, t)!,
+      subNoticeBackground: Color.lerp(
+        subNoticeBackground,
+        other.subNoticeBackground,
+        t,
+      )!,
+      subNoticeText: Color.lerp(subNoticeText, other.subNoticeText, t)!,
     );
   }
 }
