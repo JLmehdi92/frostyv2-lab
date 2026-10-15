@@ -3,6 +3,8 @@ package com.tommychow.frosty
 import android.webkit.CookieManager
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
+import java.net.URI
+import java.net.URISyntaxException
 
 /**
  * Reads cookies out of the WebView's cookie jar.
@@ -25,8 +27,8 @@ class TwitchCookies(messenger: BinaryMessenger) {
             when (call.method) {
                 "getCookie" -> {
                     val url = call.argument<String>("url")
-                    if (url == null) {
-                        result.error("bad_args", "url is required", null)
+                    if (url == null || !isTwitchUrl(url)) {
+                        result.error("bad_args", "a https twitch.tv url is required", null)
                     } else {
                         result.success(readCookie(url))
                     }
@@ -53,6 +55,21 @@ class TwitchCookies(messenger: BinaryMessenger) {
         val manager = CookieManager.getInstance()
         manager.flush()
         return manager.getCookie(url)?.takeIf { it.isNotBlank() }
+    }
+
+    /**
+     * Only twitch.tv's own cookies may leave the jar. The channel is reachable
+     * from any Dart code, and the jar also holds the sessions of every other
+     * site the in-app WebViews have visited.
+     */
+    private fun isTwitchUrl(url: String): Boolean {
+        val uri = try {
+            URI(url)
+        } catch (e: URISyntaxException) {
+            return false
+        }
+        val host = uri.host ?: return false
+        return uri.scheme == "https" && (host == "twitch.tv" || host.endsWith(".twitch.tv"))
     }
 
     fun dispose() {

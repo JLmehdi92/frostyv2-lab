@@ -26,6 +26,20 @@ class TwitchWebTokenService {
   /// domain, so it is returned for any twitch.tv host.
   static const twitchUrl = 'https://www.twitch.tv';
 
+  /// Whether the hidden session WebView may load [url]: https on twitch.tv
+  /// or one of its subdomains, plus the blank page it is parked on.
+  ///
+  /// That WebView runs with JavaScript and the viewer's session cookies and
+  /// nobody sees it, so a redirect anywhere else — another site, an
+  /// `intent:` or `file:` URL — is refused rather than followed.
+  static bool isTwitchPageUrl(String url) {
+    if (url == 'about:blank') return true;
+
+    final uri = Uri.tryParse(url);
+    if (uri == null || uri.scheme != 'https') return false;
+    return uri.host == 'twitch.tv' || uri.host.endsWith('.twitch.tv');
+  }
+
   /// Returns the current `auth-token` cookie, or null when the jar holds none
   /// (not logged in on the WebView, or the session has expired).
   ///

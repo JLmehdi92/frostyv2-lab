@@ -420,4 +420,32 @@ void main() {
       expect(pageLoads, 0);
     });
   });
+
+  test('the hidden WebView may only navigate within twitch.tv', () {
+    const allowed = [
+      'https://www.twitch.tv/',
+      'https://twitch.tv',
+      'https://id.twitch.tv/oauth2/authorize',
+      'https://passport.twitch.tv/x?y=1',
+      'about:blank',
+    ];
+    const refused = [
+      'http://www.twitch.tv/',
+      'https://twitch.tv.evil.example/',
+      'https://eviltwitch.tv/',
+      'https://evil.example/twitch.tv',
+      'https://evil.example/?u=https://www.twitch.tv',
+      'javascript:alert(1)',
+      'intent://scan/#Intent;scheme=zxing;end',
+      'file:///data/data/app/cookies',
+      'not a url',
+      '',
+    ];
+    for (final url in allowed) {
+      expect(TwitchWebTokenService.isTwitchPageUrl(url), isTrue, reason: url);
+    }
+    for (final url in refused) {
+      expect(TwitchWebTokenService.isTwitchPageUrl(url), isFalse, reason: url);
+    }
+  });
 }

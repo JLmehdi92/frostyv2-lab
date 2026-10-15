@@ -201,6 +201,10 @@ abstract class AuthBase with Store {
       )
       ..setNavigationDelegate(
         NavigationDelegate(
+          onNavigationRequest: (request) =>
+              TwitchWebTokenService.isTwitchPageUrl(request.url)
+              ? NavigationDecision.navigate
+              : NavigationDecision.prevent,
           onPageFinished: (_) => finish(),
           // A failed load still ends the wait: the harvest decides, and a
           // stale token is better diagnosed than hung on.
