@@ -246,8 +246,11 @@ abstract class ChannelEventsStoreBase with Store {
 
   /// Shared plumbing for the write mutations: guard, token, classify, refresh.
   ///
-  /// The in-flight flag is cleared in a `finally` so a thrown request cannot
-  /// leave the sheet's controls disabled for the rest of the session.
+  /// The in-flight flag is raised before the first `await`: reading the token
+  /// yields, and a second tap landing in that gap would otherwise pass the
+  /// guard too and reach Twitch with a fresh transaction id — charged twice.
+  /// It is cleared in a `finally` so a thrown request cannot leave the sheet's
+  /// controls disabled for the rest of the session.
   Future<PointsActionResult> _runPointsAction(
     Future<String?> Function(String token) send, {
     required String what,
@@ -256,18 +259,19 @@ abstract class ChannelEventsStoreBase with Store {
       return const PointsActionResult(PointsActionStatus.unknown, 'busy');
     }
 
-    final token = await _tokenProvider?.call();
-    if (token == null || token.isEmpty) {
-      // Caught here rather than sent: an empty Authorization header would come
-      // back as a generic error, hiding the fact that the fix is to sign in.
-      return const PointsActionResult(
-        PointsActionStatus.notAuthenticated,
-        'no_token',
-      );
-    }
-
     runInAction(() => _pointsActionInFlight = true);
     try {
+      final token = await _tokenProvider?.call();
+      if (token == null || token.isEmpty) {
+        // Caught here rather than sent: an empty Authorization header would
+        // come back as a generic error, hiding the fact that the fix is to
+        // sign in.
+        return const PointsActionResult(
+          PointsActionStatus.notAuthenticated,
+          'no_token',
+        );
+      }
+
       final result = PointsActionResult.fromError(await send(token));
 
       // Only on success: a refused action changed nothing server-side, and a
