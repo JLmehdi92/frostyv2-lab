@@ -50,7 +50,17 @@ void main() {
   });
 
   test("Twitch's purples count as purple; other colours do not", () {
-    for (final purple in [0xFF9146FF, 0xFF9147FF, 0xFF772CE8, 0xFFA970FF]) {
+    for (final purple in [
+      0xFF9146FF,
+      0xFF9147FF,
+      0xFF772CE8,
+      0xFFA970FF,
+      // Twitch's legacy purples.
+      0xFF6441A5,
+      0xFF6441A4,
+      0xFF7D5BBE,
+      0xFF451093,
+    ]) {
       expect(isTwitchPurple(purple), isTrue, reason: purple.toRadixString(16));
     }
     for (final other in [0xFFBD0078, 0xFF12A87A, 0xFFFFB31A]) {

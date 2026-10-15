@@ -124,6 +124,17 @@ void main() {
       HtPalette.of(HtStyle.regular, dark, creatorColor: 0xFF9146FF).fill,
       HtGreen.g8,
     );
+    for (final legacy in [0xFF6441A5, 0xFF451093]) {
+      expect(
+        HtPalette.of(HtStyle.regular, light, creatorColor: legacy).fill,
+        HtGreen.g10,
+        reason: legacy.toRadixString(16),
+      );
+    }
+    expect(
+      HtPalette.of(HtStyle.regular, light, creatorColor: 0xFFBD0078).fill,
+      const Color(0xFFBD0078),
+    );
   });
 
   test('another creator colour tints the regular fill only', () {
