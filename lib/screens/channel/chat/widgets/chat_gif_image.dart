@@ -55,7 +55,9 @@ class ChatGifImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final height = this.height ?? heightFor(context);
-    // Decoded at the drawn height: a big GIF is not kept at full size.
+    // Asks for a decode at the drawn height. The engine honours it for a
+    // one-frame image only: an animated GIF is decoded frame by frame at its
+    // own size (GIPHY's are a few hundred pixels).
     final cacheHeight = (height * MediaQuery.devicePixelRatioOf(context))
         .round();
     final placeholder = SizedBox.square(dimension: height);
