@@ -1,53 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:frosty/models/hype_train.dart';
-import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_palette.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_copy.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 
-/// "LVL n" with the variant icon, over a stream thumbnail.
+/// Twitch's followed-stream indicator, "Hype Train Level n" (per variant)
+/// after a green train, on a small float chip over the stream thumbnail.
 class HypeTrainCardPill extends StatelessWidget {
   const HypeTrainCardPill({super.key, required this.status});
 
   final HtCardStatus status;
 
-  HtStyle get _style {
-    if (status.isAllTimeHigh) return HtStyle.athReached;
-    return switch (status.variant) {
-      HtVariant.goldenKappa => HtStyle.goldenKappa,
-      HtVariant.mythic => HtStyle.mythic,
-      _ when status.isShared => HtStyle.shared,
-      HtVariant.treasure => HtStyle.treasure,
-      HtVariant.community => HtStyle.community,
-      HtVariant.regular => HtStyle.regular,
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
-    final palette = HtPalette.of(_style, Theme.of(context).colorScheme);
+    final brightness = Theme.of(context).brightness;
+    final neutrals = HtNeutrals.of(brightness);
+    final text = HtCopy.cardLevel(
+      status.level,
+      variant: status.variant,
+      ath: status.isAllTimeHigh,
+    );
     return Semantics(
-      label: '${palette.a11yName} level ${status.level}',
+      label: text,
       child: ExcludeSemantics(
-        child: Container(
-          margin: const EdgeInsets.all(3),
-          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-          decoration: BoxDecoration(
-            color: palette.track,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(palette.icon, size: 13, color: palette.text),
-              const SizedBox(width: 3),
-              Text(
-                'LVL ${status.level}',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: palette.text,
+        child: MediaQuery.withClampedTextScaling(
+          maxScaleFactor: 1.3,
+          child: Container(
+            // The thumbnail leaves it unbounded: long names ellipsize.
+            constraints: const BoxConstraints(maxWidth: 160),
+            margin: const EdgeInsets.all(3),
+            padding: const EdgeInsetsDirectional.only(end: HtDims.marginHalf),
+            decoration: BoxDecoration(
+              color: neutrals.backgroundFloat,
+              borderRadius: BorderRadius.circular(HtDims.marginHalf),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(HtDims.marginHalf),
+                  child: SizedBox(
+                    width: 15,
+                    height: 13,
+                    child: FittedBox(
+                      child: Icon(
+                        Icons.train_rounded,
+                        size: 15,
+                        color: brightness == Brightness.dark
+                            ? HtGreen.g11
+                            : HtGreen.g9,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                Flexible(
+                  child: Text(
+                    text,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: HtType.footnote.copyWith(color: neutrals.textBase),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
