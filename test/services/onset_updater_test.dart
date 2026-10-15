@@ -207,6 +207,32 @@ void main() {
     });
   });
 
+  group('removeInstalledDownloads', () {
+    test('removes the downloads up to the installed build', () async {
+      when(() => service.removeDownloadsUpTo(any())).thenAnswer((_) async {});
+
+      await updater(currentBuild: 1023).removeInstalledDownloads();
+
+      verify(() => service.removeDownloadsUpTo(1023)).called(1);
+    });
+
+    test('also in builds that do not look for updates', () async {
+      when(() => service.removeDownloadsUpTo(any())).thenAnswer((_) async {});
+
+      await updater(token: '').removeInstalledDownloads();
+
+      verify(() => service.removeDownloadsUpTo(1020)).called(1);
+    });
+
+    test('a failure is ignored', () async {
+      when(
+        () => service.removeDownloadsUpTo(any()),
+      ).thenThrow(const FileSystemException('busy'));
+
+      await updater().removeInstalledDownloads();
+    });
+  });
+
   group('install', () {
     test('installs the downloaded file from the app cache', () async {
       final file = File('${Directory.systemTemp.path}/updates/onset-1023.apk');

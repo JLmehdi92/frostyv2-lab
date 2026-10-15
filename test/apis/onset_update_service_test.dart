@@ -208,6 +208,33 @@ void main() {
     });
   });
 
+  group('removeDownloadsUpTo', () {
+    File touch(String name) =>
+        File('${cache.path}/updates/$name')..createSync(recursive: true);
+
+    test('keeps only downloads newer than the installed build', () async {
+      final installed = touch('onset-1023.apk');
+      final older = touch('onset-1001.apk');
+      final newer = touch('onset-1030.apk');
+      final partial = touch('onset-1031.apk.part');
+      final stray = touch('notes.txt');
+
+      await service(_Adapter((_) => _json({}))).removeDownloadsUpTo(1023);
+
+      expect(installed.existsSync(), isFalse);
+      expect(older.existsSync(), isFalse);
+      expect(partial.existsSync(), isFalse);
+      expect(stray.existsSync(), isFalse);
+      expect(newer.existsSync(), isTrue);
+    });
+
+    test('does nothing without a download folder', () async {
+      await service(_Adapter((_) => _json({}))).removeDownloadsUpTo(1023);
+
+      expect(Directory('${cache.path}/updates').existsSync(), isFalse);
+    });
+  });
+
   group('download', () {
     _Adapter serving({
       List<int>? apk,

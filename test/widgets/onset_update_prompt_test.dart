@@ -47,6 +47,7 @@ void main() {
     when(() => updater.canInstall()).thenAnswer((_) async => true);
     when(() => updater.postpone(any())).thenAnswer((_) async {});
     when(() => updater.openInstallSettings()).thenAnswer((_) async {});
+    when(() => updater.removeInstalledDownloads()).thenAnswer((_) async {});
   });
 
   void downloadDoes(
@@ -267,6 +268,7 @@ void main() {
       await tester.pumpAndSettle();
 
       verify(() => updater.check()).called(1);
+      verify(() => updater.removeInstalledDownloads()).called(1);
       expect(find.text('Update available'), findsOneWidget);
     });
 
@@ -322,6 +324,8 @@ void main() {
       await pumpWatcher(tester, provided: updater);
       await tester.pumpAndSettle();
       verifyNever(() => updater.check(force: any(named: 'force')));
+      // Leftover APKs go even in builds that no longer look for updates.
+      verify(() => updater.removeInstalledDownloads()).called(1);
 
       await pumpWatcher(tester);
       await tester.pumpAndSettle();

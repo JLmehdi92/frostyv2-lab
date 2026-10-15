@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:frosty/apis/onset_update_service.dart';
 import 'package:frosty/constants.dart';
@@ -118,6 +119,17 @@ class OnsetUpdater {
       }
     }
     return UpdateAvailable(release, current);
+  }
+
+  /// Deletes downloaded APKs that are already installed (or older), so an
+  /// applied update does not keep its tens of megabytes in the cache. Runs in
+  /// every build: one installed by hand over a downloaded update has it too.
+  Future<void> removeInstalledDownloads() async {
+    try {
+      await _service.removeDownloadsUpTo(await _currentBuild());
+    } catch (e) {
+      debugPrint('Update cleanup failed: ${e.runtimeType}');
+    }
   }
 
   /// The viewer chose "Later" for [release].

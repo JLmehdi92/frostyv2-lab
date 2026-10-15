@@ -186,6 +186,23 @@ class OnsetUpdateService extends BaseApiClient {
     }
   }
 
+  /// Deletes what an earlier update left in the cache `updates/` directory:
+  /// every APK up to [installedBuild], half-finished downloads and anything
+  /// else. Only a downloaded build newer than the installed one is kept.
+  Future<void> removeDownloadsUpTo(int installedBuild) async {
+    final directory = Directory('${(await _cacheDirectory()).path}/updates');
+    if (!await directory.exists()) return;
+    final download = RegExp(r'^onset-(\d{1,9})\.apk$');
+    await for (final entity in directory.list()) {
+      final name = entity.uri.pathSegments.lastWhere(
+        (segment) => segment.isNotEmpty,
+      );
+      final build = int.tryParse(download.firstMatch(name)?.group(1) ?? '');
+      if (entity is File && build != null && build > installedBuild) continue;
+      await _delete(entity);
+    }
+  }
+
   /// Opens a release asset's bytes. GitHub answers with a redirect to a signed
   /// URL; it is followed by hand so that the token stays on api.github.com.
   Future<ResponseBody> _openAsset(int id, {CancelToken? cancelToken}) async {

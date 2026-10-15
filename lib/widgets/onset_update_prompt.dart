@@ -236,9 +236,10 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
   }
 }
 
-/// Looks for an update once the screen has started and each time the app
-/// comes back to the foreground, and offers it. Does nothing without an
-/// enabled [OnsetUpdater] provided above the screen.
+/// Removes already installed downloads when the screen starts, then looks
+/// for an update and offers it, again each time the app comes back to the
+/// foreground. Does nothing without an [OnsetUpdater] provided above the
+/// screen, and only cleans up when it is not enabled.
 mixin OnsetUpdateChecks<T extends StatefulWidget> on State<T> {
   OnsetUpdater? _updater;
   AppLifecycleListener? _updateLifecycle;
@@ -248,7 +249,9 @@ mixin OnsetUpdateChecks<T extends StatefulWidget> on State<T> {
   void initState() {
     super.initState();
     final updater = context.read<OnsetUpdater?>();
-    if (updater == null || !updater.enabled) return;
+    if (updater == null) return;
+    unawaited(updater.removeInstalledDownloads());
+    if (!updater.enabled) return;
     _updater = updater;
     _updateLifecycle = AppLifecycleListener(onResume: _checkForUpdate);
     WidgetsBinding.instance.addPostFrameCallback((_) => _checkForUpdate());
