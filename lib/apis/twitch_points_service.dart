@@ -76,6 +76,16 @@ query OnsetCommunityPoints(\$login: String!) {
 
   TwitchPointsService(Dio dio) : super(dio, '');
 
+  /// A client of its own with timeouts: a hung mutation keeps the sheet's
+  /// controls disabled until it ends, so it has to end.
+  TwitchPointsService.withDefaults() : this(Dio(defaultOptions));
+
+  @visibleForTesting
+  static BaseOptions get defaultOptions => BaseOptions(
+    connectTimeout: const Duration(seconds: 5),
+    receiveTimeout: const Duration(seconds: 10),
+  );
+
   /// Fetches the balance, the reward list and any running prediction.
   ///
   /// [authToken] is the twitch.tv web token — the same one that unlocks 2K.
@@ -198,11 +208,20 @@ query OnsetCommunityPoints(\$login: String!) {
         return message ?? 'unknown_error';
       }
 
-      final payload = (data['data'] as JsonMap?)?[operation];
-      final error = payload is JsonMap ? payload['error'] : null;
+      // Success is a payload whose error is null. A missing or null payload
+      // is not one: it says nothing about whether the points were spent.
+      final body = data['data'];
+      final payload = body is JsonMap ? body[operation] : null;
+      if (payload is! JsonMap) return 'unknown_error';
+
+      final error = payload['error'];
       if (error is JsonMap) return error['code']?.toString() ?? 'unknown_error';
 
       return null;
+    } on UnauthorizedException {
+      // A refused token is not a network problem: the fix is to sign in
+      // again, and "could not reach Twitch" would send the viewer elsewhere.
+      return 'unauthorized';
     } catch (e) {
       debugPrint('$operation failed: $e');
       return 'request_failed';

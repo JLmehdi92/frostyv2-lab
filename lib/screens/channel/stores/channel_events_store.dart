@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:frosty/apis/twitch_points_service.dart';
 import 'package:frosty/models/celebration.dart';
@@ -62,7 +61,7 @@ abstract class ChannelEventsStoreBase with Store {
     TwitchPointsService? pointsService,
     Future<String?> Function()? tokenProvider,
   }) : _client = client ?? HermesClient(tokenProvider: tokenProvider),
-       _pointsService = pointsService ?? TwitchPointsService(Dio()),
+       _pointsService = pointsService ?? TwitchPointsService.withDefaults(),
        _tokenProvider = tokenProvider;
 
   /// Channel points, rewards and any running prediction.
