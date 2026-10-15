@@ -129,4 +129,17 @@ void main() {
     final after = stack.remove(HighlightKind.giftBomb);
     expect(after.current!.kind, HighlightKind.pinned);
   });
+
+  test('a gift bomb banner shows in front of an expanded highlight', () {
+    final stack = const HighlightStack()
+        .upsert(item(HighlightKind.poll, 'p'))
+        .toggleExpanded()
+        .upsert(item(HighlightKind.giftBomb, 'bomb'));
+
+    expect(stack.current!.kind, HighlightKind.giftBomb);
+    expect(stack.unseenBehind, isFalse);
+    // The poll waits behind it, still expanded.
+    final poll = stack.items.firstWhere((i) => i.kind == HighlightKind.poll);
+    expect(poll.expanded, isTrue);
+  });
 }

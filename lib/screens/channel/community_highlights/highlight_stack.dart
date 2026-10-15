@@ -34,7 +34,8 @@ class HighlightItem {
 /// - One highlight per kind: a new id replaces that kind.
 /// - A sticky one is appended at the end.
 /// - Otherwise the new one takes the visible slot, unless the visible one is
-///   expanded: then it waits right behind it as [unseen].
+///   expanded: then it waits right behind it as [unseen]. A gift bomb banner
+///   is short-lived and always takes the slot, as Twitch pins it on top.
 class HighlightStack {
   const HighlightStack({
     this.items = const [],
@@ -113,7 +114,9 @@ class HighlightStack {
       );
     }
     final current = stack.current;
-    if (current != null && current.expanded) {
+    if (current != null &&
+        current.expanded &&
+        item.kind != HighlightKind.giftBomb) {
       list.insert(stack.currentIndex + 1, item);
       return stack._copy(items: list, unseenKey: _key(item.kind, item.id));
     }

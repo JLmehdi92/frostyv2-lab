@@ -120,4 +120,18 @@ void main() {
       h.store.dispose();
     });
   });
+
+  test('the banner shows on top of an expanded poll', () {
+    run((async) {
+      h.create(expandNew: true);
+      async.flushMicrotasks();
+      h.send(HighlightTopic.polls, pollPayload('POLL_CREATE'));
+      async.flushMicrotasks();
+      expect(h.store.current!.expanded, isTrue);
+
+      h.store.showGiftBomb(_bomb());
+      expect(h.store.current!.kind, HighlightKind.giftBomb);
+      h.store.dispose();
+    });
+  });
 }
