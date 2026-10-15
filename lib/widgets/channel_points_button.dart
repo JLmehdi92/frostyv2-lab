@@ -50,7 +50,12 @@ class _PointsIcon extends StatelessWidget {
 }
 
 class ChannelPointsButton extends StatelessWidget {
-  const ChannelPointsButton({super.key});
+  /// The channel whose chat holds the button. The store belongs to the
+  /// watched channel, so another channel's chat tab shows nothing rather
+  /// than spending points on the wrong channel.
+  final String? channelId;
+
+  const ChannelPointsButton({super.key, this.channelId});
 
   /// Shortens a balance the way Twitch does, so a seven-figure total does not
   /// push the message box off a narrow landscape chat column.
@@ -75,6 +80,9 @@ class ChannelPointsButton extends StatelessWidget {
     // Absent in the mini player and anywhere outside a channel.
     final store = context.watch<ChannelEventsStore?>();
     if (store == null) return const SizedBox.shrink();
+    if (channelId != null && channelId != store.channelId) {
+      return const SizedBox.shrink();
+    }
 
     return Observer(
       builder: (context) {

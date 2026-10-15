@@ -307,7 +307,7 @@ class ChatBottomBar extends StatelessWidget {
               child: Row(
                 children: [
                   // Bottom-left of the chat, where Twitch puts it.
-                  const ChannelPointsButton(),
+                  ChannelPointsButton(channelId: chatStore.channelId),
                   if (inputControls.pencil)
                     Builder(
                       builder: (context) {
