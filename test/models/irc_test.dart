@@ -664,4 +664,27 @@ void main() {
       expect(line('totally real').mention, isFalse);
     });
   });
+
+  group('tag values', () {
+    test('a value holding = is kept whole', () {
+      final msg = IRCMessage.fromString(
+        _viewerLine(r'reply-parent-msg-body=a=b\sc', 'hi'),
+      );
+
+      expect(msg.tags['reply-parent-msg-body'], 'a=b c');
+    });
+
+    test('a tag without a value is skipped', () {
+      final msg = IRCMessage.fromString(_viewerLine('flags', 'hi'));
+
+      expect(msg.tags.containsKey('flags'), isFalse);
+      expect(msg.message, 'hi');
+    });
+  });
 }
+
+/// A PRIVMSG from `viewer` with [tags] (already escaped) and [text].
+String _viewerLine(String tags, String text) =>
+    '@badge-info=;badges=;color=#00FF00;display-name=Viewer;emotes=;'
+    'id=line-1;room-id=12345;user-id=55555;$tags '
+    ':viewer!viewer@viewer.tmi.twitch.tv PRIVMSG #channel :$text';

@@ -1083,11 +1083,12 @@ class IRCMessage {
 
     // Loop through each tag and store their key value pairs into the map.
     for (final tag in tags.split(';')) {
-      // Skip if the tag has no value.
-      if (tag.endsWith('=')) continue;
+      // Skip if the tag has no value. Only the first `=` separates the key:
+      // a value can hold more (the url of a GIF does).
+      final equals = tag.indexOf('=');
+      if (equals < 0 || equals == tag.length - 1) continue;
 
-      final tagSplit = tag.split('=');
-      mappedTags[tagSplit[0]] = tagSplit[1];
+      mappedTags[tag.substring(0, equals)] = tag.substring(equals + 1);
     }
 
     // Now we'll parse the message itself.
