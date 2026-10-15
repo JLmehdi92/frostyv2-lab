@@ -442,13 +442,13 @@ void main() {
       final h = withAth(HtAthState.reached);
       await pumpSlot(tester, h.store);
 
-      expect(
-        find.descendant(
-          of: find.byType(HypeTrainLevelPill),
-          matching: find.byIcon(Icons.emoji_events_rounded),
-        ),
-        findsOneWidget,
+      final trophy = find.descendant(
+        of: find.byType(HypeTrainLevelPill),
+        matching: find.byIcon(Icons.emoji_events_rounded),
       );
+      expect(trophy, findsOneWidget);
+      expect(tester.getSize(trophy), const Size(24, 24));
+      expect(tester.widget<Icon>(trophy).color, Colors.white);
       await h.close(tester);
     });
 

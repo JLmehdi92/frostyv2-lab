@@ -65,7 +65,7 @@ class HypeTrainLevelPill extends StatelessWidget {
                 padding: const EdgeInsetsDirectional.only(end: HtDims.margin),
                 child: Icon(
                   Icons.emoji_events_rounded,
-                  size: HtDims.icon - HtDims.margin,
+                  size: HtDims.icon,
                   color: foreground,
                 ),
               ),
