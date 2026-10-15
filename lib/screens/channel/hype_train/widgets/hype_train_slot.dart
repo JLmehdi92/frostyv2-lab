@@ -105,7 +105,11 @@ class _HypeTrainSlotState extends State<HypeTrainSlot> {
               return const SizedBox(width: double.infinity, height: 0);
             case HtPhase.approaching:
               key = 'approaching';
-              child = HypeTrainApproachingBanner(store: store, onTap: openHere);
+              child = HypeTrainApproachingBanner(
+                store: store,
+                compact: widget.compact,
+                onTap: openHere,
+              );
             case HtPhase.ongoing || HtPhase.ending:
               key = store.collapsed ? 'pill' : 'banner';
               child = store.collapsed
