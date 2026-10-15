@@ -13,6 +13,7 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
     private var backgroundAudio: BackgroundAudioBridge? = null
     private var audioFocus: AudioFocusBridge? = null
     private var twitchCookies: TwitchCookies? = null
+    private var apkInstaller: ApkInstaller? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,6 +35,9 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
 
         // Calls and other apps pause the stream; unplugged headphones too.
         audioFocus = AudioFocusBridge(applicationContext, messenger)
+
+        // In-app updates: hands a downloaded build to the system installer.
+        apkInstaller = ApkInstaller(applicationContext, messenger)
     }
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
