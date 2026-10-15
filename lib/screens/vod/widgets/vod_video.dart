@@ -39,7 +39,11 @@ class VodVideo extends StatelessWidget {
               final limitByWidth = fillScreen
                   ? !boxNarrowerThanVideo
                   : boxNarrowerThanVideo;
+              // Minimums zeroed: the Stack below passes tight constraints,
+              // which would otherwise stretch a fitted picture over the bars.
               return OverflowBox(
+                minWidth: 0,
+                minHeight: 0,
                 maxWidth: double.infinity,
                 maxHeight: double.infinity,
                 child: SizedBox(
