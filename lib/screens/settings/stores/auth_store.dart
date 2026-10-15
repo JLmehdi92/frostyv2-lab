@@ -261,7 +261,10 @@ abstract class AuthBase with Store {
     }
     _lastWebTokenRenewal = clock.now();
 
+    final epoch = _authEpoch;
     await refreshTwitchWebSession();
+    // A logout during the load already forgot the session: no verdict.
+    if (epoch != _authEpoch || !_isLoggedIn) return null;
 
     final current = _twitchWebToken;
     if (current == null || current == previous) {

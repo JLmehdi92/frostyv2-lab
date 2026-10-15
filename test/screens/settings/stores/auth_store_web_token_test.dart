@@ -412,6 +412,27 @@ void main() {
       verifyNever(() => cookies.readAuthToken());
     });
 
+    test(
+      'a renewal cut by a logout does not call the session expired',
+      () async {
+        final page = Completer<void>();
+        final store = await signedIn(
+          loadTwitchPage: () {
+            pageLoads++;
+            return page.future;
+          },
+        );
+
+        final renewal = store.renewTwitchWebToken();
+        await pumpEventQueue();
+        await store.logout();
+        page.complete();
+
+        expect(await renewal, isNull);
+        expect(store.webSessionExpired, isFalse);
+      },
+    );
+
     test('a signed-out viewer loads no page', () async {
       final store = build();
 
