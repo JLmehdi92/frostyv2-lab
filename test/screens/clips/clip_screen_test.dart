@@ -210,18 +210,13 @@ void main() {
     await close(tester);
   });
 
-  testWidgets('a landscape tablet keeps the details beside the video', (
+  testWidgets('a landscape tablet shows the video alone, like a phone', (
     tester,
   ) async {
     await pump(tester, known: clip, size: const Size(1600, 1067));
 
-    final panel = tester.getRect(find.byType(ClipInfoPanel));
-    expect(panel.left, greaterThan(1000));
-    expect(tester.takeException(), isNull);
-
-    settings.fullScreen = true;
-    await tester.pump();
     expect(find.byType(ClipInfoPanel), findsNothing);
+    expect(tester.takeException(), isNull);
     await close(tester);
   });
 

@@ -568,35 +568,10 @@ class _ClipScreenState extends State<ClipScreen> {
     ),
   );
 
-  /// A tablet keeps the details beside the video (hidden in full screen); a
-  /// phone shows the video alone.
-  Widget _buildLandscape() => Observer(
-    builder: (context) {
-      final playerArea = _buildPlayerArea(landscape: true);
-      if (!context.isLargeScreen || _settings.fullScreen) {
-        return ColoredBox(color: Colors.black, child: playerArea);
-      }
-      final width = (context.screenWidth * 0.3).clamp(340.0, 440.0);
-      return ColoredBox(
-        color: Colors.black,
-        child: SafeArea(
-          bottom: false,
-          child: Row(
-            children: [
-              Expanded(child: playerArea),
-              SizedBox(
-                width: width,
-                child: ColoredBox(
-                  color: context.scaffoldColor,
-                  child: SafeArea(left: false, child: _buildInfoAndChat()),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    },
-  );
+  /// The video alone, on a tablet as on a phone: the full-screen button
+  /// rotates back to portrait, where the details and the chat replay live.
+  Widget _buildLandscape() =>
+      ColoredBox(color: Colors.black, child: _buildPlayerArea(landscape: true));
 
   @override
   Widget build(BuildContext context) {

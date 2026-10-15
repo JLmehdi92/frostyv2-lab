@@ -245,7 +245,7 @@
 
 | ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
-| DSC-01 | Navigation principale | P0 | ⚠️ | `home.dart` (`HomeRailLayout`) | Following, Top, Search ; l'avatar mène aux réglages ; rail latéral sur tablette (≥ 600 dp). Ni Activité, ni Profil. | OK |
+| DSC-01 | Navigation principale | P0 | ⚠️ | `home.dart` | Following, Top, Search ; l'avatar mène aux réglages ; barre de navigation du bas sur téléphone comme sur tablette (le rail latéral a été retiré avec le retour à ONSET). Ni Activité, ni Profil. | OK |
 | DSC-02 | Catégories | P0 | ✅ | `twitch_api.dart:292-300`, `categories.dart` | Pas de pastille « nouveau ». | OK |
 | DSC-03 | Chaînes live | P0 | ✅ | `twitch_api.dart:167-175`, `streams_list.dart:335-340` | — | OK |
 | DSC-04 | Page catégorie | P0 | ✅ | `category_streams.dart` (`CategorySection`), `twitch_vod_service.dart` (`getCategoryVideos`), `twitch_clip_service.dart` (`getCategoryClips`) | Sections Live, Videos (100 plus vues, GQL anonyme sans pagination) et Clips (période et tri), chaîne nommée sur chaque carte. Le follow de catégorie reste à faire (compte requis, E9). | OK |
@@ -289,7 +289,7 @@
 | PRF-15 | VOD réservées aux abonnés | P2 | ⚠️ | `ivs_vod_store.dart`, `vod_error_view.dart`, `vod_card.dart` (`ad3cf94`, `021c827`) | Cadenas dans la liste et message « réservée aux abonnés » (ou géobloquée) au lieu d'un repli. Lecture impossible sans session abonnée (E9). | OK |
 | PRF-16 | Vidéos des chaînes suivies | P1 | ✅ | `followed_videos_screen.dart`, `followed_videos_store.dart`, `twitch_vod_service.dart` (`getFollowedVideos`) | « Followed videos » en tête des chaînes hors ligne de Following : les 100 premières chaînes suivies (Helix), puis 5 vidéos de chacune en une requête GQL anonyme par lot de 50 (`users(ids:)`), les plus récentes d'abord, ouvertes dans le lecteur VOD de l'appli. Tirer pour rafraîchir, erreur avec « Retry ». | OK |
 | PRF-17 | Clips de la chaîne | P1 | ✅ | `apis/twitch_clip_service.dart`, `screens/clips/widgets/channel_clips_tab.dart` | Onglet « Clips » des vidéos de la chaîne : 24 h / 7 j / 30 j / tout, Top ou Tendances, 100 premiers (pagination bloquée par l'intégrité en anonyme), grille sur tablette. GQL anonyme. | OK |
-| PRF-18 | Lecture de clip | P1 | ✅ | `screens/clips/clip_screen.dart`, `stores/clip_player_store.dart` | MP4 signé (jeton GQL anonyme) lu par media_kit : qualité, boucle, vitesse, volume, PiP, fit/fill, panneau latéral sur tablette, « Voir la vidéo complète » au bon instant, replay du chat de la VOD, autres clips de la chaîne. Repli embed Twitch en WebView. À valider sur appareil. | GQL privé |
+| PRF-18 | Lecture de clip | P1 | ✅ | `screens/clips/clip_screen.dart`, `stores/clip_player_store.dart` | MP4 signé (jeton GQL anonyme) lu par media_kit : qualité, boucle, vitesse, volume, PiP, fit/fill, vidéo seule en paysage (téléphone comme tablette ; le plein écran repasse en portrait, où sont les infos), « Voir la vidéo complète » au bon instant, replay du chat de la VOD, autres clips de la chaîne. Repli embed Twitch en WebView. À valider sur appareil. | GQL privé |
 | PRF-19 | Créer un clip | P1 | ❌ | — | Helix `POST /clips` (`clips:edit`) : portée absente des scopes OAuth actuels (`auth_store.dart`). Hors périmètre E2. | Compte requis |
 | PRF-20 | Éditer et publier un clip | P1 | ❌ | — | — | GQL privé |
 | PRF-21 | Télécharger ou exporter un clip | P2 | ❌ | — | — | GQL privé |
