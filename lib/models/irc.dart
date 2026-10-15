@@ -568,12 +568,12 @@ class IRCMessage {
       }
       skipReplyName = false;
 
-      final title = text;
       if (!showGifs || !gif.isLoadable) {
         // Twitch draws the title as plain text when GIFs are turned off.
-        span.add(TextSpan(text: ' $title', style: textStyle));
+        span.add(TextSpan(text: ' $text', style: textStyle));
         continue;
       }
+      final title = text.isEmpty ? 'GIF' : text;
       // Like Twitch, the GIF starts a new line and takes its title's place.
       span
         ..add(const TextSpan(text: '\n'))
@@ -582,7 +582,7 @@ class IRCMessage {
             alignment: PlaceholderAlignment.middle,
             child: ChatGifImage(
               gif: gif,
-              title: title.isEmpty ? 'GIF' : title,
+              title: title,
               animate: animateGifs,
               textStyle: textStyle,
               onTap: () => _showAssetDetailsBottomSheet(
@@ -595,6 +595,7 @@ class IRCMessage {
                 ),
                 url: gif.url,
                 title: title,
+                copyName: title,
                 subtitle: const Text('GIF'),
                 launchExternal: launchExternal,
               ),
@@ -1106,6 +1107,7 @@ class IRCMessage {
     required Widget subtitle,
     required bool launchExternal,
     bool showCopyName = true,
+    String? copyName,
   }) {
     showModalBottomSheetWithProperFocus(
       context: context,
@@ -1130,7 +1132,10 @@ class IRCMessage {
               leading: const Icon(Icons.copy_rounded),
               title: const Text('Copy name'),
               onTap: () {
-                Clipboard.setData(ClipboardData(text: title.split(' (')[0]));
+                // An emote's title is "name (real name)": only the name.
+                Clipboard.setData(
+                  ClipboardData(text: copyName ?? title.split(' (')[0]),
+                );
 
                 Navigator.pop(context);
               },
