@@ -141,19 +141,8 @@ class HypeTrainBanner extends StatelessWidget {
             ],
           );
           final progress = Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Expanded(
-                child: ExcludeSemantics(
-                  child: HypeTrainProgressBar(
-                    percent: store.shownPercent,
-                    palette: palette,
-                    duration: store.reduceMotion
-                        ? Duration.zero
-                        : HtTimings.extraShort,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
               // Natural size when there is room; scaled down when not.
               Flexible(
                 child: FittedBox(
@@ -206,6 +195,18 @@ class HypeTrainBanner extends StatelessWidget {
                   type: MaterialType.transparency,
                   child: Stack(
                     children: [
+                      // The fill is the banner's background.
+                      Positioned.fill(
+                        child: ExcludeSemantics(
+                          child: HypeTrainProgressBar(
+                            percent: store.shownPercent,
+                            palette: palette,
+                            duration: store.reduceMotion
+                                ? Duration.zero
+                                : HtTimings.extraShort,
+                          ),
+                        ),
+                      ),
                       if (treasure != null)
                         PositionedDirectional(
                           end: 48,
