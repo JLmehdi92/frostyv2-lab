@@ -390,3 +390,14 @@ const clearChatResubber =
     '@ban-duration=600;room-id=12345;target-user-id=20001;'
     'tmi-sent-ts=1700000000600 '
     ':tmi.twitch.tv CLEARCHAT #channel :resubber';
+
+/// A raid of 15 viewers, with the raiding channel's avatar.
+const raidNotice =
+    '@badge-info=;badges=;color=#9ACD32;display-name=Raider;emotes=;'
+    'id=raid-1;login=raider;mod=0;msg-id=raid;msg-param-displayName=Raider;'
+    'msg-param-login=raider;'
+    'msg-param-profileImageURL=https://static-cdn.jtvnw.net/jtv_user_pictures/'
+    'raider-profile_image-%s.png;msg-param-viewerCount=15;room-id=12345;'
+    'subscriber=0;system-msg=15\\sraiders\\sfrom\\sRaider\\shave\\sjoined!;'
+    'tmi-sent-ts=1700000000700;user-id=20008;user-type= '
+    ':tmi.twitch.tv USERNOTICE #channel';

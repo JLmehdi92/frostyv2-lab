@@ -172,6 +172,9 @@ class UserNotice {
   /// Viewers brought over by a raid.
   final int? raidViewerCount;
 
+  /// The raiding channel's avatar, at 70 by 70 pixels.
+  final String? raiderAvatarUrl;
+
   /// The announcement's colour.
   final AnnouncementColor? announcementColor;
 
@@ -209,6 +212,7 @@ class UserNotice {
     this.senderLogin,
     this.senderName,
     this.raidViewerCount,
+    this.raiderAvatarUrl,
     this.announcementColor,
     this.sponsorName,
     this.sponsorColor,
@@ -371,6 +375,9 @@ class UserNotice {
       senderLogin: tags['msg-param-sender-login']?.nullIfEmpty,
       senderName: unescapeTag(tags['msg-param-sender-name']).nullIfEmpty,
       raidViewerCount: int.tryParse(tags['msg-param-viewerCount'] ?? ''),
+      // Twitch leaves a `%s` where the size goes.
+      raiderAvatarUrl: tags['msg-param-profileImageURL']?.nullIfEmpty
+          ?.replaceAll('%s', '70x70'),
       announcementColor: _announcementColorFrom(tags['msg-param-color']),
       sponsorName: unescapeTag(
         tags['msg-param-advertiser-name'],

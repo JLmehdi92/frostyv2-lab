@@ -217,6 +217,19 @@ void main() {
       expect(notice.systemMessage, r'a;b\c');
     });
 
+    test("reads a raid's viewers and the raider's avatar at 70px", () {
+      final notice = _parse(raidNotice);
+
+      expect(notice.kind, UserNoticeKind.raid);
+      expect(notice.raidViewerCount, 15);
+      expect(
+        notice.raiderAvatarUrl,
+        'https://static-cdn.jtvnw.net/jtv_user_pictures/'
+        'raider-profile_image-70x70.png',
+      );
+      expect(_parse(primeSub).raiderAvatarUrl, isNull);
+    });
+
     test('keeps the user message of a resub in the IRC body', () {
       final message = IRCMessage.fromString(resubStreak);
 
