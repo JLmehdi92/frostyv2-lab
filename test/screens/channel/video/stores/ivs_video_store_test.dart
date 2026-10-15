@@ -1535,6 +1535,53 @@ void main() {
       );
     });
 
+    test('moves to 2K when it shows up after playback starts', () async {
+      SharedPreferences.setMockInitialValues({});
+      settingsStore.defaultToHighestQuality = true;
+      store = await createStore();
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1080p60', '720p60'],
+      });
+      await settle();
+      native.playerCalls.clear();
+
+      await native.emit({
+        'type': 'qualitiesChanged',
+        'list': ['1440p60', '1080p60', '720p60'],
+      });
+      await settle();
+
+      expect(
+        (native.callsNamed('setQuality').single.arguments as Map)['name'],
+        '1440p60',
+      );
+      expect(store.availableStreamQualities.first, 'Auto');
+      expect(store.availableStreamQualities[1], '1440p60');
+    });
+
+    test('a quality picked this session stays when the ladder grows', () async {
+      SharedPreferences.setMockInitialValues({});
+      settingsStore.defaultToHighestQuality = true;
+      store = await createStore();
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1080p60', '720p60'],
+      });
+      await settle();
+      store.setStreamQuality('720p60');
+      native.playerCalls.clear();
+
+      await native.emit({
+        'type': 'qualitiesChanged',
+        'list': ['1440p60', '1080p60', '720p60'],
+      });
+      await settle();
+
+      expect(native.callsNamed('setQuality'), isEmpty);
+      expect(store.streamQuality, '720p60');
+    });
+
     test('stays on Auto with no saved quality', () async {
       SharedPreferences.setMockInitialValues({});
       store = await createStore();

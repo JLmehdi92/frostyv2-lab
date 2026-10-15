@@ -725,13 +725,16 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         break;
       case 'qualitiesChanged':
         // The ladder grew or shrank while playing (Twitch negotiates the
-        // 1440p HEVC/AV1 renditions later): refresh the menu only, keeping
-        // the current pick on the same entry.
+        // 1440p HEVC/AV1 renditions later): refresh the menu, keeping the
+        // current pick on the same entry.
         final list = (e['list'] as List).map((q) => q.toString()).toList();
         final selected = streamQuality;
         _availableStreamQualities = ['Auto', ...list];
         final restored = _availableStreamQualities.indexOf(selected);
         _streamQualityIndex = restored == -1 ? 0 : restored;
+        // Without a pick this session, the saved quality or "highest" may
+        // only now be on offer (a saved 1440p60, or 2K for "highest").
+        if (_sessionQuality == null) unawaited(_restoreQuality(list));
         break;
       case 'quality':
         final name = e['name'] as String?;
