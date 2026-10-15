@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 
-/// A new all-time high: the trophy pops in elastically with a ring pulse.
+/// A new all-time high: the gold trophy pops in elastically over a glow,
+/// with a ring pulse.
 class TrophyBurst extends StatefulWidget {
   const TrophyBurst({
     super.key,
@@ -53,7 +55,7 @@ class TrophyBurstState extends State<TrophyBurst>
 
   @override
   Widget build(BuildContext context) {
-    const gold = Color(0xFFFFB300);
+    const gold = htTrophyGold;
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
@@ -77,11 +79,30 @@ class TrophyBurstState extends State<TrophyBurst>
                 ),
               Transform.scale(
                 scale: _pop.value,
-                child: const Icon(
-                  Icons.emoji_events_rounded,
-                  key: ValueKey('trophy'),
-                  size: 24,
-                  color: gold,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // A soft gold glow behind the trophy.
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            gold.withValues(alpha: 0.55),
+                            gold.withValues(alpha: 0),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const Icon(
+                      Icons.emoji_events_rounded,
+                      key: ValueKey('trophy'),
+                      size: 24,
+                      color: gold,
+                    ),
+                  ],
                 ),
               ),
             ],

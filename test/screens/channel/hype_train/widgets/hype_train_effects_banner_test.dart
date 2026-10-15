@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/models/hype_train.dart';
@@ -38,6 +39,14 @@ Future<bool> seenWithin(WidgetTester tester, Finder finder, int ms) async {
     seen = seen || finder.evaluate().isNotEmpty;
   }
   return seen;
+}
+
+/// Pumps frame by frame (100 ms) until [finder] shows, for at most [ms].
+Future<void> untilSeen(WidgetTester tester, Finder finder, int ms) async {
+  for (var t = 0; t < ms && finder.evaluate().isEmpty; t += 100) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+  expect(finder, findsOneWidget);
 }
 
 void main() {
@@ -178,6 +187,74 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     expect(find.text('LVL 5'), findsWidgets);
     expect(find.text('LVL 4'), findsNothing);
+    await h.close(tester);
+  });
+
+  testWidgets('the coin is as tall as the banner', (tester) async {
+    final h = harnessFor(liveTrain(level: 2, treasure: _treasure));
+    await pumpSlot(tester, h.store);
+
+    h.inject(htLevelUp(3));
+    await tester.pump();
+    await untilSeen(tester, find.byType(CoinUnlock), 6000);
+    // Past its cross-fade in.
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(
+      tester.getSize(find.byType(CoinUnlock)).height,
+      tester.getSize(find.byKey(const ValueKey('ht-banner'))).height,
+    );
+    await h.close(tester);
+  });
+
+  testWidgets('the rocket flies across the whole banner', (tester) async {
+    final h = harnessFor(
+      liveTrain(level: 4, community: HtCommunity.parse(const {})),
+    );
+    await pumpSlot(tester, h.store);
+
+    h.inject(htLevelUp(5));
+    await tester.pump();
+    await untilSeen(tester, find.byType(RocketLaunch), 6000);
+    // Past its cross-fade in.
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(
+      tester.getSize(find.byType(RocketLaunch)),
+      tester.getSize(find.byKey(const ValueKey('ht-banner'))),
+    );
+    await h.close(tester);
+  });
+
+  testWidgets('a shared level-up: the rainbow fills the banner, text black', (
+    tester,
+  ) async {
+    final h = harnessFor(liveTrain(level: 2, shared: sharedWith(['a', 'b'])));
+    await pumpSlot(tester, h.store);
+
+    h.inject(htLevelUp(3));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 850));
+
+    final rainbow = find.byKey(const ValueKey('rainbow'));
+    expect(
+      tester.getSize(rainbow),
+      tester.getSize(find.byKey(const ValueKey('ht-banner'))),
+    );
+    expect(
+      tester.widget<Text>(find.text('hyyyyypeeee')).style?.color,
+      Colors.black,
+    );
+    await h.close(tester);
+  });
+
+  testWidgets('shared trains draw speedlines; others do not', (tester) async {
+    var h = harnessFor(liveTrain(shared: sharedWith(['a', 'b'])));
+    await pumpSlot(tester, h.store);
+    expect(find.byKey(const ValueKey('ht-speedlines')), findsOneWidget);
+    await h.close(tester);
+
+    h = harnessFor(liveTrain());
+    await pumpSlot(tester, h.store);
+    expect(find.byKey(const ValueKey('ht-speedlines')), findsNothing);
     await h.close(tester);
   });
 }

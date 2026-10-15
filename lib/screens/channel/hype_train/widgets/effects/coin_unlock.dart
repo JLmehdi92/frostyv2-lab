@@ -3,7 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 /// The treasure discount unlocking: a gold coin flips (settling by 70%),
-/// sparkles burst around it and the padlock opens.
+/// sparkles burst around it and the padlock opens. As tall as its box
+/// allows (the whole banner).
 class CoinUnlock extends StatefulWidget {
   const CoinUnlock({
     super.key,
@@ -52,55 +53,66 @@ class CoinUnlockState extends State<CoinUnlock>
   @override
   Widget build(BuildContext context) {
     final iconColor = Theme.of(context).colorScheme.onSurface;
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        final t = _controller.value;
-        final flip = min(t / _settle, 1.0);
-        final scaleX = cos(flip * 4 * pi).abs().clamp(0.08, 1.0);
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 40,
-              height: 40,
-              child: Stack(
-                clipBehavior: Clip.none,
-                alignment: Alignment.center,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // As tall as it may be (the banner); drawn at 40 dp and scaled.
+        final height = constraints.hasBoundedHeight
+            ? constraints.maxHeight
+            : 40.0;
+        final scale = height / 40;
+        return SizedBox(
+          height: height,
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (context, _) {
+              final t = _controller.value;
+              final flip = min(t / _settle, 1.0);
+              final scaleX = cos(flip * 4 * pi).abs().clamp(0.08, 1.0);
+              return Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Transform(
-                    alignment: Alignment.center,
-                    transform: Matrix4.diagonal3Values(scaleX, 1, 1),
-                    // Painted once; the flip only transforms it.
-                    child: RepaintBoundary(
-                      child: CustomPaint(
-                        key: const ValueKey('coin'),
-                        size: const Size.square(30),
-                        painter: _CoinPainter(widget.discount),
-                      ),
+                  SizedBox.square(
+                    dimension: height,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      alignment: Alignment.center,
+                      children: [
+                        Transform(
+                          alignment: Alignment.center,
+                          transform: Matrix4.diagonal3Values(scaleX, 1, 1),
+                          // Painted once; the flip only transforms it.
+                          child: RepaintBoundary(
+                            child: CustomPaint(
+                              key: const ValueKey('coin'),
+                              size: Size.square(30 * scale),
+                              painter: _CoinPainter(widget.discount),
+                            ),
+                          ),
+                        ),
+                        if (t >= _settle)
+                          for (var i = 0; i < _sparkles; i++)
+                            _sparkle(i, (t - _settle) / (1 - _settle), scale),
+                      ],
                     ),
                   ),
-                  if (t >= _settle)
-                    for (var i = 0; i < _sparkles; i++)
-                      _sparkle(i, (t - _settle) / (1 - _settle)),
+                  SizedBox(width: 6 * scale),
+                  Icon(
+                    t >= _unlock ? Icons.lock_open_rounded : Icons.lock_rounded,
+                    size: 18 * scale,
+                    color: iconColor,
+                  ),
                 ],
-              ),
-            ),
-            const SizedBox(width: 6),
-            Icon(
-              t >= _unlock ? Icons.lock_open_rounded : Icons.lock_rounded,
-              size: 18,
-              color: iconColor,
-            ),
-          ],
+              );
+            },
+          ),
         );
       },
     );
   }
 
-  Widget _sparkle(int i, double local) {
+  Widget _sparkle(int i, double local, double scale) {
     final angle = i / _sparkles * 2 * pi;
-    final distance = 14 + 10 * local;
+    final distance = (14 + 10 * local) * scale;
     return Transform.translate(
       key: ValueKey('sparkle-$i'),
       offset: Offset(cos(angle) * distance, sin(angle) * distance),
@@ -108,10 +120,10 @@ class CoinUnlockState extends State<CoinUnlock>
         opacity: (1 - local).clamp(0.0, 1.0),
         child: Transform.scale(
           scale: 0.5 + local,
-          child: const Icon(
+          child: Icon(
             Icons.star_rounded,
-            size: 8,
-            color: Color(0xFFFFE082),
+            size: 8 * scale,
+            color: const Color(0xFFFFE082),
           ),
         ),
       ),

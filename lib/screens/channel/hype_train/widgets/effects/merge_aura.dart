@@ -72,13 +72,13 @@ class _MergeAuraState extends State<MergeAura>
 
   /// Aura [number] (1–6) with its channel.
   Widget _aura(int number, HtUser user) => Transform.translate(
-    key: ValueKey('ht-aura-$number'),
     offset: Offset(0, MergeAura.offsets[number - 1]),
     child: AnimatedBuilder(
       animation: _controller,
       builder: (context, child) =>
           Opacity(opacity: _opacity(number - 1), child: child),
       child: SizedBox(
+        key: ValueKey('ht-aura-$number'),
         width: HtDims.avatar + HtDims.marginHalf,
         height: HtDims.avatar,
         child: Stack(
@@ -90,6 +90,7 @@ class _MergeAuraState extends State<MergeAura>
               maxHeight: HtDims.aura,
               child: IgnorePointer(
                 child: Container(
+                  key: const ValueKey('ht-aura-glow'),
                   width: HtDims.aura,
                   height: HtDims.aura,
                   decoration: BoxDecoration(
@@ -116,36 +117,36 @@ class _MergeAuraState extends State<MergeAura>
     final previous = widget.previous.take(3).toList();
     final joining = widget.joining.take(3).toList();
     final level = widget.level;
-    // Before the pill, outwards: aura 1, 3, 5; after it: aura 2, 4, 6.
+    // The previous channels take aura 1, 3 and 5, shown 3, 5, 1 before the
+    // pill; the joining ones 2, 4 and 6 after it.
     return Center(
       child: FittedBox(
         fit: BoxFit.scaleDown,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 22),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (var i = previous.length - 1; i >= 0; i--)
-                _aura(i * 2 + 1, previous[i]),
-              if (level != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: HtDims.marginHalf,
-                  ),
-                  child: HypeTrainLevelPill(
-                    key: const ValueKey('ht-merge-pill'),
-                    level: level,
-                    from: widget.fromLevel,
-                    background: widget.pill,
-                    foreground: widget.pillText,
-                    horizontalPadding: 30,
-                    animate: !widget.reduceMotion,
-                  ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final number in const [3, 5, 1])
+              if (number ~/ 2 < previous.length)
+                _aura(number, previous[number ~/ 2]),
+            if (level != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: HtDims.marginHalf,
                 ),
-              for (var i = 0; i < joining.length; i++)
-                _aura(i * 2 + 2, joining[i]),
-            ],
-          ),
+                child: HypeTrainLevelPill(
+                  key: const ValueKey('ht-merge-pill'),
+                  level: level,
+                  from: widget.fromLevel,
+                  background: widget.pill,
+                  foreground: widget.pillText,
+                  horizontalPadding: 30,
+                  animate: !widget.reduceMotion,
+                ),
+              ),
+            for (final number in const [2, 4, 6])
+              if (number ~/ 2 - 1 < joining.length)
+                _aura(number, joining[number ~/ 2 - 1]),
+          ],
         ),
       ),
     );

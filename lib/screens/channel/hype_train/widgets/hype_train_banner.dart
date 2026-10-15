@@ -15,6 +15,7 @@ import 'package:frosty/screens/channel/hype_train/widgets/effects/merge_aura.dar
 import 'package:frosty/screens/channel/hype_train/widgets/effects/mythic_reveal.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/effects/rainbow_sweep.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/effects/rocket_launch.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/effects/speedlines.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/effects/trophy_burst.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_copy.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_countdown.dart';
@@ -203,6 +204,23 @@ class _HypeTrainBannerState extends State<HypeTrainBanner> {
                           ),
                         ),
                       ),
+                      if (palette.speedlines)
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: Opacity(
+                              opacity: 0.7,
+                              child: CustomPaint(
+                                key: const ValueKey('ht-speedlines'),
+                                painter: HtSpeedlinesPainter(
+                                  color: palette.fill,
+                                  rtl:
+                                      Directionality.of(context) ==
+                                      TextDirection.rtl,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       Material(
                         type: MaterialType.transparency,
                         child: InkWell(
@@ -550,8 +568,9 @@ class HypeTrainStepContent extends StatelessWidget {
     return Observer(
       builder: (context) {
         final step = store.step;
-        var content = _content(context, step);
-        if (step != null && step.rainbow && !store.reduceMotion) {
+        final rainbow = step != null && step.rainbow && !store.reduceMotion;
+        var content = _content(context, step, rainbow: rainbow);
+        if (step != null && rainbow) {
           content = RainbowSweep(
             cycleDuration: step.duration ~/ HtTimings.rainbowCycles,
             child: content,
@@ -677,7 +696,8 @@ class HypeTrainStepContent extends StatelessWidget {
   List<HtReward> _emotes(Object? value) =>
       value is List<HtReward> ? value : const [];
 
-  Widget _content(BuildContext context, HtStep? step) {
+  /// [rainbow]: Twitch's rainbow fills the banner and text turns black.
+  Widget _content(BuildContext context, HtStep? step, {bool rainbow = false}) {
     if (step == null) return const SizedBox.shrink();
     final data = step.data;
     final train = store.train;
@@ -715,7 +735,9 @@ class HypeTrainStepContent extends StatelessWidget {
             duration: step.duration,
             reduceMotion: data['static'] == true || store.reduceMotion,
             emoteSize: compact ? 20 : HtDims.icon,
-            style: _large,
+            style: rainbow
+                ? _large.copyWith(color: Colors.black, shadows: const [])
+                : _large,
           ),
         );
       case HtStepKind.instruction:
@@ -774,7 +796,7 @@ class HypeTrainStepContent extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  HypeTrainAvatarStack(users: users),
+                  HypeTrainAvatarStack(users: users, plusColor: palette.text),
                   const SizedBox(width: HtDims.margin),
                   Text(
                     HtCopy.sharedNew,
@@ -796,25 +818,59 @@ class HypeTrainStepContent extends StatelessWidget {
           ),
         );
       case HtStepKind.coinUnlock:
-        return _effectRow(
-          CoinUnlock(
-            duration: step.duration,
-            discount: train?.treasure?.discountPercentage,
-            reduceMotion: store.reduceMotion,
+        // The coin as tall as the banner, the line beside it.
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: HtDims.margin),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              CoinUnlock(
+                duration: step.duration,
+                discount: train?.treasure?.discountPercentage,
+                reduceMotion: store.reduceMotion,
+              ),
+              const SizedBox(width: HtDims.margin),
+              Expanded(
+                child: Center(
+                  child: _live(
+                    Text(
+                      HtCopy.treasureUnlockedMarquee,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: palette.textStyle(HtType.titleDefault),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-          HtCopy.treasureUnlockedMarquee,
         );
       case HtStepKind.rocketLaunch:
-        return _effectRow(
-          SizedBox(
-            width: 72,
-            height: 40,
-            child: RocketLaunch(
+        // The rocket climbs across the whole banner behind the line.
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            RocketLaunch(
               duration: step.duration,
               reduceMotion: store.reduceMotion,
+              color: palette.text,
             ),
-          ),
-          HtCopy.communityUnlockedMarquee,
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: HtDims.margin),
+                child: _live(
+                  Text(
+                    HtCopy.communityUnlockedMarquee,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: palette.textStyle(HtType.titleDefault),
+                  ),
+                ),
+              ),
+            ),
+          ],
         );
       case HtStepKind.unlockIcon:
         return Center(
@@ -1153,7 +1209,10 @@ class _LeavingCollaborator extends StatelessWidget {
                     ),
                     if (channels.isNotEmpty) ...[
                       const SizedBox(height: HtDims.marginHalf),
-                      HypeTrainAvatarStack(users: channels),
+                      HypeTrainAvatarStack(
+                        users: channels,
+                        plusColor: palette.text,
+                      ),
                     ],
                   ],
                 ),
