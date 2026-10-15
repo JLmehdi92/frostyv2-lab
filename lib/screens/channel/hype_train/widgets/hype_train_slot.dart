@@ -6,6 +6,7 @@ import 'package:frosty/screens/channel/hype_train/widgets/hype_train_approaching
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_banner.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_end_strip.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_sheet.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 import 'package:mobx/mobx.dart';
 
 /// Where the hype train lives on screen: nothing when there is no train,
@@ -130,34 +131,38 @@ class _HypeTrainSlotState extends State<HypeTrainSlot> {
           final room =
               widget.detailsMaxHeight ??
               MediaQuery.sizeOf(context).height * 0.45;
-          if (!store.expanded ||
-              widget.compact ||
-              store.collapsed ||
-              room < 60) {
-            return switcher;
-          }
-          // The details open below the banner, over the oldest messages.
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              switcher,
-              ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: room),
-                child: Material(
-                  color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                  borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(12),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: SingleChildScrollView(
-                    child: HypeTrainSheet(
-                      store: store,
-                      onLearnMore: widget.onLearnMore,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          final details =
+              store.expanded &&
+              !widget.compact &&
+              !store.collapsed &&
+              room >= 60;
+          // The collapsed pill is its own; the rest sits on Twitch's card.
+          if (key == 'pill') return switcher;
+          return Material(
+            key: const ValueKey('ht-card'),
+            color: HtNeutrals.of(Theme.of(context).brightness).backgroundFloat,
+            elevation: HtDims.elevation,
+            borderRadius: BorderRadius.circular(HtDims.radius),
+            clipBehavior: Clip.antiAlias,
+            child: details
+                // The details open below the banner, over the oldest
+                // messages, in the same card.
+                ? Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      switcher,
+                      ConstrainedBox(
+                        constraints: BoxConstraints(maxHeight: room),
+                        child: SingleChildScrollView(
+                          child: HypeTrainSheet(
+                            store: store,
+                            onLearnMore: widget.onLearnMore,
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : switcher,
           );
         },
       ),

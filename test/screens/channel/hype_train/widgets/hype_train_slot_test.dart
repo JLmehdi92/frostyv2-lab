@@ -4,6 +4,7 @@ import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/models/hype_train_event.dart';
 import 'package:frosty/screens/channel/hype_train/hype_train_sequence.dart';
+import 'package:frosty/screens/channel/hype_train/widgets/hype_train_banner.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_sheet.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_slot.dart';
 
@@ -100,6 +101,36 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
     expect(find.byType(HypeTrainSheet), findsNothing);
+    await h.close(tester);
+  });
+
+  testWidgets('the banner and its details share one card', (tester) async {
+    final h = HtHarness(
+      snapshot: HtOngoingSnapshot(liveTrain(), fetchedAt: DateTime.utc(2026)),
+    );
+    await pumpSlot(tester, h.store);
+    final card = find.byKey(const ValueKey('ht-card'));
+
+    expect(
+      find.ancestor(of: find.byType(HypeTrainBanner), matching: card),
+      findsOneWidget,
+    );
+    final material = tester.widget<Material>(card);
+    expect(material.elevation, 4);
+    expect(material.color, const Color(0xFFFFFFFF));
+    expect(material.borderRadius, BorderRadius.circular(6));
+
+    h.store.toggleExpanded();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(
+      find.ancestor(of: find.byType(HypeTrainSheet), matching: card),
+      findsOneWidget,
+    );
+    expect(
+      find.ancestor(of: find.byType(HypeTrainBanner), matching: card),
+      findsOneWidget,
+    );
     await h.close(tester);
   });
 }
