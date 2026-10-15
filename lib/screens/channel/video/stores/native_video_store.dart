@@ -165,9 +165,8 @@ abstract class NativeVideoStoreBase with Store implements PlayerController {
   Future<void> _load() async {
     _variants = await _streamService.getStreamVariants(
       userLogin: userLogin,
-      authToken:
-          authStore.twitchWebToken ??
-          (authStore.isLoggedIn ? authStore.token : null),
+      // Only the twitch.tv web token: GQL refuses the app's own login token.
+      authToken: authStore.twitchWebToken,
     );
     _availableStreamQualities = _variants.map((v) => v.name).toList();
     if (_variants.isEmpty) {

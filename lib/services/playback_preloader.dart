@@ -33,14 +33,20 @@ class PlaybackPreloader {
   final bool _isAndroid;
 
   /// Preloads [login]'s token when the IVS engine will play it (the other
-  /// engines, and IVS outside Android, do not use it).
-  void preload({required String login, required PlayerEngine engine}) {
+  /// engines, and IVS outside Android, do not use it). [authToken] must be
+  /// the one the player will send (the twitch.tv web token), or the player
+  /// would look for another cache entry.
+  void preload({
+    required String login,
+    required PlayerEngine engine,
+    String? authToken,
+  }) {
     final resolved = resolvePlayerEngine(
       setting: engine,
       isAndroid: _isAndroid,
       forceWeb: false,
     );
     if (resolved != PlayerEngine.ivs || login.isEmpty) return;
-    unawaited(_service.preload(login));
+    unawaited(_service.preload(login, authToken: authToken));
   }
 }

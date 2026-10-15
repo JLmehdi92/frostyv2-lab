@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -66,10 +67,11 @@ class TwitchStreamService extends BaseApiClient {
       _tokenCache = tokenCache,
       super(dio, '');
 
-  /// Called when an authenticated `PlaybackAccessToken` request is refused.
+  /// Called (not awaited) when Twitch refuses the authenticated
+  /// `PlaybackAccessToken` request with a 401.
   ///
-  /// Should return a freshly minted web token to retry with, or null when none
-  /// can be obtained. This exists because the common way the 2K credential
+  /// Should mint a fresh web token for the next request, returning it, or
+  /// null when none can be obtained. This exists because the common way the 2K credential
   /// dies is not the cookie disappearing but the cookie going stale: it is
   /// still in the jar, still gets sent, and Twitch simply refuses it. Without
   /// this hook the request below would fall back to anonymous and playback
@@ -218,9 +220,8 @@ class TwitchStreamService extends BaseApiClient {
 
   /// The authenticated attempt comes first when [authToken] is given: Twitch
   /// only advertises the enhanced-broadcast renditions to a logged-in viewer.
-  /// It can legitimately fail (GQL refuses tokens minted for another
-  /// client-id), so any failure falls back to the anonymous request that
-  /// has always worked.
+  /// Any failure falls back at once to the anonymous request that has always
+  /// worked, so a bad token never delays playback.
   Future<PlaybackAccessToken> _getAccessToken(
     String login, {
     String? authToken,
@@ -233,36 +234,32 @@ class TwitchStreamService extends BaseApiClient {
           authToken: authToken,
           forceFresh: forceFresh,
         );
+      } on UnauthorizedException catch (e) {
+        debugPrint('Authenticated playback token refused: $e');
+        // A stale cookie: renew it in the background, for the next request,
+        // rather than costing the viewer 2K for the rest of the session. Not
+        // awaited, so this stream starts anonymously right away.
+        final renew = onWebTokenRejected;
+        if (renew != null) {
+          unawaited(
+            renew().catchError((Object e) {
+              debugPrint('Web token renewal failed: $e');
+              return null;
+            }),
+          );
+        }
       } catch (e) {
         debugPrint('Authenticated playback token failed: $e');
-
-        // The stored token was refused. Give the owner one chance to mint a
-        // fresh one before giving up on the enhanced renditions — otherwise a
-        // stale cookie silently costs the user 2K on every stream from here
-        // on, with nothing in the UI to explain it.
-        try {
-          final refreshed = await onWebTokenRejected?.call();
-          if (refreshed != null &&
-              refreshed.isNotEmpty &&
-              refreshed != authToken) {
-            return await _cachedAccessToken(
-              login,
-              authToken: refreshed,
-              forceFresh: true,
-            );
-          }
-        } catch (e) {
-          debugPrint('Refreshed playback token also failed: $e');
-        }
       }
     }
     return _cachedAccessToken(login, forceFresh: forceFresh);
   }
 
-  /// Authenticated and anonymous tokens are cached apart: they do not unlock
-  /// the same renditions.
+  /// Authenticated and anonymous tokens are cached apart (they do not unlock
+  /// the same renditions), and each viewer's token apart from another's, so
+  /// one account's token is never replayed for the next.
   static String _cacheKey(String login, String? authToken) =>
-      authToken == null ? login : '$login#auth';
+      authToken == null ? login : '$login#${authToken.hashCode}';
 
   Future<PlaybackAccessToken> _cachedAccessToken(
     String login, {

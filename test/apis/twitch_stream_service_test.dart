@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -558,6 +560,71 @@ https://video-edge-1.ttvnw.net/chunked/index-live.m3u8
         expect(url, contains('usher.ttvnw.net'));
       },
     );
+
+    test('a 401 renews the web token in the background', () async {
+      recorder.failAuthenticatedRequests = true;
+      final renewal = Completer<String?>();
+      var renewals = 0;
+      service.onWebTokenRejected = () {
+        renewals++;
+        return renewal.future;
+      };
+
+      // Completes although the renewal never does: the stream starts
+      // anonymously at once.
+      final url = await service.getUsherUrl(
+        userLogin: login,
+        authToken: 'stale',
+      );
+
+      expect(url, contains('usher.ttvnw.net'));
+      expect(renewals, 1);
+    });
+
+    test('other failures fall back without renewing the token', () async {
+      recorder
+        ..failAuthenticatedRequests = true
+        ..authFailureStatus = 500;
+      var renewals = 0;
+      service.onWebTokenRejected = () async {
+        renewals++;
+        return null;
+      };
+
+      await service.getUsherUrl(userLogin: login, authToken: 'fine');
+
+      expect(renewals, 0);
+      expect(
+        recorder.requests.last.headers.containsKey('Authorization'),
+        isFalse,
+      );
+    });
+
+    test('a token preloaded with the web token is reused', () async {
+      final expires = DateTime.now().millisecondsSinceEpoch ~/ 1000 + 600;
+      recorder.tokenValue = '{"expires":$expires}';
+      final cache = PlaybackTokenCache();
+      service = TwitchStreamService(dio, tokenCache: cache);
+
+      await service.preload(login, authToken: 'web');
+      await TwitchStreamService(
+        dio,
+        tokenCache: cache,
+      ).getUsherUrl(userLogin: login, authToken: 'web');
+
+      expect(recorder.requests, hasLength(1));
+    });
+
+    test("one viewer's token is never replayed for another", () async {
+      final cache = PlaybackTokenCache();
+      service = TwitchStreamService(dio, tokenCache: cache);
+
+      await service.getUsherUrl(userLogin: login, authToken: 'account-a');
+      await service.getUsherUrl(userLogin: login, authToken: 'account-b');
+      await service.getUsherUrl(userLogin: login);
+
+      expect(recorder.requests, hasLength(3));
+    });
   });
 }
 
@@ -567,6 +634,10 @@ https://video-edge-1.ttvnw.net/chunked/index-live.m3u8
 class _RecordingAdapter implements HttpClientAdapter {
   final requests = <RequestOptions>[];
   bool failAuthenticatedRequests = false;
+  int authFailureStatus = 401;
+
+  /// The token's value; give it an `expires` for the cache to keep it.
+  String tokenValue = '{"token":"abc"}';
 
   @override
   Future<ResponseBody> fetch(
@@ -580,13 +651,19 @@ class _RecordingAdapter implements HttpClientAdapter {
     if (failAuthenticatedRequests && isAuthenticated) {
       return ResponseBody.fromString(
         '{"errors":[{"message":"unauthorized"}]}',
-        401,
+        authFailureStatus,
       );
     }
 
     return ResponseBody.fromString(
-      '{"data":{"streamPlaybackAccessToken":'
-      '{"value":"{\\"token\\":\\"abc\\"}","signature":"deadbeef"}}}',
+      jsonEncode({
+        'data': {
+          'streamPlaybackAccessToken': {
+            'value': tokenValue,
+            'signature': 'deadbeef',
+          },
+        },
+      }),
       200,
       headers: {
         Headers.contentTypeHeader: [Headers.jsonContentType],

@@ -12,7 +12,9 @@ void main() {
 
   setUp(() {
     service = MockTwitchStreamService();
-    when(() => service.preload(any())).thenAnswer((_) async {});
+    when(
+      () => service.preload(any(), authToken: any(named: 'authToken')),
+    ).thenAnswer((_) async {});
     preloader = PlaybackPreloader(service, isAndroid: true);
   });
 
@@ -27,5 +29,15 @@ void main() {
     ).preload(login: 'other', engine: PlayerEngine.ivs);
 
     verify(() => service.preload('streamer')).called(1);
+  });
+
+  test('asks with the token the player will send', () {
+    preloader.preload(
+      login: 'streamer',
+      engine: PlayerEngine.ivs,
+      authToken: 'web-token',
+    );
+
+    verify(() => service.preload('streamer', authToken: 'web-token')).called(1);
   });
 }

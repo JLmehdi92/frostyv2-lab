@@ -607,12 +607,11 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   /// The token sent with the playback access token request.
   ///
   /// Some streams only expose the enhanced-broadcast renditions (1440p HEVC /
-  /// AV1) to an authenticated viewer. The twitch.tv web token wins because
-  /// GQL accepts it; the app's own login token is tried otherwise, and the
-  /// service falls back to an anonymous request whenever a token is refused.
-  String? get _userAuthToken =>
-      authStore.twitchWebToken ??
-      (authStore.isLoggedIn ? authStore.token : null);
+  /// AV1) to an authenticated viewer. Only the twitch.tv web token is sent:
+  /// GQL always refuses the app's own login token (minted for another
+  /// client-id), so trying it would only delay every start. The service
+  /// falls back to an anonymous request whenever the token is refused.
+  String? get _userAuthToken => authStore.twitchWebToken;
 
   /// Wires the per-texture MethodChannel for the texture-backed mini player.
   void attachTextureChannel(int textureId) =>

@@ -240,6 +240,7 @@ class StreamCard extends StatelessWidget {
       onTapDown: (_) => PlaybackPreloader.instance.preload(
         login: streamInfo.userLogin,
         engine: context.read<SettingsStore>().playerEngine,
+        authToken: context.read<AuthStore?>()?.twitchWebToken,
       ),
       onTap: () => Navigator.push(
         context,
