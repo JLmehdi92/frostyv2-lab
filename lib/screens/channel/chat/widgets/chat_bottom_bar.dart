@@ -32,39 +32,21 @@ class ChatBottomBar extends StatelessWidget {
     this.channelDisplayName,
   });
 
-  /// Narrowest side chat, in dp, that still gets a text field on a large
-  /// screen. Below it a pencil widens the chat first.
-  static const minInputWidth = 200.0;
-
   /// Whether the landscape side chat shows a pencil instead of the text
   /// field, and whether it shows the send button.
   ///
-  /// Phones keep the original rule (a chat under 30% of the width). A large
-  /// screen uses the chat's width in dp, so a tablet's 20% column (320 dp)
-  /// keeps the input.
+  /// ONSET's rule, on every screen size: a side chat under 30% of the width
+  /// is too narrow for a text field, so a pencil widens it first.
   @visibleForTesting
   static ({bool pencil, bool send}) inputControls({
-    required double screenWidth,
     required double chatWidth,
     required bool landscape,
-    required bool forceVerticalChat,
     required bool showVideo,
     required bool expandChat,
-    required bool largeScreen,
-  }) {
-    if (largeScreen) {
-      final tooNarrow =
-          landscape &&
-          showVideo &&
-          !forceVerticalChat &&
-          screenWidth * chatWidth < minInputWidth;
-      return (pencil: !expandChat && tooNarrow, send: expandChat || !tooNarrow);
-    }
-    return (
-      pencil: !expandChat && chatWidth < 0.3 && showVideo && landscape,
-      send: chatWidth >= 0.3 || expandChat || !landscape,
-    );
-  }
+  }) => (
+    pencil: !expandChat && chatWidth < 0.3 && showVideo && landscape,
+    send: chatWidth >= 0.3 || expandChat || !landscape,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -105,13 +87,10 @@ class ChatBottomBar extends StatelessWidget {
             chatStore.settings.fullScreen && context.isLandscape;
 
         final inputControls = ChatBottomBar.inputControls(
-          screenWidth: context.screenWidth,
           chatWidth: chatStore.settings.chatWidth,
           landscape: context.isLandscape,
-          forceVerticalChat: chatStore.settings.landscapeForceVerticalChat,
           showVideo: chatStore.settings.showVideo,
           expandChat: chatStore.expandChat,
-          largeScreen: context.isLargeScreen,
         );
 
         final effectiveChatDelay = chatStore.settings.effectiveChatDelay;
