@@ -173,7 +173,7 @@ class StreamCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontFamily: FrostyTokens.displayFamily,
-                      fontVariations: FrostyTokens.displayWeight(600),
+                      fontWeight: FrostyTokens.displayWeight(600),
                       fontSize: 16,
                       letterSpacing: -0.011,
                       color: fontColor,

@@ -79,18 +79,18 @@ class _ReleaseNotesState extends State<ReleaseNotes> {
                 styleSheet: MarkdownStyleSheet(
                   h2: TextStyle(
                     fontFamily: FrostyTokens.displayFamily,
-                    fontVariations: FrostyTokens.displayWeight(700),
+                    fontWeight: FrostyTokens.displayWeight(700),
                     fontSize: 20,
                   ),
                   h3: TextStyle(
                     fontFamily: FrostyTokens.displayFamily,
-                    fontVariations: FrostyTokens.displayWeight(600),
+                    fontWeight: FrostyTokens.displayWeight(600),
                     fontSize: 16,
                   ),
                   h3Padding: const EdgeInsets.only(top: 16),
                   h4: TextStyle(
                     fontFamily: FrostyTokens.displayFamily,
-                    fontVariations: FrostyTokens.displayWeight(600),
+                    fontWeight: FrostyTokens.displayWeight(600),
                     fontSize: 14,
                   ),
                   h4Padding: const EdgeInsets.only(top: 16),

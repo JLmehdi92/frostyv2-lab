@@ -43,20 +43,20 @@ class FrostyTokens {
   static const accent = Color(0xFFC8FF3D);
 
   // Type ─────────────────────────────────────────────────────────────────────
-  static const displayFamily = 'SpaceGrotesk';
-  static const bodyFamily = 'Geist';
+  /// Inter for everything: the free face closest to Twitch's own (Roobert is
+  /// licensed). Headings, body and numbers share it, as on Twitch.
+  static const displayFamily = 'Inter';
+  static const bodyFamily = 'Inter';
 
-  /// Monospace face for every number the user reads: viewer counts, uptime,
-  /// latency, resolutions and chat timestamps. Tabular by construction, so
-  /// counters stop jittering as their digits change.
-  static const monoFamily = 'SpaceMono';
+  /// Every number the user reads (viewer counts, uptime, latency,
+  /// resolutions, chat timestamps) uses Inter's tabular figures, so counters
+  /// stop jittering as their digits change.
+  static const monoFamily = 'Inter';
 
-  /// SpaceGrotesk ships as a variable font, so weights must be selected through
-  /// [FontVariation]. Using [FontWeight] alone would render the default
-  /// instance and let the engine fake the bold.
-  static List<FontVariation> displayWeight(double weight) => [
-    FontVariation('wght', weight),
-  ];
+  /// The heading weight for [weight] on the 100–900 scale, rounded to the
+  /// nearest weight Inter ships.
+  static FontWeight displayWeight(double weight) =>
+      FontWeight.values[((weight / 100).round() - 1).clamp(0, 8)];
 
   // Shape ────────────────────────────────────────────────────────────────────
   static const radiusCard = 12.0;
@@ -552,7 +552,7 @@ class FrostyThemes {
         // Alert dialog title
         headlineSmall: TextStyle(
           fontFamily: FrostyTokens.displayFamily,
-          fontVariations: FrostyTokens.displayWeight(650),
+          fontWeight: FrostyTokens.displayWeight(650),
           fontSize: 18,
           letterSpacing: -0.019,
         ),
@@ -560,7 +560,7 @@ class FrostyThemes {
         // App bar title
         titleLarge: TextStyle(
           fontFamily: FrostyTokens.displayFamily,
-          fontVariations: FrostyTokens.displayWeight(700),
+          fontWeight: FrostyTokens.displayWeight(700),
           fontSize: 24,
           letterSpacing: -0.4,
         ),
@@ -568,14 +568,14 @@ class FrostyThemes {
         // Section titles
         titleMedium: TextStyle(
           fontFamily: FrostyTokens.displayFamily,
-          fontVariations: FrostyTokens.displayWeight(600),
+          fontWeight: FrostyTokens.displayWeight(600),
           letterSpacing: -0.011,
         ),
 
         // Tab bar title
         titleSmall: TextStyle(
           fontFamily: FrostyTokens.displayFamily,
-          fontVariations: FrostyTokens.displayWeight(600),
+          fontWeight: FrostyTokens.displayWeight(600),
           fontSize: 16,
           letterSpacing: -0.011,
         ),

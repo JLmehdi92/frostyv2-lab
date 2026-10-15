@@ -76,7 +76,7 @@ class OnboardingScaffold extends StatelessWidget {
                           header,
                           style: TextStyle(
                             fontFamily: FrostyTokens.displayFamily,
-                            fontVariations: FrostyTokens.displayWeight(700),
+                            fontWeight: FrostyTokens.displayWeight(700),
                             fontSize: 48,
                             letterSpacing: -0.03 * 48,
                           ),

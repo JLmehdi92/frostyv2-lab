@@ -56,7 +56,7 @@ class _ChatUserModalState extends State<ChatUserModal> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontFamily: FrostyTokens.displayFamily,
-                        fontVariations: FrostyTokens.displayWeight(700),
+                        fontWeight: FrostyTokens.displayWeight(700),
                       ),
                     ),
                   ),
