@@ -20,7 +20,13 @@ class _UpdateCheckTileState extends State<UpdateCheckTile> {
 
   Future<void> _check() async {
     setState(() => _checking = true);
-    final result = await widget.updater.check(force: true);
+    UpdateCheck result;
+    try {
+      result = await widget.updater.check(force: true);
+    } catch (e) {
+      debugPrint('Update check failed: ${e.runtimeType}');
+      result = const UpdateCheckFailed();
+    }
     if (!mounted) return;
     setState(() => _checking = false);
 

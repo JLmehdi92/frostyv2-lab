@@ -40,12 +40,17 @@ class OnsetUpdateService extends BaseApiClient {
   final String _repo;
   final Dio _http;
   final Future<Directory> Function() _cacheDirectory;
+  final Duration _idleTimeout;
 
+  /// [idleTimeout] bounds the wait for the next bytes of an asset: Dio's
+  /// receive timeout does not cover streamed bodies, so a stalled download
+  /// would otherwise wait forever.
   OnsetUpdateService({
     required String token,
     required String repo,
     Dio? dio,
     Future<Directory> Function()? cacheDirectory,
+    Duration idleTimeout = const Duration(seconds: 30),
   }) : this._(
          token,
          repo,
@@ -57,6 +62,7 @@ class OnsetUpdateService extends BaseApiClient {
                ),
              ),
          cacheDirectory ?? getTemporaryDirectory,
+         idleTimeout,
        );
 
   OnsetUpdateService._(
@@ -64,6 +70,7 @@ class OnsetUpdateService extends BaseApiClient {
     this._repo,
     this._http,
     this._cacheDirectory,
+    this._idleTimeout,
   ) : super(_http, _apiOrigin);
 
   bool get _validRepo =>
@@ -101,12 +108,18 @@ class OnsetUpdateService extends BaseApiClient {
   ///
   /// Throws [UpdateDownloadException] when the asset cannot be fetched: a
   /// network failure is not a corrupted update.
-  Future<String?> expectedSha256(OnsetRelease release) async {
+  Future<String?> expectedSha256(
+    OnsetRelease release, {
+    CancelToken? cancelToken,
+  }) async {
     if (!_validRepo) return null;
     final Uint8List bytes;
     try {
-      final body = await _openAsset(release.shaAssetId);
-      bytes = await _collect(body.stream, maxBytes: 4096);
+      final body = await _openAsset(
+        release.shaAssetId,
+        cancelToken: cancelToken,
+      );
+      bytes = await _collect(body.stream, cancelToken, maxBytes: 4096);
     } on UpdateIntegrityException {
       return null;
     } catch (e) {
@@ -139,7 +152,7 @@ class OnsetUpdateService extends BaseApiClient {
     void Function(int received, int total)? onProgress,
     CancelToken? cancelToken,
   }) async {
-    final expected = await expectedSha256(release);
+    final expected = await expectedSha256(release, cancelToken: cancelToken);
     if (expected == null) throw const UpdateIntegrityException();
     if (cancelToken?.isCancelled ?? false) {
       throw const UpdateCancelledException();
@@ -163,19 +176,13 @@ class OnsetUpdateService extends BaseApiClient {
       final actual = (await sha256.bind(part.openRead()).first).toString();
       if (actual != expected) throw const UpdateIntegrityException();
       return await part.rename(file.path);
-    } on DioException catch (e) {
+    } catch (e) {
       await _delete(part);
-      if (e.type == DioExceptionType.cancel) {
-        throw const UpdateCancelledException();
-      }
-      debugPrint('Update download failed: ${e.response?.statusCode}');
-      throw const UpdateDownloadException();
-    } on FileSystemException {
-      await _delete(part);
-      throw const UpdateDownloadException();
-    } catch (_) {
-      await _delete(part);
-      rethrow;
+      debugPrint(
+        'Update download failed: '
+        '${e is DioException ? e.response?.statusCode : e.runtimeType}',
+      );
+      throw _failure(e);
     }
   }
 
@@ -217,14 +224,15 @@ class OnsetUpdateService extends BaseApiClient {
   }
 
   Future<Uint8List> _collect(
-    Stream<Uint8List> stream, {
+    Stream<Uint8List> stream,
+    CancelToken? cancelToken, {
     required int maxBytes,
   }) async {
     final builder = BytesBuilder(copy: false);
-    await for (final chunk in stream) {
+    await _read(stream, cancelToken, (chunk) {
       builder.add(chunk);
       if (builder.length > maxBytes) throw const UpdateIntegrityException();
-    }
+    });
     return builder.takeBytes();
   }
 
@@ -237,43 +245,64 @@ class OnsetUpdateService extends BaseApiClient {
   ) async {
     await file.parent.create(recursive: true);
     final sink = file.openWrite();
-    final done = Completer<void>();
     var received = 0;
+    try {
+      await _read(stream, cancelToken, (chunk) {
+        sink.add(chunk);
+        received += chunk.length;
+        onProgress?.call(received, total);
+      });
+    } finally {
+      await sink.close();
+    }
+  }
+
+  /// Hands each chunk of [stream] to [onChunk] until it ends. Fails with
+  /// [UpdateDownloadException] when no bytes come for [_idleTimeout], and
+  /// with [UpdateCancelledException] as soon as [cancelToken] is cancelled.
+  /// An exception thrown by [onChunk] stops the read and is passed on.
+  Future<void> _read(
+    Stream<Uint8List> stream,
+    CancelToken? cancelToken,
+    void Function(Uint8List chunk) onChunk,
+  ) {
+    final done = Completer<void>();
     late final StreamSubscription<Uint8List> subscription;
 
     void fail(Object error) {
       if (done.isCompleted) return;
       unawaited(subscription.cancel());
-      done.completeError(error);
+      done.completeError(_failure(error));
     }
 
-    subscription = stream.listen(
-      (chunk) {
-        sink.add(chunk);
-        received += chunk.length;
-        onProgress?.call(received, total);
-      },
-      onError: (Object error) => fail(
-        error is DioException && error.type == DioExceptionType.cancel
-            ? const UpdateCancelledException()
-            : const UpdateDownloadException(),
-      ),
-      onDone: () {
-        if (!done.isCompleted) done.complete();
-      },
-      cancelOnError: true,
-    );
-    unawaited(
-      cancelToken?.whenCancel.then(
-        (_) => fail(const UpdateCancelledException()),
-      ),
-    );
-
-    try {
-      await done.future;
-    } finally {
-      await sink.close();
+    subscription = stream
+        .timeout(_idleTimeout)
+        .listen(
+          (chunk) {
+            try {
+              onChunk(chunk);
+            } catch (e) {
+              fail(e);
+            }
+          },
+          onError: fail,
+          onDone: () {
+            if (!done.isCompleted) done.complete();
+          },
+          cancelOnError: true,
+        );
+    if (cancelToken != null) {
+      if (cancelToken.isCancelled) {
+        fail(const UpdateCancelledException());
+      } else {
+        unawaited(
+          cancelToken.whenCancel.then(
+            (_) => fail(const UpdateCancelledException()),
+          ),
+        );
+      }
     }
+    return done.future;
   }
 
   Future<void> _clear(Directory directory) async {

@@ -176,6 +176,17 @@ void main() {
     });
   }
 
+  testWidgets('an unexpected error closes the progress too', (tester) async {
+    downloadDoes((_, _) async => throw StateError('boom'));
+    await pumpOffer(tester);
+
+    await tester.tap(find.text('Update'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Downloading update'), findsNothing);
+    expect(find.text('Download failed'), findsOneWidget);
+  });
+
   group('without the install permission', () {
     setUp(() {
       var allowed = false;
@@ -278,6 +289,32 @@ void main() {
 
       verify(() => updater.check()).called(2);
       expect(find.text('Update available'), findsNothing);
+    });
+
+    testWidgets('a check that throws does not stop the next one', (
+      tester,
+    ) async {
+      when(() => updater.check()).thenThrow(StateError('prefs'));
+      await pumpWatcher(tester, provided: updater);
+      await tester.pumpAndSettle();
+
+      when(
+        () => updater.check(),
+      ).thenAnswer((_) async => const UpdateAvailable(_release, 1020));
+      for (final state in [
+        AppLifecycleState.inactive,
+        AppLifecycleState.hidden,
+        AppLifecycleState.paused,
+        AppLifecycleState.hidden,
+        AppLifecycleState.inactive,
+        AppLifecycleState.resumed,
+      ]) {
+        tester.binding.handleAppLifecycleStateChanged(state);
+      }
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Update available'), findsOneWidget);
     });
 
     testWidgets('does nothing when updates are off or missing', (tester) async {

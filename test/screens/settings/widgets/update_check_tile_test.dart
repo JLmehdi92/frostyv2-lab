@@ -98,6 +98,25 @@ void main() {
     expect(find.text("Couldn't check for updates"), findsOneWidget);
   });
 
+  testWidgets('a check that throws says so and can be retried', (tester) async {
+    when(() => updater.check(force: true)).thenThrow(StateError('prefs'));
+    await pumpSettings(tester, provided: updater);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Check for updates'));
+    await tester.pumpAndSettle();
+
+    expect(find.text("Couldn't check for updates"), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    final tile = tester.widget<ListTile>(
+      find.ancestor(
+        of: find.text('Check for updates'),
+        matching: find.byType(ListTile),
+      ),
+    );
+    expect(tile.onTap, isNotNull);
+  });
+
   testWidgets('offers a newer build', (tester) async {
     when(
       () => updater.check(force: true),

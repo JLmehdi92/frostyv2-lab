@@ -327,6 +327,71 @@ void main() {
       expect(old.existsSync(), isFalse);
     });
 
+    OnsetUpdateService patient(_Adapter adapter, Duration idle) =>
+        OnsetUpdateService(
+          token: _token,
+          repo: _repo,
+          dio: Dio()..httpClientAdapter = adapter,
+          cacheDirectory: () async => cache,
+          idleTimeout: idle,
+        );
+
+    test('a stalled download fails instead of hanging', () async {
+      final stalled = StreamController<Uint8List>();
+      final adapter = _Adapter((options) {
+        final url = options.uri.toString();
+        if (url == _shaUrl) return ResponseBody.fromString(_apkHash, 200);
+        if (url == _apkUrl) return _redirect(_signedUrl);
+        return ResponseBody(stalled.stream, 200);
+      });
+
+      await expectLater(
+        patient(adapter, const Duration(milliseconds: 50)).download(_release),
+        throwsA(isA<UpdateDownloadException>()),
+      );
+      expect(Directory('${cache.path}/updates').listSync(), isEmpty);
+      await stalled.close();
+    });
+
+    test('a stalled hash fails instead of hanging', () async {
+      final stalled = StreamController<Uint8List>();
+      final adapter = _Adapter((_) => ResponseBody(stalled.stream, 200));
+
+      await expectLater(
+        patient(
+          adapter,
+          const Duration(milliseconds: 50),
+        ).expectedSha256(_release),
+        throwsA(isA<UpdateDownloadException>()),
+      );
+      await stalled.close();
+    });
+
+    test('cancelling while the hash loads stops the download', () async {
+      final stalled = StreamController<Uint8List>();
+      final adapter = _Adapter((_) => ResponseBody(stalled.stream, 200));
+      final cancelToken = CancelToken();
+
+      final download = patient(
+        adapter,
+        const Duration(minutes: 5),
+      ).download(_release, cancelToken: cancelToken);
+      // Cancel once the hash body is being read, not before the request.
+      await pumpEventQueue();
+      expect(stalled.hasListener, isTrue);
+      cancelToken.cancel();
+
+      await expectLater(
+        download.timeout(const Duration(seconds: 5)),
+        throwsA(isA<UpdateCancelledException>()),
+      );
+      expect(
+        adapter.requests.where((r) => r.uri.toString() == _apkUrl),
+        isEmpty,
+      );
+      await stalled.close();
+    });
+
     test('a cancelled download stops and leaves nothing behind', () async {
       final cancelToken = CancelToken();
       final chunks = StreamController<Uint8List>();

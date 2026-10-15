@@ -263,6 +263,9 @@ mixin OnsetUpdateChecks<T extends StatefulWidget> on State<T> {
       if (result is UpdateAvailable && mounted) {
         await offerUpdate(context, updater, result);
       }
+    } catch (e) {
+      // An update is never worth an error screen: the next resume retries.
+      debugPrint('Update check failed: ${e.runtimeType}');
     } finally {
       _updateBusy = false;
     }
