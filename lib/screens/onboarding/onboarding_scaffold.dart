@@ -61,7 +61,15 @@ class OnboardingScaffold extends StatelessWidget {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
+                // A short window (a landscape phone, a split screen) cannot
+                // spare the 50 dp above the header: the button would be
+                // pushed off the bottom.
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  MediaQuery.sizeOf(context).height < 500 ? 12 : 50,
+                  20,
+                  20,
+                ),
                 child: Column(
                   spacing: 24,
                   children: [
