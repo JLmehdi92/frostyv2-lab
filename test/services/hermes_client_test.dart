@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/models/hermes.dart';
@@ -36,6 +37,9 @@ class _FakeSocket implements WebSocketChannel {
   ];
 
   void receive(dynamic frame) => _incoming.add(frame);
+
+  /// The server hangs up.
+  void hangUp() => unawaited(_incoming.close());
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -120,6 +124,7 @@ void main() {
   }
 
   const welcome = '{"type":"welcome","id":"w","welcome":{"keepaliveSec":15}}';
+  const hermesKeepaliveFrame = '{"type":"keepalive","id":"k"}';
 
   /// Opens a session and subscribes [topics], acknowledged as `sub-<i>`.
   Future<_FakeSocket> session(List<String> topics) async {
@@ -222,6 +227,279 @@ void main() {
       await pumpEventQueue();
 
       expect(socket.subscribedTopics, hasLength(1));
+    });
+  });
+
+  group('notifications', () {
+    late List<HermesEvent> received;
+
+    setUp(() {
+      received = [];
+      client.events.listen(received.add);
+    });
+
+    test('are routed to their topic by subscription id', () async {
+      final socket = await session(['goals.1', 'points.1']);
+
+      socket.receive(_notification('sub-1', 'points-earned', {'n': 5}));
+      await pumpEventQueue();
+
+      expect(received, hasLength(1));
+      expect(received.single.topic, 'points.1');
+      expect(received.single.type, 'points-earned');
+      expect(received.single.data, {'n': 5});
+    });
+
+    test('a payload sent as an object is read too', () async {
+      final socket = await session(['goals.1']);
+
+      socket.receive(
+        jsonEncode({
+          'type': 'notification',
+          'id': 'n',
+          'notification': {
+            'subscription': {'id': 'sub-0'},
+            'type': 'pubsub',
+            'pubsub': {
+              'type': 'goal_updated',
+              'data': {'goal': 1},
+            },
+          },
+        }),
+      );
+      await pumpEventQueue();
+
+      expect(received.single.type, 'goal_updated');
+      expect(received.single.data, {'goal': 1});
+    });
+
+    test('an unknown subscription id is dropped', () async {
+      final socket = await session(['goals.1']);
+
+      socket.receive(_notification('sub-77', 'goal_updated'));
+      await pumpEventQueue();
+
+      expect(received, isEmpty);
+    });
+
+    test('a refused subscribe routes nothing afterwards', () async {
+      await client.subscribe('bad.1');
+      final socket = sockets.single;
+      socket.receive(welcome);
+      await pumpEventQueue();
+      final request = socket.frames.lastWhere((f) => f['type'] == 'subscribe');
+      socket.receive(
+        jsonEncode({
+          'type': 'subscribeResponse',
+          'id': 'r',
+          'parentId': request['id'],
+          'subscribeResponse': {
+            'subscription': {'id': 'sub-bad'},
+            'result': 'error',
+            'error': 'invalid topic',
+          },
+        }),
+      );
+      await pumpEventQueue();
+
+      socket.receive(_notification('sub-bad', 'anything'));
+      await pumpEventQueue();
+
+      expect(received, isEmpty);
+    });
+
+    test('a malformed payload is dropped', () async {
+      final socket = await session(['goals.1']);
+
+      for (final pubsub in <Object>[
+        'not json',
+        '[1]',
+        '{"data":{}}',
+        '{"type":5}',
+        7,
+      ]) {
+        socket.receive(
+          jsonEncode({
+            'type': 'notification',
+            'id': 'n',
+            'notification': {
+              'subscription': {'id': 'sub-0'},
+              'pubsub': pubsub,
+            },
+          }),
+        );
+      }
+      await pumpEventQueue();
+
+      expect(received, isEmpty);
+      expect(socket.closed, isFalse);
+    });
+
+    test('a payload without data arrives with empty data', () async {
+      final socket = await session(['goals.1']);
+
+      socket.receive(
+        jsonEncode({
+          'type': 'notification',
+          'id': 'n',
+          'notification': {
+            'subscription': {'id': 'sub-0'},
+            'pubsub': '{"type":"goal_ended"}',
+          },
+        }),
+      );
+      await pumpEventQueue();
+
+      expect(received.single.data, isEmpty);
+    });
+  });
+
+  group('connection upkeep', () {
+    /// Lets the reconnect timer run out: the delay is jittered between half
+    /// and all of the backoff base.
+    void waitBackoff(FakeAsync async, int baseMs, int socketsBefore) {
+      async.elapse(Duration(milliseconds: baseMs ~/ 2 - 1));
+      expect(sockets, hasLength(socketsBefore), reason: 'too early at $baseMs');
+      async.elapse(Duration(milliseconds: baseMs ~/ 2 + 1));
+      expect(
+        sockets,
+        hasLength(socketsBefore + 1),
+        reason: 'not reconnected at $baseMs',
+      );
+    }
+
+    test('backs off exponentially up to a minute, reset by a welcome', () {
+      fakeAsync((async) {
+        unawaited(client.subscribe('goals.1'));
+        async.flushMicrotasks();
+        expect(sockets, hasLength(1));
+
+        var base = 500;
+        for (var attempt = 0; attempt < 9; attempt++) {
+          sockets.last.hangUp();
+          async.flushMicrotasks();
+          waitBackoff(async, base, sockets.length);
+          base = (base * 2).clamp(0, 60000);
+        }
+        expect(base, 60000);
+        sockets.last.hangUp();
+        async.flushMicrotasks();
+        waitBackoff(async, 60000, sockets.length);
+
+        // A session that came up starts the count again.
+        sockets.last.receive(welcome);
+        async.flushMicrotasks();
+        sockets.last.hangUp();
+        async.flushMicrotasks();
+        waitBackoff(async, 500, sockets.length);
+      });
+    });
+
+    test('a reconnect frame moves without charging the backoff', () {
+      fakeAsync((async) {
+        unawaited(client.subscribe('goals.1'));
+        async.flushMicrotasks();
+        for (var i = 0; i < 3; i++) {
+          sockets.last.hangUp();
+          async.flushMicrotasks();
+          async.elapse(const Duration(seconds: 5));
+        }
+        final socket = sockets.last;
+
+        socket.receive(
+          '{"type":"reconnect","id":"r","reconnect":{"url":"wss://x"}}',
+        );
+        async.flushMicrotasks();
+        expect(socket.closed, isTrue);
+        waitBackoff(async, 500, sockets.length);
+
+        // The new session subscribes the same topics again.
+        sockets.last.receive(welcome);
+        async.flushMicrotasks();
+        expect(sockets.last.subscribedTopics, ['goals.1']);
+      });
+    });
+
+    test('pings within the keepalive the server asked for', () {
+      fakeAsync((async) {
+        unawaited(client.subscribe('goals.1'));
+        async.flushMicrotasks();
+        final socket = sockets.single;
+        socket.receive(
+          '{"type":"welcome","id":"w","welcome":{"keepaliveSec":10}}',
+        );
+        async.flushMicrotasks();
+
+        int pings() => socket.types.where((t) => t == 'ping').length;
+        async.elapse(const Duration(milliseconds: 5999));
+        expect(pings(), 0);
+        async.elapse(const Duration(milliseconds: 1));
+        expect(pings(), 1);
+        socket.receive(hermesKeepaliveFrame);
+        async.elapse(const Duration(seconds: 6));
+        expect(pings(), 2);
+      });
+    });
+
+    test('silence for three keepalives reconnects', () {
+      fakeAsync((async) {
+        unawaited(client.subscribe('goals.1'));
+        async.flushMicrotasks();
+        final socket = sockets.single;
+        socket.receive(welcome);
+        async.flushMicrotasks();
+
+        // Frames keep it alive...
+        for (var i = 0; i < 4; i++) {
+          async.elapse(const Duration(seconds: 40));
+          socket.receive(hermesKeepaliveFrame);
+          async.flushMicrotasks();
+        }
+        expect(socket.closed, isFalse);
+
+        // ...45 s of nothing does not.
+        async.elapse(const Duration(seconds: 45));
+        expect(socket.closed, isTrue);
+        async.elapse(const Duration(seconds: 1));
+        expect(sockets, hasLength(2));
+      });
+    });
+
+    test('pausing cancels a pending reconnect', () {
+      fakeAsync((async) {
+        unawaited(client.subscribe('goals.1'));
+        async.flushMicrotasks();
+        sockets.single.hangUp();
+        async.flushMicrotasks();
+
+        client.pause();
+        async.elapse(const Duration(minutes: 10));
+        expect(sockets, hasLength(1));
+
+        unawaited(client.resume());
+        async.flushMicrotasks();
+        expect(sockets, hasLength(2));
+      });
+    });
+
+    test('dispose closes the socket and the event stream for good', () {
+      fakeAsync((async) {
+        var done = false;
+        client.events.listen(null, onDone: () => done = true);
+        unawaited(client.subscribe('goals.1'));
+        async.flushMicrotasks();
+        final socket = sockets.single;
+
+        client.dispose();
+        async.flushMicrotasks();
+        expect(socket.closed, isTrue);
+        expect(done, isTrue);
+
+        unawaited(client.subscribe('goals.2'));
+        socket.hangUp();
+        async.elapse(const Duration(minutes: 5));
+        expect(sockets, hasLength(1));
+      });
     });
   });
 
