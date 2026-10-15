@@ -452,51 +452,121 @@ class RaidCard extends StatelessWidget {
   }
 }
 
-/// The banner Twitch pins above chat for a gift bomb of five subs or more:
-/// "**Gifter** is gifting 5 Subscriptions!", a close button, and a thin
-/// green bar draining until the banner leaves.
+/// The banner Twitch pins above chat for a gift bomb of five subs or more,
+/// drawn to Twitch's own measurements rather than in the highlight card
+/// frame: a 74dp card (growing with the text size, up to twice as tall), 8dp
+/// clear of its surroundings, with 6dp corners; a 32dp green gift icon;
+/// "**Gifter** is gifting 5 Subscriptions!" on a single line; a close
+/// button; and a 3dp green bar draining along its bottom edge until the
+/// banner leaves.
 class GiftBombCard extends StatelessWidget {
   const GiftBombCard({super.key, required this.banner, required this.card});
 
   final GiftBombBanner banner;
   final HighlightCardContext card;
 
+  /// The card itself, inside its 8dp margin.
+  static const cardKey = ValueKey('gift-bomb-card');
+
+  /// The single-line title.
+  static const titleKey = ValueKey('gift-bomb-card-title');
+
+  static const _height = 74.0;
+  static const _maxTextScale = 2.0;
+
   @override
   Widget build(BuildContext context) {
     final bomb = banner.bomb;
+    final theme = Theme.of(context);
     final accent = context.frostyColors.subNoticeAccent;
     final subscriptions = bomb.count == 1 ? 'Subscription' : 'Subscriptions';
-    final tier = bomb.tier;
+    final textScaler = MediaQuery.textScalerOf(
+      context,
+    ).clamp(maxScaleFactor: _maxTextScale);
 
-    return HighlightCardShell(
-      icon: Icons.card_giftcard_rounded,
-      accent: accent,
-      title: 'Gift Subs',
-      status: Text(tier ?? ''),
-      semanticsLabel:
-          '${bomb.gifterName} is gifting ${bomb.count} $subscriptions',
-      expanded: card.expanded,
-      onToggle: card.onToggle,
-      onDismiss: card.onDismiss,
-      headline: Text.rich(
-        TextSpan(
-          children: [
-            TextSpan(
-              text: bomb.gifterName,
-              style: const TextStyle(fontWeight: FontWeight.w700),
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: _maxTextScale,
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Material(
+          key: cardKey,
+          color: theme.colorScheme.surface,
+          elevation: 2,
+          borderRadius: BorderRadius.circular(6),
+          clipBehavior: Clip.antiAlias,
+          child: SizedBox(
+            height: textScaler.scale(_height),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 12),
+                      ExcludeSemantics(
+                        child: Icon(
+                          Icons.card_giftcard_rounded,
+                          size: 32,
+                          color: accent,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Semantics(
+                          container: true,
+                          liveRegion: true,
+                          label:
+                              '${bomb.gifterName} is gifting ${bomb.count} '
+                              '$subscriptions',
+                          child: ExcludeSemantics(
+                            child: Text.rich(
+                              key: titleKey,
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: bomb.gifterName,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        ' is gifting ${bomb.count} '
+                                        '$subscriptions!',
+                                  ),
+                                ],
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleSmall,
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (card.onDismiss case final onDismiss?)
+                        IconButton(
+                          tooltip: 'Hide',
+                          icon: Icon(
+                            Icons.close_rounded,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          onPressed: onDismiss,
+                        )
+                      else
+                        const SizedBox(width: 12),
+                    ],
+                  ),
+                ),
+                GiftBombCountdownBar(
+                  startedAt: banner.startedAt,
+                  endsAt: banner.endsAt,
+                  now: card.now,
+                  color: accent,
+                ),
+              ],
             ),
-            TextSpan(text: ' is gifting ${bomb.count} $subscriptions!'),
-          ],
+          ),
         ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: Theme.of(context).textTheme.titleSmall,
-      ),
-      footer: GiftBombCountdownBar(
-        startedAt: banner.startedAt,
-        endsAt: banner.endsAt,
-        now: card.now,
-        color: accent,
       ),
     );
   }

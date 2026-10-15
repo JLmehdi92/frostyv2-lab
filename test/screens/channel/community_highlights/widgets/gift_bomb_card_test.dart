@@ -201,4 +201,100 @@ void main() {
       expect(barValue(tester), closeTo(0.75, 0.01));
     });
   });
+
+  group("Twitch's banner geometry", () {
+    Future<void> pumpScaled(WidgetTester tester, double scale) =>
+        tester.pumpWidget(
+          MaterialApp(
+            theme: const FrostyThemes(
+              colorSchemeSeed: FrostyTokens.accent,
+            ).dark,
+            home: Builder(
+              builder: (context) => MediaQuery(
+                data: MediaQuery.of(
+                  context,
+                ).copyWith(textScaler: TextScaler.linear(scale)),
+                child: Scaffold(
+                  body: Align(
+                    alignment: Alignment.topCenter,
+                    child: SizedBox(
+                      width: 360,
+                      child: GiftBombCard(
+                        banner: _banner(),
+                        card: HighlightCardContext(
+                          expanded: false,
+                          onToggle: () {},
+                          onDismiss: () {},
+                          now: () => _start,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+
+    testWidgets('a 74dp card, 8dp in, with 6dp corners', (tester) async {
+      await pump(tester, _banner());
+
+      final outer = tester.getRect(find.byType(GiftBombCard));
+      final card = tester.getRect(find.byKey(GiftBombCard.cardKey));
+      expect(card.height, 74);
+      expect(card.left - outer.left, 8);
+      expect(outer.right - card.right, 8);
+      expect(card.top - outer.top, 8);
+      expect(outer.bottom - card.bottom, 8);
+
+      final material = tester.widget<Material>(
+        find.byKey(GiftBombCard.cardKey),
+      );
+      expect(material.borderRadius, BorderRadius.circular(6));
+      expect(material.elevation, greaterThan(0));
+    });
+
+    testWidgets('grows with the text size, up to twice as tall', (
+      tester,
+    ) async {
+      await pumpScaled(tester, 1.5);
+      expect(tester.getSize(find.byKey(GiftBombCard.cardKey)).height, 111);
+
+      await pumpScaled(tester, 3);
+      expect(tester.getSize(find.byKey(GiftBombCard.cardKey)).height, 148);
+    });
+
+    testWidgets('a 32dp green gift icon', (tester) async {
+      await pump(tester, _banner());
+
+      final icon = find.byIcon(Icons.card_giftcard_rounded);
+      expect(tester.getSize(icon), const Size(32, 32));
+      expect(tester.widget<Icon>(icon).color, const Color(0xFF12A87A));
+    });
+
+    testWidgets('a single-line title that ellipsizes', (tester) async {
+      await pump(tester, _banner(gifter: 'A' * 80));
+
+      final title = tester.widget<Text>(find.byKey(GiftBombCard.titleKey));
+      expect(title.maxLines, 1);
+      expect(title.overflow, TextOverflow.ellipsis);
+      expect(
+        tester.getSize(find.byKey(GiftBombCard.titleKey)).height,
+        lessThan(30),
+      );
+    });
+
+    testWidgets('the bar runs the full width along the bottom edge', (
+      tester,
+    ) async {
+      await pump(tester, _banner());
+
+      final card = tester.getRect(find.byKey(GiftBombCard.cardKey));
+      final bar = tester.getRect(find.byType(LinearProgressIndicator));
+      expect(bar.left, card.left);
+      expect(bar.right, card.right);
+      expect(bar.bottom, card.bottom);
+      expect(bar.height, 3);
+    });
+  });
 }
