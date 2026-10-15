@@ -7,11 +7,13 @@ import 'package:frosty/constants.dart';
 import 'package:frosty/models/irc.dart';
 import 'package:frosty/models/user.dart';
 import 'package:frosty/models/user_notice.dart';
+import 'package:frosty/models/user_notice_presentation.dart';
 import 'package:frosty/screens/channel/chat/chat_commands.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_link_card.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_user_modal.dart';
 import 'package:frosty/screens/channel/chat/widgets/reply_thread.dart';
+import 'package:frosty/screens/channel/chat/widgets/user_notice_row.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:provider/provider.dart';
@@ -102,6 +104,43 @@ class ChatMessage extends StatelessWidget {
     _effectiveInputStore.updateNotification('Message copied');
   }
 
+  /// Whether this message is drawn as a [UserNoticeRow]: any `USERNOTICE`
+  /// but an announcement, which keeps its own look.
+  bool get _isNoticeRow {
+    final notice = ircMessage.notice;
+    return ircMessage.command == Command.userNotice &&
+        notice != null &&
+        notice.kind != UserNoticeKind.announcement;
+  }
+
+  /// The channel profiles known to this chat, by channel id.
+  Map<String, UserTwitch> get _channelProfiles =>
+      overrideChannelIdToUserTwitch ??
+      chatStore.assetsStore.channelIdToUserTwitch;
+
+  /// The display name of the channel a notice happened in: in a shared chat,
+  /// the channel it was relayed from.
+  String get _noticeChannelName {
+    final source = ircMessage.tags['source-room-id'];
+    return (source == null ? null : _channelProfiles[source]?.displayName) ??
+        chatStore.displayName;
+  }
+
+  /// Copies what a notice row shows: its sentence, then the viewer's message.
+  Future<void> copyNotice() async {
+    final sentence = ircMessage
+        .noticeText(channelName: _noticeChannelName)
+        .map((segment) => segment.text)
+        .join();
+    final text = [
+      if (sentence.isNotEmpty) sentence,
+      if (ircMessage.message != null) ircMessage.message!,
+    ].join('\n');
+    await Clipboard.setData(ClipboardData(text: text));
+
+    _effectiveInputStore.updateNotification('Message copied');
+  }
+
   /// A moderator may delete this message: one sent in this chat (not from
   /// another channel of a shared chat), not by the broadcaster, and not by
   /// another moderator unless the viewer is the broadcaster.
@@ -120,6 +159,11 @@ class ChatMessage extends StatelessWidget {
 
   void onLongPressMessage(BuildContext context, TextStyle defaultTextStyle) {
     HapticFeedback.lightImpact();
+
+    if (_isNoticeRow) {
+      copyNotice();
+      return;
+    }
 
     if (ircMessage.command != Command.privateMessage &&
         ircMessage.command != Command.userState) {
@@ -243,6 +287,9 @@ class ChatMessage extends StatelessWidget {
       builder: (context) {
         Color? highlightColor;
         final Widget renderMessage;
+        // A notice row draws its own full-width background and accent, so it
+        // skips the highlight wrapper and the side padding.
+        var isNoticeRow = false;
 
         switch (ircMessage.command) {
           case Command.privateMessage:
@@ -487,114 +534,48 @@ class ChatMessage extends StatelessWidget {
             }
             break;
           case Command.userNotice:
-            if (chatStore.settings.showUserNotices) {
-              // The accent, like an announcement with no colour of its own.
-              // This used to take the highlightedMessage token, which is still
-              // Twitch's purple and read as blue on a real screen — the one
-              // hue this design does not use.
-              highlightColor = context.frostyColors.live;
-              Widget? messageHeaderIcon;
-              Widget? messageHeader;
-
-              final notice = UserNotice.fromTags(ircMessage.tags);
-
-              if (notice.kind == UserNoticeKind.announcement) {
-                // An announcement carries its text in the IRC body, not in
-                // system-msg, and picks its own colour.
-                final announcementColor = _announcementColor(
-                  context,
-                  notice.announcementColor,
-                );
-                highlightColor = announcementColor;
-
-                messageHeaderIcon = Icon(
-                  Icons.campaign_rounded,
-                  size: messageHeaderIconSize,
-                  color: announcementColor,
-                );
-                messageHeader = Text(
-                  'Announcement',
-                  style: TextStyle(
-                    fontWeight: messageHeaderFontWeight,
-                    color: announcementColor,
-                  ),
-                );
-              } else if (notice.systemMessage.isNotEmpty) {
-                // A sponsored bonus sub is branded by its advertiser, so it
-                // borrows that colour rather than the generic notice colour.
-                final accentColor =
-                    notice.sponsorColor ?? messageHeaderTextColor;
-                if (notice.sponsorColor != null) {
-                  highlightColor = notice.sponsorColor;
-                }
-
-                messageHeaderIcon = Icon(
-                  _noticeIcon(notice.kind),
-                  size: messageHeaderIconSize,
-                  color: accentColor,
-                );
-
-                messageHeader = Text.rich(
-                  TextSpan(
-                    children: [
-                      TextSpan(text: notice.systemMessage),
-                      // The tier is the one thing Twitch's sentence leaves out
-                      // for a plain `sub`, and it is what viewers look for.
-                      if (_shouldShowTierChip(notice))
-                        TextSpan(
-                          text: '  ${notice.tier}',
-                          style: context.frostyText.label.copyWith(
-                            color: accentColor,
-                          ),
-                        ),
-                    ],
-                    style: TextStyle(
-                      fontWeight: messageHeaderFontWeight,
-                      color: accentColor,
-                    ),
-                  ),
-                );
-              }
+            if (!chatStore.settings.showUserNotices) {
+              renderMessage = const SizedBox();
+            } else if (_isNoticeRow) {
+              isNoticeRow = true;
+              renderMessage = _noticeRow(context, defaultTextStyle);
+            } else {
+              // An announcement carries its text in the IRC body, not in
+              // system-msg, and picks its own colour.
+              final announcementColor = _announcementColor(
+                context,
+                ircMessage.notice?.announcementColor,
+              );
+              highlightColor = announcementColor;
 
               renderMessage = Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: 4,
                 children: [
-                  if (messageHeader != null)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 4,
-                      children: [
-                        if (messageHeaderIcon != null) ...[messageHeaderIcon],
-                        Expanded(child: messageHeader),
-                      ],
-                    ),
-                  if (ircMessage.message != null) ...[
-                    Text.rich(
-                      TextSpan(
-                        children: ircMessage.generateSpan(
-                          context,
-                          onTapName: () => onTapName(context),
-                          style: defaultTextStyle,
-                          assetsStore: chatStore.assetsStore,
-                          emoteScale: chatStore.settings.emoteScale,
-                          badgeScale: chatStore.settings.badgeScale,
-                          animateEmotes: chatStore.settings.animateEmotes,
-                          launchExternal: chatStore.settings.launchUrlExternal,
-                          timestamp: chatStore.settings.timestampType,
-                          channelIdToUserTwitch:
-                              overrideChannelIdToUserTwitch ??
-                              chatStore.assetsStore.channelIdToUserTwitch,
-                          currentChannelId:
-                              overrideCurrentChannelId ?? chatStore.channelId,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 4,
+                    children: [
+                      Icon(
+                        Icons.campaign_rounded,
+                        size: messageHeaderIconSize,
+                        color: announcementColor,
+                      ),
+                      Expanded(
+                        child: Text(
+                          'Announcement',
+                          style: TextStyle(
+                            fontWeight: messageHeaderFontWeight,
+                            color: announcementColor,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  if (ircMessage.message != null)
+                    _userMessage(context, defaultTextStyle),
                 ],
               );
-            } else {
-              renderMessage = const SizedBox();
             }
             break;
           default:
@@ -629,8 +610,10 @@ class ChatMessage extends StatelessWidget {
           padding: EdgeInsets.only(
             top: chatStore.settings.messageSpacing / 2,
             bottom: chatStore.settings.messageSpacing / 2,
-            left: isReplyInThread ? 16 : (highlightColor == null ? 12 : 0),
-            right: highlightColor == null ? 12 : 0,
+            left: isReplyInThread
+                ? 16
+                : (highlightColor == null && !isNoticeRow ? 12 : 0),
+            right: highlightColor == null && !isNoticeRow ? 12 : 0,
           ),
           child: messageWithIcon,
         );
@@ -679,49 +662,55 @@ class ChatMessage extends StatelessWidget {
     );
   }
 
-  /// The icon that stands for a notice.
-  ///
-  /// Chosen per kind, not by substring: `submysterygift`, `subgift`, `resub`
-  /// and `giftsubbasematch` all contain "sub", so matching on it collapsed a
-  /// gift, a bulk gift and a sponsored bonus onto one icon.
-  ///
-  /// A subscription and a resubscription do share the star — that is Twitch's
-  /// own choice, matched deliberately here rather than by accident.
-  static IconData _noticeIcon(UserNoticeKind kind) => switch (kind) {
-    // A resub is a star on Twitch's own client, not a refresh arrow: it reads
-    // as a celebration there, and the arrow read as "reloading" here.
-    UserNoticeKind.sub || UserNoticeKind.resub => Icons.star_rounded,
-    UserNoticeKind.subGift ||
-    UserNoticeKind.anonSubGift => Icons.card_giftcard_rounded,
-    UserNoticeKind.communityGift ||
-    UserNoticeKind.anonCommunityGift => Icons.redeem_rounded,
-    UserNoticeKind.giftPaidUpgrade ||
-    UserNoticeKind.anonGiftPaidUpgrade ||
-    UserNoticeKind.primePaidUpgrade => Icons.upgrade_rounded,
-    UserNoticeKind.extendSub => Icons.star_rounded,
-    UserNoticeKind.rewardGift => Icons.card_giftcard_rounded,
-    UserNoticeKind.giftSubBaseMatch => Icons.local_activity_rounded,
-    UserNoticeKind.raid => Icons.people_rounded,
-    UserNoticeKind.unraid => Icons.person_off_rounded,
-    UserNoticeKind.bitsBadgeTier => Icons.military_tech_rounded,
-    UserNoticeKind.payItForward => Icons.volunteer_activism_rounded,
-    UserNoticeKind.viewerMilestone => Icons.emoji_events_rounded,
-    UserNoticeKind.charityDonation => Icons.favorite_rounded,
-    UserNoticeKind.announcement => Icons.campaign_rounded,
-    UserNoticeKind.unknown => Icons.info_outline_rounded,
-  };
+  /// The viewer's own message under a notice, drawn as an ordinary chat line.
+  Widget _userMessage(
+    BuildContext context,
+    TextStyle defaultTextStyle, {
+    bool showMessage = true,
+    VoidCallback? onTapDeletedMessage,
+  }) => Text.rich(
+    TextSpan(
+      children: ircMessage.generateSpan(
+        context,
+        onTapName: () => onTapName(context),
+        style: defaultTextStyle,
+        assetsStore: chatStore.assetsStore,
+        emoteScale: chatStore.settings.emoteScale,
+        badgeScale: chatStore.settings.badgeScale,
+        animateEmotes: chatStore.settings.animateEmotes,
+        showMessage: showMessage,
+        onTapDeletedMessage: onTapDeletedMessage,
+        launchExternal: chatStore.settings.launchUrlExternal,
+        timestamp: chatStore.settings.timestampType,
+        channelIdToUserTwitch: _channelProfiles,
+        currentChannelId: overrideCurrentChannelId ?? chatStore.channelId,
+      ),
+    ),
+  );
 
-  /// Whether the tier is worth appending to Twitch's sentence.
-  ///
-  /// Only when the sentence does not already say it. A resub reads "subscribed
-  /// with Prime" and a gift reads "gifted a Tier 1 sub", so repeating it there
-  /// would be noise; a plain `sub` does not always mention it.
-  static bool _shouldShowTierChip(UserNotice notice) {
-    final tier = notice.tier;
-    if (tier == null) return false;
-    if (notice.kind != UserNoticeKind.sub) return false;
+  /// A sub, gift or other notice, drawn as Twitch's notice row.
+  Widget _noticeRow(BuildContext context, TextStyle defaultTextStyle) {
+    final notice = ircMessage.notice!;
+    final presentation = noticePresentation(notice);
+    final source = notice.sourceRoomId;
 
-    return !notice.systemMessage.toLowerCase().contains(tier.toLowerCase());
+    return UserNoticeRow(
+      segments: ircMessage.noticeText(channelName: _noticeChannelName),
+      presentation: presentation,
+      userMessage: ircMessage.message == null
+          ? null
+          : _userMessage(context, defaultTextStyle),
+      avatarUrl: switch (presentation.icon) {
+        NoticeGlyph.sharedChat =>
+          source == null ? null : _channelProfiles[source]?.profileImageUrl,
+        NoticeGlyph.raider => notice.raiderAvatarUrl,
+        _ => null,
+      },
+      // A sponsored bonus sub is branded by its advertiser.
+      accentColor: notice.sponsorColor,
+      goalCurrent: notice.goalCurrentContributions,
+      goalTarget: notice.goalTargetContributions,
+    );
   }
 
   /// The colour a moderator picked for an announcement.

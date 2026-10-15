@@ -10,6 +10,8 @@ import 'package:frosty/models/badges.dart';
 import 'package:frosty/models/cheermote.dart';
 import 'package:frosty/models/emotes.dart';
 import 'package:frosty/models/user.dart';
+import 'package:frosty/models/user_notice.dart';
+import 'package:frosty/models/user_notice_text.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/theme.dart';
@@ -46,6 +48,26 @@ class IRCMessage {
   bool? mention;
   final VoidCallback? actionCallback;
   final String? actionLabel;
+
+  /// The parsed `USERNOTICE`, or null for any other message.
+  ///
+  /// Parsed on first use and kept, so a notice row costs one parse however
+  /// often the chat list rebuilds it. A notice keeps its `system-msg` tag when
+  /// a ban or deletion changes its [command], so it is still recognised then.
+  late final UserNotice? notice =
+      command == Command.userNotice || tags.containsKey('system-msg')
+      ? UserNotice.fromTags(tags)
+      : null;
+
+  List<NoticeSegment>? _noticeText;
+
+  /// The notice's sentence, worded on first use and kept. [channelName] is the
+  /// display name of the channel a gift bomb is aimed at.
+  List<NoticeSegment> noticeText({required String channelName}) {
+    final notice = this.notice;
+    if (notice == null) return const [];
+    return _noticeText ??= userNoticeText(notice, channelName: channelName);
+  }
 
   IRCMessage({
     required this.raw,
