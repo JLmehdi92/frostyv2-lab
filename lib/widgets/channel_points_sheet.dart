@@ -525,10 +525,10 @@ class _BetSheetState extends State<_BetSheet> {
                     isDense: true,
                     border: OutlineInputBorder(),
                   ),
-                  onChanged: (value) {
-                    final parsed = int.tryParse(value.trim());
-                    if (parsed != null) setState(() => _stake = parsed);
-                  },
+                  // An empty or unreadable field is no stake: keeping the
+                  // last one would leave "Bet 500" armed over a blank field.
+                  onChanged: (value) =>
+                      setState(() => _stake = int.tryParse(value.trim()) ?? 0),
                 ),
                 const SizedBox(height: 10),
                 Text(
@@ -544,7 +544,9 @@ class _BetSheetState extends State<_BetSheet> {
                       ? () => Navigator.of(context).pop(_stake)
                       : null,
                   child: Text(
-                    'Bet ${ChannelPointsSheet.formatPoints(_stake)}',
+                    _stake > 0
+                        ? 'Bet ${ChannelPointsSheet.formatPoints(_stake)}'
+                        : 'Bet',
                   ),
                 ),
               ],
