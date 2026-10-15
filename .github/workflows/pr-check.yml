@@ -2,6 +2,9 @@ name: Check PR
 on:
   pull_request:
     branches: [main]
+# Analyze and test only: no reason to write to the repository.
+permissions:
+  contents: read
 jobs:
   check:
     name: Check and test
