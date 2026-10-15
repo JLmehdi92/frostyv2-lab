@@ -67,6 +67,13 @@ android {
             signingConfig = if (keystorePropertiesFile.exists()) {
                 signingConfigs.getByName("release")
             } else {
+                // Said out loud: a debug-signed release cannot update an
+                // install signed with the real key, and nothing else in the
+                // build output would hint at why.
+                logger.warn(
+                    "WARNING: android/key.properties not found; the release " +
+                        "build is signed with the DEBUG key.",
+                )
                 signingConfigs.getByName("debug")
             }
         }
