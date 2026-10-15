@@ -97,6 +97,126 @@ void main() {
       );
     });
 
+    test('reads who sent the notice', () {
+      final notice = _parse(resubStreak);
+
+      expect(notice.displayName, 'ReSubber');
+      expect(notice.login, 'resubber');
+      expect(notice.userId, '20001');
+      expect(notice.roomId, '12345');
+      expect(notice.sourceRoomId, isNull);
+      expect(notice.isAnonymous, isFalse);
+      expect(notice.isHistorical, isFalse);
+    });
+
+    test('reads the gift months and the recipient login', () {
+      expect(_parse(subGift).giftMonths, 1);
+      expect(_parse(multiMonthGift).giftMonths, 3);
+      expect(_parse(subGift).recipientLogin, 'lucky');
+      expect(_parse(primeSub).giftMonths, isNull);
+    });
+
+    test("spots Twitch's anonymous gifter by its user id", () {
+      final notice = _parse(anonymousSubGift);
+
+      expect(notice.kind, UserNoticeKind.subGift);
+      expect(notice.isAnonymous, isTrue);
+      expect(_parse(anonymousMassGift).isAnonymous, isTrue);
+    });
+
+    test('spots an anonymous gift by its legacy msg-id', () {
+      expect(_parse(anonymousSubGiftLegacy).isAnonymous, isTrue);
+      expect(
+        UserNotice.fromTags(const {'msg-id': 'anonsubmysterygift'}).isAnonymous,
+        isTrue,
+      );
+    });
+
+    test('spots an anonymous gift by its login alone', () {
+      expect(
+        UserNotice.fromTags(const {
+          'msg-id': 'subgift',
+          'login': 'ananonymousgifter',
+        }).isAnonymous,
+        isTrue,
+      );
+    });
+
+    test('reads an extended sub and the month it runs to', () {
+      final notice = _parse(extendSub);
+
+      expect(notice.kind, UserNoticeKind.extendSub);
+      expect(notice.benefitEndMonth, 6);
+      expect(notice.tier, 'Tier 1');
+    });
+
+    test('knows the reward gift kind', () {
+      expect(
+        UserNotice.fromTags(const {'msg-id': 'rewardgift'}).kind,
+        UserNoticeKind.rewardGift,
+      );
+    });
+
+    test('keys a gift bomb by its community gift id', () {
+      final header = _parse(massGiftHeader);
+
+      expect(header.originId, '4e 29 ab');
+      expect(header.giftBombKey, '1234567890123456789');
+      expect(_parse(massGiftRecipients.first).giftBombKey, header.giftBombKey);
+    });
+
+    test('falls back to the origin id when there is no community gift id', () {
+      final notice = UserNotice.fromTags(const {
+        'msg-id': 'submysterygift',
+        'msg-param-origin-id': '4e 29 ab',
+      });
+
+      expect(notice.communityGiftId, isNull);
+      expect(notice.giftBombKey, '4e 29 ab');
+    });
+
+    test('has no gift bomb key without either id', () {
+      expect(_parse(primeSub).giftBombKey, isNull);
+    });
+
+    test('reads a notice replayed from history', () {
+      expect(_parse(massGiftHeaderHistorical).isHistorical, isTrue);
+    });
+
+    test('reads the channel a shared-chat notice came from', () {
+      final notice = _parse(massGiftHeaderShared);
+
+      expect(notice.sourceRoomId, '99999');
+      expect(notice.roomId, '12345');
+    });
+
+    test('reads the sub goal a sub counts towards', () {
+      final notice = _parse(subWithGoal);
+
+      expect(notice.goalCurrentContributions, 524);
+      expect(notice.goalTargetContributions, 1200);
+      expect(notice.goalContributionType, 'SUBS');
+      expect(notice.goalDescription, 'Road to 1200');
+      expect(notice.hasGoal, isTrue);
+      expect(_parse(primeSub).hasGoal, isFalse);
+    });
+
+    test('reads who gave the gift being continued', () {
+      final notice = _parse(giftPaidUpgrade);
+
+      expect(notice.senderLogin, 'gifter');
+      expect(notice.senderName, 'Gifter');
+    });
+
+    test('unescapes a semicolon and a backslash in a tag', () {
+      final notice = UserNotice.fromTags(const {
+        'msg-id': 'sub',
+        'system-msg': r'a\:b\\c',
+      });
+
+      expect(notice.systemMessage, r'a;b\c');
+    });
+
     test('keeps the user message of a resub in the IRC body', () {
       final message = IRCMessage.fromString(resubStreak);
 

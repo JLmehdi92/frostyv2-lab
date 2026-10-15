@@ -698,6 +698,8 @@ class ChatMessage extends StatelessWidget {
     UserNoticeKind.giftPaidUpgrade ||
     UserNoticeKind.anonGiftPaidUpgrade ||
     UserNoticeKind.primePaidUpgrade => Icons.upgrade_rounded,
+    UserNoticeKind.extendSub => Icons.star_rounded,
+    UserNoticeKind.rewardGift => Icons.card_giftcard_rounded,
     UserNoticeKind.giftSubBaseMatch => Icons.local_activity_rounded,
     UserNoticeKind.raid => Icons.people_rounded,
     UserNoticeKind.unraid => Icons.person_off_rounded,
