@@ -191,12 +191,16 @@ class HermesClient {
     if (entry == null) return;
 
     _subscriptionTopics.remove(entry.key);
+    _sendUnsubscribe(entry.key);
+  }
+
+  void _sendUnsubscribe(String subscriptionId) {
     _send({
       'id': _newId(),
       'type': 'unsubscribe',
       'timestamp': _timestamp(),
       'unsubscribe': {
-        'id': entry.key,
+        'id': subscriptionId,
       },
     });
   }
@@ -352,7 +356,15 @@ class HermesClient {
     }
 
     final id = message.subscriptionId;
-    if (id != null) _subscriptionTopics[id] = topic;
+    if (id == null) return;
+
+    // Dropped while the request was in flight: mapping it now would route a
+    // topic nobody wants, so release it on the server instead.
+    if (!_desiredTopics.contains(topic)) {
+      _sendUnsubscribe(id);
+      return;
+    }
+    _subscriptionTopics[id] = topic;
   }
 
   void _onNotification(HermesMessage message) {

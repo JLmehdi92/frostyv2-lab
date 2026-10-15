@@ -56,6 +56,39 @@ class _FakeSink implements WebSocketSink {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// The server's answer to the last subscribe [socket] sent for [topic].
+String _subscribeOk(_FakeSocket socket, String topic, String subscriptionId) {
+  final request = socket.frames.lastWhere(
+    (f) =>
+        f['type'] == 'subscribe' &&
+        (f['subscribe'] as Map)['pubsub']['topic'] == topic,
+  );
+  return jsonEncode({
+    'type': 'subscribeResponse',
+    'id': 'resp-$subscriptionId',
+    'parentId': request['id'],
+    'subscribeResponse': {
+      'subscription': {'id': subscriptionId},
+      'result': 'ok',
+    },
+  });
+}
+
+/// A notification on [subscriptionId], payload double-encoded as Hermes does.
+String _notification(
+  String subscriptionId,
+  String type, [
+  Map<String, dynamic> data = const {},
+]) => jsonEncode({
+  'type': 'notification',
+  'id': 'n-$subscriptionId',
+  'notification': {
+    'subscription': {'id': subscriptionId},
+    'type': 'pubsub',
+    'pubsub': jsonEncode({'type': type, 'data': data}),
+  },
+});
+
 void main() {
   late List<_FakeSocket> sockets;
   late HermesClient client;
@@ -86,6 +119,84 @@ void main() {
   }
 
   const welcome = '{"type":"welcome","id":"w","welcome":{"keepaliveSec":15}}';
+
+  /// Opens a session and subscribes [topics], acknowledged as `sub-<i>`.
+  Future<_FakeSocket> session(List<String> topics) async {
+    await client.subscribeAll(topics);
+    final socket = sockets.last;
+    socket.receive(welcome);
+    await pumpEventQueue();
+    for (final (i, topic) in topics.indexed) {
+      socket.receive(_subscribeOk(socket, topic, 'sub-$i'));
+    }
+    await pumpEventQueue();
+    return socket;
+  }
+
+  group('subscription lifecycle', () {
+    test('unsubscribing before the answer does not leak the topic', () async {
+      final received = <HermesEvent>[];
+      client.events.listen(received.add);
+      await client.subscribe('celebration-events-v1.1');
+      final socket = sockets.single;
+      socket.receive(welcome);
+      await pumpEventQueue();
+
+      // Asked, then dropped before Hermes answered.
+      final answer = _subscribeOk(socket, 'celebration-events-v1.1', 'sub-1');
+      client.unsubscribe('celebration-events-v1.1');
+      socket.receive(answer);
+      await pumpEventQueue();
+      socket.receive(_notification('sub-1', 'alert_sets_celebration'));
+      await pumpEventQueue();
+
+      expect(received, isEmpty);
+      // The server-side subscription is released, not left running.
+      final unsubscribe = socket.frames.last;
+      expect(unsubscribe['type'], 'unsubscribe');
+      expect(unsubscribe['unsubscribe'], {'id': 'sub-1'});
+    });
+
+    test('a revoked topic is subscribed afresh', () async {
+      final received = <HermesEvent>[];
+      client.events.listen(received.add);
+      final socket = await session(['creator-goals-events-v1.1']);
+      expect(socket.subscribedTopics, ['creator-goals-events-v1.1']);
+
+      socket.receive(
+        '{"type":"revocation","id":"r",'
+        '"revocation":{"subscription":{"id":"sub-0"},"reason":"x"}}',
+      );
+      await pumpEventQueue();
+
+      expect(socket.subscribedTopics, [
+        'creator-goals-events-v1.1',
+        'creator-goals-events-v1.1',
+      ]);
+
+      // The old id routes nothing; the new one does.
+      socket.receive(
+        _subscribeOk(socket, 'creator-goals-events-v1.1', 'sub-9'),
+      );
+      socket.receive(_notification('sub-0', 'goal_updated'));
+      socket.receive(_notification('sub-9', 'goal_updated'));
+      await pumpEventQueue();
+
+      expect(received.map((e) => e.topic), ['creator-goals-events-v1.1']);
+    });
+
+    test('a revocation for an unknown id subscribes nothing', () async {
+      final socket = await session(['creator-goals-events-v1.1']);
+
+      socket.receive(
+        '{"type":"revocation","id":"r",'
+        '"revocation":{"subscription":{"id":"nope"}}}',
+      );
+      await pumpEventQueue();
+
+      expect(socket.subscribedTopics, hasLength(1));
+    });
+  });
 
   group('malformed frames', () {
     for (final frame in <Object>[
