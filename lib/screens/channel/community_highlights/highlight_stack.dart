@@ -1,5 +1,6 @@
-/// The kinds of community highlight above chat.
-enum HighlightKind { poll, prediction, pinned, raid }
+/// The kinds of community highlight above chat. A gift bomb is the banner
+/// Twitch pins for a mass gift of five subs or more.
+enum HighlightKind { poll, prediction, pinned, raid, giftBomb }
 
 /// One highlight in the stack (its data lives in the store, by kind).
 class HighlightItem {

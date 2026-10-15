@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:frosty/models/community_highlights.dart';
+import 'package:frosty/screens/channel/chat/gift_bomb_tracker.dart';
 import 'package:frosty/screens/channel/community_highlights/highlight_math.dart';
 import 'package:frosty/screens/channel/community_highlights/highlight_reducers.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/highlight_card_shell.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/highlight_countdown.dart';
+import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
 import 'package:intl/intl.dart';
 
@@ -443,6 +445,144 @@ class RaidCard extends StatelessWidget {
             ],
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// The banner Twitch pins above chat for a gift bomb of five subs or more:
+/// "**Gifter** is gifting 5 Subscriptions!", a close button, and a thin
+/// green bar draining until the banner leaves.
+class GiftBombCard extends StatelessWidget {
+  const GiftBombCard({super.key, required this.banner, required this.card});
+
+  final GiftBombBanner banner;
+  final HighlightCardContext card;
+
+  @override
+  Widget build(BuildContext context) {
+    final bomb = banner.bomb;
+    final accent = context.frostyColors.subNoticeAccent;
+    final subscriptions = bomb.count == 1 ? 'Subscription' : 'Subscriptions';
+    final tier = bomb.tier;
+
+    return HighlightCardShell(
+      icon: Icons.card_giftcard_rounded,
+      accent: accent,
+      title: 'Gift Subs',
+      status: Text(tier ?? ''),
+      semanticsLabel:
+          '${bomb.gifterName} is gifting ${bomb.count} $subscriptions',
+      expanded: card.expanded,
+      onToggle: card.onToggle,
+      onDismiss: card.onDismiss,
+      headline: Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(
+              text: bomb.gifterName,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+            TextSpan(text: ' is gifting ${bomb.count} $subscriptions!'),
+          ],
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.titleSmall,
+      ),
+      footer: GiftBombCountdownBar(
+        startedAt: banner.startedAt,
+        endsAt: banner.endsAt,
+        now: card.now,
+        color: accent,
+      ),
+    );
+  }
+}
+
+/// A 3dp bar that drains linearly from [startedAt] to [endsAt] (Twitch time,
+/// from [now]). With reduced motion it steps once a second instead.
+class GiftBombCountdownBar extends StatefulWidget {
+  const GiftBombCountdownBar({
+    super.key,
+    required this.startedAt,
+    required this.endsAt,
+    required this.now,
+    required this.color,
+  });
+
+  final DateTime startedAt;
+  final DateTime endsAt;
+  final DateTime Function() now;
+  final Color color;
+
+  @override
+  State<GiftBombCountdownBar> createState() => _GiftBombCountdownBarState();
+}
+
+class _GiftBombCountdownBarState extends State<GiftBombCountdownBar>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(vsync: this);
+
+  Duration get _total => widget.endsAt.difference(widget.startedAt);
+
+  @override
+  void initState() {
+    super.initState();
+    _start();
+  }
+
+  @override
+  void didUpdateWidget(GiftBombCountdownBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.startedAt != widget.startedAt ||
+        oldWidget.endsAt != widget.endsAt) {
+      _start();
+    }
+  }
+
+  /// One linear drain over the time left.
+  void _start() {
+    final total = _total;
+    final left = widget.endsAt.difference(widget.now());
+    if (total <= Duration.zero || left <= Duration.zero) {
+      _controller.value = 0;
+      return;
+    }
+    _controller.value = (left.inMicroseconds / total.inMicroseconds).clamp(
+      0.0,
+      1.0,
+    );
+    _controller.animateBack(0, duration: left);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final seconds = _total.inMilliseconds / 1000;
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          var value = _controller.value;
+          // Whole seconds left, so the bar moves once a second.
+          if (reduceMotion && seconds > 0) {
+            value = ((value * seconds) - 1e-9).ceil() / seconds;
+          }
+          return LinearProgressIndicator(
+            value: value.clamp(0.0, 1.0),
+            minHeight: 3,
+            color: widget.color,
+            backgroundColor: widget.color.withValues(alpha: 0.2),
+          );
+        },
       ),
     );
   }

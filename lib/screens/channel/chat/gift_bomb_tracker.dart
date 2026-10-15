@@ -58,6 +58,29 @@ class GiftBomb {
   String toString() => 'GiftBomb($key, $gifterName, $count, $received)';
 }
 
+/// A gift bomb pinned above chat, from [startedAt] until [endsAt] (Twitch
+/// time).
+@immutable
+class GiftBombBanner {
+  final GiftBomb bomb;
+  final DateTime startedAt;
+  final DateTime endsAt;
+
+  const GiftBombBanner({
+    required this.bomb,
+    required this.startedAt,
+    required this.endsAt,
+  });
+
+  /// How long the banner stays up in all.
+  Duration get total => endsAt.difference(startedAt);
+
+  /// Its id in the highlight stack: the bomb's, so a header heard twice is
+  /// one banner (and stays dismissed).
+  String get id =>
+      bomb.key.isEmpty ? 'at-${startedAt.millisecondsSinceEpoch}' : bomb.key;
+}
+
 /// What to do with one incoming notice.
 @immutable
 class GiftBombDecision {

@@ -119,4 +119,14 @@ void main() {
     expect(stack.items, isEmpty);
     expect(stack.upsert(item(HighlightKind.poll, 'q')).current!.id, 'q');
   });
+
+  test('a gift bomb banner takes the slot and leaves on its own', () {
+    final stack = const HighlightStack()
+        .upsert(item(HighlightKind.pinned, 'pin', sticky: true))
+        .upsert(item(HighlightKind.giftBomb, 'bomb'));
+    expect(stack.current!.kind, HighlightKind.giftBomb);
+
+    final after = stack.remove(HighlightKind.giftBomb);
+    expect(after.current!.kind, HighlightKind.pinned);
+  });
 }

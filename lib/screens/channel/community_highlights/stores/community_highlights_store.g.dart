@@ -111,6 +111,26 @@ mixin _$CommunityHighlightsStore on CommunityHighlightsStoreBase, Store {
     });
   }
 
+  late final _$_giftBombAtom = Atom(
+    name: 'CommunityHighlightsStoreBase._giftBomb',
+    context: context,
+  );
+
+  GiftBombBanner? get giftBomb {
+    _$_giftBombAtom.reportRead();
+    return super._giftBomb;
+  }
+
+  @override
+  GiftBombBanner? get _giftBomb => giftBomb;
+
+  @override
+  set _giftBomb(GiftBombBanner? value) {
+    _$_giftBombAtom.reportWrite(value, super._giftBomb, () {
+      super._giftBomb = value;
+    });
+  }
+
   late final _$_stayingForAtom = Atom(
     name: 'CommunityHighlightsStoreBase._stayingFor',
     context: context,
@@ -195,6 +215,17 @@ mixin _$CommunityHighlightsStore on CommunityHighlightsStoreBase, Store {
         .startAction(name: 'CommunityHighlightsStoreBase.dismissCurrent');
     try {
       return super.dismissCurrent();
+    } finally {
+      _$CommunityHighlightsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void showGiftBomb(GiftBomb bomb) {
+    final _$actionInfo = _$CommunityHighlightsStoreBaseActionController
+        .startAction(name: 'CommunityHighlightsStoreBase.showGiftBomb');
+    try {
+      return super.showGiftBomb(bomb);
     } finally {
       _$CommunityHighlightsStoreBaseActionController.endAction(_$actionInfo);
     }

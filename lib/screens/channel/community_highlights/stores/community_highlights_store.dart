@@ -7,6 +7,7 @@ import 'package:frosty/apis/base_api_client.dart' as api;
 import 'package:frosty/apis/twitch_community_highlights_service.dart';
 import 'package:frosty/models/community_highlight_event.dart';
 import 'package:frosty/models/community_highlights.dart';
+import 'package:frosty/screens/channel/chat/gift_bomb_tracker.dart';
 import 'package:frosty/screens/channel/community_highlights/highlight_reducers.dart';
 import 'package:frosty/screens/channel/community_highlights/highlight_stack.dart';
 import 'package:frosty/screens/channel/community_highlights/highlight_timings.dart';
@@ -19,8 +20,8 @@ part 'community_highlights_store.g.dart';
 class CommunityHighlightsStore = CommunityHighlightsStoreBase
     with _$CommunityHighlightsStore;
 
-/// A channel's poll, prediction, pinned message and outgoing raid, and the
-/// stack deciding which one shows above chat.
+/// A channel's poll, prediction, pinned message, outgoing raid and gift bomb
+/// banner, and the stack deciding which one shows above chat.
 ///
 /// Snapshots come from anonymous GQL; changes from the four public Hermes
 /// topics. Frequent updates (votes, points, raid viewers) are coalesced so
@@ -104,6 +105,7 @@ abstract class CommunityHighlightsStoreBase with Store {
   PinnedChatMessage? _nextPinned;
   var _pinnedSticky = false;
   RaidState? _nextRaid;
+  GiftBombBanner? _nextGiftBomb;
 
   @readonly
   Poll? _poll;
@@ -116,6 +118,10 @@ abstract class CommunityHighlightsStoreBase with Store {
 
   @readonly
   RaidState? _raid;
+
+  /// The gift bomb banner, fed from the channel's chat (see [showGiftBomb]).
+  @readonly
+  GiftBombBanner? _giftBomb;
 
   /// Takes the viewer to the raid's target when it leaves, as Twitch does,
   /// unless they chose to stay ([stayOnRaid]). Only a raid seen counting
@@ -166,6 +172,24 @@ abstract class CommunityHighlightsStoreBase with Store {
   void dismissCurrent() {
     final current = _stack.current;
     if (current != null) _stack = _stack.dismiss(current.kind, current.id);
+  }
+
+  // --- Chat ----------------------------------------------------------------------
+
+  /// Pins [bomb]'s banner from now for as long as Twitch would (see
+  /// [bannerDuration]); a bomb too small for one is ignored. A newer bomb
+  /// replaces the one up.
+  @action
+  void showGiftBomb(GiftBomb bomb) {
+    final duration = bannerDuration(bomb.count);
+    if (_disposed || duration == null) return;
+    final startedAt = serverNow();
+    _nextGiftBomb = GiftBombBanner(
+      bomb: bomb,
+      startedAt: startedAt,
+      endsAt: startedAt.add(duration),
+    );
+    _changed(urgent: true);
   }
 
   // --- Realtime ------------------------------------------------------------------
@@ -286,6 +310,7 @@ abstract class CommunityHighlightsStoreBase with Store {
     _prediction = _nextPrediction;
     _pinned = _nextPinned;
     _raid = _nextRaid;
+    _giftBomb = _nextGiftBomb;
 
     var stack = _stack;
     stack = _sync(stack, HighlightKind.poll, _poll?.id);
@@ -297,6 +322,7 @@ abstract class CommunityHighlightsStoreBase with Store {
       sticky: _pinnedSticky,
     );
     stack = _sync(stack, HighlightKind.raid, _raid?.raid.id);
+    stack = _sync(stack, HighlightKind.giftBomb, _giftBomb?.id);
     _stack = stack;
     _scheduleDeadlines();
   }
@@ -315,7 +341,12 @@ abstract class CommunityHighlightsStoreBase with Store {
         kind: kind,
         id: id,
         sticky: sticky,
-        expanded: expandNew && kind != HighlightKind.pinned,
+        // A pinned message and a gift bomb banner never arrive expanded,
+        // so neither holds a new highlight back.
+        expanded:
+            expandNew &&
+            kind != HighlightKind.pinned &&
+            kind != HighlightKind.giftBomb,
       ),
     );
   }
@@ -371,6 +402,11 @@ abstract class CommunityHighlightsStoreBase with Store {
             .add(Duration(seconds: raid.forceRaidNowSeconds)),
       ).add(kRaidAfterGoLinger + kRaidMissedGoMargin),
     }, () => _nextRaid = null);
+    _deadline(
+      HighlightKind.giftBomb,
+      _nextGiftBomb?.endsAt,
+      () => _nextGiftBomb = null,
+    );
   }
 
   static DateTime _earliest(DateTime? a, DateTime b) =>

@@ -19,6 +19,7 @@ String highlightLabel(HighlightKind kind) => switch (kind) {
   HighlightKind.prediction => 'Prediction',
   HighlightKind.pinned => 'Pinned',
   HighlightKind.raid => 'Raid',
+  HighlightKind.giftBomb => 'Gift Subs',
 };
 
 IconData highlightIcon(HighlightKind kind) => switch (kind) {
@@ -26,6 +27,7 @@ IconData highlightIcon(HighlightKind kind) => switch (kind) {
   HighlightKind.prediction => Icons.emoji_events_outlined,
   HighlightKind.pinned => Icons.push_pin_outlined,
   HighlightKind.raid => Icons.groups_outlined,
+  HighlightKind.giftBomb => Icons.card_giftcard_rounded,
 };
 
 /// The card of [item], or nothing when its data is gone.
@@ -82,6 +84,10 @@ Widget buildHighlightCard(
           onStay: store.onGoAlong == null ? null : store.stayOnRaid,
           staying: store.stayingOnRaid,
         ),
+        null => const SizedBox.shrink(),
+      },
+      HighlightKind.giftBomb => switch (store.giftBomb) {
+        final banner? => GiftBombCard(banner: banner, card: cardFor(context)),
         null => const SizedBox.shrink(),
       },
     },

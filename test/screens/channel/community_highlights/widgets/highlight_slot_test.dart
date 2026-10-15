@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/models/community_highlight_event.dart';
 import 'package:frosty/models/community_highlights.dart';
+import 'package:frosty/screens/channel/chat/gift_bomb_tracker.dart';
 import 'package:frosty/screens/channel/community_highlights/highlight_stack.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/highlight_slot.dart';
 import 'package:mocktail/mocktail.dart';
@@ -226,5 +227,38 @@ void main() {
       expect(highlightLabel(kind), isNotEmpty);
       expect(highlightIcon(kind), isA<IconData>());
     }
+  });
+
+  testWidgets('a gift bomb shows its banner card', (tester) async {
+    await start(tester);
+    await pump(tester, slot());
+
+    h.store.showGiftBomb(
+      const GiftBomb(
+        key: 'bomb',
+        gifterName: 'BigGifter',
+        isAnonymous: false,
+        count: 5,
+        tier: 'Tier 1',
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(
+      find.textContaining('BigGifter is gifting 5', findRichText: true),
+      findsOneWidget,
+    );
+    expect(highlightLabel(HighlightKind.giftBomb), 'Gift Subs');
+    expect(highlightIcon(HighlightKind.giftBomb), Icons.card_giftcard_rounded);
+
+    await tester.tap(find.byIcon(Icons.close_rounded));
+    await tester.pumpAndSettle();
+    expect(h.store.giftBomb, isNotNull);
+    expect(h.store.visible, isFalse);
+
+    // It leaves the store at its end.
+    await tester.pump(const Duration(seconds: 10));
+    expect(h.store.giftBomb, isNull);
   });
 }
