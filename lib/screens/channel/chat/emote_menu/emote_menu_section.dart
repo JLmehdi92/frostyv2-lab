@@ -28,31 +28,6 @@ class EmoteMenuSection extends StatefulWidget {
   State<EmoteMenuSection> createState() => _EmoteMenuSectionState();
 }
 
-/// The emote grid of the emote menu and the recent emotes. A large screen
-/// fits as many cells as it can at up to [kLargeScreenEmoteCell] dp, instead
-/// of stretching a phone's column count to 130 dp cells.
-SliverGridDelegate emoteGridDelegate({
-  required bool largeScreen,
-  required bool portrait,
-  required bool showVideo,
-}) {
-  if (largeScreen) {
-    return const SliverGridDelegateWithMaxCrossAxisExtent(
-      maxCrossAxisExtent: kLargeScreenEmoteCell,
-    );
-  }
-  return SliverGridDelegateWithFixedCrossAxisCount(
-    crossAxisCount: portrait
-        ? 8
-        : showVideo
-        ? 6
-        : 16,
-  );
-}
-
-/// Widest emote cell on a large screen, in dp.
-const kLargeScreenEmoteCell = 64.0;
-
 class _EmoteMenuSectionState extends State<EmoteMenuSection>
     with AutomaticKeepAliveClientMixin {
   @override
@@ -63,10 +38,12 @@ class _EmoteMenuSectionState extends State<EmoteMenuSection>
       context: context,
       removeTop: true,
       child: GridView.builder(
-        gridDelegate: emoteGridDelegate(
-          largeScreen: context.isLargeScreen,
-          portrait: context.isPortrait,
-          showVideo: context.settingsStore.showVideo,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: context.isPortrait
+              ? 8
+              : context.settingsStore.showVideo
+              ? 6
+              : 16,
         ),
         padding: EdgeInsets.zero,
         itemBuilder: (context, index) {

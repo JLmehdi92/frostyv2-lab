@@ -6,7 +6,6 @@ import 'package:frosty/screens/home/stream_list/streams_list.dart';
 import 'package:frosty/screens/home/top/categories/categories_store.dart';
 import 'package:frosty/screens/home/top/categories/category_card.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/widgets/adaptive_sliver_list.dart';
 import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/frosty_scrollbar.dart';
 import 'package:frosty/widgets/skeleton_loader.dart';
@@ -91,8 +90,7 @@ class _CategoriesState extends State<Categories>
                 controller: widget.scrollController,
                 slivers: [
                   const SliverTopPadding(extraTopPadding: kToolbarHeight),
-                  AdaptiveSliverList(
-                    maxItemWidth: AdaptiveSliverList.compactCardWidth,
+                  SliverList.builder(
                     itemCount: 10,
                     itemBuilder: (context, index) =>
                         const CategorySkeletonLoader(),
@@ -127,8 +125,7 @@ class _CategoriesState extends State<Categories>
               controller: widget.scrollController,
               slivers: [
                 const SliverTopPadding(extraTopPadding: kToolbarHeight),
-                AdaptiveSliverList(
-                  maxItemWidth: AdaptiveSliverList.compactCardWidth,
+                SliverList.builder(
                   itemCount: _categoriesStore.categories.length,
                   itemBuilder: (context, index) {
                     if (index > _categoriesStore.categories.length - 10 &&

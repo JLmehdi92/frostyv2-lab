@@ -686,7 +686,6 @@ class _VideoChatState extends State<VideoChat>
     } else if (settingsStore.fullScreenChatOverlay) {
       // Overlay → Column
       settingsStore.fullScreen = false;
-      if (context.isLargeScreen) releaseOrientationLock();
     } else {
       // Hidden → Overlay
       settingsStore.fullScreenChatOverlay = true;

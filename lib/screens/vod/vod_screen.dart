@@ -7,7 +7,6 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
-import 'package:frosty/screens/channel/video/overlay_common.dart';
 import 'package:frosty/screens/channel/video/player_engine_resolver.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/player_media.dart';
@@ -346,7 +345,6 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
         ..fullScreenChatOverlay = false;
     } else if (_settings.fullScreenChatOverlay) {
       _settings.fullScreen = false;
-      if (context.isLargeScreen) releaseOrientationLock();
     } else {
       _settings.fullScreenChatOverlay = true;
     }

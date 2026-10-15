@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/models/cheermote.dart';
@@ -8,7 +7,6 @@ import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/stores/vod_chat_replay_store.dart';
-import 'package:frosty/screens/vod/vod_overlay.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:frosty/screens/vod/vod_resume.dart';
 import 'package:frosty/screens/vod/vod_screen.dart';
@@ -186,61 +184,6 @@ void main() {
 
     verify(() => mini.close()).called(1);
     await close(tester);
-  });
-
-  group('landscape lock after the double-tap cycle', () {
-    Future<List<Object?>> cycleOverlayToColumn(
-      WidgetTester tester,
-      Size size,
-    ) async {
-      final requests = <Object?>[];
-      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-        SystemChannels.platform,
-        (call) async {
-          if (call.method == 'SystemChrome.setPreferredOrientations') {
-            requests.add(call.arguments);
-          }
-          return null;
-        },
-      );
-      addTearDown(
-        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-          SystemChannels.platform,
-          null,
-        ),
-      );
-      settings
-        ..fullScreen = true
-        ..fullScreenChatOverlay = true;
-      await pump(tester, size: size);
-      await ready(tester);
-      requests.clear();
-
-      // Middle third, clear of the centre play button.
-      final rect = tester.getRect(find.byType(VodOverlay));
-      final center = Offset(rect.center.dx, rect.top + rect.height * 0.3);
-      await tester.tapAt(center);
-      await tester.pump(const Duration(milliseconds: 50));
-      await tester.tapAt(center);
-      await tester.pump(const Duration(milliseconds: 400));
-      expect(settings.fullScreen, isFalse, reason: 'overlay → column');
-      return requests;
-    }
-
-    testWidgets('a tablet gets its rotation back', (tester) async {
-      final requests = await cycleOverlayToColumn(
-        tester,
-        const Size(1600, 1067),
-      );
-      expect(requests, contains(isEmpty));
-      await close(tester);
-    });
-
-    testWidgets('a phone keeps its landscape lock', (tester) async {
-      final requests = await cycleOverlayToColumn(tester, const Size(900, 400));
-      expect(requests, isNot(contains(isEmpty)));
-      await close(tester);
-    });
   });
 
   testWidgets('the landscape chat overlay toggle applies at once', (

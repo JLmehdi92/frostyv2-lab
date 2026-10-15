@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/widgets/readable_width.dart';
-import 'package:frosty/widgets/settings_page_layout.dart';
 
 void main() {
   test('the inset centres a 720 dp column', () {
@@ -22,36 +21,6 @@ void main() {
     for (var i = 0; i < 40; i++)
       ListTile(key: ValueKey('tile$i'), title: Text('Tile $i')),
   ];
-
-  testWidgets('a tablet settings page is a centred, full-width scroller', (
-    tester,
-  ) async {
-    await pumpAt(
-      tester,
-      const Size(1600, 1067),
-      SettingsPageLayout(children: tiles),
-    );
-    final rect = tester.getRect(find.byKey(const ValueKey('tile0')));
-    expect(rect.width, 720);
-    expect(rect.left, 440);
-
-    // Dragging in the side gutter scrolls the page too.
-    await tester.dragFrom(const Offset(20, 600), const Offset(0, -300));
-    await tester.pump();
-    final position = tester
-        .state<ScrollableState>(find.byType(Scrollable).first)
-        .position;
-    expect(position.pixels, greaterThan(0));
-  });
-
-  testWidgets('a phone in landscape keeps the full width', (tester) async {
-    await pumpAt(
-      tester,
-      const Size(915, 412),
-      SettingsPageLayout(children: tiles),
-    );
-    expect(tester.getSize(find.byKey(const ValueKey('tile0'))).width, 915);
-  });
 
   testWidgets('the sliver version keeps a full-width scroll view', (
     tester,

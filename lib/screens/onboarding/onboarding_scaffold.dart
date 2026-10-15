@@ -42,15 +42,10 @@ class OnboardingScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // A tablet may sit in landscape on a stand or keyboard cover.
-    SystemChrome.setPreferredOrientations(
-      context.isLargeScreen
-          ? const []
-          : const [
-              DeviceOrientation.portraitUp,
-              DeviceOrientation.portraitDown,
-            ],
-    );
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
 
     if (isLast) {
       SharedPreferences.getInstance().then(

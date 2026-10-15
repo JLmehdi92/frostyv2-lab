@@ -266,53 +266,34 @@ class VideoOverlay extends StatelessWidget {
     );
 
     final fullScreenButton = Observer(
-      builder: (_) {
-        // In portrait the button always enters full screen.
-        final active =
-            videoStore.settingsStore.fullScreen && context.isLandscape;
-        return Tooltip(
-          message: active ? 'Exit fullscreen mode' : 'Enter fullscreen mode',
-          preferBelow: false,
-          child: IconButton(
-            icon: Icon(
-              active ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
-              color: surfaceColor,
-              shadows: kOverlayShadow,
-            ),
-            onPressed: () async {
-              final settingsStore = videoStore.settingsStore;
-              final largeScreen = context.isLargeScreen;
-              if (context.isPortrait) {
-                final before = (
-                  settingsStore.fullScreen,
-                  settingsStore.fullScreenChatOverlay,
-                );
-                // Twitch-style: enter landscape immersive fullscreen, starting
-                // with the chat as an overlay. Double-tap then cycles the
-                // modes.
-                settingsStore.fullScreen = true;
-                settingsStore.fullScreenChatOverlay = true;
-                if (largeScreen) {
-                  unawaited(
-                    undoIfStillPortrait(
-                      context,
-                      undo: () => settingsStore
-                        ..fullScreen = before.$1
-                        ..fullScreenChatOverlay = before.$2,
-                    ),
-                  );
-                }
-                await enterLandscape(largeScreen: largeScreen);
-              } else if (largeScreen) {
-                toggleLargeScreenFullScreen(settingsStore);
-              } else {
-                settingsStore.fullScreen = false;
-                exitToPortrait();
-              }
-            },
+      builder: (_) => Tooltip(
+        message: videoStore.settingsStore.fullScreen
+            ? 'Exit fullscreen mode'
+            : 'Enter fullscreen mode',
+        preferBelow: false,
+        child: IconButton(
+          icon: Icon(
+            videoStore.settingsStore.fullScreen
+                ? Icons.fullscreen_exit_rounded
+                : Icons.fullscreen_rounded,
+            color: surfaceColor,
+            shadows: kOverlayShadow,
           ),
-        );
-      },
+          onPressed: () async {
+            final settingsStore = videoStore.settingsStore;
+            if (context.isPortrait) {
+              // Twitch-style: enter landscape immersive fullscreen, starting
+              // with the chat as an overlay. Double-tap then cycles the modes.
+              settingsStore.fullScreen = true;
+              settingsStore.fullScreenChatOverlay = true;
+              await enterLandscape();
+            } else {
+              settingsStore.fullScreen = false;
+              exitToPortrait();
+            }
+          },
+        ),
+      ),
     );
 
     final rotateButton = Tooltip(
@@ -328,20 +309,12 @@ class VideoOverlay extends StatelessWidget {
         ),
         onPressed: () async {
           if (context.isPortrait) {
-            await enterLandscape(largeScreen: context.isLargeScreen);
+            await enterLandscape();
           } else {
             exitToPortrait();
           }
         },
       ),
-    );
-
-    // Flutter can't rotate an iPad programmatically (unless multitasking is
-    // disabled), and a large screen is turned by hand.
-    final screenButtons = liveScreenButtons(
-      landscape: context.isLandscape,
-      largeScreen: context.isLargeScreen,
-      iPad: isIPad(),
     );
 
     return Observer(
@@ -429,8 +402,10 @@ class VideoOverlay extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         refreshButton,
-                        if (screenButtons.rotate) rotateButton,
-                        if (screenButtons.fullScreen) fullScreenButton,
+                        // On iPad, hide the rotate button on the overlay
+                        // Flutter doesn't allow programmatic rotation on iPad unless multitasking is disabled.
+                        if (!isIPad()) rotateButton,
+                        if (context.isLandscape) fullScreenButton,
                       ],
                     ),
                   ),
@@ -695,8 +670,10 @@ class VideoOverlay extends StatelessWidget {
                         },
                       ),
                       refreshButton,
-                      if (screenButtons.rotate) rotateButton,
-                      if (screenButtons.fullScreen) fullScreenButton,
+                      // On iPad, hide the rotate button on the overlay
+                      // Flutter doesn't allow programmatic rotation on iPad unless multitasking is disabled.
+                      if (!isIPad()) rotateButton,
+                      if (context.isLandscape) fullScreenButton,
                     ],
                   ),
                 ),

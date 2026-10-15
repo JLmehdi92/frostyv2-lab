@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/main.dart' show navigatorKey;
@@ -7,17 +5,9 @@ import 'package:frosty/screens/channel/channel.dart';
 import 'package:frosty/screens/channel/video/ivs_video.dart';
 import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
 import 'package:provider/provider.dart';
 import 'package:simple_pip_mode/actions/pip_actions_layout.dart';
 import 'package:simple_pip_mode/pip_widget.dart';
-
-/// The mini player's width: 42% of the screen, and at most 400 dp on a large
-/// screen so it does not cover half of a tablet's home.
-double miniPlayerWidth(double screenWidth, {required bool largeScreen}) {
-  final width = screenWidth * 0.42;
-  return largeScreen ? math.min(width, 400) : width;
-}
 
 /// A floating, draggable in-app mini player rendered above the whole app
 /// (installed in `MaterialApp.builder`). Stays visible while the user navigates
@@ -36,6 +26,7 @@ class GlobalMiniPlayer extends StatefulWidget {
 class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
     with SingleTickerProviderStateMixin {
   static const _margin = 12.0;
+  static const _widthFraction = 0.42;
 
   final ValueNotifier<Offset?> _offset = ValueNotifier(null);
 
@@ -82,10 +73,7 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
 
         final media = MediaQuery.of(context);
         final screen = media.size;
-        final width = miniPlayerWidth(
-          screen.width,
-          largeScreen: isLargeScreenSize(screen),
-        );
+        final width = screen.width * _widthFraction;
         final height = width * 9 / 16;
         final topBound = media.padding.top + _margin;
         final defaultOffset = Offset(screen.width - width - _margin, topBound);

@@ -111,9 +111,6 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // A large screen gets a side rail instead of a bottom bar stretched
-    // across the whole width.
-    final useRail = context.isLargeScreen;
 
     return GestureDetector(
       onTap: FocusScope.of(context).unfocus,
@@ -204,94 +201,92 @@ class _HomeState extends State<Home> {
           ],
         ),
         body: Observer(
-          builder: (_) {
-            final pages = IndexedStack(
-              index: _homeStore.selectedIndex,
-              children: [
-                if (_authStore.isLoggedIn)
-                  StreamsList(
-                    listType: ListType.followed,
-                    scrollController: _homeStore.followedScrollController,
-                  ),
-                TopSection(homeStore: _homeStore),
-                Search(scrollController: _homeStore.searchScrollController),
-              ],
-            );
-            return HomeRailLayout(
-              useRail: useRail,
-              destinations: _destinations(theme),
-              selectedIndex: _homeStore.selectedIndex,
-              onDestinationSelected: _onDestinationSelected,
-              child: pages,
-            );
-          },
-        ),
-        bottomNavigationBar: useRail
-            ? null
-            : BlurredContainer(
-                gradientDirection: GradientDirection.down,
-                child: Observer(
-                  builder: (_) => Theme(
-                    data: Theme.of(
-                      context,
-                    ).copyWith(splashFactory: NoSplash.splashFactory),
-                    child: NavigationBar(
-                      backgroundColor: Colors.transparent,
-                      surfaceTintColor: Colors.transparent,
-                      elevation: 0,
-                      destinations: [
-                        for (final d in _destinations(theme))
-                          NavigationDestination(
-                            icon: d.icon,
-                            selectedIcon: d.selectedIcon,
-                            label: d.label,
-                            tooltip: d.label,
-                          ),
-                      ],
-                      selectedIndex: _homeStore.selectedIndex,
-                      onDestinationSelected: _onDestinationSelected,
-                    ),
-                  ),
+          builder: (_) => IndexedStack(
+            index: _homeStore.selectedIndex,
+            children: [
+              if (_authStore.isLoggedIn)
+                StreamsList(
+                  listType: ListType.followed,
+                  scrollController: _homeStore.followedScrollController,
                 ),
+              TopSection(homeStore: _homeStore),
+              Search(scrollController: _homeStore.searchScrollController),
+            ],
+          ),
+        ),
+        bottomNavigationBar: BlurredContainer(
+          gradientDirection: GradientDirection.down,
+          child: Observer(
+            builder: (_) => Theme(
+              data: Theme.of(
+                context,
+              ).copyWith(splashFactory: NoSplash.splashFactory),
+              child: NavigationBar(
+                backgroundColor: Colors.transparent,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                destinations: [
+                  if (_authStore.isLoggedIn)
+                    NavigationDestination(
+                      icon: Icon(
+                        Icons.favorite_border_rounded,
+                        color: _homeStore.selectedIndex == 0
+                            ? theme.colorScheme.onSurface
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                      selectedIcon: Icon(
+                        Icons.favorite_rounded,
+                        color: context.frostyColors.live,
+                      ),
+                      label: 'Following',
+                      tooltip: 'Following',
+                    ),
+                  NavigationDestination(
+                    icon: Icon(
+                      Icons.arrow_upward_rounded,
+                      color:
+                          _homeStore.selectedIndex ==
+                              (_authStore.isLoggedIn ? 1 : 0)
+                          ? theme.colorScheme.onSurface
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                    selectedIcon: Icon(
+                      Icons.arrow_upward_rounded,
+                      color: context.frostyColors.live,
+                    ),
+                    label: 'Top',
+                    tooltip: 'Top',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(
+                      Icons.search_rounded,
+                      color:
+                          _homeStore.selectedIndex ==
+                              (_authStore.isLoggedIn ? 2 : 1)
+                          ? theme.colorScheme.onSurface
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                    selectedIcon: Icon(
+                      Icons.search_rounded,
+                      color: context.frostyColors.live,
+                    ),
+                    label: 'Search',
+                    tooltip: 'Search',
+                  ),
+                ],
+                selectedIndex: _homeStore.selectedIndex,
+                onDestinationSelected: (index) {
+                  if (index != _homeStore.selectedIndex) {
+                    HapticFeedback.selectionClick();
+                  }
+                  _homeStore.handleTap(index);
+                },
               ),
+            ),
+          ),
+        ),
       ),
     );
-  }
-
-  void _onDestinationSelected(int index) {
-    if (index != _homeStore.selectedIndex) {
-      HapticFeedback.selectionClick();
-    }
-    _homeStore.handleTap(index);
-  }
-
-  /// Following (when logged in), Top and Search, for the bottom bar on
-  /// phones and the rail on large screens.
-  List<HomeDestination> _destinations(ThemeData theme) {
-    final offset = _authStore.isLoggedIn ? 0 : -1;
-    Color colorAt(int index) => _homeStore.selectedIndex == index + offset
-        ? theme.colorScheme.onSurface
-        : theme.colorScheme.onSurfaceVariant;
-    // The accent marks the current tab, as in ONSET's design.
-    final selected = context.frostyColors.live;
-    return [
-      if (_authStore.isLoggedIn)
-        (
-          icon: Icon(Icons.favorite_border_rounded, color: colorAt(0)),
-          selectedIcon: Icon(Icons.favorite_rounded, color: selected),
-          label: 'Following',
-        ),
-      (
-        icon: Icon(Icons.arrow_upward_rounded, color: colorAt(1)),
-        selectedIcon: Icon(Icons.arrow_upward_rounded, color: selected),
-        label: 'Top',
-      ),
-      (
-        icon: Icon(Icons.search_rounded, color: colorAt(2)),
-        selectedIcon: Icon(Icons.search_rounded, color: selected),
-        label: 'Search',
-      ),
-    ];
   }
 
   @override
@@ -299,62 +294,5 @@ class _HomeState extends State<Home> {
     _whispers?.cancel();
     _homeStore.dispose();
     super.dispose();
-  }
-}
-
-/// A home tab, shown in the bottom bar or the rail.
-typedef HomeDestination = ({Widget icon, Widget selectedIcon, String label});
-
-/// The home pages, beside a navigation rail when [useRail] (large screens).
-class HomeRailLayout extends StatelessWidget {
-  const HomeRailLayout({
-    super.key,
-    required this.useRail,
-    required this.destinations,
-    required this.selectedIndex,
-    required this.onDestinationSelected,
-    required this.child,
-  });
-
-  final bool useRail;
-  final List<HomeDestination> destinations;
-  final int selectedIndex;
-  final ValueChanged<int> onDestinationSelected;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    if (!useRail) return child;
-    return Row(
-      children: [
-        SafeArea(
-          right: false,
-          child: NavigationRail(
-            backgroundColor: Colors.transparent,
-            labelType: NavigationRailLabelType.all,
-            groupAlignment: -1,
-            destinations: [
-              for (final d in destinations)
-                NavigationRailDestination(
-                  icon: d.icon,
-                  selectedIcon: d.selectedIcon,
-                  label: Text(d.label),
-                ),
-            ],
-            selectedIndex: selectedIndex,
-            onDestinationSelected: onDestinationSelected,
-          ),
-        ),
-        // The rail took the start-side inset (cutout).
-        Expanded(
-          child: MediaQuery.removePadding(
-            context: context,
-            removeLeft: Directionality.of(context) == TextDirection.ltr,
-            removeRight: Directionality.of(context) == TextDirection.rtl,
-            child: child,
-          ),
-        ),
-      ],
-    );
   }
 }
