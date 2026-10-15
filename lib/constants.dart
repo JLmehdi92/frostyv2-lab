@@ -7,6 +7,13 @@ const clientId = String.fromEnvironment('CLIENT_ID');
 /// Twitch API client secret.
 const secret = String.fromEnvironment('SECRET');
 
+/// Read-only GitHub token for in-app updates, set by the update workflow.
+/// Empty in local builds, which then never look for updates.
+const updateToken = String.fromEnvironment('UPDATE_TOKEN');
+
+/// The `owner/name` repository whose releases carry ONSET updates.
+const updateRepo = String.fromEnvironment('UPDATE_REPO');
+
 /// BTTV emotes with zero width to allow for overlaying other emotes.
 const zeroWidthEmotes = [
   'SoSnowy',
