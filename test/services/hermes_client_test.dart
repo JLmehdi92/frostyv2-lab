@@ -134,6 +134,32 @@ void main() {
     return socket;
   }
 
+  group('subscribing', () {
+    test('waits for the welcome, then sends each topic once', () async {
+      await client.subscribeAll(['a.1', 'b.1']);
+      await client.subscribe('a.1');
+      final socket = sockets.single;
+      await pumpEventQueue();
+      expect(socket.types, isEmpty);
+
+      socket.receive(welcome);
+      await pumpEventQueue();
+
+      expect(socket.subscribedTopics, ['a.1', 'b.1']);
+    });
+
+    test('after the welcome a topic goes out at once, and only once', () async {
+      final socket = await session(['a.1']);
+
+      await client.subscribe('b.1');
+      await client.subscribe('b.1');
+      await client.subscribe('a.1');
+
+      expect(socket.subscribedTopics, ['a.1', 'b.1']);
+      expect(sockets, hasLength(1));
+    });
+  });
+
   group('subscription lifecycle', () {
     test('unsubscribing before the answer does not leak the topic', () async {
       final received = <HermesEvent>[];

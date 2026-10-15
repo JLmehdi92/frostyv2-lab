@@ -163,7 +163,9 @@ class HermesClient {
   Future<void> subscribe(String topic) async {
     if (_disposed) return;
 
-    _desiredTopics.add(topic);
+    // Already wanted: it is subscribed, in flight, or queued for the welcome.
+    // Sending it again would deliver every event twice.
+    final isNew = _desiredTopics.add(topic);
 
     // Before the welcome there is no session to subscribe against, and the
     // welcome replays the whole desired set anyway.
@@ -171,7 +173,7 @@ class HermesClient {
       await connect();
       return;
     }
-    _sendSubscribe(topic);
+    if (isNew) _sendSubscribe(topic);
   }
 
   /// Subscribes to several topics at once.
