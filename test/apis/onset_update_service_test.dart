@@ -181,13 +181,30 @@ void main() {
       expect(await service(adapter).expectedSha256(_release), _apkHash);
     });
 
-    test('anything else reads as no hash', () async {
-      for (final body in ['', 'abc', 'z' * 64]) {
+    test('a body that is not a hash reads as no hash', () async {
+      for (final body in ['', 'abc', 'z' * 64, 'a' * 5000]) {
         final adapter = _Adapter((_) => ResponseBody.fromString(body, 200));
         expect(await service(adapter).expectedSha256(_release), isNull);
       }
-      final failing = _Adapter((_) => _json({}, 404));
-      expect(await service(failing).expectedSha256(_release), isNull);
+    });
+
+    test('a hash that cannot be fetched is a download error', () async {
+      for (final failing in [
+        _Adapter((_) => _json({}, 404)),
+        _Adapter((_) => _json({}, 503)),
+        _Adapter(
+          (options) => throw DioException.connectionError(
+            requestOptions: options,
+            reason: 'offline',
+          ),
+        ),
+        _Adapter((_) => _redirect('http://objects.githubusercontent.com/x')),
+      ]) {
+        await expectLater(
+          service(failing).expectedSha256(_release),
+          throwsA(isA<UpdateDownloadException>()),
+        );
+      }
     });
   });
 
@@ -261,6 +278,20 @@ void main() {
       expect(
         adapter.requests.where((r) => r.uri.toString() == _apkUrl),
         isEmpty,
+      );
+    });
+
+    test('an unreachable hash is a download error, not corruption', () async {
+      final adapter = _Adapter(
+        (options) => throw DioException.connectionError(
+          requestOptions: options,
+          reason: 'offline',
+        ),
+      );
+
+      await expectLater(
+        service(adapter).download(_release),
+        throwsA(isA<UpdateDownloadException>()),
       );
     });
 

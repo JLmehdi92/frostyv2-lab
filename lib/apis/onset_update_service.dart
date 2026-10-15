@@ -96,20 +96,37 @@ class OnsetUpdateService extends BaseApiClient {
     }
   }
 
-  /// The SHA-256 published for [release]'s APK, in lowercase hex, or null.
+  /// The SHA-256 published for [release]'s APK, in lowercase hex, or null
+  /// when the asset holds no valid hash.
+  ///
+  /// Throws [UpdateDownloadException] when the asset cannot be fetched: a
+  /// network failure is not a corrupted update.
   Future<String?> expectedSha256(OnsetRelease release) async {
     if (!_validRepo) return null;
+    final Uint8List bytes;
     try {
       final body = await _openAsset(release.shaAssetId);
-      final bytes = await _collect(body.stream, maxBytes: 4096);
-      final text = String.fromCharCodes(bytes).trim();
-      final hash = text.split(RegExp(r'\s+')).first.toLowerCase();
-      return _hashPattern.hasMatch(hash) ? hash : null;
+      bytes = await _collect(body.stream, maxBytes: 4096);
+    } on UpdateIntegrityException {
+      return null;
     } catch (e) {
       debugPrint('Update hash unavailable: ${e.runtimeType}');
-      return null;
+      throw _failure(e);
     }
+    final text = String.fromCharCodes(bytes).trim();
+    final hash = text.split(RegExp(r'\s+')).first.toLowerCase();
+    return _hashPattern.hasMatch(hash) ? hash : null;
   }
+
+  /// What a failed request means to the update flow.
+  static Exception _failure(Object error) => switch (error) {
+    UpdateDownloadException() ||
+    UpdateIntegrityException() ||
+    UpdateCancelledException() => error as Exception,
+    DioException(type: DioExceptionType.cancel) =>
+      const UpdateCancelledException(),
+    _ => const UpdateDownloadException(),
+  };
 
   /// Downloads [release]'s APK into the app cache, under `updates/`, and
   /// checks it against its published SHA-256. A file that does not match is
