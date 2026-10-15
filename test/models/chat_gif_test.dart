@@ -110,13 +110,46 @@ void main() {
       expect(parts.map((part) => part.text), ['[YAY]', ' ', '[W]']);
     });
 
-    test('counts positions in UTF-16 units, like the emotes tag', () {
-      // The emoji is two UTF-16 units: the GIF starts at 3.
-      const gif = ChatGif(start: 3, end: 7, id: 'id', url: 'https://x.test/g');
+    test('counts positions in characters, like the emotes tag', () {
+      // The emoji is one character (two UTF-16 units): the GIF is 2-6.
+      const gif = ChatGif(start: 2, end: 6, id: 'id', url: 'https://x.test/g');
 
       final parts = GifMessagePart.split('😀 [YAY]', [gif]);
 
       expect(parts.map((part) => part.text), ['😀 ', '[YAY]']);
+    });
+
+    test('an emoji in the title counts as one position', () {
+      const gif = ChatGif(start: 0, end: 4, id: 'id', url: 'https://x.test/g');
+
+      final parts = GifMessagePart.split('[Y😀Y]', [gif]);
+
+      expect(parts.single.text, '[Y😀Y]');
+    });
+
+    test(
+      'reads UTF-16 units, as the Twitch app does, when that alone fits',
+      () {
+        // 0-5 overruns the 5 characters but fits the 6 UTF-16 units.
+        const gif = ChatGif(
+          start: 0,
+          end: 5,
+          id: 'id',
+          url: 'https://x.test/g',
+        );
+
+        final parts = GifMessagePart.split('[Y😀Y]', [gif]);
+
+        expect(parts.single.text, '[Y😀Y]');
+      },
+    );
+
+    test('never cuts an emoji in two', () {
+      // 3-6 overruns the 6 characters; in UTF-16 units it would start in the
+      // middle of the second emoji.
+      const gif = ChatGif(start: 3, end: 6, id: 'id', url: 'https://x.test/g');
+
+      expect(GifMessagePart.split('😀😀[Y]', [gif]), isEmpty);
     });
 
     test('no GIF gives no part', () {

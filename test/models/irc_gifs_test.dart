@@ -47,9 +47,9 @@ void main() {
       expect(msg.gifParts.map((part) => part.gif?.id), ['a', null, 'b']);
     });
 
-    test('an emoji before the GIF counts as two positions', () {
+    test('an emoji before the GIF counts as one position', () {
       final msg = IRCMessage.fromString(
-        _line('gifs=3-7|id|https://x.test/g.gif', '😀 [YAY]'),
+        _line('gifs=2-6|id|https://x.test/g.gif', '😀 [YAY]'),
       );
 
       expect(msg.gifParts.map((part) => part.text), ['😀 ', '[YAY]']);

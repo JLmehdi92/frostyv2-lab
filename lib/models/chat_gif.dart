@@ -3,8 +3,8 @@ import 'package:flutter/foundation.dart';
 /// A GIF sent with Twitch's GIF keyboard, from a message's `gifs` tag.
 ///
 /// The tag is `<start>-<end>|<gifID>|<gifURL>` entries joined by commas.
-/// [start] and [end] are zero-based, [end] included, in UTF-16 units of the
-/// message (after a `/me` prefix), like the Twitch app reads them.
+/// [start] and [end] are zero-based positions in the message (after a `/me`
+/// prefix), [end] included. See [GifMessagePart.split] for how they count.
 @immutable
 class ChatGif {
   const ChatGif({
@@ -82,20 +82,32 @@ class GifMessagePart {
   /// [message] cut around the [gifs] that fit in it, or nothing when none
   /// does.
   ///
-  /// [gifs] must be sorted by start. Like the Twitch app, a GIF is kept only
-  /// when `0 <= start <= end < message.length`, and one that starts before
-  /// the end of the previous kept GIF is dropped.
+  /// [gifs] must be sorted by start. A position counts characters (code
+  /// points), as the `emotes` tag does: an emoji before a GIF is one
+  /// position. A range that does not fit that way is read in UTF-16 units,
+  /// as the Twitch app reads it, unless it would cut an emoji in two. Like
+  /// the Twitch app, a GIF is kept only when `0 <= start <= end` and it ends
+  /// in the message, and one that starts before the end of the previous kept
+  /// GIF is dropped.
   static List<GifMessagePart> split(String message, List<ChatGif> gifs) {
+    if (gifs.isEmpty) return const [];
+    // Where each character starts, in UTF-16 units.
+    final starts = <int>[
+      for (var i = 0; i < message.length; i++)
+        if (!_insidePair(message, i)) i,
+    ];
     final parts = <GifMessagePart>[];
     var next = 0;
     for (final gif in gifs) {
-      if (gif.start < 0 || gif.start > gif.end) continue;
-      if (gif.end >= message.length || gif.start < next) continue;
-      if (gif.start > next) {
-        parts.add(GifMessagePart(message.substring(next, gif.start)));
+      final range = _unitRange(message, starts, gif);
+      if (range == null) continue;
+      final (start, end) = range;
+      if (start < next) continue;
+      if (start > next) {
+        parts.add(GifMessagePart(message.substring(next, start)));
       }
-      parts.add(GifMessagePart(message.substring(gif.start, gif.end + 1), gif));
-      next = gif.end + 1;
+      parts.add(GifMessagePart(message.substring(start, end), gif));
+      next = end;
     }
     if (parts.isEmpty) return const [];
     if (next < message.length) {
@@ -103,4 +115,33 @@ class GifMessagePart {
     }
     return parts;
   }
+
+  /// [gif]'s range in UTF-16 units, its end excluded, or null when it fits
+  /// [message] neither in characters nor in units.
+  static (int, int)? _unitRange(String message, List<int> starts, ChatGif gif) {
+    final ChatGif(:start, :end) = gif;
+    if (start < 0 || start > end) return null;
+    if (end < starts.length) {
+      final after = end + 1 < starts.length ? starts[end + 1] : message.length;
+      return (starts[start], after);
+    }
+    if (end < message.length &&
+        !_insidePair(message, start) &&
+        !_insidePair(message, end + 1)) {
+      return (start, end + 1);
+    }
+    return null;
+  }
+
+  /// Whether UTF-16 unit [index] of [text] is the second half of an emoji
+  /// (a surrogate pair), so a cut there would split it.
+  static bool _insidePair(String text, int index) =>
+      index > 0 &&
+      index < text.length &&
+      _isHighSurrogate(text.codeUnitAt(index - 1)) &&
+      _isLowSurrogate(text.codeUnitAt(index));
+
+  static bool _isHighSurrogate(int unit) => unit >= 0xD800 && unit <= 0xDBFF;
+
+  static bool _isLowSurrogate(int unit) => unit >= 0xDC00 && unit <= 0xDFFF;
 }
