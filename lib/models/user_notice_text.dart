@@ -126,7 +126,10 @@ List<NoticeSegment>? _sub(UserNotice notice) {
 }
 
 List<NoticeSegment>? _subGift(UserNotice notice) {
-  final gifter = _senderName(notice);
+  // Twitch names the gifter by their display name alone (the anonymous
+  // gifter account reads "AnAnonymousGifter"); only the recipient gets the
+  // login after a name beyond ASCII.
+  final gifter = notice.displayName ?? notice.login;
   final recipientName = notice.recipientDisplayName;
   if (gifter == null || recipientName == null) return null;
 

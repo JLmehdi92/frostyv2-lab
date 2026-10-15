@@ -271,6 +271,15 @@ void main() {
       expect(_bold(_word(tags)), ['G', '名前 (namae)']);
     });
 
+    test("the gifter's name is shown as is, without the login", () {
+      final tags = _gift()
+        ..['display-name'] = '名前'
+        ..['login'] = 'namae';
+
+      expect(_bold(_word(tags)), ['名前', 'R']);
+      expect(_bold(_word({...tags, 'msg-param-gift-months': '3'})).first, '名前');
+    });
+
     test('a gift with no recipient falls back to Twitch\'s sentence', () {
       final tags = _gift()..remove('msg-param-recipient-display-name');
 
