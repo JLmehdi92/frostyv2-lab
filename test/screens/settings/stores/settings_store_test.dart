@@ -3,6 +3,28 @@ import 'package:frosty/screens/settings/stores/settings_store.dart';
 
 void main() {
   group('SettingsStore JSON serialization', () {
+    test('settings saved before ONSET keep the new defaults', () {
+      // An older save knows neither key; it must not switch either off.
+      final store = SettingsStore.fromJson({
+        'showVideo': true,
+        'chatWidth': 0.3,
+      });
+
+      expect(store.showCelebrations, isTrue);
+      expect(store.collapseGiftBombs, isFalse);
+    });
+
+    test('celebrations and gift bomb collapsing round-trip', () {
+      final store = SettingsStore.fromJson({})
+        ..showCelebrations = false
+        ..collapseGiftBombs = true;
+
+      final restored = SettingsStore.fromJson(store.toJson());
+
+      expect(restored.showCelebrations, isFalse);
+      expect(restored.collapseGiftBombs, isTrue);
+    });
+
     test('live catch-up and buffer profile defaults', () {
       final store = SettingsStore.fromJson({});
 
