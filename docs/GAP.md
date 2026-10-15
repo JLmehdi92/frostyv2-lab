@@ -21,6 +21,7 @@
 | 2026-10-14 | épopée E7 « chat » (2e partie) | CHT-10, CHT-25, CHT-45 ✅ ; CHT-22 ⚠️ (remarque). Comptes recalculés. À valider sur appareil. |
 | 2026-10-13 | épopée E8 « découverte » | DSC-04, DSC-05, DSC-06 ✅ ; DSC-08, DSC-09 ⚠️ (remarques). Comptes recalculés. Affichage à valider sur appareil. |
 | 2026-10-13 | épopée E5 « highlights communautaires » | CHT-41, CHT-42 ✅ ; INT-01, INT-02 ⚠️ (lecture seule) ; INT-19 (raid sortant). Comptes recalculés. Affichage à valider sur appareil. |
+| 2026-10-15 | retour à ONSET (portage de l'appli ONSET, hype train et notices au style Twitch, retour de la tablette) et passe finale | INT-25 ✅ ; INT-05, INT-06, INT-07 ⚠️ ; INT-02, INT-04, INT-15, INT-16, CHT-36, MON-07 (remarques) ; MSC-14 ⚠️, DSC-01, PRF-18 (tablette). Comptes recalculés. À valider sur la tablette. |
 
 ## 0. Légende et conventions
 
@@ -43,7 +44,7 @@
 
 **Constats de vérification** (par rapport à `ARCHITECTURE.md`, tous confirmés dans le code) :
 
-- Temps réel : IRC, EventAPI 7TV, Hermes anonyme (hype train, highlights) et, depuis l'épique whispers, EventSub WebSocket avec le jeton utilisateur (`user.whisper.message`).
+- Temps réel : IRC, EventAPI 7TV, Hermes anonyme (hype train, highlights), le client Hermes d'ONSET (célébrations, objectifs, points et prédictions ; authentifié par le jeton web pour les sujets du viewer) et, depuis l'épique whispers, EventSub WebSocket avec le jeton utilisateur (`user.whisper.message`).
 - Scopes OAuth : `chat:read chat:edit user:read:follows user:read:blocked_users user:manage:blocked_users user:manage:chat_color` puis, depuis l'épique modération, `moderator:manage:banned_users moderator:manage:chat_messages moderator:manage:chat_settings moderator:manage:warnings` (`auth_store.dart:164`). Puis `moderator:read:followers`, `user:manage:whispers` et `user:read:emotes` (fiche utilisateur, whispers, menu d'emotes). Aucun scope `user:read:chat`. **Ajouter un scope oblige à se reconnecter.**
 - iOS : `ready` réussit (usher résolu), mais `_createTexture` échoue faute de canal natif. L'échec est avalé par `catchError` (`ivs_video_store.dart:115`) : `onFatalError` n'est jamais appelé et le spinner tourne à l'infini.
 - Mots masqués : `chat_store.dart:548-555`. Le `return` abandonne tout le lot IRC en cours, et `split('')` compare caractère par caractère si « mot entier » est désactivé.
@@ -128,7 +129,7 @@
 | CHT-33 | Progression des badges | P2 | ❌ | — | — | GQL privé |
 | CHT-34 | Délai de chat (sync vidéo) | P1 | ➕ | `settings_store.dart:218-231`, `chat_store.dart:446-500`, `ivs_video_store.dart:199-201` | Délai manuel 0-30 s ou synchronisé sur la latence mesurée. Le délai imposé par la chaîne n'est pas lu. | OK |
 | CHT-35 | Horodatage des messages | P1 | ✅ | `settings_store.dart:210-215`, `irc.dart:130-140` | — | OK |
-| CHT-36 | Notices d'abonnement et de gift | P0 | ✅ | `chat_message.dart:441-480` | Rendu générique de `system-msg`, avec icônes. | OK |
+| CHT-36 | Notices d'abonnement et de gift | P0 | ✅ | `user_notice_row.dart`, `user_notice.dart`, `user_notice_text.dart`, `user_notice_presentation.dart`, `gift_bomb_tracker.dart` | Rangée de notice au style de l'appli Android de Twitch (barre d'accent, icône, phrase, message du viewer), en vert là où Twitch met du violet ; libellés de Twitch pour subs, resubs, gifts (mois offerts, anonymes), Prime, raids, objectifs de subs ; gift sponsorisé teinté à la couleur du sponsor ; notice gardée si son message est supprimé ou son auteur banni ; chaque gift d'un gift bomb est affiché, avec l'option « Collapse gift bombs ». Aussi dans le chat en surimpression. | OK |
 | CHT-37 | Partage d'anniversaire de resub | P2 | ❌ | — | — | GQL privé |
 | CHT-38 | Callouts privés | P1 | ❌ | — | Topic privé. | GQL privé |
 | CHT-39 | Notice de don caritatif | P2 | ✅ | `chat_message.dart:447-475` | Rendu générique de `system-msg` (`charitydonation`). | OK |
@@ -147,12 +148,12 @@
 | ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
 | INT-01 | Sondages (vote) | P1 | ⚠️ | `community_highlights/widgets/highlight_cards.dart` | Lecture en direct (épopée E5) : question, barres et %, votes, temps restant, résultats finaux puis disparition. GQL anonyme `viewablePoll` + sujet Hermes public `polls.<id>`. Voter : bouton « Vote on Twitch » sur la carte ouverte, qui ouvre le chat de la chaîne sur twitch.tv dans l'appli (E9) ; pas de vote natif (mutation réservée à twitch.tv, protégée par `Client-Integrity`). | GQL privé |
-| INT-02 | Prédictions (parier) | P1 | ⚠️ | `community_highlights/widgets/highlight_cards.dart` | Lecture en direct (E5) : 2 à 10 issues avec couleurs, points, participants, cote « 1:x » et meilleurs parieurs ; verrouillée, en attente, gagnante, remboursée. GQL anonyme + `predictions-channel-v1.<id>`. Parier exige la session web du compte (E9). Parier : bouton « Predict on Twitch » vers le chat twitch.tv dans l'appli (E9). | GQL privé |
+| INT-02 | Prédictions (parier) | P1 | ⚠️ | `community_highlights/widgets/highlight_cards.dart` | Lecture en direct (E5) : 2 à 10 issues avec couleurs, points, participants, cote « 1:x » et meilleurs parieurs ; verrouillée, en attente, gagnante, remboursée. GQL anonyme + `predictions-channel-v1.<id>`. Pari natif depuis la feuille des points (`channel_points_sheet.dart`, portage ONSET) : mise minimale 10, préréglages, Max, mutation GQL `makePrediction` avec le jeton web du viewer, jamais automatique ; Twitch peut la refuser (contrôle d'intégrité, refus affiché tel quel) : à valider sur appareil. « Predict on Twitch » reste disponible (E9). | GQL privé |
 | INT-03 | Conditions des prédictions | P1 | ❌ | — | — | GQL privé |
-| INT-04 | Points de chaîne : solde et gains | P1 | ⚠️ | `chat_details.dart` (menu « More ») | Entrée « Channel points, polls and predictions » : le chat de la chaîne sur twitch.tv dans l'appli (solde, bonus, récompenses). Pas d'affichage natif (aucune API publique pour le solde). | GQL privé |
-| INT-05 | Bonus à réclamer | P1 | ❌ | — | La réclamation exige en pratique `Client-Integrity` : risque élevé. | GQL privé |
-| INT-06 | Récompenses intégrées | P1 | ❌ | — | Les messages surlignés reçus sont rendus (`chat_message.dart:222`), mais on ne peut pas échanger. | GQL privé |
-| INT-07 | Récompenses personnalisées | P1 | ❌ | — | Helix `/channel_points/custom_rewards` est réservé au diffuseur. | GQL privé |
+| INT-04 | Points de chaîne : solde et gains | P1 | ⚠️ | `channel_points_button.dart`, `channel_points_sheet.dart`, `channel_events_store.dart`, `twitch_points_service.dart` | Solde natif (portage ONSET) en bas à gauche du chat, au format de Twitch (1.5K, 1M), avec l'icône de la chaîne ; lu par GQL avec le jeton web (session twitch.tv), rafraîchi après un événement Hermes de points (regroupés sur 2 s) et chaque minute si connecté. Pas d'animation de gain. Le menu « More » ouvre toujours la page twitch.tv. | GQL privé |
+| INT-05 | Bonus à réclamer | P1 | ⚠️ | `channel_points_sheet.dart` (`_ClaimButton`), `channel_events_store.dart` (`claimBonus`) | Le coffre disponible est détecté (icône cadeau sur le bouton des points, bouton « Collect bonus »), mais Twitch refuse la réclamation hors de ses clients (`failed integrity check`, mesuré) : après un refus le bouton laisse place à une explication et renvoie vers twitch.tv. Aucun contournement de `Client-Integrity`. | GQL privé |
+| INT-06 | Récompenses intégrées | P1 | ⚠️ | `community_points.dart` (`tryParseAutomatic`), `channel_points_sheet.dart` | Listées dans la feuille des points avec le nom de Twitch et leur coût (les power-ups payés en Bits, sans coût en points, sont écartés), mais pas échangeables : chacune exige un sélecteur (emote) que l'appli n'a pas. Les messages surlignés reçus sont rendus (`chat_message.dart:222`). | GQL privé |
+| INT-07 | Récompenses personnalisées | P1 | ⚠️ | `channel_points_sheet.dart`, `twitch_points_service.dart` (`redeemReward`) | Liste de la chaîne (actives seulement, triées par coût, couleur et image) ; échange après confirmation, texte demandé si la récompense l'exige, mutation GQL `redeemCommunityPointsCustomReward` avec le jeton web et un identifiant de transaction par dépense ; un second appui pendant l'envoi est refusé. Acceptation par Twitch à valider sur appareil (refus d'intégrité affiché tel quel). | GQL privé |
 | INT-08 | Power-ups (Bits) | P2 | ❌ | — | Paiement en Bits. | Impossible proprement |
 | INT-09 | Objectifs communautaires (challenges) | P2 | ❌ | — | — | GQL privé |
 | INT-10 | Objectifs créateur (sub goals) | P1 | ❌ | — | EventSub `channel.goal.*` exige `channel:read:goals` (diffuseur). | GQL privé |
@@ -160,8 +161,8 @@
 | INT-12 | Cheer (envoyer des Bits) | P2 | ❌ | — | Dépense de Bits (argent réel). | GQL privé |
 | INT-13 | Campagnes de bonus Bits | P2 | ❌ | — | — | GQL privé |
 | INT-14 | Combos (Bits en un tap) | P2 | ❌ | — | — | GQL privé |
-| INT-15 | Hype Train | P1 | ✅ | `lib/screens/channel/hype_train/` (store, bannière, feuille), `lib/apis/twitch_hype_train_service.dart`, `lib/services/realtime/` | Anonyme : état initial par GQL `GetHypeTrainExecution` (vérifié en direct) puis événements Hermes `hype-train-events-v2.<id>` ; approche, départ, niveaux avec % et minuteur (horloge serveur), contributions importantes, conducteurs, récompenses par niveau, fin et bande de récompenses 20 s, repli à expiration + 10 s, sondage GQL toutes les 20 s si le temps réel tombe. Réglage « Show Hype Trains ». Pas de bouton d'achat (D4). À valider sur appareil. | GQL privé |
-| INT-16 | Variantes de Hype Train | P2 | ✅ | `hype_train/widgets/effects/` | Golden Kappa, Treasure (pièce + cadenas), Community (fusée), Mythic (roulette + révélation), record historique (trophée), pinata rendu comme régulier. Formes Golden/Treasure/record vérifiées en direct ; Community/Mythic d'après la RE (non observées). | GQL privé |
+| INT-15 | Hype Train | P1 | ✅ | `lib/screens/channel/hype_train/` (store, bannière, feuille), `lib/apis/twitch_hype_train_service.dart`, `lib/services/realtime/` | Anonyme : état initial par GQL `GetHypeTrainExecution` (vérifié en direct) puis événements Hermes `hype-train-events-v2.<id>` ; approche, départ, niveaux avec % et minuteur (horloge serveur), contributions importantes, conducteurs, récompenses par niveau, fin et bande de récompenses 20 s, repli à expiration + 10 s, sondage GQL toutes les 20 s si le temps réel tombe. Mis au style de Twitch (bannières par défaut et compacte, feuille de détails, pastilles, bandes de fin) en vert là où Twitch met du violet (`hype_train_tokens.dart`, `hype_train_palette.dart`). Réglage « Show Hype Trains ». Pas de bouton d'achat (D4). À valider sur appareil. | GQL privé |
+| INT-16 | Variantes de Hype Train | P2 | ✅ | `hype_train/widgets/effects/` | Golden Kappa, Treasure (pièce + cadenas), Community (fusée), Mythic (roulette + révélation), record historique (trophée), pinata rendu comme régulier ; effets redessinés au style de Twitch. Formes Golden/Treasure/record vérifiées en direct ; Community/Mythic d'après la RE (non observées). | GQL privé |
 | INT-17 | Hype Train partagé | P2 | ✅ | `hype_train_reducer.dart`, `hype_train_sequence.dart` | Train partagé vérifié en direct (GQL `sharedHypeTrainDetails`) : avatars, top 3, arc-en-ciel, fusion et départ d'une chaîne (formes d'événements non observées). | GQL privé |
 | INT-18 | Récompenses partagées | P2 | ❌ | — | — | GQL privé |
 | INT-19 | Raids (côté viewer) | P1 | ✅ | `chat_message.dart:447-460`, `community_highlights/widgets/highlight_cards.dart`, `community_highlights_store.dart` (`onGoAlong`, `stayOnRaid`) | Notice de raid entrant (USERNOTICE). Raid sortant (E5, sujet public `raid.<id>`) : « Raiding <cible> with N viewers », compte à rebours, « Watch <cible> » ouvre la chaîne dans l'appli, et le viewer suit le raid à son départ comme sur Twitch (« Stay here » pour rester ; pas depuis une VOD ou le PiP). À valider sur un vrai raid. | OK |
@@ -170,7 +171,7 @@
 | INT-22 | Récompenses hebdomadaires | P2 | ❌ | — | — | GQL privé |
 | INT-23 | Moments communautaires | P2 | ❌ | — | — | GQL privé |
 | INT-24 | Classements | P2 | ❌ | — | Helix `/bits/leaderboard` est réservé au diffuseur. | GQL privé |
-| INT-25 | Célébrations à l'écran | P2 | ❌ | — | — | GQL privé |
+| INT-25 | Célébrations à l'écran | P2 | ✅ | `celebration_overlay.dart`, `celebration.dart`, `channel_events_store.dart`, `hermes_client.dart` | Portage ONSET : sujet Hermes `celebration-events-v1.<id>` (gifts de la communauté, alertes du diffuseur) ; cinq effets en animation Lottie recolorée, taille et opacité selon l'intensité, zone chat/vidéo/partout respectée, durée bornée à 0,5-15 s, jamais deux fois le même événement, jamais interactive. Réglage « Show celebrations ». À valider sur un vrai gift. | GQL privé |
 | INT-26 | Drops en stream | P1 | ❌ | — | Intégrité exigée : risque élevé. | GQL privé |
 | INT-27 | Campagnes et inventaire de drops | P1 | ❌ | — | Intégrité exigée : risque élevé. | GQL privé |
 | INT-28 | Extensions | P2 | ❌ | — | Exige un JWT d'extension et l'helper Twitch. | Impossible proprement |
@@ -312,7 +313,7 @@
 | MON-04 | Abonnement Prime Gaming | P2 | ❌ | — | — | Impossible proprement |
 | MON-05 | Turbo | P2 | ❌ | — | — | Impossible proprement |
 | MON-06 | Offrir un abonnement | P2 | ❌ | — | — | Impossible proprement |
-| MON-07 | Gifts à la communauté | P2 | ❌ | — | — | Impossible proprement |
+| MON-07 | Gifts à la communauté | P2 | ❌ | — | Offrir reste impossible proprement. Affichage seulement : bannière de gift bomb épinglée au-dessus du chat avec compte à rebours (`gift_bomb_tracker.dart`, `gift_bomb_feed.dart`), et chaque gift dans le chat (CHT-36). | Impossible proprement |
 | MON-08 | Réglages des gifts | P2 | ❌ | — | — | GQL privé |
 | MON-09 | Promotions | P2 | ❌ | — | — | Impossible proprement |
 | MON-10 | Récompenses de dépense | P2 | ❌ | — | — | Impossible proprement |
@@ -418,7 +419,7 @@
 | MSC-11 | Enquêtes in-app | P2 | ❌ | — | — | Impossible proprement |
 | MSC-12 | Menu debug | P2 | ⚠️ | `dev_player_harness.dart`, `video_overlay.dart:487-516` | Harness mpv et badge de latence. Pas de menu debug. | OK |
 | MSC-13 | Rapports de crash QA | P2 | ⚠️ | `main.dart:48-57`, `other_settings.dart:105` | Crashlytics avec opt-out. | OK |
-| MSC-14 | Mises en page tablette et bureau | P2 | ✅ | `context_extensions.dart` (`isLargeScreen`), `adaptive_sliver_list.dart`, `home.dart`, `overlay_common.dart`, `readable_width.dart`, `MainActivity.kt` | Seuil 600 dp : grilles de chaînes/catégories/vidéos, rail, plein écran sans rotation, chat paysage par largeur réelle, hype train borné, réglages centrés, vignettes à la taille affichée, 120 Hz demandé. Bureau hors périmètre. | OK |
+| MSC-14 | Mises en page tablette et bureau | P2 | ⚠️ | `context_extensions.dart` (`isLargeScreen`), `adaptive_sliver_list.dart`, `readable_width.dart`, `channel_top_overlays.dart`, `MainActivity.kt` | Retour à la mise en page ONSET sur tablette : barre de navigation du bas, listes de lives et de catégories sur une colonne, plein écran qui fait pivoter, crayon du chat paysage sous 30 % de la largeur, clip paysage en vidéo seule. Gardé : grilles des vidéos et des clips, largeur de lecture des whispers et du profil, bannière du hype train bornée, highlights dépliés, 120 Hz demandé. Bureau hors périmètre. | OK |
 | MSC-15 | WebView in-app | P2 | ✅ | `user_actions_modal.dart:115`, `auth_store.dart:101`, `settings_store.dart:48-50` | WebView pour le signalement et la connexion, option navigateur externe. | OK |
 | MSC-16 | Éducation utilisateur | P2 | ⚠️ | `onboarding_intro.dart`, `release_notes.dart` | Onboarding et notes de version. Pas de coach-marks. | OK |
 | MSC-17 | Liens différés et attribution | P2 | ❌ | — | Clé Branch propre à Twitch. | Impossible proprement |
@@ -431,32 +432,32 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 |---|---|---|---|---|---|
 | Lecture vidéo (PLY) | 17 | 6 | 9 | 1 | 33 |
 | Chat (CHT) | 26 | 4 | 12 | 6 | 48 |
-| Interactions communautaires (INT) | 5 | 3 | 23 | 0 | 31 |
+| Interactions communautaires (INT) | 6 | 6 | 19 | 0 | 31 |
 | Modération (MOD) | 9 | 1 | 21 | 0 | 31 |
 | Social & notifications (SOC) | 5 | 5 | 12 | 0 | 22 |
 | Découverte & recherche (DSC) | 6 | 4 | 12 | 0 | 22 |
-| Profil de chaîne & contenus (VOD / clips) (PRF) | 5 | 6 | 18 | 0 | 29 |
+| Profil de chaîne & contenus (VOD / clips) (PRF) | 14 | 5 | 10 | 0 | 29 |
 | Monétisation (MON) | 0 | 0 | 15 | 0 | 15 |
 | Compte & réglages (ACC) | 5 | 8 | 18 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
-| Divers / technique (MSC) | 4 | 7 | 6 | 0 | 17 |
-| **Total** | **91** | **43** | **175** | **8** | **317** |
+| Divers / technique (MSC) | 3 | 8 | 6 | 0 | 17 |
+| **Total** | **91** | **47** | **171** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 41 | 13 | 2 | 4 | 60 |
-| P1 | 44 | 21 | 39 | 4 | 108 |
-| P2 | 6 | 9 | 134 | 0 | 149 |
-| **Total** | **91** | **43** | **175** | **8** | **317** |
+| P1 | 44 | 24 | 36 | 4 | 108 |
+| P2 | 6 | 10 | 133 | 0 | 149 |
+| **Total** | **91** | **47** | **171** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 9 | 20 | 33 | 62 |
-| GQL privé | 6 | 29 | 61 | 96 |
+| OK | 9 | 20 | 34 | 63 |
+| GQL privé | 6 | 29 | 60 | 95 |
 | Compte requis | 0 | 11 | 12 | 23 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
 
-Lecture : sur 60 lignes P0, **44** sont entièrement couvertes (40 ✅ et 4 ➕), 14 sont partielles et 2 absentes. Les lignes P0 absentes sont le centre de notifications (SOC-07) et l'avertissement côté viewer (CHT-13), tous deux en GQL privé. Les ➕ sont le délai de chat synchronisé, la révélation des messages supprimés, le multi-chat et le chat partagé, les emotes 7TV/BTTV/FFZ, la disposition paysage et le thème avec accent.
+Lecture : sur 60 lignes P0, **45** sont entièrement couvertes (41 ✅ et 4 ➕), 13 sont partielles et 2 absentes. Les lignes P0 absentes sont le centre de notifications (SOC-07) et l'avertissement côté viewer (CHT-13), tous deux en GQL privé. Les ➕ sont le délai de chat synchronisé, la révélation des messages supprimés, le multi-chat et le chat partagé, les emotes 7TV/BTTV/FFZ, la disposition paysage et le thème avec accent.
 
 ## 3. Lecture / latence : écarts concrets avec le lecteur officiel
 
