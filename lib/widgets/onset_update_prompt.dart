@@ -78,7 +78,7 @@ Future<void> offerUpdate(
     case UpdateIntegrityException():
       _tell(context, 'The download was corrupted — try again');
     case UpdateInstallException():
-      _tell(context, "Couldn't open the installer");
+      _tell(context, 'Android could not install the update');
     case null || UpdateCancelledException():
       break;
     default:
@@ -147,8 +147,8 @@ class UpdateAvailableDialog extends StatelessWidget {
   }
 }
 
-/// Downloads and installs [release] while showing its progress. Pops with
-/// null once the system installer is open, or with the error.
+/// Downloads and installs [release] while showing its progress, then waits on
+/// the system installer. Pops with null once installed, or with the error.
 class UpdateProgressDialog extends StatefulWidget {
   final OnsetUpdater updater;
   final OnsetRelease release;
@@ -165,6 +165,7 @@ class UpdateProgressDialog extends StatefulWidget {
 
 class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
   final _cancelToken = CancelToken();
+  var _installing = false;
   var _received = 0;
   late var _total = widget.release.apkSize;
 
@@ -180,6 +181,9 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
       await widget.updater.downloadAndInstall(
         widget.release,
         cancelToken: _cancelToken,
+        onInstall: () {
+          if (mounted) setState(() => _installing = true);
+        },
         onProgress: (received, total) {
           if (!mounted) return;
           setState(() {
@@ -205,12 +209,14 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final progress = _total > 0 ? (_received / _total).clamp(0.0, 1.0) : null;
+    final progress = _installing || _total <= 0
+        ? null
+        : (_received / _total).clamp(0.0, 1.0);
 
     return PopScope(
       canPop: false,
       child: FrostyDialog(
-        title: 'Downloading update',
+        title: _installing ? 'Installing update' : 'Downloading update',
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -225,7 +231,7 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
         ),
         actions: [
           TextButton(
-            onPressed: _cancelToken.isCancelled
+            onPressed: _installing || _cancelToken.isCancelled
                 ? null
                 : () => setState(() => _cancelToken.cancel()),
             child: const Text('Cancel'),

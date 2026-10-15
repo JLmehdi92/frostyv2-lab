@@ -6,7 +6,7 @@
     <!-- Background audio: the media notification's foreground service. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
-    <!-- In-app updates: hands a downloaded ONSET build to the system installer. -->
+    <!-- In-app updates: installs a downloaded ONSET build through PackageInstaller. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <queries>
@@ -59,16 +59,10 @@
             android:name=".BackgroundAudioService"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
-        <!-- Shares only the cache updates/ directory, with the installer. -->
-        <provider
-            android:name=".UpdateFileProvider"
-            android:authorities="${applicationId}.updates"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/update_paths" />
-        </provider>
+        <!-- In-app updates: the install session's status, sent by the system only. -->
+        <receiver
+            android:name=".InstallResultReceiver"
+            android:exported="false" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

@@ -54,6 +54,7 @@ void main() {
     Future<void> Function(
       void Function(int, int)? onProgress,
       CancelToken? cancelToken,
+      void Function()? onInstall,
     )
     body,
   ) {
@@ -62,11 +63,13 @@ void main() {
         any(),
         onProgress: any(named: 'onProgress'),
         cancelToken: any(named: 'cancelToken'),
+        onInstall: any(named: 'onInstall'),
       ),
     ).thenAnswer(
       (invocation) => body(
         invocation.namedArguments[#onProgress] as void Function(int, int)?,
         invocation.namedArguments[#cancelToken] as CancelToken?,
+        invocation.namedArguments[#onInstall] as void Function()?,
       ),
     );
   }
@@ -117,7 +120,7 @@ void main() {
 
   testWidgets('"Update" shows the progress, then installs', (tester) async {
     final finish = Completer<void>();
-    downloadDoes((onProgress, _) {
+    downloadDoes((onProgress, _, _) {
       onProgress!(5 * _mb, 10 * _mb);
       return finish.future;
     });
@@ -141,8 +144,33 @@ void main() {
     verifyNever(() => updater.postpone(any()));
   });
 
+  testWidgets('waits on the system installer once downloaded', (tester) async {
+    final finish = Completer<void>();
+    downloadDoes((onProgress, _, onInstall) {
+      onProgress!(10 * _mb, 10 * _mb);
+      onInstall!();
+      return finish.future;
+    });
+    await pumpOffer(tester);
+
+    await tester.tap(find.text('Update'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('Installing update'), findsOneWidget);
+    expect(find.text('Downloading update'), findsNothing);
+    final cancel = tester.widget<TextButton>(
+      find.ancestor(of: find.text('Cancel'), matching: find.byType(TextButton)),
+    );
+    expect(cancel.onPressed, isNull);
+
+    finish.complete();
+    await tester.pumpAndSettle();
+    expect(find.text('Installing update'), findsNothing);
+  });
+
   testWidgets('"Cancel" stops the download quietly', (tester) async {
-    downloadDoes((_, cancelToken) async {
+    downloadDoes((_, cancelToken, _) async {
       await cancelToken!.whenCancel;
       throw const UpdateCancelledException();
     });
@@ -163,10 +191,10 @@ void main() {
       'The download was corrupted — try again',
     ),
     (const UpdateDownloadException(), 'Download failed'),
-    (const UpdateInstallException(), "Couldn't open the installer"),
+    (const UpdateInstallException(), 'Android could not install the update'),
   ]) {
     testWidgets('${error.runtimeType} says "$message"', (tester) async {
-      downloadDoes((_, _) async => throw error);
+      downloadDoes((_, _, _) async => throw error);
       await pumpOffer(tester);
 
       await tester.tap(find.text('Update'));
@@ -178,7 +206,7 @@ void main() {
   }
 
   testWidgets('an unexpected error closes the progress too', (tester) async {
-    downloadDoes((_, _) async => throw StateError('boom'));
+    downloadDoes((_, _, _) async => throw StateError('boom'));
     await pumpOffer(tester);
 
     await tester.tap(find.text('Update'));
@@ -195,7 +223,7 @@ void main() {
       when(() => updater.openInstallSettings()).thenAnswer((_) async {
         allowed = true;
       });
-      downloadDoes((_, _) async {});
+      downloadDoes((_, _, _) async {});
     });
 
     testWidgets('explains, opens the settings, then goes on', (tester) async {
@@ -212,6 +240,7 @@ void main() {
           any(),
           onProgress: any(named: 'onProgress'),
           cancelToken: any(named: 'cancelToken'),
+          onInstall: any(named: 'onInstall'),
         ),
       );
 
@@ -222,6 +251,7 @@ void main() {
           any(),
           onProgress: any(named: 'onProgress'),
           cancelToken: any(named: 'cancelToken'),
+          onInstall: any(named: 'onInstall'),
         ),
       ).called(1);
     });

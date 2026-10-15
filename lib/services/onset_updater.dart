@@ -38,7 +38,7 @@ final class UpdateCheckFailed extends UpdateCheck {
   const UpdateCheckFailed();
 }
 
-/// The system installer could not be opened.
+/// Android could not install the update.
 class UpdateInstallException implements Exception {
   const UpdateInstallException();
 }
@@ -145,23 +145,31 @@ class OnsetUpdater {
   /// Opens the system page that lets ONSET install apps.
   Future<void> openInstallSettings() => _installer.openInstallSettings();
 
-  /// Downloads and verifies [release], then opens the system installer.
+  /// Downloads and verifies [release], calls [onInstall], then hands it to
+  /// the system installer and waits for its answer (when the update succeeds
+  /// Android replaces the app, which usually stops before that).
   ///
-  /// Throws the download errors of [OnsetUpdateService.download], or
+  /// Throws the download errors of [OnsetUpdateService.download],
+  /// [UpdateCancelledException] when the viewer dismisses the installer, or
   /// [UpdateInstallException].
   Future<void> downloadAndInstall(
     OnsetRelease release, {
     void Function(int received, int total)? onProgress,
     CancelToken? cancelToken,
+    void Function()? onInstall,
   }) async {
     final file = await _service.download(
       release,
       onProgress: onProgress,
       cancelToken: cancelToken,
     );
+    onInstall?.call();
     try {
       await _installer.install(file.path);
-    } on PlatformException {
+    } on PlatformException catch (e) {
+      if (e.code == OnsetInstaller.abortedCode) {
+        throw const UpdateCancelledException();
+      }
       throw const UpdateInstallException();
     } on MissingPluginException {
       throw const UpdateInstallException();

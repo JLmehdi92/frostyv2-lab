@@ -250,6 +250,52 @@ void main() {
       expect(calls.single.arguments, {'path': file.path});
     });
 
+    test('tells when the system installer takes over', () async {
+      final order = <String>[];
+      when(
+        () => service.download(
+          any(),
+          onProgress: any(named: 'onProgress'),
+          cancelToken: any(named: 'cancelToken'),
+        ),
+      ).thenAnswer((_) async {
+        order.add('download');
+        return File('/tmp/updates/onset-1023.apk');
+      });
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(OnsetInstaller.channel, (call) async {
+            order.add(call.method);
+            return null;
+          });
+
+      await updater().downloadAndInstall(
+        _release(1023),
+        onInstall: () => order.add('onInstall'),
+      );
+
+      expect(order, ['download', 'onInstall', 'install']);
+    });
+
+    test('a dismissed installer reads as cancelled', () async {
+      when(
+        () => service.download(
+          any(),
+          onProgress: any(named: 'onProgress'),
+          cancelToken: any(named: 'cancelToken'),
+        ),
+      ).thenAnswer((_) async => File('/tmp/updates/onset-1023.apk'));
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            OnsetInstaller.channel,
+            (call) async => throw PlatformException(code: 'install_aborted'),
+          );
+
+      await expectLater(
+        updater().downloadAndInstall(_release(1023)),
+        throwsA(isA<UpdateCancelledException>()),
+      );
+    });
+
     test('a refused install is an install error', () async {
       when(
         () => service.download(
