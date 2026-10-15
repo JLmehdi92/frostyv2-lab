@@ -292,4 +292,59 @@ void main() {
     expect(find.text('GIF'), findsOneWidget);
     expect(find.text('Copy image URL'), findsOneWidget);
   });
+
+  testWidgets('a failed GIF keeps its height while showing its title', (
+    tester,
+  ) async {
+    _portrait(tester);
+    await pumpChatMessage(
+      tester,
+      IRCMessage.fromString(gifMessage),
+      fakeChatStore(),
+    );
+
+    final image = _gifImage(tester);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Center(
+          child: Builder(
+            builder: (context) =>
+                image.errorWidget!(context, image.imageUrl, Exception('404')),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.getSize(find.byType(SizedBox).first).height, 128);
+  });
+
+  testWidgets('Copy name copies the whole title of a GIF', (tester) async {
+    _portrait(tester);
+    final copied = captureClipboard(tester);
+    await pumpChatMessage(
+      tester,
+      IRCMessage.fromString(
+        _line('gifs=0-14|id|https://x.test/g.gif', 'dance (remix) x'),
+      ),
+      fakeChatStore(),
+    );
+
+    await tester.tap(find.byType(ChatGifImage));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Copy name'));
+    await tester.pumpAndSettle();
+
+    expect(copied, ['dance (remix) x']);
+  });
+
+  testWidgets('a GIF whose title is blank is called GIF', (tester) async {
+    _portrait(tester);
+    await pumpChatMessage(
+      tester,
+      IRCMessage.fromString(_line('gifs=0-0|id|https://x.test/g.gif', ' x')),
+      fakeChatStore(),
+    );
+
+    expect(_gifImage(tester).semanticLabel, 'GIF');
+  });
 }

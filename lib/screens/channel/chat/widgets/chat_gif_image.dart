@@ -10,8 +10,8 @@ import 'package:frosty/widgets/frosty_cached_network_image.dart';
 /// the width of its own aspect ratio (never wider than the line), an empty
 /// square while it loads, and its [title] read out by screen readers.
 ///
-/// When it cannot be loaded, its [title] is shown instead (Twitch leaves a
-/// blank square).
+/// When it cannot be loaded, its [title] is shown instead, at the same
+/// height so the chat does not jump (Twitch leaves a blank square).
 class ChatGifImage extends StatelessWidget {
   const ChatGifImage({
     super.key,
@@ -59,7 +59,16 @@ class ChatGifImage extends StatelessWidget {
     final cacheHeight = (height * MediaQuery.devicePixelRatioOf(context))
         .round();
     final placeholder = SizedBox.square(dimension: height);
-    final fallback = Text(title, style: textStyle);
+    final fallback = SizedBox(
+      height: height,
+      child: ClipRect(
+        child: Align(
+          alignment: AlignmentDirectional.centerStart,
+          widthFactor: 1,
+          child: Text(title, style: textStyle),
+        ),
+      ),
+    );
 
     final Widget image;
     if (animate) {
