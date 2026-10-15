@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:frosty/models/community_highlights.dart';
 import 'package:frosty/screens/channel/chat/gift_bomb_tracker.dart';
@@ -502,6 +504,9 @@ class GiftBombCard extends StatelessWidget {
 
 /// A 3dp bar that drains linearly from [startedAt] to [endsAt] (Twitch time,
 /// from [now]). With reduced motion it steps once a second instead.
+///
+/// The countdown keeps its real duration even when the system removes
+/// animations, which would otherwise shorten it to a twentieth.
 class GiftBombCountdownBar extends StatefulWidget {
   const GiftBombCountdownBar({
     super.key,
@@ -522,14 +527,30 @@ class GiftBombCountdownBar extends StatefulWidget {
 
 class _GiftBombCountdownBarState extends State<GiftBombCountdownBar>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(vsync: this);
+  // Preserve: the drain is a timer, not a decoration.
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    animationBehavior: AnimationBehavior.preserve,
+  );
+
+  /// Ticks once a second under reduced motion.
+  Timer? _stepper;
+
+  /// Whole seconds left, under reduced motion.
+  var _stepsLeft = 0;
+
+  bool? _reduceMotion;
 
   Duration get _total => widget.endsAt.difference(widget.startedAt);
 
   @override
-  void initState() {
-    super.initState();
-    _start();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    if (reduceMotion != _reduceMotion) {
+      _reduceMotion = reduceMotion;
+      _start();
+    }
   }
 
   @override
@@ -541,14 +562,30 @@ class _GiftBombCountdownBarState extends State<GiftBombCountdownBar>
     }
   }
 
-  /// One linear drain over the time left.
+  /// One linear drain, or one step a second, over the time left.
   void _start() {
+    _stepper?.cancel();
+    _stepper = null;
+    _controller.stop();
+
     final total = _total;
     final left = widget.endsAt.difference(widget.now());
     if (total <= Duration.zero || left <= Duration.zero) {
       _controller.value = 0;
+      _stepsLeft = 0;
       return;
     }
+
+    if (_reduceMotion ?? false) {
+      _stepsLeft = (left.inMilliseconds / 1000).ceil();
+      _stepper = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (!mounted) return;
+        setState(() => _stepsLeft--);
+        if (_stepsLeft <= 0) timer.cancel();
+      });
+      return;
+    }
+
     _controller.value = (left.inMicroseconds / total.inMicroseconds).clamp(
       0.0,
       1.0,
@@ -558,32 +595,29 @@ class _GiftBombCountdownBarState extends State<GiftBombCountdownBar>
 
   @override
   void dispose() {
+    _stepper?.cancel();
     _controller.dispose();
     super.dispose();
   }
 
+  Widget _bar(double value) => LinearProgressIndicator(
+    value: value.clamp(0.0, 1.0),
+    minHeight: 3,
+    color: widget.color,
+    backgroundColor: widget.color.withValues(alpha: 0.2),
+  );
+
   @override
   Widget build(BuildContext context) {
-    final reduceMotion = MediaQuery.disableAnimationsOf(context);
     final seconds = _total.inMilliseconds / 1000;
     return Padding(
       padding: const EdgeInsets.only(top: 2),
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
-          var value = _controller.value;
-          // Whole seconds left, so the bar moves once a second.
-          if (reduceMotion && seconds > 0) {
-            value = ((value * seconds) - 1e-9).ceil() / seconds;
-          }
-          return LinearProgressIndicator(
-            value: value.clamp(0.0, 1.0),
-            minHeight: 3,
-            color: widget.color,
-            backgroundColor: widget.color.withValues(alpha: 0.2),
-          );
-        },
-      ),
+      child: (_reduceMotion ?? false)
+          ? _bar(seconds <= 0 ? 0 : _stepsLeft / seconds)
+          : AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) => _bar(_controller.value),
+            ),
     );
   }
 }

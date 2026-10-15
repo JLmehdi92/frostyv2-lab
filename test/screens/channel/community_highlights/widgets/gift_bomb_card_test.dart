@@ -137,4 +137,68 @@ void main() {
 
     expect(barValue(tester), closeTo(0.6, 1e-9));
   });
+
+  group('with "Remove animations" on in the system', () {
+    Future<void> pumpWithSystemSetting(
+      WidgetTester tester, {
+      bool? mediaQueryDisableAnimations,
+    }) async {
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: true);
+      addTearDown(
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+      );
+      final card = GiftBombCard(
+        banner: _banner(),
+        card: HighlightCardContext(
+          expanded: false,
+          onToggle: () {},
+          onDismiss: () => dismissed++,
+          now: () => _start,
+        ),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: const FrostyThemes(colorSchemeSeed: FrostyTokens.accent).dark,
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => mediaQueryDisableAnimations == null
+                  ? card
+                  : MediaQuery(
+                      data: MediaQuery.of(context).copyWith(
+                        disableAnimations: mediaQueryDisableAnimations,
+                      ),
+                      child: card,
+                    ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('the bar steps once a second over the full time', (
+      tester,
+    ) async {
+      await pumpWithSystemSetting(tester);
+      expect(barValue(tester), 1);
+
+      await tester.pump(const Duration(milliseconds: 2500));
+      expect(barValue(tester), closeTo(0.8, 1e-9));
+
+      await tester.pump(const Duration(seconds: 5));
+      expect(barValue(tester), closeTo(0.3, 1e-9));
+
+      await tester.pump(const Duration(seconds: 3));
+      expect(barValue(tester), 0);
+    });
+
+    testWidgets('a smooth bar still takes the whole time', (tester) async {
+      // Flutter shortens normal animations when the system removes them;
+      // the countdown must keep its real duration.
+      await pumpWithSystemSetting(tester, mediaQueryDisableAnimations: false);
+
+      await tester.pump(const Duration(milliseconds: 2500));
+      expect(barValue(tester), closeTo(0.75, 0.01));
+    });
+  });
 }
