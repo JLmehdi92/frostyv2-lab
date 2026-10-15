@@ -3,9 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
+import 'package:frosty/services/twitch_web_token_service.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
+
+class MockStorage extends Mock implements FlutterSecureStorage {}
+
+class MockWebTokenService extends Mock implements TwitchWebTokenService {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -45,5 +50,27 @@ void main() {
     await pumpEventQueue();
 
     expect(await const FlutterSecureStorage().read(key: 'user_token'), isNull);
+  });
+
+  test('an unreadable user token still clears the twitch.tv session', () async {
+    final storage = MockStorage();
+    final cookies = MockWebTokenService();
+    when(
+      () => storage.read(key: any(named: 'key')),
+    ).thenThrow(Exception('keystore'));
+    when(() => storage.delete(key: any(named: 'key'))).thenAnswer((_) async {});
+    when(() => cookies.clearCookies()).thenAnswer((_) async {});
+    final store = AuthStore(
+      twitchApi: api,
+      storage: storage,
+      webTokenService: cookies,
+      isAndroid: true,
+    );
+
+    await store.logout();
+
+    verify(() => cookies.clearCookies()).called(1);
+    verify(() => storage.delete(key: 'twitch_web_token')).called(1);
+    expect(store.twitchWebToken, isNull);
   });
 }

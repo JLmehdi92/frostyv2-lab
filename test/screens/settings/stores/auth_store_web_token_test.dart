@@ -4,6 +4,7 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/models/user.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/services/twitch_web_token_service.dart';
 import 'package:mocktail/mocktail.dart';
@@ -38,6 +39,12 @@ void main() {
     when(
       () => api.revokeToken(token: any(named: 'token')),
     ).thenAnswer((_) async {});
+    when(
+      () => api.getUserInfo(),
+    ).thenAnswer((_) async => const UserTwitch('1', 'viewer', 'Viewer', ''));
+    when(
+      () => api.getUserBlockedList(id: any(named: 'id')),
+    ).thenAnswer((_) async => []);
     when(() => cookies.readAuthToken()).thenAnswer((_) async => jar);
     when(() => cookies.clearCookies()).thenAnswer((_) async {});
   });
@@ -67,6 +74,14 @@ void main() {
     });
     final store = build(isAndroid: isAndroid, loadTwitchPage: loadTwitchPage);
     await store.init();
+    await store.login(token: 'user');
+    return store;
+  }
+
+  /// A signed-in store with nothing stored yet.
+  Future<AuthStore> signedIn({Future<void> Function()? loadTwitchPage}) async {
+    final store = build(loadTwitchPage: loadTwitchPage);
+    await store.login(token: 'user');
     return store;
   }
 
@@ -217,7 +232,7 @@ void main() {
 
   group('ensureTwitchWebToken', () {
     test('a cookie already in the jar loads no page', () async {
-      final store = build();
+      final store = await signedIn();
       jar = 'in-jar';
 
       expect(await store.ensureTwitchWebToken(), isTrue);
@@ -227,7 +242,7 @@ void main() {
     });
 
     test('an empty jar loads twitch.tv once and harvests', () async {
-      final store = build(
+      final store = await signedIn(
         loadTwitchPage: () async {
           pageLoads++;
           jar = 'reissued';
@@ -241,7 +256,9 @@ void main() {
     });
 
     test('a page that fails to load is reported as no token', () async {
-      final store = build(loadTwitchPage: () async => throw StateError('x'));
+      final store = await signedIn(
+        loadTwitchPage: () async => throw StateError('x'),
+      );
 
       expect(await store.ensureTwitchWebToken(), isFalse);
     });
@@ -358,5 +375,49 @@ void main() {
         expect(pageLoads, 1);
       },
     );
+  });
+
+  group('a logout while the web session is being read', () {
+    test('drops a harvest that was reading the jar', () async {
+      final store = await signedIn();
+      final read = Completer<String?>();
+      when(() => cookies.readAuthToken()).thenAnswer((_) => read.future);
+
+      final harvest = store.harvestTwitchWebToken();
+      await store.logout();
+      read.complete('previous-account');
+
+      expect(await harvest, isFalse);
+      expect(store.twitchWebToken, isNull);
+      expect(await _storage.read(key: 'twitch_web_token'), isNull);
+    });
+
+    test('drops a refresh whose page was still loading', () async {
+      final page = Completer<void>();
+      final store = await signedIn(
+        loadTwitchPage: () {
+          pageLoads++;
+          return page.future;
+        },
+      );
+
+      final refresh = store.refreshTwitchWebSession();
+      await pumpEventQueue();
+      await store.logout();
+      jar = 'previous-account';
+      page.complete();
+
+      expect(await refresh, isFalse);
+      expect(store.twitchWebToken, isNull);
+      verifyNever(() => cookies.readAuthToken());
+    });
+
+    test('a signed-out viewer loads no page', () async {
+      final store = build();
+
+      expect(await store.refreshTwitchWebSession(), isFalse);
+
+      expect(pageLoads, 0);
+    });
   });
 }

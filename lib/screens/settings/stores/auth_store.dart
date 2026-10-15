@@ -21,7 +21,7 @@ class AuthStore = AuthBase with _$AuthStore;
 
 abstract class AuthBase with Store {
   /// Secure storage to store tokens.
-  static const _storage = FlutterSecureStorage();
+  final FlutterSecureStorage _storage;
 
   /// The shared_preferences key for the default token.
   static const _defaultTokenKey = 'default_token';
@@ -77,7 +77,11 @@ abstract class AuthBase with Store {
 
   /// Loads twitch.tv so Twitch reissues its session cookie. Injected by tests;
   /// the app drives a detached WebView.
-  final Future<void> Function() _loadTwitchPage;
+  late final Future<void> Function() _loadTwitchPage;
+
+  /// Bumped on every logout, so a harvest or refresh that started before it
+  /// can tell its result belongs to a session that no longer exists.
+  var _authEpoch = 0;
 
   /// Whether the cookie jar can be read at all — only Android has the native
   /// channel. Off Android a jar miss says nothing about a token the user
@@ -100,7 +104,12 @@ abstract class AuthBase with Store {
   /// must not throw away a working credential.
   @action
   Future<bool> harvestTwitchWebToken() async {
+    final epoch = _authEpoch;
     final harvested = await _webTokenService.readAuthToken();
+
+    // Signed out while reading: the jar it read belonged to the session that
+    // just ended, and storing it would hand the next account its token.
+    if (epoch != _authEpoch) return false;
 
     if (harvested == null) {
       // Only a stored token going stale is worth reporting. Having never had
@@ -142,18 +151,42 @@ abstract class AuthBase with Store {
   }
 
   Future<bool> _refreshWebSession() async {
+    // Signed out, there is no session to refresh: the page would load signed
+    // out and only spend a request.
+    if (!_isLoggedIn) return false;
+
+    final epoch = _authEpoch;
     try {
       await _loadTwitchPage();
+      if (epoch != _authEpoch || !_isLoggedIn) return false;
       return await harvestTwitchWebToken();
     } catch (e) {
       debugPrint('Silent twitch.tv session refresh failed: ${e.runtimeType}');
       return false;
+    } finally {
+      _releaseHiddenWebView();
     }
+  }
+
+  /// The detached WebView of the refresh in flight, if any.
+  WebViewController? _hiddenWebView;
+
+  /// Points the detached WebView at a blank page, so a page holding the
+  /// session does not stay alive (and scripted) once its cookie is read.
+  void _releaseHiddenWebView() {
+    final controller = _hiddenWebView;
+    _hiddenWebView = null;
+    if (controller == null) return;
+    unawaited(
+      controller.loadRequest(Uri.parse('about:blank')).catchError((Object e) {
+        debugPrint('Releasing the hidden WebView failed: ${e.runtimeType}');
+      }),
+    );
   }
 
   /// Drives a native WebView that only needs to fetch and run twitch.tv, not
   /// paint it: no widget is mounted.
-  static Future<void> _loadTwitchPageInWebView() async {
+  Future<void> _loadTwitchPageInWebView() async {
     final loaded = Completer<void>();
     void finish() {
       if (!loaded.isCompleted) loaded.complete();
@@ -174,6 +207,7 @@ abstract class AuthBase with Store {
           onWebResourceError: (_) => finish(),
         ),
       );
+    _hiddenWebView = controller;
 
     await controller.loadRequest(Uri.parse('https://www.twitch.tv/'));
     await loaded.future.timeout(const Duration(seconds: 20), onTimeout: () {});
@@ -429,13 +463,16 @@ abstract class AuthBase with Store {
 
   AuthBase({
     required this.twitchApi,
+    FlutterSecureStorage storage = const FlutterSecureStorage(),
     TwitchWebTokenService webTokenService = const TwitchWebTokenService(),
     Future<void> Function()? loadTwitchPage,
     bool? isAndroid,
   }) : user = UserStore(twitchApi: twitchApi),
+       _storage = storage,
        _webTokenService = webTokenService,
-       _loadTwitchPage = loadTwitchPage ?? _loadTwitchPageInWebView,
-       _isAndroid = isAndroid ?? Platform.isAndroid;
+       _isAndroid = isAndroid ?? Platform.isAndroid {
+    _loadTwitchPage = loadTwitchPage ?? _loadTwitchPageInWebView;
+  }
 
   /// Initialize by retrieving a token if it does not already exist.
   @action
@@ -529,28 +566,21 @@ abstract class AuthBase with Store {
   /// Logs out the current user and updates fields accordingly.
   @action
   Future<void> logout() async {
+    // First, and before anything that can throw: a silent refresh still in
+    // flight must not store the session being ended, and the twitch.tv
+    // session must go even if reading the user token below fails.
+    _authEpoch++;
+    _stopReconnectLoop();
+    await _forgetWebSession();
+
     try {
-      _stopReconnectLoop();
       // Revoke the user token so it stops working everywhere; logging out
       // goes on even when Twitch cannot be reached.
       final userToken = await _storage.read(key: _userTokenKey);
       if (userToken != null) unawaited(_revoke(userToken));
       // Delete the existing user token.
       await _storage.delete(key: _userTokenKey);
-      // Sign the in-app twitch.tv pages out too (follow, report, chat).
-      try {
-        await WebViewCookieManager().clearCookies();
-      } catch (e) {
-        debugPrint('Clearing twitch.tv cookies failed: $e');
-      }
       _token = null;
-
-      // Drop the twitch.tv session too. Leaving the cookie behind would let
-      // the next login silently reuse the previous account's session, and
-      // would keep serving 2K for an account the user just signed out of.
-      await _webTokenService.clearCookies();
-      await setTwitchWebToken(null);
-      _webSessionExpired = false;
 
       // Clear the user info.
       user.dispose();
@@ -572,6 +602,33 @@ abstract class AuthBase with Store {
       debugPrint('Successfully logged out');
     } catch (e) {
       debugPrint(e.toString());
+    }
+  }
+
+  /// Drops every trace of the twitch.tv session: the stored web token, the
+  /// WebView cookies (follow, report and chat pages, and the `auth-token`
+  /// the next login would otherwise silently reuse) and the hidden page.
+  ///
+  /// Never throws: each step is attempted whatever the previous one did.
+  Future<void> _forgetWebSession() async {
+    _releaseHiddenWebView();
+    _twitchWebToken = null;
+    _webSessionExpired = false;
+
+    try {
+      await WebViewCookieManager().clearCookies();
+    } catch (e) {
+      debugPrint('Clearing twitch.tv cookies failed: ${e.runtimeType}');
+    }
+    try {
+      await _webTokenService.clearCookies();
+    } catch (e) {
+      debugPrint('Clearing the cookie jar failed: ${e.runtimeType}');
+    }
+    try {
+      await _storage.delete(key: _twitchWebTokenKey);
+    } catch (e) {
+      debugPrint('Forgetting the web token failed: ${e.runtimeType}');
     }
   }
 
