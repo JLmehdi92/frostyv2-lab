@@ -217,8 +217,18 @@ class HermesClient {
     });
   }
 
+  /// Sends the `authenticate` frame when a token is on hand.
+  ///
+  /// A provider that fails is treated as no token: channel topics still work
+  /// anonymously, and they must not be lost to a storage hiccup.
   Future<void> _authenticate() async {
-    final token = await _tokenProvider?.call();
+    final String? token;
+    try {
+      token = await _tokenProvider?.call();
+    } catch (e) {
+      debugPrint('Hermes token unavailable: ${e.runtimeType}');
+      return;
+    }
     if (token == null || token.isEmpty) return;
 
     _send({
@@ -290,7 +300,6 @@ class HermesClient {
 
   void _onWelcome(HermesMessage message) {
     _reconnectAttempts = 0;
-    _sessionReady = true;
     _keepalive = message.keepaliveInterval ?? _defaultKeepalive;
     _armKeepalive();
 
@@ -299,7 +308,23 @@ class HermesClient {
     _subscriptionTopics.clear();
     _pendingSubscribes.clear();
 
-    unawaited(_authenticate());
+    unawaited(_startSession());
+  }
+
+  /// Authenticates, then subscribes the desired set.
+  ///
+  /// Strictly in that order: Hermes refuses a `*-user-v1` subscribe that
+  /// reaches it before the `authenticate` frame, and reading the token yields.
+  /// The session is only marked ready once authenticated, so a topic asked for
+  /// in the meantime joins the desired set and goes out with the rest.
+  Future<void> _startSession() async {
+    final channel = _channel;
+    await _authenticate();
+
+    // The socket may have been replaced, paused or disposed while waiting.
+    if (_disposed || channel == null || !identical(channel, _channel)) return;
+
+    _sessionReady = true;
     for (final topic in _desiredTopics) {
       _sendSubscribe(topic);
     }

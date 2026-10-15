@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/models/hermes.dart';
@@ -17,6 +18,23 @@ class _FakeSocket implements WebSocketChannel {
   WebSocketSink get sink => _sink;
 
   bool get closed => _sink.closed;
+
+  /// What the client sent, decoded.
+  List<Map<String, dynamic>> get frames => [
+    for (final frame in _sink.sent)
+      jsonDecode(frame as String) as Map<String, dynamic>,
+  ];
+
+  List<String> get types => [for (final f in frames) f['type'] as String];
+
+  /// The topics of the subscribe frames sent, in order.
+  List<String> get subscribedTopics => [
+    for (final f in frames)
+      if (f['type'] == 'subscribe')
+        (f['subscribe'] as Map)['pubsub']['topic'] as String,
+  ];
+
+  void receive(dynamic frame) => _incoming.add(frame);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -54,6 +72,83 @@ void main() {
   });
 
   tearDown(() => client.dispose());
+
+  HermesClient withToken(Future<String?> Function() tokenProvider) {
+    client.dispose();
+    return client = HermesClient(
+      connect: (_) {
+        final socket = _FakeSocket();
+        sockets.add(socket);
+        return socket;
+      },
+      tokenProvider: tokenProvider,
+    );
+  }
+
+  const welcome = '{"type":"welcome","id":"w","welcome":{"keepaliveSec":15}}';
+
+  group('authentication', () {
+    test('is sent before any subscribe after the welcome', () async {
+      final token = Completer<String?>();
+      withToken(() => token.future);
+      await client.subscribeAll([
+        'community-points-user-v1.9',
+        'celebration-events-v1.1',
+      ]);
+
+      sockets.single.receive(welcome);
+      await pumpEventQueue();
+      // Nothing may go out while the token is still being read: a subscribe
+      // ahead of the authenticate frame is refused for user topics.
+      expect(sockets.single.types, isEmpty);
+
+      token.complete('tok');
+      await pumpEventQueue();
+
+      expect(sockets.single.types, ['authenticate', 'subscribe', 'subscribe']);
+      expect(sockets.single.frames.first['authenticate'], {'token': 'tok'});
+    });
+
+    test('a topic added while authenticating waits for it', () async {
+      final token = Completer<String?>();
+      withToken(() => token.future);
+      await client.subscribe('celebration-events-v1.1');
+      sockets.single.receive(welcome);
+      await pumpEventQueue();
+
+      await client.subscribe('community-points-user-v1.9');
+      token.complete('tok');
+      await pumpEventQueue();
+
+      expect(sockets.single.types.first, 'authenticate');
+      expect(sockets.single.subscribedTopics, [
+        'celebration-events-v1.1',
+        'community-points-user-v1.9',
+      ]);
+    });
+
+    test('a missing or failing token still subscribes', () async {
+      withToken(() async => null);
+      await client.subscribe('celebration-events-v1.1');
+      sockets.single.receive(welcome);
+      await pumpEventQueue();
+      expect(sockets.single.types, ['subscribe']);
+
+      withToken(() async => throw StateError('storage'));
+      await client.subscribe('celebration-events-v1.1');
+      sockets.last.receive(welcome);
+      await pumpEventQueue();
+      expect(sockets.last.types, ['subscribe']);
+    });
+
+    test('without a token provider nothing authenticates', () async {
+      await client.subscribe('celebration-events-v1.1');
+      sockets.single.receive(welcome);
+      await pumpEventQueue();
+
+      expect(sockets.single.types, ['subscribe']);
+    });
+  });
 
   test('pausing closes the socket and opens none until resumed', () async {
     await client.subscribe('celebration-events-v1.1');
