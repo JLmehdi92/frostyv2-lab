@@ -374,35 +374,40 @@ Widget _athApproaching(HtPalette palette, bool compact) {
     color: htTrophyGold,
   );
   return ExcludeSemantics(
-    child: Row(
-      children: [
-        if (compact)
-          Padding(
-            padding: const EdgeInsetsDirectional.only(start: HtDims.margin),
-            child: trophy,
-          )
-        else
-          SizedBox(
-            width: HtDims.trophy,
-            child: OverflowBox(
-              maxWidth: HtDims.trophy,
-              maxHeight: HtDims.trophy,
+    child: LayoutBuilder(
+      builder: (context, constraints) => Row(
+        children: [
+          if (compact)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: HtDims.margin),
               child: trophy,
+            )
+          else
+            // Up to half a narrow banner; the 100 dp trophy is cropped.
+            SizedBox(
+              width: min(HtDims.trophy, constraints.maxWidth / 2),
+              child: ClipRect(
+                child: OverflowBox(
+                  maxWidth: HtDims.trophy,
+                  maxHeight: HtDims.trophy,
+                  child: trophy,
+                ),
+              ),
+            ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(HtDims.margin),
+              child: Text(
+                compact ? HtCopy.athApproachingCompact : HtCopy.athApproaching,
+                key: const ValueKey('ht-subtitle'),
+                maxLines: compact ? 1 : 2,
+                overflow: TextOverflow.ellipsis,
+                style: palette.textStyle(HtType.bodySmall),
+              ),
             ),
           ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(HtDims.margin),
-            child: Text(
-              compact ? HtCopy.athApproachingCompact : HtCopy.athApproaching,
-              key: const ValueKey('ht-subtitle'),
-              maxLines: compact ? 1 : 2,
-              overflow: TextOverflow.ellipsis,
-              style: palette.textStyle(HtType.bodySmall),
-            ),
-          ),
-        ),
-      ],
+        ],
+      ),
     ),
   );
 }

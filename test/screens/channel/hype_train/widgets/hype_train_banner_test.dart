@@ -258,6 +258,42 @@ void main() {
       }
     });
 
+    testWidgets('no style overflows at any width, scale or direction', (
+      tester,
+    ) async {
+      for (final athState in [
+        HtAthState.none,
+        HtAthState.approaching,
+        HtAthState.reached,
+      ]) {
+        for (final compact in [false, true]) {
+          for (final direction in TextDirection.values) {
+            for (final width in [360.0, 280.0, 220.0]) {
+              for (final scale in [1.0, 1.3, 2.0]) {
+                final h = withAth(athState);
+                await pumpSlot(
+                  tester,
+                  h.store,
+                  width: width,
+                  textScale: scale,
+                  direction: direction,
+                  compact: compact,
+                );
+                expect(
+                  tester.takeException(),
+                  isNull,
+                  reason:
+                      '$athState compact $compact $direction $width @ '
+                      '$scale',
+                );
+                await h.close(tester);
+              }
+            }
+          }
+        }
+      }
+    });
+
     testWidgets('the level pill is a black pill with LVL n', (tester) async {
       final h = running(tester);
       await pumpSlot(tester, h.store);
@@ -384,7 +420,17 @@ void main() {
       final h = withAth(HtAthState.approaching);
       await pumpSlot(tester, h.store);
 
-      expect(find.byKey(const ValueKey('ht-ath-trophy')), findsOneWidget);
+      final trophy = find.byKey(const ValueKey('ht-ath-trophy'));
+      expect(trophy, findsOneWidget);
+      // The full 100 dp column at phone width, cropped to the banner.
+      expect(
+        tester
+            .getSize(
+              find.ancestor(of: trophy, matching: find.byType(ClipRect)).first,
+            )
+            .width,
+        100,
+      );
       expect(find.byType(HypeTrainLevelPill), findsNothing);
       expect(find.byKey(const ValueKey('ht-title')), findsNothing);
       expect(find.text(HtCopy.athApproaching), findsOneWidget);
