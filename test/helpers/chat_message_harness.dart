@@ -21,6 +21,7 @@ class MockChatAssetsStore extends Mock implements ChatAssetsStore {}
 MockChatStore fakeChatStore({
   SettingsStore? settings,
   Map<String, UserTwitch>? channelIdToUserTwitch,
+  ObservableMap<String, UserTwitch>? channelProfiles,
 }) {
   final assets = MockChatAssetsStore();
   when(() => assets.cheermotes).thenReturn(Cheermotes.empty);
@@ -31,9 +32,9 @@ MockChatStore fakeChatStore({
   when(() => assets.userToBTTVBadges).thenReturn({});
   when(() => assets.ffzRoomInfo).thenReturn(null);
   when(() => assets.showEmoteMenu).thenReturn(false);
-  when(
-    () => assets.channelIdToUserTwitch,
-  ).thenReturn(ObservableMap.of(channelIdToUserTwitch ?? {}));
+  when(() => assets.channelIdToUserTwitch).thenReturn(
+    channelProfiles ?? ObservableMap.of(channelIdToUserTwitch ?? {}),
+  );
 
   final store = MockChatStore();
   final revealed = ObservableSet<String>();

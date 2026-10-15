@@ -176,4 +176,17 @@ void main() {
       expect(bannerDuration(1000), const Duration(seconds: 30));
     });
   });
+
+  group('shared chat', () {
+    test("collapsing hides a partner gift bomb's gifts", () {
+      final header = onNotice(_notice(sharedMassGiftHeader), collapse: true);
+      expect(header.show, isTrue);
+      expect(header.banner, isNull);
+
+      expect(
+        onNotice(_notice(sharedMassGiftRecipient), collapse: true).show,
+        isFalse,
+      );
+    });
+  });
 }

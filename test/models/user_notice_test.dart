@@ -293,4 +293,47 @@ void main() {
       expect(announcement.notice?.kind, UserNoticeKind.announcement);
     });
   });
+
+  group('shared chat', () {
+    test('a partner notice takes its kind from source-msg-id', () {
+      expect(_parse(sharedResub).kind, UserNoticeKind.resub);
+      expect(_parse(sharedSubGift).kind, UserNoticeKind.subGift);
+      expect(_parse(sharedMassGiftHeader).kind, UserNoticeKind.communityGift);
+      expect(_parse(sharedMassGiftRecipient).kind, UserNoticeKind.subGift);
+      expect(_parse(sharedAnnouncement).kind, UserNoticeKind.announcement);
+    });
+
+    test('a partner notice still knows where it came from', () {
+      final notice = _parse(sharedMassGiftHeader);
+
+      expect(notice.sourceRoomId, '99999');
+      expect(notice.roomId, '12345');
+      expect(notice.isMassGiftHeader, isTrue);
+      expect(_parse(sharedMassGiftRecipient).isPartOfMassGift, isTrue);
+    });
+
+    test('a shared notice without source-msg-id is unknown', () {
+      expect(
+        UserNotice.fromTags(const {'msg-id': 'sharedchatnotice'}).kind,
+        UserNoticeKind.unknown,
+      );
+    });
+  });
+
+  test('IRCMessage.noticeText words a gift bomb for each channel name', () {
+    final message = IRCMessage.fromString(massGiftHeader);
+
+    String text(String channelName) =>
+        message.noticeText(channelName: channelName).map((s) => s.text).join();
+
+    expect(text('Here'), contains("Here's community"));
+    expect(text('Partner'), contains("Partner's community"));
+    expect(
+      identical(
+        message.noticeText(channelName: 'Partner'),
+        message.noticeText(channelName: 'Partner'),
+      ),
+      isTrue,
+    );
+  });
 }

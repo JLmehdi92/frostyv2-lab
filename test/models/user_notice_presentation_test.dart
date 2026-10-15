@@ -138,4 +138,15 @@ void main() {
       expect(_present({'msg-id': 'unraid'}).layout, NoticeLayout.generic);
     });
   });
+
+  test('a partner sub in a shared chat shows the partner channel', () {
+    final presentation = _presentRaw(sharedResub);
+
+    expect(presentation.layout, NoticeLayout.special);
+    expect(presentation.icon, NoticeGlyph.sharedChat);
+  });
+
+  test('a partner announcement keeps the announcement layout', () {
+    expect(_presentRaw(sharedAnnouncement).icon, NoticeGlyph.megaphone);
+  });
 }

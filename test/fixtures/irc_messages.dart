@@ -401,3 +401,65 @@ const raidNotice =
     'subscriber=0;system-msg=15\\sraiders\\sfrom\\sRaider\\shave\\sjoined!;'
     'tmi-sent-ts=1700000000700;user-id=20008;user-type= '
     ':tmi.twitch.tv USERNOTICE #channel';
+
+/// A resub in a partner channel of a shared chat, relayed here as a
+/// `sharedchatnotice` with its real kind in `source-msg-id`.
+const sharedResub =
+    '@badge-info=subscriber/3;badges=subscriber/3;color=#1E90FF;'
+    'display-name=PartnerFan;emotes=;id=shared-resub-1;login=partnerfan;mod=0;'
+    'msg-id=sharedchatnotice;msg-param-cumulative-months=3;'
+    'msg-param-should-share-streak=0;msg-param-sub-plan=1000;room-id=12345;'
+    'source-badge-info=subscriber/3;source-badges=subscriber/3;'
+    'source-id=shared-resub-src;source-msg-id=resub;source-room-id=99999;'
+    'subscriber=1;'
+    "system-msg=PartnerFan\\ssubscribed\\sat\\sTier\\s1.\\sThey've\\ssubscribed"
+    '\\sfor\\s3\\smonths!;'
+    'tmi-sent-ts=1700000000900;user-id=20010;user-type= '
+    ':tmi.twitch.tv USERNOTICE #channel';
+
+/// A gift in a partner channel of a shared chat.
+const sharedSubGift =
+    '@badge-info=;badges=;color=#00FF7F;display-name=PartnerGifter;emotes=;'
+    'id=shared-gift-1;login=partnergifter;mod=0;msg-id=sharedchatnotice;'
+    'msg-param-gift-months=1;msg-param-recipient-display-name=Lucky;'
+    'msg-param-recipient-user-name=lucky;msg-param-sender-count=1;'
+    'msg-param-sub-plan=1000;room-id=12345;source-id=shared-gift-src;'
+    'source-msg-id=subgift;source-room-id=99999;subscriber=0;'
+    'system-msg=PartnerGifter\\sgifted\\sa\\sTier\\s1\\ssub\\sto\\sLucky!;'
+    'tmi-sent-ts=1700000000901;user-id=20011;user-type= '
+    ':tmi.twitch.tv USERNOTICE #channel';
+
+/// A five-sub gift bomb in a partner channel of a shared chat.
+const sharedMassGiftHeader =
+    '@badge-info=;badges=;color=#FF4500;display-name=PartnerGifter;emotes=;'
+    'id=shared-mystery-1;login=partnergifter;mod=0;msg-id=sharedchatnotice;'
+    'msg-param-community-gift-id=5555555555555555555;'
+    'msg-param-mass-gift-count=5;msg-param-sender-count=5;'
+    'msg-param-sub-plan=1000;room-id=12345;source-id=shared-mystery-src;'
+    'source-msg-id=submysterygift;source-room-id=99999;subscriber=0;'
+    'system-msg=PartnerGifter\\sis\\sgifting\\s5\\sTier\\s1\\sSubs\\sto'
+    "\\sPartner's\\scommunity!;"
+    'tmi-sent-ts=1700000000902;user-id=20011;user-type= '
+    ':tmi.twitch.tv USERNOTICE #channel';
+
+/// One gift of [sharedMassGiftHeader]'s bomb.
+const sharedMassGiftRecipient =
+    '@badge-info=;badges=;color=#FF4500;display-name=PartnerGifter;emotes=;'
+    'id=shared-mystery-1-r1;login=partnergifter;mod=0;'
+    'msg-id=sharedchatnotice;msg-param-community-gift-id=5555555555555555555;'
+    'msg-param-gift-months=1;msg-param-recipient-display-name=Viewer1;'
+    'msg-param-recipient-user-name=viewer1;msg-param-sender-count=0;'
+    'msg-param-sub-plan=1000;room-id=12345;source-id=shared-mystery-src-r1;'
+    'source-msg-id=subgift;source-room-id=99999;subscriber=0;'
+    'system-msg=PartnerGifter\\sgifted\\sa\\sTier\\s1\\ssub\\sto\\sViewer1!;'
+    'tmi-sent-ts=1700000000903;user-id=20011;user-type= '
+    ':tmi.twitch.tv USERNOTICE #channel';
+
+/// An announcement in a partner channel of a shared chat.
+const sharedAnnouncement =
+    '@badge-info=;badges=moderator/1;color=;display-name=PartnerMod;emotes=;'
+    'id=shared-ann-1;login=partnermod;mod=1;msg-id=sharedchatnotice;'
+    'msg-param-color=BLUE;room-id=12345;source-id=shared-ann-src;'
+    'source-msg-id=announcement;source-room-id=99999;subscriber=0;'
+    'tmi-sent-ts=1700000000904;user-id=20012;user-type= '
+    ':tmi.twitch.tv USERNOTICE #channel :hello from next door';

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/models/irc.dart';
+import 'package:frosty/models/user.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_message.dart';
 import 'package:frosty/screens/channel/chat/widgets/overlay_chat_scope.dart';
 import 'package:frosty/screens/channel/chat/widgets/user_notice_row.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:mobx/mobx.dart' show ObservableMap, runInAction;
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../fixtures/irc_messages.dart';
@@ -286,5 +288,56 @@ void main() {
       tester.widget<UserNoticeRow>(find.byType(UserNoticeRow)).overlay,
       isFalse,
     );
+  });
+
+  group('shared chat', () {
+    testWidgets('a partner announcement is drawn as an announcement', (
+      tester,
+    ) async {
+      await pumpChatMessage(
+        tester,
+        IRCMessage.fromString(sharedAnnouncement),
+        fakeChatStore(),
+      );
+
+      expect(find.byType(UserNoticeRow), findsNothing);
+      expect(find.text('Announcement'), findsOneWidget);
+    });
+
+    testWidgets('a partner gift is worded like a gift', (tester) async {
+      await pumpChatMessage(
+        tester,
+        IRCMessage.fromString(sharedSubGift),
+        fakeChatStore(),
+      );
+
+      expect(
+        _systemLine(tester),
+        "PartnerGifter gifted a Tier 1 Sub to Lucky! It's their first Gift "
+        'Sub in the channel!',
+      );
+    });
+
+    testWidgets('a partner gift bomb names the partner once it is known', (
+      tester,
+    ) async {
+      final message = IRCMessage.fromString(sharedMassGiftHeader);
+      final profiles = ObservableMap<String, UserTwitch>();
+      final store = fakeChatStore(channelProfiles: profiles);
+
+      await pumpChatMessage(tester, message, store);
+      expect(_systemLine(tester), contains("Channel's community"));
+
+      runInAction(
+        () => profiles['99999'] = const UserTwitch(
+          '99999',
+          'partner',
+          'Partner',
+          'https://example.com/p.png',
+        ),
+      );
+      await tester.pump();
+      expect(_systemLine(tester), contains("Partner's community"));
+    });
   });
 }

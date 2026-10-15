@@ -79,13 +79,20 @@ class IRCMessage {
       : null;
 
   List<NoticeSegment>? _noticeText;
+  String? _noticeTextChannel;
 
-  /// The notice's sentence, worded on first use and kept. [channelName] is the
-  /// display name of the channel a gift bomb is aimed at.
+  /// The notice's sentence, worded on first use and kept for as long as
+  /// [channelName] stays the same. [channelName] is the display name of the
+  /// channel a gift bomb is aimed at, which for a shared-chat partner is only
+  /// known once its profile has loaded.
   List<NoticeSegment> noticeText({required String channelName}) {
     final notice = this.notice;
     if (notice == null) return const [];
-    return _noticeText ??= userNoticeText(notice, channelName: channelName);
+    if (_noticeText == null || _noticeTextChannel != channelName) {
+      _noticeText = userNoticeText(notice, channelName: channelName);
+      _noticeTextChannel = channelName;
+    }
+    return _noticeText!;
   }
 
   IRCMessage({

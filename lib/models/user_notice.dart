@@ -328,13 +328,21 @@ class UserNotice {
     return buffer.toString();
   }
 
+  /// The notice's real `msg-id`. In a shared chat, a notice from a partner
+  /// channel arrives as `sharedchatnotice`, with its own kind in
+  /// `source-msg-id`.
+  static String? msgIdOf(Map<String, String> tags) {
+    final msgId = tags['msg-id'];
+    return msgId == 'sharedchatnotice' ? tags['source-msg-id'] : msgId;
+  }
+
   /// Builds a notice from raw IRC tags. Never throws: a malformed or unknown
   /// notice still renders through [systemMessage].
   factory UserNotice.fromTags(Map<String, String> tags) {
     final subPlan = tags['msg-param-sub-plan'];
 
     return UserNotice(
-      kind: _kindFrom(tags['msg-id']),
+      kind: _kindFrom(msgIdOf(tags)),
       systemMessage: unescapeTag(tags['system-msg']),
       tier: _tierFrom(subPlan),
       isPrime: subPlan == 'Prime',
