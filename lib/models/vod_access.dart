@@ -42,6 +42,16 @@ class VodAccessInfo {
     }
   }
 
+  /// The token carried by an usher playlist URL (its `token` parameter);
+  /// an unreadable URL reads as an anonymous, allowed token.
+  factory VodAccessInfo.fromUsherUrl(String url) {
+    final token = Uri.tryParse(url)?.queryParameters['token'];
+    if (token == null) {
+      return const VodAccessInfo(forbidden: false, restrictedBitrates: []);
+    }
+    return VodAccessInfo.fromTokenValue(token);
+  }
+
   final bool forbidden;
   final String? reason;
 

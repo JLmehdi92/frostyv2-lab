@@ -39,6 +39,24 @@ void main() {
       expect(VodAccessInfo.fromTokenValue('not json').authenticated, isFalse);
     });
 
+    test('reads the token of an usher url', () {
+      String url(String token) =>
+          'https://usher.ttvnw.net/vod/1.m3u8?sig=s&token='
+          '${Uri.encodeQueryComponent(token)}';
+
+      expect(
+        VodAccessInfo.fromUsherUrl(url(vodTokenAuthValue)).authenticated,
+        isTrue,
+      );
+      expect(
+        VodAccessInfo.fromUsherUrl(url(vodTokenValue)).authenticated,
+        isFalse,
+      );
+      for (final bad in ['', 'not a url', 'https://usher.ttvnw.net/vod/1']) {
+        expect(VodAccessInfo.fromUsherUrl(bad).authenticated, isFalse);
+      }
+    });
+
     test('a malformed value is treated as allowed', () {
       final info = VodAccessInfo.fromTokenValue('not json');
 

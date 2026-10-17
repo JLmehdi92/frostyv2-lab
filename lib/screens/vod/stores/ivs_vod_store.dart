@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
+import 'package:frosty/models/vod_access.dart';
 import 'package:frosty/screens/channel/video/ivs_player_config.dart';
 import 'package:frosty/screens/channel/video/ivs_recovery.dart';
 import 'package:frosty/screens/channel/video/quality_selection.dart';
@@ -341,6 +342,18 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
         debugPrint('IVS vod error: ${e['errorType']} ${e['code']} -> $kind');
         if (_terminal) break;
         if (_recovering && kind != IvsErrorKind.fatal) break;
+        final url = _url;
+        if (kind == IvsErrorKind.refreshToken &&
+            url != null &&
+            VodAccessInfo.fromUsherUrl(url).authenticated) {
+          // Refused although asked as the viewer: usher says whether the
+          // video is closed to them (then say so, like the official app;
+          // the web player would hit the same wall) or the token expired.
+          _recovering = true;
+          _holdStartForReload();
+          unawaited(_diagnose(_epoch, retry: kind));
+          break;
+        }
         _applyRecovery(_recovery.onError(kind));
     }
   }
@@ -472,10 +485,17 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
     if (epoch == _epoch) _recovering = false;
   }
 
-  /// IVS says the video is unavailable: ask usher why. A refusal (sub-only,
-  /// geoblock, gone) is a problem state, since the web player would fail the
-  /// same way; a playable playlist or a rejected token is retried.
-  Future<void> _diagnose(int epoch) async {
+  /// IVS says the video is unavailable, or refused the viewer's own token:
+  /// ask usher why. A refusal (sub-only, geoblock, gone) is a problem state,
+  /// since the web player would fail the same way; a playable playlist or a
+  /// rejected token is retried.
+  ///
+  /// [retry] is how to retry when usher finds nothing wrong (by default a
+  /// plain reload; a refused token is reloaded with a fresh one).
+  Future<void> _diagnose(
+    int epoch, {
+    IvsErrorKind retry = IvsErrorKind.recoverable,
+  }) async {
     final url = _url;
     VodPlaybackProblem? problem;
     try {
@@ -489,7 +509,11 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
     _recovering = false;
     switch (problem) {
       case null:
-        _applyRecovery(_recovery.onError(IvsErrorKind.recoverable));
+        _applyRecovery(_recovery.onError(retry));
+      // Usher answers a bad token like a missing video: for a refused token
+      // that is no reason to stop, so it gets its fresh token as before.
+      case VodPlaybackProblem.unknown when retry == IvsErrorKind.refreshToken:
+        _applyRecovery(_recovery.onError(retry));
       case VodPlaybackProblem.tokenRejected:
         _applyRecovery(_recovery.onError(IvsErrorKind.refreshToken));
       case final problem:

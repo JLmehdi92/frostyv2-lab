@@ -11,11 +11,17 @@ import 'package:mobx/mobx.dart' show reaction;
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../fixtures/vod_responses.dart';
 import '../../../helpers/fake_ivs_native.dart';
 
 class MockTwitchVodService extends Mock implements TwitchVodService {}
 
 const _url = 'https://usher.ttvnw.net/vod/123.m3u8?x=1';
+
+/// A playlist whose token was asked as the viewer (it names them).
+final _viewerUrl =
+    'https://usher.ttvnw.net/vod/123.m3u8?sig=s&token='
+    '${Uri.encodeQueryComponent(vodTokenAuthValue)}';
 
 void main() {
   late FakeIvsNative native;
@@ -567,6 +573,89 @@ void main() {
       await native.emit({'type': 'duration', 'ms': 5000000});
 
       expect(store.duration, const Duration(milliseconds: 5000000));
+    });
+  });
+
+  group('a refusal of the viewer\'s own token', () {
+    void stubViewerUrl() => when(
+      () => service.getVodUsherUrl(
+        vodId: any(named: 'vodId'),
+        forceFreshToken: any(named: 'forceFreshToken'),
+      ),
+    ).thenAnswer((_) async => _viewerUrl);
+
+    test('a vod for subscribers says so instead of falling back', () async {
+      stubViewerUrl();
+      when(
+        () => service.diagnoseVodPlaylist(any()),
+      ).thenAnswer((_) async => VodPlaybackProblem.subscriberOnly);
+      var fatal = 0;
+      store = await createStore();
+      store.onFatalError = () => fatal++;
+
+      await native.emit({'type': 'error', 'errorType': 'ERROR_AUTHORIZATION'});
+      await settleMany();
+
+      expect(store.status, VodPlaybackStatus.problem);
+      expect(store.problem, VodPlaybackProblem.subscriberOnly);
+      expect(fatal, 0, reason: 'the web player would hit the same wall');
+      verify(() => service.diagnoseVodPlaylist(_viewerUrl)).called(1);
+      verifyNever(
+        () => service.getVodUsherUrl(vodId: '123', forceFreshToken: true),
+      );
+      expect(native.callsNamed('load'), hasLength(1));
+    });
+
+    test('a 403 with a geoblock is a geoblock problem', () async {
+      stubViewerUrl();
+      when(
+        () => service.diagnoseVodPlaylist(any()),
+      ).thenAnswer((_) async => VodPlaybackProblem.geoBlocked);
+      store = await createStore();
+
+      await native.emit({
+        'type': 'error',
+        'errorType': 'ERROR_UNKNOWN',
+        'code': 403,
+      });
+      await settleMany();
+
+      expect(store.problem, VodPlaybackProblem.geoBlocked);
+    });
+
+    test('an expired token is refreshed as before', () async {
+      stubViewerUrl();
+      when(
+        () => service.diagnoseVodPlaylist(any()),
+      ).thenAnswer((_) async => VodPlaybackProblem.tokenRejected);
+      store = await createStore();
+
+      await native.emit({'type': 'error', 'errorType': 'ERROR_AUTHORIZATION'});
+      await settleMany();
+
+      verify(
+        () => service.getVodUsherUrl(vodId: '123', forceFreshToken: true),
+      ).called(1);
+      expect(native.callsNamed('load'), hasLength(2));
+      expect(store.status, isNot(VodPlaybackStatus.problem));
+    });
+
+    test('an anonymous token keeps the old path to the web player', () async {
+      var fatal = 0;
+      store = await createStore();
+      store.onFatalError = () => fatal++;
+
+      for (var i = 0; i < 4; i++) {
+        await native.emit({
+          'type': 'error',
+          'errorType': 'ERROR_AUTHORIZATION',
+        });
+        await settleMany();
+      }
+
+      verifyNever(() => service.diagnoseVodPlaylist(any()));
+      expect(fatal, 1, reason: 'the web player has the twitch.tv cookies');
+      expect(store.status, VodPlaybackStatus.failed);
     });
   });
 
