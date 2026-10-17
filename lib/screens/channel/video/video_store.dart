@@ -108,6 +108,11 @@ abstract class VideoStoreBase with Store {
           },
         )
         ..addJavaScriptChannel(
+          'ContentGate',
+          onMessageReceived: (message) =>
+              _webGateVisible = gateVisibleFromMessage(message.message),
+        )
+        ..addJavaScriptChannel(
           'PipEntered',
           onMessageReceived: (message) {
             _overlayWasVisibleBeforePip = _overlayVisible;
@@ -220,6 +225,34 @@ abstract class VideoStoreBase with Store {
   /// On Android, this state is not tracked since there's no programmatic exit.
   @readonly
   var _isInPipMode = false;
+
+  /// Twitch's own content warning is up in the page (it was not clicked
+  /// away): our overlay must step aside so its buttons can be tapped.
+  @readonly
+  var _webGateVisible = false;
+
+  /// Reports, once a second and only on changes, whether Twitch's content
+  /// warning (or its older mature interstitial) is in the page. It only
+  /// looks; [_acceptContentWarning] is what clicks.
+  @visibleForTesting
+  static const contentGatePollScript = r'''
+    (() => {
+      if (window._frostyGatePoll) return;
+      const selector =
+        '[data-a-target*="content-classification-gate"],' +
+        '[data-a-target="player-overlay-mature-accept"]';
+      window._frostyGatePoll = setInterval(() => {
+        const shown = document.querySelector(selector) !== null;
+        if (shown !== window._frostyGateShown) {
+          window._frostyGateShown = shown;
+          ContentGate.postMessage(String(shown));
+        }
+      }, 1000);
+    })();
+  ''';
+
+  @visibleForTesting
+  static bool gateVisibleFromMessage(String message) => message == 'true';
 
   /// The video URL to use for the webview.
   String get videoUrl =>
@@ -475,6 +508,11 @@ abstract class VideoStoreBase with Store {
   }
 
   Future<void> _acceptContentWarning() async {
+    try {
+      await videoWebViewController.runJavaScript(contentGatePollScript);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
     try {
       await videoWebViewController.runJavaScript('''
         {

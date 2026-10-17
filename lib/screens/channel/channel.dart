@@ -475,6 +475,10 @@ class _VideoChatState extends State<VideoChat>
     }
   }
 
+  /// Twitch's own content warning is up in the web player's page.
+  static bool _webGateUp(Object store) =>
+      store is VideoStore && store.webGateVisible;
+
   /// Pauses the player while the mature-content warning covers the video
   /// (the cover hides the picture but the audio would keep playing), and
   /// resumes it on accept if the gate was what paused it.
@@ -797,7 +801,10 @@ class _VideoChatState extends State<VideoChat>
           return Stack(
             children: [
               player,
-              if (_videoStore.settingsStore.showOverlay) overlay,
+              // Twitch's own warning left in the web player gets the taps.
+              if (_videoStore.settingsStore.showOverlay &&
+                  !_webGateUp(_videoStore))
+                overlay,
               ChannelVideoTopOverlay(
                 hypeTrain: _hypeTrainStore,
                 highlights: _highlightsStore,

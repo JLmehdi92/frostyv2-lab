@@ -173,6 +173,26 @@ mixin _$VideoStore on VideoStoreBase, Store {
     });
   }
 
+  late final _$_webGateVisibleAtom = Atom(
+    name: 'VideoStoreBase._webGateVisible',
+    context: context,
+  );
+
+  bool get webGateVisible {
+    _$_webGateVisibleAtom.reportRead();
+    return super._webGateVisible;
+  }
+
+  @override
+  bool get _webGateVisible => webGateVisible;
+
+  @override
+  set _webGateVisible(bool value) {
+    _$_webGateVisibleAtom.reportWrite(value, super._webGateVisible, () {
+      super._webGateVisible = value;
+    });
+  }
+
   late final _$updateStreamQualitiesAsyncAction = AsyncAction(
     'VideoStoreBase.updateStreamQualities',
     context: context,
