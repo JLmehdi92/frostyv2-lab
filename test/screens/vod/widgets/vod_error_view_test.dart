@@ -27,18 +27,40 @@ void main() {
     }
   });
 
-  testWidgets('only a temporary problem offers a retry', (tester) async {
+  testWidgets('only a problem that can pass offers a retry', (tester) async {
     var retries = 0;
     await pump(tester, VodPlaybackProblem.unknown, onRetry: () => retries++);
     await tester.tap(find.byIcon(Icons.refresh_rounded));
     expect(retries, 1);
 
+    await pump(tester, VodPlaybackProblem.notFound, onRetry: () => retries++);
+    expect(find.byIcon(Icons.refresh_rounded), findsNothing);
+    await pump(tester, VodPlaybackProblem.geoBlocked, onRetry: () => retries++);
+    expect(find.byIcon(Icons.refresh_rounded), findsNothing);
+  });
+
+  testWidgets('a video for subscribers reads like the official app', (
+    tester,
+  ) async {
+    var retries = 0;
     await pump(
       tester,
       VodPlaybackProblem.subscriberOnly,
       onRetry: () => retries++,
     );
-    expect(find.byIcon(Icons.refresh_rounded), findsNothing);
+
+    expect(
+      find.text('This video is only available to subscribers.'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('Subscribe now to watch and support this channel.'),
+      findsOneWidget,
+    );
+    // Subscribing (or a renewed web token) opens it: the official app
+    // offers a refresh too.
+    await tester.tap(find.byIcon(Icons.refresh_rounded));
+    expect(retries, 1);
   });
 
   testWidgets('a clip names itself in the message', (tester) async {
