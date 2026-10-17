@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
@@ -5,6 +7,7 @@ import 'package:frosty/models/cheermote.dart';
 import 'package:frosty/models/irc.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
+import 'package:frosty/screens/channel/video/content_warning_gate.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/stores/vod_chat_replay_store.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
@@ -58,6 +61,8 @@ void main() {
     replay = MockReplayStore();
     player = FakeVodController();
     when(() => service.getMutedSegments(any())).thenAnswer((_) async => []);
+    when(() => service.getContentLabels(any())).thenAnswer((_) async => []);
+    AcceptedContentWarnings.reset();
     when(() => mini.close()).thenReturn(null);
     when(() => mini.visible).thenReturn(false);
     final assets = MockChatAssetsStore();
@@ -247,5 +252,91 @@ void main() {
 
     expect(starts, [const Duration(minutes: 2)]);
     await close(tester);
+  });
+
+  group('mature-content warning', () {
+    testWidgets('a labelled video waits for the viewer, then plays', (
+      tester,
+    ) async {
+      when(
+        () => service.getContentLabels(_vod.id),
+      ).thenAnswer((_) async => ['MatureGame']);
+      await pump(tester);
+      await ready(tester);
+
+      expect(find.text('Just one second…'), findsOneWidget);
+      expect(find.text('It may contain: Mature-Rated Game'), findsOneWidget);
+      expect(
+        find.text("Streamer's content is intended for certain audiences."),
+        findsOneWidget,
+      );
+      expect(starts, isEmpty, reason: 'no player, so nothing plays behind');
+
+      await tester.tap(find.text('Start watching'));
+      await tester.pump();
+
+      expect(find.text('Just one second…'), findsNothing);
+      expect(starts, [Duration.zero], reason: 'from where it would start');
+      expect(AcceptedContentWarnings.has('42'), isTrue);
+      verify(() => replay.onPositionSecond(600)).called(1);
+      await close(tester);
+    });
+
+    testWidgets('accepted for this channel already: never asks again', (
+      tester,
+    ) async {
+      AcceptedContentWarnings.add('42');
+      await pump(tester);
+      await ready(tester);
+
+      expect(find.text('Just one second…'), findsNothing);
+      expect(starts, hasLength(1));
+      verifyNever(() => service.getContentLabels(any()));
+      await close(tester);
+    });
+
+    testWidgets('with the setting off it never asks', (tester) async {
+      settings.warnMatureContent = false;
+      when(
+        () => service.getContentLabels(any()),
+      ).thenAnswer((_) async => ['MatureGame']);
+      await pump(tester);
+      await ready(tester);
+
+      expect(find.text('Just one second…'), findsNothing);
+      expect(starts, hasLength(1));
+      verifyNever(() => service.getContentLabels(any()));
+      await close(tester);
+    });
+
+    testWidgets('no labels, or labels that cannot be read: it plays', (
+      tester,
+    ) async {
+      when(
+        () => service.getContentLabels(any()),
+      ).thenThrow(const VodApiException('offline'));
+      await pump(tester);
+      await ready(tester);
+
+      expect(find.text('Just one second…'), findsNothing);
+      expect(starts, hasLength(1));
+      await close(tester);
+    });
+
+    testWidgets('labels that never come do not hold the video', (tester) async {
+      when(
+        () => service.getContentLabels(any()),
+      ).thenAnswer((_) => Completer<List<String>>().future);
+      await pump(tester);
+      await ready(tester);
+      expect(starts, isEmpty);
+
+      await tester.pump(const Duration(seconds: 5));
+      await ready(tester);
+
+      expect(find.text('Just one second…'), findsNothing);
+      expect(starts, hasLength(1));
+      await close(tester);
+    });
   });
 }

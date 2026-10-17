@@ -5,8 +5,9 @@ import 'package:frosty/utils/context_extensions.dart';
 import 'package:provider/provider.dart';
 
 /// Channels whose content warning the viewer accepted this session, so
-/// re-entering a channel does not ask again. Kept until the app restarts,
-/// like Twitch.
+/// re-entering a channel, or opening one of its videos, does not ask again
+/// (the official app shares its acceptances between live and VODs too).
+/// Kept until the app restarts.
 abstract final class AcceptedContentWarnings {
   static final _ids = <String>{};
 
@@ -131,52 +132,62 @@ class ContentWarningCover extends StatelessWidget {
     return SizedBox.expand(
       child: ColoredBox(
         color: Colors.black,
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.warning_amber_rounded,
-                  color: Colors.white,
-                  size: 40,
+        // A portrait 16:9 player is short: the whole card shrinks to fit so
+        // its buttons stay on screen (and tappable) instead of scrolling.
+        child: LayoutBuilder(
+          builder: (context, constraints) => Padding(
+            padding: const EdgeInsets.all(16),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: SizedBox(
+                width: (constraints.maxWidth - 32).clamp(160.0, 480.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.white,
+                      size: 40,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Just one second…',
+                      textAlign: TextAlign.center,
+                      style: context.textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      displayName.isEmpty
+                          ? 'This content is intended for certain audiences.'
+                          : "$displayName's content is intended for certain "
+                                'audiences.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'It may contain: ${labels.join(', ')}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton(
+                      onPressed: onAccept,
+                      child: const Text('Start watching'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.maybePop(context),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Go back'),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  'Just one second…',
-                  textAlign: TextAlign.center,
-                  style: context.textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  displayName.isEmpty
-                      ? 'This content is intended for certain audiences.'
-                      : "$displayName's content is intended for certain "
-                            'audiences.',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'It may contain: ${labels.join(', ')}',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white70),
-                ),
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: onAccept,
-                  child: const Text('Start watching'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.maybePop(context),
-                  style: TextButton.styleFrom(foregroundColor: Colors.white),
-                  child: const Text('Go back'),
-                ),
-              ],
+              ),
             ),
           ),
         ),

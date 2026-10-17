@@ -7,6 +7,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
+import 'package:frosty/screens/channel/video/content_warning_gate.dart';
 import 'package:frosty/screens/channel/video/player_engine_resolver.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/player_media.dart';
@@ -23,6 +24,7 @@ import 'package:frosty/screens/vod/widgets/vod_video.dart';
 import 'package:frosty/services/playback_focus.dart';
 import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/theme.dart';
+import 'package:frosty/utils/content_labels.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/pip_callbacks.dart';
 import 'package:frosty/widgets/draggable_divider.dart';
@@ -126,6 +128,15 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
 
   VodPlayerController? _player;
   VodChatReplayStore? _replay;
+
+  /// The labels of a mature-content warning waiting for the viewer (null
+  /// when none). Like the official app, nothing plays until they accept:
+  /// the player is only built then, at [_gatedStart].
+  List<String>? _warningLabels;
+  Duration? _gatedStart;
+
+  /// How long the labels may take before the video plays without them.
+  static const _labelsTimeout = Duration(seconds: 3);
   var _mutedSegments = const <MutedSegment>[];
   var _fillScreen = false;
   var _forceWeb = false;
@@ -175,10 +186,12 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
         return;
       }
     }
+    final warning = _contentWarningLabels(vod);
     // A `?t=` link wins; otherwise resume 30 s before where the viewer left.
     final saved = widget.startAt == null
         ? await _resumeRepository.entry(vod.id)
         : null;
+    final labels = await warning;
     if (!mounted) return;
     final loaded = vod;
     final startAt = startPositionFor(saved: saved, deepLink: widget.startAt);
@@ -186,7 +199,12 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
       _loadError = null;
       _vod = loaded;
       _replay = _buildReplay(loaded);
-      _player = _buildPlayer(loaded, startAt: startAt);
+      if (labels.isEmpty) {
+        _player = _buildPlayer(loaded, startAt: startAt);
+      } else {
+        _warningLabels = labels;
+        _gatedStart = startAt;
+      }
     });
     _bindReplay();
     _resume = VodResumeController(
@@ -200,6 +218,37 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
         if (mounted) setState(() => _mutedSegments = segments);
       }),
     );
+  }
+
+  /// The video's own labels to warn about, like the official app (not the
+  /// channel's current ones); empty when the setting is off, the viewer
+  /// already accepted this channel's warning, or the labels cannot be had
+  /// in time (fail open).
+  Future<List<String>> _contentWarningLabels(Vod vod) async {
+    if (!_settings.warnMatureContent ||
+        AcceptedContentWarnings.has(vod.ownerId)) {
+      return const [];
+    }
+    try {
+      final ids = await _service
+          .getContentLabels(vod.id)
+          .timeout(_labelsTimeout);
+      return contentLabelNames(ids);
+    } catch (e) {
+      debugPrint('VodScreen content labels failed: ${e.runtimeType}');
+      return const [];
+    }
+  }
+
+  void _acceptContentWarning() {
+    final vod = _vod;
+    if (vod == null || _warningLabels == null) return;
+    AcceptedContentWarnings.add(vod.ownerId);
+    setState(() {
+      _warningLabels = null;
+      _player = _buildPlayer(vod, startAt: _gatedStart);
+    });
+    _bindReplay();
   }
 
   void _retryMetadata() {
@@ -405,6 +454,16 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   Widget _buildPlayerArea({required bool landscape, required bool hasChat}) {
     final player = _player;
     final vod = _vod;
+    final warning = _warningLabels;
+    if (vod != null && warning != null) {
+      return ContentWarningCover(
+        displayName: vod.ownerDisplayName.isNotEmpty
+            ? vod.ownerDisplayName
+            : vod.ownerLogin,
+        labels: warning,
+        onAccept: _acceptContentWarning,
+      );
+    }
     if (vod == null || player == null) {
       final error = _loadError;
       return _withBackButton(
