@@ -598,6 +598,18 @@ void main() {
       },
     );
 
+    test('the player can ask for the anonymous token on purpose', () async {
+      authService.webToken = () => 'webtok';
+
+      final url = await authService.getVodUsherUrl(
+        vodId: '1000000001',
+        anonymous: true,
+      );
+
+      expect(tokenOf(url), vodTokenValue);
+      expect(sent.map(auth), [null]);
+    });
+
     test('a network failure is not an auth failure: it throws', () async {
       authService.webToken = () => 'webtok';
       onAuthed = (o, h) => h.reject(

@@ -240,7 +240,7 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
   Future<void> _resolveUrl() async {
     for (var attempt = 0; ; attempt++) {
       try {
-        _url = await vodService.getVodUsherUrl(vodId: vodId);
+        _url = await _usherUrl();
         return;
       } catch (e) {
         final delay = _recovery.tokenRetryDelay(attempt);
@@ -250,6 +250,22 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
       }
     }
   }
+
+  /// Usher refused tokens asked with the viewer's web token this often
+  /// although the video is open to them (a bad token, not a closed video).
+  var _viewerTokenRefusals = 0;
+
+  /// After two such refusals the anonymous token, which always worked for
+  /// a video open to everyone, is asked instead.
+  bool get _anonymousOnly => _viewerTokenRefusals >= 2;
+
+  Future<String> _usherUrl({bool freshToken = false}) => _anonymousOnly
+      ? vodService.getVodUsherUrl(
+          vodId: vodId,
+          forceFreshToken: freshToken,
+          anonymous: true,
+        )
+      : vodService.getVodUsherUrl(vodId: vodId, forceFreshToken: freshToken);
 
   Future<void> _createTexture() async {
     if (_disposed) return;
@@ -352,6 +368,7 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
           // video is closed to them (then say so, like the official app;
           // the web player would hit the same wall) or the token expired.
           _recovering = true;
+          _status = VodPlaybackStatus.loading;
           _holdStartForReload();
           unawaited(_diagnose(_epoch, retry: kind));
           break;
@@ -452,10 +469,7 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
     if (epoch != _epoch) return;
     final String url;
     try {
-      url = await vodService.getVodUsherUrl(
-        vodId: vodId,
-        forceFreshToken: freshToken,
-      );
+      url = await _usherUrl(freshToken: freshToken);
     } on VodForbiddenException catch (e) {
       if (epoch == _epoch) _setProblem(_forbiddenProblem(e));
       return;
@@ -509,6 +523,12 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
     }
     if (epoch != _epoch) return;
     _recovering = false;
+    if (retry == IvsErrorKind.refreshToken &&
+        (problem == null ||
+            problem == VodPlaybackProblem.unknown ||
+            problem == VodPlaybackProblem.tokenRejected)) {
+      _viewerTokenRefusals++;
+    }
     switch (problem) {
       case null:
         _applyRecovery(_recovery.onError(retry));

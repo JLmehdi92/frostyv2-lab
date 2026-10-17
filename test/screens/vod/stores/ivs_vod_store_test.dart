@@ -642,6 +642,72 @@ void main() {
       expect(store.status, isNot(VodPlaybackStatus.problem));
     });
 
+    test('shows loading while usher is asked', () async {
+      stubViewerUrl();
+      final answer = Completer<VodPlaybackProblem?>();
+      when(
+        () => service.diagnoseVodPlaylist(any()),
+      ).thenAnswer((_) => answer.future);
+      store = await createStore();
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+
+      await native.emit({'type': 'error', 'errorType': 'ERROR_AUTHORIZATION'});
+      expect(store.status, VodPlaybackStatus.loading);
+
+      answer.complete(VodPlaybackProblem.subscriberOnly);
+      await settleMany();
+      expect(store.status, VodPlaybackStatus.problem);
+    });
+
+    test(
+      'a viewer token refused twice gives way to the anonymous one',
+      () async {
+        stubViewerUrl();
+        when(
+          () => service.getVodUsherUrl(
+            vodId: any(named: 'vodId'),
+            forceFreshToken: any(named: 'forceFreshToken'),
+            anonymous: true,
+          ),
+        ).thenAnswer((_) async => _url);
+        when(
+          () => service.diagnoseVodPlaylist(any()),
+        ).thenAnswer((_) async => VodPlaybackProblem.tokenRejected);
+        store = await createStore();
+
+        await native.emit({
+          'type': 'error',
+          'errorType': 'ERROR_AUTHORIZATION',
+        });
+        await settleMany();
+        // The first time it may just have expired: a fresh one of the viewer.
+        verifyNever(
+          () => service.getVodUsherUrl(
+            vodId: any(named: 'vodId'),
+            forceFreshToken: any(named: 'forceFreshToken'),
+            anonymous: true,
+          ),
+        );
+
+        await native.emit({
+          'type': 'error',
+          'errorType': 'ERROR_AUTHORIZATION',
+        });
+        await settleMany();
+        verify(
+          () => service.getVodUsherUrl(
+            vodId: '123',
+            forceFreshToken: true,
+            anonymous: true,
+          ),
+        ).called(1);
+        expect(
+          native.callsNamed('load').last.arguments,
+          containsPair('url', _url),
+        );
+      },
+    );
+
     test('an anonymous token keeps the old path to the web player', () async {
       var fatal = 0;
       store = await createStore();

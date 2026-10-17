@@ -333,12 +333,20 @@ class TwitchVodService extends BaseApiClient {
 
   /// Usher master playlist URL for the VOD (token + signature). Throws
   /// [VodForbiddenException] when the token denies playback.
+  ///
+  /// [anonymous] skips the viewer's web token (when usher keeps refusing
+  /// the tokens asked with it).
   Future<String> getVodUsherUrl({
     required String vodId,
     bool forceFreshToken = false,
+    bool anonymous = false,
   }) async {
     final id = normalizeVodId(vodId);
-    final token = await _getToken(id, forceFresh: forceFreshToken);
+    final token = await _getToken(
+      id,
+      forceFresh: forceFreshToken,
+      anonymous: anonymous,
+    );
     final access = VodAccessInfo.fromTokenValue(token.value);
     if (access.forbidden) throw VodForbiddenException(access.reason);
     final params = vodUsherQueryParameters(
@@ -428,8 +436,9 @@ class TwitchVodService extends BaseApiClient {
   Future<PlaybackAccessToken> _getToken(
     String id, {
     required bool forceFresh,
+    bool anonymous = false,
   }) async {
-    final authToken = webToken?.call();
+    final authToken = anonymous ? null : webToken?.call();
     if (authToken != null &&
         authToken.isNotEmpty &&
         _tokenId(authToken) != _refusedWebToken) {
