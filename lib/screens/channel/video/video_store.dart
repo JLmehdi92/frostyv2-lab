@@ -8,6 +8,7 @@ import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/models/channel.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
+import 'package:frosty/screens/channel/video/web_content_gate.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:mobx/mobx.dart';
@@ -21,7 +22,7 @@ part 'video_store.g.dart';
 
 class VideoStore = VideoStoreBase with _$VideoStore implements PlayerController;
 
-abstract class VideoStoreBase with Store {
+abstract class VideoStoreBase with Store implements WebPagePlayer {
   final TwitchApi twitchApi;
 
   /// The userlogin of the current channel.
@@ -235,14 +236,13 @@ abstract class VideoStoreBase with Store {
   /// warning (or its older mature interstitial) is in the page. It only
   /// looks; [_acceptContentWarning] is what clicks.
   @visibleForTesting
-  static const contentGatePollScript = r'''
+  static const contentGatePollScript =
+      '''
     (() => {
       if (window._frostyGatePoll) return;
-      const selector =
-        '[data-a-target*="content-classification-gate"],' +
-        '[data-a-target="player-overlay-mature-accept"]';
+$kTwitchWebGateShownJs
       window._frostyGatePoll = setInterval(() => {
-        const shown = document.querySelector(selector) !== null;
+        const shown = frostyGateShown();
         if (shown !== window._frostyGateShown) {
           window._frostyGateShown = shown;
           ContentGate.postMessage(String(shown));

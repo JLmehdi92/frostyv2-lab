@@ -30,6 +30,7 @@ import 'package:frosty/screens/channel/video/stream_info_bar.dart';
 import 'package:frosty/screens/channel/video/video.dart';
 import 'package:frosty/screens/channel/video/video_overlay.dart';
 import 'package:frosty/screens/channel/video/video_store.dart';
+import 'package:frosty/screens/channel/video/web_content_gate.dart';
 import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/channel_videos.dart';
@@ -476,8 +477,10 @@ class _VideoChatState extends State<VideoChat>
   }
 
   /// Twitch's own content warning is up in the web player's page.
-  static bool _webGateUp(Object store) =>
-      store is VideoStore && store.webGateVisible;
+  bool get _webGateUp => switch (_videoStore) {
+    WebPagePlayer(webGateVisible: true) => true,
+    _ => false,
+  };
 
   /// Pauses the player while the mature-content warning covers the video
   /// (the cover hides the picture but the audio would keep playing), and
@@ -802,8 +805,7 @@ class _VideoChatState extends State<VideoChat>
             children: [
               player,
               // Twitch's own warning left in the web player gets the taps.
-              if (_videoStore.settingsStore.showOverlay &&
-                  !_webGateUp(_videoStore))
+              if (_videoStore.settingsStore.showOverlay && !_webGateUp)
                 overlay,
               ChannelVideoTopOverlay(
                 hypeTrain: _hypeTrainStore,

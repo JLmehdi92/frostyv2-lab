@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/models/clip.dart';
+import 'package:frosty/screens/channel/video/web_content_gate.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:frosty/screens/vod/vod_time.dart';
 import 'package:mobx/mobx.dart';
@@ -233,7 +234,8 @@ abstract class WebVodStoreBase
   /// (or another interstitial) is up, and clicks the warning's button only
   /// once the viewer accepted ours (`window._frostyGateOk`).
   @visibleForTesting
-  static const bridgeScript = r'''
+  static const bridgeScript =
+      '''
     (() => {
       if (!document.getElementById('frosty-vod-styles')) {
         const style = document.createElement('style');
@@ -250,11 +252,9 @@ abstract class WebVodStoreBase
       }
       if (window._frostyVodPoll) return;
       const num = (x) => (typeof x === 'number' && isFinite(x)) ? x : null;
-      const gateSelector =
-        '[data-a-target*="content-classification-gate"],' +
-        '[data-a-target="player-overlay-mature-accept"]';
+$kTwitchWebGateShownJs
       window._frostyVodPoll = setInterval(() => {
-        const g = document.querySelector(gateSelector) !== null;
+        const g = frostyGateShown();
         if (g && window._frostyGateOk === true) {
           const button =
             document.querySelector(

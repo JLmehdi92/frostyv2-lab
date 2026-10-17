@@ -79,11 +79,3 @@ abstract interface class LoopingPlayer {
   bool get looping;
   void toggleLoop();
 }
-
-/// A player that is a Twitch web page, where Twitch can put its own
-/// interstitial (the mature-content warning) over the video.
-abstract interface class WebPagePlayer {
-  /// Such an interstitial is on screen: controls drawn over the page must
-  /// step aside so its buttons can be tapped.
-  bool get webGateVisible;
-}
