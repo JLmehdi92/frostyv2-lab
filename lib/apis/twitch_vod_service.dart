@@ -420,15 +420,19 @@ class TwitchVodService extends BaseApiClient {
     return RegExp(r'^[0-9]{1,20}$').hasMatch(id) ? id : null;
   }
 
-  /// The viewer's token first when there is one; when Twitch refuses it
-  /// (401, 403, a GQL error) the anonymous token that always worked. A
-  /// network failure is not a refusal: it goes to the caller's retry policy.
+  /// The viewer's token first when there is one; when that request fails
+  /// for any reason but the network (401, 403, a GQL error, Twitch
+  /// failing), the anonymous token that always worked. A network failure
+  /// would hit the anonymous request too: it goes to the caller's retry
+  /// policy instead.
   Future<PlaybackAccessToken> _getToken(
     String id, {
     required bool forceFresh,
   }) async {
     final authToken = webToken?.call();
-    if (authToken != null && authToken.isNotEmpty) {
+    if (authToken != null &&
+        authToken.isNotEmpty &&
+        _tokenId(authToken) != _refusedWebToken) {
       try {
         return await _cachedToken(
           id,
@@ -437,6 +441,8 @@ class TwitchVodService extends BaseApiClient {
         );
       } on UnauthorizedException {
         debugPrint('Authenticated VOD token refused (401)');
+        // Not sent again (each start would pay a refusal) until it changes.
+        _refusedWebToken = _tokenId(authToken);
         final renew = onWebTokenRejected;
         if (renew != null) {
           unawaited(
@@ -447,29 +453,29 @@ class TwitchVodService extends BaseApiClient {
             ),
           );
         }
+      } on NetworkException {
+        rethrow;
+      } on TimeoutException {
+        rethrow;
       } on ApiException catch (e) {
-        if (isNetworkOrServerError(e)) rethrow;
         debugPrint('Authenticated VOD token failed: ${e.runtimeType}');
       }
     }
     return _cachedToken(id, forceFresh: forceFresh);
   }
 
-  /// Whether [e] says nothing about the credentials (no answer, or Twitch
-  /// failing): asking anonymously instead would not help.
-  @visibleForTesting
-  static bool isNetworkOrServerError(ApiException e) =>
-      e is NetworkException ||
-      e is TimeoutException ||
-      e is ServerException ||
-      (e.statusCode ?? 0) >= 500;
+  /// The identity of the last web token Twitch refused with a 401.
+  String? _refusedWebToken;
+
+  /// Names a web token without holding it (cache keys, the refused one).
+  static String _tokenId(String authToken) =>
+      sha256.convert(utf8.encode(authToken)).toString().substring(0, 16);
 
   /// One entry per VOD and viewer: the anonymous token, or the token of the
   /// web token's account (named by a hash, so the cache never holds it), so
   /// a token is never handed to another account after a logout or login.
-  static String _cacheKey(String id, String? authToken) => authToken == null
-      ? id
-      : '$id#${sha256.convert(utf8.encode(authToken)).toString().substring(0, 16)}';
+  static String _cacheKey(String id, String? authToken) =>
+      authToken == null ? id : '$id#${_tokenId(authToken)}';
 
   Future<PlaybackAccessToken> _cachedToken(
     String id, {

@@ -569,6 +569,35 @@ void main() {
       );
     });
 
+    test('a server error on the viewer\'s request falls back too', () async {
+      authService.webToken = () => 'webtok';
+      onAuthed = (o, h) => h.reject(status(o, 500));
+
+      expect(
+        tokenOf(await authService.getVodUsherUrl(vodId: '1000000001')),
+        vodTokenValue,
+      );
+      expect(sent.map(auth), ['OAuth webtok', null]);
+    });
+
+    test(
+      'a web token refused once is not sent again until it changes',
+      () async {
+        String? token = 'stale';
+        authService.webToken = () => token;
+        onAuthed = (o, h) => h.reject(status(o, 401));
+
+        await authService.getVodUsherUrl(vodId: '1000000001');
+        await authService.getVodUsherUrl(vodId: '1000000002');
+        expect(sent.map(auth), ['OAuth stale', null, null]);
+
+        token = 'fresh';
+        onAuthed = (o, h) => h.resolve(ok(o, vodTokenAuthResponse));
+        await authService.getVodUsherUrl(vodId: '1000000003');
+        expect(auth(sent.last), 'OAuth fresh');
+      },
+    );
+
     test('a network failure is not an auth failure: it throws', () async {
       authService.webToken = () => 'webtok';
       onAuthed = (o, h) => h.reject(
