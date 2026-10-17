@@ -53,16 +53,22 @@ class WebVodStore = WebVodStoreBase with _$WebVodStore;
 /// and state, and driven directly for seek, rate, play/pause and sound.
 abstract class WebVodStoreBase
     with Store
-    implements VodPlayerController, LoopingPlayer {
+    implements VodPlayerController, LoopingPlayer, WebPagePlayer {
+  ///
+  /// [acceptContentGate]: the viewer already accepted the video's
+  /// mature-content warning (or turned warnings off), so Twitch's own
+  /// warning in the page may be clicked for them.
   WebVodStoreBase({
     required String vodId,
     Duration startAt = Duration.zero,
     Duration? knownLength,
+    bool acceptContentGate = false,
     @visibleForTesting WebViewController? controller,
   }) : this.forUrl(
          webVodEmbedUrl(vodId: vodId, startAt: startAt),
          startAt: startAt,
          knownLength: knownLength,
+         acceptContentGate: acceptContentGate,
          controller: controller,
        );
 
@@ -72,11 +78,13 @@ abstract class WebVodStoreBase
     String url, {
     Duration startAt = Duration.zero,
     Duration? knownLength,
+    bool acceptContentGate = false,
     @visibleForTesting WebViewController? controller,
   }) : _knownLength = knownLength,
        _position = startAt {
     webViewController = controller ?? _createController(url);
     _scheduleOverlayHide();
+    if (acceptContentGate) this.acceptContentGate();
     if (Platform.isAndroid) {
       _disposeAutoPip = autorun((_) async {
         // Another player on top owns auto-PiP.
@@ -155,6 +163,15 @@ abstract class WebVodStoreBase
   @readonly
   var _looping = false;
 
+  /// Twitch's own warning (or another of its interstitials) is on screen in
+  /// the page: our controls must step aside so its buttons can be tapped.
+  @readonly
+  var _webGateVisible = false;
+
+  /// The viewer accepted the mature-content warning: the page may click
+  /// Twitch's for them (kept across page reloads by the bridge).
+  var _gateAccepted = false;
+
   @observable
   var _focused = true;
 
@@ -195,7 +212,9 @@ abstract class WebVodStoreBase
       )
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageFinished: (_) => unawaited(_installBridge().then(_applyLoop)),
+          onPageFinished: (_) => unawaited(
+            _installBridge().then(_applyLoop).then(_applyGateConsent),
+          ),
         ),
       );
     if (controller.platform is AndroidWebViewController) {
@@ -208,7 +227,13 @@ abstract class WebVodStoreBase
 
   /// Hides the embed's own controls (ours sit on top) and starts reporting
   /// the `<video>` state once a second.
-  Future<void> _installBridge() => _run(r'''
+  Future<void> _installBridge() => _run(bridgeScript);
+
+  /// The page side of the bridge. It also reports whether Twitch's warning
+  /// (or another interstitial) is up, and clicks the warning's button only
+  /// once the viewer accepted ours (`window._frostyGateOk`).
+  @visibleForTesting
+  static const bridgeScript = r'''
     (() => {
       if (!document.getElementById('frosty-vod-styles')) {
         const style = document.createElement('style');
@@ -225,9 +250,26 @@ abstract class WebVodStoreBase
       }
       if (window._frostyVodPoll) return;
       const num = (x) => (typeof x === 'number' && isFinite(x)) ? x : null;
+      const gateSelector =
+        '[data-a-target*="content-classification-gate"],' +
+        '[data-a-target="player-overlay-mature-accept"]';
       window._frostyVodPoll = setInterval(() => {
+        const g = document.querySelector(gateSelector) !== null;
+        if (g && window._frostyGateOk === true) {
+          const button =
+            document.querySelector(
+              'button[data-a-target*="content-classification-gate"]',
+            ) ||
+            document.querySelector(
+              'button[data-a-target="player-overlay-mature-accept"]',
+            );
+          if (button) button.click();
+        }
         const v = document.querySelector('video');
-        if (!v) return;
+        if (!v) {
+          VodState.postMessage(JSON.stringify({ g }));
+          return;
+        }
         if (typeof window._frostyLoop === 'boolean') v.loop = window._frostyLoop;
         let b = null;
         try {
@@ -236,11 +278,22 @@ abstract class WebVodStoreBase
         VodState.postMessage(JSON.stringify({
           t: num(v.currentTime), d: num(v.duration), p: v.paused,
           e: v.ended, r: num(v.playbackRate), b: num(b),
-          w: !v.paused && v.readyState < 3,
+          w: !v.paused && v.readyState < 3, g,
         }));
       }, 1000);
     })();
-  ''');
+  ''';
+
+  /// Lets the page click Twitch's warning: called once the viewer accepted
+  /// ours, never on its own.
+  void acceptContentGate() {
+    _gateAccepted = true;
+    _applyGateConsent();
+  }
+
+  void _applyGateConsent([void _]) {
+    if (_gateAccepted) unawaited(_run('window._frostyGateOk = true;'));
+  }
 
   /// Applies a state report from the page. Malformed reports are ignored.
   @visibleForTesting
@@ -255,6 +308,8 @@ abstract class WebVodStoreBase
       return;
     }
     if (decoded is! Map) return;
+    final g = decoded['g'];
+    if (g is bool) _webGateVisible = g;
     final t = decoded['t'];
     if (t is! num || t < 0 || !t.isFinite) return;
     final at = Duration(milliseconds: (t * 1000).round());

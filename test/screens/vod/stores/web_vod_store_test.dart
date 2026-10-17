@@ -216,6 +216,47 @@ void main() {
     await expectLater(store.ready, completes);
   });
 
+  group("twitch's web content gate", () {
+    test('nothing clicks it before the viewer accepts', () async {
+      await Future<void>.delayed(Duration.zero);
+      expect(scripts.where((s) => s.contains('_frostyGateOk = true')), isEmpty);
+      // The page only ever clicks it behind the viewer's consent.
+      final bridge = WebVodStoreBase.bridgeScript;
+      expect(bridge, contains('content-classification-gate'));
+      expect(
+        bridge.indexOf('window._frostyGateOk === true'),
+        lessThan(bridge.indexOf('.click()')),
+      );
+    });
+
+    test("the viewer's acceptance lets the page click it", () async {
+      store.acceptContentGate();
+      await Future<void>.delayed(Duration.zero);
+      expect(scripts, contains('window._frostyGateOk = true;'));
+    });
+
+    test('a player built after the acceptance clicks it too', () async {
+      final accepted = WebVodStore(
+        vodId: '123',
+        acceptContentGate: true,
+        controller: web,
+      );
+      await Future<void>.delayed(Duration.zero);
+      expect(scripts, contains('window._frostyGateOk = true;'));
+      accepted.dispose();
+    });
+
+    test('reports when it is on screen, video or not', () {
+      expect(store.webGateVisible, isFalse);
+      store.onStateMessage('{"g":true}');
+      expect(store.webGateVisible, isTrue);
+      store.onStateMessage('garbage');
+      expect(store.webGateVisible, isTrue);
+      store.onStateMessage('{"t":1,"d":3600,"p":false,"g":false}');
+      expect(store.webGateVisible, isFalse);
+    });
+  });
+
   group('clips', () {
     test('the clip embed URL carries the slug and the app parent', () {
       final uri = Uri.parse(webClipEmbedUrl('Some-Clip_Slug'));

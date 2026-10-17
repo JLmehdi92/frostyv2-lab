@@ -224,6 +224,26 @@ mixin _$WebVodStore on WebVodStoreBase, Store {
     });
   }
 
+  late final _$_webGateVisibleAtom = Atom(
+    name: 'WebVodStoreBase._webGateVisible',
+    context: context,
+  );
+
+  bool get webGateVisible {
+    _$_webGateVisibleAtom.reportRead();
+    return super._webGateVisible;
+  }
+
+  @override
+  bool get _webGateVisible => webGateVisible;
+
+  @override
+  set _webGateVisible(bool value) {
+    _$_webGateVisibleAtom.reportWrite(value, super._webGateVisible, () {
+      super._webGateVisible = value;
+    });
+  }
+
   late final _$_focusedAtom = Atom(
     name: 'WebVodStoreBase._focused',
     context: context,
