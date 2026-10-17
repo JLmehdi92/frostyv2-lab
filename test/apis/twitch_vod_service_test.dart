@@ -220,6 +220,61 @@ void main() {
     });
   });
 
+  group('getContentLabels', () {
+    test("the video's own labels, as ids, anonymously", () async {
+      reply({
+        'data': {
+          'video': {
+            'contentClassificationLabels': [
+              {'id': 'MatureGame', 'localizedName': 'Mature-rated game'},
+              {'id': 'Gambling'},
+              {'localizedName': 'no id'},
+              'junk',
+            ],
+          },
+        },
+      });
+
+      expect(await service.getContentLabels('v1000000001'), [
+        'MatureGame',
+        'Gambling',
+      ]);
+      expect(lastVariables(), {'id': '1000000001'});
+      expect(
+        (gqlRequests.last.data as Map)['query'],
+        contains('contentClassificationLabels'),
+      );
+      expect(gqlRequests.last.headers['Authorization'], isNull);
+    });
+
+    test('no labels is an empty list', () async {
+      reply({
+        'data': {
+          'video': {'contentClassificationLabels': []},
+        },
+      });
+      expect(await service.getContentLabels('1'), isEmpty);
+    });
+
+    test('a missing video or an unreadable answer throws', () async {
+      reply(vodMissingResponse);
+      await expectLater(
+        service.getContentLabels('1'),
+        throwsA(isA<ApiException>()),
+      );
+
+      reply({
+        'data': {
+          'video': {'contentClassificationLabels': 'nope'},
+        },
+      });
+      await expectLater(
+        service.getContentLabels('1'),
+        throwsA(isA<VodApiException>()),
+      );
+    });
+  });
+
   group('getComments', () {
     test('sends the offset and parses the page in order', () async {
       reply(vodCommentsResponse);

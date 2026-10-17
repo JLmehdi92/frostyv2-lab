@@ -96,6 +96,12 @@ class TwitchVodService extends BaseApiClient {
       'fragments { text emote { emoteID } } userBadges { setID version } '
       'userColor } } } pageInfo { hasNextPage } } } }';
 
+  // The video's own labels, as the official app asks for a VOD's warning
+  // (not the channel's current ones; verified anonymously, 2026-10-17).
+  static const _contentLabelsQuery =
+      'query VideoContentLabels(\$id: ID!) { video(id: \$id) { '
+      'contentClassificationLabels { id } } }';
+
   static const _mutedSegmentsQuery =
       'query VideoMutedSegments(\$id: ID!) { video(id: \$id) { muteInfo { '
       'mutedSegmentConnection { nodes { offset duration } } } } }';
@@ -281,6 +287,23 @@ class TwitchVodService extends BaseApiClient {
       ],
       hasNextPage: pageInfo is Map && pageInfo['hasNextPage'] == true,
     );
+  }
+
+  /// The content classification label ids of the video itself (empty when
+  /// it has none). Throws when the video or the answer cannot be read.
+  Future<List<String>> getContentLabels(String vodId) async {
+    final data = await _gql('VideoContentLabels', _contentLabelsQuery, {
+      'id': normalizeVodId(vodId),
+    });
+    final video = data['video'];
+    if (video is! Map) throw const NotFoundException('Video not found');
+    final labels = video['contentClassificationLabels'];
+    if (labels == null) return const [];
+    if (labels is! List) throw const VodApiException('Unreadable labels');
+    return [
+      for (final label in labels)
+        if (label is Map && label['id'] is String) label['id'] as String,
+    ];
   }
 
   /// Copyright-muted parts of the VOD. Optional data: never throws.
