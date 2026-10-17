@@ -10,12 +10,13 @@ import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:frosty/screens/channel/video/content_warning_gate.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/stores/vod_chat_replay_store.dart';
+import 'package:frosty/screens/vod/vod_overlay.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:frosty/screens/vod/vod_resume.dart';
 import 'package:frosty/screens/vod/vod_screen.dart';
 import 'package:frosty/services/playback_focus.dart';
 import 'package:frosty/stores/mini_player_store.dart';
-import 'package:mobx/mobx.dart' show ObservableList;
+import 'package:mobx/mobx.dart' show Observable, ObservableList, runInAction;
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,6 +24,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../helpers/fake_vod_controller.dart';
 
 class MockVodService extends Mock implements TwitchVodService {}
+
+/// A web player whose page can show Twitch's own warning.
+class FakeWebPagePlayer extends FakeVodController implements WebPagePlayer {
+  final _gate = Observable(false);
+
+  set gate(bool value) => runInAction(() => _gate.value = value);
+
+  @override
+  bool get webGateVisible => _gate.value;
+}
 
 class MockMiniPlayerStore extends Mock implements MiniPlayerStore {}
 
@@ -338,5 +349,28 @@ void main() {
       expect(starts, hasLength(1));
       await close(tester);
     });
+  });
+
+  testWidgets("twitch's own warning in the web player gets the taps", (
+    tester,
+  ) async {
+    final web = FakeWebPagePlayer();
+    player = web;
+    await pump(tester);
+    await ready(tester);
+    expect(find.byTooltip('Play'), findsOneWidget, reason: 'our controls');
+
+    web.gate = true;
+    await tester.pump();
+
+    expect(find.byTooltip('Play'), findsNothing);
+    expect(find.byTooltip('Back'), findsOneWidget, reason: 'still a way out');
+    // Nothing of ours lies over the page, but for the back button.
+    expect(find.byType(VodOverlay), findsNothing);
+
+    web.gate = false;
+    await tester.pump();
+    expect(find.byTooltip('Play'), findsOneWidget);
+    await close(tester);
   });
 }

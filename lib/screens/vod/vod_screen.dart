@@ -135,6 +135,9 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   List<String>? _warningLabels;
   Duration? _gatedStart;
 
+  /// The viewer accepted this video's warning.
+  var _warningAccepted = false;
+
   /// How long the labels may take before the video plays without them.
   static const _labelsTimeout = Duration(seconds: 3);
   var _mutedSegments = const <MutedSegment>[];
@@ -226,7 +229,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   /// in time (fail open).
   Future<List<String>> _contentWarningLabels(Vod vod) async {
     if (!_settings.warnMatureContent ||
-        AcceptedContentWarnings.has(vod.ownerId)) {
+        (vod.ownerId.isNotEmpty && AcceptedContentWarnings.has(vod.ownerId))) {
       return const [];
     }
     try {
@@ -240,10 +243,19 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     }
   }
 
+  /// Whether Twitch's own warning in the web player may be clicked for the
+  /// viewer: only when they accepted ours (now or earlier for this channel)
+  /// or turned warnings off. Otherwise they tap it themselves.
+  bool _webGateConsent(Vod vod) =>
+      !_settings.warnMatureContent ||
+      _warningAccepted ||
+      (vod.ownerId.isNotEmpty && AcceptedContentWarnings.has(vod.ownerId));
+
   void _acceptContentWarning() {
     final vod = _vod;
     if (vod == null || _warningLabels == null) return;
-    AcceptedContentWarnings.add(vod.ownerId);
+    _warningAccepted = true;
+    if (vod.ownerId.isNotEmpty) AcceptedContentWarnings.add(vod.ownerId);
     setState(() {
       _warningLabels = null;
       _player = _buildPlayer(vod, startAt: _gatedStart);
@@ -284,6 +296,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
         vodId: vod.id,
         startAt: startAt ?? Duration.zero,
         knownLength: Duration(seconds: vod.lengthSeconds),
+        acceptContentGate: _webGateConsent(vod),
       );
     }
     final store = IvsVodStore(
@@ -487,6 +500,11 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
         Observer(
           builder: (context) {
             final problem = player.problem;
+            if (player case WebPagePlayer(webGateVisible: true)) {
+              // Twitch's own warning is up in the page: only a back button
+              // of ours, so its buttons get the taps.
+              return _withBackButton(const SizedBox.shrink());
+            }
             if (player.status == VodPlaybackStatus.problem && problem != null) {
               return _withBackButton(
                 VodErrorView(
