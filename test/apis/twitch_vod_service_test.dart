@@ -368,6 +368,171 @@ void main() {
     });
   });
 
+  group('getVodUsherUrl with the viewer\'s web token', () {
+    late Dio authDio;
+    late TwitchVodService authService;
+    late List<RequestOptions> sent;
+
+    /// What GQL answers: [onAuthed] for a request carrying an
+    /// Authorization header, the anonymous token otherwise.
+    late void Function(RequestOptions, RequestInterceptorHandler) onAuthed;
+
+    Response<Object?> ok(RequestOptions o, Object body) =>
+        Response(requestOptions: o, statusCode: 200, data: body);
+
+    DioException status(RequestOptions o, int code) => DioException(
+      requestOptions: o,
+      response: Response(requestOptions: o, statusCode: code),
+      type: DioExceptionType.badResponse,
+    );
+
+    String? auth(RequestOptions o) => o.headers['Authorization'] as String?;
+
+    setUp(() {
+      sent = [];
+      onAuthed = (o, h) => h.resolve(ok(o, vodTokenAuthResponse));
+      authDio = Dio(BaseOptions());
+      authDio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (o, h) {
+            sent.add(o);
+            if (o.uri.host != 'gql.twitch.tv') {
+              h.resolve(ok(o, '#EXTM3U\n'));
+            } else if (auth(o) != null) {
+              onAuthed(o, h);
+            } else {
+              h.resolve(ok(o, vodTokenResponse));
+            }
+          },
+        ),
+      );
+      authService = TwitchVodService(authDio);
+    });
+
+    String tokenOf(String url) => Uri.parse(url).queryParameters['token']!;
+
+    test('asks as the viewer, only on gql.twitch.tv', () async {
+      authService.webToken = () => 'webtok';
+
+      final url = await authService.getVodUsherUrl(vodId: '1000000001');
+
+      expect(sent, hasLength(1));
+      expect(sent.single.uri.toString(), _gql);
+      expect(auth(sent.single), 'OAuth webtok');
+      expect(tokenOf(url), vodTokenAuthValue);
+      expect(Uri.parse(url).queryParameters['sig'], 'authsig');
+
+      // Nothing else this service sends carries it, usher included.
+      await authService.diagnoseVodPlaylist(url);
+      await authService.getMutedSegments('1000000001');
+      for (final o in sent.skip(1)) {
+        expect(auth(o), isNull, reason: o.uri.toString());
+      }
+      expect(sent.map((o) => o.uri.host), contains('usher.ttvnw.net'));
+    });
+
+    test('no web token, or an empty one: anonymous as before', () async {
+      authService.webToken = () => null;
+      expect(
+        tokenOf(await authService.getVodUsherUrl(vodId: '1000000001')),
+        vodTokenValue,
+      );
+      authService.webToken = () => '';
+      await authService.getVodUsherUrl(vodId: '1000000002');
+      expect(sent.map(auth), everyElement(isNull));
+    });
+
+    test('a refused web token renews it and plays anonymously', () async {
+      var renewals = 0;
+      authService
+        ..webToken = (() => 'stale')
+        ..onWebTokenRejected = () async {
+          renewals++;
+          return 'fresh';
+        };
+      onAuthed = (o, h) => h.reject(status(o, 401));
+
+      final url = await authService.getVodUsherUrl(vodId: '1000000001');
+
+      expect(tokenOf(url), vodTokenValue);
+      expect(renewals, 1);
+      expect(sent.map(auth), ['OAuth stale', null]);
+    });
+
+    test('a failed renewal never surfaces', () async {
+      authService
+        ..webToken = (() => 'stale')
+        ..onWebTokenRejected = () async => throw StateError('no page');
+      onAuthed = (o, h) => h.reject(status(o, 401));
+
+      expect(
+        tokenOf(await authService.getVodUsherUrl(vodId: '1000000001')),
+        vodTokenValue,
+      );
+    });
+
+    test('a forbidden reply or a GQL error falls back anonymously', () async {
+      authService.webToken = () => 'webtok';
+      onAuthed = (o, h) => h.reject(status(o, 403));
+      expect(
+        tokenOf(await authService.getVodUsherUrl(vodId: '1000000001')),
+        vodTokenValue,
+      );
+
+      onAuthed = (o, h) => h.resolve(
+        ok(o, {
+          'errors': [
+            {'message': 'unauthorized'},
+          ],
+        }),
+      );
+      expect(
+        tokenOf(await authService.getVodUsherUrl(vodId: '1000000002')),
+        vodTokenValue,
+      );
+    });
+
+    test('a network failure is not an auth failure: it throws', () async {
+      authService.webToken = () => 'webtok';
+      onAuthed = (o, h) => h.reject(
+        DioException.connectionError(requestOptions: o, reason: 'offline'),
+      );
+
+      await expectLater(
+        authService.getVodUsherUrl(vodId: '1000000001'),
+        throwsA(isA<NetworkException>()),
+      );
+      expect(sent.map(auth), ['OAuth webtok'], reason: 'no anonymous retry');
+    });
+
+    test('tokens are cached per viewer, never shared', () async {
+      String? token = 'alice';
+      authService.webToken = () => token;
+
+      await authService.getVodUsherUrl(vodId: '1000000001');
+      await authService.getVodUsherUrl(vodId: '1000000001');
+      expect(sent, hasLength(1), reason: 'same viewer: cached');
+
+      token = 'bob';
+      await authService.getVodUsherUrl(vodId: '1000000001');
+      expect(auth(sent.last), 'OAuth bob');
+
+      token = null;
+      final anonymous = await authService.getVodUsherUrl(vodId: '1000000001');
+      expect(auth(sent.last), isNull);
+      expect(tokenOf(anonymous), vodTokenValue);
+      expect(sent, hasLength(3));
+
+      token = 'alice';
+      await authService.getVodUsherUrl(
+        vodId: '1000000001',
+        forceFreshToken: true,
+      );
+      expect(sent, hasLength(4), reason: 'a forced refresh asks again');
+      expect(auth(sent.last), 'OAuth alice');
+    });
+  });
+
   group('normalizeVodId', () {
     test('strips a leading v', () {
       expect(TwitchVodService.normalizeVodId('v123'), '123');

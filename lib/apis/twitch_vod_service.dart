@@ -1,3 +1,7 @@
+import 'dart:async' show unawaited;
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:frosty/apis/base_api_client.dart';
@@ -38,6 +42,10 @@ enum VodPlaybackProblem {
 /// Past broadcasts, highlights and uploads from Twitch GQL, anonymously (the
 /// public web Client-ID and full query documents, no user token): channel
 /// lists, a single video, chat replay by offset and the usher VOD playlist.
+///
+/// The one exception is the playback token: like the official app, it is
+/// asked as the viewer when [webToken] gives their twitch.tv web token, so
+/// VODs restricted to subscribers play for the subscribers.
 ///
 /// Comments and channel lists are fetched without cursors: cursor paging is
 /// integrity-gated for anonymous clients (verified 2026-10-13).
@@ -99,6 +107,16 @@ class TwitchVodService extends BaseApiClient {
 
   final Dio _http;
   final PlaybackTokenCache _tokens;
+
+  /// The viewer's twitch.tv web token, read for each playback token (null or
+  /// empty: anonymous). It is sent to gql.twitch.tv only, with the playback
+  /// token request only.
+  String? Function()? webToken;
+
+  /// Called (not awaited) when Twitch refuses the web token with a 401, to
+  /// mint a fresh one for the next request; this request goes on
+  /// anonymously.
+  Future<String?> Function()? onWebTokenRejected;
 
   /// The channel's newest videos of [type] (up to 100, newest first).
   Future<VodPage> getChannelVideos({
@@ -379,16 +397,74 @@ class TwitchVodService extends BaseApiClient {
     return RegExp(r'^[0-9]{1,20}$').hasMatch(id) ? id : null;
   }
 
+  /// The viewer's token first when there is one; when Twitch refuses it
+  /// (401, 403, a GQL error) the anonymous token that always worked. A
+  /// network failure is not a refusal: it goes to the caller's retry policy.
   Future<PlaybackAccessToken> _getToken(
     String id, {
     required bool forceFresh,
   }) async {
+    final authToken = webToken?.call();
+    if (authToken != null && authToken.isNotEmpty) {
+      try {
+        return await _cachedToken(
+          id,
+          authToken: authToken,
+          forceFresh: forceFresh,
+        );
+      } on UnauthorizedException {
+        debugPrint('Authenticated VOD token refused (401)');
+        final renew = onWebTokenRejected;
+        if (renew != null) {
+          unawaited(
+            renew().then<void>(
+              (_) {},
+              onError: (Object e) =>
+                  debugPrint('Web token renewal failed: ${e.runtimeType}'),
+            ),
+          );
+        }
+      } on ApiException catch (e) {
+        if (isNetworkOrServerError(e)) rethrow;
+        debugPrint('Authenticated VOD token failed: ${e.runtimeType}');
+      }
+    }
+    return _cachedToken(id, forceFresh: forceFresh);
+  }
+
+  /// Whether [e] says nothing about the credentials (no answer, or Twitch
+  /// failing): asking anonymously instead would not help.
+  @visibleForTesting
+  static bool isNetworkOrServerError(ApiException e) =>
+      e is NetworkException ||
+      e is TimeoutException ||
+      e is ServerException ||
+      (e.statusCode ?? 0) >= 500;
+
+  /// One entry per VOD and viewer: the anonymous token, or the token of the
+  /// web token's account (named by a hash, so the cache never holds it), so
+  /// a token is never handed to another account after a logout or login.
+  static String _cacheKey(String id, String? authToken) => authToken == null
+      ? id
+      : '$id#${sha256.convert(utf8.encode(authToken)).toString().substring(0, 16)}';
+
+  Future<PlaybackAccessToken> _cachedToken(
+    String id, {
+    String? authToken,
+    required bool forceFresh,
+  }) async {
+    final key = _cacheKey(id, authToken);
     if (forceFresh) {
-      _tokens.invalidate(id);
-    } else if (_tokens.get(id) case final cached?) {
+      _tokens.invalidate(key);
+    } else if (_tokens.get(key) case final cached?) {
       return cached;
     }
-    final data = await _gql('VodToken', _tokenQuery, {'id': id});
+    final data = await _gql(
+      'VodToken',
+      _tokenQuery,
+      {'id': id},
+      headers: {if (authToken != null) 'Authorization': 'OAuth $authToken'},
+    );
     final token = data['videoPlaybackAccessToken'];
     if (token is! Map || token['value'] is! String) {
       throw const ApiException('No playback access token for this video');
@@ -397,18 +473,19 @@ class TwitchVodService extends BaseApiClient {
       value: token['value'] as String,
       signature: token['signature'] as String? ?? '',
     );
-    _tokens.put(id, accessToken);
+    _tokens.put(key, accessToken);
     return accessToken;
   }
 
   Future<JsonMap> _gql(
     String operationName,
     String query,
-    JsonMap variables,
-  ) async {
+    JsonMap variables, {
+    Map<String, String> headers = const {},
+  }) async {
     final body = await post<JsonMap>(
       _gqlUrl,
-      headers: {'Client-ID': _gqlClientId},
+      headers: {'Client-ID': _gqlClientId, ...headers},
       data: {
         'operationName': operationName,
         'query': query,

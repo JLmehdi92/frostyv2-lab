@@ -193,6 +193,21 @@ const vodTokenForbiddenValue =
     '"chansub":{"restricted_bitrates":["chunked","720p60"]},'
     '"expires":4102444800,"vod_id":1000000001}';
 
+/// A token asked with the viewer's web token: it names the viewer.
+const vodTokenAuthValue =
+    '{"authorization":{"forbidden":false,"reason":""},'
+    '"chansub":{"restricted_bitrates":[]},"expires":4102444800,'
+    '"user_id":4242,"vod_id":1000000001,"version":3}';
+
+const vodTokenAuthResponse = {
+  'data': {
+    'videoPlaybackAccessToken': {
+      'value': vodTokenAuthValue,
+      'signature': 'authsig',
+    },
+  },
+};
+
 const vodTokenResponse = {
   'data': {
     'videoPlaybackAccessToken': {'value': vodTokenValue, 'signature': 'vodsig'},

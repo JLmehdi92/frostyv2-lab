@@ -9,6 +9,7 @@ class VodAccessInfo {
     required this.restrictedBitrates,
     this.reason,
     this.expiresAt,
+    this.authenticated = false,
   });
 
   /// Tolerant: an unreadable value is treated as allowed, usher has the final
@@ -30,6 +31,11 @@ class VodAccessInfo {
               if (b is String) b,
         ],
         expiresAt: PlaybackAccessToken.parseExpiry(value),
+        authenticated: switch (decoded['user_id']) {
+          num() => true,
+          final String id => id.isNotEmpty,
+          _ => false,
+        },
       );
     } on FormatException {
       return const VodAccessInfo(forbidden: false, restrictedBitrates: []);
@@ -42,4 +48,8 @@ class VodAccessInfo {
   /// Qualities only subscribers can watch.
   final List<String> restrictedBitrates;
   final DateTime? expiresAt;
+
+  /// Asked with a viewer's credentials (Twitch names the viewer in it): a
+  /// refusal is then the viewer's own, not that of an anonymous visitor.
+  final bool authenticated;
 }

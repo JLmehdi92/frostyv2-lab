@@ -133,6 +133,8 @@ void main() async {
   final sevenTVApiService = SevenTVApi(dioClient);
   // Anonymous GQL for VODs and hype trains: own Dio with timeouts and no
   // Twitch auth interceptor (it must never carry the user's Helix token).
+  // Only the VOD playback token adds the viewer's twitch.tv web token, per
+  // request (wired below, once the auth store exists).
   final anonymousGqlDio = Dio(
     BaseOptions(
       connectTimeout: const Duration(seconds: 5),
@@ -175,6 +177,11 @@ void main() async {
 
   // Add the unauthorized interceptor to catch 401 errors
   dioClient.interceptors.add(UnauthorizedInterceptor(authStore));
+
+  // VODs restricted to subscribers play for subscribers, like live 2K.
+  twitchVodService
+    ..webToken = (() => authStore.twitchWebToken)
+    ..onWebTokenRejected = authStore.renewTwitchWebToken;
 
   await authStore.init();
 

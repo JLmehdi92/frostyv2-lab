@@ -21,6 +21,24 @@ void main() {
       expect(info.restrictedBitrates, ['chunked', '720p60']);
     });
 
+    test('tells a token asked as a viewer from an anonymous one', () {
+      expect(
+        VodAccessInfo.fromTokenValue(vodTokenValue).authenticated,
+        isFalse,
+      );
+      expect(
+        VodAccessInfo.fromTokenValue(vodTokenAuthValue).authenticated,
+        isTrue,
+      );
+      expect(
+        VodAccessInfo.fromTokenValue(
+          '{"user_id":null,"expires":4102444800}',
+        ).authenticated,
+        isFalse,
+      );
+      expect(VodAccessInfo.fromTokenValue('not json').authenticated, isFalse);
+    });
+
     test('a malformed value is treated as allowed', () {
       final info = VodAccessInfo.fromTokenValue('not json');
 
