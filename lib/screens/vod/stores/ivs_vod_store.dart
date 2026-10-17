@@ -228,6 +228,8 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
   void _setProblem(VodPlaybackProblem problem) {
     _retryTimer?.cancel();
     _recovering = false;
+    // The refused token must not answer the retry (after subscribing).
+    vodService.invalidateToken(vodId);
     runInAction(() {
       _status = VodPlaybackStatus.problem;
       _problem = problem;

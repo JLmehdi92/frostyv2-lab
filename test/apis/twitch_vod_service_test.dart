@@ -411,6 +411,28 @@ void main() {
       );
     });
 
+    test('a refused token is never kept for the next try', () async {
+      reply(vodTokenForbiddenResponse);
+
+      for (var i = 0; i < 2; i++) {
+        await expectLater(
+          service.getVodUsherUrl(vodId: '1000000001'),
+          throwsA(isA<VodForbiddenException>()),
+        );
+      }
+      expect(gqlRequests, hasLength(2));
+    });
+
+    test('a token usher refused can be forgotten', () async {
+      reply(vodTokenResponse);
+      await service.getVodUsherUrl(vodId: '1000000001');
+
+      service.invalidateToken('v1000000001');
+      await service.getVodUsherUrl(vodId: '1000000001');
+
+      expect(gqlRequests, hasLength(2));
+    });
+
     test('a missing token throws ApiException', () async {
       reply({
         'data': {'videoPlaybackAccessToken': null},
@@ -558,6 +580,16 @@ void main() {
         throwsA(isA<NetworkException>()),
       );
       expect(sent.map(auth), ['OAuth webtok'], reason: 'no anonymous retry');
+    });
+
+    test("forgetting a vod's token forgets the viewer's too", () async {
+      authService.webToken = () => 'webtok';
+      await authService.getVodUsherUrl(vodId: '1000000001');
+
+      authService.invalidateToken('1000000001');
+      await authService.getVodUsherUrl(vodId: '1000000001');
+
+      expect(sent.map(auth), ['OAuth webtok', 'OAuth webtok']);
     });
 
     test('tokens are cached per viewer, never shared', () async {

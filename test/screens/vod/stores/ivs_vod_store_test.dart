@@ -599,6 +599,8 @@ void main() {
       expect(store.status, VodPlaybackStatus.problem);
       expect(store.problem, VodPlaybackProblem.subscriberOnly);
       expect(fatal, 0, reason: 'the web player would hit the same wall');
+      // A refresh (after subscribing) must ask Twitch again.
+      verify(() => service.invalidateToken('123')).called(1);
       verify(() => service.diagnoseVodPlaylist(_viewerUrl)).called(1);
       verifyNever(
         () => service.getVodUsherUrl(vodId: '123', forceFreshToken: true),

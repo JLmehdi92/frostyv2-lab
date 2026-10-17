@@ -492,12 +492,29 @@ class TwitchVodService extends BaseApiClient {
     if (token is! Map || token['value'] is! String) {
       throw const ApiException('No playback access token for this video');
     }
+    final value = token['value'] as String;
     final accessToken = PlaybackAccessToken.fromValue(
-      value: token['value'] as String,
+      value: value,
       signature: token['signature'] as String? ?? '',
     );
-    _tokens.put(key, accessToken);
+    // A refused token is not kept: once the video opens to the viewer
+    // (subscribed, unblocked), the next try must ask again.
+    if (!VodAccessInfo.fromTokenValue(value).forbidden) {
+      _tokens.put(key, accessToken);
+    }
     return accessToken;
+  }
+
+  /// Forgets [vodId]'s cached tokens (anonymous and the current viewer's),
+  /// after usher refused one: a retry then asks Twitch again.
+  void invalidateToken(String vodId) {
+    final id = tryNormalizeVodId(vodId);
+    if (id == null) return;
+    _tokens.invalidate(_cacheKey(id, null));
+    final authToken = webToken?.call();
+    if (authToken != null && authToken.isNotEmpty) {
+      _tokens.invalidate(_cacheKey(id, authToken));
+    }
   }
 
   Future<JsonMap> _gql(
