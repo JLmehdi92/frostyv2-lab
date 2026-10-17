@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/base_api_client.dart';
@@ -109,5 +111,64 @@ void main() {
     await tester.pump();
     expect(find.text('Start watching'), findsNothing);
     expect(find.text('VIDEO'), findsOneWidget);
+  });
+
+  group('ContentWarningCover', () {
+    testWidgets("reads like the official app's warning", (tester) async {
+      var accepted = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ContentWarningCover(
+              displayName: 'Streamer',
+              labels: const ['Mature-Rated Game', 'Gambling'],
+              onAccept: () => accepted++,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Just one second…'), findsOneWidget);
+      expect(
+        find.text("Streamer's content is intended for certain audiences."),
+        findsOneWidget,
+      );
+      expect(
+        find.text('It may contain: Mature-Rated Game, Gambling'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Start watching'));
+      expect(accepted, 1);
+    });
+
+    testWidgets('go back leaves the screen it covers', (tester) async {
+      final navigator = GlobalKey<NavigatorState>();
+      await tester.pumpWidget(
+        MaterialApp(navigatorKey: navigator, home: const Text('HOME')),
+      );
+      unawaited(
+        navigator.currentState!.push(
+          MaterialPageRoute<void>(
+            builder: (_) => Scaffold(
+              body: ContentWarningCover(
+                displayName: '',
+                labels: const ['Gambling'],
+                onAccept: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.text('This content is intended for certain audiences.'),
+        findsOneWidget,
+        reason: 'no name: the fallback wording',
+      );
+
+      await tester.tap(find.text('Go back'));
+      await tester.pumpAndSettle();
+      expect(find.text('HOME'), findsOneWidget);
+    });
   });
 }

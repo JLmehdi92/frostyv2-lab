@@ -95,32 +95,40 @@ class _ContentWarningGateState extends State<ContentWarningGate> {
         widget.child,
         // Last, so it sits above the player and its controls.
         if (showWarning)
-          _ContentWarning(
-            displayName: widget.displayName,
-            labels: _labels,
-            onAccept: _accept,
+          Positioned.fill(
+            child: ContentWarningCover(
+              displayName: widget.displayName,
+              labels: _labels,
+              onAccept: _accept,
+            ),
           ),
       ],
     );
   }
 }
 
-class _ContentWarning extends StatelessWidget {
-  const _ContentWarning({
+/// Twitch's mature-content warning, opaque over a player (live or VOD):
+/// worded like the official app's ("Just one second…"), with the labels,
+/// "Start watching" and "Go back".
+class ContentWarningCover extends StatelessWidget {
+  const ContentWarningCover({
+    super.key,
     required this.displayName,
     required this.labels,
     required this.onAccept,
   });
 
   final String displayName;
+
+  /// Readable label names.
   final List<String> labels;
   final VoidCallback onAccept;
 
   @override
   Widget build(BuildContext context) {
-    // Opaque and on top: it also swallows taps so the controls underneath
-    // cannot be reached before accepting.
-    return Positioned.fill(
+    // Opaque: over a player it also swallows taps so the controls
+    // underneath cannot be reached before accepting.
+    return SizedBox.expand(
       child: ColoredBox(
         color: Colors.black,
         child: Center(
@@ -136,7 +144,7 @@ class _ContentWarning extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Content intended for certain audiences',
+                  'Just one second…',
                   textAlign: TextAlign.center,
                   style: context.textTheme.titleMedium?.copyWith(
                     color: Colors.white,
@@ -145,8 +153,16 @@ class _ContentWarning extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '$displayName has labeled this channel:\n'
-                  '${labels.join(', ')}',
+                  displayName.isEmpty
+                      ? 'This content is intended for certain audiences.'
+                      : "$displayName's content is intended for certain "
+                            'audiences.',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'It may contain: ${labels.join(', ')}',
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.white70),
                 ),
@@ -154,6 +170,11 @@ class _ContentWarning extends StatelessWidget {
                 FilledButton(
                   onPressed: onAccept,
                   child: const Text('Start watching'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.maybePop(context),
+                  style: TextButton.styleFrom(foregroundColor: Colors.white),
+                  child: const Text('Go back'),
                 ),
               ],
             ),
