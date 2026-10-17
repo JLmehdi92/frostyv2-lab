@@ -411,6 +411,28 @@ void main() {
       );
     });
 
+    test('a preload is what the player then gets, in one request', () async {
+      reply(vodTokenResponse);
+
+      final preload = service.preloadToken('v1000000001');
+      final url = await service.getVodUsherUrl(vodId: '1000000001');
+      await preload;
+      await service.getVodUsherUrl(vodId: '1000000001');
+
+      expect(Uri.parse(url).queryParameters['token'], vodTokenValue);
+      expect(gqlRequests, hasLength(1));
+    });
+
+    test('a preload never throws', () async {
+      adapter.onPost(
+        _gql,
+        (s) => s.reply(500, {'error': 'boom'}),
+        data: Matchers.any,
+      );
+      await expectLater(service.preloadToken('1000000001'), completes);
+      await expectLater(service.preloadToken('not an id'), completes);
+    });
+
     test('a refused token is never kept for the next try', () async {
       reply(vodTokenForbiddenResponse);
 

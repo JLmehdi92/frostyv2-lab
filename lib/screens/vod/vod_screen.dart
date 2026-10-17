@@ -190,6 +190,11 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
         return;
       }
     }
+    // The native player's token is asked meanwhile (cached for it), so
+    // waiting for the labels does not delay the start.
+    if (widget.playerFactory == null && _engine == PlayerEngine.ivs) {
+      unawaited(_service.preloadToken(vod.id));
+    }
     final warning = _contentWarningLabels(vod);
     // A `?t=` link wins; otherwise resume 30 s before where the viewer left.
     final saved = widget.startAt == null
@@ -284,15 +289,16 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     return player;
   }
 
+  PlayerEngine get _engine => resolvePlayerEngine(
+    setting: _settings.playerEngine,
+    isAndroid: Platform.isAndroid,
+    forceWeb: _forceWeb,
+  );
+
   VodPlayerController _createPlayer(Vod vod, {Duration? startAt}) {
     final factory = widget.playerFactory;
     if (factory != null) return factory(vod, startAt);
-    final engine = resolvePlayerEngine(
-      setting: _settings.playerEngine,
-      isAndroid: Platform.isAndroid,
-      forceWeb: _forceWeb,
-    );
-    if (engine != PlayerEngine.ivs) {
+    if (_engine != PlayerEngine.ivs) {
       return WebVodStore(
         vodId: vod.id,
         startAt: startAt ?? Duration.zero,

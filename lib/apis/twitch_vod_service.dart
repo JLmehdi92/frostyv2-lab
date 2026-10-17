@@ -496,7 +496,20 @@ class TwitchVodService extends BaseApiClient {
       _tokens.invalidate(key);
     } else if (_tokens.get(key) case final cached?) {
       return cached;
+    } else if (_tokens.pending(key) case final pending?) {
+      // A preload is on its way: its answer, sooner than our own.
+      return pending;
     }
+    final token = _fetchToken(id, key, authToken);
+    _tokens.track(key, token);
+    return token;
+  }
+
+  Future<PlaybackAccessToken> _fetchToken(
+    String id,
+    String key,
+    String? authToken,
+  ) async {
     final data = await _gql(
       'VodToken',
       _tokenQuery,
@@ -518,6 +531,17 @@ class TwitchVodService extends BaseApiClient {
       _tokens.put(key, accessToken);
     }
     return accessToken;
+  }
+
+  /// Asks for [vodId]'s playback token ahead of the player (while the
+  /// screen waits for other data), so the player finds it cached or on its
+  /// way. Never throws: the player asks again if this failed.
+  Future<void> preloadToken(String vodId) async {
+    try {
+      await _getToken(normalizeVodId(vodId), forceFresh: false);
+    } catch (e) {
+      debugPrint('VOD token preload failed: ${e.runtimeType}');
+    }
   }
 
   /// Forgets [vodId]'s cached tokens (anonymous and the current viewer's),
