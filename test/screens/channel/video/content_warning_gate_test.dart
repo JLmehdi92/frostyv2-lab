@@ -171,4 +171,32 @@ void main() {
       expect(find.text('HOME'), findsOneWidget);
     });
   });
+
+  group('contentWarningConsented', () {
+    test("twitch's warning is the viewer's to tap unless they chose", () {
+      expect(
+        contentWarningConsented(warnMatureContent: true, channelId: '1'),
+        isFalse,
+      );
+      expect(
+        contentWarningConsented(warnMatureContent: false, channelId: '1'),
+        isTrue,
+        reason: 'warnings turned off',
+      );
+      AcceptedContentWarnings.add('1');
+      expect(
+        contentWarningConsented(warnMatureContent: true, channelId: '1'),
+        isTrue,
+        reason: 'accepted this session',
+      );
+      expect(
+        contentWarningConsented(warnMatureContent: true, channelId: '2'),
+        isFalse,
+      );
+      expect(
+        contentWarningConsented(warnMatureContent: true, channelId: ''),
+        isFalse,
+      );
+    });
+  });
 }

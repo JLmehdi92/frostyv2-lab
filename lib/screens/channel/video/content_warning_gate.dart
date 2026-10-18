@@ -18,6 +18,16 @@ abstract final class AcceptedContentWarnings {
   static void reset() => _ids.clear();
 }
 
+/// Whether the viewer already chose to watch [channelId]'s labelled content
+/// (warnings turned off, or its warning accepted this session): only then
+/// may Twitch's own warning in a web player be clicked for them.
+bool contentWarningConsented({
+  required bool warnMatureContent,
+  required String channelId,
+}) =>
+    !warnMatureContent ||
+    (channelId.isNotEmpty && AcceptedContentWarnings.has(channelId));
+
 /// Covers [child] (the whole video, controls included) with Twitch's
 /// mature-content warning until the viewer accepts, when the channel carries
 /// content classification labels and the setting is on. Fetches the labels
