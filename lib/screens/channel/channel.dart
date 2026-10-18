@@ -491,7 +491,13 @@ class _VideoChatState extends State<VideoChat>
         _pausedForContentGate = true;
         _videoStore.handlePausePlay();
       }
-    } else if (_pausedForContentGate) {
+      return;
+    }
+    // Accepted: Twitch's own warning in the web player may go too.
+    if (_videoStore case final VideoStore web) {
+      unawaited(web.acceptContentGate());
+    }
+    if (_pausedForContentGate) {
       _pausedForContentGate = false;
       if (_videoStore.paused) _videoStore.handlePausePlay();
     }

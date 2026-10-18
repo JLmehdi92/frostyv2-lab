@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/models/channel.dart';
 import 'package:frosty/models/stream.dart';
+import 'package:frosty/screens/channel/video/content_warning_gate.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:frosty/screens/channel/video/web_content_gate.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
@@ -234,7 +235,7 @@ abstract class VideoStoreBase with Store implements WebPagePlayer {
 
   /// Reports, once a second and only on changes, whether Twitch's content
   /// warning (or its older mature interstitial) is in the page. It only
-  /// looks; [_acceptContentWarning] is what clicks.
+  /// looks; the click needs the viewer's consent ([acceptContentGate]).
   @visibleForTesting
   static const contentGatePollScript =
       '''
@@ -507,28 +508,33 @@ $kTwitchWebGateShownJs
     }
   }
 
-  Future<void> _acceptContentWarning() async {
-    try {
-      await videoWebViewController.runJavaScript(contentGatePollScript);
-    } catch (e) {
-      debugPrint(e.toString());
-    }
-    try {
-      await videoWebViewController.runJavaScript('''
-        {
-          (async () => {
-            const warningBtn = await _asyncQuerySelector('button[data-a-target*="content-classification-gate"]', 10000);
+  /// Twitch's own warning in the page: watched on every load, clicked only
+  /// once the viewer chose (setting off, channel accepted this session, or
+  /// "Start watching" on our warning: [acceptContentGate]).
+  late final _contentGate = WebContentGateClicker(
+    consent: contentWarningConsented(
+      warnMatureContent: settingsStore.warnMatureContent,
+      channelId: userId,
+    ),
+    pollScript: contentGatePollScript,
+    clickScript: '''
+      {
+        (async () => {
+          const warningBtn = await _asyncQuerySelector('button[data-a-target*="content-classification-gate"]', 10000);
 
-            if (warningBtn) {
-              warningBtn.click();
-            }
-          })();
-        }
-      ''');
-    } catch (e) {
-      debugPrint(e.toString());
-    }
-  }
+          if (warningBtn) {
+            warningBtn.click();
+          }
+        })();
+      }
+    ''',
+    runJavaScript: videoWebViewController.runJavaScript,
+  );
+
+  Future<void> _acceptContentWarning() => _contentGate.onPageReady();
+
+  /// The viewer accepted our warning: Twitch's may be clicked for them.
+  Future<void> acceptContentGate() => _contentGate.accept();
 
   /// Sets up visibility-aware latency tracking.
   ///
