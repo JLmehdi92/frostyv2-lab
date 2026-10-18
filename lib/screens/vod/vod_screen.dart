@@ -127,7 +127,15 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   /// The metadata could not be loaded (null while loading or loaded).
   String? _loadError;
 
-  VodPlayerController? _player;
+  /// The current player, observable: it is replaced (after the content
+  /// warning, a fallback to the web engine, a retry) and what follows it,
+  /// such as the resume saver, must follow the new one.
+  final _currentPlayer = Observable<VodPlayerController?>(null);
+
+  VodPlayerController? get _player => _currentPlayer.value;
+
+  set _player(VodPlayerController? player) =>
+      runInAction(() => _currentPlayer.value = player);
   VodChatReplayStore? _replay;
 
   /// The labels of a mature-content warning waiting for the viewer (null

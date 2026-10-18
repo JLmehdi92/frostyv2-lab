@@ -294,6 +294,30 @@ void main() {
       await close(tester);
     });
 
+    testWidgets('the position of a video watched past the warning is saved', (
+      tester,
+    ) async {
+      when(
+        () => service.getContentLabels(_vod.id),
+      ).thenAnswer((_) async => ['MatureGame']);
+      await pump(tester);
+      await ready(tester);
+      await tester.tap(find.text('Start watching'));
+      await tester.pump();
+
+      player.status = VodPlaybackStatus.playing;
+      await tester.pump();
+      player.status = VodPlaybackStatus.paused;
+      await tester.pump();
+      await ready(tester);
+
+      final saved = await tester.runAsync(
+        () => VodResumeRepository.shared.entry(_vod.id),
+      );
+      expect(saved?.positionSec, 600);
+      await close(tester);
+    });
+
     testWidgets('accepted for this channel already: never asks again', (
       tester,
     ) async {
@@ -372,6 +396,54 @@ void main() {
     web.gate = false;
     await tester.pump();
     expect(find.byTooltip('Play'), findsOneWidget);
+    await close(tester);
+  });
+
+  testWidgets('a replaced player (fallback, retry) still saves the position', (
+    tester,
+  ) async {
+    final first = FakeVodController()
+      ..problem = VodPlaybackProblem.subscriberOnly
+      ..status = VodPlaybackStatus.problem;
+    final second = FakeVodController();
+    final players = [first, second];
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          Provider<SettingsStore>.value(value: settings),
+          Provider<TwitchVodService>.value(value: service),
+          Provider<MiniPlayerStore>.value(value: mini),
+        ],
+        child: MaterialApp(
+          home: VodScreen(
+            vodId: _vod.id,
+            vod: _vod,
+            playerFactory: (vod, startAt) => players.removeAt(0),
+            replayFactory: (vod) => replay,
+          ),
+        ),
+      ),
+    );
+    await ready(tester);
+
+    // The first player is refused before playing; Retry builds another.
+    await tester.tap(find.byIcon(Icons.refresh_rounded));
+    await ready(tester);
+    await tester.pump();
+    expect(players, isEmpty, reason: 'the second player was built');
+
+    second.status = VodPlaybackStatus.playing;
+    await tester.pump();
+    second
+      ..position = const Duration(minutes: 7)
+      ..status = VodPlaybackStatus.paused;
+    await tester.pump();
+    await ready(tester);
+
+    final saved = await tester.runAsync(
+      () => VodResumeRepository.shared.entry(_vod.id),
+    );
+    expect(saved?.positionSec, 420);
     await close(tester);
   });
 }
