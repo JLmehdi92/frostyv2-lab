@@ -100,8 +100,8 @@ class GoLivePrefs {
     return last != null && !now.isBefore(last) && now.difference(last) < gap;
   }
 
-  /// The broadcast (its `started_at`) last announced for each channel id:
-  /// one notice per broadcast, like Twitch's own.
+  /// The broadcast (its `started_at`) last seen live for each channel id:
+  /// one notice per broadcast at most, like Twitch's own.
   Map<String, String> get announced => {
     for (final entry in _prefs.getStringList(_announcedKey) ?? const [])
       if (entry.indexOf('@') case final at when at > 0)
@@ -224,11 +224,13 @@ Future<int> checkGoLive({
     await notify(shown, fresh.length - shown.length);
   }
   await prefs.setSeen({for (final stream in live) stream.userId});
+  // Every broadcast seen live counts as told, announced or not (live at
+  // the first check, muted): seen again after a flicker, it stays quiet.
   final since = startedAt.subtract(_announcedFor);
   await prefs.setAnnounced({
     for (final MapEntry(:key, :value) in announced.entries)
       if (DateTime.tryParse(value)?.isAfter(since) ?? false) key: value,
-    for (final stream in fresh)
+    for (final stream in live)
       if (stream.startedAt.isNotEmpty) stream.userId: stream.startedAt,
   });
   return fresh.length;

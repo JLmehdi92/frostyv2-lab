@@ -192,6 +192,20 @@ void main() {
       expect(notified, hasLength(2));
     });
 
+    test(
+      'a broadcast live at the first check is not announced later',
+      () async {
+        final ongoing = _stream('1', startedAt: '2026-10-20T10:00:00Z');
+        followedLive([ongoing]);
+        expect(await check(), 0);
+        followedLive([]);
+        await check();
+        followedLive([ongoing]);
+        expect(await check(), 0);
+        expect(notified, isEmpty);
+      },
+    );
+
     test('announced broadcasts older than a day are forgotten', () async {
       await prefs.setAnnounced({
         '1': '2026-10-18T10:00:00Z',
