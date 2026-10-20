@@ -768,18 +768,15 @@ abstract class ChatStoreBase with Store {
   void _enqueueDelayedCallback(
     ChatDelayQueue queue,
     void Function() callback,
-  ) {
-    queue.add(
-      callback,
-      now: DateTime.now(),
-      delay: Duration(seconds: _chatDelaySeconds),
-    );
-  }
+  ) => queue.add(callback, now: DateTime.now());
 
+  /// The delay is read now, not when each payload arrived: it follows the
+  /// video latency, which shrinks when the player catches up.
   void _flushDueDelayedCallbacks() {
     final now = DateTime.now();
-    _pendingChatCallbacks.flushDue(now);
-    _pendingSevenTVCallbacks.flushDue(now);
+    final delay = Duration(seconds: _chatDelaySeconds);
+    _pendingChatCallbacks.flushDue(now, delay);
+    _pendingSevenTVCallbacks.flushDue(now, delay);
   }
 
   void _flushPendingDelayedCallbacks() {
@@ -1190,6 +1187,8 @@ abstract class ChatStoreBase with Store {
     _sevenTVChannelListener = _sevenTVChannel?.stream.listen(
       (data) {
         if (!_hasActiveChatDelay) {
+          // Whatever is still held goes first, so nothing overtakes it.
+          _pendingSevenTVCallbacks.flushAll();
           listener(data);
         } else {
           _enqueueDelayedCallback(
@@ -1244,7 +1243,11 @@ abstract class ChatStoreBase with Store {
         final dataStr = data.toString();
 
         // Process immediately if delay is disabled or command should bypass delay
-        if (!_hasActiveChatDelay || _shouldBypassDelay(dataStr)) {
+        if (!_hasActiveChatDelay) {
+          // Whatever is still held goes first, so nothing overtakes it.
+          _pendingChatCallbacks.flushAll();
+          _handleIRCData(dataStr);
+        } else if (_shouldBypassDelay(dataStr)) {
           _handleIRCData(dataStr);
         } else {
           _enqueueDelayedCallback(_pendingChatCallbacks, () {

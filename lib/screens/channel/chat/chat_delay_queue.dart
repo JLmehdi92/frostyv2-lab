@@ -1,32 +1,28 @@
 /// Chat payloads held back so chat matches a video that is behind live.
 ///
-/// Each payload is released once its delay has passed, and never before a
-/// payload that arrived earlier: when the delay shrinks (the video caught up
-/// with the live edge), a later message waits for the earlier ones instead
-/// of overtaking them. Order matters beyond looks: a deletion or a timeout
-/// must never reach the chat before the message it acts on.
+/// Payloads leave in arrival order, each once the current delay has passed
+/// since it arrived. The delay is read when flushing, not when a payload
+/// arrives: it follows the measured video latency, and when it shrinks (the
+/// video caught up with the live edge) whatever is now due leaves at once,
+/// oldest first, instead of a later message overtaking an earlier one or
+/// the chat staying frozen for the old delay. Order matters beyond looks: a
+/// deletion or a timeout must never reach the chat before the message it
+/// acts on.
 class ChatDelayQueue {
   final _pending = <_Delayed>[];
 
   bool get isEmpty => _pending.isEmpty;
 
-  /// Holds [callback] for [delay] from [now] (a negative delay is none).
-  void add(
-    void Function() callback, {
-    required DateTime now,
-    required Duration delay,
-  }) {
-    var releaseAt = delay.isNegative ? now : now.add(delay);
-    if (_pending.isNotEmpty && releaseAt.isBefore(_pending.last.releaseAt)) {
-      releaseAt = _pending.last.releaseAt;
-    }
-    _pending.add(_Delayed(releaseAt, callback));
-  }
+  /// Holds [callback], which arrived at [now].
+  void add(void Function() callback, {required DateTime now}) =>
+      _pending.add(_Delayed(now, callback));
 
-  /// Releases, in arrival order, every payload due at [now].
-  void flushDue(DateTime now) {
+  /// Releases, in arrival order, every payload that arrived at least
+  /// [delay] before [now].
+  void flushDue(DateTime now, Duration delay) {
+    final cutoff = now.subtract(delay);
     var due = 0;
-    while (due < _pending.length && !_pending[due].releaseAt.isAfter(now)) {
+    while (due < _pending.length && !_pending[due].arrivedAt.isAfter(cutoff)) {
       due++;
     }
     if (due == 0) return;
@@ -54,8 +50,8 @@ class ChatDelayQueue {
 }
 
 class _Delayed {
-  const _Delayed(this.releaseAt, this.callback);
+  const _Delayed(this.arrivedAt, this.callback);
 
-  final DateTime releaseAt;
+  final DateTime arrivedAt;
   final void Function() callback;
 }
