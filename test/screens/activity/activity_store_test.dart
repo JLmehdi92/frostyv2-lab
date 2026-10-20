@@ -33,6 +33,19 @@ void main() {
     expect(store.entries.map((e) => e.id), ['a']);
   });
 
+  test('the bell counts what came since the list was viewed', () async {
+    await store.addAll([_entry('a'), _entry('b', minute: 5)]);
+    expect(store.newCount, 2);
+    await store.markViewed(at: DateTime.utc(2026, 10, 20, 12, 1));
+    expect(store.newCount, 1);
+    // Still unread (bold) in the list until opened.
+    expect(store.unreadCount, 2);
+    await store.markViewed(at: DateTime.utc(2026, 10, 20, 12, 10));
+    expect(store.newCount, 0);
+    await store.addAll([_entry('c', minute: 11)]);
+    expect(store.newCount, 1);
+  });
+
   test('refresh shows what the background task added', () async {
     await store.refresh();
     expect(store.entries, isEmpty);

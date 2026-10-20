@@ -18,8 +18,26 @@ abstract class ActivityStoreBase with Store {
   @readonly
   var _entries = ObservableList<ActivityEntry>();
 
+  /// When the list was last opened.
+  @readonly
+  DateTime? _viewedAt;
+
   @computed
   int get unreadCount => _entries.where((e) => !e.read).length;
+
+  /// Unread and posted since the list was last opened: the bell's count,
+  /// cleared by opening the list, like Twitch's Activity tab.
+  @computed
+  int get newCount {
+    final viewedAt = _viewedAt;
+    return _entries
+        .where((e) => !e.read && (viewedAt == null || e.at.isAfter(viewedAt)))
+        .length;
+  }
+
+  /// The list was opened [at] (now by default).
+  Future<void> markViewed({DateTime? at}) =>
+      _run(() => log.setViewedAt(at ?? DateTime.now()));
 
   /// Reads the stored list again (the background go-live task adds to it).
   Future<void> refresh() => _run(log.reload);
@@ -54,6 +72,8 @@ abstract class ActivityStoreBase with Store {
   }
 
   @action
-  void _show(List<ActivityEntry> entries) =>
-      _entries = ObservableList.of(entries);
+  void _show(List<ActivityEntry> entries) {
+    _entries = ObservableList.of(entries);
+    _viewedAt = log.viewedAt;
+  }
 }

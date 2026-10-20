@@ -107,4 +107,11 @@ void main() {
     expect(ActivityKind.mention.label, 'Chat Mentions');
     expect(ActivityKind.reminder.label, 'Events');
   });
+
+  test('remembers when the list was last viewed', () async {
+    expect(log.viewedAt, isNull);
+    final at = DateTime.utc(2026, 10, 20, 12);
+    await log.setViewedAt(at);
+    expect((await ActivityLog.load()).viewedAt!.isAtSameMomentAs(at), isTrue);
+  });
 }

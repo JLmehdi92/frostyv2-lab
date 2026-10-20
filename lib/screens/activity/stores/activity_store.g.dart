@@ -16,6 +16,13 @@ mixin _$ActivityStore on ActivityStoreBase, Store {
     () => super.unreadCount,
     name: 'ActivityStoreBase.unreadCount',
   )).value;
+  Computed<int>? _$newCountComputed;
+
+  @override
+  int get newCount => (_$newCountComputed ??= Computed<int>(
+    () => super.newCount,
+    name: 'ActivityStoreBase.newCount',
+  )).value;
 
   late final _$_entriesAtom = Atom(
     name: 'ActivityStoreBase._entries',
@@ -34,6 +41,26 @@ mixin _$ActivityStore on ActivityStoreBase, Store {
   set _entries(ObservableList<ActivityEntry> value) {
     _$_entriesAtom.reportWrite(value, super._entries, () {
       super._entries = value;
+    });
+  }
+
+  late final _$_viewedAtAtom = Atom(
+    name: 'ActivityStoreBase._viewedAt',
+    context: context,
+  );
+
+  DateTime? get viewedAt {
+    _$_viewedAtAtom.reportRead();
+    return super._viewedAt;
+  }
+
+  @override
+  DateTime? get _viewedAt => viewedAt;
+
+  @override
+  set _viewedAt(DateTime? value) {
+    _$_viewedAtAtom.reportWrite(value, super._viewedAt, () {
+      super._viewedAt = value;
     });
   }
 
@@ -57,7 +84,8 @@ mixin _$ActivityStore on ActivityStoreBase, Store {
   @override
   String toString() {
     return '''
-unreadCount: ${unreadCount}
+unreadCount: ${unreadCount},
+newCount: ${newCount}
     ''';
   }
 }

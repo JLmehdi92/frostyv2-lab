@@ -42,42 +42,52 @@ class WhispersScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const FrostyAppBar(title: Text('Whispers')),
-      body: Observer(
-        builder: (context) {
-          final hint = whisperStatusHint(store.status);
-          final threads = store.threads;
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: kReadableMaxWidth),
-              child: Column(
-                children: [
-                  if (hint != null)
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: AlertMessage(message: hint, centered: false),
-                    ),
-                  Expanded(
-                    child: threads.isEmpty
-                        ? const AlertMessage(
-                            message:
-                                'No whispers yet. Whispers you get while '
-                                'the app is open show up here.',
-                            vertical: true,
-                          )
-                        : ListView.builder(
-                            itemCount: threads.length,
-                            itemBuilder: (context, index) => _ThreadTile(
-                              store: store,
-                              thread: threads[index],
-                            ),
-                          ),
+      body: WhispersList(store: store),
+    );
+  }
+}
+
+/// The conversations list, also the Whispers tab of Activity.
+class WhispersList extends StatelessWidget {
+  const WhispersList({super.key, required this.store});
+
+  final WhisperStore store;
+
+  @override
+  Widget build(BuildContext context) {
+    return Observer(
+      builder: (context) {
+        final hint = whisperStatusHint(store.status);
+        final threads = store.threads;
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: kReadableMaxWidth),
+            child: Column(
+              children: [
+                if (hint != null)
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: AlertMessage(message: hint, centered: false),
                   ),
-                ],
-              ),
+                Expanded(
+                  child: threads.isEmpty
+                      ? const AlertMessage(
+                          message:
+                              'No whispers yet. Whispers you get while '
+                              'the app is open show up here.',
+                          vertical: true,
+                        )
+                      : ListView.builder(
+                          itemCount: threads.length,
+                          itemBuilder: (context, index) =>
+                              _ThreadTile(store: store, thread: threads[index]),
+                        ),
+                ),
+              ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

@@ -95,6 +95,7 @@ class ActivityLog {
   final SharedPreferences _prefs;
 
   static const _key = 'activity_log';
+  static const _viewedKey = 'activity_viewed_at';
 
   /// The oldest are dropped beyond this.
   static const maxEntries = 100;
@@ -119,6 +120,15 @@ class ActivityLog {
   }
 
   int get unreadCount => entries.where((e) => !e.read).length;
+
+  /// When the list was last opened: what came after is new (the bell).
+  DateTime? get viewedAt {
+    final ms = _prefs.getInt(_viewedKey);
+    return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
+  }
+
+  Future<void> setViewedAt(DateTime at) =>
+      _prefs.setInt(_viewedKey, at.millisecondsSinceEpoch);
 
   Future<void> _save(List<ActivityEntry> list) {
     list.sort((a, b) => b.at.compareTo(a.at));
