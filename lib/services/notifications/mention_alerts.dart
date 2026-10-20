@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:frosty/models/irc.dart';
 import 'package:frosty/services/notifications/activity_log.dart';
+import 'package:frosty/services/notifications/notice_ids.dart';
 import 'package:frosty/stores/whisper_store.dart';
 
 /// A chat message that mentions the viewer.
@@ -80,12 +81,8 @@ ActivityEntry mentionEntry(MentionNotice notice, DateTime at) => ActivityEntry(
 /// new mention replaces the last. Kept apart from the go-live ids (a
 /// channel's id) and the go-live summary and problem notices (0 and 1).
 int mentionNoticeId(String channelId) {
-  var hash = 0x811c9dc5;
-  for (final unit in 'mention:$channelId'.codeUnits) {
-    hash = ((hash ^ unit) * 0x01000193) & 0xffffffff;
-  }
-  final id = hash & 0x7fffffff;
-  return id <= 1 || id == int.tryParse(channelId) ? id + 2 : id;
+  final id = stableNoticeId('mention:$channelId');
+  return id == int.tryParse(channelId) ? id ^ 1 : id;
 }
 
 /// Tells the viewer about mentions in a chat they are connected to while

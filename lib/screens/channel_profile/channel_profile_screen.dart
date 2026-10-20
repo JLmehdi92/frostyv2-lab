@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:frosty/models/channel_profile.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/channel/channel.dart';
 import 'package:frosty/screens/channel_profile/stores/channel_profile_store.dart';
@@ -13,6 +14,7 @@ import 'package:frosty/screens/clips/stores/channel_clips_store.dart';
 import 'package:frosty/screens/clips/widgets/channel_clips_tab.dart';
 import 'package:frosty/screens/vod/stores/channel_videos_store.dart';
 import 'package:frosty/screens/vod/widgets/channel_videos_tab.dart';
+import 'package:frosty/services/notifications/schedule_reminders.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/link_router.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
@@ -21,6 +23,7 @@ import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/frosty_app_bar.dart';
 import 'package:frosty/widgets/readable_width.dart';
 import 'package:frosty/widgets/user_actions_modal.dart';
+import 'package:mobx/mobx.dart';
 
 enum ProfileTab {
   home('Home'),
@@ -117,10 +120,22 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
     clipService: context.twitchClipService,
   );
 
+  late final ReactionDisposer _syncReminders;
+
   @override
   void initState() {
     super.initState();
     unawaited(_store.load());
+    // Reminders follow the schedule as read: a moved segment's moves, a
+    // cancelled one's goes.
+    _syncReminders = reaction((_) => _store.schedule, (
+      ChannelSchedule? schedule,
+    ) {
+      if (schedule == null) return;
+      unawaited(
+        ScheduleReminders.shared?.sync(widget.login, schedule.segments),
+      );
+    });
     _tabs.addListener(_onTab);
     _onTab();
   }
@@ -135,6 +150,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
 
   @override
   void dispose() {
+    _syncReminders();
     _tabs
       ..removeListener(_onTab)
       ..dispose();
@@ -373,7 +389,13 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
   Widget _scheduleContent() {
     final schedule = _store.schedule;
     if (schedule != null) {
-      return ProfileScheduleContent(schedule: schedule, now: DateTime.now());
+      return ProfileScheduleContent(
+        schedule: schedule,
+        now: DateTime.now(),
+        reminders: ScheduleReminders.shared,
+        login: widget.login,
+        channelName: _name,
+      );
     }
     final error = _store.scheduleError;
     return Padding(

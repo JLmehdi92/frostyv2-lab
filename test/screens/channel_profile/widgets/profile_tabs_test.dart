@@ -13,12 +13,34 @@ import 'package:frosty/screens/clips/stores/channel_clips_store.dart';
 import 'package:frosty/screens/clips/widgets/clip_card.dart';
 import 'package:frosty/screens/vod/stores/channel_videos_store.dart';
 import 'package:frosty/screens/vod/widgets/vod_card.dart';
+import 'package:frosty/services/notifications/schedule_reminders.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_icons/simple_icons.dart';
 
 class MockVodService extends Mock implements TwitchVodService {}
 
 class MockClipService extends Mock implements TwitchClipService {}
+
+class FakeReminderPlatform implements ReminderPlatform {
+  var granted = true;
+  final scheduled = <int>{};
+
+  @override
+  Future<bool> requestPermission() async => granted;
+
+  @override
+  Future<void> schedule({
+    required int id,
+    required DateTime at,
+    required String title,
+    required String body,
+    required String payload,
+  }) async => scheduled.add(id);
+
+  @override
+  Future<void> cancel(int id) async => scheduled.remove(id);
+}
 
 const _profile = ChannelProfile(
   id: '42',
@@ -164,6 +186,102 @@ void main() {
       expect(find.textContaining('Cancelled'), findsOneWidget);
       expect(find.text('Wednesday, October 14'), findsOneWidget);
       expect(find.text('Thursday, October 15'), findsOneWidget);
+    });
+
+    group('Remind Me', () {
+      late FakeReminderPlatform platform;
+      late ScheduleReminders reminders;
+      final schedule = ChannelSchedule(
+        nextStartAt: DateTime(2026, 10, 14, 16).toUtc(),
+        segments: [
+          ScheduleSegment(
+            id: 'a',
+            startAt: DateTime(2026, 10, 14, 16).toUtc(),
+            title: 'Ranked',
+          ),
+          ScheduleSegment(
+            id: 'b',
+            startAt: DateTime(2026, 10, 15, 16).toUtc(),
+            title: 'Blitz',
+          ),
+          ScheduleSegment(
+            id: 'c',
+            startAt: DateTime(2026, 10, 16, 16).toUtc(),
+            isCancelled: true,
+          ),
+        ],
+      );
+
+      Future<void> pump(WidgetTester tester, {double width = 400}) async {
+        await tester.pumpWidget(
+          _app(
+            width: width,
+            ProfileScheduleContent(
+              schedule: schedule,
+              now: now,
+              login: 'streamer',
+              channelName: 'Streamer',
+              reminders: reminders,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      setUp(() async {
+        SharedPreferences.setMockInitialValues({});
+        platform = FakeReminderPlatform();
+        reminders = ScheduleReminders(
+          prefs: await SharedPreferences.getInstance(),
+          platform: platform,
+          now: () => now,
+        );
+      });
+
+      testWidgets('the next stream and each segment to come', (tester) async {
+        await pump(tester);
+        // The next stream's button, and a bell on the two to come.
+        expect(find.text('Remind Me'), findsOneWidget);
+        expect(find.byTooltip('Remind Me'), findsNWidgets(2));
+
+        await tester.tap(find.text('Remind Me'));
+        await tester.pumpAndSettle();
+        expect(find.text('Reminder Set'), findsOneWidget);
+        expect(find.byTooltip('Reminder Set'), findsOneWidget);
+        expect(reminders.isSet('a'), isTrue);
+
+        await tester.tap(find.byTooltip('Remind Me'));
+        await tester.pumpAndSettle();
+        expect(reminders.isSet('b'), isTrue);
+
+        await tester.tap(find.text('Reminder Set'));
+        await tester.pumpAndSettle();
+        expect(reminders.isSet('a'), isFalse);
+        expect(platform.scheduled, {reminderNoticeId('b')});
+      });
+
+      testWidgets('fits a narrow phone', (tester) async {
+        await pump(tester, width: 280);
+        expect(tester.takeException(), isNull);
+        expect(find.text('Remind Me'), findsOneWidget);
+      });
+
+      testWidgets('a refused right says where to allow it', (tester) async {
+        platform.granted = false;
+        await pump(tester);
+        await tester.tap(find.text('Remind Me'));
+        await tester.pumpAndSettle();
+        expect(find.textContaining('system settings'), findsOneWidget);
+        expect(find.text('Remind Me'), findsOneWidget);
+      });
+
+      testWidgets('nothing to tap without reminders', (tester) async {
+        await tester.pumpWidget(
+          _app(ProfileScheduleContent(schedule: schedule, now: now)),
+        );
+        expect(find.text('Remind Me'), findsNothing);
+        expect(find.byTooltip('Remind Me'), findsNothing);
+      });
     });
 
     testWidgets('nothing coming', (tester) async {

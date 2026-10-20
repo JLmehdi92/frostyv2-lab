@@ -45,6 +45,7 @@ import 'package:frosty/services/go_live/go_live_poller.dart';
 import 'package:frosty/services/go_live/go_live_worker.dart';
 import 'package:frosty/services/notifications/activity_log.dart';
 import 'package:frosty/services/notifications/mention_alerts.dart';
+import 'package:frosty/services/notifications/schedule_reminders.dart';
 import 'package:frosty/services/onset_updater.dart';
 import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:frosty/services/realtime/twitch_realtime_client.dart';
@@ -221,8 +222,24 @@ void main() async {
   // The notifications ONSET posts, listed on the Activity screen. The
   // background go-live task adds to the same list: read again on resume.
   final activityStore = ActivityStore(log: await ActivityLog.load());
-  unawaited(activityStore.refresh());
-  AppLifecycleListener(onResume: () => unawaited(activityStore.refresh()));
+  // "Remind Me" on schedules: local notifications at the segment start;
+  // those that went off are listed in Activity.
+  final reminders = ScheduleReminders(
+    prefs: prefs,
+    platform: const LocalReminderPlatform(),
+  );
+  ScheduleReminders.shared = reminders;
+  Future<void> refreshActivity() async {
+    try {
+      await activityStore.addAll(await reminders.takeDue());
+    } catch (e) {
+      debugPrint('Reminders unavailable: $e');
+    }
+    await activityStore.refresh();
+  }
+
+  unawaited(refreshActivity());
+  AppLifecycleListener(onResume: () => unawaited(refreshActivity()));
 
   // Mentions in a connected chat while the app is not in front.
   MentionAlerts.shared = MentionAlerts(
