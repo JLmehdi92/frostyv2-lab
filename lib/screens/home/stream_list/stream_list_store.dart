@@ -597,8 +597,10 @@ abstract class ListStoreBase with Store {
 
     if (listType == ListType.followed) {
       await getPinnedStreams();
-      await _getFollowedCategories();
-      await _getWatchStreaks();
+      // Optional extras on private GQL: a slow gql.twitch.tv must never hold
+      // the live list back. Neither throws.
+      unawaited(_getFollowedCategories());
+      unawaited(_getWatchStreaks());
 
       // Only refresh offline channels if they are currently expanded
       if (isOfflineChannelsExpanded) {
