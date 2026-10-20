@@ -79,8 +79,8 @@ class LiveEdgeGuard {
   }
 
   /// The app came back to the foreground (or left picture-in-picture): a
-  /// drift seen on the next sample jumps at once instead of waiting for
-  /// [sustain].
+  /// drift seen on the next sample taken while playing (after the settle
+  /// time) jumps at once instead of waiting for [sustain].
   void expedite() => _expedited = true;
 
   /// Records one latency sample; true when the player should jump to the
@@ -93,9 +93,6 @@ class LiveEdgeGuard {
       _overSince = null;
     }
 
-    final expedited = _expedited;
-    _expedited = false;
-
     if (!playing || latencyMs < 0) {
       _overSince = null;
       return false;
@@ -106,6 +103,10 @@ class LiveEdgeGuard {
 
     final loadedAt = _loadedAt;
     if (loadedAt != null && now.difference(loadedAt) < settle) return false;
+
+    // The first sample that can be judged answers an [expedite].
+    final expedited = _expedited;
+    _expedited = false;
 
     if (latencyMs <= thresholdMs) {
       _overSince = null;

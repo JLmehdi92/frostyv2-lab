@@ -319,6 +319,12 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
 
     // Offline: look for the channel coming back now and then.
     _disposeOfflinePoll = reaction((_) => _status, (status) {
+      // Nothing left to sync chat with.
+      if ((status == IvsPlaybackStatus.offline ||
+              status == IvsPlaybackStatus.failed) &&
+          settingsStore.autoSyncChatDelay) {
+        settingsStore.syncedChatDelay = 0.0;
+      }
       if (status == IvsPlaybackStatus.offline) {
         _offlinePoll ??= Timer.periodic(
           offlinePollInterval,
@@ -771,9 +777,19 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
           latencySampler.add(ms);
           _samplesVersion++;
         }
-        if (_liveEdge.onSample(ms, playing: _isPlaying && !_paused)) {
+        // Only a stream that plays undisturbed is judged (a pause or a
+        // recovery is not drift).
+        final judged =
+            _isPlaying &&
+            !_recovering &&
+            !_jumping &&
+            _status == IvsPlaybackStatus.playing;
+        if (_liveEdge.onSample(ms, playing: judged)) {
           unawaited(_jumpToLive());
         }
+        // Paused, the latency grows a second a second while the picture
+        // stands still: chat keeps the delay of the last moment played.
+        if (!_isPlaying) break;
         // The chat delay keeps moving in whole seconds only, exactly as before,
         // so the delayed chat queue is not rebuilt on every tick.
         final seconds = chatDelaySecondsFromLatency(ms);
@@ -1055,27 +1071,50 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   /// lost: a drifting stream keeps playing where it is, and a resumed one
   /// simply plays on ([resume]).
   Future<void> _jumpToLive({bool resume = false}) async {
-    if (_disposed || _jumping || _recovering) {
+    // One jump at a time: a second tap on play waits for the first.
+    if (_disposed || _jumping) return;
+    if (_recovering) {
       if (resume) _channel?.invokeMethod('play');
       return;
     }
     _jumping = true;
     final epoch = _recoveryEpoch;
+    String url;
     try {
-      final url = await _streamService.getUsherUrl(
+      url = await _streamService.getUsherUrl(
         userLogin: userLogin,
         authToken: _userAuthToken,
       );
-      if (_disposed || epoch != _recoveryEpoch || _recovering) return;
-      runInAction(() {
-        _url = url;
-        _liveJumps++;
-      });
-      await _loadSource(url, epoch);
     } catch (e) {
+      _jumping = false;
       debugPrint('IvsVideoStore jump to live failed: $e');
       if (resume && !_disposed && epoch == _recoveryEpoch) {
         _channel?.invokeMethod('play');
+      }
+      return;
+    }
+    // A newer load or a pause made meanwhile wins: the live player plays
+    // as soon as a load is ready, so loading now would undo the pause.
+    if (_disposed ||
+        epoch != _recoveryEpoch ||
+        _recovering ||
+        (!resume && _pausedAt != null)) {
+      _jumping = false;
+      return;
+    }
+    runInAction(() {
+      _url = url;
+      _liveJumps++;
+    });
+    try {
+      await _loadSource(url, epoch);
+    } catch (e) {
+      // Like a failed recovery reload: the player may have dropped the old
+      // source, so it is recovered (and falls back to the WebView if that
+      // keeps failing) rather than left frozen.
+      debugPrint('IvsVideoStore jump to live load failed: $e');
+      if (!_disposed && epoch == _recoveryEpoch) {
+        _applyRecovery(_recovery.onError(IvsErrorKind.recoverable));
       }
     } finally {
       _jumping = false;

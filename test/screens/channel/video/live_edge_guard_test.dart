@@ -130,6 +130,16 @@ void main() {
     expect(feed([12000]), [1]);
   });
 
+  test('expedite waits for a sample it can act on', () {
+    guard.onLoad();
+    feed(repeat(2300, 20));
+
+    // Back in the app while the player is still buffering.
+    guard.expedite();
+    expect(feed([12000], playing: false), isEmpty);
+    expect(feed([12000]), [1]);
+  });
+
   test('expedite has no effect on a stream at the live edge', () {
     guard.onLoad();
     feed(repeat(2300, 20));

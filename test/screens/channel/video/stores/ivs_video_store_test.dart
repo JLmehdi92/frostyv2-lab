@@ -329,6 +329,40 @@ void main() {
       expect(settingsStore.syncedChatDelay, 60.0);
     });
 
+    test('the chat delay stays put while the stream is paused', () async {
+      settingsStore.autoSyncChatDelay = true;
+      store = await createStore();
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await native.emit({'type': 'latency', 'ms': 2400});
+      expect(settingsStore.syncedChatDelay, 2.0);
+
+      // Paused, the native latency keeps growing by a second a second.
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      await native.emit({'type': 'latency', 'ms': 30000});
+
+      expect(settingsStore.syncedChatDelay, 2.0);
+      expect(store.latencyMs, 30000, reason: 'still shown on the badge');
+    });
+
+    test('an offline stream stops delaying chat', () async {
+      settingsStore.autoSyncChatDelay = true;
+      store = await createStore();
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await native.emit({'type': 'latency', 'ms': 3200});
+      expect(settingsStore.syncedChatDelay, 3.0);
+      when(
+        () => twitchApi.getStream(userLogin: any(named: 'userLogin')),
+      ).thenThrow(const NotFoundException('offline'));
+
+      await native.emit({'type': 'error', 'errorType': 'ERROR_NOT_AVAILABLE'});
+      for (var i = 0; i < 5; i++) {
+        await settle();
+      }
+
+      expect(store.status, IvsPlaybackStatus.offline);
+      expect(settingsStore.syncedChatDelay, 0.0);
+    });
+
     test('does not touch the chat delay when auto-sync is off', () async {
       settingsStore.autoSyncChatDelay = false;
       store = await createStore();
@@ -497,6 +531,58 @@ void main() {
       store.handleAppResume();
       await tick(12000, 1);
 
+      expect(native.callsNamed('load'), hasLength(1));
+    });
+
+    test('a drift jump is dropped when the viewer paused meanwhile', () async {
+      store = await createStore(now: () => now);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await tick(2300, 20);
+      final url = Completer<String>();
+      when(
+        () => streamService.getUsherUrl(
+          userLogin: any(named: 'userLogin'),
+          forceFreshToken: any(named: 'forceFreshToken'),
+        ),
+      ).thenAnswer((_) => url.future);
+
+      await tick(7000, 11);
+      // The playlist request is slow; the viewer pauses before it is back.
+      store.handlePausePlay();
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      url.complete(_usherUrl);
+      await tick(0, 0);
+
+      expect(native.callsNamed('load'), isEmpty);
+      expect(store.liveJumps, 0);
+    });
+
+    test('a jump whose load fails goes to recovery', () async {
+      store = await createStore(now: () => now);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await tick(2300, 20);
+      native.loadThrows = true;
+
+      await tick(7000, 11);
+
+      expect(native.callsNamed('load').length, greaterThan(1));
+      expect(store.status, isNot(IvsPlaybackStatus.playing));
+    });
+
+    test('a second tap while resuming waits for the jump', () async {
+      store = await createStore(now: () => now);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await tick(2300, 5);
+      store.handlePausePlay();
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      now = now.add(const Duration(minutes: 1));
+
+      store
+        ..handlePausePlay()
+        ..handlePausePlay();
+      await tick(0, 0);
+
+      expect(native.callsNamed('play'), isEmpty);
       expect(native.callsNamed('load'), hasLength(1));
     });
 
