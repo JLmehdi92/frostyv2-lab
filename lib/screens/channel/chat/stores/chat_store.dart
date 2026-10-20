@@ -11,6 +11,7 @@ import 'package:frosty/models/emotes.dart';
 import 'package:frosty/models/events.dart';
 import 'package:frosty/models/irc.dart';
 import 'package:frosty/screens/channel/chat/chat_commands.dart';
+import 'package:frosty/screens/channel/chat/chat_delay_queue.dart';
 import 'package:frosty/screens/channel/chat/chat_restrictions.dart';
 import 'package:frosty/screens/channel/chat/details/chat_details_store.dart';
 import 'package:frosty/screens/channel/chat/gift_bomb_tracker.dart';
@@ -199,7 +200,7 @@ abstract class ChatStoreBase with Store {
   final messageBuffer = ObservableList<IRCMessage>();
 
   /// Pending delayed IRC payloads waiting to be rendered.
-  final _pendingChatCallbacks = <_DelayedCallback>[];
+  final _pendingChatCallbacks = ChatDelayQueue();
 
   /// Follows the gift bombs of this chat: decides whether each gift of a
   /// bomb gets its own line and which bombs earn the pinned banner.
@@ -211,7 +212,7 @@ abstract class ChatStoreBase with Store {
   GiftBomb? _latestGiftBomb;
 
   /// Pending delayed 7TV payloads waiting to be rendered.
-  final _pendingSevenTVCallbacks = <_DelayedCallback>[];
+  final _pendingSevenTVCallbacks = ChatDelayQueue();
 
   /// The set of message IDs that have been revealed by the user (for deleted messages).
   final revealedMessageIds = ObservableSet<String>();
@@ -765,55 +766,25 @@ abstract class ChatStoreBase with Store {
   }
 
   void _enqueueDelayedCallback(
-    List<_DelayedCallback> queue,
+    ChatDelayQueue queue,
     void Function() callback,
   ) {
     queue.add(
-      _DelayedCallback(
-        releaseAt: DateTime.now().add(Duration(seconds: _chatDelaySeconds)),
-        callback: callback,
-      ),
+      callback,
+      now: DateTime.now(),
+      delay: Duration(seconds: _chatDelaySeconds),
     );
   }
 
   void _flushDueDelayedCallbacks() {
-    _flushDueDelayedCallbacksForQueue(_pendingChatCallbacks);
-    _flushDueDelayedCallbacksForQueue(_pendingSevenTVCallbacks);
-  }
-
-  void _flushDueDelayedCallbacksForQueue(List<_DelayedCallback> queue) {
-    if (queue.isEmpty) return;
-
     final now = DateTime.now();
-    final readyCallbacks = <_DelayedCallback>[];
-
-    queue.removeWhere((delayedCallback) {
-      final isReady = !delayedCallback.releaseAt.isAfter(now);
-      if (isReady) {
-        readyCallbacks.add(delayedCallback);
-      }
-      return isReady;
-    });
-
-    for (final delayedCallback in readyCallbacks) {
-      delayedCallback.callback();
-    }
+    _pendingChatCallbacks.flushDue(now);
+    _pendingSevenTVCallbacks.flushDue(now);
   }
 
   void _flushPendingDelayedCallbacks() {
-    _flushPendingDelayedCallbacksForQueue(_pendingChatCallbacks);
-    _flushPendingDelayedCallbacksForQueue(_pendingSevenTVCallbacks);
-  }
-
-  void _flushPendingDelayedCallbacksForQueue(List<_DelayedCallback> queue) {
-    if (queue.isEmpty) return;
-
-    final pendingCallbacks = List<_DelayedCallback>.from(queue);
-    queue.clear();
-
-    for (final delayedCallback in pendingCallbacks) {
-      delayedCallback.callback();
-    }
+    _pendingChatCallbacks.flushAll();
+    _pendingSevenTVCallbacks.flushAll();
   }
 
   void _clearPendingDelayedCallbacks({
@@ -1799,11 +1770,4 @@ abstract class ChatStoreBase with Store {
   void safeRequestFocus() {
     textFieldFocusNode.requestFocus();
   }
-}
-
-class _DelayedCallback {
-  _DelayedCallback({required this.releaseAt, required this.callback});
-
-  final DateTime releaseAt;
-  final void Function() callback;
 }
