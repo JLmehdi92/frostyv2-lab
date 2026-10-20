@@ -3,6 +3,7 @@ import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/services/go_live/go_live.dart';
+import 'package:frosty/services/notifications/activity_log.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -70,6 +71,21 @@ void main() {
       '2026-10-20T10:00:00Z',
     );
     expect(goLiveNotice(_stream('2', title: '', game: '')).body, '');
+  });
+
+  test('a go-live is listed in Activity once per broadcast', () {
+    final at = DateTime.utc(2026, 10, 20, 12);
+    final notice = goLiveNotice(
+      _stream('1', title: 'Speedruns', startedAt: '2026-10-20T11:59:00Z'),
+    );
+    final entry = goLiveEntry(notice, at);
+    expect(entry.id, 'live:1:2026-10-20T11:59:00Z');
+    expect(entry.kind, ActivityKind.live);
+    expect(entry.title, 'User1 is live');
+    expect(entry.body, 'Speedruns · Game');
+    expect(entry.login, 'user1');
+    expect(entry.at, at);
+    expect(entry.read, isFalse);
   });
 
   group('checkGoLive', () {

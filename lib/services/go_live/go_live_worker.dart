@@ -11,6 +11,7 @@ import 'package:frosty/constants.dart';
 import 'package:frosty/firebase_options.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/services/go_live/go_live.dart';
+import 'package:frosty/services/notifications/activity_log.dart';
 import 'package:workmanager/workmanager.dart';
 
 const _task = 'frosty.goLive';
@@ -64,7 +65,19 @@ void goLiveCallbackDispatcher() {
           ),
         ),
         prefs: await GoLivePrefs.load(),
-        notify: GoLiveNotifications.show,
+        notify: (notices, more) async {
+          await GoLiveNotifications.show(notices, more);
+          // Listed in Activity too; a failure there must not announce
+          // them again.
+          try {
+            final now = DateTime.now();
+            await (await ActivityLog.load()).addAll([
+              for (final notice in notices) goLiveEntry(notice, now),
+            ]);
+          } catch (error, stack) {
+            report(error, stack);
+          }
+        },
         notifyProblem: GoLiveNotifications.showProblem,
         report: report,
       );

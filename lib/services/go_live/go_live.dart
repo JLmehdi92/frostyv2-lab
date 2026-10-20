@@ -1,6 +1,7 @@
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/models/stream.dart';
+import 'package:frosty/services/notifications/activity_log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// What the go-live check needs between runs, kept in plain preferences so
@@ -155,6 +156,16 @@ GoLiveNotice goLiveNotice(StreamTwitch stream) => (
     if (stream.title.trim().isNotEmpty) stream.title.trim(),
     if (stream.gameName.isNotEmpty) stream.gameName,
   ].join(' · '),
+);
+
+/// The Activity entry of a go-live notice posted [at]: one per broadcast.
+ActivityEntry goLiveEntry(GoLiveNotice notice, DateTime at) => ActivityEntry(
+  id: 'live:${notice.userId}:${notice.startedAt}',
+  kind: ActivityKind.live,
+  title: notice.title,
+  body: notice.body,
+  login: notice.login,
+  at: at,
 );
 
 /// At most this many notices per check; more are summed up in one.
