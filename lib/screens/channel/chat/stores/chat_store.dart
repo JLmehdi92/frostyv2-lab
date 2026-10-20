@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -89,18 +90,30 @@ abstract class ChatStoreBase with Store {
   /// Height of the reply bar (Container + Divider).
   static const _replyBarHeight = 41.0;
 
-  /// Checks if IRC data contains a command that should bypass the chat delay.
-  /// Returns true if any message in the data contains a bypass command.
-  bool _shouldBypassDelay(String data) {
-    for (final message in data.trimRight().split('\r\n')) {
-      if (message.startsWith('@')) {
-        final parts = message.split(' ');
-        if (parts.length >= 3 && _delayBypassCommands.contains(parts[2])) {
-          return true;
-        }
-      }
+  /// Splits an IRC frame into the lines handled at once and the lines held
+  /// by the chat delay. Kept apart line by line, so a held message sharing
+  /// a frame with a bypass line is not shown early. A `PING` must be
+  /// answered at once (a late PONG costs the connection) and a `RECONNECT`
+  /// is about the connection, not the chat; the commands in
+  /// [_delayBypassCommands] give the viewer immediate feedback.
+  @visibleForTesting
+  static ({String now, String held}) splitDelayedIrc(String data) {
+    final now = <String>[];
+    final held = <String>[];
+    for (final line in data.trimRight().split('\r\n')) {
+      if (line.isEmpty) continue;
+      (_bypassesDelay(line) ? now : held).add(line);
     }
-    return false;
+    return (now: now.join('\r\n'), held: held.join('\r\n'));
+  }
+
+  static bool _bypassesDelay(String line) {
+    if (line.startsWith('PING')) return true;
+    final parts = line.split(' ');
+    if (line.startsWith('@')) {
+      return parts.length >= 3 && _delayBypassCommands.contains(parts[2]);
+    }
+    return parts.length >= 2 && parts[1] == 'RECONNECT';
   }
 
   int get _chatDelaySeconds => settings.effectiveChatDelay.toInt();
@@ -198,6 +211,18 @@ abstract class ChatStoreBase with Store {
   /// The list of chat messages to add once autoscroll is resumed.
   /// This is used as an optimization to prevent the list from being updated/shifted while the user is scrolling.
   final messageBuffer = ObservableList<IRCMessage>();
+
+  /// Opens the chat (IRC) and 7TV event sockets.
+  final WebSocketChannel Function(Uri uri) _connectSocket;
+
+  /// Crashlytics, when Firebase is up (it is not in tests).
+  static void _crashlytics(void Function(FirebaseCrashlytics c) use) {
+    try {
+      use(FirebaseCrashlytics.instance);
+    } catch (e) {
+      debugPrint('Crashlytics unavailable: $e');
+    }
+  }
 
   /// Pending delayed IRC payloads waiting to be rendered.
   final _pendingChatCallbacks = ChatDelayQueue();
@@ -637,7 +662,8 @@ abstract class ChatStoreBase with Store {
     this.listenEvents,
     this.mentionAlerts,
     this.chatRules,
-  }) {
+    @visibleForTesting WebSocketChannel Function(Uri uri)? connectSocket,
+  }) : _connectSocket = connectSocket ?? WebSocketChannel.connect {
     // The rules show before the first message, like the official app.
     chatRules
       ?..attach(textFieldFocusNode)
@@ -768,12 +794,12 @@ abstract class ChatStoreBase with Store {
   void _enqueueDelayedCallback(
     ChatDelayQueue queue,
     void Function() callback,
-  ) => queue.add(callback, now: DateTime.now());
+  ) => queue.add(callback, now: clock.now());
 
   /// The delay is read now, not when each payload arrived: it follows the
   /// video latency, which shrinks when the player catches up.
   void _flushDueDelayedCallbacks() {
-    final now = DateTime.now();
+    final now = clock.now();
     final delay = Duration(seconds: _chatDelaySeconds);
     _pendingChatCallbacks.flushDue(now, delay);
     _pendingSevenTVCallbacks.flushDue(now, delay);
@@ -782,19 +808,6 @@ abstract class ChatStoreBase with Store {
   void _flushPendingDelayedCallbacks() {
     _pendingChatCallbacks.flushAll();
     _pendingSevenTVCallbacks.flushAll();
-  }
-
-  void _clearPendingDelayedCallbacks({
-    bool clearChat = true,
-    bool clearSevenTV = true,
-  }) {
-    if (clearChat) {
-      _pendingChatCallbacks.clear();
-    }
-
-    if (clearSevenTV) {
-      _pendingSevenTVCallbacks.clear();
-    }
   }
 
   /// Handle and process the provided string-representation of the IRC data.
@@ -1137,10 +1150,7 @@ abstract class ChatStoreBase with Store {
     );
 
     _sevenTVChannel?.sink.close(1000);
-    _clearPendingDelayedCallbacks(clearChat: false);
-    _sevenTVChannel = WebSocketChannel.connect(
-      Uri.parse('wss://events.7tv.io/v3'),
-    );
+    _sevenTVChannel = _connectSocket(Uri.parse('wss://events.7tv.io/v3'));
 
     void listener(dynamic data) {
       // debugPrint(data);
@@ -1205,10 +1215,8 @@ abstract class ChatStoreBase with Store {
           reason: '7TV WebSocket error, channel=$channelName',
         );
       },
-      onDone: () {
-        _clearPendingDelayedCallbacks(clearChat: false);
-        debugPrint('7TV events done');
-      },
+      // Held events stay: each is whole and releases on schedule, in order.
+      onDone: () => debugPrint('7TV events done'),
     );
 
     _sevenTVChannel?.sink.add(jsonEncode(subscribePayload));
@@ -1216,7 +1224,7 @@ abstract class ChatStoreBase with Store {
 
   @action
   Future<void> connectToChat({bool isReconnect = false}) async {
-    FirebaseCrashlytics.instance.setCustomKey('channel', channelName);
+    _crashlytics((c) => c.setCustomKey('channel', channelName));
 
     // Fetch assets first so they're available for all messages
     getAssets().catchError(
@@ -1225,12 +1233,12 @@ abstract class ChatStoreBase with Store {
 
     // Cancel existing listener to prevent duplicate message processing
     _channelListener?.cancel();
-    _clearPendingDelayedCallbacks(clearSevenTV: false);
+    // Held chat is kept across reconnects: each payload is whole (a dropped
+    // CLEARMSG or CLEARCHAT would leave a deleted or timed-out message on
+    // screen), and they release on schedule, in order.
 
     _channel?.sink.close(1000);
-    _channel = WebSocketChannel.connect(
-      Uri.parse('wss://irc-ws.chat.twitch.tv:443'),
-    );
+    _channel = _connectSocket(Uri.parse('wss://irc-ws.chat.twitch.tv:443'));
 
     // Only show chat delay countdown on initial connection or video toggle, not on reconnects
     if (!isReconnect && _hasActiveChatDelay) {
@@ -1247,11 +1255,13 @@ abstract class ChatStoreBase with Store {
           // Whatever is still held goes first, so nothing overtakes it.
           _pendingChatCallbacks.flushAll();
           _handleIRCData(dataStr);
-        } else if (_shouldBypassDelay(dataStr)) {
-          _handleIRCData(dataStr);
-        } else {
+          return;
+        }
+        final split = splitDelayedIrc(dataStr);
+        if (split.now.isNotEmpty) _handleIRCData(split.now);
+        if (split.held.isNotEmpty) {
           _enqueueDelayedCallback(_pendingChatCallbacks, () {
-            _handleIRCData(dataStr);
+            _handleIRCData(split.held);
           });
         }
       },
@@ -1264,8 +1274,6 @@ abstract class ChatStoreBase with Store {
         );
       },
       onDone: () async {
-        _clearPendingDelayedCallbacks(clearSevenTV: false);
-
         // Mark connection as disconnected for UI
         _isConnected = false;
 
@@ -1307,8 +1315,10 @@ abstract class ChatStoreBase with Store {
 
         // Increment the retry count.
         _retries++;
-        FirebaseCrashlytics.instance.log(
-          'WebSocket reconnecting: attempt $_retries/$_maxRetries, channel=$channelName',
+        _crashlytics(
+          (c) => c.log(
+            'WebSocket reconnecting: attempt $_retries/$_maxRetries, channel=$channelName',
+          ),
         );
 
         // Start exponential backoff only after first failed attempt (capped at 8s).
@@ -1711,7 +1721,8 @@ abstract class ChatStoreBase with Store {
   void dispose() {
     _shouldDisconnect = true;
 
-    _clearPendingDelayedCallbacks();
+    _pendingChatCallbacks.clear();
+    _pendingSevenTVCallbacks.clear();
 
     _messageBufferTimer?.cancel();
     _notificationTimer?.cancel();
