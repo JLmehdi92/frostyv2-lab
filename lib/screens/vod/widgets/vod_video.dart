@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:frosty/screens/channel/video/captions.dart';
 import 'package:frosty/screens/vod/stores/ivs_vod_store.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
 
@@ -62,6 +63,21 @@ class VodVideo extends StatelessWidget {
             children: [
               picture,
               if (busy) const Center(child: CircularProgressIndicator()),
+              if (store.captions.caption case final caption?)
+                Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: 24,
+                  child: IgnorePointer(
+                    child: Center(
+                      child: CaptionText(
+                        text: caption,
+                        size: store.settingsStore.captionSize,
+                        background: store.settingsStore.captionBackground,
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         );

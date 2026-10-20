@@ -23,6 +23,22 @@ void main() {
       expect(vod.isRecording, isFalse);
       expect(vod.isRestricted, isFalse);
       expect(vod.duration, const Duration(seconds: 29580));
+      expect(vod.broadcastId, '300000000001');
+    });
+
+    test('the broadcast id is null when absent or malformed', () {
+      expect(Vod.fromGql(vodNodeHighlightNoGame).broadcastId, isNull);
+      for (final broadcast in [
+        null,
+        'x',
+        {'id': 12},
+        {'id': ''},
+        {'id': '12a'},
+      ]) {
+        final node = Map<String, dynamic>.of(vodNodeArchive)
+          ..['broadcast'] = broadcast;
+        expect(Vod.fromGql(node).broadcastId, isNull, reason: '$broadcast');
+      }
     });
 
     test('parses a highlight without game or thumbnail', () {

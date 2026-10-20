@@ -19,11 +19,14 @@ import 'package:frosty/apis/seventv_api.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_auth_interceptor.dart';
 import 'package:frosty/apis/twitch_channel_profile_service.dart';
+import 'package:frosty/apis/twitch_chat_rules_service.dart';
 import 'package:frosty/apis/twitch_clip_service.dart';
 import 'package:frosty/apis/twitch_community_highlights_service.dart';
 import 'package:frosty/apis/twitch_directory_service.dart';
+import 'package:frosty/apis/twitch_followed_categories_service.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
+import 'package:frosty/apis/twitch_watch_streak_service.dart';
 import 'package:frosty/apis/unauthorized_interceptor.dart';
 import 'package:frosty/cache_manager.dart';
 import 'package:frosty/firebase_options.dart';
@@ -139,8 +142,9 @@ void main() async {
   final sevenTVApiService = SevenTVApi(dioClient);
   // Anonymous GQL for VODs and hype trains: own Dio with timeouts and no
   // Twitch auth interceptor (it must never carry the user's Helix token).
-  // Only the VOD playback token adds the viewer's twitch.tv web token, per
-  // request (wired below, once the auth store exists).
+  // Only the VOD playback token and the viewer's watch positions add the
+  // viewer's twitch.tv web token, per request (wired below, once the auth
+  // store exists).
   final anonymousGqlDio = Dio(
     BaseOptions(
       connectTimeout: const Duration(seconds: 5),
@@ -157,6 +161,13 @@ void main() async {
     anonymousGqlDio,
   );
   final twitchDirectoryService = TwitchDirectoryService(anonymousGqlDio);
+  final twitchChatRulesService = TwitchChatRulesService(anonymousGqlDio);
+  // Followed categories: the web token is added per request, to GQL only.
+  final twitchFollowedCategoriesService = TwitchFollowedCategoriesService(
+    anonymousGqlDio,
+  );
+  // Watch streaks: the web token is added per request, to GQL only.
+  final twitchWatchStreakService = TwitchWatchStreakService(anonymousGqlDio);
 
   // One anonymous realtime connection (Hermes) for public Twitch topics such
   // as the hype train. It connects only when something subscribes and
@@ -184,10 +195,13 @@ void main() async {
   // Add the unauthorized interceptor to catch 401 errors
   dioClient.interceptors.add(UnauthorizedInterceptor(authStore));
 
-  // VODs restricted to subscribers play for subscribers, like live 2K.
+  // VODs restricted to subscribers play for subscribers, like live 2K, and
+  // watch positions are kept on the viewer's Twitch account.
   twitchVodService
     ..webToken = (() => authStore.twitchWebToken)
-    ..onWebTokenRejected = authStore.renewTwitchWebToken;
+    ..onWebTokenRejected = authStore.renewTwitchWebToken
+    ..viewerId = (() =>
+        authStore.isLoggedIn ? authStore.user.details?.id : null);
 
   await authStore.init();
 
@@ -309,6 +323,13 @@ void main() async {
           value: twitchChannelProfileService,
         ),
         Provider<TwitchDirectoryService>.value(value: twitchDirectoryService),
+        Provider<TwitchChatRulesService>.value(value: twitchChatRulesService),
+        Provider<TwitchFollowedCategoriesService>.value(
+          value: twitchFollowedCategoriesService,
+        ),
+        Provider<TwitchWatchStreakService>.value(
+          value: twitchWatchStreakService,
+        ),
         Provider<TwitchRealtimeClient>.value(value: realtimeClient),
         Provider<GlobalAssetsStore>.value(value: globalAssetsStore),
         Provider<TwitchEventSubClient>.value(value: eventSubClient),

@@ -12,6 +12,7 @@ import 'package:frosty/screens/channel_profile/widgets/profile_home_tab.dart';
 import 'package:frosty/screens/channel_profile/widgets/profile_schedule_tab.dart';
 import 'package:frosty/screens/clips/stores/channel_clips_store.dart';
 import 'package:frosty/screens/clips/widgets/channel_clips_tab.dart';
+import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/vod/stores/channel_videos_store.dart';
 import 'package:frosty/screens/vod/widgets/channel_videos_tab.dart';
 import 'package:frosty/services/notifications/schedule_reminders.dart';
@@ -19,11 +20,14 @@ import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/link_router.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/utils/share_link.dart';
+import 'package:frosty/utils/twitch_links.dart';
 import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/frosty_app_bar.dart';
 import 'package:frosty/widgets/readable_width.dart';
+import 'package:frosty/widgets/twitch_web_page.dart';
 import 'package:frosty/widgets/user_actions_modal.dart';
 import 'package:mobx/mobx.dart';
+import 'package:provider/provider.dart';
 
 enum ProfileTab {
   home('Home'),
@@ -200,6 +204,23 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
     );
   }
 
+  /// Twitch's Subscribe: the channel's subscription page on twitch.tv.
+  void _subscribe() {
+    final url = twitchSubscribeUrl(widget.login);
+    if (url == null) return;
+    unawaited(
+      TwitchWebPage.open(context, title: 'Subscribe to $_name', url: url),
+    );
+  }
+
+  /// Not on the viewer's own channel (signed out, twitch.tv asks to log
+  /// in first).
+  bool get _canSubscribe {
+    final auth = context.read<AuthStore?>();
+    if (auth == null || !auth.isLoggedIn) return true;
+    return auth.user.details?.login.toLowerCase() != widget.login.toLowerCase();
+  }
+
   Future<void> _share() =>
       shareLink(context, 'https://www.twitch.tv/${widget.login}');
 
@@ -275,6 +296,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
           // Read here: the header builder runs outside this Observer.
           final name = _name;
           final canMore = _userId != null;
+          final canSubscribe = _canSubscribe;
           final retrying = _store.isLoading && profile == null;
           return SafeArea(
             bottom: false,
@@ -289,6 +311,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
                       onOpenChannel: _openChannel,
                       onShare: _share,
                       onMore: canMore ? _more : null,
+                      onSubscribe: canSubscribe ? _subscribe : null,
                     ),
                   ),
                 ),

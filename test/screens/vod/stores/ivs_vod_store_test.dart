@@ -1,12 +1,17 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
+import 'package:frosty/screens/channel/video/captions.dart';
 import 'package:frosty/screens/channel/video/ivs_recovery.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/vod/player_media.dart';
 import 'package:frosty/screens/vod/stores/ivs_vod_store.dart';
+import 'package:frosty/screens/vod/vod_overlay.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
+import 'package:frosty/screens/vod/widgets/vod_video.dart';
 import 'package:mobx/mobx.dart' show reaction;
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -1180,6 +1185,99 @@ void main() {
 
       expect(fatal, 1);
       expect(s.status, VodPlaybackStatus.failed);
+    });
+  });
+
+  group('captions', () {
+    test('a VOD shows its captions when they are on', () async {
+      stubUrl();
+      store = await createStore();
+      await native.emit({'type': 'caption', 'text': 'hello'});
+      expect(store.captions.caption, isNull);
+
+      settingsStore.showCaptions = true;
+      await settle();
+      expect(native.callsNamed('setCaptions').last.arguments, {
+        'enabled': true,
+      });
+      await native.emit({'type': 'caption', 'text': 'hello'});
+      expect(store.captions.caption, 'hello');
+    });
+
+    test('its caption tracks reach the menu, and each load asks again', () async {
+      settingsStore.showCaptions = true;
+      stubUrl();
+      store = await createStore();
+      await native.emit({
+        'type': 'textTracks',
+        'list': [
+          {'id': 'a', 'label': 'English', 'language': 'en'},
+        ],
+        'selected': 'a',
+      });
+      expect(store.captions.tracks.single.name, 'English');
+
+      final asked = native.callsNamed('setCaptions').length;
+      await native.emit({
+        'type': 'qualities',
+        'list': ['1080p60'],
+      });
+      expect(native.callsNamed('setCaptions').length, greaterThan(asked));
+    });
+  });
+
+  group('captions on screen', () {
+    testWidgets('the line shows over the video in the chosen style', (
+      tester,
+    ) async {
+      settingsStore
+        ..showCaptions = true
+        ..captionSize = CaptionSize.large;
+      stubUrl();
+      store = await tester.runAsync(createStore) as IvsVodStore;
+      await tester.runAsync(
+        () => native.emit({'type': 'caption', 'text': 'hello there'}),
+      );
+      await tester.pumpWidget(
+        MaterialApp(home: Scaffold(body: VodVideo(store: store))),
+      );
+
+      final line = tester.widget<CaptionText>(find.byType(CaptionText));
+      expect(line.text, 'hello there');
+      expect(line.size, CaptionSize.large);
+    });
+
+    testWidgets("the VOD menu has Twitch's Closed Captions switch", (
+      tester,
+    ) async {
+      stubUrl();
+      store = await tester.runAsync(createStore) as IvsVodStore;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: VodSettingsSheet(
+              controller: store,
+              media: PlayerMedia(
+                title: 't',
+                ownerId: '1',
+                ownerLogin: 'o',
+                ownerDisplayName: 'O',
+                shareLabel: 'Copy',
+                shareLink: (_) => '',
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.scrollUntilVisible(
+        find.text('Closed Captions'),
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.text('Closed Captions'));
+      await tester.pump();
+      expect(settingsStore.showCaptions, isTrue);
     });
   });
 

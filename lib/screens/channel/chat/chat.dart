@@ -6,6 +6,7 @@ import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_bottom_bar.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_message.dart';
+import 'package:frosty/screens/channel/chat/widgets/chat_rules_sheet.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/frosty_page_view.dart';
@@ -111,15 +112,19 @@ class Chat extends StatelessWidget {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    child: ChatBottomBar(
-                      chatStore: chatStore,
-                      onAddChat: onAddChat,
-                      channelDisplayName: _isMerged
-                          ? getReadableName(
-                              chatTabsStore!.activeTab.displayName,
-                              chatTabsStore!.activeTab.channelLogin,
-                            )
-                          : null,
+                    child: ChatRulesPrompt(
+                      rules: chatStore.chatRules,
+                      focus: chatStore.textFieldFocusNode,
+                      child: ChatBottomBar(
+                        chatStore: chatStore,
+                        onAddChat: onAddChat,
+                        channelDisplayName: _isMerged
+                            ? getReadableName(
+                                chatTabsStore!.activeTab.displayName,
+                                chatTabsStore!.activeTab.channelLogin,
+                              )
+                            : null,
+                      ),
                     ),
                   ),
                   _buildResumeScrollButton(),

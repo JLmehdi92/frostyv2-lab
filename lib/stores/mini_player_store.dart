@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
+import 'package:frosty/screens/channel/video/live_progress.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:mobx/mobx.dart';
 
@@ -35,8 +38,19 @@ abstract class MiniPlayerStoreBase with Store {
   @readonly
   ChatTabsStore? _chatTabsStore;
 
+  /// Keeps recording where the viewer is in the broadcast while minimized
+  /// (it follows [_player]); closed before the player goes.
+  LiveProgressTracker? _liveProgress;
+
+  void _closeLiveProgress() {
+    final tracker = _liveProgress;
+    _liveProgress = null;
+    if (tracker != null) unawaited(tracker.close());
+  }
+
   /// Adopts an already-playing [player] and its live [chatTabsStore] from the
-  /// channel screen so both keep running seamlessly while minimized.
+  /// channel screen so both keep running seamlessly while minimized, with
+  /// the [liveProgress] tracker following the player.
   @action
   void adopt({
     required IvsVideoStore player,
@@ -44,7 +58,11 @@ abstract class MiniPlayerStoreBase with Store {
     required String userLogin,
     required String userId,
     required String displayName,
+    LiveProgressTracker? liveProgress,
   }) {
+    if (_liveProgress != null && !identical(_liveProgress, liveProgress)) {
+      _closeLiveProgress();
+    }
     if (_player != null && !identical(_player, player)) _player!.dispose();
     if (_chatTabsStore != null && !identical(_chatTabsStore, chatTabsStore)) {
       _chatTabsStore!.dispose();
@@ -54,27 +72,38 @@ abstract class MiniPlayerStoreBase with Store {
     _displayName = displayName;
     _player = player;
     _chatTabsStore = chatTabsStore;
+    _liveProgress = liveProgress;
     _visible = true;
   }
 
-  /// Hands the live player and chat back to the caller (when restoring the full
-  /// channel) without disposing them, and hides the mini window.
+  /// Hands the live player, chat and progress tracker back to the caller
+  /// (when restoring the full channel) without disposing them, and hides the
+  /// mini window.
   @action
-  ({IvsVideoStore? player, ChatTabsStore? chat}) release() {
+  ({
+    IvsVideoStore? player,
+    ChatTabsStore? chat,
+    LiveProgressTracker? liveProgress,
+  })
+  release() {
     final player = _player;
     final chat = _chatTabsStore;
+    final liveProgress = _liveProgress;
     _player = null;
     _chatTabsStore = null;
+    _liveProgress = null;
     _userLogin = null;
     _userId = null;
     _displayName = null;
     _visible = false;
-    return (player: player, chat: chat);
+    return (player: player, chat: chat, liveProgress: liveProgress);
   }
 
   /// Closes the mini player and releases its resources.
   @action
   void close() {
+    // Reads the position before the player goes.
+    _closeLiveProgress();
     _player?.dispose();
     _chatTabsStore?.dispose();
     _player = null;

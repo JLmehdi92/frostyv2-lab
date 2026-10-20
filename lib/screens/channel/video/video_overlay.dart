@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/channel/chat/details/chat_users_list.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
+import 'package:frosty/screens/channel/video/caption_menu.dart';
 import 'package:frosty/screens/channel/video/overlay_common.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:frosty/screens/channel/video/quality_selection.dart';
@@ -179,17 +180,7 @@ class VideoOverlay extends StatelessWidget {
                             onVolumeChanged: ivs.setVolume,
                           ),
                         ),
-                        Observer(
-                          builder: (context) => SwitchListTile(
-                            title: const Text('Captions'),
-                            subtitle: const Text(
-                              'Closed captions, when the stream has them',
-                            ),
-                            value: videoStore.settingsStore.showCaptions,
-                            onChanged: (on) =>
-                                videoStore.settingsStore.showCaptions = on,
-                          ),
-                        ),
+                        CaptionMenu(captions: ivs.captions),
                         const SectionHeader(
                           'Measurement',
                           padding: EdgeInsets.fromLTRB(16, 16, 16, 8),

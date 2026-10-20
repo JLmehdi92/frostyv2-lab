@@ -15,6 +15,7 @@ const vodNodeArchive = {
       'https://static-cdn.jtvnw.net/cf_vods/abc/streamer_1//thumb/thumb0-320x180.jpg',
   'game': {'id': '509658', 'name': 'Just Chatting'},
   'owner': {'id': '42', 'login': 'streamer', 'displayName': 'Streamer'},
+  'broadcast': {'id': '300000000001'},
   'self': {'isRestricted': false},
 };
 

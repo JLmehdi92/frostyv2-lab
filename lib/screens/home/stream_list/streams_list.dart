@@ -5,14 +5,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_directory_service.dart';
+import 'package:frosty/apis/twitch_followed_categories_service.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
+import 'package:frosty/apis/twitch_watch_streak_service.dart';
 import 'package:frosty/constants.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/home/followed_videos/followed_videos_screen.dart';
+import 'package:frosty/screens/home/stream_list/followed_categories_section.dart';
 import 'package:frosty/screens/home/stream_list/large_stream_card.dart';
 import 'package:frosty/screens/home/stream_list/offline_channel_card.dart';
 import 'package:frosty/screens/home/stream_list/stream_card.dart';
 import 'package:frosty/screens/home/stream_list/stream_list_store.dart';
+import 'package:frosty/screens/home/stream_list/stream_sort_button.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/widgets/alert_message.dart';
@@ -89,6 +93,12 @@ class _StreamsListState extends State<StreamsList>
       scrollController: widget.scrollController ?? _scrollController,
       hypeTrainService: widget.listType == ListType.followed
           ? context.read<TwitchHypeTrainService>()
+          : null,
+      followedCategoriesService: widget.listType == ListType.followed
+          ? context.read<TwitchFollowedCategoriesService?>()
+          : null,
+      watchStreakService: widget.listType == ListType.followed
+          ? context.read<TwitchWatchStreakService?>()
           : null,
     );
   }
@@ -308,6 +318,11 @@ class _StreamsListState extends State<StreamsList>
                 if (widget.listType == ListType.followed) ...[
                   SliverTopPadding(extraTopPadding: extraTopPadding),
                   const SliverToBoxAdapter(child: FollowedVideosTile()),
+                  SliverToBoxAdapter(
+                    child: FollowedCategoriesSection(
+                      categories: _listStore.followedCategories,
+                    ),
+                  ),
                 ],
                 SliverFillRemaining(child: Center(child: statusWidget)),
               ],
@@ -353,6 +368,23 @@ class _StreamsListState extends State<StreamsList>
                                 builder: (context) => HiddenStreamsBanner(
                                   hidden: _listStore.hiddenByLabels,
                                   onShow: _listStore.showLabeledStreams,
+                                ),
+                              ),
+                            ),
+                          if (isFollowingTab)
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: EdgeInsets.fromLTRB(
+                                  16 + MediaQuery.paddingOf(context).left,
+                                  0,
+                                  16 + MediaQuery.paddingOf(context).right,
+                                  0,
+                                ),
+                                child: Align(
+                                  alignment: AlignmentDirectional.centerStart,
+                                  child: FollowedSortButton(
+                                    settingsStore: settingsStore,
+                                  ),
                                 ),
                               ),
                             ),
@@ -402,6 +434,10 @@ class _StreamsListState extends State<StreamsList>
                                                 isPinned: true,
                                                 hypeTrain: _listStore
                                                     .hypeTrains[stream.userId],
+                                                watchStreak:
+                                                    _listStore
+                                                        .watchStreaks[stream
+                                                        .userId],
                                               )
                                             : StreamCard(
                                                 key: ValueKey(stream.userId),
@@ -415,6 +451,10 @@ class _StreamsListState extends State<StreamsList>
                                                 isPinned: true,
                                                 hypeTrain: _listStore
                                                     .hypeTrains[stream.userId],
+                                                watchStreak:
+                                                    _listStore
+                                                        .watchStreaks[stream
+                                                        .userId],
                                               );
                                       },
                                     );
@@ -468,6 +508,10 @@ class _StreamsListState extends State<StreamsList>
                                             _listStore
                                                 .hypeTrains[unpinnedStreams[index]
                                                 .userId],
+                                        watchStreak:
+                                            _listStore
+                                                .watchStreaks[unpinnedStreams[index]
+                                                .userId],
                                       )
                                     : StreamCard(
                                         key: ValueKey(
@@ -483,6 +527,10 @@ class _StreamsListState extends State<StreamsList>
                                             _listStore
                                                 .hypeTrains[unpinnedStreams[index]
                                                 .userId],
+                                        watchStreak:
+                                            _listStore
+                                                .watchStreaks[unpinnedStreams[index]
+                                                .userId],
                                       ),
                               );
                             },
@@ -491,6 +539,13 @@ class _StreamsListState extends State<StreamsList>
                           if (isFollowingTab) ...[
                             const SliverToBoxAdapter(
                               child: FollowedVideosTile(),
+                            ),
+                            SliverToBoxAdapter(
+                              child: Observer(
+                                builder: (context) => FollowedCategoriesSection(
+                                  categories: _listStore.followedCategories,
+                                ),
+                              ),
                             ),
                             SliverToBoxAdapter(
                               child: Observer(

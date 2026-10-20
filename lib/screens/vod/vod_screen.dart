@@ -8,6 +8,7 @@ import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:frosty/screens/channel/video/content_warning_gate.dart';
+import 'package:frosty/screens/channel/video/live_progress.dart';
 import 'package:frosty/screens/channel/video/player_engine_resolver.dart';
 import 'package:frosty/screens/channel/video/web_content_gate.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
@@ -149,6 +150,10 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
 
   /// How long the labels may take before the video plays without them.
   static const _labelsTimeout = Duration(seconds: 3);
+
+  /// How long the account's watch position may take before the video
+  /// starts without it.
+  static const _historyTimeout = Duration(seconds: 3);
   var _mutedSegments = const <MutedSegment>[];
   var _fillScreen = false;
   var _forceWeb = false;
@@ -204,14 +209,34 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
       unawaited(_service.preloadToken(vod.id));
     }
     final warning = _contentWarningLabels(vod);
-    // A `?t=` link wins; otherwise resume 30 s before where the viewer left.
-    final saved = widget.startAt == null
-        ? await _resumeRepository.entry(vod.id)
+    // A `?t=` link wins; otherwise resume where the viewer left the video
+    // (here, on their account) or the live broadcast it recorded.
+    final viewer = _service.viewerId?.call();
+    final resume = widget.startAt == null;
+    final server = resume ? _accountPosition(vod) : null;
+    final live = resume
+        ? LiveProgressRepository.shared.forVod(vod, viewer: viewer).catchError((
+            Object e,
+          ) {
+            debugPrint('VodScreen live position failed: ${e.runtimeType}');
+            return null;
+          })
+        : null;
+    final saved = resume
+        ? await _resumeRepository.entry(vod.id, viewer: viewer)
         : null;
     final labels = await warning;
+    final startAt = startPositionFor(
+      saved: saved,
+      deepLink: widget.startAt,
+      server: await server,
+      live: await live,
+      lengthSec: vod.lengthSeconds,
+      // A recording keeps growing: its end is not where the viewer stops.
+      nearEndRestarts: !vod.isRecording,
+    );
     if (!mounted) return;
     final loaded = vod;
-    final startAt = startPositionFor(saved: saved, deepLink: widget.startAt);
     setState(() {
       _loadError = null;
       _vod = loaded;
@@ -228,6 +253,13 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
       vodId: loaded.id,
       player: () => _player,
       repository: _resumeRepository,
+      viewer: () => _service.viewerId?.call(),
+      recording: loaded.isRecording,
+      report: (positionSec) => _service.updateViewedVideo(
+        videoId: loaded.id,
+        type: WatchedVideoType.vod,
+        positionSec: positionSec,
+      ),
       fallbackLengthSec: loaded.lengthSeconds,
     )..start();
     unawaited(
@@ -235,6 +267,19 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
         if (mounted) setState(() => _mutedSegments = segments);
       }),
     );
+  }
+
+  /// Where the viewer's Twitch account left [vod] (null when logged out,
+  /// unknown, or too slow to wait for).
+  Future<ViewingHistory?> _accountPosition(Vod vod) async {
+    try {
+      return await _service
+          .getViewingHistory(vod.id)
+          .timeout(_historyTimeout, onTimeout: () => null);
+    } catch (e) {
+      debugPrint('VodScreen watch position failed: ${e.runtimeType}');
+      return null;
+    }
   }
 
   /// The video's own labels to warn about, like the official app (not the

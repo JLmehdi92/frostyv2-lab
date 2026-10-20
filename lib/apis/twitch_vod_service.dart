@@ -43,9 +43,10 @@ enum VodPlaybackProblem {
 /// public web Client-ID and full query documents, no user token): channel
 /// lists, a single video, chat replay by offset and the usher VOD playlist.
 ///
-/// The one exception is the playback token: like the official app, it is
-/// asked as the viewer when [webToken] gives their twitch.tv web token, so
-/// VODs restricted to subscribers play for the subscribers.
+/// The exceptions are asked as the viewer when [webToken] gives their
+/// twitch.tv web token, like the official app: the playback token, so VODs
+/// restricted to subscribers play for the subscribers, and the viewer's own
+/// watch positions ([getViewingHistory], [updateViewedVideo]).
 ///
 /// Comments and channel lists are fetched without cursors: cursor paging is
 /// integrity-gated for anonymous clients (verified 2026-10-13).
@@ -63,7 +64,8 @@ class TwitchVodService extends BaseApiClient {
   static const _videoFields =
       'id title lengthSeconds createdAt viewCount status broadcastType '
       'previewThumbnailURL(width: 640, height: 360) game { id name } '
-      'owner { id login displayName } self { isRestricted }';
+      'owner { id login displayName } broadcast { id } '
+      'self { isRestricted }';
 
   static const _channelVideosQuery =
       'query ChannelVideos(\$login: String!, \$type: BroadcastType, '
@@ -106,6 +108,19 @@ class TwitchVodService extends BaseApiClient {
       'query VideoMutedSegments(\$id: ID!) { video(id: \$id) { muteInfo { '
       'mutedSegmentConnection { nodes { offset duration } } } } }';
 
+  // The viewer's own watch position (their account, any device). Needs the
+  // web token: anonymous answers `viewingHistory: null`.
+  static const _viewingHistoryQuery =
+      'query VideoViewingHistory(\$id: ID!) { video(id: \$id) { self { '
+      'viewingHistory { position updatedAt } } } }';
+
+  // The official app's write, for a VOD and for a live broadcast (by stream
+  // id). The full document is accepted with the web Client-ID (an anonymous
+  // try answers "unauthenticated", 2026-10-20).
+  static const _updateViewedVideoMutation =
+      'mutation UpdateUserViewedVideo(\$input: UpdateUserViewedVideoInput!) '
+      '{ updateUserViewedVideo(input: \$input) { video { id } } }';
+
   static const _tokenQuery =
       'query VodToken(\$id: ID!) { videoPlaybackAccessToken(id: \$id, '
       'params: {platform: "web", playerBackend: "mediaplayer", '
@@ -114,15 +129,19 @@ class TwitchVodService extends BaseApiClient {
   final Dio _http;
   final PlaybackTokenCache _tokens;
 
-  /// The viewer's twitch.tv web token, read for each playback token (null or
-  /// empty: anonymous). It is sent to gql.twitch.tv only, with the playback
-  /// token request only.
+  /// The viewer's twitch.tv web token, read for each request that needs it
+  /// (null or empty: anonymous). It is sent to gql.twitch.tv only, with the
+  /// playback token and watch position requests only.
   String? Function()? webToken;
 
   /// Called (not awaited) when Twitch refuses the web token with a 401, to
   /// mint a fresh one for the next request; this request goes on
   /// anonymously.
   Future<String?> Function()? onWebTokenRejected;
+
+  /// The logged-in viewer's Twitch user id (null when logged out), sent
+  /// with the watch positions written to their account.
+  String? Function()? viewerId;
 
   /// The channel's newest videos of [type] (up to 100, newest first).
   Future<VodPage> getChannelVideos({
@@ -450,18 +469,7 @@ class TwitchVodService extends BaseApiClient {
         );
       } on UnauthorizedException {
         debugPrint('Authenticated VOD token refused (401)');
-        // Not sent again (each start would pay a refusal) until it changes.
-        _refusedWebToken = _tokenId(authToken);
-        final renew = onWebTokenRejected;
-        if (renew != null) {
-          unawaited(
-            renew().then<void>(
-              (_) {},
-              onError: (Object e) =>
-                  debugPrint('Web token renewal failed: ${e.runtimeType}'),
-            ),
-          );
-        }
+        _onWebTokenUnauthorized(authToken);
       } on NetworkException {
         rethrow;
       } on TimeoutException {
@@ -475,6 +483,134 @@ class TwitchVodService extends BaseApiClient {
 
   /// The identity of the last web token Twitch refused with a 401.
   String? _refusedWebToken;
+
+  /// GQL errors in a row for each kind of watch-position request and web
+  /// token (`read#token`, `write#token`, tokens by identity). At
+  /// [_historyMaxFailures] (at once for an integrity check), that request
+  /// is not sent again with that token this session: Twitch changed it or
+  /// keeps refusing it. A success starts the count again.
+  final _historyFailures = <String, int>{};
+  static const _historyMaxFailures = 3;
+
+  bool _historyRefused(String kind, String tokenId) =>
+      (_historyFailures['$kind#$tokenId'] ?? 0) >= _historyMaxFailures;
+
+  void _historyFailed(String kind, String tokenId, VodApiException e) {
+    final key = '$kind#$tokenId';
+    _historyFailures[key] = e.isIntegrity
+        ? _historyMaxFailures
+        : (_historyFailures[key] ?? 0) + 1;
+  }
+
+  /// The viewer's web token, when there is one that Twitch did not refuse.
+  String? get _usableWebToken {
+    final token = webToken?.call();
+    if (token == null || token.isEmpty) return null;
+    if (_tokenId(token) == _refusedWebToken) return null;
+    return token;
+  }
+
+  /// Not sent again (each request would pay a refusal) until it changes,
+  /// and renewed in the background for the next requests.
+  void _onWebTokenUnauthorized(String authToken) {
+    _refusedWebToken = _tokenId(authToken);
+    final renew = onWebTokenRejected;
+    if (renew == null) return;
+    unawaited(
+      renew().then<void>(
+        (_) {},
+        onError: (Object e) =>
+            debugPrint('Web token renewal failed: ${e.runtimeType}'),
+      ),
+    );
+  }
+
+  /// Where the logged-in viewer stopped in [vodId] on Twitch (null when
+  /// never watched, logged out, or anything fails). A live session watched
+  /// before shows up here once Twitch tied it to its VOD. Never throws.
+  Future<ViewingHistory?> getViewingHistory(String vodId) async {
+    final id = tryNormalizeVodId(vodId);
+    final authToken = _usableWebToken;
+    if (id == null || authToken == null) return null;
+    final tokenId = _tokenId(authToken);
+    if (_historyRefused('read', tokenId)) return null;
+    try {
+      final data = await _gql(
+        'VideoViewingHistory',
+        _viewingHistoryQuery,
+        {'id': id},
+        headers: {'Authorization': 'OAuth $authToken'},
+      );
+      _historyFailures.remove('read#$tokenId');
+      final video = data['video'];
+      final self = video is Map ? video['self'] : null;
+      final history = self is Map ? self['viewingHistory'] : null;
+      final position = history is Map ? history['position'] : null;
+      if (position is! int || position < 0) return null;
+      return ViewingHistory(
+        positionSec: position,
+        updatedAt: DateTime.tryParse('${(history as Map)['updatedAt']}'),
+      );
+    } on UnauthorizedException {
+      debugPrint('Watch position read refused (401)');
+      _onWebTokenUnauthorized(authToken);
+    } on VodApiException catch (e) {
+      debugPrint('Watch position read refused (integrity: ${e.isIntegrity})');
+      _historyFailed('read', tokenId, e);
+    } catch (e) {
+      debugPrint('Watch position read failed: ${e.runtimeType}');
+    }
+    return null;
+  }
+
+  /// Saves where the logged-in viewer is in a video to their Twitch
+  /// account, like the official app: a VOD by its id, a live broadcast by
+  /// its stream id. Only with a session; false when nothing was saved.
+  /// Never throws.
+  Future<bool> updateViewedVideo({
+    required String videoId,
+    required WatchedVideoType type,
+    required int positionSec,
+  }) async {
+    final id = tryNormalizeVodId(videoId);
+    final userId = viewerId?.call();
+    final authToken = _usableWebToken;
+    if (id == null ||
+        userId == null ||
+        !RegExp(r'^[0-9]{1,20}$').hasMatch(userId) ||
+        positionSec <= 0 ||
+        authToken == null) {
+      return false;
+    }
+    final tokenId = _tokenId(authToken);
+    if (_historyRefused('write', tokenId)) return false;
+    try {
+      final data = await _gql(
+        'UpdateUserViewedVideo',
+        _updateViewedVideoMutation,
+        {
+          'input': {
+            'userID': userId,
+            'videoID': id,
+            'videoType': type.gqlName,
+            'position': positionSec,
+          },
+        },
+        headers: {'Authorization': 'OAuth $authToken'},
+      );
+      _historyFailures.remove('write#$tokenId');
+      return data['updateUserViewedVideo'] is Map;
+    } on UnauthorizedException {
+      debugPrint('Watch position write refused (401)');
+      _onWebTokenUnauthorized(authToken);
+    } on VodApiException catch (e) {
+      debugPrint('Watch position write refused (integrity: ${e.isIntegrity})');
+      _historyFailed('write', tokenId, e);
+    } catch (e) {
+      debugPrint('Watch position write failed: ${e.runtimeType}');
+    }
+    return false;
+  }
 
   /// Names a web token without holding it (cache keys, the refused one).
   static String _tokenId(String authToken) =>

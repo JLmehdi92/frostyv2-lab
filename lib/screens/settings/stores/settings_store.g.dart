@@ -26,6 +26,13 @@ SettingsStore _$SettingsStoreFromJson(
         unknownValue: HomeTab.following,
       ) ??
       HomeTab.following
+  ..followedSort =
+      $enumDecodeNullable(
+        _$FollowedSortEnumMap,
+        json['followedSort'],
+        unknownValue: FollowedSort.viewers,
+      ) ??
+      FollowedSort.viewers
   ..streamLanguage = json['streamLanguage'] as String? ?? ''
   ..hiddenContentLabels =
       (json['hiddenContentLabels'] as List<dynamic>?)
@@ -37,6 +44,21 @@ SettingsStore _$SettingsStoreFromJson(
   ..showVideo = json['showVideo'] as bool? ?? true
   ..warnMatureContent = json['warnMatureContent'] as bool? ?? true
   ..showCaptions = json['showCaptions'] as bool? ?? false
+  ..captionSize =
+      $enumDecodeNullable(
+        _$CaptionSizeEnumMap,
+        json['captionSize'],
+        unknownValue: CaptionSize.medium,
+      ) ??
+      CaptionSize.medium
+  ..captionBackground =
+      $enumDecodeNullable(
+        _$CaptionBackgroundEnumMap,
+        json['captionBackground'],
+        unknownValue: CaptionBackground.black,
+      ) ??
+      CaptionBackground.black
+  ..captionLanguage = json['captionLanguage'] as String? ?? ''
   ..portraitVideoScale = (json['portraitVideoScale'] as num?)?.toDouble() ?? 1.0
   ..defaultToHighestQuality = json['defaultToHighestQuality'] as bool? ?? false
   ..useTextureRendering = json['useTextureRendering'] as bool? ?? true
@@ -128,6 +150,11 @@ SettingsStore _$SettingsStoreFromJson(
           .toList() ??
       []
   ..matchWholeWord = json['matchWholeWord'] as bool? ?? true
+  ..chatFiltersEnabled = json['chatFiltersEnabled'] as bool? ?? false
+  ..chatFilterDiscrimination = json['chatFilterDiscrimination'] as bool? ?? true
+  ..chatFilterSexual = json['chatFilterSexual'] as bool? ?? true
+  ..chatFilterHarassment = json['chatFilterHarassment'] as bool? ?? true
+  ..chatFilterProfanity = json['chatFilterProfanity'] as bool? ?? true
   ..shareCrashLogsAndAnalytics =
       json['shareCrashLogsAndAnalytics'] as bool? ?? true
   ..fullScreen = json['fullScreen'] as bool? ?? false
@@ -146,6 +173,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'showThumbnails': instance.showThumbnails,
   'largeStreamCard': instance.largeStreamCard,
   'startTab': _$HomeTabEnumMap[instance.startTab]!,
+  'followedSort': _$FollowedSortEnumMap[instance.followedSort]!,
   'streamLanguage': instance.streamLanguage,
   'hiddenContentLabels': instance.hiddenContentLabels,
   'launchUrlExternal': instance.launchUrlExternal,
@@ -153,6 +181,9 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'showVideo': instance.showVideo,
   'warnMatureContent': instance.warnMatureContent,
   'showCaptions': instance.showCaptions,
+  'captionSize': _$CaptionSizeEnumMap[instance.captionSize]!,
+  'captionBackground': _$CaptionBackgroundEnumMap[instance.captionBackground]!,
+  'captionLanguage': instance.captionLanguage,
   'portraitVideoScale': instance.portraitVideoScale,
   'defaultToHighestQuality': instance.defaultToHighestQuality,
   'useTextureRendering': instance.useTextureRendering,
@@ -204,6 +235,11 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'secondaryTabs': instance.secondaryTabs,
   'mutedWords': instance.mutedWords,
   'matchWholeWord': instance.matchWholeWord,
+  'chatFiltersEnabled': instance.chatFiltersEnabled,
+  'chatFilterDiscrimination': instance.chatFilterDiscrimination,
+  'chatFilterSexual': instance.chatFilterSexual,
+  'chatFilterHarassment': instance.chatFilterHarassment,
+  'chatFilterProfanity': instance.chatFilterProfanity,
   'shareCrashLogsAndAnalytics': instance.shareCrashLogsAndAnalytics,
   'fullScreen': instance.fullScreen,
   'fullScreenChatOverlay': instance.fullScreenChatOverlay,
@@ -220,6 +256,26 @@ const _$HomeTabEnumMap = {
   HomeTab.following: 'following',
   HomeTab.top: 'top',
   HomeTab.search: 'search',
+};
+
+const _$FollowedSortEnumMap = {
+  FollowedSort.viewers: 'viewers',
+  FollowedSort.recent: 'recent',
+  FollowedSort.name: 'name',
+  FollowedSort.category: 'category',
+};
+
+const _$CaptionSizeEnumMap = {
+  CaptionSize.small: 'small',
+  CaptionSize.medium: 'medium',
+  CaptionSize.large: 'large',
+  CaptionSize.extraLarge: 'extraLarge',
+};
+
+const _$CaptionBackgroundEnumMap = {
+  CaptionBackground.black: 'black',
+  CaptionBackground.translucent: 'translucent',
+  CaptionBackground.none: 'none',
 };
 
 const _$PlayerEngineEnumMap = {
@@ -357,6 +413,24 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     });
   }
 
+  late final _$followedSortAtom = Atom(
+    name: '_SettingsStoreBase.followedSort',
+    context: context,
+  );
+
+  @override
+  FollowedSort get followedSort {
+    _$followedSortAtom.reportRead();
+    return super.followedSort;
+  }
+
+  @override
+  set followedSort(FollowedSort value) {
+    _$followedSortAtom.reportWrite(value, super.followedSort, () {
+      super.followedSort = value;
+    });
+  }
+
   late final _$streamLanguageAtom = Atom(
     name: '_SettingsStoreBase.streamLanguage',
     context: context,
@@ -484,6 +558,60 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   set showCaptions(bool value) {
     _$showCaptionsAtom.reportWrite(value, super.showCaptions, () {
       super.showCaptions = value;
+    });
+  }
+
+  late final _$captionSizeAtom = Atom(
+    name: '_SettingsStoreBase.captionSize',
+    context: context,
+  );
+
+  @override
+  CaptionSize get captionSize {
+    _$captionSizeAtom.reportRead();
+    return super.captionSize;
+  }
+
+  @override
+  set captionSize(CaptionSize value) {
+    _$captionSizeAtom.reportWrite(value, super.captionSize, () {
+      super.captionSize = value;
+    });
+  }
+
+  late final _$captionBackgroundAtom = Atom(
+    name: '_SettingsStoreBase.captionBackground',
+    context: context,
+  );
+
+  @override
+  CaptionBackground get captionBackground {
+    _$captionBackgroundAtom.reportRead();
+    return super.captionBackground;
+  }
+
+  @override
+  set captionBackground(CaptionBackground value) {
+    _$captionBackgroundAtom.reportWrite(value, super.captionBackground, () {
+      super.captionBackground = value;
+    });
+  }
+
+  late final _$captionLanguageAtom = Atom(
+    name: '_SettingsStoreBase.captionLanguage',
+    context: context,
+  );
+
+  @override
+  String get captionLanguage {
+    _$captionLanguageAtom.reportRead();
+    return super.captionLanguage;
+  }
+
+  @override
+  set captionLanguage(String value) {
+    _$captionLanguageAtom.reportWrite(value, super.captionLanguage, () {
+      super.captionLanguage = value;
     });
   }
 
@@ -1459,6 +1587,104 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     });
   }
 
+  late final _$chatFiltersEnabledAtom = Atom(
+    name: '_SettingsStoreBase.chatFiltersEnabled',
+    context: context,
+  );
+
+  @override
+  bool get chatFiltersEnabled {
+    _$chatFiltersEnabledAtom.reportRead();
+    return super.chatFiltersEnabled;
+  }
+
+  @override
+  set chatFiltersEnabled(bool value) {
+    _$chatFiltersEnabledAtom.reportWrite(value, super.chatFiltersEnabled, () {
+      super.chatFiltersEnabled = value;
+    });
+  }
+
+  late final _$chatFilterDiscriminationAtom = Atom(
+    name: '_SettingsStoreBase.chatFilterDiscrimination',
+    context: context,
+  );
+
+  @override
+  bool get chatFilterDiscrimination {
+    _$chatFilterDiscriminationAtom.reportRead();
+    return super.chatFilterDiscrimination;
+  }
+
+  @override
+  set chatFilterDiscrimination(bool value) {
+    _$chatFilterDiscriminationAtom.reportWrite(
+      value,
+      super.chatFilterDiscrimination,
+      () {
+        super.chatFilterDiscrimination = value;
+      },
+    );
+  }
+
+  late final _$chatFilterSexualAtom = Atom(
+    name: '_SettingsStoreBase.chatFilterSexual',
+    context: context,
+  );
+
+  @override
+  bool get chatFilterSexual {
+    _$chatFilterSexualAtom.reportRead();
+    return super.chatFilterSexual;
+  }
+
+  @override
+  set chatFilterSexual(bool value) {
+    _$chatFilterSexualAtom.reportWrite(value, super.chatFilterSexual, () {
+      super.chatFilterSexual = value;
+    });
+  }
+
+  late final _$chatFilterHarassmentAtom = Atom(
+    name: '_SettingsStoreBase.chatFilterHarassment',
+    context: context,
+  );
+
+  @override
+  bool get chatFilterHarassment {
+    _$chatFilterHarassmentAtom.reportRead();
+    return super.chatFilterHarassment;
+  }
+
+  @override
+  set chatFilterHarassment(bool value) {
+    _$chatFilterHarassmentAtom.reportWrite(
+      value,
+      super.chatFilterHarassment,
+      () {
+        super.chatFilterHarassment = value;
+      },
+    );
+  }
+
+  late final _$chatFilterProfanityAtom = Atom(
+    name: '_SettingsStoreBase.chatFilterProfanity',
+    context: context,
+  );
+
+  @override
+  bool get chatFilterProfanity {
+    _$chatFilterProfanityAtom.reportRead();
+    return super.chatFilterProfanity;
+  }
+
+  @override
+  set chatFilterProfanity(bool value) {
+    _$chatFilterProfanityAtom.reportWrite(value, super.chatFilterProfanity, () {
+      super.chatFilterProfanity = value;
+    });
+  }
+
   late final _$shareCrashLogsAndAnalyticsAtom = Atom(
     name: '_SettingsStoreBase.shareCrashLogsAndAnalytics',
     context: context,
@@ -1624,6 +1850,7 @@ accentColor: ${accentColor},
 showThumbnails: ${showThumbnails},
 largeStreamCard: ${largeStreamCard},
 startTab: ${startTab},
+followedSort: ${followedSort},
 streamLanguage: ${streamLanguage},
 hiddenContentLabels: ${hiddenContentLabels},
 launchUrlExternal: ${launchUrlExternal},
@@ -1631,6 +1858,9 @@ mentionNotifications: ${mentionNotifications},
 showVideo: ${showVideo},
 warnMatureContent: ${warnMatureContent},
 showCaptions: ${showCaptions},
+captionSize: ${captionSize},
+captionBackground: ${captionBackground},
+captionLanguage: ${captionLanguage},
 portraitVideoScale: ${portraitVideoScale},
 defaultToHighestQuality: ${defaultToHighestQuality},
 useTextureRendering: ${useTextureRendering},
@@ -1683,6 +1913,11 @@ persistChatTabs: ${persistChatTabs},
 secondaryTabs: ${secondaryTabs},
 mutedWords: ${mutedWords},
 matchWholeWord: ${matchWholeWord},
+chatFiltersEnabled: ${chatFiltersEnabled},
+chatFilterDiscrimination: ${chatFilterDiscrimination},
+chatFilterSexual: ${chatFilterSexual},
+chatFilterHarassment: ${chatFilterHarassment},
+chatFilterProfanity: ${chatFilterProfanity},
 shareCrashLogsAndAnalytics: ${shareCrashLogsAndAnalytics},
 fullScreen: ${fullScreen},
 fullScreenChatOverlay: ${fullScreenChatOverlay},

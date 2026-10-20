@@ -35,6 +35,7 @@ class Vod {
     this.type,
     this.isRecording = false,
     this.isRestricted = false,
+    this.broadcastId,
   });
 
   /// Parses a GQL `Video` node. Optional fields that are missing or of the
@@ -51,6 +52,10 @@ class Vod {
     final ownerNode = node['owner'] is Map ? node['owner'] as Map : owner;
     final game = node['game'] is Map ? node['game'] as Map : null;
     final self = node['self'] is Map ? node['self'] as Map : null;
+    final broadcast = node['broadcast'] is Map
+        ? node['broadcast'] as Map
+        : null;
+    final broadcastId = _as<String>(broadcast?['id']);
     return Vod(
       id: id,
       title: _as<String>(node['title']) ?? '',
@@ -66,6 +71,10 @@ class Vod {
       type: VodType.fromGql(node['broadcastType']),
       isRecording: node['status'] == 'RECORDING',
       isRestricted: self?['isRestricted'] == true,
+      broadcastId:
+          broadcastId != null && RegExp(r'^[0-9]{1,20}$').hasMatch(broadcastId)
+          ? broadcastId
+          : null,
     );
   }
 
@@ -88,6 +97,10 @@ class Vod {
   /// Subscriber-only for the current (anonymous) viewer.
   final bool isRestricted;
 
+  /// The id of the live broadcast this video recorded (the live stream's
+  /// id), null when Twitch did not say.
+  final String? broadcastId;
+
   Duration get duration => Duration(seconds: lengthSeconds);
 }
 
@@ -102,6 +115,28 @@ class VodPage {
 
   /// Twitch has older videos than the ones returned.
   final bool hasMore;
+}
+
+/// What a watch position is about, as named by Twitch GQL `VideoType`: a
+/// live broadcast (named by its stream id) or a VOD.
+enum WatchedVideoType {
+  live('LIVE'),
+  vod('VOD');
+
+  const WatchedVideoType(this.gqlName);
+
+  final String gqlName;
+}
+
+/// Where the viewer stopped in a video, as Twitch remembers it for their
+/// account (`video.self.viewingHistory`), live sessions included.
+class ViewingHistory {
+  const ViewingHistory({required this.positionSec, this.updatedAt});
+
+  final int positionSec;
+
+  /// When it was saved (null when Twitch did not say).
+  final DateTime? updatedAt;
 }
 
 /// A copyright-muted part of a VOD, in seconds from the start.

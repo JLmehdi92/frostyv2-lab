@@ -44,6 +44,7 @@ const twitchUserResponse = {
 const twitchStreamResponse = {
   'data': [
     {
+      'id': '40000000001',
       'user_id': '12345',
       'user_login': 'testuser',
       'user_name': 'TestUser',

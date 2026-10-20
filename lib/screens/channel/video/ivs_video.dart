@@ -79,7 +79,13 @@ class IvsTextureVideo extends StatelessWidget {
                 right: 16,
                 bottom: 24,
                 child: IgnorePointer(
-                  child: Center(child: CaptionText(text: caption)),
+                  child: Center(
+                    child: CaptionText(
+                      text: caption,
+                      size: videoStore.settingsStore.captionSize,
+                      background: videoStore.settingsStore.captionBackground,
+                    ),
+                  ),
                 ),
               ),
           ],

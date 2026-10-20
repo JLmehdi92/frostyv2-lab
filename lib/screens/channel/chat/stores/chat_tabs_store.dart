@@ -5,10 +5,12 @@ import 'package:frosty/apis/bttv_api.dart';
 import 'package:frosty/apis/ffz_api.dart';
 import 'package:frosty/apis/seventv_api.dart';
 import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/apis/twitch_chat_rules_service.dart';
 import 'package:frosty/models/irc.dart';
 import 'package:frosty/models/user.dart';
 import 'package:frosty/screens/channel/chat/details/chat_details_store.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
+import 'package:frosty/screens/channel/chat/stores/chat_rules_store.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
@@ -106,6 +108,9 @@ abstract class ChatTabsStoreBase with Store {
 
   /// The viewer's EventSub topics, handed to each chat for held messages.
   final EventSubHandle Function(EventSubTopic topic)? listenEvents;
+
+  /// Reads each chat's rules (none are shown without it).
+  final TwitchChatRulesService? chatRulesService;
 
   /// The list of open chat tabs.
   @readonly
@@ -302,6 +307,7 @@ abstract class ChatTabsStoreBase with Store {
     required String primaryDisplayName,
     this.whisperStore,
     this.listenEvents,
+    this.chatRulesService,
   }) {
     // Enable wakelock once for all chat tabs
     if (settingsStore.keepScreenAwake) {
@@ -351,6 +357,15 @@ abstract class ChatTabsStoreBase with Store {
       twitchApi: twitchApi,
       whispers: whisperStore,
       listenEvents: listenEvents,
+      chatRules: switch (chatRulesService) {
+        final service? => ChatRulesStore(
+          service: service,
+          channelId: channelId,
+          viewerId: () =>
+              authStore.isLoggedIn ? authStore.user.details?.id : null,
+        ),
+        null => null,
+      },
       channelName: channelLogin,
       channelId: channelId,
       displayName: displayName,

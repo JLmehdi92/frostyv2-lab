@@ -19,6 +19,7 @@ import 'package:frosty/screens/channel/chat/moderation.dart';
 import 'package:frosty/screens/channel/chat/moderation_notice.dart';
 import 'package:frosty/screens/channel/chat/muted_words.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
+import 'package:frosty/screens/channel/chat/stores/chat_rules_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_character_counter.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
@@ -120,6 +121,10 @@ abstract class ChatStoreBase with Store {
 
   HeldMessageWatcher? _heldMessages;
 
+  /// The channel's chat rules and their gate on the input (null in tests
+  /// and when not given).
+  final ChatRulesStore? chatRules;
+
   /// The amount of messages to free (remove) when the [_messageLimit] is reached.
   final _messagesToRemove = (_messageLimit * 0.2).toInt();
 
@@ -214,6 +219,15 @@ abstract class ChatStoreBase with Store {
   @action
   void revealMessage(String id) {
     revealedMessageIds.add(id);
+  }
+
+  /// Messages the chat filters hid that the viewer chose to see ("Show
+  /// Message"), by id.
+  final revealedFilteredMessageIds = ObservableSet<String>();
+
+  @action
+  void revealFilteredMessage(String id) {
+    revealedFilteredMessageIds.add(id);
   }
 
   /// Timer used for dismissing the notification.
@@ -621,7 +635,13 @@ abstract class ChatStoreBase with Store {
     this.whispers,
     this.listenEvents,
     this.mentionAlerts,
+    this.chatRules,
   }) {
+    // The rules show before the first message, like the official app.
+    chatRules
+      ?..attach(textFieldFocusNode)
+      ..load();
+
     // Create a reaction that will reconnect to chat when logging in or out.
     // Closing the channel will trigger a reconnect with the new credentials.
     reactions.add(
@@ -1506,6 +1526,9 @@ abstract class ChatStoreBase with Store {
     // Do not send if the message is blank/empty.
     if (message.isEmpty) return;
 
+    // The rules come first, however the message was typed; the text stays.
+    if (chatRules?.gate() ?? false) return;
+
     // Twitch drops longer messages (text set by code skips the input's
     // limit).
     if (message.characters.length > kChatMessageMaxLength) {
@@ -1724,6 +1747,7 @@ abstract class ChatStoreBase with Store {
     sleepTimer?.cancel();
 
     _heldMessages?.dispose();
+    chatRules?.dispose();
 
     // Cancel WebSocket subscriptions
     _channelListener?.cancel();

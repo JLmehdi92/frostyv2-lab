@@ -6,8 +6,11 @@ import 'package:flutter/widgets.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_directory_service.dart';
+import 'package:frosty/apis/twitch_followed_categories_service.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
+import 'package:frosty/apis/twitch_watch_streak_service.dart';
 import 'package:frosty/models/category.dart';
+import 'package:frosty/models/followed_category.dart';
 import 'package:frosty/models/followed_channel.dart';
 import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/models/stream.dart';
@@ -47,6 +50,14 @@ abstract class ListStoreBase with Store {
 
   /// Sorted category lists and tag lists; anonymous GQL.
   final TwitchDirectoryService? directoryService;
+
+  /// The viewer's followed categories (Following only); private GQL with
+  /// the twitch.tv web token.
+  final TwitchFollowedCategoriesService? followedCategoriesService;
+
+  /// The viewer's watch streaks, tagged on followed cards like Twitch's
+  /// Following tab (Following only); private GQL with the web token.
+  final TwitchWatchStreakService? watchStreakService;
 
   /// The order of a category or tag list. A category in
   /// [StreamSort.viewersHigh] uses Helix and pages; any other order (and
@@ -119,18 +130,25 @@ abstract class ListStoreBase with Store {
   @observable
   var isOfflineChannelsExpanded = false;
 
-  /// The list of the fetched streams with blocked users filtered out.
+  /// The list of the fetched streams with blocked users filtered out, in
+  /// the viewer's order for Following.
   @computed
-  ObservableList<StreamTwitch> get streams => _allStreams
-      .where(
-        (streamInfo) =>
-            !authStore.user.blockedUsers
-                .map((blockedUser) => blockedUser.userId)
-                .contains(streamInfo.userId) &&
-            (_showLabeled || !_labeledIds.contains(streamInfo.userId)),
-      )
-      .toList()
-      .asObservable();
+  ObservableList<StreamTwitch> get streams {
+    final shown = _allStreams.where(
+      (streamInfo) =>
+          !authStore.user.blockedUsers
+              .map((blockedUser) => blockedUser.userId)
+              .contains(streamInfo.userId) &&
+          (_showLabeled || !_labeledIds.contains(streamInfo.userId)),
+    );
+    // Viewers is Helix's own order: kept as is, so a page loaded while
+    // scrolling never reorders the cards above it.
+    return (listType == ListType.followed &&
+                settingsStore.followedSort != FollowedSort.viewers
+            ? sortFollowedStreams(shown, settingsStore.followedSort)
+            : shown.toList())
+        .asObservable();
+  }
 
   /// All pinned channels (only live streams).
   @computed
@@ -140,9 +158,13 @@ abstract class ListStoreBase with Store {
         .toSet();
 
     // Get live pinned streams only
-    return _pinnedStreams
-        .where((stream) => !blockedUserIds.contains(stream.userId))
-        .toList();
+    final pinned = _pinnedStreams.where(
+      (stream) => !blockedUserIds.contains(stream.userId),
+    );
+    final sort = settingsStore.followedSort;
+    return sort == FollowedSort.viewers
+        ? pinned.toList()
+        : sortFollowedStreams(pinned, sort);
   }
 
   /// The list of offline followed channels with blocked users filtered out
@@ -165,6 +187,23 @@ abstract class ListStoreBase with Store {
         .toList()
         .asObservable();
   }
+
+  /// The categories the viewer follows (Following only; empty when Twitch
+  /// does not give them, which hides the section).
+  @readonly
+  List<FollowedCategory> _followedCategories = const [];
+
+  /// When Twitch last refused the followed categories: not asked again for
+  /// a while, so a refusal never turns into a request on every refresh.
+  DateTime? _followedCategoriesFailedAt;
+  static const _followedCategoriesBackoff = Duration(minutes: 30);
+
+  /// The viewer's running watch streaks by channel id (Following only).
+  @readonly
+  var _watchStreaks = ObservableMap<String, int>();
+
+  /// When Twitch last refused the streaks (same backoff as the categories).
+  DateTime? _watchStreaksFailedAt;
 
   /// Followed streams with a running hype train, by channel id.
   @readonly
@@ -224,6 +263,7 @@ abstract class ListStoreBase with Store {
 
   ReactionDisposer? _pinnedStreamsReactionDisposer;
   ReactionDisposer? _offlineChannelsExpansionDisposer;
+  ReactionDisposer? _followedSortReactionDisposer;
 
   ListStoreBase({
     required this.authStore,
@@ -233,6 +273,8 @@ abstract class ListStoreBase with Store {
     this.categoryId,
     this.tag,
     this.directoryService,
+    this.followedCategoriesService,
+    this.watchStreakService,
     this.scrollController,
     this.hypeTrainService,
     this.sort = StreamSort.viewersHigh,
@@ -263,6 +305,14 @@ abstract class ListStoreBase with Store {
       );
 
       getPinnedStreams();
+      unawaited(_getFollowedCategories());
+      unawaited(_getWatchStreaks());
+
+      // Any order but Helix's own needs every live channel to be right.
+      _followedSortReactionDisposer = reaction(
+        (_) => settingsStore.followedSort,
+        (_) => _loadAllForSort(),
+      );
 
       // Fetch offline channels only when expanded
       _offlineChannelsExpansionDisposer = reaction(
@@ -293,7 +343,10 @@ abstract class ListStoreBase with Store {
   @action
   Future<void> getStreams() async {
     final generation = _streamsGeneration;
-    if (_streamsCursor == null) _pagesHiddenInFull = 0;
+    if (_streamsCursor == null) {
+      _pagesHiddenInFull = 0;
+      _pagesForSort = 0;
+    }
     _isAllStreamsLoading = true;
 
     try {
@@ -379,6 +432,10 @@ abstract class ListStoreBase with Store {
     _isAllStreamsLoading = false;
     unawaited(_refreshHypeTrains());
 
+    if (generation == _streamsGeneration && _error == null) {
+      await _loadAllForSort();
+    }
+
     // Nothing to show when every stream so far was hidden for its labels,
     // and nothing scrolls to ask for more: ask now, a few pages at most.
     if (generation == _streamsGeneration &&
@@ -390,6 +447,25 @@ abstract class ListStoreBase with Store {
       _pagesHiddenInFull++;
       await getStreams();
     }
+  }
+
+  /// Pages asked for at once so Following can be sorted by something
+  /// other than viewers (Helix pages by viewers only).
+  var _pagesForSort = 0;
+  static const _maxPagesForSort = 5;
+
+  /// Loads the followed live channels left on later pages, when the order
+  /// needs all of them. Helix gives up to 100 per page, so this is rare.
+  Future<void> _loadAllForSort() async {
+    if (listType != ListType.followed ||
+        settingsStore.followedSort == FollowedSort.viewers ||
+        _isAllStreamsLoading ||
+        _streamsCursor == null ||
+        _pagesForSort >= _maxPagesForSort) {
+      return;
+    }
+    _pagesForSort++;
+    await getStreams();
   }
 
   /// Pages asked for in a row because the ones before were hidden in full.
@@ -443,6 +519,44 @@ abstract class ListStoreBase with Store {
     _isPinnedStreamsLoading = false;
   }
 
+  /// Reads the followed categories (never throws).
+  Future<void> _getFollowedCategories() async {
+    final service = followedCategoriesService;
+    final token = authStore.twitchWebToken;
+    if (listType != ListType.followed || service == null || token == null) {
+      return;
+    }
+    final failedAt = _followedCategoriesFailedAt;
+    if (failedAt != null &&
+        DateTime.now().difference(failedAt) < _followedCategoriesBackoff) {
+      return;
+    }
+    final categories = await service.getFollowedCategories(authToken: token);
+    runInAction(() {
+      _followedCategoriesFailedAt = categories == null ? DateTime.now() : null;
+      _followedCategories = categories ?? const [];
+    });
+  }
+
+  /// Reads the running watch streaks (never throws).
+  Future<void> _getWatchStreaks() async {
+    final service = watchStreakService;
+    final token = authStore.twitchWebToken;
+    if (listType != ListType.followed || service == null || token == null) {
+      return;
+    }
+    final failedAt = _watchStreaksFailedAt;
+    if (failedAt != null &&
+        DateTime.now().difference(failedAt) < _followedCategoriesBackoff) {
+      return;
+    }
+    final streaks = await service.getStreaks(authToken: token);
+    runInAction(() {
+      _watchStreaksFailedAt = streaks == null ? DateTime.now() : null;
+      _watchStreaks = ObservableMap.of(streaks ?? const {});
+    });
+  }
+
   @action
   Future<void> getOfflineChannels() async {
     _isOfflineChannelsLoading = true;
@@ -483,6 +597,10 @@ abstract class ListStoreBase with Store {
 
     if (listType == ListType.followed) {
       await getPinnedStreams();
+      // Optional extras on private GQL: a slow gql.twitch.tv must never hold
+      // the live list back. Neither throws.
+      unawaited(_getFollowedCategories());
+      unawaited(_getWatchStreaks());
 
       // Only refresh offline channels if they are currently expanded
       if (isOfflineChannelsExpanded) {
@@ -537,9 +655,52 @@ abstract class ListStoreBase with Store {
     _labelsReactionDisposer?.call();
     _pinnedStreamsReactionDisposer?.call();
     _offlineChannelsExpansionDisposer?.call();
+    _followedSortReactionDisposer?.call();
 
     scrollController?.removeListener(_onScroll);
   }
+}
+
+/// [streams] in [sort] order (a new list; ties keep Helix's order).
+List<StreamTwitch> sortFollowedStreams(
+  Iterable<StreamTwitch> streams,
+  FollowedSort sort,
+) {
+  final sorted = streams.toList();
+  int byViewers(StreamTwitch a, StreamTwitch b) =>
+      b.viewerCount.compareTo(a.viewerCount);
+  int byName(StreamTwitch a, StreamTwitch b) =>
+      a.userName.toLowerCase().compareTo(b.userName.toLowerCase());
+  final Comparator<StreamTwitch> compare = switch (sort) {
+    FollowedSort.viewers => byViewers,
+    FollowedSort.recent => (a, b) {
+      final started = (
+        DateTime.tryParse(a.startedAt),
+        DateTime.tryParse(b.startedAt),
+      );
+      return switch (started) {
+        (final x?, final y?) => y.compareTo(x),
+        (null, null) => 0,
+        (null, _) => 1,
+        (_, null) => -1,
+      };
+    },
+    FollowedSort.name => byName,
+    FollowedSort.category => (a, b) {
+      final x = a.gameName.toLowerCase();
+      final y = b.gameName.toLowerCase();
+      if (x.isEmpty != y.isEmpty) return x.isEmpty ? 1 : -1;
+      final byGame = x.compareTo(y);
+      return byGame != 0 ? byGame : byViewers(a, b);
+    },
+  };
+  // A stable sort: List.sort is not guaranteed to be.
+  final indexed = sorted.indexed.toList()
+    ..sort((a, b) {
+      final order = compare(a.$2, b.$2);
+      return order != 0 ? order : a.$1.compareTo(b.$1);
+    });
+  return [for (final (_, stream) in indexed) stream];
 }
 
 /// The possible types of lists that can be displayed.

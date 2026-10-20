@@ -141,6 +141,7 @@ mixin _$MiniPlayerStore on MiniPlayerStoreBase, Store {
     required String userLogin,
     required String userId,
     required String displayName,
+    LiveProgressTracker? liveProgress,
   }) {
     final _$actionInfo = _$MiniPlayerStoreBaseActionController.startAction(
       name: 'MiniPlayerStoreBase.adopt',
@@ -152,6 +153,7 @@ mixin _$MiniPlayerStore on MiniPlayerStoreBase, Store {
         userLogin: userLogin,
         userId: userId,
         displayName: displayName,
+        liveProgress: liveProgress,
       );
     } finally {
       _$MiniPlayerStoreBaseActionController.endAction(_$actionInfo);
@@ -159,7 +161,12 @@ mixin _$MiniPlayerStore on MiniPlayerStoreBase, Store {
   }
 
   @override
-  ({ChatTabsStore? chat, IvsVideoStore? player}) release() {
+  ({
+    ChatTabsStore? chat,
+    LiveProgressTracker? liveProgress,
+    IvsVideoStore? player,
+  })
+  release() {
     final _$actionInfo = _$MiniPlayerStoreBaseActionController.startAction(
       name: 'MiniPlayerStoreBase.release',
     );

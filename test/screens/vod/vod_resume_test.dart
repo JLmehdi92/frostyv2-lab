@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/models/vod.dart';
+import 'package:frosty/screens/channel/video/live_progress.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:frosty/screens/vod/vod_resume.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -61,6 +63,53 @@ void main() {
       expect((await repo.entry('1'))?.positionSec, 100);
     });
 
+    test('a recording VOD is never finished: its end moves', () async {
+      await repo.save('1', positionSec: 3590, lengthSec: 3600, recording: true);
+
+      final entry = await repo.entry('1');
+      expect(entry?.finished, isFalse);
+      expect(entry?.positionSec, 3590);
+    });
+
+    test('each account keeps its own positions', () async {
+      await repo.save('1', positionSec: 600, lengthSec: 3600, viewer: '11');
+      await repo.save('1', positionSec: 900, lengthSec: 3600, viewer: '22');
+
+      expect((await repo.entry('1', viewer: '11'))?.positionSec, 600);
+      expect((await repo.entry('1', viewer: '22'))?.positionSec, 900);
+      expect(await repo.entry('1'), isNull, reason: 'logged out');
+      expect(await repo.entry('1', viewer: '33'), isNull);
+      expect((await repo.snapshot(viewer: '22'))['1']?.positionSec, 900);
+      expect(await repo.snapshot(viewer: '33'), isEmpty);
+    });
+
+    test('positions saved before accounts were kept apart stay', () async {
+      SharedPreferences.setMockInitialValues({
+        'vod_resume_v1': jsonEncode({
+          '1': {'p': 120, 'l': 3600, 'u': 1},
+          '2': {'p': 240, 'l': 3600, 'u': 2},
+        }),
+      });
+      await repo.save('2', positionSec: 480, lengthSec: 3600, viewer: '11');
+
+      expect((await repo.entry('1', viewer: '11'))?.positionSec, 120);
+      expect((await repo.entry('2', viewer: '11'))?.positionSec, 480);
+      expect((await repo.entry('2'))?.positionSec, 240);
+      final all = await repo.snapshot(viewer: '11');
+      expect(all.map((id, e) => MapEntry(id, e.positionSec)), {
+        '1': 120,
+        '2': 480,
+      });
+    });
+
+    test('an entry knows when it was saved', () async {
+      final before = DateTime.now();
+      await repo.save('1', positionSec: 600, lengthSec: 3600);
+
+      final at = (await repo.entry('1'))!.updatedAt!;
+      expect(at.isBefore(before.subtract(const Duration(seconds: 1))), isFalse);
+    });
+
     test('wrongly typed entries are skipped', () async {
       SharedPreferences.setMockInitialValues({
         'vod_resume_v1': jsonEncode({
@@ -111,6 +160,177 @@ void main() {
         Duration.zero,
       );
       expect(startPositionFor(), Duration.zero);
+    });
+  });
+
+  group('startPositionFor with the account and the live', () {
+    final older = DateTime.utc(2026, 10, 19, 20);
+    final newer = DateTime.utc(2026, 10, 20, 9);
+
+    VodResumeEntry local(int position, {DateTime? at, bool finished = false}) =>
+        VodResumeEntry(
+          positionSec: position,
+          lengthSec: 36000,
+          finished: finished,
+          updatedAt: at,
+        );
+
+    LiveProgressEntry live(int offset, {DateTime? at}) => LiveProgressEntry(
+      streamId: '318071962212',
+      channelId: '42',
+      startedAt: DateTime.utc(2026, 10, 19, 18),
+      offsetSec: offset,
+      updatedAt: at ?? older,
+    );
+
+    Duration start({
+      VodResumeEntry? saved,
+      ViewingHistory? server,
+      LiveProgressEntry? liveEntry,
+      Duration? deepLink,
+      int length = 36000,
+    }) => startPositionFor(
+      saved: saved,
+      server: server,
+      live: liveEntry,
+      deepLink: deepLink,
+      lengthSec: length,
+    );
+
+    test('the account position, as is, when nothing is saved here', () {
+      expect(
+        start(server: const ViewingHistory(positionSec: 5400)),
+        const Duration(seconds: 5400),
+      );
+    });
+
+    test('where the live was left, 30 s before, as a last resort', () {
+      expect(start(liveEntry: live(7200)), const Duration(seconds: 7170));
+      expect(start(liveEntry: live(20)), Duration.zero);
+    });
+
+    test('in order: link, this device, the account, the live', () {
+      expect(
+        start(
+          deepLink: const Duration(seconds: 42),
+          saved: local(600),
+          server: const ViewingHistory(positionSec: 5400),
+          liveEntry: live(7200),
+        ),
+        const Duration(seconds: 42),
+      );
+      expect(
+        start(
+          saved: local(600),
+          server: const ViewingHistory(positionSec: 5400),
+          liveEntry: live(7200),
+        ),
+        const Duration(seconds: 570),
+      );
+      expect(
+        start(
+          server: const ViewingHistory(positionSec: 5400),
+          liveEntry: live(7200),
+        ),
+        const Duration(seconds: 5400),
+      );
+    });
+
+    test('a later position wins over an earlier one', () {
+      // Watched on another device since this one saved.
+      expect(
+        start(
+          saved: local(600, at: older),
+          server: ViewingHistory(positionSec: 5400, updatedAt: newer),
+        ),
+        const Duration(seconds: 5400),
+      );
+      expect(
+        start(
+          saved: local(600, at: newer),
+          server: ViewingHistory(positionSec: 5400, updatedAt: older),
+        ),
+        const Duration(seconds: 570),
+      );
+      // Twitch did not take the live position (refused): ours is later.
+      expect(
+        start(
+          server: ViewingHistory(positionSec: 300, updatedAt: older),
+          liveEntry: live(7200, at: newer),
+        ),
+        const Duration(seconds: 7170),
+      );
+      // Without a time, the order decides.
+      expect(
+        start(
+          server: const ViewingHistory(positionSec: 300),
+          liveEntry: live(7200, at: newer),
+        ),
+        const Duration(seconds: 300),
+      );
+    });
+
+    test('at the very end, or past it, the video starts over', () {
+      expect(
+        start(server: const ViewingHistory(positionSec: 35990)),
+        Duration.zero,
+      );
+      expect(start(liveEntry: live(40000)), Duration.zero);
+      expect(
+        start(
+          saved: local(0, finished: true, at: newer),
+          liveEntry: live(900),
+        ),
+        Duration.zero,
+      );
+    });
+
+    test('positions saved together (device and account) keep the order', () {
+      // The account's clock is a few seconds off this device's.
+      expect(
+        start(
+          saved: local(600, at: older),
+          server: ViewingHistory(
+            positionSec: 600,
+            updatedAt: older.add(const Duration(seconds: 40)),
+          ),
+        ),
+        const Duration(seconds: 570),
+      );
+    });
+
+    test('a recording VOD saved as finished is not a restart', () {
+      expect(
+        startPositionFor(
+          saved: local(0, finished: true, at: newer),
+          live: live(7200),
+          lengthSec: 7180,
+          nearEndRestarts: false,
+        ),
+        const Duration(seconds: 7170),
+      );
+    });
+
+    test('once recorded, a VOD saved while recording resumes there', () {
+      // Saved at 3590 of the 3600 s recorded then; now 5 hours long.
+      expect(
+        startPositionFor(
+          saved: const VodResumeEntry(positionSec: 3590, lengthSec: 3600),
+          lengthSec: 18000,
+        ),
+        const Duration(seconds: 3560),
+      );
+    });
+
+    test('a recording VOD keeps the live position at its moving end', () {
+      expect(
+        startPositionFor(
+          live: live(7200),
+          lengthSec: 7180,
+          nearEndRestarts: false,
+        ),
+        const Duration(seconds: 7170),
+      );
     });
   });
 
@@ -182,6 +402,51 @@ void main() {
       await controller.close();
 
       expect(await saved(), 900, reason: 'not moved back by the -30 s start');
+    });
+
+    test('saves go to the viewer\'s account and entries', () async {
+      final reported = <int>[];
+      controller.cancel();
+      controller = VodResumeController(
+        vodId: '1',
+        player: () => player,
+        repository: repo,
+        viewer: () => '11',
+        report: (position) async {
+          reported.add(position);
+          return true;
+        },
+      )..start();
+
+      await controller.save();
+      expect(reported, isEmpty, reason: 'not started yet');
+
+      started();
+      await controller.close();
+
+      expect(reported, [600]);
+      expect((await repo.entry('1', viewer: '11'))?.positionSec, 600);
+      expect(await repo.entry('1'), isNull);
+    });
+
+    test('a recording VOD is saved as is near its moving end', () async {
+      controller.cancel();
+      player
+        ..position = const Duration(seconds: 3590)
+        ..duration = const Duration(hours: 1);
+      controller = VodResumeController(
+        vodId: '1',
+        player: () => player,
+        repository: repo,
+        recording: true,
+      )..start();
+      started();
+
+      await controller.close();
+
+      final entry = await repo.entry('1');
+      expect(entry?.finished, isFalse);
+      expect(entry?.positionSec, 3590);
     });
 
     test('every save is announced so lists can refresh', () async {

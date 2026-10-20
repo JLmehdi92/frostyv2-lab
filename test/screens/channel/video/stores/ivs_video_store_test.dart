@@ -254,6 +254,23 @@ void main() {
       });
     });
 
+    test("the stream's caption tracks reach the menu", () async {
+      store = await createStore();
+      await native.emit({
+        'type': 'textTracks',
+        'list': [
+          {'id': 'a', 'label': 'English', 'language': 'en'},
+          {'id': 'b', 'label': 'Deutsch', 'language': 'de'},
+        ],
+        'selected': 'a',
+      });
+
+      expect(store.captions.tracks.map((t) => t.name), ['English', 'Deutsch']);
+      store.captions.selectTrack(store.captions.tracks.last);
+      await settle();
+      expect(native.callsNamed('setTextTrack').last.arguments, {'id': 'b'});
+    });
+
     test('each load asks for them again', () async {
       settingsStore.showCaptions = true;
       store = await createStore();
