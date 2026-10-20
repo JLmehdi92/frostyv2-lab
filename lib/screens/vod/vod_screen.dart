@@ -14,15 +14,18 @@ import 'package:frosty/screens/channel/video/web_content_gate.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/player_media.dart';
 import 'package:frosty/screens/vod/stores/ivs_vod_store.dart';
+import 'package:frosty/screens/vod/stores/up_next_store.dart';
 import 'package:frosty/screens/vod/stores/vod_chat_replay_store.dart';
 import 'package:frosty/screens/vod/stores/web_vod_store.dart';
 import 'package:frosty/screens/vod/vod_overlay.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:frosty/screens/vod/vod_resume.dart';
+import 'package:frosty/screens/vod/widgets/up_next_overlay.dart';
 import 'package:frosty/screens/vod/widgets/vod_chat_replay.dart';
 import 'package:frosty/screens/vod/widgets/vod_error_view.dart';
 import 'package:frosty/screens/vod/widgets/vod_info_strip.dart';
 import 'package:frosty/screens/vod/widgets/vod_video.dart';
+import 'package:frosty/services/network_metering.dart';
 import 'package:frosty/services/playback_focus.dart';
 import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/theme.dart';
@@ -139,6 +142,10 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
       runInAction(() => _currentPlayer.value = player);
   VodChatReplayStore? _replay;
 
+  /// What plays next at the end (null until the video is known, and for a
+  /// broadcast still recording: its end is only the live edge).
+  UpNextStore? _upNext;
+
   /// The labels of a mature-content warning waiting for the viewer (null
   /// when none). Like the official app, nothing plays until they accept:
   /// the player is only built then, at [_gatedStart].
@@ -241,6 +248,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
       _loadError = null;
       _vod = loaded;
       _replay = _buildReplay(loaded);
+      _upNext = loaded.isRecording ? null : _buildUpNext(loaded);
       if (labels.isEmpty) {
         _player = _buildPlayer(loaded, startAt: startAt);
       } else {
@@ -320,6 +328,38 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
       _player = _buildPlayer(vod, startAt: _gatedStart);
     });
     _bindReplay();
+  }
+
+  UpNextStore _buildUpNext(Vod vod) => UpNextStore(
+    current: vod,
+    channelVideos: () async => vod.ownerLogin.isEmpty
+        ? const <Vod>[]
+        : (await _service.getChannelVideos(login: vod.ownerLogin)).items,
+    similarVideos: (gameId) async =>
+        (await _service.getCategoryVideos(gameId)).items,
+    savedPositions: () =>
+        _resumeRepository.snapshot(viewer: _service.viewerId?.call()),
+    autoplay: () => _settings.vodAutoplay,
+    isMetered: NetworkMetering.shared.isMetered,
+    onPlay: _playNext,
+  );
+
+  /// Replaces this video with [next], so videos never pile up on the stack
+  /// (the closing save marks this one watched).
+  void _playNext(Vod next) {
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        settings: const RouteSettings(name: VodScreen.routeName),
+        builder: (context) => VodScreen(
+          vodId: next.id,
+          vod: next,
+          playerFactory: widget.playerFactory,
+          replayFactory: widget.replayFactory,
+        ),
+      ),
+    );
   }
 
   void _retryMetadata() {
@@ -409,6 +449,24 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
           _miniPlayer.close();
           reclaimPipCallbacks(_pipKey);
         }),
+      );
+    final upNext = _upNext;
+    if (upNext == null) return;
+    _disposers
+      ..add(
+        // The end offers what comes next; playing again (a replay, a
+        // seek back) takes the offer away until the next end.
+        reaction((_) => player.ended, (bool ended) {
+          if (ended) {
+            unawaited(upNext.onEnded());
+          } else {
+            upNext.reset();
+          }
+        }, fireImmediately: true),
+      )
+      ..add(
+        // In picture-in-picture the card cannot be seen: no countdown.
+        reaction((_) => player.isInPipMode, upNext.hold, fireImmediately: true),
       );
   }
 
@@ -591,6 +649,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
             );
           },
         ),
+        if (_upNext case final upNext?) UpNextOverlay(store: upNext),
       ],
     );
   }
@@ -785,11 +844,16 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
       }
       _player?.dispose();
       _replay?.dispose();
-      SystemChrome.setEnabledSystemUIMode(
-        SystemUiMode.manual,
-        overlays: SystemUiOverlay.values,
-      );
-      SystemChrome.setPreferredOrientations([]);
+      _upNext?.dispose();
+      // A video replaced by the next one leaves the system bars and the
+      // rotation to the screen now on top.
+      if (_hasFocus) {
+        SystemChrome.setEnabledSystemUIMode(
+          SystemUiMode.manual,
+          overlays: SystemUiOverlay.values,
+        );
+        SystemChrome.setPreferredOrientations([]);
+      }
     } finally {
       // Last: the screen beneath resumes (after this frame) once released.
       final wasTop = _hasFocus;
