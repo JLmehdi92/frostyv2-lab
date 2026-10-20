@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frosty/screens/clips/clips_feed_screen.dart';
 import 'package:frosty/screens/home/home_store.dart';
 import 'package:frosty/screens/home/stream_list/stream_list_store.dart';
 import 'package:frosty/screens/home/stream_list/streams_list.dart';
@@ -57,12 +58,20 @@ class _TopSectionState extends State<TopSection>
               left: MediaQuery.of(context).padding.left,
               right: MediaQuery.of(context).padding.right,
             ),
-            child: TabBar(
-              isScrollable: true,
-              controller: _tabBarController,
-              tabs: const [
-                Tab(child: Text('Streams')),
-                Tab(child: Text('Categories')),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TabBar(
+                    isScrollable: true,
+                    controller: _tabBarController,
+                    tabs: const [
+                      Tab(child: Text('Streams')),
+                      Tab(child: Text('Categories')),
+                    ],
+                  ),
+                ),
+                // Twitch's vertical clips feed, full screen.
+                const ClipsFeedButton(),
               ],
             ),
           ),
