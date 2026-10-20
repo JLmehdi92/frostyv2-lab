@@ -7,7 +7,8 @@ import 'package:intl/intl.dart';
 
 /// The top of a channel's profile: banner, avatar (red ring while live),
 /// name with the partner check, followers, the live or rerun badge, and
-/// Watch (live) or Chat (offline), Share and More.
+/// Watch (live) or Chat (offline), Subscribe (as on Twitch's profile card,
+/// for a channel that has subscriptions), Share and More.
 class ProfileHeader extends StatelessWidget {
   const ProfileHeader({
     super.key,
@@ -17,6 +18,7 @@ class ProfileHeader extends StatelessWidget {
     required this.onOpenChannel,
     required this.onShare,
     this.onMore,
+    this.onSubscribe,
   });
 
   final String login;
@@ -29,6 +31,10 @@ class ProfileHeader extends StatelessWidget {
   final VoidCallback onOpenChannel;
   final VoidCallback onShare;
   final VoidCallback? onMore;
+
+  /// Opens the channel's subscription page; shown only for a partner or an
+  /// affiliate.
+  final VoidCallback? onSubscribe;
 
   static const _avatarRadius = 36.0;
 
@@ -171,6 +177,14 @@ class ProfileHeader extends StatelessWidget {
                     ),
                     label: Text(live != null ? 'Watch' : 'Chat'),
                   ),
+                  if (onSubscribe != null &&
+                      (profile?.role == BroadcasterRole.partner ||
+                          profile?.role == BroadcasterRole.affiliate))
+                    FilledButton.tonalIcon(
+                      onPressed: onSubscribe,
+                      icon: const Icon(Icons.star_border_rounded),
+                      label: const Text('Subscribe'),
+                    ),
                   FilledButton.tonalIcon(
                     onPressed: onShare,
                     icon: const Icon(Icons.link_rounded),

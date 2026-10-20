@@ -15,6 +15,7 @@ import 'package:frosty/screens/settings/settings.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
+import 'package:frosty/utils/twitch_links.dart';
 import 'package:frosty/widgets/animated_scroll_border.dart';
 import 'package:frosty/widgets/frosty_scrollbar.dart';
 import 'package:frosty/widgets/section_header.dart';
@@ -368,6 +369,33 @@ class _ChatDetailsState extends State<ChatDetails> {
                 );
               },
             ),
+          // Twitch's Subscribe and Gift a Sub: purchases happen on the
+          // channel's twitch.tv subscription page.
+          if (widget.chatStore.auth.isLoggedIn &&
+              widget.chatStore.auth.user.details?.login.toLowerCase() !=
+                  widget.userLogin.toLowerCase())
+            if (twitchSubscribeUrl(widget.userLogin) case final url?) ...[
+              ListTile(
+                leading: const Icon(Icons.star_border_rounded),
+                title: const Text('Subscribe'),
+                subtitle: const Text('Opens twitch.tv'),
+                trailing: const Icon(Icons.open_in_new_rounded),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  TwitchWebPage.open(context, title: 'Subscribe', url: url);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.card_giftcard_rounded),
+                title: const Text('Gift a Sub'),
+                subtitle: const Text('Opens twitch.tv'),
+                trailing: const Icon(Icons.open_in_new_rounded),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  TwitchWebPage.open(context, title: 'Gift a Sub', url: url);
+                },
+              ),
+            ],
           if (widget.chatStore.canModerate)
             ListTile(
               leading: const Icon(Icons.shield_outlined),
