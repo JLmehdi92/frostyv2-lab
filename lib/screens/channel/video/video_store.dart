@@ -10,6 +10,7 @@ import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/channel/video/content_warning_gate.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:frosty/screens/channel/video/web_content_gate.dart';
+import 'package:frosty/screens/channel/video/web_page_init.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:mobx/mobx.dart';
@@ -41,11 +42,19 @@ abstract class VideoStoreBase with Store implements WebPagePlayer {
 
   var _firstTimeSettingQuality = true;
 
-  /// Whether [initVideo] should run on the next [onPageFinished].
+  /// Runs [initVideo] once per load of the player page (after its
+  /// low-latency check).
   ///
   /// Dart-controlled instead of JS-side (`window._injected`) to avoid race
   /// conditions when `loadRequest` fires before the previous page fully loads.
-  var _needsInit = true;
+  late final _pageInit = WebPageInit(
+    isPlayerPage: (url) => url == videoUrl,
+    ensureLowLatency: _ensureLowLatencyMode,
+    init: () async {
+      await initVideo();
+      _acceptContentWarning();
+    },
+  );
 
   /// The video web view params used for enabling auto play.
   late final PlatformWebViewControllerCreationParams _videoWebViewParams;
@@ -137,17 +146,7 @@ abstract class VideoStoreBase with Store implements WebPagePlayer {
           },
         )
         ..setNavigationDelegate(
-          NavigationDelegate(
-            onPageFinished: (url) async {
-              if (url != videoUrl) return;
-              if (!_needsInit) return;
-              // The page loads again with low latency on: init then.
-              if (await _ensureLowLatencyMode()) return;
-              _needsInit = false;
-              await initVideo();
-              _acceptContentWarning();
-            },
-          ),
+          NavigationDelegate(onPageFinished: _pageInit.onPageFinished),
         );
 
   /// The timer that handles hiding the overlay automatically
@@ -281,14 +280,8 @@ $kTwitchWebGateShownJs
   static bool reloadRequested(Object? result) =>
       result == true || result == 'true';
 
-  /// Tried once per player: a page that would not keep the setting must
-  /// not reload forever.
-  var _lowLatencyChecked = false;
-
   /// True when the page is reloading to turn low latency back on.
   Future<bool> _ensureLowLatencyMode() async {
-    if (_lowLatencyChecked) return false;
-    _lowLatencyChecked = true;
     try {
       return reloadRequested(
         await videoWebViewController.runJavaScriptReturningResult(
@@ -1110,7 +1103,7 @@ $kTwitchWebGateShownJs
     _availableStreamQualities = [];
 
     // Signal that initVideo() should run on the next onPageFinished
-    _needsInit = true;
+    _pageInit.needsInit = true;
 
     try {
       videoWebViewController.runJavaScript('window._latencyTracker?.stop()');
