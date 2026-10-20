@@ -108,6 +108,14 @@ class VideoSettings extends StatelessWidget {
               value: settingsStore.backgroundAudio,
               onChanged: (newValue) => settingsStore.backgroundAudio = newValue,
             ),
+          SettingsListSelect(
+            title: 'Video Autoplaying',
+            subtitle: 'Choose when videos should play automatically',
+            selectedOption: settingsStore.vodAutoplay.label,
+            options: [for (final option in VodAutoplay.values) option.label],
+            onChanged: (label) => settingsStore.vodAutoplay = VodAutoplay.values
+                .firstWhere((option) => option.label == label),
+          ),
           SettingsListSwitch(
             title: 'Warn about mature content',
             subtitle: const Text(
