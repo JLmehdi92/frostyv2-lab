@@ -17,6 +17,7 @@ import 'package:intl/intl.dart';
 import 'package:mobx/mobx.dart';
 import 'package:simple_pip_mode/actions/pip_actions_layout.dart';
 import 'package:simple_pip_mode/pip_widget.dart';
+import 'package:simple_pip_mode/simple_pip.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 /// Builds the player of a feed clip (tests pass a fake); [focused] is false
@@ -35,10 +36,14 @@ class ClipsFeedScreen extends StatefulWidget {
     super.key,
     @visibleForTesting this.store,
     @visibleForTesting this.playerFactory,
+    @visibleForTesting this.disableAutoPip,
   });
 
   final ClipsFeedStore? store;
   final FeedPlayerFactory? playerFactory;
+
+  /// Turns Android's auto-PiP off (tests count the calls).
+  final VoidCallback? disableAutoPip;
 
   static Future<void> open(BuildContext context) => Navigator.push(
     context,
@@ -79,6 +84,18 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
   ReactionDisposer? _disposeClipsReaction;
 
   bool get _hasFocus => identical(PlaybackFocus.shared.top, this);
+
+  /// A player only turns auto-PiP off when disposed with focus, and the
+  /// feed takes focus from a clip before letting it go: with no clip
+  /// playing (the end page, the feed closing) the feed turns it off itself.
+  void _disableAutoPip() {
+    final disable = widget.disableAutoPip;
+    if (disable != null) {
+      disable();
+    } else if (Platform.isAndroid) {
+      SimplePip().setAutoPipMode(autoEnter: false);
+    }
+  }
 
   @override
   void initState() {
@@ -143,6 +160,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
       }
       if (start) _started = index;
     }
+    if (!wanted.contains(_index) && _hasFocus) _disableAutoPip();
     setState(() {});
   }
 
@@ -450,6 +468,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
         player.dispose();
       }
       _players.clear();
+      if (_hasFocus) _disableAutoPip();
     } finally {
       final wasTop = _hasFocus;
       PlaybackFocus.shared.release(this);

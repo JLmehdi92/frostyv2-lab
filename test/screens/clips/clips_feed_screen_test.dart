@@ -37,12 +37,14 @@ void main() {
   late MockMiniPlayerStore mini;
   late List<(String, bool)> built;
   late Map<String, FakeVodController> players;
+  late int autoPipOff;
 
   setUp(() {
     service = MockClipService();
     mini = MockMiniPlayerStore();
     built = [];
     players = {};
+    autoPipOff = 0;
     when(() => mini.close()).thenReturn(null);
     when(() => mini.visible).thenReturn(false);
   });
@@ -65,6 +67,7 @@ void main() {
         child: MaterialApp(
           home: ClipsFeedScreen(
             store: ClipsFeedStore(clipService: service),
+            disableAutoPip: () => autoPipOff++,
             playerFactory: (clip, {required focused}) {
               built.add((clip.slug, focused));
               return players[clip.slug] = FakeVodController();
@@ -204,6 +207,18 @@ void main() {
 
     expect(players['a']!.calls, contains('togglePlay'));
     await close(tester);
+  });
+
+  testWidgets('no clip left playing: auto-PiP is turned off', (tester) async {
+    await pump(tester, first: ClipFeedPage(items: [clip('a')]));
+    expect(autoPipOff, 0);
+
+    await swipeUp(tester);
+    expect(autoPipOff, greaterThan(0), reason: 'the end page plays nothing');
+
+    final before = autoPipOff;
+    await close(tester);
+    expect(autoPipOff, greaterThan(before), reason: 'closing the feed');
   });
 
   testWidgets('the end of the feed says so', (tester) async {
