@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_clip_service.dart';
@@ -125,6 +127,37 @@ void main() {
       players.values.where((p) => !p.calls.contains('dispose')),
       hasLength(2),
       reason: 'never more than two players',
+    );
+    await close(tester);
+  });
+
+  testWidgets('more clips arriving never restart a paused clip', (
+    tester,
+  ) async {
+    final more = Completer<ClipFeedPage>();
+    when(
+      () => service.getTopClips(
+        cursor: 'Mg==',
+        language: any(named: 'language'),
+      ),
+    ).thenAnswer((_) => more.future);
+    await pump(
+      tester,
+      first: ClipFeedPage(items: [clip('a'), clip('b')], cursor: 'Mg=='),
+    );
+
+    await swipeUp(tester);
+    final current = players['b']!;
+    final plays = current.calls.where((c) => c == 'play').length;
+    more.complete(ClipFeedPage(items: [clip('c'), clip('d')]));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('Clip b'), findsOneWidget);
+    expect(
+      current.calls.where((c) => c == 'play'),
+      hasLength(plays),
+      reason: 'the viewer may have paused it',
     );
     await close(tester);
   });

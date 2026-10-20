@@ -69,6 +69,10 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
   final _players = <int, VodPlayerController>{};
   var _index = 0;
 
+  /// The clip last started as the current one: a later sync (more clips
+  /// arriving) must not start it again after the viewer paused it.
+  int? _started;
+
   /// Whether the clip was playing when another player took focus.
   var _playingBeforeFocusLoss = false;
 
@@ -124,16 +128,15 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
     for (final index in wanted) {
       final current = index == _index;
       final existing = _players[index];
+      final start = current && _hasFocus && _started != index;
       if (existing == null) {
-        _players[index] = _createPlayer(
-          clips[index],
-          focused: current && _hasFocus,
-        );
-      } else if (current && _hasFocus) {
+        _players[index] = _createPlayer(clips[index], focused: start);
+      } else if (start) {
         existing
           ..setFocused(true)
           ..play();
       }
+      if (start) _started = index;
     }
     setState(() {});
   }
