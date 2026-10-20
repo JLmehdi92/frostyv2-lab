@@ -216,6 +216,15 @@ abstract class ChatStoreBase with Store {
     revealedMessageIds.add(id);
   }
 
+  /// Messages the chat filters hid that the viewer chose to see ("Show
+  /// Message"), by id.
+  final revealedFilteredMessageIds = ObservableSet<String>();
+
+  @action
+  void revealFilteredMessage(String id) {
+    revealedFilteredMessageIds.add(id);
+  }
+
   /// Timer used for dismissing the notification.
   Timer? _notificationTimer;
 

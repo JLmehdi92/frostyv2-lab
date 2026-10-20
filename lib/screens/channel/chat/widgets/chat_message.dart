@@ -9,9 +9,11 @@ import 'package:frosty/models/user.dart';
 import 'package:frosty/models/user_notice.dart';
 import 'package:frosty/models/user_notice_presentation.dart';
 import 'package:frosty/screens/channel/chat/chat_commands.dart';
+import 'package:frosty/screens/channel/chat/chat_filters.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_link_card.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_user_modal.dart';
+import 'package:frosty/screens/channel/chat/widgets/filtered_message_sheet.dart';
 import 'package:frosty/screens/channel/chat/widgets/overlay_chat_scope.dart';
 import 'package:frosty/screens/channel/chat/widgets/reply_thread.dart';
 import 'package:frosty/screens/channel/chat/widgets/user_notice_row.dart';
@@ -165,6 +167,31 @@ class ChatMessage extends StatelessWidget {
                 chatStore.auth.user.details?.login.toLowerCase());
   }
 
+  /// The id the viewer's "Show Message" is remembered under.
+  String get _filterKey =>
+      ircMessage.tags['id'] ?? 'local-${identityHashCode(ircMessage)}';
+
+  /// The chat filters to apply to this message, or null when nothing of it
+  /// is hidden: filters off, a channel the viewer moderates ("you will
+  /// still see all messages"), nothing rated high enough, or revealed.
+  ChatFilterSettings? get _chatFilters {
+    if (!chatStore.settings.chatFiltersEnabled) return null;
+    final filters = ChatFilterSettings.of(chatStore.settings);
+    if (!ircMessage.isFiltered(filters) || chatStore.canModerate) return null;
+    if (chatStore.revealedFilteredMessageIds.contains(_filterKey)) return null;
+    return filters;
+  }
+
+  /// Twitch's "Message Blocked" question; "Show Message" reveals it.
+  Future<void> _onTapFiltered(BuildContext context) async {
+    if (isModal) return;
+    final show = await showModalBottomSheet<bool>(
+      context: context,
+      builder: (context) => const FilteredMessageSheet(),
+    );
+    if (show == true) chatStore.revealFilteredMessage(_filterKey);
+  }
+
   void onLongPressMessage(BuildContext context, TextStyle defaultTextStyle) {
     HapticFeedback.lightImpact();
 
@@ -205,6 +232,7 @@ class ChatMessage extends StatelessWidget {
                       chatStore.assetsStore.channelIdToUserTwitch,
                   currentChannelId:
                       overrideCurrentChannelId ?? chatStore.channelId,
+                  chatFilters: _chatFilters,
                 ),
                 style: defaultTextStyle,
               ),
@@ -332,6 +360,8 @@ class ChatMessage extends StatelessWidget {
                       chatStore.assetsStore.channelIdToUserTwitch,
                   currentChannelId:
                       overrideCurrentChannelId ?? chatStore.channelId,
+                  chatFilters: _chatFilters,
+                  onTapFiltered: () => _onTapFiltered(context),
                 ),
               ),
             );
@@ -522,6 +552,8 @@ class ChatMessage extends StatelessWidget {
                             chatStore.assetsStore.channelIdToUserTwitch,
                         currentChannelId:
                             overrideCurrentChannelId ?? chatStore.channelId,
+                        chatFilters: _chatFilters,
+                        onTapFiltered: () => _onTapFiltered(context),
                       ),
                     ),
                   ),

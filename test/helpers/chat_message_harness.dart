@@ -48,6 +48,11 @@ MockChatStore fakeChatStore({
     revealed.add(invocation.positionalArguments.first as String);
   });
   when(() => store.canModerate).thenReturn(false);
+  final revealedFiltered = ObservableSet<String>();
+  when(() => store.revealedFilteredMessageIds).thenReturn(revealedFiltered);
+  when(() => store.revealFilteredMessage(any())).thenAnswer((invocation) {
+    revealedFiltered.add(invocation.positionalArguments.first as String);
+  });
   when(() => store.updateNotification(any())).thenReturn(null);
   return store;
 }
