@@ -275,11 +275,16 @@ Future<bool> runGoLiveTask({
   if (prefs.checkedWithin(kGoLiveMinGap, now())) return true;
   final token = await readToken();
   if (token == null) return true;
+  // The app may have checked while the token was read: read its state
+  // again, so both do not announce the same channels.
+  await prefs.reload();
+  if (prefs.checkedWithin(kGoLiveMinGap, now())) return true;
   try {
     await checkGoLive(
       api: buildApi(token),
       prefs: prefs,
       notify: notify,
+      minGap: kGoLiveMinGap,
       now: now,
     );
     await prefs.setProblem(null);

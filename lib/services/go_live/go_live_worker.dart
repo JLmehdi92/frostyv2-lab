@@ -132,6 +132,9 @@ abstract final class GoLiveNotifications {
       'Go live',
       channelDescription: 'When channels you follow go live',
       groupKey: 'frosty.goLive',
+      // A channel announced twice (the app and the background task at the
+      // same moment) replaces its notice without a second alert.
+      onlyAlertOnce: true,
     ),
     iOS: DarwinNotificationDetails(threadIdentifier: 'go_live'),
   );

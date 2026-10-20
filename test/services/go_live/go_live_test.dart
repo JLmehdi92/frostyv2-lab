@@ -419,6 +419,33 @@ void main() {
       );
     });
 
+    test('the app checking while the token is read wins', () async {
+      await prefs.setProblem(kGoLiveLoggedOut);
+      final result = await runGoLiveTask(
+        readToken: () async {
+          // The app's own check claims the slot meanwhile.
+          await prefs.setCheckedAt(now);
+          return token;
+        },
+        buildApi: (_) => api,
+        prefs: prefs,
+        notify: (_, _) async {},
+        notifyProblem: (message) async => problems.add(message),
+        report: (error, _) => reported.add(error),
+        now: () => now.add(const Duration(seconds: 1)),
+      );
+      expect(result, isTrue);
+      verifyNever(
+        () => api.getFollowedStreams(
+          id: any(named: 'id'),
+          cursor: any(named: 'cursor'),
+          first: any(named: 'first'),
+        ),
+      );
+      // Skipped, so it says nothing about the token.
+      expect(prefs.problem, kGoLiveLoggedOut);
+    });
+
     test('offline: retried later without a report', () async {
       answer(const NetworkException('offline'));
       expect(await run(), isFalse);
