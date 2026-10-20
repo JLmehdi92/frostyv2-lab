@@ -5,6 +5,7 @@ import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/settings/widgets/go_live_setting.dart';
 import 'package:frosty/screens/settings/widgets/hidden_content_labels_setting.dart';
+import 'package:frosty/screens/settings/widgets/mention_notification_setting.dart';
 import 'package:frosty/screens/settings/widgets/settings_list_select.dart';
 import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
 import 'package:frosty/screens/settings/widgets/stream_language_setting.dart';
@@ -58,6 +59,12 @@ class GeneralSettings extends StatelessWidget {
                 userId: auth.isLoggedIn ? auth.user.details?.id : null,
               );
             },
+          ),
+          Observer(
+            builder: (context) => MentionNotificationSetting(
+              settingsStore: settingsStore,
+              loggedIn: context.read<AuthStore>().isLoggedIn,
+            ),
           ),
           const SectionHeader('Links'),
           ExternalBrowserSetting(settingsStore: settingsStore),

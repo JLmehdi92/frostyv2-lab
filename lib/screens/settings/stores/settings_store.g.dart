@@ -33,6 +33,7 @@ SettingsStore _$SettingsStoreFromJson(
           .toList() ??
       []
   ..launchUrlExternal = json['launchUrlExternal'] as bool? ?? false
+  ..mentionNotifications = json['mentionNotifications'] as bool? ?? true
   ..showVideo = json['showVideo'] as bool? ?? true
   ..warnMatureContent = json['warnMatureContent'] as bool? ?? true
   ..showCaptions = json['showCaptions'] as bool? ?? false
@@ -148,6 +149,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'streamLanguage': instance.streamLanguage,
   'hiddenContentLabels': instance.hiddenContentLabels,
   'launchUrlExternal': instance.launchUrlExternal,
+  'mentionNotifications': instance.mentionNotifications,
   'showVideo': instance.showVideo,
   'warnMatureContent': instance.warnMatureContent,
   'showCaptions': instance.showCaptions,
@@ -407,6 +409,28 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     _$launchUrlExternalAtom.reportWrite(value, super.launchUrlExternal, () {
       super.launchUrlExternal = value;
     });
+  }
+
+  late final _$mentionNotificationsAtom = Atom(
+    name: '_SettingsStoreBase.mentionNotifications',
+    context: context,
+  );
+
+  @override
+  bool get mentionNotifications {
+    _$mentionNotificationsAtom.reportRead();
+    return super.mentionNotifications;
+  }
+
+  @override
+  set mentionNotifications(bool value) {
+    _$mentionNotificationsAtom.reportWrite(
+      value,
+      super.mentionNotifications,
+      () {
+        super.mentionNotifications = value;
+      },
+    );
   }
 
   late final _$showVideoAtom = Atom(
@@ -1603,6 +1627,7 @@ startTab: ${startTab},
 streamLanguage: ${streamLanguage},
 hiddenContentLabels: ${hiddenContentLabels},
 launchUrlExternal: ${launchUrlExternal},
+mentionNotifications: ${mentionNotifications},
 showVideo: ${showVideo},
 warnMatureContent: ${warnMatureContent},
 showCaptions: ${showCaptions},

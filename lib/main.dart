@@ -44,6 +44,7 @@ import 'package:frosty/services/go_live/go_live.dart';
 import 'package:frosty/services/go_live/go_live_poller.dart';
 import 'package:frosty/services/go_live/go_live_worker.dart';
 import 'package:frosty/services/notifications/activity_log.dart';
+import 'package:frosty/services/notifications/mention_alerts.dart';
 import 'package:frosty/services/onset_updater.dart';
 import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:frosty/services/realtime/twitch_realtime_client.dart';
@@ -222,6 +223,15 @@ void main() async {
   final activityStore = ActivityStore(log: await ActivityLog.load());
   unawaited(activityStore.refresh());
   AppLifecycleListener(onResume: () => unawaited(activityStore.refresh()));
+
+  // Mentions in a connected chat while the app is not in front.
+  MentionAlerts.shared = MentionAlerts(
+    post: (notice) async {
+      await MentionNotifications.show(notice);
+      await activityStore.addAll([mentionEntry(notice, DateTime.now())]);
+    },
+    inFront: appInFront,
+  );
 
   // Faster go-live notices while the app is alive (in front, in
   // picture-in-picture, or playing in the background); the background

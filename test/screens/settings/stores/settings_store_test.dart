@@ -174,6 +174,31 @@ void main() {
     });
   });
 
+  group('mentionNotifications', () {
+    test('is on by default, also for settings saved before it existed', () {
+      expect(SettingsStore.fromJson({}).mentionNotifications, isTrue);
+      expect(
+        SettingsStore.fromJson({'showVideo': true}).mentionNotifications,
+        isTrue,
+      );
+    });
+
+    test('round-trips through JSON', () {
+      final store = SettingsStore.fromJson({})..mentionNotifications = false;
+      expect(
+        SettingsStore.fromJson(store.toJson()).mentionNotifications,
+        isFalse,
+      );
+    });
+
+    test('resetGeneralSettings turns it back on', () {
+      final store = SettingsStore.fromJson({})
+        ..mentionNotifications = false
+        ..resetGeneralSettings();
+      expect(store.mentionNotifications, isTrue);
+    });
+  });
+
   group('showHypeTrain', () {
     test('is on by default, also for settings saved before it existed', () {
       expect(SettingsStore.fromJson({}).showHypeTrain, isTrue);

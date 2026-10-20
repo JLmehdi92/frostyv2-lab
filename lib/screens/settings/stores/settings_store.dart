@@ -35,6 +35,9 @@ abstract class _SettingsStoreBase with Store {
   // Links defaults
   static const defaultLaunchUrlExternal = false;
 
+  // Notifications defaults
+  static const defaultMentionNotifications = true;
+
   // Theme options
   @JsonKey(defaultValue: defaultThemeType, unknownEnumValue: ThemeType.system)
   @observable
@@ -75,6 +78,14 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var launchUrlExternal = defaultLaunchUrlExternal;
 
+  // Notifications options
+
+  /// A notice when someone mentions the viewer in a chat they are
+  /// connected to while the app is in the background or in PiP.
+  @JsonKey(defaultValue: defaultMentionNotifications)
+  @observable
+  var mentionNotifications = defaultMentionNotifications;
+
   @action
   void resetGeneralSettings() {
     themeType = defaultThemeType;
@@ -88,6 +99,8 @@ abstract class _SettingsStoreBase with Store {
     startTab = defaultStartTab;
 
     launchUrlExternal = defaultLaunchUrlExternal;
+
+    mentionNotifications = defaultMentionNotifications;
   }
 
   // * Video Settings
