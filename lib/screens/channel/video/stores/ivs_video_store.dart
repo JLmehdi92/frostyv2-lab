@@ -212,8 +212,10 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   /// A paused live stream played again after this long resumes at the live
   /// edge (like a fresh start) instead of where it stopped: picking up a
   /// call-length pause where it left off would keep the picture that far
-  /// behind the chat until the speed-up caught up, if ever.
-  static const resumeAtLiveAfter = Duration(seconds: 3);
+  /// behind the chat until the speed-up caught up, if ever. A quick pause
+  /// tap stays below it: the speed-up absorbs a few seconds, a reload would
+  /// cost a visible rebuffer.
+  static const resumeAtLiveAfter = Duration(seconds: 10);
 
   final DateTime Function() _now;
 
@@ -1191,6 +1193,8 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   @override
   @action
   Future<void> handleRefresh() async {
+    // The viewer's own way out: the guard may try jumping again.
+    _liveEdge.reset();
     _latency = null;
     _latencyMs = null;
     _lastLatencySecond = null;

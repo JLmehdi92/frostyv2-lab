@@ -492,7 +492,8 @@ void main() {
 
       store.handlePausePlay();
       await native.emit({'type': 'state', 'state': 'IDLE'});
-      now = now.add(const Duration(seconds: 2));
+      // A quick pause tap (under ten seconds) must not cost a reload.
+      now = now.add(const Duration(seconds: 9));
 
       store.handlePausePlay();
       await tick(0, 0);
