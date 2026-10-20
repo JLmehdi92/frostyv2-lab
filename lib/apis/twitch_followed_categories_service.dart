@@ -63,6 +63,14 @@ class TwitchFollowedCategoriesService extends BaseApiClient {
     }
   }
 
+  /// The twitch.tv page of the category [gameId], where the viewer follows
+  /// or unfollows it with Twitch's own button. By the slug, else by [name].
+  Future<Uri> categoryPageUrl(String gameId, {required String name}) async =>
+      FollowedCategory.twitchUrlFor(
+        slug: await getCategorySlug(gameId),
+        name: name,
+      );
+
   /// The twitch.tv slug of the category [gameId] (anonymous), or null.
   Future<String?> getCategorySlug(String gameId) async {
     if (!_numericId.hasMatch(gameId)) return null;

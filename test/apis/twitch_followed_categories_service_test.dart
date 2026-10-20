@@ -171,6 +171,30 @@ void main() {
     });
   });
 
+  group('the follow link of a category page', () {
+    test('opens the category on twitch.tv by its slug', () async {
+      reply({
+        'data': {
+          'game': {'slug': 'chess'},
+        },
+      });
+
+      expect(
+        await service.categoryPageUrl('743', name: 'Chess'),
+        Uri.https('www.twitch.tv', '/directory/category/chess'),
+      );
+    });
+
+    test('falls back to the name when the slug is unknown', () async {
+      reply({'data': null});
+
+      expect(
+        await service.categoryPageUrl('743', name: 'Chess'),
+        Uri.https('www.twitch.tv', '/directory/game/Chess'),
+      );
+    });
+  });
+
   group('the twitch.tv page of a category', () {
     test('uses the slug, or the name when the slug is unknown', () {
       expect(
