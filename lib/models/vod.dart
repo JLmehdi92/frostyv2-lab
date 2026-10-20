@@ -35,6 +35,7 @@ class Vod {
     this.type,
     this.isRecording = false,
     this.isRestricted = false,
+    this.broadcastId,
   });
 
   /// Parses a GQL `Video` node. Optional fields that are missing or of the
@@ -51,6 +52,10 @@ class Vod {
     final ownerNode = node['owner'] is Map ? node['owner'] as Map : owner;
     final game = node['game'] is Map ? node['game'] as Map : null;
     final self = node['self'] is Map ? node['self'] as Map : null;
+    final broadcast = node['broadcast'] is Map
+        ? node['broadcast'] as Map
+        : null;
+    final broadcastId = _as<String>(broadcast?['id']);
     return Vod(
       id: id,
       title: _as<String>(node['title']) ?? '',
@@ -66,6 +71,10 @@ class Vod {
       type: VodType.fromGql(node['broadcastType']),
       isRecording: node['status'] == 'RECORDING',
       isRestricted: self?['isRestricted'] == true,
+      broadcastId:
+          broadcastId != null && RegExp(r'^[0-9]{1,20}$').hasMatch(broadcastId)
+          ? broadcastId
+          : null,
     );
   }
 
@@ -87,6 +96,10 @@ class Vod {
 
   /// Subscriber-only for the current (anonymous) viewer.
   final bool isRestricted;
+
+  /// The id of the live broadcast this video recorded (the live stream's
+  /// id), null when Twitch did not say.
+  final String? broadcastId;
 
   Duration get duration => Duration(seconds: lengthSeconds);
 }

@@ -63,7 +63,8 @@ class TwitchVodService extends BaseApiClient {
   static const _videoFields =
       'id title lengthSeconds createdAt viewCount status broadcastType '
       'previewThumbnailURL(width: 640, height: 360) game { id name } '
-      'owner { id login displayName } self { isRestricted }';
+      'owner { id login displayName } broadcast { id } '
+      'self { isRestricted }';
 
   static const _channelVideosQuery =
       'query ChannelVideos(\$login: String!, \$type: BroadcastType, '
