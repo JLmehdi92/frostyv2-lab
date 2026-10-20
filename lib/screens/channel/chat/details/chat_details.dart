@@ -11,6 +11,7 @@ import 'package:frosty/screens/channel/chat/details/chat_mode_controls.dart';
 import 'package:frosty/screens/channel/chat/details/chat_modes.dart';
 import 'package:frosty/screens/channel/chat/details/chat_users_list.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
+import 'package:frosty/screens/channel/chat/widgets/chat_rules_sheet.dart';
 import 'package:frosty/screens/settings/settings.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/context_extensions.dart';
@@ -385,6 +386,7 @@ class _ChatDetailsState extends State<ChatDetails> {
                 ),
               ),
             ),
+          ChatRulesTile(rules: widget.chatStore.chatRules),
           ListTile(
             leading: const Icon(Icons.people_rounded),
             title: const Text('Chatters'),

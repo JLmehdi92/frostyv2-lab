@@ -19,6 +19,7 @@ import 'package:frosty/apis/seventv_api.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_auth_interceptor.dart';
 import 'package:frosty/apis/twitch_channel_profile_service.dart';
+import 'package:frosty/apis/twitch_chat_rules_service.dart';
 import 'package:frosty/apis/twitch_clip_service.dart';
 import 'package:frosty/apis/twitch_community_highlights_service.dart';
 import 'package:frosty/apis/twitch_directory_service.dart';
@@ -151,6 +152,7 @@ void main() async {
     anonymousGqlDio,
   );
   final twitchDirectoryService = TwitchDirectoryService(anonymousGqlDio);
+  final twitchChatRulesService = TwitchChatRulesService(anonymousGqlDio);
 
   // One anonymous realtime connection (Hermes) for public Twitch topics such
   // as the hype train. It connects only when something subscribes and
@@ -247,6 +249,7 @@ void main() async {
           value: twitchChannelProfileService,
         ),
         Provider<TwitchDirectoryService>.value(value: twitchDirectoryService),
+        Provider<TwitchChatRulesService>.value(value: twitchChatRulesService),
         Provider<TwitchRealtimeClient>.value(value: realtimeClient),
         Provider<GlobalAssetsStore>.value(value: globalAssetsStore),
         Provider<TwitchEventSubClient>.value(value: eventSubClient),

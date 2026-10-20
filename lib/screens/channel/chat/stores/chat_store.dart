@@ -19,6 +19,7 @@ import 'package:frosty/screens/channel/chat/moderation.dart';
 import 'package:frosty/screens/channel/chat/moderation_notice.dart';
 import 'package:frosty/screens/channel/chat/muted_words.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
+import 'package:frosty/screens/channel/chat/stores/chat_rules_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_character_counter.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
@@ -114,6 +115,10 @@ abstract class ChatStoreBase with Store {
   final EventSubHandle Function(EventSubTopic topic)? listenEvents;
 
   HeldMessageWatcher? _heldMessages;
+
+  /// The channel's chat rules and their gate on the input (null in tests
+  /// and when not given).
+  final ChatRulesStore? chatRules;
 
   /// The amount of messages to free (remove) when the [_messageLimit] is reached.
   final _messagesToRemove = (_messageLimit * 0.2).toInt();
@@ -615,7 +620,13 @@ abstract class ChatStoreBase with Store {
     required this.displayName,
     this.whispers,
     this.listenEvents,
+    this.chatRules,
   }) {
+    // The rules show before the first message, like the official app.
+    chatRules
+      ?..attach(textFieldFocusNode)
+      ..load();
+
     // Create a reaction that will reconnect to chat when logging in or out.
     // Closing the channel will trigger a reconnect with the new credentials.
     reactions.add(
@@ -1706,6 +1717,7 @@ abstract class ChatStoreBase with Store {
     sleepTimer?.cancel();
 
     _heldMessages?.dispose();
+    chatRules?.dispose();
 
     // Cancel WebSocket subscriptions
     _channelListener?.cancel();

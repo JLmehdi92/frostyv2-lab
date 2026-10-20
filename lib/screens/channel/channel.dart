@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:frosty/apis/twitch_chat_rules_service.dart';
 import 'package:frosty/models/community_highlights.dart';
 import 'package:frosty/screens/channel/channel_top_overlays.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
@@ -151,6 +152,7 @@ class _VideoChatState extends State<VideoChat>
           globalAssetsStore: context.globalAssetsStore,
           whisperStore: context.read<WhisperStore>(),
           listenEvents: context.read<TwitchEventSubClient>().listen,
+          chatRulesService: context.read<TwitchChatRulesService>(),
           primaryChannelId: widget.userId,
           primaryChannelLogin: widget.userLogin,
           primaryDisplayName: widget.userName,
