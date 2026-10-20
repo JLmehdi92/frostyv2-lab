@@ -255,18 +255,22 @@ void main() async {
   // task covers the rest. Both share the same state, so nothing is
   // announced twice.
   final goLivePoller = GoLivePoller(
-    check: () async => checkGoLiveInApp(
-      api: twitchApiService,
-      prefs: await GoLivePrefs.load(),
-      loggedIn: authStore.isLoggedIn,
-      notify: (notices, more) async {
-        await GoLiveNotifications.show(notices, more);
-        final now = DateTime.now();
-        await activityStore.addAll([
-          for (final notice in notices) goLiveEntry(notice, now),
-        ]);
-      },
-    ),
+    check: () async {
+      // Nothing can show before the plugin is set up (just after launch).
+      await GoLiveNotifications.ready.timeout(const Duration(seconds: 20));
+      await checkGoLiveInApp(
+        api: twitchApiService,
+        prefs: await GoLivePrefs.load(),
+        loggedIn: authStore.isLoggedIn,
+        notify: (notices, more) async {
+          await GoLiveNotifications.show(notices, more);
+          final now = DateTime.now();
+          await activityStore.addAll([
+            for (final notice in notices) goLiveEntry(notice, now),
+          ]);
+        },
+      );
+    },
     playingInBackground: () => BackgroundAudio.shared.playing,
   );
   AppLifecycleListener(onStateChange: goLivePoller.onLifecycle);

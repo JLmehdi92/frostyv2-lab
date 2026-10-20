@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -135,6 +136,11 @@ abstract final class GoLiveNotifications {
     iOS: DarwinNotificationDetails(threadIdentifier: 'go_live'),
   );
 
+  static final _ready = Completer<void>();
+
+  /// Done once [init] has set the plugin up: nothing shows before.
+  static Future<void> get ready => _ready.future;
+
   /// [onOpen] gets the login of a tapped notice while the app runs.
   static Future<void> init({void Function(String login)? onOpen}) async {
     await _plugin.initialize(
@@ -151,6 +157,7 @@ abstract final class GoLiveNotifications {
         if (login != null) onOpen?.call(login);
       },
     );
+    if (!_ready.isCompleted) _ready.complete();
   }
 
   /// The login a notice carries, or null when it is not one.
