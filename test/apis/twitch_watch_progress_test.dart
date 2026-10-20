@@ -211,6 +211,48 @@ void main() {
     );
   });
 
+  group('transient GQL errors', () {
+    const busy = {
+      'errors': [
+        {'message': 'service timeout'},
+      ],
+      'data': null,
+    };
+
+    Future<bool> write() => service.updateViewedVideo(
+      videoId: '318071962212',
+      type: WatchedVideoType.live,
+      positionSec: 60,
+    );
+
+    test('one does not stop the next save', () async {
+      answer = (o, h) => h.resolve(ok(o, busy));
+      expect(await write(), isFalse);
+      answer = (o, h) => h.resolve(ok(o, written));
+      expect(await write(), isTrue);
+      expect(sent, hasLength(2));
+    });
+
+    test('three in a row stop that kind of request', () async {
+      answer = (o, h) => h.resolve(ok(o, busy));
+      for (var i = 0; i < 4; i++) {
+        expect(await write(), isFalse);
+        expect(await service.getViewingHistory('2905941597'), isNull);
+      }
+      expect(sent, hasLength(6));
+    });
+
+    test('a success in between starts the count again', () async {
+      for (var i = 0; i < 3; i++) {
+        answer = (o, h) => h.resolve(ok(o, busy));
+        await write();
+        await write();
+        answer = (o, h) => h.resolve(ok(o, written));
+        expect(await write(), isTrue);
+      }
+    });
+  });
+
   group('getViewingHistory', () {
     test('reads where the viewer left the video, as the viewer', () async {
       answer = (o, h) => h.resolve(

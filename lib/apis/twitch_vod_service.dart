@@ -484,11 +484,23 @@ class TwitchVodService extends BaseApiClient {
   /// The identity of the last web token Twitch refused with a 401.
   String? _refusedWebToken;
 
-  /// The web tokens (by identity) whose watch-position reads, or writes,
-  /// Twitch answered with a GQL error (an integrity check, a schema change):
-  /// not asked again with them this session.
-  final _historyReadsRefused = <String>{};
-  final _historyWritesRefused = <String>{};
+  /// GQL errors in a row for each kind of watch-position request and web
+  /// token (`read#token`, `write#token`, tokens by identity). At
+  /// [_historyMaxFailures] (at once for an integrity check), that request
+  /// is not sent again with that token this session: Twitch changed it or
+  /// keeps refusing it. A success starts the count again.
+  final _historyFailures = <String, int>{};
+  static const _historyMaxFailures = 3;
+
+  bool _historyRefused(String kind, String tokenId) =>
+      (_historyFailures['$kind#$tokenId'] ?? 0) >= _historyMaxFailures;
+
+  void _historyFailed(String kind, String tokenId, VodApiException e) {
+    final key = '$kind#$tokenId';
+    _historyFailures[key] = e.isIntegrity
+        ? _historyMaxFailures
+        : (_historyFailures[key] ?? 0) + 1;
+  }
 
   /// The viewer's web token, when there is one that Twitch did not refuse.
   String? get _usableWebToken {
@@ -521,7 +533,7 @@ class TwitchVodService extends BaseApiClient {
     final authToken = _usableWebToken;
     if (id == null || authToken == null) return null;
     final tokenId = _tokenId(authToken);
-    if (_historyReadsRefused.contains(tokenId)) return null;
+    if (_historyRefused('read', tokenId)) return null;
     try {
       final data = await _gql(
         'VideoViewingHistory',
@@ -529,6 +541,7 @@ class TwitchVodService extends BaseApiClient {
         {'id': id},
         headers: {'Authorization': 'OAuth $authToken'},
       );
+      _historyFailures.remove('read#$tokenId');
       final video = data['video'];
       final self = video is Map ? video['self'] : null;
       final history = self is Map ? self['viewingHistory'] : null;
@@ -543,7 +556,7 @@ class TwitchVodService extends BaseApiClient {
       _onWebTokenUnauthorized(authToken);
     } on VodApiException catch (e) {
       debugPrint('Watch position read refused (integrity: ${e.isIntegrity})');
-      _historyReadsRefused.add(tokenId);
+      _historyFailed('read', tokenId, e);
     } catch (e) {
       debugPrint('Watch position read failed: ${e.runtimeType}');
     }
@@ -570,7 +583,7 @@ class TwitchVodService extends BaseApiClient {
       return false;
     }
     final tokenId = _tokenId(authToken);
-    if (_historyWritesRefused.contains(tokenId)) return false;
+    if (_historyRefused('write', tokenId)) return false;
     try {
       final data = await _gql(
         'UpdateUserViewedVideo',
@@ -585,13 +598,14 @@ class TwitchVodService extends BaseApiClient {
         },
         headers: {'Authorization': 'OAuth $authToken'},
       );
+      _historyFailures.remove('write#$tokenId');
       return data['updateUserViewedVideo'] is Map;
     } on UnauthorizedException {
       debugPrint('Watch position write refused (401)');
       _onWebTokenUnauthorized(authToken);
     } on VodApiException catch (e) {
       debugPrint('Watch position write refused (integrity: ${e.isIntegrity})');
-      _historyWritesRefused.add(tokenId);
+      _historyFailed('write', tokenId, e);
     } catch (e) {
       debugPrint('Watch position write failed: ${e.runtimeType}');
     }
