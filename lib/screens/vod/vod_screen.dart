@@ -342,12 +342,21 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     autoplay: () => _settings.vodAutoplay,
     isMetered: NetworkMetering.shared.isMetered,
     onPlay: _playNext,
+    isVisible: _isCurrentRoute,
   );
+
+  /// Nothing (a category page, a sheet, a channel) covers this screen.
+  bool _isCurrentRoute() =>
+      mounted && (ModalRoute.of(context)?.isCurrent ?? true);
 
   /// Replaces this video with [next], so videos never pile up on the stack
   /// (the closing save marks this one watched).
   void _playNext(Vod next) {
-    if (!mounted) return;
+    // Only this screen is ever replaced, never one covering it.
+    if (!_isCurrentRoute()) {
+      _upNext?.reset();
+      return;
+    }
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -487,6 +496,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   }
 
   void _onFocusLost() {
+    _upNext?.hold(true, reason: UpNextHold.focus);
     final player = _player;
     if (player == null) return;
     player.setFocused(false);
@@ -501,6 +511,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     // this one (popUntil), and must finish disposing first.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      _upNext?.hold(false, reason: UpNextHold.focus);
       final player = _player;
       // A channel handed to the mini player keeps playing and keeps PiP:
       // stay paused and unfocused until the viewer presses play.

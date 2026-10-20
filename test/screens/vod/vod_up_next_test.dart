@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
@@ -176,6 +178,43 @@ void main() {
       findsOneWidget,
       reason: 'the next end offers it again',
     );
+    await close(tester);
+  });
+
+  testWidgets('a screen over the VOD holds the countdown, never replaced', (
+    tester,
+  ) async {
+    await pump(tester, first);
+    await settle(tester);
+    players[first.id]!.status = VodPlaybackStatus.ended;
+    await settle(tester);
+    expect(find.textContaining('10 seconds'), findsOneWidget);
+
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    unawaited(
+      navigator.push(
+        MaterialPageRoute<void>(
+          builder: (_) => const Scaffold(body: Text('Category page')),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 15));
+    await settle(tester);
+
+    expect(find.text('Category page'), findsOneWidget);
+    expect(players.keys, isNot(contains(second.id)));
+
+    navigator.pop();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 11));
+    await settle(tester);
+    await tester.pumpAndSettle();
+
+    expect(players.keys, contains(second.id), reason: 'resumes once visible');
+    expect(find.byType(VodScreen), findsOneWidget);
     await close(tester);
   });
 

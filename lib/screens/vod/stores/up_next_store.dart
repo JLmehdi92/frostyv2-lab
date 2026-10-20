@@ -33,6 +33,15 @@ enum UpNextPhase {
   none,
 }
 
+/// Why the countdown waits.
+enum UpNextHold {
+  /// Picture-in-picture: the card cannot be seen.
+  pip,
+
+  /// Another player took playback focus.
+  focus,
+}
+
 class UpNextStore = UpNextStoreBase with _$UpNextStore;
 
 /// The official app's Up Next at the end of a VOD: the next video of the
@@ -47,7 +56,10 @@ abstract class UpNextStoreBase with Store {
     required this.autoplay,
     required this.isMetered,
     required this.onPlay,
+    this.isVisible = _alwaysVisible,
   });
+
+  static bool _alwaysVisible() => true;
 
   /// The countdown's length, like the official app.
   static const countdownSeconds = 10;
@@ -71,11 +83,17 @@ abstract class UpNextStoreBase with Store {
   /// Starts [Vod] (called once).
   final void Function(Vod next) onPlay;
 
+  /// Whether the card can be seen (its screen is the current route): read
+  /// at each tick, so a screen pushed over the video holds the countdown.
+  final bool Function() isVisible;
+
   /// Bumped by each end or reset: a lookup for an older one is dropped.
   var _generation = 0;
   Future<(Vod, bool)?>? _choice;
   Timer? _timer;
-  var _held = false;
+  final _holds = <UpNextHold>{};
+
+  bool get _held => _holds.isNotEmpty;
   var _disposed = false;
 
   @readonly
@@ -160,6 +178,11 @@ abstract class UpNextStoreBase with Store {
       _timer?.cancel();
       return;
     }
+    if (!isVisible()) {
+      // Covered: start over once it can be seen again.
+      _secondsLeft = countdownSeconds;
+      return;
+    }
     _secondsLeft--;
     if (_secondsLeft <= 0) playNow();
   }
@@ -196,14 +219,18 @@ abstract class UpNextStoreBase with Store {
     _secondsLeft = countdownSeconds;
   }
 
-  /// While [held] (the card cannot be seen, as in picture-in-picture), the
-  /// countdown waits, and starts over once it can be seen again.
+  /// While held for any [reason] (picture-in-picture, another player's
+  /// focus), the countdown waits, and starts over once nothing holds it.
   @action
-  void hold(bool held) {
-    if (_held == held) return;
-    _held = held;
-    if (_phase != UpNextPhase.countdown) return;
+  void hold(bool held, {UpNextHold reason = UpNextHold.pip}) {
+    final wasHeld = _held;
     if (held) {
+      _holds.add(reason);
+    } else {
+      _holds.remove(reason);
+    }
+    if (wasHeld == _held || _phase != UpNextPhase.countdown) return;
+    if (_held) {
       _timer?.cancel();
       _secondsLeft = countdownSeconds;
     } else {

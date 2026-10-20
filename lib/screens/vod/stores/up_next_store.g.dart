@@ -153,12 +153,12 @@ mixin _$UpNextStore on UpNextStoreBase, Store {
   }
 
   @override
-  void hold(bool held) {
+  void hold(bool held, {UpNextHold reason = UpNextHold.pip}) {
     final _$actionInfo = _$UpNextStoreBaseActionController.startAction(
       name: 'UpNextStoreBase.hold',
     );
     try {
-      return super.hold(held);
+      return super.hold(held, reason: reason);
     } finally {
       _$UpNextStoreBaseActionController.endAction(_$actionInfo);
     }

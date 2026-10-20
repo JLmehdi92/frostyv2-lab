@@ -39,7 +39,10 @@ void main() {
     similarLoads = 0;
   });
 
+  var visible = true;
+
   UpNextStore make({Vod? current}) => UpNextStore(
+    isVisible: () => visible,
     current: current ?? _vod('1'),
     channelVideos: () async {
       channelLoads++;
@@ -264,6 +267,46 @@ void main() {
       expect(store.secondsLeft, 10, reason: 'starts over once visible');
 
       store.hold(false);
+      async.elapse(const Duration(seconds: 10));
+      expect(played.map((v) => v.id), ['2']);
+      store.dispose();
+    });
+  });
+
+  test('covered by another screen, the countdown waits and starts over', () {
+    fakeAsync((async) {
+      visible = true;
+      final store = make();
+      store.onEnded();
+      async.flushMicrotasks();
+      async.elapse(const Duration(seconds: 3));
+
+      visible = false;
+      async.elapse(const Duration(seconds: 30));
+      expect(played, isEmpty);
+      expect(store.secondsLeft, 10);
+
+      visible = true;
+      async.elapse(const Duration(seconds: 10));
+      expect(played.map((v) => v.id), ['2']);
+      store.dispose();
+    });
+  });
+
+  test('holds for different reasons add up', () {
+    fakeAsync((async) {
+      visible = true;
+      final store = make();
+      store.onEnded();
+      async.flushMicrotasks();
+
+      store.hold(true);
+      store.hold(true, reason: UpNextHold.focus);
+      store.hold(false);
+      async.elapse(const Duration(seconds: 30));
+      expect(played, isEmpty, reason: 'still without playback focus');
+
+      store.hold(false, reason: UpNextHold.focus);
       async.elapse(const Duration(seconds: 10));
       expect(played.map((v) => v.id), ['2']);
       store.dispose();
