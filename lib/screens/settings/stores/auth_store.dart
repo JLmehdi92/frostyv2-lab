@@ -29,6 +29,17 @@ abstract class AuthBase with Store {
   /// The shared_preferences key for the user token.
   static const _userTokenKey = 'user_token';
 
+  /// The permissions asked for at login. A token from an older login keeps
+  /// the scopes it had: what needs a newer one (creating clips) checks the
+  /// token and offers to reconnect, instead of logging everyone out.
+  static const loginScopes =
+      'chat:read chat:edit user:read:follows user:read:blocked_users '
+      'user:manage:blocked_users user:manage:chat_color '
+      'moderator:manage:banned_users moderator:manage:chat_messages '
+      'moderator:manage:chat_settings moderator:manage:warnings '
+      'moderator:read:followers user:manage:whispers '
+      'user:read:emotes user:read:chat clips:edit';
+
   /// Where the user token is kept, for the go-live background check (its
   /// own isolate, without this store).
   static const userTokenKey = _userTokenKey;
@@ -416,12 +427,7 @@ abstract class AuthBase with Store {
             'client_id': clientId,
             'redirect_uri': 'https://twitch.tv/login',
             'response_type': 'token',
-            'scope':
-                'chat:read chat:edit user:read:follows user:read:blocked_users user:manage:blocked_users user:manage:chat_color '
-                'moderator:manage:banned_users moderator:manage:chat_messages '
-                'moderator:manage:chat_settings moderator:manage:warnings '
-                'moderator:read:followers user:manage:whispers '
-                'user:read:emotes user:read:chat',
+            'scope': loginScopes,
             'force_verify': 'true',
           },
         ),
