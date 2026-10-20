@@ -1,4 +1,5 @@
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
+import 'package:frosty/screens/channel/video/captions.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:mobx/mobx.dart';
 
@@ -95,6 +96,9 @@ abstract class _SettingsStoreBase with Store {
   static const defaultShowVideo = true;
   static const defaultPortraitVideoScale = 1.0;
   static const defaultShowCaptions = false;
+  static const defaultCaptionSize = CaptionSize.medium;
+  static const defaultCaptionBackground = CaptionBackground.black;
+  static const defaultCaptionLanguage = '';
   static const defaultWarnMatureContent = true;
   static const defaultDefaultToHighestQuality = false;
   static const defaultUseTextureRendering = true;
@@ -123,6 +127,28 @@ abstract class _SettingsStoreBase with Store {
   @JsonKey(defaultValue: defaultShowCaptions)
   @observable
   var showCaptions = defaultShowCaptions;
+
+  /// The caption line's size (Twitch's is Medium).
+  @JsonKey(
+    defaultValue: defaultCaptionSize,
+    unknownEnumValue: CaptionSize.medium,
+  )
+  @observable
+  var captionSize = defaultCaptionSize;
+
+  /// What sits behind the caption line (Twitch's is Black).
+  @JsonKey(
+    defaultValue: defaultCaptionBackground,
+    unknownEnumValue: CaptionBackground.black,
+  )
+  @observable
+  var captionBackground = defaultCaptionBackground;
+
+  /// The language of the caption track last picked, chosen again when a
+  /// stream offers it ('' for the player's first track).
+  @JsonKey(defaultValue: defaultCaptionLanguage)
+  @observable
+  var captionLanguage = defaultCaptionLanguage;
 
   /// The portrait video's width share (smaller leaves more room to chat).
   @JsonKey(defaultValue: defaultPortraitVideoScale)
@@ -188,6 +214,9 @@ abstract class _SettingsStoreBase with Store {
     showVideo = defaultShowVideo;
     portraitVideoScale = defaultPortraitVideoScale;
     showCaptions = defaultShowCaptions;
+    captionSize = defaultCaptionSize;
+    captionBackground = defaultCaptionBackground;
+    captionLanguage = defaultCaptionLanguage;
     warnMatureContent = defaultWarnMatureContent;
     defaultToHighestQuality = defaultDefaultToHighestQuality;
     useTextureRendering = defaultUseTextureRendering;

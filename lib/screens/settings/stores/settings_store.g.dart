@@ -36,6 +36,21 @@ SettingsStore _$SettingsStoreFromJson(
   ..showVideo = json['showVideo'] as bool? ?? true
   ..warnMatureContent = json['warnMatureContent'] as bool? ?? true
   ..showCaptions = json['showCaptions'] as bool? ?? false
+  ..captionSize =
+      $enumDecodeNullable(
+        _$CaptionSizeEnumMap,
+        json['captionSize'],
+        unknownValue: CaptionSize.medium,
+      ) ??
+      CaptionSize.medium
+  ..captionBackground =
+      $enumDecodeNullable(
+        _$CaptionBackgroundEnumMap,
+        json['captionBackground'],
+        unknownValue: CaptionBackground.black,
+      ) ??
+      CaptionBackground.black
+  ..captionLanguage = json['captionLanguage'] as String? ?? ''
   ..portraitVideoScale = (json['portraitVideoScale'] as num?)?.toDouble() ?? 1.0
   ..defaultToHighestQuality = json['defaultToHighestQuality'] as bool? ?? false
   ..useTextureRendering = json['useTextureRendering'] as bool? ?? true
@@ -156,6 +171,9 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'showVideo': instance.showVideo,
   'warnMatureContent': instance.warnMatureContent,
   'showCaptions': instance.showCaptions,
+  'captionSize': _$CaptionSizeEnumMap[instance.captionSize]!,
+  'captionBackground': _$CaptionBackgroundEnumMap[instance.captionBackground]!,
+  'captionLanguage': instance.captionLanguage,
   'portraitVideoScale': instance.portraitVideoScale,
   'defaultToHighestQuality': instance.defaultToHighestQuality,
   'useTextureRendering': instance.useTextureRendering,
@@ -228,6 +246,19 @@ const _$HomeTabEnumMap = {
   HomeTab.following: 'following',
   HomeTab.top: 'top',
   HomeTab.search: 'search',
+};
+
+const _$CaptionSizeEnumMap = {
+  CaptionSize.small: 'small',
+  CaptionSize.medium: 'medium',
+  CaptionSize.large: 'large',
+  CaptionSize.extraLarge: 'extraLarge',
+};
+
+const _$CaptionBackgroundEnumMap = {
+  CaptionBackground.black: 'black',
+  CaptionBackground.translucent: 'translucent',
+  CaptionBackground.none: 'none',
 };
 
 const _$PlayerEngineEnumMap = {
@@ -470,6 +501,60 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   set showCaptions(bool value) {
     _$showCaptionsAtom.reportWrite(value, super.showCaptions, () {
       super.showCaptions = value;
+    });
+  }
+
+  late final _$captionSizeAtom = Atom(
+    name: '_SettingsStoreBase.captionSize',
+    context: context,
+  );
+
+  @override
+  CaptionSize get captionSize {
+    _$captionSizeAtom.reportRead();
+    return super.captionSize;
+  }
+
+  @override
+  set captionSize(CaptionSize value) {
+    _$captionSizeAtom.reportWrite(value, super.captionSize, () {
+      super.captionSize = value;
+    });
+  }
+
+  late final _$captionBackgroundAtom = Atom(
+    name: '_SettingsStoreBase.captionBackground',
+    context: context,
+  );
+
+  @override
+  CaptionBackground get captionBackground {
+    _$captionBackgroundAtom.reportRead();
+    return super.captionBackground;
+  }
+
+  @override
+  set captionBackground(CaptionBackground value) {
+    _$captionBackgroundAtom.reportWrite(value, super.captionBackground, () {
+      super.captionBackground = value;
+    });
+  }
+
+  late final _$captionLanguageAtom = Atom(
+    name: '_SettingsStoreBase.captionLanguage',
+    context: context,
+  );
+
+  @override
+  String get captionLanguage {
+    _$captionLanguageAtom.reportRead();
+    return super.captionLanguage;
+  }
+
+  @override
+  set captionLanguage(String value) {
+    _$captionLanguageAtom.reportWrite(value, super.captionLanguage, () {
+      super.captionLanguage = value;
     });
   }
 
@@ -1714,6 +1799,9 @@ launchUrlExternal: ${launchUrlExternal},
 showVideo: ${showVideo},
 warnMatureContent: ${warnMatureContent},
 showCaptions: ${showCaptions},
+captionSize: ${captionSize},
+captionBackground: ${captionBackground},
+captionLanguage: ${captionLanguage},
 portraitVideoScale: ${portraitVideoScale},
 defaultToHighestQuality: ${defaultToHighestQuality},
 useTextureRendering: ${useTextureRendering},

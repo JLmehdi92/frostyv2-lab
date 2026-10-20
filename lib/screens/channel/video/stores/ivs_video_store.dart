@@ -13,13 +13,13 @@ import 'package:frosty/models/channel.dart';
 import 'package:frosty/models/ivs_stats.dart';
 import 'package:frosty/models/playback_access_token.dart';
 import 'package:frosty/models/stream.dart';
-import 'package:frosty/screens/channel/video/captions.dart';
 import 'package:frosty/screens/channel/video/ivs_player_config.dart';
 import 'package:frosty/screens/channel/video/ivs_recovery.dart';
 import 'package:frosty/screens/channel/video/latency_stats.dart';
 import 'package:frosty/screens/channel/video/live_state_watcher.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:frosty/screens/channel/video/quality_selection.dart';
+import 'package:frosty/screens/channel/video/stores/caption_store.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/services/audio_focus.dart';
@@ -56,7 +56,6 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   /// Android picture-in-picture controller.
   final pip = SimplePip();
   ReactionDisposer? _disposeAutoPipReaction;
-  ReactionDisposer? _disposeCaptionsReaction;
   ReactionDisposer? _disposeBackgroundAudioReaction;
 
   /// The media notification that keeps the sound going outside the app.
@@ -75,11 +74,15 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   @observable
   var _audioNotificationStopped = false;
 
+  /// The stream's closed captions: the line on screen, its tracks.
+  late final captions = CaptionStore(
+    settings: settingsStore,
+    invoke: (method, [args]) => _invoke(method, args ?? const {}),
+  );
+
   /// The closed-caption line on screen, when captions are on and the stream
   /// sends them.
-  @readonly
-  String? _caption;
-  Timer? _captionTimer;
+  String? get caption => captions.caption;
 
   static const _textureManager = MethodChannel('frosty/ivs-texture-manager');
 
@@ -371,12 +374,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     );
 
     // Captions follow their setting at once (also sent with each load).
-    _disposeCaptionsReaction = reaction((_) => settingsStore.showCaptions, (
-      bool on,
-    ) {
-      if (!on) _clearCaption();
-      unawaited(_invoke('setCaptions', {'enabled': on}));
-    });
+    captions.start();
   }
 
   final _offlineAtStart = Completer<bool>();
@@ -489,12 +487,6 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     if (!_disposed && _status == IvsPlaybackStatus.offline) {
       unawaited(handleRefresh());
     }
-  }
-
-  @action
-  void _clearCaption() {
-    _captionTimer?.cancel();
-    _caption = null;
   }
 
   Future<void> _applyAutoPip() async {
@@ -710,18 +702,10 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         // Sent once per load: restore the quality and the sound state.
         unawaited(_restoreQuality(list));
         _resendSound();
-        if (settingsStore.showCaptions) {
-          unawaited(_invoke('setCaptions', {'enabled': true}));
-        }
+        captions.onLoad();
         break;
-      case 'caption':
-        if (!settingsStore.showCaptions) break;
-        final caption = captionFromEvent(e);
-        _captionTimer?.cancel();
-        _caption = caption?.text;
-        if (caption != null) {
-          _captionTimer = Timer(caption.shownFor, _clearCaption);
-        }
+      case 'caption' || 'textTracks':
+        captions.handleEvent(e);
         break;
       case 'qualitiesChanged':
         // The ladder grew or shrank while playing (Twitch negotiates the
@@ -1190,12 +1174,11 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     _offlinePoll?.cancel();
     _overlayTimer?.cancel();
     _disposeAutoPipReaction?.call();
-    _disposeCaptionsReaction?.call();
+    captions.dispose();
     _disposeBackgroundAudioReaction?.call();
     unawaited(_backgroundAudio.hide(this));
     _disposeAudioFocusReaction?.call();
     unawaited(_audioFocus.abandon(this));
-    _captionTimer?.cancel();
     if (Platform.isAndroid) pip.setAutoPipMode(autoEnter: false);
     final textureId = _textureId;
     if (textureId != null) {
