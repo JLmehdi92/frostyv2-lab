@@ -131,6 +131,18 @@ void main() {
       );
     });
 
+    test('without a type, every kind of video, newest first', () async {
+      reply(vodListResponse);
+
+      await service.getChannelVideos(login: 'streamer');
+
+      expect(lastVariables(), {
+        'login': 'streamer',
+        'type': null,
+        'first': 100,
+      });
+    });
+
     test('skips a malformed node instead of failing the page', () async {
       reply({
         'data': {

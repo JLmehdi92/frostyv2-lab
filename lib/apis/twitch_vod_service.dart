@@ -155,14 +155,15 @@ class TwitchVodService extends BaseApiClient {
   /// with the watch positions written to their account.
   String? Function()? viewerId;
 
-  /// The channel's newest videos of [type] (up to 100, newest first).
+  /// The channel's newest videos of [type] (up to 100, newest first);
+  /// every kind of video when [type] is null.
   Future<VodPage> getChannelVideos({
     required String login,
-    required VodType type,
+    VodType? type,
   }) async {
     final data = await _gql('ChannelVideos', _channelVideosQuery, {
       'login': login,
-      'type': type.gqlName,
+      'type': type?.gqlName,
       'first': 100,
     });
     final user = data['user'];
