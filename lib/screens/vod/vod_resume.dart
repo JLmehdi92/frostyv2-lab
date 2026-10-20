@@ -167,13 +167,15 @@ class VodResumeRepository {
 /// A position saved later than the one before it in that order wins (the
 /// video was watched on another device since, or Twitch did not take the
 /// live position). A start in the last 30 s of the video ([lengthSec], or
-/// the saved length) starts over instead.
+/// the saved length) starts over instead, unless [nearEndRestarts] is off
+/// (a VOD still recording, whose end moves).
 Duration startPositionFor({
   VodResumeEntry? saved,
   Duration? deepLink,
   ViewingHistory? server,
   LiveProgressEntry? live,
   int lengthSec = 0,
+  bool nearEndRestarts = true,
 }) {
   if (deepLink != null) return deepLink;
   final candidates = <(int, DateTime?)>[
@@ -191,7 +193,9 @@ Duration startPositionFor({
   }
   final start = best.$1 < 0 ? 0 : best.$1;
   final length = lengthSec > 0 ? lengthSec : saved?.lengthSec ?? 0;
-  if (length > 0 && start >= length - 30) return Duration.zero;
+  if (nearEndRestarts && length > 0 && start >= length - 30) {
+    return Duration.zero;
+  }
   return Duration(seconds: start);
 }
 

@@ -276,6 +276,17 @@ void main() {
         Duration.zero,
       );
     });
+
+    test('a recording VOD keeps the live position at its moving end', () {
+      expect(
+        startPositionFor(
+          live: live(7200),
+          lengthSec: 7180,
+          nearEndRestarts: false,
+        ),
+        const Duration(seconds: 7170),
+      );
+    });
   });
 
   group('VodResumeController', () {
