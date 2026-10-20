@@ -14,6 +14,7 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
     private var audioFocus: AudioFocusBridge? = null
     private var twitchCookies: TwitchCookies? = null
     private var apkInstaller: ApkInstaller? = null
+    private var network: NetworkBridge? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +39,9 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
 
         // In-app updates: hands a downloaded build to the system installer.
         apkInstaller = ApkInstaller(applicationContext, messenger)
+
+        // Whether the network costs data (the "Wi-Fi Only" autoplay setting).
+        network = NetworkBridge(applicationContext, messenger)
     }
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
