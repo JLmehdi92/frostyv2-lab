@@ -29,7 +29,7 @@ jobs:
 
     steps:
       - name: Checkout Frosty repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # Install Ruby and install/cache dependencies with bundler in order to use fastlane.
       - name: Set up Ruby and Bundler
@@ -40,7 +40,7 @@ jobs:
 
       # Setup Java so that we can build the appbundle.
       - name: Set up Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6.1.0
         with:
           distribution: temurin
           java-version: 21
@@ -82,7 +82,7 @@ jobs:
       MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
     steps:
       - name: Checkout Frosty repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
         # Always pick the newest production Xcode on the runner
       - uses: maxim-lobanov/setup-xcode@v1
