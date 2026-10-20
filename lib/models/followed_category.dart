@@ -25,6 +25,7 @@ class FollowedCategory {
 
   static final _numericId = RegExp(r'^[0-9]{1,20}$');
   static final _slug = RegExp(r'^[a-z0-9-]{1,100}$');
+  static const _imageHost = 'https://static-cdn.jtvnw.net/';
 
   /// The name to show.
   String get title => displayName.isNotEmpty ? displayName : name;
@@ -62,7 +63,8 @@ class FollowedCategory {
       name: name,
       displayName: displayName is String ? displayName : '',
       slug: validSlug(node['slug']),
-      boxArtUrl: boxArt is String && boxArt.startsWith('https://')
+      // Only Twitch's image host: the URL is loaded as is.
+      boxArtUrl: boxArt is String && boxArt.startsWith(_imageHost)
           ? boxArt
           : '',
       viewers: viewers is int && viewers > 0 ? viewers : 0,

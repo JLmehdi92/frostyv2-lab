@@ -149,6 +149,24 @@ void main() {
 
       expect(categories!.map((c) => c.id), ['509658']);
     });
+
+    test('box art is only taken from Twitch\'s image host', () async {
+      reply({
+        'data': {
+          'currentUser': {
+            'followedGames': {
+              'nodes': [
+                {..._game(), 'boxArtURL': 'https://evil.example/a.jpg'},
+              ],
+            },
+          },
+        },
+      });
+
+      final categories = await service.getFollowedCategories(authToken: 't');
+
+      expect(categories!.single.boxArtUrl, isEmpty);
+    });
   });
 
   group('category slug', () {
