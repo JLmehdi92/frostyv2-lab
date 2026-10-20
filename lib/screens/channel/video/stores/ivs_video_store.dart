@@ -1087,7 +1087,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
       );
     } catch (e) {
       _jumping = false;
-      debugPrint('IvsVideoStore jump to live failed: $e');
+      debugPrint('IvsVideoStore jump to live failed: ${e.runtimeType}');
       if (resume && !_disposed && epoch == _recoveryEpoch) {
         _channel?.invokeMethod('play');
       }
@@ -1112,7 +1112,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
       // Like a failed recovery reload: the player may have dropped the old
       // source, so it is recovered (and falls back to the WebView if that
       // keeps failing) rather than left frozen.
-      debugPrint('IvsVideoStore jump to live load failed: $e');
+      debugPrint('IvsVideoStore jump to live load failed: ${e.runtimeType}');
       if (!_disposed && epoch == _recoveryEpoch) {
         _applyRecovery(_recovery.onError(IvsErrorKind.recoverable));
       }
