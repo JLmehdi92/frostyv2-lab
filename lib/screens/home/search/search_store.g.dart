@@ -69,6 +69,26 @@ mixin _$SearchStore on SearchStoreBase, Store {
     });
   }
 
+  late final _$_lastQueryAtom = Atom(
+    name: 'SearchStoreBase._lastQuery',
+    context: context,
+  );
+
+  String get lastQuery {
+    _$_lastQueryAtom.reportRead();
+    return super._lastQuery;
+  }
+
+  @override
+  String get _lastQuery => lastQuery;
+
+  @override
+  set _lastQuery(String value) {
+    _$_lastQueryAtom.reportWrite(value, super._lastQuery, () {
+      super._lastQuery = value;
+    });
+  }
+
   late final _$_channelFutureAtom = Atom(
     name: 'SearchStoreBase._channelFuture',
     context: context,

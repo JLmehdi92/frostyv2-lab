@@ -2,15 +2,19 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/screens/home/search/search_results_categories.dart';
 import 'package:frosty/screens/home/search/search_results_channels.dart';
+import 'package:frosty/screens/home/search/search_results_videos.dart';
 import 'package:frosty/screens/home/search/search_store.dart';
+import 'package:frosty/screens/home/search/search_videos_store.dart';
 import 'package:frosty/screens/home/stream_list/streams_list.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/blurred_container.dart';
 import 'package:frosty/widgets/frosty_scrollbar.dart';
 import 'package:frosty/widgets/section_header.dart';
+import 'package:mobx/mobx.dart';
 import 'package:provider/provider.dart';
 
 /// The search section that contians search history and search results for channels and categories.
@@ -27,11 +31,96 @@ class Search extends StatefulWidget {
 // Constants for consistent sizing
 const double _kSearchBarHeight = 80.0;
 
-class _SearchState extends State<Search> {
+/// The result tabs, like the official app's search.
+enum _SearchTab {
+  top('Top'),
+  channels('Channels'),
+  categories('Categories'),
+  videos('Videos');
+
+  const _SearchTab(this.label);
+
+  final String label;
+}
+
+class _SearchState extends State<Search> with SingleTickerProviderStateMixin {
   late final _searchStore = SearchStore(
     authStore: context.read<AuthStore>(),
     twitchApi: context.read<TwitchApi>(),
   );
+
+  late final _tabController = TabController(
+    length: _SearchTab.values.length,
+    vsync: this,
+  );
+
+  /// Made the first time the Videos tab is opened.
+  late final _videosStore = SearchVideosStore(
+    vodService: context.read<TwitchVodService>(),
+  );
+
+  var _tab = _SearchTab.top;
+
+  ReactionDisposer? _disposeQueryReaction;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController.addListener(_onTabChanged);
+    // The Videos tab follows each new query while it is open.
+    _disposeQueryReaction = reaction((_) => _searchStore.lastQuery, (
+      String query,
+    ) {
+      if (_tab == _SearchTab.videos) _videosStore.search(query);
+    });
+  }
+
+  void _onTabChanged() {
+    final tab = _SearchTab.values[_tabController.index];
+    if (tab == _tab) return;
+    setState(() => _tab = tab);
+    if (widget.scrollController.hasClients) {
+      widget.scrollController.jumpTo(0);
+    }
+    if (tab == _SearchTab.videos) {
+      _videosStore.search(_searchStore.lastQuery);
+    }
+  }
+
+  /// The results of the open tab.
+  List<Widget> _resultSlivers(BuildContext context) {
+    Widget header(String title, {bool first = false}) => SliverToBoxAdapter(
+      child: Builder(
+        builder: (context) => SectionHeader(
+          title,
+          isFirst: first,
+          padding: EdgeInsets.fromLTRB(
+            16 + MediaQuery.of(context).padding.left,
+            first ? 16 : 8,
+            16 + MediaQuery.of(context).padding.right,
+            8,
+          ),
+        ),
+      ),
+    );
+
+    final channels = SearchResultsChannels(
+      searchStore: _searchStore,
+      query: _searchStore.searchText,
+    );
+    final categories = SearchResultsCategories(searchStore: _searchStore);
+    return switch (_tab) {
+      _SearchTab.top => [
+        header('Channels', first: true),
+        channels,
+        header('Categories'),
+        categories,
+      ],
+      _SearchTab.channels => [channels],
+      _SearchTab.categories => [categories],
+      _SearchTab.videos => [SearchResultsVideos(store: _videosStore)],
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,46 +226,18 @@ class _SearchState extends State<Search> {
               return FrostyScrollbar(
                 controller: widget.scrollController,
                 padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top + _kSearchBarHeight,
+                  top:
+                      MediaQuery.of(context).padding.top +
+                      _kSearchBarHeight +
+                      kTextTabBarHeight,
                   bottom: MediaQuery.of(context).padding.bottom,
                 ),
                 child: CustomScrollView(
                   controller: widget.scrollController,
                   slivers: [
-                    // Add padding for app bar and search bar
-                    _SearchTopPadding(),
-                    SliverToBoxAdapter(
-                      child: Builder(
-                        builder: (context) => SectionHeader(
-                          'Channels',
-                          isFirst: true,
-                          padding: EdgeInsets.fromLTRB(
-                            16 + MediaQuery.of(context).padding.left,
-                            16,
-                            16 + MediaQuery.of(context).padding.right,
-                            8,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SearchResultsChannels(
-                      searchStore: _searchStore,
-                      query: _searchStore.searchText,
-                    ),
-                    SliverToBoxAdapter(
-                      child: Builder(
-                        builder: (context) => SectionHeader(
-                          'Categories',
-                          padding: EdgeInsets.fromLTRB(
-                            16 + MediaQuery.of(context).padding.left,
-                            8,
-                            16 + MediaQuery.of(context).padding.right,
-                            8,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SearchResultsCategories(searchStore: _searchStore),
+                    // Add padding for app bar, search bar and tabs
+                    const _SearchTopPadding(),
+                    ..._resultSlivers(context),
                     // Add padding for bottom navigation bar
                     const SliverBottomPadding(),
                   ],
@@ -210,7 +271,7 @@ class _SearchState extends State<Search> {
                         onChanged: _searchStore.onSearchTextChanged,
                         decoration: InputDecoration(
                           prefixIcon: const Icon(Icons.search_rounded),
-                          hintText: 'Search channels or categories',
+                          hintText: 'Search channels, categories or videos',
                           suffixIcon:
                               _searchStore.textFieldFocusNode.hasFocus ||
                                   _searchStore.searchText.isNotEmpty
@@ -232,6 +293,16 @@ class _SearchState extends State<Search> {
                         onSubmitted: _searchStore.handleQuery,
                       ),
                     ),
+                    if (_searchStore.searchText.isNotEmpty)
+                      TabBar(
+                        controller: _tabController,
+                        isScrollable: true,
+                        tabAlignment: TabAlignment.start,
+                        tabs: [
+                          for (final tab in _SearchTab.values)
+                            Tab(text: tab.label),
+                        ],
+                      ),
                   ],
                 );
               },
@@ -244,12 +315,14 @@ class _SearchState extends State<Search> {
 
   @override
   void dispose() {
+    _disposeQueryReaction?.call();
+    _tabController.dispose();
     _searchStore.dispose();
     super.dispose();
   }
 }
 
-/// Helper widget for consistent top padding in search slivers
+/// Room for the search bar and the result tabs above the results.
 class _SearchTopPadding extends StatelessWidget {
   const _SearchTopPadding();
 
@@ -257,7 +330,10 @@ class _SearchTopPadding extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
       child: SizedBox(
-        height: MediaQuery.of(context).padding.top + _kSearchBarHeight,
+        height:
+            MediaQuery.of(context).padding.top +
+            _kSearchBarHeight +
+            kTextTabBarHeight,
       ),
     );
   }

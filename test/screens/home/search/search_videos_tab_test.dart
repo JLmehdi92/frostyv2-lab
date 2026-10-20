@@ -1,0 +1,198 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/apis/twitch_vod_service.dart';
+import 'package:frosty/models/category.dart';
+import 'package:frosty/models/user.dart';
+import 'package:frosty/models/vod.dart';
+import 'package:frosty/screens/home/search/search.dart';
+import 'package:frosty/screens/settings/stores/auth_store.dart';
+import 'package:frosty/screens/settings/stores/user_store.dart';
+import 'package:frosty/screens/vod/widgets/vod_card.dart';
+import 'package:mobx/mobx.dart' show ObservableList;
+import 'package:mocktail/mocktail.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class MockTwitchApi extends Mock implements TwitchApi {}
+
+class MockAuthStore extends Mock implements AuthStore {}
+
+class MockUserStore extends Mock implements UserStore {}
+
+class MockVodService extends Mock implements TwitchVodService {}
+
+Vod _vod(String id, String title) => Vod(
+  id: id,
+  title: title,
+  lengthSeconds: 3600,
+  createdAt: DateTime.utc(2026, 10, 2),
+  viewCount: 10,
+  ownerId: '42',
+  ownerLogin: 'speedy',
+  ownerDisplayName: 'Speedy',
+);
+
+void main() {
+  late MockTwitchApi api;
+  late MockAuthStore auth;
+  late MockVodService vods;
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+    api = MockTwitchApi();
+    auth = MockAuthStore();
+    vods = MockVodService();
+    final user = MockUserStore();
+    when(() => auth.user).thenReturn(user);
+    when(() => user.details).thenReturn(null);
+    when(() => user.blockedUsers).thenReturn(ObservableList());
+    when(
+      () => api.getUser(userLogin: any(named: 'userLogin')),
+    ).thenAnswer((_) => Completer<UserTwitch>().future);
+    when(
+      () => api.searchCategories(query: any(named: 'query')),
+    ).thenAnswer((_) async => const CategoriesTwitch([], null));
+    when(
+      () => api.searchChannels(query: any(named: 'query')),
+    ).thenAnswer((_) async => []);
+  });
+
+  Future<void> pumpSearch(WidgetTester tester) async {
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          Provider<AuthStore>.value(value: auth),
+          Provider<TwitchApi>.value(value: api),
+          Provider<TwitchVodService>.value(value: vods),
+        ],
+        child: MaterialApp(
+          home: Scaffold(body: Search(scrollController: ScrollController())),
+        ),
+      ),
+    );
+    await tester.pump();
+  }
+
+  Future<void> typeQuery(WidgetTester tester, String query) async {
+    await tester.enterText(find.byType(TextField), query);
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump();
+  }
+
+  testWidgets('the tabs show only once something is searched', (tester) async {
+    await pumpSearch(tester);
+
+    expect(find.widgetWithText(Tab, 'Videos'), findsNothing);
+
+    await typeQuery(tester, 'mario');
+
+    for (final label in ['Top', 'Channels', 'Categories', 'Videos']) {
+      expect(find.widgetWithText(Tab, label), findsOneWidget);
+    }
+  });
+
+  testWidgets('the Videos tab lists the matching videos', (tester) async {
+    when(() => vods.searchVideos('mario')).thenAnswer(
+      (_) async => VodSearchPage(items: [_vod('1', 'Any% world record')]),
+    );
+    await pumpSearch(tester);
+    await typeQuery(tester, 'mario');
+
+    verifyNever(() => vods.searchVideos(any()));
+    await tester.tap(find.widgetWithText(Tab, 'Videos'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(VodCard), findsOneWidget);
+    expect(find.text('Any% world record'), findsOneWidget);
+    expect(find.text('Speedy'), findsOneWidget, reason: 'names the channel');
+  });
+
+  testWidgets('a new query refreshes the Videos tab', (tester) async {
+    when(
+      () => vods.searchVideos('mario'),
+    ).thenAnswer((_) async => VodSearchPage(items: [_vod('1', 'Mario run')]));
+    when(
+      () => vods.searchVideos('zelda'),
+    ).thenAnswer((_) async => VodSearchPage(items: [_vod('2', 'Zelda run')]));
+    await pumpSearch(tester);
+    await typeQuery(tester, 'mario');
+    await tester.tap(find.widgetWithText(Tab, 'Videos'));
+    await tester.pumpAndSettle();
+
+    await typeQuery(tester, 'zelda');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Zelda run'), findsOneWidget);
+    expect(find.text('Mario run'), findsNothing);
+  });
+
+  testWidgets('no video says so, like Twitch', (tester) async {
+    when(
+      () => vods.searchVideos('nothing'),
+    ).thenAnswer((_) async => const VodSearchPage(items: []));
+    await pumpSearch(tester);
+    await typeQuery(tester, 'nothing');
+    await tester.tap(find.widgetWithText(Tab, 'Videos'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('No search results found'), findsOneWidget);
+  });
+
+  testWidgets('a failed search offers to try again', (tester) async {
+    var calls = 0;
+    when(() => vods.searchVideos('mario')).thenAnswer((_) async {
+      if (calls++ == 0) throw const VodApiException('boom');
+      return VodSearchPage(items: [_vod('1', 'Mario run')]);
+    });
+    await pumpSearch(tester);
+    await typeQuery(tester, 'mario');
+    await tester.tap(find.widgetWithText(Tab, 'Videos'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Unable to load videos'), findsOneWidget);
+    await tester.tap(find.byTooltip('Try again'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Mario run'), findsOneWidget);
+  });
+
+  testWidgets('the Channels tab shows the channels alone', (tester) async {
+    await pumpSearch(tester);
+    await typeQuery(tester, 'mario');
+
+    expect(find.text('No matching categories'), findsOneWidget);
+    await tester.tap(find.widgetWithText(Tab, 'Channels'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('No matching categories'), findsNothing);
+  });
+
+  testWidgets('scrolling to the end loads the next page', (tester) async {
+    when(() => vods.searchVideos('mario')).thenAnswer(
+      (_) async => VodSearchPage(
+        items: [for (var i = 0; i < 25; i++) _vod('$i', 'Run $i')],
+        cursor: 'MjU=',
+        hasMore: true,
+      ),
+    );
+    when(
+      () => vods.searchVideos('mario', cursor: 'MjU='),
+    ).thenAnswer((_) async => VodSearchPage(items: [_vod('99', 'Last run')]));
+    await pumpSearch(tester);
+    await typeQuery(tester, 'mario');
+    await tester.tap(find.widgetWithText(Tab, 'Videos'));
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('Last run'),
+      500,
+      scrollable: find.byType(Scrollable).first,
+    );
+
+    expect(find.text('Last run'), findsOneWidget);
+    verify(() => vods.searchVideos('mario', cursor: 'MjU=')).called(1);
+  });
+}

@@ -34,6 +34,11 @@ abstract class SearchStoreBase with Store {
   @readonly
   var _isSearching = false;
 
+  /// The query the results are for ('' when there is none), so tabs that
+  /// load on demand (Videos) can follow it.
+  @readonly
+  var _lastQuery = '';
+
   @readonly
   ObservableFuture<List<ChannelQuery>>? _channelFuture;
 
@@ -75,6 +80,7 @@ abstract class SearchStoreBase with Store {
       _isSearching = false;
       _channelFuture = null;
       _categoryFuture = null;
+      _lastQuery = '';
       return;
     }
 
@@ -102,6 +108,7 @@ abstract class SearchStoreBase with Store {
   void _performSearch(String query) {
     // Futures are now pending, so isSearching can be cleared.
     _isSearching = false;
+    _lastQuery = query;
 
     // Move the query to the most recent result (top of the stack).
     _searchHistory.remove(query);
