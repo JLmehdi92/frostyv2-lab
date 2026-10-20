@@ -44,6 +44,8 @@ abstract class CaptionStoreBase with Store {
     _disposeReaction ??= reaction((_) => settings.showCaptions, (bool on) {
       if (!on) _clear();
       unawaited(invoke('setCaptions', {'enabled': on}));
+      // Tracks learned while off: the language picked last wins now.
+      if (on) _pickRememberedLanguage();
     });
   }
 

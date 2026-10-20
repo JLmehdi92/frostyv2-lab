@@ -82,6 +82,20 @@ void main() {
     expect(calls, isEmpty);
   });
 
+  test('turning them on mid-stream picks the remembered language', () async {
+    settings.captionLanguage = 'es';
+    captions
+      ..start()
+      ..handleEvent(tracks(selected: 'a'));
+    expect(calls.where((c) => c.$1 == 'setTextTrack'), isEmpty);
+
+    settings.showCaptions = true;
+    await settle();
+
+    expectLast('setTextTrack', {'id': 'b'});
+    expect(captions.selectedTrackId, 'b');
+  });
+
   test('each load asks for captions again when on', () {
     captions.onLoad();
     expect(calls, isEmpty);

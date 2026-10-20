@@ -86,6 +86,8 @@ class IvsPlayerCore(
                 "setCaptions" -> {
                     captionsEnabled = call.argument<Boolean>("enabled") == true
                     applyCaptions()
+                    // The menu ticks the track just selected.
+                    sendTextTracks()
                     result.success(null)
                 }
                 "setTextTrack" -> {
