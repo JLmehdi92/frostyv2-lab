@@ -251,21 +251,8 @@ class ChatMessage extends StatelessWidget {
             onTap: () async {
               await copyMessage();
 
-              final effectiveChatDelay = chatStore.settings.effectiveChatDelay;
-
-              final hasChatDelay =
-                  chatStore.settings.showVideo && effectiveChatDelay > 0;
-
-              if (hasChatDelay) {
-                _effectiveInputStore.updateNotification(
-                  'Chatting is disabled due to message delay (${effectiveChatDelay.toInt()}s)',
-                );
-                if (context.mounted) {
-                  Navigator.pop(context);
-                }
-                return;
-              }
-
+              // A message delay only holds what others send; typing stays
+              // open (the composer shows the delay), so pasting does too.
               // In merged mode, switch to the source tab so the paste
               // targets the correct channel's composer.
               onActivateSourceTab?.call();
