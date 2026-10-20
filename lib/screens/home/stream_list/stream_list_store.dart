@@ -119,18 +119,22 @@ abstract class ListStoreBase with Store {
   @observable
   var isOfflineChannelsExpanded = false;
 
-  /// The list of the fetched streams with blocked users filtered out.
+  /// The list of the fetched streams with blocked users filtered out, in
+  /// the viewer's order for Following.
   @computed
-  ObservableList<StreamTwitch> get streams => _allStreams
-      .where(
-        (streamInfo) =>
-            !authStore.user.blockedUsers
-                .map((blockedUser) => blockedUser.userId)
-                .contains(streamInfo.userId) &&
-            (_showLabeled || !_labeledIds.contains(streamInfo.userId)),
-      )
-      .toList()
-      .asObservable();
+  ObservableList<StreamTwitch> get streams {
+    final shown = _allStreams.where(
+      (streamInfo) =>
+          !authStore.user.blockedUsers
+              .map((blockedUser) => blockedUser.userId)
+              .contains(streamInfo.userId) &&
+          (_showLabeled || !_labeledIds.contains(streamInfo.userId)),
+    );
+    return (listType == ListType.followed
+            ? sortFollowedStreams(shown, settingsStore.followedSort)
+            : shown.toList())
+        .asObservable();
+  }
 
   /// All pinned channels (only live streams).
   @computed
@@ -140,9 +144,10 @@ abstract class ListStoreBase with Store {
         .toSet();
 
     // Get live pinned streams only
-    return _pinnedStreams
-        .where((stream) => !blockedUserIds.contains(stream.userId))
-        .toList();
+    return sortFollowedStreams(
+      _pinnedStreams.where((stream) => !blockedUserIds.contains(stream.userId)),
+      settingsStore.followedSort,
+    );
   }
 
   /// The list of offline followed channels with blocked users filtered out
@@ -224,6 +229,7 @@ abstract class ListStoreBase with Store {
 
   ReactionDisposer? _pinnedStreamsReactionDisposer;
   ReactionDisposer? _offlineChannelsExpansionDisposer;
+  ReactionDisposer? _followedSortReactionDisposer;
 
   ListStoreBase({
     required this.authStore,
@@ -264,6 +270,12 @@ abstract class ListStoreBase with Store {
 
       getPinnedStreams();
 
+      // Any order but Helix's own needs every live channel to be right.
+      _followedSortReactionDisposer = reaction(
+        (_) => settingsStore.followedSort,
+        (_) => _loadAllForSort(),
+      );
+
       // Fetch offline channels only when expanded
       _offlineChannelsExpansionDisposer = reaction(
         (_) => isOfflineChannelsExpanded,
@@ -293,7 +305,10 @@ abstract class ListStoreBase with Store {
   @action
   Future<void> getStreams() async {
     final generation = _streamsGeneration;
-    if (_streamsCursor == null) _pagesHiddenInFull = 0;
+    if (_streamsCursor == null) {
+      _pagesHiddenInFull = 0;
+      _pagesForSort = 0;
+    }
     _isAllStreamsLoading = true;
 
     try {
@@ -379,6 +394,10 @@ abstract class ListStoreBase with Store {
     _isAllStreamsLoading = false;
     unawaited(_refreshHypeTrains());
 
+    if (generation == _streamsGeneration && _error == null) {
+      await _loadAllForSort();
+    }
+
     // Nothing to show when every stream so far was hidden for its labels,
     // and nothing scrolls to ask for more: ask now, a few pages at most.
     if (generation == _streamsGeneration &&
@@ -390,6 +409,25 @@ abstract class ListStoreBase with Store {
       _pagesHiddenInFull++;
       await getStreams();
     }
+  }
+
+  /// Pages asked for at once so Following can be sorted by something
+  /// other than viewers (Helix pages by viewers only).
+  var _pagesForSort = 0;
+  static const _maxPagesForSort = 5;
+
+  /// Loads the followed live channels left on later pages, when the order
+  /// needs all of them. Helix gives up to 100 per page, so this is rare.
+  Future<void> _loadAllForSort() async {
+    if (listType != ListType.followed ||
+        settingsStore.followedSort == FollowedSort.viewers ||
+        _isAllStreamsLoading ||
+        _streamsCursor == null ||
+        _pagesForSort >= _maxPagesForSort) {
+      return;
+    }
+    _pagesForSort++;
+    await getStreams();
   }
 
   /// Pages asked for in a row because the ones before were hidden in full.
@@ -537,9 +575,52 @@ abstract class ListStoreBase with Store {
     _labelsReactionDisposer?.call();
     _pinnedStreamsReactionDisposer?.call();
     _offlineChannelsExpansionDisposer?.call();
+    _followedSortReactionDisposer?.call();
 
     scrollController?.removeListener(_onScroll);
   }
+}
+
+/// [streams] in [sort] order (a new list; ties keep Helix's order).
+List<StreamTwitch> sortFollowedStreams(
+  Iterable<StreamTwitch> streams,
+  FollowedSort sort,
+) {
+  final sorted = streams.toList();
+  int byViewers(StreamTwitch a, StreamTwitch b) =>
+      b.viewerCount.compareTo(a.viewerCount);
+  int byName(StreamTwitch a, StreamTwitch b) =>
+      a.userName.toLowerCase().compareTo(b.userName.toLowerCase());
+  final Comparator<StreamTwitch> compare = switch (sort) {
+    FollowedSort.viewers => byViewers,
+    FollowedSort.recent => (a, b) {
+      final started = (
+        DateTime.tryParse(a.startedAt),
+        DateTime.tryParse(b.startedAt),
+      );
+      return switch (started) {
+        (final x?, final y?) => y.compareTo(x),
+        (null, null) => 0,
+        (null, _) => 1,
+        (_, null) => -1,
+      };
+    },
+    FollowedSort.name => byName,
+    FollowedSort.category => (a, b) {
+      final x = a.gameName.toLowerCase();
+      final y = b.gameName.toLowerCase();
+      if (x.isEmpty != y.isEmpty) return x.isEmpty ? 1 : -1;
+      final byGame = x.compareTo(y);
+      return byGame != 0 ? byGame : byViewers(a, b);
+    },
+  };
+  // A stable sort: List.sort is not guaranteed to be.
+  final indexed = sorted.indexed.toList()
+    ..sort((a, b) {
+      final order = compare(a.$2, b.$2);
+      return order != 0 ? order : a.$1.compareTo(b.$1);
+    });
+  return [for (final (_, stream) in indexed) stream];
 }
 
 /// The possible types of lists that can be displayed.

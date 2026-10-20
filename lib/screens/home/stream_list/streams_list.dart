@@ -13,6 +13,7 @@ import 'package:frosty/screens/home/stream_list/large_stream_card.dart';
 import 'package:frosty/screens/home/stream_list/offline_channel_card.dart';
 import 'package:frosty/screens/home/stream_list/stream_card.dart';
 import 'package:frosty/screens/home/stream_list/stream_list_store.dart';
+import 'package:frosty/screens/home/stream_list/stream_sort_button.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/widgets/alert_message.dart';
@@ -353,6 +354,23 @@ class _StreamsListState extends State<StreamsList>
                                 builder: (context) => HiddenStreamsBanner(
                                   hidden: _listStore.hiddenByLabels,
                                   onShow: _listStore.showLabeledStreams,
+                                ),
+                              ),
+                            ),
+                          if (isFollowingTab)
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: EdgeInsets.fromLTRB(
+                                  16 + MediaQuery.paddingOf(context).left,
+                                  0,
+                                  16 + MediaQuery.paddingOf(context).right,
+                                  0,
+                                ),
+                                child: Align(
+                                  alignment: AlignmentDirectional.centerStart,
+                                  child: FollowedSortButton(
+                                    settingsStore: settingsStore,
+                                  ),
                                 ),
                               ),
                             ),
