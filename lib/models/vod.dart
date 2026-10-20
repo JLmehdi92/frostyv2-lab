@@ -117,6 +117,28 @@ class VodPage {
   final bool hasMore;
 }
 
+/// What a watch position is about, as named by Twitch GQL `VideoType`: a
+/// live broadcast (named by its stream id) or a VOD.
+enum WatchedVideoType {
+  live('LIVE'),
+  vod('VOD');
+
+  const WatchedVideoType(this.gqlName);
+
+  final String gqlName;
+}
+
+/// Where the viewer stopped in a video, as Twitch remembers it for their
+/// account (`video.self.viewingHistory`), live sessions included.
+class ViewingHistory {
+  const ViewingHistory({required this.positionSec, this.updatedAt});
+
+  final int positionSec;
+
+  /// When it was saved (null when Twitch did not say).
+  final DateTime? updatedAt;
+}
+
 /// A copyright-muted part of a VOD, in seconds from the start.
 class MutedSegment {
   const MutedSegment({required this.offset, required this.duration});
