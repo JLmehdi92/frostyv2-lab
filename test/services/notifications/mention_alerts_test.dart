@@ -178,4 +178,35 @@ void main() {
       );
     });
   });
+
+  group('alertChatMention (the chat store hook)', () {
+    IRCMessage parse(String text) => IRCMessage.fromString(
+      '@badge-info=;badges=;color=;display-name=Someone;emotes=;'
+      'id=msg-1;mod=0;room-id=42;tmi-sent-ts=1;user-id=9;user-type= '
+      ':someone!someone@someone.tmi.twitch.tv PRIVMSG #streamer :$text',
+      userLogin: 'viewer',
+    );
+
+    Future<bool?> hook(String text, {bool enabled = true}) => alertChatMention(
+      parse(text),
+      enabled: enabled,
+      ownLogin: 'viewer',
+      channelId: '42',
+      channelLogin: 'streamer',
+      channelName: 'Streamer',
+      alerts: alerts,
+    );
+
+    test('a mention reaches the alerts', () async {
+      expect(await hook('hi @viewer'), isTrue);
+      expect(posted.single.messageId, 'msg-1');
+      expect(posted.single.channelLogin, 'streamer');
+    });
+
+    test('nothing when the setting is off or nobody is mentioned', () async {
+      expect(await hook('hi @viewer', enabled: false), isNull);
+      expect(await hook('hi there'), isNull);
+      expect(posted, isEmpty);
+    });
+  });
 }

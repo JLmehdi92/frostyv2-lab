@@ -923,20 +923,17 @@ abstract class ChatStoreBase with Store {
               if (!decision.show) continue;
             }
 
-            if (settings.mentionNotifications) {
-              final mention = chatMentionOf(
+            unawaited(
+              alertChatMention(
                 parsedIRCMessage,
+                enabled: settings.mentionNotifications,
                 ownLogin: auth.user.details?.login,
                 channelId: channelId,
                 channelLogin: channelName,
                 channelName: displayName,
-              );
-              if (mention != null) {
-                unawaited(
-                  (mentionAlerts ?? MentionAlerts.shared).onMention(mention),
-                );
-              }
-            }
+                alerts: mentionAlerts ?? MentionAlerts.shared,
+              ),
+            );
 
             messageBuffer.add(parsedIRCMessage);
             break;

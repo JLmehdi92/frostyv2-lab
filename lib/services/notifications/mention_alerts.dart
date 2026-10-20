@@ -62,6 +62,30 @@ ChatMention? chatMentionOf(
   );
 }
 
+/// The chat's hook: hands [message] to [alerts] when it mentions the
+/// viewer and mention notices are [enabled]. Null when nothing was handed
+/// over, else whether a notice was posted.
+Future<bool?> alertChatMention(
+  IRCMessage message, {
+  required bool enabled,
+  required String? ownLogin,
+  required String channelId,
+  required String channelLogin,
+  required String channelName,
+  required MentionAlerts alerts,
+}) async {
+  if (!enabled) return null;
+  final mention = chatMentionOf(
+    message,
+    ownLogin: ownLogin,
+    channelId: channelId,
+    channelLogin: channelLogin,
+    channelName: channelName,
+  );
+  if (mention == null) return null;
+  return alerts.onMention(mention);
+}
+
 String _oneLine(String text, {int max = kMentionMaxLength}) {
   final line = whisperPreview(text);
   return line.length <= max ? line : '${line.substring(0, max)}…';
