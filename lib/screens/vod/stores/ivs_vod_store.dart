@@ -8,6 +8,7 @@ import 'package:frosty/models/vod_access.dart';
 import 'package:frosty/screens/channel/video/ivs_player_config.dart';
 import 'package:frosty/screens/channel/video/ivs_recovery.dart';
 import 'package:frosty/screens/channel/video/quality_selection.dart';
+import 'package:frosty/screens/channel/video/stores/caption_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:mobx/mobx.dart';
@@ -46,6 +47,8 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
       },
     );
     ready = _start();
+    // Captions follow their setting at once (also sent with each load).
+    captions.start();
     _scheduleOverlayHide();
     if (Platform.isAndroid) {
       _disposeAutoPip = autorun((_) async {
@@ -69,6 +72,12 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
   final SettingsStore settingsStore;
 
   static const _textureManager = MethodChannel('frosty/ivs-texture-manager');
+
+  /// The video's closed captions: the line on screen, its tracks.
+  late final captions = CaptionStore(
+    settings: settingsStore,
+    invoke: _invoke,
+  );
 
   final Duration? _knownLength;
   final IvsRecoveryPolicy _recovery;
@@ -348,6 +357,9 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
         _qualities = ['Auto', ...list];
         unawaited(_restoreQuality(list));
         _resendPlaybackSettings();
+        captions.onLoad();
+      case 'caption' || 'textTracks':
+        captions.handleEvent(e);
       case 'quality':
         final name = e['name'] as String?;
         if (name != null && _qualities.contains(name)) _quality = name;
@@ -751,6 +763,7 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
     _seekTimeout?.cancel();
     _startTimeout?.cancel();
     _disposeAutoPip?.call();
+    captions.dispose();
     if (Platform.isAndroid) pip.setAutoPipMode(autoEnter: false);
     final id = _textureId;
     if (id != null) {

@@ -19,11 +19,14 @@ import 'package:frosty/apis/seventv_api.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_auth_interceptor.dart';
 import 'package:frosty/apis/twitch_channel_profile_service.dart';
+import 'package:frosty/apis/twitch_chat_rules_service.dart';
 import 'package:frosty/apis/twitch_clip_service.dart';
 import 'package:frosty/apis/twitch_community_highlights_service.dart';
 import 'package:frosty/apis/twitch_directory_service.dart';
+import 'package:frosty/apis/twitch_followed_categories_service.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
+import 'package:frosty/apis/twitch_watch_streak_service.dart';
 import 'package:frosty/apis/unauthorized_interceptor.dart';
 import 'package:frosty/cache_manager.dart';
 import 'package:frosty/firebase_options.dart';
@@ -152,6 +155,13 @@ void main() async {
     anonymousGqlDio,
   );
   final twitchDirectoryService = TwitchDirectoryService(anonymousGqlDio);
+  final twitchChatRulesService = TwitchChatRulesService(anonymousGqlDio);
+  // Followed categories: the web token is added per request, to GQL only.
+  final twitchFollowedCategoriesService = TwitchFollowedCategoriesService(
+    anonymousGqlDio,
+  );
+  // Watch streaks: the web token is added per request, to GQL only.
+  final twitchWatchStreakService = TwitchWatchStreakService(anonymousGqlDio);
 
   // One anonymous realtime connection (Hermes) for public Twitch topics such
   // as the hype train. It connects only when something subscribes and
@@ -251,6 +261,13 @@ void main() async {
           value: twitchChannelProfileService,
         ),
         Provider<TwitchDirectoryService>.value(value: twitchDirectoryService),
+        Provider<TwitchChatRulesService>.value(value: twitchChatRulesService),
+        Provider<TwitchFollowedCategoriesService>.value(
+          value: twitchFollowedCategoriesService,
+        ),
+        Provider<TwitchWatchStreakService>.value(
+          value: twitchWatchStreakService,
+        ),
         Provider<TwitchRealtimeClient>.value(value: realtimeClient),
         Provider<GlobalAssetsStore>.value(value: globalAssetsStore),
         Provider<TwitchEventSubClient>.value(value: eventSubClient),

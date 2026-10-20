@@ -8,6 +8,7 @@ import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/channel/channel.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_card_pill.dart';
 import 'package:frosty/screens/home/stream_list/stream_tags.dart';
+import 'package:frosty/screens/home/stream_list/watch_streak_tag.dart';
 import 'package:frosty/screens/home/top/categories/category_streams.dart';
 import 'package:frosty/screens/home/top/tags/tag_streams.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
@@ -38,6 +39,9 @@ class StreamCard extends StatelessWidget {
   /// The channel's running hype train, if any (followed list).
   final HtCardStatus? hypeTrain;
 
+  /// The viewer's running watch streak here, if any (followed list).
+  final int? watchStreak;
+
   const StreamCard({
     super.key,
     required this.streamInfo,
@@ -46,6 +50,7 @@ class StreamCard extends StatelessWidget {
     this.showPinOption = false,
     this.isPinned,
     this.hypeTrain,
+    this.watchStreak,
   });
 
   @override
@@ -224,7 +229,23 @@ class StreamCard extends StatelessWidget {
             '${NumberFormat().format(streamInfo.viewerCount)} viewers',
             style: context.frostyText.metadata,
           ),
-          if (streamInfo.tags.isNotEmpty) ...[
+          if (watchStreak case final streak?) ...[
+            const SizedBox(height: 2),
+            // Twitch's Following tab puts it with the tags; they stay.
+            Row(
+              spacing: 4,
+              children: [
+                WatchStreakTag(value: streak),
+                if (streamInfo.tags.isNotEmpty)
+                  Expanded(
+                    child: StreamTags(
+                      tags: streamInfo.tags,
+                      onTap: (tag) => TagStreams.open(context, tag),
+                    ),
+                  ),
+              ],
+            ),
+          ] else if (streamInfo.tags.isNotEmpty) ...[
             const SizedBox(height: 2),
             StreamTags(
               tags: streamInfo.tags,

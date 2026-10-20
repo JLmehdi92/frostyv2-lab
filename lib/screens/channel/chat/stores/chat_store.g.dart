@@ -452,6 +452,18 @@ mixin _$ChatStore on ChatStoreBase, Store {
   }
 
   @override
+  void revealFilteredMessage(String id) {
+    final _$actionInfo = _$ChatStoreBaseActionController.startAction(
+      name: 'ChatStoreBase.revealFilteredMessage',
+    );
+    try {
+      return super.revealFilteredMessage(id);
+    } finally {
+      _$ChatStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   void _updateRestriction() {
     final _$actionInfo = _$ChatStoreBaseActionController.startAction(
       name: 'ChatStoreBase._updateRestriction',

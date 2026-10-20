@@ -1,4 +1,5 @@
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
+import 'package:frosty/screens/channel/video/captions.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:mobx/mobx.dart';
 
@@ -31,6 +32,7 @@ abstract class _SettingsStoreBase with Store {
   static const defaultStreamLanguage = '';
   static const defaultHiddenContentLabels = <String>[];
   static const defaultStartTab = HomeTab.following;
+  static const defaultFollowedSort = FollowedSort.viewers;
 
   // Links defaults
   static const defaultLaunchUrlExternal = false;
@@ -59,6 +61,15 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var startTab = defaultStartTab;
 
+  /// The order of the live channels in Following, remembered like Twitch's
+  /// "Sorted by".
+  @JsonKey(
+    defaultValue: defaultFollowedSort,
+    unknownEnumValue: FollowedSort.viewers,
+  )
+  @observable
+  var followedSort = defaultFollowedSort;
+
   /// The language Top and category lists show (Helix `language`).
   @JsonKey(defaultValue: defaultStreamLanguage)
   @observable
@@ -86,6 +97,7 @@ abstract class _SettingsStoreBase with Store {
     streamLanguage = defaultStreamLanguage;
     hiddenContentLabels = defaultHiddenContentLabels;
     startTab = defaultStartTab;
+    followedSort = defaultFollowedSort;
 
     launchUrlExternal = defaultLaunchUrlExternal;
   }
@@ -95,6 +107,9 @@ abstract class _SettingsStoreBase with Store {
   static const defaultShowVideo = true;
   static const defaultPortraitVideoScale = 1.0;
   static const defaultShowCaptions = false;
+  static const defaultCaptionSize = CaptionSize.medium;
+  static const defaultCaptionBackground = CaptionBackground.black;
+  static const defaultCaptionLanguage = '';
   static const defaultWarnMatureContent = true;
   static const defaultDefaultToHighestQuality = false;
   static const defaultUseTextureRendering = true;
@@ -123,6 +138,28 @@ abstract class _SettingsStoreBase with Store {
   @JsonKey(defaultValue: defaultShowCaptions)
   @observable
   var showCaptions = defaultShowCaptions;
+
+  /// The caption line's size (Twitch's is Medium).
+  @JsonKey(
+    defaultValue: defaultCaptionSize,
+    unknownEnumValue: CaptionSize.medium,
+  )
+  @observable
+  var captionSize = defaultCaptionSize;
+
+  /// What sits behind the caption line (Twitch's is Black).
+  @JsonKey(
+    defaultValue: defaultCaptionBackground,
+    unknownEnumValue: CaptionBackground.black,
+  )
+  @observable
+  var captionBackground = defaultCaptionBackground;
+
+  /// The language of the caption track last picked, chosen again when a
+  /// stream offers it ('' for the player's first track).
+  @JsonKey(defaultValue: defaultCaptionLanguage)
+  @observable
+  var captionLanguage = defaultCaptionLanguage;
 
   /// The portrait video's width share (smaller leaves more room to chat).
   @JsonKey(defaultValue: defaultPortraitVideoScale)
@@ -188,6 +225,9 @@ abstract class _SettingsStoreBase with Store {
     showVideo = defaultShowVideo;
     portraitVideoScale = defaultPortraitVideoScale;
     showCaptions = defaultShowCaptions;
+    captionSize = defaultCaptionSize;
+    captionBackground = defaultCaptionBackground;
+    captionLanguage = defaultCaptionLanguage;
     warnMatureContent = defaultWarnMatureContent;
     defaultToHighestQuality = defaultDefaultToHighestQuality;
     useTextureRendering = defaultUseTextureRendering;
@@ -245,6 +285,13 @@ abstract class _SettingsStoreBase with Store {
   // mute words defaults
   static const defaultMutedWords = <String>[];
   static const defaultMatchWholeWord = true;
+
+  // Twitch's chat filters: off until turned on, every category then on.
+  static const defaultChatFiltersEnabled = false;
+  static const defaultChatFilterDiscrimination = true;
+  static const defaultChatFilterSexual = true;
+  static const defaultChatFilterHarassment = true;
+  static const defaultChatFilterProfanity = true;
 
   // Autocomplete defaults
   static const defaultAutocomplete = true;
@@ -466,6 +513,28 @@ abstract class _SettingsStoreBase with Store {
   @observable
   bool matchWholeWord = defaultMatchWholeWord;
 
+  /// Hides the words AutoMod rates 3 or more in a category turned on below,
+  /// like Twitch's "Enable filtering in chat".
+  @JsonKey(defaultValue: defaultChatFiltersEnabled)
+  @observable
+  bool chatFiltersEnabled = defaultChatFiltersEnabled;
+
+  @JsonKey(defaultValue: defaultChatFilterDiscrimination)
+  @observable
+  bool chatFilterDiscrimination = defaultChatFilterDiscrimination;
+
+  @JsonKey(defaultValue: defaultChatFilterSexual)
+  @observable
+  bool chatFilterSexual = defaultChatFilterSexual;
+
+  @JsonKey(defaultValue: defaultChatFilterHarassment)
+  @observable
+  bool chatFilterHarassment = defaultChatFilterHarassment;
+
+  @JsonKey(defaultValue: defaultChatFilterProfanity)
+  @observable
+  bool chatFilterProfanity = defaultChatFilterProfanity;
+
   @action
   void resetChatSettings() {
     badgeScale = defaultBadgeScale;
@@ -504,6 +573,12 @@ abstract class _SettingsStoreBase with Store {
 
     mutedWords = defaultMutedWords;
     matchWholeWord = defaultMatchWholeWord;
+
+    chatFiltersEnabled = defaultChatFiltersEnabled;
+    chatFilterDiscrimination = defaultChatFilterDiscrimination;
+    chatFilterSexual = defaultChatFilterSexual;
+    chatFilterHarassment = defaultChatFilterHarassment;
+    chatFilterProfanity = defaultChatFilterProfanity;
 
     autocomplete = defaultAutocomplete;
 
@@ -584,6 +659,20 @@ enum HomeTab {
   /// Where this tab sits in the bar; logged out, there is no Following.
   int indexWhen({required bool loggedIn}) =>
       loggedIn ? index : (this == following ? 0 : index - 1);
+}
+
+/// How Following orders its live channels. Twitch's other order,
+/// "Recommended For You", is its own server ranking, which Helix does not
+/// give.
+enum FollowedSort {
+  viewers('Viewers (High to Low)'),
+  recent('Recently Started'),
+  name('Name (A-Z)'),
+  category('Category');
+
+  const FollowedSort(this.label);
+
+  final String label;
 }
 
 const timestampNames = ['Disabled', '12-hour', '24-hour'];

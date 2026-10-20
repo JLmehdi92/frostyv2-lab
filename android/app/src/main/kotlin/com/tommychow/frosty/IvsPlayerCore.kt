@@ -55,6 +55,12 @@ class IvsPlayerCore(
     /** Closed captions asked for by Dart (off by default). */
     private var captionsEnabled = false
 
+    /** The caption track Dart picked (by id), shown when the stream has it. */
+    private var preferredTrackId: String? = null
+
+    /** The track list last sent to Dart, to send only changes. */
+    private var sentTracks: List<Map<String, Any?>>? = null
+
     fun start(url: String, tuning: IvsTuning = IvsTuning()) {
         this.tuning = tuning
         channel.setMethodCallHandler { call, result ->
@@ -80,6 +86,17 @@ class IvsPlayerCore(
                 "setCaptions" -> {
                     captionsEnabled = call.argument<Boolean>("enabled") == true
                     applyCaptions()
+                    // The menu ticks the track just selected.
+                    sendTextTracks()
+                    result.success(null)
+                }
+                "setTextTrack" -> {
+                    preferredTrackId = call.argument<String>("id")
+                    runCatching {
+                        player.textTracks.firstOrNull { it.id == preferredTrackId }
+                            ?.let { player.setTextTrack(it) }
+                    }.onFailure { Log.w(CORE_TAG, "text track: ${it.message}") }
+                    sendTextTracks()
                     result.success(null)
                 }
                 "setStatsEnabled" -> {
@@ -90,6 +107,7 @@ class IvsPlayerCore(
                     val newUrl = call.argument<String>("url")
                     qualitiesSent = false
                     sentQualityNames = null
+                    sentTracks = null
                     if (tuning.vod) {
                         pendingStartMs = call.argument<Number>("startMs")?.toLong()
                         autoPlayPending = true
@@ -143,7 +161,10 @@ class IvsPlayerCore(
                     }
                 }
                 // Text tracks are known once the stream plays.
-                if (state == Player.State.PLAYING) applyCaptions()
+                if (state == Player.State.PLAYING) {
+                    applyCaptions()
+                    sendTextTracks()
+                }
                 if (state == Player.State.PLAYING && !qualitiesSent) {
                     qualitiesSent = true
                     val names = sortedQualityNames()
@@ -186,6 +207,7 @@ class IvsPlayerCore(
             // A stream can announce its caption tracks after it starts.
             override fun onTextTracksChanged(tracks: List<TextTrack>) {
                 applyCaptions()
+                sendTextTracks()
             }
             override fun onDurationChanged(duration: Long) {
                 if (tuning.vod) send(mapOf("type" to "duration", "ms" to duration))
@@ -208,17 +230,38 @@ class IvsPlayerCore(
     }
 
     /**
-     * Selects the stream's first caption track when captions are on (a stream
-     * without one has nothing to select). Never throws: captions must not
-     * disturb playback.
+     * Selects a caption track when captions are on: the one Dart picked when
+     * the stream has it, else the first (a stream without one has nothing to
+     * select). Never throws: captions must not disturb playback.
      */
     private fun applyCaptions() {
         if (!captionsEnabled) return
         runCatching {
-            if (player.textTrack == null) {
-                player.textTracks.firstOrNull()?.let { player.setTextTrack(it) }
+            val tracks = player.textTracks
+            val preferred = tracks.firstOrNull { it.id == preferredTrackId }
+            if (preferred != null && player.textTrack?.id != preferred.id) {
+                player.setTextTrack(preferred)
+            } else if (player.textTrack == null) {
+                tracks.firstOrNull()?.let { player.setTextTrack(it) }
             }
         }.onFailure { Log.w(CORE_TAG, "captions: ${it.message}") }
+    }
+
+    /**
+     * Tells Dart the stream's caption tracks and the one shown, when they
+     * changed: the player menu offers a choice when there are several.
+     */
+    private fun sendTextTracks() {
+        runCatching {
+            val list = player.textTracks.map {
+                mapOf("id" to it.id, "label" to it.label, "language" to it.languageTag)
+            }
+            val selected = player.textTrack?.id
+            val withSelected = list + listOf(mapOf("selected" to selected))
+            if (withSelected == sentTracks) return
+            sentTracks = withSelected
+            send(mapOf("type" to "textTracks", "list" to list, "selected" to selected))
+        }.onFailure { Log.w(CORE_TAG, "text tracks: ${it.message}") }
     }
 
     /**

@@ -31,26 +31,6 @@ mixin _$IvsVideoStore on IvsVideoStoreBase, Store {
     );
   }
 
-  late final _$_captionAtom = Atom(
-    name: 'IvsVideoStoreBase._caption',
-    context: context,
-  );
-
-  String? get caption {
-    _$_captionAtom.reportRead();
-    return super._caption;
-  }
-
-  @override
-  String? get _caption => caption;
-
-  @override
-  set _caption(String? value) {
-    _$_captionAtom.reportWrite(value, super._caption, () {
-      super._caption = value;
-    });
-  }
-
   late final _$_textureIdAtom = Atom(
     name: 'IvsVideoStoreBase._textureId',
     context: context,
@@ -551,18 +531,6 @@ mixin _$IvsVideoStore on IvsVideoStoreBase, Store {
     );
     try {
       return super.setFillScreen(fill);
-    } finally {
-      _$IvsVideoStoreBaseActionController.endAction(_$actionInfo);
-    }
-  }
-
-  @override
-  void _clearCaption() {
-    final _$actionInfo = _$IvsVideoStoreBaseActionController.startAction(
-      name: 'IvsVideoStoreBase._clearCaption',
-    );
-    try {
-      return super._clearCaption();
     } finally {
       _$IvsVideoStoreBaseActionController.endAction(_$actionInfo);
     }

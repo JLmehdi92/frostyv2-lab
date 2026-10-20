@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/constants.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/settings/widgets/chat_filters_setting.dart';
 import 'package:frosty/screens/settings/widgets/settings_list_select.dart';
 import 'package:frosty/screens/settings/widgets/settings_list_slider.dart';
 import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
 import 'package:frosty/screens/settings/widgets/settings_muted_words.dart';
+import 'package:frosty/screens/settings/widgets/settings_tile_route.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
 import 'package:frosty/widgets/section_header.dart';
@@ -328,6 +330,12 @@ class _ChatSettingsState extends State<ChatSettings> {
             divisions: 10,
             onChanged: (newValue) =>
                 settingsStore.fullScreenChatOverlayOpacity = newValue,
+          ),
+          const SectionHeader('Chat filters'),
+          SettingsTileRoute(
+            leading: const Icon(Icons.filter_alt_outlined),
+            title: 'Edit Chat Filters',
+            child: ChatFiltersSetting(settingsStore: settingsStore),
           ),
           const SectionHeader('Muted keywords'),
           SettingsMutedWords(settingsStore: settingsStore),

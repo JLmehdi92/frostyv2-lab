@@ -6,9 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/channel/channel.dart';
+import 'package:frosty/screens/channel/video/caption_menu.dart';
 import 'package:frosty/screens/channel/video/overlay_common.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/player_media.dart';
+import 'package:frosty/screens/vod/stores/ivs_vod_store.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:frosty/screens/vod/vod_time.dart';
 import 'package:frosty/screens/vod/widgets/vod_seek_bar.dart';
@@ -572,6 +574,8 @@ class VodSettingsSheet extends StatelessWidget {
               onToggleMute: controller.toggleMute,
               onVolumeChanged: controller.setVolume,
             ),
+            if (controller case final IvsVodStore ivs)
+              CaptionMenu(captions: ivs.captions),
             const SectionHeader(
               'Playback speed',
               padding: EdgeInsets.fromLTRB(16, 16, 16, 8),

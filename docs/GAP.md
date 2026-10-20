@@ -24,6 +24,8 @@
 | 2026-10-15 | GIF du chat (branche `gifs`) | CHT-26 ⚠️ (affichage) ; CHT-25 (remarque). Comptes recalculés. À valider sur appareil avec un vrai GIF. |
 | 2026-10-15 | retour à ONSET (portage de l'appli ONSET, hype train et notices au style Twitch, retour de la tablette) et passe finale | INT-25 ✅ ; INT-05, INT-06, INT-07 ⚠️ ; INT-02, INT-04, INT-15, INT-16, CHT-36, MON-07 (remarques) ; MSC-14 ⚠️, DSC-01, PRF-18 (tablette). Comptes recalculés. À valider sur la tablette. |
 | 2026-10-17 | VOD : jeton du viewer et écran de garde (branche `vodfix`) | PRF-08, PRF-15, PLY-25 (remarques). Statuts inchangés, comptes inchangés. À valider sur appareil avec une VOD labellisée et une VOD réservée aux abonnés. |
+| 2026-10-20 | pack « chat » (branche `chatpack`) | CHT-16, CHT-28, CHT-29, PLY-23 ✅. Comptes recalculés. Comportements relevés dans l'appli décompilée (`/tmp/claude-0/port/chatpack_re.md`). À valider sur appareil : feuille des règles connecté, filtres sur un chat actif, sous-titres sur un stream et une VOD qui en ont. |
+| 2026-10-20 | pack « follows » (branche `followpack`) | SOC-04, INT-21, MON-01, MON-06 ⚠️ ; MON-11 ✅ ; SOC-02, SOC-03 (remarques). Comptes recalculés. Lectures GQL avec le jeton web non vérifiables ici (pas de jeton) : à valider sur appareil connecté. |
 
 ## 0. Légende et conventions
 
@@ -80,7 +82,7 @@
 | PLY-20 | Taille du chat en portrait | P1 | ✅ | `portrait_split.dart`, `channel.dart` | Poignée entre vidéo et chat : glisser réduit la vidéo jusqu'à 40 % de la largeur sur tablette (au moins 300 dp, pour garder les contrôles et la latence lisibles), double tap la remet en pleine largeur ; taille mémorisée (`portraitVideoScale`). | OK |
 | PLY-21 | Disposition verticale / classique (dual format) | P1 | ❌ | — | Ni `multigroup_video` ni usher `/api/v2/`. | OK |
 | PLY-22 | Minuteur de veille | P1 | ✅ | `chat_details.dart:70-150`, `chat_store.dart:1296-1325` | — | OK |
-| PLY-23 | Sous-titres (CC) | P1 | ⚠️ | `IvsPlayerCore.kt` (`setCaptions`, `onCue`), `captions.dart`, `ivs_video.dart`, `video_overlay.dart` | Interrupteur « Captions » dans la feuille du lecteur (IVS) : première piste texte sélectionnée, `TextCue` affichées sur la vidéo. Ni choix de piste, ni style, ni VOD ; à valider sur un stream sous-titré. | OK |
+| PLY-23 | Sous-titres (CC) | P1 | ✅ | `IvsPlayerCore.kt` (`setCaptions`, `setTextTrack`, évènement `textTracks`, `onCue`), `captions.dart`, `stores/caption_store.dart`, `caption_menu.dart`, `ivs_video.dart`, `video_overlay.dart`, `vod/widgets/vod_video.dart`, `vod/vod_overlay.dart`, `settings/widgets/caption_style_setting.dart` | Interrupteur « Closed Captions » comme Twitch (feuille du lecteur live, feuille de la VOD, Réglages › Vidéo). Ajouts ONSET : choix de la piste quand le flux en offre plusieurs (la langue choisie est reprise au flux suivant), taille (Small à Extra large) et fond (Black, Translucent, None) de la ligne ; par défaut celle de Twitch, blanc 15 sur noir. VOD IVS couvertes. Android seulement (IVS). À valider sur un stream et une VOD sous-titrés. | OK |
 | PLY-24 | Chromecast | P1 | ❌ | — | Pas de Cast SDK. Le récepteur Twitch est propriétaire, mais le Default Media Receiver peut lire l'URL usher. | OK |
 | PLY-25 | Écran de garde classification (CCL) | P1 | ✅ | `content_warning_gate.dart`, `content_labels.dart`, `models/channel.dart`, `video_settings.dart` | Avertissement au texte de l'appli officielle (« Just one second… », « <chaîne>'s content is intended for certain audiences. », « It may contain: … », « Start watching », « Go back ») tant qu'on n'a pas touché « Start watching », quand la chaîne porte des labels (Helix `content_classification_labels`). Aussi avant une VOD, avec les labels de la vidéo elle-même comme l'officiel (`getContentLabels`), le lecteur n'étant créé qu'après acceptation. Accepté une fois par session et par chaîne, partagé live/VOD (l'officiel garde l'acceptation par label et la persiste) ; réglage « Warn about mature content » (actif). Échec ou lenteur (> 3 s) de requête = pas de blocage. Si l'avertissement web de Twitch reste à l'écran dans un lecteur web, nos contrôles s'effacent pour qu'il soit touchable ; en live comme en VOD web, il n'est cliqué qu'avec l'accord du viewer (réglage coupé, chaîne acceptée, ou « Start watching » sur le nôtre). | OK |
 | PLY-26 | Live réservé aux abonnés + aperçu gratuit | P1 | ⚠️ | `twitch_stream_service.dart` (`refusalFor`), `playback_access_token.dart` (`PlaybackRefusal`), `ivs_video_store.dart` (`_failExplained`), `channel.dart` | Le jeton demande `authorization.forbiddenReasonCode` : un 403 sur un live réservé aux abonnés (ou géobloqué, ou chaîne qui a banni le viewer) passe tout de suite au lecteur web (plus de 3 rechargements inutiles) avec « X is streaming for subscribers only. Trying the web player. ». Pas de bannière ni de minuteur d'aperçu gratuit natifs ; l'abonné passe par le lecteur web (jeton natif anonyme). À valider sur appareil. | OK |
@@ -111,7 +113,7 @@
 | CHT-13 | Avertissement (côté viewer) | P0 | ❌ | — | L'acquittement existe seulement en GQL (`AcknowledgeChatWarning`). | GQL privé |
 | CHT-14 | Demande de déban (côté viewer) | P1 | ❌ | — | Helix `/moderation/unban_requests` est réservé aux mods ; la création d'une demande passe par GQL. | GQL privé |
 | CHT-15 | Bannières de restriction de mode | P0 | ✅ | `chat_restrictions.dart`, `chat_bottom_bar.dart` | Mode lent : saisie verrouillée avec le temps restant après un envoi ; emotes seules, abonnés, followers (durée) dans le texte d'aide de la saisie. Modérateurs, VIP et diffuseur exemptés (E7). | OK |
-| CHT-16 | Règles du chat | P1 | ❌ | — | — | GQL privé |
+| CHT-16 | Règles du chat | P1 | ✅ | `apis/twitch_chat_rules_service.dart`, `models/chat_rules.dart`, `chat/stores/chat_rules_store.dart`, `chat/widgets/chat_rules_sheet.dart`, `chat.dart`, `details/chat_details.dart` | Requête `ChatRules` de l'appli officielle, en GQL anonyme (testée le 2026-10-20). Comme Twitch : la première fois qu'un viewer connecté touche le champ du chat d'une chaîne qui a des règles, la feuille « Chat Rules » s'ouvre à la place du clavier ; « OK, Got it! » est retenu sur l'appareil par viewer et par chaîne. Ajout ONSET : entrée « Chat rules » dans le menu du chat pour les relire. Pas la variante « unbanned » (demandes de débannissement privées). Échec de la requête : rien n'est montré. | GQL privé |
 | CHT-17 | Commandes slash (viewer) | P0 | ✅ | `chat_commands.dart`, `chat_store.dart` | `/me`, `/color` (noms Twitch ou hex), `/block`, `/unblock`, `/w`, `/help` exécutées par l'appli (Helix), plus les commandes de modération (MOD-08). Les commandes diffuseur non faites (`/mod`, `/vip`, `/raid`, `/commercial`, `/announce`…) expliquent qu'elles ne sont pas disponibles au lieu de partir en texte. | OK |
 | CHT-18 | Annonces | P0 | ✅ | `chat_message.dart`, `announcement_color.dart` | Rendu « Announcement » avec la couleur `msg-param-color` (bleu, vert, orange, violet) (E7). | OK |
 | CHT-19 | Badges | P0 | ✅ | `twitch_api.dart:83-123`, `irc.dart:248-300` | Badges Twitch plus FFZ/BTTV. Badges 7TV codés mais jamais alimentés (`chat_assets_store.dart:94-96`). | OK |
@@ -123,8 +125,8 @@
 | CHT-25 | Animation des emotes et GIF | P1 | ✅ | `emotes.dart` (`staticUrl`, `urlFor`), `irc.dart`, `chat_settings.dart` | Réglage local « Animate emotes » : éteint, le chat (live, replay, réponses, épinglé) affiche l'image fixe fournie par Twitch, 7TV, BTTV ou FFZ. Réglage distinct « Animated GIFs » pour les GIF (CHT-26). Non synchronisés avec le compte. | OK |
 | CHT-26 | GIF dans le chat (GIPHY) | P2 | ⚠️ | `chat_gif.dart`, `irc.dart` (`gifParts`), `chat_gif_image.dart`, `first_frame_image.dart`, `chat_settings.dart` | Affichage au comportement de l'appli Twitch : tag `gifs`, GIF sous le pseudo à la place de son titre (128 px, 72 en paysage ou en surimpression), réglages « Show GIFs in Chat » et « Animated GIFs », fiche au tap. Écarts voulus : seulement `https` sur giphy.com ou jtvnw.net, titre affiché en cas d'échec, « Reply » gardé. Manque l'envoi (onglet GIF, palier 2+) et « Report GIF ». | GQL privé |
 | CHT-27 | Couleurs lisibles et contraste | P1 | ✅ | `utils.dart:19-47`, `irc.dart:416` | Ajustement automatique du contraste, sans option. | OK |
-| CHT-28 | Masquer le langage offensant | P1 | ⚠️ | `settings_muted_words.dart`, `muted_words.dart` | Mots masqués manuels (mot entier ou sous-chaîne, expressions). Bugs corrigés en E7 : le lot n'est plus abandonné et la comparaison n'est plus lettre par lettre. Pas de catégories de filtres Twitch. | OK |
-| CHT-29 | Filtres de chat personnels | P1 | ❌ | — | Pas de catégories de filtres (listes locales possibles). | OK |
+| CHT-28 | Masquer le langage offensant | P1 | ✅ | `settings_muted_words.dart`, `muted_words.dart`, `chat/chat_filters.dart` | Mots masqués manuels conservés (mot entier ou sous-chaîne, expressions). Le masquage AutoMod de Twitch est couvert par les filtres de CHT-29 (catégorie Profanity). | OK |
+| CHT-29 | Filtres de chat personnels | P1 | ✅ | `chat/chat_filters.dart`, `models/irc.dart` (`textAsSent`, `isFiltered`, `shownText`), `chat/widgets/chat_message.dart`, `chat/widgets/filtered_message_sheet.dart`, `settings/widgets/chat_filters_setting.dart` | « Edit Chat Filters » dans Réglages › Chat, libellés de Twitch : « Enable filtering in chat », Discrimination, Sexually Explicit Language, Harassment, Profanity. Lit la balise IRC `flags` comme `ac6.java` : un mot noté 3 ou plus dans une catégorie active devient des `*` ; un toucher ouvre « Message Blocked », « Show Message » le révèle. Une emote Twitch reste une emote ; rien n'est filtré dans une chaîne modérée par le viewer. `flags` vérifiée le 2026-10-20 sur une connexion anonyme (justinfan). Pas pour le replay des VOD ni les notices d'abonnement. | OK |
 | CHT-30 | Menu des réglages du chat | P0 | ✅ | `chat_details.dart`, `chat_settings.dart`, `chat_mode_controls.dart` | Menu « More » et page des réglages du chat, avec pour les modérateurs l'entrée « Chat modes » (modes du salon, vider le chat). | OK |
 | CHT-31 | Couleur du pseudo | P1 | ✅ | `chat_details.dart:351-355,573-611`, `twitch_api.dart:419-458` | 15 couleurs nommées. Ni hex (Turbo/Prime) ni `/color`. | OK |
 | CHT-32 | Badge affiché | P1 | ❌ | — | — | GQL privé |
@@ -169,7 +171,7 @@
 | INT-18 | Récompenses partagées | P2 | ❌ | — | — | GQL privé |
 | INT-19 | Raids (côté viewer) | P1 | ✅ | `chat_message.dart:447-460`, `community_highlights/widgets/highlight_cards.dart`, `community_highlights_store.dart` (`onGoAlong`, `stayOnRaid`) | Notice de raid entrant (USERNOTICE). Raid sortant (E5, sujet public `raid.<id>`) : « Raiding <cible> with N viewers », compte à rebours, « Watch <cible> » ouvre la chaîne dans l'appli, et le viewer suit le raid à son départ comme sur Twitch (« Stay here » pour rester ; pas depuis une VOD ou le PiP). À valider sur un vrai raid. | OK |
 | INT-20 | Shoutouts (côté viewer) | P1 | ❌ | — | EventSub `channel.shoutout.*` exige `moderator:read:shoutouts`. | GQL privé |
-| INT-21 | Séries de visionnage (watch streaks) | P1 | ❌ | — | — | GQL privé |
+| INT-21 | Séries de visionnage (watch streaks) | P1 | ⚠️ | `twitch_watch_streak_service.dart`, `models/watch_streak.dart`, `channel_points_sheet.dart` (`WatchStreakCard`), `channel_events_store.dart` (`refreshWatchStreak`), `watch_streak_tag.dart` | Lecture seule, avec le jeton web : carte en tête de la feuille des points comme Twitch (`WatchStreakMilestoneQuery` : « Your Watch Streak: N », prochain palier et son bonus, état suspendu en live ou hors ligne avec le temps restant, N/palier), lue à l'ouverture de la chaîne et de la feuille (1 fois par minute au plus, 10 min après un échec), et tag « Watch Streak N » sur les cartes suivies (`BatchGetWatchStreaksQuery`). Rien n'est affiché sur un échec, un refus ou un opt-out. Ni partage dans le chat ni « Save Streak » (mutations). L'appli n'envoie aucun événement de visionnage : regarder ici ne fait sans doute pas avancer la série, et la carte le dit. | GQL privé |
 | INT-22 | Récompenses hebdomadaires | P2 | ❌ | — | — | GQL privé |
 | INT-23 | Moments communautaires | P2 | ❌ | — | — | GQL privé |
 | INT-24 | Classements | P2 | ❌ | — | Helix `/bits/leaderboard` est réservé au diffuseur. | GQL privé |
@@ -222,9 +224,9 @@
 | ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
 | SOC-01 | Suivre / ne plus suivre | P0 | ⚠️ | `user_actions_modal.dart`, `widgets/twitch_web_page.dart` | « Follow X on Twitch » dans le menu d'actions d'une chaîne : la page de la chaîne sur twitch.tv dans l'appli, connectée. Pas de bouton natif : Helix n'a plus d'endpoint de follow et la mutation GQL exige `Client-Integrity` (non contourné). | GQL privé |
-| SOC-02 | Liste des chaînes suivies | P0 | ✅ | `twitch_api.dart:177-207`, `streams_list.dart:102,369-395` | Live et hors ligne (« followed since »). Tri par spectateurs seulement. | OK |
-| SOC-03 | Page Following | P0 | ⚠️ | `streams_list.dart:136-160,262-311,369-395` | Épinglés (➕), live, hors ligne. Ni recommandés ni catégories suivies. | GQL privé |
-| SOC-04 | Suivre une catégorie | P1 | ❌ | — | — | GQL privé |
+| SOC-02 | Liste des chaînes suivies | P0 | ✅ | `twitch_api.dart:177-207`, `streams_list.dart`, `stream_list_store.dart` (`sortFollowedStreams`), `stream_sort_button.dart` (`FollowedSortButton`) | Live et hors ligne (« followed since »). « Sorted by » au-dessus des lives, comme Twitch, mémorisé (`settingsStore.followedSort`) : Viewers (High to Low) (ordre de Helix, inchangé), Recently Started, Name (A-Z), Category ; un ordre local charge d'abord les pages restantes (5 au plus). « Recommended For You » est un classement serveur privé : absent. | OK |
+| SOC-03 | Page Following | P0 | ⚠️ | `streams_list.dart`, `followed_categories_section.dart`, `twitch_followed_categories_service.dart`, `watch_streak_tag.dart` | Épinglés (➕), live, hors ligne. Section « Categories » (catégories suivies, spectateurs, toucher = ses lives) lue par `FollowedGamesQuery` avec le jeton web, masquée sur tout échec (30 min avant de redemander). Tag « Watch Streak N » sur les cartes suivies (INT-21). Pas de lives recommandés ni de « continuer à regarder ». | GQL privé |
+| SOC-04 | Suivre une catégorie | P1 | ⚠️ | `category_streams.dart` (`_followOnTwitch`), `twitch_followed_categories_service.dart` (`categoryPageUrl`) | Cœur « Follow on Twitch » (connecté) sur la page catégorie : la catégorie sur twitch.tv dans l'appli (`/directory/category/<slug>`, slug lu en GQL anonyme, sinon par le nom), où le viewer touche le vrai bouton de Twitch. Pas de mutation native : `FollowGameMutation` est soumise à `Client-Integrity` (non contourné). | GQL privé |
 | SOC-05 | Cloche de notification par chaîne | P0 | ⚠️ | `go_live_setting.dart` (`GoLiveBellTile`), `user_actions_modal.dart`, `go_live.dart` (`muted`) | Cloche locale dans le menu d'une chaîne : comme Twitch, toute chaîne suivie notifie sauf si sa cloche est coupée. Non synchronisée avec la cloche du compte Twitch (GQL privé). | GQL privé |
 | SOC-06 | Notifications push | P0 | ⚠️ | `go_live.dart`, `go_live_worker.dart`, `go_live_setting.dart`, `main.dart` | Notifications de passage en live par vérification locale en arrière-plan (WorkManager, environ toutes les 15 min selon Android, `GET /streams/followed`) : une notice par chaîne (5 au plus, puis un résumé), un toucher ouvre la chaîne, rien au premier passage ni après un changement de compte. Android seulement (iOS n'offre pas de tâche périodique fiable). Le push FCM de Twitch reste impossible : pas d'autres types (raids, whispers hors appli…). | OK |
 | SOC-07 | Centre de notifications | P0 | ❌ | — | — | GQL privé |
@@ -309,17 +311,17 @@
 
 | ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
-| MON-01 | S'abonner | P2 | ❌ | — | Google Play Billing de Twitch. Seul un lien web est possible. | Impossible proprement |
+| MON-01 | S'abonner | P2 | ⚠️ | `profile_header.dart` (`onSubscribe`), `channel_profile_screen.dart`, `chat_details.dart`, `utils/twitch_links.dart` (`twitchSubscribeUrl`) | « Subscribe » sur l'en-tête du profil (partenaire ou affilié) et dans le menu du chat (connecté), jamais sur sa propre chaîne : la page `twitch.tv/subs/<login>` dans l'appli. L'achat natif (Google Play Billing de Twitch) reste impossible. | Impossible proprement |
 | MON-02 | Avantages d'abonné | P2 | ❌ | — | — | GQL privé |
 | MON-03 | Mes abonnements | P2 | ❌ | — | — | Impossible proprement |
 | MON-04 | Abonnement Prime Gaming | P2 | ❌ | — | — | Impossible proprement |
 | MON-05 | Turbo | P2 | ❌ | — | — | Impossible proprement |
-| MON-06 | Offrir un abonnement | P2 | ❌ | — | — | Impossible proprement |
+| MON-06 | Offrir un abonnement | P2 | ⚠️ | `chat_details.dart` | « Gift a Sub » dans le menu du chat (connecté) : la page `twitch.tv/subs/<login>` dans l'appli, qui propose l'offre. Pas d'offre native. | Impossible proprement |
 | MON-07 | Gifts à la communauté | P2 | ❌ | — | Offrir reste impossible proprement. Affichage seulement : bannière de gift bomb épinglée au-dessus du chat avec compte à rebours (`gift_bomb_tracker.dart`, `gift_bomb_feed.dart`), et chaque gift dans le chat (CHT-36). | Impossible proprement |
 | MON-08 | Réglages des gifts | P2 | ❌ | — | — | GQL privé |
 | MON-09 | Promotions | P2 | ❌ | — | — | Impossible proprement |
 | MON-10 | Récompenses de dépense | P2 | ❌ | — | — | Impossible proprement |
-| MON-11 | Paiement web | P2 | ❌ | — | Ouvrir `twitch.tv/subs/<login>` dans le navigateur. | OK |
+| MON-11 | Paiement web | P2 | ✅ | `utils/twitch_links.dart` (`twitchSubscribeUrl`), `widgets/twitch_web_page.dart` | `twitch.tv/subs/<login>` s'ouvre dans l'appli (WebView connectée, hôte vérifié) depuis Subscribe et Gift a Sub (MON-01, MON-06). | OK |
 | MON-12 | Acheter des Bits | P2 | ❌ | — | — | Impossible proprement |
 | MON-13 | Solde et informations Bits | P2 | ❌ | — | — | GQL privé |
 | MON-14 | Gestion des erreurs d'achat | P2 | ❌ | — | — | Impossible proprement |
@@ -432,30 +434,30 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 
 | Domaine | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| Lecture vidéo (PLY) | 17 | 6 | 9 | 1 | 33 |
-| Chat (CHT) | 26 | 5 | 11 | 6 | 48 |
-| Interactions communautaires (INT) | 6 | 6 | 19 | 0 | 31 |
+| Lecture vidéo (PLY) | 18 | 5 | 9 | 1 | 33 |
+| Chat (CHT) | 29 | 4 | 9 | 6 | 48 |
+| Interactions communautaires (INT) | 6 | 7 | 18 | 0 | 31 |
 | Modération (MOD) | 9 | 1 | 21 | 0 | 31 |
-| Social & notifications (SOC) | 5 | 5 | 12 | 0 | 22 |
+| Social & notifications (SOC) | 5 | 6 | 11 | 0 | 22 |
 | Découverte & recherche (DSC) | 6 | 4 | 12 | 0 | 22 |
 | Profil de chaîne & contenus (VOD / clips) (PRF) | 14 | 5 | 10 | 0 | 29 |
-| Monétisation (MON) | 0 | 0 | 15 | 0 | 15 |
+| Monétisation (MON) | 1 | 2 | 12 | 0 | 15 |
 | Compte & réglages (ACC) | 5 | 8 | 18 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 3 | 8 | 6 | 0 | 17 |
-| **Total** | **91** | **48** | **170** | **8** | **317** |
+| **Total** | **96** | **50** | **163** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 41 | 13 | 2 | 4 | 60 |
-| P1 | 44 | 24 | 36 | 4 | 108 |
-| P2 | 6 | 11 | 132 | 0 | 149 |
-| **Total** | **91** | **48** | **170** | **8** | **317** |
+| P1 | 48 | 24 | 32 | 4 | 108 |
+| P2 | 7 | 13 | 129 | 0 | 149 |
+| **Total** | **96** | **50** | **163** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 9 | 20 | 34 | 63 |
-| GQL privé | 6 | 29 | 60 | 95 |
+| OK | 9 | 17 | 33 | 59 |
+| GQL privé | 6 | 28 | 60 | 94 |
 | Compte requis | 0 | 11 | 12 | 23 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
 

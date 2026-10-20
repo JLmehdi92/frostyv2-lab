@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/settings/widgets/caption_style_setting.dart';
 import 'package:frosty/screens/settings/widgets/settings_list_select.dart';
 import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
 import 'package:frosty/screens/settings/widgets/settings_twitch_web_token.dart';
@@ -115,6 +116,11 @@ class VideoSettings extends StatelessWidget {
             value: settingsStore.warnMatureContent,
             onChanged: (newValue) => settingsStore.warnMatureContent = newValue,
           ),
+          // Captions come from the IVS player, Android only.
+          if (Platform.isAndroid) ...[
+            const SectionHeader('Captions'),
+            CaptionStyleSetting(settingsStore: settingsStore),
+          ],
           const SectionHeader('Overlay'),
           SettingsListSwitch(
             title: 'Use custom video overlay',
