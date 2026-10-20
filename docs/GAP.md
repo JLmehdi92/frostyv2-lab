@@ -28,6 +28,7 @@
 | 2026-10-20 | reprise live → VOD (branche `resume`) | PRF-11 ✅. Comptes recalculés. Comportement relevé dans l'appli décompilée (`/tmp/claude-0/port/live_resume_re.md`). Écriture et lecture de la position sur le compte (jeton web) non vérifiables ici : à valider sur appareil connecté. |
 | 2026-10-20 | pack « follows » (branche `followpack`) | SOC-04, INT-21, MON-01, MON-06 ⚠️ ; MON-11 ✅ ; SOC-02, SOC-03 (remarques). Comptes recalculés. Lectures GQL avec le jeton web non vérifiables ici (pas de jeton) : à valider sur appareil connecté. |
 | 2026-10-20 | pack « notifications » (branche `notifpack`) | PRF-06 ✅ ; SOC-07, SOC-08 ⚠️ ; SOC-06, CHT-05 (remarques). Comptes recalculés. Go-live toutes les 90 s appli vivante, mentions en arrière-plan/PiP, « Remind Me », écran Activity local. À valider sur appareil. |
+| 2026-10-20 | pack « vod & clips » (branche `vodclippack`) | DSC-07, DSC-12, PRF-13, PRF-19 ✅ ; PRF-20 ⚠️. Comptes recalculés. Comportements relevés dans l'appli décompilée (`/tmp/claude-0/port/vodclippack_re.md`). Création de clip non vérifiable ici (pas de jeton utilisateur) : à valider sur appareil connecté, comme la lecture du flux et la carte Up Next. |
 
 ## 0. Légende et conventions
 
@@ -258,12 +259,12 @@
 | DSC-04 | Page catégorie | P0 | ✅ | `category_streams.dart` (`CategorySection`), `twitch_vod_service.dart` (`getCategoryVideos`), `twitch_clip_service.dart` (`getCategoryClips`) | Sections Live, Videos (100 plus vues, GQL anonyme sans pagination) et Clips (période et tri), chaîne nommée sur chaque carte. Le follow de catégorie reste à faire (compte requis, E9). | OK |
 | DSC-05 | Tri et filtres | P1 | ✅ | `stream_languages.dart`, `stream_language_setting.dart`, `twitch_directory_service.dart`, `stream_sort_button.dart` | Langue des listes Top, catégorie et tag (Réglages › Général › Browse ; Helix `language`, GQL `broadcasterLanguages`). Tri des lives d'une catégorie ou d'un tag : spectateurs ↓ (Helix, paginé), Recommended, spectateurs ↑, Recently started (GQL anonyme, une seule page : 100 par catégorie, 30 par tag, la pagination GQL exige l'intégrité). | OK |
 | DSC-06 | Tags | P1 | ✅ | `stream_tags.dart`, `tags/tag_streams.dart` | Quatre tags par carte sur une ligne ; un tag ouvre la page de ses lives (GQL anonyme `freeformTags`, triable, suit la langue). | GQL privé |
-| DSC-07 | Recherche globale | P0 | ⚠️ | `search_store.dart:70-120`, `search.dart:204-226` | Chaînes et catégories, résultats pendant la saisie (debounce 300 ms). Pas d'onglets Top/Vidéos. | OK |
+| DSC-07 | Recherche globale | P0 | ✅ | `search_store.dart:70-120`, `search.dart` (`_SearchTab`), `search_videos_store.dart`, `search_results_videos.dart`, `twitch_vod_service.dart` (`searchVideos`) | Onglets de l'officiel : Top (chaînes puis catégories, comme avant), Channels, Categories, Videos. Résultats pendant la saisie (debounce 300 ms). Videos : GQL anonyme `searchFor(target:{index:VOD, limit:25})`, page suivante au défilement avec le curseur de Twitch (une page refusée arrête la pagination sans message), « No search results found ». Pas de flux liés (DSC-09). | OK |
 | DSC-08 | Suggestions et recherches récentes | P0 | ⚠️ | `search_store.dart` (`removeFromHistory`), `search.dart`, `search_results_channels.dart` | Historique (8 entrées) effaçable en entier ou entrée par entrée, « Go to channel ». Pas de suggestions. | OK |
 | DSC-09 | Résultat mis en avant, flux liés, chaînes hors ligne | P1 | ⚠️ | `featured_channel.dart`, `search_results_channels.dart` | La chaîne dont le login ou le nom est exactement la recherche passe en tête, en grande carte (titre, catégorie, direct ou hors ligne). Indicateur live, chaînes hors ligne incluses. Pas de flux liés. | OK |
 | DSC-10 | Suivre depuis la recherche | P1 | ❌ | — | Dépend de SOC-01. | GQL privé |
 | DSC-11 | Flux de découverte vertical | P1 | ❌ | — | Helix `/streams` + IVS en aperçu. Coûteux en mémoire. | OK |
-| DSC-12 | Flux de clips vertical | P1 | ❌ | — | Le jeton de lecture d'un clip exige une requête GQL (sans intégrité, risque faible). | GQL privé |
+| DSC-12 | Flux de clips vertical | P1 | ✅ | `clips_feed_screen.dart`, `clips_feed_store.dart`, `twitch_clip_service.dart` (`getTopClips`) | Bouton « Clips » à côté des onglets Top : top clips de Twitch (GQL anonyme `topClips`, 20 par page avec le curseur, langue des listes Top, 200 au plus), plein écran, un swipe par clip, double-tap lecture/pause, « Open clip » vers l'écran de clip (replay du chat, VOD). Un seul clip joue ; seul le suivant est préchargé (en pause), les autres lecteurs sont libérés. Focus de lecture, mini-lecteur et PiP comme l'écran de clip. Pas de recommandations personnalisées ni de commentaires. À valider sur appareil. | GQL privé |
 | DSC-13 | Sous-flux (puces) | P2 | ❌ | — | — | GQL privé |
 | DSC-14 | Retours sur le flux | P2 | ❌ | — | — | GQL privé |
 | DSC-15 | Recommandations | P1 | ❌ | — | — | GQL privé |
@@ -291,14 +292,14 @@
 | PRF-10 | Vitesse de lecture | P1 | ✅ | `ivs_vod_store.dart`, `vod_overlay.dart` (`5ecf601`, `021c827`) | 0,5× à 2× par 0,25 ; le replay du chat suit la vitesse. | OK |
 | PRF-11 | Reprise de lecture | P1 | ✅ | `vod_resume.dart` (`021c827`), `live_progress.dart`, `TwitchVodService.getViewingHistory`/`updateViewedVideo` | Cadence de l'officiel (VOD : 20 s, pause, arrière-plan, sortie ; live : 5 min + pause/arrêt, J:r200), reprise à −30 s, `?t=` prioritaire, 300 vidéos par magasin, par compte. Synchro serveur avec le jeton web (`UpdateUserViewedVideo`, VOD ou LIVE + id du stream ; `self.viewingHistory`). Une VOD d'archive reprend où le live a été quitté (`broadcast.id` = id du stream, repli chaîne + début ±10 min). Écart : position live = début du stream − latence (l'officiel lit l'ID3 `ld_lat_data.stream_offset`). Non vérifiable ici : écriture/lecture authentifiées (gating d'intégrité éventuel → repli local silencieux). | OK |
 | PRF-12 | Revoir le chat (chat replay) | P1 | ⚠️ | `vod_chat_replay_store.dart`, `vod_comment_cache.dart`, `vod_comment_to_irc.dart` (`6cc7ba0`) | Commentaires par offset en anonyme, rendus comme le live (badges, couleurs, emotes Twitch et 7TV/BTTV/FFZ, mentions, bloqués et mots masqués). Limites : seconde très chargée tronquée à une page (pas de curseur anonyme) ; emotes tierces = sets actuels de la chaîne. | GQL privé |
-| PRF-13 | Vidéo suivante, lecture auto, revoir | P2 | ❌ | — | — | OK |
+| PRF-13 | Vidéo suivante, lecture auto, revoir | P2 | ✅ | `up_next.dart`, `stores/up_next_store.dart`, `widgets/up_next_overlay.dart`, `vod_screen.dart`, `network_metering.dart`, `NetworkBridge.kt` | « Up Next » de l'officiel à la fin d'une VOD : vidéo suivante de la chaîne (tous types, plus récentes d'abord, ni vue ni réservée aux abonnés, règle `isWatched` de Twitch sur les positions locales), sinon une vidéo de la catégorie ; compte à rebours de 10 s, Cancel, lecture immédiate ; « Replay » reste sur l'overlay. Réglage « Video Autoplaying » (Mobile data & Wi-Fi par défaut, Wi-Fi Only via le réseau mesuré d'Android, Never). Écarts : sans lecture auto la carte attend le viewer ; pas de compte à rebours en PiP ; rien pour une VOD encore en enregistrement. La vidéo suivante remplace l'écran (sa propre garde de contenu, sa reprise et son replay). | OK |
 | PRF-14 | Segments muets | P2 | ✅ | `twitch_vod_service.dart`, `vod_seek_bar.dart` (`b1a41fe`, `021c827`) | Repères sur la barre de progression. | OK |
 | PRF-15 | VOD réservées aux abonnés | P2 | ⚠️ | `ivs_vod_store.dart`, `vod_error_view.dart`, `vod_card.dart` (`ad3cf94`, `021c827`) | Cadenas dans la liste. Le jeton VOD est demandé avec le jeton web twitch.tv du viewer : un abonné lit la VOD dans le lecteur natif. Refusée malgré ce jeton : message de l'officiel (« This video is only available to subscribers. » / « Subscribe now to watch and support this channel. ») avec rafraîchissement, jamais le lecteur web. Sans jeton web : repli web (cookies twitch.tv) comme avant. À valider avec un compte abonné. | OK |
 | PRF-16 | Vidéos des chaînes suivies | P1 | ✅ | `followed_videos_screen.dart`, `followed_videos_store.dart`, `twitch_vod_service.dart` (`getFollowedVideos`) | « Followed videos » en tête des chaînes hors ligne de Following : les 100 premières chaînes suivies (Helix), puis 5 vidéos de chacune en une requête GQL anonyme par lot de 50 (`users(ids:)`), les plus récentes d'abord, ouvertes dans le lecteur VOD de l'appli. Tirer pour rafraîchir, erreur avec « Retry ». | OK |
 | PRF-17 | Clips de la chaîne | P1 | ✅ | `apis/twitch_clip_service.dart`, `screens/clips/widgets/channel_clips_tab.dart` | Onglet « Clips » des vidéos de la chaîne : 24 h / 7 j / 30 j / tout, Top ou Tendances, 100 premiers (pagination bloquée par l'intégrité en anonyme), grille sur tablette. GQL anonyme. | OK |
 | PRF-18 | Lecture de clip | P1 | ✅ | `screens/clips/clip_screen.dart`, `stores/clip_player_store.dart` | MP4 signé (jeton GQL anonyme) lu par media_kit : qualité, boucle, vitesse, volume, PiP, fit/fill, vidéo seule en paysage (téléphone comme tablette ; le plein écran repasse en portrait, où sont les infos), « Voir la vidéo complète » au bon instant, replay du chat de la VOD, autres clips de la chaîne. Repli embed Twitch en WebView. À valider sur appareil. | GQL privé |
-| PRF-19 | Créer un clip | P1 | ❌ | — | Helix `POST /clips` (`clips:edit`) : portée absente des scopes OAuth actuels (`auth_store.dart`). Hors périmètre E2. | Compte requis |
-| PRF-20 | Éditer et publier un clip | P1 | ❌ | — | — | GQL privé |
+| PRF-19 | Créer un clip | P1 | ✅ | `twitch_api.dart` (`createClip`, `getCreatedClip`, `getTokenScopes`), `create_clip_store.dart`, `create_clip_sheet.dart`, `video_overlay.dart`, `auth_store.dart` (`loginScopes`) | Bouton « Clip » en haut de l'overlay live, panneau « Create Clip » de l'officiel : Helix `POST /clips` avec le jeton utilisateur, « Generating Clipperino... », « Rendering Clip » (Get Clips toutes les 5 s, abandon après 60 s comme le conseille Twitch), puis Edit (éditeur twitch.tv dans l'appli), Share Clip, Copy link (« Clip link copied »). `clips:edit` ajouté à la connexion sans déconnecter personne : un ancien jeton (vu par `/oauth2/validate`) propose « Reconnect to Twitch ». Refus 400/403/404/429 expliqués, Retry. Pas de « Share via Whisper » ni de règles d'éligibilité préalables (GQL privé). Pas de clip depuis une VOD (Helix exige un scope d'éditeur). À valider sur appareil connecté. | Compte requis |
+| PRF-20 | Éditer et publier un clip | P1 | ⚠️ | `create_clip_sheet.dart`, `twitch_web_page.dart` | Titre, extrait de 5 à 60 s et publication dans l'éditeur twitch.tv ouvert dans l'appli (`edit_url` de Helix, valable 24 h), pas d'éditeur natif (mutations privées). | GQL privé |
 | PRF-21 | Télécharger ou exporter un clip | P2 | ❌ | — | — | GQL privé |
 | PRF-22 | Clips automatiques | P2 | ❌ | — | — | GQL privé |
 | PRF-23 | Collections | P2 | ❌ | — | — | GQL privé |
@@ -441,29 +442,29 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Interactions communautaires (INT) | 6 | 7 | 18 | 0 | 31 |
 | Modération (MOD) | 9 | 1 | 21 | 0 | 31 |
 | Social & notifications (SOC) | 5 | 8 | 9 | 0 | 22 |
-| Découverte & recherche (DSC) | 6 | 4 | 12 | 0 | 22 |
-| Profil de chaîne & contenus (VOD / clips) (PRF) | 16 | 4 | 9 | 0 | 29 |
+| Découverte & recherche (DSC) | 8 | 3 | 11 | 0 | 22 |
+| Profil de chaîne & contenus (VOD / clips) (PRF) | 18 | 5 | 6 | 0 | 29 |
 | Monétisation (MON) | 1 | 2 | 12 | 0 | 15 |
 | Compte & réglages (ACC) | 5 | 8 | 18 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 3 | 8 | 6 | 0 | 17 |
-| **Total** | **98** | **51** | **160** | **8** | **317** |
+| **Total** | **102** | **51** | **156** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| P0 | 41 | 14 | 1 | 4 | 60 |
-| P1 | 49 | 24 | 31 | 4 | 108 |
-| P2 | 8 | 13 | 128 | 0 | 149 |
-| **Total** | **98** | **51** | **160** | **8** | **317** |
+| P0 | 42 | 13 | 1 | 4 | 60 |
+| P1 | 51 | 25 | 28 | 4 | 108 |
+| P2 | 9 | 13 | 127 | 0 | 149 |
+| **Total** | **102** | **51** | **156** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 9 | 16 | 33 | 58 |
-| GQL privé | 6 | 28 | 59 | 93 |
-| Compte requis | 0 | 11 | 12 | 23 |
+| OK | 8 | 16 | 32 | 56 |
+| GQL privé | 6 | 27 | 59 | 92 |
+| Compte requis | 0 | 10 | 12 | 22 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
 
-Lecture : sur 60 lignes P0, **45** sont entièrement couvertes (41 ✅ et 4 ➕), 14 sont partielles et 1 absente. La ligne P0 absente est l'avertissement côté viewer (CHT-13), en GQL privé ; le centre de notifications (SOC-07) est partiel (liste locale). Les ➕ sont le délai de chat synchronisé, la révélation des messages supprimés, le multi-chat et le chat partagé, les emotes 7TV/BTTV/FFZ, la disposition paysage et le thème avec accent.
+Lecture : sur 60 lignes P0, **46** sont entièrement couvertes (42 ✅ et 4 ➕), 13 sont partielles et 1 absente. La ligne P0 absente est l'avertissement côté viewer (CHT-13), en GQL privé ; le centre de notifications (SOC-07) est partiel (liste locale). Les ➕ sont le délai de chat synchronisé, la révélation des messages supprimés, le multi-chat et le chat partagé, les emotes 7TV/BTTV/FFZ, la disposition paysage et le thème avec accent.
 
 ## 3. Lecture / latence : écarts concrets avec le lecteur officiel
 
