@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:frosty/models/vod.dart';
+import 'package:frosty/screens/channel/video/live_progress.dart';
 import 'package:frosty/screens/vod/stores/channel_videos_store.dart';
 import 'package:frosty/screens/vod/vod_resume.dart';
 import 'package:frosty/screens/vod/vod_screen.dart';
@@ -51,6 +53,10 @@ class _ChannelVideosTabState extends State<ChannelVideosTab>
   /// Saved watch positions, refreshed when coming back from a video.
   var _resume = const <String, VodResumeEntry>{};
 
+  /// Where the viewer left live broadcasts, by stream id: a past broadcast
+  /// not opened yet shows that progress.
+  var _live = const <String, LiveProgressEntry>{};
+
   @override
   void initState() {
     super.initState();
@@ -65,8 +71,30 @@ class _ChannelVideosTabState extends State<ChannelVideosTab>
   void _onResumeChanged() => unawaited(_loadResume());
 
   Future<void> _loadResume() async {
-    final resume = await _resumeRepository.snapshot();
-    if (mounted) setState(() => _resume = resume);
+    // The logged-in viewer's own positions only.
+    final viewer = widget.store.vodService.viewerId?.call();
+    final (resume, live) = await (
+      _resumeRepository.snapshot(viewer: viewer),
+      LiveProgressRepository.shared.snapshot(viewer: viewer),
+    ).wait;
+    if (!mounted) return;
+    setState(() {
+      _resume = resume;
+      _live = live;
+    });
+  }
+
+  /// How far the viewer got in [vod] live, as a fraction of its length.
+  double? _liveProgress(Vod vod) {
+    final broadcastId = vod.broadcastId;
+    if (vod.type != VodType.archive ||
+        broadcastId == null ||
+        vod.lengthSeconds <= 0) {
+      return null;
+    }
+    final entry = _live[broadcastId];
+    if (entry == null) return null;
+    return (entry.offsetSec / vod.lengthSeconds).clamp(0.0, 1.0);
   }
 
   @override
@@ -121,7 +149,9 @@ class _ChannelVideosTabState extends State<ChannelVideosTab>
                 return VodCard(
                   vod: vod,
                   showChannel: widget.showChannel,
-                  progress: saved == null || saved.finished
+                  progress: saved == null
+                      ? _liveProgress(vod)
+                      : saved.finished
                       ? null
                       : saved.progress,
                   watched: saved?.finished ?? false,
