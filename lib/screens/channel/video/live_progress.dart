@@ -226,6 +226,9 @@ class LiveProgressTracker {
   /// Nothing is saved for a stream that never played on screen.
   var _watched = false;
 
+  /// A position was sent to Twitch already.
+  var _reported = false;
+
   /// Follows [player] (the first one, or the web one after a fallback).
   void attach(PlayerController player) {
     _disposePauseReaction?.call();
@@ -241,6 +244,7 @@ class LiveProgressTracker {
   }
 
   void start() {
+    _timer?.cancel();
     _lastReport = clock.now();
     _timer = Timer.periodic(interval, (_) {
       final player = _player;
@@ -256,9 +260,15 @@ class LiveProgressTracker {
     });
   }
 
+  /// A report this soon after the last one is skipped (a pause and the app
+  /// going to the background arrive together), except the closing one.
+  static const _reportGap = Duration(seconds: 10);
+
   /// Saves the current position on this device, and to Twitch when
   /// [report] is set and a viewer is logged in.
-  Future<void> save({bool report = false}) async {
+  Future<void> save({bool report = false}) => _save(report: report);
+
+  Future<void> _save({required bool report, bool closing = false}) async {
     final player = _player;
     if (player == null || !_watched) return;
     final stream = player.streamInfo;
@@ -282,7 +292,14 @@ class LiveProgressTracker {
       ),
     ];
     final send = this.report;
-    if (report && viewerId != null && send != null) {
+    final last = _lastReport;
+    final tooSoon =
+        !closing &&
+        _reported &&
+        last != null &&
+        now.difference(last) < _reportGap;
+    if (report && viewerId != null && send != null && !tooSoon) {
+      _reported = true;
       _lastReport = now;
       writes.add(
         send(stream.id, offset).then<void>(
@@ -306,6 +323,6 @@ class LiveProgressTracker {
   /// Stops and saves one last time (to Twitch too).
   Future<void> close() {
     cancel();
-    return save(report: true);
+    return _save(report: true, closing: true);
   }
 }

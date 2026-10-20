@@ -351,6 +351,48 @@ void main() {
       }, initialTime: DateTime.utc(2026, 10, 19, 20));
     });
 
+    test('a pause then the background tell Twitch once', () {
+      fakeAsync((async) {
+        // Saves chain on a future made in this fake zone.
+        repo.resetQueue();
+        final t = tracker()
+          ..attach(player)
+          ..start();
+        player.isPaused = false;
+        async.elapse(const Duration(seconds: 5));
+
+        player.isPaused = true;
+        async.flushMicrotasks();
+        t.save(report: true);
+        async.flushMicrotasks();
+        expect(reported, [('318071962212', 7205)]);
+
+        // Later, playing again and pausing tells Twitch again.
+        player.isPaused = false;
+        async.elapse(const Duration(seconds: 30));
+        player.isPaused = true;
+        async.flushMicrotasks();
+        expect(reported, hasLength(2));
+        t.cancel();
+      }, initialTime: DateTime.utc(2026, 10, 19, 20));
+    });
+
+    test('starting twice runs one timer', () {
+      fakeAsync((async) {
+        // Saves chain on a future made in this fake zone.
+        repo.resetQueue();
+        final t = tracker()
+          ..attach(player)
+          ..start()
+          ..start();
+        player.isPaused = false;
+        async.elapse(const Duration(minutes: 5));
+        expect(reported, hasLength(1));
+        t.cancel();
+        expect(async.pendingTimers, isEmpty);
+      }, initialTime: DateTime.utc(2026, 10, 19, 20));
+    });
+
     test('a stream never played saves nothing on close', () {
       fakeAsync((async) {
         // Saves chain on a future made in this fake zone.
