@@ -34,10 +34,14 @@ abstract class ClipPlayerStoreBase
     required this.settingsStore,
     Duration? knownLength,
     ClipMediaBackend? backend,
+    bool focused = true,
     @visibleForTesting Duration overlayHideDelay = const Duration(seconds: 5),
   }) : backend = backend ?? MediaKitClipBackend(),
        _knownLength = knownLength,
        _overlayHideDelay = overlayHideDelay {
+    // Before anything reads it: a player preloaded behind the one playing
+    // (the clips feed) must neither start nor touch auto-PiP.
+    _focused = focused;
     _subscriptions = [
       this.backend.playing.listen(_onPlaying),
       this.backend.position.listen(_onPosition),

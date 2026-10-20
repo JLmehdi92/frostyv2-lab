@@ -338,6 +338,25 @@ void main() {
     });
   });
 
+  test('built without focus (a preloaded feed clip) it loads paused', () {
+    fakeAsync((async) {
+      final store = ClipPlayerStore(
+        slug: _slug,
+        clipService: service,
+        settingsStore: settings,
+        backend: backend,
+        focused: false,
+      );
+      async.flushMicrotasks();
+      expect(backend.opened.last.play, isFalse);
+
+      store.setFocused(true);
+      store.play();
+      expect(backend.calls, contains('play'));
+      store.dispose();
+    });
+  });
+
   test('the overlay hides after 5 s of playback, not while paused', () {
     fakeAsync((async) {
       final store = create();
