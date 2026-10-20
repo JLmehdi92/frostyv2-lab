@@ -6,6 +6,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/channel/chat/details/chat_users_list.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/video/caption_menu.dart';
+import 'package:frosty/screens/channel/video/create_clip_sheet.dart';
 import 'package:frosty/screens/channel/video/overlay_common.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:frosty/screens/channel/video/quality_selection.dart';
@@ -458,6 +459,11 @@ class VideoOverlay extends StatelessWidget {
                           ],
                         ),
                       ),
+                    ),
+                    CreateClipButton(
+                      broadcasterId: streamInfo.userId,
+                      color: surfaceColor,
+                      shadows: kOverlayShadow,
                     ),
                     videosButton,
                     if (videoStore.settingsStore.fullScreen &&

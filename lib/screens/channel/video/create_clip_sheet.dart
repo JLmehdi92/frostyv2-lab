@@ -230,3 +230,27 @@ class CreateClipSheet extends StatelessWidget {
     );
   }
 }
+
+/// The live player's Clip button (top right, like the official app).
+class CreateClipButton extends StatelessWidget {
+  const CreateClipButton({
+    super.key,
+    required this.broadcasterId,
+    required this.color,
+    this.shadows,
+  });
+
+  final String broadcasterId;
+  final Color color;
+  final List<Shadow>? shadows;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: 'Clip',
+      icon: Icon(Icons.movie_creation_outlined, color: color, shadows: shadows),
+      onPressed: () =>
+          CreateClipSheet.show(context, broadcasterId: broadcasterId),
+    );
+  }
+}
