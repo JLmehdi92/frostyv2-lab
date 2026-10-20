@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/models/community_highlights.dart';
+import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/channel/channel_top_overlays.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
@@ -19,6 +20,7 @@ import 'package:frosty/screens/channel/stores/channel_events_store.dart';
 import 'package:frosty/screens/channel/video/content_warning_gate.dart';
 import 'package:frosty/screens/channel/video/ivs_stats_panel.dart';
 import 'package:frosty/screens/channel/video/ivs_video.dart';
+import 'package:frosty/screens/channel/video/live_progress.dart';
 import 'package:frosty/screens/channel/video/native_video.dart';
 import 'package:frosty/screens/channel/video/overlay_common.dart';
 import 'package:frosty/screens/channel/video/pinch_to_fill.dart';
@@ -158,6 +160,22 @@ class _VideoChatState extends State<VideoChat>
   }();
 
   late PlayerController _videoStore = _buildPlayerController();
+
+  /// Where the viewer is in this broadcast, kept like the official app does
+  /// so its VOD can later start there.
+  late final LiveProgressTracker _liveProgress = () {
+    final auth = context.authStore;
+    final vodService = context.twitchVodService;
+    return LiveProgressTracker(
+      repository: LiveProgressRepository.shared,
+      viewer: () => auth.isLoggedIn ? auth.user.details?.id : null,
+      report: (streamId, offsetSec) => vodService.updateViewedVideo(
+        videoId: streamId,
+        type: WatchedVideoType.live,
+        positionSec: offsetSec,
+      ),
+    );
+  }();
 
   /// True once the live player has been handed to the mini window, so this
   /// screen must not dispose it when it pops.
@@ -325,6 +343,9 @@ class _VideoChatState extends State<VideoChat>
     // Build the player first — this adopts the live player back from the mini
     // window when we're restoring this same channel (seamless, no reload).
     final store = _videoStore;
+    _liveProgress
+      ..attach(store)
+      ..start();
 
     // A *different* channel left in the mini is superseded by opening this one.
     context.miniPlayerStore.close();
@@ -354,6 +375,7 @@ class _VideoChatState extends State<VideoChat>
       setState(() {
         store.dispose();
         _videoStore = _buildPlayerController(forceWeb: true);
+        _liveProgress.attach(_videoStore);
       });
       if (notice != null) {
         ScaffoldMessenger.maybeOf(context)?.showSnackBar(
@@ -473,6 +495,7 @@ class _VideoChatState extends State<VideoChat>
     } else if (state == AppLifecycleState.paused) {
       // Points and celebrations matter only on screen.
       _eventsStore.pause();
+      unawaited(_liveProgress.save(report: true));
     }
   }
 
@@ -1296,6 +1319,10 @@ class _VideoChatState extends State<VideoChat>
     WidgetsBinding.instance.removeObserver(this);
 
     PlaybackFocus.shared.release(this);
+
+    // Reads the position before the player below is disposed (a player
+    // handed to the mini window is no longer followed).
+    unawaited(_liveProgress.close());
 
     // Always: the mini window shows no hype train or highlights, and
     // restoring the channel builds new stores (which refetch).
