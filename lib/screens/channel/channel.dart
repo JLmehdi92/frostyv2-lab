@@ -127,6 +127,7 @@ class _VideoChatState extends State<VideoChat>
   // the live player and the chat history both survive without a reset).
   IvsVideoStore? _adoptedPlayer;
   ChatTabsStore? _adoptedChat;
+  LiveProgressTracker? _adoptedProgress;
   bool _adoptionResolved = false;
 
   void _resolveAdoption() {
@@ -137,6 +138,7 @@ class _VideoChatState extends State<VideoChat>
       final released = mini.release();
       _adoptedPlayer = released.player;
       _adoptedChat = released.chat;
+      _adoptedProgress = released.liveProgress;
     }
   }
 
@@ -163,7 +165,11 @@ class _VideoChatState extends State<VideoChat>
 
   /// Where the viewer is in this broadcast, kept like the official app does
   /// so its VOD can later start there.
+  /// Handed to the mini window with the player, and back.
   late final LiveProgressTracker _liveProgress = () {
+    _resolveAdoption();
+    final adopted = _adoptedProgress;
+    if (adopted != null) return adopted;
     final vodService = context.twitchVodService;
     return LiveProgressTracker(
       repository: LiveProgressRepository.shared,
@@ -614,6 +620,7 @@ class _VideoChatState extends State<VideoChat>
       userLogin: widget.userLogin,
       userId: widget.userId,
       displayName: widget.userName,
+      liveProgress: _liveProgress,
     );
     Navigator.of(context).pop();
   }
@@ -1320,9 +1327,9 @@ class _VideoChatState extends State<VideoChat>
 
     PlaybackFocus.shared.release(this);
 
-    // Reads the position before the player below is disposed (a player
-    // handed to the mini window is no longer followed).
-    unawaited(_liveProgress.close());
+    // Reads the position before the player below is disposed. A player
+    // handed to the mini window takes its tracker along.
+    if (!_handedOff) unawaited(_liveProgress.close());
 
     // Always: the mini window shows no hype train or highlights, and
     // restoring the channel builds new stores (which refetch).
