@@ -44,6 +44,23 @@ void main() {
     expect(b.read, isFalse);
   });
 
+  test('changes made at the same time all land', () async {
+    await log.add(_entry('x'));
+    await Future.wait([
+      log.add(_entry('a', at: DateTime.utc(2026, 10, 20, 10))),
+      log.add(_entry('b', at: DateTime.utc(2026, 10, 20, 11))),
+      log.markRead('x'),
+      log.add(_entry('c', at: DateTime.utc(2026, 10, 20, 9))),
+    ]);
+    final after = await ActivityLog.load();
+    await after.reload();
+    expect(
+      after.entries.map((e) => e.id),
+      unorderedEquals(['x', 'a', 'b', 'c']),
+    );
+    expect(after.entries.firstWhere((e) => e.id == 'x').read, isTrue);
+  });
+
   test('an entry already there is not added twice', () async {
     expect(await log.add(_entry('a')), isTrue);
     expect(await log.add(_entry('a')), isFalse);

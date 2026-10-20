@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -99,6 +100,11 @@ class ActivityEntry {
 /// reminders), newest first. Kept in plain preferences: the background
 /// go-live task (its own isolate) adds to it too, so every change reads
 /// the stored list again first.
+///
+/// Changes to one log run one at a time (the app keeps one: a go-live and
+/// a mention at the same moment both land). Across isolates they are not locked: a
+/// change of the app and of the background task in the same instant may
+/// still drop one entry, which is accepted for a history list.
 class ActivityLog {
   ActivityLog(this._prefs);
 
@@ -144,12 +150,38 @@ class ActivityLog {
     ]);
   }
 
+  /// The last change queued on this log, null when none is running. The
+  /// app keeps one log (in its `ActivityStore`), so its changes all go
+  /// through this queue.
+  Future<void>? _tail;
+
+  /// Runs [change] after the changes queued before it, failures included.
+  Future<T> _serial<T>(Future<T> Function() change) {
+    final previous = _tail;
+    final result = previous == null
+        ? Future.sync(change)
+        : previous.then((_) => change());
+    final tail = result.then<void>((_) {}, onError: (Object _) {});
+    _tail = tail;
+    unawaited(
+      tail.whenComplete(() {
+        if (identical(_tail, tail)) _tail = null;
+      }),
+    );
+    return result;
+  }
+
   /// Adds [entry] unless an entry with its id is already there; true when
   /// added.
   Future<bool> add(ActivityEntry entry) => addAll([entry]).then((n) => n > 0);
 
   /// Adds the [added] not already there; returns how many were added.
-  Future<int> addAll(Iterable<ActivityEntry> added) async {
+  Future<int> addAll(Iterable<ActivityEntry> added) {
+    final list = added.toList();
+    return _serial(() => _addAll(list));
+  }
+
+  Future<int> _addAll(List<ActivityEntry> added) async {
     await reload();
     final list = entries;
     final ids = {for (final entry in list) entry.id};
@@ -164,26 +196,26 @@ class ActivityLog {
     return count;
   }
 
-  Future<void> markRead(String id) async {
+  Future<void> markRead(String id) => _serial(() async {
     await reload();
     await _save([
       for (final entry in entries)
         entry.id == id ? entry.copyWith(read: true) : entry,
     ]);
-  }
+  });
 
-  Future<void> markAllRead() async {
+  Future<void> markAllRead() => _serial(() async {
     await reload();
     await _save([for (final entry in entries) entry.copyWith(read: true)]);
-  }
+  });
 
-  Future<void> remove(String id) async {
+  Future<void> remove(String id) => _serial(() async {
     await reload();
     await _save([
       for (final entry in entries)
         if (entry.id != id) entry,
     ]);
-  }
+  });
 
-  Future<void> clear() => _prefs.remove(_key);
+  Future<void> clear() => _serial(() => _prefs.remove(_key));
 }
