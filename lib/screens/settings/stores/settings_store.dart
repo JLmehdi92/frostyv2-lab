@@ -10,7 +10,7 @@ class SettingsStore extends _SettingsStoreBase with _$SettingsStore {
   SettingsStore();
 
   factory SettingsStore.fromJson(Map<String, dynamic> json) =>
-      _$SettingsStoreFromJson(json);
+      _$SettingsStoreFromJson(json).._applyChatSyncDefault();
   Map<String, dynamic> toJson() => _$SettingsStoreToJson(this);
 }
 
@@ -285,7 +285,9 @@ abstract class _SettingsStoreBase with Store {
   static const defaultTimestampType = TimestampType.disabled;
 
   // Delay defaults
-  static const defaultAutoSyncChatDelay = false;
+  /// Chat waits as long as the video is behind live, so answers to the
+  /// streamer never show before the question (see [chatSyncDefaultApplied]).
+  static const defaultAutoSyncChatDelay = true;
   static const defaultChatDelay = 0.0;
 
   // Alert defaults
@@ -419,6 +421,19 @@ abstract class _SettingsStoreBase with Store {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @observable
   var syncedChatDelay = defaultChatDelay;
+
+  /// Whether the switch of [autoSyncChatDelay] to on by default reached
+  /// these settings. Saved settings always store the old `false` default,
+  /// so it is turned on once for settings that never chose a delay (a
+  /// manual delay is kept); turning it off afterwards sticks.
+  @JsonKey(defaultValue: false)
+  var chatSyncDefaultApplied = false;
+
+  void _applyChatSyncDefault() {
+    if (chatSyncDefaultApplied) return;
+    chatSyncDefaultApplied = true;
+    if (chatDelay == 0) autoSyncChatDelay = true;
+  }
 
   @computed
   double get effectiveChatDelay =>

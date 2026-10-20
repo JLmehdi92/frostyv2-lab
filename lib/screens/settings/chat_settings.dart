@@ -207,6 +207,10 @@ class _ChatSettingsState extends State<ChatSettings> {
           const SectionHeader('Delay and latency'),
           SettingsListSwitch(
             title: 'Sync message delay and stream latency',
+            subtitle: const Text(
+              'Holds each message for as long as the video is behind live, '
+              'so chat matches what you see. Your own messages show at once.',
+            ),
             value: settingsStore.autoSyncChatDelay,
             onChanged: (newValue) => settingsStore.autoSyncChatDelay = newValue,
           ),

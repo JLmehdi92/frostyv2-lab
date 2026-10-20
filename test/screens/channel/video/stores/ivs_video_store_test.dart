@@ -330,6 +330,7 @@ void main() {
     });
 
     test('does not touch the chat delay when auto-sync is off', () async {
+      settingsStore.autoSyncChatDelay = false;
       store = await createStore();
       await native.emit({'type': 'state', 'state': 'PLAYING'});
 

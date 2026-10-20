@@ -97,7 +97,7 @@ void main() {
       expect(store.showDeletedMessages, isTrue);
       expect(store.showChatMessageDividers, isFalse);
       expect(store.timestampType, TimestampType.disabled);
-      expect(store.autoSyncChatDelay, isFalse);
+      expect(store.autoSyncChatDelay, isTrue);
       expect(store.chatDelay, 0.0);
       expect(store.syncedChatDelay, 0.0);
       expect(store.effectiveChatDelay, 0.0);
@@ -562,8 +562,47 @@ void main() {
       expect(store.fontSize, 20.0); // Should remain changed
     });
 
+    group('chat sync default', () {
+      test('a new install syncs chat with the stream latency', () {
+        final store = SettingsStore.fromJson({});
+
+        expect(store.autoSyncChatDelay, isTrue);
+        expect(store.toJson()['chatSyncDefaultApplied'], isTrue);
+      });
+
+      test('turns sync on once for settings that never chose a delay', () {
+        final store = SettingsStore.fromJson({
+          'autoSyncChatDelay': false,
+          'chatDelay': 0.0,
+        });
+
+        expect(store.autoSyncChatDelay, isTrue);
+        expect(store.toJson()['chatSyncDefaultApplied'], isTrue);
+      });
+
+      test('keeps a manual delay the viewer chose', () {
+        final store = SettingsStore.fromJson({
+          'autoSyncChatDelay': false,
+          'chatDelay': 5.0,
+        });
+
+        expect(store.autoSyncChatDelay, isFalse);
+        expect(store.effectiveChatDelay, 5.0);
+      });
+
+      test('sync turned off after the change stays off', () {
+        final store = SettingsStore.fromJson({
+          'autoSyncChatDelay': false,
+          'chatDelay': 0.0,
+          'chatSyncDefaultApplied': true,
+        });
+
+        expect(store.autoSyncChatDelay, isFalse);
+      });
+    });
+
     test('effectiveChatDelay uses synced value only during auto sync', () {
-      final store = SettingsStore.fromJson({});
+      final store = SettingsStore.fromJson({})..autoSyncChatDelay = false;
 
       store.chatDelay = 4.0;
       store.syncedChatDelay = 9.0;

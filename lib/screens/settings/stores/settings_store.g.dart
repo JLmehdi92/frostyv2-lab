@@ -114,8 +114,9 @@ SettingsStore _$SettingsStoreFromJson(
         unknownValue: TimestampType.disabled,
       ) ??
       TimestampType.disabled
-  ..autoSyncChatDelay = json['autoSyncChatDelay'] as bool? ?? false
+  ..autoSyncChatDelay = json['autoSyncChatDelay'] as bool? ?? true
   ..chatDelay = (json['chatDelay'] as num?)?.toDouble() ?? 0.0
+  ..chatSyncDefaultApplied = json['chatSyncDefaultApplied'] as bool? ?? false
   ..highlightFirstTimeChatter =
       json['highlightFirstTimeChatter'] as bool? ?? true
   ..showUserNotices = json['showUserNotices'] as bool? ?? true
@@ -218,6 +219,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'timestampType': _$TimestampTypeEnumMap[instance.timestampType]!,
   'autoSyncChatDelay': instance.autoSyncChatDelay,
   'chatDelay': instance.chatDelay,
+  'chatSyncDefaultApplied': instance.chatSyncDefaultApplied,
   'highlightFirstTimeChatter': instance.highlightFirstTimeChatter,
   'showUserNotices': instance.showUserNotices,
   'collapseGiftBombs': instance.collapseGiftBombs,
