@@ -94,6 +94,15 @@ abstract class ChatRulesStoreBase with Store {
     runInAction(() => _prompting = true);
   }
 
+  /// Gates a send that did not go through the input's focus (an emote
+  /// picked, then sent): true, and the rules sheet asked for, while the
+  /// rules must show first.
+  bool gate() {
+    if (!mustShowBeforeChatting) return false;
+    runInAction(() => _prompting = true);
+    return true;
+  }
+
   /// The viewer closed the sheet without accepting: it shows again on the
   /// next try, like Twitch.
   @action

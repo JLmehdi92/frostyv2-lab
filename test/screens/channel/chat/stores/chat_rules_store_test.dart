@@ -145,4 +145,18 @@ void main() {
     expect(focus.hasFocus, isFalse);
     expect(rules.prompting, isTrue);
   });
+
+  test('sending without the input focused is gated too (emote picker)', () async {
+    when(() => service.getRules('71092938')).thenAnswer((_) async => _rules);
+    final rules = store();
+    await rules.load();
+
+    expect(rules.gate(), isTrue);
+    expect(rules.prompting, isTrue);
+
+    await rules.accept();
+    expect(rules.gate(), isFalse);
+    expect(rules.prompting, isFalse);
+  });
 }
+

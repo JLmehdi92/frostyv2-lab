@@ -1508,6 +1508,9 @@ abstract class ChatStoreBase with Store {
     // Do not send if the message is blank/empty.
     if (message.isEmpty) return;
 
+    // The rules come first, however the message was typed; the text stays.
+    if (chatRules?.gate() ?? false) return;
+
     // Twitch drops longer messages (text set by code skips the input's
     // limit).
     if (message.characters.length > kChatMessageMaxLength) {
