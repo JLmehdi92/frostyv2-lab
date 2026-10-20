@@ -16,6 +16,7 @@ import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/channel/video/ivs_player_config.dart';
 import 'package:frosty/screens/channel/video/ivs_recovery.dart';
 import 'package:frosty/screens/channel/video/latency_stats.dart';
+import 'package:frosty/screens/channel/video/live_edge_guard.dart';
 import 'package:frosty/screens/channel/video/live_state_watcher.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:frosty/screens/channel/video/quality_selection.dart';
@@ -200,6 +201,28 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   @readonly
   var _rebufferCount = 0;
 
+  /// Jumps back to the live edge (drift or a resumed pause) since the stream
+  /// was opened or the stats were reset.
+  @readonly
+  var _liveJumps = 0;
+
+  /// Watches the latency for a drift the speed-up catch-up does not undo.
+  final LiveEdgeGuard _liveEdge;
+
+  /// A paused live stream played again after this long resumes at the live
+  /// edge (like a fresh start) instead of where it stopped: picking up a
+  /// call-length pause where it left off would keep the picture that far
+  /// behind the chat until the speed-up caught up, if ever.
+  static const resumeAtLiveAfter = Duration(seconds: 3);
+
+  final DateTime Function() _now;
+
+  /// When the stream last stopped playing because it was paused.
+  DateTime? _pausedAt;
+
+  /// A jump to the live edge is under way (one at a time).
+  var _jumping = false;
+
   /// Time from opening the stream to the first PLAYING state.
   @readonly
   int? _startupMs;
@@ -240,7 +263,10 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     @visibleForTesting this.offlinePollInterval = const Duration(seconds: 60),
     BackgroundAudio? backgroundAudio,
     AudioFocus? audioFocus,
+    @visibleForTesting DateTime Function()? now,
   }) : _ownsStreamService = streamService == null,
+       _now = now ?? clock.now,
+       _liveEdge = LiveEdgeGuard(now: now),
        _backgroundAudio = backgroundAudio ?? BackgroundAudio.shared,
        _audioFocus = audioFocus ?? AudioFocus.shared,
        _recovery = recoveryPolicy ?? IvsRecoveryPolicy(),
@@ -574,7 +600,10 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   void onPipEntered() => _isInPipMode = true;
 
   @action
-  void onPipExited() => _isInPipMode = false;
+  void onPipExited() {
+    _isInPipMode = false;
+    _liveEdge.expedite();
+  }
 
   /// Resolves the usher URL, retrying transient network failures with the
   /// recovery backoff. A missing token (channel offline) throws at once.
@@ -671,6 +700,8 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     if (epoch != _recoveryEpoch) return;
     _hasPlayed = false;
     _lastLatencySecond = null;
+    // Every load starts at the live edge.
+    _liveEdge.onLoad();
     await _channel?.invokeMethod('load', {'url': url});
   }
 
@@ -682,6 +713,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         _isPlaying = state == 'PLAYING';
         if (_isPlaying) _hasPlayed = true;
         if (state == 'PLAYING') {
+          _pausedAt = null;
           _lastErrorRefused = false;
           _audioNotificationStopped = false;
           // Native auto-play after a (re)load while a VOD on top has focus.
@@ -693,7 +725,10 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
             _startupMs = _startupStopwatch.elapsedMilliseconds;
           }
         }
-        if (state == 'IDLE' || state == 'ENDED') _paused = true;
+        if (state == 'IDLE' || state == 'ENDED') {
+          _paused = true;
+          _pausedAt ??= _now();
+        }
         if (Platform.isAndroid) pip.setIsPlaying(!_paused);
         break;
       case 'qualities':
@@ -735,6 +770,9 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         if (_isPlaying) {
           latencySampler.add(ms);
           _samplesVersion++;
+        }
+        if (_liveEdge.onSample(ms, playing: _isPlaying && !_paused)) {
+          unawaited(_jumpToLive());
         }
         // The chat delay keeps moving in whole seconds only, exactly as before,
         // so the delayed chat queue is not rebuilt on every tick.
@@ -977,6 +1015,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     latencySampler.reset();
     _samplesVersion++;
     _rebufferCount = 0;
+    _liveJumps = 0;
   }
 
   Future<void> _sendStatsEnabled() async {
@@ -991,7 +1030,56 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
 
   @override
   void handlePausePlay() {
+    if (_paused && _resumesAtLive) {
+      unawaited(_jumpToLive(resume: true));
+      return;
+    }
     _channel?.invokeMethod(_paused ? 'play' : 'pause');
+  }
+
+  /// Whether playing again should start at the live edge: the stream was
+  /// playing fine and has been paused for a while.
+  bool get _resumesAtLive {
+    final pausedAt = _pausedAt;
+    return pausedAt != null &&
+        _hasPlayed &&
+        !_recovering &&
+        _status == IvsPlaybackStatus.playing &&
+        _now().difference(pausedAt) >= resumeAtLiveAfter;
+  }
+
+  /// Reloads the stream, which starts at the live edge.
+  ///
+  /// The playback token is reused while valid, so this costs one playlist
+  /// request and a short rebuffer. When the URL cannot be had, nothing is
+  /// lost: a drifting stream keeps playing where it is, and a resumed one
+  /// simply plays on ([resume]).
+  Future<void> _jumpToLive({bool resume = false}) async {
+    if (_disposed || _jumping || _recovering) {
+      if (resume) _channel?.invokeMethod('play');
+      return;
+    }
+    _jumping = true;
+    final epoch = _recoveryEpoch;
+    try {
+      final url = await _streamService.getUsherUrl(
+        userLogin: userLogin,
+        authToken: _userAuthToken,
+      );
+      if (_disposed || epoch != _recoveryEpoch || _recovering) return;
+      runInAction(() {
+        _url = url;
+        _liveJumps++;
+      });
+      await _loadSource(url, epoch);
+    } catch (e) {
+      debugPrint('IvsVideoStore jump to live failed: $e');
+      if (resume && !_disposed && epoch == _recoveryEpoch) {
+        _channel?.invokeMethod('play');
+      }
+    } finally {
+      _jumping = false;
+    }
   }
 
   /// Quality the user picked during this session; re-applied after reloads.
@@ -1125,6 +1213,8 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
 
   @override
   void handleAppResume() {
+    // Playback may have stalled or been throttled in the background.
+    _liveEdge.expedite();
     if (!settingsStore.showVideo) {
       unawaited(updateStreamInfo(forceUpdate: true));
     }

@@ -375,6 +375,26 @@ mixin _$IvsVideoStore on IvsVideoStoreBase, Store {
     });
   }
 
+  late final _$_liveJumpsAtom = Atom(
+    name: 'IvsVideoStoreBase._liveJumps',
+    context: context,
+  );
+
+  int get liveJumps {
+    _$_liveJumpsAtom.reportRead();
+    return super._liveJumps;
+  }
+
+  @override
+  int get _liveJumps => liveJumps;
+
+  @override
+  set _liveJumps(int value) {
+    _$_liveJumpsAtom.reportWrite(value, super._liveJumps, () {
+      super._liveJumps = value;
+    });
+  }
+
   late final _$_startupMsAtom = Atom(
     name: 'IvsVideoStoreBase._startupMs',
     context: context,

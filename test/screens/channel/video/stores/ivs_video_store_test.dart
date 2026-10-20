@@ -59,6 +59,7 @@ void main() {
     Duration offlinePollInterval = const Duration(minutes: 1),
     BackgroundAudio? backgroundAudio,
     AudioFocus? audioFocus,
+    DateTime Function()? now,
   }) async {
     final s = IvsVideoStore(
       userLogin: 'streamer',
@@ -73,6 +74,7 @@ void main() {
       offlinePollInterval: offlinePollInterval,
       backgroundAudio: backgroundAudio,
       audioFocus: audioFocus,
+      now: now,
     );
     created = s;
     await s.ready;
@@ -364,6 +366,149 @@ void main() {
       final afterSample = store.samplesVersion;
       store.resetStats();
       expect(store.samplesVersion, greaterThan(afterSample));
+    });
+  });
+
+  group('live edge', () {
+    late DateTime now;
+
+    setUp(() => now = DateTime(2026, 10, 20, 12));
+
+    /// One native latency tick per second, like `IvsPlayerCore`.
+    Future<void> tick(int ms, int seconds) async {
+      for (var i = 0; i < seconds; i++) {
+        now = now.add(const Duration(seconds: 1));
+        await native.emit({'type': 'latency', 'ms': ms});
+      }
+      for (var i = 0; i < 5; i++) {
+        await settle();
+      }
+    }
+
+    test('jumps back to the live edge when the latency drifts', () async {
+      store = await createStore(now: () => now);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+
+      await tick(2300, 20);
+      expect(native.callsNamed('load'), isEmpty);
+
+      // Stalls left the player 7 s behind and it stays there.
+      await tick(7000, 11);
+
+      expect(native.callsNamed('load'), hasLength(1));
+      expect(
+        (native.callsNamed('load').single.arguments as Map)['url'],
+        _usherUrl,
+      );
+      expect(store.liveJumps, 1);
+      // The cached token is reused: no forced refresh for a jump.
+      verifyNever(
+        () => streamService.getUsherUrl(
+          userLogin: any(named: 'userLogin'),
+          forceFreshToken: true,
+        ),
+      );
+    });
+
+    test('leaves a stream at the live edge alone', () async {
+      store = await createStore(now: () => now);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+
+      await tick(2300, 20);
+      await tick(3400, 60);
+
+      expect(native.callsNamed('load'), isEmpty);
+      expect(store.liveJumps, 0);
+    });
+
+    test('a drift while paused is not a reason to jump', () async {
+      store = await createStore(now: () => now);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await tick(2300, 20);
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+
+      await tick(30000, 30);
+
+      expect(native.callsNamed('load'), isEmpty);
+    });
+
+    test('a long-paused stream resumes at the live edge', () async {
+      store = await createStore(now: () => now);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await tick(2300, 5);
+
+      store.handlePausePlay();
+      expect(native.callsNamed('pause'), hasLength(1));
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      now = now.add(IvsVideoStoreBase.resumeAtLiveAfter);
+
+      store.handlePausePlay();
+      await tick(0, 0);
+
+      expect(native.callsNamed('play'), isEmpty);
+      expect(native.callsNamed('load'), hasLength(1));
+      expect(store.liveJumps, 1);
+    });
+
+    test('a short pause plays on where it stopped', () async {
+      store = await createStore(now: () => now);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await tick(2300, 5);
+
+      store.handlePausePlay();
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      now = now.add(const Duration(seconds: 2));
+
+      store.handlePausePlay();
+      await tick(0, 0);
+
+      expect(native.callsNamed('play'), hasLength(1));
+      expect(native.callsNamed('load'), isEmpty);
+    });
+
+    test('a resume whose jump fails still plays', () async {
+      store = await createStore(now: () => now);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await tick(2300, 5);
+      store.handlePausePlay();
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      now = now.add(const Duration(minutes: 2));
+      when(
+        () => streamService.getUsherUrl(
+          userLogin: any(named: 'userLogin'),
+          forceFreshToken: any(named: 'forceFreshToken'),
+        ),
+      ).thenThrow(const NetworkException('offline'));
+
+      store.handlePausePlay();
+      await tick(0, 0);
+
+      expect(native.callsNamed('play'), hasLength(1));
+      expect(native.callsNamed('load'), isEmpty);
+      expect(store.liveJumps, 0);
+    });
+
+    test('coming back to the app jumps at once when far behind', () async {
+      store = await createStore(now: () => now);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await tick(2300, 20);
+
+      store.handleAppResume();
+      await tick(12000, 1);
+
+      expect(native.callsNamed('load'), hasLength(1));
+    });
+
+    test('resetStats clears the jump count', () async {
+      store = await createStore(now: () => now);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await tick(2300, 20);
+      await tick(7000, 11);
+      expect(store.liveJumps, 1);
+
+      store.resetStats();
+
+      expect(store.liveJumps, 0);
     });
   });
 
