@@ -59,6 +59,10 @@ class BackgroundAudio {
   ({String title, String subtitle, bool playing})? _shown;
   var _showFailed = false;
 
+  /// Whether a stream plays with the media notification up, which keeps
+  /// the app running in the background.
+  bool get playing => _owner != null && (_shown?.playing ?? false);
+
   Future<void> _sendShow() async {
     final shown = _shown;
     if (shown == null) return;

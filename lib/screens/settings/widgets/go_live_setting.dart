@@ -132,7 +132,8 @@ class _GoLiveSettingState extends State<GoLiveSetting> {
       subtitle = prefs!.problem!;
     } else if (on) {
       subtitle =
-          'Checked about every 15 minutes, when the system allows. Turn a '
+          'Checked every 90 seconds while ONSET is open or playing, and '
+          'about every 15 minutes otherwise, when the system allows. Turn a '
           "channel's bell off from its menu.";
     } else {
       subtitle = 'Be told when channels you follow go live.';

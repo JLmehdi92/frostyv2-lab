@@ -54,6 +54,36 @@ void main() {
     expect((calls[1].arguments as Map)['playing'], isFalse);
   });
 
+  test('says whether a stream plays with the notification up', () async {
+    final owner = Object();
+    expect(audio.playing, isFalse);
+    await audio.show(
+      owner: owner,
+      title: 'Streamer',
+      subtitle: '',
+      playing: true,
+      onCommand: (_) {},
+    );
+    expect(audio.playing, isTrue);
+    await audio.show(
+      owner: owner,
+      title: 'Streamer',
+      subtitle: '',
+      playing: false,
+      onCommand: (_) {},
+    );
+    expect(audio.playing, isFalse);
+    await audio.show(
+      owner: owner,
+      title: 'Streamer',
+      subtitle: '',
+      playing: true,
+      onCommand: (_) {},
+    );
+    await audio.hide(owner);
+    expect(audio.playing, isFalse);
+  });
+
   test('media buttons reach the player showing it', () async {
     final commands = <MediaCommand>[];
     await audio.show(

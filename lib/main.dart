@@ -38,7 +38,9 @@ import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/channel_videos.dart';
 import 'package:frosty/screens/vod/vod_screen.dart';
+import 'package:frosty/services/background_audio.dart';
 import 'package:frosty/services/go_live/go_live.dart';
+import 'package:frosty/services/go_live/go_live_poller.dart';
 import 'package:frosty/services/go_live/go_live_worker.dart';
 import 'package:frosty/services/onset_updater.dart';
 import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
@@ -213,6 +215,21 @@ void main() async {
     },
     fireImmediately: true,
   );
+  // Faster go-live notices while the app is alive (in front, in
+  // picture-in-picture, or playing in the background); the background
+  // task covers the rest. Both share the same state, so nothing is
+  // announced twice.
+  final goLivePoller = GoLivePoller(
+    check: () async => checkGoLiveInApp(
+      api: twitchApiService,
+      prefs: await GoLivePrefs.load(),
+      loggedIn: authStore.isLoggedIn,
+      notify: GoLiveNotifications.show,
+    ),
+    playingInBackground: () => BackgroundAudio.shared.playing,
+  );
+  AppLifecycleListener(onStateChange: goLivePoller.onLifecycle);
+  goLivePoller.start();
 
   final whisperStore = WhisperStore(
     twitchApi: twitchApiService,
