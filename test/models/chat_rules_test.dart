@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/models/chat_rules.dart';
 
 void main() {
-  Map<String, Object?> user({Object? rules, Object? icon}) => {
+  Map<String, Object?> user({required Object? rules, Object? icon}) => {
     'id': '71092938',
     'displayName': 'xQc',
     'profileImageURL':

@@ -16,6 +16,8 @@ class ChatRules {
   /// The most rules kept, and the longest rule, so a forged answer cannot
   /// flood the sheet.
   static const maxRules = 50;
+
+  /// Matches `chString`'s default cut.
   static const maxRuleLength = 500;
 
   final String channelId;
@@ -42,12 +44,15 @@ class ChatRules {
       channelName: chString(map['displayName'], max: 64) ?? '',
       iconUrl: _image(map['profileImageURL']),
       rules: [
-        for (final rule in chList(settings?['rules'], max: 200))
-          if (chString(rule, max: maxRuleLength)?.trim() case final text?
-              when text.isNotEmpty)
-            text,
+        for (final rule in chList(settings?['rules'], max: 200)) ?_rule(rule),
       ].take(maxRules).toList(),
     );
+  }
+
+  /// [value] as a rule with text (at most [maxRuleLength] units), or null.
+  static String? _rule(Object? value) {
+    final text = chString(value)?.trim();
+    return text == null || text.isEmpty ? null : text;
   }
 
   static String? _image(Object? value) {
