@@ -141,7 +141,10 @@ abstract class ListStoreBase with Store {
               .contains(streamInfo.userId) &&
           (_showLabeled || !_labeledIds.contains(streamInfo.userId)),
     );
-    return (listType == ListType.followed
+    // Viewers is Helix's own order: kept as is, so a page loaded while
+    // scrolling never reorders the cards above it.
+    return (listType == ListType.followed &&
+                settingsStore.followedSort != FollowedSort.viewers
             ? sortFollowedStreams(shown, settingsStore.followedSort)
             : shown.toList())
         .asObservable();
@@ -155,10 +158,13 @@ abstract class ListStoreBase with Store {
         .toSet();
 
     // Get live pinned streams only
-    return sortFollowedStreams(
-      _pinnedStreams.where((stream) => !blockedUserIds.contains(stream.userId)),
-      settingsStore.followedSort,
+    final pinned = _pinnedStreams.where(
+      (stream) => !blockedUserIds.contains(stream.userId),
     );
+    final sort = settingsStore.followedSort;
+    return sort == FollowedSort.viewers
+        ? pinned.toList()
+        : sortFollowedStreams(pinned, sort);
   }
 
   /// The list of offline followed channels with blocked users filtered out
