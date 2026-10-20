@@ -246,6 +246,13 @@ abstract class _SettingsStoreBase with Store {
   static const defaultMutedWords = <String>[];
   static const defaultMatchWholeWord = true;
 
+  // Twitch's chat filters: off until turned on, every category then on.
+  static const defaultChatFiltersEnabled = false;
+  static const defaultChatFilterDiscrimination = true;
+  static const defaultChatFilterSexual = true;
+  static const defaultChatFilterHarassment = true;
+  static const defaultChatFilterProfanity = true;
+
   // Autocomplete defaults
   static const defaultAutocomplete = true;
 
@@ -466,6 +473,28 @@ abstract class _SettingsStoreBase with Store {
   @observable
   bool matchWholeWord = defaultMatchWholeWord;
 
+  /// Hides the words AutoMod rates 3 or more in a category turned on below,
+  /// like Twitch's "Enable filtering in chat".
+  @JsonKey(defaultValue: defaultChatFiltersEnabled)
+  @observable
+  bool chatFiltersEnabled = defaultChatFiltersEnabled;
+
+  @JsonKey(defaultValue: defaultChatFilterDiscrimination)
+  @observable
+  bool chatFilterDiscrimination = defaultChatFilterDiscrimination;
+
+  @JsonKey(defaultValue: defaultChatFilterSexual)
+  @observable
+  bool chatFilterSexual = defaultChatFilterSexual;
+
+  @JsonKey(defaultValue: defaultChatFilterHarassment)
+  @observable
+  bool chatFilterHarassment = defaultChatFilterHarassment;
+
+  @JsonKey(defaultValue: defaultChatFilterProfanity)
+  @observable
+  bool chatFilterProfanity = defaultChatFilterProfanity;
+
   @action
   void resetChatSettings() {
     badgeScale = defaultBadgeScale;
@@ -504,6 +533,12 @@ abstract class _SettingsStoreBase with Store {
 
     mutedWords = defaultMutedWords;
     matchWholeWord = defaultMatchWholeWord;
+
+    chatFiltersEnabled = defaultChatFiltersEnabled;
+    chatFilterDiscrimination = defaultChatFilterDiscrimination;
+    chatFilterSexual = defaultChatFilterSexual;
+    chatFilterHarassment = defaultChatFilterHarassment;
+    chatFilterProfanity = defaultChatFilterProfanity;
 
     autocomplete = defaultAutocomplete;
 

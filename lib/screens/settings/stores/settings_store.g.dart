@@ -127,6 +127,11 @@ SettingsStore _$SettingsStoreFromJson(
           .toList() ??
       []
   ..matchWholeWord = json['matchWholeWord'] as bool? ?? true
+  ..chatFiltersEnabled = json['chatFiltersEnabled'] as bool? ?? false
+  ..chatFilterDiscrimination = json['chatFilterDiscrimination'] as bool? ?? true
+  ..chatFilterSexual = json['chatFilterSexual'] as bool? ?? true
+  ..chatFilterHarassment = json['chatFilterHarassment'] as bool? ?? true
+  ..chatFilterProfanity = json['chatFilterProfanity'] as bool? ?? true
   ..shareCrashLogsAndAnalytics =
       json['shareCrashLogsAndAnalytics'] as bool? ?? true
   ..fullScreen = json['fullScreen'] as bool? ?? false
@@ -202,6 +207,11 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'secondaryTabs': instance.secondaryTabs,
   'mutedWords': instance.mutedWords,
   'matchWholeWord': instance.matchWholeWord,
+  'chatFiltersEnabled': instance.chatFiltersEnabled,
+  'chatFilterDiscrimination': instance.chatFilterDiscrimination,
+  'chatFilterSexual': instance.chatFilterSexual,
+  'chatFilterHarassment': instance.chatFilterHarassment,
+  'chatFilterProfanity': instance.chatFilterProfanity,
   'shareCrashLogsAndAnalytics': instance.shareCrashLogsAndAnalytics,
   'fullScreen': instance.fullScreen,
   'fullScreenChatOverlay': instance.fullScreenChatOverlay,
@@ -1435,6 +1445,104 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     });
   }
 
+  late final _$chatFiltersEnabledAtom = Atom(
+    name: '_SettingsStoreBase.chatFiltersEnabled',
+    context: context,
+  );
+
+  @override
+  bool get chatFiltersEnabled {
+    _$chatFiltersEnabledAtom.reportRead();
+    return super.chatFiltersEnabled;
+  }
+
+  @override
+  set chatFiltersEnabled(bool value) {
+    _$chatFiltersEnabledAtom.reportWrite(value, super.chatFiltersEnabled, () {
+      super.chatFiltersEnabled = value;
+    });
+  }
+
+  late final _$chatFilterDiscriminationAtom = Atom(
+    name: '_SettingsStoreBase.chatFilterDiscrimination',
+    context: context,
+  );
+
+  @override
+  bool get chatFilterDiscrimination {
+    _$chatFilterDiscriminationAtom.reportRead();
+    return super.chatFilterDiscrimination;
+  }
+
+  @override
+  set chatFilterDiscrimination(bool value) {
+    _$chatFilterDiscriminationAtom.reportWrite(
+      value,
+      super.chatFilterDiscrimination,
+      () {
+        super.chatFilterDiscrimination = value;
+      },
+    );
+  }
+
+  late final _$chatFilterSexualAtom = Atom(
+    name: '_SettingsStoreBase.chatFilterSexual',
+    context: context,
+  );
+
+  @override
+  bool get chatFilterSexual {
+    _$chatFilterSexualAtom.reportRead();
+    return super.chatFilterSexual;
+  }
+
+  @override
+  set chatFilterSexual(bool value) {
+    _$chatFilterSexualAtom.reportWrite(value, super.chatFilterSexual, () {
+      super.chatFilterSexual = value;
+    });
+  }
+
+  late final _$chatFilterHarassmentAtom = Atom(
+    name: '_SettingsStoreBase.chatFilterHarassment',
+    context: context,
+  );
+
+  @override
+  bool get chatFilterHarassment {
+    _$chatFilterHarassmentAtom.reportRead();
+    return super.chatFilterHarassment;
+  }
+
+  @override
+  set chatFilterHarassment(bool value) {
+    _$chatFilterHarassmentAtom.reportWrite(
+      value,
+      super.chatFilterHarassment,
+      () {
+        super.chatFilterHarassment = value;
+      },
+    );
+  }
+
+  late final _$chatFilterProfanityAtom = Atom(
+    name: '_SettingsStoreBase.chatFilterProfanity',
+    context: context,
+  );
+
+  @override
+  bool get chatFilterProfanity {
+    _$chatFilterProfanityAtom.reportRead();
+    return super.chatFilterProfanity;
+  }
+
+  @override
+  set chatFilterProfanity(bool value) {
+    _$chatFilterProfanityAtom.reportWrite(value, super.chatFilterProfanity, () {
+      super.chatFilterProfanity = value;
+    });
+  }
+
   late final _$shareCrashLogsAndAnalyticsAtom = Atom(
     name: '_SettingsStoreBase.shareCrashLogsAndAnalytics',
     context: context,
@@ -1658,6 +1766,11 @@ persistChatTabs: ${persistChatTabs},
 secondaryTabs: ${secondaryTabs},
 mutedWords: ${mutedWords},
 matchWholeWord: ${matchWholeWord},
+chatFiltersEnabled: ${chatFiltersEnabled},
+chatFilterDiscrimination: ${chatFilterDiscrimination},
+chatFilterSexual: ${chatFilterSexual},
+chatFilterHarassment: ${chatFilterHarassment},
+chatFilterProfanity: ${chatFilterProfanity},
 shareCrashLogsAndAnalytics: ${shareCrashLogsAndAnalytics},
 fullScreen: ${fullScreen},
 fullScreenChatOverlay: ${fullScreenChatOverlay},
