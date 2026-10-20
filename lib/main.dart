@@ -22,6 +22,7 @@ import 'package:frosty/apis/twitch_channel_profile_service.dart';
 import 'package:frosty/apis/twitch_clip_service.dart';
 import 'package:frosty/apis/twitch_community_highlights_service.dart';
 import 'package:frosty/apis/twitch_directory_service.dart';
+import 'package:frosty/apis/twitch_followed_categories_service.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/apis/unauthorized_interceptor.dart';
@@ -151,6 +152,10 @@ void main() async {
     anonymousGqlDio,
   );
   final twitchDirectoryService = TwitchDirectoryService(anonymousGqlDio);
+  // Followed categories: the web token is added per request, to GQL only.
+  final twitchFollowedCategoriesService = TwitchFollowedCategoriesService(
+    anonymousGqlDio,
+  );
 
   // One anonymous realtime connection (Hermes) for public Twitch topics such
   // as the hype train. It connects only when something subscribes and
@@ -247,6 +252,9 @@ void main() async {
           value: twitchChannelProfileService,
         ),
         Provider<TwitchDirectoryService>.value(value: twitchDirectoryService),
+        Provider<TwitchFollowedCategoriesService>.value(
+          value: twitchFollowedCategoriesService,
+        ),
         Provider<TwitchRealtimeClient>.value(value: realtimeClient),
         Provider<GlobalAssetsStore>.value(value: globalAssetsStore),
         Provider<TwitchEventSubClient>.value(value: eventSubClient),

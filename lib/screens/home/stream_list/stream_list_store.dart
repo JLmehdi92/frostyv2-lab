@@ -6,8 +6,10 @@ import 'package:flutter/widgets.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_directory_service.dart';
+import 'package:frosty/apis/twitch_followed_categories_service.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/models/category.dart';
+import 'package:frosty/models/followed_category.dart';
 import 'package:frosty/models/followed_channel.dart';
 import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/models/stream.dart';
@@ -47,6 +49,10 @@ abstract class ListStoreBase with Store {
 
   /// Sorted category lists and tag lists; anonymous GQL.
   final TwitchDirectoryService? directoryService;
+
+  /// The viewer's followed categories (Following only); private GQL with
+  /// the twitch.tv web token.
+  final TwitchFollowedCategoriesService? followedCategoriesService;
 
   /// The order of a category or tag list. A category in
   /// [StreamSort.viewersHigh] uses Helix and pages; any other order (and
@@ -171,6 +177,16 @@ abstract class ListStoreBase with Store {
         .asObservable();
   }
 
+  /// The categories the viewer follows (Following only; empty when Twitch
+  /// does not give them, which hides the section).
+  @readonly
+  List<FollowedCategory> _followedCategories = const [];
+
+  /// When Twitch last refused the followed categories: not asked again for
+  /// a while, so a refusal never turns into a request on every refresh.
+  DateTime? _followedCategoriesFailedAt;
+  static const _followedCategoriesBackoff = Duration(minutes: 30);
+
   /// Followed streams with a running hype train, by channel id.
   @readonly
   var _hypeTrains = ObservableMap<String, HtCardStatus>();
@@ -239,6 +255,7 @@ abstract class ListStoreBase with Store {
     this.categoryId,
     this.tag,
     this.directoryService,
+    this.followedCategoriesService,
     this.scrollController,
     this.hypeTrainService,
     this.sort = StreamSort.viewersHigh,
@@ -269,6 +286,7 @@ abstract class ListStoreBase with Store {
       );
 
       getPinnedStreams();
+      unawaited(_getFollowedCategories());
 
       // Any order but Helix's own needs every live channel to be right.
       _followedSortReactionDisposer = reaction(
@@ -481,6 +499,25 @@ abstract class ListStoreBase with Store {
     _isPinnedStreamsLoading = false;
   }
 
+  /// Reads the followed categories (never throws).
+  Future<void> _getFollowedCategories() async {
+    final service = followedCategoriesService;
+    final token = authStore.twitchWebToken;
+    if (listType != ListType.followed || service == null || token == null) {
+      return;
+    }
+    final failedAt = _followedCategoriesFailedAt;
+    if (failedAt != null &&
+        DateTime.now().difference(failedAt) < _followedCategoriesBackoff) {
+      return;
+    }
+    final categories = await service.getFollowedCategories(authToken: token);
+    runInAction(() {
+      _followedCategoriesFailedAt = categories == null ? DateTime.now() : null;
+      _followedCategories = categories ?? const [];
+    });
+  }
+
   @action
   Future<void> getOfflineChannels() async {
     _isOfflineChannelsLoading = true;
@@ -521,6 +558,7 @@ abstract class ListStoreBase with Store {
 
     if (listType == ListType.followed) {
       await getPinnedStreams();
+      await _getFollowedCategories();
 
       // Only refresh offline channels if they are currently expanded
       if (isOfflineChannelsExpanded) {

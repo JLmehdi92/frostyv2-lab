@@ -1,0 +1,46 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/models/followed_category.dart';
+import 'package:frosty/screens/home/stream_list/followed_categories_section.dart';
+import 'package:frosty/theme.dart';
+
+Widget _host(List<FollowedCategory> categories) => MaterialApp(
+  theme: ThemeData(extensions: const [FrostyColors.light]),
+  home: Scaffold(
+    body: CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: FollowedCategoriesSection(categories: categories),
+        ),
+      ],
+    ),
+  ),
+);
+
+void main() {
+  testWidgets('shows each followed category with its viewers', (tester) async {
+    await tester.pumpWidget(
+      _host(const [
+        FollowedCategory(
+          id: '1',
+          name: 'Just Chatting',
+          displayName: 'Just Chatting',
+          viewers: 412300,
+        ),
+        FollowedCategory(id: '2', name: 'Chess', viewers: 1),
+      ]),
+    );
+
+    expect(find.text('CATEGORIES'), findsOneWidget);
+    expect(find.text('Just Chatting'), findsOneWidget);
+    expect(find.text('412K viewers'), findsOneWidget);
+    expect(find.text('Chess'), findsOneWidget);
+    expect(find.text('1 viewer'), findsOneWidget);
+  });
+
+  testWidgets('no followed categories, no section', (tester) async {
+    await tester.pumpWidget(_host(const []));
+
+    expect(find.text('CATEGORIES'), findsNothing);
+  });
+}

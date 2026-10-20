@@ -294,6 +294,26 @@ mixin _$ListStore on ListStoreBase, Store {
     );
   }
 
+  late final _$_followedCategoriesAtom = Atom(
+    name: 'ListStoreBase._followedCategories',
+    context: context,
+  );
+
+  List<FollowedCategory> get followedCategories {
+    _$_followedCategoriesAtom.reportRead();
+    return super._followedCategories;
+  }
+
+  @override
+  List<FollowedCategory> get _followedCategories => followedCategories;
+
+  @override
+  set _followedCategories(List<FollowedCategory> value) {
+    _$_followedCategoriesAtom.reportWrite(value, super._followedCategories, () {
+      super._followedCategories = value;
+    });
+  }
+
   late final _$_hypeTrainsAtom = Atom(
     name: 'ListStoreBase._hypeTrains',
     context: context,
