@@ -162,4 +162,68 @@ void main() {
     expect(store.error, isNull);
     expect(store.videos.map((v) => v.id), ['1']);
   });
+
+  test('a page that adds no new video ends paging', () async {
+    when(() => service.searchVideos('mario')).thenAnswer(
+      (_) async =>
+          VodSearchPage(items: [_vod('1')], cursor: 'MQ==', hasMore: true),
+    );
+    when(() => service.searchVideos('mario', cursor: 'MQ==')).thenAnswer(
+      (_) async =>
+          VodSearchPage(items: [_vod('1')], cursor: 'Mg==', hasMore: true),
+    );
+
+    await store.search('mario');
+    await store.loadMore();
+    await store.loadMore();
+
+    expect(store.hasMore, isFalse);
+    verify(() => service.searchVideos('mario', cursor: 'MQ==')).called(1);
+    verifyNever(() => service.searchVideos('mario', cursor: 'Mg=='));
+  });
+
+  test('the same cursor again ends paging', () async {
+    when(() => service.searchVideos('mario')).thenAnswer(
+      (_) async =>
+          VodSearchPage(items: [_vod('1')], cursor: 'MQ==', hasMore: true),
+    );
+    when(() => service.searchVideos('mario', cursor: 'MQ==')).thenAnswer(
+      (_) async =>
+          VodSearchPage(items: [_vod('2')], cursor: 'MQ==', hasMore: true),
+    );
+
+    await store.search('mario');
+    await store.loadMore();
+    await store.loadMore();
+
+    expect(store.videos.map((v) => v.id), ['1', '2']);
+    expect(store.hasMore, isFalse);
+    verify(() => service.searchVideos('mario', cursor: 'MQ==')).called(1);
+  });
+
+  test('paging stops at its cap, whatever Twitch has left', () async {
+    var page = 0;
+    when(
+      () => service.searchVideos('mario', cursor: any(named: 'cursor')),
+    ).thenAnswer((_) async {
+      page++;
+      return VodSearchPage(
+        items: [for (var i = 0; i < 25; i++) _vod('$page-$i')],
+        cursor: 'c$page',
+        hasMore: true,
+      );
+    });
+
+    await store.search('mario');
+    for (var i = 0; i < 30; i++) {
+      await store.loadMore();
+    }
+
+    expect(store.hasMore, isFalse);
+    expect(
+      store.videos.length,
+      lessThanOrEqualTo(SearchVideosStoreBase.maxVideos),
+    );
+    expect(page, lessThanOrEqualTo(SearchVideosStoreBase.maxPages));
+  });
 }

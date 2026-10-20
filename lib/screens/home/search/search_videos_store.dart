@@ -14,10 +14,18 @@ abstract class SearchVideosStoreBase with Store {
 
   final TwitchVodService vodService;
 
+  /// Pages one search may load (the first included), and videos it may
+  /// list: paging ends there, whatever Twitch says is left.
+  static const maxPages = 10;
+  static const maxVideos = 250;
+
   /// Bumped by every new search: an answer for an older one is dropped.
   var _generation = 0;
 
   String? _cursor;
+
+  /// Pages loaded for the current search.
+  var _pages = 0;
 
   @readonly
   var _query = '';
@@ -47,6 +55,7 @@ abstract class SearchVideosStoreBase with Store {
     _query = text;
     _videos = ObservableList<Vod>();
     _cursor = null;
+    _pages = 0;
     _hasMore = false;
     _error = null;
     _loadingMore = false;
@@ -59,9 +68,10 @@ abstract class SearchVideosStoreBase with Store {
       final page = await vodService.searchVideos(text);
       if (generation != _generation) return;
       runInAction(() {
-        _videos.addAll(page.items);
+        _pages = 1;
+        _videos.addAll(page.items.take(maxVideos));
         _cursor = page.cursor;
-        _hasMore = page.hasMore && page.cursor != null;
+        _hasMore = page.hasMore && page.cursor != null && _belowCaps;
       });
     } catch (e) {
       debugPrint('Video search failed: ${e.runtimeType}');
@@ -71,6 +81,8 @@ abstract class SearchVideosStoreBase with Store {
       if (generation == _generation) runInAction(() => _loading = false);
     }
   }
+
+  bool get _belowCaps => _pages < maxPages && _videos.length < maxVideos;
 
   /// Runs the current search again (after a failure).
   @action
@@ -92,10 +104,23 @@ abstract class SearchVideosStoreBase with Store {
       final page = await vodService.searchVideos(_query, cursor: cursor);
       if (generation != _generation) return;
       runInAction(() {
+        _pages++;
         final known = {for (final video in _videos) video.id};
-        _videos.addAll(page.items.where((video) => known.add(video.id)));
-        _cursor = page.cursor;
-        _hasMore = page.hasMore && page.cursor != null;
+        final added = page.items
+            .where((video) => known.add(video.id))
+            .take(maxVideos - _videos.length)
+            .toList();
+        _videos.addAll(added);
+        // A page that adds nothing, or points back to itself, would be
+        // asked for again on every rebuild of the list's end.
+        final next = page.cursor;
+        _hasMore =
+            page.hasMore &&
+            next != null &&
+            next != cursor &&
+            added.isNotEmpty &&
+            _belowCaps;
+        _cursor = next;
       });
     } catch (e) {
       debugPrint('Video search paging failed: ${e.runtimeType}');
