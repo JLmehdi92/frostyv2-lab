@@ -463,8 +463,9 @@ class ChatMessage extends StatelessWidget {
               body = messageSpan;
             }
 
+            // A link the chat filters hide is not previewed.
             final preview = chatStore.settings.showLinkPreviews
-                ? chatPreviewLink(ircMessage.message)
+                ? chatPreviewLink(ircMessage.shownText(_chatFilters))
                 : null;
             renderMessage = preview == null
                 ? body

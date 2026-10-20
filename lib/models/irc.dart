@@ -98,6 +98,14 @@ class IRCMessage {
   bool isFiltered(ChatFilterSettings settings) =>
       _filteredWords(settings) != null;
 
+  /// The text as shown under [filters]: [message] without the words they
+  /// hide (what a link preview may read), or [message] itself.
+  String? shownText(ChatFilterSettings? filters) {
+    final filtered = filters == null ? null : _filteredWords(filters);
+    if (filtered == null) return message;
+    return filtered.split.where((w) => !w.contains(kFilteredUnit)).join(' ');
+  }
+
   /// [masked] words where they differ from [original], but a hidden word
   /// that is one of the message's Twitch emotes stays the emote, as in the
   /// official app. A mismatch keeps every masked word (it never reveals).

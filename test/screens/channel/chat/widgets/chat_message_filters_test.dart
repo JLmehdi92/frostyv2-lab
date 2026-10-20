@@ -179,5 +179,31 @@ void main() {
     final text = _lineText(tester);
     expect(text, contains('**** it'));
   });
+
+  test('a hidden link is not previewed; the rest of the text still is', () {
+    const on = ChatFilterSettings(
+      enabled: true,
+      discrimination: true,
+      sexual: true,
+      harassment: true,
+      profanity: true,
+    );
+    final msg = IRCMessage.fromString(
+      _line(
+        'flags=0-3:P.3',
+        'damn https://clips.twitch.tv/Abc twitch.tv/videos/1x',
+      ),
+    );
+    expect(msg.shownText(null), msg.message);
+    expect(
+      msg.shownText(on),
+      'https://clips.twitch.tv/Abc twitch.tv/videos/1x',
+    );
+
+    final hidden = IRCMessage.fromString(
+      _line('flags=0-26:P.3', 'https://clips.twitch.tv/Abc ok'),
+    );
+    expect(hidden.shownText(on), 'ok');
+  });
 }
 
