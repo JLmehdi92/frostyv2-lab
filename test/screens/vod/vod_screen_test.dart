@@ -281,9 +281,11 @@ void main() {
     );
 
     testWidgets('starts where the account left the video', (tester) async {
-      when(
-        () => service.getViewingHistory(archive.id),
-      ).thenAnswer((_) async => const ViewingHistory(positionSec: 5400));
+      when(() => service.getViewingHistory(archive.id)).thenAnswer(
+        (_) => Future<ViewingHistory?>.value(
+          const ViewingHistory(positionSec: 5400),
+        ),
+      );
 
       await pump(tester, vod: archive);
       await ready(tester);

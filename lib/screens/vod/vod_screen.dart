@@ -215,17 +215,12 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     final resume = widget.startAt == null;
     final server = resume ? _accountPosition(vod) : null;
     final live = resume
-        ? LiveProgressRepository.shared
-              .forVod(vod, viewer: viewer)
-              .then<LiveProgressEntry?>(
-                (entry) => entry,
-                onError: (Object e) {
-                  debugPrint(
-                    'VodScreen live position failed: ${e.runtimeType}',
-                  );
-                  return null;
-                },
-              )
+        ? LiveProgressRepository.shared.forVod(vod, viewer: viewer).catchError((
+            Object e,
+          ) {
+            debugPrint('VodScreen live position failed: ${e.runtimeType}');
+            return null;
+          })
         : null;
     final saved = resume
         ? await _resumeRepository.entry(vod.id, viewer: viewer)
@@ -236,8 +231,8 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
       deepLink: widget.startAt,
       server: await server,
       live: await live,
+      lengthSec: vod.lengthSeconds,
       // A recording keeps growing: its end is not where the viewer stops.
-      lengthSec: vod.isRecording ? 0 : vod.lengthSeconds,
       nearEndRestarts: !vod.isRecording,
     );
     if (!mounted) return;
@@ -279,7 +274,6 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     try {
       return await _service
           .getViewingHistory(vod.id)
-          .then<ViewingHistory?>((history) => history)
           .timeout(_historyTimeout, onTimeout: () => null);
     } catch (e) {
       debugPrint('VodScreen watch position failed: ${e.runtimeType}');

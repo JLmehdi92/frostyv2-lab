@@ -164,11 +164,11 @@ class _VideoChatState extends State<VideoChat>
   /// Where the viewer is in this broadcast, kept like the official app does
   /// so its VOD can later start there.
   late final LiveProgressTracker _liveProgress = () {
-    final auth = context.authStore;
     final vodService = context.twitchVodService;
     return LiveProgressTracker(
       repository: LiveProgressRepository.shared,
-      viewer: () => auth.isLoggedIn ? auth.user.details?.id : null,
+      // The same viewer as the VOD screen and lists.
+      viewer: () => vodService.viewerId?.call(),
       report: (streamId, offsetSec) => vodService.updateViewedVideo(
         videoId: streamId,
         type: WatchedVideoType.live,
