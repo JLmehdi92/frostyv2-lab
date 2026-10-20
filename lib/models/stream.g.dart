@@ -19,6 +19,7 @@ StreamTwitch _$StreamTwitchFromJson(Map<String, dynamic> json) => StreamTwitch(
   tags:
       (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
   language: json['language'] as String? ?? '',
+  id: json['id'] as String? ?? '',
 );
 
 StreamsTwitch _$StreamsTwitchFromJson(Map<String, dynamic> json) =>

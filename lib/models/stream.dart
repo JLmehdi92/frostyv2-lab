@@ -23,6 +23,11 @@ class StreamTwitch {
   @JsonKey(defaultValue: '')
   final String language;
 
+  /// This broadcast's id (Helix `id`, empty when absent). The archive VOD
+  /// of the broadcast names it as its `broadcast { id }`.
+  @JsonKey(defaultValue: '')
+  final String id;
+
   const StreamTwitch(
     this.userId,
     this.userLogin,
@@ -35,6 +40,7 @@ class StreamTwitch {
     this.thumbnailUrl, {
     this.tags = const [],
     this.language = '',
+    this.id = '',
   });
 
   factory StreamTwitch.fromJson(Map<String, dynamic> json) =>

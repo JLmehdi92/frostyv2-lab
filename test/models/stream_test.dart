@@ -19,6 +19,15 @@ void main() {
       expect(stream.viewerCount, 1000);
       expect(stream.startedAt, '2024-01-01T00:00:00Z');
       expect(stream.thumbnailUrl, 'https://cdn/thumb.jpg');
+      expect(stream.id, '40000000001');
+    });
+
+    test('a stream without an id reads as an empty id', () {
+      final json = Map<String, dynamic>.of(
+        (twitchStreamResponse['data']! as List).first as Map<String, dynamic>,
+      )..remove('id');
+
+      expect(StreamTwitch.fromJson(json).id, '');
     });
   });
 
