@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/models/community_points.dart';
@@ -107,14 +109,19 @@ class ChannelPointsButton extends StatelessWidget {
             borderRadius: const BorderRadius.all(
               Radius.circular(FrostyTokens.radiusPill),
             ),
-            onTap: () => showModalBottomSheetWithProperFocus(
-              context: context,
-              isScrollControlled: true,
-              // The store goes with it: the sheet is where points are spent,
-              // and it stays live so a redeem's new balance lands without
-              // reopening the panel.
-              builder: (_) => ChannelPointsSheet(points: points, store: store),
-            ),
+            onTap: () {
+              // Fresh, like Twitch's panel (at most once a minute).
+              unawaited(store.refreshWatchStreak());
+              showModalBottomSheetWithProperFocus(
+                context: context,
+                isScrollControlled: true,
+                // The store goes with it: the sheet is where points are spent,
+                // and it stays live so a redeem's new balance lands without
+                // reopening the panel.
+                builder: (_) =>
+                    ChannelPointsSheet(points: points, store: store),
+              );
+            },
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               child: Row(

@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:frosty/apis/twitch_points_service.dart';
+import 'package:frosty/apis/twitch_watch_streak_service.dart';
 import 'package:frosty/models/celebration.dart';
 import 'package:frosty/models/community_points.dart';
 import 'package:frosty/models/hermes.dart';
+import 'package:frosty/models/watch_streak.dart';
 import 'package:frosty/services/hermes_client.dart';
 import 'package:mobx/mobx.dart';
 
@@ -50,18 +53,32 @@ abstract class ChannelEventsStoreBase with Store {
   /// all — arrive on user-scoped topics, not on the channel's.
   final String? viewerId;
 
+  /// The channel's display name, for the panel's wording.
+  final String? channelName;
+
+  /// Whether the channel is live now (it changes how a suspended watch
+  /// streak is saved); unknown counts as live.
+  final bool Function()? isChannelLive;
+
   final TwitchPointsService _pointsService;
   final Future<String?> Function()? _tokenProvider;
+
+  /// The viewer's watch streak here; none read without it.
+  final TwitchWatchStreakService? _watchStreakService;
 
   ChannelEventsStoreBase({
     required this.channelId,
     this.channelLogin,
+    this.channelName,
     this.viewerId,
+    this.isChannelLive,
     HermesClient? client,
     TwitchPointsService? pointsService,
+    TwitchWatchStreakService? watchStreakService,
     Future<String?> Function()? tokenProvider,
   }) : _client = client ?? HermesClient(tokenProvider: tokenProvider),
        _pointsService = pointsService ?? TwitchPointsService.withDefaults(),
+       _watchStreakService = watchStreakService,
        _tokenProvider = tokenProvider;
 
   /// Channel points, rewards and any running prediction.
@@ -71,6 +88,21 @@ abstract class ChannelEventsStoreBase with Store {
   /// stream on its own, so a first read is unavoidable.
   @readonly
   CommunityPointsContext _points = CommunityPointsContext.empty;
+
+  /// The viewer's watch streak in this channel, as Twitch counts it (shown
+  /// in the points panel, like Twitch). Null when Twitch did not give one.
+  @readonly
+  WatchStreak? _watchStreak;
+
+  /// When the streak was last asked for, and whether that failed.
+  DateTime? _watchStreakAskedAt;
+  var _watchStreakFailed = false;
+
+  /// A streak moves at most once per stream: once a minute is plenty.
+  static const _watchStreakFreshFor = Duration(minutes: 1);
+
+  /// After a refusal or an error, not asked again for a while.
+  static const _watchStreakBackoff = Duration(minutes: 10);
 
   /// The celebration waiting to be played. The overlay clears it when done.
   @readonly
@@ -99,6 +131,7 @@ abstract class ChannelEventsStoreBase with Store {
     // Not awaited: the balance appearing a moment later is fine, a channel
     // opening a moment later is not.
     unawaited(refreshPoints());
+    unawaited(refreshWatchStreak());
 
     _startPointsPolling();
   }
@@ -175,6 +208,35 @@ abstract class ChannelEventsStoreBase with Store {
     }
 
     runInAction(() => _points = context);
+  }
+
+  /// Reads the viewer's watch streak (on connect and when the panel opens),
+  /// at most once a minute, and not for ten minutes after a failure. Never
+  /// throws.
+  Future<void> refreshWatchStreak() async {
+    final service = _watchStreakService;
+    if (service == null) return;
+    final askedAt = _watchStreakAskedAt;
+    if (askedAt != null &&
+        clock.now().difference(askedAt) <
+            (_watchStreakFailed ? _watchStreakBackoff : _watchStreakFreshFor)) {
+      return;
+    }
+    // Marked before the first await: the panel opening while the channel
+    // connects must not ask twice.
+    _watchStreakAskedAt = clock.now();
+    _watchStreakFailed = false;
+    final token = await _tokenProvider?.call();
+    if (token == null || token.isEmpty) {
+      _watchStreakAskedAt = null;
+      return;
+    }
+    final streak = await service.getWatchStreak(
+      channelId: channelId,
+      authToken: token,
+    );
+    _watchStreakFailed = streak == null;
+    runInAction(() => _watchStreak = streak);
   }
 
   /// True while a redeem or a bet is in flight, so the sheet can disable its
@@ -306,7 +368,6 @@ abstract class ChannelEventsStoreBase with Store {
   /// Whether [action] has already been refused, so the UI can stop offering it.
   bool isIntegrityBlocked(String action) => _integrityBlocked.contains(action);
 
-
   void _onEvent(HermesEvent event) {
     // A payload of an unexpected shape costs that event, never the
     // subscription: an exception escaping a stream listener is uncaught.
@@ -437,8 +498,8 @@ abstract class ChannelEventsStoreBase with Store {
     final effect = effects[_previewIndex % effects.length];
     // Intensity advances more slowly, so each effect is seen at several sizes
     // rather than always at the same one.
-    final intensity = intensities[(_previewIndex ~/ effects.length) %
-        intensities.length];
+    final intensity =
+        intensities[(_previewIndex ~/ effects.length) % intensities.length];
     _previewIndex++;
 
     debugPrint('Celebration preview: ${effect.name} at ${intensity.name}');

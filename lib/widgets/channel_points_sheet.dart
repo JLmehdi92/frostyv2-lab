@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/models/community_points.dart';
+import 'package:frosty/models/watch_streak.dart';
 import 'package:frosty/screens/channel/stores/channel_events_store.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
@@ -46,7 +47,13 @@ class ChannelPointsSheet extends StatelessWidget {
     if (events == null) return _Panel(points: points, store: null);
 
     // Live, so a redeem's new balance lands without reopening the panel.
-    return Observer(builder: (_) => _Panel(points: events.points, store: events));
+    return Observer(
+      builder: (_) => _Panel(
+        points: events.points,
+        store: events,
+        watchStreak: events.watchStreak,
+      ),
+    );
   }
 }
 
@@ -54,7 +61,10 @@ class _Panel extends StatelessWidget {
   final CommunityPointsContext points;
   final ChannelEventsStore? store;
 
-  const _Panel({required this.points, required this.store});
+  /// The viewer's watch streak here, which Twitch shows atop this panel.
+  final WatchStreak? watchStreak;
+
+  const _Panel({required this.points, required this.store, this.watchStreak});
 
   @override
   Widget build(BuildContext context) {
@@ -109,6 +119,17 @@ class _Panel extends StatelessWidget {
               ),
             ),
 
+            if (watchStreak case final streak?)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                child: WatchStreakCard(
+                  streak: streak,
+                  live: events?.isChannelLive?.call() ?? true,
+                  channelName:
+                      events?.channelName ?? events?.channelLogin ?? '',
+                ),
+              ),
+
             if (events != null && points.hasClaim)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -156,6 +177,84 @@ class _Panel extends StatelessWidget {
                   style: TextStyle(color: colors.metadata),
                 ),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The viewer's watch streak, worded like Twitch's channel points panel.
+/// Read from Twitch, never advanced here.
+class WatchStreakCard extends StatelessWidget {
+  const WatchStreakCard({
+    super.key,
+    required this.streak,
+    required this.live,
+    required this.channelName,
+  });
+
+  final WatchStreak streak;
+  final bool live;
+  final String channelName;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.frostyColors;
+    final copy = streak.copy(
+      live: live,
+      channelName: channelName,
+      now: DateTime.now(),
+    );
+    final next = streak.threshold;
+    final showProgress =
+        next != null && streak.state != WatchStreakState.suspended;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: context.colorScheme.surfaceContainerHighest,
+        borderRadius: const BorderRadius.all(
+          Radius.circular(FrostyTokens.radiusCard),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 4,
+          children: [
+            Row(
+              spacing: 8,
+              children: [
+                Icon(
+                  Icons.local_fire_department_rounded,
+                  size: 20,
+                  color: colors.live,
+                ),
+                Expanded(
+                  child: Text(
+                    copy.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+                if (showProgress)
+                  Text(
+                    '${streak.value}/$next',
+                    style: context.frostyText.metadata,
+                  ),
+              ],
+            ),
+            if (copy.subtitle case final subtitle?)
+              Text(subtitle, style: TextStyle(color: colors.metadata)),
+            Text(
+              'Twitch counts streaks. Watching in this app may not count '
+              'toward them.',
+              style: context.textTheme.bodySmall?.copyWith(
+                color: colors.metadata,
+              ),
+            ),
           ],
         ),
       ),
@@ -239,9 +338,7 @@ class _ClaimButton extends StatelessWidget {
       return SizedBox(
         width: double.infinity,
         child: FilledButton.icon(
-          onPressed: store.pointsActionInFlight
-              ? null
-              : () => _claim(context),
+          onPressed: store.pointsActionInFlight ? null : () => _claim(context),
           icon: const Icon(Icons.card_giftcard_rounded, size: 18),
           label: const Text('Collect bonus'),
         ),
@@ -503,9 +600,7 @@ class _BetSheetState extends State<_BetSheet> {
                     for (final preset in _presets)
                       if (preset <= widget.balance)
                         ChoiceChip(
-                          label: Text(
-                            ChannelPointsSheet.formatPoints(preset),
-                          ),
+                          label: Text(ChannelPointsSheet.formatPoints(preset)),
                           selected: _stake == preset,
                           onSelected: (_) => _setStake(preset),
                         ),
@@ -604,11 +699,7 @@ class _RewardTile extends StatelessWidget {
                 ),
               ),
       ),
-      title: Text(
-        reward.title,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-      ),
+      title: Text(reward.title, maxLines: 2, overflow: TextOverflow.ellipsis),
       subtitle: Text(
         ChannelPointsSheet.formatPoints(reward.cost),
         // Dimmed when out of reach, so the list reads at a glance rather than

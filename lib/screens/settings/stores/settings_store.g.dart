@@ -26,6 +26,13 @@ SettingsStore _$SettingsStoreFromJson(
         unknownValue: HomeTab.following,
       ) ??
       HomeTab.following
+  ..followedSort =
+      $enumDecodeNullable(
+        _$FollowedSortEnumMap,
+        json['followedSort'],
+        unknownValue: FollowedSort.viewers,
+      ) ??
+      FollowedSort.viewers
   ..streamLanguage = json['streamLanguage'] as String? ?? ''
   ..hiddenContentLabels =
       (json['hiddenContentLabels'] as List<dynamic>?)
@@ -165,6 +172,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'showThumbnails': instance.showThumbnails,
   'largeStreamCard': instance.largeStreamCard,
   'startTab': _$HomeTabEnumMap[instance.startTab]!,
+  'followedSort': _$FollowedSortEnumMap[instance.followedSort]!,
   'streamLanguage': instance.streamLanguage,
   'hiddenContentLabels': instance.hiddenContentLabels,
   'launchUrlExternal': instance.launchUrlExternal,
@@ -246,6 +254,13 @@ const _$HomeTabEnumMap = {
   HomeTab.following: 'following',
   HomeTab.top: 'top',
   HomeTab.search: 'search',
+};
+
+const _$FollowedSortEnumMap = {
+  FollowedSort.viewers: 'viewers',
+  FollowedSort.recent: 'recent',
+  FollowedSort.name: 'name',
+  FollowedSort.category: 'category',
 };
 
 const _$CaptionSizeEnumMap = {
@@ -393,6 +408,24 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   set startTab(HomeTab value) {
     _$startTabAtom.reportWrite(value, super.startTab, () {
       super.startTab = value;
+    });
+  }
+
+  late final _$followedSortAtom = Atom(
+    name: '_SettingsStoreBase.followedSort',
+    context: context,
+  );
+
+  @override
+  FollowedSort get followedSort {
+    _$followedSortAtom.reportRead();
+    return super.followedSort;
+  }
+
+  @override
+  set followedSort(FollowedSort value) {
+    _$followedSortAtom.reportWrite(value, super.followedSort, () {
+      super.followedSort = value;
     });
   }
 
@@ -1793,6 +1826,7 @@ accentColor: ${accentColor},
 showThumbnails: ${showThumbnails},
 largeStreamCard: ${largeStreamCard},
 startTab: ${startTab},
+followedSort: ${followedSort},
 streamLanguage: ${streamLanguage},
 hiddenContentLabels: ${hiddenContentLabels},
 launchUrlExternal: ${launchUrlExternal},

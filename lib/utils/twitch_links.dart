@@ -295,3 +295,13 @@ final class ChannelLink extends TwitchLink {
 final class OtherLink extends TwitchLink {
   const OtherLink();
 }
+
+/// The channel [login]'s subscription page on twitch.tv, where Twitch offers
+/// to subscribe or gift a sub (in-app purchases go through Google Play
+/// billing in Twitch's own app, so the web page is the only way here).
+/// Null for anything but a login.
+Uri? twitchSubscribeUrl(String login) {
+  final name = login.toLowerCase();
+  if (!RegExp(r'^[a-z0-9_]{1,25}$').hasMatch(name)) return null;
+  return Uri.https('www.twitch.tv', '/subs/$name');
+}

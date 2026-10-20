@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_directory_service.dart';
+import 'package:frosty/apis/twitch_followed_categories_service.dart';
 import 'package:frosty/constants.dart';
+import 'package:frosty/models/followed_category.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/clips/stores/channel_clips_store.dart';
 import 'package:frosty/screens/clips/widgets/channel_clips_tab.dart';
@@ -17,6 +19,7 @@ import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/blurred_container.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
 import 'package:frosty/widgets/skeleton_loader.dart';
+import 'package:frosty/widgets/twitch_web_page.dart';
 import 'package:provider/provider.dart';
 
 /// A widget that displays a list of streams under the provided [categoryId].
@@ -102,6 +105,22 @@ class _CategoryStreamsState extends State<CategoryStreams> {
                       icon: Icon(Icons.adaptive.arrow_back_rounded),
                       onPressed: Navigator.of(context).pop,
                     ),
+                    const Spacer(),
+                    // Following a category is twitch.tv's own button: the
+                    // follow mutation is integrity-gated.
+                    if (context.read<AuthStore>().isLoggedIn)
+                      Observer(
+                        builder: (_) {
+                          final category = _listStore.categoryDetails;
+                          return IconButton(
+                            tooltip: 'Follow on Twitch',
+                            icon: const Icon(Icons.favorite_border_rounded),
+                            onPressed: category == null
+                                ? null
+                                : () => _followOnTwitch(category.name),
+                          );
+                        },
+                      ),
                   ],
                 ),
               ),
@@ -167,6 +186,17 @@ class _CategoryStreamsState extends State<CategoryStreams> {
         ),
       ),
     );
+  }
+
+  /// Opens the category on twitch.tv, where the viewer can follow or
+  /// unfollow it.
+  Future<void> _followOnTwitch(String name) async {
+    final service = context.read<TwitchFollowedCategoriesService?>();
+    final url = service != null
+        ? await service.categoryPageUrl(widget.categoryId, name: name)
+        : FollowedCategory.twitchUrlFor(slug: null, name: name);
+    if (!mounted) return;
+    await TwitchWebPage.open(context, title: name, url: url);
   }
 
   /// Live streams scroll under the blurred [header]; videos and clips sit

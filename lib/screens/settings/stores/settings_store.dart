@@ -32,6 +32,7 @@ abstract class _SettingsStoreBase with Store {
   static const defaultStreamLanguage = '';
   static const defaultHiddenContentLabels = <String>[];
   static const defaultStartTab = HomeTab.following;
+  static const defaultFollowedSort = FollowedSort.viewers;
 
   // Links defaults
   static const defaultLaunchUrlExternal = false;
@@ -60,6 +61,15 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var startTab = defaultStartTab;
 
+  /// The order of the live channels in Following, remembered like Twitch's
+  /// "Sorted by".
+  @JsonKey(
+    defaultValue: defaultFollowedSort,
+    unknownEnumValue: FollowedSort.viewers,
+  )
+  @observable
+  var followedSort = defaultFollowedSort;
+
   /// The language Top and category lists show (Helix `language`).
   @JsonKey(defaultValue: defaultStreamLanguage)
   @observable
@@ -87,6 +97,7 @@ abstract class _SettingsStoreBase with Store {
     streamLanguage = defaultStreamLanguage;
     hiddenContentLabels = defaultHiddenContentLabels;
     startTab = defaultStartTab;
+    followedSort = defaultFollowedSort;
 
     launchUrlExternal = defaultLaunchUrlExternal;
   }
@@ -648,6 +659,20 @@ enum HomeTab {
   /// Where this tab sits in the bar; logged out, there is no Following.
   int indexWhen({required bool loggedIn}) =>
       loggedIn ? index : (this == following ? 0 : index - 1);
+}
+
+/// How Following orders its live channels. Twitch's other order,
+/// "Recommended For You", is its own server ranking, which Helix does not
+/// give.
+enum FollowedSort {
+  viewers('Viewers (High to Low)'),
+  recent('Recently Started'),
+  name('Name (A-Z)'),
+  category('Category');
+
+  const FollowedSort(this.label);
+
+  final String label;
 }
 
 const timestampNames = ['Disabled', '12-hour', '24-hour'];

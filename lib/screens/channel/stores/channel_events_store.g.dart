@@ -29,6 +29,26 @@ mixin _$ChannelEventsStore on ChannelEventsStoreBase, Store {
     });
   }
 
+  late final _$_watchStreakAtom = Atom(
+    name: 'ChannelEventsStoreBase._watchStreak',
+    context: context,
+  );
+
+  WatchStreak? get watchStreak {
+    _$_watchStreakAtom.reportRead();
+    return super._watchStreak;
+  }
+
+  @override
+  WatchStreak? get _watchStreak => watchStreak;
+
+  @override
+  set _watchStreak(WatchStreak? value) {
+    _$_watchStreakAtom.reportWrite(value, super._watchStreak, () {
+      super._watchStreak = value;
+    });
+  }
+
   late final _$_celebrationAtom = Atom(
     name: 'ChannelEventsStoreBase._celebration',
     context: context,
