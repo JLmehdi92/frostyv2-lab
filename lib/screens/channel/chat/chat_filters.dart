@@ -2,11 +2,6 @@ import 'package:flutter/widgets.dart' show StringCharacters;
 import 'package:frosty/models/irc.dart' show regexEmoji;
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 
-/// Stands for each hidden UTF-16 unit inside a message's words: one unit
-/// for one, so a masked text keeps the shape of the text it hides, and is
-/// drawn as `*` like Twitch draws a censored token.
-const kFilteredUnit = '\u{E000}';
-
 /// The invisible character some clients add to repeat a message; never
 /// masked, as chat removes it.
 const _invisible = '\u{E0000}';
@@ -145,8 +140,10 @@ class ChatFilterSettings {
       Object.hash(enabled, discrimination, sexual, harassment, profanity);
 }
 
-/// [text] with what [settings] hide replaced by [kFilteredUnit], one per
-/// UTF-16 unit, or null when nothing is hidden.
+/// [text] with what [settings] hide replaced by `mark`, one per UTF-16
+/// unit, or null when nothing is hidden. `mark` is a private-use character
+/// [text] does not contain, so a hidden unit is always told apart from the
+/// text a chatter sent (icon fonts use that range too).
 ///
 /// Positions count characters (code points), like the `emotes` tag. Like
 /// the official app, a range is used only when `start < end` and it ends
@@ -154,7 +151,7 @@ class ChatFilterSettings {
 /// previous one being skipped (hidden or not). Spaces, emojis and the
 /// invisible repeat character stay, so the masked text splits into the
 /// same words as [text].
-String? maskFilteredText(
+({String text, String mark})? maskFilteredText(
   String text,
   List<AutoModFlag> flags,
   ChatFilterSettings settings,
@@ -187,6 +184,8 @@ String? maskFilteredText(
     hidden.add((starts[flag.start], endUnit));
   }
   if (hidden.isEmpty) return null;
+  final mark = _absentMark(text);
+  if (mark == null) return null;
 
   final out = StringBuffer();
   var offset = 0;
@@ -199,11 +198,21 @@ String? maskFilteredText(
         character.trim().isNotEmpty &&
         character != _invisible &&
         !regexEmoji.hasMatch(character)) {
-      out.write(kFilteredUnit * character.length);
+      out.write(mark * character.length);
       masked = true;
     } else {
       out.write(character);
     }
   }
-  return masked ? out.toString() : null;
+  return masked ? (text: out.toString(), mark: mark) : null;
+}
+
+/// A private-use character missing from [text], or null when it holds all
+/// 6400 of them (it cannot: a chat message is at most 500 characters).
+String? _absentMark(String text) {
+  for (var unit = 0xE000; unit <= 0xF8FF; unit++) {
+    final mark = String.fromCharCode(unit);
+    if (!text.contains(mark)) return mark;
+  }
+  return null;
 }

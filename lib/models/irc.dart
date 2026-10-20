@@ -67,9 +67,8 @@ class IRCMessage {
   ChatFilterSettings? _filteredFor;
   _FilteredWords? _filtered;
 
-  /// The words shown while [settings] hide part of the message (each hidden
-  /// unit as [kFilteredUnit]), in step with [split] and [gifParts], or null
-  /// when they hide nothing.
+  /// The words shown while [settings] hide part of the message, in step
+  /// with [split] and [gifParts], or null when they hide nothing.
   _FilteredWords? _filteredWords(ChatFilterSettings settings) {
     final text = textAsSent;
     if (text == null || autoModFlags.isEmpty || !settings.enabled) return null;
@@ -77,21 +76,57 @@ class IRCMessage {
     _filteredFor = settings;
     final masked = maskFilteredText(text, autoModFlags, settings);
     if (masked == null) return _filtered = null;
+    final (text: maskedText, :mark) = masked;
     var offset = 0;
-    final parts = <List<String>>[];
-    for (final part in gifParts) {
+    final parts = <_ShownWords?>[];
+    for (final (index, part) in gifParts.indexed) {
       final end = offset + part.text.length;
       parts.add(
-        part.gif == null && end <= masked.length
-            ? _splitWords(_normalizeText(masked.substring(offset, end)))
-            : const [],
+        part.gif == null && end <= maskedText.length
+            ? _hideWords(
+                _gifPartsShown[index].words,
+                _splitWords(_normalizeText(maskedText.substring(offset, end))),
+                mark,
+              )
+            : null,
       );
       offset = end;
     }
-    return _filtered = _FilteredWords(
-      split: _splitWords(_normalizeText(masked)),
-      gifPartWords: parts,
+    final shown = _hideWords(
+      split ?? const [],
+      _splitWords(_normalizeText(maskedText)),
+      mark,
     );
+    final anyHidden =
+        shown.hidden.isNotEmpty ||
+        parts.any((p) => p?.hidden.isNotEmpty ?? false);
+    if (!anyHidden) return _filtered = null;
+    return _filtered = _FilteredWords(split: shown, gifParts: parts);
+  }
+
+  /// The [masked] words as shown: a word holding [mark] has those units as
+  /// `*` and is hidden, unless it is one of the message's Twitch emotes (it
+  /// stays the emote, as in the official app). [mark] never occurs in the
+  /// text sent, so the other words are the chatter's own.
+  _ShownWords _hideWords(
+    List<String> original,
+    List<String> masked,
+    String mark,
+  ) {
+    final aligned = original.length == masked.length;
+    final words = <String>[];
+    final hidden = <int>{};
+    for (final (i, word) in masked.indexed) {
+      if (!word.contains(mark)) {
+        words.add(word);
+      } else if (aligned && (localEmotes?.containsKey(original[i]) ?? false)) {
+        words.add(original[i]);
+      } else {
+        words.add(word.replaceAll(mark, '*'));
+        hidden.add(i);
+      }
+    }
+    return (words: words, hidden: hidden);
   }
 
   /// Whether [settings] hide part of this message.
@@ -103,21 +138,11 @@ class IRCMessage {
   String? shownText(ChatFilterSettings? filters) {
     final filtered = filters == null ? null : _filteredWords(filters);
     if (filtered == null) return message;
-    return filtered.split.where((w) => !w.contains(kFilteredUnit)).join(' ');
-  }
-
-  /// [masked] words where they differ from [original], but a hidden word
-  /// that is one of the message's Twitch emotes stays the emote, as in the
-  /// official app. A mismatch keeps every masked word (it never reveals).
-  List<String> _shownWords(List<String> masked, List<String> original) {
-    if (masked.length != original.length) return masked;
+    final (:words, :hidden) = filtered.split;
     return [
-      for (final (i, word) in masked.indexed)
-        word.contains(kFilteredUnit) &&
-                (localEmotes?.containsKey(original[i]) ?? false)
-            ? original[i]
-            : word,
-    ];
+      for (final (i, word) in words.indexed)
+        if (!hidden.contains(i)) word,
+    ].join(' ');
   }
 
   /// Whether this message is a `USERNOTICE`, even after a deletion or a ban
@@ -598,11 +623,11 @@ class IRCMessage {
       return;
     }
 
-    void addWords(Iterable<String> words) {
+    void addWords(Iterable<String> words, {Set<int>? hidden, int skip = 0}) {
       _addWords(
         context,
         span,
-        words.toList(),
+        words.skip(skip).toList(),
         emoteToObject,
         emoteSize,
         emoteScale,
@@ -612,6 +637,7 @@ class IRCMessage {
         linkColor: linkColor,
         animateEmotes: animateEmotes,
         cheermotes: cheermotes,
+        hidden: hidden == null ? null : {for (final i in hidden) i - skip},
         onTapFiltered: onTapFiltered,
       );
     }
@@ -620,22 +646,27 @@ class IRCMessage {
     var skipReplyName = tags.containsKey('reply-parent-display-name');
 
     if (gifParts.isEmpty) {
-      final original = this.split;
-      if (original == null) return;
-      final split = filtered == null
-          ? original
-          : _shownWords(filtered.split, original);
-      addWords(skipReplyName ? split.skip(1) : split);
+      final split = this.split;
+      if (split == null) return;
+      final shown = filtered?.split;
+      addWords(
+        shown?.words ?? split,
+        hidden: shown?.hidden,
+        skip: skipReplyName ? 1 : 0,
+      );
       return;
     }
 
     for (final (index, part) in gifParts.indexed) {
-      final (:text, words: original) = _gifPartsShown[index];
-      final masked = filtered?.gifPartWords[index];
-      final words = masked == null ? original : _shownWords(masked, original);
+      final (:text, :words) = _gifPartsShown[index];
+      final shown = filtered?.gifParts[index];
       final gif = part.gif;
       if (gif == null) {
-        addWords(skipReplyName ? words.skip(1) : words);
+        addWords(
+          shown?.words ?? words,
+          hidden: shown?.hidden,
+          skip: skipReplyName ? 1 : 0,
+        );
         skipReplyName = false;
         continue;
       }
@@ -693,6 +724,7 @@ class IRCMessage {
     Color? linkColor,
     bool animateEmotes = true,
     Cheermotes cheermotes = Cheermotes.empty,
+    Set<int>? hidden,
     VoidCallback? onTapFiltered,
   }) {
     // Keep a local span which will be reversed and added to the final span.
@@ -709,6 +741,24 @@ class IRCMessage {
     // Terminate after the first word in the message reached.
     while (index != -1) {
       final word = words[index];
+      if (hidden?.contains(index) ?? false) {
+        // A word the chat filters hide, drawn as stars like Twitch; a tap
+        // asks whether to show the message.
+        localSpan
+          ..add(
+            TextSpan(
+              text: word,
+              style: textStyle,
+              semanticsLabel: 'Filtered word',
+              recognizer: onTapFiltered == null
+                  ? null
+                  : (TapGestureRecognizer()..onTap = onTapFiltered),
+            ),
+          )
+          ..add(const TextSpan(text: ' '));
+        index--;
+        continue;
+      }
       final cheer = isCheer ? cheermotes.match(word) : null;
       final emote = cheer != null
           ? null
@@ -780,20 +830,7 @@ class IRCMessage {
           index--;
         }
       } else {
-        if (word.contains(kFilteredUnit)) {
-          // A word the chat filters hide, drawn as stars like Twitch; a
-          // tap asks whether to show the message.
-          localSpan.add(
-            TextSpan(
-              text: word.replaceAll(kFilteredUnit, '*'),
-              style: textStyle,
-              semanticsLabel: 'Filtered word',
-              recognizer: onTapFiltered == null
-                  ? null
-                  : (TapGestureRecognizer()..onTap = onTapFiltered),
-            ),
-          );
-        } else if (regexEmoji.hasMatch(word)) {
+        if (regexEmoji.hasMatch(word)) {
           localSpan.add(
             _createEmojiSpan(
               emoji: word,
@@ -1615,13 +1652,16 @@ final regexEmoji = RegExp(
   unicode: true,
 );
 
+/// Words as shown, and the indexes of those the chat filters hide.
+typedef _ShownWords = ({List<String> words, Set<int> hidden});
+
 /// A message's words while the chat filters hide part of it.
 class _FilteredWords {
-  const _FilteredWords({required this.split, required this.gifPartWords});
+  const _FilteredWords({required this.split, required this.gifParts});
 
   /// In step with [IRCMessage.split].
-  final List<String> split;
+  final _ShownWords split;
 
-  /// The words of each of [IRCMessage.gifParts] (none for a GIF).
-  final List<List<String>> gifPartWords;
+  /// In step with [IRCMessage.gifParts] (null for a GIF).
+  final List<_ShownWords?> gifParts;
 }

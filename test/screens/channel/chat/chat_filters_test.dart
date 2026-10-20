@@ -10,12 +10,10 @@ const _all = ChatFilterSettings(
 );
 
 /// The masked text as shown: each hidden unit as `*`.
-String? _shown(String text, String tag, [ChatFilterSettings s = _all]) =>
-    maskFilteredText(
-      text,
-      parseAutoModFlags(tag),
-      s,
-    )?.replaceAll(kFilteredUnit, '*');
+String? _shown(String text, String tag, [ChatFilterSettings s = _all]) {
+  final masked = maskFilteredText(text, parseAutoModFlags(tag), s);
+  return masked?.text.replaceAll(masked.mark, '*');
+}
 
 void main() {
   group('the flags tag', () {
@@ -98,6 +96,16 @@ void main() {
       // Sorted by start: 0-3 is kept (not hidden), 2-6 overlaps it.
       expect(_shown('damn shit', '2-6:P.7,0-3:P.0'), isNull);
       expect(_shown('damn shit', '0-3:P.3,5-8:P.3'), '**** ****');
+    });
+
+    test('the mark is never a character of the text', () {
+      final masked = maskFilteredText(
+        '\u{E000}\u{E001} damn',
+        parseAutoModFlags('3-6:P.3'),
+        _all,
+      )!;
+      expect(masked.mark, '\u{E002}');
+      expect(masked.text, '\u{E000}\u{E001} ${'\u{E002}' * 4}');
     });
 
     test('a long tag stops at 100 ranges', () {

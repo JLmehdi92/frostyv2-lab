@@ -34,8 +34,8 @@ void _tapSpan(WidgetTester tester, String text) {
   found!.onTap!();
 }
 
-SettingsStore _filtersOn() => SettingsStore.fromJson({})
-  ..chatFiltersEnabled = true;
+SettingsStore _filtersOn() =>
+    SettingsStore.fromJson({})..chatFiltersEnabled = true;
 
 void main() {
   test('a message knows whether the filters hide part of it', () {
@@ -68,35 +68,34 @@ void main() {
     expect(text, isNot(contains('damn')));
   });
 
-  testWidgets(
-    "tapping it asks Twitch's question and Show Message reveals it",
-    (tester) async {
-      final store = fakeChatStore(settings: _filtersOn());
-      await pumpChatMessage(
-        tester,
-        IRCMessage.fromString(_line('flags=0-3:P.3', 'damn fine')),
-        store,
-      );
+  testWidgets("tapping it asks Twitch's question and Show Message reveals it", (
+    tester,
+  ) async {
+    final store = fakeChatStore(settings: _filtersOn());
+    await pumpChatMessage(
+      tester,
+      IRCMessage.fromString(_line('flags=0-3:P.3', 'damn fine')),
+      store,
+    );
 
-      _tapSpan(tester, '****');
-      await tester.pumpAndSettle();
+    _tapSpan(tester, '****');
+    await tester.pumpAndSettle();
 
-      expect(find.text('Message Blocked'), findsOneWidget);
-      expect(
-        find.text(
-          'Would you like to see this message? It has been hidden for you '
-          'based on your NSFW Chat Filter settings.',
-        ),
-        findsOneWidget,
-      );
+    expect(find.text('Message Blocked'), findsOneWidget);
+    expect(
+      find.text(
+        'Would you like to see this message? It has been hidden for you '
+        'based on your NSFW Chat Filter settings.',
+      ),
+      findsOneWidget,
+    );
 
-      await tester.tap(find.text('Show Message'));
-      await tester.pumpAndSettle();
+    await tester.tap(find.text('Show Message'));
+    await tester.pumpAndSettle();
 
-      expect(find.text('Message Blocked'), findsNothing);
-      expect(_lineText(tester), contains('damn fine'));
-    },
-  );
+    expect(find.text('Message Blocked'), findsNothing);
+    expect(_lineText(tester), contains('damn fine'));
+  });
 
   testWidgets('nothing is hidden with the filters off', (tester) async {
     final store = fakeChatStore();
@@ -127,9 +126,7 @@ void main() {
     final store = fakeChatStore(settings: _filtersOn());
     await pumpChatMessage(
       tester,
-      IRCMessage.fromString(
-        _line('emotes=25:0-4;flags=0-9:P.3', 'Kappa damn'),
-      ),
+      IRCMessage.fromString(_line('emotes=25:0-4;flags=0-9:P.3', 'Kappa damn')),
       store,
     );
 
@@ -170,9 +167,7 @@ void main() {
     final store = fakeChatStore(settings: _filtersOn());
     await pumpChatMessage(
       tester,
-      IRCMessage.fromString(
-        _line('flags=0-3:P.3', '\x01ACTION damn it\x01'),
-      ),
+      IRCMessage.fromString(_line('flags=0-3:P.3', '\x01ACTION damn it\x01')),
       store,
     );
 
@@ -205,5 +200,72 @@ void main() {
     );
     expect(hidden.shownText(on), 'ok');
   });
-}
 
+  group('a private-use character a chatter sends', () {
+    // Nerd Font and icon users send U+E000-U+F8FF: it is their text.
+    const icon = '\u{E000}';
+
+    bool hasFilteredSpan(WidgetTester tester) {
+      var found = false;
+      for (final rich in tester.widgetList<RichText>(find.byType(RichText))) {
+        rich.text.visitChildren((span) {
+          if (span is TextSpan && span.semanticsLabel == 'Filtered word') {
+            found = true;
+          }
+          return !found;
+        });
+      }
+      return found;
+    }
+
+    testWidgets('shows as itself with the filters off', (tester) async {
+      final store = fakeChatStore();
+      await pumpChatMessage(
+        tester,
+        IRCMessage.fromString(_line('flags=', 'hi ${icon}x there')),
+        store,
+      );
+
+      expect(_lineText(tester), contains('hi ${icon}x there'));
+      expect(hasFilteredSpan(tester), isFalse);
+    });
+
+    testWidgets('shows as itself next to a hidden word', (tester) async {
+      final store = fakeChatStore(settings: _filtersOn());
+      await pumpChatMessage(
+        tester,
+        IRCMessage.fromString(_line('flags=0-3:P.3', 'damn ${icon}x ok')),
+        store,
+      );
+
+      final text = _lineText(tester);
+      expect(text, contains('**** ${icon}x ok'));
+      expect(text, isNot(contains('damn')));
+    });
+
+    test('is kept by the text a link preview reads', () {
+      const on = ChatFilterSettings(
+        enabled: true,
+        discrimination: true,
+        sexual: true,
+        harassment: true,
+        profanity: true,
+      );
+      final msg = IRCMessage.fromString(
+        _line('flags=0-3:P.3', 'damn ${icon}x ok'),
+      );
+      expect(msg.shownText(on), '${icon}x ok');
+    });
+
+    testWidgets('inside a hidden range is hidden too', (tester) async {
+      final store = fakeChatStore(settings: _filtersOn());
+      await pumpChatMessage(
+        tester,
+        IRCMessage.fromString(_line('flags=0-4:P.3', 'da${icon}mn ok')),
+        store,
+      );
+
+      expect(_lineText(tester), contains('***** ok'));
+    });
+  });
+}
