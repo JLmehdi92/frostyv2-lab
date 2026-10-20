@@ -8,5 +8,7 @@ void main() {
     expect(GoLiveNotifications.loginOf(''), isNull);
     expect(GoLiveNotifications.loginOf('../evil'), isNull);
     expect(GoLiveNotifications.loginOf('a' * 26), isNull);
+    // A mention notice only brings the app back to the front.
+    expect(GoLiveNotifications.loginOf('mention:some_streamer'), isNull);
   });
 }

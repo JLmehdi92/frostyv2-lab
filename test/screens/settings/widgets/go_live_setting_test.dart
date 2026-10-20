@@ -49,6 +49,17 @@ void main() {
   bool switchValue(WidgetTester tester) =>
       tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value;
 
+  testWidgets('says how often channels are checked', (tester) async {
+    final prefs = await GoLivePrefs.load();
+    await prefs.setEnabled(true);
+    await pump(tester, GoLiveSetting(userId: '7', platform: FakePlatform()));
+    expect(
+      find.textContaining('every 90 seconds while ONSET is open'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('about every 15 minutes'), findsOneWidget);
+  });
+
   testWidgets('turning it on asks for the right, then starts', (tester) async {
     final platform = FakePlatform();
     await pump(tester, GoLiveSetting(userId: '7', platform: platform));

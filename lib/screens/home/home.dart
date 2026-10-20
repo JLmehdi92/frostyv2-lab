@@ -3,6 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/screens/activity/activity_bell.dart';
+import 'package:frosty/screens/activity/stores/activity_store.dart';
+import 'package:frosty/screens/channel/channel.dart';
 import 'package:frosty/screens/home/home_store.dart';
 import 'package:frosty/screens/home/search/search.dart';
 import 'package:frosty/screens/home/stream_list/stream_list_store.dart';
@@ -35,6 +39,8 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
 
   late final _whisperStore = context.read<WhisperStore>();
   StreamSubscription<IncomingWhisper>? _whispers;
+
+  late final _activityStore = context.read<ActivityStore>();
 
   late final _homeStore = HomeStore(
     authStore: _authStore,
@@ -109,6 +115,33 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
       );
   }
 
+  /// Opens a channel from Activity.
+  Future<void> _openChannel(String login) async {
+    try {
+      final user = await context.read<TwitchApi>().getUser(userLogin: login);
+      if (!mounted) return;
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          settings: const RouteSettings(name: VideoChat.routeName),
+          builder: (context) => VideoChat(
+            userId: user.id,
+            userName: user.displayName,
+            userLogin: user.login,
+          ),
+        ),
+      );
+    } catch (e) {
+      debugPrint('Activity: could not open $login: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(content: Text("Couldn't open $login's channel.")),
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -151,6 +184,13 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
             },
           ),
           actions: [
+            Observer(
+              builder: (_) => ActivityBell(
+                store: _activityStore,
+                whispers: _authStore.isLoggedIn ? _whisperStore : null,
+                onOpenChannel: _openChannel,
+              ),
+            ),
             Observer(
               builder: (_) {
                 if (!_authStore.isLoggedIn) return const SizedBox.shrink();

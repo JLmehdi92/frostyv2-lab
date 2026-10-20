@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -11,6 +12,7 @@ import 'package:frosty/constants.dart';
 import 'package:frosty/firebase_options.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/services/go_live/go_live.dart';
+import 'package:frosty/services/notifications/activity_log.dart';
 import 'package:workmanager/workmanager.dart';
 
 const _task = 'frosty.goLive';
@@ -64,7 +66,19 @@ void goLiveCallbackDispatcher() {
           ),
         ),
         prefs: await GoLivePrefs.load(),
-        notify: GoLiveNotifications.show,
+        notify: (notices, more) async {
+          await GoLiveNotifications.show(notices, more);
+          // Listed in Activity too; a failure there must not announce
+          // them again.
+          try {
+            final now = DateTime.now();
+            await (await ActivityLog.load()).addAll([
+              for (final notice in notices) goLiveEntry(notice, now),
+            ]);
+          } catch (error, stack) {
+            report(error, stack);
+          }
+        },
         notifyProblem: GoLiveNotifications.showProblem,
         report: report,
       );
@@ -118,9 +132,17 @@ abstract final class GoLiveNotifications {
       'Go live',
       channelDescription: 'When channels you follow go live',
       groupKey: 'frosty.goLive',
+      // A channel announced twice (the app and the background task at the
+      // same moment) replaces its notice without a second alert.
+      onlyAlertOnce: true,
     ),
     iOS: DarwinNotificationDetails(threadIdentifier: 'go_live'),
   );
+
+  static final _ready = Completer<void>();
+
+  /// Done once [init] has set the plugin up: nothing shows before.
+  static Future<void> get ready => _ready.future;
 
   /// [onOpen] gets the login of a tapped notice while the app runs.
   static Future<void> init({void Function(String login)? onOpen}) async {
@@ -138,6 +160,7 @@ abstract final class GoLiveNotifications {
         if (login != null) onOpen?.call(login);
       },
     );
+    if (!_ready.isCompleted) _ready.complete();
   }
 
   /// The login a notice carries, or null when it is not one.

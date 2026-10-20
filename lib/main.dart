@@ -32,6 +32,7 @@ import 'package:frosty/cache_manager.dart';
 import 'package:frosty/firebase_options.dart';
 import 'package:frosty/models/clip.dart';
 import 'package:frosty/models/vod.dart';
+import 'package:frosty/screens/activity/stores/activity_store.dart';
 import 'package:frosty/screens/channel/channel.dart';
 import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
 import 'package:frosty/screens/clips/clip_screen.dart';
@@ -41,8 +42,13 @@ import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/channel_videos.dart';
 import 'package:frosty/screens/vod/vod_screen.dart';
+import 'package:frosty/services/background_audio.dart';
 import 'package:frosty/services/go_live/go_live.dart';
+import 'package:frosty/services/go_live/go_live_poller.dart';
 import 'package:frosty/services/go_live/go_live_worker.dart';
+import 'package:frosty/services/notifications/activity_log.dart';
+import 'package:frosty/services/notifications/mention_alerts.dart';
+import 'package:frosty/services/notifications/schedule_reminders.dart';
 import 'package:frosty/services/onset_updater.dart';
 import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:frosty/services/realtime/twitch_realtime_client.dart';
@@ -227,6 +233,62 @@ void main() async {
     },
     fireImmediately: true,
   );
+  // The notifications ONSET posts, listed on the Activity screen. The
+  // background go-live task adds to the same list: read again on resume.
+  final activityStore = ActivityStore(log: await ActivityLog.load());
+  // "Remind Me" on schedules: local notifications at the segment start;
+  // those that went off are listed in Activity.
+  final reminders = ScheduleReminders(
+    prefs: prefs,
+    platform: const LocalReminderPlatform(),
+  );
+  ScheduleReminders.shared = reminders;
+  Future<void> refreshActivity() async {
+    try {
+      await activityStore.addAll(await reminders.takeDue());
+    } catch (e) {
+      debugPrint('Reminders unavailable: $e');
+    }
+    await activityStore.refresh();
+  }
+
+  unawaited(refreshActivity());
+  AppLifecycleListener(onResume: () => unawaited(refreshActivity()));
+
+  // Mentions in a connected chat while the app is not in front.
+  MentionAlerts.shared = MentionAlerts(
+    post: (notice) async {
+      await MentionNotifications.show(notice);
+      await activityStore.addAll([mentionEntry(notice, DateTime.now())]);
+    },
+    inFront: appInFront,
+  );
+
+  // Faster go-live notices while the app is alive (in front, in
+  // picture-in-picture, or playing in the background); the background
+  // task covers the rest. Both share the same state, so nothing is
+  // announced twice.
+  final goLivePoller = GoLivePoller(
+    check: () async {
+      // Nothing can show before the plugin is set up (just after launch).
+      await GoLiveNotifications.ready.timeout(const Duration(seconds: 20));
+      await checkGoLiveInApp(
+        api: twitchApiService,
+        prefs: await GoLivePrefs.load(),
+        loggedIn: authStore.isLoggedIn,
+        notify: (notices, more) async {
+          await GoLiveNotifications.show(notices, more);
+          final now = DateTime.now();
+          await activityStore.addAll([
+            for (final notice in notices) goLiveEntry(notice, now),
+          ]);
+        },
+      );
+    },
+    playingInBackground: () => BackgroundAudio.shared.playing,
+  );
+  AppLifecycleListener(onStateChange: goLivePoller.onLifecycle);
+  goLivePoller.start();
 
   final whisperStore = WhisperStore(
     twitchApi: twitchApiService,
@@ -272,6 +334,7 @@ void main() async {
         Provider<GlobalAssetsStore>.value(value: globalAssetsStore),
         Provider<TwitchEventSubClient>.value(value: eventSubClient),
         Provider<WhisperStore>.value(value: whisperStore),
+        Provider<ActivityStore>.value(value: activityStore),
         Provider<MiniPlayerStore>(create: (_) => MiniPlayerStore()),
         // In-app updates; silent in builds without the update token.
         Provider<OnsetUpdater>(create: (_) => OnsetUpdater()),

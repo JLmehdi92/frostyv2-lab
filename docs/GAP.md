@@ -27,6 +27,7 @@
 | 2026-10-20 | pack « chat » (branche `chatpack`) | CHT-16, CHT-28, CHT-29, PLY-23 ✅. Comptes recalculés. Comportements relevés dans l'appli décompilée (`/tmp/claude-0/port/chatpack_re.md`). À valider sur appareil : feuille des règles connecté, filtres sur un chat actif, sous-titres sur un stream et une VOD qui en ont. |
 | 2026-10-20 | reprise live → VOD (branche `resume`) | PRF-11 ✅. Comptes recalculés. Comportement relevé dans l'appli décompilée (`/tmp/claude-0/port/live_resume_re.md`). Écriture et lecture de la position sur le compte (jeton web) non vérifiables ici : à valider sur appareil connecté. |
 | 2026-10-20 | pack « follows » (branche `followpack`) | SOC-04, INT-21, MON-01, MON-06 ⚠️ ; MON-11 ✅ ; SOC-02, SOC-03 (remarques). Comptes recalculés. Lectures GQL avec le jeton web non vérifiables ici (pas de jeton) : à valider sur appareil connecté. |
+| 2026-10-20 | pack « notifications » (branche `notifpack`) | PRF-06 ✅ ; SOC-07, SOC-08 ⚠️ ; SOC-06, CHT-05 (remarques). Comptes recalculés. Go-live toutes les 90 s appli vivante, mentions en arrière-plan/PiP, « Remind Me », écran Activity local. À valider sur appareil. |
 
 ## 0. Légende et conventions
 
@@ -103,7 +104,7 @@
 | CHT-02 | Historique récent | P0 | ✅ | `chat_store.dart:402-405,1328`, `twitch_api.dart:460`, `irc.dart:165` | Via `recent-messages.robotty.de` (tiers), avec marqueur d'historique. | OK |
 | CHT-03 | Envoi de message | P0 | ✅ | `chat_store.dart`, `chat_bottom_bar.dart`, `chat_character_counter.dart` | Envoi IRC confirmé par USERSTATE, rejets en toast ; saisie limitée à 500 caractères avec compte à rebours des 50 derniers (épopée E7). | OK |
 | CHT-04 | Réponses et fils | P0 | ✅ | `chat_store.dart:1187,1226-1230`, `chat_message.dart:192,251-263`, `reply_thread.dart` | — | OK |
-| CHT-05 | Mentions | P0 | ⚠️ | `irc.dart` (`mentionsUser`), `chat_message.dart:315-316` | Mention détectée comme mot entier (avec ou sans @), plus de faux positifs (E7). Pas de notification push. | OK |
+| CHT-05 | Mentions | P0 | ⚠️ | `irc.dart` (`mentionsUser`), `chat_message.dart:315-316`, `mention_alerts.dart`, `chat_store.dart`, `mention_notification_setting.dart` | Mention détectée comme mot entier (avec ou sans @), plus de faux positifs (E7). Notification locale « Chat Mentions » quand un chat connecté mentionne le viewer et que l'appli est en arrière-plan ou en PiP (réglage activé par défaut, une par chaîne toutes les 30 s, ni historique ni ses propres messages), listée dans Activity. Pas de push quand l'appli est fermée (FCM de Twitch). | OK |
 | CHT-06 | Autocomplétion | P0 | ✅ | `chat_bottom_bar.dart`, `chat_commands.dart` | Emotes (tous fournisseurs), @mentions et commandes `/` (E7). | OK |
 | CHT-07 | Menu d'un message | P0 | ✅ | `chat_message.dart:102-200,599`, `user_actions_modal.dart:36-151` | Copier, copier-coller, répondre. Les actions sur l'utilisateur passent par le pseudo. | OK |
 | CHT-08 | Défilement auto et nouveaux messages | P0 | ✅ | `chat_store.dart:221`, `chat_tabs_store.dart:151-252` | Pastille « N new messages ». | OK |
@@ -229,9 +230,9 @@
 | SOC-03 | Page Following | P0 | ⚠️ | `streams_list.dart`, `followed_categories_section.dart`, `twitch_followed_categories_service.dart`, `watch_streak_tag.dart` | Épinglés (➕), live, hors ligne. Section « Categories » (catégories suivies, spectateurs, toucher = ses lives) lue par `FollowedGamesQuery` avec le jeton web, masquée sur tout échec (30 min avant de redemander). Tag « Watch Streak N » sur les cartes suivies (INT-21). Pas de lives recommandés ni de « continuer à regarder ». | GQL privé |
 | SOC-04 | Suivre une catégorie | P1 | ⚠️ | `category_streams.dart` (`_followOnTwitch`), `twitch_followed_categories_service.dart` (`categoryPageUrl`) | Cœur « Follow on Twitch » (connecté) sur la page catégorie : la catégorie sur twitch.tv dans l'appli (`/directory/category/<slug>`, slug lu en GQL anonyme, sinon par le nom), où le viewer touche le vrai bouton de Twitch. Pas de mutation native : `FollowGameMutation` est soumise à `Client-Integrity` (non contourné). | GQL privé |
 | SOC-05 | Cloche de notification par chaîne | P0 | ⚠️ | `go_live_setting.dart` (`GoLiveBellTile`), `user_actions_modal.dart`, `go_live.dart` (`muted`) | Cloche locale dans le menu d'une chaîne : comme Twitch, toute chaîne suivie notifie sauf si sa cloche est coupée. Non synchronisée avec la cloche du compte Twitch (GQL privé). | GQL privé |
-| SOC-06 | Notifications push | P0 | ⚠️ | `go_live.dart`, `go_live_worker.dart`, `go_live_setting.dart`, `main.dart` | Notifications de passage en live par vérification locale en arrière-plan (WorkManager, environ toutes les 15 min selon Android, `GET /streams/followed`) : une notice par chaîne (5 au plus, puis un résumé), un toucher ouvre la chaîne, rien au premier passage ni après un changement de compte. Android seulement (iOS n'offre pas de tâche périodique fiable). Le push FCM de Twitch reste impossible : pas d'autres types (raids, whispers hors appli…). | OK |
-| SOC-07 | Centre de notifications | P0 | ❌ | — | — | GQL privé |
-| SOC-08 | Notifications in-app | P1 | ❌ | — | — | GQL privé |
+| SOC-06 | Notifications push | P0 | ⚠️ | `go_live.dart`, `go_live_poller.dart`, `go_live_worker.dart`, `go_live_setting.dart`, `mention_alerts.dart`, `schedule_reminders.dart`, `main.dart` | Notifications de passage en live par vérification locale (`GET /streams/followed`) : toutes les 90 s tant que l'appli vit (premier plan, PiP, son en arrière-plan), sinon WorkManager environ toutes les 15 min selon Android ; état commun, une seule notice par diffusion (`started_at`), la tâche saute si l'appli vient de vérifier. Une notice par chaîne (5 au plus, puis un résumé), un toucher ouvre la chaîne, rien au premier passage ni après un changement de compte. Android seulement (iOS n'offre pas de tâche périodique fiable). S'y ajoutent les mentions du chat (CHT-05) et les rappels de programme (PRF-06). Le push FCM de Twitch reste impossible : pas d'alerte quand l'appli est fermée hors go-live, pas de whispers hors appli. À valider sur appareil (branche `notifpack`). | OK |
+| SOC-07 | Centre de notifications | P0 | ⚠️ | `activity_screen.dart`, `activity_bell.dart`, `activity_store.dart`, `activity_log.dart` | Écran Activity comme Twitch (onglets Notifications et Whispers, « Most Recent » puis « Earlier », « Mark all as read », non lus en gras avec pastille, catégorie Live / Chat Mentions / Events, état vide de Twitch), ouvert par une cloche de l'accueil avec le nombre de nouveautés. Liste locale des notifications postées par ONSET (go-live, mentions, rappels), 100 au plus, sur l'appareil. Les notifications onsite de Twitch (`OnsiteNotificationsForUserQuery`) ne sont pas lues : lecture sûre non vérifiable sans jeton utilisateur. | GQL privé |
+| SOC-08 | Notifications in-app | P1 | ⚠️ | `activity_bell.dart`, `activity_screen.dart` | Pastille de la cloche (nouveautés depuis la dernière ouverture, comme l'onglet Activity) et liste locale ; pas de notifications onsite de Twitch (GQL privé). | GQL privé |
 | SOC-09 | Whispers (messages privés) | P1 | ✅ | `twitch_eventsub_client.dart`, `whisper_store.dart`, `lib/screens/whispers/`, `home.dart`, `chat_user_modal.dart`, `chat_commands.dart` (`/w`) | Réception par EventSub `user.whisper.message` (WebSocket, migration de session, keepalive, reconnexion), envoi par Helix `POST /whispers` (`user:manage:whispers`, téléphone vérifié). Boîte de réception (non lus en pastille sur l'accueil), conversation, notice in-app, bouton Whisper dans la fiche et `/w`. En mémoire seulement (pas d'historique public, rien d'écrit sur le disque) ; rien n'arrive après une minute en arrière-plan. | OK |
 | SOC-10 | Confidentialité des whispers | P1 | ❌ | — | — | GQL privé |
 | SOC-11 | Restrictions des whispers | P2 | ❌ | — | — | GQL privé |
@@ -283,7 +284,7 @@
 | PRF-03 | À propos | P1 | ✅ | `channel_profile/widgets/profile_about_tab.dart` | Bio, followers, date d'inscription, partenaire/affilié, liens sociaux avec icônes (ouverts via `LinkRouter`). GQL anonyme. | OK |
 | PRF-04 | Panneaux | P1 | ✅ | `channel_profile/widgets/profile_about_tab.dart` | Image (lien), titre et description Markdown ; images du Markdown jamais chargées, liens http(s) seulement ; panneaux d'extension ignorés ; deux colonnes sur tablette. GQL anonyme. | GQL privé |
 | PRF-05 | Programme | P1 | ✅ | `channel_profile/widgets/profile_schedule_tab.dart` | Prochain stream (« dans 3 heures »), segments à venir par jour local, annulés barrés, catégorie. GQL anonyme (semaine en cours et suivante). | OK |
-| PRF-06 | Rappel d'un stream programmé | P2 | ❌ | — | — | GQL privé |
+| PRF-06 | Rappel d'un stream programmé | P2 | ✅ | `schedule_reminders.dart`, `profile_schedule_tab.dart`, `channel_profile_screen.dart`, `AndroidManifest.xml` | « Remind Me » / « Reminder Set » sur le prochain stream et sur chaque segment à venir, comme Twitch. Notification locale programmée au début du segment (inexacte sauf si les alarmes exactes sont déjà permises), gardée sur l'appareil et reprogrammée après redémarrage ; un segment déplacé déplace le rappel, un segment annulé le retire ; listée dans Activity. Pas de `SetScheduleReminderMutation` (GQL privé) : rappel propre au téléphone. À valider sur appareil. | OK |
 | PRF-07 | Liste des vidéos | P1 | ✅ | `channel_videos.dart`, `channel_videos_store.dart`, `vod_card.dart` (`46b4ed2`) | Onglets rediffusions / temps forts / uploads, 100 plus récentes par onglet (la pagination par curseur est bloquée par l'intégrité pour les anonymes), progression de reprise et « Vu » sur les cartes. Accès depuis l'overlay live et hors ligne, le mode chat seul, la fiche utilisateur et le menu d'actions. | OK |
 | PRF-08 | Lecture VOD | P1 | ✅ | `twitch_vod_service.dart`, `ivs_vod_store.dart`, `web_vod_store.dart`, `vod_screen.dart` (`b1a41fe`, `5ecf601`, `ad3cf94`, `021c827`) | Dans l'appli, jamais dans le navigateur : IVS en mode VOD (mêmes codecs AV1/HEVC → 2K), repli embed WebView sur iOS ou après échec natif, reprise d'erreurs, diagnostic usher. Jeton VOD demandé avec le jeton web du viewer (comme l'officiel avec l'OAuth), repli anonyme ; le jeton est demandé pendant le chargement des labels. À valider sur appareil. | OK |
 | PRF-09 | Contrôles VOD | P1 | ✅ | `vod_overlay.dart`, `vod_seek_bar.dart` (`021c827`) | Barre de progression (tampon, segments muets), ±10 s, double-tap gauche/droite, qualité, volume, PiP, fit/fill, plein écran, lien au timecode. | OK |
@@ -439,30 +440,30 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Chat (CHT) | 29 | 4 | 9 | 6 | 48 |
 | Interactions communautaires (INT) | 6 | 7 | 18 | 0 | 31 |
 | Modération (MOD) | 9 | 1 | 21 | 0 | 31 |
-| Social & notifications (SOC) | 5 | 6 | 11 | 0 | 22 |
+| Social & notifications (SOC) | 5 | 8 | 9 | 0 | 22 |
 | Découverte & recherche (DSC) | 6 | 4 | 12 | 0 | 22 |
-| Profil de chaîne & contenus (VOD / clips) (PRF) | 15 | 4 | 10 | 0 | 29 |
+| Profil de chaîne & contenus (VOD / clips) (PRF) | 16 | 4 | 9 | 0 | 29 |
 | Monétisation (MON) | 1 | 2 | 12 | 0 | 15 |
 | Compte & réglages (ACC) | 5 | 8 | 18 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 3 | 8 | 6 | 0 | 17 |
-| **Total** | **97** | **49** | **163** | **8** | **317** |
+| **Total** | **98** | **51** | **160** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
-| P0 | 41 | 13 | 2 | 4 | 60 |
-| P1 | 49 | 23 | 32 | 4 | 108 |
-| P2 | 7 | 13 | 129 | 0 | 149 |
-| **Total** | **97** | **49** | **163** | **8** | **317** |
+| P0 | 41 | 14 | 1 | 4 | 60 |
+| P1 | 49 | 24 | 31 | 4 | 108 |
+| P2 | 8 | 13 | 128 | 0 | 149 |
+| **Total** | **98** | **51** | **160** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
 | OK | 9 | 16 | 33 | 58 |
-| GQL privé | 6 | 28 | 60 | 94 |
+| GQL privé | 6 | 28 | 59 | 93 |
 | Compte requis | 0 | 11 | 12 | 23 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
 
-Lecture : sur 60 lignes P0, **45** sont entièrement couvertes (41 ✅ et 4 ➕), 13 sont partielles et 2 absentes. Les lignes P0 absentes sont le centre de notifications (SOC-07) et l'avertissement côté viewer (CHT-13), tous deux en GQL privé. Les ➕ sont le délai de chat synchronisé, la révélation des messages supprimés, le multi-chat et le chat partagé, les emotes 7TV/BTTV/FFZ, la disposition paysage et le thème avec accent.
+Lecture : sur 60 lignes P0, **45** sont entièrement couvertes (41 ✅ et 4 ➕), 14 sont partielles et 1 absente. La ligne P0 absente est l'avertissement côté viewer (CHT-13), en GQL privé ; le centre de notifications (SOC-07) est partiel (liste locale). Les ➕ sont le délai de chat synchronisé, la révélation des messages supprimés, le multi-chat et le chat partagé, les emotes 7TV/BTTV/FFZ, la disposition paysage et le thème avec accent.
 
 ## 3. Lecture / latence : écarts concrets avec le lecteur officiel
 

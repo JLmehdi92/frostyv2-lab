@@ -23,6 +23,7 @@ import 'package:frosty/screens/channel/chat/stores/chat_rules_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_character_counter.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/services/notifications/mention_alerts.dart';
 import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:frosty/stores/whisper_store.dart';
 import 'package:frosty/utils.dart';
@@ -113,6 +114,10 @@ abstract class ChatStoreBase with Store {
   /// Listens to the viewer's EventSub topics, to say what moderators
   /// decided about held messages (null in tests and when not given).
   final EventSubHandle Function(EventSubTopic topic)? listenEvents;
+
+  /// Tells about mentions while the app is not in front (the app's own
+  /// when not given).
+  final MentionAlerts? mentionAlerts;
 
   HeldMessageWatcher? _heldMessages;
 
@@ -629,6 +634,7 @@ abstract class ChatStoreBase with Store {
     required this.displayName,
     this.whispers,
     this.listenEvents,
+    this.mentionAlerts,
     this.chatRules,
   }) {
     // The rules show before the first message, like the official app.
@@ -936,6 +942,18 @@ abstract class ChatStoreBase with Store {
               }
               if (!decision.show) continue;
             }
+
+            unawaited(
+              alertChatMention(
+                parsedIRCMessage,
+                enabled: settings.mentionNotifications,
+                ownLogin: auth.user.details?.login,
+                channelId: channelId,
+                channelLogin: channelName,
+                channelName: displayName,
+                alerts: mentionAlerts ?? MentionAlerts.shared,
+              ),
+            );
 
             messageBuffer.add(parsedIRCMessage);
             break;
