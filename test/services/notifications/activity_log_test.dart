@@ -82,6 +82,7 @@ void main() {
         '{"id":"x"}',
         '{"id":"ok","kind":"mention","title":"T","body":"","at":0}',
         '{"id":"odd","kind":"unknown","title":"T","body":"","at":0}',
+        '{"id":"far","kind":"live","title":"T","body":"","at":9007199254740991}',
       ],
     });
     final damaged = await ActivityLog.load();

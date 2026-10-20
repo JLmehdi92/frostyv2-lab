@@ -18,6 +18,16 @@ enum ActivityKind {
 
 final _login = RegExp(r'^[a-zA-Z0-9_]{1,25}$');
 
+/// The largest time a [DateTime] holds, in milliseconds either way.
+const _maxMs = 8640000000000000;
+
+/// A time kept as milliseconds since the epoch, or null when [ms] is not
+/// one a [DateTime] can hold (damaged storage).
+DateTime? storedDate(Object? ms, {bool isUtc = false}) =>
+    ms is int && ms.abs() <= _maxMs
+    ? DateTime.fromMillisecondsSinceEpoch(ms, isUtc: isUtc)
+    : null;
+
 /// One notification ONSET posted, kept for the Activity screen.
 @immutable
 class ActivityEntry {
@@ -69,9 +79,9 @@ class ActivityEntry {
     final kind = ActivityKind.values.asNameMap()[json['kind']];
     final title = json['title'];
     final body = json['body'];
-    final at = json['at'];
+    final at = storedDate(json['at']);
     if (id is! String || kind == null || title is! String) return null;
-    if (body is! String || at is! int) return null;
+    if (body is! String || at == null) return null;
     final login = json['login'];
     return ActivityEntry(
       id: id,
@@ -79,7 +89,7 @@ class ActivityEntry {
       title: title,
       body: body,
       login: login is String && _login.hasMatch(login) ? login : null,
-      at: DateTime.fromMillisecondsSinceEpoch(at),
+      at: at,
       read: json['read'] == true,
     );
   }
@@ -122,10 +132,7 @@ class ActivityLog {
   int get unreadCount => entries.where((e) => !e.read).length;
 
   /// When the list was last opened: what came after is new (the bell).
-  DateTime? get viewedAt {
-    final ms = _prefs.getInt(_viewedKey);
-    return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
-  }
+  DateTime? get viewedAt => storedDate(_prefs.getInt(_viewedKey));
 
   Future<void> setViewedAt(DateTime at) =>
       _prefs.setInt(_viewedKey, at.millisecondsSinceEpoch);

@@ -73,18 +73,18 @@ class ScheduleReminder {
     final id = json['segmentId'];
     final login = json['login'];
     final name = json['channelName'];
-    final startAt = json['startAt'];
+    final startAt = storedDate(json['startAt'], isUtc: true);
     if (id is! String || login is! String || !_login.hasMatch(login)) {
       return null;
     }
-    if (name is! String || startAt is! int) return null;
+    if (name is! String || startAt == null) return null;
     final title = json['title'];
     final category = json['category'];
     return ScheduleReminder(
       segmentId: id,
       login: login,
       channelName: name,
-      startAt: DateTime.fromMillisecondsSinceEpoch(startAt, isUtc: true),
+      startAt: startAt,
       title: title is String ? title : null,
       category: category is String ? category : null,
     );

@@ -201,10 +201,16 @@ void main() {
 
   test('a damaged stored reminder is dropped', () async {
     SharedPreferences.setMockInitialValues({
-      'schedule_reminders': ['nope', '{"segmentId":"x"}'],
+      'schedule_reminders': [
+        'nope',
+        '{"segmentId":"x"}',
+        '{"segmentId":"y","login":"a","channelName":"A",'
+            '"startAt":9007199254740991}',
+      ],
     });
     final damaged = await load();
     expect(damaged.isSet('x'), isFalse);
+    expect(damaged.isSet('y'), isFalse);
   });
 
   test('notice ids are stable per segment and avoid the fixed ones', () {

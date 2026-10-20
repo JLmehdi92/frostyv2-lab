@@ -85,10 +85,7 @@ class GoLivePrefs {
   }
 
   /// When a check (the app's or the background one) last started.
-  DateTime? get checkedAt {
-    final ms = _prefs.getInt(_checkedAtKey);
-    return ms == null ? null : DateTime.fromMillisecondsSinceEpoch(ms);
-  }
+  DateTime? get checkedAt => storedDate(_prefs.getInt(_checkedAtKey));
 
   Future<void> setCheckedAt(DateTime at) =>
       _prefs.setInt(_checkedAtKey, at.millisecondsSinceEpoch);
