@@ -209,24 +209,47 @@ class ScheduleReminders extends ChangeNotifier {
     }
   }
 
-  /// Follows [login]'s schedule as just read: a moved segment's reminder
-  /// moves with it, a cancelled one's is dropped.
+  /// Follows [login]'s schedule as just read: a segment moved to later
+  /// moves its reminder; one cancelled, moved into the past or gone from
+  /// the schedule drops it and its alarm. A reminder that went off on time
+  /// is left for Activity ([takeDue]).
   Future<void> sync(String login, List<ScheduleSegment> segments) async {
+    final now = _now();
+    final read = {for (final segment in segments) segment.id: segment};
+    // Beyond the last segment read, a reminder may just not have been read.
+    final readUntil = segments
+        .map((s) => s.startAt)
+        .fold<DateTime?>(null, (a, b) => a == null || b.isAfter(a) ? b : a);
     var changed = false;
-    for (final segment in segments) {
-      final reminder = _reminders[segment.id];
-      if (reminder == null || reminder.login != login) continue;
+    for (final reminder in [..._reminders.values]) {
+      if (reminder.login != login) continue;
+      final segment = read[reminder.segmentId];
+      final bool drop;
+      ScheduleReminder? moved;
+      if (segment == null) {
+        drop =
+            reminder.startAt.isAfter(now) &&
+            readUntil != null &&
+            !reminder.startAt.isAfter(readUntil);
+      } else if (segment.isCancelled) {
+        drop = true;
+      } else if (segment.startAt.isAtSameMomentAs(reminder.startAt)) {
+        drop = false;
+      } else if (canRemind(segment)) {
+        drop = false;
+        moved = reminder.movedTo(segment.startAt.toUtc());
+      } else {
+        // Moved into the past: nothing to remind of any more.
+        drop = true;
+      }
       try {
-        if (!canRemind(segment)) {
-          if (segment.isCancelled) {
-            await platform.cancel(reminderNoticeId(segment.id));
-            _reminders.remove(segment.id);
-            changed = true;
-          }
-        } else if (!segment.startAt.isAtSameMomentAs(reminder.startAt)) {
-          final moved = reminder.movedTo(segment.startAt.toUtc());
+        if (drop) {
+          await platform.cancel(reminderNoticeId(reminder.segmentId));
+          _reminders.remove(reminder.segmentId);
+          changed = true;
+        } else if (moved != null) {
           await _schedule(moved);
-          _reminders[segment.id] = moved;
+          _reminders[reminder.segmentId] = moved;
           changed = true;
         }
       } catch (e) {

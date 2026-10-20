@@ -199,6 +199,54 @@ void main() {
     expect(reminders.isSet('s3'), isTrue);
   });
 
+  test('a segment moved into the past drops its alarm', () async {
+    await reminders.toggle(_segment('s1'), login: 'a', channelName: 'A');
+    await reminders.sync('a', [
+      _segment('s1', inFuture: -const Duration(hours: 1)),
+    ]);
+    expect(reminders.isSet('s1'), isFalse);
+    expect(platform.cancelled, [reminderNoticeId('s1')]);
+  });
+
+  test('a segment gone from the schedule drops its alarm', () async {
+    await reminders.toggle(_segment('s1'), login: 'a', channelName: 'A');
+    await reminders.toggle(
+      _segment('far', inFuture: const Duration(days: 30)),
+      login: 'a',
+      channelName: 'A',
+    );
+    // Only 's2' is left, later than 's1' but before 'far' (which may just
+    // be beyond what was read).
+    await reminders.sync('a', [
+      _segment('s2', inFuture: const Duration(days: 2)),
+    ]);
+    expect(reminders.isSet('s1'), isFalse);
+    expect(platform.cancelled, [reminderNoticeId('s1')]);
+    expect(reminders.isSet('far'), isTrue);
+  });
+
+  test('a reminder that went off is kept for Activity', () async {
+    await reminders.toggle(
+      _segment('s1', inFuture: const Duration(minutes: 5)),
+      login: 'a',
+      channelName: 'A',
+    );
+    final later = ScheduleReminders(
+      prefs: await SharedPreferences.getInstance(),
+      platform: platform,
+      now: () => _now.add(const Duration(hours: 1)),
+    );
+    // Started on time: neither moved nor gone.
+    await later.sync('a', [
+      _segment('s1', inFuture: const Duration(minutes: 5)),
+    ]);
+    expect(later.isSet('s1'), isTrue);
+    expect(platform.cancelled, isEmpty);
+    // Gone from a later schedule after it went off: still for Activity.
+    await later.sync('a', [_segment('s9', inFuture: const Duration(days: 1))]);
+    expect(later.isSet('s1'), isTrue);
+  });
+
   test('a damaged stored reminder is dropped', () async {
     SharedPreferences.setMockInitialValues({
       'schedule_reminders': [
