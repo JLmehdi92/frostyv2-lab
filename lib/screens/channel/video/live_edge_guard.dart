@@ -43,12 +43,17 @@ class LiveEdgeGuard {
   /// background, player recreated): the drift has to be seen again.
   static const maxSampleGap = Duration(seconds: 3);
 
-  /// Minimum time between two jumps, and at most [maxJumpsPerWindow] jumps
-  /// per [budgetWindow], so a network that cannot hold low latency gets a
-  /// few tries and is then left to the speed-up.
+  /// Minimum time between two jumps, doubled for each relapse in a row.
   static const cooldown = Duration(seconds: 60);
-  static const budgetWindow = Duration(minutes: 10);
-  static const maxJumpsPerWindow = 3;
+
+  /// A drift that starts again this soon after a jump means the jump did
+  /// not hold (the network cannot keep low latency at this quality).
+  static const relapseWindow = Duration(minutes: 2);
+
+  /// After this many relapses in a row the guard stops for the session
+  /// (until a manual refresh, [reset]): the speed-up does what it can, and
+  /// the viewer is not shown a reload every few minutes for nothing.
+  static const maxRelapses = 2;
 
   final DateTime Function() _now;
 
@@ -57,7 +62,12 @@ class LiveEdgeGuard {
   DateTime? _overSince;
   int? _floorMs;
   var _expedited = false;
-  final _jumps = <DateTime>[];
+  DateTime? _lastJump;
+  var _relapses = 0;
+  var _stopped = false;
+
+  /// Whether the guard gave up for this session (see [maxRelapses]).
+  bool get stopped => _stopped;
 
   /// Lowest latency measured while playing since the last load.
   int? get floorMs => _floorMs;
@@ -76,6 +86,13 @@ class LiveEdgeGuard {
     _floorMs = null;
     _overSince = null;
     _expedited = false;
+  }
+
+  /// The viewer refreshed the stream: forget the relapses and try again.
+  void reset() {
+    _lastJump = null;
+    _relapses = 0;
+    _stopped = false;
   }
 
   /// The app came back to the foreground (or left picture-in-picture): a
@@ -114,17 +131,25 @@ class LiveEdgeGuard {
     }
 
     final overSince = _overSince ??= now;
+    if (_stopped) return false;
     if (!expedited && now.difference(overSince) < sustain) return false;
-    if (!_canJump(now)) return false;
 
-    _jumps.add(now);
+    final lastJump = _lastJump;
+    final relapse =
+        lastJump != null && overSince.difference(lastJump) < relapseWindow;
+    final relapses = relapse ? _relapses + 1 : 0;
+    if (relapses >= maxRelapses) {
+      _stopped = true;
+      return false;
+    }
+    if (lastJump != null &&
+        now.difference(lastJump) < cooldown * (1 << relapses)) {
+      return false;
+    }
+
+    _relapses = relapses;
+    _lastJump = now;
     _overSince = null;
     return true;
-  }
-
-  bool _canJump(DateTime now) {
-    _jumps.removeWhere((at) => now.difference(at) >= budgetWindow);
-    if (_jumps.length >= maxJumpsPerWindow) return false;
-    return _jumps.isEmpty || now.difference(_jumps.last) >= cooldown;
   }
 }

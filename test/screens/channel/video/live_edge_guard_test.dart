@@ -76,50 +76,66 @@ void main() {
     expect(feed(repeat(7000, 5)), isEmpty);
   });
 
-  test('waits for the cooldown and bounds the jumps per window', () {
+  /// Drives the guard like the store does: a jump reloads the stream
+  /// (onLoad), which holds [liveMs] for [holdSeconds] after the load and
+  /// then drifts to [driftMs]. Returns the seconds at which it jumped.
+  List<int> simulate({
+    required int minutes,
+    int liveMs = 2300,
+    int driftMs = 7000,
+    required int holdSeconds,
+  }) {
     guard.onLoad();
     final jumps = <int>[];
-    var second = 0;
-    void run(List<int> samples, {bool reload = false}) {
-      for (final ms in samples) {
-        second++;
-        now = now.add(const Duration(seconds: 1));
-        if (guard.onSample(ms, playing: true)) {
-          jumps.add(second);
-          if (reload) guard.onLoad();
-        }
+    var sinceLoad = 0;
+    for (var second = 1; second <= minutes * 60; second++) {
+      now = now.add(const Duration(seconds: 1));
+      sinceLoad++;
+      final ms = sinceLoad <= holdSeconds ? liveMs : driftMs;
+      if (guard.onSample(ms, playing: true)) {
+        jumps.add(second);
+        guard.onLoad();
+        sinceLoad = 0;
       }
     }
+    return jumps;
+  }
 
-    run(repeat(2300, 20));
-    // Every jump lands behind again at once (the network cannot hold it):
-    // the floor stays low because the first seconds after each load reach
-    // 2.3 s before drifting.
-    for (var i = 0; i < 8; i++) {
-      run([...repeat(2300, 16), ...repeat(7000, 60)], reload: true);
-    }
+  test('a network that cannot hold low latency is not reloaded forever', () {
+    // Every jump reaches the live edge and drifts back right after the
+    // settle time: 40 minutes must not mean a reload a minute.
+    final jumps = simulate(minutes: 40, holdSeconds: 16);
 
-    expect(jumps.length, LiveEdgeGuard.maxJumpsPerWindow);
-    for (var i = 1; i < jumps.length; i++) {
-      expect(
-        jumps[i] - jumps[i - 1],
-        greaterThanOrEqualTo(LiveEdgeGuard.cooldown.inSeconds),
-      );
-    }
+    expect(jumps.length, LiveEdgeGuard.maxRelapses);
+    expect(guard.stopped, isTrue);
   });
 
-  test('the jump budget comes back after the window', () {
-    guard.onLoad();
-    feed(repeat(2300, 20));
-    var count = 0;
-    for (var i = 0; i < 3; i++) {
-      count += feed([...repeat(7000, 11), ...repeat(2300, 60)]).length;
-    }
-    expect(count, 3);
-    expect(feed(repeat(7000, 11)), isEmpty, reason: 'budget used');
+  test('a relapse doubles the wait before the next jump', () {
+    final jumps = simulate(minutes: 10, holdSeconds: 16);
 
-    now = now.add(LiveEdgeGuard.budgetWindow);
-    expect(feed(repeat(7000, 11)), [11]);
+    expect(jumps, hasLength(2));
+    expect(
+      jumps[1] - jumps[0],
+      greaterThanOrEqualTo(LiveEdgeGuard.cooldown.inSeconds * 2),
+    );
+  });
+
+  test('jumps that hold keep working for the whole session', () {
+    // A stall now and then (every 10 minutes): each jump fixes it.
+    final jumps = simulate(minutes: 45, holdSeconds: 600);
+
+    expect(jumps, hasLength(4));
+    expect(guard.stopped, isFalse);
+  });
+
+  test('a manual refresh lets a stopped guard try again', () {
+    simulate(minutes: 20, holdSeconds: 16);
+    expect(guard.stopped, isTrue);
+
+    guard.reset();
+    guard.onLoad();
+    expect(guard.stopped, isFalse);
+    expect(feed([...repeat(2300, 20), ...repeat(7000, 11)]), [31]);
   });
 
   test('after the app comes back a late sample jumps at once', () {
