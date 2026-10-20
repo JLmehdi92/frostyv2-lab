@@ -8,6 +8,7 @@ import 'package:frosty/models/irc.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:frosty/screens/channel/video/content_warning_gate.dart';
+import 'package:frosty/screens/channel/video/live_progress.dart';
 import 'package:frosty/screens/channel/video/web_content_gate.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/stores/vod_chat_replay_store.dart';
@@ -62,9 +63,12 @@ void main() {
   final starts = <Duration?>[];
   Duration? deepLink;
 
+  setUpAll(() => registerFallbackValue(WatchedVideoType.vod));
+
   setUp(() {
     SharedPreferences.setMockInitialValues({});
     VodResumeRepository.shared.resetQueue();
+    LiveProgressRepository.shared.resetQueue();
     starts.clear();
     deepLink = null;
     settings = SettingsStore.fromJson({})..keepScreenAwake = false;
@@ -74,6 +78,14 @@ void main() {
     player = FakeVodController();
     when(() => service.getMutedSegments(any())).thenAnswer((_) async => []);
     when(() => service.getContentLabels(any())).thenAnswer((_) async => []);
+    when(() => service.getViewingHistory(any())).thenAnswer((_) async => null);
+    when(
+      () => service.updateViewedVideo(
+        videoId: any(named: 'videoId'),
+        type: any(named: 'type'),
+        positionSec: any(named: 'positionSec'),
+      ),
+    ).thenAnswer((_) async => true);
     AcceptedContentWarnings.reset();
     when(() => mini.close()).thenReturn(null);
     when(() => mini.visible).thenReturn(false);
@@ -89,7 +101,11 @@ void main() {
     when(() => replay.vod).thenReturn(_vod);
   });
 
-  Future<void> pump(WidgetTester tester, {Size size = const Size(400, 800)}) {
+  Future<void> pump(
+    WidgetTester tester, {
+    Size size = const Size(400, 800),
+    Vod? vod,
+  }) {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -102,8 +118,8 @@ void main() {
         ],
         child: MaterialApp(
           home: VodScreen(
-            vodId: _vod.id,
-            vod: _vod,
+            vodId: (vod ?? _vod).id,
+            vod: vod ?? _vod,
             startAt: deepLink,
             playerFactory: (vod, startAt) {
               starts.add(startAt);
@@ -248,6 +264,126 @@ void main() {
 
     expect(starts, [const Duration(seconds: 570)]);
     await close(tester);
+  });
+
+  group('with the viewer\'s account and the live', () {
+    final archive = Vod(
+      id: '2905241941',
+      title: 'Past broadcast',
+      lengthSeconds: 36000,
+      createdAt: DateTime.utc(2026, 10, 19, 18, 0, 7),
+      viewCount: 5,
+      ownerId: '42',
+      ownerLogin: 'streamer',
+      ownerDisplayName: 'Streamer',
+      type: VodType.archive,
+      broadcastId: '318071962212',
+    );
+
+    testWidgets('starts where the account left the video', (tester) async {
+      when(
+        () => service.getViewingHistory(archive.id),
+      ).thenAnswer((_) async => const ViewingHistory(positionSec: 5400));
+
+      await pump(tester, vod: archive);
+      await ready(tester);
+
+      expect(starts, [const Duration(seconds: 5400)]);
+      await close(tester);
+    });
+
+    testWidgets('starts where this device saw the live left', (tester) async {
+      when(() => service.viewerId).thenReturn(() => '1234');
+      await tester.runAsync(
+        () => LiveProgressRepository.shared.save(
+          viewer: '1234',
+          streamId: '318071962212',
+          channelId: '42',
+          startedAt: DateTime.utc(2026, 10, 19, 18),
+          offsetSec: 7200,
+        ),
+      );
+
+      await pump(tester, vod: archive);
+      await ready(tester);
+
+      expect(starts, [const Duration(seconds: 7170)]);
+      await close(tester);
+    });
+
+    testWidgets('another account\'s live position is not used', (tester) async {
+      when(() => service.viewerId).thenReturn(() => '9999');
+      await tester.runAsync(
+        () => LiveProgressRepository.shared.save(
+          viewer: '1234',
+          streamId: '318071962212',
+          channelId: '42',
+          startedAt: DateTime.utc(2026, 10, 19, 18),
+          offsetSec: 7200,
+        ),
+      );
+
+      await pump(tester, vod: archive);
+      await ready(tester);
+
+      expect(starts, [Duration.zero]);
+      await close(tester);
+    });
+
+    testWidgets('a link time does not ask the account', (tester) async {
+      deepLink = const Duration(minutes: 2);
+
+      await pump(tester, vod: archive);
+      await ready(tester);
+
+      expect(starts, [const Duration(minutes: 2)]);
+      verifyNever(() => service.getViewingHistory(any()));
+      await close(tester);
+    });
+
+    testWidgets('an account that never answers does not hold the video', (
+      tester,
+    ) async {
+      final never = Completer<ViewingHistory?>();
+      when(
+        () => service.getViewingHistory(any()),
+      ).thenAnswer((_) => never.future);
+
+      await pump(tester, vod: archive);
+      await tester.pump(const Duration(seconds: 4));
+      await ready(tester);
+
+      expect(starts, [Duration.zero]);
+      await close(tester);
+    });
+
+    testWidgets('the position is written to the account as a VOD', (
+      tester,
+    ) async {
+      when(() => service.viewerId).thenReturn(() => '1234');
+      await pump(tester, vod: archive);
+      await ready(tester);
+      player.status = VodPlaybackStatus.playing;
+      await tester.pump();
+      player
+        ..position = const Duration(minutes: 7)
+        ..status = VodPlaybackStatus.paused;
+      await tester.pump();
+      await ready(tester);
+
+      verify(
+        () => service.updateViewedVideo(
+          videoId: archive.id,
+          type: WatchedVideoType.vod,
+          positionSec: 420,
+        ),
+      ).called(1);
+      final saved = await tester.runAsync(
+        () => VodResumeRepository.shared.entry(archive.id, viewer: '1234'),
+      );
+      expect(saved?.positionSec, 420);
+      await close(tester);
+    });
   });
 
   testWidgets('a link time wins over the saved position', (tester) async {
