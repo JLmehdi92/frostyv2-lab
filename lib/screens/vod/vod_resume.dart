@@ -126,15 +126,22 @@ class VodResumeRepository {
     };
   }
 
+  /// Saves where [viewer] is in [vodId]. A VOD still [recording] is never
+  /// marked finished: its length grows, and the viewer near its end is
+  /// following the broadcast, not done with it.
   Future<void> save(
     String vodId, {
     required int positionSec,
     required int lengthSec,
     String? viewer,
+    bool recording = false,
   }) => _queue = _queue
       .then((_) async {
         if (positionSec < _minPosition) return;
-        final finished = lengthSec > 0 && positionSec >= lengthSec - _endMargin;
+        final finished =
+            !recording &&
+            lengthSec > 0 &&
+            positionSec >= lengthSec - _endMargin;
         final all = await _read();
         all[_entryKey(vodId, viewer)] = {
           'p': finished ? 0 : positionSec,
@@ -220,6 +227,7 @@ class VodResumeController {
     required this.repository,
     this.viewer,
     this.report,
+    this.recording = false,
     this.fallbackLengthSec = 0,
     @visibleForTesting this.interval = const Duration(seconds: 20),
   });
@@ -231,6 +239,9 @@ class VodResumeController {
 
   /// Writes the position (seconds) to the viewer's Twitch account.
   final Future<bool> Function(int positionSec)? report;
+
+  /// The VOD is still recording (its end moves: never saved as finished).
+  final bool recording;
 
   /// The current player (it changes on a fallback to the web engine).
   final VodPlayerController? Function() player;
@@ -277,6 +288,7 @@ class VodResumeController {
         positionSec: at.inSeconds,
         lengthSec: length > 0 ? length : fallbackLengthSec,
         viewer: viewer?.call(),
+        recording: recording,
       ),
       // The official app writes any position past the start (J:cc90.S2).
       if (send != null && at.inSeconds > 0)

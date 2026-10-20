@@ -63,6 +63,14 @@ void main() {
       expect((await repo.entry('1'))?.positionSec, 100);
     });
 
+    test('a recording VOD is never finished: its end moves', () async {
+      await repo.save('1', positionSec: 3590, lengthSec: 3600, recording: true);
+
+      final entry = await repo.entry('1');
+      expect(entry?.finished, isFalse);
+      expect(entry?.positionSec, 3590);
+    });
+
     test('each account keeps its own positions', () async {
       await repo.save('1', positionSec: 600, lengthSec: 3600, viewer: '11');
       await repo.save('1', positionSec: 900, lengthSec: 3600, viewer: '22');
@@ -303,6 +311,17 @@ void main() {
       );
     });
 
+    test('once recorded, a VOD saved while recording resumes there', () {
+      // Saved at 3590 of the 3600 s recorded then; now 5 hours long.
+      expect(
+        startPositionFor(
+          saved: const VodResumeEntry(positionSec: 3590, lengthSec: 3600),
+          lengthSec: 18000,
+        ),
+        const Duration(seconds: 3560),
+      );
+    });
+
     test('a recording VOD keeps the live position at its moving end', () {
       expect(
         startPositionFor(
@@ -408,6 +427,26 @@ void main() {
       expect(reported, [600]);
       expect((await repo.entry('1', viewer: '11'))?.positionSec, 600);
       expect(await repo.entry('1'), isNull);
+    });
+
+    test('a recording VOD is saved as is near its moving end', () async {
+      controller.cancel();
+      player
+        ..position = const Duration(seconds: 3590)
+        ..duration = const Duration(hours: 1);
+      controller = VodResumeController(
+        vodId: '1',
+        player: () => player,
+        repository: repo,
+        recording: true,
+      )..start();
+      started();
+
+      await controller.close();
+
+      final entry = await repo.entry('1');
+      expect(entry?.finished, isFalse);
+      expect(entry?.positionSec, 3590);
     });
 
     test('every save is announced so lists can refresh', () async {

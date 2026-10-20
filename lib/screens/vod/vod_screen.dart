@@ -254,6 +254,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
       player: () => _player,
       repository: _resumeRepository,
       viewer: () => _service.viewerId?.call(),
+      recording: loaded.isRecording,
       report: (positionSec) => _service.updateViewedVideo(
         videoId: loaded.id,
         type: WatchedVideoType.vod,

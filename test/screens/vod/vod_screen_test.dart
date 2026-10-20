@@ -359,6 +359,40 @@ void main() {
       await close(tester);
     });
 
+    testWidgets('a VOD still recording is saved at its moving end as is', (
+      tester,
+    ) async {
+      final recording = Vod(
+        id: archive.id,
+        title: archive.title,
+        lengthSeconds: 3600,
+        createdAt: archive.createdAt,
+        viewCount: 5,
+        ownerId: '42',
+        ownerLogin: 'streamer',
+        ownerDisplayName: 'Streamer',
+        type: VodType.archive,
+        broadcastId: archive.broadcastId,
+        isRecording: true,
+      );
+      await pump(tester, vod: recording);
+      await ready(tester);
+      player.status = VodPlaybackStatus.playing;
+      await tester.pump();
+      player
+        ..position = const Duration(seconds: 3590)
+        ..status = VodPlaybackStatus.paused;
+      await tester.pump();
+      await ready(tester);
+
+      final saved = await tester.runAsync(
+        () => VodResumeRepository.shared.entry(archive.id),
+      );
+      expect(saved?.finished, isFalse);
+      expect(saved?.positionSec, 3590);
+      await close(tester);
+    });
+
     testWidgets('the position is written to the account as a VOD', (
       tester,
     ) async {
