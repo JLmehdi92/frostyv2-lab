@@ -141,6 +141,8 @@ abstract class VideoStoreBase with Store implements WebPagePlayer {
             onPageFinished: (url) async {
               if (url != videoUrl) return;
               if (!_needsInit) return;
+              // The page loads again with low latency on: init then.
+              if (await _ensureLowLatencyMode()) return;
               _needsInit = false;
               await initVideo();
               _acceptContentWarning();
@@ -255,6 +257,50 @@ $kTwitchWebGateShownJs
   @visibleForTesting
   static bool gateVisibleFromMessage(String message) => message == 'true';
 
+  /// Turns the web player's own low-latency mode back on when it was saved
+  /// off (its Twilight storage key `lowLatencyModeEnabled`, absent = on),
+  /// and reloads the page since the player reads it when it starts.
+  /// Evaluates to whether the page is reloading.
+  @visibleForTesting
+  static const lowLatencyModeScript = '''
+    (() => {
+      try {
+        if (localStorage.getItem('lowLatencyModeEnabled') === 'false') {
+          localStorage.setItem('lowLatencyModeEnabled', 'true');
+          // After this answer is back, not before.
+          setTimeout(() => location.reload(), 0);
+          return true;
+        }
+      } catch (e) {}
+      return false;
+    })();
+  ''';
+
+  /// Whether [lowLatencyModeScript] answered that the page is reloading.
+  @visibleForTesting
+  static bool reloadRequested(Object? result) =>
+      result == true || result == 'true';
+
+  /// Tried once per player: a page that would not keep the setting must
+  /// not reload forever.
+  var _lowLatencyChecked = false;
+
+  /// True when the page is reloading to turn low latency back on.
+  Future<bool> _ensureLowLatencyMode() async {
+    if (_lowLatencyChecked) return false;
+    _lowLatencyChecked = true;
+    try {
+      return reloadRequested(
+        await videoWebViewController.runJavaScriptReturningResult(
+          lowLatencyModeScript,
+        ),
+      );
+    } catch (e) {
+      debugPrint('Low latency mode check failed: $e');
+      return false;
+    }
+  }
+
   /// The video URL to use for the webview.
   String get videoUrl =>
       'https://player.twitch.tv/?channel=$userLogin&muted=false&parent=frosty';
@@ -363,10 +409,7 @@ $kTwitchWebGateShownJs
           // value (e.g. from showLatency tracking), apply it immediately instead
           // of waiting for the next tracker cycle (up to 60s).
           if (autoSync && _latency != null) {
-            final numericPart = _latency!.replaceAll(
-              RegExp(r'[^0-9.]'),
-              '',
-            );
+            final numericPart = _latency!.replaceAll(RegExp(r'[^0-9.]'), '');
             final latencyAsDouble = double.tryParse(numericPart);
             if (latencyAsDouble != null) {
               settingsStore.syncedChatDelay = latencyAsDouble;
