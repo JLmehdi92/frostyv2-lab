@@ -377,6 +377,53 @@ void main() {
       }, initialTime: DateTime.utc(2026, 10, 19, 20));
     });
 
+    test('saves while paused keep the paused frame, told once', () {
+      fakeAsync((async) {
+        // Saves chain on a future made in this fake zone.
+        repo.resetQueue();
+        final t = tracker()
+          ..attach(player)
+          ..start();
+        player.isPaused = false;
+        async.elapse(const Duration(seconds: 5));
+        player.isPaused = true;
+        async.flushMicrotasks();
+        expect(reported, [('318071962212', 7205)]);
+
+        // A VOD watched on top for 45 minutes, then home, then close.
+        async.elapse(const Duration(minutes: 45));
+        t.save(report: true);
+        async.flushMicrotasks();
+        expect(savedOffset(async), 7205);
+        t.close();
+        async.flushMicrotasks();
+        expect(savedOffset(async), 7205);
+        expect(reported, [('318071962212', 7205)]);
+      }, initialTime: DateTime.utc(2026, 10, 19, 20));
+    });
+
+    test('playing again after a pause follows the clock again', () {
+      fakeAsync((async) {
+        // Saves chain on a future made in this fake zone.
+        repo.resetQueue();
+        final t = tracker()
+          ..attach(player)
+          ..start();
+        player.isPaused = false;
+        async.elapse(const Duration(seconds: 5));
+        player.isPaused = true;
+        async.flushMicrotasks();
+        async.elapse(const Duration(minutes: 1));
+        player.isPaused = false;
+        async.elapse(const Duration(seconds: 40));
+
+        t.close();
+        async.flushMicrotasks();
+        expect(savedOffset(async), 7305);
+        expect(reported.last, ('318071962212', 7305));
+      }, initialTime: DateTime.utc(2026, 10, 19, 20));
+    });
+
     test('starting twice runs one timer', () {
       fakeAsync((async) {
         // Saves chain on a future made in this fake zone.

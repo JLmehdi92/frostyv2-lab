@@ -229,15 +229,42 @@ class LiveProgressTracker {
   /// A position was sent to Twitch already.
   var _reported = false;
 
+  /// The frame on screen when the player paused (stream id, offset): the
+  /// clock keeps running, the picture does not, so saves while paused (the
+  /// app going to the background, the screen closing, maybe much later)
+  /// keep it. Null while playing.
+  (String, int)? _pausedAt;
+
+  /// The last position sent to Twitch (stream id, offset).
+  (String, int)? _lastSent;
+
+  /// Where the player is now, by the clock (null when unknown).
+  (String, int)? _currentPosition() {
+    final player = _player;
+    final stream = player?.streamInfo;
+    if (player == null || stream == null || !_numericId.hasMatch(stream.id)) {
+      return null;
+    }
+    final offset = liveOffsetSeconds(
+      stream: stream,
+      latency: player.latency,
+      now: clock.now(),
+    );
+    return offset == null ? null : (stream.id, offset);
+  }
+
   /// Follows [player] (the first one, or the web one after a fallback).
   void attach(PlayerController player) {
     _disposePauseReaction?.call();
     _player = player;
+    _pausedAt = null;
     if (!player.paused) _watched = true;
     _disposePauseReaction = reaction((_) => player.paused, (bool paused) {
       if (!paused) {
         _watched = true;
+        _pausedAt = null;
       } else {
+        _pausedAt = _currentPosition();
         unawaited(save(report: true));
       }
     });
@@ -275,11 +302,12 @@ class LiveProgressTracker {
     if (stream == null || !_numericId.hasMatch(stream.id)) return;
     final started = DateTime.tryParse(stream.startedAt);
     final now = clock.now();
-    final offset = liveOffsetSeconds(
-      stream: stream,
-      latency: player.latency,
-      now: now,
-    );
+    final paused = _pausedAt;
+    // Paused: the frame it stopped on, never the time since. Paused with
+    // no known frame (attached paused): nothing to save.
+    final offset = player.paused
+        ? (paused != null && paused.$1 == stream.id ? paused.$2 : null)
+        : liveOffsetSeconds(stream: stream, latency: player.latency, now: now);
     if (started == null || offset == null) return;
     final viewerId = viewer();
     final writes = <Future<void>>[
@@ -298,9 +326,15 @@ class LiveProgressTracker {
         _reported &&
         last != null &&
         now.difference(last) < _reportGap;
-    if (report && viewerId != null && send != null && !tooSoon) {
+    final alreadySent = _lastSent == (stream.id, offset);
+    if (report &&
+        viewerId != null &&
+        send != null &&
+        !tooSoon &&
+        !alreadySent) {
       _reported = true;
       _lastReport = now;
+      _lastSent = (stream.id, offset);
       writes.add(
         send(stream.id, offset).then<void>(
           (_) {},
