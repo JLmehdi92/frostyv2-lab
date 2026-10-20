@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class FakeReminderPlatform implements ReminderPlatform {
   var granted = true;
   var fail = false;
+  var failCancel = false;
   final scheduled =
       <int, ({DateTime at, String title, String body, String payload})>{};
   final cancelled = <int>[];
@@ -28,6 +29,7 @@ class FakeReminderPlatform implements ReminderPlatform {
 
   @override
   Future<void> cancel(int id) async {
+    if (failCancel) throw StateError('alarm');
     cancelled.add(id);
     scheduled.remove(id);
   }
@@ -96,6 +98,19 @@ void main() {
     expect(reminders.isSet('s1'), isFalse);
     expect(platform.cancelled, [reminderNoticeId('s1')]);
     expect((await load()).isSet('s1'), isFalse);
+  });
+
+  test('a reminder that cannot be cancelled stays set', () async {
+    final segment = _segment('s1');
+    await reminders.toggle(segment, login: 'a', channelName: 'A');
+    platform.failCancel = true;
+    final result = await reminders.toggle(
+      segment,
+      login: 'a',
+      channelName: 'A',
+    );
+    expect(result, ReminderResult.failed);
+    expect(reminders.isSet('s1'), isTrue);
   });
 
   test('tells listeners when a reminder changes', () async {

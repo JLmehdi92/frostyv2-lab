@@ -178,10 +178,11 @@ class ScheduleReminders extends ChangeNotifier {
   }) async {
     try {
       if (isSet(segment.id)) {
+        // Cancelled first: "Remind Me" only once nothing will go off.
+        await platform.cancel(reminderNoticeId(segment.id));
         _reminders.remove(segment.id);
         await _save();
         notifyListeners();
-        await platform.cancel(reminderNoticeId(segment.id));
         return ReminderResult.cleared;
       }
       if (!canRemind(segment) || !_login.hasMatch(login)) {
@@ -218,9 +219,9 @@ class ScheduleReminders extends ChangeNotifier {
       try {
         if (!canRemind(segment)) {
           if (segment.isCancelled) {
+            await platform.cancel(reminderNoticeId(segment.id));
             _reminders.remove(segment.id);
             changed = true;
-            await platform.cancel(reminderNoticeId(segment.id));
           }
         } else if (!segment.startAt.isAtSameMomentAs(reminder.startAt)) {
           final moved = reminder.movedTo(segment.startAt.toUtc());
