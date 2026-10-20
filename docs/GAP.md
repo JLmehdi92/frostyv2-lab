@@ -25,6 +25,7 @@
 | 2026-10-15 | retour à ONSET (portage de l'appli ONSET, hype train et notices au style Twitch, retour de la tablette) et passe finale | INT-25 ✅ ; INT-05, INT-06, INT-07 ⚠️ ; INT-02, INT-04, INT-15, INT-16, CHT-36, MON-07 (remarques) ; MSC-14 ⚠️, DSC-01, PRF-18 (tablette). Comptes recalculés. À valider sur la tablette. |
 | 2026-10-17 | VOD : jeton du viewer et écran de garde (branche `vodfix`) | PRF-08, PRF-15, PLY-25 (remarques). Statuts inchangés, comptes inchangés. À valider sur appareil avec une VOD labellisée et une VOD réservée aux abonnés. |
 | 2026-10-20 | pack « chat » (branche `chatpack`) | CHT-16, CHT-28, CHT-29, PLY-23 ✅. Comptes recalculés. Comportements relevés dans l'appli décompilée (`/tmp/claude-0/port/chatpack_re.md`). À valider sur appareil : feuille des règles connecté, filtres sur un chat actif, sous-titres sur un stream et une VOD qui en ont. |
+| 2026-10-20 | reprise live → VOD (branche `resume`) | PRF-11 ✅. Comptes recalculés. Comportement relevé dans l'appli décompilée (`/tmp/claude-0/port/live_resume_re.md`). Écriture et lecture de la position sur le compte (jeton web) non vérifiables ici : à valider sur appareil connecté. |
 | 2026-10-20 | pack « follows » (branche `followpack`) | SOC-04, INT-21, MON-01, MON-06 ⚠️ ; MON-11 ✅ ; SOC-02, SOC-03 (remarques). Comptes recalculés. Lectures GQL avec le jeton web non vérifiables ici (pas de jeton) : à valider sur appareil connecté. |
 
 ## 0. Légende et conventions
@@ -440,23 +441,23 @@ Comptes générés à partir des tableaux ci-dessus (317 lignes).
 | Modération (MOD) | 9 | 1 | 21 | 0 | 31 |
 | Social & notifications (SOC) | 5 | 6 | 11 | 0 | 22 |
 | Découverte & recherche (DSC) | 6 | 4 | 12 | 0 | 22 |
-| Profil de chaîne & contenus (VOD / clips) (PRF) | 14 | 5 | 10 | 0 | 29 |
+| Profil de chaîne & contenus (VOD / clips) (PRF) | 15 | 4 | 10 | 0 | 29 |
 | Monétisation (MON) | 1 | 2 | 12 | 0 | 15 |
 | Compte & réglages (ACC) | 5 | 8 | 18 | 1 | 32 |
 | Créateur (CRE) | 0 | 0 | 37 | 0 | 37 |
 | Divers / technique (MSC) | 3 | 8 | 6 | 0 | 17 |
-| **Total** | **96** | **50** | **163** | **8** | **317** |
+| **Total** | **97** | **49** | **163** | **8** | **317** |
 
 | Priorité | ✅ | ⚠️ | ❌ | ➕ | Total |
 |---|---|---|---|---|---|
 | P0 | 41 | 13 | 2 | 4 | 60 |
-| P1 | 48 | 24 | 32 | 4 | 108 |
+| P1 | 49 | 23 | 32 | 4 | 108 |
 | P2 | 7 | 13 | 129 | 0 | 149 |
-| **Total** | **96** | **50** | **163** | **8** | **317** |
+| **Total** | **97** | **49** | **163** | **8** | **317** |
 
 | Faisabilité (lignes non ✅/➕) | P0 | P1 | P2 | Total |
 |---|---|---|---|---|
-| OK | 9 | 17 | 33 | 59 |
+| OK | 9 | 16 | 33 | 58 |
 | GQL privé | 6 | 28 | 60 | 94 |
 | Compte requis | 0 | 11 | 12 | 23 |
 | Impossible proprement | 0 | 0 | 37 | 37 |
