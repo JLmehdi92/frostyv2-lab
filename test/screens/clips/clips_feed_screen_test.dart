@@ -162,6 +162,38 @@ void main() {
     await close(tester);
   });
 
+  testWidgets('a clip that cannot play says so, without a crash', (
+    tester,
+  ) async {
+    when(
+      () => service.getTopClips(language: any(named: 'language')),
+    ).thenAnswer((_) async => ClipFeedPage(items: [clip('a')]));
+    final settings = SettingsStore.fromJson({})..keepScreenAwake = false;
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          Provider<SettingsStore>.value(value: settings),
+          Provider<MiniPlayerStore>.value(value: mini),
+          Provider<TwitchClipService>.value(value: service),
+        ],
+        child: MaterialApp(
+          home: ClipsFeedScreen(
+            store: ClipsFeedStore(clipService: service),
+            playerFactory: (clip, {required focused}) =>
+                players[clip.slug] = FakeVodController()
+                  ..status = VodPlaybackStatus.failed
+                  ..ready = Future.error(StateError('no playlist')),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text("This clip can't be played here"), findsOneWidget);
+    await close(tester);
+  });
+
   testWidgets('double-tap plays or pauses', (tester) async {
     await pump(tester, first: ClipFeedPage(items: [clip('a')]));
 

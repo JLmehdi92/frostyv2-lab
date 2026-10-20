@@ -99,14 +99,19 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
 
   VodPlayerController _createPlayer(Clip clip, {required bool focused}) {
     final factory = widget.playerFactory;
-    if (factory != null) return factory(clip, focused: focused);
-    return ClipPlayerStore(
-      slug: clip.slug,
-      clipService: context.twitchClipService,
-      settingsStore: _settings,
-      knownLength: clip.duration,
-      focused: focused,
-    );
+    final player =
+        factory?.call(clip, focused: focused) ??
+        ClipPlayerStore(
+          slug: clip.slug,
+          clipService: context.twitchClipService,
+          settingsStore: _settings,
+          knownLength: clip.duration,
+          focused: focused,
+        );
+    // No playback at all leaves the player failed, which the page says;
+    // "Open clip" offers the web fallback.
+    unawaited(player.ready.catchError((Object _) {}));
+    return player;
   }
 
   /// Keeps exactly the current clip's player (focused, playing) and the
