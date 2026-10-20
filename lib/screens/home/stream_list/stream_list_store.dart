@@ -8,6 +8,7 @@ import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_directory_service.dart';
 import 'package:frosty/apis/twitch_followed_categories_service.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
+import 'package:frosty/apis/twitch_watch_streak_service.dart';
 import 'package:frosty/models/category.dart';
 import 'package:frosty/models/followed_category.dart';
 import 'package:frosty/models/followed_channel.dart';
@@ -53,6 +54,10 @@ abstract class ListStoreBase with Store {
   /// The viewer's followed categories (Following only); private GQL with
   /// the twitch.tv web token.
   final TwitchFollowedCategoriesService? followedCategoriesService;
+
+  /// The viewer's watch streaks, tagged on followed cards like Twitch's
+  /// Following tab (Following only); private GQL with the web token.
+  final TwitchWatchStreakService? watchStreakService;
 
   /// The order of a category or tag list. A category in
   /// [StreamSort.viewersHigh] uses Helix and pages; any other order (and
@@ -187,6 +192,13 @@ abstract class ListStoreBase with Store {
   DateTime? _followedCategoriesFailedAt;
   static const _followedCategoriesBackoff = Duration(minutes: 30);
 
+  /// The viewer's running watch streaks by channel id (Following only).
+  @readonly
+  var _watchStreaks = ObservableMap<String, int>();
+
+  /// When Twitch last refused the streaks (same backoff as the categories).
+  DateTime? _watchStreaksFailedAt;
+
   /// Followed streams with a running hype train, by channel id.
   @readonly
   var _hypeTrains = ObservableMap<String, HtCardStatus>();
@@ -256,6 +268,7 @@ abstract class ListStoreBase with Store {
     this.tag,
     this.directoryService,
     this.followedCategoriesService,
+    this.watchStreakService,
     this.scrollController,
     this.hypeTrainService,
     this.sort = StreamSort.viewersHigh,
@@ -287,6 +300,7 @@ abstract class ListStoreBase with Store {
 
       getPinnedStreams();
       unawaited(_getFollowedCategories());
+      unawaited(_getWatchStreaks());
 
       // Any order but Helix's own needs every live channel to be right.
       _followedSortReactionDisposer = reaction(
@@ -518,6 +532,25 @@ abstract class ListStoreBase with Store {
     });
   }
 
+  /// Reads the running watch streaks (never throws).
+  Future<void> _getWatchStreaks() async {
+    final service = watchStreakService;
+    final token = authStore.twitchWebToken;
+    if (listType != ListType.followed || service == null || token == null) {
+      return;
+    }
+    final failedAt = _watchStreaksFailedAt;
+    if (failedAt != null &&
+        DateTime.now().difference(failedAt) < _followedCategoriesBackoff) {
+      return;
+    }
+    final streaks = await service.getStreaks(authToken: token);
+    runInAction(() {
+      _watchStreaksFailedAt = streaks == null ? DateTime.now() : null;
+      _watchStreaks = ObservableMap.of(streaks ?? const {});
+    });
+  }
+
   @action
   Future<void> getOfflineChannels() async {
     _isOfflineChannelsLoading = true;
@@ -559,6 +592,7 @@ abstract class ListStoreBase with Store {
     if (listType == ListType.followed) {
       await getPinnedStreams();
       await _getFollowedCategories();
+      await _getWatchStreaks();
 
       // Only refresh offline channels if they are currently expanded
       if (isOfflineChannelsExpanded) {

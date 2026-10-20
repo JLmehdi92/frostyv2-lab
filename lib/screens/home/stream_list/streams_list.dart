@@ -7,6 +7,7 @@ import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_directory_service.dart';
 import 'package:frosty/apis/twitch_followed_categories_service.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
+import 'package:frosty/apis/twitch_watch_streak_service.dart';
 import 'package:frosty/constants.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/home/followed_videos/followed_videos_screen.dart';
@@ -95,6 +96,9 @@ class _StreamsListState extends State<StreamsList>
           : null,
       followedCategoriesService: widget.listType == ListType.followed
           ? context.read<TwitchFollowedCategoriesService?>()
+          : null,
+      watchStreakService: widget.listType == ListType.followed
+          ? context.read<TwitchWatchStreakService?>()
           : null,
     );
   }
@@ -430,6 +434,10 @@ class _StreamsListState extends State<StreamsList>
                                                 isPinned: true,
                                                 hypeTrain: _listStore
                                                     .hypeTrains[stream.userId],
+                                                watchStreak:
+                                                    _listStore
+                                                        .watchStreaks[stream
+                                                        .userId],
                                               )
                                             : StreamCard(
                                                 key: ValueKey(stream.userId),
@@ -443,6 +451,10 @@ class _StreamsListState extends State<StreamsList>
                                                 isPinned: true,
                                                 hypeTrain: _listStore
                                                     .hypeTrains[stream.userId],
+                                                watchStreak:
+                                                    _listStore
+                                                        .watchStreaks[stream
+                                                        .userId],
                                               );
                                       },
                                     );
@@ -496,6 +508,10 @@ class _StreamsListState extends State<StreamsList>
                                             _listStore
                                                 .hypeTrains[unpinnedStreams[index]
                                                 .userId],
+                                        watchStreak:
+                                            _listStore
+                                                .watchStreaks[unpinnedStreams[index]
+                                                .userId],
                                       )
                                     : StreamCard(
                                         key: ValueKey(
@@ -510,6 +526,10 @@ class _StreamsListState extends State<StreamsList>
                                         hypeTrain:
                                             _listStore
                                                 .hypeTrains[unpinnedStreams[index]
+                                                .userId],
+                                        watchStreak:
+                                            _listStore
+                                                .watchStreaks[unpinnedStreams[index]
                                                 .userId],
                                       ),
                               );

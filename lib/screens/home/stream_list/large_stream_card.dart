@@ -8,6 +8,7 @@ import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/channel/channel.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_card_pill.dart';
 import 'package:frosty/screens/channel/video/stream_info_bar.dart';
+import 'package:frosty/screens/home/stream_list/watch_streak_tag.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/services/playback_preloader.dart';
@@ -29,6 +30,9 @@ class LargeStreamCard extends StatelessWidget {
   /// The channel's running hype train, if any (followed list).
   final HtCardStatus? hypeTrain;
 
+  /// The viewer's running watch streak here, if any (followed list).
+  final int? watchStreak;
+
   const LargeStreamCard({
     super.key,
     required this.streamInfo,
@@ -37,6 +41,7 @@ class LargeStreamCard extends StatelessWidget {
     this.showPinOption = false,
     this.isPinned,
     this.hypeTrain,
+    this.watchStreak,
   });
 
   @override
@@ -148,6 +153,11 @@ class LargeStreamCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 12),
               tooltipTriggerMode: TooltipTriggerMode.longPress,
             ),
+            if (watchStreak case final streak?)
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: WatchStreakTag(value: streak),
+              ),
           ],
         ),
       ),
