@@ -118,6 +118,7 @@ abstract class _SettingsStoreBase with Store {
   static const defaultPlayerEngine = PlayerEngine.ivs;
   static const defaultLiveCatchUpMode = LiveCatchUpMode.speedUp;
   static const defaultBufferProfile = BufferProfile.standard;
+  static const defaultVodAutoplay = VodAutoplay.always;
 
   // Overlay defaults
   static const defaultShowOverlay = true;
@@ -207,6 +208,15 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var bufferProfile = defaultBufferProfile;
 
+  /// When the next video starts by itself at the end of a VOD (Twitch's
+  /// "Video Autoplaying").
+  @JsonKey(
+    defaultValue: defaultVodAutoplay,
+    unknownEnumValue: VodAutoplay.always,
+  )
+  @observable
+  var vodAutoplay = defaultVodAutoplay;
+
   // Overlay options
   @JsonKey(defaultValue: defaultShowOverlay)
   @observable
@@ -236,6 +246,7 @@ abstract class _SettingsStoreBase with Store {
     playerEngine = defaultPlayerEngine;
     liveCatchUpMode = defaultLiveCatchUpMode;
     bufferProfile = defaultBufferProfile;
+    vodAutoplay = defaultVodAutoplay;
 
     showOverlay = defaultShowOverlay;
     toggleableOverlay = defaultToggleableOverlay;
@@ -705,6 +716,19 @@ enum BufferProfile {
 
   /// Smaller buffer for even lower latency; may rebuffer more.
   ultra,
+}
+
+/// When the next video plays by itself at the end of a VOD, with Twitch's
+/// options and wording.
+enum VodAutoplay {
+  /// Twitch's default.
+  always('Mobile data & Wi-Fi'),
+  wifiOnly('Wi-Fi Only'),
+  never('Never');
+
+  const VodAutoplay(this.label);
+
+  final String label;
 }
 
 /// Which engine plays the live video.

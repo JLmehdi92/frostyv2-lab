@@ -84,6 +84,13 @@ SettingsStore _$SettingsStoreFromJson(
         unknownValue: BufferProfile.standard,
       ) ??
       BufferProfile.standard
+  ..vodAutoplay =
+      $enumDecodeNullable(
+        _$VodAutoplayEnumMap,
+        json['vodAutoplay'],
+        unknownValue: VodAutoplay.always,
+      ) ??
+      VodAutoplay.always
   ..showOverlay = json['showOverlay'] as bool? ?? true
   ..toggleableOverlay = json['toggleableOverlay'] as bool? ?? false
   ..showLatency = json['showLatency'] as bool? ?? true
@@ -190,6 +197,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'playerEngine': _$PlayerEngineEnumMap[instance.playerEngine]!,
   'liveCatchUpMode': _$LiveCatchUpModeEnumMap[instance.liveCatchUpMode]!,
   'bufferProfile': _$BufferProfileEnumMap[instance.bufferProfile]!,
+  'vodAutoplay': _$VodAutoplayEnumMap[instance.vodAutoplay]!,
   'showOverlay': instance.showOverlay,
   'toggleableOverlay': instance.toggleableOverlay,
   'showLatency': instance.showLatency,
@@ -290,6 +298,12 @@ const _$LiveCatchUpModeEnumMap = {
 const _$BufferProfileEnumMap = {
   BufferProfile.standard: 'standard',
   BufferProfile.ultra: 'ultra',
+};
+
+const _$VodAutoplayEnumMap = {
+  VodAutoplay.always: 'always',
+  VodAutoplay.wifiOnly: 'wifiOnly',
+  VodAutoplay.never: 'never',
 };
 
 const _$TimestampTypeEnumMap = {
@@ -736,6 +750,24 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   set bufferProfile(BufferProfile value) {
     _$bufferProfileAtom.reportWrite(value, super.bufferProfile, () {
       super.bufferProfile = value;
+    });
+  }
+
+  late final _$vodAutoplayAtom = Atom(
+    name: '_SettingsStoreBase.vodAutoplay',
+    context: context,
+  );
+
+  @override
+  VodAutoplay get vodAutoplay {
+    _$vodAutoplayAtom.reportRead();
+    return super.vodAutoplay;
+  }
+
+  @override
+  set vodAutoplay(VodAutoplay value) {
+    _$vodAutoplayAtom.reportWrite(value, super.vodAutoplay, () {
+      super.vodAutoplay = value;
     });
   }
 
@@ -1844,6 +1876,7 @@ backgroundAudio: ${backgroundAudio},
 playerEngine: ${playerEngine},
 liveCatchUpMode: ${liveCatchUpMode},
 bufferProfile: ${bufferProfile},
+vodAutoplay: ${vodAutoplay},
 showOverlay: ${showOverlay},
 toggleableOverlay: ${toggleableOverlay},
 showLatency: ${showLatency},
