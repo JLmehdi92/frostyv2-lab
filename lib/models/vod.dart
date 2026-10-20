@@ -117,6 +117,18 @@ class VodPage {
   final bool hasMore;
 }
 
+/// One page of video search results, and where the next one starts.
+class VodSearchPage {
+  const VodSearchPage({required this.items, this.cursor, this.hasMore = false});
+
+  final List<Vod> items;
+
+  /// Twitch's cursor for the next page (null: this was the last one).
+  final String? cursor;
+
+  final bool hasMore;
+}
+
 /// What a watch position is about, as named by Twitch GQL `VideoType`: a
 /// live broadcast (named by its stream id) or a VOD.
 enum WatchedVideoType {

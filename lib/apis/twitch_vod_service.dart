@@ -91,6 +91,18 @@ class TwitchVodService extends BaseApiClient {
   static const _videoQuery =
       'query Video(\$id: ID!) { video(id: \$id) { $_videoFields } }';
 
+  // The official app's Videos search tab: `searchFor` on the VOD index, 25
+  // per page with Twitch's cursor (paging answers anonymously, verified
+  // 2026-10-20).
+  static const _searchVideosQuery =
+      'query SearchVideos(\$query: String!, \$target: SearchForTarget) { '
+      'searchFor(userQuery: \$query, platform: "android", target: \$target) '
+      '{ videos { cursor items { $_videoFields } pageInfo { hasNextPage } } '
+      '} }';
+
+  /// Videos per [searchVideos] page, like the official app.
+  static const searchPageSize = 25;
+
   static const _commentsQuery =
       'query VideoComments(\$id: ID!, \$offset: Int) { video(id: \$id) { '
       'comments(contentOffsetSeconds: \$offset) { edges { node { id '
@@ -262,6 +274,52 @@ class TwitchVodService extends BaseApiClient {
     return VodPage(
       items: items,
       hasMore: pageInfo is Map && pageInfo['hasNextPage'] == true,
+    );
+  }
+
+  /// One page of the videos matching [query] (Twitch's Videos search tab),
+  /// from [cursor] (null: the first page).
+  Future<VodSearchPage> searchVideos(String query, {String? cursor}) async {
+    final text = query.trim();
+    if (text.isEmpty) {
+      throw ArgumentError.value(query, 'query', 'Nothing to search');
+    }
+    final data = await _gql('SearchVideos', _searchVideosQuery, {
+      'query': text,
+      'target': {
+        'index': 'VOD',
+        'limit': searchPageSize,
+        if (cursor != null && cursor.isNotEmpty) 'cursor': cursor,
+      },
+    });
+    final search = data['searchFor'];
+    final videos = search is Map ? search['videos'] : null;
+    // Twitch changed the query: an error, not "no videos".
+    if (videos is! Map) throw const VodApiException('Unreadable videos');
+    final raw = videos['items'] is List ? videos['items'] as List : const [];
+    final items = <Vod>[];
+    for (final node in raw) {
+      if (node is! Map) continue;
+      try {
+        items.add(Vod.fromGql(JsonMap.from(node)));
+      } on FormatException {
+        // One unreadable video must not hide the others.
+      }
+    }
+    if (items.isEmpty && raw.any((node) => node is Map)) {
+      throw const VodApiException('Unreadable videos');
+    }
+    final next = videos['cursor'];
+    final pageInfo = videos['pageInfo'];
+    final hasMore =
+        pageInfo is Map &&
+        pageInfo['hasNextPage'] == true &&
+        next is String &&
+        next.isNotEmpty;
+    return VodSearchPage(
+      items: items,
+      cursor: hasMore ? next : null,
+      hasMore: hasMore,
     );
   }
 
