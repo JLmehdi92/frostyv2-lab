@@ -28,8 +28,9 @@ class ClipForbiddenException extends ApiException {
 /// query documents, no user token): a channel's top clips, one clip, and its
 /// signed MP4 renditions.
 ///
-/// Lists are fetched without cursors: cursor paging is integrity-gated for
-/// anonymous clients (verified 2026-10-13).
+/// Channel and category lists are fetched without cursors: their cursor
+/// paging is integrity-gated for anonymous clients (verified 2026-10-13).
+/// The top clips feed pages with its cursor (verified 2026-10-20).
 class TwitchClipService extends BaseApiClient {
   TwitchClipService(Dio dio) : super(dio, '');
 
@@ -54,6 +55,17 @@ class TwitchClipService extends BaseApiClient {
       '\$sort: ClipsSort) { game(id: \$id) { id clips(first: \$first, '
       'criteria: {period: \$period, sort: \$sort}) { edges { node { '
       '$_clipFields } } pageInfo { hasNextPage } } } }';
+
+  // The official app's clips feed (`TopClips`): Twitch's top clips, paged
+  // with its cursor (answers anonymously, verified 2026-10-20).
+  static const _topClipsQuery =
+      'query TopClipsFeed(\$first: Int, \$after: Cursor, '
+      '\$languages: [String!]) { topClips(first: \$first, after: \$after, '
+      'languages: \$languages) { edges { node { $_clipFields } } '
+      'pageInfo { hasNextPage endCursor } } }';
+
+  /// Clips per [getTopClips] page.
+  static const topClipsPageSize = 20;
 
   static const _clipQuery =
       'query Clip(\$slug: ID!) { clip(slug: \$slug) { $_clipFields } }';
@@ -144,6 +156,39 @@ class TwitchClipService extends BaseApiClient {
       items: items,
       hasMore: pageInfo is Map && pageInfo['hasNextPage'] == true,
     );
+  }
+
+  /// A page of Twitch's top clips (the clips feed), from [cursor] (null:
+  /// the first page), in [language] (an ISO code; null or empty: all).
+  Future<ClipFeedPage> getTopClips({String? cursor, String? language}) async {
+    final data = await _gql('TopClipsFeed', _topClipsQuery, {
+      'first': topClipsPageSize,
+      if (cursor != null && cursor.isNotEmpty) 'after': cursor,
+      if (language != null && language.isNotEmpty) 'languages': [language],
+    });
+    final clips = data['topClips'];
+    if (clips is! Map) throw const ClipApiException('Unreadable clips');
+    final edges = clips['edges'] is List ? clips['edges'] as List : const [];
+    final items = <Clip>[];
+    for (final edge in edges) {
+      if (edge is! Map || edge['node'] is! Map) continue;
+      try {
+        items.add(Clip.fromGql(JsonMap.from(edge['node'] as Map)));
+      } on FormatException {
+        // One unreadable clip must not hide the others.
+      }
+    }
+    if (items.isEmpty && edges.isNotEmpty) {
+      throw const ClipApiException('Unreadable clips');
+    }
+    final pageInfo = clips['pageInfo'];
+    final next = pageInfo is Map ? pageInfo['endCursor'] : null;
+    final hasMore =
+        pageInfo is Map &&
+        pageInfo['hasNextPage'] == true &&
+        next is String &&
+        next.isNotEmpty;
+    return ClipFeedPage(items: items, cursor: hasMore ? next : null);
   }
 
   /// The clip, or null when it does not exist (deleted or wrong slug).

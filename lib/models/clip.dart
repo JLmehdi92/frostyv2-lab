@@ -144,6 +144,18 @@ class ClipPage {
   final bool hasMore;
 }
 
+/// A page of the top clips feed, and where the next one starts.
+class ClipFeedPage {
+  const ClipFeedPage({required this.items, this.cursor});
+
+  final List<Clip> items;
+
+  /// Twitch's cursor for the next page (null: this was the last one).
+  final String? cursor;
+
+  bool get hasMore => cursor != null;
+}
+
 /// One MP4 file of a clip.
 class ClipRendition {
   const ClipRendition({
