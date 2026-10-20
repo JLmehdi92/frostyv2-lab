@@ -7,11 +7,65 @@ import 'package:frosty/models/badges.dart';
 import 'package:frosty/models/category.dart';
 import 'package:frosty/models/channel.dart';
 import 'package:frosty/models/cheermote.dart';
+import 'package:frosty/models/clip.dart' show isValidClipSlug;
 import 'package:frosty/models/emotes.dart';
 import 'package:frosty/models/followed_channel.dart';
 import 'package:frosty/models/shared_chat_session.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/models/user.dart';
+
+/// Why Twitch would not clip a stream (Helix `POST /clips` answers).
+enum ClipCreateFailure {
+  /// The token lacks `clips:edit` (a login from before clips), or is gone.
+  missingScope,
+
+  /// Clips are off, only for followers or subscribers, or the viewer is
+  /// banned or timed out in this chat.
+  restricted,
+
+  /// The channel is not live.
+  offline,
+
+  /// The category may not be clipped (or the request was refused).
+  notClippable,
+
+  /// Too many clips in a short time.
+  rateLimited,
+
+  unknown,
+}
+
+class ClipCreateException extends ApiException {
+  const ClipCreateException(this.reason, [String message = 'Clip failed'])
+    : super(message);
+
+  final ClipCreateFailure reason;
+
+  @override
+  String toString() => 'ClipCreateException: $reason';
+}
+
+/// A clip Twitch started making: its id, and the twitch.tv page where its
+/// title and range are set and it is published.
+class ClipCreation {
+  const ClipCreation({required this.id, this.editUrl});
+
+  final String id;
+
+  /// Null when Twitch sent no twitch.tv link.
+  final Uri? editUrl;
+
+  /// The clip's public link.
+  String get link => 'https://clips.twitch.tv/$id';
+}
+
+/// A clip Twitch has finished making.
+class CreatedClip {
+  const CreatedClip({required this.id, this.thumbnailUrl});
+
+  final String id;
+  final String? thumbnailUrl;
+}
 
 /// The Twitch service for making API calls.
 class TwitchApi extends BaseApiClient {
@@ -213,6 +267,77 @@ class TwitchApi extends BaseApiClient {
       debugPrint('Token validation indeterminate: $e');
       rethrow;
     }
+  }
+
+  /// The scopes the current token was granted (Twitch's token validation),
+  /// to tell a login from before a feature apart without failing a request.
+  Future<Set<String>> getTokenScopes() async {
+    final data = await get<JsonMap>(
+      '$_oauthBaseUrl/validate',
+      extra: {UnauthorizedInterceptor.quiet: true},
+    );
+    final scopes = data['scopes'];
+    return {
+      if (scopes is List)
+        for (final scope in scopes)
+          if (scope is String) scope,
+    };
+  }
+
+  /// Asks Twitch to clip the last moments of [broadcasterId]'s live stream,
+  /// as the viewer (needs the `clips:edit` scope). Twitch makes the clip in
+  /// the background: [getCreatedClip] tells when it exists.
+  Future<ClipCreation> createClip({required String broadcasterId}) async {
+    final id = _checkId(broadcasterId, 'broadcasterId');
+    final JsonMap data;
+    try {
+      data = await post<JsonMap>(
+        '/clips',
+        queryParameters: {'broadcaster_id': id},
+        // The clip sheet explains a missing scope itself.
+        extra: {UnauthorizedInterceptor.quiet: true},
+      );
+    } on ApiException catch (e) {
+      throw ClipCreateException(switch (e.statusCode) {
+        401 => ClipCreateFailure.missingScope,
+        403 => ClipCreateFailure.restricted,
+        404 => ClipCreateFailure.offline,
+        400 => ClipCreateFailure.notClippable,
+        429 => ClipCreateFailure.rateLimited,
+        _ => ClipCreateFailure.unknown,
+      }, e.message);
+    }
+    final list = data['data'];
+    final clip = list is List && list.isNotEmpty ? list.first : null;
+    final clipId = clip is Map ? clip['id'] : null;
+    if (clipId is! String || !isValidClipSlug(clipId)) {
+      throw const ClipCreateException(ClipCreateFailure.unknown);
+    }
+    final edit = Uri.tryParse('${clip['edit_url']}');
+    final onTwitch =
+        edit != null &&
+        edit.scheme == 'https' &&
+        edit.userInfo.isEmpty &&
+        (edit.host == 'twitch.tv' || edit.host.endsWith('.twitch.tv'));
+    return ClipCreation(id: clipId, editUrl: onTwitch ? edit : null);
+  }
+
+  /// The clip [id] once Twitch has made it; null while it is being made.
+  Future<CreatedClip?> getCreatedClip(String id) async {
+    if (!isValidClipSlug(id)) {
+      throw ArgumentError.value(id, 'id', 'Not a clip id');
+    }
+    final data = await get<JsonMap>('/clips', queryParameters: {'id': id});
+    final list = data['data'];
+    final clip = list is List && list.isNotEmpty ? list.first : null;
+    if (clip is! Map) return null;
+    final thumbnail = clip['thumbnail_url'];
+    return CreatedClip(
+      id: id,
+      thumbnailUrl: thumbnail is String && thumbnail.startsWith('https://')
+          ? thumbnail
+          : null,
+    );
   }
 
   /// Returns a [StreamsTwitch] object that contains the top 20 streams and a cursor for further requests.
