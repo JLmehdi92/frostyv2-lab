@@ -158,17 +158,23 @@ class VodResumeRepository {
       });
 }
 
+/// How much later a position must be saved to count as a later watch, not
+/// the same save seen through two clocks.
+const _sameSaveSlack = Duration(minutes: 2);
+
 /// Where to start a VOD, like the official app (J:gmx.a): a `?t=` link
 /// wins; then 30 s before the position saved on this device ([saved]);
 /// then where the viewer's Twitch account left it ([server], as is, live
 /// sessions included); then 30 s before where this device saw them leave
 /// the live broadcast it recorded ([live]); otherwise the beginning.
 ///
-/// A position saved later than the one before it in that order wins (the
-/// video was watched on another device since, or Twitch did not take the
-/// live position). A start in the last 30 s of the video ([lengthSec], or
-/// the saved length) starts over instead, unless [nearEndRestarts] is off
-/// (a VOD still recording, whose end moves).
+/// A position saved clearly later (by more than [_sameSaveSlack]) than the
+/// one before it in that order wins: the video was watched on another
+/// device since, or Twitch did not take the live position. Positions saved
+/// together (this device and the account, on two clocks) keep the order.
+/// A start in the last 30 s of the video ([lengthSec], or the saved length)
+/// starts over instead, unless [nearEndRestarts] is off (a VOD still
+/// recording, whose end moves: its "finished" saves mean nothing either).
 Duration startPositionFor({
   VodResumeEntry? saved,
   Duration? deepLink,
@@ -179,7 +185,7 @@ Duration startPositionFor({
 }) {
   if (deepLink != null) return deepLink;
   final candidates = <(int, DateTime?)>[
-    if (saved != null)
+    if (saved != null && !(saved.finished && !nearEndRestarts))
       (saved.finished ? 0 : saved.positionSec - 30, saved.updatedAt),
     if (server != null) (server.positionSec, server.updatedAt),
     if (live != null) (live.offsetSec - 30, live.updatedAt),
@@ -189,7 +195,11 @@ Duration startPositionFor({
   for (final candidate in candidates.skip(1)) {
     final (_, at) = candidate;
     final bestAt = best.$2;
-    if (at != null && bestAt != null && at.isAfter(bestAt)) best = candidate;
+    if (at != null &&
+        bestAt != null &&
+        at.isAfter(bestAt.add(_sameSaveSlack))) {
+      best = candidate;
+    }
   }
   final start = best.$1 < 0 ? 0 : best.$1;
   final length = lengthSec > 0 ? lengthSec : saved?.lengthSec ?? 0;

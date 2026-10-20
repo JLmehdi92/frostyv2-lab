@@ -277,6 +277,32 @@ void main() {
       );
     });
 
+    test('positions saved together (device and account) keep the order', () {
+      // The account's clock is a few seconds off this device's.
+      expect(
+        start(
+          saved: local(600, at: older),
+          server: ViewingHistory(
+            positionSec: 600,
+            updatedAt: older.add(const Duration(seconds: 40)),
+          ),
+        ),
+        const Duration(seconds: 570),
+      );
+    });
+
+    test('a recording VOD saved as finished is not a restart', () {
+      expect(
+        startPositionFor(
+          saved: local(0, finished: true, at: newer),
+          live: live(7200),
+          lengthSec: 7180,
+          nearEndRestarts: false,
+        ),
+        const Duration(seconds: 7170),
+      );
+    });
+
     test('a recording VOD keeps the live position at its moving end', () {
       expect(
         startPositionFor(
