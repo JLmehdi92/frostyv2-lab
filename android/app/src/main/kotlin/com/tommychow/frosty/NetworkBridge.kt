@@ -27,6 +27,11 @@ class NetworkBridge(private val context: Context, messenger: BinaryMessenger) {
     private val main = Handler(Looper.getMainLooper())
     private var callback: ConnectivityManager.NetworkCallback? = null
 
+    // Capabilities change every few seconds on Wi-Fi (signal strength):
+    // only a different answer is sent.
+    private var sentOnce = false
+    private var lastSent: Boolean? = null
+
     init {
         channel.setMethodCallHandler { call, result ->
             when (call.method) {
@@ -59,15 +64,17 @@ class NetworkBridge(private val context: Context, messenger: BinaryMessenger) {
 
     private fun listen(sink: EventChannel.EventSink) {
         stopListening()
+        sentOnce = false
+        lastSent = null
         val manager = manager() ?: return
         // Callbacks come on a connectivity thread: answered on the main one.
         val next = object : ConnectivityManager.NetworkCallback() {
             override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
-                main.post { sink.success(isMetered()) }
+                main.post { send(sink) }
             }
 
             override fun onLost(network: Network) {
-                main.post { sink.success(isMetered()) }
+                main.post { send(sink) }
             }
         }
         try {
@@ -81,6 +88,15 @@ class NetworkBridge(private val context: Context, messenger: BinaryMessenger) {
             // No updates (SecurityException, too many callbacks): the
             // previews keep the answer read when they started.
         }
+    }
+
+    private fun send(sink: EventChannel.EventSink) {
+        if (callback == null) return
+        val metered = isMetered()
+        if (sentOnce && metered == lastSent) return
+        sentOnce = true
+        lastSent = metered
+        sink.success(metered)
     }
 
     private fun stopListening() {

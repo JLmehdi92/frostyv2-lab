@@ -94,6 +94,11 @@ class LiveFeed extends StatefulWidget {
   /// The channel's page (tests replace the channel screen).
   final Route<void> Function(StreamTwitch stream)? channelRoute;
 
+  /// How many network answers changed a feed (tests: the same answer again
+  /// must not rebuild it).
+  @visibleForTesting
+  static var debugMeteredUpdates = 0;
+
   @override
   State<LiveFeed> createState() => _LiveFeedState();
 }
@@ -156,6 +161,7 @@ class _LiveFeedState extends State<LiveFeed> {
   var _channelOpen = false;
 
   StreamSubscription<bool?>? _meteredChanges;
+
   late final ValueListenable<bool> _intro =
       widget.introRunning ?? LaunchIntro.running;
 
@@ -190,7 +196,8 @@ class _LiveFeedState extends State<LiveFeed> {
         (widget.meteredChanges ?? NetworkMetering.shared.changes()).listen((
           metered,
         ) {
-          if (!mounted) return;
+          if (!mounted || (_meterAsked && metered == _metered)) return;
+          LiveFeed.debugMeteredUpdates++;
           setState(() {
             _metered = metered;
             _meterAsked = true;

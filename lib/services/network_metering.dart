@@ -22,9 +22,10 @@ class NetworkMetering {
   final EventChannel _events;
   final bool _supported;
 
-  /// [isMetered]'s answer each time the network changes (leaving Wi-Fi for
-  /// mobile data), while listened to. Nothing elsewhere, and nothing more
-  /// after an error.
+  /// [isMetered]'s answer each time it changes (leaving Wi-Fi for mobile
+  /// data), while listened to; the same answer twice in a row comes once.
+  /// Nothing elsewhere. An error is logged and skipped: the answers after
+  /// it still come.
   Stream<bool?> changes() {
     if (!_supported) return const Stream.empty();
     return _events
@@ -32,7 +33,8 @@ class NetworkMetering {
         .map((value) => value is bool ? value : null)
         .handleError((Object e) {
           debugPrint('Network changes unknown: ${e.runtimeType}');
-        });
+        })
+        .distinct();
   }
 
   Future<bool?> isMetered() async {

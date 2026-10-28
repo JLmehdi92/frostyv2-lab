@@ -60,13 +60,15 @@ void main() {
 
     tearDown(() => messenger.setMockStreamHandler(events, null));
 
-    test("follows Android's answers while listened to", () async {
+    test("follows Android's answers while listened to, once each", () async {
       messenger.setMockStreamHandler(
         events,
         MockStreamHandler.inline(
           onListen: (arguments, sink) {
             sink
               ..success(false)
+              ..success(false)
+              ..success(true)
               ..success(true)
               ..success('odd')
               ..endOfStream();

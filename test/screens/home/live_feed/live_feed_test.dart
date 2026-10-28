@@ -542,8 +542,18 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     expect(log, ['open https://usher/login1']);
 
+    // Wi-Fi signal updates repeat the same answer: nothing rebuilds.
+    LiveFeed.debugMeteredUpdates = 0;
+    for (var i = 0; i < 5; i++) {
+      network.add(false);
+    }
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(LiveFeed.debugMeteredUpdates, 0);
+    expect(log, ['open https://usher/login1']);
+
     network.add(true);
     await tester.pump(const Duration(milliseconds: 100));
+    expect(LiveFeed.debugMeteredUpdates, 1);
     expect(log.last, 'dispose https://usher/login1');
     expect(find.byTooltip('Play preview'), findsOneWidget);
 
