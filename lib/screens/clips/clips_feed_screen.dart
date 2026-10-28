@@ -29,9 +29,10 @@ typedef FeedPlayerFactory =
 /// one swipe per clip, a double-tap to play or pause. One clip plays at a
 /// time; only the next one is preloaded (paused), every other player is let
 /// go.
+///
+/// Home's Clips tab: the shell builds it while the tab is on screen and
+/// lets it go when another tab or section is chosen, which stops the clips.
 class ClipsFeedScreen extends StatefulWidget {
-  static const routeName = 'ClipsFeedScreen';
-
   const ClipsFeedScreen({
     super.key,
     @visibleForTesting this.store,
@@ -44,14 +45,6 @@ class ClipsFeedScreen extends StatefulWidget {
 
   /// Turns Android's auto-PiP off (tests count the calls).
   final VoidCallback? disableAutoPip;
-
-  static Future<void> open(BuildContext context) => Navigator.push(
-    context,
-    MaterialPageRoute(
-      settings: const RouteSettings(name: routeName),
-      builder: (context) => const ClipsFeedScreen(),
-    ),
-  );
 
   @override
   State<ClipsFeedScreen> createState() => _ClipsFeedScreenState();
@@ -419,30 +412,9 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final padding = MediaQuery.paddingOf(context);
     final page = AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        body: Stack(
-          children: [
-            Positioned.fill(child: _buildFeed(context)),
-            Positioned(
-              top: padding.top,
-              left: padding.left,
-              child: IconButton(
-                tooltip: 'Back',
-                onPressed: () => Navigator.maybePop(context),
-                icon: Icon(
-                  Icons.adaptive.arrow_back_rounded,
-                  color: Colors.white,
-                  shadows: kOverlayShadow,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+      child: Material(color: Colors.black, child: _buildFeed(context)),
     );
 
     if (!Platform.isAndroid) return page;
@@ -475,21 +447,5 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
       if (wasTop && PlaybackFocus.shared.top == null) WakelockPlus.disable();
       super.dispose();
     }
-  }
-}
-
-/// Opens the clips feed (next to the Top tabs).
-class ClipsFeedButton extends StatelessWidget {
-  const ClipsFeedButton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      tooltip: 'Clips',
-      // Fits the tab bar's height.
-      visualDensity: VisualDensity.compact,
-      icon: const Icon(Icons.smart_display_outlined),
-      onPressed: () => ClipsFeedScreen.open(context),
-    );
   }
 }

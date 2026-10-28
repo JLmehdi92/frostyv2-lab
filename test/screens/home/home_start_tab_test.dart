@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/screens/home/home_store.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
@@ -17,45 +18,195 @@ class FakeAuthStore extends Mock implements AuthStore {
 }
 
 void main() {
-  test('tabs sit where the bar puts them', () {
-    expect(HomeTab.following.indexWhen(loggedIn: true), 0);
-    expect(HomeTab.top.indexWhen(loggedIn: true), 1);
-    expect(HomeTab.search.indexWhen(loggedIn: true), 2);
-    // Logged out: Top, Search.
-    expect(HomeTab.following.indexWhen(loggedIn: false), 0);
-    expect(HomeTab.top.indexWhen(loggedIn: false), 0);
-    expect(HomeTab.search.indexWhen(loggedIn: false), 1);
+  group('Open the app on', () {
+    test('each choice opens its section and Home tab', () {
+      expect(startPlace(HomeTab.following, loggedIn: true), (
+        section: ShellSection.home,
+        feed: HomeFeed.following,
+      ));
+      expect(startPlace(HomeTab.live, loggedIn: true), (
+        section: ShellSection.home,
+        feed: HomeFeed.live,
+      ));
+      expect(startPlace(HomeTab.clips, loggedIn: true), (
+        section: ShellSection.home,
+        feed: HomeFeed.clips,
+      ));
+      expect(
+        startPlace(HomeTab.browse, loggedIn: true).section,
+        ShellSection.browse,
+      );
+      // Logged out there is no Following: Live instead.
+      expect(startPlace(HomeTab.following, loggedIn: false), (
+        section: ShellSection.home,
+        feed: HomeFeed.live,
+      ));
+    });
+
+    test('the app opens on the chosen tab, and goes back to it on login', () {
+      final auth = FakeAuthStore(true);
+      final store = HomeStore(authStore: auth, startTab: HomeTab.browse);
+      expect(store.section, ShellSection.browse);
+
+      store.selectSection(ShellSection.profile);
+      auth.setLoggedIn(false);
+      expect(store.section, ShellSection.browse);
+      expect(store.feed, HomeFeed.live);
+
+      store.selectSection(ShellSection.activity);
+      auth.setLoggedIn(true);
+      expect(store.section, ShellSection.browse);
+      expect(store.feed, HomeFeed.following);
+      store.dispose();
+    });
+
+    test('the choices of the setting are the new places', () {
+      expect(
+        [for (final tab in HomeTab.values) tab.label],
+        ['Following', 'Live', 'Clips', 'Browse'],
+      );
+    });
+
+    test('Following by default', () {
+      final store = HomeStore(authStore: FakeAuthStore(true));
+      expect(store.section, ShellSection.home);
+      expect(store.feed, HomeFeed.following);
+      store.dispose();
+    });
+
+    test('the setting is saved, read back and reset', () {
+      expect(SettingsStore.fromJson({}).startTab, HomeTab.following);
+      final store = SettingsStore.fromJson({})..startTab = HomeTab.clips;
+      expect(SettingsStore.fromJson(store.toJson()).startTab, HomeTab.clips);
+      expect(
+        SettingsStore.fromJson({'startTab': 'nowhere'}).startTab,
+        HomeTab.following,
+      );
+      store.resetGeneralSettings();
+      expect(store.startTab, HomeTab.following);
+    });
+
+    test('values saved before the shell move to their new places', () {
+      // Top (top streams + categories) is Home's Live tab now, Search is
+      // in Browse.
+      expect(
+        SettingsStore.fromJson({'startTab': 'top'}).startTab,
+        HomeTab.live,
+      );
+      expect(
+        SettingsStore.fromJson({'startTab': 'search'}).startTab,
+        HomeTab.browse,
+      );
+      expect(
+        SettingsStore.fromJson({'startTab': 'following'}).startTab,
+        HomeTab.following,
+      );
+      // Saved again under the new name.
+      final migrated = SettingsStore.fromJson({'startTab': 'top'});
+      expect(migrated.toJson()['startTab'], 'live');
+    });
   });
 
-  test('the app opens on the chosen tab, and goes back to it on login', () {
-    final auth = FakeAuthStore(true);
-    final store = HomeStore(authStore: auth, startTab: HomeTab.search);
-    expect(store.selectedIndex, 2);
+  group('tabs', () {
+    test('logged out: Live and Clips only, no Whispers in Activity', () {
+      final store = HomeStore(authStore: FakeAuthStore(false));
+      expect(store.feeds, [HomeFeed.live, HomeFeed.clips]);
+      expect(store.activityTabs, [ActivityTab.notifications]);
+      expect(store.selectFeed(HomeFeed.following), isFalse);
+      expect(store.feed, HomeFeed.live);
+      expect(store.selectActivityTab(ActivityTab.whispers), isFalse);
+      store.dispose();
+    });
 
-    store.handleTap(0);
-    auth.setLoggedIn(false);
-    expect(store.selectedIndex, 1);
+    test('selecting says whether anything changed', () {
+      final store = HomeStore(authStore: FakeAuthStore(true));
+      expect(store.selectSection(ShellSection.browse), isTrue);
+      expect(store.selectSection(ShellSection.browse), isFalse);
+      expect(store.selectFeed(HomeFeed.clips), isTrue);
+      expect(store.selectFeed(HomeFeed.clips), isFalse);
+      expect(store.selectActivityTab(ActivityTab.whispers), isTrue);
+      expect(store.activityTab, ActivityTab.whispers);
+      store.dispose();
+    });
 
-    auth.setLoggedIn(true);
-    expect(store.selectedIndex, 2);
-    store.dispose();
+    testWidgets('a second tap scrolls the list on screen to the top', (
+      tester,
+    ) async {
+      final store = HomeStore(authStore: FakeAuthStore(true));
+      addTearDown(store.dispose);
+      Widget list(ScrollController controller) => ListView.builder(
+        controller: controller,
+        itemCount: 100,
+        itemBuilder: (_, i) => SizedBox(height: 50, child: Text('$i')),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Row(
+            children: [
+              Expanded(child: list(store.followedScrollController)),
+              Expanded(child: list(store.liveScrollController)),
+              Expanded(child: list(store.categoriesScrollController)),
+            ],
+          ),
+        ),
+      );
+      store.followedScrollController.jumpTo(1000);
+      store.liveScrollController.jumpTo(1000);
+      store.categoriesScrollController.jumpTo(1000);
+
+      store.selectSection(ShellSection.home);
+      await tester.pumpAndSettle();
+      expect(store.followedScrollController.offset, 0);
+      expect(store.liveScrollController.offset, 1000);
+
+      store.selectFeed(HomeFeed.live);
+      store.selectFeed(HomeFeed.live);
+      await tester.pumpAndSettle();
+      expect(store.liveScrollController.offset, 0);
+
+      store.selectSection(ShellSection.browse);
+      await tester.pumpAndSettle();
+      expect(store.categoriesScrollController.offset, 1000);
+      store.selectSection(ShellSection.browse);
+      await tester.pumpAndSettle();
+      expect(store.categoriesScrollController.offset, 0);
+    });
   });
 
-  test('Following by default', () {
-    final store = HomeStore(authStore: FakeAuthStore(true));
-    expect(store.selectedIndex, 0);
-    store.dispose();
-  });
+  group("Android's back", () {
+    test('another section goes back to Home, then the app closes', () {
+      final store = HomeStore(authStore: FakeAuthStore(true));
+      store.selectSection(ShellSection.profile);
+      expect(store.handleBack(), isTrue);
+      expect(store.section, ShellSection.home);
+      expect(store.handleBack(), isFalse);
+      store.dispose();
+    });
 
-  test('the setting is saved, read back and reset', () {
-    expect(SettingsStore.fromJson({}).startTab, HomeTab.following);
-    final store = SettingsStore.fromJson({})..startTab = HomeTab.top;
-    expect(SettingsStore.fromJson(store.toJson()).startTab, HomeTab.top);
-    expect(
-      SettingsStore.fromJson({'startTab': 'nowhere'}).startTab,
-      HomeTab.following,
-    );
-    store.resetGeneralSettings();
-    expect(store.startTab, HomeTab.following);
+    test('another Home tab goes back to the start one first', () {
+      final store = HomeStore(authStore: FakeAuthStore(true));
+      store
+        ..selectSection(ShellSection.activity)
+        ..selectFeed(HomeFeed.clips);
+      expect(store.handleBack(), isTrue);
+      expect(store.section, ShellSection.home);
+      expect(store.feed, HomeFeed.clips);
+      expect(store.handleBack(), isTrue);
+      expect(store.feed, HomeFeed.following);
+      expect(store.handleBack(), isFalse);
+      store.dispose();
+    });
+
+    test('opening on Live, Live is where back ends', () {
+      final store = HomeStore(
+        authStore: FakeAuthStore(true),
+        startTab: HomeTab.live,
+      );
+      store.selectFeed(HomeFeed.following);
+      expect(store.handleBack(), isTrue);
+      expect(store.feed, HomeFeed.live);
+      expect(store.handleBack(), isFalse);
+      store.dispose();
+    });
   });
 }

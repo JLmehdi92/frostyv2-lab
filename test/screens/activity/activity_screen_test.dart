@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/screens/activity/activity_screen.dart';
 import 'package:frosty/screens/activity/stores/activity_store.dart';
+import 'package:frosty/screens/home/home_store.dart';
 import 'package:frosty/services/notifications/activity_log.dart';
 import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:frosty/stores/whisper_store.dart';
@@ -39,14 +40,23 @@ void main() {
     opened = [];
   });
 
-  Future<void> pump(WidgetTester tester, {WhisperStore? whispers}) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    WhisperStore? whispers,
+    ActivityTab tab = ActivityTab.notifications,
+    bool active = true,
+  }) async {
     await tester.pumpWidget(
       MaterialApp(
-        home: ActivityScreen(
-          store: store,
-          whispers: whispers,
-          onOpenChannel: opened.add,
-          now: () => _now,
+        home: Scaffold(
+          body: ActivityScreen(
+            store: store,
+            whispers: whispers,
+            tab: tab,
+            active: active,
+            onOpenChannel: opened.add,
+            now: () => _now,
+          ),
         ),
       ),
     );
@@ -56,7 +66,6 @@ void main() {
 
   testWidgets("empty: Twitch's up-to-date message", (tester) async {
     await pump(tester);
-    expect(find.text('Activity'), findsOneWidget);
     expect(find.text("Hooray! You're up to date"), findsOneWidget);
     expect(
       find.text(
@@ -155,16 +164,59 @@ void main() {
       _entry('a', ago: const Duration(minutes: 5)),
       _entry('b', ago: const Duration(minutes: 6)),
     ]);
+    // The tabs are in the shell's header.
+    expect(
+      activityTabLabel(
+        ActivityTab.notifications,
+        store: store,
+        whispers: whispers,
+      ),
+      'Notifications (2)',
+    );
+    expect(
+      activityTabLabel(ActivityTab.whispers, store: store, whispers: whispers),
+      'Whispers',
+    );
     await pump(tester, whispers: whispers);
-    expect(find.text('Notifications (2)'), findsOneWidget);
-    expect(find.text('Whispers'), findsOneWidget);
-    await tester.tap(find.text('Whispers'));
-    await tester.pumpAndSettle();
+    expect(find.text('Title a'), findsOneWidget);
+    await pump(tester, whispers: whispers, tab: ActivityTab.whispers);
     expect(find.textContaining('No whispers yet'), findsOneWidget);
+    expect(find.text('Title a'), findsNothing);
   });
 
-  testWidgets('logged out: no whispers tab', (tester) async {
+  testWidgets('logged out: notifications only, whatever the tab', (
+    tester,
+  ) async {
+    await store.addAll([_entry('a', ago: const Duration(minutes: 5))]);
+    await pump(tester, tab: ActivityTab.whispers);
+    expect(find.text('Title a'), findsOneWidget);
+    expect(find.textContaining('No whispers yet'), findsNothing);
+  });
+
+  testWidgets('kept while another section shows: cleared when shown again', (
+    tester,
+  ) async {
+    await pump(tester, active: false);
+    await store.addAll([_entry('a', ago: const Duration(minutes: 5))]);
+    await tester.pump();
+    expect(store.newCount, 1);
+
     await pump(tester);
-    expect(find.byType(TabBar), findsNothing);
+    expect(store.newCount, 0);
+
+    // Arriving while it is open: seen at once.
+    await store.addAll([
+      ActivityEntry(
+        id: 'b',
+        kind: ActivityKind.live,
+        title: 'Title b',
+        body: '',
+        at: DateTime.now(),
+      ),
+    ]);
+    await tester.pump();
+    await tester.pump();
+    expect(store.newCount, 0);
+    expect(store.unreadCount, 2);
   });
 }

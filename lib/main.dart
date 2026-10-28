@@ -37,6 +37,7 @@ import 'package:frosty/screens/channel/channel.dart';
 import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
 import 'package:frosty/screens/clips/clip_screen.dart';
 import 'package:frosty/screens/home/home.dart';
+import 'package:frosty/screens/home/shell/onset_shell.dart';
 import 'package:frosty/screens/onboarding/onboarding_intro.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
@@ -305,7 +306,10 @@ void main() async {
     credentials: () => authStore.token,
   );
 
-  FirebaseCrashlytics.instance.setCustomKey('is_logged_in', authStore.isLoggedIn);
+  FirebaseCrashlytics.instance.setCustomKey(
+    'is_logged_in',
+    authStore.isLoggedIn,
+  );
   if (authStore.isLoggedIn && authStore.user.details != null) {
     FirebaseCrashlytics.instance.setUserIdentifier(authStore.user.details!.id);
   }
@@ -504,11 +508,10 @@ class _MyAppState extends State<MyApp> {
               ? ThemeMode.light
               : ThemeMode.dark,
           navigatorObservers: [
-            FirebaseAnalyticsObserver(
-              analytics: FirebaseAnalytics.instance,
-            ),
+            FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
             // Any page opening ends the launch intro.
             LaunchIntro.navigatorObserver,
+            OnsetShell.routeObserver,
           ],
           home: widget.firstRun ? const OnboardingIntro() : const Home(),
           navigatorKey: navigatorKey,
@@ -518,6 +521,8 @@ class _MyAppState extends State<MyApp> {
             play: widget.launchInfo.playsIntro,
             fromTile: widget.launchInfo.nativeTile,
             splashTile: LaunchInfo.splashTile,
+            // The tile lands on the header's mark.
+            slotKey: OnsetShell.markKey,
             child: Stack(
               children: [
                 ?child,

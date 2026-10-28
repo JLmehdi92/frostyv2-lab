@@ -288,29 +288,4 @@ void main() {
     expect(find.text('Clip a'), findsOneWidget);
     await close(tester);
   });
-
-  testWidgets('the Clips button opens the feed', (tester) async {
-    when(
-      () => service.getTopClips(language: any(named: 'language')),
-    ).thenAnswer((_) async => const ClipFeedPage(items: []));
-    final settings = SettingsStore.fromJson({})..keepScreenAwake = false;
-    await tester.pumpWidget(
-      MultiProvider(
-        providers: [
-          Provider<SettingsStore>.value(value: settings),
-          Provider<MiniPlayerStore>.value(value: mini),
-          Provider<TwitchClipService>.value(value: service),
-        ],
-        child: const MaterialApp(home: Scaffold(body: ClipsFeedButton())),
-      ),
-    );
-
-    await tester.tap(find.byTooltip('Clips'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
-
-    expect(find.byType(ClipsFeedScreen), findsOneWidget);
-    expect(find.text('No clips right now'), findsOneWidget);
-    await close(tester);
-  });
 }

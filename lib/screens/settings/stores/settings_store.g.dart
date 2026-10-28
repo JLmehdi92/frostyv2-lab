@@ -22,7 +22,7 @@ SettingsStore _$SettingsStoreFromJson(
   ..startTab =
       $enumDecodeNullable(
         _$HomeTabEnumMap,
-        json['startTab'],
+        HomeTab.readStored(json, 'startTab'),
         unknownValue: HomeTab.following,
       ) ??
       HomeTab.following
@@ -264,8 +264,9 @@ const _$ThemeTypeEnumMap = {
 
 const _$HomeTabEnumMap = {
   HomeTab.following: 'following',
-  HomeTab.top: 'top',
-  HomeTab.search: 'search',
+  HomeTab.live: 'live',
+  HomeTab.clips: 'clips',
+  HomeTab.browse: 'browse',
 };
 
 const _$FollowedSortEnumMap = {

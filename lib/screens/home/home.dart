@@ -4,29 +4,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/screens/activity/activity_bell.dart';
+import 'package:frosty/screens/activity/activity_screen.dart';
 import 'package:frosty/screens/activity/stores/activity_store.dart';
 import 'package:frosty/screens/channel/channel.dart';
+import 'package:frosty/screens/clips/clips_feed_screen.dart';
 import 'package:frosty/screens/home/home_store.dart';
 import 'package:frosty/screens/home/search/search.dart';
+import 'package:frosty/screens/home/shell/onset_shell.dart';
+import 'package:frosty/screens/home/shell/shell_pages.dart';
 import 'package:frosty/screens/home/stream_list/stream_list_store.dart';
 import 'package:frosty/screens/home/stream_list/streams_list.dart';
-import 'package:frosty/screens/home/top/top.dart';
+import 'package:frosty/screens/home/top/categories/categories.dart';
 import 'package:frosty/screens/settings/settings.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/settings/widgets/release_notes.dart';
 import 'package:frosty/screens/whispers/whisper_conversation.dart';
 import 'package:frosty/screens/whispers/whispers_screen.dart';
+import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/stores/whisper_store.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/blurred_container.dart';
 import 'package:frosty/widgets/onset_update_prompt.dart';
 import 'package:frosty/widgets/profile_picture.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// The app's first page: the navigation shell (boards Accueil and
+/// TabletteAccueil) around Home (Following, Live, Clips), Browse
+/// (categories and search), Activity and Profile (account and settings).
 class Home extends StatefulWidget {
   const Home({super.key});
 
@@ -34,18 +39,26 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> with OnsetUpdateChecks {
+class _HomeState extends State<Home> with OnsetUpdateChecks, RouteAware {
   late final _authStore = context.read<AuthStore>();
+  late final _settingsStore = context.read<SettingsStore>();
 
   late final _whisperStore = context.read<WhisperStore>();
   StreamSubscription<IncomingWhisper>? _whispers;
 
   late final _activityStore = context.read<ActivityStore>();
 
+  late final _miniPlayer = context.read<MiniPlayerStore>();
+
   late final _homeStore = HomeStore(
     authStore: _authStore,
-    startTab: context.read<SettingsStore>().startTab,
+    startTab: _settingsStore.startTab,
   );
+
+  ModalRoute<void>? _route;
+
+  /// A page covers the shell: the mini player is not bound by its chrome.
+  var _covered = false;
 
   Future<void> checkAndShowReleaseNotes() async {
     final packageInfo = await PackageInfo.fromPlatform();
@@ -77,6 +90,38 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     SystemChrome.setPreferredOrientations([]);
     checkAndShowReleaseNotes();
     _whispers = _whisperStore.incoming.listen(_onWhisper);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route != _route) {
+      if (_route != null) OnsetShell.routeObserver.unsubscribe(this);
+      _route = route;
+      if (route != null) OnsetShell.routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void didPushNext() {
+    _covered = true;
+    _miniPlayer.setShellChrome(null);
+  }
+
+  @override
+  void didPopNext() {
+    _covered = false;
+    // The chrome is published again by the next build.
+    if (mounted) setState(() {});
+  }
+
+  /// Tells the mini player what the chrome covers, after this frame.
+  void _publishChrome(EdgeInsets chrome) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _covered) return;
+      _miniPlayer.setShellChrome(chrome);
+    });
   }
 
   /// A whisper arrived: a notice wherever the viewer is (Home stays under
@@ -142,196 +187,172 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     }
   }
 
+  /// The header of [section] (and, for Home, of its [feed]).
+  ShellHeader _headerFor(ShellSection section, HomeFeed feed) {
+    final loggedIn = _authStore.isLoggedIn;
+    switch (section) {
+      case ShellSection.home:
+        final feeds = _homeStore.feeds;
+        return ShellHeader(
+          showWhispers: loggedIn,
+          tabs: [for (final f in feeds) f.label],
+          tabIndex: feeds.indexOf(feed),
+          onTab: (i) => _homeStore.selectFeed(feeds[i]),
+          overVideo: feed == HomeFeed.clips,
+        );
+      case ShellSection.browse:
+        return ShellHeader(
+          title: 'Browse',
+          showSearch: false,
+          showWhispers: loggedIn,
+          searchField: true,
+        );
+      case ShellSection.activity:
+        final tabs = _homeStore.activityTabs;
+        return ShellHeader(
+          title: 'Activity',
+          showMark: false,
+          largeTitle: true,
+          showWhispers: false,
+          tabs: tabs.length < 2
+              ? const []
+              : [
+                  for (final tab in tabs)
+                    activityTabLabel(
+                      tab,
+                      store: _activityStore,
+                      whispers: _whisperStore,
+                    ),
+                ],
+          tabIndex: tabs.indexOf(_homeStore.activityTab),
+          onTab: (i) => _homeStore.selectActivityTab(tabs[i]),
+        );
+      case ShellSection.profile:
+        return ShellHeader(showWhispers: loggedIn);
+    }
+  }
+
+  Widget _homePage(MediaQueryData media, ShellSection section, HomeFeed feed) {
+    return ShellPages<HomeFeed>(
+      pages: _homeStore.feeds,
+      current: feed,
+      motion: ShellPagesMotion.lateral,
+      // The clips feed plays: it only exists while it is on screen.
+      keepAlive: (page) => page != HomeFeed.clips,
+      builder: (context, page) => MediaQuery(
+        data: ShellMetrics.page(media, _headerFor(ShellSection.home, page)),
+        child: switch (page) {
+          HomeFeed.following => StreamsList(
+            listType: ListType.followed,
+            scrollController: _homeStore.followedScrollController,
+          ),
+          HomeFeed.live => StreamsList(
+            listType: ListType.top,
+            scrollController: _homeStore.liveScrollController,
+          ),
+          HomeFeed.clips =>
+            section == ShellSection.home
+                ? const ClipsFeedScreen()
+                : const SizedBox.shrink(),
+        },
+      ),
+    );
+  }
+
+  Widget _page(
+    BuildContext context,
+    MediaQueryData media,
+    ShellSection section,
+    ShellSection page,
+    HomeFeed feed,
+  ) {
+    if (page == ShellSection.home) return _homePage(media, section, feed);
+    return MediaQuery(
+      data: ShellMetrics.page(media, _headerFor(page, feed)),
+      child: switch (page) {
+        ShellSection.browse => Categories(
+          scrollController: _homeStore.categoriesScrollController,
+        ),
+        ShellSection.activity => ActivityScreen(
+          store: _activityStore,
+          whispers: _authStore.isLoggedIn ? _whisperStore : null,
+          tab: _homeStore.activityTab,
+          active: section == ShellSection.activity,
+          onOpenChannel: _openChannel,
+        ),
+        _ => Settings(settingsStore: _settingsStore, embedded: true),
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final media = MediaQuery.of(context);
 
     return GestureDetector(
       onTap: FocusScope.of(context).unfocus,
-      child: Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        extendBody: true,
-        extendBodyBehindAppBar: true,
-        appBar: AppBar(
-          centerTitle: false,
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          surfaceTintColor: Colors.transparent,
-          titleSpacing: 16,
-          flexibleSpace: Observer(
-            builder: (_) {
-              // Only show flexible space on Following tab (when logged in)
-              final isOnFollowingTab =
-                  _authStore.isLoggedIn && _homeStore.selectedIndex == 0;
+      child: Observer(
+        builder: (context) {
+          final section = _homeStore.section;
+          final feed = _homeStore.feed;
+          final header = _headerFor(section, feed);
+          final loggedIn = _authStore.isLoggedIn;
+          final login = loggedIn ? _authStore.user.details?.login : null;
 
-              if (!isOnFollowingTab) return const SizedBox.shrink();
+          final chrome = ShellMetrics.chrome(media, header);
+          if (!_covered) _publishChrome(chrome);
 
-              return BlurredContainer(
-                gradientDirection: GradientDirection.up,
-                child: const SizedBox.expand(),
-              );
+          return PopScope(
+            canPop: _homeStore.canLeave,
+            onPopInvokedWithResult: (didPop, _) {
+              if (!didPop) _homeStore.handleBack();
             },
-          ),
-          title: Observer(
-            builder: (_) {
-              final titles = [
-                if (_authStore.isLoggedIn) 'Following',
-                'Top',
-                'Search',
-              ];
-
-              return Text(titles[_homeStore.selectedIndex]);
-            },
-          ),
-          actions: [
-            Observer(
-              builder: (_) => ActivityBell(
-                store: _activityStore,
-                whispers: _authStore.isLoggedIn ? _whisperStore : null,
-                onOpenChannel: _openChannel,
-              ),
-            ),
-            Observer(
-              builder: (_) {
-                if (!_authStore.isLoggedIn) return const SizedBox.shrink();
-                final unread = _whisperStore.unreadCount;
-                // Whispers that cannot arrive must not look like none came.
-                final refused = _whisperStore.status == WhisperStatus.refused;
-                return IconButton(
-                  tooltip: refused
-                      ? 'Whispers (log in again to get them)'
-                      : unread > 0
-                      ? 'Whispers ($unread unread)'
-                      : 'Whispers',
-                  icon: Badge(
-                    isLabelVisible: unread > 0 || refused,
-                    label: Text(refused ? '!' : '$unread'),
-                    child: const Icon(Icons.forum_outlined),
+            child: Scaffold(
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              // Room for the floating bar, so that snack bars float above
+              // it; the shell draws the bar itself, over the page.
+              extendBody: true,
+              bottomNavigationBar: SizedBox(height: chrome.bottom),
+              body: MediaQuery(
+                // The shell lays itself out on the screen's own padding.
+                data: media,
+                child: OnsetShell(
+                  section: section,
+                  onSection: _homeStore.selectSection,
+                  header: header,
+                  onSearch: () => SearchScreen.open(context),
+                  activityBadge: _activityStore.newCount,
+                  whispers: loggedIn
+                      ? ShellWhispers(
+                          unread: _whisperStore.unreadCount,
+                          refused:
+                              _whisperStore.status == WhisperStatus.refused,
+                          onOpen: () =>
+                              WhispersScreen.open(context, _whisperStore),
+                        )
+                      : null,
+                  avatar: login == null
+                      ? null
+                      : FittedBox(child: ProfilePicture(userLogin: login)),
+                  body: ShellPages<ShellSection>(
+                    pages: ShellSection.values,
+                    current: section,
+                    builder: (context, page) =>
+                        _page(context, media, section, page, feed),
                   ),
-                  onPressed: () => WhispersScreen.open(context, _whisperStore),
-                );
-              },
-            ),
-            Observer(
-              builder: (_) {
-                final isLoggedIn =
-                    _authStore.isLoggedIn && _authStore.user.details != null;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: IconButton(
-                    tooltip: 'Settings',
-                    icon: isLoggedIn
-                        ? ProfilePicture(
-                            userLogin: _authStore.user.details!.login,
-                            radius: 16,
-                          )
-                        : const Icon(Icons.settings_rounded),
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        settings: const RouteSettings(name: Settings.routeName),
-                        builder: (context) => Settings(
-                          settingsStore: context.read<SettingsStore>(),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-        body: Observer(
-          builder: (_) => IndexedStack(
-            index: _homeStore.selectedIndex,
-            children: [
-              if (_authStore.isLoggedIn)
-                StreamsList(
-                  listType: ListType.followed,
-                  scrollController: _homeStore.followedScrollController,
                 ),
-              TopSection(homeStore: _homeStore),
-              Search(scrollController: _homeStore.searchScrollController),
-            ],
-          ),
-        ),
-        bottomNavigationBar: BlurredContainer(
-          gradientDirection: GradientDirection.down,
-          child: Observer(
-            builder: (_) => Theme(
-              data: Theme.of(
-                context,
-              ).copyWith(splashFactory: NoSplash.splashFactory),
-              child: NavigationBar(
-                backgroundColor: Colors.transparent,
-                surfaceTintColor: Colors.transparent,
-                elevation: 0,
-                destinations: [
-                  if (_authStore.isLoggedIn)
-                    NavigationDestination(
-                      icon: Icon(
-                        Icons.favorite_border_rounded,
-                        color: _homeStore.selectedIndex == 0
-                            ? theme.colorScheme.onSurface
-                            : theme.colorScheme.onSurfaceVariant,
-                      ),
-                      selectedIcon: Icon(
-                        Icons.favorite_rounded,
-                        color: context.frostyColors.live,
-                      ),
-                      label: 'Following',
-                      tooltip: 'Following',
-                    ),
-                  NavigationDestination(
-                    icon: Icon(
-                      Icons.arrow_upward_rounded,
-                      color:
-                          _homeStore.selectedIndex ==
-                              (_authStore.isLoggedIn ? 1 : 0)
-                          ? theme.colorScheme.onSurface
-                          : theme.colorScheme.onSurfaceVariant,
-                    ),
-                    selectedIcon: Icon(
-                      Icons.arrow_upward_rounded,
-                      color: context.frostyColors.live,
-                    ),
-                    label: 'Top',
-                    tooltip: 'Top',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(
-                      Icons.search_rounded,
-                      color:
-                          _homeStore.selectedIndex ==
-                              (_authStore.isLoggedIn ? 2 : 1)
-                          ? theme.colorScheme.onSurface
-                          : theme.colorScheme.onSurfaceVariant,
-                    ),
-                    selectedIcon: Icon(
-                      Icons.search_rounded,
-                      color: context.frostyColors.live,
-                    ),
-                    label: 'Search',
-                    tooltip: 'Search',
-                  ),
-                ],
-                selectedIndex: _homeStore.selectedIndex,
-                onDestinationSelected: (index) {
-                  if (index != _homeStore.selectedIndex) {
-                    HapticFeedback.selectionClick();
-                  }
-                  _homeStore.handleTap(index);
-                },
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
 
   @override
   void dispose() {
+    OnsetShell.routeObserver.unsubscribe(this);
+    _miniPlayer.setShellChrome(null);
     _whispers?.cancel();
     _homeStore.dispose();
     super.dispose();

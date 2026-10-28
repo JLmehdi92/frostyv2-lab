@@ -158,9 +158,7 @@ class _StreamsListState extends State<StreamsList>
 
     _listStore.checkLastTimeRefreshedAndUpdate();
 
-    final extraTopPadding = widget.listType == ListType.top
-        ? kToolbarHeight
-        : widget.listType == ListType.category
+    final extraTopPadding = widget.listType == ListType.category
         ? kToolbarHeight + 122 + kCategorySectionsHeight
         : widget.listType == ListType.tag
         ? kToolbarHeight + kCategorySectionsHeight

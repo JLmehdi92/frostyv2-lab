@@ -51,7 +51,7 @@ class _CategoriesState extends State<Categories>
 
     _categoriesStore.checkLastTimeRefreshedAndUpdate();
 
-    final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight;
+    final topPadding = MediaQuery.of(context).padding.top;
 
     return RefreshIndicator.adaptive(
       edgeOffset: topPadding,
@@ -89,7 +89,7 @@ class _CategoriesState extends State<Categories>
               return CustomScrollView(
                 controller: widget.scrollController,
                 slivers: [
-                  const SliverTopPadding(extraTopPadding: kToolbarHeight),
+                  const SliverTopPadding(),
                   SliverList.builder(
                     itemCount: 10,
                     itemBuilder: (context, index) =>
@@ -117,14 +117,14 @@ class _CategoriesState extends State<Categories>
           return FrostyScrollbar(
             controller: widget.scrollController,
             padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + kToolbarHeight,
-              bottom: 64 + MediaQuery.of(context).padding.bottom,
+              top: MediaQuery.of(context).padding.top,
+              bottom: MediaQuery.of(context).padding.bottom,
             ),
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               controller: widget.scrollController,
               slivers: [
-                const SliverTopPadding(extraTopPadding: kToolbarHeight),
+                const SliverTopPadding(),
                 SliverList.builder(
                   itemCount: _categoriesStore.categories.length,
                   itemBuilder: (context, index) {

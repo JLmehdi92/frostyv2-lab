@@ -58,9 +58,14 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var largeStreamCard = defaultLargeStreamCard;
 
-  /// The tab the app opens on (Following falls back to Top when logged
-  /// out).
-  @JsonKey(defaultValue: defaultStartTab, unknownEnumValue: HomeTab.following)
+  /// The tab the app opens on (Following falls back to Live when logged
+  /// out). Values saved before the navigation shell ('top', 'search') are
+  /// read as their new places ([HomeTab.readStored]).
+  @JsonKey(
+    defaultValue: defaultStartTab,
+    unknownEnumValue: HomeTab.following,
+    readValue: HomeTab.readStored,
+  )
   @observable
   var startTab = defaultStartTab;
 
@@ -685,19 +690,29 @@ const themeNames = ['System', 'Light', 'Dark'];
 
 enum ThemeType { system, light, dark }
 
-/// The home tabs, as named in the bottom bar.
+/// Where the app opens ("Open the app on"): one of Home's top tabs, or
+/// Browse.
 enum HomeTab {
   following('Following'),
-  top('Top'),
-  search('Search');
+  live('Live'),
+  clips('Clips'),
+  browse('Browse');
 
   const HomeTab(this.label);
 
   final String label;
 
-  /// Where this tab sits in the bar; logged out, there is no Following.
-  int indexWhen({required bool loggedIn}) =>
-      loggedIn ? index : (this == following ? 0 : index - 1);
+  /// The names saved before the navigation shell, and where they went: Top
+  /// (top streams and categories) is Home's Live tab, Search lives in
+  /// Browse.
+  static const legacyNames = {'top': 'live', 'search': 'browse'};
+
+  /// Reads the saved start tab of [json], moving a value saved before the
+  /// navigation shell to its new place.
+  static Object? readStored(Map<dynamic, dynamic> json, String key) {
+    final value = json[key];
+    return legacyNames[value] ?? value;
+  }
 }
 
 /// How Following orders its live channels. Twitch's other order,

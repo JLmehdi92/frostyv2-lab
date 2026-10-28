@@ -3,28 +3,30 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/activity/stores/activity_store.dart';
+import 'package:frosty/screens/home/home_store.dart';
 import 'package:frosty/screens/vod/vod_time.dart';
 import 'package:frosty/screens/whispers/whispers_screen.dart';
 import 'package:frosty/services/notifications/activity_log.dart';
 import 'package:frosty/stores/whisper_store.dart';
 import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/frosty_app_bar.dart';
 import 'package:frosty/widgets/profile_picture.dart';
 import 'package:frosty/widgets/readable_width.dart';
+import 'package:mobx/mobx.dart';
 
 /// Twitch's Activity: the notifications (here, those ONSET posted on this
 /// device: go-live, mentions, reminders) and, when logged in, the
-/// whispers.
+/// whispers. A section of the navigation shell, whose header holds the
+/// tabs ([activityTabLabel]); this is the page under it.
 class ActivityScreen extends StatefulWidget {
   const ActivityScreen({
     super.key,
     required this.store,
     required this.onOpenChannel,
     this.whispers,
+    this.tab = ActivityTab.notifications,
+    this.active = true,
     this.now = DateTime.now,
   });
-
-  static const routeName = '/activity';
 
   final ActivityStore store;
 
@@ -34,90 +36,80 @@ class ActivityScreen extends StatefulWidget {
   /// Opens a channel by login.
   final void Function(String login) onOpenChannel;
 
-  final DateTime Function() now;
+  /// The tab on screen (Whispers only with [whispers]).
+  final ActivityTab tab;
 
-  static Future<void> open(
-    BuildContext context, {
-    required ActivityStore store,
-    required void Function(String login) onOpenChannel,
-    WhisperStore? whispers,
-  }) => Navigator.push(
-    context,
-    MaterialPageRoute(
-      settings: const RouteSettings(name: routeName),
-      builder: (context) => ActivityScreen(
-        store: store,
-        whispers: whispers,
-        onOpenChannel: onOpenChannel,
-      ),
-    ),
-  );
+  /// Whether Activity is the section on screen: opening it, and anything
+  /// arriving while it is open, clears the count on the bar.
+  final bool active;
+
+  final DateTime Function() now;
 
   @override
   State<ActivityScreen> createState() => _ActivityScreenState();
 }
 
+/// [tab]'s name in the header, with its unread count.
+String activityTabLabel(
+  ActivityTab tab, {
+  required ActivityStore store,
+  WhisperStore? whispers,
+}) {
+  final count = switch (tab) {
+    ActivityTab.notifications => store.unreadCount,
+    ActivityTab.whispers => whispers?.unreadCount ?? 0,
+  };
+  return count > 0 ? '${tab.label} ($count)' : tab.label;
+}
+
 class _ActivityScreenState extends State<ActivityScreen> {
+  ReactionDisposer? _disposeSeen;
+
   @override
   void initState() {
     super.initState();
-    // Seen: the bell's count goes, the unread stay bold until opened.
-    unawaited(widget.store.refresh().then((_) => widget.store.markViewed()));
+    if (widget.active) _opened();
+    // Seen while open: what arrives meanwhile does not count as new.
+    _disposeSeen = reaction((_) => widget.store.newCount, (int count) {
+      if (widget.active && count > 0) unawaited(widget.store.markViewed());
+    });
+  }
+
+  @override
+  void didUpdateWidget(ActivityScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.active && !oldWidget.active) _opened();
+  }
+
+  /// Seen: the bar's count goes, the unread stay bold until opened.
+  void _opened() =>
+      unawaited(widget.store.refresh().then((_) => widget.store.markViewed()));
+
+  @override
+  void dispose() {
+    _disposeSeen?.call();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final notifications = _NotificationsList(
+    final whispers = widget.whispers;
+    if (whispers != null && widget.tab == ActivityTab.whispers) {
+      // The conversations do not scroll under the header.
+      final padding = MediaQuery.paddingOf(context);
+      return Padding(
+        padding: EdgeInsets.only(top: padding.top),
+        child: MediaQuery.removePadding(
+          context: context,
+          removeTop: true,
+          child: WhispersList(store: whispers),
+        ),
+      );
+    }
+    return _NotificationsList(
       store: widget.store,
       onOpenChannel: widget.onOpenChannel,
       now: widget.now,
-    );
-    final whispers = widget.whispers;
-    if (whispers == null) {
-      return Scaffold(
-        appBar: const FrostyAppBar(title: Text('Activity')),
-        body: notifications,
-      );
-    }
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: const FrostyAppBar(title: Text('Activity')),
-        body: Column(
-          children: [
-            TabBar(
-              tabs: [
-                Observer(
-                  builder: (_) {
-                    final count = widget.store.unreadCount;
-                    return Tab(
-                      text: count > 0
-                          ? 'Notifications ($count)'
-                          : 'Notifications',
-                    );
-                  },
-                ),
-                Observer(
-                  builder: (_) {
-                    final count = whispers.unreadCount;
-                    return Tab(
-                      text: count > 0 ? 'Whispers ($count)' : 'Whispers',
-                    );
-                  },
-                ),
-              ],
-            ),
-            Expanded(
-              child: TabBarView(
-                children: [
-                  notifications,
-                  WhispersList(store: whispers),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -219,6 +211,7 @@ class _NotificationsList extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: kReadableMaxWidth),
             child: RefreshIndicator.adaptive(
+              edgeOffset: MediaQuery.paddingOf(context).top,
               onRefresh: store.refresh,
               child: content,
             ),
