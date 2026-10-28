@@ -4,11 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_clip_service.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
+import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/models/category.dart';
 import 'package:frosty/models/clip.dart';
 import 'package:frosty/models/followed_channel.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/models/user.dart';
+import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/activity/activity_screen.dart';
 import 'package:frosty/screens/activity/stores/activity_store.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
@@ -41,6 +43,8 @@ import 'package:simple_pip_mode/simple_pip.dart';
 class MockTwitchApi extends Mock implements TwitchApi {}
 
 class MockClipService extends Mock implements TwitchClipService {}
+
+class MockVodService extends Mock implements TwitchVodService {}
 
 class MockHypeTrainService extends Mock implements TwitchHypeTrainService {}
 
@@ -76,6 +80,7 @@ class FakeAuthStore extends Mock implements AuthStore {
 void main() {
   late MockTwitchApi api;
   late MockClipService clips;
+  late MockVodService vods;
   late SettingsStore settings;
   late ActivityStore activity;
   late WhisperStore whispers;
@@ -92,6 +97,10 @@ void main() {
     );
     api = MockTwitchApi();
     clips = MockClipService();
+    vods = MockVodService();
+    when(
+      () => vods.searchVideos(any(), cursor: any(named: 'cursor')),
+    ).thenAnswer((_) async => const VodSearchPage(items: []));
     when(
       () => api.getTopStreams(
         cursor: any(named: 'cursor'),
@@ -153,6 +162,7 @@ void main() {
           Provider<SettingsStore>.value(value: settings),
           Provider<TwitchApi>.value(value: api),
           Provider<TwitchClipService>.value(value: clips),
+          Provider<TwitchVodService>.value(value: vods),
           Provider<TwitchHypeTrainService>.value(value: MockHypeTrainService()),
           Provider<ActivityStore>.value(value: activity),
           Provider<WhisperStore>.value(value: whispers),
@@ -262,6 +272,51 @@ void main() {
     final tabs = tester.widget<TabBar>(find.byType(TabBar));
     expect(tabs.controller!.index, 2);
     verify(() => api.searchChannels(query: 'chess')).called(1);
+    await close(tester);
+  });
+
+  testWidgets('a kept search: no keyboard, and Videos follow a query that '
+      'landed while it was closed', (tester) async {
+    when(
+      () => api.searchChannels(query: any(named: 'query')),
+    ).thenAnswer((_) async => []);
+    when(
+      () => api.searchCategories(query: any(named: 'query')),
+    ).thenAnswer((_) async => const CategoriesTwitch([], {}));
+    await pump(tester);
+    FocusNode focus() =>
+        tester.widget<TextField>(find.byType(TextField)).focusNode!;
+
+    await tester.tap(find.byTooltip('Search'));
+    await tester.pumpAndSettle();
+    // A new search: the keyboard is up.
+    expect(focus().hasFocus, isTrue);
+    await tester.enterText(find.byType(TextField), 'chess');
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Videos').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Videos').last);
+    await tester.pumpAndSettle();
+    verify(() => vods.searchVideos('chess')).called(1);
+
+    // Typing, then leaving before the search starts (300 ms later): the
+    // query lands once the page is gone.
+    await tester.enterText(find.byType(TextField), 'go');
+    final page = tester.element(find.byType(SearchScreen));
+    Navigator.of(page).removeRoute(ModalRoute.of(page)!);
+    await tester.pump();
+    expect(find.byType(SearchScreen), findsNothing);
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pumpAndSettle();
+    verifyNever(() => vods.searchVideos('go'));
+
+    await tester.tap(find.byTooltip('Search'));
+    await tester.pumpAndSettle();
+    // A kept search shows its results, not the keyboard.
+    expect(focus().hasFocus, isFalse);
+    expect(tester.widget<TabBar>(find.byType(TabBar)).controller!.index, 3);
+    verify(() => vods.searchVideos('go')).called(1);
     await close(tester);
   });
 

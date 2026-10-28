@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -162,6 +164,12 @@ class _SearchState extends State<Search> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _tabController.addListener(_onTabChanged);
+    // A kept search reopening on Videos: a query may have landed while it
+    // was closed (the debounce lives in the session, the reaction below in
+    // the page), so the videos catch up with it.
+    if (_tab == _SearchTab.videos) {
+      unawaited(_videosStore.search(_searchStore.lastQuery));
+    }
     // The Videos tab follows each new query while it is open.
     _disposeQueryReaction = reaction((_) => _searchStore.lastQuery, (
       String query,
