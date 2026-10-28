@@ -63,4 +63,57 @@ void main() {
     // On a page without the bar the window goes back down to the edge.
     expect(page.at(low).dy, greaterThan(home.at(low).dy));
   });
+
+  group('the window', () {
+    Widget placed(Offset offset, {required bool glide}) => Directionality(
+      textDirection: TextDirection.ltr,
+      child: Stack(
+        children: [
+          MiniWindowPlacement(
+            offset: offset,
+            glide: glide,
+            child: const SizedBox(
+              key: ValueKey('window'),
+              width: 10,
+              height: 10,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    Offset at(WidgetTester tester) =>
+        tester.getTopLeft(find.byKey(const ValueKey('window')));
+
+    testWidgets('glides to its corner when the chrome changes height', (
+      tester,
+    ) async {
+      await tester.pumpWidget(placed(const Offset(200, 112), glide: true));
+      expect(at(tester), const Offset(200, 112));
+      // Home's header (100) to Browse's (108).
+      await tester.pumpWidget(placed(const Offset(200, 120), glide: true));
+      await tester.pump(MiniWindowPlacement.glideDuration ~/ 3);
+      expect(at(tester).dy, inExclusiveRange(112, 120));
+      await tester.pumpAndSettle();
+      expect(at(tester), const Offset(200, 120));
+    });
+
+    testWidgets('follows a drag directly', (tester) async {
+      await tester.pumpWidget(placed(const Offset(200, 112), glide: false));
+      await tester.pumpWidget(placed(const Offset(150, 300), glide: false));
+      await tester.pump();
+      expect(at(tester), const Offset(150, 300));
+    });
+
+    testWidgets('reduce motion: no glide', (tester) async {
+      Widget reduced(Offset offset) => MediaQuery(
+        data: const MediaQueryData(disableAnimations: true),
+        child: placed(offset, glide: true),
+      );
+      await tester.pumpWidget(reduced(const Offset(200, 112)));
+      await tester.pumpWidget(reduced(const Offset(200, 120)));
+      await tester.pump();
+      expect(at(tester), const Offset(200, 120));
+    });
+  });
 }

@@ -7,6 +7,8 @@ import 'package:frosty/screens/channel/channel.dart';
 import 'package:frosty/screens/channel/video/ivs_video.dart';
 import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/theme.dart';
+import 'package:frosty/widgets/motion/motion.dart';
+import 'package:frosty/widgets/motion/reduce_motion.dart';
 import 'package:provider/provider.dart';
 import 'package:simple_pip_mode/actions/pip_actions_layout.dart';
 import 'package:simple_pip_mode/pip_widget.dart';
@@ -164,10 +166,12 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
               valueListenable: _offset,
               builder: (context, offset, child) {
                 // Kept inside when the chrome changes (another section,
-                // another page): a corner stays a corner.
-                return Transform.translate(
+                // another page): a corner stays a corner, and the window
+                // glides to its new place; a drag moves it directly.
+                return MiniWindowPlacement(
                   offset: _position(area, offset),
-                  child: child,
+                  glide: _corner != null,
+                  child: child!,
                 );
               },
               child: content,
@@ -205,6 +209,39 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
         builder: (_) =>
             VideoChat(userId: userId, userName: name, userLogin: login),
       ),
+    );
+  }
+}
+
+/// Puts the mini window at [offset]. While it rests in a corner ([glide])
+/// a new offset (the header or the bar changed height) is reached on the
+/// standard curve instead of a jump; a drag or a snap ([glide] false)
+/// moves it directly. Nothing glides under reduce motion.
+class MiniWindowPlacement extends StatelessWidget {
+  static const glideDuration = Duration(milliseconds: 320);
+
+  final Offset offset;
+  final bool glide;
+  final Widget child;
+
+  const MiniWindowPlacement({
+    super.key,
+    required this.offset,
+    required this.glide,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<Offset>(
+      tween: Tween<Offset>(end: offset),
+      duration: glide && !reduceMotionOf(context)
+          ? glideDuration
+          : Duration.zero,
+      curve: FrostyMotion.standard,
+      builder: (context, value, child) =>
+          Transform.translate(offset: value, child: child),
+      child: child,
     );
   }
 }
