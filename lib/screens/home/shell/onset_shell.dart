@@ -263,8 +263,10 @@ class OnsetShell extends StatelessWidget {
   static final markKey = GlobalKey(debugLabel: 'onset-header-mark');
 
   /// Tells the shell when a page covers it or leaves (the mini player's
-  /// corners follow the chrome only while the shell is on screen).
-  static final routeObserver = RouteObserver<ModalRoute<void>>();
+  /// corners follow the chrome only while the shell is on screen). Sheets,
+  /// dialogs and menus leave the shell on screen, so only pages count.
+  static final RouteObserver<ModalRoute<void>> routeObserver =
+      _PageRouteObserver();
 
   final ShellSection section;
   final ValueChanged<ShellSection> onSection;
@@ -486,6 +488,18 @@ class OnsetShell extends StatelessWidget {
   }
 }
 
+class _PageRouteObserver extends RouteObserver<ModalRoute<void>> {
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    if (route is PageRoute) super.didPush(route, previousRoute);
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    if (route is PageRoute) super.didPop(route, previousRoute);
+  }
+}
+
 /// The mark and the title.
 class _Brand extends StatelessWidget {
   final _ShellPalette palette;
@@ -580,24 +594,37 @@ class _PhoneHeader extends StatelessWidget {
           );
 
     if (header.overVideo) {
-      // Over the clips feed: a gradient, never a blur over the video.
-      return DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xEB0A0A0A), Color(0x000A0A0A)],
+      // Over the clips feed: a gradient, never a blur over the video. Only
+      // the tabs take touches; the rest of the band is the feed's.
+      return Stack(
+        children: [
+          const Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xEB0A0A0A), Color(0x000A0A0A)],
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
-        child: Padding(
-          padding: EdgeInsets.only(
-            top: padding.top,
-            left: padding.left,
-            right: padding.right,
-            bottom: 130 - ShellMetrics.videoTabsRow,
+          Padding(
+            padding: EdgeInsets.only(
+              top: padding.top,
+              left: padding.left,
+              right: padding.right,
+              bottom: _videoFade - ShellMetrics.videoTabsRow,
+            ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              widthFactor: 1,
+              child: tabs,
+            ),
           ),
-          child: tabs,
-        ),
+        ],
       );
     }
 
@@ -676,6 +703,9 @@ class _PhoneHeader extends StatelessWidget {
     );
   }
 }
+
+/// How far the gradient over the clips feed reaches (board Clips).
+const _videoFade = 130.0;
 
 /// The boards' material: a blur with a little more saturation.
 ui.ImageFilter _glass(double sigma) => ui.ImageFilter.compose(

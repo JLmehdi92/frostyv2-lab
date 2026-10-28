@@ -43,21 +43,55 @@ void main() {
       ));
     });
 
-    test('the app opens on the chosen tab, and goes back to it on login', () {
-      final auth = FakeAuthStore(true);
-      final store = HomeStore(authStore: auth, startTab: HomeTab.browse);
-      expect(store.section, ShellSection.browse);
-
-      store.selectSection(ShellSection.profile);
-      auth.setLoggedIn(false);
-      expect(store.section, ShellSection.browse);
-      expect(store.feed, HomeFeed.live);
-
-      store.selectSection(ShellSection.activity);
-      auth.setLoggedIn(true);
+    test('the app opens on the chosen tab', () {
+      final store = HomeStore(
+        authStore: FakeAuthStore(true),
+        startTab: HomeTab.browse,
+      );
       expect(store.section, ShellSection.browse);
       expect(store.feed, HomeFeed.following);
       store.dispose();
+    });
+
+    test('logging in or out resets the tabs, not the section on screen', () {
+      final auth = FakeAuthStore(true);
+      final store = HomeStore(authStore: auth);
+      store
+        ..selectFeed(HomeFeed.clips)
+        ..selectActivityTab(ActivityTab.whispers)
+        ..selectSection(ShellSection.profile);
+
+      auth.setLoggedIn(false);
+      // Logging out from Profile keeps Profile.
+      expect(store.section, ShellSection.profile);
+      expect(store.feed, HomeFeed.live);
+      expect(store.activityTab, ActivityTab.notifications);
+
+      auth.setLoggedIn(true);
+      expect(store.section, ShellSection.profile);
+      expect(store.feed, HomeFeed.following);
+      store.dispose();
+    });
+
+    test('leaving Home on Clips stops them: back on Home, the start tab', () {
+      final store = HomeStore(authStore: FakeAuthStore(true));
+      store
+        ..selectFeed(HomeFeed.clips)
+        ..selectSection(ShellSection.browse);
+      expect(store.feed, HomeFeed.following);
+      store.selectSection(ShellSection.home);
+      expect(store.feed, HomeFeed.following);
+      store.dispose();
+
+      // Opening on Clips: the rest tab is the first one.
+      final clips = HomeStore(
+        authStore: FakeAuthStore(false),
+        startTab: HomeTab.clips,
+      );
+      expect(clips.feed, HomeFeed.clips);
+      clips.selectSection(ShellSection.activity);
+      expect(clips.feed, HomeFeed.live);
+      clips.dispose();
     });
 
     test('the choices of the setting are the new places', () {
@@ -185,15 +219,22 @@ void main() {
 
     test('another Home tab goes back to the start one first', () {
       final store = HomeStore(authStore: FakeAuthStore(true));
-      store
-        ..selectSection(ShellSection.activity)
-        ..selectFeed(HomeFeed.clips);
-      expect(store.handleBack(), isTrue);
-      expect(store.section, ShellSection.home);
-      expect(store.feed, HomeFeed.clips);
+      store.selectFeed(HomeFeed.clips);
       expect(store.handleBack(), isTrue);
       expect(store.feed, HomeFeed.following);
       expect(store.handleBack(), isFalse);
+      store.dispose();
+    });
+
+    test('opening on Clips, back stops them before leaving', () {
+      final store = HomeStore(
+        authStore: FakeAuthStore(true),
+        startTab: HomeTab.clips,
+      );
+      expect(store.canLeave, isFalse);
+      expect(store.handleBack(), isTrue);
+      expect(store.feed, HomeFeed.following);
+      expect(store.canLeave, isTrue);
       store.dispose();
     });
 

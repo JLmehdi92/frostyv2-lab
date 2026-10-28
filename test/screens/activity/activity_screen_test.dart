@@ -219,4 +219,40 @@ void main() {
     expect(store.newCount, 0);
     expect(store.unreadCount, 2);
   });
+
+  testWidgets('in the background, what arrives stays new', (tester) async {
+    await pump(tester);
+    void moveTo(List<AppLifecycleState> states) {
+      for (final state in states) {
+        tester.binding.handleAppLifecycleStateChanged(state);
+      }
+    }
+
+    moveTo(const [
+      AppLifecycleState.inactive,
+      AppLifecycleState.hidden,
+      AppLifecycleState.paused,
+    ]);
+    await store.addAll([
+      ActivityEntry(
+        id: 'c',
+        kind: ActivityKind.live,
+        title: 'Title c',
+        body: '',
+        at: DateTime.now(),
+      ),
+    ]);
+    await tester.pump();
+    expect(store.newCount, 1);
+
+    // Back in front, on Activity: seen.
+    moveTo(const [
+      AppLifecycleState.hidden,
+      AppLifecycleState.inactive,
+      AppLifecycleState.resumed,
+    ]);
+    await tester.pump();
+    await tester.pump();
+    expect(store.newCount, 0);
+  });
 }

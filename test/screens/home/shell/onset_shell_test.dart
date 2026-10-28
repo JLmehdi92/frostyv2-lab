@@ -430,6 +430,19 @@ void main() {
       expect(find.byType(BackdropFilter), findsNothing);
       expect(find.text('ONSET'), findsNothing);
       expect(find.text('Following'), findsOneWidget);
+
+      // The gradient takes no touches: they reach the feed under it, the
+      // tabs keep theirs.
+      final item = tester.getCenter(find.text('Clips 0'));
+      expect(item.dy, lessThan(130));
+      final path = tester.hitTestOnBinding(Offset(300, item.dy)).path;
+      final list = tester.renderObject(
+        find.byKey(const ValueKey('list-Clips')),
+      );
+      expect(path.any((entry) => entry.target == list), isTrue);
+      await tester.tap(find.text('Live'));
+      await tester.pumpAndSettle();
+      expect(h.store.feed, HomeFeed.live);
     });
 
     testWidgets('a page that is not kept goes when left', (tester) async {

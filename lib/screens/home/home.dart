@@ -105,15 +105,14 @@ class _HomeState extends State<Home> with OnsetUpdateChecks, RouteAware {
 
   @override
   void didPushNext() {
-    _covered = true;
     _miniPlayer.setShellChrome(null);
+    if (mounted) setState(() => _covered = true);
   }
 
   @override
   void didPopNext() {
-    _covered = false;
     // The chrome is published again by the next build.
-    if (mounted) setState(() {});
+    if (mounted) setState(() => _covered = false);
   }
 
   /// Tells the mini player what the chrome covers, after this frame.
@@ -232,6 +231,19 @@ class _HomeState extends State<Home> with OnsetUpdateChecks, RouteAware {
     }
   }
 
+  /// The pages built, with what they were built from: a rebuild of the
+  /// shell (a count, a label) hands back the very same page, which Flutter
+  /// then skips, so hidden lists are not rebuilt for a badge.
+  final _builtPages = <Object, (Object?, Widget)>{};
+
+  Widget _memo(Object key, Object? inputs, Widget Function() build) {
+    final built = _builtPages[key];
+    if (built != null && built.$1 == inputs) return built.$2;
+    final page = build();
+    _builtPages[key] = (inputs, page);
+    return page;
+  }
+
   Widget _homePage(MediaQueryData media, ShellSection section, HomeFeed feed) {
     return ShellPages<HomeFeed>(
       pages: _homeStore.feeds,
@@ -239,23 +251,32 @@ class _HomeState extends State<Home> with OnsetUpdateChecks, RouteAware {
       motion: ShellPagesMotion.lateral,
       // The clips feed plays: it only exists while it is on screen.
       keepAlive: (page) => page != HomeFeed.clips,
-      builder: (context, page) => MediaQuery(
-        data: ShellMetrics.page(media, _headerFor(ShellSection.home, page)),
-        child: switch (page) {
-          HomeFeed.following => StreamsList(
-            listType: ListType.followed,
-            scrollController: _homeStore.followedScrollController,
+      builder: (context, page) {
+        final data = ShellMetrics.page(
+          media,
+          _headerFor(ShellSection.home, page),
+        );
+        final onScreen = section == ShellSection.home;
+        return _memo(
+          page,
+          (data, page == HomeFeed.clips && onScreen),
+          () => MediaQuery(
+            data: data,
+            child: switch (page) {
+              HomeFeed.following => StreamsList(
+                listType: ListType.followed,
+                scrollController: _homeStore.followedScrollController,
+              ),
+              HomeFeed.live => StreamsList(
+                listType: ListType.top,
+                scrollController: _homeStore.liveScrollController,
+              ),
+              HomeFeed.clips =>
+                onScreen ? const ClipsFeedScreen() : const SizedBox.shrink(),
+            },
           ),
-          HomeFeed.live => StreamsList(
-            listType: ListType.top,
-            scrollController: _homeStore.liveScrollController,
-          ),
-          HomeFeed.clips =>
-            section == ShellSection.home
-                ? const ClipsFeedScreen()
-                : const SizedBox.shrink(),
-        },
-      ),
+        );
+      },
     );
   }
 
@@ -267,21 +288,31 @@ class _HomeState extends State<Home> with OnsetUpdateChecks, RouteAware {
     HomeFeed feed,
   ) {
     if (page == ShellSection.home) return _homePage(media, section, feed);
-    return MediaQuery(
-      data: ShellMetrics.page(media, _headerFor(page, feed)),
-      child: switch (page) {
-        ShellSection.browse => Categories(
-          scrollController: _homeStore.categoriesScrollController,
-        ),
-        ShellSection.activity => ActivityScreen(
-          store: _activityStore,
-          whispers: _authStore.isLoggedIn ? _whisperStore : null,
-          tab: _homeStore.activityTab,
-          active: section == ShellSection.activity,
-          onOpenChannel: _openChannel,
-        ),
-        _ => Settings(settingsStore: _settingsStore, embedded: true),
-      },
+    final data = ShellMetrics.page(media, _headerFor(page, feed));
+    final loggedIn = _authStore.isLoggedIn;
+    final activityTab = _homeStore.activityTab;
+    final active = section == ShellSection.activity && !_covered;
+    return _memo(
+      page,
+      page == ShellSection.activity
+          ? (data, loggedIn, activityTab, active)
+          : data,
+      () => MediaQuery(
+        data: data,
+        child: switch (page) {
+          ShellSection.browse => Categories(
+            scrollController: _homeStore.categoriesScrollController,
+          ),
+          ShellSection.activity => ActivityScreen(
+            store: _activityStore,
+            whispers: loggedIn ? _whisperStore : null,
+            tab: activityTab,
+            active: active,
+            onOpenChannel: _openChannel,
+          ),
+          _ => Settings(settingsStore: _settingsStore, embedded: true),
+        },
+      ),
     );
   }
 

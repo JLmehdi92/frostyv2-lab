@@ -47,20 +47,24 @@ class ShellTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     final scaler = MediaQuery.textScalerOf(context);
     final direction = Directionality.of(context);
-    final widths = [
-      for (var i = 0; i < labels.length; i++)
-        (TextPainter(
-          text: TextSpan(text: labels[i], style: _style(i == index)),
-          textDirection: direction,
-          textScaler: scaler,
-          maxLines: 1,
-        )..layout()).width,
-    ];
+    final widths = <double>[];
+    for (var i = 0; i < labels.length; i++) {
+      final painter = TextPainter(
+        text: TextSpan(text: labels[i], style: _style(i == index)),
+        textDirection: direction,
+        textScaler: scaler,
+        maxLines: 1,
+      )..layout();
+      widths.add(painter.width);
+      painter.dispose();
+    }
+    // An index out of range (a tab gone with the account) draws no line.
+    final hasIndicator = index >= 0 && index < widths.length;
     var left = padding.left;
     for (var i = 0; i < index && i < widths.length; i++) {
       left += widths[i] + gap;
     }
-    final width = index < widths.length ? widths[index] : 0.0;
+    final width = hasIndicator ? widths[index] : 0.0;
     final duration = reduceMotionOf(context)
         ? Duration.zero
         : const Duration(milliseconds: 300);

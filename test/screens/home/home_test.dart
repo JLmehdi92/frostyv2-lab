@@ -11,6 +11,7 @@ import 'package:frosty/screens/clips/clips_feed_screen.dart';
 import 'package:frosty/screens/home/home.dart';
 import 'package:frosty/screens/home/search/search.dart';
 import 'package:frosty/screens/home/shell/onset_shell.dart';
+import 'package:frosty/screens/home/stream_list/streams_list.dart';
 import 'package:frosty/screens/home/top/categories/categories.dart';
 import 'package:frosty/screens/settings/settings.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
@@ -166,13 +167,6 @@ void main() {
     await pump(tester);
     await tester.tap(find.text('Clips'));
     await tester.pumpAndSettle();
-    await tester.tap(nav('profile'));
-    await tester.pumpAndSettle();
-
-    // Back from Profile: Home (on Clips).
-    expect(await tester.binding.handlePopRoute(), isTrue);
-    await tester.pumpAndSettle();
-    expect(find.byType(ClipsFeedScreen), findsOneWidget);
 
     // Back from Clips: Live, the start tab when logged out.
     expect(await tester.binding.handlePopRoute(), isTrue);
@@ -180,8 +174,33 @@ void main() {
     expect(find.byType(ClipsFeedScreen, skipOffstage: false), findsNothing);
     expect(find.text('No top streams'), findsOneWidget);
 
+    // Back from Profile: Home.
+    await tester.tap(nav('profile'));
+    await tester.pumpAndSettle();
+    expect(await tester.binding.handlePopRoute(), isTrue);
+    await tester.pumpAndSettle();
+    expect(find.text('No top streams'), findsOneWidget);
+    expect(find.byType(Settings), findsNothing);
+
     // Then the app may close: nothing handles back any more.
     expect(await tester.binding.handlePopRoute(), isFalse);
+    await close(tester);
+  });
+
+  testWidgets('leaving Clips stops them, coming back does not restart them', (
+    tester,
+  ) async {
+    await pump(tester);
+    await tester.tap(find.text('Clips'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ClipsFeedScreen), findsOneWidget);
+    await tester.tap(nav('activity'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ClipsFeedScreen, skipOffstage: false), findsNothing);
+    await tester.tap(nav('home'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ClipsFeedScreen, skipOffstage: false), findsNothing);
+    expect(find.text('No top streams'), findsOneWidget);
     await close(tester);
   });
 
@@ -196,6 +215,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(mini.shellChrome, const EdgeInsets.only(top: 56, bottom: 78));
 
+    // A sheet leaves the shell on screen.
+    showModalBottomSheet<void>(
+      context: tester.element(find.byType(Home)),
+      builder: (_) => const SizedBox(height: 100),
+    );
+    await tester.pumpAndSettle();
+    expect(mini.shellChrome, const EdgeInsets.only(top: 56, bottom: 78));
+    await tester.tapAt(const Offset(195, 100));
+    await tester.pumpAndSettle();
+
     // Another page covers the shell: its chrome no longer counts.
     await tester.tap(find.byTooltip('Search'));
     await tester.pumpAndSettle();
@@ -203,6 +232,25 @@ void main() {
     await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();
     expect(mini.shellChrome, const EdgeInsets.only(top: 56, bottom: 78));
+    await close(tester);
+  });
+
+  testWidgets('a count changing does not rebuild the pages', (tester) async {
+    await pump(tester);
+    final list = tester.widget(find.byType(StreamsList));
+    await activity.addAll([
+      ActivityEntry(
+        id: 'a',
+        kind: ActivityKind.live,
+        title: 'Live now',
+        body: '',
+        at: DateTime.now(),
+      ),
+    ]);
+    await tester.pump();
+    expect(find.bySemanticsLabel('Activity, 1 new'), findsOneWidget);
+    // The very same page: Flutter skipped it.
+    expect(identical(tester.widget(find.byType(StreamsList)), list), isTrue);
     await close(tester);
   });
 

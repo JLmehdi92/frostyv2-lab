@@ -107,21 +107,32 @@ abstract class HomeStoreBase with Store {
   late final ReactionDisposer _disposeReaction;
 
   HomeStoreBase({required this.authStore, this.startTab = HomeTab.following}) {
-    _goToStart(authStore.isLoggedIn);
-    // Back to the start tab when logging in or out: Following and Whispers
-    // come and go with the account.
-    _disposeReaction = reaction((_) => authStore.isLoggedIn, _goToStart);
+    final place = startPlace(startTab, loggedIn: authStore.isLoggedIn);
+    _section = place.section;
+    _feed = place.feed;
+    // Following and Whispers come and go with the account: Home goes back
+    // to its start tab and Activity to Notifications. The section on
+    // screen stays (logging out from Profile keeps Profile).
+    _disposeReaction = reaction(
+      (_) => authStore.isLoggedIn,
+      (bool loggedIn) => _resetTabs(),
+    );
   }
 
   @action
-  void _goToStart(bool loggedIn) {
-    final place = startPlace(startTab, loggedIn: loggedIn);
-    _section = place.section;
-    _feed = place.feed;
+  void _resetTabs() {
+    _feed = _restFeed;
     _activityTab = ActivityTab.notifications;
   }
 
-  /// Home's tab Android's back returns to before leaving the app.
+  /// Home's tab when it is not the clips feed: the clips play, so they only
+  /// start when chosen, never by coming back to Home.
+  HomeFeed get _restFeed {
+    final home = _homeFeed;
+    return home == HomeFeed.clips ? feeds.first : home;
+  }
+
+  /// Home's start tab.
   HomeFeed get _homeFeed =>
       startPlace(startTab, loggedIn: authStore.isLoggedIn).feed;
 
@@ -130,6 +141,11 @@ abstract class HomeStoreBase with Store {
   @action
   bool selectSection(ShellSection section) {
     if (section != _section) {
+      // Leaving the clips stops them; coming back must not start them
+      // again behind the viewer's back (nor close their mini player).
+      if (_section == ShellSection.home && _feed == HomeFeed.clips) {
+        _feed = _restFeed;
+      }
       _section = section;
       return true;
     }
@@ -167,19 +183,20 @@ abstract class HomeStoreBase with Store {
 
   /// Whether Android's back leaves the app (Home, on its start tab).
   @computed
-  bool get canLeave => _section == ShellSection.home && _feed == _homeFeed;
+  bool get canLeave => _section == ShellSection.home && _feed == _restFeed;
 
   /// Android's back: another section goes back to Home, another Home tab
-  /// to the start one; only then does the app close (false).
+  /// to the start one (never to the clips, which play); only then does the
+  /// app close (false).
   @action
   bool handleBack() {
     if (_section != ShellSection.home) {
       _section = ShellSection.home;
       return true;
     }
-    final home = _homeFeed;
-    if (_feed != home) {
-      _feed = home;
+    final rest = _restFeed;
+    if (_feed != rest) {
+      _feed = rest;
       return true;
     }
     return false;

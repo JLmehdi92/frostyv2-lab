@@ -39,8 +39,9 @@ class ActivityScreen extends StatefulWidget {
   /// The tab on screen (Whispers only with [whispers]).
   final ActivityTab tab;
 
-  /// Whether Activity is the section on screen: opening it, and anything
-  /// arriving while it is open, clears the count on the bar.
+  /// Whether Activity is the section on screen and nothing covers it:
+  /// opening it, and anything arriving while it is open (and the app in
+  /// front), clears the count on the bar.
   final bool active;
 
   final DateTime Function() now;
@@ -64,15 +65,29 @@ String activityTabLabel(
 
 class _ActivityScreenState extends State<ActivityScreen> {
   ReactionDisposer? _disposeSeen;
+  late final AppLifecycleListener _lifecycle;
+
+  /// On screen: the section is Activity, nothing covers it, the app is in
+  /// front.
+  bool get _seen =>
+      widget.active &&
+      (WidgetsBinding.instance.lifecycleState ?? AppLifecycleState.resumed) ==
+          AppLifecycleState.resumed;
 
   @override
   void initState() {
     super.initState();
-    if (widget.active) _opened();
+    if (_seen) _opened();
     // Seen while open: what arrives meanwhile does not count as new.
     _disposeSeen = reaction((_) => widget.store.newCount, (int count) {
-      if (widget.active && count > 0) unawaited(widget.store.markViewed());
+      if (_seen && count > 0) unawaited(widget.store.markViewed());
     });
+    // Back in front on Activity: what came meanwhile is seen now.
+    _lifecycle = AppLifecycleListener(
+      onResume: () {
+        if (widget.active) _opened();
+      },
+    );
   }
 
   @override
@@ -87,6 +102,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
   @override
   void dispose() {
+    _lifecycle.dispose();
     _disposeSeen?.call();
     super.dispose();
   }

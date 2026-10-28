@@ -95,12 +95,12 @@ mixin _$HomeStore on HomeStoreBase, Store {
   );
 
   @override
-  void _goToStart(bool loggedIn) {
+  void _resetTabs() {
     final _$actionInfo = _$HomeStoreBaseActionController.startAction(
-      name: 'HomeStoreBase._goToStart',
+      name: 'HomeStoreBase._resetTabs',
     );
     try {
-      return super._goToStart(loggedIn);
+      return super._resetTabs();
     } finally {
       _$HomeStoreBaseActionController.endAction(_$actionInfo);
     }
