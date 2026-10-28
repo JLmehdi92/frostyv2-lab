@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
@@ -47,11 +48,20 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Search(
-        scrollController: _scrollController,
-        autofocus: true,
-        onBack: () => Navigator.maybePop(context),
+    // No app bar to set the system bars: the theme's, as on every page.
+    final theme = Theme.of(context);
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value:
+          theme.appBarTheme.systemOverlayStyle ??
+          (theme.brightness == Brightness.dark
+              ? SystemUiOverlayStyle.light
+              : SystemUiOverlayStyle.dark),
+      child: Scaffold(
+        body: Search(
+          scrollController: _scrollController,
+          autofocus: true,
+          onBack: () => Navigator.maybePop(context),
+        ),
       ),
     );
   }

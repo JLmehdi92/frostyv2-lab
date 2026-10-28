@@ -24,6 +24,8 @@ import 'package:frosty/screens/whispers/whisper_conversation.dart';
 import 'package:frosty/screens/whispers/whispers_screen.dart';
 import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/stores/whisper_store.dart';
+import 'package:frosty/theme.dart';
+import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/onset_update_prompt.dart';
 import 'package:frosty/widgets/profile_picture.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -377,46 +379,49 @@ class _HomeState extends State<Home> with OnsetUpdateChecks, RouteAware {
           final chrome = ShellMetrics.chrome(media, header);
           if (!_covered) _publishChrome(chrome);
 
-          return PopScope(
-            canPop: _homeStore.canLeave,
-            onPopInvokedWithResult: (didPop, _) {
-              if (!didPop) _homeStore.handleBack();
-            },
-            child: Scaffold(
-              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-              // Room for the floating bar, so that snack bars float above
-              // it; the shell draws the bar itself, over the page.
-              extendBody: true,
-              bottomNavigationBar: SizedBox(
-                height: _clipsInPip ? 0 : chrome.bottom,
-              ),
-              body: MediaQuery(
-                // The shell lays itself out on the screen's own padding.
-                data: media,
-                child: OnsetShell(
-                  chromeHidden: _clipsInPip,
-                  section: section,
-                  onSection: _homeStore.selectSection,
-                  header: header,
-                  onSearch: () => SearchScreen.open(context),
-                  activityBadge: _activityStore.newCount,
-                  whispers: loggedIn
-                      ? ShellWhispers(
-                          unread: _whisperStore.unreadCount,
-                          refused:
-                              _whisperStore.status == WhisperStatus.refused,
-                          onOpen: () =>
-                              WhispersScreen.open(context, _whisperStore),
-                        )
-                      : null,
-                  avatar: login == null
-                      ? null
-                      : FittedBox(child: ProfilePicture(userLogin: login)),
-                  body: ShellPages<ShellSection>(
-                    pages: ShellSection.values,
-                    current: section,
-                    builder: (context, page) =>
-                        _page(context, media, section, page, feed),
+          return AnnotatedRegion<SystemUiOverlayStyle>(
+            value: _systemBars(context, header),
+            child: PopScope(
+              canPop: _homeStore.canLeave,
+              onPopInvokedWithResult: (didPop, _) {
+                if (!didPop) _homeStore.handleBack();
+              },
+              child: Scaffold(
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                // Room for the floating bar, so that snack bars float above
+                // it; the shell draws the bar itself, over the page.
+                extendBody: true,
+                bottomNavigationBar: SizedBox(
+                  height: _clipsInPip ? 0 : chrome.bottom,
+                ),
+                body: MediaQuery(
+                  // The shell lays itself out on the screen's own padding.
+                  data: media,
+                  child: OnsetShell(
+                    chromeHidden: _clipsInPip,
+                    section: section,
+                    onSection: _homeStore.selectSection,
+                    header: header,
+                    onSearch: () => SearchScreen.open(context),
+                    activityBadge: _activityStore.newCount,
+                    whispers: loggedIn
+                        ? ShellWhispers(
+                            unread: _whisperStore.unreadCount,
+                            refused:
+                                _whisperStore.status == WhisperStatus.refused,
+                            onOpen: () =>
+                                WhispersScreen.open(context, _whisperStore),
+                          )
+                        : null,
+                    avatar: login == null
+                        ? null
+                        : FittedBox(child: ProfilePicture(userLogin: login)),
+                    body: ShellPages<ShellSection>(
+                      pages: ShellSection.values,
+                      current: section,
+                      builder: (context, page) =>
+                          _page(context, media, section, page, feed),
+                    ),
                   ),
                 ),
               ),
@@ -424,6 +429,27 @@ class _HomeState extends State<Home> with OnsetUpdateChecks, RouteAware {
           );
         },
       ),
+    );
+  }
+
+  /// The system bars over the shell: the theme's (the shell has no app bar
+  /// to set them), with light icons and a dark navigation bar over the
+  /// clips on a phone, where the header is a dark gradient over the video.
+  SystemUiOverlayStyle _systemBars(BuildContext context, ShellHeader header) {
+    final theme = Theme.of(context);
+    final themed =
+        theme.appBarTheme.systemOverlayStyle ??
+        (theme.brightness == Brightness.dark
+            ? SystemUiOverlayStyle.light
+            : SystemUiOverlayStyle.dark);
+    if (!header.overVideo || context.isLargeScreen || _clipsInPip) {
+      return themed;
+    }
+    return themed.copyWith(
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+      systemNavigationBarColor: FrostyTokens.backgroundDark,
+      systemNavigationBarIconBrightness: Brightness.light,
     );
   }
 

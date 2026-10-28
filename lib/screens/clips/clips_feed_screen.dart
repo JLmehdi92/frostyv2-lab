@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/models/clip.dart';
 import 'package:frosty/screens/channel/video/overlay_common.dart';
@@ -424,10 +423,8 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final page = AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
-      child: Material(color: Colors.black, child: _buildFeed(context)),
-    );
+    // The shell sets the system bars over the feed (light icons, dark bar).
+    final page = Material(color: Colors.black, child: _buildFeed(context));
 
     if (!(ClipsFeedScreen.debugPipSupported ?? Platform.isAndroid)) {
       return page;

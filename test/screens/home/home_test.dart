@@ -21,6 +21,7 @@ import 'package:frosty/services/notifications/activity_log.dart';
 import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/stores/whisper_store.dart';
+import 'package:frosty/theme.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -79,14 +80,20 @@ void main() {
 
   tearDown(() => whispers.dispose());
 
-  Future<void> pump(WidgetTester tester) async {
-    tester.view.physicalSize = const Size(390, 844);
+  Future<void> pump(
+    WidgetTester tester, {
+    Size size = const Size(390, 844),
+    ThemeMode mode = ThemeMode.light,
+    AuthStore? auth,
+  }) async {
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
     await tester.pumpWidget(
       MultiProvider(
         providers: [
-          Provider<AuthStore>.value(value: FakeAuthStore()),
+          Provider<AuthStore>.value(value: auth ?? FakeAuthStore()),
           Provider<SettingsStore>.value(value: settings),
           Provider<TwitchApi>.value(value: api),
           Provider<TwitchClipService>.value(value: clips),
@@ -95,6 +102,9 @@ void main() {
           Provider<MiniPlayerStore>.value(value: mini),
         ],
         child: MaterialApp(
+          theme: themes.light,
+          darkTheme: themes.dark,
+          themeMode: mode,
           navigatorObservers: [OnsetShell.routeObserver],
           home: const Home(),
         ),
@@ -359,6 +369,56 @@ void main() {
     expect(fadeColor(), const Color(0xFF0A0A0A));
     await close(tester);
   });
+
+  for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+    testWidgets('the system bars follow the theme (${mode.name})', (
+      tester,
+    ) async {
+      await pump(tester, mode: mode);
+      final dark = mode == ThemeMode.dark;
+      final theme = dark
+          ? FrostyThemes(colorSchemeSeed: FrostyTokens.accent).dark
+          : FrostyThemes(colorSchemeSeed: FrostyTokens.accent).light;
+      final themed = theme.appBarTheme.systemOverlayStyle!;
+      expect(SystemChrome.latestStyle, themed);
+      expect(
+        SystemChrome.latestStyle!.statusBarIconBrightness,
+        dark ? Brightness.light : Brightness.dark,
+      );
+      expect(
+        SystemChrome.latestStyle!.systemNavigationBarColor,
+        theme.scaffoldBackgroundColor,
+      );
+
+      // Over the clips: light icons on the dark gradient and a dark bar.
+      await tester.tap(find.text('Clips'));
+      await tester.pumpAndSettle();
+      expect(
+        SystemChrome.latestStyle!.statusBarIconBrightness,
+        Brightness.light,
+      );
+      expect(
+        SystemChrome.latestStyle!.systemNavigationBarColor,
+        FrostyTokens.backgroundDark,
+      );
+
+      // Back on Live, the theme's again (not left white on a pale header).
+      await tester.tap(find.text('Live'));
+      await tester.pumpAndSettle();
+      expect(SystemChrome.latestStyle, themed);
+
+      // Search, Profile: the theme's too.
+      await tester.tap(find.byTooltip('Search'));
+      await tester.pumpAndSettle();
+      expect(SystemChrome.latestStyle, themed);
+      await tester.tap(find.byTooltip('Back'));
+      await tester.pumpAndSettle();
+      await tester.tap(nav('profile'));
+      await tester.pumpAndSettle();
+      expect(SystemChrome.latestStyle, themed);
+      await close(tester);
+    });
+  }
 
   testWidgets('"Open the app on" Browse opens Browse', (tester) async {
     settings.startTab = HomeTab.browse;
