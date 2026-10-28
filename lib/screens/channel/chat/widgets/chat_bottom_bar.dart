@@ -8,6 +8,8 @@ import 'package:frosty/screens/channel/chat/details/chat_details.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_character_counter.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_restriction_bar.dart';
+import 'package:frosty/screens/channel/video/player_glyph.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/blurred_container.dart';
@@ -60,26 +62,41 @@ class ChatBottomBar extends StatelessWidget {
         ? Tooltip(
             message: 'Emote menu',
             preferBelow: false,
-            child: IconButton(
-              color: chatStore.assetsStore.showEmoteMenu
-                  ? context.frostyColors.live
-                  : null,
-              icon: Icon(
-                chatStore.assetsStore.showEmoteMenu
-                    ? Icons.emoji_emotions_rounded
-                    : Icons.emoji_emotions_outlined,
+            child: Semantics(
+              selected: chatStore.assetsStore.showEmoteMenu,
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints.tightFor(
+                  width: 36,
+                  height: 36,
+                ),
+                style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  backgroundColor: chatStore.assetsStore.showEmoteMenu
+                      ? context.frostyColors.live.withValues(alpha: 0.14)
+                      : null,
+                ),
+                icon: PlayerGlyph(
+                  PlayerGlyphKind.emote,
+                  color: chatStore.assetsStore.showEmoteMenu
+                      ? context.frostyColors.live
+                      : context.colorScheme.onSurfaceVariant,
+                ),
+                onPressed: () {
+                  chatStore.unfocusInput();
+                  chatStore.assetsStore.showEmoteMenu =
+                      !chatStore.assetsStore.showEmoteMenu;
+                },
               ),
-              onPressed: () {
-                chatStore.unfocusInput();
-                chatStore.assetsStore.showEmoteMenu =
-                    !chatStore.assetsStore.showEmoteMenu;
-              },
             ),
           )
         : null;
 
     return Observer(
       builder: (context) {
+        // A tablet in portrait has the larger input (board
+        // TablettePortrait).
+        final large = context.isLargeScreen && context.isPortrait;
         final matchingEmotes = chatStore.matchingEmotes;
         final matchingChatters = chatStore.matchingChatters;
 
@@ -284,182 +301,208 @@ class ChatBottomBar extends StatelessWidget {
               ),
             ],
             Padding(
-              padding: const EdgeInsets.only(left: 12, top: 8, bottom: 8),
-              child: Row(
-                children: [
-                  // Bottom-left of the chat, where Twitch puts it.
-                  ChannelPointsButton(channelId: chatStore.channelId),
-                  if (inputControls.pencil)
-                    Builder(
-                      builder: (context) {
-                        final isDisabled = !chatStore.auth.isLoggedIn;
-
-                        return GestureDetector(
-                          onTap: isDisabled
-                              ? () {
-                                  chatStore.updateNotification(
-                                    loginTooltipMessage,
-                                  );
-                                }
-                              : null,
-                          child: IconButton(
-                            tooltip: 'Enter a message',
-                            onPressed: isDisabled
-                                ? null
-                                : () {
-                                    chatStore.expandChat = true;
-                                    chatStore.safeRequestFocus();
-                                  },
-                            icon: const Icon(Icons.edit),
-                          ),
-                        );
-                      },
-                    )
-                  else
-                    Expanded(
-                      child: Observer(
+              // Board Chaine: 10 above, 12 at the sides, 14 below.
+              padding: EdgeInsets.fromLTRB(12, 10, 12, large ? 14 : 12),
+              // A side chat at its narrowest (20 %) is smaller than the
+              // pencil, the points and "⋯": they shrink rather than spill.
+              child: _ShrinkWhenNarrow(
+                enabled: inputControls.pencil,
+                child: Row(
+                  spacing: 8,
+                  mainAxisSize: inputControls.pencil
+                      ? MainAxisSize.min
+                      : MainAxisSize.max,
+                  children: [
+                    if (inputControls.pencil)
+                      Builder(
                         builder: (context) {
-                          final isLoggedIn = chatStore.auth.isLoggedIn;
-                          final isWaitingForAck = chatStore.isWaitingForAck;
-                          final isConnected = chatStore.isConnected;
-                          final hasConnected = chatStore.hasConnected;
-                          final locked =
-                              chatStore.restriction?.blocksInput ?? false;
-                          final isEnabled =
-                              isLoggedIn &&
-                              !isWaitingForAck &&
-                              isConnected &&
-                              !locked;
+                          final isDisabled = !chatStore.auth.isLoggedIn;
 
                           return GestureDetector(
-                            onTap: !isLoggedIn
+                            onTap: isDisabled
                                 ? () {
                                     chatStore.updateNotification(
                                       loginTooltipMessage,
                                     );
                                   }
                                 : null,
-                            child: ExtendedTextField(
-                              textInputAction: TextInputAction.send,
-                              focusNode: chatStore.textFieldFocusNode,
-                              minLines: 1,
-                              maxLines: 3,
-                              enabled: isEnabled,
-                              specialTextSpanBuilder: EmoteTextSpanBuilder(
-                                emoteToObject:
-                                    chatStore.assetsStore.emoteToObject,
-                                userEmoteToObject:
-                                    chatStore.assetsStore.userEmoteToObject,
-                                emoteSize:
-                                    chatStore.settings.emoteScale *
-                                    defaultEmoteSize,
-                              ),
-                              decoration: InputDecoration(
-                                prefixIcon:
-                                    chatStore.settings.emoteMenuButtonOnLeft
-                                    ? emoteMenuButton
-                                    : null,
-                                suffixIcon: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  spacing: 8,
-                                  children: [
-                                    ChatCharacterCounter(
-                                      controller: chatStore.textController,
-                                    ),
-                                    if (!chatStore
-                                            .settings
-                                            .emoteMenuButtonOnLeft &&
-                                        emoteMenuButton != null)
-                                      emoteMenuButton,
-                                  ],
-                                ),
-                                hintMaxLines: 1,
-                                hintText: !isLoggedIn
-                                    ? loginTooltipMessage
-                                    : locked
-                                    ? "You can't chat right now"
-                                    : !isConnected
-                                    ? (hasConnected
-                                          ? 'Chat disconnected'
-                                          : 'Connecting...')
-                                    : isWaitingForAck
-                                    ? 'Sending...'
-                                    : chatStore.restriction != null
-                                    ? chatStore.restriction!.describe(null)
-                                    : chatStore.replyingToMessage != null
-                                    ? channelDisplayName != null
-                                          ? 'Reply in ${channelDisplayName!}'
-                                          : 'Reply'
-                                    : hasChatDelay
-                                    ? channelDisplayName != null
-                                          ? 'Chat in ${channelDisplayName!} (${effectiveChatDelay.toInt()}s delay)'
-                                          : 'Chat (${effectiveChatDelay.toInt()}s delay)'
-                                    : channelDisplayName != null
-                                    ? 'Chat in ${channelDisplayName!}'
-                                    : 'Chat',
-                              ),
-                              controller: chatStore.textController,
-                              // Twitch refuses longer messages.
-                              inputFormatters: [
-                                LengthLimitingTextInputFormatter(
-                                  kChatMessageMaxLength,
-                                ),
-                              ],
-                              onSubmitted: chatStore.sendMessage,
-                              onTapOutside: (_) {
-                                chatStore.textFieldFocusNode.unfocus();
-                              },
+                            child: IconButton(
+                              tooltip: 'Enter a message',
+                              onPressed: isDisabled
+                                  ? null
+                                  : () {
+                                      chatStore.expandChat = true;
+                                      chatStore.safeRequestFocus();
+                                    },
+                              icon: const Icon(Icons.edit),
                             ),
                           );
                         },
-                      ),
-                    ),
-                  TextFieldTapRegion(
-                    child: chatStore.showSendButton && inputControls.send
-                        ? Observer(
-                            builder: (context) => IconButton(
-                              tooltip: chatStore.isWaitingForAck
-                                  ? 'Sending...'
-                                  : 'Send',
-                              icon: chatStore.isWaitingForAck
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Icon(Icons.send_rounded),
-                              onPressed:
-                                  chatStore.auth.isLoggedIn &&
-                                      !chatStore.isWaitingForAck &&
-                                      chatStore.isConnected &&
-                                      !(chatStore.restriction?.blocksInput ??
-                                          false)
-                                  ? () => chatStore.sendMessage(
-                                      chatStore.textController.text,
-                                    )
+                      )
+                    else
+                      Expanded(
+                        child: Observer(
+                          builder: (context) {
+                            final isLoggedIn = chatStore.auth.isLoggedIn;
+                            final isWaitingForAck = chatStore.isWaitingForAck;
+                            final isConnected = chatStore.isConnected;
+                            final hasConnected = chatStore.hasConnected;
+                            final locked =
+                                chatStore.restriction?.blocksInput ?? false;
+                            final isEnabled =
+                                isLoggedIn &&
+                                !isWaitingForAck &&
+                                isConnected &&
+                                !locked;
+                            // Inside the pill, as an accent disc, once there
+                            // is something to send (board ChaineTchatOutils).
+                            final sendButton =
+                                chatStore.showSendButton && inputControls.send
+                                ? _SendButton(
+                                    waiting: isWaitingForAck,
+                                    onPressed: isEnabled
+                                        ? () => chatStore.sendMessage(
+                                            chatStore.textController.text,
+                                          )
+                                        : null,
+                                  )
+                                : null;
+
+                            return GestureDetector(
+                              onTap: !isLoggedIn
+                                  ? () {
+                                      chatStore.updateNotification(
+                                        loginTooltipMessage,
+                                      );
+                                    }
                                   : null,
-                            ),
-                          )
-                        : IconButton(
-                            icon: Icon(Icons.adaptive.more_rounded),
-                            tooltip: 'More',
-                            onPressed: () =>
-                                showModalBottomSheetWithProperFocus(
-                                  isScrollControlled: true,
-                                  context: context,
-                                  builder: (_) => ChatDetails(
-                                    chatDetailsStore:
-                                        chatStore.chatDetailsStore,
-                                    chatStore: chatStore,
-                                    userLogin: chatStore.channelName,
-                                    onAddChat: onAddChat,
-                                  ),
+                              child: ExtendedTextField(
+                                textInputAction: TextInputAction.send,
+                                focusNode: chatStore.textFieldFocusNode,
+                                minLines: 1,
+                                maxLines: 3,
+                                enabled: isEnabled,
+                                style: TextStyle(fontSize: large ? 15 : 14),
+                                specialTextSpanBuilder: EmoteTextSpanBuilder(
+                                  emoteToObject:
+                                      chatStore.assetsStore.emoteToObject,
+                                  userEmoteToObject:
+                                      chatStore.assetsStore.userEmoteToObject,
+                                  emoteSize:
+                                      chatStore.settings.emoteScale *
+                                      defaultEmoteSize,
                                 ),
+                                decoration: InputDecoration(
+                                  // The pill is 44 high (48 on a tablet in
+                                  // portrait), the field 40 inside it.
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal:
+                                        chatStore
+                                                .settings
+                                                .emoteMenuButtonOnLeft &&
+                                            emoteMenuButton != null
+                                        ? 4
+                                        : 16,
+                                    // The icons' 44 / 48 dp set the height.
+                                    vertical: 10,
+                                  ),
+                                  prefixIcon:
+                                      chatStore.settings.emoteMenuButtonOnLeft
+                                      ? emoteMenuButton
+                                      : null,
+                                  prefixIconConstraints: BoxConstraints(
+                                    minWidth: large ? 44 : 40,
+                                    minHeight: large ? 48 : 44,
+                                  ),
+                                  suffixIconConstraints: BoxConstraints(
+                                    minHeight: large ? 48 : 44,
+                                  ),
+                                  suffixIcon: Padding(
+                                    padding: const EdgeInsets.only(right: 4),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      spacing: 4,
+                                      children: [
+                                        ChatCharacterCounter(
+                                          controller: chatStore.textController,
+                                        ),
+                                        if (!chatStore
+                                                .settings
+                                                .emoteMenuButtonOnLeft &&
+                                            emoteMenuButton != null)
+                                          emoteMenuButton,
+                                        ?sendButton,
+                                      ],
+                                    ),
+                                  ),
+                                  hintMaxLines: 1,
+                                  hintText: !isLoggedIn
+                                      ? loginTooltipMessage
+                                      : locked
+                                      ? "You can't chat right now"
+                                      : !isConnected
+                                      ? (hasConnected
+                                            ? 'Chat disconnected'
+                                            : 'Connecting...')
+                                      : isWaitingForAck
+                                      ? 'Sending...'
+                                      : chatStore.restriction != null
+                                      ? chatStore.restriction!.describe(null)
+                                      : chatStore.replyingToMessage != null
+                                      ? channelDisplayName != null
+                                            ? 'Reply in ${channelDisplayName!}'
+                                            : 'Reply'
+                                      : hasChatDelay
+                                      ? channelDisplayName != null
+                                            ? 'Chat in ${channelDisplayName!} (${effectiveChatDelay.toInt()}s delay)'
+                                            : 'Chat (${effectiveChatDelay.toInt()}s delay)'
+                                      : channelDisplayName != null
+                                      ? 'Chat in ${channelDisplayName!}'
+                                      : 'Chat',
+                                ),
+                                controller: chatStore.textController,
+                                // Twitch refuses longer messages.
+                                inputFormatters: [
+                                  LengthLimitingTextInputFormatter(
+                                    kChatMessageMaxLength,
+                                  ),
+                                ],
+                                onSubmitted: chatStore.sendMessage,
+                                onTapOutside: (_) {
+                                  chatStore.textFieldFocusNode.unfocus();
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    // Beside the message box, where Twitch puts it.
+                    ChannelPointsButton(
+                      channelId: chatStore.channelId,
+                      large: large,
+                    ),
+                    // The chat's details, always one tap away (approved
+                    // addition next to the points), unless the chat's header
+                    // already has it (a tablet's side chat).
+                    if (!ChatMoreInHeader.of(context))
+                      TextFieldTapRegion(
+                        child: ChatMoreButton(
+                          large: large,
+                          onPressed: () => showModalBottomSheetWithProperFocus(
+                            isScrollControlled: true,
+                            context: context,
+                            builder: (_) => ChatDetails(
+                              chatDetailsStore: chatStore.chatDetailsStore,
+                              chatStore: chatStore,
+                              userLogin: chatStore.channelName,
+                              onAddChat: onAddChat,
+                            ),
                           ),
-                  ),
-                ],
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -498,6 +541,113 @@ class ChatBottomBar extends StatelessWidget {
                 child: bottomBarContent,
               );
       },
+    );
+  }
+}
+
+/// Send, inside the message pill: a 36 dp accent disc (a spinner while
+/// Twitch has not acknowledged the last message).
+class _SendButton extends StatelessWidget {
+  const _SendButton({required this.waiting, required this.onPressed});
+
+  final bool waiting;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = context.frostyColors.live;
+    return IconButton(
+      tooltip: waiting ? 'Sending...' : 'Send',
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+      style: IconButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        backgroundColor: accent,
+        disabledBackgroundColor: accent.withValues(alpha: 0.4),
+      ),
+      onPressed: onPressed,
+      icon: waiting
+          ? const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: FrostyTokens.backgroundDark,
+              ),
+            )
+          : const PlayerGlyph(
+              PlayerGlyphKind.send,
+              color: FrostyTokens.backgroundDark,
+              size: 18,
+              strokeWidth: 2,
+            ),
+    );
+  }
+}
+
+/// "⋯": the chat's details (modes, chatters, rules, reconnect, add chat…),
+/// a 44 dp disc beside the channel points (board ChaineDetailsTchat).
+class ChatMoreButton extends StatelessWidget {
+  const ChatMoreButton({
+    super.key,
+    required this.onPressed,
+    this.large = false,
+  });
+
+  final VoidCallback onPressed;
+  final bool large;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = large ? 48.0 : 44.0;
+    return IconButton(
+      tooltip: 'More',
+      padding: EdgeInsets.zero,
+      constraints: BoxConstraints.tightFor(width: size, height: size),
+      style: IconButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        backgroundColor: context.theme.inputDecorationTheme.fillColor,
+        shape: CircleBorder(
+          side: BorderSide(
+            color: context.frostyColors.hairline,
+            width: FrostyTokens.hairlineWidth,
+          ),
+        ),
+      ),
+      onPressed: onPressed,
+      icon: PlayerGlyph(
+        PlayerGlyphKind.more,
+        color: context.colorScheme.onSurface,
+      ),
+    );
+  }
+}
+
+/// Marks a chat whose header holds the "⋯" (a tablet's side chat, board
+/// Tablette), so the input row does not repeat it.
+class ChatMoreInHeader extends InheritedWidget {
+  const ChatMoreInHeader({super.key, required super.child});
+
+  static bool of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<ChatMoreInHeader>() != null;
+
+  @override
+  bool updateShouldNotify(ChatMoreInHeader oldWidget) => false;
+}
+
+/// Scales [child] down to the width it is given, when [enabled].
+class _ShrinkWhenNarrow extends StatelessWidget {
+  const _ShrinkWhenNarrow({required this.enabled, required this.child});
+
+  final bool enabled;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!enabled) return child;
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: FittedBox(fit: BoxFit.scaleDown, child: child),
     );
   }
 }

@@ -141,7 +141,7 @@ void main() {
       );
 
       expect(find.byIcon(Icons.leaderboard_rounded), findsNothing);
-      expect(find.byIcon(Icons.stars_rounded), findsOneWidget);
+      expect(find.byKey(ChannelPointsButton.genericIconKey), findsOneWidget);
     });
   });
 

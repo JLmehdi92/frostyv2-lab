@@ -35,7 +35,16 @@ class _PointsIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = context.frostyColors.live;
-    final fallback = Icon(Icons.stars_rounded, size: size, color: color);
+    // The boards' generic mark: a ring in the signal colour.
+    final fallback = Container(
+      key: ChannelPointsButton.genericIconKey,
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: color, width: 2),
+      ),
+    );
 
     // 2x: these render small, and the 1x copy Twitch hands back is visibly
     // soft on a 1440p tablet.
@@ -57,7 +66,13 @@ class ChannelPointsButton extends StatelessWidget {
   /// than spending points on the wrong channel.
   final String? channelId;
 
-  const ChannelPointsButton({super.key, this.channelId});
+  /// The tablet-portrait size (48 high instead of 44).
+  final bool large;
+
+  const ChannelPointsButton({super.key, this.channelId, this.large = false});
+
+  /// The generic points mark, when the channel kept Twitch's default.
+  static const genericIconKey = ValueKey('channel-points-generic-icon');
 
   /// Shortens a balance the way Twitch does, so a seven-figure total does not
   /// push the message box off a narrow landscape chat column.
@@ -102,60 +117,87 @@ class ChannelPointsButton extends StatelessWidget {
         final colors = context.frostyColors;
         final prediction = points.activePrediction;
 
+        final balance = points.balance == null
+            ? '—'
+            : compact(points.balance!);
+        final height = large ? 48.0 : 44.0;
+        final shape = StadiumBorder(
+          side: BorderSide(
+            color: colors.hairline,
+            width: FrostyTokens.hairlineWidth,
+          ),
+        );
+
+        // A pill beside the message box (boards Chaine, TablettePortrait).
         return Tooltip(
           message: points.pointsName ?? 'Channel points',
           preferBelow: false,
-          child: InkWell(
-            borderRadius: const BorderRadius.all(
-              Radius.circular(FrostyTokens.radiusPill),
-            ),
-            onTap: () {
-              // Fresh, like Twitch's panel (at most once a minute).
-              unawaited(store.refreshWatchStreak());
-              showModalBottomSheetWithProperFocus(
-                context: context,
-                isScrollControlled: true,
-                // The store goes with it: the sheet is where points are spent,
-                // and it stays live so a redeem's new balance lands without
-                // reopening the panel.
-                builder: (_) =>
-                    ChannelPointsSheet(points: points, store: store),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // The two things worth interrupting for take the icon over,
-                  // rather than adding controls to a bar that already loses its
-                  // message box below 30% of a landscape screen. A chest
-                  // expires in minutes, so it outranks a prediction — and both
-                  // outrank the streamer's artwork, which is decoration.
-                  if (points.hasClaim)
-                    Icon(
-                      Icons.card_giftcard_rounded,
-                      size: 16,
-                      color: colors.live,
-                    )
-                  else if (prediction != null && prediction.isOpen)
-                    Icon(
-                      Icons.leaderboard_rounded,
-                      size: 16,
-                      color: colors.live,
-                    )
-                  else
-                    _PointsIcon(points: points, size: 16),
-                  const SizedBox(width: 5),
-                  Text(
-                    points.balance == null
-                        ? '—'
-                        : compact(points.balance!),
-                    style: context.frostyText.metadata.copyWith(
-                      color: colors.live,
-                    ),
+          child: Semantics(
+            button: true,
+            label: '${points.pointsName ?? 'Channel points'}, $balance',
+            excludeSemantics: true,
+            child: Material(
+              color: context.theme.inputDecorationTheme.fillColor,
+              shape: shape,
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                customBorder: shape,
+                onTap: () {
+                  // Fresh, like Twitch's panel (at most once a minute).
+                  unawaited(store.refreshWatchStreak());
+                  showModalBottomSheetWithProperFocus(
+                    context: context,
+                    isScrollControlled: true,
+                    // The store goes with it: the sheet is where points are
+                    // spent, and it stays live so a redeem's new balance lands
+                    // without reopening the panel.
+                    builder: (_) =>
+                        ChannelPointsSheet(points: points, store: store),
+                  );
+                },
+                child: Container(
+                  height: height,
+                  padding: EdgeInsets.symmetric(horizontal: large ? 14 : 12),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: large ? 7 : 6,
+                    children: [
+                      // The two things worth interrupting for take the icon
+                      // over, rather than adding controls to a bar that
+                      // already loses its message box below 30% of a
+                      // landscape screen. A chest expires in minutes, so it
+                      // outranks a prediction — and both outrank the
+                      // streamer's artwork, which is decoration.
+                      if (points.hasClaim)
+                        Icon(
+                          Icons.card_giftcard_rounded,
+                          size: 16,
+                          color: colors.live,
+                        )
+                      else if (prediction != null && prediction.isOpen)
+                        Icon(
+                          Icons.leaderboard_rounded,
+                          size: 16,
+                          color: colors.live,
+                        )
+                      else
+                        _PointsIcon(points: points, size: 16),
+                      Text(
+                        balance,
+                        maxLines: 1,
+                        style: FrostyType.tabular(
+                          TextStyle(
+                            fontFamily: FrostyTokens.bodyFamily,
+                            fontSize: large ? 14 : 13,
+                            fontWeight: FontWeight.w600,
+                            height: 1,
+                            color: context.colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),

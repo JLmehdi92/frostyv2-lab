@@ -18,37 +18,8 @@ class ChatTabs extends StatelessWidget {
 
   const ChatTabs({super.key, required this.chatTabsStore, this.listPadding});
 
-  Future<void> _handleAddChat(BuildContext context) async {
-    if (!chatTabsStore.canAddTab) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Maximum 10 chats open'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
-
-    final result = await AddChatSheet.show(context, chatTabsStore.twitchApi);
-
-    if (result != null) {
-      final added = chatTabsStore.addTab(
-        channelId: result.channelId,
-        channelLogin: result.channelLogin,
-        displayName: result.displayName,
-      );
-
-      if (!added && context.mounted) {
-        // If not added, it means the channel already exists (switched to it)
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Channel already open, switched to it'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    }
-  }
+  Future<void> _handleAddChat(BuildContext context) =>
+      addChatTab(context, chatTabsStore);
 
   @override
   Widget build(BuildContext context) {
@@ -285,5 +256,41 @@ class ChatTabs extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+/// "Add chat": picks a channel and opens its chat in a new tab (at most 10).
+Future<void> addChatTab(
+  BuildContext context,
+  ChatTabsStore chatTabsStore,
+) async {
+  if (!chatTabsStore.canAddTab) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Maximum 10 chats open'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+    return;
+  }
+
+  final result = await AddChatSheet.show(context, chatTabsStore.twitchApi);
+
+  if (result != null) {
+    final added = chatTabsStore.addTab(
+      channelId: result.channelId,
+      channelLogin: result.channelLogin,
+      displayName: result.displayName,
+    );
+
+    if (!added && context.mounted) {
+      // If not added, it means the channel already exists (switched to it)
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Channel already open, switched to it'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 }
