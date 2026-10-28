@@ -318,6 +318,8 @@ void main() {
 
     expect(find.text('Something went wrong loading streams'), findsOneWidget);
     expect(find.text('Followed videos'), findsOneWidget);
+    // What loads on its own stays.
+    expect(find.text('Continue watching'), findsOneWidget);
     expect(find.text('Try again'), findsOneWidget);
 
     failure = null;

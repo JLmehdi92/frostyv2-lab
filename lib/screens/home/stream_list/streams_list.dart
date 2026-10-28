@@ -35,15 +35,6 @@ import 'package:frosty/widgets/scroll_to_top_button.dart';
 import 'package:frosty/widgets/skeleton_loader.dart';
 import 'package:provider/provider.dart';
 
-/// [T] from the widget tree, or null when nothing provides it.
-T? _maybeRead<T>(BuildContext context) {
-  try {
-    return context.read<T>();
-  } on ProviderNotFoundException {
-    return null;
-  }
-}
-
 /// A widget that displays a list of followed or top streams based on the
 /// provided [listType]. For a widget that displays the top streams under a
 /// category, refer to [CategoryStreams].
@@ -133,7 +124,7 @@ class _StreamsListState extends State<StreamsList>
     );
 
     if (_following) {
-      final vods = _maybeRead<TwitchVodService>(context);
+      final vods = context.read<TwitchVodService?>();
       if (vods != null) {
         _continueWatching = ContinueWatchingStore(vodService: vods);
         unawaited(_continueWatching!.load());
@@ -252,36 +243,34 @@ class _StreamsListState extends State<StreamsList>
     }
 
     if (status != null) {
-      final followedExtras = _following && error == null;
       return _staggered(
         'status',
         CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverTopPadding(extraTopPadding: _extraTopPadding),
-            // Past videos are worth a look most when nobody is live (and
-            // they stay reachable offline).
+            // Past videos, videos to resume and the followed categories are
+            // worth a look most when nobody is live, and they load on their
+            // own: they stay when the live list failed.
             if (_following) ...[
               const SliverToBoxAdapter(
                 child: StaggeredEntrance(index: 0, child: FollowedVideosTile()),
               ),
-              if (followedExtras) ...[
-                if (_continueWatching case final shelf?)
-                  SliverToBoxAdapter(
-                    child: StaggeredEntrance(
-                      index: 1,
-                      child: ContinueWatchingShelf(store: shelf),
-                    ),
-                  ),
+              if (_continueWatching case final shelf?)
                 SliverToBoxAdapter(
                   child: StaggeredEntrance(
-                    index: 2,
-                    child: FollowedCategoriesSection(
-                      categories: _listStore.followedCategories,
-                    ),
+                    index: 1,
+                    child: ContinueWatchingShelf(store: shelf),
                   ),
                 ),
-              ],
+              SliverToBoxAdapter(
+                child: StaggeredEntrance(
+                  index: 2,
+                  child: FollowedCategoriesSection(
+                    categories: _listStore.followedCategories,
+                  ),
+                ),
+              ),
             ],
             SliverFillRemaining(
               hasScrollBody: false,
