@@ -51,22 +51,12 @@ class _RollingNumberState extends State<RollingNumber>
     _controller.duration = widget.duration;
     if (oldWidget.text == widget.text) return;
     _from = oldWidget.text;
-    _up = _grows(oldWidget.text, widget.text);
+    _up = rollsUp(oldWidget.text, widget.text);
     if (reduceMotionOf(context)) {
       _controller.value = 1;
     } else {
       _controller.forward(from: 0);
     }
-  }
-
-  /// Whether going from [from] to [to] is an increase. Separators and units
-  /// are ignored; anything unreadable rolls up.
-  static bool _grows(String from, String to) {
-    num? read(String s) => num.tryParse(s.replaceAll(RegExp(r'[^0-9.\-]'), ''));
-    final a = read(from);
-    final b = read(to);
-    if (a == null || b == null) return true;
-    return b >= a;
   }
 
   @override
@@ -164,4 +154,53 @@ class _RollingPlace extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Whether a count going from [from] to [to] grows, so its digits roll up.
+/// Reads compact units (1.2K, 3M) and both grouping styles ("1,000",
+/// "1.000", "12 418", "12,4 k"); anything unreadable rolls up.
+@visibleForTesting
+bool rollsUp(String from, String to) {
+  final a = _readCount(from);
+  final b = _readCount(to);
+  if (a == null || b == null) return true;
+  return b >= a;
+}
+
+double? _readCount(String text) {
+  final match = RegExp(
+    "(-?\\d[\\d.,\\s\u00a0\u202f']*)\\s*([kKmMbB]?)",
+  ).firstMatch(text);
+  if (match == null) return null;
+  var number = match.group(1)!.replaceAll(RegExp("[\\s\u00a0\u202f']"), '');
+  final unit = match.group(2)!.toLowerCase();
+
+  // With both separators, the last one is the decimal point. With one kind,
+  // it is a decimal point only if it appears once and is not followed by
+  // exactly three digits ("1.000" is a thousand; "1.2K" is not).
+  final lastDot = number.lastIndexOf('.');
+  final lastComma = number.lastIndexOf(',');
+  String? decimal;
+  if (lastDot >= 0 && lastComma >= 0) {
+    decimal = lastDot > lastComma ? '.' : ',';
+  } else if (lastDot >= 0 || lastComma >= 0) {
+    final separator = lastDot >= 0 ? '.' : ',';
+    final count = separator.allMatches(number).length;
+    final after = number.length - number.lastIndexOf(separator) - 1;
+    if (count == 1 && (after != 3 || unit.isNotEmpty)) decimal = separator;
+  }
+  for (final separator in const ['.', ',']) {
+    if (separator != decimal) number = number.replaceAll(separator, '');
+  }
+  if (decimal == ',') number = number.replaceAll(',', '.');
+
+  final value = double.tryParse(number);
+  if (value == null) return null;
+  return value *
+      switch (unit) {
+        'k' => 1e3,
+        'm' => 1e6,
+        'b' => 1e9,
+        _ => 1,
+      };
 }

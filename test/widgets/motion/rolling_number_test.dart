@@ -72,6 +72,30 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  group('reads the direction off formatted numbers', () {
+    for (final (from, to, grows) in [
+      ('999', '1K', true),
+      ('1.2K', '999', false),
+      ('12.4K', '1,000', false),
+      ('1.000', '999', false), // "." grouping (de, it)
+      ('999', '1.000', true),
+      ('12,4 k', '12,5 k', true), // "," decimal (fr)
+      ('9.9', '10', true),
+      ('1.5M', '900K', false),
+      ('12 418', '12 431', true),
+      ('2,1 k', '980', false),
+    ]) {
+      test('$from → $to rolls ${grows ? 'up' : 'down'}', () {
+        expect(rollsUp(from, to), grows);
+      });
+    }
+
+    test('anything unreadable rolls up', () {
+      expect(rollsUp('—', '12'), isTrue);
+      expect(rollsUp('12', 'n/a'), isTrue);
+    });
+  });
+
   testWidgets('keeps its width while rolling (tabular figures)', (
     tester,
   ) async {
