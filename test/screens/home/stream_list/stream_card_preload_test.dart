@@ -7,6 +7,7 @@ import 'package:frosty/screens/home/stream_list/stream_card.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/services/playback_preloader.dart';
 import 'package:frosty/theme.dart';
+import 'package:frosty/widgets/motion/press_scale.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 
@@ -62,6 +63,39 @@ void main() {
       await gesture.cancel();
 
       verify(() => service.preload('login')).called(1);
+    });
+
+    testWidgets('a $name sinks as soon as the finger is down', (tester) async {
+      await tester.pumpWidget(
+        Provider<SettingsStore>.value(
+          value: SettingsStore.fromJson({}),
+          child: MaterialApp(
+            theme: ThemeData(extensions: const [FrostyColors.light]),
+            home: Scaffold(body: SingleChildScrollView(child: card)),
+          ),
+        ),
+      );
+      double scale() => tester
+          .widget<ScaleTransition>(
+            find.descendant(
+              of: find.byType(PressScale),
+              matching: find.byType(ScaleTransition),
+            ),
+          )
+          .scale
+          .value;
+
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.text('Title').first),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(scale(), closeTo(0.97, 0.001));
+      await gesture.cancel();
+      // The live dot and the thumbnail skeleton loop: no pumpAndSettle.
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(scale(), closeTo(1, 0.001));
     });
   }
 }

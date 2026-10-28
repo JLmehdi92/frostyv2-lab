@@ -16,6 +16,7 @@ import 'package:frosty/utils.dart';
 import 'package:frosty/utils/image_size.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
+import 'package:frosty/widgets/motion/press_scale.dart';
 import 'package:frosty/widgets/skeleton_loader.dart';
 import 'package:frosty/widgets/user_actions_modal.dart';
 import 'package:provider/provider.dart';
@@ -104,61 +105,64 @@ class LargeStreamCard extends StatelessWidget {
       streamInfo.userLogin,
     );
 
-    return InkWell(
-      // The finger is down: get the stream's token while the page opens.
-      onTapDown: (_) => PlaybackPreloader.instance.preload(
-        login: streamInfo.userLogin,
-        engine: context.read<SettingsStore>().playerEngine,
-        authToken: context.read<AuthStore?>()?.twitchWebToken,
-      ),
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          settings: const RouteSettings(name: VideoChat.routeName),
-          builder: (context) => VideoChat(
-            userId: streamInfo.userId,
-            userName: streamInfo.userName,
-            userLogin: streamInfo.userLogin,
-          ),
+    // The card sinks as soon as the finger is down (design system press).
+    return PressScale(
+      child: InkWell(
+        // The finger is down: get the stream's token while the page opens.
+        onTapDown: (_) => PlaybackPreloader.instance.preload(
+          login: streamInfo.userLogin,
+          engine: context.read<SettingsStore>().playerEngine,
+          authToken: context.read<AuthStore?>()?.twitchWebToken,
         ),
-      ),
-      onLongPress: () {
-        HapticFeedback.mediumImpact();
-
-        showModalBottomSheetWithProperFocus(
-          context: context,
-          builder: (context) => UserActionsModal(
-            authStore: context.read<AuthStore>(),
-            name: streamerName,
-            userLogin: streamInfo.userLogin,
-            userId: streamInfo.userId,
-            showPinOption: showPinOption,
-            isPinned: isPinned,
-          ),
-        );
-      },
-      child: Padding(
-        padding: EdgeInsets.only(
-          top: showThumbnail ? 12 : 4,
-          bottom: showThumbnail ? 12 : 4,
-          left: 16 + MediaQuery.of(context).padding.left,
-          right: 16 + MediaQuery.of(context).padding.right,
-        ),
-        child: Column(
-          children: [
-            if (showThumbnail) thumbnail,
-            StreamInfoBar(
-              streamInfo: streamInfo,
-              showCategory: showCategory,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              tooltipTriggerMode: TooltipTriggerMode.longPress,
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            settings: const RouteSettings(name: VideoChat.routeName),
+            builder: (context) => VideoChat(
+              userId: streamInfo.userId,
+              userName: streamInfo.userName,
+              userLogin: streamInfo.userLogin,
             ),
-            if (watchStreak case final streak?)
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: WatchStreakTag(value: streak),
+          ),
+        ),
+        onLongPress: () {
+          HapticFeedback.mediumImpact();
+
+          showModalBottomSheetWithProperFocus(
+            context: context,
+            builder: (context) => UserActionsModal(
+              authStore: context.read<AuthStore>(),
+              name: streamerName,
+              userLogin: streamInfo.userLogin,
+              userId: streamInfo.userId,
+              showPinOption: showPinOption,
+              isPinned: isPinned,
+            ),
+          );
+        },
+        child: Padding(
+          padding: EdgeInsets.only(
+            top: showThumbnail ? 12 : 4,
+            bottom: showThumbnail ? 12 : 4,
+            left: 16 + MediaQuery.of(context).padding.left,
+            right: 16 + MediaQuery.of(context).padding.right,
+          ),
+          child: Column(
+            children: [
+              if (showThumbnail) thumbnail,
+              StreamInfoBar(
+                streamInfo: streamInfo,
+                showCategory: showCategory,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                tooltipTriggerMode: TooltipTriggerMode.longPress,
               ),
-          ],
+              if (watchStreak case final streak?)
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: WatchStreakTag(value: streak),
+                ),
+            ],
+          ),
         ),
       ),
     );

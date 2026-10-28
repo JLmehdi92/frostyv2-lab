@@ -21,6 +21,7 @@ import 'package:frosty/utils/image_size.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
 import 'package:frosty/widgets/frosty_photo_view_dialog.dart';
+import 'package:frosty/widgets/motion/press_scale.dart';
 import 'package:frosty/widgets/profile_picture.dart';
 import 'package:frosty/widgets/skeleton_loader.dart';
 import 'package:frosty/widgets/uptime.dart';
@@ -256,55 +257,58 @@ class StreamCard extends StatelessWidget {
       ),
     );
 
-    return InkWell(
-      // The finger is down: get the stream's token while the page opens.
-      onTapDown: (_) => PlaybackPreloader.instance.preload(
-        login: streamInfo.userLogin,
-        engine: context.read<SettingsStore>().playerEngine,
-        authToken: context.read<AuthStore?>()?.twitchWebToken,
-      ),
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          settings: const RouteSettings(name: VideoChat.routeName),
-          builder: (context) => VideoChat(
-            userId: streamInfo.userId,
-            userName: streamInfo.userName,
-            userLogin: streamInfo.userLogin,
+    // The card sinks as soon as the finger is down (design system press).
+    return PressScale(
+      child: InkWell(
+        // The finger is down: get the stream's token while the page opens.
+        onTapDown: (_) => PlaybackPreloader.instance.preload(
+          login: streamInfo.userLogin,
+          engine: context.read<SettingsStore>().playerEngine,
+          authToken: context.read<AuthStore?>()?.twitchWebToken,
+        ),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            settings: const RouteSettings(name: VideoChat.routeName),
+            builder: (context) => VideoChat(
+              userId: streamInfo.userId,
+              userName: streamInfo.userName,
+              userLogin: streamInfo.userLogin,
+            ),
           ),
         ),
-      ),
-      onLongPress: () {
-        HapticFeedback.mediumImpact();
+        onLongPress: () {
+          HapticFeedback.mediumImpact();
 
-        showModalBottomSheetWithProperFocus(
-          context: context,
-          builder: (context) => UserActionsModal(
-            authStore: context.read<AuthStore>(),
-            name: streamerName,
-            userLogin: streamInfo.userLogin,
-            userId: streamInfo.userId,
-            showPinOption: showPinOption,
-            isPinned: isPinned,
+          showModalBottomSheetWithProperFocus(
+            context: context,
+            builder: (context) => UserActionsModal(
+              authStore: context.read<AuthStore>(),
+              name: streamerName,
+              userLogin: streamInfo.userLogin,
+              userId: streamInfo.userId,
+              showPinOption: showPinOption,
+              isPinned: isPinned,
+            ),
+          );
+        },
+        child: Padding(
+          padding: EdgeInsets.only(
+            top: 8,
+            bottom: 8,
+            left: showThumbnail
+                ? 16 + MediaQuery.of(context).padding.left
+                : 4 + MediaQuery.of(context).padding.left,
+            right: showThumbnail
+                ? 16 + MediaQuery.of(context).padding.right
+                : 4 + MediaQuery.of(context).padding.right,
           ),
-        );
-      },
-      child: Padding(
-        padding: EdgeInsets.only(
-          top: 8,
-          bottom: 8,
-          left: showThumbnail
-              ? 16 + MediaQuery.of(context).padding.left
-              : 4 + MediaQuery.of(context).padding.left,
-          right: showThumbnail
-              ? 16 + MediaQuery.of(context).padding.right
-              : 4 + MediaQuery.of(context).padding.right,
-        ),
-        child: Row(
-          children: [
-            if (showThumbnail) Flexible(child: imageSection),
-            Flexible(flex: 2, child: streamInfoSection),
-          ],
+          child: Row(
+            children: [
+              if (showThumbnail) Flexible(child: imageSection),
+              Flexible(flex: 2, child: streamInfoSection),
+            ],
+          ),
         ),
       ),
     );

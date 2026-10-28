@@ -7,6 +7,7 @@ import 'package:frosty/theme.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
+import 'package:frosty/widgets/motion/press_scale.dart';
 import 'package:frosty/widgets/profile_picture.dart';
 import 'package:frosty/widgets/user_actions_modal.dart';
 import 'package:provider/provider.dart';
@@ -55,70 +56,73 @@ class OfflineChannelCard extends StatelessWidget {
           'Following for ${followedDuration.inMinutes} ${followedDuration.inMinutes == 1 ? 'minute' : 'minutes'}';
     }
 
-    return InkWell(
-      // Offline: the profile, like Twitch (its Chat button opens the chat).
-      onTap: () => ChannelProfileScreen.open(
-        context,
-        login: channelInfo.broadcasterLogin,
-        userId: channelInfo.broadcasterId,
-        displayName: channelName,
-      ),
-      onLongPress: () {
-        HapticFeedback.mediumImpact();
-
-        showModalBottomSheetWithProperFocus(
-          context: context,
-          builder: (context) => UserActionsModal(
-            authStore: context.read<AuthStore>(),
-            name: channelName,
-            userLogin: channelInfo.broadcasterLogin,
-            userId: channelInfo.broadcasterId,
-            showPinOption: showPinOption,
-            isPinned: isPinned,
-          ),
-        );
-      },
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          16 + MediaQuery.of(context).padding.left,
-          8,
-          16 + MediaQuery.of(context).padding.right,
-          8,
+    // The card sinks as soon as the finger is down (design system press).
+    return PressScale(
+      child: InkWell(
+        // Offline: the profile, like Twitch (its Chat button opens the chat).
+        onTap: () => ChannelProfileScreen.open(
+          context,
+          login: channelInfo.broadcasterLogin,
+          userId: channelInfo.broadcasterId,
+          displayName: channelName,
         ),
-        child: Row(
-          spacing: 12,
-          children: [
-            // Profile picture
-            ProfilePicture(userLogin: channelInfo.broadcasterLogin),
-            // Channel info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Channel name
-                  Text(
-                    channelName,
-                    style: TextStyle(
-                      fontFamily: FrostyTokens.displayFamily,
-                      fontWeight: FrostyTokens.displayWeight(600),
-                      fontSize: 16,
-                      letterSpacing: -0.011,
-                      color: fontColor,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  // Status and follow duration
-                  Text(
-                    showOfflineStatus ? 'Offline' : followedText,
-                    // followedText porte une duree ("Following for 3 years"),
-                    // donc chasse fixe comme tous les autres nombres.
-                    style: context.frostyText.metadata,
-                  ),
-                ],
-              ),
+        onLongPress: () {
+          HapticFeedback.mediumImpact();
+
+          showModalBottomSheetWithProperFocus(
+            context: context,
+            builder: (context) => UserActionsModal(
+              authStore: context.read<AuthStore>(),
+              name: channelName,
+              userLogin: channelInfo.broadcasterLogin,
+              userId: channelInfo.broadcasterId,
+              showPinOption: showPinOption,
+              isPinned: isPinned,
             ),
-          ],
+          );
+        },
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            16 + MediaQuery.of(context).padding.left,
+            8,
+            16 + MediaQuery.of(context).padding.right,
+            8,
+          ),
+          child: Row(
+            spacing: 12,
+            children: [
+              // Profile picture
+              ProfilePicture(userLogin: channelInfo.broadcasterLogin),
+              // Channel info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Channel name
+                    Text(
+                      channelName,
+                      style: TextStyle(
+                        fontFamily: FrostyTokens.displayFamily,
+                        fontWeight: FrostyTokens.displayWeight(600),
+                        fontSize: 16,
+                        letterSpacing: -0.011,
+                        color: fontColor,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    // Status and follow duration
+                    Text(
+                      showOfflineStatus ? 'Offline' : followedText,
+                      // followedText porte une duree ("Following for 3 years"),
+                      // donc chasse fixe comme tous les autres nombres.
+                      style: context.frostyText.metadata,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
