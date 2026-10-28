@@ -613,6 +613,50 @@ void main() {
       await close(tester);
     });
 
+    testWidgets('a player opening over the feed keeps the events it took', (
+      tester,
+    ) async {
+      final platform = pipPlatform(tester);
+      await pump(tester);
+      await tester.tap(find.text('Clips'));
+      await tester.pumpAndSettle();
+      final player = MockIvsVideoStore();
+      when(player.dispose).thenAnswer((_) async {});
+      final chat = MockChatTabsStore();
+      when(chat.dispose).thenReturn(null);
+      mini.adopt(
+        player: player,
+        chatTabsStore: chat,
+        userLogin: 'a',
+        userId: '1',
+        displayName: 'A',
+      );
+      await tester.pump();
+
+      // The mini window restored into its channel, in one frame: the
+      // channel claims focus, its PipWidget takes the events, the mini
+      // window hides.
+      final channelScreen = Object();
+      var channelPip = 0;
+      PlaybackFocus.shared
+        ..register(channelScreen, onLost: () {}, onRegained: () {})
+        ..claim(channelScreen);
+      SimplePip(onPipEntered: () => channelPip++);
+      mini.close();
+      await tester.pump();
+      await tester.pump();
+
+      await platform('onPipEntered');
+      await tester.pump();
+      // The channel's PiP, not the feed's.
+      expect(channelPip, 1);
+      expect(chrome(), findsOneWidget);
+      PlaybackFocus.shared.release(channelScreen);
+      await tester.pump();
+      await tester.pump();
+      await close(tester);
+    });
+
     testWidgets('leaving the clips while in PiP brings the chrome back', (
       tester,
     ) async {

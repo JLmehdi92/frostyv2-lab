@@ -123,7 +123,12 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
       if (visible) return;
       WidgetsBinding.instance
         ..addPostFrameCallback((_) {
-          if (mounted && !_miniPlayer.visible) reclaimPipCallbacks(_pipKey);
+          // Only while the feed is the player on top: the mini window also
+          // hides when it is restored into its channel, or when a VOD or
+          // clip opens, and the PiP events are then that screen's.
+          if (mounted && !_miniPlayer.visible && _hasFocus) {
+            reclaimPipCallbacks(_pipKey);
+          }
         })
         ..ensureVisualUpdate();
     });
@@ -213,7 +218,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
       }
       // The screen above had its own PipWidget, which took the plugin's
       // single handler: the PiP events must come here again.
-      if (!_miniPlayer.visible) reclaimPipCallbacks(_pipKey);
+      if (!_miniPlayer.visible && _hasFocus) reclaimPipCallbacks(_pipKey);
       _playingBeforeFocusLoss = false;
       if (_settings.keepScreenAwake) WakelockPlus.enable();
     });
