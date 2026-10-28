@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/main.dart' show navigatorKey;
@@ -25,9 +27,6 @@ class GlobalMiniPlayer extends StatefulWidget {
 
 class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
     with SingleTickerProviderStateMixin {
-  static const _margin = 12.0;
-  static const _widthFraction = 0.42;
-
   final ValueNotifier<Offset?> _offset = ValueNotifier(null);
 
   late final AnimationController _snapController = AnimationController(
@@ -71,17 +70,12 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
         final player = store.player;
         if (!store.visible || player == null) return const SizedBox.shrink();
 
-        final media = MediaQuery.of(context);
-        final screen = media.size;
-        final width = screen.width * _widthFraction;
-        final height = width * 9 / 16;
-        final topBound = media.padding.top + _margin;
-        final defaultOffset = Offset(screen.width - width - _margin, topBound);
-
-        Offset clampToScreen(Offset o) => Offset(
-          o.dx.clamp(_margin, screen.width - width - _margin),
-          o.dy.clamp(topBound, screen.height - height - _margin),
+        final area = MiniWindowArea.of(
+          MediaQuery.of(context),
+          chrome: store.shellChrome,
         );
+        final width = area.window.width;
+        final height = area.window.height;
 
         // Built once per Observer build — NOT rebuilt while dragging.
         final content = SizedBox(
@@ -113,20 +107,12 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
                       onTap: () => _restore(store),
                       onPanDown: (_) => _snapController.stop(),
                       onPanUpdate: (details) {
-                        _offset.value = clampToScreen(
-                          (_offset.value ?? defaultOffset) + details.delta,
+                        _offset.value = area.clamp(
+                          (_offset.value ?? area.initial) + details.delta,
                         );
                       },
                       onPanEnd: (_) {
-                        _animateTo(
-                          _snapToCorner(
-                            _offset.value ?? defaultOffset,
-                            screen,
-                            width,
-                            height,
-                            topBound,
-                          ),
-                        );
+                        _animateTo(area.snap(_offset.value ?? area.initial));
                       },
                     ),
                   ),
@@ -154,8 +140,10 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
             ValueListenableBuilder<Offset?>(
               valueListenable: _offset,
               builder: (context, offset, child) {
+                // Kept inside when the chrome changes (another section,
+                // another page): a corner stays a corner.
                 return Transform.translate(
-                  offset: offset ?? defaultOffset,
+                  offset: area.clamp(offset ?? area.initial),
                   child: child,
                 );
               },
@@ -181,22 +169,6 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
     );
   }
 
-  /// Snaps the window to whichever corner it is closest to.
-  Offset _snapToCorner(
-    Offset current,
-    Size screen,
-    double w,
-    double h,
-    double topBound,
-  ) {
-    final toLeft = current.dx + w / 2 < screen.width / 2;
-    final toTop = current.dy + h / 2 < screen.height / 2;
-    return Offset(
-      toLeft ? _margin : screen.width - w - _margin,
-      toTop ? topBound : screen.height - h - _margin,
-    );
-  }
-
   void _restore(MiniPlayerStore store) {
     final login = store.userLogin;
     final userId = store.userId;
@@ -211,5 +183,69 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
             VideoChat(userId: userId, userName: name, userLogin: login),
       ),
     );
+  }
+}
+
+/// Where the mini window may sit: [margin] from the screen's sides, under
+/// the header and above the bottom bar ([chrome], from the navigation
+/// shell), or under a standard app bar on any other page.
+@immutable
+class MiniWindowArea {
+  static const margin = 12.0;
+  static const widthFraction = 0.42;
+
+  final Size screen;
+  final Size window;
+
+  /// The range of the window's top edge.
+  final double top;
+  final double bottom;
+
+  const MiniWindowArea._({
+    required this.screen,
+    required this.window,
+    required this.top,
+    required this.bottom,
+  });
+
+  factory MiniWindowArea.of(MediaQueryData media, {EdgeInsets? chrome}) {
+    final screen = media.size;
+    final width = screen.width * widthFraction;
+    final window = Size(width, width * 9 / 16);
+    final cover =
+        chrome ??
+        EdgeInsets.only(
+          top: media.padding.top + kToolbarHeight,
+          bottom: media.padding.bottom,
+        );
+    final top = cover.top + margin;
+    // A screen too short for both: the header wins, the window may then
+    // touch the bar.
+    final bottom = math.max(
+      top,
+      screen.height - window.height - cover.bottom - margin,
+    );
+    return MiniWindowArea._(
+      screen: screen,
+      window: window,
+      top: top,
+      bottom: bottom,
+    );
+  }
+
+  double get _left => margin;
+  double get _right => math.max(margin, screen.width - window.width - margin);
+
+  /// The top-right corner, where the window first shows.
+  Offset get initial => Offset(_right, top);
+
+  Offset clamp(Offset offset) =>
+      Offset(offset.dx.clamp(_left, _right), offset.dy.clamp(top, bottom));
+
+  /// The corner nearest to [offset].
+  Offset snap(Offset offset) {
+    final toLeft = offset.dx + window.width / 2 < screen.width / 2;
+    final toTop = offset.dy + window.height / 2 < screen.height / 2;
+    return Offset(toLeft ? _left : _right, toTop ? top : bottom);
   }
 }

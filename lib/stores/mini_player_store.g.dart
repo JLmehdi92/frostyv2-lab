@@ -89,6 +89,26 @@ mixin _$MiniPlayerStore on MiniPlayerStoreBase, Store {
     });
   }
 
+  late final _$_shellChromeAtom = Atom(
+    name: 'MiniPlayerStoreBase._shellChrome',
+    context: context,
+  );
+
+  EdgeInsets? get shellChrome {
+    _$_shellChromeAtom.reportRead();
+    return super._shellChrome;
+  }
+
+  @override
+  EdgeInsets? get _shellChrome => shellChrome;
+
+  @override
+  set _shellChrome(EdgeInsets? value) {
+    _$_shellChromeAtom.reportWrite(value, super._shellChrome, () {
+      super._shellChrome = value;
+    });
+  }
+
   late final _$_playerAtom = Atom(
     name: 'MiniPlayerStoreBase._player',
     context: context,
@@ -133,6 +153,18 @@ mixin _$MiniPlayerStore on MiniPlayerStoreBase, Store {
     name: 'MiniPlayerStoreBase',
     context: context,
   );
+
+  @override
+  void setShellChrome(EdgeInsets? insets) {
+    final _$actionInfo = _$MiniPlayerStoreBaseActionController.startAction(
+      name: 'MiniPlayerStoreBase.setShellChrome',
+    );
+    try {
+      return super.setShellChrome(insets);
+    } finally {
+      _$MiniPlayerStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
 
   @override
   void adopt({

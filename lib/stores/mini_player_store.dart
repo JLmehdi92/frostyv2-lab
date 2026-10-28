@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/painting.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:frosty/screens/channel/video/live_progress.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
@@ -28,6 +29,17 @@ abstract class MiniPlayerStoreBase with Store {
 
   @readonly
   String? _displayName;
+
+  /// What the navigation shell's chrome covers from the top and bottom of
+  /// the screen while the shell is the page on screen (null otherwise): the
+  /// window keeps its corners inside, under the header and above the bar.
+  @readonly
+  EdgeInsets? _shellChrome;
+
+  @action
+  void setShellChrome(EdgeInsets? insets) {
+    if (insets != _shellChrome) _shellChrome = insets;
+  }
 
   /// The live player powering the mini window (adopted from the channel).
   @readonly
