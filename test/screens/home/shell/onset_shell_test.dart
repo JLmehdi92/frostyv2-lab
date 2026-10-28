@@ -532,11 +532,79 @@ void main() {
       expect(tabs.duration, Duration.zero);
     });
 
-    testWidgets('the light theme draws without errors', (tester) async {
+    testWidgets('the light theme: its own colours, dark lime for active', (
+      tester,
+    ) async {
       final h = _Harness();
       await h.pump(tester, mode: ThemeMode.light);
       expect(tester.takeException(), isNull);
-      expect(_textColor(tester, 'Home'), const Color(0xFF6B9E00));
+      // The light theme's live colour (lime is unreadable on white).
+      const live = Color(0xFF6B9E00);
+      expect(_textColor(tester, 'Home'), live);
+      expect(_textColor(tester, 'Browse'), const Color(0xFF6B6B6B));
+      final home = tester.widget<AnimatedContainer>(_nav(ShellSection.home));
+      expect(
+        (home.decoration! as BoxDecoration).color,
+        live.withValues(alpha: 0.13),
+      );
+      // The glass: the light ground at 78 %, a white bar at 86 %.
+      final header = tester.widget<DecoratedBox>(
+        find
+            .descendant(
+              of: find.byType(BackdropFilter).first,
+              matching: find.byType(DecoratedBox),
+            )
+            .first,
+      );
+      expect(
+        (header.decoration as BoxDecoration).color,
+        FrostyTokens.backgroundLight.withValues(alpha: 0.78),
+      );
+      final bar = tester.widget<DecoratedBox>(
+        find
+            .descendant(
+              of: find.byType(BackdropFilter).last,
+              matching: find.byType(DecoratedBox),
+            )
+            .first,
+      );
+      expect((bar.decoration as BoxDecoration).color, const Color(0xDBFFFFFF));
+      // Tabs: dark active, grey idle; the underline in the light live.
+      expect(
+        _textColor(tester, 'Following'),
+        isNot(FrostyTokens.textPrimaryDark),
+      );
+      expect(_textColor(tester, 'Live'), const Color(0xFF6B6B6B));
+      final line = tester.widget<DecoratedBox>(
+        find.descendant(
+          of: find.byKey(const ValueKey('tab-indicator')),
+          matching: find.byType(DecoratedBox),
+        ),
+      );
+      expect((line.decoration as BoxDecoration).color, live);
+    });
+
+    testWidgets('the light tablet bar: a dark pill item, dark lime badge', (
+      tester,
+    ) async {
+      final h = _Harness();
+      await h.pump(tester, size: _tablet, mode: ThemeMode.light);
+      runInAction(() => h.badge.value = 2);
+      await tester.pump();
+      final home = tester.widget<AnimatedContainer>(_nav(ShellSection.home));
+      expect(
+        (home.decoration! as BoxDecoration).color,
+        FrostyTokens.backgroundDark,
+      );
+      expect(_textColor(tester, 'Home'), FrostyTokens.textPrimaryDark);
+      final badge = tester.widget<Container>(
+        find.byKey(const ValueKey('activity-badge')),
+      );
+      expect(
+        (badge.decoration! as BoxDecoration).color,
+        const Color(0xFF6B9E00),
+      );
+      expect(tester.takeException(), isNull);
     });
   });
 

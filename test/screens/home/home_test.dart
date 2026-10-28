@@ -3,9 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_clip_service.dart';
+import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/models/category.dart';
 import 'package:frosty/models/clip.dart';
+import 'package:frosty/models/followed_channel.dart';
 import 'package:frosty/models/stream.dart';
+import 'package:frosty/models/user.dart';
 import 'package:frosty/screens/activity/activity_screen.dart';
 import 'package:frosty/screens/activity/stores/activity_store.dart';
 import 'package:frosty/screens/clips/clips_feed_screen.dart';
@@ -17,11 +20,15 @@ import 'package:frosty/screens/home/top/categories/categories.dart';
 import 'package:frosty/screens/settings/settings.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/settings/stores/user_store.dart';
+import 'package:frosty/screens/whispers/whispers_screen.dart';
 import 'package:frosty/services/notifications/activity_log.dart';
 import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/stores/whisper_store.dart';
 import 'package:frosty/theme.dart';
+import 'package:frosty/widgets/profile_picture.dart';
+import 'package:mobx/mobx.dart' show Observable, ObservableList, runInAction;
 import 'package:mocktail/mocktail.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -31,9 +38,31 @@ class MockTwitchApi extends Mock implements TwitchApi {}
 
 class MockClipService extends Mock implements TwitchClipService {}
 
+class MockHypeTrainService extends Mock implements TwitchHypeTrainService {}
+
+class MockUserStore extends Mock implements UserStore {}
+
 class FakeAuthStore extends Mock implements AuthStore {
+  FakeAuthStore({bool loggedIn = false}) : _loggedIn = Observable(loggedIn) {
+    when(
+      () => _user.details,
+    ).thenReturn(const UserTwitch('1', 'viewer', 'Viewer', ''));
+    when(() => _user.blockedUsers).thenReturn(ObservableList());
+  }
+
+  final Observable<bool> _loggedIn;
+  final _user = MockUserStore();
+
   @override
-  bool get isLoggedIn => false;
+  bool get isLoggedIn => _loggedIn.value;
+
+  @override
+  UserStore get user => _user;
+
+  @override
+  String? get twitchWebToken => null;
+
+  void setLoggedIn(bool value) => runInAction(() => _loggedIn.value = value);
 }
 
 void main() {
@@ -67,6 +96,25 @@ void main() {
     when(
       () => clips.getTopClips(language: any(named: 'language')),
     ).thenAnswer((_) async => const ClipFeedPage(items: []));
+    when(
+      () => api.getFollowedStreams(
+        id: any(named: 'id'),
+        cursor: any(named: 'cursor'),
+        first: any(named: 'first'),
+      ),
+    ).thenAnswer((_) async => const StreamsTwitch([], {}));
+    when(
+      () => api.getFollowedChannels(
+        userId: any(named: 'userId'),
+        cursor: any(named: 'cursor'),
+      ),
+    ).thenAnswer(
+      (_) async => const FollowedChannels(data: [], pagination: {}, total: 0),
+    );
+    // The avatar's picture: none, it keeps its placeholder.
+    when(
+      () => api.getUser(userLogin: any(named: 'userLogin')),
+    ).thenAnswer((_) => Future.error(Exception('offline')));
     settings = SettingsStore.fromJson({})..keepScreenAwake = false;
     activity = ActivityStore(log: await ActivityLog.load());
     whispers = WhisperStore(
@@ -97,6 +145,7 @@ void main() {
           Provider<SettingsStore>.value(value: settings),
           Provider<TwitchApi>.value(value: api),
           Provider<TwitchClipService>.value(value: clips),
+          Provider<TwitchHypeTrainService>.value(value: MockHypeTrainService()),
           Provider<ActivityStore>.value(value: activity),
           Provider<WhisperStore>.value(value: whispers),
           Provider<MiniPlayerStore>.value(value: mini),
@@ -488,6 +537,101 @@ void main() {
       await close(tester);
     });
   }
+
+  group('logged in', () {
+    testWidgets('Following first; whispers in the header and in Activity', (
+      tester,
+    ) async {
+      await pump(tester, auth: FakeAuthStore(loggedIn: true));
+      for (final tab in ['Following', 'Live', 'Clips']) {
+        expect(find.text(tab), findsOneWidget);
+      }
+      expect(find.text('No followed streams'), findsOneWidget);
+      expect(find.byTooltip('Whispers'), findsOneWidget);
+      // The avatar is Profile.
+      expect(
+        find.descendant(
+          of: nav('profile'),
+          matching: find.byType(ProfilePicture),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.byTooltip('Whispers'));
+      await tester.pumpAndSettle();
+      expect(find.byType(WhispersScreen), findsOneWidget);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      await tester.tap(nav('activity'));
+      await tester.pumpAndSettle();
+      expect(find.text('Notifications'), findsOneWidget);
+      await tester.tap(find.text('Whispers'));
+      await tester.pumpAndSettle();
+      expect(find.byType(WhispersList), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await close(tester);
+    });
+
+    testWidgets('logging out keeps the section, drops what needs an account', (
+      tester,
+    ) async {
+      final auth = FakeAuthStore(loggedIn: true);
+      await pump(tester, auth: auth);
+      await tester.tap(nav('activity'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Whispers'));
+      await tester.pumpAndSettle();
+      expect(find.byType(WhispersList), findsOneWidget);
+
+      auth.setLoggedIn(false);
+      await tester.pumpAndSettle();
+      // Still Activity, on Notifications, without the Whispers tab.
+      expect(find.byType(ActivityScreen), findsOneWidget);
+      expect(find.byType(WhispersList), findsNothing);
+      expect(find.text('Whispers'), findsNothing);
+      expect(find.byTooltip('Whispers'), findsNothing);
+
+      // Home lost Following: Live.
+      await tester.tap(nav('home'));
+      await tester.pumpAndSettle();
+      expect(find.text('Following'), findsNothing);
+      expect(find.text('No top streams'), findsOneWidget);
+
+      // Logging in again: Home back on Following.
+      auth.setLoggedIn(true);
+      await tester.pumpAndSettle();
+      expect(find.text('Following'), findsOneWidget);
+      expect(find.text('No followed streams'), findsOneWidget);
+      expect(find.byTooltip('Whispers'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await close(tester);
+    });
+  });
+
+  testWidgets('a phone-tablet switch keeps the pages (fold, split, PiP)', (
+    tester,
+  ) async {
+    await pump(tester, size: const Size(1280, 854));
+    final live = tester.state(find.byType(StreamsList));
+    await tester.tap(find.text('Clips'));
+    await tester.pumpAndSettle();
+    final feed = tester.state(find.byType(ClipsFeedScreen));
+
+    tester.view.physicalSize = const Size(390, 844);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('shell-nav')), findsOneWidget);
+    // The clips feed playing did not restart; Live kept its list.
+    expect(identical(tester.state(find.byType(ClipsFeedScreen)), feed), isTrue);
+    expect(
+      identical(
+        tester.state(find.byType(StreamsList, skipOffstage: false)),
+        live,
+      ),
+      isTrue,
+    );
+    await close(tester);
+  });
 
   testWidgets('"Open the app on" Browse opens Browse', (tester) async {
     settings.startTab = HomeTab.browse;
