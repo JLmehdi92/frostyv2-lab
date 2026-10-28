@@ -351,9 +351,7 @@ class CategorySkeletonLoader extends StatelessWidget {
             width: 80,
             child: AspectRatio(
               aspectRatio: 3 / 4,
-              child: const SkeletonLoader(
-                borderRadius: kCardBorderRadius,
-              ),
+              child: const SkeletonLoader(borderRadius: kCardBorderRadius),
             ),
           ),
           // Category name skeleton with random width (matches bodyLarge text)
@@ -397,9 +395,7 @@ class StreamCardSkeletonLoader extends StatelessWidget {
             Flexible(
               child: AspectRatio(
                 aspectRatio: 16 / 9,
-                child: const SkeletonLoader(
-                  borderRadius: kCardBorderRadius,
-                ),
+                child: const SkeletonLoader(borderRadius: kCardBorderRadius),
               ),
             ),
           ],
@@ -441,170 +437,6 @@ class StreamCardSkeletonLoader extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// A skeleton loader for StreamInfoBar component
-class StreamInfoBarSkeletonLoader extends StatelessWidget {
-  final bool showCategory;
-  final bool showUptime;
-  final bool showViewerCount;
-  final EdgeInsets padding;
-
-  const StreamInfoBarSkeletonLoader({
-    super.key,
-    this.showCategory = true,
-    this.showUptime = true,
-    this.showViewerCount = true,
-    this.padding = EdgeInsets.zero,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // Show bottom row if any of the conditional elements should be displayed
-    final showBottomRow = showUptime || showViewerCount || showCategory;
-
-    return Padding(
-      padding: padding,
-      child: Row(
-        spacing: 12,
-        children: [
-          // ProfilePicture skeleton (radius 16)
-          const SkeletonLoader(
-            width: 32,
-            height: 32,
-            borderRadius: BorderRadius.all(Radius.circular(16)),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              spacing: 2,
-              children: [
-                // Top row: Streamer name + stream title
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  spacing: 8,
-                  children: [
-                    // Streamer name skeleton
-                    SkeletonText(height: 14, minWidth: 60, maxWidth: 120),
-                    // Stream title skeleton (flexible)
-                    Flexible(
-                      child: SkeletonText(
-                        height: 14,
-                        minWidth: 80,
-                        maxWidth: 200,
-                      ),
-                    ),
-                  ],
-                ),
-                // Bottom row: Live indicator, uptime, viewer count, game name
-                if (showBottomRow) ...[
-                  Row(
-                    children: [
-                      if (showUptime || showViewerCount) ...[
-                        // Live indicator skeleton (matches LiveIndicator default size)
-                        const SkeletonLoader(
-                          width: 8.0,
-                          height: 8.0,
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
-                        ),
-                        const SizedBox(width: 6),
-                      ],
-                      if (showUptime) ...[
-                        // Uptime skeleton
-                        SkeletonText(height: 14, minWidth: 40, maxWidth: 70),
-                        if (showViewerCount) const SizedBox(width: 8),
-                      ],
-                      if (showViewerCount) ...[
-                        // Viewer count icon skeleton
-                        const SkeletonLoader(
-                          width: 14,
-                          height: 14,
-                          borderRadius: BorderRadius.all(Radius.circular(2)),
-                        ),
-                        const SizedBox(width: 4),
-                        // Viewer count text skeleton
-                        SkeletonText(height: 14, minWidth: 30, maxWidth: 80),
-                      ],
-                      if (showCategory && (showUptime || showViewerCount)) ...[
-                        const SizedBox(width: 8),
-                      ],
-                      if (showCategory) ...[
-                        // Category icon skeleton (gamepad)
-                        const SkeletonLoader(
-                          width: 14,
-                          height: 14,
-                          borderRadius: BorderRadius.all(Radius.circular(2)),
-                        ),
-                        const SizedBox(width: 4),
-                        // Category text skeleton (flexible)
-                        Flexible(
-                          child: SkeletonText(
-                            height: 14,
-                            minWidth: 60,
-                            maxWidth: 140,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// A skeleton loader for large stream cards (grid layout)
-class LargeStreamCardSkeletonLoader extends StatelessWidget {
-  final bool showThumbnail;
-  final bool showCategory;
-
-  const LargeStreamCardSkeletonLoader({
-    super.key,
-    this.showThumbnail = true,
-    this.showCategory = true,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        top: showThumbnail ? 12 : 4,
-        bottom: showThumbnail ? 12 : 4,
-        left: 16 + MediaQuery.of(context).padding.left,
-        right: 16 + MediaQuery.of(context).padding.right,
-      ),
-      child: Column(
-        children: [
-          if (showThumbnail) ...[
-            // Thumbnail skeleton (16:9 aspect ratio)
-            SizedBox(
-              width: double.infinity,
-              child: ClipRRect(
-                borderRadius: kCardBorderRadius,
-                child: AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: const SkeletonLoader(
-                    borderRadius: kCardBorderRadius,
-                  ),
-                ),
-              ),
-            ),
-          ],
-          // Stream info bar skeleton - matches the actual StreamInfoBar usage
-          StreamInfoBarSkeletonLoader(
-            showCategory: showCategory,
-            padding: const EdgeInsets.symmetric(vertical: 12),
           ),
         ],
       ),

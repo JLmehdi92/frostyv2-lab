@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frosty/apis/twitch_directory_service.dart';
-import 'package:frosty/utils/context_extensions.dart';
+import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
 
 /// A stream's tags as small pills on one line (the ones that do not fit
 /// are cut, so every card keeps its height).
@@ -22,7 +22,7 @@ class StreamTags extends StatelessWidget {
         if (tag.trim().isNotEmpty) tag.trim(),
     ];
     if (shown.isEmpty) return const SizedBox.shrink();
-    final scheme = context.colorScheme;
+    final colors = FeedColors.of(context);
     final pills = SizedBox(
       height: height,
       child: ClipRect(
@@ -31,7 +31,7 @@ class StreamTags extends StatelessWidget {
           maxWidth: double.infinity,
           child: Row(
             spacing: 4,
-            children: [for (final tag in shown) _pill(tag, scheme)],
+            children: [for (final tag in shown) _pill(tag, colors)],
           ),
         ),
       ),
@@ -43,7 +43,7 @@ class StreamTags extends StatelessWidget {
     );
   }
 
-  Widget _pill(String tag, ColorScheme scheme) {
+  Widget _pill(String tag, FeedColors colors) {
     final radius = BorderRadius.circular(height / 2);
     final label = Container(
       height: height,
@@ -55,13 +55,13 @@ class StreamTags extends StatelessWidget {
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,
-          color: scheme.onSurfaceVariant,
+          color: colors.secondary,
         ),
       ),
     );
     final open = onTap;
     return Material(
-      color: scheme.surfaceContainerHighest,
+      color: colors.raised,
       borderRadius: radius,
       child: open == null || !TwitchDirectoryService.tagPattern.hasMatch(tag)
           ? label

@@ -1,35 +1,26 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:frosty/constants.dart';
 import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/models/stream.dart';
-import 'package:frosty/screens/channel/channel.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_card_pill.dart';
+import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
 import 'package:frosty/screens/home/stream_list/stream_tags.dart';
 import 'package:frosty/screens/home/stream_list/watch_streak_tag.dart';
-import 'package:frosty/screens/home/top/categories/category_streams.dart';
 import 'package:frosty/screens/home/top/tags/tag_streams.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/services/playback_preloader.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/utils/image_size.dart';
-import 'package:frosty/utils/modal_bottom_sheet.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
-import 'package:frosty/widgets/frosty_photo_view_dialog.dart';
 import 'package:frosty/widgets/motion/press_scale.dart';
 import 'package:frosty/widgets/profile_picture.dart';
-import 'package:frosty/widgets/skeleton_loader.dart';
 import 'package:frosty/widgets/uptime.dart';
-import 'package:frosty/widgets/user_actions_modal.dart';
-import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
-/// A tappable card widget that displays a stream's thumbnail and details.
+/// A live stream in a list (board Accueil: the 150 x 84 thumbnail beside
+/// the channel, title and category) or, as a [tile], in a tablet grid
+/// (board TabletteAccueil: the thumbnail on top, the channel's picture
+/// beside its lines).
+///
+/// A tap opens the channel (its token is asked for as the finger lands), a
+/// long press its actions, a long press on the thumbnail enlarges it; the
+/// category and the tags open their lists.
 class StreamCard extends StatelessWidget {
   final StreamTwitch streamInfo;
   final bool showThumbnail;
@@ -43,6 +34,9 @@ class StreamCard extends StatelessWidget {
   /// The viewer's running watch streak here, if any (followed list).
   final int? watchStreak;
 
+  /// The grid tile of a tablet (thumbnail on top).
+  final bool tile;
+
   const StreamCard({
     super.key,
     required this.streamInfo,
@@ -52,265 +46,262 @@ class StreamCard extends StatelessWidget {
     this.isPinned,
     this.hypeTrain,
     this.watchStreak,
+    this.tile = false,
   });
+
+  /// The row's thumbnail width (board: 150; 200 in a wide row).
+  static double rowThumbnailWidth(double rowWidth) =>
+      rowWidth >= 500 ? 200 : 150;
 
   @override
   Widget build(BuildContext context) {
-    // Generate a unique cache key for the thumbnail URL that updates every 5 minutes.
-    // This ensures the image is refreshed periodically to reflect the latest content.
-    final time = DateTime.now();
-    final cacheKey =
-        '${streamInfo.thumbnailUrl}-${time.day}-${time.hour}-${time.minute ~/ 5}';
-
-    // Requested at the size the thumbnail is drawn (a third of the card, so
-    // a tablet grid does not fetch screen-wide images), up to 1920x1080, the
-    // largest the Twitch API serves.
-    final pixelRatio = MediaQuery.devicePixelRatioOf(context);
-    final thumbnail = AspectRatio(
-      aspectRatio: 16 / 9,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final thumbnailWidth = imagePixelWidth(
-            constraints.maxWidth,
-            pixelRatio,
+    final padding = MediaQuery.paddingOf(context);
+    final content = tile && showThumbnail
+        ? _tile(context)
+        : LayoutBuilder(
+            builder: (context, constraints) => _row(context, constraints),
           );
-          final thumbnailHeight = min(thumbnailWidth * 9 ~/ 16, 1080);
-          return FrostyCachedNetworkImage(
-            imageUrl: streamInfo.thumbnailUrl.replaceFirst(
-              '-{width}x{height}',
-              '-${thumbnailWidth}x$thumbnailHeight',
-            ),
-            // One cache entry per size, or a rotation would reuse a
-            // smaller image.
-            cacheKey: '$cacheKey-$thumbnailWidth',
-            memCacheWidth: thumbnailWidth,
-            placeholder: (context, url) =>
-                const SkeletonLoader(borderRadius: kCardBorderRadius),
-            useOldImageOnUrlChange: true,
-          );
-        },
-      ),
-    );
-
-    final streamerName = getReadableName(
-      streamInfo.userName,
-      streamInfo.userLogin,
-    );
-
-    final streamTitle = streamInfo.title.trim();
-    final category = streamInfo.gameName.isNotEmpty
-        ? streamInfo.gameName
-        : 'No Category';
-
-    const subFontSize = 14.0;
-
-    final fontColor = DefaultTextStyle.of(context).style.color;
-
-    final imageSection = ClipRRect(
-      borderRadius: kCardBorderRadius,
-      child: Stack(
-        alignment: AlignmentDirectional.bottomEnd,
-        children: [
-          Semantics(
-            container: true,
-            image: true,
-            label: '$streamerName stream preview',
-            onLongPressHint: 'enlarge',
-            child: GestureDetector(
-              onLongPress: () {
-                HapticFeedback.lightImpact();
-                showDialog(
-                  context: context,
-                  builder: (context) => FrostyPhotoViewDialog(
-                    imageUrl: streamInfo
-                        .thumbnailUrl, // Pass original URL with {width}x{height} placeholder
-                    cacheKey: cacheKey,
-                  ),
-                );
-              },
-              child: thumbnail,
-            ),
-          ),
-          if (hypeTrain case final status?)
-            PositionedDirectional(
-              start: 0,
-              bottom: 0,
-              child: HypeTrainCardPill(status: status),
-            ),
-          Container(
-            margin: const EdgeInsets.all(3),
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.55),
-              borderRadius: BorderRadius.circular(FrostyTokens.radiusSmall - 2),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.08),
-                width: FrostyTokens.hairlineWidth,
-              ),
-            ),
-            child: Uptime(
-              startTime: streamInfo.startedAt,
-              style: context.frostyText.metadata.copyWith(
-                fontSize: 12,
-                color: context.frostyColors.overlayOnSurface,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    final streamInfoSection = Padding(
-      padding: const EdgeInsets.only(left: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 2,
-        children: [
-          Row(
-            spacing: 4,
-            children: [
-              ProfilePicture(userLogin: streamInfo.userLogin, radius: 10),
-              Flexible(
-                child: Tooltip(
-                  message: streamerName,
-                  preferBelow: false,
-                  child: Text(
-                    streamerName,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontFamily: FrostyTokens.displayFamily,
-                      fontWeight: FrostyTokens.displayWeight(600),
-                      fontSize: 16,
-                      letterSpacing: -0.011,
-                      color: fontColor,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Tooltip(
-            message: streamTitle,
-            preferBelow: false,
-            child: Text(
-              streamTitle,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: subFontSize,
-                color: fontColor?.withValues(alpha: 0.8),
-              ),
-            ),
-          ),
-          if (showCategory) ...[
-            InkWell(
-              onTap: streamInfo.gameName.isNotEmpty
-                  ? () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        settings: const RouteSettings(
-                          name: CategoryStreams.routeName,
-                        ),
-                        builder: (context) =>
-                            CategoryStreams(categoryId: streamInfo.gameId),
-                      ),
-                    )
-                  : null,
-              child: Tooltip(
-                message: category,
-                preferBelow: false,
-                child: Text(
-                  category.toUpperCase(),
-                  overflow: TextOverflow.ellipsis,
-                  style: context.frostyText.label,
-                ),
-              ),
-            ),
-          ],
-          Text(
-            '${NumberFormat().format(streamInfo.viewerCount)} viewers',
-            style: context.frostyText.metadata,
-          ),
-          if (watchStreak case final streak?) ...[
-            const SizedBox(height: 2),
-            // Twitch's Following tab puts it with the tags; they stay.
-            Row(
-              spacing: 4,
-              children: [
-                WatchStreakTag(value: streak),
-                if (streamInfo.tags.isNotEmpty)
-                  Expanded(
-                    child: StreamTags(
-                      tags: streamInfo.tags,
-                      onTap: (tag) => TagStreams.open(context, tag),
-                    ),
-                  ),
-              ],
-            ),
-          ] else if (streamInfo.tags.isNotEmpty) ...[
-            const SizedBox(height: 2),
-            StreamTags(
-              tags: streamInfo.tags,
-              onTap: (tag) => TagStreams.open(context, tag),
-            ),
-          ],
-        ],
-      ),
-    );
-
     // The card sinks as soon as the finger is down (design system press).
     return PressScale(
       child: InkWell(
+        borderRadius: BorderRadius.circular(tile ? 16 : 12),
         // The finger is down: get the stream's token while the page opens.
-        onTapDown: (_) => PlaybackPreloader.instance.preload(
-          login: streamInfo.userLogin,
-          engine: context.read<SettingsStore>().playerEngine,
-          authToken: context.read<AuthStore?>()?.twitchWebToken,
-        ),
-        onTap: () => Navigator.push(
+        onTapDown: (_) => preloadStream(context, streamInfo),
+        onTap: () => openStream(context, streamInfo),
+        onLongPress: () => showStreamActions(
           context,
-          MaterialPageRoute(
-            settings: const RouteSettings(name: VideoChat.routeName),
-            builder: (context) => VideoChat(
-              userId: streamInfo.userId,
-              userName: streamInfo.userName,
-              userLogin: streamInfo.userLogin,
-            ),
-          ),
+          streamInfo,
+          showPinOption: showPinOption,
+          isPinned: isPinned,
         ),
-        onLongPress: () {
-          HapticFeedback.mediumImpact();
-
-          showModalBottomSheetWithProperFocus(
-            context: context,
-            builder: (context) => UserActionsModal(
-              authStore: context.read<AuthStore>(),
-              name: streamerName,
-              userLogin: streamInfo.userLogin,
-              userId: streamInfo.userId,
-              showPinOption: showPinOption,
-              isPinned: isPinned,
-            ),
-          );
-        },
         child: Padding(
-          padding: EdgeInsets.only(
-            top: 8,
-            bottom: 8,
-            left: showThumbnail
-                ? 16 + MediaQuery.of(context).padding.left
-                : 4 + MediaQuery.of(context).padding.left,
-            right: showThumbnail
-                ? 16 + MediaQuery.of(context).padding.right
-                : 4 + MediaQuery.of(context).padding.right,
+          padding: EdgeInsets.fromLTRB(
+            (tile ? 0 : FrostySpacing.gutterPhone) + padding.left,
+            tile ? 0 : 6,
+            (tile ? 0 : FrostySpacing.gutterPhone) + padding.right,
+            tile ? 0 : 6,
           ),
-          child: Row(
-            children: [
-              if (showThumbnail) Flexible(child: imageSection),
-              Flexible(flex: 2, child: streamInfoSection),
-            ],
-          ),
+          child: content,
         ),
       ),
+    );
+  }
+
+  String get _name =>
+      getReadableName(streamInfo.userName, streamInfo.userLogin);
+
+  Widget _thumbnail(BuildContext context, {required bool large}) {
+    final radius = BorderRadius.circular(large ? 14 : 12);
+    final inset = large ? 8.0 : 6.0;
+    return ClipRRect(
+      borderRadius: radius,
+      child: ColoredBox(
+        color: FeedColors.of(context).well,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            StreamThumbnail(stream: streamInfo, borderRadius: radius),
+            InsetHairline(borderRadius: radius),
+            if (hypeTrain case final status?)
+              PositionedDirectional(
+                start: 0,
+                top: 0,
+                child: HypeTrainCardPill(status: status),
+              ),
+            PositionedDirectional(
+              start: inset,
+              bottom: inset,
+              child: ViewerPill(
+                viewers: streamInfo.viewerCount,
+                height: large ? 22 : 20,
+                fontSize: large ? 12 : 11,
+              ),
+            ),
+            PositionedDirectional(
+              end: inset,
+              bottom: inset,
+              child: OverlayPill(
+                height: large ? 22 : 20,
+                radius: large ? 6 : 5,
+                padding: large ? 7 : 6,
+                color: OverImage.pillStrong,
+                child: Uptime(
+                  startTime: streamInfo.startedAt,
+                  style: TextStyle(
+                    fontSize: large ? 12 : 11,
+                    fontWeight: FontWeight.w500,
+                    color: FrostyTokens.textBodyDark,
+                    height: 1,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// The name, title, category, then the streak and tags.
+  Widget _lines(
+    BuildContext context, {
+    required double avatar,
+    required bool tile,
+  }) {
+    final colors = FeedColors.of(context);
+    final title = streamInfo.title.trim();
+    final category = streamInfo.gameName.isNotEmpty
+        ? streamInfo.gameName
+        : 'No Category';
+    final openCategory = openCategoryOf(context, streamInfo);
+    final tags = streamInfo.tags.isEmpty
+        ? null
+        : StreamTags(
+            tags: streamInfo.tags,
+            onTap: (tag) => TagStreams.open(context, tag),
+          );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      spacing: tile ? 2 : 3,
+      children: [
+        Row(
+          spacing: 6,
+          children: [
+            if (avatar > 0)
+              ProfilePicture(
+                userLogin: streamInfo.userLogin,
+                radius: avatar / 2,
+              ),
+            Flexible(
+              child: Text(
+                _name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontFamily: FrostyTokens.displayFamily,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.01 * 15,
+                  color: colors.text,
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (title.isNotEmpty)
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 13, color: colors.body),
+          ),
+        if (showCategory)
+          Semantics(
+            button: openCategory != null,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: openCategory,
+              child: Text(
+                category,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12, color: colors.secondary),
+              ),
+            ),
+          ),
+        if (!showThumbnail)
+          // Without a thumbnail, the viewers and uptime come in the text.
+          DefaultTextStyle.merge(
+            style: FrostyType.tabular(
+              TextStyle(fontSize: 12, color: colors.secondary),
+            ),
+            child: Row(
+              spacing: 5,
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: context.frostyColors.live,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                Text(
+                  '${formatViewers(streamInfo.viewerCount, compact: false)} viewers',
+                ),
+                const Text('·'),
+                Flexible(
+                  child: Uptime(
+                    startTime: streamInfo.startedAt,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: colors.secondary),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        if (watchStreak case final streak?)
+          Padding(
+            padding: const EdgeInsets.only(top: 3),
+            // Twitch's Following tab puts it with the tags; they stay.
+            child: Row(
+              spacing: 4,
+              children: [
+                WatchStreakTag(value: streak),
+                if (tags != null) Expanded(child: tags),
+              ],
+            ),
+          )
+        else if (tags != null)
+          Padding(padding: const EdgeInsets.only(top: 3), child: tags),
+      ],
+    );
+  }
+
+  Widget _row(BuildContext context, BoxConstraints constraints) {
+    if (!showThumbnail) {
+      return Row(
+        spacing: 12,
+        children: [
+          ProfilePicture(userLogin: streamInfo.userLogin),
+          Expanded(child: _lines(context, avatar: 0, tile: false)),
+        ],
+      );
+    }
+    final width = StreamCard.rowThumbnailWidth(constraints.maxWidth);
+    return Row(
+      spacing: 12,
+      children: [
+        SizedBox(
+          width: width,
+          height: width * 9 / 16,
+          child: _thumbnail(context, large: false),
+        ),
+        Expanded(child: _lines(context, avatar: 18, tile: false)),
+      ],
+    );
+  }
+
+  Widget _tile(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      spacing: 10,
+      children: [
+        AspectRatio(
+          aspectRatio: 16 / 9,
+          child: _thumbnail(context, large: true),
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 10,
+          children: [
+            ProfilePicture(userLogin: streamInfo.userLogin, radius: 17),
+            Expanded(child: _lines(context, avatar: 0, tile: true)),
+          ],
+        ),
+      ],
     );
   }
 }

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frosty/models/followed_channel.dart';
 import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
+import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils.dart';
-import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/motion/press_scale.dart';
 import 'package:frosty/widgets/profile_picture.dart';
@@ -34,7 +34,7 @@ class OfflineChannelCard extends StatelessWidget {
       channelInfo.broadcasterLogin,
     );
 
-    final fontColor = DefaultTextStyle.of(context).style.color;
+    final colors = FeedColors.of(context);
     final followedDuration = DateTime.now().difference(channelInfo.followedAt);
 
     String followedText;
@@ -81,11 +81,12 @@ class OfflineChannelCard extends StatelessWidget {
             ),
           );
         },
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: EdgeInsets.fromLTRB(
-            16 + MediaQuery.of(context).padding.left,
+            FrostySpacing.gutterPhone + MediaQuery.paddingOf(context).left,
             8,
-            16 + MediaQuery.of(context).padding.right,
+            FrostySpacing.gutterPhone + MediaQuery.paddingOf(context).right,
             8,
           ),
           child: Row(
@@ -103,10 +104,10 @@ class OfflineChannelCard extends StatelessWidget {
                       channelName,
                       style: TextStyle(
                         fontFamily: FrostyTokens.displayFamily,
-                        fontWeight: FrostyTokens.displayWeight(600),
-                        fontSize: 16,
-                        letterSpacing: -0.011,
-                        color: fontColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        letterSpacing: -0.01 * 15,
+                        color: colors.text,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -116,7 +117,9 @@ class OfflineChannelCard extends StatelessWidget {
                       showOfflineStatus ? 'Offline' : followedText,
                       // followedText porte une duree ("Following for 3 years"),
                       // donc chasse fixe comme tous les autres nombres.
-                      style: context.frostyText.metadata,
+                      style: FrostyType.tabular(
+                        TextStyle(fontSize: 13, color: colors.secondary),
+                      ),
                     ),
                   ],
                 ),

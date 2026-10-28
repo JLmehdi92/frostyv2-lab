@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,28 +8,51 @@ import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_directory_service.dart';
 import 'package:frosty/apis/twitch_followed_categories_service.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
+import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/apis/twitch_watch_streak_service.dart';
 import 'package:frosty/constants.dart';
 import 'package:frosty/models/stream.dart';
+import 'package:frosty/screens/home/continue_watching/continue_watching.dart';
+import 'package:frosty/screens/home/continue_watching/stores/continue_watching_store.dart';
 import 'package:frosty/screens/home/followed_videos/followed_videos_screen.dart';
 import 'package:frosty/screens/home/stream_list/followed_categories_section.dart';
 import 'package:frosty/screens/home/stream_list/large_stream_card.dart';
 import 'package:frosty/screens/home/stream_list/offline_channel_card.dart';
 import 'package:frosty/screens/home/stream_list/stream_card.dart';
+import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
 import 'package:frosty/screens/home/stream_list/stream_list_store.dart';
 import 'package:frosty/screens/home/stream_list/stream_sort_button.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/theme.dart';
+import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/expandable_section_header.dart';
 import 'package:frosty/widgets/frosty_scrollbar.dart';
+import 'package:frosty/widgets/motion/press_scale.dart';
+import 'package:frosty/widgets/motion/staggered_entrance.dart';
 import 'package:frosty/widgets/scroll_to_top_button.dart';
-import 'package:frosty/widgets/section_header.dart';
 import 'package:frosty/widgets/skeleton_loader.dart';
 import 'package:provider/provider.dart';
 
-/// A widget that displays a list of followed or top streams based on the provided [listType].
-/// For a widget that displays the top streams under a category, refer to [CategoryStreams].
+/// [T] from the widget tree, or null when nothing provides it.
+T? _maybeRead<T>(BuildContext context) {
+  try {
+    return context.read<T>();
+  } on ProviderNotFoundException {
+    return null;
+  }
+}
+
+/// A widget that displays a list of followed or top streams based on the
+/// provided [listType]. For a widget that displays the top streams under a
+/// category, refer to [CategoryStreams].
+///
+/// Following (boards Accueil and TabletteAccueil) leads with "Continue
+/// watching" and the hero live card, then "Live now" with its order, the
+/// pinned channels, the others, the followed videos, the followed
+/// categories and the offline channels. On a tablet the hero shares its row
+/// with the shelf and the categories, and the live channels are a grid.
 class StreamsList extends StatefulWidget {
   /// The type of list to display.
   final ListType listType;
@@ -65,6 +89,12 @@ class _StreamsListState extends State<StreamsList>
   late final ListStore _listStore;
   ScrollController? _scrollController;
 
+  /// Following's "Continue watching" (null elsewhere, or without the VOD
+  /// service).
+  ContinueWatchingStore? _continueWatching;
+
+  bool get _following => widget.listType == ListType.followed;
+
   @override
   bool get wantKeepAlive => true;
 
@@ -91,16 +121,24 @@ class _StreamsListState extends State<StreamsList>
           ? context.read<TwitchDirectoryService>()
           : null,
       scrollController: widget.scrollController ?? _scrollController,
-      hypeTrainService: widget.listType == ListType.followed
+      hypeTrainService: _following
           ? context.read<TwitchHypeTrainService>()
           : null,
-      followedCategoriesService: widget.listType == ListType.followed
+      followedCategoriesService: _following
           ? context.read<TwitchFollowedCategoriesService?>()
           : null,
-      watchStreakService: widget.listType == ListType.followed
+      watchStreakService: _following
           ? context.read<TwitchWatchStreakService?>()
           : null,
     );
+
+    if (_following) {
+      final vods = _maybeRead<TwitchVodService>(context);
+      if (vods != null) {
+        _continueWatching = ContinueWatchingStore(vodService: vods);
+        unawaited(_continueWatching!.load());
+      }
+    }
   }
 
   @override
@@ -112,35 +150,10 @@ class _StreamsListState extends State<StreamsList>
   @override
   void dispose() {
     _listStore.dispose();
+    _continueWatching?.dispose();
     _scrollController?.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  /// Whether a card should render large.
-  ///
-  /// On top of the existing [SettingsStore.largeStreamCard] setting, the very
-  /// first live channel of the followed list is promoted to a large card. That
-  /// gives the list a hierarchy — the channel you are most likely to open is
-  /// the one you can actually see — without taking either card setting away.
-  ///
-  /// It deliberately does nothing in two cases. In large-card mode every card
-  /// is already large, so promoting the first one would change nothing. And
-  /// with thumbnails off, a large card carries no extra information and only
-  /// costs height.
-  ///
-  /// Only the followed list gets it: on Top or in a category, singling out one
-  /// channel would be arbitrary, since the list is not the user's own.
-  bool _useLargeCard({
-    required SettingsStore settingsStore,
-    required int index,
-    required bool isFirstSection,
-  }) {
-    if (settingsStore.largeStreamCard) return true;
-    if (widget.listType != ListType.followed) return false;
-    if (!settingsStore.showThumbnails) return false;
-
-    return isFirstSection && index == 0;
   }
 
   @override
@@ -148,474 +161,815 @@ class _StreamsListState extends State<StreamsList>
     super.didChangeAppLifecycleState(state);
 
     if (state == AppLifecycleState.resumed) {
-      _listStore.checkLastTimeRefreshedAndUpdate();
+      _checkRefresh();
     }
   }
+
+  /// Refreshes the list (and the shelf) when it is 5 minutes old.
+  void _checkRefresh() {
+    final stale =
+        DateTime.now().difference(_listStore.lastTimeRefreshed).inMinutes >= 5;
+    _listStore.checkLastTimeRefreshedAndUpdate();
+    if (stale) unawaited(_continueWatching?.load());
+  }
+
+  Future<void> _refresh() async {
+    HapticFeedback.lightImpact();
+    await Future.wait([
+      _listStore.refreshStreams(),
+      if (_continueWatching case final shelf?) shelf.load(),
+    ]);
+    if (!mounted) return;
+    final error = _listStore.error;
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: AlertMessage(message: error, centered: false)),
+      );
+    }
+  }
+
+  /// "Try again" (approved addition): the same as pulling to refresh.
+  void _retry() => unawaited(_refresh());
+
+  double get _extraTopPadding => switch (widget.listType) {
+    ListType.category => kToolbarHeight + 122 + kCategorySectionsHeight,
+    ListType.tag => kToolbarHeight + kCategorySectionsHeight,
+    _ => 0.0,
+  };
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
-    _listStore.checkLastTimeRefreshedAndUpdate();
+    _checkRefresh();
 
-    final extraTopPadding = widget.listType == ListType.category
-        ? kToolbarHeight + 122 + kCategorySectionsHeight
-        : widget.listType == ListType.tag
-        ? kToolbarHeight + kCategorySectionsHeight
-        : 0.0;
-
-    final topPadding = MediaQuery.of(context).padding.top + extraTopPadding;
+    final topPadding = MediaQuery.paddingOf(context).top + _extraTopPadding;
 
     return RefreshIndicator.adaptive(
       edgeOffset: topPadding,
-      onRefresh: () async {
-        HapticFeedback.lightImpact();
+      onRefresh: _refresh,
+      child: Observer(builder: _body),
+    );
+  }
 
-        await _listStore.refreshStreams();
+  Widget _body(BuildContext context) {
+    final settingsStore = context.watch<SettingsStore>();
+    final streams = _listStore.streams;
+    final error = _listStore.error;
 
-        if (_listStore.error != null) {
-          final snackBar = SnackBar(
-            content: AlertMessage(message: _listStore.error!, centered: false),
-          );
+    if (streams.isEmpty && _listStore.isLoading && error == null) {
+      return _staggered(
+        'loading',
+        CustomScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          slivers: [
+            SliverTopPadding(extraTopPadding: _extraTopPadding),
+            ..._skeleton(context, settingsStore),
+            const SliverBottomPadding(),
+          ],
+        ),
+      );
+    }
 
-          if (!context.mounted) return;
-
-          ScaffoldMessenger.of(context).showSnackBar(snackBar);
-        }
-      },
-      child: Observer(
-        builder: (_) {
-          Widget? statusWidget;
-
-          if (_listStore.error != null) {
-            statusWidget = AlertMessage(
-              message: _listStore.error!,
-              vertical: true,
+    Widget? status;
+    if (error != null) {
+      status = FeedStatusView.error(message: error, onRetry: _retry);
+    } else if (streams.isEmpty) {
+      status = _listStore.hiddenByLabels > 0
+          ? FeedStatusView(
+              message: 'Every stream here has a label you hide',
+              icon: Icons.visibility_off_outlined,
+              action: 'Show them',
+              onAction: _listStore.showLabeledStreams,
+            )
+          : FeedStatusView.empty(
+              message: switch (widget.listType) {
+                ListType.followed => 'No followed streams',
+                ListType.top => 'No top streams',
+                ListType.category || ListType.tag => 'No live streams',
+              },
             );
-          }
+    }
 
-          if (_listStore.streams.isEmpty) {
-            if (_listStore.isLoading && _listStore.error == null) {
-              // Show skeleton loaders while loading
-              final settingsStore = context.watch<SettingsStore>();
-              final isFollowingTab = widget.listType == ListType.followed;
-              final pinnedChannelCount = settingsStore.pinnedChannelIds.length;
-
-              return CustomScrollView(
-                slivers: [
-                  // Add padding for app bar
-                  SliverTopPadding(extraTopPadding: extraTopPadding),
-
-                  // Show pinned section if following tab and has pinned channels
-                  if (isFollowingTab && pinnedChannelCount > 0) ...[
-                    SliverToBoxAdapter(
-                      child: Builder(
-                        builder: (context) => SectionHeader(
-                          'Pinned',
-                          isFirst: true,
-                          padding: EdgeInsets.fromLTRB(
-                            16 + MediaQuery.of(context).padding.left,
-                            8,
-                            16 + MediaQuery.of(context).padding.right,
-                            8,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SliverList.builder(
-                      itemCount: pinnedChannelCount,
-                      itemBuilder: (context, index) {
-                        if (_useLargeCard(
-                          settingsStore: settingsStore,
-                          index: index,
-                          isFirstSection: true,
-                        )) {
-                          return LargeStreamCardSkeletonLoader(
-                            showThumbnail: settingsStore.showThumbnails,
-                            showCategory: widget.listType != ListType.category,
-                          );
-                        } else {
-                          return StreamCardSkeletonLoader(
-                            showThumbnail: settingsStore.showThumbnails,
-                            showCategory: widget.listType != ListType.category,
-                          );
-                        }
-                      },
-                    ),
-                    SliverToBoxAdapter(
-                      child: Builder(
-                        builder: (context) => SectionHeader(
-                          'All',
-                          isFirst: true,
-                          padding: EdgeInsets.fromLTRB(
-                            16 + MediaQuery.of(context).padding.left,
-                            8,
-                            16 + MediaQuery.of(context).padding.right,
-                            8,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-
-                  SliverList.builder(
-                    itemCount: isFollowingTab && pinnedChannelCount > 0 ? 5 : 8,
-                    itemBuilder: (context, index) {
-                      if (_useLargeCard(
-                        settingsStore: settingsStore,
-                        index: index,
-                        isFirstSection: pinnedChannelCount == 0,
-                      )) {
-                        return LargeStreamCardSkeletonLoader(
-                          showThumbnail: settingsStore.showThumbnails,
-                          showCategory: widget.listType != ListType.category,
-                        );
-                      } else {
-                        return StreamCardSkeletonLoader(
-                          showThumbnail: settingsStore.showThumbnails,
-                          showCategory: widget.listType != ListType.category,
-                        );
-                      }
-                    },
-                  ),
-                  SliverBottomPadding(),
-                ],
-              );
-            } else if (_listStore.hiddenByLabels > 0) {
-              // Everything loaded was hidden: say so, and offer it.
-              statusWidget = Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const AlertMessage(
-                    message: 'Every stream here has a label you hide',
-                    vertical: true,
-                  ),
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: _listStore.showLabeledStreams,
-                    child: const Text('Show them'),
-                  ),
-                ],
-              );
-            } else {
-              statusWidget = AlertMessage(
-                message: switch (widget.listType) {
-                  ListType.followed => 'No followed streams',
-                  ListType.top => 'No top streams',
-                  ListType.category || ListType.tag => 'No live streams',
-                },
-                vertical: true,
-              );
-            }
-          }
-
-          if (statusWidget != null) {
-            return CustomScrollView(
-              slivers: [
-                // Past videos are worth a look most when nobody is live.
-                if (widget.listType == ListType.followed) ...[
-                  SliverTopPadding(extraTopPadding: extraTopPadding),
-                  const SliverToBoxAdapter(child: FollowedVideosTile()),
+    if (status != null) {
+      final followedExtras = _following && error == null;
+      return _staggered(
+        'status',
+        CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverTopPadding(extraTopPadding: _extraTopPadding),
+            // Past videos are worth a look most when nobody is live (and
+            // they stay reachable offline).
+            if (_following) ...[
+              const SliverToBoxAdapter(
+                child: StaggeredEntrance(index: 0, child: FollowedVideosTile()),
+              ),
+              if (followedExtras) ...[
+                if (_continueWatching case final shelf?)
                   SliverToBoxAdapter(
+                    child: StaggeredEntrance(
+                      index: 1,
+                      child: ContinueWatchingShelf(store: shelf),
+                    ),
+                  ),
+                SliverToBoxAdapter(
+                  child: StaggeredEntrance(
+                    index: 2,
                     child: FollowedCategoriesSection(
                       categories: _listStore.followedCategories,
                     ),
                   ),
-                ],
-                SliverFillRemaining(child: Center(child: statusWidget)),
+                ),
               ],
-            );
-          }
+            ],
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: StaggeredEntrance(index: 3, child: status),
+            ),
+            const SliverBottomPadding(),
+          ],
+        ),
+      );
+    }
 
-          final settingsStore = context.watch<SettingsStore>();
+    final large = context.isLargeScreen;
+    final slivers = _following
+        ? (large
+              ? _followingTablet(context, settingsStore)
+              : _followingPhone(context, settingsStore))
+        : _streamsSlivers(context, settingsStore);
 
-          final unpinnedStreams = widget.listType == ListType.followed
-              ? _listStore.streams
-                    .where(
-                      (stream) => !settingsStore.pinnedChannelIds.contains(
-                        stream.userId,
-                      ),
+    return Stack(
+      alignment: AlignmentDirectional.bottomCenter,
+      children: [
+        FrostyScrollbar(
+          controller: _listStore.scrollController,
+          padding: EdgeInsets.only(
+            top: MediaQuery.paddingOf(context).top + _extraTopPadding,
+            bottom: MediaQuery.paddingOf(context).bottom,
+          ),
+          child: _staggered(
+            'content',
+            CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              controller: _listStore.scrollController,
+              slivers: [
+                SliverTopPadding(extraTopPadding: _extraTopPadding),
+                ...slivers,
+                // Room for the bottom navigation bar.
+                const SliverBottomPadding(),
+              ],
+            ),
+          ),
+        ),
+        if (widget.showJumpButton)
+          Observer(
+            builder: (context) => AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              switchInCurve: Curves.easeOut,
+              switchOutCurve: Curves.easeIn,
+              child: _listStore.showJumpButton
+                  ? ScrollToTopButton(
+                      scrollController: _listStore.scrollController!,
                     )
-                    .toList()
-              : _listStore.streams;
+                  : null,
+            ),
+          ),
+      ],
+    );
+  }
 
-          final isFollowingTab = widget.listType == ListType.followed;
+  /// Each phase (skeleton, message, content) cascades in on its first
+  /// appearance only, after the launch intro when it covers the screen.
+  Widget _staggered(String phase, Widget child) =>
+      StaggerScope(key: ValueKey(phase), child: child);
 
-          return Stack(
-            alignment: AlignmentDirectional.bottomCenter,
-            children: [
-              Column(
-                children: [
-                  Expanded(
-                    child: FrostyScrollbar(
-                      controller: _listStore.scrollController,
-                      padding: EdgeInsets.only(
-                        top:
-                            MediaQuery.of(context).padding.top +
-                            extraTopPadding,
-                        bottom: MediaQuery.of(context).padding.bottom,
-                      ),
-                      child: CustomScrollView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        controller: _listStore.scrollController,
-                        slivers: [
-                          SliverTopPadding(extraTopPadding: extraTopPadding),
-                          if (!isFollowingTab)
-                            SliverToBoxAdapter(
-                              child: Observer(
-                                builder: (context) => HiddenStreamsBanner(
-                                  hidden: _listStore.hiddenByLabels,
-                                  onShow: _listStore.showLabeledStreams,
-                                ),
-                              ),
-                            ),
-                          if (isFollowingTab)
-                            SliverToBoxAdapter(
-                              child: Padding(
-                                padding: EdgeInsets.fromLTRB(
-                                  16 + MediaQuery.paddingOf(context).left,
-                                  0,
-                                  16 + MediaQuery.paddingOf(context).right,
-                                  0,
-                                ),
-                                child: Align(
-                                  alignment: AlignmentDirectional.centerStart,
-                                  child: FollowedSortButton(
-                                    settingsStore: settingsStore,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          if (isFollowingTab &&
-                              _listStore.allPinnedChannels.isNotEmpty) ...[
-                            SliverToBoxAdapter(
-                              child: Builder(
-                                builder: (context) => SectionHeader(
-                                  'Pinned',
-                                  isFirst: true,
-                                  padding: EdgeInsets.fromLTRB(
-                                    16 + MediaQuery.of(context).padding.left,
-                                    8,
-                                    16 + MediaQuery.of(context).padding.right,
-                                    8,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Observer(
-                              builder: (context) {
-                                // Show actual pinned channels (live streams only)
-                                return SliverList.builder(
-                                  itemCount:
-                                      _listStore.allPinnedChannels.length,
-                                  itemBuilder: (context, index) {
-                                    final stream =
-                                        _listStore.allPinnedChannels[index]
-                                            as StreamTwitch;
-                                    return Observer(
-                                      builder: (context) {
-                                        // Only live stream cards since we removed offline pinned channels
-                                        return _useLargeCard(
-                                              settingsStore: settingsStore,
-                                              index: index,
-                                              isFirstSection: true,
-                                            )
-                                            ? LargeStreamCard(
-                                                key: ValueKey(stream.userId),
-                                                streamInfo: stream,
-                                                showThumbnail: context
-                                                    .read<SettingsStore>()
-                                                    .showThumbnails,
-                                                showCategory:
-                                                    widget.categoryId == null,
-                                                showPinOption: true,
-                                                isPinned: true,
-                                                hypeTrain: _listStore
-                                                    .hypeTrains[stream.userId],
-                                                watchStreak:
-                                                    _listStore
-                                                        .watchStreaks[stream
-                                                        .userId],
-                                              )
-                                            : StreamCard(
-                                                key: ValueKey(stream.userId),
-                                                streamInfo: stream,
-                                                showThumbnail: context
-                                                    .read<SettingsStore>()
-                                                    .showThumbnails,
-                                                showCategory:
-                                                    widget.categoryId == null,
-                                                showPinOption: true,
-                                                isPinned: true,
-                                                hypeTrain: _listStore
-                                                    .hypeTrains[stream.userId],
-                                                watchStreak:
-                                                    _listStore
-                                                        .watchStreaks[stream
-                                                        .userId],
-                                              );
-                                      },
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                            SliverToBoxAdapter(
-                              child: Builder(
-                                builder: (context) => SectionHeader(
-                                  'All',
-                                  isFirst: true,
-                                  padding: EdgeInsets.fromLTRB(
-                                    16 + MediaQuery.of(context).padding.left,
-                                    8,
-                                    16 + MediaQuery.of(context).padding.right,
-                                    8,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                          SliverList.builder(
-                            itemCount: unpinnedStreams.length,
-                            itemBuilder: (context, index) {
-                              if (index > unpinnedStreams.length - 10 &&
-                                  _listStore.hasMore) {
-                                _listStore.getStreams();
-                              }
-                              return Observer(
-                                builder: (context) =>
-                                    _useLargeCard(
-                                      settingsStore: settingsStore,
-                                      index: index,
-                                      // Pinned channels already sit above and
-                                      // carry the hero, if there are any.
-                                      isFirstSection:
-                                          _listStore.allPinnedChannels.isEmpty,
-                                    )
-                                    ? LargeStreamCard(
-                                        key: ValueKey(
-                                          unpinnedStreams[index].userId,
-                                        ),
-                                        streamInfo: unpinnedStreams[index],
-                                        showThumbnail:
-                                            settingsStore.showThumbnails,
-                                        showCategory: widget.categoryId == null,
-                                        showPinOption: isFollowingTab,
-                                        isPinned: false,
-                                        hypeTrain:
-                                            _listStore
-                                                .hypeTrains[unpinnedStreams[index]
-                                                .userId],
-                                        watchStreak:
-                                            _listStore
-                                                .watchStreaks[unpinnedStreams[index]
-                                                .userId],
-                                      )
-                                    : StreamCard(
-                                        key: ValueKey(
-                                          unpinnedStreams[index].userId,
-                                        ),
-                                        streamInfo: unpinnedStreams[index],
-                                        showThumbnail:
-                                            settingsStore.showThumbnails,
-                                        showCategory: widget.categoryId == null,
-                                        showPinOption: isFollowingTab,
-                                        isPinned: false,
-                                        hypeTrain:
-                                            _listStore
-                                                .hypeTrains[unpinnedStreams[index]
-                                                .userId],
-                                        watchStreak:
-                                            _listStore
-                                                .watchStreaks[unpinnedStreams[index]
-                                                .userId],
-                                      ),
-                              );
-                            },
+  // ---------------------------------------------------------------------
+  // Cards.
+
+  int? _streak(StreamTwitch stream) =>
+      _following ? _listStore.watchStreaks[stream.userId] : null;
+
+  Widget _card(
+    StreamTwitch stream, {
+    required SettingsStore settings,
+    required bool pinned,
+    bool hero = false,
+    bool tile = false,
+    bool largeHero = false,
+    EdgeInsetsGeometry? padding,
+  }) {
+    final showCategory = widget.categoryId == null;
+    final hypeTrain = _following ? _listStore.hypeTrains[stream.userId] : null;
+    if (hero) {
+      return LargeStreamCard(
+        key: ValueKey(stream.userId),
+        streamInfo: stream,
+        showThumbnail: settings.showThumbnails,
+        showCategory: showCategory,
+        showPinOption: _following,
+        isPinned: pinned,
+        hypeTrain: hypeTrain,
+        watchStreak: _streak(stream),
+        large: largeHero,
+        padding: padding,
+      );
+    }
+    return StreamCard(
+      key: ValueKey(stream.userId),
+      streamInfo: stream,
+      showThumbnail: settings.showThumbnails,
+      showCategory: showCategory,
+      showPinOption: _following,
+      isPinned: pinned,
+      hypeTrain: hypeTrain,
+      watchStreak: _streak(stream),
+      tile: tile,
+    );
+  }
+
+  /// Asks for the next page when [index] of [length] nears the end.
+  void _pageNear(int index, int length) {
+    if (index > length - 10 && _listStore.hasMore) _listStore.getStreams();
+  }
+
+  // ---------------------------------------------------------------------
+  // Following, phone (board Accueil).
+
+  List<Widget> _followingPhone(BuildContext context, SettingsStore settings) {
+    final pinned = [
+      for (final stream in _listStore.allPinnedChannels) stream as StreamTwitch,
+    ];
+    final unpinned = _unpinned(settings);
+    final heroAll = settings.largeStreamCard;
+    final heroFirst = settings.showThumbnails;
+    var entrance = 0;
+    Widget enter(Widget child) =>
+        StaggeredEntrance(index: entrance++, child: child);
+
+    Widget section(List<StreamTwitch> streams, {required bool isPinned}) {
+      final first = isPinned || pinned.isEmpty;
+      return SliverList.builder(
+        itemCount: streams.length,
+        itemBuilder: (context, index) {
+          if (!isPinned) _pageNear(index, streams.length);
+          return StaggeredEntrance(
+            index: 2 + index,
+            child: Observer(
+              builder: (context) => _card(
+                streams[index],
+                settings: settings,
+                pinned: isPinned,
+                hero: heroAll || (heroFirst && first && index == 0),
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    return [
+      if (_continueWatching case final shelf?)
+        SliverToBoxAdapter(child: enter(ContinueWatchingShelf(store: shelf))),
+      SliverToBoxAdapter(
+        child: enter(
+          _LiveNowHeader(
+            count: pinned.length + unpinned.length,
+            settingsStore: settings,
+          ),
+        ),
+      ),
+      if (pinned.isNotEmpty) ...[
+        const SliverToBoxAdapter(child: _Eyebrow('Pinned')),
+        section(pinned, isPinned: true),
+        const SliverToBoxAdapter(child: _Eyebrow('All')),
+      ],
+      section(unpinned, isPinned: false),
+      ..._followingTail(context, settings, chipsShown: false),
+    ];
+  }
+
+  List<StreamTwitch> _unpinned(SettingsStore settings) => [
+    for (final stream in _listStore.streams)
+      if (!settings.pinnedChannelIds.contains(stream.userId)) stream,
+  ];
+
+  /// What follows the live channels: the followed videos, the followed
+  /// categories (unless the tablet's hero row shows them) and the offline
+  /// channels.
+  List<Widget> _followingTail(
+    BuildContext context,
+    SettingsStore settings, {
+    required bool chipsShown,
+  }) {
+    final large = context.isLargeScreen;
+    return [
+      const SliverToBoxAdapter(child: FollowedVideosTile()),
+      if (!chipsShown)
+        SliverToBoxAdapter(
+          child: Observer(
+            builder: (context) => FollowedCategoriesSection(
+              categories: _listStore.followedCategories,
+            ),
+          ),
+        ),
+      SliverToBoxAdapter(
+        child: Observer(
+          builder: (context) => ExpandableSectionHeader(
+            'Offline',
+            isFirst: true,
+            padding: EdgeInsets.fromLTRB(
+              (large ? FrostySpacing.gutterTablet : FrostySpacing.gutterPhone) +
+                  MediaQuery.paddingOf(context).left,
+              16,
+              (large ? FrostySpacing.gutterTablet : FrostySpacing.gutterPhone) +
+                  MediaQuery.paddingOf(context).right,
+              8,
+            ),
+            isExpanded: _listStore.isOfflineChannelsExpanded,
+            onToggle: () => _listStore.isOfflineChannelsExpanded =
+                !_listStore.isOfflineChannelsExpanded,
+          ),
+        ),
+      ),
+      if (_listStore.isOfflineChannelsExpanded)
+        _GridSliver(
+          itemCount: _listStore.offlineChannels.length,
+          columns: large ? _columns(context, minWidth: 360) : 1,
+          gutter: large ? FrostySpacing.gutterTablet - 16 : 0,
+          gap: 0,
+          rowGap: 0,
+          itemBuilder: (context, index) {
+            // Load more offline channels when nearing the end.
+            if (index > _listStore.offlineChannels.length - 5 &&
+                _listStore.hasMoreOfflineChannels) {
+              _listStore.getOfflineChannels();
+            }
+            return Observer(
+              builder: (context) => OfflineChannelCard(
+                key: ValueKey(_listStore.offlineChannels[index].broadcasterId),
+                channelInfo: _listStore.offlineChannels[index],
+                showPinOption: false,
+                isPinned: false,
+              ),
+            );
+          },
+        ),
+    ];
+  }
+
+  // ---------------------------------------------------------------------
+  // Following, tablet (board TabletteAccueil).
+
+  /// Grid columns in this page's width, each at least [minWidth] wide.
+  int _columns(BuildContext context, {required double minWidth}) {
+    final padding = MediaQuery.paddingOf(context);
+    final width =
+        MediaQuery.sizeOf(context).width -
+        padding.horizontal -
+        2 * FrostySpacing.gutterTablet;
+    return math.max(1, ((width + 20) / (minWidth + 20)).floor());
+  }
+
+  List<Widget> _followingTablet(BuildContext context, SettingsStore settings) {
+    final pinned = [
+      for (final stream in _listStore.allPinnedChannels) stream as StreamTwitch,
+    ];
+    final unpinned = _unpinned(settings);
+    final all = [...pinned, ...unpinned];
+    final heroStream = settings.showThumbnails && all.isNotEmpty
+        ? all.first
+        : null;
+    final shelf = _continueWatching;
+    final categories = _listStore.followedCategories;
+    final padding = MediaQuery.paddingOf(context);
+    final gutter = EdgeInsets.only(
+      left: FrostySpacing.gutterTablet + padding.left,
+      right: FrostySpacing.gutterTablet + padding.right,
+    );
+    final heroAll = settings.largeStreamCard;
+    final columns = !settings.showThumbnails
+        ? _columns(context, minWidth: 360)
+        : heroAll
+        ? _columns(context, minWidth: 380)
+        : _columns(context, minWidth: 240);
+
+    Widget grid(List<StreamTwitch> streams, {required bool isPinned}) =>
+        _GridSliver(
+          itemCount: streams.length,
+          columns: columns,
+          itemBuilder: (context, index) {
+            if (!isPinned) _pageNear(index, streams.length);
+            return StaggeredEntrance(
+              index: 3 + index,
+              child: Observer(
+                builder: (context) => _card(
+                  streams[index],
+                  settings: settings,
+                  pinned: isPinned,
+                  hero: heroAll,
+                  tile: !heroAll,
+                  padding: EdgeInsets.zero,
+                ),
+              ),
+            );
+          },
+        );
+
+    final restPinned = [
+      for (final stream in pinned)
+        if (stream != heroStream) stream,
+    ];
+    final restUnpinned = [
+      for (final stream in unpinned)
+        if (stream != heroStream) stream,
+    ];
+
+    return [
+      if (heroStream != null)
+        SliverPadding(
+          padding: gutter.copyWith(top: 22),
+          sliver: SliverToBoxAdapter(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final heroWidth = math.min(640.0, constraints.maxWidth * 0.55);
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 24,
+                  children: [
+                    SizedBox(
+                      width: heroWidth,
+                      child: StaggeredEntrance(
+                        index: 0,
+                        child: Observer(
+                          builder: (context) => _card(
+                            heroStream,
+                            settings: settings,
+                            pinned: pinned.contains(heroStream),
+                            hero: true,
+                            largeHero: true,
+                            padding: EdgeInsets.zero,
                           ),
-                          // Add offline followed channels section for following tab
-                          if (isFollowingTab) ...[
-                            const SliverToBoxAdapter(
-                              child: FollowedVideosTile(),
-                            ),
-                            SliverToBoxAdapter(
-                              child: Observer(
-                                builder: (context) => FollowedCategoriesSection(
-                                  categories: _listStore.followedCategories,
-                                ),
-                              ),
-                            ),
-                            SliverToBoxAdapter(
-                              child: Observer(
-                                builder: (context) => ExpandableSectionHeader(
-                                  'Offline',
-                                  isFirst: true,
-                                  padding: EdgeInsets.fromLTRB(
-                                    16 + MediaQuery.of(context).padding.left,
-                                    16,
-                                    16 + MediaQuery.of(context).padding.right,
-                                    8,
-                                  ),
-                                  isExpanded:
-                                      _listStore.isOfflineChannelsExpanded,
-                                  onToggle: () =>
-                                      _listStore.isOfflineChannelsExpanded =
-                                          !_listStore.isOfflineChannelsExpanded,
-                                ),
-                              ),
-                            ),
-                            if (_listStore.isOfflineChannelsExpanded)
-                              SliverList.builder(
-                                itemCount: _listStore.offlineChannels.length,
-                                itemBuilder: (context, index) {
-                                  // Load more offline channels when nearing the end
-                                  if (index >
-                                          _listStore.offlineChannels.length -
-                                              5 &&
-                                      _listStore.hasMoreOfflineChannels) {
-                                    _listStore.getOfflineChannels();
-                                  }
-
-                                  return Observer(
-                                    builder: (context) => OfflineChannelCard(
-                                      key: ValueKey(
-                                        _listStore
-                                            .offlineChannels[index]
-                                            .broadcasterId,
-                                      ),
-                                      channelInfo:
-                                          _listStore.offlineChannels[index],
-                                      showPinOption: false,
-                                      isPinned: false,
-                                    ),
-                                  );
-                                },
-                              ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: StaggeredEntrance(
+                        index: 1,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          spacing: 14,
+                          children: [
+                            if (shelf != null)
+                              ContinueWatchingColumn(store: shelf),
+                            FollowedCategoryChips(categories: categories),
                           ],
-                          // Add padding for bottom navigation bar
-                          const SliverBottomPadding(),
-                        ],
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        )
+      else if (shelf != null)
+        SliverPadding(
+          padding: const EdgeInsets.only(top: 16),
+          sliver: SliverToBoxAdapter(
+            child: StaggeredEntrance(
+              index: 0,
+              child: ContinueWatchingShelf(store: shelf),
+            ),
+          ),
+        ),
+      SliverPadding(
+        padding: gutter.copyWith(top: heroStream != null ? 26 : 8),
+        sliver: SliverToBoxAdapter(
+          child: StaggeredEntrance(
+            index: 2,
+            child: _LiveNowHeader(
+              count: all.length,
+              settingsStore: settings,
+              horizontalPadding: 0,
+            ),
+          ),
+        ),
+      ),
+      if (restPinned.isNotEmpty) ...[
+        const SliverToBoxAdapter(child: _Eyebrow('Pinned')),
+        grid(restPinned, isPinned: true),
+      ],
+      if (restPinned.isNotEmpty ||
+          (pinned.isNotEmpty && restUnpinned.isNotEmpty))
+        const SliverToBoxAdapter(child: _Eyebrow('All')),
+      grid(restUnpinned, isPinned: false),
+      ..._followingTail(
+        context,
+        settings,
+        chipsShown: heroStream != null && categories.isNotEmpty,
+      ),
+    ];
+  }
+
+  // ---------------------------------------------------------------------
+  // Top, category and tag lists.
+
+  List<Widget> _streamsSlivers(BuildContext context, SettingsStore settings) {
+    final streams = _listStore.streams;
+    final large = context.isLargeScreen;
+    final heroAll = settings.largeStreamCard && settings.showThumbnails;
+    final columns = !large
+        ? 1
+        : !settings.showThumbnails
+        ? _columns(context, minWidth: 360)
+        : heroAll
+        ? _columns(context, minWidth: 380)
+        : _columns(context, minWidth: 240);
+    return [
+      SliverToBoxAdapter(
+        child: Observer(
+          builder: (context) => HiddenStreamsBanner(
+            hidden: _listStore.hiddenByLabels,
+            onShow: _listStore.showLabeledStreams,
+          ),
+        ),
+      ),
+      if (large) const SliverToBoxAdapter(child: SizedBox(height: 12)),
+      _GridSliver(
+        itemCount: streams.length,
+        columns: columns,
+        gutter: large ? FrostySpacing.gutterTablet : 0,
+        gap: large ? 20 : 0,
+        rowGap: large ? 22 : 0,
+        itemBuilder: (context, index) {
+          _pageNear(index, streams.length);
+          return StaggeredEntrance(
+            index: index,
+            child: Observer(
+              builder: (context) => _card(
+                streams[index],
+                settings: settings,
+                pinned: false,
+                hero: heroAll,
+                tile: large && !heroAll,
+                padding: large ? EdgeInsets.zero : null,
+              ),
+            ),
+          );
+        },
+      ),
+    ];
+  }
+
+  // ---------------------------------------------------------------------
+  // Loading (board Etats / EtatsTablette, "Chargement").
+
+  List<Widget> _skeleton(BuildContext context, SettingsStore settings) {
+    final large = context.isLargeScreen;
+    final thumbnails = settings.showThumbnails;
+    final showCategory = widget.listType != ListType.category;
+    final heroAll = settings.largeStreamCard && thumbnails;
+    if (_following && !large) {
+      return [
+        if (_continueWatching case final shelf?)
+          SliverToBoxAdapter(
+            child: Observer(
+              builder: (context) => shelf.loading
+                  ? const ContinueWatchingSkeleton()
+                  : ContinueWatchingShelf(store: shelf),
+            ),
+          ),
+        const SliverToBoxAdapter(child: _LiveNowHeaderSkeleton()),
+        SliverList.builder(
+          itemCount: 5,
+          itemBuilder: (context, index) => StaggeredEntrance(
+            index: index,
+            child: (heroAll || (thumbnails && index == 0))
+                ? const HeroCardSkeleton()
+                : FeedRowSkeleton(
+                    showThumbnail: thumbnails,
+                    showCategory: showCategory,
+                  ),
+          ),
+        ),
+      ];
+    }
+    if (!large) {
+      return [
+        SliverList.builder(
+          itemCount: 8,
+          itemBuilder: (context, index) => StaggeredEntrance(
+            index: index,
+            child: heroAll
+                ? const HeroCardSkeleton()
+                : FeedRowSkeleton(
+                    showThumbnail: thumbnails,
+                    showCategory: showCategory,
+                  ),
+          ),
+        ),
+      ];
+    }
+    final padding = MediaQuery.paddingOf(context);
+    final columns = !thumbnails
+        ? _columns(context, minWidth: 360)
+        : heroAll
+        ? _columns(context, minWidth: 380)
+        : _columns(context, minWidth: 240);
+    return [
+      if (_following && thumbnails)
+        SliverPadding(
+          padding: EdgeInsets.fromLTRB(
+            FrostySpacing.gutterTablet + padding.left,
+            22,
+            FrostySpacing.gutterTablet + padding.right,
+            0,
+          ),
+          sliver: SliverToBoxAdapter(
+            child: LayoutBuilder(
+              builder: (context, constraints) => Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 24,
+                children: [
+                  SizedBox(
+                    width: math.min(640.0, constraints.maxWidth * 0.55),
+                    child: const AspectRatio(
+                      aspectRatio: 640 / 330,
+                      child: SkeletonLoader(
+                        borderRadius: BorderRadius.all(Radius.circular(22)),
                       ),
                     ),
                   ),
+                  const Expanded(child: _ShelfColumnSkeleton()),
                 ],
               ),
-              if (widget.showJumpButton)
-                Observer(
-                  builder: (context) => AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    switchInCurve: Curves.easeOut,
-                    switchOutCurve: Curves.easeIn,
-                    child: _listStore.showJumpButton
-                        ? ScrollToTopButton(
-                            scrollController: _listStore.scrollController!,
-                          )
-                        : null,
+            ),
+          ),
+        ),
+      if (_following)
+        SliverPadding(
+          padding: EdgeInsets.fromLTRB(
+            FrostySpacing.gutterTablet + padding.left,
+            26,
+            FrostySpacing.gutterTablet + padding.right,
+            0,
+          ),
+          sliver: const SliverToBoxAdapter(
+            child: _LiveNowHeaderSkeleton(horizontalPadding: 0),
+          ),
+        )
+      else
+        const SliverToBoxAdapter(child: SizedBox(height: 12)),
+      _GridSliver(
+        itemCount: columns * 2,
+        columns: columns,
+        itemBuilder: (context, index) => StaggeredEntrance(
+          index: index,
+          child: heroAll
+              ? const AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: SkeletonLoader(
+                    borderRadius: BorderRadius.all(Radius.circular(18)),
                   ),
+                )
+              : thumbnails
+              ? const FeedTileSkeleton()
+              : FeedRowSkeleton(
+                  showThumbnail: false,
+                  showCategory: showCategory,
                 ),
-            ],
-          );
-        },
+        ),
+      ),
+    ];
+  }
+}
+
+/// Cards in [columns] (one: a plain list), [gap] apart, in the page's
+/// [gutter]; a row's cards top-aligned.
+class _GridSliver extends StatelessWidget {
+  const _GridSliver({
+    required this.itemCount,
+    required this.columns,
+    required this.itemBuilder,
+    this.gutter = FrostySpacing.gutterTablet,
+    this.gap = 20,
+    this.rowGap = 22,
+  });
+
+  final int itemCount;
+  final int columns;
+  final IndexedWidgetBuilder itemBuilder;
+  final double gutter;
+  final double gap;
+  final double rowGap;
+
+  @override
+  Widget build(BuildContext context) {
+    if (columns <= 1) {
+      return SliverList.builder(itemCount: itemCount, itemBuilder: itemBuilder);
+    }
+    final padding = MediaQuery.paddingOf(context);
+    return SliverPadding(
+      padding: EdgeInsets.only(
+        left: gutter + padding.left,
+        right: gutter + padding.right,
+      ),
+      sliver: SliverList.builder(
+        itemCount: (itemCount / columns).ceil(),
+        itemBuilder: (context, row) => Padding(
+          padding: EdgeInsets.only(bottom: rowGap),
+          // The cards pad themselves with the window's insets: the grid
+          // already did.
+          child: MediaQuery.removePadding(
+            context: context,
+            removeLeft: true,
+            removeRight: true,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: gap,
+              children: [
+                for (var column = 0; column < columns; column++)
+                  Expanded(
+                    child: row * columns + column < itemCount
+                        ? itemBuilder(context, row * columns + column)
+                        : const SizedBox.shrink(),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// "Live now N" and the order (boards Accueil and TabletteAccueil).
+class _LiveNowHeader extends StatelessWidget {
+  const _LiveNowHeader({
+    required this.count,
+    required this.settingsStore,
+    this.horizontalPadding = FrostySpacing.gutterPhone,
+  });
+
+  final int count;
+  final SettingsStore settingsStore;
+  final double horizontalPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    final padding = MediaQuery.paddingOf(context);
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        horizontalPadding + (horizontalPadding > 0 ? padding.left : 0),
+        6,
+        horizontalPadding + (horizontalPadding > 0 ? padding.right : 0),
+        8,
+      ),
+      child: Row(
+        spacing: 12,
+        children: [
+          Expanded(
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: FeedSectionTitle('Live now', count: count),
+            ),
+          ),
+          Flexible(child: FollowedSortButton(settingsStore: settingsStore)),
+        ],
+      ),
+    );
+  }
+}
+
+/// A small group label ("Pinned", "All").
+class _Eyebrow extends StatelessWidget {
+  const _Eyebrow(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final padding = MediaQuery.paddingOf(context);
+    final gutter = context.isLargeScreen
+        ? FrostySpacing.gutterTablet
+        : FrostySpacing.gutterPhone;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        gutter + padding.left,
+        8,
+        gutter + padding.right,
+        8,
+      ),
+      child: Semantics(
+        header: true,
+        child: Text(
+          label.toUpperCase(),
+          style: FrostyType.label.copyWith(
+            color: FeedColors.of(context).tertiary,
+          ),
+        ),
       ),
     );
   }
@@ -664,9 +1018,13 @@ class HiddenStreamsBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (hidden == 0) return const SizedBox.shrink();
+    final colors = FeedColors.of(context);
+    final gutter = context.isLargeScreen
+        ? FrostySpacing.gutterTablet
+        : FrostySpacing.gutterPhone;
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        16 + MediaQuery.paddingOf(context).left,
+        gutter + MediaQuery.paddingOf(context).left,
         4,
         8 + MediaQuery.paddingOf(context).right,
         4,
@@ -676,7 +1034,7 @@ class HiddenStreamsBanner extends StatelessWidget {
           Icon(
             Icons.visibility_off_outlined,
             size: 18,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            color: colors.secondary,
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -684,7 +1042,7 @@ class HiddenStreamsBanner extends StatelessWidget {
               hidden == 1
                   ? '1 stream hidden by your content preferences'
                   : '$hidden streams hidden by your content preferences',
-              style: Theme.of(context).textTheme.bodySmall,
+              style: TextStyle(fontSize: 13, color: colors.secondary),
             ),
           ),
           TextButton(onPressed: onShow, child: const Text('Show')),
@@ -694,28 +1052,480 @@ class HiddenStreamsBanner extends StatelessWidget {
   }
 }
 
-/// Opens the newest videos of the followed channels.
+/// Opens the newest videos of the followed channels (board Etats: a 60 dp
+/// card, 420 wide on a tablet).
 class FollowedVideosTile extends StatelessWidget {
   const FollowedVideosTile({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final padding = MediaQuery.of(context).padding;
-    return ListTile(
-      contentPadding: EdgeInsets.fromLTRB(
-        16 + padding.left,
-        8,
-        16 + padding.right,
-        0,
+    final padding = MediaQuery.paddingOf(context);
+    final colors = FeedColors.of(context);
+    final large = context.isLargeScreen;
+    final gutter = large
+        ? FrostySpacing.gutterTablet
+        : FrostySpacing.gutterPhone;
+    const radius = BorderRadius.all(Radius.circular(16));
+    final card = PressScale(
+      child: Material(
+        color: colors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: radius,
+          side: BorderSide(
+            color: colors.hairline,
+            width: FrostyTokens.hairlineWidth,
+          ),
+        ),
+        child: InkWell(
+          borderRadius: radius,
+          onTap: () {
+            final id = context.read<AuthStore>().user.details?.id;
+            if (id == null) return;
+            unawaited(FollowedVideosScreen.open(context, userId: id));
+          },
+          child: SizedBox(
+            height: 60,
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(start: 10, end: 12),
+              child: Row(
+                spacing: 12,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: colors.raised,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.video_library_outlined,
+                      size: 20,
+                      color: colors.body,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      'Followed videos',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: colors.text,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 20,
+                    color: colors.tertiary,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
-      leading: const Icon(Icons.video_library_outlined),
-      title: const Text('Followed videos'),
-      trailing: const Icon(Icons.chevron_right_rounded),
-      onTap: () {
-        final id = context.read<AuthStore>().user.details?.id;
-        if (id == null) return;
-        unawaited(FollowedVideosScreen.open(context, userId: id));
-      },
+    );
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        gutter + padding.left,
+        16,
+        gutter + padding.right,
+        8,
+      ),
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: large ? 420 : double.infinity),
+          child: card,
+        ),
+      ),
+    );
+  }
+}
+
+/// The message of an empty or failed feed (boards Etats / EtatsTablette):
+/// a mark, the app's message and, when it can help, an action ("Try
+/// again", an approved addition, does what pulling to refresh does).
+class FeedStatusView extends StatelessWidget {
+  const FeedStatusView({
+    super.key,
+    required this.message,
+    this.icon,
+    this.action,
+    this.onAction,
+    this.signalOff = false,
+  });
+
+  /// Nothing to show: the message under the signal turned off.
+  const FeedStatusView.empty({super.key, required this.message})
+    : icon = null,
+      action = null,
+      onAction = null,
+      signalOff = true;
+
+  /// Something failed: the network mark for a connection problem, the
+  /// message as the app words it, and "Try again".
+  const FeedStatusView.error({
+    super.key,
+    required this.message,
+    required VoidCallback onRetry,
+  }) : icon = message == 'Unable to connect to Twitch'
+           ? Icons.wifi_off_rounded
+           : Icons.error_outline_rounded,
+       action = 'Try again',
+       onAction = onRetry,
+       signalOff = false;
+
+  final String message;
+  final IconData? icon;
+  final String? action;
+  final VoidCallback? onAction;
+  final bool signalOff;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FeedColors.of(context);
+    final large = context.isLargeScreen;
+    final markSize = large ? 88.0 : 72.0;
+    final Widget mark;
+    if (signalOff) {
+      final ring = large ? 104.0 : 88.0;
+      mark = SizedBox(
+        width: ring,
+        height: ring,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: colors.hairline,
+              width: FrostyTokens.hairlineWidth,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: colors.surface,
+                border: Border.all(
+                  color: colors.pillBorder,
+                  width: FrostyTokens.hairlineWidth,
+                ),
+              ),
+              child: Center(
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF3A3A3A)
+                        : const Color(0xFFC4C4C4),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    } else {
+      mark = Container(
+        width: markSize,
+        height: markSize,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: colors.surface,
+          border: Border.all(
+            color: colors.pillBorder,
+            width: FrostyTokens.hairlineWidth,
+          ),
+        ),
+        child: Icon(
+          icon ?? Icons.info_outline_rounded,
+          size: large ? 34 : 30,
+          color: colors.secondary,
+        ),
+      );
+    }
+    final action = this.action;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(32, 24, 32, 48),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: large ? 18 : 16,
+          children: [
+            ExcludeSemantics(child: mark),
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: large ? 360 : 260),
+              child: Text(
+                message,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: signalOff ? (large ? 20 : 17) : (large ? 20 : 16),
+                  height: 1.4,
+                  fontWeight: signalOff || large
+                      ? FontWeight.w700
+                      : FontWeight.w600,
+                  letterSpacing: -0.015 * 17,
+                  color: colors.text,
+                ),
+              ),
+            ),
+            if (action != null)
+              OutlinedButton.icon(
+                onPressed: onAction,
+                style: OutlinedButton.styleFrom(
+                  minimumSize: Size(0, large ? 48 : 44),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  backgroundColor: colors.raised,
+                  foregroundColor: colors.text,
+                  side: BorderSide(
+                    color: colors.pillBorder,
+                    width: FrostyTokens.hairlineWidth,
+                  ),
+                  shape: const StadiumBorder(),
+                  textStyle: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                icon: Icon(
+                  action == 'Try again'
+                      ? Icons.refresh_rounded
+                      : Icons.visibility_outlined,
+                  size: 17,
+                ),
+                label: Text(action),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// -------------------------------------------------------------------------
+// Skeletons in the cards' exact shapes (one sheen crosses them all).
+
+/// "Live now" and the order pill, loading.
+class _LiveNowHeaderSkeleton extends StatelessWidget {
+  const _LiveNowHeaderSkeleton({
+    this.horizontalPadding = FrostySpacing.gutterPhone,
+  });
+
+  final double horizontalPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    final padding = MediaQuery.paddingOf(context);
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        horizontalPadding + (horizontalPadding > 0 ? padding.left : 0),
+        6,
+        horizontalPadding + (horizontalPadding > 0 ? padding.right : 0),
+        12,
+      ),
+      child: const Row(
+        children: [
+          SkeletonLoader(width: 104, height: 16),
+          Spacer(),
+          SkeletonLoader(
+            width: 84,
+            height: 32,
+            borderRadius: BorderRadius.all(Radius.circular(16)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The tablet's shelf column, loading.
+class _ShelfColumnSkeleton extends StatelessWidget {
+  const _ShelfColumnSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    Widget row(double width) => Row(
+      spacing: 14,
+      children: [
+        const SkeletonLoader(
+          width: 210,
+          height: 118,
+          borderRadius: BorderRadius.all(Radius.circular(14)),
+        ),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 9,
+            children: [
+              SkeletonText(height: 13, minWidth: width, maxWidth: width),
+              const SkeletonLoader(width: 140, height: 11),
+            ],
+          ),
+        ),
+      ],
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 14,
+      children: [
+        const SkeletonLoader(width: 170, height: 16),
+        row(200),
+        row(170),
+        const Row(
+          spacing: 10,
+          children: [
+            SkeletonLoader(
+              width: 96,
+              height: 32,
+              borderRadius: BorderRadius.all(Radius.circular(16)),
+            ),
+            SkeletonLoader(
+              width: 150,
+              height: 32,
+              borderRadius: BorderRadius.all(Radius.circular(16)),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// The hero card, loading (radius 18, 16:9).
+class HeroCardSkeleton extends StatelessWidget {
+  const HeroCardSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final padding = MediaQuery.paddingOf(context);
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        FrostySpacing.gutterPhone + padding.left,
+        6,
+        FrostySpacing.gutterPhone + padding.right,
+        8,
+      ),
+      child: const AspectRatio(
+        aspectRatio: 16 / 9,
+        child: SkeletonLoader(
+          borderRadius: BorderRadius.all(Radius.circular(18)),
+        ),
+      ),
+    );
+  }
+}
+
+/// A [StreamCard] row, loading (150 x 84 thumbnail, avatar and three lines).
+class FeedRowSkeleton extends StatelessWidget {
+  const FeedRowSkeleton({
+    super.key,
+    this.showThumbnail = true,
+    this.showCategory = true,
+  });
+
+  final bool showThumbnail;
+  final bool showCategory;
+
+  @override
+  Widget build(BuildContext context) {
+    final padding = MediaQuery.paddingOf(context);
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        FrostySpacing.gutterPhone + padding.left,
+        8,
+        FrostySpacing.gutterPhone + padding.right,
+        8,
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = StreamCard.rowThumbnailWidth(constraints.maxWidth);
+          return Row(
+            spacing: 12,
+            children: [
+              if (showThumbnail)
+                SkeletonLoader(
+                  width: width,
+                  height: width * 9 / 16,
+                  borderRadius: const BorderRadius.all(Radius.circular(12)),
+                )
+              else
+                const SkeletonLoader(
+                  width: 40,
+                  height: 40,
+                  borderRadius: BorderRadius.all(Radius.circular(20)),
+                ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 9,
+                  children: [
+                    const Row(
+                      spacing: 6,
+                      children: [
+                        SkeletonLoader(
+                          width: 18,
+                          height: 18,
+                          borderRadius: BorderRadius.all(Radius.circular(9)),
+                        ),
+                        SkeletonLoader(width: 80, height: 12),
+                      ],
+                    ),
+                    SkeletonText(height: 11, minWidth: 110, maxWidth: 180),
+                    if (showCategory)
+                      SkeletonText(height: 10, minWidth: 70, maxWidth: 110),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// A [StreamCard] tile, loading (board EtatsTablette).
+class FeedTileSkeleton extends StatelessWidget {
+  const FeedTileSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      spacing: 10,
+      children: [
+        AspectRatio(
+          aspectRatio: 16 / 9,
+          child: SkeletonLoader(
+            borderRadius: BorderRadius.all(Radius.circular(14)),
+          ),
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 10,
+          children: [
+            SkeletonLoader(
+              width: 34,
+              height: 34,
+              borderRadius: BorderRadius.all(Radius.circular(17)),
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 8,
+                children: [
+                  SkeletonLoader(width: 120, height: 13),
+                  SkeletonText(height: 11, minWidth: 140, maxWidth: 190),
+                  SkeletonLoader(width: 110, height: 10),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

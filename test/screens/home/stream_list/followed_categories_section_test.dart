@@ -31,7 +31,7 @@ void main() {
       ]),
     );
 
-    expect(find.text('CATEGORIES'), findsOneWidget);
+    expect(find.text('Categories'), findsOneWidget);
     expect(find.text('Just Chatting'), findsOneWidget);
     expect(find.text('412K viewers'), findsOneWidget);
     expect(find.text('Chess'), findsOneWidget);
@@ -41,6 +41,6 @@ void main() {
   testWidgets('no followed categories, no section', (tester) async {
     await tester.pumpWidget(_host(const []));
 
-    expect(find.text('CATEGORIES'), findsNothing);
+    expect(find.text('Categories'), findsNothing);
   });
 }

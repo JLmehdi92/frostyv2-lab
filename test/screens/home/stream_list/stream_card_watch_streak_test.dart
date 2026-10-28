@@ -26,7 +26,10 @@ Future<void> pump(WidgetTester tester, Widget card) => tester.pumpWidget(
 );
 
 void main() {
-  testWidgets("a followed card carries Twitch's streak tag", (tester) async {
+  testWidgets("a followed card carries Twitch's streak, in green", (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
     await pump(
       tester,
       const StreamCard(
@@ -36,7 +39,8 @@ void main() {
       ),
     );
 
-    expect(find.text('Watch Streak 6'), findsOneWidget);
+    expect(find.text('Streak 6'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('Watch streak 6')), findsOneWidget);
     // The tags stay.
     expect(find.text('English'), findsOneWidget);
 
@@ -44,7 +48,8 @@ void main() {
       tester,
       const StreamCard(streamInfo: _stream, showThumbnail: true),
     );
-    expect(find.textContaining('Watch Streak'), findsNothing);
+    expect(find.textContaining('Streak'), findsNothing);
+    semantics.dispose();
   });
 
   testWidgets('the large card too', (tester) async {
@@ -57,6 +62,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Watch Streak 12'), findsOneWidget);
+    // On the hero, in its pill beside the channel.
+    expect(find.text('Streak 12'), findsOneWidget);
   });
 }

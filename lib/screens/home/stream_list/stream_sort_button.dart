@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/apis/twitch_directory_service.dart';
+import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/theme.dart';
 
 /// A chip naming the order of a live list; it opens the other orders.
 class StreamSortButton extends StatelessWidget {
@@ -32,8 +34,9 @@ class StreamSortButton extends StatelessWidget {
   }
 }
 
-/// "Sorted by …" above Following's live channels, like Twitch's subheader;
-/// it opens the other orders and remembers the choice.
+/// "Sorted by …" beside Following's "Live now" (boards Accueil and
+/// TabletteAccueil: a 32 dp pill), like Twitch's subheader; it opens the
+/// other orders and remembers the choice.
 class FollowedSortButton extends StatelessWidget {
   const FollowedSortButton({super.key, required this.settingsStore});
 
@@ -41,7 +44,7 @@ class FollowedSortButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final colors = FeedColors.of(context);
     return Observer(
       builder: (context) {
         final sort = settingsStore.followedSort;
@@ -57,33 +60,33 @@ class FollowedSortButton extends StatelessWidget {
                 child: Text(option.label),
               ),
           ],
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Container(
+            height: 32,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: ShapeDecoration(
+              color: colors.surface,
+              shape: StadiumBorder(
+                side: BorderSide(
+                  color: colors.pillBorder,
+                  width: FrostyTokens.hairlineWidth,
+                ),
+              ),
+            ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               spacing: 6,
               children: [
-                Icon(
-                  Icons.sort_rounded,
-                  size: 18,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+                Icon(Icons.sort_rounded, size: 14, color: colors.body),
                 Flexible(
-                  child: Text.rich(
-                    TextSpan(
-                      text: 'Sorted by ',
-                      children: [
-                        TextSpan(
-                          text: sort.label,
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+                  child: Text(
+                    'Sorted by ${sort.label}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: colors.body,
+                    ),
                   ),
                 ),
               ],
