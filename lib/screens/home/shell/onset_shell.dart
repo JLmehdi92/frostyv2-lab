@@ -206,6 +206,27 @@ class _ShellPalette {
     required this.onAccent,
   });
 
+  /// Over a video: light glyphs, the dot's ring on the dark ground.
+  _ShellPalette overVideo() => _ShellPalette(
+    ground: FrostyTokens.backgroundDark,
+    headerFill: headerFill,
+    navFill: navFill,
+    pillFill: pillFill,
+    hairline: hairline,
+    highlight: highlight,
+    text: Colors.white,
+    idle: idle,
+    tabIdle: tabIdle,
+    pillIdle: pillIdle,
+    pillActive: pillActive,
+    pillActiveText: pillActiveText,
+    field: field,
+    fieldText: fieldText,
+    avatarFill: avatarFill,
+    accent: accent,
+    onAccent: onAccent,
+  );
+
   factory _ShellPalette.of(BuildContext context) {
     final theme = Theme.of(context);
     final ground = theme.scaffoldBackgroundColor;
@@ -691,8 +712,11 @@ class _PhoneHeader extends StatelessWidget {
           );
 
     if (header.overVideo) {
-      // Over the clips feed: a gradient, never a blur over the video. Only
-      // the tabs take touches; the rest of the band is the feed's.
+      // Over a video feed: a gradient, never a blur over the video. Only
+      // the tabs, search and whispers take touches; the rest of the band
+      // is the feed's.
+      final light = palette.overVideo();
+      final whispers = this.whispers;
       return Stack(
         children: [
           const Positioned.fill(
@@ -715,10 +739,28 @@ class _PhoneHeader extends StatelessWidget {
               right: padding.right,
               bottom: _videoFade - ShellMetrics.videoTabsRow,
             ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              widthFactor: 1,
-              child: tabs,
+            child: SizedBox(
+              height: ShellMetrics.videoTabsRow,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Align(alignment: Alignment.bottomLeft, child: tabs),
+                  ),
+                  if (header.showSearch)
+                    _HeaderButton(
+                      tooltip: 'Search',
+                      onPressed: onSearch,
+                      child: ShellGlyph(
+                        ShellGlyphKind.search,
+                        color: light.text,
+                        strokeWidth: 1.8,
+                      ),
+                    ),
+                  if (header.showWhispers && whispers != null)
+                    _WhispersButton(whispers: whispers, palette: light),
+                  const SizedBox(width: 8),
+                ],
+              ),
             ),
           ),
         ],

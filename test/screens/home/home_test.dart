@@ -232,10 +232,7 @@ void main() {
 
   testWidgets('search opens over the shell, and back returns', (tester) async {
     await pump(tester);
-    // Live's phone header is the video one (its tabs only, board Live).
-    expect(find.byTooltip('Search'), findsNothing);
-    await tester.tap(nav('profile'));
-    await tester.pumpAndSettle();
+    // From Live's video header (no blur, light glyphs over the video).
     await tester.tap(find.byTooltip('Search'));
     await tester.pumpAndSettle();
     expect(find.byType(SearchScreen), findsOneWidget);
@@ -261,8 +258,6 @@ void main() {
       () => api.searchCategories(query: any(named: 'query')),
     ).thenAnswer((_) async => const CategoriesTwitch([], {}));
     await pump(tester);
-    await tester.tap(nav('profile'));
-    await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Search'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'chess');
@@ -301,8 +296,6 @@ void main() {
     FocusNode focus() =>
         tester.widget<TextField>(find.byType(TextField)).focusNode!;
 
-    await tester.tap(nav('profile'));
-    await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Search'));
     await tester.pumpAndSettle();
     // A new search: the keyboard is up.
@@ -737,8 +730,9 @@ void main() {
     await tester.tap(find.text('Live'));
     await tester.pumpAndSettle();
     expect(find.byType(BackdropFilter), findsNothing);
-    // Its tabs only, over the video (board Live).
-    expect(find.byTooltip('Search'), findsNothing);
+    // Search and whispers stay, light over the video's gradient.
+    expect(find.byTooltip('Search'), findsOneWidget);
+    expect(find.byTooltip('Whispers'), findsOneWidget);
 
     await tester.tap(find.text('Following'));
     await tester.pump();
