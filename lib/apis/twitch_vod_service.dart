@@ -365,10 +365,13 @@ class TwitchVodService extends BaseApiClient {
       fields.write('v$i: video(id: \$i$i) { $_videoFields } ');
       variables['i$i'] = id;
     }
+    // One deleted or restricted video answers an error for its own alias
+    // only: the others still come.
     final data = await _gql(
       'VideosById',
       'query VideosById(${params.join(', ')}) { $fields}',
       variables,
+      partial: true,
     );
     final videos = <Vod>[];
     for (var i = 0; i < wanted.length; i++) {
@@ -398,6 +401,7 @@ class TwitchVodService extends BaseApiClient {
         _resumeWatchingQuery,
         {'limit': limit},
         headers: {'Authorization': 'OAuth $authToken'},
+        partial: true,
       );
       _historyFailures.remove('shelf#$tokenId');
       final user = data['currentUser'];
@@ -852,11 +856,14 @@ class TwitchVodService extends BaseApiClient {
     }
   }
 
+  /// [partial]: an answer with data and errors (one field refused) gives
+  /// its data; without data, the errors still throw.
   Future<JsonMap> _gql(
     String operationName,
     String query,
     JsonMap variables, {
     Map<String, String> headers = const {},
+    bool partial = false,
   }) async {
     final body = await post<JsonMap>(
       _gqlUrl,
@@ -868,7 +875,8 @@ class TwitchVodService extends BaseApiClient {
       },
     );
     final errors = body['errors'];
-    if (errors is List && errors.isNotEmpty) {
+    final hasData = body['data'] is Map;
+    if (errors is List && errors.isNotEmpty && !(partial && hasData)) {
       final messages = errors
           .map((e) => e is Map ? '${e['message']}' : '$e')
           .join('; ');

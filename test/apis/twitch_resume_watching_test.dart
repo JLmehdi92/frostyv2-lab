@@ -224,6 +224,24 @@ void main() {
       expect((body(sent.single)['variables'] as Map).length, 25);
     });
 
+    test('a video refused on its own leaves the others', () async {
+      answer = (o, h) => h.resolve(
+        ok(o, {
+          'errors': [
+            {
+              'message': 'restricted',
+              'path': ['v0'],
+            },
+          ],
+          'data': {'v0': null, 'v1': vodNodeArchive},
+        }),
+      );
+
+      final videos = await service.getVideos(['1', '1000000001']);
+
+      expect(videos.single.id, '1000000001');
+    });
+
     test('a GQL error throws', () async {
       answer = (o, h) => h.resolve(
         ok(o, {
