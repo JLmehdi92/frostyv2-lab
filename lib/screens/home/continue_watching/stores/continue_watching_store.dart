@@ -99,14 +99,16 @@ abstract class ContinueWatchingStoreBase with Store {
       debugPrint('Continue watching: shelf unavailable: ${e.runtimeType}');
     }
     if (_disposed) return;
-    // The account changed while Twitch answered: that answer is not theirs.
-    if (viewer != _viewer) return;
-    // A refusal keeps what Twitch said last for this viewer (a network
-    // blip must not empty the shelf); another viewer never sees it.
-    _server = server ?? (viewer == _serverViewer ? _server : null);
-    _serverViewer = viewer;
-    for (final entry in server ?? const <ResumeWatchingEntry>[]) {
-      _known[entry.vod.id] = entry.vod;
+    // The account changed while Twitch answered: that answer is not theirs
+    // (the shelf still shows the new account's own positions).
+    if (viewer == _viewer) {
+      // A refusal keeps what Twitch said last for this viewer (a network
+      // blip must not empty the shelf); another viewer never sees it.
+      _server = server ?? (viewer == _serverViewer ? _server : null);
+      _serverViewer = viewer;
+      for (final entry in server ?? const <ResumeWatchingEntry>[]) {
+        _known[entry.vod.id] = entry.vod;
+      }
     }
     await _merge();
   }
@@ -125,9 +127,11 @@ abstract class ContinueWatchingStoreBase with Store {
     }
     if (_disposed || generation != _generation) return;
 
-    // Where each video was left, the later save winning.
+    // Where each video was left, the later save winning. Twitch's shelf
+    // only for the account it was read for.
+    final server = viewer == _serverViewer ? _server : null;
     final positions = <String, (int, DateTime?)>{};
-    for (final entry in _server ?? const <ResumeWatchingEntry>[]) {
+    for (final entry in server ?? const <ResumeWatchingEntry>[]) {
       positions[entry.vod.id] = (
         entry.history.positionSec,
         entry.history.updatedAt,

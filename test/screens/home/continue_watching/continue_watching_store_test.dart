@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
@@ -248,6 +250,47 @@ void main() {
     expect(store.items, isEmpty);
     answer = const [];
   });
+
+  test("another account's Twitch shelf never joins a local change", () async {
+    when(
+      () => service.getResumeWatching(limit: any(named: 'limit')),
+    ).thenAnswer(
+      (_) async => [_entry('2', 1200, DateTime.utc(2026, 10, 27, 9))],
+    );
+    when(() => service.getVideos(['1'])).thenAnswer((_) async => [_vod('1')]);
+    final store = ContinueWatchingStore(vodService: service);
+    addTearDown(store.dispose);
+    await store.load();
+    expect(store.items.single.vod.id, '2');
+
+    // Another account, which closes a video before any refresh.
+    viewer = '8';
+    await save('1', 300, DateTime.utc(2026, 10, 27, 16));
+    await pumpEventQueue();
+
+    expect(store.items.map((i) => i.vod.id), ['1']);
+  });
+
+  test(
+    'an account change during the first load still ends the loading',
+    () async {
+      final answer = Completer<List<ResumeWatchingEntry>?>();
+      when(
+        () => service.getResumeWatching(limit: any(named: 'limit')),
+      ).thenAnswer((_) => answer.future);
+      final store = ContinueWatchingStore(vodService: service);
+      addTearDown(store.dispose);
+
+      final loading = store.load();
+      viewer = '8';
+      answer.complete([_entry('2', 1200, DateTime.utc(2026, 10, 27, 9))]);
+      await loading;
+
+      expect(store.loading, isFalse);
+      // The answer was the other account's.
+      expect(store.items, isEmpty);
+    },
+  );
 
   test('a disposed store stops following saves', () async {
     final store = ContinueWatchingStore(vodService: service);
