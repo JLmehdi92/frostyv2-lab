@@ -37,15 +37,9 @@ void main() {
       expect(FrostyMotion.pressScale, 0.97);
       expect(FrostyMotion.pressDuration, const Duration(milliseconds: 100));
       expect(FrostyMotion.staggerStep, const Duration(milliseconds: 40));
-      expect(
-        FrostyMotion.launchStaggerStep,
-        const Duration(milliseconds: 60),
-      );
+      expect(FrostyMotion.launchStaggerStep, const Duration(milliseconds: 60));
       expect(FrostyMotion.staggerCap, 8);
-      expect(
-        FrostyMotion.reducedFade.inMilliseconds,
-        lessThanOrEqualTo(150),
-      );
+      expect(FrostyMotion.reducedFade.inMilliseconds, lessThanOrEqualTo(150));
       // Exits are faster than entrances.
       expect(FrostyMotion.exit, lessThan(FrostyMotion.enter));
     });
@@ -79,7 +73,9 @@ void main() {
     testWidgets('follows iOS "Reduce Motion"', (tester) async {
       tester.platformDispatcher.accessibilityFeaturesTestValue =
           const FakeAccessibilityFeatures(reduceMotion: true);
-      addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+      addTearDown(
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+      );
       expect(await probe(tester), isTrue);
     });
 

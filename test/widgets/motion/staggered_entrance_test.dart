@@ -3,10 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/widgets/motion/motion.dart';
 import 'package:frosty/widgets/motion/staggered_entrance.dart';
 
-Finder _entrance(Key key) => find.descendant(
-  of: find.byKey(key),
-  matching: find.byType(FadeTransition),
-);
+Finder _entrance(Key key) =>
+    find.descendant(of: find.byKey(key), matching: find.byType(FadeTransition));
 
 double _opacity(WidgetTester tester, Key key) =>
     tester.widget<FadeTransition>(_entrance(key)).opacity.value;
@@ -28,9 +26,7 @@ void main() {
   testWidgets('rises and fades in on first build', (tester) async {
     const key = Key('a');
     await tester.pumpWidget(
-      _host(
-        const StaggeredEntrance(key: key, index: 0, child: Text('row')),
-      ),
+      _host(const StaggeredEntrance(key: key, index: 0, child: Text('row'))),
     );
     expect(_opacity(tester, key), 0);
     expect(_dy(tester, key), greaterThan(0));
@@ -74,10 +70,7 @@ void main() {
       ),
     );
     await tester.pump(const Duration(milliseconds: 380));
-    expect(
-      _opacity(tester, const Key('40')),
-      _opacity(tester, const Key('8')),
-    );
+    expect(_opacity(tester, const Key('40')), _opacity(tester, const Key('8')));
     expect(_opacity(tester, const Key('40')), greaterThan(0));
   });
 
@@ -109,7 +102,11 @@ void main() {
             builder: (context, count, _) => Column(
               children: [
                 for (var i = 0; i < count; i++)
-                  StaggeredEntrance(key: Key('$i'), index: i, child: Text('$i')),
+                  StaggeredEntrance(
+                    key: Key('$i'),
+                    index: i,
+                    child: Text('$i'),
+                  ),
               ],
             ),
           ),

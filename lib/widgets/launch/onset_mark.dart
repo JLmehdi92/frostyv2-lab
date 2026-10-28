@@ -58,7 +58,12 @@ abstract final class OnsetMark {
         case 'L':
           path.lineTo(numbers[0], numbers[1]);
         case 'Q':
-          path.quadraticBezierTo(numbers[0], numbers[1], numbers[2], numbers[3]);
+          path.quadraticBezierTo(
+            numbers[0],
+            numbers[1],
+            numbers[2],
+            numbers[3],
+          );
         case 'Z':
           path.close();
       }

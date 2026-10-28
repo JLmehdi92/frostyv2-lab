@@ -41,9 +41,7 @@ void main() {
     expect(_painter(tester).progress.value, isNot(start));
   });
 
-  testWidgets('stops in the background and resumes in front', (
-    tester,
-  ) async {
+  testWidgets('stops in the background and resumes in front', (tester) async {
     await tester.pumpWidget(_host(const SignalPing()));
     expect(tester.binding.transientCallbackCount, greaterThan(0));
 
@@ -64,9 +62,7 @@ void main() {
   });
 
   testWidgets('reduce motion: a still dot, no ticker', (tester) async {
-    await tester.pumpWidget(
-      _host(const SignalPing(), disableAnimations: true),
-    );
+    await tester.pumpWidget(_host(const SignalPing(), disableAnimations: true));
     expect(tester.binding.transientCallbackCount, 0);
     expect(_painter(tester).progress.value, 0);
     expect(find.byType(CustomPaint), findsWidgets);

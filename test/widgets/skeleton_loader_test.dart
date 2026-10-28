@@ -3,11 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/widgets/skeleton_loader.dart';
 
-Widget _host(
-  Widget child, {
-  bool dark = true,
-  bool disableAnimations = false,
-}) {
+Widget _host(Widget child, {bool dark = true, bool disableAnimations = false}) {
   const themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
   return MaterialApp(
     theme: dark ? themes.dark : themes.light,
@@ -89,7 +85,10 @@ void main() {
       ),
     );
     final context = tester.element(find.byType(SkeletonLoader));
-    expect(_painter(tester).base, Theme.of(context).colorScheme.surfaceContainer);
+    expect(
+      _painter(tester).base,
+      Theme.of(context).colorScheme.surfaceContainer,
+    );
   });
 
   testWidgets('reduce motion: a still block, no ticker', (tester) async {
@@ -142,6 +141,9 @@ void main() {
       tester.getSize(find.byKey(const Key('filled'))),
       const Size(100, 40),
     );
-    expect(tester.getSize(find.byKey(const Key('unbounded'))), const Size(0, 8));
+    expect(
+      tester.getSize(find.byKey(const Key('unbounded'))),
+      const Size(0, 8),
+    );
   });
 }

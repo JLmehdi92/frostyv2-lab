@@ -37,10 +37,7 @@ class PressScale extends StatefulWidget {
 class _PressScaleState extends State<PressScale>
     with SingleTickerProviderStateMixin {
   // Unbounded: the release spring may overshoot 1 by a hair.
-  late final _controller = AnimationController.unbounded(
-    vsync: this,
-    value: 1,
-  );
+  late final _controller = AnimationController.unbounded(vsync: this, value: 1);
 
   int? _pointer;
   Offset? _downAt;

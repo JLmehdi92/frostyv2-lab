@@ -62,8 +62,7 @@ class _RollingNumberState extends State<RollingNumber>
   /// Whether going from [from] to [to] is an increase. Separators and units
   /// are ignored; anything unreadable rolls up.
   static bool _grows(String from, String to) {
-    num? read(String s) =>
-        num.tryParse(s.replaceAll(RegExp(r'[^0-9.\-]'), ''));
+    num? read(String s) => num.tryParse(s.replaceAll(RegExp(r'[^0-9.\-]'), ''));
     final a = read(from);
     final b = read(to);
     if (a == null || b == null) return true;

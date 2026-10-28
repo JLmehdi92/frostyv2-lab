@@ -106,9 +106,7 @@ class StaggeredEntrance extends StatefulWidget {
 
 class _StaggeredEntranceState extends State<StaggeredEntrance>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-  );
+  late final AnimationController _controller = AnimationController(vsync: this);
 
   /// Opacity, 0 → 1, after the row's delay.
   Animation<double> _progress = kAlwaysCompleteAnimation;
@@ -123,9 +121,7 @@ class _StaggeredEntranceState extends State<StaggeredEntrance>
     if (_decided) return;
     _decided = true;
 
-    final scope = context
-        .getInheritedWidgetOfExactType<_StaggerBatch>()
-        ?.state;
+    final scope = context.getInheritedWidgetOfExactType<_StaggerBatch>()?.state;
     if (scope != null && !scope._admit()) {
       _controller.value = 1;
       return;

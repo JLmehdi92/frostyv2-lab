@@ -61,10 +61,7 @@ void main() {
       final decoration = box.decoration as BoxDecoration;
       expect(decoration.color, FrostyTokens.accent);
       // Corners scale with the tile: 20 at 72.
-      expect(
-        decoration.borderRadius,
-        BorderRadius.circular(20 * 28 / 72),
-      );
+      expect(decoration.borderRadius, BorderRadius.circular(20 * 28 / 72));
     });
 
     testWidgets('carries the brand name for screen readers', (tester) async {

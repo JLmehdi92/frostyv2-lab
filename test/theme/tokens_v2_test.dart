@@ -155,7 +155,10 @@ void main() {
         contains(const FontFeature.tabularFigures()),
       );
       final tabular = FrostyType.tabular(FrostyType.section);
-      expect(tabular.fontFeatures, contains(const FontFeature.tabularFigures()));
+      expect(
+        tabular.fontFeatures,
+        contains(const FontFeature.tabularFigures()),
+      );
       expect(tabular.fontSize, FrostyType.section.fontSize);
       // Already tabular: not added twice.
       expect(

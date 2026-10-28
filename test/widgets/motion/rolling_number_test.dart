@@ -95,9 +95,7 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets('a longer number grows its new leading digit in', (
-    tester,
-  ) async {
+  testWidgets('a longer number grows its new leading digit in', (tester) async {
     await tester.pumpWidget(_host('999'));
     await tester.pumpWidget(_host('1,000'));
     await tester.pumpAndSettle();
