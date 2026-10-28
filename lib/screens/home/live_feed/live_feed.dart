@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/apis/twitch_stream_service.dart';
@@ -24,12 +26,14 @@ import 'package:frosty/theme.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/share_link.dart';
+import 'package:frosty/widgets/alert_message.dart';
+import 'package:frosty/widgets/launch/launch_intro.dart';
 import 'package:frosty/widgets/motion/haptics.dart';
 import 'package:frosty/widgets/motion/press_scale.dart';
 import 'package:frosty/widgets/motion/reduce_motion.dart';
 import 'package:frosty/widgets/skeleton_loader.dart';
 import 'package:frosty/widgets/twitch_web_page.dart';
-import 'package:mobx/mobx.dart';
+import 'package:mobx/mobx.dart' hide Listener;
 import 'package:provider/provider.dart';
 
 /// Shows [categoryId]'s live channels in the feed (null: All), from the
@@ -65,7 +69,9 @@ class LiveFeed extends StatefulWidget {
     required this.active,
     @visibleForTesting this.preview,
     @visibleForTesting this.isMetered,
-    @visibleForTesting this.openChannel,
+    @visibleForTesting this.meteredChanges,
+    @visibleForTesting this.introRunning,
+    @visibleForTesting this.channelRoute,
   });
 
   final LiveFeedStore store;
@@ -79,9 +85,14 @@ class LiveFeed extends StatefulWidget {
   final LivePreviewController? preview;
   final Future<bool?> Function()? isMetered;
 
-  /// Opens a channel (tests replace the channel screen).
-  final Future<void> Function(BuildContext context, StreamTwitch stream)?
-  openChannel;
+  /// The network's cost as it changes (default: [NetworkMetering]).
+  final Stream<bool?>? meteredChanges;
+
+  /// Whether the launch intro covers the app (default: [LaunchIntro]).
+  final ValueListenable<bool>? introRunning;
+
+  /// The channel's page (tests replace the channel screen).
+  final Route<void> Function(StreamTwitch stream)? channelRoute;
 
   @override
   State<LiveFeed> createState() => _LiveFeedState();
@@ -99,7 +110,7 @@ class _LiveFeedState extends State<LiveFeed> {
   late final LivePreviewController _preview =
       widget.preview ??
       LivePreviewController(
-        resolveUrl: (login) async {
+        resolveUrl: (login, cancel) async {
           final service = _service ??= TwitchStreamService(
             Dio(
               BaseOptions(
@@ -112,6 +123,7 @@ class _LiveFeedState extends State<LiveFeed> {
           final variants = await service.getStreamVariants(
             userLogin: login,
             authToken: _auth.twitchWebToken,
+            cancelToken: cancel,
           );
           final variant = pickPreviewVariant(
             variants,
@@ -139,9 +151,13 @@ class _LiveFeedState extends State<LiveFeed> {
   /// A preview started by hand while autoplay is off.
   String? _playedByHand;
 
-  /// A channel opened from the feed is on screen: no preview may start
-  /// under its player, whatever else changes meanwhile.
+  /// A channel opened from the feed is on screen (or still leaving): no
+  /// preview may start under its player, whatever else changes meanwhile.
   var _channelOpen = false;
+
+  StreamSubscription<bool?>? _meteredChanges;
+  late final ValueListenable<bool> _intro =
+      widget.introRunning ?? LaunchIntro.running;
 
   @override
   void initState() {
@@ -164,11 +180,46 @@ class _LiveFeedState extends State<LiveFeed> {
           _sync();
         }, fireImmediately: true),
       )
-      ..add(reaction((_) => _settings.vodAutoplay, (_) => _sync()));
+      ..add(reaction((_) => _settings.vodAutoplay, (_) => _sync()))
+      ..add(reaction((_) => _settings.showThumbnails, (_) => _sync()))
+      // The store moved (a refresh kept the channel elsewhere, another
+      // language started over, a chip): the pages follow.
+      ..add(reaction((_) => widget.store.index, _followIndex));
+    // Leaving Wi-Fi stops a "Wi-Fi only" preview at once.
+    _meteredChanges =
+        (widget.meteredChanges ?? NetworkMetering.shared.changes()).listen((
+          metered,
+        ) {
+          if (!mounted) return;
+          setState(() {
+            _metered = metered;
+            _meterAsked = true;
+          });
+          _sync();
+        });
+    // Nothing competes with the launch intro for the device.
+    _intro.addListener(_onIntro);
     final mini = _mini;
     if (mini != null) {
       _disposers.add(reaction((_) => mini.visible, (_) => _sync()));
     }
+  }
+
+  void _onIntro() {
+    // The intro reports from its own build: answered after that frame.
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      SchedulerBinding.instance.addPostFrameCallback((_) => _sync());
+    } else {
+      _sync();
+    }
+  }
+
+  void _followIndex(int index) {
+    final controller = widget.controller;
+    if (!controller.hasClients) return;
+    final page = controller.page?.round();
+    if (page != null && page != index) controller.jumpToPage(index);
   }
 
   @override
@@ -190,10 +241,11 @@ class _LiveFeedState extends State<LiveFeed> {
     _sync();
   }
 
+  /// Back on the feed after a while: the channels are refreshed, the one on
+  /// screen kept where it is.
   void _refreshIfStale() {
     if (!widget.store.stale) return;
-    _toTop();
-    unawaited(widget.store.refresh());
+    unawaited(widget.store.refresh(keepPosition: true));
   }
 
   bool get _autoplay {
@@ -216,10 +268,14 @@ class _LiveFeedState extends State<LiveFeed> {
   void _sync() {
     if (!mounted) return;
     final current = widget.store.current?.userLogin;
-    final allowed = _autoplay || (current != null && current == _playedByHand);
+    // Thumbnails off: no picture, no preview unless asked for.
+    final allowed =
+        (_autoplay && _settings.showThumbnails) ||
+        (current != null && current == _playedByHand);
     _preview.setActive(
       widget.active &&
           !_channelOpen &&
+          !_intro.value &&
           _tickers &&
           _foreground &&
           !(_mini?.visible ?? false) &&
@@ -235,16 +291,29 @@ class _LiveFeedState extends State<LiveFeed> {
 
   /// Opens [stream]'s channel, the preview's decoder let go first: the
   /// channel's player never shares the device with it.
+  ///
+  /// - Opening waits for the decoder to be gone, at most [_releaseCap]:
+  ///   releasing libmpv takes a few frames, and a channel should never be
+  ///   slower to open than that because of a preview.
+  /// - Previews stay off until the channel's page is gone, its closing
+  ///   transition included (its player lives until then).
   Future<void> _open(StreamTwitch stream) async {
+    if (_channelOpen) return;
     _channelOpen = true;
     _preview.stop();
     try {
-      await (widget.openChannel ?? openStream)(context, stream);
+      await _preview.idle.timeout(_releaseCap, onTimeout: () {});
+      if (!mounted) return;
+      final route = widget.channelRoute?.call(stream) ?? streamRoute(stream);
+      await Navigator.of(context).push(route);
+      if (route is TransitionRoute) await route.completed;
     } finally {
       _channelOpen = false;
       _sync();
     }
   }
+
+  static const _releaseCap = Duration(milliseconds: 100);
 
   void _notInterested(StreamTwitch stream) {
     Haptics.light();
@@ -271,6 +340,30 @@ class _LiveFeedState extends State<LiveFeed> {
     HapticFeedback.lightImpact();
     _toTop();
     await widget.store.refresh();
+    _reportError();
+  }
+
+  /// A refresh that failed with channels still on screen says so, as every
+  /// list does (the end page then offers to try again).
+  void _reportError() {
+    final error = widget.store.list.error;
+    if (!mounted || error == null) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: AlertMessage(message: error, centered: false)),
+    );
+  }
+
+  Future<void> _retry() async {
+    await widget.store.retry();
+    _reportError();
+  }
+
+  void _enlarge(StreamTwitch stream) {
+    if (_settings.showThumbnails) {
+      enlargeThumbnail(context, stream);
+    } else {
+      showStreamActions(context, stream);
+    }
   }
 
   void _selectCategory(String? id) =>
@@ -278,6 +371,8 @@ class _LiveFeedState extends State<LiveFeed> {
 
   @override
   void dispose() {
+    _intro.removeListener(_onIntro);
+    unawaited(_meteredChanges?.cancel());
     _lifecycle.dispose();
     for (final dispose in _disposers) {
       dispose();
@@ -375,6 +470,8 @@ class _LiveFeedState extends State<LiveFeed> {
                   ? page(context, streams[index], index)
                   : _EndPage(
                       loading: widget.store.list.isLoading,
+                      error: widget.store.list.error,
+                      onRetry: () => unawaited(_retry()),
                       onBackToTop: () => widget.controller.animateToPage(
                         0,
                         duration: const Duration(milliseconds: 400),
@@ -413,9 +510,12 @@ class _LiveFeedState extends State<LiveFeed> {
                   first: index == 0,
                   hasNext: index < widget.store.streams.length - 1,
                   loggedIn: _auth.isLoggedIn,
-                  canPlayByHand: !_autoplay,
+                  canPlayByHand: !_autoplay || !_settings.showThumbnails,
+                  showThumbnail: _settings.showThumbnails,
                   onOpen: () => unawaited(_open(stream)),
+                  onPreload: () => preloadStream(context, stream),
                   onActions: () => showStreamActions(context, stream),
+                  onEnlarge: () => _enlarge(stream),
                   onNotInterested: () => _notInterested(stream),
                   onPlay: () => _playByHand(stream),
                 ),
@@ -475,9 +575,12 @@ class _LiveFeedState extends State<LiveFeed> {
                     stream: stream,
                     preview: _preview,
                     loggedIn: _auth.isLoggedIn,
-                    canPlayByHand: !_autoplay,
+                    canPlayByHand: !_autoplay || !_settings.showThumbnails,
+                    showThumbnail: _settings.showThumbnails,
                     onOpen: () => unawaited(_open(stream)),
+                    onPreload: () => preloadStream(context, stream),
                     onActions: () => showStreamActions(context, stream),
+                    onEnlarge: () => _enlarge(stream),
                     onNotInterested: () => _notInterested(stream),
                     onPlay: () => _playByHand(stream),
                   ),
@@ -677,10 +780,18 @@ class _HiddenNote extends StatelessWidget {
 /// A channel's picture, then its preview over it once the first frame is
 /// on screen (only the channel the preview plays).
 class _PreviewSurface extends StatelessWidget {
-  const _PreviewSurface({required this.stream, required this.preview});
+  const _PreviewSurface({
+    required this.stream,
+    required this.preview,
+    required this.showThumbnail,
+  });
 
   final StreamTwitch stream;
   final LivePreviewController preview;
+
+  /// The "show thumbnails" setting: off, no picture (a preview asked for
+  /// still plays).
+  final bool showThumbnail;
 
   @override
   Widget build(BuildContext context) {
@@ -688,11 +799,24 @@ class _PreviewSurface extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          StreamThumbnail(stream: stream, enlarge: false),
+          if (showThumbnail) StreamThumbnail(stream: stream, enlarge: false),
           ListenableBuilder(
             listenable: preview,
             builder: (context, _) {
               final backend = preview.backend;
+              if (preview.failed && preview.targetLogin == stream.userLogin) {
+                return const Center(
+                  child: OverlayPill(
+                    height: 26,
+                    radius: 7,
+                    padding: 10,
+                    child: Text(
+                      'Preview unavailable',
+                      style: TextStyle(fontSize: 12, color: OverImage.text),
+                    ),
+                  ),
+                );
+              }
               if (backend == null || preview.playingLogin != stream.userLogin) {
                 return const SizedBox.shrink();
               }
@@ -785,7 +909,13 @@ class _SoundAction extends StatelessWidget {
       listenable: preview,
       builder: (context, _) {
         final playing = preview.playingLogin == stream.userLogin;
-        if (!playing && canPlayByHand) {
+        final failed =
+            preview.failed && preview.targetLogin == stream.userLogin;
+        // Nothing to unmute: no dead button (its place is kept).
+        if (failed || (!playing && !canPlayByHand)) {
+          return SizedBox.square(dimension: size);
+        }
+        if (!playing) {
           return _RoundAction(
             icon: Icons.play_arrow_rounded,
             label: 'Play preview',
@@ -863,13 +993,24 @@ class _Watching extends StatelessWidget {
 
 /// The primary action: "Watch with chat" (boards: signal fill, 48 dp).
 class _WatchButton extends StatelessWidget {
-  const _WatchButton({required this.onPressed, this.pill = false});
+  const _WatchButton({
+    required this.onPressed,
+    required this.onDown,
+    this.pill = false,
+  });
 
   final VoidCallback onPressed;
+
+  /// The finger is down (the channel's token is asked for).
+  final VoidCallback onDown;
   final bool pill;
 
   @override
   Widget build(BuildContext context) {
+    return Listener(onPointerDown: (_) => onDown(), child: _button());
+  }
+
+  Widget _button() {
     return FilledButton.icon(
       onPressed: onPressed,
       style: FilledButton.styleFrom(
@@ -974,8 +1115,11 @@ class _PhonePage extends StatelessWidget {
     required this.hasNext,
     required this.loggedIn,
     required this.canPlayByHand,
+    required this.showThumbnail,
     required this.onOpen,
+    required this.onPreload,
     required this.onActions,
+    required this.onEnlarge,
     required this.onNotInterested,
     required this.onPlay,
   });
@@ -986,8 +1130,15 @@ class _PhonePage extends StatelessWidget {
   final bool hasNext;
   final bool loggedIn;
   final bool canPlayByHand;
+  final bool showThumbnail;
   final VoidCallback onOpen;
+
+  /// The finger is down on the way to the channel: its token is asked for.
+  final VoidCallback onPreload;
   final VoidCallback onActions;
+
+  /// A long press on the picture: enlarged, as on every card.
+  final VoidCallback onEnlarge;
   final VoidCallback onNotInterested;
   final VoidCallback onPlay;
 
@@ -1012,12 +1163,17 @@ class _PhonePage extends StatelessWidget {
               child: Semantics(
                 label: '$name live preview. Opens the channel',
                 button: true,
-                onLongPressHint: 'Channel actions',
+                onLongPressHint: showThumbnail ? 'enlarge' : 'Channel actions',
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
+                  onTapDown: (_) => onPreload(),
                   onTap: onOpen,
-                  onLongPress: onActions,
-                  child: _PreviewSurface(stream: stream, preview: preview),
+                  onLongPress: onEnlarge,
+                  child: _PreviewSurface(
+                    stream: stream,
+                    preview: preview,
+                    showThumbnail: showThumbnail,
+                  ),
                 ),
               ),
             ),
@@ -1095,79 +1251,84 @@ class _PhonePage extends StatelessWidget {
           left: FrostySpacing.gutterPhone + padding.left,
           right: 76 + padding.right,
           bottom: padding.bottom + 26,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            spacing: 10,
-            children: [
-              Row(
-                spacing: 8,
-                children: [
-                  const LiveBadge(),
-                  _Watching(viewers: stream.viewerCount),
-                  Flexible(
-                    child: _SoundLabel(
-                      stream: stream,
-                      preview: preview,
-                      prefix: '· ',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: OverImage.secondary,
+          child: GestureDetector(
+            // A long press on the channel's lines: its actions.
+            behavior: HitTestBehavior.translucent,
+            onLongPress: onActions,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              spacing: 10,
+              children: [
+                Row(
+                  spacing: 8,
+                  children: [
+                    const LiveBadge(),
+                    _Watching(viewers: stream.viewerCount),
+                    Flexible(
+                      child: _SoundLabel(
+                        stream: stream,
+                        preview: preview,
+                        prefix: '· ',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: OverImage.secondary,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              Row(
-                spacing: 10,
-                children: [
-                  RingedAvatar(
-                    login: stream.userLogin,
-                    size: 42,
-                    ground: Colors.black,
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontFamily: FrostyTokens.displayFamily,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.01 * 17,
-                            color: OverImage.text,
+                  ],
+                ),
+                Row(
+                  spacing: 10,
+                  children: [
+                    RingedAvatar(
+                      login: stream.userLogin,
+                      size: 42,
+                      ground: Colors.black,
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontFamily: FrostyTokens.displayFamily,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.01 * 17,
+                              color: OverImage.text,
+                            ),
                           ),
-                        ),
-                        _CategoryLine(stream: stream),
-                      ],
+                          _CategoryLine(stream: stream),
+                        ],
+                      ),
+                    ),
+                    if (loggedIn) _FollowButton(stream: stream),
+                  ],
+                ),
+                if (title.isNotEmpty)
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      height: 1.4,
+                      color: Color(0xFFEDEDED),
                     ),
                   ),
-                  if (loggedIn) _FollowButton(stream: stream),
-                ],
-              ),
-              if (title.isNotEmpty)
-                Text(
-                  title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    height: 1.4,
-                    color: Color(0xFFEDEDED),
+                if (stream.tags.isNotEmpty)
+                  StreamTags(
+                    tags: stream.tags,
+                    onTap: (tag) => TagStreams.open(context, tag),
                   ),
-                ),
-              if (stream.tags.isNotEmpty)
-                StreamTags(
-                  tags: stream.tags,
-                  onTap: (tag) => TagStreams.open(context, tag),
-                ),
-              _WatchButton(onPressed: onOpen),
-            ],
+                _WatchButton(onPressed: onOpen, onDown: onPreload),
+              ],
+            ),
           ),
         ),
         if (first && hasNext)
@@ -1248,8 +1409,11 @@ class _TabletPage extends StatelessWidget {
     required this.preview,
     required this.loggedIn,
     required this.canPlayByHand,
+    required this.showThumbnail,
     required this.onOpen,
+    required this.onPreload,
     required this.onActions,
+    required this.onEnlarge,
     required this.onNotInterested,
     required this.onPlay,
   });
@@ -1258,8 +1422,15 @@ class _TabletPage extends StatelessWidget {
   final LivePreviewController preview;
   final bool loggedIn;
   final bool canPlayByHand;
+  final bool showThumbnail;
   final VoidCallback onOpen;
+
+  /// The finger is down on the way to the channel: its token is asked for.
+  final VoidCallback onPreload;
   final VoidCallback onActions;
+
+  /// A long press on the picture: enlarged, as on every card.
+  final VoidCallback onEnlarge;
   final VoidCallback onNotInterested;
   final VoidCallback onPlay;
 
@@ -1276,12 +1447,17 @@ class _TabletPage extends StatelessWidget {
             child: Semantics(
               label: '$name live preview. Opens the channel',
               button: true,
-              onLongPressHint: 'Channel actions',
+              onLongPressHint: showThumbnail ? 'enlarge' : 'Channel actions',
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
+                onTapDown: (_) => onPreload(),
                 onTap: onOpen,
-                onLongPress: onActions,
-                child: _PreviewSurface(stream: stream, preview: preview),
+                onLongPress: onEnlarge,
+                child: _PreviewSurface(
+                  stream: stream,
+                  preview: preview,
+                  showThumbnail: showThumbnail,
+                ),
               ),
             ),
           ),
@@ -1371,61 +1547,70 @@ class _TabletPage extends StatelessWidget {
           left: 24,
           right: 24,
           bottom: 24,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            spacing: 16,
-            children: [
-              RingedAvatar(
-                login: stream.userLogin,
-                size: 56,
-                ground: Colors.black,
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 5,
-                  children: [
-                    Text(
-                      name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontFamily: FrostyTokens.displayFamily,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.025 * 24,
-                        color: OverImage.text,
-                      ),
-                    ),
-                    if (title.isNotEmpty)
+          child: GestureDetector(
+            // A long press on the channel's lines: its actions.
+            behavior: HitTestBehavior.translucent,
+            onLongPress: onActions,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              spacing: 16,
+              children: [
+                RingedAvatar(
+                  login: stream.userLogin,
+                  size: 56,
+                  ground: Colors.black,
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    spacing: 5,
+                    children: [
                       Text(
-                        title,
-                        maxLines: 2,
+                        name,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontSize: 16,
-                          color: Color(0xFFEDEDED),
+                          fontFamily: FrostyTokens.displayFamily,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.025 * 24,
+                          color: OverImage.text,
                         ),
                       ),
-                    _CategoryLine(stream: stream),
-                    if (stream.tags.isNotEmpty)
-                      StreamTags(
-                        tags: stream.tags,
-                        onTap: (tag) => TagStreams.open(context, tag),
-                      ),
+                      if (title.isNotEmpty)
+                        Text(
+                          title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Color(0xFFEDEDED),
+                          ),
+                        ),
+                      _CategoryLine(stream: stream),
+                      if (stream.tags.isNotEmpty)
+                        StreamTags(
+                          tags: stream.tags,
+                          onTap: (tag) => TagStreams.open(context, tag),
+                        ),
+                    ],
+                  ),
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 10,
+                  children: [
+                    if (loggedIn) _FollowButton(stream: stream, height: 48),
+                    _WatchButton(
+                      onPressed: onOpen,
+                      onDown: onPreload,
+                      pill: true,
+                    ),
                   ],
                 ),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                spacing: 10,
-                children: [
-                  if (loggedIn) _FollowButton(stream: stream, height: 48),
-                  _WatchButton(onPressed: onOpen, pill: true),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ],
@@ -1692,59 +1877,94 @@ class _UpNextRow extends StatelessWidget {
 
 /// The page after the last channel: more are loading, or that was all.
 class _EndPage extends StatelessWidget {
-  const _EndPage({required this.loading, required this.onBackToTop});
+  const _EndPage({
+    required this.loading,
+    required this.error,
+    required this.onRetry,
+    required this.onBackToTop,
+  });
 
   final bool loading;
+
+  /// The last page (or the refresh) failed: the list may go on.
+  final String? error;
+  final VoidCallback onRetry;
   final VoidCallback onBackToTop;
 
   @override
   Widget build(BuildContext context) {
+    final error = this.error;
+    final Widget content;
+    if (loading) {
+      content = const Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 16,
+        children: [
+          CircularProgressIndicator(color: OverImage.text),
+          Text(
+            'Loading more live channels',
+            style: TextStyle(color: OverImage.text),
+          ),
+        ],
+      );
+    } else if (error != null) {
+      content = Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 16,
+        children: [
+          Text(
+            error,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: OverImage.text,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          OutlinedButton.icon(
+            onPressed: onRetry,
+            style: _endButtonStyle,
+            icon: const Icon(Icons.refresh_rounded, size: 17),
+            label: const Text('Try again'),
+          ),
+        ],
+      );
+    } else {
+      content = Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 16,
+        children: [
+          const Text(
+            'That’s every live channel here for now',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: OverImage.text,
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          OutlinedButton(
+            onPressed: onBackToTop,
+            style: _endButtonStyle,
+            child: const Text('Back to the first'),
+          ),
+        ],
+      );
+    }
     return ColoredBox(
       color: Colors.black,
       child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: loading
-              ? const Column(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 16,
-                  children: [
-                    CircularProgressIndicator(color: OverImage.text),
-                    Text(
-                      'Loading more live channels',
-                      style: TextStyle(color: OverImage.text),
-                    ),
-                  ],
-                )
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 16,
-                  children: [
-                    const Text(
-                      'That’s every live channel here for now',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: OverImage.text,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    OutlinedButton(
-                      onPressed: onBackToTop,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: OverImage.text,
-                        side: const BorderSide(color: Color(0x4DFFFFFF)),
-                        shape: const StadiumBorder(),
-                        minimumSize: const Size(0, 44),
-                      ),
-                      child: const Text('Back to the first'),
-                    ),
-                  ],
-                ),
-        ),
+        child: Padding(padding: const EdgeInsets.all(32), child: content),
       ),
     );
   }
+
+  static final _endButtonStyle = OutlinedButton.styleFrom(
+    foregroundColor: OverImage.text,
+    side: const BorderSide(color: Color(0x4DFFFFFF)),
+    shape: const StadiumBorder(),
+    minimumSize: const Size(0, 44),
+  );
 }
 
 /// The phone feed, loading: the board's preview and lines in skeleton.

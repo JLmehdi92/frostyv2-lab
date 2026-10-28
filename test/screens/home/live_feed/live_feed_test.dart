@@ -1,8 +1,11 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart' show CancelToken;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/apis/twitch_stream_service.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/models/user.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
@@ -10,11 +13,14 @@ import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:frosty/screens/home/live_feed/live_feed.dart';
 import 'package:frosty/screens/home/live_feed/live_preview.dart';
 import 'package:frosty/screens/home/live_feed/stores/live_feed_store.dart';
+import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/settings/stores/user_store.dart';
+import 'package:frosty/services/playback_preloader.dart';
 import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/theme.dart';
+import 'package:frosty/widgets/frosty_photo_view_dialog.dart';
 import 'package:frosty/widgets/user_actions_modal.dart';
 import 'package:mobx/mobx.dart' show ObservableList;
 import 'package:mocktail/mocktail.dart';
@@ -30,8 +36,13 @@ class MockIvsVideoStore extends Mock implements IvsVideoStore {}
 
 class MockChatTabsStore extends Mock implements ChatTabsStore {}
 
+class MockTwitchStreamService extends Mock implements TwitchStreamService {}
+
 class FakeBackend implements LivePreviewBackend {
   FakeBackend(this.log);
+
+  /// How long letting a decoder go takes (libmpv takes a few frames).
+  static var disposeDelay = Duration.zero;
 
   final List<String> log;
   static var alive = 0;
@@ -62,6 +73,7 @@ class FakeBackend implements LivePreviewBackend {
 
   @override
   Future<void> dispose() async {
+    if (disposeDelay > Duration.zero) await Future<void>.delayed(disposeDelay);
     if (url != null) alive--;
     log.add('dispose $url');
   }
@@ -102,6 +114,7 @@ void main() {
     loggedIn = true;
     FakeBackend.alive = 0;
     FakeBackend.mostAlive = 0;
+    FakeBackend.disposeDelay = Duration.zero;
     final user = MockUserStore();
     when(() => auth.user).thenReturn(user);
     when(() => auth.isLoggedIn).thenAnswer((_) => loggedIn);
@@ -139,8 +152,12 @@ void main() {
     ThemeMode mode = ThemeMode.dark,
     bool active = true,
     bool reduceMotion = false,
-    Future<void> Function(BuildContext, StreamTwitch)? openChannel,
     ValueNotifier<bool>? activeNotifier,
+    Route<void> Function(StreamTwitch)? channelRoute,
+    Stream<bool?>? meteredChanges,
+    ValueListenable<bool>? introRunning,
+    Future<bool?> Function()? isMetered,
+    Future<String> Function(String login, CancelToken cancel)? resolve,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -152,7 +169,7 @@ void main() {
     );
     controller = PageController();
     preview = LivePreviewController(
-      resolveUrl: (login) async => 'https://usher/$login',
+      resolveUrl: resolve ?? (login, cancel) async => 'https://usher/$login',
       createBackend: () => FakeBackend(log),
     );
     final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
@@ -182,8 +199,10 @@ void main() {
                 controller: controller,
                 active: active,
                 preview: preview,
-                isMetered: () async => true,
-                openChannel: openChannel,
+                isMetered: isMetered ?? () async => true,
+                meteredChanges: meteredChanges ?? const Stream.empty(),
+                introRunning: introRunning,
+                channelRoute: channelRoute,
               ),
             ),
           ),
@@ -337,14 +356,20 @@ void main() {
     await close(tester);
   });
 
-  testWidgets('a long press opens the channel actions', (tester) async {
+  testWidgets('a long press: the picture enlarges, as on every card; on '
+      "the channel's lines, its actions", (tester) async {
     await pump(tester);
 
     await tester.longPress(
       find.bySemanticsLabel(RegExp('Name 1 live preview')),
     );
     await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byType(FrostyPhotoViewDialog), findsOneWidget);
+    Navigator.of(tester.element(find.byType(FrostyPhotoViewDialog))).pop();
+    await tester.pump(const Duration(milliseconds: 500));
 
+    await tester.longPress(find.text('Title 1'));
+    await tester.pump(const Duration(milliseconds: 500));
     expect(find.byType(UserActionsModal), findsOneWidget);
     await close(tester);
   });
@@ -412,15 +437,33 @@ void main() {
     await close(tester);
   });
 
-  testWidgets('a channel open from the feed: no preview under it, whatever '
-      'changes meanwhile; back on the feed, it plays again', (tester) async {
-    final channel = Completer<void>();
-    await pump(tester, openChannel: (context, stream) => channel.future);
+  testWidgets('a channel opened from the feed: its decoder goes first, no '
+      'preview under it (app resumed meanwhile, its page leaving), then '
+      'the preview is back', (tester) async {
+    // Letting the decoder go takes 80 ms here (under the 100 ms cap).
+    FakeBackend.disposeDelay = const Duration(milliseconds: 80);
+    late int aliveAtBuild;
+    await pump(
+      tester,
+      // A page that takes a full second to leave (its player lives until
+      // then).
+      channelRoute: (stream) => PageRouteBuilder<void>(
+        reverseTransitionDuration: const Duration(seconds: 1),
+        pageBuilder: (context, animation, secondary) {
+          aliveAtBuild = FakeBackend.alive;
+          return Scaffold(body: Text('Channel ${stream.userLogin}'));
+        },
+      ),
+    );
     expect(log, ['open https://usher/login1']);
 
     await tester.tap(find.text('Watch with chat'));
-    await tester.pump(const Duration(milliseconds: 100));
-    expect(log.last, 'dispose https://usher/login1');
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(find.text('Channel login1'), findsOneWidget);
+    // The preview's decoder was gone before the channel's page was built.
+    expect(aliveAtBuild, 0);
 
     // The app goes away and comes back while the channel is open.
     for (final state in [
@@ -436,10 +479,225 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     expect(log.where((e) => e.startsWith('open')), hasLength(1));
 
-    channel.complete();
-    await tester.pump(const Duration(seconds: 1));
+    // Back: while the channel's page is still leaving (its player too),
+    // nothing starts, well past the preview's settle time.
+    Navigator.of(tester.element(find.text('Channel login1'))).pop();
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.text('Channel login1'), findsOneWidget);
+    expect(log.where((e) => e.startsWith('open')), hasLength(1));
+
+    // Its page gone, the preview settles and starts again.
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.text('Channel login1'), findsNothing);
     expect(log.where((e) => e.startsWith('open')), hasLength(2));
     expect(FakeBackend.mostAlive, 1);
+    await close(tester);
+  });
+
+  testWidgets('a finger on the preview or on Watch asks for its token', (
+    tester,
+  ) async {
+    final service = MockTwitchStreamService();
+    when(() => service.preload(any())).thenAnswer((_) async {});
+    final previous = PlaybackPreloader.instance;
+    PlaybackPreloader.instance = PlaybackPreloader(service, isAndroid: true);
+    addTearDown(() => PlaybackPreloader.instance = previous);
+    await pump(
+      tester,
+      channelRoute: (stream) => MaterialPageRoute<void>(
+        builder: (context) => const Scaffold(body: Text('Channel')),
+      ),
+    );
+
+    for (final target in [
+      find.bySemanticsLabel(RegExp('Name 1 live preview')),
+      find.text('Watch with chat'),
+    ]) {
+      final gesture = await tester.startGesture(tester.getCenter(target));
+      // Past the press timeout (a long press is also possible there).
+      await tester.pump(const Duration(milliseconds: 150));
+      await gesture.cancel();
+      await tester.pump();
+    }
+
+    verify(() => service.preload('login1')).called(2);
+    await close(tester);
+  });
+
+  testWidgets('leaving Wi-Fi stops a "Wi-Fi only" preview at once', (
+    tester,
+  ) async {
+    settings.vodAutoplay = VodAutoplay.wifiOnly;
+    final network = StreamController<bool?>();
+    addTearDown(network.close);
+    await pump(
+      tester,
+      isMetered: () async => false,
+      meteredChanges: network.stream,
+    );
+    await tester.pump(const Duration(seconds: 1));
+    expect(log, ['open https://usher/login1']);
+
+    network.add(true);
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(log.last, 'dispose https://usher/login1');
+    expect(find.byTooltip('Play preview'), findsOneWidget);
+
+    network.add(false);
+    await tester.pump(const Duration(seconds: 1));
+    expect(log.last, 'open https://usher/login1');
+    await close(tester);
+  });
+
+  testWidgets('thumbnails off: no picture, no preview unless asked', (
+    tester,
+  ) async {
+    settings.showThumbnails = false;
+    await pump(tester);
+
+    expect(find.byType(StreamThumbnail), findsNothing);
+    expect(log, isEmpty);
+    await tester.tap(find.byTooltip('Play preview'));
+    await tester.pump(const Duration(seconds: 1));
+    expect(log, ['open https://usher/login1']);
+    // No picture to enlarge: a long press opens the actions.
+    await tester.longPress(
+      find.bySemanticsLabel(RegExp('Name 1 live preview')),
+    );
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byType(UserActionsModal), findsOneWidget);
+    await close(tester);
+  });
+
+  testWidgets('a preview that cannot start says so, with no dead Unmute', (
+    tester,
+  ) async {
+    await pump(tester, resolve: (login, cancel) async => throw Exception('x'));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.text('Preview unavailable'), findsOneWidget);
+    expect(find.byTooltip('Unmute'), findsNothing);
+    await close(tester);
+  });
+
+  testWidgets('no preview while the launch intro covers the app', (
+    tester,
+  ) async {
+    final intro = ValueNotifier(true);
+    await pump(tester, introRunning: intro);
+    await tester.pump(const Duration(seconds: 1));
+    expect(log, isEmpty);
+
+    intro.value = false;
+    await tester.pump(const Duration(seconds: 1));
+    expect(log, ['open https://usher/login1']);
+    await close(tester);
+  });
+
+  testWidgets('a failed refresh says so; the end page offers to try again', (
+    tester,
+  ) async {
+    top = [_stream(1)];
+    await pump(tester);
+    failure = Exception('down');
+
+    await tester.fling(find.text('Title 1'), const Offset(0, 500), 2000);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1));
+    // The channels stay; a snack bar says what went wrong.
+    expect(find.text('Title 1'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(SnackBar),
+        matching: find.text('Something went wrong loading streams'),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.fling(find.text('Title 1'), const Offset(0, -500), 2000);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('Try again'), findsOneWidget);
+    expect(find.text('That’s every live channel here for now'), findsNothing);
+
+    failure = null;
+    top = [_stream(1), _stream(2)];
+    await tester.tap(find.text('Try again'));
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    // Back where it was, with the channel that came in.
+    expect(find.text('Title 2'), findsOneWidget);
+    await close(tester);
+  });
+
+  testWidgets('a stale refresh keeps the channel on screen', (tester) async {
+    final active = ValueNotifier(true);
+    await pump(tester, activeNotifier: active);
+    await tester.fling(find.text('Title 1'), const Offset(0, -500), 2000);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.fling(find.text('Title 2'), const Offset(0, -500), 2000);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(store.current!.userId, '3');
+
+    // Now channel 3 is second in the list.
+    top = [_stream(5), _stream(3), _stream(1)];
+    active.value = false;
+    await tester.pump();
+    store.list.lastTimeRefreshed = DateTime.now().subtract(
+      const Duration(minutes: 6),
+    );
+    active.value = true;
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    expect(store.current!.userId, '3');
+    expect(store.index, 1);
+    expect(find.text('Title 3'), findsOneWidget);
+    await close(tester);
+  });
+
+  testWidgets('another language: the feed starts over, chips taken again', (
+    tester,
+  ) async {
+    await pump(tester);
+    await tester.fling(find.text('Title 1'), const Offset(0, -500), 2000);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(store.index, 1);
+    expect(store.chips.map((c) => c.id), ['10', '20']);
+
+    top = [
+      for (var i = 7; i <= 9; i++)
+        StreamTwitch(
+          '$i',
+          'login$i',
+          'Name $i',
+          '30',
+          'Chess',
+          'Title $i',
+          10,
+          '2026-10-28T10:00:00Z',
+          '',
+        ),
+    ];
+    settings.streamLanguage = 'fr';
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    expect(store.index, 0);
+    expect(controller.page, 0);
+    expect(find.text('Title 7'), findsOneWidget);
+    expect(store.chips.map((c) => c.name), ['Chess']);
     await close(tester);
   });
 

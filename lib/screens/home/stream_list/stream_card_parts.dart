@@ -93,19 +93,32 @@ String formatViewers(int count, {bool compact = true}) => compact
     ? NumberFormat.compact().format(count).toLowerCase()
     : NumberFormat.decimalPattern().format(count);
 
+/// [stream]'s channel page.
+Route<void> streamRoute(StreamTwitch stream) => MaterialPageRoute(
+  settings: const RouteSettings(name: VideoChat.routeName),
+  builder: (context) => VideoChat(
+    userId: stream.userId,
+    userName: stream.userName,
+    userLogin: stream.userLogin,
+  ),
+);
+
 /// Opens [stream]'s channel.
 Future<void> openStream(BuildContext context, StreamTwitch stream) =>
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        settings: const RouteSettings(name: VideoChat.routeName),
-        builder: (context) => VideoChat(
-          userId: stream.userId,
-          userName: stream.userName,
-          userLogin: stream.userLogin,
-        ),
-      ),
-    );
+    Navigator.push(context, streamRoute(stream));
+
+/// Shows [stream]'s preview picture full screen (a long press on it).
+void enlargeThumbnail(BuildContext context, StreamTwitch stream) {
+  HapticFeedback.lightImpact();
+  showDialog<void>(
+    context: context,
+    builder: (context) => FrostyPhotoViewDialog(
+      // The original URL, with its {width}x{height}.
+      imageUrl: stream.thumbnailUrl,
+      cacheKey: StreamThumbnail.cacheKeyOf(stream, DateTime.now()),
+    ),
+  );
+}
 
 /// The finger is down on [stream]: its token is asked for while the page
 /// opens.
@@ -201,17 +214,7 @@ class StreamThumbnail extends StatelessWidget {
       onLongPressHint: enlarge ? 'enlarge' : null,
       child: enlarge
           ? GestureDetector(
-              onLongPress: () {
-                HapticFeedback.lightImpact();
-                showDialog(
-                  context: context,
-                  builder: (context) => FrostyPhotoViewDialog(
-                    // The original URL, with its {width}x{height}.
-                    imageUrl: stream.thumbnailUrl,
-                    cacheKey: cacheKey,
-                  ),
-                );
-              },
+              onLongPress: () => enlargeThumbnail(context, stream),
               child: image,
             )
           : image,
