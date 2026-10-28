@@ -46,6 +46,7 @@ import 'package:frosty/services/background_audio.dart';
 import 'package:frosty/services/go_live/go_live.dart';
 import 'package:frosty/services/go_live/go_live_poller.dart';
 import 'package:frosty/services/go_live/go_live_worker.dart';
+import 'package:frosty/services/launch_info.dart';
 import 'package:frosty/services/notifications/activity_log.dart';
 import 'package:frosty/services/notifications/mention_alerts.dart';
 import 'package:frosty/services/notifications/schedule_reminders.dart';
@@ -61,6 +62,7 @@ import 'package:frosty/utils/link_router.dart';
 import 'package:frosty/utils/twitch_links.dart';
 import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/global_mini_player.dart';
+import 'package:frosty/widgets/launch/launch_intro.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:mobx/mobx.dart';
 import 'package:provider/provider.dart';
@@ -69,6 +71,10 @@ import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Whether this is a cold start (the launch intro plays only then). Asked
+  // now so the answer is in by the time the app is built.
+  final launchInfo = LaunchInfo.load();
 
   // Initialize the native media_kit player (low-latency video engine).
   MediaKit.ensureInitialized();
@@ -339,7 +345,7 @@ void main() async {
         // In-app updates; silent in builds without the update token.
         Provider<OnsetUpdater>(create: (_) => OnsetUpdater()),
       ],
-      child: MyApp(firstRun: firstRun),
+      child: MyApp(firstRun: firstRun, launchInfo: await launchInfo),
     ),
   );
 }
@@ -350,7 +356,14 @@ final navigatorKey = GlobalKey<NavigatorState>();
 class MyApp extends StatefulWidget {
   final bool firstRun;
 
-  const MyApp({super.key, this.firstRun = false});
+  /// How the app was launched; decides whether the launch intro plays.
+  final LaunchInfo launchInfo;
+
+  const MyApp({
+    super.key,
+    this.firstRun = false,
+    this.launchInfo = LaunchInfo.none,
+  });
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -418,6 +431,8 @@ class _MyAppState extends State<MyApp> {
 
   /// Opens video and clip links in-app (from chat or deep links).
   Future<bool> _openTwitchLinkInApp(TwitchLink link) async {
+    // Opened on something: no launch intro in the way.
+    LaunchIntro.skipAll();
     final Route<void> route;
     switch (link) {
       case VodLink(:final vodId, :final startAt):
@@ -497,11 +512,17 @@ class _MyAppState extends State<MyApp> {
           ],
           home: widget.firstRun ? const OnboardingIntro() : const Home(),
           navigatorKey: navigatorKey,
-          builder: (context, child) => Stack(
-            children: [
-              ?child,
-              const Positioned.fill(child: GlobalMiniPlayer()),
-            ],
+          // The launch intro covers the app on a cold start while it builds
+          // and loads underneath.
+          builder: (context, child) => LaunchIntro(
+            play: widget.launchInfo.coldStart,
+            fromTile: widget.launchInfo.nativeTile,
+            child: Stack(
+              children: [
+                ?child,
+                const Positioned.fill(child: GlobalMiniPlayer()),
+              ],
+            ),
           ),
         );
       },
@@ -530,6 +551,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> handleDeepLink(Uri uri) async {
+    // A link or a go-live notice opens its page straight away.
+    LaunchIntro.skipAll();
     // Videos open in-app; every other link keeps the handling below.
     final link = TwitchLink.parse(uri);
     if (link.opensInApp && await _openTwitchLinkInApp(link)) {
