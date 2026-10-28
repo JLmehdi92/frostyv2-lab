@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart' show CancelToken;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:frosty/models/hls_variant.dart';
@@ -104,8 +105,10 @@ HlsVariant? pickPreviewVariant(
   return above ?? below;
 }
 
-/// Where a channel's preview plays from (its usher rendition URL).
-typedef PreviewUrlResolver = Future<String> Function(String login);
+/// Where a channel's preview plays from (its usher rendition URL);
+/// [cancel] is cancelled once the preview is no longer wanted.
+typedef PreviewUrlResolver =
+    Future<String> Function(String login, CancelToken cancel);
 
 /// Plays the preview of one live channel at a time, muted.
 ///
@@ -131,6 +134,10 @@ class LivePreviewController extends ChangeNotifier {
   var _active = false;
   Timer? _timer;
 
+  /// The request of the preview being started, cancelled when it is not
+  /// wanted any more (swiped past, stopped).
+  CancelToken? _resolving;
+
   /// Bumped by every change: a start that finishes late is dropped.
   var _generation = 0;
 
@@ -149,6 +156,12 @@ class LivePreviewController extends ChangeNotifier {
 
   /// The channel whose preview plays (or is starting).
   String? get playingLogin => _playing;
+
+  /// The channel the preview is for (playing, starting or failed).
+  String? get targetLogin => _target;
+
+  /// Completes once the last decoder let go is gone.
+  Future<void> get idle => _released;
 
   bool get muted => _muted;
 
@@ -190,6 +203,8 @@ class LivePreviewController extends ChangeNotifier {
 
   void _restart() {
     _timer?.cancel();
+    _resolving?.cancel('Preview no longer wanted');
+    _resolving = null;
     final generation = ++_generation;
     _release();
     _failed = false;
@@ -220,9 +235,11 @@ class LivePreviewController extends ChangeNotifier {
     await _released;
     if (generation != _generation || _disposed) return;
     String url;
+    final cancel = _resolving = CancelToken();
     try {
-      url = await resolveUrl(login);
+      url = await resolveUrl(login, cancel);
     } catch (e) {
+      if (cancel.isCancelled) return;
       debugPrint('Preview unavailable: ${e.runtimeType}');
       if (generation == _generation && !_disposed) {
         _failed = true;
@@ -251,6 +268,7 @@ class LivePreviewController extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     _timer?.cancel();
+    _resolving?.cancel('Preview disposed');
     _generation++;
     _release();
     super.dispose();

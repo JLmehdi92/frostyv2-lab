@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart' show CancelToken;
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -57,9 +58,9 @@ void main() {
 
   LivePreviewController controller({
     Duration disposeDelay = Duration.zero,
-    Future<String> Function(String login)? resolve,
+    Future<String> Function(String login, CancelToken cancel)? resolve,
   }) => LivePreviewController(
-    resolveUrl: resolve ?? (login) async => 'https://usher/$login.m3u8',
+    resolveUrl: resolve ?? (login, cancel) async => 'https://usher/$login.m3u8',
     createBackend: () {
       final backend = FakePreviewBackend(log, disposeDelay: disposeDelay);
       made.add(backend);
@@ -170,8 +171,9 @@ void main() {
 
   test('a channel that cannot play says so and keeps its picture', () {
     fakeAsync((async) {
-      final c = controller(resolve: (login) async => throw Exception('offline'))
-        ..setActive(true);
+      final c = controller(
+        resolve: (login, cancel) async => throw Exception('offline'),
+      )..setActive(true);
       var notified = 0;
       c
         ..addListener(() => notified++)
@@ -187,7 +189,7 @@ void main() {
   test('disposed while resolving: nothing starts', () {
     fakeAsync((async) {
       final completer = Completer<String>();
-      final c = controller(resolve: (_) => completer.future)
+      final c = controller(resolve: (_, _) => completer.future)
         ..setActive(true)
         ..show('one');
       async.elapse(const Duration(seconds: 1));
@@ -195,6 +197,53 @@ void main() {
       completer.complete('https://usher/one.m3u8');
       async.flushMicrotasks();
       expect(made, isEmpty);
+    });
+  });
+
+  test('a channel swiped past while it resolves: its request is cancelled, '
+      'and nothing says it failed', () {
+    fakeAsync((async) {
+      final requests = <String, CancelToken>{};
+      final pending = <String, Completer<String>>{};
+      final c = controller(
+        resolve: (login, cancel) {
+          requests[login] = cancel;
+          return (pending[login] = Completer<String>()).future;
+        },
+      )..setActive(true);
+      c.show('one');
+      async.elapse(const Duration(seconds: 1));
+      c.show('two');
+      expect(requests['one']!.isCancelled, isTrue);
+      pending['one']!.completeError(Exception('cancelled'));
+      async.flushMicrotasks();
+      expect(c.failed, isFalse);
+      async.elapse(const Duration(seconds: 1));
+      expect(requests['two']!.isCancelled, isFalse);
+      pending['two']!.complete('https://usher/two');
+      async.flushMicrotasks();
+      expect(log, ['open https://usher/two']);
+      expect(c.targetLogin, 'two');
+      c.dispose();
+      expect(requests['two']!.isCancelled, isTrue);
+      async.flushMicrotasks();
+    });
+  });
+
+  test('idle completes once the last decoder is gone', () {
+    fakeAsync((async) {
+      final c = controller(disposeDelay: const Duration(milliseconds: 50))
+        ..setActive(true)
+        ..show('one');
+      async.elapse(const Duration(seconds: 1));
+      c.stop();
+      var idle = false;
+      unawaited(c.idle.then((_) => idle = true));
+      async.elapse(const Duration(milliseconds: 10));
+      expect(idle, isFalse);
+      async.elapse(const Duration(milliseconds: 60));
+      expect(idle, isTrue);
+      c.dispose();
     });
   });
 

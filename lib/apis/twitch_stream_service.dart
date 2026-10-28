@@ -88,9 +88,14 @@ class TwitchStreamService extends BaseApiClient {
   ///
   /// Throws if the channel is offline or Twitch rejects the request; callers
   /// should treat a throw as "fall back to the WebView engine".
+  ///
+  /// [cancelToken] cancels the playlist request (a preview swiped past).
+  /// The token request is not cancelled: the token cache shares it with
+  /// whoever asks for the same channel meanwhile (its player).
   Future<List<HlsVariant>> getStreamVariants({
     required String userLogin,
     String? authToken,
+    CancelToken? cancelToken,
   }) async {
     final token = await _getAccessToken(userLogin, authToken: authToken);
 
@@ -103,6 +108,7 @@ class TwitchStreamService extends BaseApiClient {
         token: token.value,
         p: _randomP(),
       ),
+      cancelToken: cancelToken,
     );
 
     return HlsVariant.parseMasterPlaylist(playlist);
