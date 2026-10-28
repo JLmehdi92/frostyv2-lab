@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:frosty/constants.dart';
 import 'package:frosty/theme.dart';
@@ -11,9 +12,11 @@ import 'package:frosty/widgets/motion/reduce_motion.dart';
 /// sheen sweeping across it (the "Chargement" card of the micro-animation
 /// board).
 ///
-/// - Dark theme: the board's greys (#161616 with a #232323 highlight), a
-///   100° band sweeping every 1.6 s. Every skeleton on screen reads its phase
-///   off the frame clock, so a whole loading list sweeps as one.
+/// - Dark theme: [FrostyTokens.skeletonDark] with a subtle
+///   [FrostyTokens.skeletonSheenDark] band, at 100°, sweeping every 1.6 s.
+/// - One band for the whole screen: each skeleton places the gradient by the
+///   frame clock and by its own position on screen, so a thumbnail and the
+///   text lines beside it show the same band crossing them.
 /// - The sheen is painted with a shader (no layer, no `saveLayer`); every
 ///   skeleton repaints in step, so they share their list's repaint boundary
 ///   rather than each adding a layer. Its ticker stops off-screen
@@ -35,7 +38,7 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
   // Only drives repaints; the sweep's position comes from the frame clock.
   late final _ticker = AnimationController(
     vsync: this,
-    duration: SkeletonSheenPainter.period,
+    duration: SkeletonSheen.period,
   );
   bool _reduced = false;
 
@@ -61,10 +64,10 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
     final colorScheme = Theme.of(context).colorScheme;
     final dark = Theme.of(context).brightness == Brightness.dark;
     final base = dark
-        ? SkeletonSheenPainter.baseDark
+        ? FrostyTokens.skeletonDark
         : colorScheme.surfaceContainer;
     final highlight = dark
-        ? SkeletonSheenPainter.highlightDark
+        ? FrostyTokens.skeletonSheenDark
         : Color.lerp(base, Colors.white, 0.6)!;
 
     // Sized exactly like the decorated Container it replaces: fills bounded
@@ -74,16 +77,14 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
       maxHeight: 0,
       child: ConstrainedBox(
         constraints: const BoxConstraints.expand(),
-        child: CustomPaint(
-          painter: SkeletonSheenPainter(
-            repaint: _ticker,
-            base: base,
-            highlight: highlight,
-            borderRadius:
-                widget.borderRadius ??
-                BorderRadius.circular(FrostyTokens.radiusSmall),
-            sheen: !_reduced,
-          ),
+        child: SkeletonSheenBox(
+          ticker: _ticker,
+          base: base,
+          highlight: highlight,
+          borderRadius:
+              widget.borderRadius ??
+              BorderRadius.circular(FrostyTokens.radiusSmall),
+          sheen: !_reduced,
         ),
       ),
     );
@@ -100,11 +101,8 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
   }
 }
 
-/// Paints a skeleton block and, unless [sheen] is off, the sweeping band.
-class SkeletonSheenPainter extends CustomPainter {
-  static const baseDark = FrostyTokens.skeletonDark;
-  static const highlightDark = FrostyTokens.skeletonSheenDark;
-
+/// The sweep shared by every skeleton on screen.
+abstract final class SkeletonSheen {
   /// One sweep.
   static const period = Duration(milliseconds: 1600);
 
@@ -114,54 +112,156 @@ class SkeletonSheenPainter extends CustomPainter {
   static const _from = -150.0;
 
   /// The band's direction: CSS 100°, a hair below horizontal.
-  static final _direction = Offset(sin(100 * pi / 180), -cos(100 * pi / 180));
+  static final direction = Offset(sin(100 * pi / 180), -cos(100 * pi / 180));
 
+  /// Where the gradient starts on screen (logical pixels, from the top-left
+  /// of the view) at the frame [timestamp].
+  static Offset originAt(Duration timestamp) {
+    final phase =
+        (timestamp.inMicroseconds % period.inMicroseconds) /
+        period.inMicroseconds;
+    return direction * (_from + bandWidth * Curves.easeInOut.transform(phase));
+  }
+}
+
+/// Paints one skeleton block with the screen-wide band (see [SkeletonSheen]).
+class SkeletonSheenBox extends LeafRenderObjectWidget {
+  /// Drives the repaints; the band's position comes from the frame clock.
+  final Listenable ticker;
   final Color base;
   final Color highlight;
   final BorderRadius borderRadius;
   final bool sheen;
 
-  SkeletonSheenPainter({
-    required Listenable repaint,
+  const SkeletonSheenBox({
+    super.key,
+    required this.ticker,
     required this.base,
     required this.highlight,
     required this.borderRadius,
     required this.sheen,
-  }) : super(repaint: repaint);
+  });
 
-  /// Where the band is at the frame [timestamp], in logical pixels.
-  double offsetAt(Duration timestamp) {
-    final phase =
-        (timestamp.inMicroseconds % period.inMicroseconds) /
-        period.inMicroseconds;
-    return _from + bandWidth * Curves.easeInOut.transform(phase);
+  @override
+  RenderSkeletonSheen createRenderObject(BuildContext context) =>
+      RenderSkeletonSheen(
+        ticker: ticker,
+        base: base,
+        highlight: highlight,
+        borderRadius: borderRadius,
+        sheen: sheen,
+      );
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    RenderSkeletonSheen renderObject,
+  ) {
+    renderObject
+      ..ticker = ticker
+      ..base = base
+      ..highlight = highlight
+      ..borderRadius = borderRadius
+      ..sheen = sheen;
+  }
+}
+
+class RenderSkeletonSheen extends RenderBox {
+  RenderSkeletonSheen({
+    required Listenable ticker,
+    required Color base,
+    required Color highlight,
+    required BorderRadius borderRadius,
+    required bool sheen,
+  }) : _ticker = ticker,
+       _base = base,
+       _highlight = highlight,
+       _borderRadius = borderRadius,
+       _sheen = sheen;
+
+  Listenable _ticker;
+  set ticker(Listenable value) {
+    if (value == _ticker) return;
+    if (attached) _ticker.removeListener(markNeedsPaint);
+    _ticker = value;
+    if (attached) _ticker.addListener(markNeedsPaint);
+  }
+
+  Color _base;
+  Color get base => _base;
+  set base(Color value) {
+    if (value == _base) return;
+    _base = value;
+    markNeedsPaint();
+  }
+
+  Color _highlight;
+  Color get highlight => _highlight;
+  set highlight(Color value) {
+    if (value == _highlight) return;
+    _highlight = value;
+    markNeedsPaint();
+  }
+
+  BorderRadius _borderRadius;
+  set borderRadius(BorderRadius value) {
+    if (value == _borderRadius) return;
+    _borderRadius = value;
+    markNeedsPaint();
+  }
+
+  bool _sheen;
+  bool get sheen => _sheen;
+  set sheen(bool value) {
+    if (value == _sheen) return;
+    _sheen = value;
+    markNeedsPaint();
+  }
+
+  /// Where the last frame put the gradient's start, on screen; null when no
+  /// sheen was painted.
+  @visibleForTesting
+  Offset? debugLastSheenOrigin;
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _ticker.addListener(markNeedsPaint);
   }
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final rrect = borderRadius.toRRect(Offset.zero & size);
-    final paint = Paint()..color = base;
-    if (sheen) {
-      final start =
-          _direction *
-          offsetAt(SchedulerBinding.instance.currentSystemFrameTimeStamp);
+  void detach() {
+    _ticker.removeListener(markNeedsPaint);
+    super.detach();
+  }
+
+  @override
+  bool get sizedByParent => true;
+
+  @override
+  Size computeDryLayout(BoxConstraints constraints) => constraints.smallest;
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final paint = Paint()..color = _base;
+    debugLastSheenOrigin = null;
+    if (_sheen) {
+      final onScreen = SkeletonSheen.originAt(
+        SchedulerBinding.instance.currentSystemFrameTimeStamp,
+      );
+      // The screen point, in this box's canvas coordinates.
+      final start = offset + onScreen - localToGlobal(Offset.zero);
       paint.shader = ui.Gradient.linear(
         start,
-        start + _direction * bandWidth,
-        [base, highlight, base],
+        start + SkeletonSheen.direction * SkeletonSheen.bandWidth,
+        [_base, _highlight, _base],
         const [0.3, 0.5, 0.7],
         TileMode.repeated,
       );
+      debugLastSheenOrigin = localToGlobal(start - offset);
     }
-    canvas.drawRRect(rrect, paint);
+    context.canvas.drawRRect(_borderRadius.toRRect(offset & size), paint);
   }
-
-  @override
-  bool shouldRepaint(SkeletonSheenPainter oldDelegate) =>
-      oldDelegate.base != base ||
-      oldDelegate.highlight != highlight ||
-      oldDelegate.borderRadius != borderRadius ||
-      oldDelegate.sheen != sheen;
 }
 
 /// A skeleton loader with random width for text placeholders

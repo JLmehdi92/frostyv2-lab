@@ -14,16 +14,12 @@ Widget _host(Widget child, {bool dark = true, bool disableAnimations = false}) {
   );
 }
 
-SkeletonSheenPainter _painter(WidgetTester tester) =>
-    tester
-            .widget<CustomPaint>(
-              find.descendant(
-                of: find.byType(SkeletonLoader),
-                matching: find.byType(CustomPaint),
-              ),
-            )
-            .painter!
-        as SkeletonSheenPainter;
+RenderSkeletonSheen _painter(WidgetTester tester) => tester.renderObject(
+  find.descendant(
+    of: find.byType(SkeletonLoader),
+    matching: find.byType(SkeletonSheenBox),
+  ),
+);
 
 void main() {
   testWidgets('dark: the board greys, with a moving sheen', (tester) async {
@@ -36,58 +32,69 @@ void main() {
     expect(painter.sheen, isTrue);
     expect(tester.binding.transientCallbackCount, greaterThan(0));
 
-    final before = painter.offsetAt(tester.binding.currentSystemFrameTimeStamp);
+    final before = painter.debugLastSheenOrigin;
     await tester.pump(const Duration(milliseconds: 400));
-    final after = painter.offsetAt(tester.binding.currentSystemFrameTimeStamp);
-    expect(after, isNot(before));
+    expect(painter.debugLastSheenOrigin, isNot(before));
   });
 
   testWidgets('the sweep loops without a jump', (tester) async {
     await tester.pumpWidget(
       _host(const Center(child: SkeletonLoader(width: 120, height: 40))),
     );
-    final painter = _painter(tester);
-    const period = SkeletonSheenPainter.period;
-    final start = painter.offsetAt(Duration.zero);
-    final end = painter.offsetAt(period - const Duration(microseconds: 1));
+    const period = SkeletonSheen.period;
+    final start = SkeletonSheen.originAt(Duration.zero);
+    final end = SkeletonSheen.originAt(
+      period - const Duration(microseconds: 1),
+    );
     // One loop moves the band by exactly one repeat of the gradient, so the
     // first frame of the next loop draws what the last one did.
-    expect(end - start, closeTo(SkeletonSheenPainter.bandWidth, 0.01));
+    expect((end - start).distance, closeTo(SkeletonSheen.bandWidth, 0.01));
   });
 
-  testWidgets('every skeleton on screen shares one sweep', (tester) async {
-    await tester.pumpWidget(
-      _host(const Center(child: SkeletonLoader(width: 10, height: 10))),
-    );
-    await tester.pump(const Duration(milliseconds: 230));
-    // Mounted later, it still sweeps in step with the first one: the phase
-    // is read off the frame clock, not off its own start.
-    final a = _painter(tester);
+  testWidgets('skeletons side by side show one band across them', (
+    tester,
+  ) async {
+    // A thumbnail and the text lines next to it, at different x and y: the
+    // band must sit at the same place on screen in both, not restart at
+    // each box's own corner.
     await tester.pumpWidget(
       _host(
-        const Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+        const Padding(
+          padding: EdgeInsets.only(left: 16, top: 40),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SkeletonLoader(width: 10, height: 10),
-              SkeletonLoader(width: 10, height: 10),
+              SkeletonLoader(key: Key('thumbnail'), width: 150, height: 84),
+              SizedBox(width: 12),
+              Padding(
+                padding: EdgeInsets.only(top: 20),
+                child: SkeletonLoader(key: Key('line'), width: 140, height: 14),
+              ),
             ],
           ),
         ),
       ),
     );
-    final painters = tester
-        .widgetList<CustomPaint>(
-          find.descendant(
-            of: find.byType(SkeletonLoader),
-            matching: find.byType(CustomPaint),
-          ),
-        )
-        .map((p) => p.painter! as SkeletonSheenPainter)
-        .toList();
-    final now = tester.binding.currentSystemFrameTimeStamp;
-    expect(painters[0].offsetAt(now), painters[1].offsetAt(now));
-    expect(a.offsetAt(now), painters[1].offsetAt(now));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    RenderSkeletonSheen box(String key) => tester.renderObject(
+      find.descendant(
+        of: find.byKey(Key(key)),
+        matching: find.byType(SkeletonSheenBox),
+      ),
+    );
+    final thumbnail = box('thumbnail').debugLastSheenOrigin;
+    final line = box('line').debugLastSheenOrigin;
+    expect(thumbnail, isNotNull);
+    expect(line, isNotNull);
+    expect(line!.dx, closeTo(thumbnail!.dx, 0.01));
+    expect(line.dy, closeTo(thumbnail.dy, 0.01));
+    // And it is where the frame clock puts it, on screen.
+    final expected = SkeletonSheen.originAt(
+      tester.binding.currentSystemFrameTimeStamp,
+    );
+    expect(thumbnail.dx, closeTo(expected.dx, 0.01));
+    expect(thumbnail.dy, closeTo(expected.dy, 0.01));
   });
 
   testWidgets('light theme keeps its own greys', (tester) async {
