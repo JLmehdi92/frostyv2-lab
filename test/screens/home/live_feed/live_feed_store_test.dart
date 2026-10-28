@@ -165,10 +165,36 @@ void main() {
     store.dispose();
   });
 
-  test('the index never points past the list', () async {
+  test('the page after the last channel has no current one, until a new '
+      'page brings one', () async {
     final store = await build();
-    store.setIndex(50);
-    expect(store.current!.userId, '8');
+    store.setIndex(8);
+    expect(store.current, isNull);
+    for (var i = 0; i < 4; i++) {
+      await Future<void>.delayed(Duration.zero);
+    }
+    // The next page landed on that very index.
+    expect(store.current!.userId, '9');
+    store.dispose();
+  });
+
+  test('hiding the last channel leaves none current there', () async {
+    final store = await build();
+    store.setIndex(7);
+    store.hide('8');
+    expect(store.current, isNull);
+    store.dispose();
+  });
+
+  test('a list older than five minutes is stale; a refresh is not', () async {
+    final store = await build();
+    expect(store.stale, isFalse);
+    store.list.lastTimeRefreshed = DateTime.now().subtract(
+      const Duration(minutes: 6),
+    );
+    expect(store.stale, isTrue);
+    await store.refresh();
+    expect(store.stale, isFalse);
     store.dispose();
   });
 }

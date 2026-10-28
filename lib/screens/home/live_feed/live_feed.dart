@@ -32,13 +32,17 @@ import 'package:frosty/widgets/twitch_web_page.dart';
 import 'package:mobx/mobx.dart';
 import 'package:provider/provider.dart';
 
-/// [T] from the widget tree, or null when nothing provides it.
-T? _maybeRead<T>(BuildContext context) {
-  try {
-    return context.read<T>();
-  } on ProviderNotFoundException {
-    return null;
-  }
+/// Shows [categoryId]'s live channels in the feed (null: All), from the
+/// first: the phone's chips and the tablet's (in the shell's tab row).
+void selectLiveCategory(
+  LiveFeedStore store,
+  PageController controller,
+  String? categoryId,
+) {
+  if (categoryId == store.categoryId) return;
+  Haptics.selection();
+  if (controller.hasClients) controller.jumpToPage(0);
+  store.selectCategory(categoryId);
 }
 
 /// Home's Live feed (boards Live and LiveTablette): the top live channels
@@ -61,6 +65,7 @@ class LiveFeed extends StatefulWidget {
     required this.active,
     @visibleForTesting this.preview,
     @visibleForTesting this.isMetered,
+    @visibleForTesting this.openChannel,
   });
 
   final LiveFeedStore store;
@@ -74,6 +79,10 @@ class LiveFeed extends StatefulWidget {
   final LivePreviewController? preview;
   final Future<bool?> Function()? isMetered;
 
+  /// Opens a channel (tests replace the channel screen).
+  final Future<void> Function(BuildContext context, StreamTwitch stream)?
+  openChannel;
+
   @override
   State<LiveFeed> createState() => _LiveFeedState();
 }
@@ -81,7 +90,7 @@ class LiveFeed extends StatefulWidget {
 class _LiveFeedState extends State<LiveFeed> {
   late final _settings = context.read<SettingsStore>();
   late final _auth = context.read<AuthStore>();
-  late final MiniPlayerStore? _mini = _maybeRead<MiniPlayerStore>(context);
+  late final _mini = context.read<MiniPlayerStore?>();
 
   /// The usher service of the previews: its own client, the players'
   /// token cache (a preview's token is the channel's, ready when it opens).
@@ -130,13 +139,20 @@ class _LiveFeedState extends State<LiveFeed> {
   /// A preview started by hand while autoplay is off.
   String? _playedByHand;
 
+  /// A channel opened from the feed is on screen: no preview may start
+  /// under its player, whatever else changes meanwhile.
+  var _channelOpen = false;
+
   @override
   void initState() {
     super.initState();
     _lifecycle = AppLifecycleListener(
       onStateChange: (state) {
         _foreground = state == AppLifecycleState.resumed;
-        if (_foreground) _meterAsked = false;
+        if (_foreground) {
+          _meterAsked = false;
+          _refreshIfStale();
+        }
         _sync();
       },
     );
@@ -168,7 +184,16 @@ class _LiveFeedState extends State<LiveFeed> {
   @override
   void didUpdateWidget(LiveFeed oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.active != widget.active) _sync();
+    if (oldWidget.active == widget.active) return;
+    // Back on the feed after a while: fresh channels, like every list.
+    if (widget.active) _refreshIfStale();
+    _sync();
+  }
+
+  void _refreshIfStale() {
+    if (!widget.store.stale) return;
+    _toTop();
+    unawaited(widget.store.refresh());
   }
 
   bool get _autoplay {
@@ -194,6 +219,7 @@ class _LiveFeedState extends State<LiveFeed> {
     final allowed = _autoplay || (current != null && current == _playedByHand);
     _preview.setActive(
       widget.active &&
+          !_channelOpen &&
           _tickers &&
           _foreground &&
           !(_mini?.visible ?? false) &&
@@ -210,9 +236,14 @@ class _LiveFeedState extends State<LiveFeed> {
   /// Opens [stream]'s channel, the preview's decoder let go first: the
   /// channel's player never shares the device with it.
   Future<void> _open(StreamTwitch stream) async {
+    _channelOpen = true;
     _preview.stop();
-    await openStream(context, stream);
-    _sync();
+    try {
+      await (widget.openChannel ?? openStream)(context, stream);
+    } finally {
+      _channelOpen = false;
+      _sync();
+    }
   }
 
   void _notInterested(StreamTwitch stream) {
@@ -242,12 +273,8 @@ class _LiveFeedState extends State<LiveFeed> {
     await widget.store.refresh();
   }
 
-  void _selectCategory(String? id) {
-    if (id == widget.store.categoryId) return;
-    Haptics.selection();
-    _toTop();
-    widget.store.selectCategory(id);
-  }
+  void _selectCategory(String? id) =>
+      selectLiveCategory(widget.store, widget.controller, id);
 
   @override
   void dispose() {
@@ -340,9 +367,9 @@ class _LiveFeedState extends State<LiveFeed> {
             return PageView.builder(
               controller: widget.controller,
               scrollDirection: Axis.vertical,
-              onPageChanged: (index) {
-                if (index < streams.length) widget.store.setIndex(index);
-              },
+              // The page after the last channel too: nothing plays there,
+              // and the channel a new page brings in gets its preview.
+              onPageChanged: widget.store.setIndex,
               itemCount: streams.length + 1,
               itemBuilder: (context, index) => index < streams.length
                   ? page(context, streams[index], index)
@@ -781,6 +808,38 @@ class _SoundAction extends StatelessWidget {
   }
 }
 
+/// "Muted preview", or "Sound on" once the viewer unmuted this one.
+class _SoundLabel extends StatelessWidget {
+  const _SoundLabel({
+    required this.stream,
+    required this.preview,
+    required this.style,
+    this.prefix = '',
+  });
+
+  final StreamTwitch stream;
+  final LivePreviewController preview;
+  final TextStyle style;
+  final String prefix;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: preview,
+      builder: (context, _) {
+        final audible =
+            !preview.muted && preview.playingLogin == stream.userLogin;
+        return Text(
+          '$prefix${audible ? 'Sound on' : 'Muted preview'}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: style,
+        );
+      },
+    );
+  }
+}
+
 /// "N watching": the rolling count of a preview.
 class _Watching extends StatelessWidget {
   const _Watching({required this.viewers, this.pill = false});
@@ -1046,12 +1105,12 @@ class _PhonePage extends StatelessWidget {
                 children: [
                   const LiveBadge(),
                   _Watching(viewers: stream.viewerCount),
-                  const Flexible(
-                    child: Text(
-                      '· Muted preview',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
+                  Flexible(
+                    child: _SoundLabel(
+                      stream: stream,
+                      preview: preview,
+                      prefix: '· ',
+                      style: const TextStyle(
                         fontSize: 13,
                         color: OverImage.secondary,
                       ),
@@ -1253,16 +1312,15 @@ class _TabletPage extends StatelessWidget {
             children: [
               const LiveBadge(large: true),
               _Watching(viewers: stream.viewerCount, pill: true),
-              const Flexible(
+              Flexible(
                 child: OverlayPill(
                   height: 26,
                   radius: 7,
                   padding: 9,
-                  child: Text(
-                    'Muted preview',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
+                  child: _SoundLabel(
+                    stream: stream,
+                    preview: preview,
+                    style: const TextStyle(
                       fontSize: 12,
                       color: FrostyTokens.textBodyDark,
                     ),

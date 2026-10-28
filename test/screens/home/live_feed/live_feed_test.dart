@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
@@ -137,6 +139,8 @@ void main() {
     ThemeMode mode = ThemeMode.dark,
     bool active = true,
     bool reduceMotion = false,
+    Future<void> Function(BuildContext, StreamTwitch)? openChannel,
+    ValueNotifier<bool>? activeNotifier,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -171,13 +175,15 @@ void main() {
             child: child!,
           ),
           home: Scaffold(
-            body: StatefulBuilder(
-              builder: (context, setState) => LiveFeed(
+            body: ValueListenableBuilder<bool>(
+              valueListenable: activeNotifier ?? ValueNotifier(active),
+              builder: (context, active, _) => LiveFeed(
                 store: store,
                 controller: controller,
                 active: active,
                 preview: preview,
                 isMetered: () async => true,
+                openChannel: openChannel,
               ),
             ),
           ),
@@ -387,6 +393,88 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
     expect(find.text('Title 1'), findsOneWidget);
+    await close(tester);
+  });
+
+  testWidgets('the page after the last live: no preview plays there', (
+    tester,
+  ) async {
+    top = [_stream(1)];
+    await pump(tester);
+    expect(log, ['open https://usher/login1']);
+
+    await tester.fling(find.text('Title 1'), const Offset(0, -500), 2000);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.text('Back to the first'), findsOneWidget);
+    expect(log, ['open https://usher/login1', 'dispose https://usher/login1']);
+    await close(tester);
+  });
+
+  testWidgets('a channel open from the feed: no preview under it, whatever '
+      'changes meanwhile; back on the feed, it plays again', (tester) async {
+    final channel = Completer<void>();
+    await pump(tester, openChannel: (context, stream) => channel.future);
+    expect(log, ['open https://usher/login1']);
+
+    await tester.tap(find.text('Watch with chat'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(log.last, 'dispose https://usher/login1');
+
+    // The app goes away and comes back while the channel is open.
+    for (final state in [
+      AppLifecycleState.inactive,
+      AppLifecycleState.hidden,
+      AppLifecycleState.paused,
+      AppLifecycleState.hidden,
+      AppLifecycleState.inactive,
+      AppLifecycleState.resumed,
+    ]) {
+      tester.binding.handleAppLifecycleStateChanged(state);
+    }
+    await tester.pump(const Duration(seconds: 1));
+    expect(log.where((e) => e.startsWith('open')), hasLength(1));
+
+    channel.complete();
+    await tester.pump(const Duration(seconds: 1));
+    expect(log.where((e) => e.startsWith('open')), hasLength(2));
+    expect(FakeBackend.mostAlive, 1);
+    await close(tester);
+  });
+
+  testWidgets('back on Live after five minutes: fresh channels', (
+    tester,
+  ) async {
+    final active = ValueNotifier(true);
+    await pump(tester, activeNotifier: active);
+    clearInteractions(api);
+
+    active.value = false;
+    await tester.pump();
+    store.list.lastTimeRefreshed = DateTime.now().subtract(
+      const Duration(minutes: 6),
+    );
+    active.value = true;
+    await tester.pump(const Duration(milliseconds: 500));
+
+    verify(
+      () => api.getTopStreams(
+        cursor: any(named: 'cursor'),
+        language: any(named: 'language'),
+      ),
+    ).called(1);
+    await close(tester);
+  });
+
+  testWidgets('unmuted, the label says so', (tester) async {
+    await pump(tester);
+    expect(find.text('· Muted preview'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Unmute'));
+    await tester.pump();
+
+    expect(find.text('· Sound on'), findsOneWidget);
     await close(tester);
   });
 

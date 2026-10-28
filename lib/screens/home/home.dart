@@ -91,16 +91,8 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     authStore: _authStore,
     settingsStore: _settingsStore,
     twitchApi: context.read<TwitchApi>(),
-    directoryService: _maybeRead<TwitchDirectoryService>(),
+    directoryService: context.read<TwitchDirectoryService?>(),
   );
-
-  T? _maybeRead<T>() {
-    try {
-      return context.read<T>();
-    } on ProviderNotFoundException {
-      return null;
-    }
-  }
 
   /// Whether [feed] is a video page under the phone header: the clips, and
   /// Live on a phone (on a tablet its preview is a card under the bar).
@@ -292,13 +284,11 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
           tabsTrailing: feed == HomeFeed.live && context.isLargeScreen
               ? LiveFeedChips(
                   store: _live,
-                  onSelect: (id) {
-                    if (id == _live.categoryId) return;
-                    if (_homeStore.liveScrollController.hasClients) {
-                      _homeStore.liveScrollController.jumpToPage(0);
-                    }
-                    _live.selectCategory(id);
-                  },
+                  onSelect: (id) => selectLiveCategory(
+                    _live,
+                    _homeStore.liveScrollController,
+                    id,
+                  ),
                 )
               : null,
         );

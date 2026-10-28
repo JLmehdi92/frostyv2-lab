@@ -80,12 +80,12 @@ abstract class LiveFeedStoreBase with Store {
       if (!_hidden.contains(stream.userId)) stream,
   ];
 
-  /// The stream on screen (null: none).
+  /// The stream on screen (null: none, or the page after the last one:
+  /// nothing plays there).
   @computed
   StreamTwitch? get current {
     final shown = streams;
-    if (shown.isEmpty) return null;
-    return shown[_index.clamp(0, shown.length - 1)];
+    return _index < shown.length ? shown[_index] : null;
   }
 
   void _takeChips() {
@@ -143,8 +143,17 @@ abstract class LiveFeedStoreBase with Store {
   /// Pull to refresh: the list on screen starts over.
   Future<void> refresh() async {
     runInAction(() => _index = 0);
+    list.lastTimeRefreshed = DateTime.now();
     await list.refreshStreams();
   }
+
+  /// How old a list may get before coming back to it refreshes it (as
+  /// every list does).
+  static const staleAfter = Duration(minutes: 5);
+
+  /// Whether the list on screen is older than [staleAfter].
+  bool get stale =>
+      DateTime.now().difference(list.lastTimeRefreshed) >= staleAfter;
 
   void dispose() {
     _disposeChips();
