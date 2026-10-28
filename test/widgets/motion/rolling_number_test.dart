@@ -1,0 +1,132 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/widgets/motion/rolling_number.dart';
+
+Widget _host(String text, {bool disableAnimations = false}) => MaterialApp(
+  home: MediaQuery(
+    data: MediaQueryData(disableAnimations: disableAnimations),
+    child: Center(
+      child: RollingNumber(text, style: const TextStyle(fontSize: 20)),
+    ),
+  ),
+);
+
+void main() {
+  testWidgets('shows the number and reads it out once', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(_host('12 418'));
+    expect(find.bySemanticsLabel('12 418'), findsOneWidget);
+    expect(find.text('8'), findsOneWidget);
+    semantics.dispose();
+  });
+
+  testWidgets('only the digits that change roll, old out and new in', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_host('12418'));
+    await tester.pumpWidget(_host('12431'));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // Mid-roll: the changed places show both their old and new digit.
+    expect(find.text('8'), findsOneWidget); // old last digit, leaving
+    expect(find.text('3'), findsOneWidget); // new fourth digit, arriving
+    // Unchanged places are not doubled.
+    expect(find.text('4'), findsOneWidget);
+    expect(find.text('2'), findsOneWidget);
+
+    await tester.pumpAndSettle();
+    expect(find.text('8'), findsNothing);
+    expect(find.text('3'), findsOneWidget);
+    expect(find.text('1'), findsNWidgets(2));
+  });
+
+  testWidgets('rolls up when the number grows, down when it falls', (
+    tester,
+  ) async {
+    double newDigitDy() => tester
+        .widget<FractionalTranslation>(
+          find
+              .ancestor(
+                of: find.text('9'),
+                matching: find.byType(FractionalTranslation),
+              )
+              .first,
+        )
+        .translation
+        .dy;
+
+    await tester.pumpWidget(_host('18'));
+    await tester.pumpWidget(_host('19'));
+    await tester.pump(const Duration(milliseconds: 50));
+    // The new digit comes from below.
+    expect(newDigitDy(), greaterThan(0));
+    await tester.pumpAndSettle();
+
+    await tester.pumpWidget(_host('20'));
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(_host('19'));
+    await tester.pump(const Duration(milliseconds: 50));
+    // Falling: it comes from above.
+    expect(newDigitDy(), lessThan(0));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('keeps its width while rolling (tabular figures)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_host('12 418'));
+    final before = tester.getSize(find.byType(RollingNumber));
+    await tester.pumpWidget(_host('12 456'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(tester.getSize(find.byType(RollingNumber)), before);
+
+    for (final text in tester.widgetList<Text>(
+      find.descendant(
+        of: find.byType(RollingNumber),
+        matching: find.byType(Text),
+      ),
+    )) {
+      expect(
+        text.style?.fontFeatures,
+        contains(const FontFeature.tabularFigures()),
+      );
+    }
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('a longer number grows its new leading digit in', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_host('999'));
+    await tester.pumpWidget(_host('1,000'));
+    await tester.pumpAndSettle();
+    expect(find.text('1'), findsOneWidget);
+    expect(find.text(','), findsOneWidget);
+    expect(find.text('0'), findsNWidgets(3));
+    expect(find.text('9'), findsNothing);
+  });
+
+  testWidgets('reduce motion: the new number at once', (tester) async {
+    await tester.pumpWidget(_host('12418', disableAnimations: true));
+    await tester.pumpWidget(_host('12431', disableAnimations: true));
+    expect(find.text('8'), findsNothing);
+    expect(find.text('3'), findsOneWidget);
+    expect(tester.binding.transientCallbackCount, 0);
+  });
+
+  testWidgets('clips the rolling digits to the line', (tester) async {
+    await tester.pumpWidget(_host('1'));
+    await tester.pumpWidget(_host('2'));
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(
+      find.ancestor(of: find.text('2'), matching: find.byType(ClipRect)),
+      findsOneWidget,
+    );
+    final clip = tester.renderObject<RenderClipRect>(
+      find.ancestor(of: find.text('2'), matching: find.byType(ClipRect)),
+    );
+    expect(clip.size.height, greaterThan(0));
+    await tester.pumpAndSettle();
+  });
+}
