@@ -62,6 +62,14 @@ class LaunchIntro extends StatefulWidget {
 
   static final _running = <_LaunchIntroState>{};
 
+  static final _runningNotifier = ValueNotifier(false);
+
+  /// Whether an intro covers the app now: what would compete with it for
+  /// the device (a live preview's decoder) waits until it is false.
+  static ValueListenable<bool> get running => _runningNotifier;
+
+  static void _updateRunning() => _runningNotifier.value = _running.isNotEmpty;
+
   /// Ends any running intro at once (the app was opened on a channel).
   static void skipAll() {
     for (final intro in _running.toList()) {
@@ -143,6 +151,7 @@ class _LaunchIntroState extends State<LaunchIntro>
     }
 
     LaunchIntro._running.add(this);
+    LaunchIntro._updateRunning();
     _lifecycle = AppLifecycleListener(
       onInactive: _finish,
       onHide: _finish,
@@ -165,6 +174,7 @@ class _LaunchIntroState extends State<LaunchIntro>
   void _finish() {
     if (_done) return;
     LaunchIntro._running.remove(this);
+    LaunchIntro._updateRunning();
     _lifecycle?.dispose();
     _lifecycle = null;
     _controller.stop();
@@ -175,6 +185,7 @@ class _LaunchIntroState extends State<LaunchIntro>
   @override
   void dispose() {
     LaunchIntro._running.remove(this);
+    LaunchIntro._updateRunning();
     _lifecycle?.dispose();
     _controller.dispose();
     _revealed.dispose();

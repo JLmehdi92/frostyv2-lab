@@ -104,6 +104,16 @@ void main() {
       expect(find.text('home'), findsOneWidget);
     });
 
+    testWidgets('it says it runs while it covers, then not', (tester) async {
+      _setSize(tester, _phone);
+      expect(LaunchIntro.running.value, isFalse);
+      await tester.pumpWidget(_app());
+      expect(LaunchIntro.running.value, isTrue);
+      await tester.pump();
+      await tester.pump(LaunchIntro.duration + const Duration(seconds: 1));
+      expect(LaunchIntro.running.value, isFalse);
+    });
+
     testWidgets('a warm start: no intro', (tester) async {
       _setSize(tester, _phone);
       await tester.pumpWidget(_app(play: false));
