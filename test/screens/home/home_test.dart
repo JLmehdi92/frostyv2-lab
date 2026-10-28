@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
@@ -422,6 +423,27 @@ void main() {
     await tester.pumpAndSettle();
     expect(mini.shellChrome, const EdgeInsets.only(top: 100, bottom: 78));
     Navigator.of(sheet).pop();
+    await tester.pumpAndSettle();
+    expect(mini.shellChrome, const EdgeInsets.only(top: 100, bottom: 78));
+    await close(tester);
+  });
+
+  testWidgets('a page pushed and popped within one locked frame does not '
+      'leave the shell covered', (tester) async {
+    await pump(tester);
+    expect(mini.shellChrome, const EdgeInsets.only(top: 100, bottom: 78));
+    final page = MaterialPageRoute<void>(builder: (_) => const SizedBox());
+    var once = true;
+    // Both land while the frame builds, when Home must defer its change.
+    SchedulerBinding.instance.addPersistentFrameCallback((_) {
+      if (!once) return;
+      once = false;
+      OnsetShell.routeObserver
+        ..didPush(page, null)
+        ..didPop(page, null);
+    });
+    tester.binding.scheduleFrame();
+    await tester.pump();
     await tester.pumpAndSettle();
     expect(mini.shellChrome, const EdgeInsets.only(top: 100, bottom: 78));
     await close(tester);

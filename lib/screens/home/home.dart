@@ -86,14 +86,20 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
 
   /// setState, or after this frame when the tree is locked (a page being
   /// disposed reports from its dispose).
-  void _update(VoidCallback change) {
+  void _update(VoidCallback change) => _whenUnlocked(() => setState(change));
+
+  /// Runs [action] now, or after this frame when the tree is locked. The
+  /// action reads the state when it runs, not when it was asked for.
+  void _whenUnlocked(VoidCallback action) {
     if (!mounted) return;
     if (SchedulerBinding.instance.schedulerPhase ==
         SchedulerPhase.persistentCallbacks) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _update(change));
+      WidgetsBinding.instance
+        ..addPostFrameCallback((_) => _whenUnlocked(action))
+        ..ensureVisualUpdate();
       return;
     }
-    setState(change);
+    action();
   }
 
   Future<void> checkAndShowReleaseNotes() async {
@@ -154,14 +160,16 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
   }
 
   /// A page opened over the shell, or left it.
-  void _onRoutes() {
+  void _onRoutes() => _whenUnlocked(() {
+    // Read now: a page pushed and popped while the frame was locked must
+    // not leave the shell covered.
     final route = _route;
     final covered = route != null && OnsetShell.routeObserver.covers(route);
     if (covered == _covered) return;
     if (covered) _miniPlayer.setShellChrome(null);
     // The chrome is published again by the next build.
-    _update(() => _covered = covered);
-  }
+    setState(() => _covered = covered);
+  });
 
   /// Tells the mini player what the chrome covers, after this frame.
   void _publishChrome(EdgeInsets chrome) {
