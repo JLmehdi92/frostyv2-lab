@@ -29,6 +29,11 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
     with SingleTickerProviderStateMixin {
   final ValueNotifier<Offset?> _offset = ValueNotifier(null);
 
+  /// The corner the window rests in (top-right at first); null while it
+  /// is dragged or flying to a corner. Kept as a corner, not a position,
+  /// so that it stays in its corner when the area changes.
+  MiniCorner? _corner = MiniCorner.topRight;
+
   late final AnimationController _snapController = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 240),
@@ -45,14 +50,24 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
   }
 
   /// Smoothly animates the window to [target] (used for the release snap).
-  void _animateTo(Offset target) {
+  void _snapTo(MiniWindowArea area, MiniCorner corner) {
+    final target = area.at(corner);
     _snapAnim = Tween<Offset>(begin: _offset.value ?? target, end: target)
         .animate(
           CurvedAnimation(parent: _snapController, curve: Curves.easeOutCubic),
         );
     _snapController
       ..reset()
-      ..forward();
+      ..forward().whenCompleteOrCancel(() {
+        if (mounted && _snapAnim?.value == target) _corner = corner;
+      });
+  }
+
+  /// Where the window is drawn in [area].
+  Offset _position(MiniWindowArea area, Offset? offset) {
+    final corner = _corner;
+    if (corner != null) return area.at(corner);
+    return area.clamp(offset ?? area.initial);
   }
 
   @override
@@ -105,14 +120,22 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () => _restore(store),
-                      onPanDown: (_) => _snapController.stop(),
+                      onPanDown: (_) {
+                        _snapController.stop();
+                        // From where it is drawn, whatever the area was.
+                        _offset.value = _position(area, _offset.value);
+                        _corner = null;
+                      },
                       onPanUpdate: (details) {
                         _offset.value = area.clamp(
                           (_offset.value ?? area.initial) + details.delta,
                         );
                       },
                       onPanEnd: (_) {
-                        _animateTo(area.snap(_offset.value ?? area.initial));
+                        _snapTo(
+                          area,
+                          area.nearest(_offset.value ?? area.initial),
+                        );
                       },
                     ),
                   ),
@@ -143,7 +166,7 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
                 // Kept inside when the chrome changes (another section,
                 // another page): a corner stays a corner.
                 return Transform.translate(
-                  offset: area.clamp(offset ?? area.initial),
+                  offset: _position(area, offset),
                   child: child,
                 );
               },
@@ -237,15 +260,35 @@ class MiniWindowArea {
   double get _right => math.max(margin, screen.width - window.width - margin);
 
   /// The top-right corner, where the window first shows.
-  Offset get initial => Offset(_right, top);
+  Offset get initial => at(MiniCorner.topRight);
 
   Offset clamp(Offset offset) =>
       Offset(offset.dx.clamp(_left, _right), offset.dy.clamp(top, bottom));
 
+  /// Where [corner] is in this area.
+  Offset at(MiniCorner corner) =>
+      Offset(corner.left ? _left : _right, corner.top ? top : bottom);
+
   /// The corner nearest to [offset].
-  Offset snap(Offset offset) {
-    final toLeft = offset.dx + window.width / 2 < screen.width / 2;
-    final toTop = offset.dy + window.height / 2 < screen.height / 2;
-    return Offset(toLeft ? _left : _right, toTop ? top : bottom);
+  MiniCorner nearest(Offset offset) {
+    final left = offset.dx + window.width / 2 < screen.width / 2;
+    final up = offset.dy + window.height / 2 < screen.height / 2;
+    return MiniCorner.values.firstWhere((c) => c.left == left && c.top == up);
   }
+
+  /// The corner nearest to [offset], as a position.
+  Offset snap(Offset offset) => at(nearest(offset));
+}
+
+/// A corner of [MiniWindowArea].
+enum MiniCorner {
+  topLeft(left: true, top: true),
+  topRight(left: false, top: true),
+  bottomLeft(left: true, top: false),
+  bottomRight(left: false, top: false);
+
+  const MiniCorner({required this.left, required this.top});
+
+  final bool left;
+  final bool top;
 }

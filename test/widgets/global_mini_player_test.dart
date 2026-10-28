@@ -52,8 +52,15 @@ void main() {
       phone,
       chrome: const EdgeInsets.only(top: 56, bottom: 78),
     );
-    // Snapped under Profile's shorter header, it moves under Home's.
-    final corner = profile.snap(const Offset(300, 70));
-    expect(home.clamp(corner).dy, 112);
+    // A corner is kept as a corner: under each header, above the bar.
+    final corner = profile.nearest(const Offset(300, 70));
+    expect(corner, MiniCorner.topRight);
+    expect(profile.at(corner).dy, 68);
+    expect(home.at(corner).dy, 112);
+    final low = home.nearest(const Offset(10, 700));
+    expect(low, MiniCorner.bottomLeft);
+    final page = MiniWindowArea.of(phone);
+    // On a page without the bar the window goes back down to the edge.
+    expect(page.at(low).dy, greaterThan(home.at(low).dy));
   });
 }
