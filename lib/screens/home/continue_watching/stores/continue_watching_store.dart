@@ -79,7 +79,8 @@ abstract class ContinueWatchingStoreBase with Store {
   /// Videos already named, by id (from Twitch's shelf or asked by id).
   final _known = <String, Vod>{};
 
-  /// Ids Twitch said do not exist (deleted videos): never asked again.
+  /// Ids Twitch said do not exist (deleted videos): not asked again until
+  /// the next [load].
   final _gone = <String>{};
 
   /// Bumped by each merge: a slower, older one never overwrites it.
@@ -88,8 +89,10 @@ abstract class ContinueWatchingStoreBase with Store {
 
   String? get _viewer => vodService.viewerId?.call();
 
-  /// Reads Twitch's shelf again, then this device's positions.
+  /// Reads Twitch's shelf again, then this device's positions. Videos
+  /// taken as deleted are asked again (a video can come back).
   Future<void> load() async {
+    _gone.clear();
     final viewer = _viewer;
     List<ResumeWatchingEntry>? server;
     try {
@@ -166,12 +169,12 @@ abstract class ContinueWatchingStoreBase with Store {
     ];
     if (unknown.isNotEmpty) {
       try {
-        final videos = await vodService.getVideos(unknown);
-        for (final vod in videos) {
+        final lookup = await vodService.getVideos(unknown);
+        for (final vod in lookup.videos) {
           _known[vod.id] = vod;
         }
-        // Asked and not given: deleted.
-        _gone.addAll(unknown.where((id) => !_known.containsKey(id)));
+        // Twitch said there is no such video (not merely refused it).
+        _gone.addAll(lookup.missing);
       } catch (e) {
         debugPrint('Continue watching: videos unavailable: ${e.runtimeType}');
       }

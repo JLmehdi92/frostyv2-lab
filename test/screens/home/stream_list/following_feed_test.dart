@@ -140,7 +140,9 @@ void main() {
         ),
       ],
     );
-    when(() => vods.getVideos(any())).thenAnswer((_) async => const []);
+    when(
+      () => vods.getVideos(any()),
+    ).thenAnswer((_) async => const VideoLookup(videos: [], missing: {}));
   });
 
   Future<void> pump(

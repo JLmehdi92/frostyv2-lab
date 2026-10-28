@@ -43,7 +43,9 @@ void main() {
     when(
       () => service.getResumeWatching(limit: any(named: 'limit')),
     ).thenAnswer((_) async => null);
-    when(() => service.getVideos(any())).thenAnswer((_) async => const []);
+    when(
+      () => service.getVideos(any()),
+    ).thenAnswer((_) async => const VideoLookup(videos: [], missing: {}));
   });
 
   Future<void> save(
@@ -68,7 +70,9 @@ void main() {
     ).thenAnswer(
       (_) async => [_entry('2', 1200, DateTime.utc(2026, 10, 27, 12))],
     );
-    when(() => service.getVideos(['1'])).thenAnswer((_) async => [_vod('1')]);
+    when(
+      () => service.getVideos(['1']),
+    ).thenAnswer((_) async => VideoLookup(videos: [_vod('1')], missing: {}));
     final store = ContinueWatchingStore(vodService: service);
     addTearDown(store.dispose);
 
@@ -137,7 +141,9 @@ void main() {
   test('logged out: this device only, never asking for a token', () async {
     viewer = null;
     await save('1', 600, DateTime.utc(2026, 10, 27, 10));
-    when(() => service.getVideos(['1'])).thenAnswer((_) async => [_vod('1')]);
+    when(
+      () => service.getVideos(['1']),
+    ).thenAnswer((_) async => VideoLookup(videos: [_vod('1')], missing: {}));
     final store = ContinueWatchingStore(vodService: service);
     addTearDown(store.dispose);
 
@@ -182,7 +188,9 @@ void main() {
     when(
       () => service.getResumeWatching(limit: any(named: 'limit')),
     ).thenThrow(StateError('broken'));
-    when(() => service.getVideos(['1'])).thenAnswer((_) async => [_vod('1')]);
+    when(
+      () => service.getVideos(['1']),
+    ).thenAnswer((_) async => VideoLookup(videos: [_vod('1')], missing: {}));
     final store = ContinueWatchingStore(vodService: service);
     addTearDown(store.dispose);
 
@@ -191,16 +199,43 @@ void main() {
     expect(store.items.single.vod.id, '1');
   });
 
-  test('a deleted video is asked for once', () async {
+  test('a deleted video is not asked again until the next load', () async {
     await save('1', 600, DateTime.utc(2026, 10, 27, 10));
+    when(
+      () => service.getVideos(any(that: contains('1'))),
+    ).thenAnswer((_) async => const VideoLookup(videos: [], missing: {'1'}));
     final store = ContinueWatchingStore(vodService: service);
     addTearDown(store.dispose);
 
     await store.load();
+    // A save elsewhere merges again from memory.
+    await save('2', 700, DateTime.utc(2026, 10, 27, 11));
+    await pumpEventQueue();
+    verify(() => service.getVideos(any(that: contains('1')))).called(1);
+
+    // A load asks again: a video can come back.
+    await store.load();
+    verify(() => service.getVideos(any(that: contains('1')))).called(1);
+    expect(store.items, isEmpty);
+  });
+
+  test('a video refused once (not deleted) is asked again at the next '
+      'merge', () async {
+    await save('1', 600, DateTime.utc(2026, 10, 27, 10));
+    when(
+      () => service.getVideos(['1']),
+    ).thenAnswer((_) async => const VideoLookup(videos: [], missing: {}));
+    final store = ContinueWatchingStore(vodService: service);
+    addTearDown(store.dispose);
     await store.load();
 
-    expect(store.items, isEmpty);
-    verify(() => service.getVideos(['1'])).called(1);
+    when(
+      () => service.getVideos(['1']),
+    ).thenAnswer((_) async => VideoLookup(videos: [_vod('1')], missing: {}));
+    await save('1', 650, DateTime.utc(2026, 10, 27, 12));
+    await pumpEventQueue();
+
+    expect(store.items.single.positionSec, 650);
   });
 
   test('a save on this device updates the shelf without asking Twitch '
@@ -210,7 +245,9 @@ void main() {
     ).thenAnswer(
       (_) async => [_entry('2', 1200, DateTime.utc(2026, 10, 27, 9))],
     );
-    when(() => service.getVideos(['1'])).thenAnswer((_) async => [_vod('1')]);
+    when(
+      () => service.getVideos(['1']),
+    ).thenAnswer((_) async => VideoLookup(videos: [_vod('1')], missing: {}));
     final store = ContinueWatchingStore(vodService: service);
     addTearDown(store.dispose);
     await store.load();
@@ -257,7 +294,9 @@ void main() {
     ).thenAnswer(
       (_) async => [_entry('2', 1200, DateTime.utc(2026, 10, 27, 9))],
     );
-    when(() => service.getVideos(['1'])).thenAnswer((_) async => [_vod('1')]);
+    when(
+      () => service.getVideos(['1']),
+    ).thenAnswer((_) async => VideoLookup(videos: [_vod('1')], missing: {}));
     final store = ContinueWatchingStore(vodService: service);
     addTearDown(store.dispose);
     await store.load();
