@@ -35,10 +35,19 @@ typedef FeedPlayerFactory =
 class ClipsFeedScreen extends StatefulWidget {
   const ClipsFeedScreen({
     super.key,
+    this.onPipChanged,
     @visibleForTesting this.store,
     @visibleForTesting this.playerFactory,
     @visibleForTesting this.disableAutoPip,
   });
+
+  /// Told when the feed enters (true) or leaves (false) picture-in-picture:
+  /// the shell around it must then show the clip alone.
+  final ValueChanged<bool>? onPipChanged;
+
+  /// Builds the picture-in-picture wrapper off Android too (tests).
+  @visibleForTesting
+  static bool? debugPipSupported;
 
   final ClipsFeedStore? store;
   final FeedPlayerFactory? playerFactory;
@@ -70,6 +79,9 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
   /// The clip last started as the current one: a later sync (more clips
   /// arriving) must not start it again after the viewer paused it.
   int? _started;
+
+  /// Whether the app is in picture-in-picture from this feed.
+  var _inPip = false;
 
   /// Whether the clip was playing when another player took focus.
   var _playingBeforeFocusLoss = false;
@@ -417,13 +429,23 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
       child: Material(color: Colors.black, child: _buildFeed(context)),
     );
 
-    if (!Platform.isAndroid) return page;
+    if (!(ClipsFeedScreen.debugPipSupported ?? Platform.isAndroid)) {
+      return page;
+    }
     return PipWidget(
       key: _pipKey,
       pipLayout: PipActionsLayout.mediaOnlyPause,
       onPipAction: (_) => _players[_index]?.togglePlay(),
-      onPipEntered: () => _players[_index]?.onPipEntered(),
-      onPipExited: () => _players[_index]?.onPipExited(),
+      onPipEntered: () {
+        _inPip = true;
+        widget.onPipChanged?.call(true);
+        _players[_index]?.onPipEntered();
+      },
+      onPipExited: () {
+        _inPip = false;
+        widget.onPipChanged?.call(false);
+        _players[_index]?.onPipExited();
+      },
       pipChild: ColoredBox(color: Colors.black, child: _video(_index)),
       child: page,
     );
@@ -432,6 +454,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
   @override
   void dispose() {
     try {
+      if (_inPip) widget.onPipChanged?.call(false);
       _disposeClipsReaction?.call();
       _pageController.dispose();
       // The current clip keeps its focus to the end, so disposing it also

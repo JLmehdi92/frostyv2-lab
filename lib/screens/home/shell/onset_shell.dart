@@ -283,6 +283,10 @@ class OnsetShell extends StatelessWidget {
   /// The viewer's picture, or null (logged out).
   final Widget? avatar;
 
+  /// Nothing but [body]: the clips feed is in picture-in-picture, where the
+  /// window must show the clip alone.
+  final bool chromeHidden;
+
   const OnsetShell({
     super.key,
     required this.section,
@@ -293,6 +297,7 @@ class OnsetShell extends StatelessWidget {
     this.whispers,
     this.activityBadge = 0,
     this.avatar,
+    this.chromeHidden = false,
   });
 
   void _select(ShellSection target) {
@@ -304,76 +309,100 @@ class OnsetShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = _ShellPalette.of(context);
     final large = context.isLargeScreen;
+    final padding = MediaQuery.paddingOf(context);
+    // One structure for both layouts: the body keeps its place (and every
+    // page its state) when the window crosses the tablet size (a fold, a
+    // split screen, picture-in-picture).
+    final bodyTop = chromeHidden || !large
+        ? 0.0
+        : padding.top + ShellMetrics.tabletHeader(header);
     return ColoredBox(
       color: palette.ground,
-      child: large
-          ? _buildTablet(context, palette)
-          : _buildPhone(context, palette),
+      child: Stack(
+        children: [
+          Positioned(
+            key: const ValueKey('shell-body'),
+            top: bodyTop,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: body,
+          ),
+          if (!chromeHidden)
+            if (large)
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: _buildTablet(context, palette),
+              )
+            else
+              ..._buildPhone(context, palette),
+        ],
+      ),
     );
   }
 
-  Widget _buildPhone(BuildContext context, _ShellPalette palette) {
+  List<Widget> _buildPhone(BuildContext context, _ShellPalette palette) {
     final padding = MediaQuery.paddingOf(context);
     final navBottom = ShellMetrics.navBottom(padding);
-    return Stack(
-      children: [
-        Positioned.fill(child: body),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: ShellMetrics.navFade + navBottom - ShellMetrics.navInset,
-          child: IgnorePointer(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [palette.ground, palette.ground.withValues(alpha: 0)],
-                  stops: const [0.3, 1],
-                ),
+    return [
+      Positioned(
+        left: 0,
+        right: 0,
+        bottom: 0,
+        height: ShellMetrics.navFade + navBottom - ShellMetrics.navInset,
+        child: IgnorePointer(
+          child: DecoratedBox(
+            key: const ValueKey('shell-nav-fade'),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [palette.ground, palette.ground.withValues(alpha: 0)],
+                stops: const [0.3, 1],
               ),
             ),
           ),
         ),
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          child: _PhoneHeader(
-            header: header,
-            palette: palette,
-            whispers: whispers,
-            onSearch: onSearch,
-          ),
+      ),
+      Positioned(
+        top: 0,
+        left: 0,
+        right: 0,
+        child: _PhoneHeader(
+          header: header,
+          palette: palette,
+          whispers: whispers,
+          onSearch: onSearch,
         ),
-        Positioned(
-          left: ShellMetrics.navInset + padding.left,
-          right: ShellMetrics.navInset + padding.right,
-          bottom: navBottom,
-          height: ShellMetrics.navHeight,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: ShellMetrics.navMaxWidth,
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                height: ShellMetrics.navHeight,
-                child: _PhoneNav(
-                  section: section,
-                  onSelect: _select,
-                  palette: palette,
-                  activityBadge: activityBadge,
-                  avatar: avatar,
-                  blur: !header.overVideo,
-                ),
+      ),
+      Positioned(
+        left: ShellMetrics.navInset + padding.left,
+        right: ShellMetrics.navInset + padding.right,
+        bottom: navBottom,
+        height: ShellMetrics.navHeight,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: ShellMetrics.navMaxWidth,
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              height: ShellMetrics.navHeight,
+              child: _PhoneNav(
+                section: section,
+                onSelect: _select,
+                palette: palette,
+                activityBadge: activityBadge,
+                avatar: avatar,
+                blur: !header.overVideo,
               ),
             ),
           ),
         ),
-      ],
-    );
+      ),
+    ];
   }
 
   Widget _buildTablet(BuildContext context, _ShellPalette palette) {
@@ -382,108 +411,112 @@ class OnsetShell extends StatelessWidget {
       left: ShellMetrics.tabletGutter + padding.left,
       right: ShellMetrics.tabletGutter + padding.right,
     );
-    return Column(
-      children: [
-        SizedBox(height: padding.top),
-        SizedBox(
-          height: ShellMetrics.topBar,
-          child: Padding(
-            padding: gutter,
-            child: Row(
-              children: [
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: _Brand(palette: palette, tablet: true),
+    return ColoredBox(
+      color: palette.ground,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(height: padding.top),
+          SizedBox(
+            height: ShellMetrics.topBar,
+            child: Padding(
+              padding: gutter,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: _Brand(palette: palette, tablet: true),
+                    ),
                   ),
-                ),
-                const SizedBox(width: FrostySpacing.lg),
-                _PillNav(
-                  section: section,
-                  onSelect: _select,
-                  palette: palette,
-                  activityBadge: activityBadge,
-                ),
-                const SizedBox(width: FrostySpacing.lg),
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Flexible(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 214),
-                          child: LayoutBuilder(
-                            // Squeezed (portrait, large text): the field
-                            // becomes a round button.
-                            builder: (context, constraints) =>
-                                constraints.maxWidth < 100
-                                ? Align(
-                                    alignment: Alignment.centerRight,
-                                    child: _SearchField(
+                  const SizedBox(width: FrostySpacing.lg),
+                  _PillNav(
+                    section: section,
+                    onSelect: _select,
+                    palette: palette,
+                    activityBadge: activityBadge,
+                  ),
+                  const SizedBox(width: FrostySpacing.lg),
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Flexible(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 214),
+                            child: LayoutBuilder(
+                              // Squeezed (portrait, large text): the field
+                              // becomes a round button.
+                              builder: (context, constraints) =>
+                                  constraints.maxWidth < 100
+                                  ? Align(
+                                      alignment: Alignment.centerRight,
+                                      child: _SearchField(
+                                        label: 'Search',
+                                        height: 40,
+                                        palette: palette,
+                                        onTap: onSearch,
+                                        compact: true,
+                                      ),
+                                    )
+                                  : _SearchField(
                                       label: 'Search',
                                       height: 40,
                                       palette: palette,
                                       onTap: onSearch,
-                                      compact: true,
                                     ),
-                                  )
-                                : _SearchField(
-                                    label: 'Search',
-                                    height: 40,
-                                    palette: palette,
-                                    onTap: onSearch,
-                                  ),
+                            ),
                           ),
                         ),
-                      ),
-                      if (whispers case final whispers?) ...[
+                        if (whispers case final whispers?) ...[
+                          const SizedBox(width: 10),
+                          _WhispersButton(
+                            whispers: whispers,
+                            palette: palette,
+                            circle: true,
+                          ),
+                        ],
                         const SizedBox(width: 10),
-                        _WhispersButton(
-                          whispers: whispers,
+                        _ProfileButton(
+                          active: section == ShellSection.profile,
                           palette: palette,
-                          circle: true,
+                          avatar: avatar,
+                          onTap: () => _select(ShellSection.profile),
                         ),
                       ],
-                      const SizedBox(width: 10),
-                      _ProfileButton(
-                        active: section == ShellSection.profile,
-                        palette: palette,
-                        avatar: avatar,
-                        onTap: () => _select(ShellSection.profile),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (header.tabs.isNotEmpty)
-          DecoratedBox(
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: palette.hairline,
-                  width: FrostyTokens.hairlineWidth,
-                ),
+                ],
               ),
             ),
-            child: ShellTabs(
-              labels: header.tabs,
-              index: header.tabIndex,
-              onSelect: header.onTab ?? (_) {},
-              height: ShellMetrics.tabletTabsRow,
-              fontSize: 17,
-              gap: 28,
-              bottomPadding: 12,
-              padding: gutter,
-              activeColor: palette.text,
-              idleColor: palette.tabIdle,
-              indicatorColor: palette.accent,
-            ),
           ),
-        Expanded(child: body),
-      ],
+          if (header.tabs.isNotEmpty)
+            DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: palette.hairline,
+                    width: FrostyTokens.hairlineWidth,
+                  ),
+                ),
+              ),
+              child: ShellTabs(
+                labels: header.tabs,
+                index: header.tabIndex,
+                onSelect: header.onTab ?? (_) {},
+                height: ShellMetrics.tabletTabsRow,
+                fontSize: 17,
+                gap: 28,
+                bottomPadding: 12,
+                padding: gutter,
+                activeColor: palette.text,
+                idleColor: palette.tabIdle,
+                indicatorColor: palette.accent,
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

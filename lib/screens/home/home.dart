@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/apis/twitch_api.dart';
@@ -59,6 +60,22 @@ class _HomeState extends State<Home> with OnsetUpdateChecks, RouteAware {
 
   /// A page covers the shell: the mini player is not bound by its chrome.
   var _covered = false;
+
+  /// The clips feed is in picture-in-picture: the window shows the clip
+  /// alone, without the shell's chrome.
+  var _clipsInPip = false;
+
+  /// setState, or after this frame when the tree is locked (a page being
+  /// disposed reports from its dispose).
+  void _update(VoidCallback change) {
+    if (!mounted) return;
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _update(change));
+      return;
+    }
+    setState(change);
+  }
 
   Future<void> checkAndShowReleaseNotes() async {
     final packageInfo = await PackageInfo.fromPlatform();
@@ -272,7 +289,11 @@ class _HomeState extends State<Home> with OnsetUpdateChecks, RouteAware {
                 scrollController: _homeStore.liveScrollController,
               ),
               HomeFeed.clips =>
-                onScreen ? const ClipsFeedScreen() : const SizedBox.shrink(),
+                onScreen
+                    ? ClipsFeedScreen(
+                        onPipChanged: (pip) => _update(() => _clipsInPip = pip),
+                      )
+                    : const SizedBox.shrink(),
             },
           ),
         );
@@ -343,11 +364,14 @@ class _HomeState extends State<Home> with OnsetUpdateChecks, RouteAware {
               // Room for the floating bar, so that snack bars float above
               // it; the shell draws the bar itself, over the page.
               extendBody: true,
-              bottomNavigationBar: SizedBox(height: chrome.bottom),
+              bottomNavigationBar: SizedBox(
+                height: _clipsInPip ? 0 : chrome.bottom,
+              ),
               body: MediaQuery(
                 // The shell lays itself out on the screen's own padding.
                 data: media,
                 child: OnsetShell(
+                  chromeHidden: _clipsInPip,
                   section: section,
                   onSection: _homeStore.selectSection,
                   header: header,

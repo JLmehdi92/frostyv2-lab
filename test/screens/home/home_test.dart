@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_clip_service.dart';
@@ -268,6 +269,52 @@ void main() {
     await tester.tap(nav('browse'));
     await tester.pumpAndSettle();
     expect(find.byType(Categories), findsOneWidget);
+    await close(tester);
+  });
+
+  testWidgets('Clips in picture-in-picture: the clip alone, no chrome', (
+    tester,
+  ) async {
+    ClipsFeedScreen.debugPipSupported = true;
+    addTearDown(() => ClipsFeedScreen.debugPipSupported = null);
+    const channel = MethodChannel('puntito.simple_pip_mode');
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      channel,
+      (call) async => true,
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        channel,
+        null,
+      ),
+    );
+    Future<void> platform(String method) =>
+        tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+          channel.name,
+          const StandardMethodCodec().encodeMethodCall(MethodCall(method)),
+          (_) {},
+        );
+
+    await pump(tester);
+    await tester.tap(find.text('Clips'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('shell-nav')), findsOneWidget);
+
+    // Android shrinks the app into the PiP window: only the clip shows.
+    await platform('onPipEntered');
+    await tester.pump();
+    expect(find.byKey(const ValueKey('shell-nav')), findsNothing);
+    expect(find.byKey(const ValueKey('shell-nav-fade')), findsNothing);
+    expect(find.text('Live'), findsNothing);
+    expect(find.byTooltip('Search'), findsNothing);
+    expect(find.byKey(OnsetShell.markKey), findsNothing);
+    // The feed itself stayed (it keeps playing in the window).
+    expect(find.byType(ClipsFeedScreen), findsOneWidget);
+
+    await platform('onPipExited');
+    await tester.pump();
+    expect(find.byKey(const ValueKey('shell-nav')), findsOneWidget);
+    expect(find.text('Live'), findsOneWidget);
     await close(tester);
   });
 

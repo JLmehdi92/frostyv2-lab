@@ -68,6 +68,7 @@ class _Harness {
   final badge = Observable(0);
   final unread = Observable(0);
   final refused = Observable(false);
+  final pip = Observable(false);
   final bool loggedIn;
 
   _Harness({this.loggedIn = true})
@@ -125,6 +126,7 @@ class _Harness {
                   final section = store.section;
                   final feed = store.feed;
                   return OnsetShell(
+                    chromeHidden: pip.value,
                     section: section,
                     onSection: store.selectSection,
                     header: header(section, feed),
@@ -638,6 +640,67 @@ void main() {
       expect(tile.width, closeTo(mark.width, 0.5));
       await tester.pumpAndSettle();
       expect(find.byKey(LaunchIntro.overlayKey), findsNothing);
+    });
+  }
+
+  testWidgets('crossing the tablet size keeps every page and its scroll', (
+    tester,
+  ) async {
+    final h = _Harness();
+    await h.pump(tester, size: _tablet);
+    await tester.tap(find.text('Live'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Following'));
+    await tester.pumpAndSettle();
+    await tester.drag(
+      find.byKey(const ValueKey('list-Following')),
+      const Offset(0, -600),
+    );
+    await tester.pumpAndSettle();
+    double offset() => tester
+        .state<ScrollableState>(
+          find.descendant(
+            of: find.byKey(const ValueKey('list-Following')),
+            matching: find.byType(Scrollable),
+          ),
+        )
+        .position
+        .pixels;
+    final before = offset();
+    expect(before, greaterThan(0));
+
+    // A fold, a split screen, picture-in-picture: the window turns phone.
+    tester.view.physicalSize = _phone;
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('shell-nav')), findsOneWidget);
+    expect(h.disposed, isEmpty);
+    expect(offset(), before);
+
+    tester.view.physicalSize = _tablet;
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('shell-nav')), findsNothing);
+    expect(h.disposed, isEmpty);
+    expect(offset(), before);
+  });
+
+  for (final size in [_phone, _tablet]) {
+    testWidgets('picture-in-picture: the page alone, kept '
+        '(${size.width.toInt()} wide)', (tester) async {
+      final h = _Harness();
+      await h.pump(tester, size: size);
+      runInAction(() => h.pip.value = true);
+      await tester.pump();
+      expect(find.byKey(OnsetShell.markKey), findsNothing);
+      expect(find.byType(ShellTabs), findsNothing);
+      expect(find.byKey(const ValueKey('shell-nav')), findsNothing);
+      expect(find.byTooltip('Profile'), findsNothing);
+      expect(tester.getRect(find.byKey(const ValueKey('shell-body'))).top, 0);
+      expect(h.disposed, isEmpty);
+
+      runInAction(() => h.pip.value = false);
+      await tester.pump();
+      expect(find.byKey(OnsetShell.markKey), findsOneWidget);
+      expect(h.disposed, isEmpty);
     });
   }
 
