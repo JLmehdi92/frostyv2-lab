@@ -354,8 +354,7 @@ class TwitchVodService extends BaseApiClient {
   /// (the rest are not asked). Throws when Twitch answers an error.
   Future<List<Vod>> getVideos(List<String> ids) async {
     final wanted = [
-      for (final raw in ids)
-        if (tryNormalizeVodId(raw) case final id?) id,
+      for (final raw in ids) ?tryNormalizeVodId(raw),
     ].take(_videosBatch).toList();
     if (wanted.isEmpty) return const [];
     final fields = StringBuffer();
