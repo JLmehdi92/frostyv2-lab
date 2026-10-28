@@ -346,6 +346,11 @@ class OnsetShell extends StatelessWidget {
   List<Widget> _buildPhone(BuildContext context, _ShellPalette palette) {
     final padding = MediaQuery.paddingOf(context);
     final navBottom = ShellMetrics.navBottom(padding);
+    // Over the clips, the fade is always the dark ground: a pale band would
+    // wash out the clip and its white captions in the light theme.
+    final fade = header.overVideo
+        ? FrostyTokens.backgroundDark
+        : palette.ground;
     return [
       Positioned(
         left: 0,
@@ -359,7 +364,7 @@ class OnsetShell extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
-                colors: [palette.ground, palette.ground.withValues(alpha: 0)],
+                colors: [fade, fade.withValues(alpha: 0)],
                 stops: const [0.3, 1],
               ),
             ),

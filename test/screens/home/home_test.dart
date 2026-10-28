@@ -318,6 +318,48 @@ void main() {
     await close(tester);
   });
 
+  testWidgets('no blur while a clip is still fading out', (tester) async {
+    await pump(tester);
+    await tester.tap(find.text('Clips'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BackdropFilter), findsNothing);
+
+    await tester.tap(find.text('Live'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 60));
+    // The feed is still on screen, fading: nothing blurs over its video.
+    expect(find.byType(ClipsFeedScreen), findsOneWidget);
+    expect(find.byType(BackdropFilter), findsNothing);
+
+    await tester.pumpAndSettle();
+    expect(find.byType(ClipsFeedScreen, skipOffstage: false), findsNothing);
+    expect(find.byType(BackdropFilter), findsNWidgets(2));
+    await close(tester);
+  });
+
+  testWidgets('over the clips, the bottom fade is dark in either theme', (
+    tester,
+  ) async {
+    await pump(tester);
+    Color fadeColor() =>
+        ((tester
+                            .widget<DecoratedBox>(
+                              find.byKey(const ValueKey('shell-nav-fade')),
+                            )
+                            .decoration
+                        as BoxDecoration)
+                    .gradient!
+                as LinearGradient)
+            .colors
+            .first;
+    // The light theme's ground on Live.
+    expect(fadeColor(), isNot(const Color(0xFF0A0A0A)));
+    await tester.tap(find.text('Clips'));
+    await tester.pumpAndSettle();
+    expect(fadeColor(), const Color(0xFF0A0A0A));
+    await close(tester);
+  });
+
   testWidgets('"Open the app on" Browse opens Browse', (tester) async {
     settings.startTab = HomeTab.browse;
     await pump(tester);

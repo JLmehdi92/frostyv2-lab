@@ -24,6 +24,9 @@ class ShellPages<T extends Object> extends StatefulWidget {
   final bool Function(T page)? keepAlive;
   final ShellPagesMotion motion;
 
+  /// Called once a change has finished: the page left is off screen.
+  final VoidCallback? onSettled;
+
   const ShellPages({
     super.key,
     required this.pages,
@@ -31,6 +34,7 @@ class ShellPages<T extends Object> extends StatefulWidget {
     required this.builder,
     this.keepAlive,
     this.motion = ShellPagesMotion.rise,
+    this.onSettled,
   });
 
   @override
@@ -79,6 +83,7 @@ class _ShellPagesState<T extends Object> extends State<ShellPages<T>>
       if (!mounted || generation != _generation) return;
       _controller.value = 1;
       setState(_settle);
+      widget.onSettled?.call();
     });
   }
 

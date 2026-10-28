@@ -61,6 +61,11 @@ class _HomeState extends State<Home> with OnsetUpdateChecks, RouteAware {
   /// A page covers the shell: the mini player is not bound by its chrome.
   var _covered = false;
 
+  /// Home just left the clips and the feed is still fading out: the
+  /// chrome stays as over a video (no blur over the clip) until it is gone.
+  var _clipsLeaving = false;
+  HomeFeed? _lastFeed;
+
   /// The clips feed is in picture-in-picture: the window shows the clip
   /// alone, without the shell's chrome.
   var _clipsInPip = false;
@@ -204,7 +209,14 @@ class _HomeState extends State<Home> with OnsetUpdateChecks, RouteAware {
   }
 
   /// The header of [section] (and, for Home, of its [feed]).
-  ShellHeader _headerFor(ShellSection section, HomeFeed feed) {
+  ///
+  /// [page]: the header a page is laid out under, which never waits for a
+  /// leaving clip (the page must not move when the clip is gone).
+  ShellHeader _headerFor(
+    ShellSection section,
+    HomeFeed feed, {
+    bool page = false,
+  }) {
     final loggedIn = _authStore.isLoggedIn;
     switch (section) {
       case ShellSection.home:
@@ -214,7 +226,7 @@ class _HomeState extends State<Home> with OnsetUpdateChecks, RouteAware {
           tabs: [for (final f in feeds) f.label],
           tabIndex: feeds.indexOf(feed),
           onTab: (i) => _homeStore.selectFeed(feeds[i]),
-          overVideo: feed == HomeFeed.clips,
+          overVideo: feed == HomeFeed.clips || (!page && _clipsLeaving),
         );
       case ShellSection.browse:
         return ShellHeader(
@@ -266,12 +278,15 @@ class _HomeState extends State<Home> with OnsetUpdateChecks, RouteAware {
       pages: _homeStore.feeds,
       current: feed,
       motion: ShellPagesMotion.lateral,
+      onSettled: () {
+        if (_clipsLeaving) _update(() => _clipsLeaving = false);
+      },
       // The clips feed plays: it only exists while it is on screen.
       keepAlive: (page) => page != HomeFeed.clips,
       builder: (context, page) {
         final data = ShellMetrics.page(
           media,
-          _headerFor(ShellSection.home, page),
+          _headerFor(ShellSection.home, page, page: true),
         );
         final onScreen = section == ShellSection.home;
         return _memo(
@@ -309,7 +324,7 @@ class _HomeState extends State<Home> with OnsetUpdateChecks, RouteAware {
     HomeFeed feed,
   ) {
     if (page == ShellSection.home) return _homePage(media, section, feed);
-    final data = ShellMetrics.page(media, _headerFor(page, feed));
+    final data = ShellMetrics.page(media, _headerFor(page, feed, page: true));
     final loggedIn = _authStore.isLoggedIn;
     final activityTab = _homeStore.activityTab;
     final active = section == ShellSection.activity && !_covered;
@@ -347,6 +362,14 @@ class _HomeState extends State<Home> with OnsetUpdateChecks, RouteAware {
         builder: (context) {
           final section = _homeStore.section;
           final feed = _homeStore.feed;
+          // Leaving the clips within Home: the feed fades out under the
+          // header for a moment more.
+          if (_lastFeed == HomeFeed.clips &&
+              feed != HomeFeed.clips &&
+              section == ShellSection.home) {
+            _clipsLeaving = true;
+          }
+          _lastFeed = feed;
           final header = _headerFor(section, feed);
           final loggedIn = _authStore.isLoggedIn;
           final login = loggedIn ? _authStore.user.details?.login : null;
