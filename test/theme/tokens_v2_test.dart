@@ -41,9 +41,28 @@ void main() {
       expect(FrostyTokens.hype, FrostyColors.dark.subNoticeAccent);
       expect(FrostyTokens.hypeText, const Color(0xFF3DDBA6));
       expect(FrostyTokens.danger, const Color(0xFFFF5A5F));
-      // The loading board's greys.
-      expect(FrostyTokens.skeletonDark, const Color(0xFF161616));
-      expect(FrostyTokens.skeletonSheenDark, const Color(0xFF232323));
+    });
+
+    test('skeletons read on the ground and on cards, with a subtle sheen', () {
+      int step(Color c) => (c.r * 255).round();
+      // Neutral greys.
+      for (final c in [
+        FrostyTokens.skeletonDark,
+        FrostyTokens.skeletonSheenDark,
+      ]) {
+        expect(c.r, c.g);
+        expect(c.g, c.b);
+      }
+      final base = step(FrostyTokens.skeletonDark);
+      // Visible on a sheet or card (#141414), not only on the ground.
+      expect(base - step(FrostyTokens.surfaceDark), greaterThanOrEqualTo(12));
+      expect(
+        base - step(FrostyTokens.backgroundDark),
+        greaterThanOrEqualTo(20),
+      );
+      // The sheen is a hint, not a flash.
+      final sheen = step(FrostyTokens.skeletonSheenDark) - base;
+      expect(sheen, inInclusiveRange(8, 14));
     });
 
     test('radii run 8 / 12 / 16 / 24 / pill', () {

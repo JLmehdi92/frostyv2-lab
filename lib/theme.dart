@@ -75,10 +75,11 @@ class FrostyTokens {
   /// buttons.
   static const raisedDark = Color(0xFF1E1E1E);
 
-  /// Loading skeletons on the dark ground, and the highlight of their sheen
-  /// (the loading card of the micro-animation board).
-  static const skeletonDark = Color(0xFF161616);
-  static const skeletonSheenDark = Color(0xFF232323);
+  /// Loading skeletons on the dark ground, and the highlight of their sheen.
+  /// Lighter than the board's #161616, which vanished on a sheet or card
+  /// ([surfaceDark]): this reads on both, and the sheen stays a hint.
+  static const skeletonDark = Color(0xFF232323);
+  static const skeletonSheenDark = Color(0xFF2F2F2F);
 
   /// Text tiers on the dark ground. Primary for names and titles, body for
   /// live titles and chat, secondary for metadata (the same grey as
