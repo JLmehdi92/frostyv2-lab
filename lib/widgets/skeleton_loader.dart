@@ -1,10 +1,22 @@
 import 'dart:math';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:frosty/constants.dart';
 import 'package:frosty/theme.dart';
+import 'package:frosty/widgets/motion/reduce_motion.dart';
 
-/// A skeleton loading widget that displays a pulsing placeholder
+/// A placeholder in the exact shape of what is loading, with a discreet
+/// sheen sweeping across it (the "Chargement" card of the micro-animation
+/// board).
+///
+/// - Dark theme: the board's greys (#161616 with a #232323 highlight), a
+///   100° band sweeping every 1.6 s. Every skeleton on screen reads its phase
+///   off the frame clock, so a whole loading list sweeps as one.
+/// - The sheen is painted with a shader (no layer, no `saveLayer`), inside a
+///   repaint boundary, and its ticker stops off-screen ([TickerMode]).
+/// - Reduce motion: a still block.
 class SkeletonLoader extends StatefulWidget {
   final double? width;
   final double? height;
@@ -18,54 +30,138 @@ class SkeletonLoader extends StatefulWidget {
 
 class _SkeletonLoaderState extends State<SkeletonLoader>
     with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _animation;
+  // Only drives repaints; the sweep's position comes from the frame clock.
+  late final _ticker = AnimationController(
+    vsync: this,
+    duration: SkeletonSheenPainter.period,
+  );
+  bool _reduced = false;
 
   @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
-    _animation = Tween<double>(begin: 0.3, end: 0.9).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-    _animationController.repeat(reverse: true);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _reduced = reduceMotionOf(context);
+    if (_reduced) {
+      _ticker.stop();
+    } else if (!_ticker.isAnimating) {
+      _ticker.repeat();
+    }
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _ticker.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final brightness = Theme.of(context).brightness;
-
-    // Make skeleton more visible in dark mode
-    final baseColor = brightness == Brightness.dark
-        ? colorScheme.surfaceContainerHighest
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final base = dark
+        ? SkeletonSheenPainter.baseDark
         : colorScheme.surfaceContainer;
+    final highlight = dark
+        ? SkeletonSheenPainter.highlightDark
+        : Color.lerp(base, Colors.white, 0.6)!;
 
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        return Container(
-          width: widget.width,
-          height: widget.height,
-          decoration: BoxDecoration(
-            color: baseColor.withValues(alpha: _animation.value),
+    // Sized exactly like the decorated Container it replaces: fills bounded
+    // constraints, collapses to nothing where they are unbounded.
+    Widget box = LimitedBox(
+      maxWidth: 0,
+      maxHeight: 0,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints.expand(),
+        child: CustomPaint(
+          painter: SkeletonSheenPainter(
+            repaint: _ticker,
+            base: base,
+            highlight: highlight,
             borderRadius:
                 widget.borderRadius ??
                 BorderRadius.circular(FrostyTokens.radiusSmall),
+            sheen: !_reduced,
           ),
-        );
-      },
+        ),
+      ),
     );
+    if (widget.width != null || widget.height != null) {
+      box = ConstrainedBox(
+        constraints: BoxConstraints.tightFor(
+          width: widget.width,
+          height: widget.height,
+        ),
+        child: box,
+      );
+    }
+    return RepaintBoundary(child: box);
   }
+}
+
+/// Paints a skeleton block and, unless [sheen] is off, the sweeping band.
+class SkeletonSheenPainter extends CustomPainter {
+  static const baseDark = Color(0xFF161616);
+  static const highlightDark = Color(0xFF232323);
+
+  /// One sweep.
+  static const period = Duration(milliseconds: 1600);
+
+  /// Width of one band of the repeating gradient, and how far it travels
+  /// (from -160 px to +200 px) during one [period].
+  static const _bandWidth = 300.0;
+  static const _from = -160.0;
+  static const _travel = 360.0;
+
+  /// The band's direction: CSS 100°, a hair below horizontal.
+  static final _direction = Offset(sin(100 * pi / 180), -cos(100 * pi / 180));
+
+  final Color base;
+  final Color highlight;
+  final BorderRadius borderRadius;
+  final bool sheen;
+
+  SkeletonSheenPainter({
+    required Listenable repaint,
+    required this.base,
+    required this.highlight,
+    required this.borderRadius,
+    required this.sheen,
+  }) : super(repaint: repaint);
+
+  /// Where the band is at the frame [timestamp], in logical pixels.
+  double offsetAt(Duration timestamp) {
+    final phase =
+        (timestamp.inMicroseconds % period.inMicroseconds) /
+        period.inMicroseconds;
+    return _from + _travel * Curves.easeInOut.transform(phase);
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rrect = borderRadius.toRRect(Offset.zero & size);
+    final paint = Paint()..color = base;
+    if (sheen) {
+      final start = Offset(
+        offsetAt(SchedulerBinding.instance.currentSystemFrameTimeStamp),
+        0,
+      );
+      paint.shader = ui.Gradient.linear(
+        start,
+        start + _direction * _bandWidth,
+        [base, highlight, base],
+        const [0.3, 0.5, 0.7],
+        TileMode.repeated,
+      );
+    }
+    canvas.drawRRect(rrect, paint);
+  }
+
+  @override
+  bool shouldRepaint(SkeletonSheenPainter oldDelegate) =>
+      oldDelegate.base != base ||
+      oldDelegate.highlight != highlight ||
+      oldDelegate.borderRadius != borderRadius ||
+      oldDelegate.sheen != sheen;
 }
 
 /// A skeleton loader with random width for text placeholders
