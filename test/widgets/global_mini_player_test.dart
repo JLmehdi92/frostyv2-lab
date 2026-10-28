@@ -195,4 +195,72 @@ void main() {
     mini.close();
     await tester.pump();
   });
+
+  testWidgets('a drag lifts the window and shows where it can land, '
+      'and close works (board MiniLecteur)', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    const channel = MethodChannel('puntito.simple_pip_mode');
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      channel,
+      (call) async => true,
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        channel,
+        null,
+      ),
+    );
+    final mini = MiniPlayerStore();
+    final player = MockIvsVideoStore();
+    when(player.dispose).thenAnswer((_) async {});
+    final chat = MockChatTabsStore();
+    when(chat.dispose).thenReturn(null);
+    mini
+      ..setShellChrome(const EdgeInsets.only(top: 100, bottom: 78))
+      ..adopt(
+        player: player,
+        chatTabsStore: chat,
+        userLogin: 'a',
+        userId: '1',
+        displayName: 'A',
+      );
+    await tester.pumpWidget(
+      Provider<MiniPlayerStore>.value(
+        value: mini,
+        child: const MaterialApp(
+          home: Stack(children: [Positioned.fill(child: GlobalMiniPlayer())]),
+        ),
+      ),
+    );
+    await tester.pump();
+    final scale = find.byType(AnimatedScale);
+    double scaleNow() => tester.widget<AnimatedScale>(scale).scale;
+    final targets = find.byWidgetPredicate(
+      (w) =>
+          w is CustomPaint &&
+          w.painter.runtimeType.toString().contains('CornerTargets'),
+    );
+    expect(scaleNow(), 1);
+    expect(targets, findsNothing);
+
+    final window = find.byType(IvsTextureVideo).first;
+    final gesture = await tester.startGesture(tester.getCenter(window));
+    await gesture.moveBy(const Offset(-40, 0));
+    await gesture.moveBy(const Offset(-40, 0));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(scaleNow(), 1.04);
+    expect(targets, findsOneWidget);
+
+    await gesture.up();
+    await tester.pump(const Duration(seconds: 1));
+    expect(scaleNow(), 1);
+    expect(targets, findsNothing);
+
+    await tester.tap(find.byTooltip('Close mini player'));
+    await tester.pump();
+    expect(mini.visible, isFalse);
+    await tester.pump(const Duration(seconds: 1));
+  });
 }

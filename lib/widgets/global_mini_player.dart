@@ -1,12 +1,15 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/main.dart' show navigatorKey;
 import 'package:frosty/screens/channel/channel.dart';
 import 'package:frosty/screens/channel/video/ivs_video.dart';
+import 'package:frosty/screens/channel/video/player_glyph.dart';
 import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/theme.dart';
+import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/motion/motion.dart';
 import 'package:frosty/widgets/motion/reduce_motion.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +26,9 @@ import 'package:simple_pip_mode/pip_widget.dart';
 class GlobalMiniPlayer extends StatefulWidget {
   const GlobalMiniPlayer({super.key});
 
+  /// The window's corners (board MiniLecteur).
+  static const radius = 16.0;
+
   @override
   State<GlobalMiniPlayer> createState() => _GlobalMiniPlayerState();
 }
@@ -30,6 +36,10 @@ class GlobalMiniPlayer extends StatefulWidget {
 class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
     with SingleTickerProviderStateMixin {
   final ValueNotifier<Offset?> _offset = ValueNotifier(null);
+
+  /// True while a finger moves the window: it lifts (1.04) and the four
+  /// corners it can land in show (board MiniLecteur).
+  final ValueNotifier<bool> _dragging = ValueNotifier(false);
 
   /// The corner the window rests in (top-right at first); null while it
   /// is dragged or flying to a corner. Kept as a corner, not a position,
@@ -79,6 +89,7 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
   void dispose() {
     _snapController.dispose();
     _offset.dispose();
+    _dragging.dispose();
     super.dispose();
   }
 
@@ -101,72 +112,117 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
         final content = SizedBox(
           width: width,
           height: height,
-          child: Material(
-            // The one place elevation survives. Everything else in the app is
-            // flat, but this window floats over arbitrary content and has to
-            // read as detached from it; a hairline alone would disappear over a
-            // bright thumbnail.
-            elevation: 10,
-            color: Colors.black,
-            borderRadius: BorderRadius.circular(FrostyTokens.radiusCard),
-            clipBehavior: Clip.antiAlias,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                IvsTextureVideo(videoStore: player),
-                // Gesture layer above the video: tap to restore, drag to move.
-                Positioned.fill(
-                  child: Semantics(
-                    // Its own node, the size of the window: nothing above
-                    // it starts one, so it would cover the whole screen.
-                    container: true,
-                    button: true,
-                    label: 'Return to stream',
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => _restore(store),
-                      onPanDown: (_) {
-                        _snapController.stop();
-                        // From where it is drawn (mid-glide too), whatever
-                        // the area was.
-                        _offset.value =
-                            _drawn ?? _position(area, _offset.value);
-                        _corner = null;
-                      },
-                      onPanUpdate: (details) {
-                        _offset.value = area.clamp(
-                          (_offset.value ?? area.initial) + details.delta,
-                        );
-                      },
-                      onPanEnd: (_) {
-                        _snapTo(
-                          area,
-                          area.nearest(_offset.value ?? area.initial),
-                        );
-                      },
-                    ),
-                  ),
+          // The one window that floats over arbitrary content: it needs a
+          // shadow as well as its hairline to read as detached from a
+          // bright thumbnail (board MiniLecteur).
+          child: DecoratedBox(
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.all(
+                Radius.circular(GlobalMiniPlayer.radius),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0x99000000),
+                  offset: Offset(0, 18),
+                  blurRadius: 40,
                 ),
-                Positioned(
-                  top: -4,
-                  right: -4,
-                  child: IconButton(
-                    tooltip: 'Close mini player',
-                    iconSize: 18,
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.black54,
-                    ),
-                    onPressed: store.close,
-                  ),
+                BoxShadow(
+                  color: Color(0x80000000),
+                  offset: Offset(0, 2),
+                  blurRadius: 8,
                 ),
               ],
+            ),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.all(
+                Radius.circular(GlobalMiniPlayer.radius),
+              ),
+              child: ColoredBox(
+                color: Colors.black,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    IvsTextureVideo(videoStore: player),
+                    // The hairline, drawn inside the edge.
+                    const IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(GlobalMiniPlayer.radius),
+                          ),
+                          border: Border.fromBorderSide(
+                            BorderSide(
+                              color: Color(0x29FFFFFF),
+                              width: FrostyTokens.hairlineWidth,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Gesture layer above the video: tap to restore, drag to
+                    // move.
+                    Positioned.fill(
+                      child: Semantics(
+                        // Its own node, the size of the window: nothing above
+                        // it starts one, so it would cover the whole screen.
+                        container: true,
+                        button: true,
+                        label: 'Return to stream',
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => _restore(store),
+                          onPanDown: (_) {
+                            _snapController.stop();
+                            // From where it is drawn (mid-glide too),
+                            // whatever the area was.
+                            _offset.value =
+                                _drawn ?? _position(area, _offset.value);
+                            _corner = null;
+                          },
+                          onPanStart: (_) => _dragging.value = true,
+                          onPanUpdate: (details) {
+                            _offset.value = area.clamp(
+                              (_offset.value ?? area.initial) + details.delta,
+                            );
+                          },
+                          onPanEnd: (_) {
+                            _dragging.value = false;
+                            _snapTo(
+                              area,
+                              area.nearest(_offset.value ?? area.initial),
+                            );
+                          },
+                          onPanCancel: () => _dragging.value = false,
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: _CloseButton(onPressed: store.close),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         );
 
+        final reduceMotion = reduceMotionOf(context);
         final miniWindow = Stack(
           children: [
+            // Where it can land, while it is dragged.
+            Positioned.fill(
+              child: IgnorePointer(
+                child: RepaintBoundary(
+                  child: _CornerTargets(
+                    area: area,
+                    dragging: _dragging,
+                    offset: _offset,
+                  ),
+                ),
+              ),
+            ),
             ValueListenableBuilder<Offset?>(
               valueListenable: _offset,
               builder: (context, offset, child) {
@@ -180,7 +236,16 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
                   child: child!,
                 );
               },
-              child: content,
+              child: ValueListenableBuilder<bool>(
+                valueListenable: _dragging,
+                builder: (context, dragging, child) => AnimatedScale(
+                  scale: dragging && !reduceMotion ? 1.04 : 1,
+                  duration: const Duration(milliseconds: 90),
+                  curve: FrostyMotion.standard,
+                  child: child,
+                ),
+                child: content,
+              ),
             ),
           ],
         );
@@ -340,4 +405,130 @@ enum MiniCorner {
 
   final bool left;
   final bool top;
+}
+
+/// "Close mini player": a 26 dp disc of black 62 % in the top-right corner,
+/// inside a 44 dp target (board MiniLecteur).
+class _CloseButton extends StatelessWidget {
+  const _CloseButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Close mini player',
+      child: Semantics(
+        button: true,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onPressed,
+          child: SizedBox.square(
+            dimension: 44,
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Container(
+                width: 26,
+                height: 26,
+                margin: const EdgeInsets.only(top: 6, right: 6),
+                decoration: const BoxDecoration(
+                  color: Color(0x9E000000),
+                  shape: BoxShape.circle,
+                  border: Border.fromBorderSide(
+                    BorderSide(
+                      color: Color(0x2EFFFFFF),
+                      width: FrostyTokens.hairlineWidth,
+                    ),
+                  ),
+                ),
+                child: const Center(
+                  child: PlayerGlyph(
+                    PlayerGlyphKind.close,
+                    color: Colors.white,
+                    size: 14,
+                    strokeWidth: 2.4,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The four corners the dragged window can land in, dashed, the nearest
+/// in the signal colour (board MiniLecteur).
+class _CornerTargets extends StatelessWidget {
+  const _CornerTargets({
+    required this.area,
+    required this.dragging,
+    required this.offset,
+  });
+
+  final MiniWindowArea area;
+  final ValueListenable<bool> dragging;
+  final ValueListenable<Offset?> offset;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: dragging,
+      builder: (context, dragging, _) {
+        if (!dragging) return const SizedBox.shrink();
+        return ValueListenableBuilder<Offset?>(
+          valueListenable: offset,
+          builder: (context, offset, _) => CustomPaint(
+            painter: _CornerTargetsPainter(
+              area: area,
+              nearest: area.nearest(offset ?? area.initial),
+              accent: context.frostyColors.live,
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CornerTargetsPainter extends CustomPainter {
+  const _CornerTargetsPainter({
+    required this.area,
+    required this.nearest,
+    required this.accent,
+  });
+
+  final MiniWindowArea area;
+  final MiniCorner nearest;
+  final Color accent;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    for (final corner in MiniCorner.values) {
+      final rect = area.at(corner) & area.window;
+      final path = Path()
+        ..addRRect(
+          RRect.fromRectAndRadius(
+            rect.deflate(0.75),
+            const Radius.circular(GlobalMiniPlayer.radius),
+          ),
+        );
+      final paint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5
+        ..color = corner == nearest
+            ? accent.withValues(alpha: 0.75)
+            : const Color(0x2EFFFFFF);
+      for (final metric in path.computeMetrics()) {
+        for (var d = 0.0; d < metric.length; d += 10) {
+          canvas.drawPath(metric.extractPath(d, d + 6), paint);
+        }
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_CornerTargetsPainter old) =>
+      old.area != area || old.nearest != nearest || old.accent != accent;
 }
