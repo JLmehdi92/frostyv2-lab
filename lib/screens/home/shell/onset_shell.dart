@@ -39,9 +39,13 @@ class ShellHeader {
   final int tabIndex;
   final ValueChanged<int>? onTab;
 
-  /// The page is a video (the clips feed): the phone header becomes a
-  /// gradient with the tabs only, and nothing is blurred over it.
+  /// The page is a video (the clips feed, the phone's Live feed): the phone
+  /// header becomes a gradient with the tabs only, and nothing is blurred
+  /// over it.
   final bool overVideo;
+
+  /// At the end of the tablet's tab row (the Live feed's category chips).
+  final Widget? tabsTrailing;
 
   const ShellHeader({
     this.title = 'ONSET',
@@ -54,6 +58,7 @@ class ShellHeader {
     this.tabIndex = 0,
     this.onTab,
     this.overVideo = false,
+    this.tabsTrailing,
   });
 }
 
@@ -504,18 +509,38 @@ class OnsetShell extends StatelessWidget {
                   ),
                 ),
               ),
-              child: ShellTabs(
-                labels: header.tabs,
-                index: header.tabIndex,
-                onSelect: header.onTab ?? (_) {},
-                height: ShellMetrics.tabletTabsRow,
-                fontSize: 17,
-                gap: 28,
-                bottomPadding: 12,
-                padding: gutter,
-                activeColor: palette.text,
-                idleColor: palette.tabIdle,
-                indicatorColor: palette.accent,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ShellTabs(
+                      labels: header.tabs,
+                      index: header.tabIndex,
+                      onSelect: header.onTab ?? (_) {},
+                      height: ShellMetrics.tabletTabsRow,
+                      fontSize: 17,
+                      gap: 28,
+                      bottomPadding: 12,
+                      padding: gutter,
+                      activeColor: palette.text,
+                      idleColor: palette.tabIdle,
+                      indicatorColor: palette.accent,
+                    ),
+                  ),
+                  if (header.tabsTrailing case final trailing?)
+                    // At most half the row: the tabs keep their room.
+                    Flexible(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          right: gutter.right,
+                          bottom: 7,
+                        ),
+                        child: Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: trailing,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
         ],

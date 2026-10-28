@@ -1,0 +1,402 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/models/stream.dart';
+import 'package:frosty/models/user.dart';
+import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
+import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
+import 'package:frosty/screens/home/live_feed/live_feed.dart';
+import 'package:frosty/screens/home/live_feed/live_preview.dart';
+import 'package:frosty/screens/home/live_feed/stores/live_feed_store.dart';
+import 'package:frosty/screens/settings/stores/auth_store.dart';
+import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/settings/stores/user_store.dart';
+import 'package:frosty/stores/mini_player_store.dart';
+import 'package:frosty/theme.dart';
+import 'package:frosty/widgets/user_actions_modal.dart';
+import 'package:mobx/mobx.dart' show ObservableList;
+import 'package:mocktail/mocktail.dart';
+import 'package:provider/provider.dart';
+
+class MockTwitchApi extends Mock implements TwitchApi {}
+
+class MockAuthStore extends Mock implements AuthStore {}
+
+class MockUserStore extends Mock implements UserStore {}
+
+class MockIvsVideoStore extends Mock implements IvsVideoStore {}
+
+class MockChatTabsStore extends Mock implements ChatTabsStore {}
+
+class FakeBackend implements LivePreviewBackend {
+  FakeBackend(this.log);
+
+  final List<String> log;
+  static var alive = 0;
+  static var mostAlive = 0;
+  String? url;
+  var volume = 0.0;
+
+  @override
+  final ValueNotifier<bool> showing = ValueNotifier(false);
+
+  @override
+  Future<void> open(String url) async {
+    this.url = url;
+    alive++;
+    if (alive > mostAlive) mostAlive = alive;
+    log.add('open $url');
+    showing.value = true;
+  }
+
+  @override
+  Future<void> setVolume(double volume) async => this.volume = volume;
+
+  @override
+  Widget buildVideo() => const ColoredBox(
+    key: ValueKey('preview-video'),
+    color: Color(0xFF00FF00),
+  );
+
+  @override
+  Future<void> dispose() async {
+    if (url != null) alive--;
+    log.add('dispose $url');
+  }
+}
+
+StreamTwitch _stream(int i) => StreamTwitch(
+  '$i',
+  'login$i',
+  'Name $i',
+  i.isEven ? '20' : '10',
+  i.isEven ? 'League of Legends' : 'Just Chatting',
+  'Title $i',
+  1000 * (20 - i),
+  '2026-10-28T10:00:00Z',
+  'https://static-cdn.jtvnw.net/previews-ttv/live_user_login$i-{width}x{height}.jpg',
+  tags: const ['Français'],
+  language: 'fr',
+);
+
+void main() {
+  late MockTwitchApi api;
+  late MockAuthStore auth;
+  late SettingsStore settings;
+  late MiniPlayerStore mini;
+  late List<StreamTwitch> top;
+  late Object? failure;
+  late List<String> log;
+  late bool loggedIn;
+
+  setUp(() {
+    api = MockTwitchApi();
+    auth = MockAuthStore();
+    settings = SettingsStore.fromJson({});
+    mini = MiniPlayerStore();
+    top = [for (var i = 1; i <= 6; i++) _stream(i)];
+    failure = null;
+    log = [];
+    loggedIn = true;
+    FakeBackend.alive = 0;
+    FakeBackend.mostAlive = 0;
+    final user = MockUserStore();
+    when(() => auth.user).thenReturn(user);
+    when(() => auth.isLoggedIn).thenAnswer((_) => loggedIn);
+    when(() => auth.twitchWebToken).thenReturn(null);
+    when(() => user.details).thenReturn(const UserTwitch('7', 'me', 'Me', ''));
+    when(() => user.blockedUsers).thenReturn(ObservableList());
+    when(
+      () => api.getTopStreams(
+        cursor: any(named: 'cursor'),
+        language: any(named: 'language'),
+      ),
+    ).thenAnswer((_) async {
+      if (failure != null) throw failure!;
+      return StreamsTwitch(top, const {});
+    });
+    when(
+      () => api.getStreamsUnderCategory(
+        gameId: any(named: 'gameId'),
+        cursor: any(named: 'cursor'),
+        language: any(named: 'language'),
+      ),
+    ).thenAnswer((_) async => StreamsTwitch([_stream(2)], const {}));
+    when(
+      () => api.getUser(userLogin: any(named: 'userLogin')),
+    ).thenAnswer((_) => Future.error(Exception('offline')));
+  });
+
+  late LiveFeedStore store;
+  late PageController controller;
+  late LivePreviewController preview;
+
+  Future<void> pump(
+    WidgetTester tester, {
+    Size size = const Size(390, 844),
+    ThemeMode mode = ThemeMode.dark,
+    bool active = true,
+    bool reduceMotion = false,
+  }) async {
+    tester.view.physicalSize = size;
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    store = LiveFeedStore(
+      authStore: auth,
+      settingsStore: settings,
+      twitchApi: api,
+    );
+    controller = PageController();
+    preview = LivePreviewController(
+      resolveUrl: (login) async => 'https://usher/$login',
+      createBackend: () => FakeBackend(log),
+    );
+    final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          Provider<AuthStore>.value(value: auth),
+          Provider<SettingsStore>.value(value: settings),
+          Provider<TwitchApi>.value(value: api),
+          Provider<MiniPlayerStore>.value(value: mini),
+        ],
+        child: MaterialApp(
+          theme: themes.light,
+          darkTheme: themes.dark,
+          themeMode: mode,
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(disableAnimations: reduceMotion),
+            child: child!,
+          ),
+          home: Scaffold(
+            body: StatefulBuilder(
+              builder: (context, setState) => LiveFeed(
+                store: store,
+                controller: controller,
+                active: active,
+                preview: preview,
+                isMetered: () async => true,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+  }
+
+  Future<void> close(WidgetTester tester) async {
+    await tester.pumpWidget(const SizedBox());
+    preview.dispose();
+    store.dispose();
+    controller.dispose();
+    await tester.pump(const Duration(seconds: 1));
+  }
+
+  for (final (name, size) in [
+    ('phone', const Size(390, 844)),
+    ('tablet landscape', const Size(1280, 854)),
+    ('tablet portrait', const Size(854, 1280)),
+  ]) {
+    for (final mode in [ThemeMode.dark, ThemeMode.light]) {
+      testWidgets('$name, ${mode.name}: one live, its muted preview, its '
+          'actions, without overflow', (tester) async {
+        await pump(tester, size: size, mode: mode);
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('Name 1'), findsWidgets);
+        expect(find.text('LIVE'), findsOneWidget);
+        expect(find.textContaining('Muted preview'), findsOneWidget);
+        expect(find.text('Watch with chat'), findsOneWidget);
+        expect(find.byTooltip('Unmute'), findsOneWidget);
+        expect(find.byTooltip('Not interested'), findsOneWidget);
+        expect(find.byTooltip('Share'), findsOneWidget);
+        expect(find.text('Follow'), findsOneWidget);
+        expect(find.text('Just Chatting · FR'), findsOneWidget);
+        // One decoder, for the channel on screen, muted.
+        expect(log, ['open https://usher/login1']);
+        expect(find.byKey(const ValueKey('preview-video')), findsOneWidget);
+        if (size.shortestSide >= 600) {
+          expect(find.text('UP NEXT'), findsOneWidget);
+          expect(find.text('Name 2'), findsOneWidget);
+        } else {
+          // The chips sit over the video on a phone (the tablet's are in
+          // the shell's tab row).
+          expect(find.text('All'), findsOneWidget);
+          expect(find.text('SWIPE UP FOR THE NEXT LIVE'), findsOneWidget);
+        }
+        await close(tester);
+      });
+    }
+  }
+
+  testWidgets('a swipe up: the next live, its preview, never two', (
+    tester,
+  ) async {
+    await pump(tester);
+
+    await tester.fling(find.text('Title 1'), const Offset(0, -500), 2000);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(store.index, 1);
+    expect(store.current!.userId, '2');
+    expect(log, [
+      'open https://usher/login1',
+      'dispose https://usher/login1',
+      'open https://usher/login2',
+    ]);
+    expect(FakeBackend.mostAlive, 1);
+    await close(tester);
+  });
+
+  testWidgets('inactive (another tab, a page above): no preview', (
+    tester,
+  ) async {
+    await pump(tester, active: false);
+
+    expect(log, isEmpty);
+    expect(find.byKey(const ValueKey('preview-video')), findsNothing);
+    await close(tester);
+  });
+
+  testWidgets('the mini player playing: no preview until it closes', (
+    tester,
+  ) async {
+    mini.adopt(
+      player: MockIvsVideoStore(),
+      chatTabsStore: MockChatTabsStore(),
+      userLogin: 'other',
+      userId: '99',
+      displayName: 'Other',
+    );
+    await pump(tester);
+    expect(log, isEmpty);
+
+    mini.release();
+    await tester.pump(const Duration(seconds: 1));
+    expect(log, ['open https://usher/login1']);
+    await close(tester);
+  });
+
+  testWidgets('autoplay off: the picture, and a preview only by hand', (
+    tester,
+  ) async {
+    settings.vodAutoplay = VodAutoplay.never;
+    await pump(tester);
+    expect(log, isEmpty);
+
+    await tester.tap(find.byTooltip('Play preview'));
+    await tester.pump(const Duration(seconds: 1));
+    expect(log, ['open https://usher/login1']);
+    expect(find.byTooltip('Unmute'), findsOneWidget);
+    await close(tester);
+  });
+
+  testWidgets('Wi-Fi only, on mobile data: no preview', (tester) async {
+    settings.vodAutoplay = VodAutoplay.wifiOnly;
+    await pump(tester);
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(log, isEmpty);
+    await close(tester);
+  });
+
+  testWidgets('unmute is asked, never automatic', (tester) async {
+    await pump(tester);
+    await tester.tap(find.byTooltip('Unmute'));
+    await tester.pump();
+
+    expect(preview.muted, isFalse);
+    expect(find.byTooltip('Mute'), findsOneWidget);
+    await close(tester);
+  });
+
+  testWidgets('not interested: the next live, and Undo', (tester) async {
+    await pump(tester);
+
+    await tester.tap(find.byTooltip('Not interested'));
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(store.current!.userId, '2');
+    expect(find.text("You won't see Name 1 in Live for now"), findsOneWidget);
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.text('Undo'));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(store.current!.userId, '1');
+    await close(tester);
+  });
+
+  testWidgets('a long press opens the channel actions', (tester) async {
+    await pump(tester);
+
+    await tester.longPress(
+      find.bySemanticsLabel(RegExp('Name 1 live preview')),
+    );
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.byType(UserActionsModal), findsOneWidget);
+    await close(tester);
+  });
+
+  testWidgets('logged out: no Follow', (tester) async {
+    loggedIn = false;
+    await pump(tester);
+
+    expect(find.text('Follow'), findsNothing);
+    await close(tester);
+  });
+
+  testWidgets('a chip shows its category from the first live', (tester) async {
+    await pump(tester);
+
+    final chip = find.text('League of Legends').first;
+    await tester.ensureVisible(chip);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(chip);
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(store.categoryId, '20');
+    expect(store.current!.userId, '2');
+    await close(tester);
+  });
+
+  testWidgets('nobody live: the message', (tester) async {
+    top = [];
+    await pump(tester);
+
+    expect(find.text('No top streams'), findsOneWidget);
+    expect(log, isEmpty);
+    await close(tester);
+  });
+
+  testWidgets('a failure: the message and "Try again", which reloads', (
+    tester,
+  ) async {
+    failure = Exception('down');
+    await pump(tester);
+    expect(find.text('Something went wrong loading streams'), findsOneWidget);
+
+    failure = null;
+    await tester.tap(find.text('Try again'));
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.text('Title 1'), findsOneWidget);
+    await close(tester);
+  });
+
+  testWidgets('reduce motion: the hint stays still', (tester) async {
+    await pump(tester, reduceMotion: true);
+
+    final hint = find.text('SWIPE UP FOR THE NEXT LIVE');
+    final before = tester.getTopLeft(hint);
+    await tester.pump(const Duration(milliseconds: 1200));
+    expect(tester.getTopLeft(hint), before);
+    await close(tester);
+  });
+}

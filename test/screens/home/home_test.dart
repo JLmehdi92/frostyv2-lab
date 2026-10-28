@@ -18,9 +18,9 @@ import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:frosty/screens/clips/clips_feed_screen.dart';
 import 'package:frosty/screens/home/home.dart';
+import 'package:frosty/screens/home/live_feed/live_feed.dart';
 import 'package:frosty/screens/home/search/search.dart';
 import 'package:frosty/screens/home/shell/onset_shell.dart';
-import 'package:frosty/screens/home/stream_list/streams_list.dart';
 import 'package:frosty/screens/home/top/categories/categories.dart';
 import 'package:frosty/screens/settings/settings.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
@@ -232,6 +232,10 @@ void main() {
 
   testWidgets('search opens over the shell, and back returns', (tester) async {
     await pump(tester);
+    // Live's phone header is the video one (its tabs only, board Live).
+    expect(find.byTooltip('Search'), findsNothing);
+    await tester.tap(nav('profile'));
+    await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Search'));
     await tester.pumpAndSettle();
     expect(find.byType(SearchScreen), findsOneWidget);
@@ -257,6 +261,8 @@ void main() {
       () => api.searchCategories(query: any(named: 'query')),
     ).thenAnswer((_) async => const CategoriesTwitch([], {}));
     await pump(tester);
+    await tester.tap(nav('profile'));
+    await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Search'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'chess');
@@ -295,6 +301,8 @@ void main() {
     FocusNode focus() =>
         tester.widget<TextField>(find.byType(TextField)).focusNode!;
 
+    await tester.tap(nav('profile'));
+    await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Search'));
     await tester.pumpAndSettle();
     // A new search: the keyboard is up.
@@ -375,8 +383,8 @@ void main() {
     tester,
   ) async {
     await pump(tester);
-    // Live's header (56 + 44) and the floating bar (14 + 64).
-    expect(mini.shellChrome, const EdgeInsets.only(top: 100, bottom: 78));
+    // Live's video header (its tabs, 56) and the floating bar (14 + 64).
+    expect(mini.shellChrome, const EdgeInsets.only(top: 56, bottom: 78));
 
     await tester.tap(nav('profile'));
     await tester.pumpAndSettle();
@@ -428,17 +436,17 @@ void main() {
 
     Navigator.of(tester.element(find.text('Page'))).pop();
     await tester.pumpAndSettle();
-    expect(mini.shellChrome, const EdgeInsets.only(top: 100, bottom: 78));
+    expect(mini.shellChrome, const EdgeInsets.only(top: 56, bottom: 78));
     Navigator.of(sheet).pop();
     await tester.pumpAndSettle();
-    expect(mini.shellChrome, const EdgeInsets.only(top: 100, bottom: 78));
+    expect(mini.shellChrome, const EdgeInsets.only(top: 56, bottom: 78));
     await close(tester);
   });
 
   testWidgets('a page pushed and popped within one locked frame does not '
       'leave the shell covered', (tester) async {
     await pump(tester);
-    expect(mini.shellChrome, const EdgeInsets.only(top: 100, bottom: 78));
+    expect(mini.shellChrome, const EdgeInsets.only(top: 56, bottom: 78));
     final page = MaterialPageRoute<void>(builder: (_) => const SizedBox());
     var once = true;
     // Both land while the frame builds, when Home must defer its change.
@@ -452,13 +460,13 @@ void main() {
     tester.binding.scheduleFrame();
     await tester.pump();
     await tester.pumpAndSettle();
-    expect(mini.shellChrome, const EdgeInsets.only(top: 100, bottom: 78));
+    expect(mini.shellChrome, const EdgeInsets.only(top: 56, bottom: 78));
     await close(tester);
   });
 
   testWidgets('a count changing does not rebuild the pages', (tester) async {
     await pump(tester);
-    final list = tester.widget(find.byType(StreamsList));
+    final list = tester.widget(find.byType(LiveFeed));
     await activity.addAll([
       ActivityEntry(
         id: 'a',
@@ -471,7 +479,7 @@ void main() {
     await tester.pump();
     expect(find.bySemanticsLabel('Activity, 1 new'), findsOneWidget);
     // The very same page: Flutter skipped it.
-    expect(identical(tester.widget(find.byType(StreamsList)), list), isTrue);
+    expect(identical(tester.widget(find.byType(LiveFeed)), list), isTrue);
     await close(tester);
   });
 
@@ -704,12 +712,12 @@ void main() {
   });
 
   testWidgets('no blur while a clip is still fading out', (tester) async {
-    await pump(tester);
+    await pump(tester, auth: FakeAuthStore(loggedIn: true));
     await tester.tap(find.text('Clips'));
     await tester.pumpAndSettle();
     expect(find.byType(BackdropFilter), findsNothing);
 
-    await tester.tap(find.text('Live'));
+    await tester.tap(find.text('Following'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 60));
     // The feed is still on screen, fading: nothing blurs over its video.
@@ -722,12 +730,41 @@ void main() {
     await close(tester);
   });
 
+  testWidgets("Live's phone feed is a video page: no blur over it, even "
+      'while it fades out', (tester) async {
+    await pump(tester, auth: FakeAuthStore(loggedIn: true));
+    expect(find.byType(BackdropFilter), findsNWidgets(2));
+    await tester.tap(find.text('Live'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BackdropFilter), findsNothing);
+    // Its tabs only, over the video (board Live).
+    expect(find.byTooltip('Search'), findsNothing);
+
+    await tester.tap(find.text('Following'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 60));
+    expect(find.byType(LiveFeed), findsOneWidget);
+    expect(find.byType(BackdropFilter), findsNothing);
+    await tester.pumpAndSettle();
+    expect(find.byType(BackdropFilter), findsNWidgets(2));
+    await close(tester);
+  });
+
+  testWidgets("a tablet's Live is a card under the opaque bar", (tester) async {
+    await pump(tester, size: const Size(1280, 854));
+    expect(find.byType(LiveFeed), findsOneWidget);
+    // The tablet's header keeps its search field.
+    expect(find.text('Search'), findsWidgets);
+    expect(tester.takeException(), isNull);
+    await close(tester);
+  });
+
   testWidgets('leaving the clips cut short by another section: back on '
       'Home, the glass chrome at once', (tester) async {
-    await pump(tester);
+    await pump(tester, auth: FakeAuthStore(loggedIn: true));
     await tester.tap(find.text('Clips'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Live'));
+    await tester.tap(find.text('Following'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 30));
     // Mid-fade, off to Browse: the clips are gone at once.
@@ -748,10 +785,10 @@ void main() {
   testWidgets('reduce motion: no blur over the clip during its short fade', (
     tester,
   ) async {
-    await pump(tester, reduceMotion: true);
+    await pump(tester, reduceMotion: true, auth: FakeAuthStore(loggedIn: true));
     await tester.tap(find.text('Clips'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Live'));
+    await tester.tap(find.text('Following'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 60));
     expect(find.byType(ClipsFeedScreen), findsOneWidget);
@@ -764,10 +801,9 @@ void main() {
     await close(tester);
   });
 
-  testWidgets('over the clips, the bottom fade is dark in either theme', (
-    tester,
-  ) async {
-    await pump(tester);
+  testWidgets('over the clips and Live, the bottom fade is dark in either '
+      'theme', (tester) async {
+    await pump(tester, auth: FakeAuthStore(loggedIn: true));
     Color fadeColor() =>
         ((tester
                             .widget<DecoratedBox>(
@@ -779,9 +815,12 @@ void main() {
                 as LinearGradient)
             .colors
             .first;
-    // The light theme's ground on Live.
+    // The light theme's ground on Following.
     expect(fadeColor(), isNot(const Color(0xFF0A0A0A)));
     await tester.tap(find.text('Clips'));
+    await tester.pumpAndSettle();
+    expect(fadeColor(), const Color(0xFF0A0A0A));
+    await tester.tap(find.text('Live'));
     await tester.pumpAndSettle();
     expect(fadeColor(), const Color(0xFF0A0A0A));
     await close(tester);
@@ -791,7 +830,7 @@ void main() {
     testWidgets('the system bars follow the theme (${mode.name})', (
       tester,
     ) async {
-      await pump(tester, mode: mode);
+      await pump(tester, mode: mode, auth: FakeAuthStore(loggedIn: true));
       final dark = mode == ThemeMode.dark;
       final theme = dark
           ? FrostyThemes(colorSchemeSeed: FrostyTokens.accent).dark
@@ -819,8 +858,17 @@ void main() {
         FrostyTokens.backgroundDark,
       );
 
-      // Back on Live, the theme's again (not left white on a pale header).
+      // Live's feed is a video page too.
       await tester.tap(find.text('Live'));
+      await tester.pumpAndSettle();
+      expect(
+        SystemChrome.latestStyle!.systemNavigationBarColor,
+        FrostyTokens.backgroundDark,
+      );
+
+      // Back on Following, the theme's again (not left white on a pale
+      // header).
+      await tester.tap(find.text('Following'));
       await tester.pumpAndSettle();
       expect(SystemChrome.latestStyle, themed);
 
@@ -931,7 +979,7 @@ void main() {
     tester,
   ) async {
     await pump(tester, size: const Size(1280, 854));
-    final live = tester.state(find.byType(StreamsList));
+    final live = tester.state(find.byType(LiveFeed));
     await tester.tap(find.text('Clips'));
     await tester.pumpAndSettle();
     final feed = tester.state(find.byType(ClipsFeedScreen));
@@ -942,10 +990,7 @@ void main() {
     // The clips feed playing did not restart; Live kept its list.
     expect(identical(tester.state(find.byType(ClipsFeedScreen)), feed), isTrue);
     expect(
-      identical(
-        tester.state(find.byType(StreamsList, skipOffstage: false)),
-        live,
-      ),
+      identical(tester.state(find.byType(LiveFeed, skipOffstage: false)), live),
       isTrue,
     );
     await close(tester);

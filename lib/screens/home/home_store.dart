@@ -71,8 +71,9 @@ abstract class HomeStoreBase with Store {
   /// Following's list, scrolled to the top by a second tap.
   final followedScrollController = ScrollController();
 
-  /// Live's list (the top streams).
-  final liveScrollController = ScrollController();
+  /// Live's feed (the top streams, a page each): a second tap goes back to
+  /// the first.
+  final liveScrollController = PageController();
 
   /// Browse's categories.
   final categoriesScrollController = ScrollController();

@@ -5,11 +5,14 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/apis/twitch_directory_service.dart';
 import 'package:frosty/screens/activity/activity_screen.dart';
 import 'package:frosty/screens/activity/stores/activity_store.dart';
 import 'package:frosty/screens/channel/channel.dart';
 import 'package:frosty/screens/clips/clips_feed_screen.dart';
 import 'package:frosty/screens/home/home_store.dart';
+import 'package:frosty/screens/home/live_feed/live_feed.dart';
+import 'package:frosty/screens/home/live_feed/stores/live_feed_store.dart';
 import 'package:frosty/screens/home/search/search.dart';
 import 'package:frosty/screens/home/shell/onset_shell.dart';
 import 'package:frosty/screens/home/shell/shell_pages.dart';
@@ -75,10 +78,35 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
   /// A page covers the shell: the mini player is not bound by its chrome.
   var _covered = false;
 
-  /// Home just left the clips and the feed is still fading out: the
-  /// chrome stays as over a video (no blur over the clip) until it is gone.
-  var _clipsLeaving = false;
+  /// Home just left a video feed (the clips, the phone's Live) and it is
+  /// still fading out: the chrome stays as over a video (no blur over the
+  /// video) until it is gone.
+  var _videoLeaving = false;
   HomeFeed? _lastFeed;
+
+  /// The Live feed's list, made when Live is first shown (it loads).
+  LiveFeedStore? _liveFeed;
+
+  LiveFeedStore get _live => _liveFeed ??= LiveFeedStore(
+    authStore: _authStore,
+    settingsStore: _settingsStore,
+    twitchApi: context.read<TwitchApi>(),
+    directoryService: _maybeRead<TwitchDirectoryService>(),
+  );
+
+  T? _maybeRead<T>() {
+    try {
+      return context.read<T>();
+    } on ProviderNotFoundException {
+      return null;
+    }
+  }
+
+  /// Whether [feed] is a video page under the phone header: the clips, and
+  /// Live on a phone (on a tablet its preview is a card under the bar).
+  bool _isVideoFeed(HomeFeed? feed) =>
+      feed == HomeFeed.clips ||
+      (feed == HomeFeed.live && !context.isLargeScreen);
 
   /// The clips feed is in picture-in-picture: the window shows the clip
   /// alone, without the shell's chrome.
@@ -260,7 +288,19 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
           tabs: [for (final f in feeds) f.label],
           tabIndex: feeds.indexOf(feed),
           onTab: (i) => _homeStore.selectFeed(feeds[i]),
-          overVideo: feed == HomeFeed.clips || (!page && _clipsLeaving),
+          overVideo: _isVideoFeed(feed) || (!page && _videoLeaving),
+          tabsTrailing: feed == HomeFeed.live && context.isLargeScreen
+              ? LiveFeedChips(
+                  store: _live,
+                  onSelect: (id) {
+                    if (id == _live.categoryId) return;
+                    if (_homeStore.liveScrollController.hasClients) {
+                      _homeStore.liveScrollController.jumpToPage(0);
+                    }
+                    _live.selectCategory(id);
+                  },
+                )
+              : null,
         );
       case ShellSection.browse:
         return ShellHeader(
@@ -313,7 +353,7 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
       current: feed,
       motion: ShellPagesMotion.lateral,
       onSettled: () {
-        if (_clipsLeaving) _update(() => _clipsLeaving = false);
+        if (_videoLeaving) _update(() => _videoLeaving = false);
       },
       // The clips feed plays: it only exists while it is on screen.
       keepAlive: (page) => page != HomeFeed.clips,
@@ -323,9 +363,16 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
           _headerFor(ShellSection.home, page, page: true),
         );
         final onScreen = section == ShellSection.home;
+        // Only the feed chosen plays: leaving it stops the preview at once
+        // (not after the fade).
+        final liveActive =
+            page == HomeFeed.live &&
+            feed == HomeFeed.live &&
+            onScreen &&
+            !_covered;
         return _memo(
           page,
-          (data, page == HomeFeed.clips && onScreen),
+          (data, page == HomeFeed.clips && onScreen, liveActive),
           () => MediaQuery(
             data: data,
             child: switch (page) {
@@ -333,9 +380,12 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
                 listType: ListType.followed,
                 scrollController: _homeStore.followedScrollController,
               ),
-              HomeFeed.live => StreamsList(
-                listType: ListType.top,
-                scrollController: _homeStore.liveScrollController,
+              HomeFeed.live => LiveFeed(
+                store: _live,
+                controller: _homeStore.liveScrollController,
+                // Off screen it is offstage too (no ticker): that stops
+                // its preview as well.
+                active: liveActive,
               ),
               HomeFeed.clips =>
                 onScreen
@@ -396,15 +446,15 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
         builder: (context) {
           final section = _homeStore.section;
           final feed = _homeStore.feed;
-          // Leaving the clips within Home: the feed fades out under the
-          // header for a moment more.
-          if (_lastFeed == HomeFeed.clips &&
-              feed != HomeFeed.clips &&
+          // Leaving a video feed within Home: it fades out under the header
+          // for a moment more.
+          if (_isVideoFeed(_lastFeed) &&
+              !_isVideoFeed(feed) &&
               section == ShellSection.home) {
-            _clipsLeaving = true;
+            _videoLeaving = true;
           }
           // Home left: the feed is gone with it, nothing to wait for.
-          if (section != ShellSection.home) _clipsLeaving = false;
+          if (section != ShellSection.home) _videoLeaving = false;
           _lastFeed = feed;
           final header = _headerFor(section, feed);
           final loggedIn = _authStore.isLoggedIn;
@@ -498,6 +548,7 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     _whispers?.cancel();
     _search?.dispose();
     _homeStore.dispose();
+    _liveFeed?.dispose();
     super.dispose();
   }
 }
