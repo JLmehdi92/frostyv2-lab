@@ -151,6 +151,7 @@ void main() {
     Size size = const Size(390, 844),
     ThemeMode mode = ThemeMode.light,
     AuthStore? auth,
+    bool reduceMotion = false,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -173,6 +174,12 @@ void main() {
           theme: themes.light,
           darkTheme: themes.dark,
           themeMode: mode,
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(disableAnimations: reduceMotion),
+            child: child!,
+          ),
           navigatorObservers: [OnsetShell.routeObserver],
           home: const Home(),
         ),
@@ -666,6 +673,48 @@ void main() {
     expect(find.byType(BackdropFilter), findsNothing);
 
     await tester.pumpAndSettle();
+    expect(find.byType(ClipsFeedScreen, skipOffstage: false), findsNothing);
+    expect(find.byType(BackdropFilter), findsNWidgets(2));
+    await close(tester);
+  });
+
+  testWidgets('leaving the clips cut short by another section: back on '
+      'Home, the glass chrome at once', (tester) async {
+    await pump(tester);
+    await tester.tap(find.text('Clips'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Live'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 30));
+    // Mid-fade, off to Browse: the clips are gone at once.
+    await tester.tap(nav('browse'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ClipsFeedScreen, skipOffstage: false), findsNothing);
+
+    await tester.tap(nav('home'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 20));
+    // No clip left to protect: the header and the bar are glass again.
+    expect(find.byType(BackdropFilter), findsNWidgets(2));
+    await tester.pumpAndSettle();
+    expect(find.byType(BackdropFilter), findsNWidgets(2));
+    await close(tester);
+  });
+
+  testWidgets('reduce motion: no blur over the clip during its short fade', (
+    tester,
+  ) async {
+    await pump(tester, reduceMotion: true);
+    await tester.tap(find.text('Clips'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Live'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 60));
+    expect(find.byType(ClipsFeedScreen), findsOneWidget);
+    expect(find.byType(BackdropFilter), findsNothing);
+    // The short fade is 150 ms; then the glass is back.
+    await tester.pump(const Duration(milliseconds: 120));
+    await tester.pump();
     expect(find.byType(ClipsFeedScreen, skipOffstage: false), findsNothing);
     expect(find.byType(BackdropFilter), findsNWidgets(2));
     await close(tester);

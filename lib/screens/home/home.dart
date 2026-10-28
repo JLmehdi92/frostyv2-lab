@@ -403,6 +403,8 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
               section == ShellSection.home) {
             _clipsLeaving = true;
           }
+          // Home left: the feed is gone with it, nothing to wait for.
+          if (section != ShellSection.home) _clipsLeaving = false;
           _lastFeed = feed;
           final header = _headerFor(section, feed);
           final loggedIn = _authStore.isLoggedIn;
