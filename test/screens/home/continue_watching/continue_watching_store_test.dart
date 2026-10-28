@@ -175,6 +175,20 @@ void main() {
     expect(store.items.map((i) => i.vod.id), ['2']);
   });
 
+  test("a service that throws leaves this device's positions", () async {
+    await save('1', 600, DateTime.utc(2026, 10, 27, 10));
+    when(
+      () => service.getResumeWatching(limit: any(named: 'limit')),
+    ).thenThrow(StateError('broken'));
+    when(() => service.getVideos(['1'])).thenAnswer((_) async => [_vod('1')]);
+    final store = ContinueWatchingStore(vodService: service);
+    addTearDown(store.dispose);
+
+    await store.load();
+
+    expect(store.items.single.vod.id, '1');
+  });
+
   test('a deleted video is asked for once', () async {
     await save('1', 600, DateTime.utc(2026, 10, 27, 10));
     final store = ContinueWatchingStore(vodService: service);

@@ -91,7 +91,13 @@ abstract class ContinueWatchingStoreBase with Store {
   /// Reads Twitch's shelf again, then this device's positions.
   Future<void> load() async {
     final viewer = _viewer;
-    final server = await vodService.getResumeWatching(limit: maxItems);
+    List<ResumeWatchingEntry>? server;
+    try {
+      server = await vodService.getResumeWatching(limit: maxItems);
+    } catch (e) {
+      // The service never throws; a broken one must not break the list.
+      debugPrint('Continue watching: shelf unavailable: ${e.runtimeType}');
+    }
     if (_disposed) return;
     // The account changed while Twitch answered: that answer is not theirs.
     if (viewer != _viewer) return;
