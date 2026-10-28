@@ -263,10 +263,8 @@ class OnsetShell extends StatelessWidget {
   static final markKey = GlobalKey(debugLabel: 'onset-header-mark');
 
   /// Tells the shell when a page covers it or leaves (the mini player's
-  /// corners follow the chrome only while the shell is on screen). Sheets,
-  /// dialogs and menus leave the shell on screen, so only pages count.
-  static final RouteObserver<ModalRoute<void>> routeObserver =
-      _PageRouteObserver();
+  /// corners follow the chrome only while the shell is on screen).
+  static final routeObserver = ShellCoverObserver();
 
   final ShellSection section;
   final ValueChanged<ShellSection> onSection;
@@ -526,15 +524,51 @@ class OnsetShell extends StatelessWidget {
   }
 }
 
-class _PageRouteObserver extends RouteObserver<ModalRoute<void>> {
+/// Follows the navigator's stack to say whether a page covers a route:
+/// any page above it, even with a sheet or a dialog in between (a sheet's
+/// "Report" opens a page over the sheet). Sheets, dialogs and menus alone
+/// leave the route on screen.
+class ShellCoverObserver extends NavigatorObserver with ChangeNotifier {
+  final _routes = <Route<dynamic>>[];
+
+  /// Whether a page sits above [route].
+  bool covers(Route<dynamic> route) {
+    final index = _routes.indexOf(route);
+    if (index < 0) return false;
+    return _routes.skip(index + 1).any((r) => r is PageRoute);
+  }
+
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (route is PageRoute) super.didPush(route, previousRoute);
+    _routes.add(route);
+    notifyListeners();
   }
 
   @override
   void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (route is PageRoute) super.didPop(route, previousRoute);
+    _routes.remove(route);
+    notifyListeners();
+  }
+
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _routes.remove(route);
+    notifyListeners();
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    final index = oldRoute == null ? -1 : _routes.indexOf(oldRoute);
+    if (newRoute != null) {
+      if (index < 0) {
+        _routes.add(newRoute);
+      } else {
+        _routes[index] = newRoute;
+      }
+    } else if (index >= 0) {
+      _routes.removeAt(index);
+    }
+    notifyListeners();
   }
 }
 

@@ -246,6 +246,39 @@ void main() {
     await close(tester);
   });
 
+  testWidgets('a page opened from a sheet still covers the shell', (
+    tester,
+  ) async {
+    await pump(tester);
+    expect(mini.shellChrome, isNotNull);
+    late BuildContext sheet;
+    showModalBottomSheet<void>(
+      context: tester.element(find.byType(Home)),
+      builder: (context) {
+        sheet = context;
+        return const SizedBox(height: 100);
+      },
+    );
+    await tester.pumpAndSettle();
+    // "Report" in a channel's actions opens a page over its own sheet.
+    Navigator.of(sheet).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const Scaffold(body: Text('Page')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Page'), findsOneWidget);
+    expect(mini.shellChrome, isNull);
+
+    Navigator.of(tester.element(find.text('Page'))).pop();
+    await tester.pumpAndSettle();
+    expect(mini.shellChrome, const EdgeInsets.only(top: 100, bottom: 78));
+    Navigator.of(sheet).pop();
+    await tester.pumpAndSettle();
+    expect(mini.shellChrome, const EdgeInsets.only(top: 100, bottom: 78));
+    await close(tester);
+  });
+
   testWidgets('a count changing does not rebuild the pages', (tester) async {
     await pump(tester);
     final list = tester.widget(find.byType(StreamsList));

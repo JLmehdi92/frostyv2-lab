@@ -42,7 +42,7 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> with OnsetUpdateChecks, RouteAware {
+class _HomeState extends State<Home> with OnsetUpdateChecks {
   late final _authStore = context.read<AuthStore>();
   late final _settingsStore = context.read<SettingsStore>();
 
@@ -114,29 +114,24 @@ class _HomeState extends State<Home> with OnsetUpdateChecks, RouteAware {
     SystemChrome.setPreferredOrientations([]);
     checkAndShowReleaseNotes();
     _whispers = _whisperStore.incoming.listen(_onWhisper);
+    OnsetShell.routeObserver.addListener(_onRoutes);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final route = ModalRoute.of(context);
-    if (route != _route) {
-      if (_route != null) OnsetShell.routeObserver.unsubscribe(this);
-      _route = route;
-      if (route != null) OnsetShell.routeObserver.subscribe(this, route);
-    }
+    _route = ModalRoute.of(context);
+    _onRoutes();
   }
 
-  @override
-  void didPushNext() {
-    _miniPlayer.setShellChrome(null);
-    if (mounted) setState(() => _covered = true);
-  }
-
-  @override
-  void didPopNext() {
+  /// A page opened over the shell, or left it.
+  void _onRoutes() {
+    final route = _route;
+    final covered = route != null && OnsetShell.routeObserver.covers(route);
+    if (covered == _covered) return;
+    if (covered) _miniPlayer.setShellChrome(null);
     // The chrome is published again by the next build.
-    if (mounted) setState(() => _covered = false);
+    _update(() => _covered = covered);
   }
 
   /// Tells the mini player what the chrome covers, after this frame.
@@ -455,7 +450,7 @@ class _HomeState extends State<Home> with OnsetUpdateChecks, RouteAware {
 
   @override
   void dispose() {
-    OnsetShell.routeObserver.unsubscribe(this);
+    OnsetShell.routeObserver.removeListener(_onRoutes);
     _miniPlayer.setShellChrome(null);
     _whispers?.cancel();
     _homeStore.dispose();
