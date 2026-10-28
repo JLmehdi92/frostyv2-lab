@@ -1,8 +1,12 @@
 package com.tommychow.frosty
 
+import android.annotation.TargetApi
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.Display
+import android.view.View
+import android.window.SplashScreenView
 import cl.puntito.simple_pip_mode.PipCallbackHelperActivityWrapper
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -21,16 +25,23 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
      * launch intro): set before the Flutter engine is configured. */
     private var coldStart = false
 
+    /** Opened from the launcher, not from a notification or a link. */
+    private var fromLauncher = false
+
+    private var launchChannel: MethodChannel? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // A kept process (warm start) or a restored state does not replay
         // the launch intro.
         coldStart = !processStarted && savedInstanceState == null
         processStarted = true
+        fromLauncher = intent?.action == Intent.ACTION_MAIN &&
+            intent?.hasCategory(Intent.CATEGORY_LAUNCHER) == true
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             // The Flutter intro starts from the splash's own frame (the launch
-            // tile on the ONSET ground): the system's exit fade would only add
-            // a flicker between the two.
-            splashScreen.setOnExitAnimationListener { it.remove() }
+            // tile on the ONSET ground): no system exit fade, and the splash
+            // stays until Flutter has drawn its tile in the same place.
+            splashScreen.setOnExitAnimationListener { handOverSplash(it) }
         }
         super.onCreate(savedInstanceState)
         preferSmoothRefreshRate()
@@ -59,14 +70,70 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
         network = NetworkBridge(applicationContext, messenger)
 
         // How this launch started, for the launch intro. The splash (before
-        // and from Android 12) always shows the launch tile.
-        MethodChannel(messenger, "onset/launch").setMethodCallHandler { call, result ->
-            if (call.method == "info") {
-                result.success(mapOf("coldStart" to coldStart, "nativeTile" to true))
-            } else {
-                result.notImplemented()
+        // and from Android 12) shows the launch tile.
+        launchChannel = MethodChannel(messenger, "onset/launch").apply {
+            setMethodCallHandler { call, result ->
+                if (call.method == "info") {
+                    result.success(
+                        mapOf(
+                            "coldStart" to coldStart,
+                            "nativeTile" to true,
+                            "fromLauncher" to fromLauncher,
+                        ),
+                    )
+                } else {
+                    result.notImplemented()
+                }
             }
         }
+    }
+
+    /**
+     * Tells Flutter where the splash drew its tile (relative to the Flutter
+     * view, in dp), then removes the splash once Flutter answers that its own
+     * tile is drawn there — or after 300 ms whatever happens. Measured rather
+     * than assumed: the splash is centred on the whole window, which a Flutter
+     * view stopping above a navigation bar does not cover, and the system
+     * picks the icon's size.
+     */
+    @TargetApi(Build.VERSION_CODES.S)
+    private fun handOverSplash(splash: SplashScreenView) {
+        var removed = false
+        val remove = {
+            if (!removed) {
+                removed = true
+                splash.remove()
+            }
+        }
+        val icon = splash.iconView
+        val flutterView = findViewById<View>(FLUTTER_VIEW_ID)
+        val channel = launchChannel
+        if (icon == null || flutterView == null || channel == null || icon.width == 0) {
+            remove()
+            return
+        }
+        val iconAt = IntArray(2).also { icon.getLocationOnScreen(it) }
+        val viewAt = IntArray(2).also { flutterView.getLocationOnScreen(it) }
+        val density = resources.displayMetrics.density
+        // The tile is 72 dp in the middle of the icon's 288 dp canvas
+        // (res/drawable/splash_icon.xml).
+        val tile = icon.width * 72f / 288f
+        channel.invokeMethod(
+            "splashTile",
+            mapOf(
+                "x" to (iconAt[0] - viewAt[0] + icon.width / 2f) / density,
+                "y" to (iconAt[1] - viewAt[1] + icon.height / 2f) / density,
+                "size" to tile / density,
+            ),
+            object : MethodChannel.Result {
+                override fun success(result: Any?) = remove()
+
+                override fun error(code: String, message: String?, details: Any?) = remove()
+
+                override fun notImplemented() = remove()
+            },
+        )
+        splash.postDelayed({ remove() }, 300)
     }
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
