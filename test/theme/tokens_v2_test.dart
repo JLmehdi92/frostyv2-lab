@@ -41,6 +41,9 @@ void main() {
       expect(FrostyTokens.hype, FrostyColors.dark.subNoticeAccent);
       expect(FrostyTokens.hypeText, const Color(0xFF3DDBA6));
       expect(FrostyTokens.danger, const Color(0xFFFF5A5F));
+      // The loading board's greys.
+      expect(FrostyTokens.skeletonDark, const Color(0xFF161616));
+      expect(FrostyTokens.skeletonSheenDark, const Color(0xFF232323));
     });
 
     test('radii run 8 / 12 / 16 / 24 / pill', () {

@@ -31,8 +31,8 @@ void main() {
       _host(const Center(child: SkeletonLoader(width: 120, height: 40))),
     );
     final painter = _painter(tester);
-    expect(painter.base, const Color(0xFF161616));
-    expect(painter.highlight, const Color(0xFF232323));
+    expect(painter.base, FrostyTokens.skeletonDark);
+    expect(painter.highlight, FrostyTokens.skeletonSheenDark);
     expect(painter.sheen, isTrue);
     expect(tester.binding.transientCallbackCount, greaterThan(0));
 
@@ -40,6 +40,19 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     final after = painter.offsetAt(tester.binding.currentSystemFrameTimeStamp);
     expect(after, isNot(before));
+  });
+
+  testWidgets('the sweep loops without a jump', (tester) async {
+    await tester.pumpWidget(
+      _host(const Center(child: SkeletonLoader(width: 120, height: 40))),
+    );
+    final painter = _painter(tester);
+    const period = SkeletonSheenPainter.period;
+    final start = painter.offsetAt(Duration.zero);
+    final end = painter.offsetAt(period - const Duration(microseconds: 1));
+    // One loop moves the band by exactly one repeat of the gradient, so the
+    // first frame of the next loop draws what the last one did.
+    expect(end - start, closeTo(SkeletonSheenPainter.bandWidth, 0.01));
   });
 
   testWidgets('every skeleton on screen shares one sweep', (tester) async {

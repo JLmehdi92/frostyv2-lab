@@ -14,8 +14,10 @@ import 'package:frosty/widgets/motion/reduce_motion.dart';
 /// - Dark theme: the board's greys (#161616 with a #232323 highlight), a
 ///   100° band sweeping every 1.6 s. Every skeleton on screen reads its phase
 ///   off the frame clock, so a whole loading list sweeps as one.
-/// - The sheen is painted with a shader (no layer, no `saveLayer`), inside a
-///   repaint boundary, and its ticker stops off-screen ([TickerMode]).
+/// - The sheen is painted with a shader (no layer, no `saveLayer`); every
+///   skeleton repaints in step, so they share their list's repaint boundary
+///   rather than each adding a layer. Its ticker stops off-screen
+///   ([TickerMode]).
 /// - Reduce motion: a still block.
 class SkeletonLoader extends StatefulWidget {
   final double? width;
@@ -94,23 +96,22 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
         child: box,
       );
     }
-    return RepaintBoundary(child: box);
+    return box;
   }
 }
 
 /// Paints a skeleton block and, unless [sheen] is off, the sweeping band.
 class SkeletonSheenPainter extends CustomPainter {
-  static const baseDark = Color(0xFF161616);
-  static const highlightDark = Color(0xFF232323);
+  static const baseDark = FrostyTokens.skeletonDark;
+  static const highlightDark = FrostyTokens.skeletonSheenDark;
 
   /// One sweep.
   static const period = Duration(milliseconds: 1600);
 
-  /// Width of one band of the repeating gradient, and how far it travels
-  /// (from -160 px to +200 px) during one [period].
-  static const _bandWidth = 300.0;
-  static const _from = -160.0;
-  static const _travel = 360.0;
+  /// One repeat of the gradient, along the band's direction. Each [period]
+  /// moves it by exactly one repeat, so the loop has no visible seam.
+  static const bandWidth = 300.0;
+  static const _from = -150.0;
 
   /// The band's direction: CSS 100°, a hair below horizontal.
   static final _direction = Offset(sin(100 * pi / 180), -cos(100 * pi / 180));
@@ -133,7 +134,7 @@ class SkeletonSheenPainter extends CustomPainter {
     final phase =
         (timestamp.inMicroseconds % period.inMicroseconds) /
         period.inMicroseconds;
-    return _from + _travel * Curves.easeInOut.transform(phase);
+    return _from + bandWidth * Curves.easeInOut.transform(phase);
   }
 
   @override
@@ -141,13 +142,12 @@ class SkeletonSheenPainter extends CustomPainter {
     final rrect = borderRadius.toRRect(Offset.zero & size);
     final paint = Paint()..color = base;
     if (sheen) {
-      final start = Offset(
-        offsetAt(SchedulerBinding.instance.currentSystemFrameTimeStamp),
-        0,
-      );
+      final start =
+          _direction *
+          offsetAt(SchedulerBinding.instance.currentSystemFrameTimeStamp);
       paint.shader = ui.Gradient.linear(
         start,
-        start + _direction * _bandWidth,
+        start + _direction * bandWidth,
         [base, highlight, base],
         const [0.3, 0.5, 0.7],
         TileMode.repeated,

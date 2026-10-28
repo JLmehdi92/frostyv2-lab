@@ -72,8 +72,13 @@ class FrostyTokens {
   // hairline, never a shadow.
 
   /// The third grey, above [surfaceDark]: chips, pressed cards, secondary
-  /// buttons, skeleton highlights.
+  /// buttons.
   static const raisedDark = Color(0xFF1E1E1E);
+
+  /// Loading skeletons on the dark ground, and the highlight of their sheen
+  /// (the loading card of the micro-animation board).
+  static const skeletonDark = Color(0xFF161616);
+  static const skeletonSheenDark = Color(0xFF232323);
 
   /// Text tiers on the dark ground. Primary for names and titles, body for
   /// live titles and chat, secondary for metadata (the same grey as
@@ -303,7 +308,7 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
     uniqueMode: Color(0xFFBA68C8),
     overlayOnSurface: Colors.white,
     live: FrostyTokens.accent,
-    metadata: Color(0xFFA1A1A1),
+    metadata: FrostyTokens.textSecondaryDark,
     hairline: FrostyTokens.hairlineDark,
     subNoticeAccent: Color(0xFF12A87A),
     // The accent at 10% over the dark background.
