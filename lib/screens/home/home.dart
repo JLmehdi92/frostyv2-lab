@@ -457,8 +457,10 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
   }
 
   /// The system bars over the shell: the theme's (the shell has no app bar
-  /// to set them), with light icons and a dark navigation bar over the
-  /// clips on a phone, where the header is a dark gradient over the video.
+  /// to set them). Over the clips the navigation bar is dark with light
+  /// icons, under the black clip, phone and tablet alike; on a phone the
+  /// status bar too, over the dark gradient (a tablet's top bar stays
+  /// opaque in the theme's colours).
   SystemUiOverlayStyle _systemBars(BuildContext context, ShellHeader header) {
     final theme = Theme.of(context);
     final themed =
@@ -466,14 +468,15 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
         (theme.brightness == Brightness.dark
             ? SystemUiOverlayStyle.light
             : SystemUiOverlayStyle.dark);
-    if (!header.overVideo || context.isLargeScreen || _clipsInPip) {
-      return themed;
-    }
-    return themed.copyWith(
-      statusBarIconBrightness: Brightness.light,
-      statusBarBrightness: Brightness.dark,
+    if (!header.overVideo || _clipsInPip) return themed;
+    final overClip = themed.copyWith(
       systemNavigationBarColor: FrostyTokens.backgroundDark,
       systemNavigationBarIconBrightness: Brightness.light,
+    );
+    if (context.isLargeScreen) return overClip;
+    return overClip.copyWith(
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
     );
   }
 

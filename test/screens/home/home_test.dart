@@ -667,6 +667,25 @@ void main() {
     });
   }
 
+  testWidgets('tablet over the clips: a dark navigation bar, the theme '
+      'status bar over the opaque top bar', (tester) async {
+    await pump(tester, size: const Size(1280, 854));
+    final themed = FrostyThemes(
+      colorSchemeSeed: FrostyTokens.accent,
+    ).light.appBarTheme.systemOverlayStyle!;
+    expect(SystemChrome.latestStyle, themed);
+    await tester.tap(find.text('Clips'));
+    await tester.pumpAndSettle();
+    final style = SystemChrome.latestStyle!;
+    expect(style.systemNavigationBarColor, FrostyTokens.backgroundDark);
+    expect(style.systemNavigationBarIconBrightness, Brightness.light);
+    expect(style.statusBarIconBrightness, themed.statusBarIconBrightness);
+    await tester.tap(find.text('Live'));
+    await tester.pumpAndSettle();
+    expect(SystemChrome.latestStyle, themed);
+    await close(tester);
+  });
+
   group('logged in', () {
     testWidgets('Following first; whispers in the header and in Activity', (
       tester,
