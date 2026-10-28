@@ -62,7 +62,7 @@ class MediaKitPreviewBackend implements LivePreviewBackend {
   Widget buildVideo() => Video(
     controller: _video,
     controls: NoVideoControls,
-    fit: BoxFit.contain,
+    // Letterboxed: a stream is never stretched.
     fill: const Color(0x00000000),
   );
 
