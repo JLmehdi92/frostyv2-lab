@@ -390,6 +390,29 @@ class TwitchApi extends BaseApiClient {
     return FollowedChannels.fromJson(data);
   }
 
+  /// Whether [userId] follows [broadcasterId] (`user:read:follows`, the
+  /// scope the followed lists already need). A refusal is quiet: the
+  /// channel screen then shows "Follow", as it would for a viewer who
+  /// does not follow.
+  Future<bool> isFollowing({
+    required String userId,
+    required String broadcasterId,
+  }) async {
+    final data = await get<JsonMap>(
+      '/channels/followed',
+      extra: {UnauthorizedInterceptor.quiet: true},
+      queryParameters: {
+        'user_id': _checkId(userId, 'userId'),
+        'broadcaster_id': _checkId(broadcasterId, 'broadcasterId'),
+      },
+    );
+    final followed = data['data'];
+    if (followed is! List) return false;
+    return followed.any(
+      (channel) => channel is Map && channel['broadcaster_id'] == broadcasterId,
+    );
+  }
+
   /// Returns a [StreamsTwitch] object that contains the list of streams under the given game/category ID.
   Future<StreamsTwitch> getStreamsUnderCategory({
     required String gameId,

@@ -335,6 +335,60 @@ void main() {
     });
   });
 
+  group('isFollowing', () {
+    test('is true when the viewer follows the channel', () async {
+      dioAdapter.onGet(
+        'https://api.twitch.tv/helix/channels/followed',
+        (server) => server.reply(200, {
+          'data': [
+            {
+              'broadcaster_id': '42',
+              'broadcaster_login': 'streamer',
+              'broadcaster_name': 'Streamer',
+              'followed_at': '2026-01-01T00:00:00Z',
+            },
+          ],
+          'pagination': <String, String>{},
+          'total': 1,
+        }),
+        queryParameters: {'user_id': '7', 'broadcaster_id': '42'},
+      );
+
+      expect(await api.isFollowing(userId: '7', broadcasterId: '42'), isTrue);
+    });
+
+    test('is false for an empty answer or another channel', () async {
+      dioAdapter.onGet(
+        'https://api.twitch.tv/helix/channels/followed',
+        (server) => server.reply(200, {
+          'data': <dynamic>[],
+          'pagination': <String, String>{},
+          'total': 0,
+        }),
+        queryParameters: {'user_id': '7', 'broadcaster_id': '42'},
+      );
+      expect(await api.isFollowing(userId: '7', broadcasterId: '42'), isFalse);
+
+      dioAdapter.onGet(
+        'https://api.twitch.tv/helix/channels/followed',
+        (server) => server.reply(200, {
+          'data': [
+            {'broadcaster_id': '43'},
+          ],
+        }),
+        queryParameters: {'user_id': '7', 'broadcaster_id': '42'},
+      );
+      expect(await api.isFollowing(userId: '7', broadcasterId: '42'), isFalse);
+    });
+
+    test('refuses an id that is not a Twitch id', () {
+      expect(
+        () => api.isFollowing(userId: '7&x=1', broadcasterId: '42'),
+        throwsArgumentError,
+      );
+    });
+  });
+
   group('getTopStreams', () {
     test('returns streams with pagination', () async {
       dioAdapter.onGet(
