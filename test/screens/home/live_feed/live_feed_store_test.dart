@@ -204,13 +204,39 @@ void main() {
     store.setIndex(4);
     answer.complete(
       StreamsTwitch([
+        for (var n = 1; n <= 6; n++) _s('${n + 10}', '10', 'Just Chatting'),
+      ], const {}),
+    );
+    await refreshing;
+
+    expect(store.index, 4);
+    store.dispose();
+  });
+
+  test('a viewer who swiped past the end of a shorter new list lands on its '
+      'last channel', () async {
+    final store = await build();
+    store.setIndex(2);
+    final answer = Completer<StreamsTwitch>();
+    when(
+      () => api.getTopStreams(
+        cursor: any(named: 'cursor', that: isNull),
+        language: any(named: 'language'),
+      ),
+    ).thenAnswer((_) => answer.future);
+
+    final refreshing = store.refresh(keepPosition: true);
+    store.setIndex(6);
+    answer.complete(
+      StreamsTwitch([
         _s('3', '10', 'Just Chatting'),
         _s('8', '1', 'X'),
       ], const {}),
     );
     await refreshing;
 
-    expect(store.index, 4);
+    expect(store.index, 1);
+    expect(store.current!.userId, '8');
     store.dispose();
   });
 

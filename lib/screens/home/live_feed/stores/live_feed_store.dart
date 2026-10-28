@@ -171,8 +171,16 @@ abstract class LiveFeedStoreBase with Store {
     if (!keepPosition) runInAction(() => _index = 0);
     list.lastTimeRefreshed = DateTime.now();
     await list.refreshStreams();
-    // Not kept when the viewer moved meanwhile: they stay where they went.
-    if (!keepPosition || _index != keptIndex) return;
+    // Not kept when the viewer moved meanwhile: they stay where they went,
+    // within the new list (a shorter one must not leave them past its end).
+    if (keepPosition && _index != keptIndex) {
+      runInAction(() {
+        final shown = streams.length;
+        if (_index >= shown) _index = shown == 0 ? 0 : shown - 1;
+      });
+      return;
+    }
+    if (!keepPosition) return;
     runInAction(() {
       final shown = streams;
       final found = kept == null
