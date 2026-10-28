@@ -60,6 +60,17 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
 
   ModalRoute<void>? _route;
 
+  /// Search, kept between its opens (it was a tab before the shell).
+  SearchSession? _search;
+
+  void _openSearch() => SearchScreen.open(
+    context,
+    session: _search ??= SearchSession(
+      authStore: _authStore,
+      twitchApi: context.read<TwitchApi>(),
+    ),
+  );
+
   /// A page covers the shell: the mini player is not bound by its chrome.
   var _covered = false;
 
@@ -397,7 +408,7 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
                     section: section,
                     onSection: _homeStore.selectSection,
                     header: header,
-                    onSearch: () => SearchScreen.open(context),
+                    onSearch: _openSearch,
                     activityBadge: _activityStore.newCount,
                     whispers: loggedIn
                         ? ShellWhispers(
@@ -453,6 +464,7 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     OnsetShell.routeObserver.removeListener(_onRoutes);
     _miniPlayer.setShellChrome(null);
     _whispers?.cancel();
+    _search?.dispose();
     _homeStore.dispose();
     super.dispose();
   }

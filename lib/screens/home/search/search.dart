@@ -18,20 +18,42 @@ import 'package:frosty/widgets/section_header.dart';
 import 'package:mobx/mobx.dart';
 import 'package:provider/provider.dart';
 
+/// What search keeps between opens of [SearchScreen], as the Search tab
+/// did before the shell: the query, its results, the result tab, the
+/// videos found.
+class SearchSession {
+  SearchSession({required AuthStore authStore, required TwitchApi twitchApi})
+    : store = SearchStore(authStore: authStore, twitchApi: twitchApi);
+
+  final SearchStore store;
+
+  /// Made the first time the Videos tab is opened.
+  SearchVideosStore? videos;
+
+  /// The result tab last open.
+  var tab = 0;
+
+  void dispose() => store.dispose();
+}
+
 /// Search, opened from the shell (the header's search button, Browse's
 /// search field, the tablet's top bar).
 class SearchScreen extends StatefulWidget {
   static const routeName = '/search';
 
-  const SearchScreen({super.key});
+  /// The search kept between opens (the shell's), or null for a new one.
+  final SearchSession? session;
 
-  static Future<void> open(BuildContext context) => Navigator.push(
-    context,
-    MaterialPageRoute(
-      settings: const RouteSettings(name: routeName),
-      builder: (context) => const SearchScreen(),
-    ),
-  );
+  const SearchScreen({super.key, this.session});
+
+  static Future<void> open(BuildContext context, {SearchSession? session}) =>
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          settings: const RouteSettings(name: routeName),
+          builder: (context) => SearchScreen(session: session),
+        ),
+      );
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -59,7 +81,9 @@ class _SearchScreenState extends State<SearchScreen> {
       child: Scaffold(
         body: Search(
           scrollController: _scrollController,
-          autofocus: true,
+          session: widget.session,
+          // A search kept from before shows its results, not the keyboard.
+          autofocus: widget.session?.store.searchText.isEmpty ?? true,
           onBack: () => Navigator.maybePop(context),
         ),
       ),
@@ -78,11 +102,15 @@ class Search extends StatefulWidget {
   /// A back button before the field, when search is its own page.
   final VoidCallback? onBack;
 
+  /// What the search keeps between opens; null: its own, let go with it.
+  final SearchSession? session;
+
   const Search({
     super.key,
     required this.scrollController,
     this.autofocus = false,
     this.onBack,
+    this.session,
   });
 
   @override
@@ -105,22 +133,28 @@ enum _SearchTab {
 }
 
 class _SearchState extends State<Search> with SingleTickerProviderStateMixin {
-  late final _searchStore = SearchStore(
-    authStore: context.read<AuthStore>(),
-    twitchApi: context.read<TwitchApi>(),
-  );
+  /// Given (kept between opens), or this search's own.
+  late final _session =
+      widget.session ??
+      SearchSession(
+        authStore: context.read<AuthStore>(),
+        twitchApi: context.read<TwitchApi>(),
+      );
+
+  SearchStore get _searchStore => _session.store;
 
   late final _tabController = TabController(
     length: _SearchTab.values.length,
     vsync: this,
+    initialIndex: _session.tab,
   );
 
   /// Made the first time the Videos tab is opened.
-  late final _videosStore = SearchVideosStore(
+  SearchVideosStore get _videosStore => _session.videos ??= SearchVideosStore(
     vodService: context.read<TwitchVodService>(),
   );
 
-  var _tab = _SearchTab.top;
+  late var _tab = _SearchTab.values[_session.tab];
 
   ReactionDisposer? _disposeQueryReaction;
 
@@ -139,6 +173,7 @@ class _SearchState extends State<Search> with SingleTickerProviderStateMixin {
   void _onTabChanged() {
     final tab = _SearchTab.values[_tabController.index];
     if (tab == _tab) return;
+    _session.tab = tab.index;
     setState(() => _tab = tab);
     if (widget.scrollController.hasClients) {
       widget.scrollController.jumpTo(0);
@@ -396,7 +431,7 @@ class _SearchState extends State<Search> with SingleTickerProviderStateMixin {
   void dispose() {
     _disposeQueryReaction?.call();
     _tabController.dispose();
-    _searchStore.dispose();
+    if (widget.session == null) _session.dispose();
     super.dispose();
   }
 }

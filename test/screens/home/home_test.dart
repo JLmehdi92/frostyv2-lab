@@ -172,6 +172,42 @@ void main() {
     await close(tester);
   });
 
+  testWidgets('search keeps its query and results between opens', (
+    tester,
+  ) async {
+    when(
+      () => api.searchChannels(query: any(named: 'query')),
+    ).thenAnswer((_) async => []);
+    when(
+      () => api.searchCategories(query: any(named: 'query')),
+    ).thenAnswer((_) async => const CategoriesTwitch([], {}));
+    await pump(tester);
+    await tester.tap(find.byTooltip('Search'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'chess');
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await tester.pumpAndSettle();
+    // The result tabs show for a query; pick one.
+    await tester.tap(find.text('Categories').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+
+    // From Browse's field this time: the same search.
+    await tester.tap(nav('browse'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Search channels, categories or videos'));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      'chess',
+    );
+    final tabs = tester.widget<TabBar>(find.byType(TabBar));
+    expect(tabs.controller!.index, 2);
+    verify(() => api.searchChannels(query: 'chess')).called(1);
+    await close(tester);
+  });
+
   testWidgets("Android's back: to Home, to its start tab, then out", (
     tester,
   ) async {
