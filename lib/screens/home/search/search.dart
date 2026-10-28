@@ -17,12 +17,63 @@ import 'package:frosty/widgets/section_header.dart';
 import 'package:mobx/mobx.dart';
 import 'package:provider/provider.dart';
 
+/// Search, opened from the shell (the header's search button, Browse's
+/// search field, the tablet's top bar).
+class SearchScreen extends StatefulWidget {
+  static const routeName = '/search';
+
+  const SearchScreen({super.key});
+
+  static Future<void> open(BuildContext context) => Navigator.push(
+    context,
+    MaterialPageRoute(
+      settings: const RouteSettings(name: routeName),
+      builder: (context) => const SearchScreen(),
+    ),
+  );
+
+  @override
+  State<SearchScreen> createState() => _SearchScreenState();
+}
+
+class _SearchScreenState extends State<SearchScreen> {
+  final _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Search(
+        scrollController: _scrollController,
+        autofocus: true,
+        onBack: () => Navigator.maybePop(context),
+      ),
+    );
+  }
+}
+
 /// The search section that contians search history and search results for channels and categories.
 class Search extends StatefulWidget {
   // The scroll controller for handling scroll to top functionality.
   final ScrollController scrollController;
 
-  const Search({super.key, required this.scrollController});
+  /// Opens the keyboard at once (search was asked for).
+  final bool autofocus;
+
+  /// A back button before the field, when search is its own page.
+  final VoidCallback? onBack;
+
+  const Search({
+    super.key,
+    required this.scrollController,
+    this.autofocus = false,
+    this.onBack,
+  });
 
   @override
   State<Search> createState() => _SearchState();
@@ -263,34 +314,22 @@ class _SearchState extends State<Search> with SingleTickerProviderStateMixin {
                 return Column(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: TextField(
-                        controller: _searchStore.textEditingController,
-                        focusNode: _searchStore.textFieldFocusNode,
-                        autocorrect: false,
-                        onChanged: _searchStore.onSearchTextChanged,
-                        decoration: InputDecoration(
-                          prefixIcon: const Icon(Icons.search_rounded),
-                          hintText: 'Search channels, categories or videos',
-                          suffixIcon:
-                              _searchStore.textFieldFocusNode.hasFocus ||
-                                  _searchStore.searchText.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.close_rounded),
-                                  tooltip: _searchStore.searchText.isEmpty
-                                      ? 'Cancel'
-                                      : 'Clear',
-                                  onPressed: () {
-                                    if (_searchStore.searchText.isEmpty) {
-                                      _searchStore.textFieldFocusNode.unfocus();
-                                    }
-                                    _searchStore.textEditingController.clear();
-                                    _searchStore.onSearchTextChanged('');
-                                  },
-                                )
-                              : null,
-                        ),
-                        onSubmitted: _searchStore.handleQuery,
+                      padding: EdgeInsets.fromLTRB(
+                        widget.onBack == null ? 16 : 4,
+                        16,
+                        16,
+                        16,
+                      ),
+                      child: Row(
+                        children: [
+                          if (widget.onBack case final onBack?)
+                            IconButton(
+                              tooltip: 'Back',
+                              onPressed: onBack,
+                              icon: Icon(Icons.adaptive.arrow_back_rounded),
+                            ),
+                          Expanded(child: _field()),
+                        ],
                       ),
                     ),
                     if (_searchStore.searchText.isNotEmpty)
@@ -310,6 +349,36 @@ class _SearchState extends State<Search> with SingleTickerProviderStateMixin {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _field() {
+    return TextField(
+      controller: _searchStore.textEditingController,
+      focusNode: _searchStore.textFieldFocusNode,
+      autocorrect: false,
+      autofocus: widget.autofocus,
+      onChanged: _searchStore.onSearchTextChanged,
+      decoration: InputDecoration(
+        prefixIcon: const Icon(Icons.search_rounded),
+        hintText: 'Search channels, categories or videos',
+        suffixIcon:
+            _searchStore.textFieldFocusNode.hasFocus ||
+                _searchStore.searchText.isNotEmpty
+            ? IconButton(
+                icon: const Icon(Icons.close_rounded),
+                tooltip: _searchStore.searchText.isEmpty ? 'Cancel' : 'Clear',
+                onPressed: () {
+                  if (_searchStore.searchText.isEmpty) {
+                    _searchStore.textFieldFocusNode.unfocus();
+                  }
+                  _searchStore.textEditingController.clear();
+                  _searchStore.onSearchTextChanged('');
+                },
+              )
+            : null,
+      ),
+      onSubmitted: _searchStore.handleQuery,
     );
   }
 
