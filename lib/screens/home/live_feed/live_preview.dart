@@ -50,7 +50,10 @@ class MediaKitPreviewBackend implements LivePreviewBackend {
     await _player.setVolume(0);
     await _player.open(Media(url));
     unawaited(
-      _video.waitUntilFirstFrameRendered.then((_) => _showing.value = true),
+      _video.waitUntilFirstFrameRendered.then((_) {
+        // The first frame can land after the preview was let go.
+        if (!_disposed) _showing.value = true;
+      }),
     );
   }
 
@@ -66,8 +69,12 @@ class MediaKitPreviewBackend implements LivePreviewBackend {
     fill: const Color(0x00000000),
   );
 
+  var _disposed = false;
+
   @override
   Future<void> dispose() async {
+    if (_disposed) return;
+    _disposed = true;
     _showing.value = false;
     await _player.dispose();
     _showing.dispose();
