@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,10 +8,14 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/apis/twitch_chat_rules_service.dart';
 import 'package:frosty/apis/twitch_watch_streak_service.dart';
 import 'package:frosty/models/community_highlights.dart';
+import 'package:frosty/models/stream.dart';
 import 'package:frosty/models/vod.dart';
+import 'package:frosty/screens/channel/channel_info.dart';
 import 'package:frosty/screens/channel/channel_top_overlays.dart';
+import 'package:frosty/screens/channel/chat/details/chat_details.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
+import 'package:frosty/screens/channel/chat/widgets/chat_bottom_bar.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_tabs.dart';
 import 'package:frosty/screens/channel/chat/widgets/overlay_chat_scope.dart';
 import 'package:frosty/screens/channel/community_highlights/gift_bomb_feed.dart';
@@ -19,9 +24,11 @@ import 'package:frosty/screens/channel/community_highlights/widgets/pinned_chat_
 import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:frosty/screens/channel/portrait_split.dart';
 import 'package:frosty/screens/channel/stores/channel_events_store.dart';
+import 'package:frosty/screens/channel/stores/channel_info_store.dart';
 import 'package:frosty/screens/channel/video/content_warning_gate.dart';
 import 'package:frosty/screens/channel/video/ivs_stats_panel.dart';
 import 'package:frosty/screens/channel/video/ivs_video.dart';
+import 'package:frosty/screens/channel/video/latency_pill.dart';
 import 'package:frosty/screens/channel/video/live_progress.dart';
 import 'package:frosty/screens/channel/video/native_video.dart';
 import 'package:frosty/screens/channel/video/overlay_common.dart';
@@ -43,6 +50,7 @@ import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:frosty/stores/whisper_store.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
+import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/utils/pip_callbacks.dart';
 import 'package:frosty/widgets/blurred_container.dart';
 import 'package:frosty/widgets/celebration_overlay.dart';
@@ -97,6 +105,18 @@ class _VideoChatState extends State<VideoChat>
     isChannelLive: () => _videoStore.streamInfo != null,
   );
 
+  /// Whether the viewer follows this channel and, beside a tablet's video,
+  /// their other followed channels live now; asked once the player has had
+  /// its head start, never on the video path.
+  late final ChannelInfoStore _infoStore = () {
+    final auth = context.authStore;
+    return ChannelInfoStore(
+      channelId: widget.userId,
+      api: context.twitchApi,
+      viewerId: () => auth.user.details?.id,
+    );
+  }();
+
   // PiP drag state - essential only
   double _pipDragDistance = 0;
   bool _isPipDragging = false;
@@ -117,6 +137,9 @@ class _VideoChatState extends State<VideoChat>
 
   // Divider drag state for synchronizing animation
   bool _isDividerDragging = false;
+
+  /// A tablet's side chat, a shade off the ground (board Tablette).
+  static const _tabletChatColor = Color(0xFF0D0D0D);
 
   // Essential constants for good UX balance
   static const double _pipTriggerDistance = 80;
@@ -272,16 +295,119 @@ class _VideoChatState extends State<VideoChat>
   }
 
   /// "Watch" on an outgoing raid: the target replaces this channel.
-  void _watchRaid(OutgoingRaid raid) {
+  void _watchRaid(OutgoingRaid raid) => _replaceWith(
+    userId: raid.targetId,
+    userName: raid.targetDisplayName,
+    userLogin: raid.targetLogin,
+  );
+
+  /// A channel from "Also live from your follows" replaces this one, as a
+  /// raid's target does (one player at a time).
+  void _openChannel(StreamTwitch stream) => _replaceWith(
+    userId: stream.userId,
+    userName: stream.userName,
+    userLogin: stream.userLogin,
+  );
+
+  void _replaceWith({
+    required String userId,
+    required String userName,
+    required String userLogin,
+  }) {
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         settings: const RouteSettings(name: VideoChat.routeName),
         builder: (context) => VideoChat(
-          userId: raid.targetId,
-          userName: raid.targetDisplayName,
-          userLogin: raid.targetLogin,
+          userId: userId,
+          userName: userName,
+          userLogin: userLogin,
         ),
+      ),
+    );
+  }
+
+  /// The chat's details from the header of a tablet's side chat.
+  void _openChatDetails() {
+    final chatStore = _chatStore;
+    showModalBottomSheetWithProperFocus(
+      isScrollControlled: true,
+      context: context,
+      builder: (_) => ChatDetails(
+        chatDetailsStore: chatStore.chatDetailsStore,
+        chatStore: chatStore,
+        userLogin: chatStore.channelName,
+        onAddChat: () => addChatTab(context, _chatTabsStore),
+      ),
+    );
+  }
+
+  void _openProfile() => ChannelProfileScreen.open(
+    context,
+    login: widget.userLogin,
+    displayName: widget.userName,
+    fromChannel: true,
+  );
+
+  /// Below a tablet's video beside its chat, the channel's info area keeps
+  /// at least this much room.
+  static const _minTabletInfoHeight = 120.0;
+
+  /// A tablet beside its chat (board Tablette): the 16:9 video at the top,
+  /// the channel's info area under it.
+  Widget _buildTabletVideoColumn(Widget video) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final videoHeight = math.min(
+          constraints.maxWidth * 9 / 16,
+          math.max(0.0, constraints.maxHeight - _minTabletInfoHeight),
+        );
+        return Column(
+          children: [
+            SizedBox(
+              height: videoHeight,
+              width: double.infinity,
+              child: _buildPipGestureWrapper(child: video),
+            ),
+            Expanded(
+              child: TabletChannelPanel(
+                player: _videoStore,
+                login: widget.userLogin,
+                displayName: widget.userName,
+                info: _infoStore,
+                viewerLogin: context.authStore.user.details?.login,
+                onOpenChannel: _openChannel,
+                watchStreak: () => _eventsStore.watchStreak?.value,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// A tablet's side chat (board Tablette): its header, then the chat.
+  Widget _buildTabletChat(Widget chat, SettingsStore settingsStore) {
+    final hairline = BorderSide(
+      color: context.frostyColors.hairline,
+      width: FrostyTokens.hairlineWidth,
+    );
+    final left = settingsStore.landscapeChatLeftSide;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(
+          left: left ? BorderSide.none : hairline,
+          right: left ? hairline : BorderSide.none,
+        ),
+      ),
+      child: Column(
+        children: [
+          TabletChatHeader(
+            settings: settingsStore,
+            onMore: _openChatDetails,
+          ),
+          Expanded(child: ChatMoreInHeader(child: chat)),
+        ],
       ),
     );
   }
@@ -375,6 +501,7 @@ class _VideoChatState extends State<VideoChat>
     // Not awaited: the channel must open at the same speed it always did, and
     // a real-time connection failing is not a reason to delay playback.
     unawaited(_eventsStore.connect());
+    _infoStore.start();
 
     // If the native engine fails to load the stream (offline, geo-block, or a
     // Twitch API change), fall back to the WebView engine for this session so
@@ -764,13 +891,17 @@ class _VideoChatState extends State<VideoChat>
     final settingsStore = _chatTabsStore.settingsStore;
 
     final store = _videoStore;
-    final player = GestureDetector(
-      onLongPress: _videoStore.handleToggleOverlay,
-      child: store is IvsVideoStore
-          ? IvsTextureVideo(key: _videoKey, videoStore: store)
-          : store is NativeVideoStore
-          ? NativeVideo(key: _videoKey, videoStore: store)
-          : Video(key: _videoKey, videoStore: store as VideoStore),
+    // Its own layer: nothing drawn over it (controls, chat, the latency
+    // pill) makes the picture repaint.
+    final player = RepaintBoundary(
+      child: GestureDetector(
+        onLongPress: _videoStore.handleToggleOverlay,
+        child: store is IvsVideoStore
+            ? IvsTextureVideo(key: _videoKey, videoStore: store)
+            : store is NativeVideoStore
+            ? NativeVideo(key: _videoKey, videoStore: store)
+            : Video(key: _videoKey, videoStore: store as VideoStore),
+      ),
     );
 
     final gestures = GestureDetector(
@@ -838,6 +969,32 @@ class _VideoChatState extends State<VideoChat>
           )
         : overlayGestures;
 
+    // The latency stays over the video whether the controls show or not
+    // (board ChaineLecteur: always readable, never under a menu), where
+    // their top row leaves it room.
+    final metrics = PlayerChromeMetrics.of(context);
+    final chrome = Stack(
+      fit: StackFit.expand,
+      children: [
+        overlay,
+        Positioned(
+          top: metrics.pillTop,
+          right: metrics.pillEdge,
+          child: Observer(
+            builder: (context) {
+              final show =
+                  settingsStore.showLatency &&
+                  _videoStore.streamInfo != null &&
+                  !_videoStore.isInPipMode;
+              return show
+                  ? LatencyPill(store: _videoStore, large: metrics.large)
+                  : const SizedBox.shrink();
+            },
+          ),
+        ),
+      ],
+    );
+
     final video = ContentWarningGate(
       userId: widget.userId,
       displayName: widget.userName,
@@ -849,7 +1006,7 @@ class _VideoChatState extends State<VideoChat>
               player,
               // Twitch's own warning left in the web player gets the taps.
               if (_videoStore.settingsStore.showOverlay && !_webGateUp)
-                overlay,
+                chrome,
               ChannelVideoTopOverlay(
                 hypeTrain: _hypeTrainStore,
                 highlights: _highlightsStore,
@@ -883,13 +1040,16 @@ class _VideoChatState extends State<VideoChat>
 
         return Stack(
           children: [
-            ChatTabs(
-              key: _chatKey,
-              chatTabsStore: _chatTabsStore,
-              // In chat-only mode, account for the blurred AppBar height
-              listPadding: chatOnly
-                  ? EdgeInsets.only(top: context.safePaddingTop)
-                  : null,
+            // Its own layer: messages arriving never repaint the video.
+            RepaintBoundary(
+              child: ChatTabs(
+                key: _chatKey,
+                chatTabsStore: _chatTabsStore,
+                // In chat-only mode, account for the blurred AppBar height
+                listPadding: chatOnly
+                    ? EdgeInsets.only(top: context.safePaddingTop)
+                    : null,
+              ),
             ),
             ChannelChatTopOverlay(
               hypeTrain: _hypeTrainStore,
@@ -1073,10 +1233,10 @@ class _VideoChatState extends State<VideoChat>
                                                       .landscapeChatLeftSide
                                                   ? [
                                                       overlayChat,
-                                                      Expanded(child: overlay),
+                                                      Expanded(child: chrome),
                                                     ]
                                                   : [
-                                                      Expanded(child: overlay),
+                                                      Expanded(child: chrome),
                                                       overlayChat,
                                                     ],
                                             ),
@@ -1133,6 +1293,11 @@ class _VideoChatState extends State<VideoChat>
                                         ? 0.5
                                         : settingsStore.chatWidth;
 
+                                    // A tablet puts its info area under the
+                                    // video and a header on its chat (board
+                                    // Tablette).
+                                    final tablet = context.isLargeScreen;
+
                                     // Create the landscape chat container with proper styling
                                     final chatContainer = AnimatedContainer(
                                       curve: Curves.ease,
@@ -1145,8 +1310,17 @@ class _VideoChatState extends State<VideoChat>
                                               alpha: settingsStore
                                                   .fullScreenChatOverlayOpacity,
                                             )
+                                          : tablet &&
+                                                context.theme.brightness ==
+                                                    Brightness.dark
+                                          ? _tabletChatColor
                                           : context.scaffoldColor,
-                                      child: chat,
+                                      child: tablet
+                                          ? _buildTabletChat(
+                                              chat,
+                                              settingsStore,
+                                            )
+                                          : chat,
                                     );
 
                                     final draggableDivider = Observer(
@@ -1183,18 +1357,24 @@ class _VideoChatState extends State<VideoChat>
                                               ? [
                                                   chatContainer,
                                                   Expanded(
-                                                    child:
-                                                        _buildPipGestureWrapper(
-                                                          child: video,
-                                                        ),
+                                                    child: tablet
+                                                        ? _buildTabletVideoColumn(
+                                                            video,
+                                                          )
+                                                        : _buildPipGestureWrapper(
+                                                            child: video,
+                                                          ),
                                                   ),
                                                 ]
                                               : [
                                                   Expanded(
-                                                    child:
-                                                        _buildPipGestureWrapper(
-                                                          child: video,
-                                                        ),
+                                                    child: tablet
+                                                        ? _buildTabletVideoColumn(
+                                                            video,
+                                                          )
+                                                        : _buildPipGestureWrapper(
+                                                            child: video,
+                                                          ),
                                                   ),
                                                   chatContainer,
                                                 ],
@@ -1227,6 +1407,9 @@ class _VideoChatState extends State<VideoChat>
               // Read here, not in the LayoutBuilder below: the Observer only
               // tracks what its own build reads.
               final videoScale = settingsStore.portraitVideoScale;
+              // What the SafeArea below takes at the top: inside it the
+              // padding reads 0, and the video starts under it.
+              final safeTop = MediaQuery.paddingOf(context).top;
               return SafeArea(
                 // Keep chat-only scrolling under the blurred app bar, but
                 // ensure video does not bleed into the system status bar.
@@ -1239,44 +1422,68 @@ class _VideoChatState extends State<VideoChat>
                       final width = constraints.maxWidth;
                       final scale = dragScale ?? videoScale;
                       final videoHeight = portraitVideoHeight(width, scale);
-                      return Stack(
-                        children: [
-                          Column(
-                            children: [
-                              if (settingsStore.showVideo) ...[
-                                // Placeholder for video space
-                                SizedBox(height: videoHeight),
-                                PortraitSplitHandle(
-                                  width: width,
-                                  scale: scale,
-                                  onChanged: (scale) =>
-                                      _portraitDragScale.value = scale,
-                                  onChangeEnd: (scale) {
-                                    settingsStore.portraitVideoScale = scale;
-                                    _portraitDragScale.value = null;
-                                  },
-                                ),
+                      final large = context.isLargeScreen;
+                      // On a phone, sheets start under the video so the
+                      // live and its latency stay in view (approved
+                      // addition to the board ChaineLecteur).
+                      return SheetsUnderVideo(
+                        top:
+                            settingsStore.showVideo &&
+                                context.isPortrait &&
+                                !large
+                            ? safeTop + videoHeight
+                            : null,
+                        child: Stack(
+                          children: [
+                            Column(
+                              children: [
+                                if (settingsStore.showVideo) ...[
+                                  // Placeholder for video space
+                                  SizedBox(height: videoHeight),
+                                  PortraitSplitHandle(
+                                    width: width,
+                                    scale: scale,
+                                    onChanged: (scale) =>
+                                        _portraitDragScale.value = scale,
+                                    onChangeEnd: (scale) {
+                                      settingsStore.portraitVideoScale = scale;
+                                      _portraitDragScale.value = null;
+                                    },
+                                  ),
+                                  // The channel under the video (boards
+                                  // Chaine, TablettePortrait).
+                                  ChannelInfoRow(
+                                    player: _videoStore,
+                                    login: widget.userLogin,
+                                    displayName: widget.userName,
+                                    info: _infoStore,
+                                    viewerLogin:
+                                        context.authStore.user.details?.login,
+                                    onOpenProfile: _openProfile,
+                                    large: large,
+                                  ),
+                                ],
+                                Expanded(child: chat),
                               ],
-                              Expanded(child: chat),
-                            ],
-                          ),
-                          if (settingsStore.showVideo)
-                            Positioned(
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              height: videoHeight,
-                              child: Center(
-                                child: SizedBox(
-                                  width: videoHeight * 16 / 9,
-                                  child: _buildPipGestureWrapper(
-                                    child: video,
-                                    aspectRatio: 16 / 9,
+                            ),
+                            if (settingsStore.showVideo)
+                              Positioned(
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                height: videoHeight,
+                                child: Center(
+                                  child: SizedBox(
+                                    width: videoHeight * 16 / 9,
+                                    child: _buildPipGestureWrapper(
+                                      child: video,
+                                      aspectRatio: 16 / 9,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                        ],
+                          ],
+                        ),
                       );
                     },
                   ),
@@ -1349,6 +1556,7 @@ class _VideoChatState extends State<VideoChat>
     // shows no hype train or celebration, and leaving the socket open would
     // keep a channel's events flowing after leaving it.
     _eventsStore.dispose();
+    _infoStore.dispose();
 
     // Skip disposal when handed to the mini window — the player and the live
     // chat (with its history) live on there.
