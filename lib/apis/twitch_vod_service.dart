@@ -126,6 +126,17 @@ class TwitchVodService extends BaseApiClient {
       'query VideoViewingHistory(\$id: ID!) { video(id: \$id) { self { '
       'viewingHistory { position updatedAt } } } }';
 
+  // The official app's "Continue watching" shelf (ResumeWatchingVideosQuery,
+  // limit 10 there): the viewer's started videos with their positions. Needs
+  // the web token: anonymous answers `currentUser: null`.
+  static const _resumeWatchingQuery =
+      'query ResumeWatchingVideos(\$limit: Int!) { currentUser { '
+      'viewedVideos(first: \$limit) { edges { history { position updatedAt } '
+      'node { $_videoFields } } } } }';
+
+  /// Videos per [getVideos] request.
+  static const _videosBatch = 25;
+
   // The official app's write, for a VOD and for a live broadcast (by stream
   // id). The full document is accepted with the web Client-ID (an anonymous
   // try answers "unauthenticated", 2026-10-20).
@@ -336,6 +347,97 @@ class TwitchVodService extends BaseApiClient {
     } on FormatException {
       throw const VodApiException('Unreadable video');
     }
+  }
+
+  /// The videos [ids] (VOD ids; anything else is skipped), anonymously, in
+  /// the order asked; deleted ones are left out. One request for up to 25
+  /// (the rest are not asked). Throws when Twitch answers an error.
+  Future<List<Vod>> getVideos(List<String> ids) async {
+    final wanted = [
+      for (final raw in ids)
+        if (tryNormalizeVodId(raw) case final id?) id,
+    ].take(_videosBatch).toList();
+    if (wanted.isEmpty) return const [];
+    final fields = StringBuffer();
+    final params = <String>[];
+    final variables = <String, Object?>{};
+    for (final (i, id) in wanted.indexed) {
+      params.add('\$i$i: ID!');
+      fields.write('v$i: video(id: \$i$i) { $_videoFields } ');
+      variables['i$i'] = id;
+    }
+    final data = await _gql(
+      'VideosById',
+      'query VideosById(${params.join(', ')}) { $fields}',
+      variables,
+    );
+    final videos = <Vod>[];
+    for (var i = 0; i < wanted.length; i++) {
+      final node = data['v$i'];
+      if (node is! Map) continue;
+      try {
+        videos.add(Vod.fromGql(JsonMap.from(node)));
+      } on FormatException {
+        // One unreadable video must not hide the others.
+      }
+    }
+    return videos;
+  }
+
+  /// The logged-in viewer's "Continue watching" shelf on Twitch: the videos
+  /// they started, on any device, newest first as Twitch gives them, with
+  /// where they stopped. Null when logged out, refused or anything fails
+  /// (the caller falls back on this device's positions). Never throws.
+  Future<List<ResumeWatchingEntry>?> getResumeWatching({int limit = 20}) async {
+    final authToken = _usableWebToken;
+    if (authToken == null) return null;
+    final tokenId = _tokenId(authToken);
+    if (_historyRefused('shelf', tokenId)) return null;
+    try {
+      final data = await _gql(
+        'ResumeWatchingVideos',
+        _resumeWatchingQuery,
+        {'limit': limit},
+        headers: {'Authorization': 'OAuth $authToken'},
+      );
+      _historyFailures.remove('shelf#$tokenId');
+      final user = data['currentUser'];
+      final viewed = user is Map ? user['viewedVideos'] : null;
+      if (viewed is! Map) return null;
+      final edges = viewed['edges'] is List ? viewed['edges'] as List : [];
+      final entries = <ResumeWatchingEntry>[];
+      for (final edge in edges) {
+        if (edge is! Map || edge['node'] is! Map) continue;
+        final history = edge['history'];
+        final position = history is Map ? history['position'] : null;
+        if (position is! int || position < 0) continue;
+        try {
+          entries.add(
+            ResumeWatchingEntry(
+              vod: Vod.fromGql(JsonMap.from(edge['node'] as Map)),
+              history: ViewingHistory(
+                positionSec: position,
+                updatedAt: DateTime.tryParse(
+                  '${(history as Map)['updatedAt']}',
+                ),
+              ),
+            ),
+          );
+        } on FormatException {
+          // One unreadable video must not hide the others.
+        }
+      }
+      return entries;
+    } on UnauthorizedException {
+      debugPrint('Continue watching refused (401)');
+      _onWebTokenUnauthorized(authToken);
+    } on VodApiException catch (e) {
+      debugPrint('Continue watching refused (integrity: ${e.isIntegrity})');
+      _historyFailed('shelf', tokenId, e);
+    } catch (e) {
+      debugPrint('Continue watching failed: ${e.runtimeType}');
+    }
+    return null;
   }
 
   /// Chat messages recorded around [offsetSeconds] (Twitch returns a page

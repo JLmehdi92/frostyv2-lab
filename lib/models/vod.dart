@@ -151,6 +151,15 @@ class ViewingHistory {
   final DateTime? updatedAt;
 }
 
+/// A video the viewer started on Twitch (any device), and where they left
+/// it: an entry of their "Continue watching" shelf.
+class ResumeWatchingEntry {
+  const ResumeWatchingEntry({required this.vod, required this.history});
+
+  final Vod vod;
+  final ViewingHistory history;
+}
+
 /// A copyright-muted part of a VOD, in seconds from the start.
 class MutedSegment {
   const MutedSegment({required this.offset, required this.duration});
