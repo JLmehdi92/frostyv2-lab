@@ -47,6 +47,11 @@ abstract class AuthBase with Store {
   /// The secure-storage key for the optional twitch.tv web session token.
   static const _twitchWebTokenKey = 'twitch_web_token';
 
+  /// The id of the account last logged in, so a login knows whether the
+  /// stored web token is that account's, also when its details are not
+  /// loaded (a launch still reconnecting).
+  static const _userIdKey = 'user_id';
+
   /// The Twitch API service for making requests.
   final TwitchApi twitchApi;
 
@@ -529,6 +534,7 @@ abstract class AuthBase with Store {
         if (user.details != null) {
           _isLoggedIn = true;
           _stopReconnectLoop();
+          await _storage.write(key: _userIdKey, value: user.details!.id);
 
           // Keep the 2K credential fresh on every launch, but only once we
           // know there is a session to refresh — running this while logged out
@@ -552,8 +558,10 @@ abstract class AuthBase with Store {
   Future<void> login({required String token}) async {
     // Who was logged in: a login as another account must not keep their
     // twitch.tv session token.
-    final previousId = _isLoggedIn ? user.details?.id : null;
+    String? previousId = user.details?.id;
     try {
+      previousId ??= await _storage.read(key: _userIdKey);
+
       // Validate the custom token.
       _tokenIsValid = await twitchApi.validateToken(token: token);
       if (!_tokenIsValid) return;
@@ -569,14 +577,17 @@ abstract class AuthBase with Store {
 
       // Another account: the stored web token is the previous one's (its
       // playback, watch positions and shelf would be theirs). It goes, and
-      // a session read still in flight for it is dropped; the next read
-      // takes the new account's (the login page's cookie). The cookies are
-      // kept: the login page just set the new account's.
+      // a session read still in flight is dropped (it may have stored the
+      // new account's token already, or be about to store either); the jar
+      // is read again at once, as the login page just put the new account's
+      // cookie there. The cookies are kept.
       final newId = user.details?.id;
       if (previousId != null && newId != null && newId != previousId) {
         _authEpoch++;
         await setTwitchWebToken(null);
+        if (_isAndroid) unawaited(harvestTwitchWebToken());
       }
+      if (newId != null) await _storage.write(key: _userIdKey, value: newId);
 
       // Set the login status to logged in.
       if (user.details != null) {
@@ -607,6 +618,7 @@ abstract class AuthBase with Store {
       if (userToken != null) unawaited(_revoke(userToken));
       // Delete the existing user token.
       await _storage.delete(key: _userTokenKey);
+      await _storage.delete(key: _userIdKey);
       _token = null;
 
       // Clear the user info.

@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/models/user.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/services/twitch_web_token_service.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 
@@ -128,6 +130,91 @@ void main() {
 
       expect(store.twitchWebToken, isNull);
       expect(await _storage.read(key: 'twitch_web_token'), isNull);
+    });
+
+    // The login page's order: the redirect with the user token starts the
+    // login (validation and the user's details: two requests), then the
+    // next redirect harvests the twitch.tv cookie, which the login page has
+    // just made the new account's.
+    for (final harvestFirst in [true, false]) {
+      test(
+        "from the login page, the new account's web token stays "
+        '(harvest ${harvestFirst ? 'before' : 'after'} the account check)',
+        () async {
+          final store = await withStoredToken('web_of_viewer_1');
+          jar = 'web_of_viewer_2';
+          final validated = Completer<bool>();
+          final read = Completer<String?>();
+          var reads = 0;
+          when(
+            () => api.validateToken(token: any(named: 'token')),
+          ).thenAnswer((_) => validated.future);
+          when(() => api.getUserInfo()).thenAnswer(
+            (_) async => const UserTwitch('2', 'other', 'Other', ''),
+          );
+          when(() => cookies.readAuthToken()).thenAnswer((_) {
+            reads++;
+            // The redirect's own read is the first one.
+            return reads == 1 ? read.future : Future.value(jar);
+          });
+
+          store.handleNavigation(
+            request: const NavigationRequest(
+              url: 'https://twitch.tv/login#access_token=user_2&scope=x',
+              isMainFrame: true,
+            ),
+          );
+          store.handleNavigation(
+            request: const NavigationRequest(
+              url: 'https://www.twitch.tv/?no-reload=true',
+              isMainFrame: true,
+            ),
+          );
+          if (harvestFirst) {
+            read.complete('web_of_viewer_2');
+            await pumpEventQueue();
+            validated.complete(true);
+          } else {
+            validated.complete(true);
+            await pumpEventQueue();
+            read.complete('web_of_viewer_2');
+          }
+          await pumpEventQueue();
+
+          expect(store.twitchWebToken, 'web_of_viewer_2');
+          expect(
+            await _storage.read(key: 'twitch_web_token'),
+            'web_of_viewer_2',
+          );
+        },
+      );
+    }
+
+    test('logged in as another account while the launch reconnects: the '
+        "old account's web token still goes", () async {
+      // Account 1 logged in on a previous launch.
+      await withStoredToken('web_of_viewer_1');
+      // This launch cannot validate its token yet: the reconnect loop, no
+      // details loaded.
+      when(
+        () => api.validateToken(token: any(named: 'token')),
+      ).thenThrow(const ApiException('offline'));
+      final store = build();
+      await store.init();
+      expect(store.isLoggedIn, isFalse);
+      expect(store.twitchWebToken, 'web_of_viewer_1');
+
+      when(
+        () => api.validateToken(token: any(named: 'token')),
+      ).thenAnswer((_) async => true);
+      when(
+        () => api.getUserInfo(),
+      ).thenAnswer((_) async => const UserTwitch('2', 'other', 'Other', ''));
+      await store.login(token: 'user_2');
+      await pumpEventQueue();
+
+      expect(store.twitchWebToken, isNot('web_of_viewer_1'));
+      await store.logout();
     });
 
     test('the same account logging in again keeps it', () async {
