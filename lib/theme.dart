@@ -65,6 +65,157 @@ class FrostyTokens {
 
   /// Full pill, used by text inputs.
   static const radiusPill = 100.0;
+
+  // Noir & Signal 2.0 ─────────────────────────────────────────────────────────
+  // Added by the redesign, next to the values above (which keep their names
+  // and values). Read off the design system board: depth is three greys and a
+  // hairline, never a shadow.
+
+  /// The third grey, above [surfaceDark]: chips, pressed cards, secondary
+  /// buttons, skeleton highlights.
+  static const raisedDark = Color(0xFF1E1E1E);
+
+  /// Text tiers on the dark ground. Primary for names and titles, body for
+  /// live titles and chat, secondary for metadata (the same grey as
+  /// [FrostyColors.metadata]), tertiary for inactive tabs and fine print.
+  static const textPrimaryDark = Color(0xFFF5F5F5);
+  static const textBodyDark = Color(0xFFD6D6D6);
+  static const textSecondaryDark = Color(0xFFA1A1A1);
+  static const textTertiaryDark = Color(0xFF8A8A8A);
+
+  /// Hairlines on raised surfaces (12 %) and on secondary buttons (16 %).
+  static const hairlineRaisedDark = Color(0x1FFFFFFF);
+  static const hairlineStrongDark = Color(0x29FFFFFF);
+
+  /// The signal at 10 %: the fill of a selected chip outlined in [accent].
+  static const accentTint = Color(0x1AC8FF3D);
+
+  /// Subs, gifts and the hype train — never a generic "OK".
+  static const hype = Color(0xFF12A87A);
+
+  /// Green text on a [hype]-tinted fill (the "Subscribe" button).
+  static const hypeText = Color(0xFF3DDBA6);
+
+  /// Destructive actions only.
+  static const danger = Color(0xFFFF5A5F);
+
+  /// Hero cards and sheets: the top of the 8 / 12 / 16 / 24 / pill scale
+  /// ([radiusSmall], [radiusCard], [radiusDialog], [radiusLarge],
+  /// [radiusPill]).
+  static const radiusLarge = 24.0;
+
+  /// The "LIVE" badge.
+  static const radiusBadge = 6.0;
+}
+
+/// The 4-pt spacing grid of Noir & Signal 2.0: 4 · 8 · 12 · 16 · 24 · 32,
+/// plus a 2-pt hairline step.
+abstract final class FrostySpacing {
+  static const xxs = 2.0;
+  static const xs = 4.0;
+  static const sm = 8.0;
+  static const md = 12.0;
+  static const lg = 16.0;
+  static const xl = 24.0;
+  static const xxl = 32.0;
+
+  /// Screen edge on a phone, and on a tablet (the tablet boards keep a wider
+  /// margin instead of stretching the phone layout).
+  static const gutterPhone = 16.0;
+  static const gutterTablet = 28.0;
+}
+
+/// The type scale of Noir & Signal 2.0, all Inter. Big titles are tightened,
+/// small text is opened up, and numbers that change use tabular figures so
+/// they keep their width.
+///
+/// Styles carry no colour: they are merged onto the theme's (`copyWith` or
+/// `DefaultTextStyle.merge`), so the scale serves the light theme too.
+abstract final class FrostyType {
+  static const _inter = FrostyTokens.displayFamily;
+  static const _tabular = FontFeature.tabularFigures();
+
+  /// Hero numbers and empty-state headlines.
+  static const display = TextStyle(
+    fontFamily: _inter,
+    fontSize: 34,
+    fontWeight: FontWeight.w800,
+    letterSpacing: -0.035 * 34,
+    height: 1.05,
+  );
+
+  /// The title of a screen.
+  static const screenTitle = TextStyle(
+    fontFamily: _inter,
+    fontSize: 24,
+    fontWeight: FontWeight.w700,
+    letterSpacing: -0.02 * 24,
+  );
+
+  /// A section ("Continue watching").
+  static const section = TextStyle(
+    fontFamily: _inter,
+    fontSize: 18,
+    fontWeight: FontWeight.w700,
+    letterSpacing: -0.015 * 18,
+  );
+
+  /// A channel name on a card.
+  static const channelName = TextStyle(
+    fontFamily: _inter,
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.01 * 16,
+  );
+
+  /// Live titles and chat.
+  static const body = TextStyle(
+    fontFamily: _inter,
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+    letterSpacing: 0,
+    height: 1.5,
+  );
+
+  /// Viewer counts, uptime, latency.
+  static const meta = TextStyle(
+    fontFamily: _inter,
+    fontSize: 13,
+    fontWeight: FontWeight.w400,
+    letterSpacing: 0,
+    fontFeatures: [_tabular],
+  );
+
+  /// Uppercase labels (the caller upper-cases the string).
+  static const label = TextStyle(
+    fontFamily: _inter,
+    fontSize: 11,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0.14 * 11,
+  );
+
+  /// The "LIVE" badge.
+  static const badge = TextStyle(
+    fontFamily: _inter,
+    fontSize: 11,
+    fontWeight: FontWeight.w800,
+    letterSpacing: 0.06 * 11,
+  );
+
+  /// The "ONSET" wordmark in the header.
+  static const wordmark = TextStyle(
+    fontFamily: _inter,
+    fontSize: 20,
+    fontWeight: FontWeight.w800,
+    letterSpacing: -0.035 * 20,
+  );
+
+  /// [style] with tabular figures, for any number that changes in place.
+  static TextStyle tabular(TextStyle style) {
+    final features = style.fontFeatures ?? const <FontFeature>[];
+    if (features.contains(_tabular)) return style;
+    return style.copyWith(fontFeatures: [...features, _tabular]);
+  }
 }
 
 /// App-specific semantic colors that extend Material's [ColorScheme].
