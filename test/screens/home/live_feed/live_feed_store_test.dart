@@ -1,0 +1,174 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/models/stream.dart';
+import 'package:frosty/screens/home/live_feed/stores/live_feed_store.dart';
+import 'package:frosty/screens/settings/stores/auth_store.dart';
+import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/settings/stores/user_store.dart';
+import 'package:mobx/mobx.dart' show ObservableList;
+import 'package:mocktail/mocktail.dart';
+
+class MockTwitchApi extends Mock implements TwitchApi {}
+
+class MockAuthStore extends Mock implements AuthStore {}
+
+class MockUserStore extends Mock implements UserStore {}
+
+StreamTwitch _s(String id, String gameId, String game) =>
+    StreamTwitch(id, 'l$id', 'N$id', gameId, game, 'T', 10, '', '');
+
+void main() {
+  late MockTwitchApi api;
+  late MockAuthStore auth;
+  late SettingsStore settings;
+
+  setUp(() {
+    api = MockTwitchApi();
+    auth = MockAuthStore();
+    settings = SettingsStore.fromJson({});
+    final user = MockUserStore();
+    when(() => auth.user).thenReturn(user);
+    when(() => user.blockedUsers).thenReturn(ObservableList());
+    when(
+      () => api.getTopStreams(
+        cursor: any(named: 'cursor'),
+        language: any(named: 'language'),
+      ),
+    ).thenAnswer(
+      (invocation) async => invocation.namedArguments[#cursor] == null
+          ? StreamsTwitch(
+              [
+                _s('1', '10', 'Just Chatting'),
+                _s('2', '20', 'League of Legends'),
+                _s('3', '10', 'Just Chatting'),
+                _s('4', '30', 'GTA V'),
+                _s('5', '', ''),
+                _s('6', '20', 'League of Legends'),
+                _s('7', '40', 'Chess'),
+                _s('8', '50', 'Dota 2'),
+              ],
+              const {'cursor': 'next'},
+            )
+          : StreamsTwitch([_s('9', '10', 'Just Chatting')], const {}),
+    );
+    when(
+      () => api.getStreamsUnderCategory(
+        gameId: any(named: 'gameId'),
+        cursor: any(named: 'cursor'),
+        language: any(named: 'language'),
+      ),
+    ).thenAnswer(
+      (_) async =>
+          StreamsTwitch([_s('20', '20', 'League of Legends')], const {}),
+    );
+  });
+
+  Future<LiveFeedStore> build() async {
+    final store = LiveFeedStore(
+      authStore: auth,
+      settingsStore: settings,
+      twitchApi: api,
+    );
+    for (var i = 0; i < 4; i++) {
+      await Future<void>.delayed(Duration.zero);
+    }
+    return store;
+  }
+
+  test('chips: the categories of the first page, most streams first', () async {
+    final store = await build();
+
+    expect(store.chips.map((c) => c.name), [
+      'Just Chatting',
+      'League of Legends',
+      'GTA V',
+      'Chess',
+    ]);
+    expect(store.current!.userId, '1');
+    store.dispose();
+  });
+
+  test(
+    'a chip shows its category from the first stream; All comes back',
+    () async {
+      final store = await build();
+      store.setIndex(2);
+
+      store.selectCategory('20');
+      for (var i = 0; i < 4; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      expect(store.categoryId, '20');
+      expect(store.index, 0);
+      expect(store.streams.map((s) => s.userId), ['20']);
+      verify(
+        () => api.getStreamsUnderCategory(
+          gameId: '20',
+          cursor: any(named: 'cursor'),
+          language: any(named: 'language'),
+        ),
+      ).called(1);
+      // The chips stay as they were.
+      expect(store.chips, hasLength(4));
+
+      store.selectCategory(null);
+      expect(store.streams.first.userId, '1');
+      store.dispose();
+    },
+  );
+
+  test('not interested: left out this session, and undone', () async {
+    final store = await build();
+
+    store.hide('1');
+    expect(store.current!.userId, '2');
+    expect(store.streams, hasLength(7));
+    store.unhide('1');
+    expect(store.current!.userId, '1');
+    store.dispose();
+  });
+
+  test('the next page comes before the end', () async {
+    final store = await build();
+
+    store.setIndex(3);
+    await Future<void>.delayed(Duration.zero);
+    verifyNever(
+      () => api.getTopStreams(
+        cursor: 'next',
+        language: any(named: 'language'),
+      ),
+    );
+
+    store.setIndex(6);
+    for (var i = 0; i < 4; i++) {
+      await Future<void>.delayed(Duration.zero);
+    }
+    verify(
+      () => api.getTopStreams(
+        cursor: 'next',
+        language: any(named: 'language'),
+      ),
+    ).called(1);
+    expect(store.streams, hasLength(9));
+    store.dispose();
+  });
+
+  test('refresh starts the list over from the first stream', () async {
+    final store = await build();
+    store.setIndex(4);
+
+    await store.refresh();
+
+    expect(store.index, 0);
+    store.dispose();
+  });
+
+  test('the index never points past the list', () async {
+    final store = await build();
+    store.setIndex(50);
+    expect(store.current!.userId, '8');
+    store.dispose();
+  });
+}
