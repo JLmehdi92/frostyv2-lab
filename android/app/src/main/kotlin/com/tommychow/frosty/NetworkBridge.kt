@@ -70,11 +70,11 @@ class NetworkBridge(private val context: Context, messenger: BinaryMessenger) {
         // Callbacks come on a connectivity thread: answered on the main one.
         val next = object : ConnectivityManager.NetworkCallback() {
             override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
-                main.post { send(sink) }
+                main.post { send(this, sink) }
             }
 
             override fun onLost(network: Network) {
-                main.post { send(sink) }
+                main.post { send(this, sink) }
             }
         }
         try {
@@ -90,8 +90,9 @@ class NetworkBridge(private val context: Context, messenger: BinaryMessenger) {
         }
     }
 
-    private fun send(sink: EventChannel.EventSink) {
-        if (callback == null) return
+    private fun send(from: ConnectivityManager.NetworkCallback, sink: EventChannel.EventSink) {
+        // A post left by an earlier registration says nothing about this one.
+        if (callback !== from) return
         val metered = isMetered()
         if (sentOnce && metered == lastSent) return
         sentOnce = true
