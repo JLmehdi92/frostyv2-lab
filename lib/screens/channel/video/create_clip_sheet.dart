@@ -238,17 +238,33 @@ class CreateClipButton extends StatelessWidget {
     required this.broadcasterId,
     required this.color,
     this.shadows,
+    this.icon,
   });
 
   final String broadcasterId;
   final Color color;
   final List<Shadow>? shadows;
 
+  /// Replaces the default icon (the player draws its own glyphs).
+  final Widget? icon;
+
   @override
   Widget build(BuildContext context) {
+    final icon = this.icon;
     return IconButton(
       tooltip: 'Clip',
-      icon: Icon(Icons.movie_creation_outlined, color: color, shadows: shadows),
+      padding: icon == null ? null : EdgeInsets.zero,
+      constraints: icon == null
+          ? null
+          : const BoxConstraints.tightFor(width: 44, height: 44),
+      style: icon == null
+          ? null
+          : IconButton.styleFrom(
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+      icon:
+          icon ??
+          Icon(Icons.movie_creation_outlined, color: color, shadows: shadows),
       onPressed: () =>
           CreateClipSheet.show(context, broadcasterId: broadcasterId),
     );

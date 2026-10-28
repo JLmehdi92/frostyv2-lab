@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/screens/channel/video/player_glyph.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/utils/content_labels.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:provider/provider.dart';
@@ -138,62 +140,107 @@ class ContentWarningCover extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Opaque: over a player it also swallows taps so the controls
-    // underneath cannot be reached before accepting.
+    // underneath cannot be reached before accepting (board ChaineLecteur:
+    // the ground, not a scrim, with the player paused behind it).
     return SizedBox.expand(
       child: ColoredBox(
-        color: Colors.black,
+        color: FrostyTokens.backgroundDark,
         // A portrait 16:9 player is short: the whole card shrinks to fit so
         // its buttons stay on screen (and tappable) instead of scrolling.
         child: LayoutBuilder(
           builder: (context, constraints) => Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             child: FittedBox(
               fit: BoxFit.scaleDown,
               child: SizedBox(
-                width: (constraints.maxWidth - 32).clamp(160.0, 480.0),
+                width: (constraints.maxWidth - 48).clamp(160.0, 480.0),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
-                      Icons.warning_amber_rounded,
-                      color: Colors.white,
-                      size: 40,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Just one second…',
-                      textAlign: TextAlign.center,
-                      style: context.textTheme.titleMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    const PlayerGlyph(
+                      PlayerGlyphKind.eyeOff,
+                      color: FrostyTokens.textPrimaryDark,
+                      size: 30,
+                      strokeWidth: 1.7,
                     ),
                     const SizedBox(height: 8),
+                    const Text(
+                      'Just one second…',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.16,
+                        color: FrostyTokens.textPrimaryDark,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
                     Text(
                       displayName.isEmpty
                           ? 'This content is intended for certain audiences.'
                           : "$displayName's content is intended for certain "
                                 'audiences.',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        height: 1.4,
+                        color: FrostyTokens.textBodyDark,
+                      ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       'It may contain: ${labels.join(', ')}',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: onAccept,
-                      child: const Text('Start watching'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.maybePop(context),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        height: 1.4,
+                        color: FrostyTokens.textSecondaryDark,
                       ),
-                      child: const Text('Go back'),
+                    ),
+                    const SizedBox(height: 12),
+                    // Side by side; one above the other on a very small player.
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        FilledButton(
+                          onPressed: onAccept,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: FrostyTokens.accent,
+                            foregroundColor: FrostyTokens.backgroundDark,
+                            minimumSize: const Size(0, 40),
+                            padding: const EdgeInsets.symmetric(horizontal: 18),
+                            shape: const StadiumBorder(),
+                            textStyle: const TextStyle(
+                              fontFamily: FrostyTokens.bodyFamily,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          child: const Text('Start watching'),
+                        ),
+                        OutlinedButton(
+                          onPressed: () => Navigator.maybePop(context),
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: FrostyTokens.raisedDark,
+                            foregroundColor: FrostyTokens.textPrimaryDark,
+                            minimumSize: const Size(0, 40),
+                            padding: const EdgeInsets.symmetric(horizontal: 18),
+                            side: const BorderSide(
+                              color: Color(0x24FFFFFF),
+                              width: FrostyTokens.hairlineWidth,
+                            ),
+                            shape: const StadiumBorder(),
+                            textStyle: const TextStyle(
+                              fontFamily: FrostyTokens.bodyFamily,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          child: const Text('Go back'),
+                        ),
+                      ],
                     ),
                   ],
                 ),

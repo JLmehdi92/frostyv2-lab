@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/channel/video/captions.dart';
+import 'package:frosty/screens/channel/video/player_glyph.dart';
 import 'package:frosty/screens/channel/video/quality_selection.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
+import 'package:frosty/theme.dart';
 
 /// Renders the IVS player into a Flutter [Texture] (instead of a SurfaceView)
 /// so it can be dragged and animated smoothly. The texture is owned by the
@@ -95,27 +97,38 @@ class IvsTextureVideo extends StatelessWidget {
   }
 }
 
-/// Shown over the last picture while only the sound plays.
+/// Shown over the last picture while only the sound plays (board
+/// ChaineLecteur: the picture goes, the sound goes on).
 class _AudioOnlyBadge extends StatelessWidget {
   const _AudioOnlyBadge();
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
+    return Container(
+      height: 32,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(FrostyTokens.radiusSmall),
       ),
-      child: const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          spacing: 8,
-          children: [
-            Icon(Icons.headphones_rounded, color: Colors.white),
-            Text('Audio only', style: TextStyle(color: Colors.white)),
-          ],
-        ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 6,
+        children: [
+          PlayerGlyph(
+            PlayerGlyphKind.headphones,
+            color: FrostyTokens.textPrimaryDark,
+            size: 15,
+          ),
+          Text(
+            'Audio only',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: FrostyTokens.textPrimaryDark,
+            ),
+          ),
+        ],
       ),
     );
   }

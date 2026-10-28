@@ -3,7 +3,6 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/channel/video/latency_stats.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
 
 /// Compact technical overlay for measuring the IVS player on a real device:
 /// live latency with its rolling median / p90 / max, buffer, bitrate, frames,
@@ -18,14 +17,18 @@ class IvsStatsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = context.frostyColors.overlayOnSurface;
-    final style = TextStyle(
+    // Board ChaineLecteur: light on black 60 %, 10.5 sp tabular figures,
+    // the labels at 66 %.
+    const textColor = FrostyTokens.textPrimaryDark;
+    const style = TextStyle(
       color: textColor,
-      fontSize: 11,
-      height: 1.35,
+      fontSize: 10.5,
+      height: 1.33,
       fontWeight: FontWeight.w500,
-      fontFeatures: const [FontFeature.tabularFigures()],
-      shadows: kOverlayShadow,
+      fontFeatures: [FontFeature.tabularFigures()],
+      shadows: [
+        Shadow(offset: Offset(0, 1), blurRadius: 2, color: Color(0x99000000)),
+      ],
     );
 
     return FittedBox(
@@ -33,15 +36,15 @@ class IvsStatsPanel extends StatelessWidget {
       alignment: Alignment.topLeft,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.55),
-          borderRadius: BorderRadius.circular(8),
+          color: Colors.black.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(FrostyTokens.radiusSmall),
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.08),
-            width: 0.5,
+            color: Colors.white.withValues(alpha: 0.10),
+            width: FrostyTokens.hairlineWidth,
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
           child: Observer(
             builder: (context) {
               final stats = store.stats;
@@ -112,7 +115,7 @@ class IvsStatsPanel extends StatelessWidget {
                           TextSpan(
                             text: '$label  ',
                             style: style.copyWith(
-                              color: textColor.withValues(alpha: 0.7),
+                              color: textColor.withValues(alpha: 0.66),
                             ),
                           ),
                           TextSpan(text: value),

@@ -199,4 +199,38 @@ void main() {
       );
     });
   });
+
+  testWidgets('the cover fits a phone player, both buttons on screen', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topCenter,
+            child: SizedBox(
+              width: 390,
+              height: 220,
+              child: ContentWarningCover(
+                displayName: 'Streamer',
+                labels: const [
+                  'Significant Profanity or Vulgarity',
+                  'Gambling',
+                ],
+                onAccept: () {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    for (final button in ['Start watching', 'Go back']) {
+      final rect = tester.getRect(find.text(button));
+      expect(rect.bottom, lessThanOrEqualTo(220), reason: button);
+    }
+  });
 }
