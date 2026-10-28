@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.Display
 import cl.puntito.simple_pip_mode.PipCallbackHelperActivityWrapper
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -16,7 +17,21 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
     private var apkInstaller: ApkInstaller? = null
     private var network: NetworkBridge? = null
 
+    /** Whether this activity is the first of a fresh process (read by the
+     * launch intro): set before the Flutter engine is configured. */
+    private var coldStart = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        // A kept process (warm start) or a restored state does not replay
+        // the launch intro.
+        coldStart = !processStarted && savedInstanceState == null
+        processStarted = true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // The Flutter intro starts from the splash's own frame (the launch
+            // tile on the ONSET ground): the system's exit fade would only add
+            // a flicker between the two.
+            splashScreen.setOnExitAnimationListener { it.remove() }
+        }
         super.onCreate(savedInstanceState)
         preferSmoothRefreshRate()
     }
@@ -42,6 +57,16 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
 
         // Whether the network costs data (the "Wi-Fi Only" autoplay setting).
         network = NetworkBridge(applicationContext, messenger)
+
+        // How this launch started, for the launch intro. The splash (before
+        // and from Android 12) always shows the launch tile.
+        MethodChannel(messenger, "onset/launch").setMethodCallHandler { call, result ->
+            if (call.method == "info") {
+                result.success(mapOf("coldStart" to coldStart, "nativeTile" to true))
+            } else {
+                result.notImplemented()
+            }
+        }
     }
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
@@ -84,5 +109,10 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
         window.attributes = window.attributes.apply {
             preferredDisplayModeId = best.modeId
         }
+    }
+
+    private companion object {
+        /** Lives as long as the process: a second activity is a warm start. */
+        var processStarted = false
     }
 }
