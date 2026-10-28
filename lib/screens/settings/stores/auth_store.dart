@@ -550,6 +550,9 @@ abstract class AuthBase with Store {
   /// Logs in the user with the provided [token] and updates fields accordingly upon successful login.
   @action
   Future<void> login({required String token}) async {
+    // Who was logged in: a login as another account must not keep their
+    // twitch.tv session token.
+    final previousId = _isLoggedIn ? user.details?.id : null;
     try {
       // Validate the custom token.
       _tokenIsValid = await twitchApi.validateToken(token: token);
@@ -563,6 +566,17 @@ abstract class AuthBase with Store {
 
       // Initialize the user with the new token.
       await user.init();
+
+      // Another account: the stored web token is the previous one's (its
+      // playback, watch positions and shelf would be theirs). It goes, and
+      // a session read still in flight for it is dropped; the next read
+      // takes the new account's (the login page's cookie). The cookies are
+      // kept: the login page just set the new account's.
+      final newId = user.details?.id;
+      if (previousId != null && newId != null && newId != previousId) {
+        _authEpoch++;
+        await setTwitchWebToken(null);
+      }
 
       // Set the login status to logged in.
       if (user.details != null) {

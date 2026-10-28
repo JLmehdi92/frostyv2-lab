@@ -116,6 +116,29 @@ void main() {
     expect(store.webSessionExpired, isFalse);
   });
 
+  group('a login as another account', () {
+    test("drops the previous account's web token", () async {
+      final store = await withStoredToken('web_of_viewer_1');
+      expect(store.twitchWebToken, 'web_of_viewer_1');
+
+      when(
+        () => api.getUserInfo(),
+      ).thenAnswer((_) async => const UserTwitch('2', 'other', 'Other', ''));
+      await store.login(token: 'user_2');
+
+      expect(store.twitchWebToken, isNull);
+      expect(await _storage.read(key: 'twitch_web_token'), isNull);
+    });
+
+    test('the same account logging in again keeps it', () async {
+      final store = await withStoredToken('web_of_viewer_1');
+
+      await store.login(token: 'user_again');
+
+      expect(store.twitchWebToken, 'web_of_viewer_1');
+    });
+  });
+
   test('logout clears the token and the cookie jar', () async {
     final store = await withStoredToken('stored');
 
