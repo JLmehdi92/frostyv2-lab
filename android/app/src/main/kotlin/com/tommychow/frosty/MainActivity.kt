@@ -141,6 +141,8 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
         backgroundAudio = null
         audioFocus?.dispose()
         audioFocus = null
+        network?.dispose()
+        network = null
         super.cleanUpFlutterEngine(flutterEngine)
     }
 

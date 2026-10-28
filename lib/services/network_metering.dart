@@ -8,14 +8,32 @@ import 'package:flutter/services.dart';
 /// Twitch's "Wi-Fi Only" autoplay. Elsewhere, or without an answer, it is
 /// unknown (null).
 class NetworkMetering {
-  NetworkMetering({MethodChannel? channel, bool? supported})
-    : _channel = channel ?? const MethodChannel('frosty/network'),
-      _supported = supported ?? Platform.isAndroid;
+  NetworkMetering({
+    MethodChannel? channel,
+    EventChannel? events,
+    bool? supported,
+  }) : _channel = channel ?? const MethodChannel('frosty/network'),
+       _events = events ?? const EventChannel('frosty/network/metered'),
+       _supported = supported ?? Platform.isAndroid;
 
   static final shared = NetworkMetering();
 
   final MethodChannel _channel;
+  final EventChannel _events;
   final bool _supported;
+
+  /// [isMetered]'s answer each time the network changes (leaving Wi-Fi for
+  /// mobile data), while listened to. Nothing elsewhere, and nothing more
+  /// after an error.
+  Stream<bool?> changes() {
+    if (!_supported) return const Stream.empty();
+    return _events
+        .receiveBroadcastStream()
+        .map((value) => value is bool ? value : null)
+        .handleError((Object e) {
+          debugPrint('Network changes unknown: ${e.runtimeType}');
+        });
+  }
 
   Future<bool?> isMetered() async {
     if (!_supported) return null;

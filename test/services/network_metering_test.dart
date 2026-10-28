@@ -54,4 +54,50 @@ void main() {
     expect(await metering.isMetered(), isNull);
     expect(calls, isEmpty);
   });
+
+  group('changes', () {
+    const events = EventChannel('frosty/network/metered-test');
+
+    tearDown(() => messenger.setMockStreamHandler(events, null));
+
+    test("follows Android's answers while listened to", () async {
+      messenger.setMockStreamHandler(
+        events,
+        MockStreamHandler.inline(
+          onListen: (arguments, sink) {
+            sink
+              ..success(false)
+              ..success(true)
+              ..success('odd')
+              ..endOfStream();
+          },
+        ),
+      );
+      final metering = NetworkMetering(events: events, supported: true);
+
+      expect(await metering.changes().toList(), [false, true, null]);
+    });
+
+    test('an error ends nothing badly', () async {
+      messenger.setMockStreamHandler(
+        events,
+        MockStreamHandler.inline(
+          onListen: (arguments, sink) {
+            sink
+              ..error(code: 'boom')
+              ..success(true)
+              ..endOfStream();
+          },
+        ),
+      );
+      final metering = NetworkMetering(events: events, supported: true);
+
+      expect(await metering.changes().toList(), [true]);
+    });
+
+    test('elsewhere than Android: no changes', () async {
+      final metering = NetworkMetering(events: events, supported: false);
+      expect(await metering.changes().toList(), isEmpty);
+    });
+  });
 }
