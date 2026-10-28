@@ -36,6 +36,9 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
   /// so that it stays in its corner when the area changes.
   MiniCorner? _corner = MiniCorner.topRight;
 
+  /// Where the window was last drawn.
+  Offset? _drawn;
+
   late final AnimationController _snapController = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 240),
@@ -124,8 +127,10 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
                       onTap: () => _restore(store),
                       onPanDown: (_) {
                         _snapController.stop();
-                        // From where it is drawn, whatever the area was.
-                        _offset.value = _position(area, _offset.value);
+                        // From where it is drawn (mid-glide too), whatever
+                        // the area was.
+                        _offset.value =
+                            _drawn ?? _position(area, _offset.value);
                         _corner = null;
                       },
                       onPanUpdate: (details) {
@@ -171,6 +176,7 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
                 return MiniWindowPlacement(
                   offset: _position(area, offset),
                   glide: _corner != null,
+                  onDrawn: (drawn) => _drawn = drawn,
                   child: child!,
                 );
               },
@@ -224,11 +230,15 @@ class MiniWindowPlacement extends StatelessWidget {
   final bool glide;
   final Widget child;
 
+  /// Told where the window is drawn, each frame (mid-glide included).
+  final ValueChanged<Offset>? onDrawn;
+
   const MiniWindowPlacement({
     super.key,
     required this.offset,
     required this.glide,
     required this.child,
+    this.onDrawn,
   });
 
   @override
@@ -239,8 +249,10 @@ class MiniWindowPlacement extends StatelessWidget {
           ? glideDuration
           : Duration.zero,
       curve: FrostyMotion.standard,
-      builder: (context, value, child) =>
-          Transform.translate(offset: value, child: child),
+      builder: (context, value, child) {
+        onDrawn?.call(value);
+        return Transform.translate(offset: value, child: child);
+      },
       child: child,
     );
   }

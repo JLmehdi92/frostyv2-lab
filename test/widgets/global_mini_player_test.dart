@@ -1,6 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
+import 'package:frosty/screens/channel/video/ivs_video.dart';
+import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
+import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/widgets/global_mini_player.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:provider/provider.dart';
+
+class MockIvsVideoStore extends Mock implements IvsVideoStore {}
+
+class MockChatTabsStore extends Mock implements ChatTabsStore {}
 
 void main() {
   const phone = MediaQueryData(size: Size(390, 844));
@@ -101,7 +112,7 @@ void main() {
     testWidgets('follows a drag directly', (tester) async {
       await tester.pumpWidget(placed(const Offset(200, 112), glide: false));
       await tester.pumpWidget(placed(const Offset(150, 300), glide: false));
-      await tester.pump();
+      // At once, in the very frame.
       expect(at(tester), const Offset(150, 300));
     });
 
@@ -115,5 +126,73 @@ void main() {
       await tester.pump();
       expect(at(tester), const Offset(200, 120));
     });
+  });
+
+  testWidgets('grabbed mid-glide, the window starts from where it is drawn', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    const channel = MethodChannel('puntito.simple_pip_mode');
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      channel,
+      (call) async => true,
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        channel,
+        null,
+      ),
+    );
+    final mini = MiniPlayerStore();
+    final player = MockIvsVideoStore();
+    when(player.dispose).thenAnswer((_) async {});
+    final chat = MockChatTabsStore();
+    when(chat.dispose).thenReturn(null);
+    mini
+      ..setShellChrome(const EdgeInsets.only(top: 100, bottom: 78))
+      ..adopt(
+        player: player,
+        chatTabsStore: chat,
+        userLogin: 'a',
+        userId: '1',
+        displayName: 'A',
+      );
+    await tester.pumpWidget(
+      Provider<MiniPlayerStore>.value(
+        value: mini,
+        child: const MaterialApp(
+          home: Stack(children: [Positioned.fill(child: GlobalMiniPlayer())]),
+        ),
+      ),
+    );
+    await tester.pump();
+    final window = find.byType(IvsTextureVideo).first;
+    expect(tester.getTopLeft(window).dy, 112);
+
+    // Profile's shorter header: the window glides up to 68.
+    mini.setShellChrome(const EdgeInsets.only(top: 56, bottom: 78));
+    await tester.pump();
+    await tester.pump(MiniWindowPlacement.glideDuration ~/ 3);
+    final drawn = tester.getTopLeft(window).dy;
+    expect(drawn, inExclusiveRange(68, 112));
+
+    // Grabbed there: it stays under the finger.
+    final gesture = await tester.startGesture(tester.getCenter(window));
+    await tester.pump();
+    expect(tester.getTopLeft(window).dy, closeTo(drawn, 0.5));
+    // Past the touch slop the drag is the window's: it moves from where it
+    // was drawn, not from the glide's end point (68).
+    await gesture.moveBy(const Offset(0, 20));
+    await tester.pump();
+    expect(tester.getTopLeft(window).dy, closeTo(drawn, 0.5));
+    await gesture.moveBy(const Offset(0, 20));
+    await tester.pump();
+    expect(tester.getTopLeft(window).dy, closeTo(drawn + 20, 0.5));
+    await gesture.up();
+    await tester.pump(const Duration(seconds: 1));
+    mini.close();
+    await tester.pump();
   });
 }
