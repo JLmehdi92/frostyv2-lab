@@ -431,8 +431,6 @@ class _MyAppState extends State<MyApp> {
 
   /// Opens video and clip links in-app (from chat or deep links).
   Future<bool> _openTwitchLinkInApp(TwitchLink link) async {
-    // Opened on something: no launch intro in the way.
-    LaunchIntro.skipAll();
     final Route<void> route;
     switch (link) {
       case VodLink(:final vodId, :final startAt):
@@ -509,14 +507,17 @@ class _MyAppState extends State<MyApp> {
             FirebaseAnalyticsObserver(
               analytics: FirebaseAnalytics.instance,
             ),
+            // Any page opening ends the launch intro.
+            LaunchIntro.navigatorObserver,
           ],
           home: widget.firstRun ? const OnboardingIntro() : const Home(),
           navigatorKey: navigatorKey,
           // The launch intro covers the app on a cold start while it builds
           // and loads underneath.
           builder: (context, child) => LaunchIntro(
-            play: widget.launchInfo.coldStart,
+            play: widget.launchInfo.playsIntro,
             fromTile: widget.launchInfo.nativeTile,
+            splashTile: LaunchInfo.splashTile,
             child: Stack(
               children: [
                 ?child,

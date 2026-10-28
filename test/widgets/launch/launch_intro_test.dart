@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/widgets/launch/launch_intro.dart';
 import 'package:frosty/widgets/launch/onset_mark.dart';
@@ -8,6 +9,7 @@ const _phone = Size(390, 844);
 const _tablet = Size(1280, 854);
 const _tabletPortrait = Size(854, 1280);
 const _card = Key('card');
+var _homeTaps = 0;
 
 Duration _at(double fraction) => LaunchIntro.duration * fraction;
 
@@ -18,34 +20,48 @@ void _setSize(WidgetTester tester, Size size) {
   addTearDown(tester.view.reset);
 }
 
-Widget _app({bool play = true, bool fromTile = false, GlobalKey? slotKey}) =>
-    MaterialApp(
-      builder: (context, child) => LaunchIntro(
-        play: play,
-        fromTile: fromTile,
-        slotKey: slotKey,
-        child: child!,
-      ),
-      home: Scaffold(
-        body: Stack(
-          children: [
-            const Center(
-              child: StaggeredEntrance(
-                key: _card,
-                index: 0,
-                child: Text('home'),
-              ),
-            ),
-            if (slotKey != null)
-              Positioned(
-                left: 40,
-                top: 60,
-                child: SizedBox(key: slotKey, width: 24, height: 24),
-              ),
-          ],
+Widget _app({
+  bool play = true,
+  bool fromTile = false,
+  GlobalKey? slotKey,
+  ValueNotifier<Rect?>? splashTile,
+  GlobalKey<NavigatorState>? navigatorKey,
+}) => MaterialApp(
+  navigatorKey: navigatorKey,
+  navigatorObservers: [LaunchIntro.navigatorObserver],
+  builder: (context, child) => LaunchIntro(
+    play: play,
+    fromTile: fromTile,
+    slotKey: slotKey,
+    splashTile: splashTile,
+    child: child!,
+  ),
+  home: Scaffold(
+    body: Stack(
+      children: [
+        const Center(
+          child: StaggeredEntrance(key: _card, index: 0, child: Text('home')),
         ),
-      ),
-    );
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 40,
+          height: 80,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => _homeTaps++,
+          ),
+        ),
+        if (slotKey != null)
+          Positioned(
+            left: 40,
+            top: 60,
+            child: SizedBox(key: slotKey, width: 24, height: 24),
+          ),
+      ],
+    ),
+  ),
+);
 
 Finder get _overlay => find.byKey(LaunchIntro.overlayKey);
 Finder get _tile => find.byKey(LaunchIntro.tileKey);
@@ -67,6 +83,8 @@ Future<void> _pumpTo(WidgetTester tester, double fraction) async {
 }
 
 void main() {
+  setUp(() => _homeTaps = 0);
+
   tearDown(() {
     TestWidgetsFlutterBinding.instance.platformDispatcher
         .clearAccessibilityFeaturesTestValue();
@@ -276,6 +294,89 @@ void main() {
       await _pumpTo(tester, 0.3);
       // Leaving goes through inactive first (a system dialog does too).
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pump();
+      expect(_overlay, findsNothing);
+    });
+  });
+
+  group('handing over', () {
+    testWidgets('the tile starts exactly where the Android splash drew it', (
+      tester,
+    ) async {
+      _setSize(tester, _phone);
+      // A Flutter view stopping above a 48 dp navigation bar: the splash,
+      // centred on the whole window, sits 24 dp lower; and this device drew
+      // the icon smaller.
+      final splash = ValueNotifier<Rect?>(null);
+      addTearDown(splash.dispose);
+      await tester.pumpWidget(_app(fromTile: true, splashTile: splash));
+      splash.value = Rect.fromCenter(
+        center: const Offset(195, 446),
+        width: 60,
+        height: 60,
+      );
+      await tester.pump();
+      final rect = tester.getRect(_tile);
+      expect(rect.center.dx, closeTo(195, 0.01));
+      expect(rect.center.dy, closeTo(446, 0.01));
+      expect(rect.width, closeTo(60, 0.01));
+      // The rings leave from it.
+      await tester.pump(_at(0.05));
+      expect(
+        tester.getCenter(find.byKey(LaunchIntro.ringKeys[0])),
+        const Offset(195, 446),
+      );
+      // And it still lands in the header slot.
+      await tester.pump(_at(0.5));
+      expect(tester.getRect(_tile).width, closeTo(28, 0.5));
+    });
+
+    testWidgets('once the app shows through, taps go to it', (tester) async {
+      _setSize(tester, _phone);
+      await tester.pumpWidget(_app());
+      await _pumpTo(tester, 0.3);
+      // Covering: a tap only skips.
+      await tester.tapAt(const Offset(195, 770));
+      expect(_homeTaps, 0);
+
+      await tester.pumpWidget(Container());
+      await tester.pumpWidget(_app());
+      await _pumpTo(tester, 0.72);
+      expect(_overlay, findsOneWidget);
+      await tester.tapAt(const Offset(195, 770));
+      expect(_homeTaps, 1);
+    });
+
+    testWidgets('light status bar over the ground, then the app\'s own', (
+      tester,
+    ) async {
+      _setSize(tester, _phone);
+      Finder region() => find.descendant(
+        of: _overlay,
+        matching: find.byWidgetPredicate(
+          (w) => w is AnnotatedRegion<SystemUiOverlayStyle>,
+        ),
+      );
+      await tester.pumpWidget(_app());
+      await _pumpTo(tester, 0.3);
+      expect(
+        tester.widget<AnnotatedRegion<SystemUiOverlayStyle>>(region()).value,
+        SystemUiOverlayStyle.light,
+      );
+      await tester.pump(_at(0.5));
+      expect(_overlay, findsOneWidget);
+      expect(region(), findsNothing);
+    });
+
+    testWidgets('a page opening over the home ends it', (tester) async {
+      _setSize(tester, _phone);
+      final navigator = GlobalKey<NavigatorState>();
+      await tester.pumpWidget(_app(navigatorKey: navigator));
+      await _pumpTo(tester, 0.3);
+      expect(_overlay, findsOneWidget);
+      navigator.currentState!.push(
+        MaterialPageRoute<void>(builder: (_) => const Text('page')),
+      );
       await tester.pump();
       expect(_overlay, findsNothing);
     });

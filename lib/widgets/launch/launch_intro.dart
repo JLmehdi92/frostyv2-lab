@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frosty/theme.dart';
@@ -19,11 +20,13 @@ import 'package:frosty/widgets/motion/staggered_entrance.dart';
 /// - Never blocks loading: [child] (the app) is built from the first frame
 ///   underneath, and only its [StaggeredEntrance]s wait (an [EntranceGate])
 ///   until the ground clears.
-/// - Plays only when [play] (a cold start), and never under reduce motion or
-///   a screen reader. A tap, [skipAll] (a deep link) or leaving the app ends
-///   it at once.
+/// - Plays only when [play] (a cold start from the launcher), and never under
+///   reduce motion or a screen reader. A tap, [skipAll] (a deep link), any
+///   page opening ([navigatorObserver]) or leaving the app ends it at once.
+///   Once the ground starts clearing, taps go to the app.
 /// - [fromTile]: the native splash already showed the tile (Android), so the
-///   first frame is that tile and the sequence picks up from there.
+///   first frame is that tile and the sequence picks up from there;
+///   [splashTile] is where the splash really drew it, once known.
 /// - [slotKey]: the header's mark, where the tile lands. Without one the
 ///   tile lands where the boards put it (16 / 28 dp from the left edge, in
 ///   the header row) and dissolves into the header.
@@ -33,7 +36,7 @@ class LaunchIntro extends StatefulWidget {
   final bool play;
   final bool fromTile;
   final GlobalKey? slotKey;
-  final VoidCallback? onFinished;
+  final ValueListenable<Rect?>? splashTile;
 
   const LaunchIntro({
     super.key,
@@ -41,7 +44,7 @@ class LaunchIntro extends StatefulWidget {
     this.play = false,
     this.fromTile = false,
     this.slotKey,
-    this.onFinished,
+    this.splashTile,
   });
 
   /// The whole sequence (the storyboard's 1 400 ms).
@@ -65,6 +68,10 @@ class LaunchIntro extends StatefulWidget {
       intro._finish();
     }
   }
+
+  /// Ends the intro as soon as any page opens over the first one (a link, a
+  /// notice, the release notes, a sheet): it never plays over a new page.
+  static final NavigatorObserver navigatorObserver = _SkipOnPush();
 
   @override
   State<LaunchIntro> createState() => _LaunchIntroState();
@@ -163,7 +170,6 @@ class _LaunchIntroState extends State<LaunchIntro>
     _controller.stop();
     _revealed.value = true;
     if (mounted) setState(() => _done = true);
-    widget.onFinished?.call();
   }
 
   @override
@@ -183,20 +189,31 @@ class _LaunchIntroState extends State<LaunchIntro>
         if (!_done)
           Positioned.fill(
             key: LaunchIntro.overlayKey,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _finish,
-              child: ExcludeSemantics(
-                child: RepaintBoundary(
-                  child: AnimatedBuilder(
-                    animation: _controller,
-                    builder: (context, _) => _IntroFrame(
-                      t: _controller.value,
-                      fromTile: widget.fromTile,
-                      slot: _slotRect(context),
-                      slotIsReal: _hasRealSlot,
-                    ),
-                  ),
+            child: ExcludeSemantics(
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: Listenable.merge([_controller, widget.splashTile]),
+                  builder: (context, _) {
+                    final t = _controller.value;
+                    // Covering: a tap skips. Once the app shows through,
+                    // taps go to it.
+                    return IgnorePointer(
+                      ignoring: t >= _Timeline.reveal,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: _finish,
+                        child: _IntroFrame(
+                          t: t,
+                          fromTile: widget.fromTile,
+                          splash: widget.fromTile
+                              ? widget.splashTile?.value
+                              : null,
+                          slot: _slotRect(context),
+                          slotIsReal: _hasRealSlot,
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
@@ -227,16 +244,28 @@ class _LaunchIntroState extends State<LaunchIntro>
   }
 }
 
+class _SkipOnPush extends NavigatorObserver {
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    if (previousRoute != null) LaunchIntro.skipAll();
+  }
+}
+
 /// One frame of the intro at [t] (0–1).
 class _IntroFrame extends StatelessWidget {
   final double t;
   final bool fromTile;
+
+  /// Where the native splash drew the tile, when known: the tile, its rings
+  /// and the name are laid out around it instead of the view's centre.
+  final Rect? splash;
   final Rect slot;
   final bool slotIsReal;
 
   const _IntroFrame({
     required this.t,
     required this.fromTile,
+    required this.splash,
     required this.slot,
     required this.slotIsReal,
   });
@@ -249,7 +278,9 @@ class _IntroFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
     final tablet = isLargeScreenSize(size);
-    final center = size.center(Offset.zero);
+    final center = splash?.center ?? size.center(Offset.zero);
+    // The tile's resting size, as a share of the boards' 72 dp.
+    final rest = (splash?.width ?? _tile) / _tile;
     const span = _Timeline.span;
 
     // The tile: a dot, then the tile with an overshoot, then the flight.
@@ -283,7 +314,7 @@ class _IntroFrame extends StatelessWidget {
       FrostyMotion.standard,
     );
     final tileCenter = Offset.lerp(center, slot.center, flight)!;
-    final tileScale = grow + (slot.width / _tile - 1) * flight;
+    final tileScale = grow * rest + (slot.width / _tile - rest) * flight;
     final tileOpacity = slotIsReal
         ? 1.0
         : 1 - span(t, _Timeline.tileOutStart, _Timeline.tileOutEnd);
@@ -341,100 +372,99 @@ class _IntroFrame extends StatelessWidget {
       );
     }
 
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: ground > 0.5
-          ? SystemUiOverlayStyle.light
-          : const SystemUiOverlayStyle(),
-      child: DefaultTextStyle(
-        style: const TextStyle(
-          fontFamily: FrostyTokens.displayFamily,
-          decoration: TextDecoration.none,
-        ),
-        child: IgnorePointer(
-          ignoring: ground <= 0,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              if (ground > 0)
-                ColoredBox(color: _ground.withValues(alpha: ground)),
-              if (t < _Timeline.ring1End)
-                ring(0, _Timeline.ring1Start, _Timeline.ring1End, 2),
-              if (t < _Timeline.ring2End)
-                ring(1, _Timeline.ring2Start, _Timeline.ring2End, 1.5),
-              if (nameOut > 0)
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: center.dy + _tile / 2 + (tablet ? 31 : 30),
-                  child: Column(
+    final frame = DefaultTextStyle(
+      style: const TextStyle(
+        fontFamily: FrostyTokens.displayFamily,
+        decoration: TextDecoration.none,
+      ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (ground > 0) ColoredBox(color: _ground.withValues(alpha: ground)),
+          if (t < _Timeline.ring1End)
+            ring(0, _Timeline.ring1Start, _Timeline.ring1End, 2),
+          if (t < _Timeline.ring2End)
+            ring(1, _Timeline.ring2Start, _Timeline.ring2End, 1.5),
+          if (nameOut > 0)
+            Positioned(
+              left: 0,
+              right: 0,
+              top: center.dy + _tile / 2 + (tablet ? 31 : 30),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          for (final (i, letter) in 'ONSET'.split('').indexed)
-                            _Letter(
-                              letter: letter,
-                              size: letterSize,
-                              progress: span(
-                                t,
-                                _Timeline.letterStart +
-                                    i * _Timeline.letterStep,
-                                _Timeline.letterEnd + i * _Timeline.letterStep,
-                                FrostyMotion.emphasizedDecelerate,
-                              ),
-                              rise: letterRise,
-                              opacity: nameOut,
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        width: tablet ? 140 : 120,
-                        height: 2,
-                        child: Transform.scale(
-                          scaleX: underline,
-                          alignment: Alignment.centerLeft,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: _accent.withValues(alpha: nameOut),
-                              borderRadius: BorderRadius.circular(1),
-                            ),
+                      for (final (i, letter) in 'ONSET'.split('').indexed)
+                        _Letter(
+                          letter: letter,
+                          size: letterSize,
+                          progress: span(
+                            t,
+                            _Timeline.letterStart + i * _Timeline.letterStep,
+                            _Timeline.letterEnd + i * _Timeline.letterStep,
+                            FrostyMotion.emphasizedDecelerate,
                           ),
+                          rise: letterRise,
+                          opacity: nameOut,
                         ),
-                      ),
                     ],
                   ),
-                ),
-              Positioned(
-                left: tileCenter.dx - _tile / 2,
-                top: tileCenter.dy - _tile / 2,
-                width: _tile,
-                height: _tile,
-                child: Transform.scale(
-                  scale: tileScale,
-                  child: Opacity(
-                    key: LaunchIntro.tileKey,
-                    opacity: tileOpacity.clamp(0.0, 1.0),
-                    child: OnsetMarkTile(
-                      radius: radius,
-                      markOpacity: markIn,
-                      markScale: 0.6 + 0.4 * markIn,
-                      glow: [
-                        BoxShadow(
-                          color: _accent.withValues(alpha: 0.25 * glowIn),
-                          blurRadius: tablet ? 48 : 40,
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: tablet ? 140 : 120,
+                    height: 2,
+                    child: Transform.scale(
+                      scaleX: underline,
+                      alignment: Alignment.centerLeft,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: _accent.withValues(alpha: nameOut),
+                          borderRadius: BorderRadius.circular(1),
                         ),
-                      ],
+                      ),
                     ),
                   ),
+                ],
+              ),
+            ),
+          Positioned(
+            left: tileCenter.dx - _tile / 2,
+            top: tileCenter.dy - _tile / 2,
+            width: _tile,
+            height: _tile,
+            child: Transform.scale(
+              scale: tileScale,
+              child: Opacity(
+                key: LaunchIntro.tileKey,
+                opacity: tileOpacity.clamp(0.0, 1.0),
+                child: OnsetMarkTile(
+                  radius: radius,
+                  markOpacity: markIn,
+                  markScale: 0.6 + 0.4 * markIn,
+                  glow: [
+                    BoxShadow(
+                      color: _accent.withValues(alpha: 0.25 * glowIn),
+                      blurRadius: tablet ? 48 : 40,
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
+
+    // Light status-bar icons over the black ground; once it clears, the
+    // app's own bars apply again.
+    return ground > 0.5
+        ? AnnotatedRegion<SystemUiOverlayStyle>(
+            value: SystemUiOverlayStyle.light,
+            child: frame,
+          )
+        : frame;
   }
 }
 
