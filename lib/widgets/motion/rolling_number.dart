@@ -161,15 +161,20 @@ class _RollingPlace extends StatelessWidget {
 /// "1.000", "12 418", "12,4 k"); anything unreadable rolls up.
 @visibleForTesting
 bool rollsUp(String from, String to) {
-  final a = _readCount(from);
-  final b = _readCount(to);
+  final a = readCount(from);
+  final b = readCount(to);
   if (a == null || b == null) return true;
   return b >= a;
 }
 
-double? _readCount(String text) {
+/// [text] as a count: compact units and both grouping styles read; null
+/// when no number is found.
+@visibleForTesting
+double? readCount(String text) {
+  // A unit ends the number ("1.2K", "12,4 k"); a letter after it makes it
+  // the start of a word ("5 bits", "3 months"), not a unit.
   final match = RegExp(
-    "(-?\\d[\\d.,\\s\u00a0\u202f']*)\\s*([kKmMbB]?)",
+    "(-?\\d[\\d.,\\s\u00a0\u202f']*)\\s*((?:[kKmMbB](?![A-Za-z]))?)",
   ).firstMatch(text);
   if (match == null) return null;
   var number = match.group(1)!.replaceAll(RegExp("[\\s\u00a0\u202f']"), '');

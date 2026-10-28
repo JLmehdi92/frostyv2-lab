@@ -84,11 +84,27 @@ void main() {
       ('1.5M', '900K', false),
       ('12 418', '12 431', true),
       ('2,1 k', '980', false),
+      // A word after the number is not a unit.
+      ('5 bits', '6 bits', true),
+      ('6 bits', '5 bits', false),
+      ('3 months', '12 months', true),
+      ('12 months', '3 months', false),
+      ('900 bits', '1K bits', true),
     ]) {
       test('$from → $to rolls ${grows ? 'up' : 'down'}', () {
         expect(rollsUp(from, to), grows);
       });
     }
+
+    test('k, M and B are units only when they end the number', () {
+      expect(readCount('5 bits'), 5);
+      expect(readCount('3 months'), 3);
+      expect(readCount('2kbps'), 2);
+      expect(readCount('1.2K'), 1200);
+      expect(readCount('3M viewers'), 3e6);
+      expect(readCount('12,4 k'), 12400);
+      expect(readCount('7B'), 7e9);
+    });
 
     test('anything unreadable rolls up', () {
       expect(rollsUp('—', '12'), isTrue);
