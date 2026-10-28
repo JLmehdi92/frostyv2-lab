@@ -12,6 +12,7 @@ import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:frosty/services/playback_focus.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
+import 'package:frosty/utils/pip_callbacks.dart';
 import 'package:intl/intl.dart';
 import 'package:mobx/mobx.dart';
 import 'package:simple_pip_mode/actions/pip_actions_layout.dart';
@@ -86,6 +87,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
   var _playingBeforeFocusLoss = false;
 
   ReactionDisposer? _disposeClipsReaction;
+  ReactionDisposer? _disposeMiniReaction;
 
   bool get _hasFocus => identical(PlaybackFocus.shared.top, this);
 
@@ -115,6 +117,16 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
       (_) => _store.clips.length,
       (_) => _syncPlayers(),
     );
+    // The mini window's PipWidget took the PiP events; once it closes they
+    // come back here.
+    _disposeMiniReaction = reaction((_) => _miniPlayer.visible, (bool visible) {
+      if (visible) return;
+      WidgetsBinding.instance
+        ..addPostFrameCallback((_) {
+          if (mounted && !_miniPlayer.visible) reclaimPipCallbacks(_pipKey);
+        })
+        ..ensureVisualUpdate();
+    });
     unawaited(_store.load());
   }
 
@@ -199,9 +211,14 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
         player.setFocused(true);
         if (_playingBeforeFocusLoss) player.play();
       }
+      // The screen above had its own PipWidget, which took the plugin's
+      // single handler: the PiP events must come here again.
+      if (!_miniPlayer.visible) reclaimPipCallbacks(_pipKey);
       _playingBeforeFocusLoss = false;
       if (_settings.keepScreenAwake) WakelockPlus.enable();
     });
+    // A release with nothing to redraw must still reach that frame.
+    WidgetsBinding.instance.ensureVisualUpdate();
   }
 
   Widget _video(int index) {
@@ -453,6 +470,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
     try {
       if (_inPip) widget.onPipChanged?.call(false);
       _disposeClipsReaction?.call();
+      _disposeMiniReaction?.call();
       _pageController.dispose();
       // The current clip keeps its focus to the end, so disposing it also
       // turns its auto-PiP off.

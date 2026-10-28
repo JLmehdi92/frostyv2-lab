@@ -31,6 +31,7 @@ import 'package:frosty/widgets/profile_picture.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:simple_pip_mode/simple_pip.dart';
 
 /// The app's first page: the navigation shell (boards Accueil and
 /// TabletteAccueil) around Home (Following, Live, Clips), Browse
@@ -126,6 +127,23 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     checkAndShowReleaseNotes();
     _whispers = _whisperStore.incoming.listen(_onWhisper);
     OnsetShell.routeObserver.addListener(_onRoutes);
+    _lifecycle = AppLifecycleListener(onResume: _checkPip);
+  }
+
+  late final AppLifecycleListener _lifecycle;
+
+  /// Back in front: if the feed's PiP exit went to another handler (the
+  /// plugin keeps one), the chrome must not stay hidden.
+  Future<void> _checkPip() async {
+    if (!_clipsInPip) return;
+    bool inPip;
+    try {
+      inPip = await SimplePip.isPipActivated;
+    } catch (e) {
+      debugPrint('PiP state unavailable: $e');
+      inPip = false;
+    }
+    if (!inPip) _update(() => _clipsInPip = false);
   }
 
   @override
@@ -462,6 +480,7 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
   @override
   void dispose() {
     OnsetShell.routeObserver.removeListener(_onRoutes);
+    _lifecycle.dispose();
     _miniPlayer.setShellChrome(null);
     _whispers?.cancel();
     _search?.dispose();

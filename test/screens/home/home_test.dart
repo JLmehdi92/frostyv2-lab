@@ -11,6 +11,8 @@ import 'package:frosty/models/stream.dart';
 import 'package:frosty/models/user.dart';
 import 'package:frosty/screens/activity/activity_screen.dart';
 import 'package:frosty/screens/activity/stores/activity_store.dart';
+import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
+import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:frosty/screens/clips/clips_feed_screen.dart';
 import 'package:frosty/screens/home/home.dart';
 import 'package:frosty/screens/home/search/search.dart';
@@ -23,6 +25,7 @@ import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/settings/stores/user_store.dart';
 import 'package:frosty/screens/whispers/whispers_screen.dart';
 import 'package:frosty/services/notifications/activity_log.dart';
+import 'package:frosty/services/playback_focus.dart';
 import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/stores/whisper_store.dart';
@@ -33,12 +36,17 @@ import 'package:mocktail/mocktail.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:simple_pip_mode/simple_pip.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 
 class MockClipService extends Mock implements TwitchClipService {}
 
 class MockHypeTrainService extends Mock implements TwitchHypeTrainService {}
+
+class MockIvsVideoStore extends Mock implements IvsVideoStore {}
+
+class MockChatTabsStore extends Mock implements ChatTabsStore {}
 
 class MockUserStore extends Mock implements UserStore {}
 
@@ -400,50 +408,171 @@ void main() {
     await close(tester);
   });
 
-  testWidgets('Clips in picture-in-picture: the clip alone, no chrome', (
-    tester,
-  ) async {
-    ClipsFeedScreen.debugPipSupported = true;
-    addTearDown(() => ClipsFeedScreen.debugPipSupported = null);
+  group('Clips in picture-in-picture', () {
     const channel = MethodChannel('puntito.simple_pip_mode');
-    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
-      channel,
-      (call) async => true,
-    );
-    addTearDown(
-      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+    var pipActive = false;
+
+    /// Answers the plugin's calls; returns a way to send it events.
+    Future<void> Function(String) pipPlatform(WidgetTester tester) {
+      ClipsFeedScreen.debugPipSupported = true;
+      addTearDown(() => ClipsFeedScreen.debugPipSupported = null);
+      pipActive = false;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
         channel,
-        null,
-      ),
-    );
-    Future<void> platform(String method) =>
-        tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+        (call) async => call.method == 'isPipActivated' ? pipActive : true,
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          channel,
+          null,
+        ),
+      );
+      return (method) async {
+        pipActive = method == 'onPipEntered';
+        await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
           channel.name,
           const StandardMethodCodec().encodeMethodCall(MethodCall(method)),
           (_) {},
         );
+      };
+    }
 
-    await pump(tester);
-    await tester.tap(find.text('Clips'));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('shell-nav')), findsOneWidget);
+    Finder chrome() => find.byKey(const ValueKey('shell-nav'));
 
-    // Android shrinks the app into the PiP window: only the clip shows.
-    await platform('onPipEntered');
-    await tester.pump();
-    expect(find.byKey(const ValueKey('shell-nav')), findsNothing);
-    expect(find.byKey(const ValueKey('shell-nav-fade')), findsNothing);
-    expect(find.text('Live'), findsNothing);
-    expect(find.byTooltip('Search'), findsNothing);
-    expect(find.byKey(OnsetShell.markKey), findsNothing);
-    // The feed itself stayed (it keeps playing in the window).
-    expect(find.byType(ClipsFeedScreen), findsOneWidget);
+    testWidgets('the clip alone, no chrome', (tester) async {
+      final platform = pipPlatform(tester);
+      await pump(tester);
+      await tester.tap(find.text('Clips'));
+      await tester.pumpAndSettle();
+      expect(chrome(), findsOneWidget);
 
-    await platform('onPipExited');
-    await tester.pump();
-    expect(find.byKey(const ValueKey('shell-nav')), findsOneWidget);
-    expect(find.text('Live'), findsOneWidget);
-    await close(tester);
+      // Android shrinks the app into the PiP window: only the clip shows.
+      await platform('onPipEntered');
+      await tester.pump();
+      expect(chrome(), findsNothing);
+      expect(find.byKey(const ValueKey('shell-nav-fade')), findsNothing);
+      expect(find.text('Live'), findsNothing);
+      expect(find.byTooltip('Search'), findsNothing);
+      expect(find.byKey(OnsetShell.markKey), findsNothing);
+      // The feed itself stayed (it keeps playing in the window).
+      expect(find.byType(ClipsFeedScreen), findsOneWidget);
+
+      await platform('onPipExited');
+      await tester.pump();
+      expect(chrome(), findsOneWidget);
+      expect(find.text('Live'), findsOneWidget);
+      await close(tester);
+    });
+
+    testWidgets('a player that took the events gives them back', (
+      tester,
+    ) async {
+      final platform = pipPlatform(tester);
+      await pump(tester);
+      await tester.tap(find.text('Clips'));
+      await tester.pumpAndSettle();
+
+      // A stream opened over the feed: its PipWidget takes the plugin's
+      // single handler, then it closes.
+      final stream = Object();
+      var stolen = 0;
+      PlaybackFocus.shared
+        ..register(stream, onLost: () {}, onRegained: () {})
+        ..claim(stream);
+      SimplePip(onPipEntered: () => stolen++);
+      PlaybackFocus.shared.release(stream);
+      await tester.pump();
+      await tester.pump();
+
+      await platform('onPipEntered');
+      await tester.pump();
+      expect(stolen, 0);
+      expect(chrome(), findsNothing);
+      await platform('onPipExited');
+      await tester.pump();
+      await close(tester);
+    });
+
+    testWidgets('the mini player closing gives the events back', (
+      tester,
+    ) async {
+      final platform = pipPlatform(tester);
+      await pump(tester);
+      await tester.tap(find.text('Clips'));
+      await tester.pumpAndSettle();
+
+      // A channel minimized over the feed: the mini window's PipWidget
+      // takes the events; it closes.
+      final player = MockIvsVideoStore();
+      when(player.dispose).thenAnswer((_) async {});
+      final chat = MockChatTabsStore();
+      when(chat.dispose).thenReturn(null);
+      mini.adopt(
+        player: player,
+        chatTabsStore: chat,
+        userLogin: 'a',
+        userId: '1',
+        displayName: 'A',
+      );
+      var stolen = 0;
+      SimplePip(onPipEntered: () => stolen++);
+      mini.close();
+      await tester.pump();
+      await tester.pump();
+
+      await platform('onPipEntered');
+      await tester.pump();
+      expect(stolen, 0);
+      expect(chrome(), findsNothing);
+      await platform('onPipExited');
+      await tester.pump();
+      await close(tester);
+    });
+
+    testWidgets('leaving the clips while in PiP brings the chrome back', (
+      tester,
+    ) async {
+      final platform = pipPlatform(tester);
+      await pump(tester);
+      await tester.tap(find.text('Clips'));
+      await tester.pumpAndSettle();
+      await platform('onPipEntered');
+      await tester.pump();
+      expect(chrome(), findsNothing);
+
+      // The feed goes (back to Live) while still in PiP.
+      expect(await tester.binding.handlePopRoute(), isTrue);
+      await tester.pumpAndSettle();
+      expect(find.byType(ClipsFeedScreen, skipOffstage: false), findsNothing);
+      expect(chrome(), findsOneWidget);
+      await close(tester);
+    });
+
+    testWidgets('an exit lost to another handler: resuming out of PiP '
+        'brings the chrome back', (tester) async {
+      final platform = pipPlatform(tester);
+      await pump(tester);
+      await tester.tap(find.text('Clips'));
+      await tester.pumpAndSettle();
+      await platform('onPipEntered');
+      await tester.pump();
+      expect(chrome(), findsNothing);
+
+      // Another PipWidget took the handler meanwhile: the exit goes there.
+      SimplePip(onPipExited: () {});
+      await platform('onPipExited');
+      await tester.pump();
+      expect(chrome(), findsNothing);
+
+      // Back in front, and the plugin says PiP is over.
+      tester.binding
+        ..handleAppLifecycleStateChanged(AppLifecycleState.inactive)
+        ..handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      await tester.pump();
+      expect(chrome(), findsOneWidget);
+      await close(tester);
+    });
   });
 
   testWidgets('no blur while a clip is still fading out', (tester) async {
