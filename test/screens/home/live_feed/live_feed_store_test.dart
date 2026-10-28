@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/models/stream.dart';
@@ -183,6 +185,55 @@ void main() {
     store.setIndex(7);
     store.hide('8');
     expect(store.current, isNull);
+    store.dispose();
+  });
+
+  test('a refresh that keeps the place leaves a viewer who moved where they '
+      'went', () async {
+    final store = await build();
+    store.setIndex(2);
+    final answer = Completer<StreamsTwitch>();
+    when(
+      () => api.getTopStreams(
+        cursor: any(named: 'cursor', that: isNull),
+        language: any(named: 'language'),
+      ),
+    ).thenAnswer((_) => answer.future);
+
+    final refreshing = store.refresh(keepPosition: true);
+    store.setIndex(4);
+    answer.complete(
+      StreamsTwitch([
+        _s('3', '10', 'Just Chatting'),
+        _s('8', '1', 'X'),
+      ], const {}),
+    );
+    await refreshing;
+
+    expect(store.index, 4);
+    store.dispose();
+  });
+
+  test('a refresh that keeps the place finds the channel again', () async {
+    final store = await build();
+    store.setIndex(2);
+    expect(store.current!.userId, '3');
+    when(
+      () => api.getTopStreams(
+        cursor: any(named: 'cursor', that: isNull),
+        language: any(named: 'language'),
+      ),
+    ).thenAnswer(
+      (_) async => StreamsTwitch([
+        _s('7', '40', 'Chess'),
+        _s('3', '10', 'Just Chatting'),
+      ], const {}),
+    );
+
+    await store.refresh(keepPosition: true);
+
+    expect(store.index, 1);
+    expect(store.current!.userId, '3');
     store.dispose();
   });
 
