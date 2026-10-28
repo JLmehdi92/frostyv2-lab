@@ -130,7 +130,7 @@ class TwitchVodService extends BaseApiClient {
   // limit 10 there): the viewer's started videos with their positions. Needs
   // the web token: anonymous answers `currentUser: null`.
   static const _resumeWatchingQuery =
-      'query ResumeWatchingVideos(\$limit: Int!) { currentUser { '
+      'query ResumeWatchingVideos(\$limit: Int!) { currentUser { id '
       'viewedVideos(first: \$limit) { edges { history { position updatedAt } '
       'node { $_videoFields } } } } }';
 
@@ -350,13 +350,15 @@ class TwitchVodService extends BaseApiClient {
   }
 
   /// The videos [ids] (VOD ids; anything else is skipped), anonymously, in
-  /// the order asked; deleted ones are left out. One request for up to 25
-  /// (the rest are not asked). Throws when Twitch answers an error.
-  Future<List<Vod>> getVideos(List<String> ids) async {
+  /// the order asked. One request for up to 25 (the rest are not asked).
+  /// [VideoLookup.missing] names the ids Twitch answered with no video and
+  /// no error (deleted); one refused with an error is in neither list, so
+  /// it can be asked again. Throws when the answer has no data at all.
+  Future<VideoLookup> getVideos(List<String> ids) async {
     final wanted = [
       for (final raw in ids) ?tryNormalizeVodId(raw),
     ].take(_videosBatch).toList();
-    if (wanted.isEmpty) return const [];
+    if (wanted.isEmpty) return const VideoLookup(videos: [], missing: {});
     final fields = StringBuffer();
     final params = <String>[];
     final variables = <String, Object?>{};
@@ -367,23 +369,38 @@ class TwitchVodService extends BaseApiClient {
     }
     // One deleted or restricted video answers an error for its own alias
     // only: the others still come.
+    final refused = <String>{};
     final data = await _gql(
       'VideosById',
       'query VideosById(${params.join(', ')}) { $fields}',
       variables,
       partial: true,
+      onErrors: (errors) {
+        for (final error in errors) {
+          final path = error is Map ? error['path'] : null;
+          if (path is List && path.isNotEmpty && path.first is String) {
+            refused.add(path.first as String);
+          }
+        }
+      },
     );
     final videos = <Vod>[];
+    final missing = <String>{};
     for (var i = 0; i < wanted.length; i++) {
-      final node = data['v$i'];
-      if (node is! Map) continue;
+      final alias = 'v$i';
+      final node = data[alias];
+      if (node is! Map) {
+        if (node == null && !refused.contains(alias)) missing.add(wanted[i]);
+        continue;
+      }
       try {
         videos.add(Vod.fromGql(JsonMap.from(node)));
-      } on FormatException {
+      } catch (e) {
         // One unreadable video must not hide the others.
+        debugPrint('Unreadable video skipped: ${e.runtimeType}');
       }
     }
-    return videos;
+    return VideoLookup(videos: videos, missing: missing);
   }
 
   /// The logged-in viewer's "Continue watching" shelf on Twitch: the videos
@@ -405,7 +422,14 @@ class TwitchVodService extends BaseApiClient {
       );
       _historyFailures.remove('shelf#$tokenId');
       final user = data['currentUser'];
-      final viewed = user is Map ? user['viewedVideos'] : null;
+      // The shelf is filed under the logged-in viewer: a web token of
+      // another account (pasted, left from a previous login) is not theirs.
+      final viewer = viewerId?.call();
+      if (user is! Map || viewer == null || '${user['id']}' != viewer) {
+        if (user is Map) debugPrint('Continue watching of another account');
+        return null;
+      }
+      final viewed = user['viewedVideos'];
       if (viewed is! Map) return null;
       final edges = viewed['edges'] is List ? viewed['edges'] as List : [];
       final entries = <ResumeWatchingEntry>[];
@@ -415,9 +439,12 @@ class TwitchVodService extends BaseApiClient {
         final position = history is Map ? history['position'] : null;
         if (position is! int || position < 0) continue;
         try {
+          final vod = Vod.fromGql(JsonMap.from(edge['node'] as Map));
+          // Its id ends up in a page's URL and in the VOD service's paths.
+          if (tryNormalizeVodId(vod.id) == null) continue;
           entries.add(
             ResumeWatchingEntry(
-              vod: Vod.fromGql(JsonMap.from(edge['node'] as Map)),
+              vod: vod,
               history: ViewingHistory(
                 positionSec: position,
                 updatedAt: DateTime.tryParse(
@@ -426,8 +453,9 @@ class TwitchVodService extends BaseApiClient {
               ),
             ),
           );
-        } on FormatException {
+        } catch (e) {
           // One unreadable video must not hide the others.
+          debugPrint('Unreadable video skipped: ${e.runtimeType}');
         }
       }
       return entries;
@@ -857,13 +885,15 @@ class TwitchVodService extends BaseApiClient {
   }
 
   /// [partial]: an answer with data and errors (one field refused) gives
-  /// its data; without data, the errors still throw.
+  /// its data, and its errors to [onErrors]; without data, the errors
+  /// still throw.
   Future<JsonMap> _gql(
     String operationName,
     String query,
     JsonMap variables, {
     Map<String, String> headers = const {},
     bool partial = false,
+    void Function(List<Object?> errors)? onErrors,
   }) async {
     final body = await post<JsonMap>(
       _gqlUrl,
@@ -876,7 +906,9 @@ class TwitchVodService extends BaseApiClient {
     );
     final errors = body['errors'];
     final hasData = body['data'] is Map;
-    if (errors is List && errors.isNotEmpty && !(partial && hasData)) {
+    if (errors is List && errors.isNotEmpty && partial && hasData) {
+      onErrors?.call(errors);
+    } else if (errors is List && errors.isNotEmpty) {
       final messages = errors
           .map((e) => e is Map ? '${e['message']}' : '$e')
           .join('; ');

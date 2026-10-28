@@ -46,9 +46,14 @@ class Vod {
     final id = node['id'];
     final length = node['lengthSeconds'];
     final createdAt = DateTime.tryParse('${node['createdAt']}');
-    if (id is! String || length is! num || createdAt == null) {
+    // An infinite or NaN number would throw an UnsupportedError on toInt.
+    if (id is! String ||
+        length is! num ||
+        !length.isFinite ||
+        createdAt == null) {
       throw const FormatException('Invalid video node');
     }
+    final views = _as<num>(node['viewCount']);
     final ownerNode = node['owner'] is Map ? node['owner'] as Map : owner;
     final game = node['game'] is Map ? node['game'] as Map : null;
     final self = node['self'] is Map ? node['self'] as Map : null;
@@ -61,7 +66,7 @@ class Vod {
       title: _as<String>(node['title']) ?? '',
       lengthSeconds: length.toInt(),
       createdAt: createdAt,
-      viewCount: _as<num>(node['viewCount'])?.toInt() ?? 0,
+      viewCount: views != null && views.isFinite ? views.toInt() : 0,
       ownerId: _as<String>(ownerNode?['id']) ?? '',
       ownerLogin: _as<String>(ownerNode?['login']) ?? '',
       ownerDisplayName: _as<String>(ownerNode?['displayName']) ?? '',
@@ -158,6 +163,16 @@ class ResumeWatchingEntry {
 
   final Vod vod;
   final ViewingHistory history;
+}
+
+/// The videos asked by id, and the ids Twitch said have no video.
+class VideoLookup {
+  const VideoLookup({required this.videos, required this.missing});
+
+  final List<Vod> videos;
+
+  /// Answered with no video and no error: deleted.
+  final Set<String> missing;
 }
 
 /// A copyright-muted part of a VOD, in seconds from the start.

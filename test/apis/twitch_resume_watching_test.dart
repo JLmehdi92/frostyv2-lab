@@ -33,9 +33,10 @@ void main() {
     'node': node,
   };
 
-  Map<String, Object?> viewed(List<Object?> edges) => {
+  Map<String, Object?> viewed(List<Object?> edges, {Object? id = '1234'}) => {
     'data': {
       'currentUser': {
+        'id': id,
         'viewedVideos': {'edges': edges},
       },
     },
@@ -85,6 +86,7 @@ void main() {
       final o = sent.single;
       expect(o.uri.toString(), _gql);
       expect(o.headers['Authorization'], 'OAuth webtok');
+      expect(body(o)['query'], contains('currentUser { id viewedVideos('));
       expect(body(o)['query'], contains('viewedVideos(first: \$limit)'));
       expect(body(o)['variables'], {'limit': 12});
     });
@@ -109,6 +111,34 @@ void main() {
       expect(entries, hasLength(1));
       expect(entries!.single.vod.id, '1000000002');
       expect(entries.single.history.updatedAt, isNull);
+    });
+
+    test("a web token of another account: not the viewer's shelf", () async {
+      answer = (o, h) =>
+          h.resolve(ok(o, viewed([edge(vodNodeArchive)], id: '999')));
+      expect(await service.getResumeWatching(), isNull);
+      // Nor without knowing the viewer.
+      answer = (o, h) => h.resolve(ok(o, viewed([edge(vodNodeArchive)])));
+      service.viewerId = () => null;
+      expect(await service.getResumeWatching(), isNull);
+    });
+
+    test('a malformed number or id drops that video only', () async {
+      answer = (o, h) => h.resolve(
+        ok(
+          o,
+          viewed([
+            edge({...vodNodeArchive, 'lengthSeconds': double.infinity}),
+            edge({...vodNodeArchive, 'id': '../graphql'}),
+            edge({...vodNodeArchive, 'viewCount': double.nan}),
+          ]),
+        ),
+      );
+
+      final entries = await service.getResumeWatching();
+
+      expect(entries, hasLength(1));
+      expect(entries!.single.vod.viewCount, 0);
     });
 
     test('logged out (or no session): nothing is sent', () async {
@@ -178,13 +208,15 @@ void main() {
         }),
       );
 
-      final videos = await service.getVideos([
+      final lookup = await service.getVideos([
         '1000000002',
         'v99',
         '1000000001',
       ]);
 
-      expect(videos.map((v) => v.id), ['1000000002', '1000000001']);
+      expect(lookup.videos.map((v) => v.id), ['1000000002', '1000000001']);
+      // Answered with nothing and no error: deleted.
+      expect(lookup.missing, {'99'});
       final o = sent.single;
       expect(o.headers['Authorization'], isNull);
       final query = body(o)['query'] as String;
@@ -204,15 +236,15 @@ void main() {
         }),
       );
 
-      final videos = await service.getVideos(['../x', '1000000001', '']);
+      final lookup = await service.getVideos(['../x', '1000000001', '']);
 
-      expect(videos.single.id, '1000000001');
+      expect(lookup.videos.single.id, '1000000001');
       expect(body(sent.single)['variables'], {'i0': '1000000001'});
     });
 
     test('no ids: no request', () async {
-      expect(await service.getVideos(const []), isEmpty);
-      expect(await service.getVideos(const ['nope']), isEmpty);
+      expect((await service.getVideos(const [])).videos, isEmpty);
+      expect((await service.getVideos(const ['nope'])).videos, isEmpty);
       expect(sent, isEmpty);
     });
 
@@ -237,9 +269,11 @@ void main() {
         }),
       );
 
-      final videos = await service.getVideos(['1', '1000000001']);
+      final lookup = await service.getVideos(['1', '1000000001']);
 
-      expect(videos.single.id, '1000000001');
+      expect(lookup.videos.single.id, '1000000001');
+      // Refused, not deleted: it can be asked again.
+      expect(lookup.missing, isEmpty);
     });
 
     test('a GQL error throws', () async {
