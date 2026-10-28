@@ -93,10 +93,13 @@ void main() {
     late GoLivePrefs prefs;
     late List<(List<GoLiveNotice>, int)> notified;
 
+    // On the fixtures' day: with the real clock their 2026-10-20 broadcasts
+    // turned "older than a day" and were forgotten.
     Future<int> check() => checkGoLive(
       api: api,
       prefs: prefs,
       notify: (notices, more) async => notified.add((notices, more)),
+      now: () => DateTime.utc(2026, 10, 20, 12),
     );
 
     void followedLive(List<StreamTwitch> streams, {String? cursor}) => when(
