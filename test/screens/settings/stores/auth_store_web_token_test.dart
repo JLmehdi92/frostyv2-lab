@@ -226,6 +226,63 @@ void main() {
     });
   });
 
+  group('the account id is kept best-effort', () {
+    test(
+      'a keystore refusing it changes neither the launch nor a login',
+      () async {
+        // A session from a previous launch, with a cookie to harvest.
+        FlutterSecureStorage.setMockInitialValues({
+          'default_token': 'the_default_token',
+          'user_token': 'user',
+        });
+        jar = 'web_of_viewer_1';
+        final store = AuthStore(
+          twitchApi: api,
+          webTokenService: cookies,
+          isAndroid: true,
+          storage: const _RefusingIdStorage(),
+          loadTwitchPage: () async => pageLoads++,
+        );
+
+        await store.init();
+        await pumpEventQueue();
+        expect(store.isLoggedIn, isTrue);
+        // The launch still keeps the web session fresh.
+        expect(store.twitchWebToken, 'web_of_viewer_1');
+
+        await store.login(token: 'user_again');
+        expect(store.isLoggedIn, isTrue);
+      },
+    );
+
+    test('the reconnect loop restoring the session keeps it', () {
+      fakeAsync((async) {
+        FlutterSecureStorage.setMockInitialValues({
+          'default_token': 'the_default_token',
+          'user_token': 'user',
+        });
+        when(
+          () => api.validateToken(token: any(named: 'token')),
+        ).thenThrow(const ApiException('offline'));
+        final store = build();
+        unawaited(store.init());
+        async.flushMicrotasks();
+        expect(store.isLoggedIn, isFalse);
+
+        when(
+          () => api.validateToken(token: any(named: 'token')),
+        ).thenAnswer((_) async => true);
+        async.elapse(const Duration(seconds: 11));
+
+        expect(store.isLoggedIn, isTrue);
+        String? id;
+        unawaited(_storage.read(key: 'user_id').then((value) => id = value));
+        async.flushMicrotasks();
+        expect(id, '1');
+      });
+    });
+  });
+
   test('logout clears the token and the cookie jar', () async {
     final store = await withStoredToken('stored');
 
@@ -579,4 +636,39 @@ void main() {
       expect(TwitchWebTokenService.isTwitchPageUrl(url), isFalse, reason: url);
     }
   });
+}
+
+/// A keystore that refuses the account id (reads and writes), and keeps the
+/// rest.
+class _RefusingIdStorage extends FlutterSecureStorage {
+  const _RefusingIdStorage();
+
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    IOSOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    MacOsOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) {
+    if (key == 'user_id') throw Exception('keystore refused');
+    return super.write(key: key, value: value);
+  }
+
+  @override
+  Future<String?> read({
+    required String key,
+    IOSOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    MacOsOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) {
+    if (key == 'user_id') throw Exception('keystore refused');
+    return super.read(key: key);
+  }
 }

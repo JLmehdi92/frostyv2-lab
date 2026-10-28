@@ -534,7 +534,7 @@ abstract class AuthBase with Store {
         if (user.details != null) {
           _isLoggedIn = true;
           _stopReconnectLoop();
-          await _storage.write(key: _userIdKey, value: user.details!.id);
+          await _rememberUser(user.details!.id);
 
           // Keep the 2K credential fresh on every launch, but only once we
           // know there is a session to refresh — running this while logged out
@@ -560,7 +560,7 @@ abstract class AuthBase with Store {
     // twitch.tv session token.
     String? previousId = user.details?.id;
     try {
-      previousId ??= await _storage.read(key: _userIdKey);
+      previousId ??= await _rememberedUser();
 
       // Validate the custom token.
       _tokenIsValid = await twitchApi.validateToken(token: token);
@@ -587,11 +587,11 @@ abstract class AuthBase with Store {
         await setTwitchWebToken(null);
         if (_isAndroid) unawaited(harvestTwitchWebToken());
       }
-      if (newId != null) await _storage.write(key: _userIdKey, value: newId);
 
       // Set the login status to logged in.
       if (user.details != null) {
         _isLoggedIn = true;
+        await _rememberUser(user.details!.id);
         FirebaseCrashlytics.instance.setCustomKey('is_logged_in', true);
         FirebaseCrashlytics.instance.setUserIdentifier(user.details!.id);
         _stopReconnectLoop();
@@ -715,6 +715,7 @@ abstract class AuthBase with Store {
           _isLoggedIn = true;
           _error = null;
           _stopReconnectLoop();
+          await _rememberUser(user.details!.id);
         }
       } on ApiException catch (_) {
         // Continue trying
@@ -722,6 +723,27 @@ abstract class AuthBase with Store {
         debugPrint('Reconnect loop error: $e');
       }
     });
+  }
+
+  /// Keeps [id] as the account last logged in. Best effort: a keystore that
+  /// refuses it never changes a login or a launch (the next one tries
+  /// again).
+  Future<void> _rememberUser(String id) async {
+    try {
+      await _storage.write(key: _userIdKey, value: id);
+    } catch (e) {
+      debugPrint('Saving the account id failed: ${e.runtimeType}');
+    }
+  }
+
+  /// The account last logged in, or null (unknown, or unreadable).
+  Future<String?> _rememberedUser() async {
+    try {
+      return await _storage.read(key: _userIdKey);
+    } catch (e) {
+      debugPrint('Reading the account id failed: ${e.runtimeType}');
+      return null;
+    }
   }
 
   void _stopReconnectLoop() {
