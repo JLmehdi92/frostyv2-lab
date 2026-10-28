@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Before Android 12: the same frame as the Android 12+ splash, the launch
+     tile centred on the ONSET ground, in light and dark mode alike. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <bitmap android:gravity="fill" android:src="@drawable/background"/>
-    </item>
-    <item>
-        <bitmap android:gravity="center" android:src="@drawable/splash"/>
-    </item>
+    <item android:drawable="@color/launch_background" />
+    <item
+        android:drawable="@drawable/launch_tile"
+        android:gravity="center" />
 </layer-list>

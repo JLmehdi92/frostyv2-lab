@@ -192,10 +192,11 @@ flutter_native_splash:
     # of your splash screen to a solid color.  Use background_image to set the background of your
     # splash screen to a png image.  This is useful for gradients. The image will be stretch to the
     # size of the app. Only one parameter can be used, color and background_image cannot both be set.
-    # The splash screen is maintained by hand in android/app/src/main/res
-    # (drawable + drawable-night), not generated. `bg.png` was the old Frosty
-    # purple gradient and has been deleted; running this generator would
-    # overwrite the ONSET splash and fail on the missing file.
+    # The splash screen is maintained by hand, not generated: the launch tile
+    # (android/app/src/main/res/drawable/launch_tile.xml, splash_icon.xml for
+    # Android 12+) on #0A0A0A, and a plain #0A0A0A iOS launch screen; the
+    # Flutter launch intro starts from that frame. Running this generator
+    # would overwrite them.
     color: "#0A0A0A"
 
     # Optional parameters are listed below.  To enable a parameter, uncomment the line by removing

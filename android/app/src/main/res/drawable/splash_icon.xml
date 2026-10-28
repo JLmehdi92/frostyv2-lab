@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+ splash icon (no icon background): a 288 dp canvas whose
+     centre holds the 72 dp launch tile, the size the Flutter intro starts
+     from. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/launch_tile"
+    android:inset="108dp" />
