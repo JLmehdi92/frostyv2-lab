@@ -183,6 +183,9 @@ class _ChattersListState extends State<ChattersList> {
                     controller: store.scrollController,
                     child: Observer(
                       builder: (context) {
+                        // One pass over the filter per build: indexing the
+                        // lazy filter row by row walked it again each time.
+                        final users = store.filteredUsers.toList();
                         return CustomScrollView(
                           physics: const AlwaysScrollableScrollPhysics(),
                           controller: store.scrollController,
@@ -212,7 +215,7 @@ class _ChattersListState extends State<ChattersList> {
                               SliverToBoxAdapter(
                                 child: _empty(context, 'No chatters found'),
                               )
-                            else if (store.filteredUsers.isEmpty)
+                            else if (users.isEmpty)
                               SliverToBoxAdapter(
                                 child: _empty(context, 'No matching chatters'),
                               )
@@ -220,11 +223,9 @@ class _ChattersListState extends State<ChattersList> {
                               SliverPadding(
                                 padding: const EdgeInsets.only(bottom: 16),
                                 sliver: SliverList.builder(
-                                  itemCount: store.filteredUsers.length,
+                                  itemCount: users.length,
                                   itemBuilder: (context, index) {
-                                    final login = store.filteredUsers.elementAt(
-                                      index,
-                                    );
+                                    final login = users[index];
                                     return InkWell(
                                       onTap: () => _open(login),
                                       child: Container(
