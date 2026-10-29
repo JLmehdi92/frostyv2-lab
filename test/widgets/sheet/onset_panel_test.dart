@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/widgets/sheet/onset_panel.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
 
 void main() {
   // The board ChaineOutilsTablette: 1280 × 854, the video 880 × 495 at the
@@ -222,6 +223,89 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('in a panel'), findsOneWidget);
+    });
+
+    testWidgets('the keyboard lifts the panel; a resize closes it', (
+      tester,
+    ) async {
+      final context = await pump(tester, const Size(1280, 854));
+      showSheetOrPanel<void>(
+        context: context,
+        builder: content,
+        size: const Size(384, 562),
+        sides: const [PanelSide.above],
+        anchor: const Rect.fromLTWH(1186, 794, 80, 44),
+        region: const Rect.fromLTWH(880, 0, 400, 854),
+      );
+      await tester.pumpAndSettle();
+      final before = tester.getRect(find.byType(OnsetPanelSurface));
+      tester.view.viewInsets = const FakeViewPadding(bottom: 360);
+      addTearDown(tester.view.resetViewInsets);
+      await tester.pump();
+      final lifted = tester.getRect(find.byType(OnsetPanelSurface));
+      expect(lifted.bottom, lessThanOrEqualTo(854 - 360 - 8));
+      expect(lifted.left, before.left);
+      tester.view.resetViewInsets();
+      await tester.pump();
+      expect(tester.getRect(find.byType(OnsetPanelSurface)), before);
+      // A rotation strands it: it closes.
+      tester.view.physicalSize = const Size(854, 1280);
+      await tester.pumpAndSettle();
+      expect(find.text('in a panel'), findsNothing);
+    });
+
+    testWidgets('a sheet in the panel tone reports that ground', (
+      tester,
+    ) async {
+      final context = await pump(tester, const Size(390, 844));
+      late Color ground;
+      showSheetOrPanel<void>(
+        context: context,
+        builder: (context) {
+          ground = SheetPresentation.surfaceOf(context);
+          return const Text('sheet');
+        },
+        size: const Size(384, 344),
+        sides: const [PanelSide.left],
+        panelSheet: true,
+      );
+      await tester.pumpAndSettle();
+      expect(ground, SheetColors.of(context).panel);
+    });
+  });
+
+  group('panelClearOfKeyboard', () {
+    const media = MediaQueryData(
+      size: Size(1280, 854),
+      padding: EdgeInsets.only(top: 24),
+      viewInsets: EdgeInsets.only(bottom: 400),
+    );
+
+    test('without a keyboard nothing moves', () {
+      const rect = Rect.fromLTWH(884, 214, 384, 562);
+      expect(
+        panelClearOfKeyboard(rect, media.copyWith(viewInsets: EdgeInsets.zero)),
+        rect,
+      );
+    });
+
+    test('too tall to lift whole: under the status bar, shortened', () {
+      final rect = panelClearOfKeyboard(
+        const Rect.fromLTWH(884, 214, 384, 562),
+        media,
+      );
+      expect(rect.top, 32);
+      expect(rect.bottom, 854 - 400 - 8);
+      expect(rect.left, 884);
+    });
+
+    test('a short panel is lifted, keeping its height', () {
+      final rect = panelClearOfKeyboard(
+        const Rect.fromLTWH(884, 600, 384, 200),
+        media,
+      );
+      expect(rect.height, 200);
+      expect(rect.bottom, 854 - 400 - 8);
     });
   });
 }

@@ -217,10 +217,15 @@ class SheetPresentation extends InheritedWidget {
   const SheetPresentation({
     super.key,
     required this.panel,
+    this.surface,
     required super.child,
   });
 
   final bool panel;
+
+  /// The ground when it is neither the sheet's nor the panel's default
+  /// (a sheet drawn in the panel tone).
+  final Color? surface;
 
   static bool isPanel(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<SheetPresentation>()?.panel ??
@@ -228,13 +233,16 @@ class SheetPresentation extends InheritedWidget {
 
   /// The ground of what is being built: a panel's or a sheet's.
   static Color surfaceOf(BuildContext context) {
+    final presentation = context
+        .dependOnInheritedWidgetOfExactType<SheetPresentation>();
     final colors = SheetColors.of(context);
-    return isPanel(context) ? colors.panel : colors.sheet;
+    return presentation?.surface ??
+        (presentation?.panel ?? false ? colors.panel : colors.sheet);
   }
 
   @override
   bool updateShouldNotify(SheetPresentation oldWidget) =>
-      oldWidget.panel != panel;
+      oldWidget.panel != panel || oldWidget.surface != surface;
 }
 
 /// A tablet's anchored panel: #181818, 20 dp corners, a thin light ring,
@@ -361,8 +369,13 @@ Future<T?> showSheetOrPanel<T>({
     return showOnsetSheet<T>(
       context: context,
       panel: panelSheet,
-      builder: (context) =>
-          SheetPresentation(panel: false, child: Builder(builder: builder)),
+      builder: (context) => SheetPresentation(
+        panel: false,
+        // The sheet is drawn in the panel tone: what fades into its ground
+        // must fade into that one.
+        surface: panelSheet ? SheetColors.of(context).panel : null,
+        child: Builder(builder: builder),
+      ),
     );
   }
   FocusScope.of(context).unfocus();
@@ -370,6 +383,7 @@ Future<T?> showSheetOrPanel<T>({
   return navigator.push(
     _PanelRoute<T>(
       placement: placement,
+      openedAt: screen,
       builder: builder,
       capturedThemes: InheritedTheme.capture(
         from: context,
@@ -383,6 +397,7 @@ Future<T?> showSheetOrPanel<T>({
 class _PanelRoute<T> extends PopupRoute<T> {
   _PanelRoute({
     required this.placement,
+    required this.openedAt,
     required this.builder,
     required this.capturedThemes,
     required this.barrierLabel,
@@ -391,6 +406,27 @@ class _PanelRoute<T> extends PopupRoute<T> {
   final PanelPlacement placement;
   final WidgetBuilder builder;
   final CapturedThemes capturedThemes;
+
+  /// The screen size the panel was placed for. A rotation or a window
+  /// resize moves what it points at, so it closes rather than stay
+  /// stranded over the video.
+  final Size openedAt;
+
+  bool _closing = false;
+
+  void _closeStale() {
+    if (_closing) return;
+    _closing = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final navigator = this.navigator;
+      if (navigator == null || !isActive) return;
+      if (isCurrent) {
+        navigator.pop();
+      } else {
+        navigator.removeRoute(this);
+      }
+    });
+  }
 
   @override
   final String barrierLabel;
@@ -413,26 +449,34 @@ class _PanelRoute<T> extends PopupRoute<T> {
     Animation<double> animation,
     Animation<double> secondaryAnimation,
   ) {
-    final rect = placement.rect;
+    // The page is built once; the builder below follows the keyboard and
+    // the screen size without rebuilding what the panel holds.
+    final content = Semantics(
+      scopesRoute: true,
+      namesRoute: true,
+      explicitChildNodes: true,
+      child: OnsetPanelSurface(
+        side: placement.side,
+        nub: placement.nub,
+        child: Builder(builder: builder),
+      ),
+    );
     return capturedThemes.wrap(
       SheetPresentation(
         panel: true,
-        child: Stack(
-          children: [
-            Positioned.fromRect(
-              rect: rect,
-              child: Semantics(
-                scopesRoute: true,
-                namesRoute: true,
-                explicitChildNodes: true,
-                child: OnsetPanelSurface(
-                  side: placement.side,
-                  nub: placement.nub,
-                  child: Builder(builder: builder),
+        child: Builder(
+          builder: (context) {
+            final media = MediaQuery.of(context);
+            if (media.size != openedAt) _closeStale();
+            return Stack(
+              children: [
+                Positioned.fromRect(
+                  rect: panelClearOfKeyboard(placement.rect, media),
+                  child: content,
                 ),
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         ),
       ),
     );
@@ -490,4 +534,15 @@ class _PanelRoute<T> extends PopupRoute<T> {
       ),
     );
   }
+}
+
+/// A panel's [rect], lifted (and, at worst, shortened) so the keyboard does
+/// not cover a field inside it: a bet's stake in the points panel.
+Rect panelClearOfKeyboard(Rect rect, MediaQueryData media) {
+  final limit = media.size.height - media.viewInsets.bottom - 8;
+  if (media.viewInsets.bottom <= 0 || rect.bottom <= limit) return rect;
+  // Never below where it was, never above the status bar.
+  final top = _within(limit - rect.height, media.padding.top + 8, rect.top);
+  final bottom = top + rect.height < limit ? top + rect.height : limit;
+  return Rect.fromLTRB(rect.left, top, rect.right, bottom < top ? top : bottom);
 }
