@@ -405,6 +405,53 @@ void main() {
     });
   });
 
+  group('checkToken', () {
+    setUp(() => api = TwitchApi(dio, appClientId: 'test_client_id'));
+
+    test("this app's token is valid", () async {
+      dioAdapter.onGet(
+        'https://id.twitch.tv/oauth2/validate',
+        (server) => server.reply(200, twitchValidateTokenResponse),
+      );
+      expect(await api.checkToken(token: 'ours'), TokenCheck.valid);
+    });
+
+    test(
+      "another app's token is valid, and said to be another app's",
+      () async {
+        dioAdapter.onGet(
+          'https://id.twitch.tv/oauth2/validate',
+          (server) => server.reply(200, {
+            ...twitchValidateTokenResponse,
+            'client_id': 'someone_elses_app',
+          }),
+        );
+        expect(await api.checkToken(token: 'theirs'), TokenCheck.foreign);
+        // The strict check (the login page's) still refuses it.
+        expect(await api.validateToken(token: 'theirs'), isFalse);
+      },
+    );
+
+    test('a token Twitch refuses is invalid', () async {
+      dioAdapter.onGet(
+        'https://id.twitch.tv/oauth2/validate',
+        (server) => server.reply(401, {'message': 'invalid access token'}),
+      );
+      expect(await api.checkToken(token: 'expired'), TokenCheck.invalid);
+    });
+
+    test('a network failure is not an answer', () {
+      dioAdapter.onGet(
+        'https://id.twitch.tv/oauth2/validate',
+        (server) => server.reply(500, null),
+      );
+      expect(
+        () => api.checkToken(token: 'some_token'),
+        throwsA(isA<ServerException>()),
+      );
+    });
+  });
+
   group('getUserBlockedList', () {
     test('returns blocked users from single page', () async {
       dioAdapter.onGet(

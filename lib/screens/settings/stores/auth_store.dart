@@ -71,6 +71,15 @@ abstract class AuthBase with Store {
   /// loaded (a launch still reconnecting).
   static const _userIdKey = 'user_id';
 
+  /// The account last told that its token was created for another app (the
+  /// notice is shown once).
+  static const _foreignNoticeKey = 'foreign_token_notice_user';
+
+  /// What the app says once when the session's token was issued to another
+  /// app (stored by an older version, or pasted from another tool).
+  static const foreignTokenNotice =
+      'This token was created for another app — some features may not work.';
+
   /// The Twitch API service for making requests.
   final TwitchApi twitchApi;
 
@@ -392,6 +401,27 @@ abstract class AuthBase with Store {
   /// Error flag that will be non-null and contain an error message if login failed.
   @readonly
   String? _error;
+
+  /// A notice for the viewer about the session ([foreignTokenNotice]),
+  /// until it is shown ([clearTokenNotice]). Never the token.
+  @readonly
+  String? _tokenNotice;
+
+  /// The notice was shown.
+  @action
+  void clearTokenNotice() => _tokenNotice = null;
+
+  /// The session's token is another app's: [foreignTokenNotice], once for
+  /// [userId]'s account.
+  Future<void> _noticeForeignToken(String userId) async {
+    try {
+      if (await _storage.read(key: _foreignNoticeKey) == userId) return;
+      await _storage.write(key: _foreignNoticeKey, value: userId);
+    } catch (e) {
+      debugPrint('Token notice state unavailable: ${e.runtimeType}');
+    }
+    runInAction(() => _tokenNotice = foreignTokenNotice);
+  }
 
   /// Navigation handler for the login webview. Fires on every navigation request (whenever the URL changes).
   ///
@@ -778,8 +808,13 @@ abstract class AuthBase with Store {
         }
       } else {
         // Validate the existing token. If it fails, start reconnect loop.
+        // Any token Twitch accepts stays signed in, as it always did: one of
+        // another app (stored by an older version, pasted from another
+        // tool) gets a notice instead of a logout.
+        final TokenCheck check;
         try {
-          _tokenIsValid = await twitchApi.validateToken(token: _token!);
+          check = await twitchApi.checkToken(token: _token!);
+          _tokenIsValid = check != TokenCheck.invalid;
         } on ApiException catch (e) {
           debugPrint('Token validation failed: $e');
           _isLoggedIn = false;
@@ -798,6 +833,9 @@ abstract class AuthBase with Store {
           _isLoggedIn = true;
           _stopReconnectLoop();
           await _rememberUser(user.details!.id);
+          if (check == TokenCheck.foreign) {
+            await _noticeForeignToken(user.details!.id);
+          }
 
           // Keep the 2K credential fresh on every launch, but only once we
           // know there is a session to refresh — running this while logged out
@@ -834,6 +872,11 @@ abstract class AuthBase with Store {
 
   /// Logs in the user with the provided [token] and updates fields accordingly upon successful login.
   ///
+  /// The token must have been issued to this app (a login page could be
+  /// handed someone else's), unless [acceptAnyApp]: a token the viewer
+  /// brought themselves (pasted), which signs in whatever app it was made
+  /// for, with [foreignTokenNotice] when it is another app's.
+  ///
   /// Nothing of the session changes until the token is validated and its
   /// user read (with that token, not the session's): then, one at a time
   /// with any other session change, the token is saved (and, for another
@@ -843,7 +886,7 @@ abstract class AuthBase with Store {
   /// in memory and on disk. A later login, or a logout, while this one runs
   /// wins: this one then changes nothing.
   @action
-  Future<void> login({required String token}) async {
+  Future<void> login({required String token, bool acceptAnyApp = false}) async {
     final generation = ++_loginGeneration;
     final epoch = _authEpoch;
     _loginsInFlight++;
@@ -853,7 +896,14 @@ abstract class AuthBase with Store {
       final previousId = user.details?.id ?? await _rememberedUser();
 
       // Validate the custom token.
-      if (!await twitchApi.validateToken(token: token)) return;
+      final TokenCheck check;
+      if (acceptAnyApp) {
+        check = await twitchApi.checkToken(token: token);
+        if (check == TokenCheck.invalid) return;
+      } else {
+        if (!await twitchApi.validateToken(token: token)) return;
+        check = TokenCheck.valid;
+      }
 
       // The token's user, read with that token.
       final details = await twitchApi.getUserInfo(token: token);
@@ -901,6 +951,9 @@ abstract class AuthBase with Store {
         }
         _stopReconnectLoop();
         if (switching && _isAndroid) unawaited(harvestTwitchWebToken());
+        if (check == TokenCheck.foreign) {
+          await _noticeForeignToken(details.id);
+        }
       });
     } catch (e) {
       debugPrint('Login failed: ${e.runtimeType}');
@@ -1077,8 +1130,9 @@ abstract class AuthBase with Store {
           return;
         }
 
-        final isValid = await twitchApi.validateToken(token: stored);
-        if (!isValid) {
+        // Any token Twitch accepts, as at launch.
+        final check = await twitchApi.checkToken(token: stored);
+        if (check == TokenCheck.invalid) {
           await _logoutFromReconnect(generation, epoch, stored);
           return;
         }
@@ -1098,6 +1152,9 @@ abstract class AuthBase with Store {
             _error = null;
             _stopReconnectLoop();
             await _rememberUser(user.details!.id);
+            if (check == TokenCheck.foreign) {
+              await _noticeForeignToken(user.details!.id);
+            }
           }
         });
       } on ApiException catch (_) {

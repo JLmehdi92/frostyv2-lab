@@ -43,6 +43,12 @@ class FakeAuthStore extends Mock implements AuthStore {
     when(() => logout()).thenAnswer((_) async => setLoggedIn(false));
     when(() => init()).thenAnswer((_) async {});
     when(() => login(token: any(named: 'token'))).thenAnswer((_) async {});
+    when(
+      () => login(
+        token: any(named: 'token'),
+        acceptAnyApp: any(named: 'acceptAnyApp'),
+      ),
+    ).thenAnswer((_) async {});
   }
 
   final Observable<bool> _loggedIn;

@@ -145,7 +145,10 @@ void main() {
 
         await tester.longPress(find.text('Watching without an account'));
         await tester.pumpAndSettle();
-        verify(() => auth.login(token: 'copied-token')).called(1);
+        // The viewer's own token: whatever app it was made for.
+        verify(
+          () => auth.login(token: 'copied-token', acceptAnyApp: true),
+        ).called(1);
       },
     );
 

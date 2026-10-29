@@ -112,6 +112,26 @@ mixin _$AuthStore on AuthBase, Store {
     });
   }
 
+  late final _$_tokenNoticeAtom = Atom(
+    name: 'AuthBase._tokenNotice',
+    context: context,
+  );
+
+  String? get tokenNotice {
+    _$_tokenNoticeAtom.reportRead();
+    return super._tokenNotice;
+  }
+
+  @override
+  String? get _tokenNotice => tokenNotice;
+
+  @override
+  set _tokenNotice(String? value) {
+    _$_tokenNoticeAtom.reportWrite(value, super._tokenNotice, () {
+      super._tokenNotice = value;
+    });
+  }
+
   late final _$harvestTwitchWebTokenAsyncAction = AsyncAction(
     'AuthBase.harvestTwitchWebToken',
     context: context,
@@ -161,8 +181,10 @@ mixin _$AuthStore on AuthBase, Store {
   );
 
   @override
-  Future<void> login({required String token}) {
-    return _$loginAsyncAction.run(() => super.login(token: token));
+  Future<void> login({required String token, bool acceptAnyApp = false}) {
+    return _$loginAsyncAction.run(
+      () => super.login(token: token, acceptAnyApp: acceptAnyApp),
+    );
   }
 
   late final _$logoutAsyncAction = AsyncAction(
@@ -179,6 +201,18 @@ mixin _$AuthStore on AuthBase, Store {
     name: 'AuthBase',
     context: context,
   );
+
+  @override
+  void clearTokenNotice() {
+    final _$actionInfo = _$AuthBaseActionController.startAction(
+      name: 'AuthBase.clearTokenNotice',
+    );
+    try {
+      return super.clearTokenNotice();
+    } finally {
+      _$AuthBaseActionController.endAction(_$actionInfo);
+    }
+  }
 
   @override
   Future<void> _logoutFromReconnect(

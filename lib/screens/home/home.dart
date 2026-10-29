@@ -185,6 +185,25 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     _lifecycle = AppLifecycleListener(onResume: _checkPip);
     // Nothing plays under the launch intro (the clips may be the start tab).
     LaunchIntro.running.addListener(_onIntro);
+    // A notice about the account's token (made for another app), once.
+    _disposeTokenNotice = reaction(
+      (_) => _authStore.tokenNotice,
+      _showTokenNotice,
+      fireImmediately: true,
+    );
+  }
+
+  late final ReactionDisposer _disposeTokenNotice;
+
+  Future<void> _showTokenNotice(String? notice) async {
+    if (notice == null) return;
+    // Not under the launch intro's tile.
+    await LaunchIntro.landed();
+    if (!mounted) return;
+    _authStore.clearTokenNotice();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(notice), duration: const Duration(seconds: 6)),
+    );
   }
 
   void _onIntro() => _update(() {});
@@ -617,6 +636,7 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
   void dispose() {
     OnsetShell.routeObserver.removeListener(_onRoutes);
     LaunchIntro.running.removeListener(_onIntro);
+    _disposeTokenNotice();
     _lifecycle.dispose();
     _miniPlayer.setShellChrome(null);
     _whispers?.cancel();

@@ -68,6 +68,18 @@ class CreatedClip {
   final String? thumbnailUrl;
 }
 
+/// What Twitch says of a token ([TwitchApi.checkToken]).
+enum TokenCheck {
+  /// Valid, issued to this app.
+  valid,
+
+  /// Valid, but issued to another app.
+  foreign,
+
+  /// Refused: expired or revoked.
+  invalid,
+}
+
 /// The Twitch service for making API calls.
 class TwitchApi extends BaseApiClient {
   static const String _helixBaseUrl = 'https://api.twitch.tv/helix';
@@ -266,26 +278,37 @@ class TwitchApi extends BaseApiClient {
     );
   }
 
-  /// Returns a bool indicating the validity of the given token.
+  /// Whether [token] is valid and issued to this app (the check of the
+  /// login page, see [checkToken]).
   ///
   /// A token Twitch issued to another app is not valid here: a login page
   /// handed one (an injected redirect) would otherwise sign the user into
   /// someone else's account.
   Future<bool> validateToken({required String token}) async {
+    final check = await checkToken(token: token);
+    if (check == TokenCheck.foreign) {
+      debugPrint('Token validation: issued to another app.');
+    }
+    return check == TokenCheck.valid;
+  }
+
+  /// What Twitch says of [token]: valid and issued to this app, valid but
+  /// issued to another app (a token the user brought from another tool), or
+  /// refused (expired, revoked). Network, timeout and server errors throw:
+  /// they say nothing of the token.
+  Future<TokenCheck> checkToken({required String token}) async {
     try {
       final data = await get<JsonMap>(
         '$_oauthBaseUrl/validate',
         headers: {'Authorization': 'Bearer $token'},
       );
       final issuedTo = data['client_id'];
-      if (issuedTo is! String || issuedTo != _appClientId) {
-        debugPrint('Token validation: issued to another app.');
-        return false;
-      }
-      return true;
+      return issuedTo is String && issuedTo == _appClientId
+          ? TokenCheck.valid
+          : TokenCheck.foreign;
     } on UnauthorizedException {
       // 401 -> token is invalid/expired (propagated from interceptor for validate requests)
-      return false;
+      return TokenCheck.invalid;
     } on ApiException catch (e) {
       // Network/timeout/server errors -> treat as indeterminate, not invalid
       debugPrint('Token validation indeterminate: $e');

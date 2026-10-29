@@ -274,13 +274,14 @@ void openLogin(BuildContext context) => Navigator.push(
   MaterialPageRoute(builder: (context) => LoginWebView()),
 );
 
-/// A long press on the login card: logs in with a token copied before.
+/// A long press on the login card: logs in with a token copied before (the
+/// viewer's own, whatever app it was made for).
 Future<void> loginFromClipboard(AuthStore authStore) async {
   final clipboardText = (await Clipboard.getData(Clipboard.kTextPlain))?.text;
 
   if (clipboardText == null) return;
 
-  authStore.login(token: clipboardText);
+  authStore.login(token: clipboardText, acceptAnyApp: true);
 }
 
 /// Profile while logged out (board MoiDeconnecte): "Anonymous", why to log

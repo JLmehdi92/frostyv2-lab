@@ -24,6 +24,16 @@ void main() {
     when(
       () => api.validateToken(token: any(named: 'token')),
     ).thenAnswer((_) async => true);
+    // The launch, the reconnect loop and a pasted token ask checkToken; here
+    // it answers as validateToken does (this app's token, or refused).
+    when(() => api.checkToken(token: any(named: 'token'))).thenAnswer(
+      (invocation) async =>
+          await api.validateToken(
+            token: invocation.namedArguments[#token] as String,
+          )
+          ? TokenCheck.valid
+          : TokenCheck.invalid,
+    );
     when(
       () => api.getUserInfo(token: any(named: 'token')),
     ).thenAnswer((_) async => const UserTwitch('1', 'viewer', 'Viewer', ''));

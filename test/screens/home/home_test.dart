@@ -1299,6 +1299,20 @@ void main() {
     });
   });
 
+  testWidgets("a token made for another app: the account's notice, once", (
+    tester,
+  ) async {
+    final auth = FakeAuthStore(loggedIn: true);
+    when(() => auth.tokenNotice).thenReturn(AuthBase.foreignTokenNotice);
+    when(auth.clearTokenNotice).thenReturn(null);
+    await pump(tester, auth: auth);
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text(AuthBase.foreignTokenNotice), findsOneWidget);
+    verify(auth.clearTokenNotice).called(1);
+    await close(tester);
+  });
+
   testWidgets('a phone-tablet switch keeps the pages (fold, split, PiP)', (
     tester,
   ) async {
