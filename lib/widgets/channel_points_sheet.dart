@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/models/community_points.dart';
 import 'package:frosty/models/watch_streak.dart';
@@ -926,6 +927,8 @@ class _BetSheetState extends State<BetSheet> {
                 controller: _controller,
                 label: 'Points',
                 keyboardType: TextInputType.number,
+                // A pasted "1,500" or "2e3" is not a stake.
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 fill: colors.field,
                 textStyle: SheetText.tabular(
                   TextStyle(
@@ -1137,6 +1140,9 @@ class _RedeemDialog extends StatefulWidget {
 
   const _RedeemDialog({required this.reward});
 
+  /// The longest reward message sent: past it a chat line is unreadable.
+  static const maxMessageLength = 200;
+
   @override
   State<_RedeemDialog> createState() => _RedeemDialogState();
 }
@@ -1181,6 +1187,8 @@ class _RedeemDialogState extends State<_RedeemDialog> {
               controller: _controller,
               label: 'Your message',
               autofocus: true,
+              maxLength: _RedeemDialog.maxMessageLength,
+              counter: true,
               onChanged: (_) => setState(() {}),
             )
           : null,

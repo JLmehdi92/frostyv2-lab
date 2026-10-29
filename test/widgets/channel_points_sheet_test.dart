@@ -206,6 +206,22 @@ void main() {
       expect(find.text('Done.'), findsOneWidget);
     });
 
+    testWidgets('the message is capped at 200 characters, and counted', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        const CommunityPointsContext(balance: 1000, rewards: [_song]),
+      );
+      await tester.tap(find.text('Request a song'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'a' * 260);
+      await tester.pump();
+      final field = tester.widget<TextField>(find.byType(TextField));
+      expect(field.controller!.text.length, 200);
+      expect(find.text('200 / 200'), findsOneWidget);
+    });
+
     testWidgets('a reward without text is confirmed and sent bare', (
       tester,
     ) async {
@@ -421,6 +437,15 @@ void main() {
         ),
       ).called(1);
       expect(find.text('Done.'), findsOneWidget);
+    });
+
+    testWidgets('the stake takes digits only', (tester) async {
+      await openBet(tester);
+      await tester.enterText(find.byType(TextField), '1,5e2-');
+      await tester.pump();
+      final field = tester.widget<TextField>(find.byType(TextField));
+      expect(field.controller!.text, '152');
+      expect(find.text('Bet 152'), findsOneWidget);
     });
 
     testWidgets('clearing the field does not keep the last stake', (
