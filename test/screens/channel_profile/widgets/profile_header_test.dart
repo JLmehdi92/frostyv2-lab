@@ -5,7 +5,7 @@ import 'package:onset/screens/channel_profile/widgets/profile_header.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_live_card.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_parts.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 
 const _offline = ChannelProfile(
   id: '42',
@@ -48,7 +48,7 @@ void main() {
     MaterialApp(
       theme: ThemeData(
         brightness: dark ? Brightness.dark : Brightness.light,
-        extensions: [dark ? FrostyColors.dark : FrostyColors.light],
+        extensions: [dark ? OnsetColors.dark : OnsetColors.light],
       ),
       home: MediaQuery(
         data: MediaQueryData(
@@ -102,9 +102,7 @@ void main() {
         ),
       );
       return tester
-          .widget<FrostyCachedNetworkImage>(
-            find.byType(FrostyCachedNetworkImage),
-          )
+          .widget<OnsetCachedNetworkImage>(find.byType(OnsetCachedNetworkImage))
           .memCacheWidth;
     }
 

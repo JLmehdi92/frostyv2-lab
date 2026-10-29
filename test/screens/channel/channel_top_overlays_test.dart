@@ -275,7 +275,7 @@ void main() {
     // Board ChaineHypeDetail: the sheet on the community green.
     expect(
       tester.widget<BottomSheet>(find.byType(BottomSheet)).backgroundColor,
-      context.frostyColors.subNoticeBackground,
+      context.onsetColors.subNoticeBackground,
     );
 
     h.inject(const HtEndEvent(reason: HtEndReason.expired));

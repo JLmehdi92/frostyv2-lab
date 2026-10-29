@@ -271,7 +271,7 @@ class SettingsAccountCard extends StatelessWidget {
                         Text(
                           title,
                           style: TextStyle(
-                            fontFamily: FrostyTokens.bodyFamily,
+                            fontFamily: OnsetTokens.bodyFamily,
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: colors.text,
@@ -280,7 +280,7 @@ class SettingsAccountCard extends StatelessWidget {
                         Text(
                           detail,
                           style: TextStyle(
-                            fontFamily: FrostyTokens.bodyFamily,
+                            fontFamily: OnsetTokens.bodyFamily,
                             fontSize: 13,
                             color: colors.secondary,
                           ),

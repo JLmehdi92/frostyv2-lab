@@ -205,7 +205,7 @@ class _PermissionList extends StatelessWidget {
                     : const Border(
                         top: BorderSide(
                           color: OnboardingColors.divider,
-                          width: FrostyTokens.hairlineWidth,
+                          width: OnsetTokens.hairlineWidth,
                         ),
                       ),
               ),

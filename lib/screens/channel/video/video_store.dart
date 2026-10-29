@@ -224,24 +224,24 @@ abstract class VideoStoreBase with Store implements WebPagePlayer {
   /// alone.
   @visibleForTesting
   static const holdScript = '''(function () {
-  window._frostyHold = true;
+  window._onsetHold = true;
   const hold = (v) => {
-    if (!v._frostyHoldBound) {
-      v._frostyHoldBound = true;
+    if (!v._onsetHoldBound) {
+      v._onsetHoldBound = true;
       v.addEventListener('play', () => {
-        if (window._frostyHold) { window._frostyHeld = true; v.pause(); }
+        if (window._onsetHold) { window._onsetHeld = true; v.pause(); }
       });
     }
-    if (!v.paused) { window._frostyHeld = true; v.pause(); }
+    if (!v.paused) { window._onsetHeld = true; v.pause(); }
   };
   const holdAll = () => {
-    if (!window._frostyHold) return;
+    if (!window._onsetHold) return;
     for (const v of document.getElementsByTagName('video')) hold(v);
   };
   holdAll();
-  if (!window._frostyHoldObserver) {
-    window._frostyHoldObserver = new MutationObserver(holdAll);
-    window._frostyHoldObserver.observe(document, { childList: true, subtree: true });
+  if (!window._onsetHoldObserver) {
+    window._onsetHoldObserver = new MutationObserver(holdAll);
+    window._onsetHoldObserver.observe(document, { childList: true, subtree: true });
   }
 })();''';
 
@@ -249,13 +249,13 @@ abstract class VideoStoreBase with Store implements WebPagePlayer {
   /// if the hold stopped it.
   @visibleForTesting
   static const releaseScript = '''(function () {
-  window._frostyHold = false;
-  if (window._frostyHoldObserver) {
-    window._frostyHoldObserver.disconnect();
-    window._frostyHoldObserver = null;
+  window._onsetHold = false;
+  if (window._onsetHoldObserver) {
+    window._onsetHoldObserver.disconnect();
+    window._onsetHoldObserver = null;
   }
-  if (window._frostyHeld) {
-    window._frostyHeld = false;
+  if (window._onsetHeld) {
+    window._onsetHeld = false;
     const v = window._videoEl || document.getElementsByTagName('video')[0];
     if (v) v.play().catch(() => {});
   }
@@ -331,12 +331,12 @@ abstract class VideoStoreBase with Store implements WebPagePlayer {
   static const contentGatePollScript =
       '''
     (() => {
-      if (window._frostyGatePoll) return;
+      if (window._onsetGatePoll) return;
 $kTwitchWebGateShownJs
-      window._frostyGatePoll = setInterval(() => {
-        const shown = frostyGateShown();
-        if (shown !== window._frostyGateShown) {
-          window._frostyGateShown = shown;
+      window._onsetGatePoll = setInterval(() => {
+        const shown = onsetGateShown();
+        if (shown !== window._onsetGateShown) {
+          window._onsetGateShown = shown;
           ContentGate.postMessage(String(shown));
         }
       }, 1000);
@@ -1002,7 +1002,7 @@ $kTwitchWebGateShownJs
 
             // Explicitly attempt autoplay in case the player loaded paused
             // (not while our content warning holds it).
-            if (!window._frostyHold) {
+            if (!window._onsetHold) {
               try { await videoElement.play(); } catch (e) {}
             }
           });

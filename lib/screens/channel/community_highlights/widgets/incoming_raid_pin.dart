@@ -44,7 +44,7 @@ class IncomingRaidPin extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               side: BorderSide(
                 color: colors.ring,
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               ),
             ),
           ),
@@ -106,7 +106,7 @@ class IncomingRaidPin extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontFamily: FrostyTokens.bodyFamily,
+                            fontFamily: OnsetTokens.bodyFamily,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             height: 1.3,
@@ -118,7 +118,7 @@ class IncomingRaidPin extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontFamily: FrostyTokens.bodyFamily,
+                            fontFamily: OnsetTokens.bodyFamily,
                             fontSize: 12,
                             height: 1.3,
                             color: colors.secondary,
@@ -168,7 +168,7 @@ class _FlyIn extends StatelessWidget {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
       duration: const Duration(milliseconds: 760),
-      curve: FrostyMotion.standard,
+      curve: OnsetMotion.standard,
       builder: (context, t, child) => Opacity(
         opacity: (t / 0.6).clamp(0.0, 1.0),
         child: Transform.translate(

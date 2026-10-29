@@ -3,7 +3,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/models/chat_rules.dart';
 import 'package:onset/screens/channel/chat/stores/chat_rules_store.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
@@ -56,7 +56,7 @@ class ChatRulesSheet extends StatelessWidget {
                               ),
                             ),
                           )
-                        : FrostyCachedNetworkImage(
+                        : OnsetCachedNetworkImage(
                             imageUrl: avatar,
                             width: 40,
                             height: 40,

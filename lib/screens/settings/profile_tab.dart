@@ -223,7 +223,7 @@ class _ProfileHeader extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontFamily: FrostyTokens.bodyFamily,
+                          fontFamily: OnsetTokens.bodyFamily,
                           fontSize: 26,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.78,
@@ -237,7 +237,7 @@ class _ProfileHeader extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontFamily: FrostyTokens.bodyFamily,
+                        fontFamily: OnsetTokens.bodyFamily,
                         fontSize: 14,
                         color: colors.body,
                       ),
@@ -255,7 +255,7 @@ class _ProfileHeader extends StatelessWidget {
                             child: Text(
                               joined,
                               style: TextStyle(
-                                fontFamily: FrostyTokens.bodyFamily,
+                                fontFamily: OnsetTokens.bodyFamily,
                                 fontSize: 12.5,
                                 color: colors.secondary,
                               ),
@@ -389,9 +389,9 @@ class _VersionState extends State<_Version> {
         return Text(
           info == null ? '' : 'ONSET v${info.version} (${info.buildNumber})',
           textAlign: TextAlign.center,
-          style: FrostyType.tabular(
+          style: OnsetType.tabular(
             TextStyle(
-              fontFamily: FrostyTokens.bodyFamily,
+              fontFamily: OnsetTokens.bodyFamily,
               fontSize: 12,
               color: SettingsColors.of(context).tertiary,
             ),

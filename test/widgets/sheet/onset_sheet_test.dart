@@ -18,7 +18,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     late BuildContext inside;
-    final theme = const FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    final theme = const OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       MaterialApp(
         theme: brightness == Brightness.dark ? theme.dark : theme.light,
@@ -145,7 +145,7 @@ void main() {
     testWidgets('a destructive row reads in the danger colour', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          theme: const FrostyThemes(colorSchemeSeed: FrostyTokens.accent).dark,
+          theme: const OnsetThemes(colorSchemeSeed: OnsetTokens.accent).dark,
           home: Scaffold(
             body: SheetRow(
               glyph: SheetGlyphKind.trash,
@@ -256,7 +256,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       MaterialApp(
-        theme: const FrostyThemes(colorSchemeSeed: FrostyTokens.accent).dark,
+        theme: const OnsetThemes(colorSchemeSeed: OnsetTokens.accent).dark,
         home: Scaffold(
           body: Builder(
             builder: (context) => TextButton(

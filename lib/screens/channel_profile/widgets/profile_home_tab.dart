@@ -21,9 +21,9 @@ import 'package:onset/screens/vod/widgets/vod_card.dart';
 import 'package:onset/services/notifications/schedule_reminders.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
-import 'package:onset/widgets/frosty_photo_view_dialog.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
+import 'package:onset/widgets/onset_photo_view_dialog.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
 
@@ -366,12 +366,12 @@ class _TilePicture extends StatelessWidget {
                       showDialog<void>(
                         context: context,
                         builder: (context) =>
-                            FrostyPhotoViewDialog(imageUrl: url),
+                            OnsetPhotoViewDialog(imageUrl: url),
                       );
                     },
                     child: LayoutBuilder(
                       builder: (context, constraints) =>
-                          FrostyCachedNetworkImage(
+                          OnsetCachedNetworkImage(
                             imageUrl: url,
                             fit: BoxFit.cover,
                             memCacheWidth: (constraints.maxWidth * pixelRatio)
@@ -404,7 +404,7 @@ class _TilePicture extends StatelessWidget {
                     child: FractionallySizedBox(
                       alignment: AlignmentDirectional.centerStart,
                       widthFactor: progress.clamp(0.0, 1.0),
-                      child: ColoredBox(color: context.frostyColors.live),
+                      child: ColoredBox(color: context.onsetColors.live),
                     ),
                   ),
                 ),
@@ -437,7 +437,7 @@ class _TileChip extends StatelessWidget {
           child ??
           Text(
             text ?? '',
-            style: FrostyType.tabular(
+            style: OnsetType.tabular(
               const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
@@ -480,7 +480,7 @@ class _TileText extends StatelessWidget {
             details,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: FrostyType.tabular(
+            style: OnsetType.tabular(
               TextStyle(fontSize: 12, height: 1.3, color: colors.secondary),
             ),
           ),
@@ -535,7 +535,7 @@ class ProfileVideoTile extends StatelessWidget {
                     _TileChip(
                       text: 'Recording',
                       large: large,
-                      color: FrostyTokens.danger.withValues(alpha: 0.9),
+                      color: OnsetTokens.danger.withValues(alpha: 0.9),
                     ),
                   if (progress.watched)
                     _TileChip(text: 'Watched', large: large),

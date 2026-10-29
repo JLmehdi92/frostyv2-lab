@@ -4,7 +4,7 @@ import 'package:onset/apis/twitch_hype_train_service.dart';
 import 'package:onset/models/hype_train.dart';
 import 'package:onset/models/hype_train_event.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_end_strip.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 
 import 'hype_train_widget_harness.dart';
 
@@ -38,7 +38,7 @@ final _strip = find.byType(HypeTrainEndStrip);
 final _bar = find.byKey(const ValueKey('ht-strip-bar'));
 final _emotes = find.descendant(
   of: find.byKey(const ValueKey('ht-strip-emotes')),
-  matching: find.byType(FrostyCachedNetworkImage),
+  matching: find.byType(OnsetCachedNetworkImage),
 );
 const _rewards = 'Great work! Emotes are being delivered to supporters';
 
@@ -84,7 +84,7 @@ void main() {
 
     await frames(tester, 14200);
     expect(_emotes, findsNWidgets(3));
-    for (final emote in tester.widgetList<FrostyCachedNetworkImage>(_emotes)) {
+    for (final emote in tester.widgetList<OnsetCachedNetworkImage>(_emotes)) {
       expect((emote.width, emote.height), (24.0, 24.0));
     }
     if (find.text(_rewards).evaluate().isNotEmpty) {

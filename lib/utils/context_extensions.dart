@@ -85,19 +85,19 @@ extension ContextExtensions on BuildContext {
   /// Gets the app's custom semantic colors. A theme built without them (a
   /// bare MaterialApp, a test) gets the ONSET palette for its brightness
   /// instead of a crash.
-  FrostyColors get frostyColors {
+  OnsetColors get onsetColors {
     final theme = Theme.of(this);
-    return theme.extension<FrostyColors>() ??
+    return theme.extension<OnsetColors>() ??
         (theme.brightness == Brightness.dark
-            ? FrostyColors.dark
-            : FrostyColors.light);
+            ? OnsetColors.dark
+            : OnsetColors.light);
   }
 
   /// Gets the app's monospace metadata and wide-tracked label styles, with
-  /// the same fallback as [frostyColors].
-  FrostyTextStyles get frostyText =>
-      Theme.of(this).extension<FrostyTextStyles>() ??
-      FrostyTextStyles.resolve(frostyColors.metadata);
+  /// the same fallback as [onsetColors].
+  OnsetTextStyles get onsetText =>
+      Theme.of(this).extension<OnsetTextStyles>() ??
+      OnsetTextStyles.resolve(onsetColors.metadata);
 
   /// Gets the default text style
   TextStyle get defaultTextStyle => DefaultTextStyle.of(this).style;

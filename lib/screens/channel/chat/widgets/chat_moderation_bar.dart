@@ -128,7 +128,7 @@ class _ChatModerationBarState extends State<ChatModerationBar> {
             borderRadius: BorderRadius.circular(14),
             side: BorderSide(
               color: colors.ring,
-              width: FrostyTokens.hairlineWidth,
+              width: OnsetTokens.hairlineWidth,
             ),
           ),
         ),
@@ -297,7 +297,7 @@ class ModerationPill extends StatelessWidget {
       ModerationPillTone.outlined => (
         Colors.transparent,
         colors.text,
-        BorderSide(color: colors.ringStrong, width: FrostyTokens.hairlineWidth),
+        BorderSide(color: colors.ringStrong, width: OnsetTokens.hairlineWidth),
       ),
     };
     final open = expanded;
@@ -324,7 +324,7 @@ class ModerationPill extends StatelessWidget {
                   Text(
                     label,
                     style: TextStyle(
-                      fontFamily: FrostyTokens.bodyFamily,
+                      fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600,
                       color: fg,
@@ -337,7 +337,7 @@ class ModerationPill extends StatelessWidget {
                         context,
                         const Duration(milliseconds: 220),
                       ),
-                      curve: FrostyMotion.standard,
+                      curve: OnsetMotion.standard,
                       child: SheetGlyph(
                         SheetGlyphKind.chevronDown,
                         size: 16,

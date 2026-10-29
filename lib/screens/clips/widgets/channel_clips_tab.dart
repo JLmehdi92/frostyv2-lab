@@ -9,7 +9,7 @@ import 'package:onset/screens/vod/widgets/video_card_layout.dart';
 import 'package:onset/screens/vod/widgets/video_kit.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/adaptive_sliver_list.dart';
-import 'package:onset/widgets/frosty_scrollbar.dart';
+import 'package:onset/widgets/onset_scrollbar.dart';
 import 'package:onset/widgets/scroll_to_top_button.dart';
 import 'package:onset/widgets/state_views.dart';
 
@@ -186,7 +186,7 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
           child: Stack(
             alignment: AlignmentDirectional.bottomCenter,
             children: [
-              FrostyScrollbar(controller: store.scrollController, child: list),
+              OnsetScrollbar(controller: store.scrollController, child: list),
               // Only over listed clips, not over the skeletons or a message.
               Observer(
                 builder: (context) => !store.isLoading && store.clips.isNotEmpty

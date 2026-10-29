@@ -171,7 +171,7 @@ class _EmoteTabsViewState extends State<EmoteTabsView>
         border: Border(
           bottom: BorderSide(
             color: colors.hairline,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
       ),
@@ -201,7 +201,7 @@ class _EmoteTabsViewState extends State<EmoteTabsView>
                                 Text(
                                   header,
                                   style: TextStyle(
-                                    fontFamily: FrostyTokens.bodyFamily,
+                                    fontFamily: OnsetTokens.bodyFamily,
                                     fontSize: 14,
                                     letterSpacing: -0.07,
                                     fontWeight: selected

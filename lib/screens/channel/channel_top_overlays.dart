@@ -56,7 +56,7 @@ Future<void> showHypeTrainDetails(
   constraints: const BoxConstraints(maxWidth: 480),
   // Board ChaineHypeDetail: the details on the community green, the hype
   // train itself unchanged.
-  background: context.frostyColors.subNoticeBackground,
+  background: context.onsetColors.subNoticeBackground,
   builder: (context) => _ClosesWhenHidden(
     store: store,
     child: SafeArea(

@@ -37,7 +37,7 @@ class SectionHeader extends StatelessWidget {
             text.toUpperCase(),
             // Section headers share the wide-tracked monospace label used for
             // stream categories, so groups and metadata read as one voice.
-            style: context.frostyText.label.copyWith(fontSize: fontSize),
+            style: context.onsetText.label.copyWith(fontSize: fontSize),
           ),
         ],
       ),

@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/screens/onboarding/onboarding_parts.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 
 /// The intro's text (the app's own description).
 const onboardingDescription =
@@ -136,7 +136,7 @@ class OnboardingIntroTablet extends StatelessWidget {
                           child: Text(
                             onboardingDescription,
                             style: TextStyle(
-                              fontFamily: FrostyTokens.displayFamily,
+                              fontFamily: OnsetTokens.displayFamily,
                               fontSize: size,
                               fontWeight: FontWeight.w800,
                               letterSpacing: -0.035 * size,
@@ -189,7 +189,7 @@ class OnboardingVersion extends StatelessWidget {
     return Text(
       version ?? '',
       textAlign: TextAlign.center,
-      style: FrostyType.tabular(
+      style: OnsetType.tabular(
         const TextStyle(fontSize: 12, color: OnboardingColors.tertiary),
       ),
     );
@@ -408,7 +408,7 @@ class _MosaicTile extends StatelessWidget {
         children: [
           const _MosaicStandIn(),
           if (stream != null)
-            FrostyCachedNetworkImage(
+            OnsetCachedNetworkImage(
               imageUrl: stream.thumbnailUrl.replaceFirst(
                 '-{width}x{height}',
                 '-${width}x$height',
@@ -428,7 +428,7 @@ class _MosaicTile extends StatelessWidget {
                 height: 20,
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 decoration: BoxDecoration(
-                  color: FrostyTokens.accent,
+                  color: OnsetTokens.accent,
                   borderRadius: BorderRadius.circular(5),
                 ),
                 alignment: Alignment.center,
@@ -438,7 +438,7 @@ class _MosaicTile extends StatelessWidget {
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.6,
-                    color: FrostyTokens.backgroundDark,
+                    color: OnsetTokens.backgroundDark,
                   ),
                 ),
               ),

@@ -60,7 +60,7 @@ class RaidWelcomeCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   side: BorderSide(
                     color: accent.withValues(alpha: 0.24),
-                    width: FrostyTokens.hairlineWidth,
+                    width: OnsetTokens.hairlineWidth,
                   ),
                 ),
               ),
@@ -99,7 +99,7 @@ class RaidWelcomeCard extends StatelessWidget {
                                         ],
                                       ),
                                       style: TextStyle(
-                                        fontFamily: FrostyTokens.bodyFamily,
+                                        fontFamily: OnsetTokens.bodyFamily,
                                         fontSize: 13.5,
                                         height: 1.35,
                                         color: colors.text,
@@ -108,7 +108,7 @@ class RaidWelcomeCard extends StatelessWidget {
                                     Text(
                                       "Welcome to ${arrival.targetName}'s chat",
                                       style: TextStyle(
-                                        fontFamily: FrostyTokens.bodyFamily,
+                                        fontFamily: OnsetTokens.bodyFamily,
                                         fontSize: 12,
                                         height: 1.35,
                                         color: colors.secondary,
@@ -156,7 +156,7 @@ class _Rule extends StatelessWidget {
         alignment: Alignment.topCenter,
         transform: Matrix4.diagonal3Values(
           1,
-          FrostyMotion.standard.transform(((t * 510 - 90) / 420).clamp(0, 1)),
+          OnsetMotion.standard.transform(((t * 510 - 90) / 420).clamp(0, 1)),
           1,
         ),
         child: child,
@@ -185,11 +185,11 @@ class _Pop extends StatelessWidget {
         final double scale;
         final double turn;
         if (p < 0.55) {
-          final k = FrostyMotion.standard.transform(p / 0.55);
+          final k = OnsetMotion.standard.transform(p / 0.55);
           scale = 0.35 + (1.1 - 0.35) * k;
           turn = -12 + 15 * k;
         } else {
-          final k = FrostyMotion.standard.transform((p - 0.55) / 0.45);
+          final k = OnsetMotion.standard.transform((p - 0.55) / 0.45);
           scale = 1.1 - 0.1 * k;
           turn = 3 - 3 * k;
         }

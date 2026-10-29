@@ -5,7 +5,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/screens/channel/chat/chat_filters.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 
 import '../../../../helpers/chat_message_harness.dart';
 
@@ -136,7 +136,7 @@ void main() {
     expect(
       find.byWidgetPredicate(
         (w) =>
-            w is FrostyCachedNetworkImage &&
+            w is OnsetCachedNetworkImage &&
             w.imageUrl.contains('/emoticons/v2/25/'),
       ),
       findsOneWidget,

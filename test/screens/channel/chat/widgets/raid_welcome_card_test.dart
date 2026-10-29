@@ -33,7 +33,7 @@ void main() {
     double width = 390,
     double textScale = 1,
   }) {
-    const themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    const themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     return tester.pumpWidget(
       MaterialApp(
         theme: brightness == Brightness.dark ? themes.dark : themes.light,

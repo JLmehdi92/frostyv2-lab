@@ -573,7 +573,7 @@ class _MyAppState extends State<MyApp> {
     return Observer(
       builder: (context) {
         final settingsStore = context.read<SettingsStore>();
-        final themes = FrostyThemes(
+        final themes = OnsetThemes(
           colorSchemeSeed: Color(settingsStore.accentColor),
         );
 

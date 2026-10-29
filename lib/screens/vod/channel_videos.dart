@@ -127,7 +127,7 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = FeedColors.of(context);
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     final ground = theme.scaffoldBackgroundColor;
     final padding = MediaQuery.paddingOf(context);
     final labels = [for (final (_, label, _) in _tabs) label, 'Clips'];
@@ -138,7 +138,7 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen>
         border: Border(
           bottom: BorderSide(
             color: colors.hairline,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
       ),
@@ -200,7 +200,7 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen>
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontFamily: FrostyTokens.displayFamily,
+                            fontFamily: OnsetTokens.displayFamily,
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                             letterSpacing: -0.27,

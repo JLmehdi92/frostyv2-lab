@@ -44,7 +44,7 @@ void main() {
     tester.view.physicalSize = screen;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    const themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    const themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     final overlay = VideoOverlay(
       videoStore: player,
       chatStore: chat,

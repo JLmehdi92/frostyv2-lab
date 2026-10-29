@@ -4,7 +4,7 @@ import 'package:onset/theme.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
 
 Widget _host(Widget child, {bool dark = true, bool disableAnimations = false}) {
-  const themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+  const themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
   return MaterialApp(
     theme: dark ? themes.dark : themes.light,
     home: MediaQuery(
@@ -27,8 +27,8 @@ void main() {
       _host(const Center(child: SkeletonLoader(width: 120, height: 40))),
     );
     final painter = _painter(tester);
-    expect(painter.base, FrostyTokens.skeletonDark);
-    expect(painter.highlight, FrostyTokens.skeletonSheenDark);
+    expect(painter.base, OnsetTokens.skeletonDark);
+    expect(painter.highlight, OnsetTokens.skeletonSheenDark);
     expect(painter.sheen, isTrue);
     expect(tester.binding.transientCallbackCount, greaterThan(0));
 

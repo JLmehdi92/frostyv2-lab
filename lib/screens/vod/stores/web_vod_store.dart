@@ -232,7 +232,7 @@ abstract class WebVodStoreBase
 
   /// The page side of the bridge. It also reports whether Twitch's warning
   /// (or another interstitial) is up, and clicks the warning's button only
-  /// once the viewer accepted ours (`window._frostyGateOk`).
+  /// once the viewer accepted ours (`window._onsetGateOk`).
   @visibleForTesting
   static const bridgeScript =
       '''
@@ -250,12 +250,12 @@ abstract class WebVodStoreBase
           }`;
         document.head.appendChild(style);
       }
-      if (window._frostyVodPoll) return;
+      if (window._onsetVodPoll) return;
       const num = (x) => (typeof x === 'number' && isFinite(x)) ? x : null;
 $kTwitchWebGateShownJs
-      window._frostyVodPoll = setInterval(() => {
-        const g = frostyGateShown();
-        if (g && window._frostyGateOk === true) {
+      window._onsetVodPoll = setInterval(() => {
+        const g = onsetGateShown();
+        if (g && window._onsetGateOk === true) {
           const button =
             document.querySelector(
               'button[data-a-target*="content-classification-gate"]',
@@ -270,7 +270,7 @@ $kTwitchWebGateShownJs
           VodState.postMessage(JSON.stringify({ g }));
           return;
         }
-        if (typeof window._frostyLoop === 'boolean') v.loop = window._frostyLoop;
+        if (typeof window._onsetLoop === 'boolean') v.loop = window._onsetLoop;
         let b = null;
         try {
           if (v.buffered.length) b = v.buffered.end(v.buffered.length - 1);
@@ -292,7 +292,7 @@ $kTwitchWebGateShownJs
   }
 
   void _applyGateConsent([void _]) {
-    if (_gateAccepted) unawaited(_run('window._frostyGateOk = true;'));
+    if (_gateAccepted) unawaited(_run('window._onsetGateOk = true;'));
   }
 
   /// Applies a state report from the page. Malformed reports are ignored.
@@ -437,7 +437,7 @@ $kTwitchWebGateShownJs
   /// [looping] is a boolean, never text: the script stays a literal.
   void _applyLoop([void _]) {
     final looping = _looping;
-    unawaited(_run('window._frostyLoop = $looping;'));
+    unawaited(_run('window._onsetLoop = $looping;'));
     _onVideo('v.loop = $looping;');
   }
 

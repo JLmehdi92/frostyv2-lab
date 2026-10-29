@@ -112,7 +112,7 @@ class _MutedWordsSheetState extends State<MutedWordsSheet> {
                   shape: StadiumBorder(
                     side: BorderSide(
                       color: colors.buttonRing,
-                      width: FrostyTokens.hairlineWidth,
+                      width: OnsetTokens.hairlineWidth,
                     ),
                   ),
                 ),
@@ -127,14 +127,14 @@ class _MutedWordsSheetState extends State<MutedWordsSheet> {
                         autocorrect: false,
                         cursorColor: accent,
                         style: TextStyle(
-                          fontFamily: FrostyTokens.bodyFamily,
+                          fontFamily: OnsetTokens.bodyFamily,
                           fontSize: 15,
                           color: colors.text,
                         ),
                         decoration: InputDecoration(
                           hintText: 'Enter keywords to mute',
                           hintStyle: TextStyle(
-                            fontFamily: FrostyTokens.bodyFamily,
+                            fontFamily: OnsetTokens.bodyFamily,
                             fontSize: 15,
                             color: colors.tertiary,
                           ),
@@ -216,7 +216,7 @@ class _MutedWordsSheetState extends State<MutedWordsSheet> {
                       Text(
                         'No muted keywords',
                         style: TextStyle(
-                          fontFamily: FrostyTokens.bodyFamily,
+                          fontFamily: OnsetTokens.bodyFamily,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: colors.body,
@@ -236,7 +236,7 @@ class _MutedWordsSheetState extends State<MutedWordsSheet> {
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: colors.cardRing,
-                      width: FrostyTokens.hairlineWidth,
+                      width: OnsetTokens.hairlineWidth,
                     ),
                   ),
                   child: Column(
@@ -244,8 +244,8 @@ class _MutedWordsSheetState extends State<MutedWordsSheet> {
                       for (final (index, word) in words.indexed) ...[
                         if (index > 0)
                           Divider(
-                            height: FrostyTokens.hairlineWidth,
-                            thickness: FrostyTokens.hairlineWidth,
+                            height: OnsetTokens.hairlineWidth,
+                            thickness: OnsetTokens.hairlineWidth,
                             color: colors.hairline,
                           ),
                         Padding(
@@ -258,7 +258,7 @@ class _MutedWordsSheetState extends State<MutedWordsSheet> {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                    fontFamily: FrostyTokens.bodyFamily,
+                                    fontFamily: OnsetTokens.bodyFamily,
                                     fontSize: 15,
                                     color: colors.text,
                                   ),

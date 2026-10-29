@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 
-/// Sinks [child] to [FrostyMotion.pressScale] the moment a finger touches it,
+/// Sinks [child] to [OnsetMotion.pressScale] the moment a finger touches it,
 /// and springs it back when the finger lifts.
 ///
 /// It only listens to raw pointers (a [Listener]), so it never takes part in
@@ -26,7 +26,7 @@ class PressScale extends StatefulWidget {
   const PressScale({
     super.key,
     required this.child,
-    this.scale = FrostyMotion.pressScale,
+    this.scale = OnsetMotion.pressScale,
     this.enabled = true,
   });
 
@@ -50,8 +50,8 @@ class _PressScaleState extends State<PressScale>
     _downAt = event.position;
     _controller.animateTo(
       widget.scale,
-      duration: FrostyMotion.pressDuration,
-      curve: FrostyMotion.standard,
+      duration: OnsetMotion.pressDuration,
+      curve: OnsetMotion.standard,
     );
   }
 
@@ -69,7 +69,7 @@ class _PressScaleState extends State<PressScale>
     _downAt = null;
     _controller.animateWith(
       SpringSimulation(
-        FrostyMotion.springMomentum,
+        OnsetMotion.springMomentum,
         _controller.value,
         1,
         _controller.velocity,

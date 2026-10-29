@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-class FrostyAppBar extends StatelessWidget implements PreferredSizeWidget {
+class OnsetAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget title;
   final bool? centerTitle;
   final List<Widget>? actions;
 
-  const FrostyAppBar({
+  const OnsetAppBar({
     super.key,
     required this.title,
     this.centerTitle,

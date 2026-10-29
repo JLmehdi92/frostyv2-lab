@@ -71,7 +71,7 @@ void main() {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    const themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    const themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       Provider<ChannelEventsStore?>.value(
         value: null,

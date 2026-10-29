@@ -61,7 +61,7 @@ class _UpdateCheckTileState extends State<UpdateCheckTile> {
         future: _currentBuild,
         builder: (context, snapshot) => Text(
           snapshot.hasData ? 'Build ${snapshot.data}' : '',
-          style: FrostyType.tabular(const TextStyle()),
+          style: OnsetType.tabular(const TextStyle()),
         ),
       ),
       trailing: _checking

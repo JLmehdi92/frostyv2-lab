@@ -8,10 +8,10 @@ import 'package:onset/screens/vod/widgets/video_glyph.dart';
 import 'package:onset/screens/vod/widgets/vod_card.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 
 /// The official app's Up Next card over the ended video (board Rediff):
 /// "UP NEXT" and the seconds left, Cancel, the next video's picture, title
@@ -73,8 +73,8 @@ class _UpNextCard extends StatelessWidget {
   final VoidCallback onCancel;
   final VoidCallback onPlayNow;
 
-  static const _text = FrostyTokens.textPrimaryDark;
-  static const _secondary = FrostyTokens.textSecondaryDark;
+  static const _text = OnsetTokens.textPrimaryDark;
+  static const _secondary = OnsetTokens.textSecondaryDark;
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +112,7 @@ class _UpNextCard extends StatelessWidget {
                         Text(
                           'Up Next'.toUpperCase(),
                           style: const TextStyle(
-                            fontFamily: FrostyTokens.bodyFamily,
+                            fontFamily: OnsetTokens.bodyFamily,
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 1.54,
@@ -123,9 +123,9 @@ class _UpNextCard extends StatelessWidget {
                           Text(
                             '$secondsLeft '
                             '${secondsLeft == 1 ? 'second' : 'seconds'}',
-                            style: FrostyType.tabular(
+                            style: OnsetType.tabular(
                               const TextStyle(
-                                fontFamily: FrostyTokens.bodyFamily,
+                                fontFamily: OnsetTokens.bodyFamily,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
                                 color: _text,
@@ -141,7 +141,7 @@ class _UpNextCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 14),
                             shape: const StadiumBorder(),
                             textStyle: const TextStyle(
-                              fontFamily: FrostyTokens.bodyFamily,
+                              fontFamily: OnsetTokens.bodyFamily,
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                             ),
@@ -170,7 +170,7 @@ class _UpNextCard extends StatelessWidget {
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                fontFamily: FrostyTokens.bodyFamily,
+                                fontFamily: OnsetTokens.bodyFamily,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
                                 height: 1.3,
@@ -182,7 +182,7 @@ class _UpNextCard extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                fontFamily: FrostyTokens.bodyFamily,
+                                fontFamily: OnsetTokens.bodyFamily,
                                 fontSize: 12,
                                 color: _secondary,
                               ),
@@ -226,9 +226,9 @@ class _Picture extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            const ColoredBox(color: FrostyTokens.surfaceDark),
+            const ColoredBox(color: OnsetTokens.surfaceDark),
             if (url != null)
-              FrostyCachedNetworkImage(imageUrl: url, fit: BoxFit.cover),
+              OnsetCachedNetworkImage(imageUrl: url, fit: BoxFit.cover),
             InsetHairline(borderRadius: radius),
             Positioned(
               right: 5,
@@ -239,9 +239,9 @@ class _Picture extends StatelessWidget {
                 padding: 5,
                 child: Text(
                   length,
-                  style: FrostyType.tabular(
+                  style: OnsetType.tabular(
                     const TextStyle(
-                      fontFamily: FrostyTokens.bodyFamily,
+                      fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 10.5,
                       fontWeight: FontWeight.w600,
                     ),
@@ -271,7 +271,7 @@ class _PlayNowButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const total = UpNextStoreBase.countdownSeconds;
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     // The ring empties over the seconds, smoothly between the ticks (to
     // where the next tick lands).
     final target = counting ? ((secondsLeft - 1) / total).clamp(0.0, 1.0) : 0.0;
@@ -279,7 +279,7 @@ class _PlayNowButton extends StatelessWidget {
       message: 'Play now',
       child: PressScale(
         child: Material(
-          color: FrostyTokens.raisedDark,
+          color: OnsetTokens.raisedDark,
           shape: const CircleBorder(),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
@@ -294,7 +294,7 @@ class _PlayNowButton extends StatelessWidget {
                     duration: reduceMotionOf(context)
                         ? Duration.zero
                         : const Duration(seconds: 1),
-                    curve: FrostyMotion.standard,
+                    curve: OnsetMotion.standard,
                     builder: (context, value, _) => CustomPaint(
                       size: const Size.square(56),
                       painter: _RingPainter(
@@ -305,7 +305,7 @@ class _PlayNowButton extends StatelessWidget {
                   ),
                   const VideoGlyph(
                     VideoGlyphKind.playNext,
-                    color: FrostyTokens.textPrimaryDark,
+                    color: OnsetTokens.textPrimaryDark,
                     size: 22,
                   ),
                 ],

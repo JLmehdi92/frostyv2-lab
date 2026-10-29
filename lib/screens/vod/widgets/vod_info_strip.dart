@@ -51,7 +51,7 @@ class VodInfoStrip extends StatelessWidget {
             ? Border(
                 bottom: BorderSide(
                   color: colors.hairline,
-                  width: FrostyTokens.hairlineWidth,
+                  width: OnsetTokens.hairlineWidth,
                 ),
               )
             : null,
@@ -66,7 +66,7 @@ class VodInfoStrip extends StatelessWidget {
               maxLines: large ? 3 : 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontFamily: FrostyTokens.displayFamily,
+                fontFamily: OnsetTokens.displayFamily,
                 fontSize: large ? 20 : 16,
                 fontWeight: large ? FontWeight.w800 : FontWeight.w700,
                 letterSpacing: large ? -0.4 : -0.16,
@@ -86,9 +86,9 @@ class VodInfoStrip extends StatelessWidget {
                   VideoCategoryChip(name: gameName, gameId: gameId),
                 Text(
                   vodDetails(vod),
-                  style: FrostyType.tabular(
+                  style: OnsetType.tabular(
                     TextStyle(
-                      fontFamily: FrostyTokens.bodyFamily,
+                      fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 13,
                       height: 1.3,
                       color: colors.secondary,
@@ -114,7 +114,7 @@ class RecordingBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     return Container(
       height: height,
       padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -130,18 +130,18 @@ class RecordingBadge extends StatelessWidget {
             width: 5,
             height: 5,
             decoration: const BoxDecoration(
-              color: FrostyTokens.backgroundDark,
+              color: OnsetTokens.backgroundDark,
               shape: BoxShape.circle,
             ),
           ),
           Text(
             'Recording',
             style: TextStyle(
-              fontFamily: FrostyTokens.bodyFamily,
+              fontFamily: OnsetTokens.bodyFamily,
               fontSize: fontSize,
               fontWeight: FontWeight.w800,
               height: 1,
-              color: FrostyTokens.backgroundDark,
+              color: OnsetTokens.backgroundDark,
             ),
           ),
         ],

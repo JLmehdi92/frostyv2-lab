@@ -4,7 +4,7 @@ import 'package:onset/screens/channel/video/stores/native_video_store.dart';
 
 /// Renders the native low-latency video surface for a [NativeVideoStore].
 ///
-/// Frosty draws its own overlay on top, so the built-in media_kit controls are
+/// ONSET draws its own overlay on top, so the built-in media_kit controls are
 /// disabled here ([NoVideoControls]).
 class NativeVideo extends StatelessWidget {
   final NativeVideoStore videoStore;

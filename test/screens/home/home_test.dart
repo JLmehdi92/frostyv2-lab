@@ -170,7 +170,7 @@ void main() {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       MultiProvider(
         providers: [
@@ -583,7 +583,7 @@ void main() {
       tester.view.physicalSize = const Size(390, 844);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
-      final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+      final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
       await tester.pumpWidget(
         MultiProvider(
           providers: [
@@ -1085,8 +1085,8 @@ void main() {
       await pump(tester, mode: mode, auth: FakeAuthStore(loggedIn: true));
       final dark = mode == ThemeMode.dark;
       final theme = dark
-          ? FrostyThemes(colorSchemeSeed: FrostyTokens.accent).dark
-          : FrostyThemes(colorSchemeSeed: FrostyTokens.accent).light;
+          ? OnsetThemes(colorSchemeSeed: OnsetTokens.accent).dark
+          : OnsetThemes(colorSchemeSeed: OnsetTokens.accent).light;
       final themed = theme.appBarTheme.systemOverlayStyle!;
       expect(SystemChrome.latestStyle, themed);
       expect(
@@ -1107,7 +1107,7 @@ void main() {
       );
       expect(
         SystemChrome.latestStyle!.systemNavigationBarColor,
-        FrostyTokens.backgroundDark,
+        OnsetTokens.backgroundDark,
       );
 
       // Live's feed is a video page too.
@@ -1115,7 +1115,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         SystemChrome.latestStyle!.systemNavigationBarColor,
-        FrostyTokens.backgroundDark,
+        OnsetTokens.backgroundDark,
       );
 
       // Back on Following, the theme's again (not left white on a pale
@@ -1140,14 +1140,14 @@ void main() {
   testWidgets('tablet over the clips: a dark navigation bar, the theme '
       'status bar over the opaque top bar', (tester) async {
     await pump(tester, size: const Size(1280, 854));
-    final themed = FrostyThemes(
-      colorSchemeSeed: FrostyTokens.accent,
+    final themed = OnsetThemes(
+      colorSchemeSeed: OnsetTokens.accent,
     ).light.appBarTheme.systemOverlayStyle!;
     expect(SystemChrome.latestStyle, themed);
     await tester.tap(find.text('Clips'));
     await tester.pumpAndSettle();
     final style = SystemChrome.latestStyle!;
-    expect(style.systemNavigationBarColor, FrostyTokens.backgroundDark);
+    expect(style.systemNavigationBarColor, OnsetTokens.backgroundDark);
     expect(style.systemNavigationBarIconBrightness, Brightness.light);
     expect(style.statusBarIconBrightness, themed.statusBarIconBrightness);
     await tester.tap(find.text('Live'));
@@ -1408,7 +1408,7 @@ void main() {
     addTearDown(tester.view.reset);
     final pushed = <String?>[];
     final navigator = GlobalKey<NavigatorState>();
-    final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       MultiProvider(
         providers: [
@@ -1491,7 +1491,7 @@ void main() {
     );
     final pushed = <String?>[];
     final navigator = GlobalKey<NavigatorState>();
-    final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       MultiProvider(
         providers: [

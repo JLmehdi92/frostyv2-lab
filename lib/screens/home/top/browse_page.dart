@@ -123,7 +123,7 @@ class _BrowsePageState extends State<BrowsePage> {
               child: Padding(
                 padding: EdgeInsets.only(
                   top: 16,
-                  right: FrostySpacing.gutterTablet + media.padding.right,
+                  right: OnsetSpacing.gutterTablet + media.padding.right,
                 ),
                 child: _CategoryPane(categoryId: selected),
               ),
@@ -147,7 +147,7 @@ class _CategoryPane extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
     const radius = BorderRadius.vertical(
-      top: Radius.circular(FrostyTokens.radiusLarge),
+      top: Radius.circular(OnsetTokens.radiusLarge),
     );
     final reduce = reduceMotionOf(context);
     final id = categoryId;
@@ -157,7 +157,7 @@ class _CategoryPane extends StatelessWidget {
         borderRadius: radius,
         border: Border.all(
           color: colors.hairline,
-          width: FrostyTokens.hairlineWidth,
+          width: OnsetTokens.hairlineWidth,
         ),
       ),
       child: ClipRRect(
@@ -180,8 +180,8 @@ class _CategoryPane extends StatelessWidget {
                   context,
                   const Duration(milliseconds: 280),
                 ),
-                switchInCurve: FrostyMotion.standard,
-                switchOutCurve: FrostyMotion.standard,
+                switchInCurve: OnsetMotion.standard,
+                switchOutCurve: OnsetMotion.standard,
                 layoutBuilder: (current, previous) => Stack(
                   fit: StackFit.expand,
                   children: [...previous, ?current],
@@ -231,9 +231,9 @@ class _LiveChannels extends StatelessWidget {
         if (large)
           const SliverPadding(
             padding: EdgeInsets.fromLTRB(
-              FrostySpacing.gutterTablet,
+              OnsetSpacing.gutterTablet,
               20,
-              FrostySpacing.gutterTablet,
+              OnsetSpacing.gutterTablet,
               2,
             ),
             sliver: SliverToBoxAdapter(child: _LiveChannelsTitle()),

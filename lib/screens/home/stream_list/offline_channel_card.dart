@@ -84,9 +84,9 @@ class OfflineChannelCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: EdgeInsets.fromLTRB(
-            FrostySpacing.gutterPhone + MediaQuery.paddingOf(context).left,
+            OnsetSpacing.gutterPhone + MediaQuery.paddingOf(context).left,
             8,
-            FrostySpacing.gutterPhone + MediaQuery.paddingOf(context).right,
+            OnsetSpacing.gutterPhone + MediaQuery.paddingOf(context).right,
             8,
           ),
           child: Row(
@@ -103,7 +103,7 @@ class OfflineChannelCard extends StatelessWidget {
                     Text(
                       channelName,
                       style: TextStyle(
-                        fontFamily: FrostyTokens.displayFamily,
+                        fontFamily: OnsetTokens.displayFamily,
                         fontWeight: FontWeight.w600,
                         fontSize: 15,
                         letterSpacing: -0.01 * 15,
@@ -117,7 +117,7 @@ class OfflineChannelCard extends StatelessWidget {
                       showOfflineStatus ? 'Offline' : followedText,
                       // followedText porte une duree ("Following for 3 years"),
                       // donc chasse fixe comme tous les autres nombres.
-                      style: FrostyType.tabular(
+                      style: OnsetType.tabular(
                         TextStyle(fontSize: 13, color: colors.secondary),
                       ),
                     ),

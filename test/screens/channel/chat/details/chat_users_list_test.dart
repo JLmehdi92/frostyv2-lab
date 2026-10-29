@@ -41,7 +41,7 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       MaterialApp(
-        theme: const FrostyThemes(colorSchemeSeed: FrostyTokens.accent).dark,
+        theme: const OnsetThemes(colorSchemeSeed: OnsetTokens.accent).dark,
         home: Scaffold(
           body: ChattersList(
             chatDetailsStore: store ?? details,

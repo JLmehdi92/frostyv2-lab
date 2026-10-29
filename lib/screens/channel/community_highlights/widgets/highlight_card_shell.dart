@@ -100,7 +100,7 @@ class HighlightCardShell extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
                 color: colors.ring,
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               ),
             ),
             clipBehavior: Clip.antiAlias,
@@ -120,7 +120,7 @@ class HighlightCardShell extends StatelessWidget {
                           child: Text(
                             title,
                             style: TextStyle(
-                              fontFamily: FrostyTokens.bodyFamily,
+                              fontFamily: OnsetTokens.bodyFamily,
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
                               color: colors.text,
@@ -132,7 +132,7 @@ class HighlightCardShell extends StatelessWidget {
                           child: DefaultTextStyle.merge(
                             style: SheetText.tabular(
                               TextStyle(
-                                fontFamily: FrostyTokens.bodyFamily,
+                                fontFamily: OnsetTokens.bodyFamily,
                                 fontSize: 12.5,
                                 color: colors.secondary,
                               ),
@@ -152,7 +152,7 @@ class HighlightCardShell extends StatelessWidget {
                                 child: AnimatedRotation(
                                   turns: expanded ? 0.5 : 0,
                                   duration: duration,
-                                  curve: FrostyMotion.standard,
+                                  curve: OnsetMotion.standard,
                                   child: SheetGlyph(
                                     SheetGlyphKind.chevronDown,
                                     strokeWidth: 2,
@@ -190,7 +190,7 @@ class HighlightCardShell extends StatelessWidget {
                       child: ExcludeSemantics(
                         child: DefaultTextStyle.merge(
                           style: TextStyle(
-                            fontFamily: FrostyTokens.bodyFamily,
+                            fontFamily: OnsetTokens.bodyFamily,
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
                             height: 1.4,
@@ -202,7 +202,7 @@ class HighlightCardShell extends StatelessWidget {
                     ),
                   AnimatedSize(
                     duration: duration,
-                    curve: FrostyMotion.standard,
+                    curve: OnsetMotion.standard,
                     alignment: Alignment.topCenter,
                     child: expanded && body != null
                         ? Padding(
@@ -251,7 +251,7 @@ class HighlightBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = SheetColors.of(context);
     final style = TextStyle(
-      fontFamily: FrostyTokens.bodyFamily,
+      fontFamily: OnsetTokens.bodyFamily,
       fontSize: 14,
       fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
       color: colors.text,
@@ -274,7 +274,7 @@ class HighlightBar extends StatelessWidget {
                   context,
                   const Duration(milliseconds: 420),
                 ),
-                curve: FrostyMotion.standard,
+                curve: OnsetMotion.standard,
                 builder: (context, value, _) => FractionallySizedBox(
                   widthFactor: value,
                   heightFactor: 1,

@@ -215,7 +215,7 @@ class _ActivityColors {
       card: shared.card,
       cardRing: shared.paneRing,
       raised: shared.raised,
-      ring: dark ? FrostyTokens.hairlineStrongDark : const Color(0x1F000000),
+      ring: dark ? OnsetTokens.hairlineStrongDark : const Color(0x1F000000),
       text: shared.text,
       body: shared.body,
       secondary: shared.secondary,
@@ -307,7 +307,7 @@ class _NotificationsListState extends State<_NotificationsList> {
       menuPadding: const EdgeInsets.all(6),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: colors.ring, width: FrostyTokens.hairlineWidth),
+        side: BorderSide(color: colors.ring, width: OnsetTokens.hairlineWidth),
       ),
       items: [
         PopupMenuItem<bool>(
@@ -413,7 +413,7 @@ class _NotificationsListState extends State<_NotificationsList> {
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: colors.cardRing,
-                  width: FrostyTokens.hairlineWidth,
+                  width: OnsetTokens.hairlineWidth,
                 ),
               ),
               child: Column(
@@ -567,7 +567,7 @@ class _FoldingState extends State<_Folding>
   /// Made once: a curve made in build would add a listener at each build.
   late final _size = CurvedAnimation(
     parent: _controller,
-    curve: FrostyMotion.standard,
+    curve: OnsetMotion.standard,
   );
   late final _fade = CurvedAnimation(
     parent: _controller,
@@ -760,7 +760,7 @@ class _EntryAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     final login = entry.login;
     final kindColor = entry.kind == ActivityKind.live ? accent : colors.body;
     final picture = login != null
@@ -850,7 +850,7 @@ class _RemoveSheet extends StatelessWidget {
                 border: Border(
                   bottom: BorderSide(
                     color: colors.hairline,
-                    width: FrostyTokens.hairlineWidth,
+                    width: OnsetTokens.hairlineWidth,
                   ),
                 ),
               ),
@@ -1002,9 +1002,9 @@ class _TabletActivity extends StatelessWidget {
     }
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        FrostySpacing.gutterTablet + padding.left,
+        OnsetSpacing.gutterTablet + padding.left,
         12,
-        FrostySpacing.gutterTablet + padding.right,
+        OnsetSpacing.gutterTablet + padding.right,
         0,
       ),
       child: body,
@@ -1036,7 +1036,7 @@ class _MarkAllPill extends StatelessWidget {
           foregroundColor: colors.text,
           side: BorderSide(
             color: colors.ring,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
           shape: const StadiumBorder(),
           textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
@@ -1077,7 +1077,7 @@ class _WhispersColumn extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: colors.cardRing,
-          width: FrostyTokens.hairlineWidth,
+          width: OnsetTokens.hairlineWidth,
         ),
       ),
       child: Observer(

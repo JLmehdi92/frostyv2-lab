@@ -5,7 +5,7 @@ import 'package:onset/models/emotes.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/utils/context_extensions.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
 
 class EmoteMenuSection extends StatefulWidget {
@@ -127,7 +127,7 @@ class EmoteCell extends StatelessWidget {
           child: Center(
             // Dimmed by the image's own colour, not an opacity layer per
             // cell: a channel's sub emotes can fill the grid.
-            child: FrostyCachedNetworkImage(
+            child: OnsetCachedNetworkImage(
               imageUrl: url ?? emote.url,
               height: emote.height?.toDouble() ?? defaultEmoteSize,
               width: emote.width?.toDouble(),

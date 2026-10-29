@@ -9,9 +9,9 @@ import 'package:onset/screens/channel/chat/widgets/chat_rules_sheet.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils.dart';
 import 'package:onset/utils/context_extensions.dart';
-import 'package:onset/widgets/frosty_scrollbar.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/onset_scrollbar.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 
@@ -155,7 +155,7 @@ class _ChatState extends State<Chat> {
                                   ? chatTabsStore!.mergedScrollController
                                   : chatStore.scrollController;
 
-                              return FrostyScrollbar(
+                              return OnsetScrollbar(
                                 controller: scrollController,
                                 padding: EdgeInsets.only(
                                   top: MediaQuery.of(context).padding.top,
@@ -322,7 +322,7 @@ class _ChatState extends State<Chat> {
                           bufferCount > 0
                               ? '$bufferCount new ${bufferCount == 1 ? 'message' : 'messages'}'
                               : 'Resume scroll',
-                          style: context.frostyText.metadata,
+                          style: context.onsetText.metadata,
                         ),
                       ),
               );
@@ -338,7 +338,7 @@ class _ChatState extends State<Chat> {
   Widget _buildEmoteMenu(BuildContext context, {required bool open}) {
     final colors = SheetColors.of(context);
     return AnimatedContainer(
-      curve: FrostyMotion.standard,
+      curve: OnsetMotion.standard,
       duration: motionDuration(context, const Duration(milliseconds: 260)),
       height: open ? context.screenHeight / (context.isPortrait ? 3 : 2) : 0,
       color: colors.emoteMenu,
@@ -351,7 +351,7 @@ class _ChatState extends State<Chat> {
                 child: Column(
                   children: [
                     Container(
-                      height: FrostyTokens.hairlineWidth,
+                      height: OnsetTokens.hairlineWidth,
                       color: colors.ring,
                     ),
                     Expanded(child: EmoteMenu(chatStore: chatStore)),

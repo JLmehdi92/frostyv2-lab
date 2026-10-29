@@ -22,7 +22,7 @@ void main() {
     required bool showSubscribe,
   }) => tester.pumpWidget(
     MaterialApp(
-      theme: ThemeData(extensions: const [FrostyColors.dark]),
+      theme: ThemeData(extensions: const [OnsetColors.dark]),
       home: MediaQuery(
         data: const MediaQueryData(
           size: Size(390, 844),

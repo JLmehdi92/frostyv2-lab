@@ -52,11 +52,11 @@ final regexLink = RegExp(
 
 /// Standard corner radius for card thumbnails and box art.
 ///
-/// Deliberately the small radius, not [FrostyTokens.radiusCard]: thumbnails and
+/// Deliberately the small radius, not [OnsetTokens.radiusCard]: thumbnails and
 /// box art sit directly on the background, not inside a Material card, so the
 /// tighter corner is what reads right at list density.
 const kCardBorderRadius = BorderRadius.all(
-  Radius.circular(FrostyTokens.radiusSmall),
+  Radius.circular(OnsetTokens.radiusSmall),
 );
 
 /// The default badge width and height.

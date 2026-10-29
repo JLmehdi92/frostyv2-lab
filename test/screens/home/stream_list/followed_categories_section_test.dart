@@ -3,10 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/models/followed_category.dart';
 import 'package:onset/screens/home/stream_list/followed_categories_section.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 
 Widget _host(List<FollowedCategory> categories) => MaterialApp(
-  theme: ThemeData(extensions: const [FrostyColors.light]),
+  theme: ThemeData(extensions: const [OnsetColors.light]),
   home: Scaffold(
     body: CustomScrollView(
       slivers: [
@@ -51,7 +51,7 @@ void main() {
       viewers: 3,
     );
     int? decodedWidth() => tester
-        .widget<FrostyCachedNetworkImage>(find.byType(FrostyCachedNetworkImage))
+        .widget<OnsetCachedNetworkImage>(find.byType(OnsetCachedNetworkImage))
         .memCacheWidth;
 
     // The phone's 104 dp tile.
@@ -61,7 +61,7 @@ void main() {
     // The tablet's 18 dp chip.
     await tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData(extensions: const [FrostyColors.light]),
+        theme: ThemeData(extensions: const [OnsetColors.light]),
         home: const Scaffold(
           body: FollowedCategoryChips(categories: [category]),
         ),

@@ -12,8 +12,8 @@ import 'package:onset/widgets/motion/reduce_motion.dart';
 /// sheen sweeping across it (the "Chargement" card of the micro-animation
 /// board).
 ///
-/// - Dark theme: [FrostyTokens.skeletonDark] with a subtle
-///   [FrostyTokens.skeletonSheenDark] band, at 100°, sweeping every 1.6 s.
+/// - Dark theme: [OnsetTokens.skeletonDark] with a subtle
+///   [OnsetTokens.skeletonSheenDark] band, at 100°, sweeping every 1.6 s.
 /// - One band for the whole screen: each skeleton places the gradient by the
 ///   frame clock and by its own position on screen, so a thumbnail and the
 ///   text lines beside it show the same band crossing them.
@@ -63,11 +63,9 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final base = dark
-        ? FrostyTokens.skeletonDark
-        : colorScheme.surfaceContainer;
+    final base = dark ? OnsetTokens.skeletonDark : colorScheme.surfaceContainer;
     final highlight = dark
-        ? FrostyTokens.skeletonSheenDark
+        ? OnsetTokens.skeletonSheenDark
         : Color.lerp(base, Colors.white, 0.6)!;
 
     // Sized exactly like the decorated Container it replaces: fills bounded
@@ -83,7 +81,7 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
           highlight: highlight,
           borderRadius:
               widget.borderRadius ??
-              BorderRadius.circular(FrostyTokens.radiusSmall),
+              BorderRadius.circular(OnsetTokens.radiusSmall),
           sheen: !_reduced,
         ),
       ),

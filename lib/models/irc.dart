@@ -25,8 +25,8 @@ import 'package:onset/theme.dart';
 import 'package:onset/utils.dart' as utils;
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/link_router.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
-import 'package:onset/widgets/frosty_photo_view_dialog.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
+import 'package:onset/widgets/onset_photo_view_dialog.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
@@ -310,7 +310,7 @@ class IRCMessage {
         // timestamps form a straight column instead of drifting with the
         // width of each digit.
         style: style?.copyWith(
-          fontFamily: FrostyTokens.monoFamily,
+          fontFamily: OnsetTokens.monoFamily,
           color: metadataColor,
           fontFeatures: [FontFeature.tabularFigures()],
         ),
@@ -338,7 +338,7 @@ class IRCMessage {
             child: Icon(
               Icons.history_rounded,
               size: badgeSize,
-              color: context.frostyColors.metadata,
+              color: context.onsetColors.metadata,
             ),
           ),
         ),
@@ -370,7 +370,7 @@ class IRCMessage {
                   shape: BoxShape.circle,
                   border: isCurrentChannel
                       ? Border.all(
-                          color: context.frostyColors.live,
+                          color: context.onsetColors.live,
                           width: 1.5,
                         )
                       : null,
@@ -393,7 +393,7 @@ class IRCMessage {
                   shape: BoxShape.circle,
                   border: isCurrentChannel
                       ? Border.all(
-                          color: context.frostyColors.live,
+                          color: context.onsetColors.live,
                           width: 1.5,
                         )
                       : null,
@@ -461,7 +461,7 @@ class IRCMessage {
                 context,
                 badge: newBadge,
                 size: badgeSize,
-                backgroundColor: context.frostyColors.subOnly,
+                backgroundColor: context.onsetColors.subOnly,
                 launchExternal: launchExternal,
               ),
             );
@@ -790,7 +790,7 @@ class IRCMessage {
               alignment: PlaceholderAlignment.middle,
               child: Semantics(
                 label: '${cheer.prefix} ${cheer.amount} bits',
-                child: FrostyCachedNetworkImage(
+                child: OnsetCachedNetworkImage(
                   imageUrl: cheer.tier.url(
                     dark: dark,
                     animated: animateEmotes,
@@ -915,7 +915,7 @@ class IRCMessage {
           style: textStyle?.copyWith(fontSize: emoteSize - _emojiSizeOffset),
         ),
       ...emoteStack.reversed.map(
-        (emote) => FrostyCachedNetworkImage(
+        (emote) => OnsetCachedNetworkImage(
           imageUrl: emote.urlFor(animate: animateEmotes),
           height: emote.height != null ? emote.height! * emoteScale : emoteSize,
           width: emote.width != null ? emote.width! * emoteScale : emoteSize,
@@ -941,7 +941,7 @@ class IRCMessage {
                   Text(emoji, style: textStyle?.copyWith(fontSize: 40)),
                 ...emoteStack.reversed.map(
                   (emote) =>
-                      FrostyCachedNetworkImage(imageUrl: emote.url, width: 56),
+                      OnsetCachedNetworkImage(imageUrl: emote.url, width: 56),
                 ),
               ],
             ),
@@ -1014,7 +1014,7 @@ class IRCMessage {
     // The span list that will be used to render the chat message
     final span = <InlineSpan>[];
 
-    _addTimestamp(span, style, timestamp, context.frostyColors.metadata);
+    _addTimestamp(span, style, timestamp, context.onsetColors.metadata);
     _addHistoricalAndChannelBadges(
       context,
       span,
@@ -1083,7 +1083,7 @@ class IRCMessage {
     if (backgroundColor != null) {
       return ColoredBox(
         color: backgroundColor,
-        child: FrostyCachedNetworkImage(
+        child: OnsetCachedNetworkImage(
           imageUrl: badge.url,
           height: size,
           width: size,
@@ -1100,7 +1100,7 @@ class IRCMessage {
         excludeFromSemantics: semanticLabel == null,
       );
     } else {
-      return FrostyCachedNetworkImage(
+      return OnsetCachedNetworkImage(
         imageUrl: badge.url,
         height: size,
         width: size,
@@ -1162,7 +1162,7 @@ class IRCMessage {
           emote: emote,
           launchExternal: launchExternal,
         ),
-        child: FrostyCachedNetworkImage(
+        child: OnsetCachedNetworkImage(
           imageUrl: emote.urlFor(animate: animate),
           height: height,
           width: width,
@@ -1215,7 +1215,7 @@ class IRCMessage {
   }) {
     _showAssetDetailsBottomSheet(
       context,
-      leading: FrostyCachedNetworkImage(imageUrl: emote.url, width: 48),
+      leading: OnsetCachedNetworkImage(imageUrl: emote.url, width: 48),
       url: emote.url,
       title: emote.realName != null
           ? '${emote.name} (${emote.realName})'
@@ -1279,7 +1279,7 @@ class IRCMessage {
                       borderRadius: BorderRadius.circular(16),
                       side: BorderSide(
                         color: colors.ring,
-                        width: FrostyTokens.hairlineWidth,
+                        width: OnsetTokens.hairlineWidth,
                       ),
                     ),
                     clipBehavior: Clip.antiAlias,
@@ -1287,7 +1287,7 @@ class IRCMessage {
                       onTap: () => showDialog(
                         context: context,
                         // The chat is beside, under or over the video.
-                        builder: (context) => FrostyPhotoViewDialog(
+                        builder: (context) => OnsetPhotoViewDialog(
                           imageUrl: url,
                           blurBackground: false,
                         ),
@@ -1317,7 +1317,7 @@ class IRCMessage {
                         ),
                         DefaultTextStyle.merge(
                           style: TextStyle(
-                            fontFamily: FrostyTokens.bodyFamily,
+                            fontFamily: OnsetTokens.bodyFamily,
                             fontSize: 13,
                             height: 1.35,
                             color: colors.body,
@@ -1331,7 +1331,7 @@ class IRCMessage {
               ),
             ),
             Container(
-              height: FrostyTokens.hairlineWidth,
+              height: OnsetTokens.hairlineWidth,
               margin: const EdgeInsets.symmetric(horizontal: 16),
               color: colors.hairline,
             ),

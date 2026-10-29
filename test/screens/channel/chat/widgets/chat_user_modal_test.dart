@@ -84,7 +84,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     late BuildContext inside;
-    const themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    const themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       Provider<TwitchApi>.value(
         value: api,

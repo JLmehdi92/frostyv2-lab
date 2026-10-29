@@ -24,7 +24,7 @@ import 'package:onset/screens/settings/stores/user_store.dart';
 import 'package:onset/services/playback_preloader.dart';
 import 'package:onset/stores/mini_player_store.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/widgets/frosty_photo_view_dialog.dart';
+import 'package:onset/widgets/onset_photo_view_dialog.dart';
 import 'package:onset/widgets/user_actions_modal.dart';
 import 'package:provider/provider.dart';
 
@@ -196,7 +196,7 @@ void main() {
       resolveUrl: resolve ?? (login, cancel) async => 'https://usher/$login',
       createBackend: () => FakeBackend(log),
     );
-    final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       MultiProvider(
         providers: [
@@ -566,8 +566,8 @@ void main() {
       find.bySemanticsLabel(RegExp('Name 1 live preview')),
     );
     await tester.pump(const Duration(milliseconds: 500));
-    expect(find.byType(FrostyPhotoViewDialog), findsOneWidget);
-    Navigator.of(tester.element(find.byType(FrostyPhotoViewDialog))).pop();
+    expect(find.byType(OnsetPhotoViewDialog), findsOneWidget);
+    Navigator.of(tester.element(find.byType(OnsetPhotoViewDialog))).pop();
     await tester.pump(const Duration(milliseconds: 500));
 
     await tester.longPress(find.text('Title 1'));
@@ -601,14 +601,14 @@ void main() {
           reason: 'frame $i',
         );
       }
-      expect(find.byType(FrostyPhotoViewDialog), findsOneWidget);
+      expect(find.byType(OnsetPhotoViewDialog), findsOneWidget);
       await tester.pump(const Duration(seconds: 1));
       expect(log, [
         'open https://usher/login1',
         'dispose https://usher/login1',
       ]);
 
-      Navigator.of(tester.element(find.byType(FrostyPhotoViewDialog))).pop();
+      Navigator.of(tester.element(find.byType(OnsetPhotoViewDialog))).pop();
       for (var i = 0; i < 20; i++) {
         await tester.pump(const Duration(milliseconds: 16));
         expect(
@@ -618,7 +618,7 @@ void main() {
         );
       }
       await tester.pump(const Duration(seconds: 1));
-      expect(find.byType(FrostyPhotoViewDialog), findsNothing);
+      expect(find.byType(OnsetPhotoViewDialog), findsNothing);
       expect(log.last, 'open https://usher/login1');
       expect(video, findsOneWidget);
       await close(tester);

@@ -41,7 +41,7 @@ class _UptimeState extends State<Uptime> {
       _timerService.currentTime.difference(start).toString().split('.')[0],
       // The duration ticks every second: without fixed-width figures the
       // digits dance, so tabular figures are the default for every caller.
-      style: context.frostyText.metadata.merge(widget.style).copyWith(
+      style: context.onsetText.metadata.merge(widget.style).copyWith(
         fontFeatures: [const FontFeature.tabularFigures()],
       ),
       maxLines: widget.overflow == null ? null : 1,

@@ -124,7 +124,7 @@ class PlayerChromeMetrics {
 
 /// Light on dark over the picture, in either theme (the boards' values).
 abstract final class _Over {
-  static const text = FrostyTokens.textPrimaryDark;
+  static const text = OnsetTokens.textPrimaryDark;
   static const body = Color(0xFFE5E5E5);
   static const shadow = kPlayerChromeShadow;
 }
@@ -193,7 +193,7 @@ class VideoOverlay extends StatelessWidget {
           tooltip: on ? 'Hide chat overlay' : 'Show chat overlay',
           glyph: PlayerGlyphKind.chatBubble,
           // Shown: one of the active states the signal is reserved for.
-          color: on ? FrostyTokens.accent : _Over.text,
+          color: on ? OnsetTokens.accent : _Over.text,
           selected: on,
           onPressed: () => videoStore.settingsStore.fullScreenChatOverlay =
               !videoStore.settingsStore.fullScreenChatOverlay,
@@ -211,7 +211,7 @@ class VideoOverlay extends StatelessWidget {
               return _PlayerButton(
                 tooltip: ivs.fillScreen ? 'Fit to screen' : 'Fill screen',
                 glyph: PlayerGlyphKind.fillScreen,
-                color: ivs.fillScreen ? FrostyTokens.accent : _Over.text,
+                color: ivs.fillScreen ? OnsetTokens.accent : _Over.text,
                 selected: ivs.fillScreen,
                 onPressed: ivs.toggleFillScreen,
               );
@@ -488,7 +488,7 @@ class VideoOverlay extends StatelessWidget {
                     // Lit while its panel is open (board CreerClip).
                     activeIcon: PlayerGlyph(
                       PlayerGlyphKind.clip,
-                      color: context.frostyColors.live,
+                      color: context.onsetColors.live,
                     ),
                   ),
                   videosButton,
@@ -760,7 +760,7 @@ class _PlayPauseButton extends StatelessWidget {
           shape: const CircleBorder(
             side: BorderSide(
               color: Color(0x29FFFFFF),
-              width: FrostyTokens.hairlineWidth,
+              width: OnsetTokens.hairlineWidth,
             ),
           ),
           clipBehavior: Clip.antiAlias,
@@ -889,7 +889,7 @@ class _ChannelIdentity extends StatelessWidget {
                     height: picture,
                     padding: const EdgeInsets.all(ring),
                     decoration: const BoxDecoration(
-                      color: FrostyTokens.accent,
+                      color: OnsetTokens.accent,
                       shape: BoxShape.circle,
                     ),
                     child: Container(
@@ -962,9 +962,9 @@ class _LiveStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = FrostyType.tabular(
+    final style = OnsetType.tabular(
       TextStyle(
-        fontFamily: FrostyTokens.bodyFamily,
+        fontFamily: OnsetTokens.bodyFamily,
         fontSize: large ? 13 : 12.5,
         fontWeight: FontWeight.w600,
         height: 1.2,
@@ -976,7 +976,7 @@ class _LiveStats extends StatelessWidget {
       height: large ? 24 : 20,
       padding: EdgeInsets.symmetric(horizontal: large ? 8 : 6),
       decoration: BoxDecoration(
-        color: FrostyTokens.accent,
+        color: OnsetTokens.accent,
         borderRadius: BorderRadius.circular(large ? 6 : 5),
       ),
       alignment: Alignment.center,
@@ -991,16 +991,16 @@ class _LiveStats extends StatelessWidget {
               enabled: animate,
               child: const SignalPing(
                 size: 6,
-                color: FrostyTokens.backgroundDark,
+                color: OnsetTokens.backgroundDark,
               ),
             ),
           Text(
             'LIVE',
-            style: FrostyType.badge.copyWith(
+            style: OnsetType.badge.copyWith(
               fontSize: large ? 11 : 10,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.06 * (large ? 11 : 10),
-              color: FrostyTokens.backgroundDark,
+              color: OnsetTokens.backgroundDark,
               height: 1,
             ),
           ),

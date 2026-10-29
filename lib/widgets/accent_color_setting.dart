@@ -35,9 +35,9 @@ class AccentColorSetting extends StatelessWidget {
             children: [
               Text(
                 accentHex(color),
-                style: FrostyType.tabular(
+                style: OnsetType.tabular(
                   TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.48,
@@ -93,10 +93,10 @@ Future<void> showAccentColorPicker(
         elevation: 0,
         insetPadding: const EdgeInsets.all(40),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(FrostyTokens.radiusLarge),
+          borderRadius: BorderRadius.circular(OnsetTokens.radiusLarge),
           side: BorderSide(
             color: colors.cardRing,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
         child: SizedBox(
@@ -122,7 +122,7 @@ Future<void> showAccentColorPicker(
     clipBehavior: Clip.antiAlias,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(
-        top: Radius.circular(FrostyTokens.radiusLarge),
+        top: Radius.circular(OnsetTokens.radiusLarge),
       ),
     ),
     builder: (context) => SafeArea(
@@ -221,7 +221,7 @@ class _AccentPickerState extends State<_AccentPicker> {
                     padding: const EdgeInsets.symmetric(horizontal: 14),
                     shape: const StadiumBorder(),
                     textStyle: const TextStyle(
-                      fontFamily: FrostyTokens.bodyFamily,
+                      fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                     ),
@@ -255,7 +255,7 @@ class _AccentPickerState extends State<_AccentPicker> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: const Color(0x33FFFFFF),
-                          width: FrostyTokens.hairlineWidth,
+                          width: OnsetTokens.hairlineWidth,
                         ),
                       ),
                     ),
@@ -266,9 +266,9 @@ class _AccentPickerState extends State<_AccentPicker> {
                         children: [
                           Text(
                             accentHex(color),
-                            style: FrostyType.tabular(
+                            style: OnsetType.tabular(
                               TextStyle(
-                                fontFamily: FrostyTokens.bodyFamily,
+                                fontFamily: OnsetTokens.bodyFamily,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: 0.6,
@@ -279,7 +279,7 @@ class _AccentPickerState extends State<_AccentPicker> {
                           Text(
                             'Applies everywhere as you pick',
                             style: TextStyle(
-                              fontFamily: FrostyTokens.bodyFamily,
+                              fontFamily: OnsetTokens.bodyFamily,
                               fontSize: 12,
                               color: colors.secondary,
                             ),

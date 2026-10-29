@@ -66,24 +66,24 @@ class WhisperColors {
   final Color shadow;
 
   static const dark = WhisperColors(
-    text: FrostyTokens.textPrimaryDark,
-    body: FrostyTokens.textBodyDark,
-    secondary: FrostyTokens.textSecondaryDark,
-    tertiary: FrostyTokens.textTertiaryDark,
+    text: OnsetTokens.textPrimaryDark,
+    body: OnsetTokens.textBodyDark,
+    secondary: OnsetTokens.textSecondaryDark,
+    tertiary: OnsetTokens.textTertiaryDark,
     pane: Color(0xFF111111),
     paneRing: Color(0x14FFFFFF),
-    card: FrostyTokens.surfaceDark,
-    field: FrostyTokens.surfaceDark,
-    fieldRing: FrostyTokens.hairlineRaisedDark,
-    raised: FrostyTokens.raisedDark,
+    card: OnsetTokens.surfaceDark,
+    field: OnsetTokens.surfaceDark,
+    fieldRing: OnsetTokens.hairlineRaisedDark,
+    raised: OnsetTokens.raisedDark,
     hairline: Color(0x12FFFFFF),
     selected: Color(0xFF1A1A1A),
-    mineFill: FrostyTokens.textPrimaryDark,
-    mineText: FrostyTokens.backgroundDark,
+    mineFill: OnsetTokens.textPrimaryDark,
+    mineText: OnsetTokens.backgroundDark,
     mineTime: Color(0xFF5E5E5E),
-    theirFill: FrostyTokens.raisedDark,
-    theirText: FrostyTokens.textPrimaryDark,
-    theirTime: FrostyTokens.textSecondaryDark,
+    theirFill: OnsetTokens.raisedDark,
+    theirText: OnsetTokens.textPrimaryDark,
+    theirTime: OnsetTokens.textSecondaryDark,
     shadow: Color(0x8C000000),
   );
 
@@ -92,17 +92,17 @@ class WhisperColors {
     body: Color(0xFF3A3A3A),
     secondary: Color(0xFF6B6B6B),
     tertiary: Color(0xFF6B6B6B),
-    pane: FrostyTokens.surfaceLight,
+    pane: OnsetTokens.surfaceLight,
     paneRing: Color(0x14000000),
-    card: FrostyTokens.surfaceLight,
-    field: FrostyTokens.surfaceLight,
+    card: OnsetTokens.surfaceLight,
+    field: OnsetTokens.surfaceLight,
     fieldRing: Color(0x1F000000),
     raised: Color(0xFFF0F0F0),
     hairline: Color(0x14000000),
     selected: Color(0xFFEFEFEF),
     mineFill: Color(0xFF0A0A0A),
-    mineText: FrostyTokens.textPrimaryDark,
-    mineTime: FrostyTokens.textSecondaryDark,
+    mineText: OnsetTokens.textPrimaryDark,
+    mineTime: OnsetTokens.textSecondaryDark,
     theirFill: Color(0xFFEDEDED),
     theirText: Color(0xFF0A0A0A),
     theirTime: Color(0xFF6B6B6B),
@@ -127,7 +127,7 @@ class WhisperCountPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     // The pill grows with the text size, like the digits in it.
     final height = MediaQuery.textScalerOf(context).scale(size);
     return Semantics(
@@ -145,7 +145,7 @@ class WhisperCountPill extends StatelessWidget {
         child: Text(
           '$count',
           maxLines: 1,
-          style: FrostyType.tabular(
+          style: OnsetType.tabular(
             TextStyle(
               fontSize: 11,
               height: 1,
@@ -187,7 +187,7 @@ class WhisperThreadRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = WhisperColors.of(context);
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     final avatar = compact ? 44.0 : 48.0;
     return Observer(
       builder: (context) {
@@ -257,7 +257,7 @@ class WhisperThreadRow extends StatelessWidget {
                                   const SizedBox(width: 8),
                                   Text(
                                     time,
-                                    style: FrostyType.tabular(
+                                    style: OnsetType.tabular(
                                       TextStyle(
                                         fontSize: 12,
                                         color: bold
@@ -393,7 +393,7 @@ class WhisperStatusNote extends StatelessWidget {
                       ? StateGlyphKind.alert
                       : StateGlyphKind.offline,
                   color: status == WhisperStatus.refused
-                      ? FrostyTokens.danger
+                      ? OnsetTokens.danger
                       : colors.secondary,
                   size: 16,
                 );
@@ -412,7 +412,7 @@ class WhisperStatusNote extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: colors.paneRing,
-                    width: FrostyTokens.hairlineWidth,
+                    width: OnsetTokens.hairlineWidth,
                   ),
                 ),
                 child: Row(
@@ -438,7 +438,7 @@ class WhisperStatusNote extends StatelessWidget {
         // The rows below follow the card in and out (no jump).
         return AnimatedSize(
           duration: duration,
-          curve: FrostyMotion.standard,
+          curve: OnsetMotion.standard,
           alignment: Alignment.topCenter,
           child: AnimatedSwitcher(
             duration: duration,

@@ -40,7 +40,7 @@ class ClipFilterBar extends StatelessWidget {
                   onSelected: () => store.select(period: p),
                 ),
               Container(
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
                 height: 20,
                 color: colors.pillBorder,
               ),

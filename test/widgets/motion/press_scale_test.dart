@@ -44,8 +44,8 @@ void main() {
       tester.getCenter(find.byType(PressScale)),
     );
     await tester.pump();
-    await tester.pump(FrostyMotion.pressDuration);
-    expect(scaleOf(tester), closeTo(FrostyMotion.pressScale, 0.001));
+    await tester.pump(OnsetMotion.pressDuration);
+    expect(scaleOf(tester), closeTo(OnsetMotion.pressScale, 0.001));
 
     await gesture.up();
     await tester.pumpAndSettle();
@@ -63,7 +63,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 40));
     final mid = scaleOf(tester);
     expect(mid, lessThan(1));
-    expect(mid, greaterThan(FrostyMotion.pressScale));
+    expect(mid, greaterThan(OnsetMotion.pressScale));
 
     await gesture.up();
     await tester.pump();
@@ -86,7 +86,7 @@ void main() {
       tester.getCenter(find.byType(PressScale)),
     );
     await tester.pump();
-    await tester.pump(FrostyMotion.pressDuration);
+    await tester.pump(OnsetMotion.pressDuration);
     expect(scaleOf(tester), lessThan(1));
 
     await gesture.moveBy(const Offset(0, 40));
@@ -100,7 +100,7 @@ void main() {
     final gesture = await tester.startGesture(
       tester.getCenter(find.byType(PressScale)),
     );
-    await tester.pump(FrostyMotion.pressDuration);
+    await tester.pump(OnsetMotion.pressDuration);
     expect(scaleOf(tester), 1);
     await gesture.up();
     await tester.pumpAndSettle();
@@ -112,7 +112,7 @@ void main() {
     final gesture = await tester.startGesture(
       tester.getCenter(find.byType(PressScale)),
     );
-    await tester.pump(FrostyMotion.pressDuration);
+    await tester.pump(OnsetMotion.pressDuration);
     expect(scaleOf(tester), 1);
     await gesture.up();
   });

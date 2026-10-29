@@ -90,7 +90,7 @@ class _ChatRestrictionBarState extends State<ChatRestrictionBar> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontFamily: FrostyTokens.bodyFamily,
+                  fontFamily: OnsetTokens.bodyFamily,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: color,

@@ -39,7 +39,7 @@ void main() {
     tester.view.physicalSize = screen;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    const themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    const themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       MultiProvider(
         providers: [
@@ -189,7 +189,7 @@ void main() {
 
       Size row() => tester.getSize(find.byType(ChannelInfoRow));
       // It folds away, not in a jump.
-      await tester.pump(FrostyMotion.exit ~/ 2);
+      await tester.pump(OnsetMotion.exit ~/ 2);
       expect(row().height, inExclusiveRange(1, 59));
       await tester.pumpAndSettle();
       expect(row().height, 0);
@@ -226,7 +226,7 @@ void main() {
       );
       tester.view.viewInsets = const FakeViewPadding(bottom: 200);
       await tester.pump();
-      await tester.pump(FrostyMotion.reducedFade);
+      await tester.pump(OnsetMotion.reducedFade);
       expect(row().height, 0);
       await done(tester);
     });

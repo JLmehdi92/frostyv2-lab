@@ -48,7 +48,7 @@ void main() {
         Provider<TwitchDirectoryService>.value(value: directory),
       ],
       child: MaterialApp(
-        theme: ThemeData(extensions: const [FrostyColors.light]),
+        theme: ThemeData(extensions: const [OnsetColors.light]),
         home: home,
       ),
     ),
@@ -181,7 +181,7 @@ void main() {
       when(() => auth.isLoggedIn).thenReturn(false);
       when(() => auth.user).thenReturn(user);
       when(() => user.blockedUsers).thenReturn(ObservableList());
-      final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+      final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
       await tester.pumpWidget(
         MultiProvider(
           providers: [

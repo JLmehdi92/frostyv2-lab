@@ -14,9 +14,9 @@ import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/blurred_container.dart';
 import 'package:onset/widgets/channel_points_button.dart';
 import 'package:onset/widgets/chat_input/emote_text_span_builder.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 
 class ChatBottomBar extends StatelessWidget {
@@ -80,13 +80,13 @@ class ChatBottomBar extends StatelessWidget {
                 style: IconButton.styleFrom(
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   backgroundColor: chatStore.assetsStore.showEmoteMenu
-                      ? context.frostyColors.live.withValues(alpha: 0.14)
+                      ? context.onsetColors.live.withValues(alpha: 0.14)
                       : null,
                 ),
                 icon: PlayerGlyph(
                   PlayerGlyphKind.emote,
                   color: chatStore.assetsStore.showEmoteMenu
-                      ? context.frostyColors.live
+                      ? context.onsetColors.live
                       : context.colorScheme.onSurfaceVariant,
                 ),
                 onPressed: () {
@@ -141,7 +141,7 @@ class ChatBottomBar extends StatelessWidget {
                   decoration: BoxDecoration(
                     border: Border(
                       left: BorderSide(
-                        color: context.frostyColors.live,
+                        color: context.onsetColors.live,
                         width: 4,
                       ),
                     ),
@@ -207,7 +207,7 @@ class ChatBottomBar extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final emote = matchingEmotes[index];
                   return _AutocompleteChip(
-                    leading: FrostyCachedNetworkImage(
+                    leading: OnsetCachedNetworkImage(
                       imageUrl: emote.url,
                       useFade: false,
                       height: 28,
@@ -386,10 +386,10 @@ class ChatBottomBar extends StatelessWidget {
                                       : null,
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(
-                                      FrostyTokens.radiusPill,
+                                      OnsetTokens.radiusPill,
                                     ),
                                     borderSide: BorderSide(
-                                      color: context.frostyColors.live
+                                      color: context.onsetColors.live
                                           .withValues(alpha: 0.55),
                                     ),
                                   ),
@@ -568,7 +568,7 @@ class _SendButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     return IconButton(
       tooltip: waiting ? 'Sending...' : 'Send',
       padding: EdgeInsets.zero,
@@ -585,12 +585,12 @@ class _SendButton extends StatelessWidget {
               height: 18,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                color: FrostyTokens.backgroundDark,
+                color: OnsetTokens.backgroundDark,
               ),
             )
           : const PlayerGlyph(
               PlayerGlyphKind.send,
-              color: FrostyTokens.backgroundDark,
+              color: OnsetTokens.backgroundDark,
               size: 18,
               strokeWidth: 2,
             ),
@@ -622,8 +622,8 @@ class ChatMoreButton extends StatelessWidget {
         backgroundColor: context.theme.inputDecorationTheme.fillColor,
         shape: CircleBorder(
           side: BorderSide(
-            color: context.frostyColors.hairline,
-            width: FrostyTokens.hairlineWidth,
+            color: context.onsetColors.hairline,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
       ),
@@ -689,7 +689,7 @@ class _AutocompleteRow extends StatelessWidget {
             border: Border(
               top: BorderSide(
                 color: colors.hairline,
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               ),
             ),
           ),
@@ -731,7 +731,7 @@ class _GrowInState extends State<_GrowIn> with SingleTickerProviderStateMixin {
   // controller at every keystroke.
   late final _curved = CurvedAnimation(
     parent: _controller,
-    curve: FrostyMotion.standard,
+    curve: OnsetMotion.standard,
   );
 
   @override
@@ -792,7 +792,7 @@ class _AutocompleteChip extends StatelessWidget {
         shape: StadiumBorder(
           side: BorderSide(
             color: colors.ring,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
         clipBehavior: Clip.antiAlias,
@@ -816,7 +816,7 @@ class _AutocompleteChip extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: colors.text,
@@ -856,7 +856,7 @@ class _CommandTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
             color: colors.ring,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
         clipBehavior: Clip.antiAlias,
@@ -873,7 +873,7 @@ class _CommandTile extends StatelessWidget {
                 Text(
                   '/$name',
                   style: TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: colors.text,
@@ -883,7 +883,7 @@ class _CommandTile extends StatelessWidget {
                   detail,
                   maxLines: 1,
                   style: TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: colors.secondary,
@@ -910,8 +910,8 @@ class _PopIn extends StatelessWidget {
     final reduce = reduceMotionOf(context);
     return AnimatedSwitcher(
       duration: motionDuration(context, const Duration(milliseconds: 220)),
-      switchInCurve: FrostyMotion.standard,
-      switchOutCurve: FrostyMotion.emphasizedAccelerate,
+      switchInCurve: OnsetMotion.standard,
+      switchOutCurve: OnsetMotion.emphasizedAccelerate,
       transitionBuilder: (child, animation) {
         final fade = FadeTransition(opacity: animation, child: child);
         if (reduce) return fade;

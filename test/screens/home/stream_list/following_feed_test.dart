@@ -158,7 +158,7 @@ void main() {
     addTearDown(tester.view.reset);
     final hype = MockHypeTrainService();
     when(() => hype.getActiveStatuses(any())).thenAnswer((_) async => {});
-    final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       MultiProvider(
         providers: [

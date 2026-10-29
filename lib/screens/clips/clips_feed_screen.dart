@@ -20,11 +20,11 @@ import 'package:onset/services/playback_focus.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/pip_callbacks.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
 import 'package:onset/widgets/motion/haptics.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/profile_picture.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
 import 'package:onset/widgets/state_views.dart';
@@ -299,7 +299,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
         pages.animateToPage(
           target,
           duration: motionDuration(context, const Duration(milliseconds: 360)),
-          curve: FrostyMotion.standard,
+          curve: OnsetMotion.standard,
         ),
       );
     } else {
@@ -365,7 +365,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
           return (player as VideoSurfacePlayer).buildVideo(fill: false);
         }
         if (player == null && thumbnail != null) {
-          return FrostyCachedNetworkImage(
+          return OnsetCachedNetworkImage(
             imageUrl: thumbnail,
             fit: BoxFit.contain,
             errorWidget: (context, url, error) => const SizedBox.shrink(),
@@ -383,7 +383,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
     final clip = _store.clips[index];
     final player = _players[index];
     final thumbnail = clip.thumbnailUrl;
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -392,7 +392,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
         if (thumbnail != null &&
             player != null &&
             player is! VideoSurfacePlayer)
-          FrostyCachedNetworkImage(
+          OnsetCachedNetworkImage(
             imageUrl: thumbnail,
             fit: BoxFit.contain,
             errorWidget: (context, url, error) => const SizedBox.shrink(),
@@ -423,10 +423,10 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
                       "This clip can't be played here",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontFamily: FrostyTokens.bodyFamily,
+                        fontFamily: OnsetTokens.bodyFamily,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: FrostyTokens.textPrimaryDark,
+                        color: OnsetTokens.textPrimaryDark,
                       ),
                     ),
                   ),
@@ -451,9 +451,9 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
               color: const Color(0x99000000),
               child: Text(
                 formatVodTime(clip.duration),
-                style: FrostyType.tabular(
+                style: OnsetType.tabular(
                   TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: large ? 13 : 11.5,
                     fontWeight: FontWeight.w600,
                   ),
@@ -489,7 +489,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
                     return FractionallySizedBox(
                       alignment: Alignment.centerLeft,
                       widthFactor: played,
-                      child: ColoredBox(color: context.frostyColors.live),
+                      child: ColoredBox(color: context.onsetColors.live),
                     );
                   },
                 ),
@@ -525,7 +525,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
         return Stack(
           fit: StackFit.expand,
           children: [
-            const ColoredBox(color: FrostyTokens.backgroundDark),
+            const ColoredBox(color: OnsetTokens.backgroundDark),
             if (clip.thumbnailUrl case final url?)
               Positioned(
                 left: -60,
@@ -545,7 +545,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
                         Color(0xB30A0A0A),
                         Color(0x260A0A0A),
                         Color(0x8C0A0A0A),
-                        FrostyTokens.backgroundDark,
+                        OnsetTokens.backgroundDark,
                       ],
                       stops: [0, 0.22, 0.52, 0.74],
                     ),
@@ -659,10 +659,10 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontFamily: FrostyTokens.bodyFamily,
+                            fontFamily: OnsetTokens.bodyFamily,
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: FrostyTokens.textPrimaryDark,
+                            color: OnsetTokens.textPrimaryDark,
                           ),
                         ),
                         Text(
@@ -673,11 +673,11 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
                           ].join(' · '),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: FrostyType.tabular(
+                          style: OnsetType.tabular(
                             const TextStyle(
-                              fontFamily: FrostyTokens.bodyFamily,
+                              fontFamily: OnsetTokens.bodyFamily,
                               fontSize: 13,
-                              color: FrostyTokens.textSecondaryDark,
+                              color: OnsetTokens.textSecondaryDark,
                             ),
                           ),
                         ),
@@ -701,9 +701,9 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
   }
 
   Widget _buildEndPage(BuildContext context) {
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     return ColoredBox(
-      color: FrostyTokens.backgroundDark,
+      color: OnsetTokens.backgroundDark,
       child: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -719,9 +719,9 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
                       const Text(
                         'Loading more clips for you',
                         style: TextStyle(
-                          fontFamily: FrostyTokens.bodyFamily,
+                          fontFamily: OnsetTokens.bodyFamily,
                           fontSize: 14,
-                          color: FrostyTokens.textSecondaryDark,
+                          color: OnsetTokens.textSecondaryDark,
                         ),
                       ),
                     ],
@@ -757,7 +757,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
     final current = atEnd ? null : clips[_index];
     return LayoutBuilder(
       builder: (context, constraints) {
-        const gutter = FrostySpacing.gutterTablet;
+        const gutter = OnsetSpacing.gutterTablet;
         final width = constraints.maxWidth - padding.left - padding.right;
         // Landscape: the stage beside the queue; portrait: the queue
         // under the stage.
@@ -815,7 +815,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
         return Stack(
           fit: StackFit.expand,
           children: [
-            const ColoredBox(color: FrostyTokens.backgroundDark),
+            const ColoredBox(color: OnsetTokens.backgroundDark),
             Positioned(
               left: -80,
               top: padding.top - 76,
@@ -843,7 +843,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
                       colors: [
                         Color(0x400A0A0A),
                         Color(0x990A0A0A),
-                        FrostyTokens.backgroundDark,
+                        OnsetTokens.backgroundDark,
                       ],
                       stops: [0, 0.6, 0.72],
                     ),
@@ -917,9 +917,9 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
     // Always dark, as the boards draw it: the shell sets the system bars
     // over the feed (light icons, dark bar).
     final page = Theme(
-      data: FrostyThemes(colorSchemeSeed: Color(_settings.accentColor)).dark,
+      data: OnsetThemes(colorSchemeSeed: Color(_settings.accentColor)).dark,
       child: Material(
-        color: FrostyTokens.backgroundDark,
+        color: OnsetTokens.backgroundDark,
         child: _buildFeed(context),
       ),
     );
@@ -999,7 +999,7 @@ class _Ambient extends StatelessWidget {
       child: RepaintBoundary(
         child: Opacity(
           opacity: opacity,
-          child: FrostyCachedNetworkImage(
+          child: OnsetCachedNetworkImage(
             imageUrl: url,
             memCacheWidth: 24,
             fit: BoxFit.cover,
@@ -1022,7 +1022,7 @@ class _PausedMark extends StatelessWidget {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
       duration: motionDuration(context, const Duration(milliseconds: 220)),
-      curve: FrostyMotion.standard,
+      curve: OnsetMotion.standard,
       builder: (context, t, child) => Opacity(
         opacity: t,
         child: Transform.scale(
@@ -1038,14 +1038,14 @@ class _PausedMark extends StatelessWidget {
           shape: CircleBorder(
             side: BorderSide(
               color: Color(0x29FFFFFF),
-              width: FrostyTokens.hairlineWidth,
+              width: OnsetTokens.hairlineWidth,
             ),
           ),
         ),
         child: Center(
           child: VideoGlyph(
             VideoGlyphKind.play,
-            color: FrostyTokens.textPrimaryDark,
+            color: OnsetTokens.textPrimaryDark,
             size: size * 0.44,
           ),
         ),
@@ -1085,7 +1085,7 @@ class _ClipDetails extends StatelessWidget {
               shape: CircleBorder(
                 side: BorderSide(
                   color: Color(0x33FFFFFF),
-                  width: FrostyTokens.hairlineWidth,
+                  width: OnsetTokens.hairlineWidth,
                 ),
               ),
             ),
@@ -1105,22 +1105,22 @@ class _ClipDetails extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontFamily: FrostyTokens.bodyFamily,
+                  fontFamily: OnsetTokens.bodyFamily,
                   fontSize: large ? 17 : 16,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -0.16,
-                  color: FrostyTokens.textPrimaryDark,
+                  color: OnsetTokens.textPrimaryDark,
                 ),
               ),
               Text(
                 details,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: FrostyType.tabular(
+                style: OnsetType.tabular(
                   const TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 13,
-                    color: FrostyTokens.textSecondaryDark,
+                    color: OnsetTokens.textSecondaryDark,
                   ),
                 ),
               ),
@@ -1134,12 +1134,12 @@ class _ClipDetails extends StatelessWidget {
       maxLines: large ? 2 : 3,
       overflow: TextOverflow.ellipsis,
       style: TextStyle(
-        fontFamily: FrostyTokens.displayFamily,
+        fontFamily: OnsetTokens.displayFamily,
         fontSize: large ? 22 : 18,
         fontWeight: large ? FontWeight.w800 : FontWeight.w700,
         height: large ? 1.25 : 1.35,
         letterSpacing: large ? -0.44 : -0.27,
-        color: FrostyTokens.textPrimaryDark,
+        color: OnsetTokens.textPrimaryDark,
       ),
     );
     final open = _OpenClipButton(onPressed: onOpen, pill: large);
@@ -1179,7 +1179,7 @@ class _OpenClipButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     return Tooltip(
       message: 'Open clip',
       excludeFromSemantics: true,
@@ -1188,7 +1188,7 @@ class _OpenClipButton extends StatelessWidget {
           onPressed: onPressed,
           style: FilledButton.styleFrom(
             backgroundColor: accent,
-            foregroundColor: FrostyTokens.backgroundDark,
+            foregroundColor: OnsetTokens.backgroundDark,
             minimumSize: const Size(0, 48),
             padding: EdgeInsets.symmetric(horizontal: pill ? 22 : 16),
             shape: pill
@@ -1197,7 +1197,7 @@ class _OpenClipButton extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
             textStyle: const TextStyle(
-              fontFamily: FrostyTokens.bodyFamily,
+              fontFamily: OnsetTokens.bodyFamily,
               fontSize: 15,
               fontWeight: FontWeight.w700,
             ),
@@ -1210,7 +1210,7 @@ class _OpenClipButton extends StatelessWidget {
             children: [
               VideoGlyph(
                 VideoGlyphKind.expand,
-                color: FrostyTokens.backgroundDark,
+                color: OnsetTokens.backgroundDark,
                 size: 17,
                 strokeWidth: 2.2,
               ),
@@ -1250,7 +1250,7 @@ class _NextCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: const Color(0x1AFFFFFF),
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               ),
             ),
             child: Row(
@@ -1262,8 +1262,8 @@ class _NextCard extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: thumbnail == null
-                        ? const ColoredBox(color: FrostyTokens.raisedDark)
-                        : FrostyCachedNetworkImage(
+                        ? const ColoredBox(color: OnsetTokens.raisedDark)
+                        : OnsetCachedNetworkImage(
                             imageUrl: thumbnail,
                             fit: BoxFit.cover,
                             memCacheWidth:
@@ -1281,11 +1281,11 @@ class _NextCard extends StatelessWidget {
                       const Text(
                         'NEXT',
                         style: TextStyle(
-                          fontFamily: FrostyTokens.bodyFamily,
+                          fontFamily: OnsetTokens.bodyFamily,
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 1.32,
-                          color: FrostyTokens.textTertiaryDark,
+                          color: OnsetTokens.textTertiaryDark,
                         ),
                       ),
                       Text(
@@ -1295,10 +1295,10 @@ class _NextCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontFamily: FrostyTokens.bodyFamily,
+                          fontFamily: OnsetTokens.bodyFamily,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: FrostyTokens.textPrimaryDark,
+                          color: OnsetTokens.textPrimaryDark,
                         ),
                       ),
                     ],
@@ -1306,7 +1306,7 @@ class _NextCard extends StatelessWidget {
                 ),
                 const VideoGlyph(
                   VideoGlyphKind.chevronUp,
-                  color: FrostyTokens.textSecondaryDark,
+                  color: OnsetTokens.textSecondaryDark,
                   size: 18,
                   strokeWidth: 2,
                 ),
@@ -1359,10 +1359,10 @@ class _SwipeHintState extends State<_SwipeHint>
       'You can swipe to the next clip',
       textAlign: TextAlign.center,
       style: TextStyle(
-        fontFamily: FrostyTokens.bodyFamily,
+        fontFamily: OnsetTokens.bodyFamily,
         fontSize: 12,
         fontWeight: FontWeight.w500,
-        color: FrostyTokens.textSecondaryDark,
+        color: OnsetTokens.textSecondaryDark,
       ),
     );
     return RepaintBoundary(
@@ -1370,7 +1370,7 @@ class _SwipeHintState extends State<_SwipeHint>
         animation: _controller,
         builder: (context, child) {
           // Up 5 dp and back (board Clips' "peek").
-          final t = FrostyMotion.standard.transform(
+          final t = OnsetMotion.standard.transform(
             1 - (2 * _controller.value - 1).abs(),
           );
           return Transform.translate(offset: Offset(0, -5 * t), child: child);
@@ -1403,7 +1403,7 @@ class _FeedEnd extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     return Column(
       mainAxisSize: MainAxisSize.min,
       spacing: 14,
@@ -1412,11 +1412,11 @@ class _FeedEnd extends StatelessWidget {
           width: 56,
           height: 56,
           decoration: BoxDecoration(
-            color: large ? FrostyTokens.raisedDark : FrostyTokens.surfaceDark,
+            color: large ? OnsetTokens.raisedDark : OnsetTokens.surfaceDark,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: const Color(0x1AFFFFFF),
-              width: FrostyTokens.hairlineWidth,
+              width: OnsetTokens.hairlineWidth,
             ),
           ),
           child: Center(
@@ -1434,11 +1434,11 @@ class _FeedEnd extends StatelessWidget {
             'That’s all for now! Check out more clips from previous streams',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontFamily: FrostyTokens.bodyFamily,
+              fontFamily: OnsetTokens.bodyFamily,
               fontSize: large ? 18 : 16,
               fontWeight: FontWeight.w700,
               height: 1.4,
-              color: FrostyTokens.textPrimaryDark,
+              color: OnsetTokens.textPrimaryDark,
             ),
           ),
         ),
@@ -1457,13 +1457,13 @@ class _StageLoading extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       spacing: 16,
       children: [
-        CircularProgressIndicator(color: context.frostyColors.live),
+        CircularProgressIndicator(color: context.onsetColors.live),
         const Text(
           'Loading more clips for you',
           style: TextStyle(
-            fontFamily: FrostyTokens.bodyFamily,
+            fontFamily: OnsetTokens.bodyFamily,
             fontSize: 14,
-            color: FrostyTokens.textSecondaryDark,
+            color: OnsetTokens.textSecondaryDark,
           ),
         ),
       ],
@@ -1509,7 +1509,7 @@ class _Stage extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: end != null ? FrostyTokens.surfaceDark : Colors.black,
+        color: end != null ? OnsetTokens.surfaceDark : Colors.black,
         borderRadius: radius,
         boxShadow: const [
           BoxShadow(
@@ -1523,7 +1523,7 @@ class _Stage extends StatelessWidget {
         borderRadius: radius,
         border: Border.all(
           color: const Color(0x1AFFFFFF),
-          width: FrostyTokens.hairlineWidth,
+          width: OnsetTokens.hairlineWidth,
         ),
       ),
       clipBehavior: material.Clip.antiAlias,
@@ -1549,8 +1549,8 @@ class _Stage extends StatelessWidget {
         width: width,
         child: AnimatedSwitcher(
           duration: motionDuration(context, const Duration(milliseconds: 460)),
-          switchInCurve: FrostyMotion.standard,
-          switchOutCurve: FrostyMotion.standard,
+          switchInCurve: OnsetMotion.standard,
+          switchOutCurve: OnsetMotion.standard,
           layoutBuilder: (current, previous) => Stack(
             alignment: Alignment.topCenter,
             children: [...previous, ?current],
@@ -1629,7 +1629,7 @@ class _Queue extends StatelessWidget {
               Text(
                 'Swipe the video or pick one',
                 style: TextStyle(
-                  fontFamily: FrostyTokens.bodyFamily,
+                  fontFamily: OnsetTokens.bodyFamily,
                   fontSize: 12,
                   color: FeedColors.dark.tertiary,
                 ),
@@ -1692,7 +1692,7 @@ class _QueueItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     final thumbnail = clip.thumbnailUrl;
     final title = clip.title.trim().isEmpty
         ? 'Untitled clip'
@@ -1721,7 +1721,7 @@ class _QueueItem extends StatelessWidget {
                 color: current
                     ? accent.withValues(alpha: 0.35)
                     : Colors.transparent,
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               ),
             ),
             child: Row(
@@ -1739,7 +1739,7 @@ class _QueueItem extends StatelessWidget {
                         if (thumbnail != null)
                           Opacity(
                             opacity: past ? 0.5 : 1,
-                            child: FrostyCachedNetworkImage(
+                            child: OnsetCachedNetworkImage(
                               imageUrl: thumbnail,
                               fit: BoxFit.cover,
                               memCacheWidth:
@@ -1757,9 +1757,9 @@ class _QueueItem extends StatelessWidget {
                             color: const Color(0xA6000000),
                             child: Text(
                               formatVodTime(clip.duration),
-                              style: FrostyType.tabular(
+                              style: OnsetType.tabular(
                                 const TextStyle(
-                                  fontFamily: FrostyTokens.bodyFamily,
+                                  fontFamily: OnsetTokens.bodyFamily,
                                   fontSize: 10.5,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -1787,22 +1787,22 @@ class _QueueItem extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontFamily: FrostyTokens.bodyFamily,
+                          fontFamily: OnsetTokens.bodyFamily,
                           fontSize: 13.5,
                           fontWeight: FontWeight.w600,
                           height: 1.3,
-                          color: FrostyTokens.textPrimaryDark,
+                          color: OnsetTokens.textPrimaryDark,
                         ),
                       ),
                       Text(
                         '${_channelOf(clip)} · ${_views(clip)}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: FrostyType.tabular(
+                        style: OnsetType.tabular(
                           const TextStyle(
-                            fontFamily: FrostyTokens.bodyFamily,
+                            fontFamily: OnsetTokens.bodyFamily,
                             fontSize: 12,
-                            color: FrostyTokens.textSecondaryDark,
+                            color: OnsetTokens.textSecondaryDark,
                           ),
                         ),
                       ),
@@ -1844,7 +1844,7 @@ class _PlayingBarsState extends State<_PlayingBars>
 
   @override
   Widget build(BuildContext context) {
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     return Observer(
       builder: (context) {
         final moving = widget.playing() && !reduceMotionOf(context);
@@ -1880,7 +1880,7 @@ class _PlayingBarsState extends State<_PlayingBars>
                                               1)
                                           .abs())),
                       decoration: BoxDecoration(
-                        color: FrostyTokens.backgroundDark,
+                        color: OnsetTokens.backgroundDark,
                         borderRadius: BorderRadius.circular(1),
                       ),
                     ),
@@ -1927,9 +1927,9 @@ class _QueueLoading extends StatelessWidget {
                   const Text(
                     'Loading more clips for you',
                     style: TextStyle(
-                      fontFamily: FrostyTokens.bodyFamily,
+                      fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 12,
-                      color: FrostyTokens.textTertiaryDark,
+                      color: OnsetTokens.textTertiaryDark,
                     ),
                   ),
                 ],
@@ -1955,7 +1955,7 @@ class _FeedSkeleton extends StatelessWidget {
     final radius = BorderRadius.circular(6);
     return LayoutBuilder(
       builder: (context, constraints) {
-        final side = large ? FrostySpacing.gutterTablet : 0.0;
+        final side = large ? OnsetSpacing.gutterTablet : 0.0;
         final top = padding.top + (large ? 20 : 24);
         final roomWidth = math.max(
           0.0,

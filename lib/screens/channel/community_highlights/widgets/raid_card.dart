@@ -174,7 +174,7 @@ class RaidCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
                 color: accent.withValues(alpha: 0.26),
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               ),
             ),
           ),
@@ -187,11 +187,11 @@ class RaidCard extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 child: AnimatedSize(
                   duration: duration,
-                  curve: FrostyMotion.standard,
+                  curve: OnsetMotion.standard,
                   alignment: Alignment.topCenter,
                   child: AnimatedSwitcher(
                     duration: duration,
-                    switchInCurve: FrostyMotion.standard,
+                    switchInCurve: OnsetMotion.standard,
                     transitionBuilder: (child, animation) =>
                         _FadeUp(animation: animation, child: child),
                     layoutBuilder: (current, previous) => Stack(
@@ -228,7 +228,7 @@ class RaidCard extends StatelessWidget {
         shape: const StadiumBorder(),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         textStyle: const TextStyle(
-          fontFamily: FrostyTokens.bodyFamily,
+          fontFamily: OnsetTokens.bodyFamily,
           fontSize: 13,
           fontWeight: FontWeight.w600,
         ),
@@ -315,7 +315,7 @@ class _Header extends StatelessWidget {
                 Text(
                   'RAID',
                   style: TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 10.5,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1.26,
@@ -336,7 +336,7 @@ class _Header extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     height: 1.3,
@@ -351,7 +351,7 @@ class _Header extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: SheetText.tabular(
                     TextStyle(
-                      fontFamily: FrostyTokens.bodyFamily,
+                      fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 12,
                       height: 1.3,
                       color: colors.secondary,
@@ -405,7 +405,7 @@ class _Ring extends StatelessWidget {
                 label,
                 style: SheetText.tabular(
                   TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: colors.text,
@@ -610,7 +610,7 @@ class _Smooth extends StatelessWidget {
     return TweenAnimationBuilder<double>(
       tween: Tween(end: value),
       duration: const Duration(milliseconds: 300),
-      curve: FrostyMotion.standard,
+      curve: OnsetMotion.standard,
       builder: (context, value, _) => builder(context, value),
     );
   }
@@ -641,7 +641,7 @@ class _Hit extends StatelessWidget {
       key: RaidCard.hitKey,
       tween: Tween(begin: 0, end: 1),
       duration: const Duration(milliseconds: 700),
-      curve: FrostyMotion.standard,
+      curve: OnsetMotion.standard,
       builder: (context, t, _) {
         final burst = (t * 700 / 560).clamp(0.0, 1.0);
         return SizedBox.square(
@@ -713,7 +713,7 @@ class _Buttons extends StatelessWidget {
         ),
         textStyle: const WidgetStatePropertyAll(
           TextStyle(
-            fontFamily: FrostyTokens.bodyFamily,
+            fontFamily: OnsetTokens.bodyFamily,
             fontSize: 13,
             fontWeight: FontWeight.w700,
           ),
@@ -741,12 +741,12 @@ class _Buttons extends StatelessWidget {
               side: WidgetStatePropertyAll(
                 BorderSide(
                   color: colors.ringStrong,
-                  width: FrostyTokens.hairlineWidth,
+                  width: OnsetTokens.hairlineWidth,
                 ),
               ),
               textStyle: const WidgetStatePropertyAll(
                 TextStyle(
-                  fontFamily: FrostyTokens.bodyFamily,
+                  fontFamily: OnsetTokens.bodyFamily,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
@@ -777,7 +777,7 @@ class _HeadingOut extends StatelessWidget {
           child: Text(
             'Heading out…',
             style: TextStyle(
-              fontFamily: FrostyTokens.bodyFamily,
+              fontFamily: OnsetTokens.bodyFamily,
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: SheetColors.accentOf(context),
@@ -845,7 +845,7 @@ class _Line extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     height: 1.3,
@@ -857,7 +857,7 @@ class _Line extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 12,
                     height: 1.3,
                     color: colors.secondary,

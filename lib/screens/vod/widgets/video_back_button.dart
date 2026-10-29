@@ -19,13 +19,13 @@ class VideoBackButton extends StatelessWidget {
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints.tightFor(width: 44, height: 44),
           style: IconButton.styleFrom(
-            foregroundColor: FrostyTokens.textPrimaryDark,
+            foregroundColor: OnsetTokens.textPrimaryDark,
             highlightColor: const Color(0x1FFFFFFF),
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           icon: const VideoGlyph(
             VideoGlyphKind.back,
-            color: FrostyTokens.textPrimaryDark,
+            color: OnsetTokens.textPrimaryDark,
             size: 22,
             strokeWidth: 2,
             shadow: true,

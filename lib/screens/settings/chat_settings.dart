@@ -14,8 +14,8 @@ import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
 import 'package:onset/screens/settings/widgets/settings_muted_words.dart';
 import 'package:onset/screens/settings/widgets/settings_page.dart';
 import 'package:onset/utils/context_extensions.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
 import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 
 /// Settings › Chat (board Parametres): sizing with its preview, how
 /// messages look, the delay, layout, alerts, autocomplete, landscape,
@@ -501,7 +501,7 @@ class _ChatPreviewState extends State<_ChatPreview> {
             trailing: AnimatedRotation(
               turns: _open ? 0.5 : 0,
               duration: duration,
-              curve: FrostyMotion.standard,
+              curve: OnsetMotion.standard,
               child: SettingsGlyph(
                 SettingsGlyphKind.chevronDown,
                 strokeWidth: 2,
@@ -512,7 +512,7 @@ class _ChatPreviewState extends State<_ChatPreview> {
         ),
         AnimatedSize(
           duration: duration,
-          curve: FrostyMotion.standard,
+          curve: OnsetMotion.standard,
           alignment: Alignment.topCenter,
           child: !_open
               ? const SizedBox(width: double.infinity)
@@ -540,7 +540,7 @@ class _ChatPreviewState extends State<_ChatPreview> {
                               children: [
                                 WidgetSpan(
                                   alignment: PlaceholderAlignment.middle,
-                                  child: FrostyCachedNetworkImage(
+                                  child: OnsetCachedNetworkImage(
                                     imageUrl:
                                         'https://static-cdn.jtvnw.net/badges/v1/bbbe0db0-a598-423e-86d0-f9fb98ca1933/3',
                                     height: defaultBadgeSize * store.badgeScale,
@@ -552,7 +552,7 @@ class _ChatPreviewState extends State<_ChatPreview> {
                                 ),
                                 WidgetSpan(
                                   alignment: PlaceholderAlignment.middle,
-                                  child: FrostyCachedNetworkImage(
+                                  child: OnsetCachedNetworkImage(
                                     imageUrl:
                                         'https://static-cdn.jtvnw.net/emoticons/v2/425618/default/dark/3.0',
                                     height: defaultEmoteSize * store.emoteScale,

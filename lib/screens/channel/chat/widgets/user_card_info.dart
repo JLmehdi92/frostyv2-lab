@@ -4,7 +4,7 @@ import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/models/badges.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
@@ -158,7 +158,7 @@ class _UserCardInfoState extends State<UserCardInfo> {
                                   ? BorderSide.none
                                   : BorderSide(
                                       color: colors.ring,
-                                      width: FrostyTokens.hairlineWidth,
+                                      width: OnsetTokens.hairlineWidth,
                                     ),
                             ),
                           ),
@@ -170,7 +170,7 @@ class _UserCardInfoState extends State<UserCardInfo> {
                                 borderRadius: BorderRadius.circular(
                                   dense ? 5 : 6,
                                 ),
-                                child: FrostyCachedNetworkImage(
+                                child: OnsetCachedNetworkImage(
                                   imageUrl: badge.url,
                                   width: dense ? 18 : 20,
                                   height: dense ? 18 : 20,
@@ -179,7 +179,7 @@ class _UserCardInfoState extends State<UserCardInfo> {
                               Text(
                                 label,
                                 style: TextStyle(
-                                  fontFamily: FrostyTokens.bodyFamily,
+                                  fontFamily: OnsetTokens.bodyFamily,
                                   fontSize: dense ? 11.5 : 12,
                                   fontWeight: FontWeight.w600,
                                   color: colors.body,

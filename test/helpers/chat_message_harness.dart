@@ -63,7 +63,7 @@ Future<void> pumpChatMessage(
   IRCMessage message,
   ChatStore store,
 ) async {
-  const themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+  const themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
   await tester.pumpWidget(
     MaterialApp(
       theme: themes.dark,

@@ -61,8 +61,8 @@ import 'package:onset/utils/pip_callbacks.dart';
 import 'package:onset/widgets/blurred_container.dart';
 import 'package:onset/widgets/celebration_overlay.dart';
 import 'package:onset/widgets/draggable_divider.dart';
-import 'package:onset/widgets/frosty_notification.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/onset_notification.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
 import 'package:provider/provider.dart';
 import 'package:simple_pip_mode/actions/pip_actions_layout.dart';
@@ -506,8 +506,8 @@ class _VideoChatState extends State<VideoChat>
   /// A tablet's side chat (board Tablette): its header, then the chat.
   Widget _buildTabletChat(Widget chat, SettingsStore settingsStore) {
     final hairline = BorderSide(
-      color: context.frostyColors.hairline,
-      width: FrostyTokens.hairlineWidth,
+      color: context.onsetColors.hairline,
+      width: OnsetTokens.hairlineWidth,
     );
     final left = settingsStore.landscapeChatLeftSide;
     return DecoratedBox(
@@ -994,7 +994,7 @@ class _VideoChatState extends State<VideoChat>
                               'Swipe down to enter picture-in-picture',
                               textAlign: TextAlign.center,
                               style: context.textTheme.bodyLarge?.copyWith(
-                                color: context.frostyColors.overlayOnSurface,
+                                color: context.onsetColors.overlayOnSurface,
                                 fontSize: 16,
                               ),
                             ),
@@ -1250,7 +1250,7 @@ class _VideoChatState extends State<VideoChat>
                           padding: EdgeInsets.only(
                             top: chatOnly ? context.safePaddingTop : 0,
                           ),
-                          child: FrostyNotification(
+                          child: OnsetNotification(
                             message: _chatStore.notification!,
                             onDismissed: _chatStore.clearNotification,
                             // Full screen in landscape: the chat (overlay
@@ -1349,12 +1349,12 @@ class _VideoChatState extends State<VideoChat>
                   maintainState: true,
                   child: OverlayChatScope(
                     child: Theme(
-                      data: FrostyThemes(
+                      data: OnsetThemes(
                         colorSchemeSeed: Color(settingsStore.accentColor),
                       ).dark,
                       child: DefaultTextStyle(
                         style: context.defaultTextStyle.copyWith(
-                          color: context.frostyColors.overlayOnSurface,
+                          color: context.onsetColors.overlayOnSurface,
                         ),
                         child: landscapeChat,
                       ),

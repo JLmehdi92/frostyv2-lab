@@ -109,7 +109,7 @@ class OnsetMarkTile extends StatelessWidget {
         dimension: size,
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: FrostyTokens.accent,
+            color: OnsetTokens.accent,
             borderRadius: BorderRadius.circular(
               radius ?? OnsetMark.designRadius * size / OnsetMark.designSize,
             ),
@@ -148,7 +148,7 @@ class _MarkPainter extends CustomPainter {
       ..drawPath(
         OnsetMark.glyphs(),
         Paint()
-          ..color = FrostyTokens.backgroundDark.withValues(alpha: opacity)
+          ..color = OnsetTokens.backgroundDark.withValues(alpha: opacity)
           ..isAntiAlias = true,
       )
       ..restore();
@@ -175,7 +175,7 @@ class OnsetWordmark extends StatelessWidget {
     this.letters = const [1, 1, 1, 1, 1],
     this.underline = 1,
     this.opacity = 1,
-    this.underlineColor = FrostyTokens.accent,
+    this.underlineColor = OnsetTokens.accent,
   });
 
   final bool tablet;
@@ -264,14 +264,14 @@ class _Letter extends StatelessWidget {
       child: Text(
         letter,
         style: TextStyle(
-          fontFamily: FrostyTokens.displayFamily,
+          fontFamily: OnsetTokens.displayFamily,
           fontSize: size,
           fontWeight: FontWeight.w800,
           fontStyle: FontStyle.normal,
           decoration: TextDecoration.none,
           letterSpacing: -0.035 * size,
           height: 1.2,
-          color: FrostyTokens.textPrimaryDark.withValues(
+          color: OnsetTokens.textPrimaryDark.withValues(
             alpha: (progress * opacity).clamp(0.0, 1.0),
           ),
         ),

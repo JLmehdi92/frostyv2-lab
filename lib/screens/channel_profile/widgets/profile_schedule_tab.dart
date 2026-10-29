@@ -115,7 +115,7 @@ class ProfileScheduleCard extends StatelessWidget {
                   meta,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: FrostyType.tabular(
+                  style: OnsetType.tabular(
                     TextStyle(
                       fontSize: 12,
                       height: 1.3,
@@ -311,7 +311,7 @@ class _SegmentRow extends StatelessWidget {
         border: Border(
           bottom: BorderSide(
             color: colors.hairline,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
       ),
@@ -349,7 +349,7 @@ class _SegmentRow extends StatelessWidget {
                     ?segment.categoryName,
                     if (cancelled) 'Cancelled',
                   ].join(' · '),
-                  style: FrostyType.tabular(
+                  style: OnsetType.tabular(
                     TextStyle(
                       fontSize: 12,
                       height: 1.3,
@@ -370,7 +370,7 @@ class _SegmentRow extends StatelessWidget {
               selectedIcon: SheetGlyph(
                 SheetGlyphKind.check,
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? context.frostyColors.live
+                    ? context.onsetColors.live
                     : colors.text,
                 strokeWidth: 2.2,
               ),

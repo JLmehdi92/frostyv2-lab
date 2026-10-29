@@ -18,7 +18,7 @@ void main() {
   });
 
   Future<void> openInBrowser(WidgetTester tester, String url) async {
-    final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       MaterialApp(
         theme: themes.dark,

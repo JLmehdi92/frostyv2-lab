@@ -29,10 +29,7 @@ class CaptionMenu extends StatelessWidget {
                 contentPadding: const EdgeInsets.only(left: 32, right: 16),
                 title: Text(track.name),
                 trailing: captions.isSelected(track)
-                    ? Icon(
-                        Icons.check_rounded,
-                        color: context.frostyColors.live,
-                      )
+                    ? Icon(Icons.check_rounded, color: context.onsetColors.live)
                     : null,
                 onTap: () => captions.selectTrack(track),
               ),

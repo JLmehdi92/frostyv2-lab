@@ -34,9 +34,9 @@ class LoginWebView extends StatelessWidget {
     final padding = MediaQuery.paddingOf(context);
     final accent = Color(
       context.read<SettingsStore?>()?.accentColor ??
-          FrostyTokens.accent.toARGB32(),
+          OnsetTokens.accent.toARGB32(),
     );
-    final themes = FrostyThemes(colorSchemeSeed: accent);
+    final themes = OnsetThemes(colorSchemeSeed: accent);
     return Theme(
       data: themes.dark,
       child: AnnotatedRegion<SystemUiOverlayStyle>(
@@ -235,10 +235,10 @@ class _OnboardingDialog extends StatelessWidget {
       elevation: 0,
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(FrostyTokens.radiusLarge),
+        borderRadius: BorderRadius.circular(OnsetTokens.radiusLarge),
         side: const BorderSide(
           color: OnboardingColors.ringStrong,
-          width: FrostyTokens.hairlineWidth,
+          width: OnsetTokens.hairlineWidth,
         ),
       ),
       child: Semantics(
@@ -551,7 +551,7 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
         border: Border(
           top: BorderSide(
             color: OnboardingColors.ring,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
       ),
@@ -566,7 +566,7 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
                 page,
                 AnimatedSwitcher(
                   duration: fade,
-                  switchInCurve: FrostyMotion.standard,
+                  switchInCurve: OnsetMotion.standard,
                   child: _signingIn
                       ? _SigningIn(
                           key: const ValueKey('signing-in'),
@@ -611,7 +611,7 @@ class _HostStrip extends StatelessWidget {
         border: Border(
           bottom: BorderSide(
             color: OnboardingColors.divider,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
       ),
@@ -660,7 +660,7 @@ class _LoginFailedLine extends StatelessWidget {
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(16, 2, 8, 2),
-        color: FrostyTokens.danger.withValues(alpha: 0.12),
+        color: OnsetTokens.danger.withValues(alpha: 0.12),
         child: Row(
           children: [
             const Expanded(

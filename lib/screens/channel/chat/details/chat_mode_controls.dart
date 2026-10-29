@@ -139,7 +139,7 @@ class _ChatModeControlsState extends State<ChatModeControls> {
   }) {
     final colors = SheetColors.of(context);
     final style = TextStyle(
-      fontFamily: FrostyTokens.bodyFamily,
+      fontFamily: OnsetTokens.bodyFamily,
       fontSize: 13,
       fontWeight: FontWeight.w500,
       color: colors.text,
@@ -155,7 +155,7 @@ class _ChatModeControlsState extends State<ChatModeControls> {
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: colors.ring,
-          width: FrostyTokens.hairlineWidth,
+          width: OnsetTokens.hairlineWidth,
         ),
       ),
       child: DropdownButtonHideUnderline(
@@ -318,7 +318,7 @@ class _ChatModeControlsState extends State<ChatModeControls> {
         mode(ChatMode.emoteOnly, room.emoteOnly != '0', SheetGlyphKind.emote),
         mode(ChatMode.uniqueChat, room.r9k != '0', SheetGlyphKind.unique),
         Container(
-          height: FrostyTokens.hairlineWidth,
+          height: OnsetTokens.hairlineWidth,
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           color: colors.hairline,
         ),

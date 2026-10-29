@@ -30,8 +30,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// What is drawn over the video: always light, in either theme.
 abstract final class _Over {
-  static const text = FrostyTokens.textPrimaryDark;
-  static const body = FrostyTokens.textBodyDark;
+  static const text = OnsetTokens.textPrimaryDark;
+  static const body = OnsetTokens.textBodyDark;
 
   /// The play disc: #0A0A0A at 42 %, a 16 % hairline.
   static const disc = Color(0x6B0A0A0A);
@@ -328,7 +328,7 @@ class _VodOverlayState extends State<VodOverlay> {
   }
 
   Widget _controls(BuildContext context, _OverlayMetrics m, double height) {
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -426,7 +426,7 @@ class _VodOverlayState extends State<VodOverlay> {
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: TextStyle(
-        fontFamily: FrostyTokens.bodyFamily,
+        fontFamily: OnsetTokens.bodyFamily,
         color: _Over.text,
         fontSize: m.large ? 15 : 14,
         fontWeight: m.large ? FontWeight.w700 : FontWeight.w600,
@@ -439,7 +439,7 @@ class _VodOverlayState extends State<VodOverlay> {
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: const TextStyle(
-        fontFamily: FrostyTokens.bodyFamily,
+        fontFamily: OnsetTokens.bodyFamily,
         color: _Over.body,
         fontSize: 12,
         height: 1.25,
@@ -636,7 +636,7 @@ class _VodOverlayState extends State<VodOverlay> {
                   '$elapsed / $total',
                   semanticsLabel: 'Elapsed time $elapsed of $total',
                   style: TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     color: _Over.text,
                     fontSize: m.timeSize,
                     fontWeight: FontWeight.w600,
@@ -813,7 +813,7 @@ class _PlayDisc extends StatelessWidget {
           shape: const CircleBorder(
             side: BorderSide(
               color: _Over.discRing,
-              width: FrostyTokens.hairlineWidth,
+              width: OnsetTokens.hairlineWidth,
             ),
           ),
           clipBehavior: Clip.antiAlias,
@@ -854,7 +854,7 @@ class _KindPill extends StatelessWidget {
         shape: StadiumBorder(
           side: BorderSide(
             color: Color(0x29FFFFFF),
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
       ),
@@ -871,7 +871,7 @@ class _KindPill extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              fontFamily: FrostyTokens.bodyFamily,
+              fontFamily: OnsetTokens.bodyFamily,
               color: _Over.body,
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -915,13 +915,13 @@ class _SpeedPill extends StatelessWidget {
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
                   color: _Over.pillRing,
-                  width: FrostyTokens.hairlineWidth,
+                  width: OnsetTokens.hairlineWidth,
                 ),
               ),
               child: Text(
                 formatPlaybackRate(rate),
                 style: TextStyle(
-                  fontFamily: FrostyTokens.bodyFamily,
+                  fontFamily: OnsetTokens.bodyFamily,
                   color: _Over.text,
                   fontSize: large ? 12 : 11,
                   fontWeight: FontWeight.w700,
@@ -956,7 +956,7 @@ class _SkipBadge extends StatelessWidget {
         final double opacity;
         final double scale;
         if (t < 0.25) {
-          final p = FrostyMotion.standard.transform(t / 0.25);
+          final p = OnsetMotion.standard.transform(t / 0.25);
           opacity = p;
           scale = reduce ? 1 : 0.6 + 0.4 * p;
         } else if (t < 0.75) {
@@ -989,7 +989,7 @@ class _SkipBadge extends StatelessWidget {
             Text(
               forward ? '+10 s' : '−10 s',
               style: const TextStyle(
-                fontFamily: FrostyTokens.bodyFamily,
+                fontFamily: OnsetTokens.bodyFamily,
                 color: _Over.text,
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
@@ -1097,7 +1097,7 @@ class VodSettingsSheet extends StatelessWidget {
               border: Border(
                 top: BorderSide(
                   color: colors.hairline,
-                  width: FrostyTokens.hairlineWidth,
+                  width: OnsetTokens.hairlineWidth,
                 ),
               ),
             ),
@@ -1290,7 +1290,7 @@ class _CaptionsCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                     side: BorderSide(
                       color: colors.hairline,
-                      width: FrostyTokens.hairlineWidth,
+                      width: OnsetTokens.hairlineWidth,
                     ),
                   ),
                   clipBehavior: Clip.antiAlias,
@@ -1426,7 +1426,7 @@ class _GridChip extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             side: BorderSide(
               color: selected ? accent : colors.ring,
-              width: FrostyTokens.hairlineWidth,
+              width: OnsetTokens.hairlineWidth,
             ),
           ),
           clipBehavior: Clip.antiAlias,

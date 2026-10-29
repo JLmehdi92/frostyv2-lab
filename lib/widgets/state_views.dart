@@ -17,7 +17,7 @@ Color onFillColor(Color fill) {
   final luminance = fill.computeLuminance();
   final onBlack = (luminance + 0.05) / 0.05;
   final onWhite = 1.05 / (luminance + 0.05);
-  return onBlack >= onWhite ? FrostyTokens.backgroundDark : Colors.white;
+  return onBlack >= onWhite ? OnsetTokens.backgroundDark : Colors.white;
 }
 
 /// The message of an empty, failed or logged-out screen (boards Etats /
@@ -130,7 +130,7 @@ class FeedStatusView extends StatelessWidget {
           color: colors.surface,
           border: Border.all(
             color: colors.pillBorder,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
         child: glyph != null
@@ -219,7 +219,7 @@ class SignalOffMark extends StatelessWidget {
           shape: BoxShape.circle,
           border: Border.all(
             color: colors.hairline,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
         child: Padding(
@@ -230,7 +230,7 @@ class SignalOffMark extends StatelessWidget {
               color: colors.surface,
               border: Border.all(
                 color: colors.pillBorder,
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               ),
             ),
             child: Center(
@@ -288,7 +288,7 @@ class StatePill extends StatelessWidget {
         foregroundColor: colors.text,
         side: BorderSide(
           color: colors.pillBorder,
-          width: FrostyTokens.hairlineWidth,
+          width: OnsetTokens.hairlineWidth,
         ),
         shape: const StadiumBorder(),
         textStyle: TextStyle(
@@ -318,7 +318,7 @@ class _PrimaryPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     return PressScale(
       child: FilledButton(
         onPressed: onPressed,

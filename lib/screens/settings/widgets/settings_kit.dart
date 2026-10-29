@@ -101,38 +101,38 @@ class SettingsColors {
   final Color pressed;
 
   static const dark = SettingsColors(
-    card: FrostyTokens.surfaceDark,
+    card: OnsetTokens.surfaceDark,
     cardRing: Color(0x14FFFFFF),
-    tile: FrostyTokens.raisedDark,
-    tileIcon: FrostyTokens.textBodyDark,
+    tile: OnsetTokens.raisedDark,
+    tileIcon: OnsetTokens.textBodyDark,
     hairline: Color(0x14FFFFFF),
-    text: FrostyTokens.textPrimaryDark,
-    body: FrostyTokens.textBodyDark,
-    secondary: FrostyTokens.textSecondaryDark,
-    tertiary: FrostyTokens.textTertiaryDark,
+    text: OnsetTokens.textPrimaryDark,
+    body: OnsetTokens.textBodyDark,
+    secondary: OnsetTokens.textSecondaryDark,
+    tertiary: OnsetTokens.textTertiaryDark,
     track: Color(0xFF0E0E0E),
     trackRing: Color(0x1AFFFFFF),
     stackIdle: Color(0xFF1A1A1A),
     stackRing: Color(0x14FFFFFF),
     switchOff: Color(0xFF2A2A2A),
     switchRing: Color(0x29FFFFFF),
-    knobOff: FrostyTokens.textBodyDark,
+    knobOff: OnsetTokens.textBodyDark,
     sliderTrack: Color(0xFF2A2A2A),
-    thumb: FrostyTokens.textPrimaryDark,
+    thumb: OnsetTokens.textPrimaryDark,
     danger: Color(0xFFFF6B6F),
     dangerTint: Color(0x1FFF5A5F),
-    dangerFill: FrostyTokens.danger,
+    dangerFill: OnsetTokens.danger,
     well: Color(0xFF0E0E0E),
     sheet: Color(0xFF161616),
     dialog: Color(0xFF1A1A1A),
-    button: FrostyTokens.raisedDark,
+    button: OnsetTokens.raisedDark,
     buttonRing: Color(0x1FFFFFFF),
     handle: Color(0x38FFFFFF),
     pressed: Color(0x0DFFFFFF),
   );
 
   static const light = SettingsColors(
-    card: FrostyTokens.surfaceLight,
+    card: OnsetTokens.surfaceLight,
     cardRing: Color(0x14000000),
     tile: Color(0xFFF0F0F0),
     tileIcon: Color(0xFF3A3A3A),
@@ -154,8 +154,8 @@ class SettingsColors {
     dangerTint: Color(0x1FE5484D),
     dangerFill: Color(0xFFE5484D),
     well: Color(0xFFF5F5F5),
-    sheet: FrostyTokens.surfaceLight,
-    dialog: FrostyTokens.surfaceLight,
+    sheet: OnsetTokens.surfaceLight,
+    dialog: OnsetTokens.surfaceLight,
     button: Color(0xFFEFEFEF),
     buttonRing: Color(0x1A000000),
     handle: Color(0xFFD4D4D4),
@@ -166,7 +166,7 @@ class SettingsColors {
       Theme.of(context).brightness == Brightness.dark ? dark : light;
 
   /// The signal colour: on, selected, the one primary action.
-  static Color accentOf(BuildContext context) => context.frostyColors.live;
+  static Color accentOf(BuildContext context) => context.onsetColors.live;
 
   /// What reads on [accentOf]: near-black on a light accent, white on a dark
   /// one (whichever contrasts more).
@@ -174,7 +174,7 @@ class SettingsColors {
     final luminance = accentOf(context).computeLuminance();
     final onBlack = (luminance + 0.05) / 0.05;
     final onWhite = 1.05 / (luminance + 0.05);
-    return onBlack >= onWhite ? FrostyTokens.backgroundDark : Colors.white;
+    return onBlack >= onWhite ? OnsetTokens.backgroundDark : Colors.white;
   }
 }
 
@@ -182,7 +182,7 @@ class SettingsColors {
 abstract final class SettingsText {
   /// "ACCOUNT", "MESSAGE SIZING": 11 / 600, 0.14 em, upper case.
   static const section = TextStyle(
-    fontFamily: FrostyTokens.bodyFamily,
+    fontFamily: OnsetTokens.bodyFamily,
     fontSize: 11,
     fontWeight: FontWeight.w600,
     letterSpacing: 1.54,
@@ -191,7 +191,7 @@ abstract final class SettingsText {
 
   /// A setting: 15 / 500.
   static const row = TextStyle(
-    fontFamily: FrostyTokens.bodyFamily,
+    fontFamily: OnsetTokens.bodyFamily,
     fontSize: 15,
     fontWeight: FontWeight.w500,
     height: 1.3,
@@ -199,16 +199,16 @@ abstract final class SettingsText {
 
   /// Its explanation: 12.5 / 1.45.
   static const detail = TextStyle(
-    fontFamily: FrostyTokens.bodyFamily,
+    fontFamily: OnsetTokens.bodyFamily,
     fontSize: 12.5,
     fontWeight: FontWeight.w400,
     height: 1.45,
   );
 
   /// The value at a row's end ("All languages", "3"): 13, tabular.
-  static final value = FrostyType.tabular(
+  static final value = OnsetType.tabular(
     const TextStyle(
-      fontFamily: FrostyTokens.bodyFamily,
+      fontFamily: OnsetTokens.bodyFamily,
       fontSize: 13,
       fontWeight: FontWeight.w400,
       height: 1.3,
@@ -217,7 +217,7 @@ abstract final class SettingsText {
 
   /// A page's title next to its back button: 18 / 700.
   static const pageTitle = TextStyle(
-    fontFamily: FrostyTokens.bodyFamily,
+    fontFamily: OnsetTokens.bodyFamily,
     fontSize: 18,
     fontWeight: FontWeight.w700,
     letterSpacing: -0.36,
@@ -226,7 +226,7 @@ abstract final class SettingsText {
 
   /// A dialog's title: 19 / 700.
   static const dialogTitle = TextStyle(
-    fontFamily: FrostyTokens.bodyFamily,
+    fontFamily: OnsetTokens.bodyFamily,
     fontSize: 19,
     fontWeight: FontWeight.w700,
     letterSpacing: -0.285,
@@ -235,7 +235,7 @@ abstract final class SettingsText {
 
   /// Body copy: 14 / 1.55.
   static const body = TextStyle(
-    fontFamily: FrostyTokens.bodyFamily,
+    fontFamily: OnsetTokens.bodyFamily,
     fontSize: 14,
     fontWeight: FontWeight.w400,
     height: 1.55,
@@ -295,7 +295,7 @@ class SettingsCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(radius),
       side: BorderSide(
         color: ring ?? colors.cardRing,
-        width: FrostyTokens.hairlineWidth,
+        width: OnsetTokens.hairlineWidth,
       ),
     );
     return Material(
@@ -326,8 +326,8 @@ class SettingsGroup extends StatelessWidget {
       if (index > 0) {
         rows.add(
           Divider(
-            height: FrostyTokens.hairlineWidth,
-            thickness: FrostyTokens.hairlineWidth,
+            height: OnsetTokens.hairlineWidth,
+            thickness: OnsetTokens.hairlineWidth,
             color: colors.hairline,
           ),
         );
@@ -537,7 +537,7 @@ class SettingsSwitch extends StatelessWidget {
     return ExcludeSemantics(
       child: AnimatedContainer(
         duration: fade,
-        curve: FrostyMotion.standard,
+        curve: OnsetMotion.standard,
         width: 46,
         height: 28,
         decoration: ShapeDecoration(
@@ -547,7 +547,7 @@ class SettingsSwitch extends StatelessWidget {
                 ? BorderSide.none
                 : BorderSide(
                     color: colors.switchRing,
-                    width: FrostyTokens.hairlineWidth,
+                    width: OnsetTokens.hairlineWidth,
                   ),
           ),
         ),
@@ -555,7 +555,7 @@ class SettingsSwitch extends StatelessWidget {
           children: [
             AnimatedPositioned(
               duration: slide,
-              curve: FrostyMotion.standard,
+              curve: OnsetMotion.standard,
               top: 3,
               left: value ? 21 : 3,
               child: AnimatedContainer(
@@ -564,7 +564,7 @@ class SettingsSwitch extends StatelessWidget {
                 height: 22,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: value ? FrostyTokens.backgroundDark : colors.knobOff,
+                  color: value ? OnsetTokens.backgroundDark : colors.knobOff,
                   boxShadow: const [
                     BoxShadow(
                       color: Color(0x66000000),
@@ -624,12 +624,12 @@ class SettingsButton extends StatelessWidget {
       ),
       SettingsButtonTone.danger => (
         colors.dangerFill,
-        FrostyTokens.backgroundDark,
+        OnsetTokens.backgroundDark,
       ),
       SettingsButtonTone.quiet => (colors.button, colors.text),
     };
     final style = TextStyle(
-      fontFamily: FrostyTokens.bodyFamily,
+      fontFamily: OnsetTokens.bodyFamily,
       fontSize: large ? 15 : 14,
       fontWeight: tone == SettingsButtonTone.quiet
           ? FontWeight.w600
@@ -653,7 +653,7 @@ class SettingsButton extends StatelessWidget {
           side: tone == SettingsButtonTone.quiet
               ? BorderSide(
                   color: colors.buttonRing,
-                  width: FrostyTokens.hairlineWidth,
+                  width: OnsetTokens.hairlineWidth,
                 )
               : BorderSide.none,
         ),
@@ -704,10 +704,10 @@ class SettingsDialog extends StatelessWidget {
       // under it.
       insetAnimationDuration: Duration.zero,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(FrostyTokens.radiusLarge),
+        borderRadius: BorderRadius.circular(OnsetTokens.radiusLarge),
         side: BorderSide(
           color: colors.cardRing,
-          width: FrostyTokens.hairlineWidth,
+          width: OnsetTokens.hairlineWidth,
         ),
       ),
       child: Semantics(

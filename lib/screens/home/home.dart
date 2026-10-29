@@ -622,7 +622,7 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
             : SystemUiOverlayStyle.dark);
     if (!header.overVideo || _clipsInPip) return themed;
     final overClip = themed.copyWith(
-      systemNavigationBarColor: FrostyTokens.backgroundDark,
+      systemNavigationBarColor: OnsetTokens.backgroundDark,
       systemNavigationBarIconBrightness: Brightness.light,
     );
     if (context.isLargeScreen) return overClip;

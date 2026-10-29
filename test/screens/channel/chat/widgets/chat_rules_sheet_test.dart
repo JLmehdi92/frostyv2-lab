@@ -17,7 +17,7 @@ const _rules = ChatRules(
 );
 
 Widget _app(Widget child) {
-  const themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+  const themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
   return MaterialApp(
     theme: themes.dark,
     home: Scaffold(body: child),

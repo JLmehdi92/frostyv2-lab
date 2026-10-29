@@ -61,7 +61,7 @@ void main() {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       MaterialApp(
         theme: themes.light,

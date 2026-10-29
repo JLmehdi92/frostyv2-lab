@@ -10,7 +10,7 @@ import 'package:onset/screens/whispers/whisper_conversation.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils.dart';
 import 'package:onset/widgets/alert_message.dart';
-import 'package:onset/widgets/frosty_scrollbar.dart';
+import 'package:onset/widgets/onset_scrollbar.dart';
 import 'package:onset/widgets/profile_picture.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
@@ -220,7 +220,7 @@ class _ChatUserModalState extends State<ChatUserModal> {
     );
 
     final divider = Container(
-      height: FrostyTokens.hairlineWidth,
+      height: OnsetTokens.hairlineWidth,
       margin: EdgeInsets.fromLTRB(16, dense ? 2 : 4, 16, 0),
       color: colors.hairline,
     );
@@ -248,7 +248,7 @@ class _ChatUserModalState extends State<ChatUserModal> {
             style: DefaultTextStyle.of(
               context,
             ).style.copyWith(fontSize: widget.chatStore.settings.fontSize),
-            child: FrostyScrollbar(
+            child: OnsetScrollbar(
               child: ListView.builder(
                 reverse: true,
                 primary: false,

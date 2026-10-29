@@ -99,14 +99,14 @@ class _Tip extends StatelessWidget {
                 border: Border.fromBorderSide(
                   BorderSide(
                     color: OnboardingColors.ringNumber,
-                    width: FrostyTokens.hairlineWidth,
+                    width: OnsetTokens.hairlineWidth,
                   ),
                 ),
               ),
               alignment: Alignment.center,
               child: Text(
                 '$number',
-                style: FrostyType.tabular(
+                style: OnsetType.tabular(
                   const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,

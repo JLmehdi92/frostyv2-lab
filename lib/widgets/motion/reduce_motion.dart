@@ -8,7 +8,7 @@ import 'package:onset/widgets/motion/motion.dart';
 /// features, so both are read.
 ///
 /// Under reduce motion every animation of the redesign becomes a short
-/// cross-fade ([FrostyMotion.reducedFade]): no travel, no overshoot, no
+/// cross-fade ([OnsetMotion.reducedFade]): no travel, no overshoot, no
 /// stagger, no looping shimmer or ping, and no launch intro.
 bool reduceMotionOf(BuildContext context) {
   if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) return true;
@@ -18,4 +18,4 @@ bool reduceMotionOf(BuildContext context) {
 
 /// [normal], or the short cross-fade when the viewer reduces motion.
 Duration motionDuration(BuildContext context, Duration normal) =>
-    reduceMotionOf(context) ? FrostyMotion.reducedFade : normal;
+    reduceMotionOf(context) ? OnsetMotion.reducedFade : normal;

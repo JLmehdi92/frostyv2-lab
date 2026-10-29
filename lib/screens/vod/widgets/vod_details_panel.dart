@@ -110,7 +110,7 @@ class _ChannelCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: colors.hairline,
-          width: FrostyTokens.hairlineWidth,
+          width: OnsetTokens.hairlineWidth,
         ),
       ),
       child: Row(
@@ -123,7 +123,7 @@ class _ChannelCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontFamily: FrostyTokens.bodyFamily,
+                fontFamily: OnsetTokens.bodyFamily,
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
                 color: colors.text,
@@ -140,7 +140,7 @@ class _ChannelCard extends StatelessWidget {
                 shape: StadiumBorder(
                   side: BorderSide(
                     color: colors.pillBorder,
-                    width: FrostyTokens.hairlineWidth,
+                    width: OnsetTokens.hairlineWidth,
                   ),
                 ),
                 clipBehavior: Clip.antiAlias,
@@ -161,7 +161,7 @@ class _ChannelCard extends StatelessWidget {
                         Text(
                           'Open channel',
                           style: TextStyle(
-                            fontFamily: FrostyTokens.bodyFamily,
+                            fontFamily: OnsetTokens.bodyFamily,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: colors.text,
@@ -299,7 +299,7 @@ class _Legend extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = TextStyle(
-      fontFamily: FrostyTokens.bodyFamily,
+      fontFamily: OnsetTokens.bodyFamily,
       fontSize: 12,
       height: 1.3,
       color: colors.tertiary,

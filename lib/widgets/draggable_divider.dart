@@ -204,10 +204,8 @@ class _DraggableDividerState extends State<DraggableDivider> {
                   decoration: BoxDecoration(
                     // Le systeme est plat : la poignee se detache par sa
                     // couleur d'accent, pas par une ombre portee.
-                    color: context.frostyColors.live,
-                    borderRadius: BorderRadius.circular(
-                      FrostyTokens.radiusCard,
-                    ),
+                    color: context.onsetColors.live,
+                    borderRadius: BorderRadius.circular(OnsetTokens.radiusCard),
                   ),
                   child: Center(
                     child: Container(

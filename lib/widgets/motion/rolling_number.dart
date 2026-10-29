@@ -39,7 +39,7 @@ class _RollingNumberState extends State<RollingNumber>
   );
   late final _roll = CurvedAnimation(
     parent: _controller,
-    curve: FrostyMotion.standard,
+    curve: OnsetMotion.standard,
   );
 
   String _from = '';
@@ -68,7 +68,7 @@ class _RollingNumberState extends State<RollingNumber>
 
   @override
   Widget build(BuildContext context) {
-    final style = FrostyType.tabular(
+    final style = OnsetType.tabular(
       DefaultTextStyle.of(context).style.merge(widget.style),
     );
 

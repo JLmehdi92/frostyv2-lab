@@ -2,8 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/widgets.dart';
 import 'package:onset/cache_manager.dart';
 
-/// A wrapper around [CachedNetworkImage] that adds custom defaults for Frosty.
-class FrostyCachedNetworkImage extends StatelessWidget {
+/// A wrapper around [CachedNetworkImage] that adds custom defaults for ONSET.
+class OnsetCachedNetworkImage extends StatelessWidget {
   final String imageUrl;
   final String? cacheKey;
   final double? width;
@@ -28,7 +28,7 @@ class FrostyCachedNetworkImage extends StatelessWidget {
   /// What a screen reader says for the image; it stays silent when null.
   final String? semanticLabel;
 
-  const FrostyCachedNetworkImage({
+  const OnsetCachedNetworkImage({
     super.key,
     required this.imageUrl,
     this.cacheKey,

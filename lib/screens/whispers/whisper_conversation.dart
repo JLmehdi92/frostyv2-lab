@@ -174,7 +174,7 @@ class _WhisperConversationState extends State<WhisperConversation> {
                     style: const TextStyle(
                       fontSize: 12.5,
                       height: 1.4,
-                      color: FrostyTokens.danger,
+                      color: OnsetTokens.danger,
                     ),
                   ),
                 ),
@@ -245,7 +245,7 @@ class _PageHeader extends StatelessWidget {
         border: Border(
           bottom: BorderSide(
             color: colors.hairline,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
       ),
@@ -332,7 +332,7 @@ class _PaneHeader extends StatelessWidget {
         border: Border(
           bottom: BorderSide(
             color: colors.hairline,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
       ),
@@ -529,7 +529,7 @@ class _BubbleState extends State<_Bubble> with SingleTickerProviderStateMixin {
         duration: const Duration(milliseconds: 280),
       )..forward();
       _entrance = entrance;
-      _curve = CurvedAnimation(parent: entrance, curve: FrostyMotion.standard);
+      _curve = CurvedAnimation(parent: entrance, curve: OnsetMotion.standard);
     }
   }
 
@@ -586,7 +586,7 @@ class _BubbleState extends State<_Bubble> with SingleTickerProviderStateMixin {
                 ),
                 Text(
                   whisperTime(widget.whisper.sentAt),
-                  style: FrostyType.tabular(
+                  style: OnsetType.tabular(
                     TextStyle(
                       fontSize: 11,
                       color: mine ? colors.mineTime : colors.theirTime,
@@ -632,7 +632,7 @@ class _Composer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     final row = Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       spacing: 8,
@@ -647,7 +647,7 @@ class _Composer extends StatelessWidget {
               borderRadius: BorderRadius.circular(22),
               border: Border.all(
                 color: colors.fieldRing,
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               ),
             ),
             child: TextField(
@@ -702,7 +702,7 @@ class _Composer extends StatelessWidget {
         border: Border(
           top: BorderSide(
             color: colors.hairline,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
       ),
@@ -737,7 +737,7 @@ class _SendButton extends StatelessWidget {
       enabled: ready && !sending,
       child: AnimatedContainer(
         duration: motionDuration(context, const Duration(milliseconds: 200)),
-        curve: FrostyMotion.standard,
+        curve: OnsetMotion.standard,
         width: 44,
         height: 44,
         decoration: BoxDecoration(color: fill, shape: BoxShape.circle),

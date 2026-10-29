@@ -239,7 +239,7 @@ class HighlightPager extends StatelessWidget {
                 semanticsLabel: 'Highlight ${index + 1} of $count',
                 style: SheetText.tabular(
                   TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
                     color: colors.body,
@@ -295,7 +295,7 @@ class _HighlightNewPillState extends State<HighlightNewPill>
   // Built once, disposed with the pill: not a new listener per build.
   late final _curved = CurvedAnimation(
     parent: _pop,
-    curve: FrostyMotion.standard,
+    curve: OnsetMotion.standard,
   );
 
   @override
@@ -349,7 +349,7 @@ class _HighlightNewPillState extends State<HighlightNewPill>
                 Text(
                   label,
                   style: TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: onAccent,

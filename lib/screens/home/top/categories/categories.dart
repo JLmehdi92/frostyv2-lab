@@ -12,8 +12,8 @@ import 'package:onset/screens/home/top/categories/category_streams.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/alert_message.dart';
-import 'package:onset/widgets/frosty_scrollbar.dart';
 import 'package:onset/widgets/motion/staggered_entrance.dart';
+import 'package:onset/widgets/onset_scrollbar.dart';
 import 'package:onset/widgets/state_views.dart';
 
 /// Browse's top categories as a grid of box arts (boards Parcourir and
@@ -102,8 +102,8 @@ class _CategoriesState extends State<Categories>
       return EdgeInsets.only(left: 28 + padding.left, right: 20);
     }
     final gutter = context.isLargeScreen
-        ? FrostySpacing.gutterTablet
-        : FrostySpacing.gutterPhone;
+        ? OnsetSpacing.gutterTablet
+        : OnsetSpacing.gutterPhone;
     return EdgeInsets.only(
       left: gutter + padding.left,
       right: gutter + padding.right,
@@ -203,7 +203,7 @@ class _CategoriesState extends State<Categories>
               // A page that failed is not asked for again by itself (it
               // would be, at every rebuild): "Try again" or a refresh does.
               final pagingFailed = error != null && _store.hasMore;
-              return FrostyScrollbar(
+              return OnsetScrollbar(
                 controller: widget.scrollController,
                 padding: EdgeInsets.only(
                   top: padding.top,

@@ -110,7 +110,7 @@ void main() {
     when(() => auth.user).thenReturn(user);
     when(() => auth.isLoggedIn).thenReturn(false);
     when(() => user.blockedUsers).thenReturn(ObservableList());
-    final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       MultiProvider(
         providers: [

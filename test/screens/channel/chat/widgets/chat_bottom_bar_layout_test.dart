@@ -61,7 +61,7 @@ void main() {
     tester.view.physicalSize = screen;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    const themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    const themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     Widget bar = ChatBottomBar(chatStore: chat, onAddChat: () {});
     if (header) bar = ChatMoreInHeader(child: bar);
     if (width != null) bar = SizedBox(width: width, child: bar);

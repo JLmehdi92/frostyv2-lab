@@ -8,8 +8,8 @@ import 'package:onset/screens/vod/vod_screen.dart';
 import 'package:onset/screens/vod/widgets/vod_card.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/profile_picture.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
 
@@ -103,7 +103,7 @@ class _ResumeThumbnail extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             if (url != null && url.isNotEmpty)
-              FrostyCachedNetworkImage(
+              OnsetCachedNetworkImage(
                 imageUrl: url,
                 fit: BoxFit.cover,
                 placeholder: (context, url) =>
@@ -136,7 +136,7 @@ class _ResumeThumbnail extends StatelessWidget {
                       ),
                       Text(
                         'Resume at ${formatResumeTime(item.positionSec)}',
-                        style: FrostyType.tabular(
+                        style: OnsetType.tabular(
                           const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -161,7 +161,7 @@ class _ResumeThumbnail extends StatelessWidget {
                 child: FractionallySizedBox(
                   alignment: AlignmentDirectional.centerStart,
                   widthFactor: item.progress,
-                  child: ColoredBox(color: context.frostyColors.live),
+                  child: ColoredBox(color: context.onsetColors.live),
                 ),
               ),
             ),
@@ -201,7 +201,7 @@ class ContinueWatchingShelf extends StatelessWidget {
             children: [
               Padding(
                 padding: EdgeInsets.only(
-                  left: FrostySpacing.gutterPhone + padding.left,
+                  left: OnsetSpacing.gutterPhone + padding.left,
                   right: 8 + padding.right,
                 ),
                 child: _ShelfHeader(store: store),
@@ -211,8 +211,8 @@ class ContinueWatchingShelf extends StatelessWidget {
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   padding: EdgeInsets.only(
-                    left: FrostySpacing.gutterPhone + padding.left,
-                    right: FrostySpacing.gutterPhone + padding.right,
+                    left: OnsetSpacing.gutterPhone + padding.left,
+                    right: OnsetSpacing.gutterPhone + padding.right,
                   ),
                   itemCount: items.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 12),
@@ -346,7 +346,7 @@ class ContinueWatchingColumn extends StatelessWidget {
                               ' · ${_subtitle(item)}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: FrostyType.tabular(
+                              style: OnsetType.tabular(
                                 TextStyle(
                                   fontSize: 13,
                                   color: colors.secondary,
@@ -441,7 +441,7 @@ class ContinueWatchingSkeleton extends StatelessWidget {
     final padding = MediaQuery.paddingOf(context);
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        FrostySpacing.gutterPhone + padding.left,
+        OnsetSpacing.gutterPhone + padding.left,
         6,
         0,
         20,

@@ -109,7 +109,7 @@ Future<void> pumpSettings(
   List<NavigatorObserver> observers = const [],
 }) async {
   useWindow(tester, size);
-  final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+  final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
   await tester.pumpWidget(
     MultiProvider(
       providers: [

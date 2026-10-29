@@ -289,7 +289,7 @@ class OnsetPanelSurface extends StatelessWidget {
           borderRadius: BorderRadius.circular(kPanelRadius),
           side: BorderSide(
             color: colors.ring,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
         clipBehavior: Clip.antiAlias,
@@ -501,8 +501,8 @@ class _PanelRoute<T> extends PopupRoute<T> {
     // in), not a new listener on the route animation per rebuild.
     final fade = _fade ??= CurvedAnimation(
       parent: animation,
-      curve: FrostyMotion.standard,
-      reverseCurve: FrostyMotion.emphasizedAccelerate,
+      curve: OnsetMotion.standard,
+      reverseCurve: OnsetMotion.emphasizedAccelerate,
     );
     if (reduceMotionOf(context)) {
       return FadeTransition(opacity: fade, child: child);

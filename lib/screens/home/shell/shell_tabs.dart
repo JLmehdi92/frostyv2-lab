@@ -46,7 +46,7 @@ class ShellTabs extends StatelessWidget {
   static const _badgeGap = 7.0;
   static const _badgeHeight = 18.0;
   static const _badgeStyle = TextStyle(
-    fontFamily: FrostyTokens.bodyFamily,
+    fontFamily: OnsetTokens.bodyFamily,
     fontSize: 11,
     height: 1,
     fontWeight: FontWeight.w800,
@@ -59,7 +59,7 @@ class ShellTabs extends StatelessWidget {
   }
 
   TextStyle _style(bool active) => TextStyle(
-    fontFamily: FrostyTokens.bodyFamily,
+    fontFamily: OnsetTokens.bodyFamily,
     fontSize: fontSize,
     height: 1.2,
     fontWeight: active ? FontWeight.w700 : FontWeight.w600,
@@ -120,7 +120,7 @@ class ShellTabs extends StatelessWidget {
 
     Widget label(int i) => AnimatedDefaultTextStyle(
       duration: duration200,
-      curve: FrostyMotion.standard,
+      curve: OnsetMotion.standard,
       style: _style(i == index),
       maxLines: 1,
       softWrap: false,
@@ -195,7 +195,7 @@ class ShellTabs extends StatelessWidget {
             AnimatedPositioned(
               key: const ValueKey('tab-indicator'),
               duration: duration,
-              curve: FrostyMotion.standard,
+              curve: OnsetMotion.standard,
               left: left,
               width: width,
               bottom: 0,

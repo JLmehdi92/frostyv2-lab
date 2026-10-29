@@ -112,7 +112,7 @@ abstract final class ShellMetrics {
   // Tablet.
   static const topBar = 72.0;
   static const tabletTabsRow = 46.0;
-  static const tabletGutter = FrostySpacing.gutterTablet;
+  static const tabletGutter = OnsetSpacing.gutterTablet;
 
   /// How far above the screen's bottom the floating nav sits.
   static double navBottom(EdgeInsets padding) =>
@@ -217,7 +217,7 @@ class _ShellPalette {
 
   /// Over a video: light glyphs, the dot's ring on the dark ground.
   _ShellPalette overVideo() => _ShellPalette(
-    ground: FrostyTokens.backgroundDark,
+    ground: OnsetTokens.backgroundDark,
     headerFill: headerFill,
     navFill: navFill,
     pillFill: pillFill,
@@ -239,7 +239,7 @@ class _ShellPalette {
   factory _ShellPalette.of(BuildContext context) {
     final theme = Theme.of(context);
     final ground = theme.scaffoldBackgroundColor;
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     if (theme.brightness == Brightness.dark) {
       return _ShellPalette(
         ground: ground,
@@ -248,17 +248,17 @@ class _ShellPalette {
         pillFill: const Color(0xD91C1C1C),
         hairline: const Color(0x12FFFFFF),
         highlight: const Color(0x24FFFFFF),
-        text: FrostyTokens.textPrimaryDark,
-        idle: FrostyTokens.textSecondaryDark,
-        tabIdle: FrostyTokens.textTertiaryDark,
-        pillIdle: FrostyTokens.textBodyDark,
-        pillActive: FrostyTokens.textPrimaryDark,
-        pillActiveText: FrostyTokens.backgroundDark,
-        field: FrostyTokens.surfaceDark,
-        fieldText: FrostyTokens.textTertiaryDark,
+        text: OnsetTokens.textPrimaryDark,
+        idle: OnsetTokens.textSecondaryDark,
+        tabIdle: OnsetTokens.textTertiaryDark,
+        pillIdle: OnsetTokens.textBodyDark,
+        pillActive: OnsetTokens.textPrimaryDark,
+        pillActiveText: OnsetTokens.backgroundDark,
+        field: OnsetTokens.surfaceDark,
+        fieldText: OnsetTokens.textTertiaryDark,
         avatarFill: const Color(0xFF2A2A2A),
         accent: accent,
-        onAccent: FrostyTokens.backgroundDark,
+        onAccent: OnsetTokens.backgroundDark,
       );
     }
     final scheme = theme.colorScheme;
@@ -267,15 +267,15 @@ class _ShellPalette {
       headerFill: ground.withValues(alpha: 0.78),
       navFill: const Color(0xDBFFFFFF),
       pillFill: const Color(0xE6FFFFFF),
-      hairline: FrostyTokens.hairlineLight,
+      hairline: OnsetTokens.hairlineLight,
       highlight: const Color(0x14000000),
       text: scheme.onSurface,
       idle: const Color(0xFF6B6B6B),
       tabIdle: const Color(0xFF6B6B6B),
       pillIdle: const Color(0xFF4A4A4A),
-      pillActive: FrostyTokens.backgroundDark,
-      pillActiveText: FrostyTokens.textPrimaryDark,
-      field: FrostyTokens.surfaceLight,
+      pillActive: OnsetTokens.backgroundDark,
+      pillActiveText: OnsetTokens.textPrimaryDark,
+      field: OnsetTokens.surfaceLight,
       fieldText: const Color(0xFF6B6B6B),
       avatarFill: const Color(0xFFE6E6E6),
       accent: accent,
@@ -381,9 +381,7 @@ class OnsetShell extends StatelessWidget {
     final navBottom = ShellMetrics.navBottom(padding);
     // Over the clips, the fade is always the dark ground: a pale band would
     // wash out the clip and its white captions in the light theme.
-    final fade = header.overVideo
-        ? FrostyTokens.backgroundDark
-        : palette.ground;
+    final fade = header.overVideo ? OnsetTokens.backgroundDark : palette.ground;
     return [
       Positioned(
         left: 0,
@@ -468,14 +466,14 @@ class OnsetShell extends StatelessWidget {
                       child: _Brand(palette: palette, tablet: true),
                     ),
                   ),
-                  const SizedBox(width: FrostySpacing.lg),
+                  const SizedBox(width: OnsetSpacing.lg),
                   _PillNav(
                     section: section,
                     onSelect: _select,
                     palette: palette,
                     activityBadge: activityBadge,
                   ),
-                  const SizedBox(width: FrostySpacing.lg),
+                  const SizedBox(width: OnsetSpacing.lg),
                   Expanded(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -535,7 +533,7 @@ class OnsetShell extends StatelessWidget {
                 border: Border(
                   bottom: BorderSide(
                     color: palette.hairline,
-                    width: FrostyTokens.hairlineWidth,
+                    width: OnsetTokens.hairlineWidth,
                   ),
                 ),
               ),
@@ -653,12 +651,12 @@ class _Brand extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = large
-        ? FrostyType.screenTitle.copyWith(
+        ? OnsetType.screenTitle.copyWith(
             fontWeight: FontWeight.w800,
             letterSpacing: -0.03 * 24,
             color: palette.text,
           )
-        : FrostyType.wordmark.copyWith(
+        : OnsetType.wordmark.copyWith(
             fontSize: tablet ? 21 : 20,
             letterSpacing: -0.035 * (tablet ? 21 : 20),
             color: palette.text,
@@ -857,7 +855,7 @@ class _PhoneHeader extends StatelessWidget {
             border: Border(
               bottom: BorderSide(
                 color: palette.hairline,
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               ),
             ),
           ),
@@ -930,7 +928,7 @@ class _WhispersButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dotColor = whispers.refused ? FrostyTokens.danger : palette.accent;
+    final dotColor = whispers.refused ? OnsetTokens.danger : palette.accent;
     final showDot = whispers.refused || whispers.unread > 0;
     final glyph = Stack(
       clipBehavior: Clip.none,
@@ -984,7 +982,7 @@ class _WhispersButton extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: palette.highlight,
-                  width: FrostyTokens.hairlineWidth,
+                  width: OnsetTokens.hairlineWidth,
                 ),
               ),
               child: glyph,
@@ -1035,10 +1033,10 @@ class _SearchField extends StatelessWidget {
             alignment: compact ? Alignment.center : null,
             decoration: BoxDecoration(
               color: palette.field,
-              borderRadius: BorderRadius.circular(FrostyTokens.radiusPill),
+              borderRadius: BorderRadius.circular(OnsetTokens.radiusPill),
               border: Border.all(
                 color: palette.highlight,
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               ),
             ),
             child: compact
@@ -1062,7 +1060,7 @@ class _SearchField extends StatelessWidget {
                           label,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: FrostyType.body.copyWith(
+                          style: OnsetType.body.copyWith(
                             fontSize: height > 40 ? 15 : 14,
                             height: 1.2,
                             color: palette.fieldText,
@@ -1100,7 +1098,7 @@ class _PhoneNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const radius = BorderRadius.all(Radius.circular(FrostyTokens.radiusLarge));
+    const radius = BorderRadius.all(Radius.circular(OnsetTokens.radiusLarge));
     final items = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 6),
       child: Row(
@@ -1126,7 +1124,7 @@ class _PhoneNav extends StatelessWidget {
       child: CustomPaint(
         foregroundPainter: _TopHighlight(
           color: palette.highlight,
-          radius: FrostyTokens.radiusLarge,
+          radius: OnsetTokens.radiusLarge,
         ),
         child: items,
       ),
@@ -1168,7 +1166,7 @@ class _TopHighlight extends CustomPainter {
     final rect = Offset.zero & size;
     final paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = FrostyTokens.hairlineWidth
+      ..strokeWidth = OnsetTokens.hairlineWidth
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
@@ -1259,7 +1257,7 @@ class _NavItem extends StatelessWidget {
               child: AnimatedContainer(
                 key: ValueKey('nav-${section.name}'),
                 duration: duration,
-                curve: FrostyMotion.standard,
+                curve: OnsetMotion.standard,
                 width: 72,
                 height: 50,
                 decoration: BoxDecoration(
@@ -1282,7 +1280,7 @@ class _NavItem extends StatelessWidget {
                           maxLines: 1,
                           textScaler: TextScaler.noScaling,
                           style: TextStyle(
-                            fontFamily: FrostyTokens.bodyFamily,
+                            fontFamily: OnsetTokens.bodyFamily,
                             fontSize: 10,
                             height: 1.2,
                             fontWeight: active
@@ -1341,9 +1339,9 @@ class _CountBadge extends StatelessWidget {
       child: Text(
         _badgeText(count),
         textScaler: TextScaler.noScaling,
-        style: FrostyType.tabular(
+        style: OnsetType.tabular(
           TextStyle(
-            fontFamily: FrostyTokens.bodyFamily,
+            fontFamily: OnsetTokens.bodyFamily,
             fontSize: size > 16 ? 11 : 10,
             height: 1,
             fontWeight: FontWeight.w800,
@@ -1461,7 +1459,7 @@ class _PillNav extends StatelessWidget {
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
           color: palette.pillFill,
-          borderRadius: BorderRadius.circular(FrostyTokens.radiusPill),
+          borderRadius: BorderRadius.circular(OnsetTokens.radiusPill),
         ),
         foregroundDecoration: _PillHighlight(palette.highlight),
         child: Row(
@@ -1502,14 +1500,14 @@ class _PillNav extends StatelessWidget {
           child: AnimatedContainer(
             key: ValueKey('nav-${target.name}'),
             duration: duration,
-            curve: FrostyMotion.standard,
+            curve: OnsetMotion.standard,
             height: 38,
             padding: const EdgeInsets.symmetric(horizontal: 18),
             decoration: BoxDecoration(
               color: active
                   ? palette.pillActive
                   : palette.pillActive.withValues(alpha: 0),
-              borderRadius: BorderRadius.circular(FrostyTokens.radiusPill),
+              borderRadius: BorderRadius.circular(OnsetTokens.radiusPill),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -1527,7 +1525,7 @@ class _PillNav extends StatelessWidget {
                   maxLines: 1,
                   textScaler: TextScaler.noScaling,
                   style: TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 14,
                     fontWeight: active ? FontWeight.w700 : FontWeight.w600,
                     color: color,

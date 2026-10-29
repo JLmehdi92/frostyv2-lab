@@ -5,8 +5,8 @@ import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/home/top/categories/category_streams.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
 
 /// Opens the live streams of [category].
@@ -33,9 +33,7 @@ class FollowedCategoriesSection extends StatelessWidget {
     if (categories.isEmpty) return const SizedBox.shrink();
     final padding = MediaQuery.paddingOf(context);
     final large = context.isLargeScreen;
-    final gutter = large
-        ? FrostySpacing.gutterTablet
-        : FrostySpacing.gutterPhone;
+    final gutter = large ? OnsetSpacing.gutterTablet : OnsetSpacing.gutterPhone;
     final artWidth = large ? 132.0 : 104.0;
 
     return Padding(
@@ -105,7 +103,7 @@ class _FollowedCategoryTile extends StatelessWidget {
                   aspectRatio: 3 / 4,
                   child: category.boxArtUrl.isEmpty
                       ? ColoredBox(color: colors.raised)
-                      : FrostyCachedNetworkImage(
+                      : OnsetCachedNetworkImage(
                           imageUrl: category.boxArtUrl,
                           fit: BoxFit.cover,
                           memCacheWidth:
@@ -131,7 +129,7 @@ class _FollowedCategoryTile extends StatelessWidget {
                 '${viewers == 1 ? 'viewer' : 'viewers'}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: FrostyType.tabular(
+                style: OnsetType.tabular(
                   TextStyle(fontSize: 12, color: colors.secondary),
                 ),
               ),
@@ -171,7 +169,7 @@ class FollowedCategoryChips extends StatelessWidget {
                 shape: StadiumBorder(
                   side: BorderSide(
                     color: colors.pillBorder,
-                    width: FrostyTokens.hairlineWidth,
+                    width: OnsetTokens.hairlineWidth,
                   ),
                 ),
                 child: InkWell(
@@ -192,7 +190,7 @@ class FollowedCategoryChips extends StatelessWidget {
                             height: 24,
                             child: category.boxArtUrl.isEmpty
                                 ? ColoredBox(color: colors.raised)
-                                : FrostyCachedNetworkImage(
+                                : OnsetCachedNetworkImage(
                                     imageUrl: category.boxArtUrl,
                                     fit: BoxFit.cover,
                                     memCacheWidth:

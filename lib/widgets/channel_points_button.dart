@@ -34,7 +34,7 @@ class _PointsIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = context.frostyColors.live;
+    final color = context.onsetColors.live;
     // The boards' generic mark: a ring in the signal colour.
     final fallback = Container(
       key: ChannelPointsButton.genericIconKey,
@@ -122,7 +122,7 @@ class ChannelPointsButton extends StatelessWidget {
         final points = store.points;
         if (!points.hasAnything) return const SizedBox.shrink();
 
-        final colors = context.frostyColors;
+        final colors = context.onsetColors;
         final prediction = points.activePrediction;
 
         final balance = points.balance == null
@@ -132,7 +132,7 @@ class ChannelPointsButton extends StatelessWidget {
         final shape = StadiumBorder(
           side: BorderSide(
             color: colors.hairline,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         );
 
@@ -198,9 +198,9 @@ class ChannelPointsButton extends StatelessWidget {
                       Text(
                         balance,
                         maxLines: 1,
-                        style: FrostyType.tabular(
+                        style: OnsetType.tabular(
                           TextStyle(
-                            fontFamily: FrostyTokens.bodyFamily,
+                            fontFamily: OnsetTokens.bodyFamily,
                             fontSize: large ? 14 : 13,
                             fontWeight: FontWeight.w600,
                             height: 1,

@@ -13,8 +13,8 @@ import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/twitch_links.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
 
@@ -42,7 +42,7 @@ class ProfileBanner extends StatelessWidget {
         // Decoded wide enough to cover the box (a banner is 2.5:1), never
         // larger: the box keeps its size while the header folds.
         child: LayoutBuilder(
-          builder: (context, box) => FrostyCachedNetworkImage(
+          builder: (context, box) => OnsetCachedNetworkImage(
             imageUrl: url,
             fit: BoxFit.cover,
             width: double.infinity,
@@ -154,7 +154,7 @@ class ProfileIdentity extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontFamily: FrostyTokens.displayFamily,
+              fontFamily: OnsetTokens.displayFamily,
               fontSize: size,
               fontWeight: FontWeight.w800,
               letterSpacing: (large ? -0.03 : -0.025) * size,
@@ -168,7 +168,7 @@ class ProfileIdentity extends StatelessWidget {
             meta,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: FrostyType.tabular(
+            style: OnsetType.tabular(
               TextStyle(
                 fontSize: large ? 14 : 13,
                 height: 1.3,
@@ -290,9 +290,9 @@ class _WatchButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final signal = context.frostyColors.live;
+    final signal = context.onsetColors.live;
     final style = TextStyle(
-      fontFamily: FrostyTokens.bodyFamily,
+      fontFamily: OnsetTokens.bodyFamily,
       fontSize: fontSize,
       fontWeight: FontWeight.w700,
     );
@@ -302,7 +302,7 @@ class _WatchButton extends StatelessWidget {
         ? FilledButton(
             onPressed: onPressed,
             style: FilledButton.styleFrom(
-              foregroundColor: FrostyTokens.backgroundDark,
+              foregroundColor: OnsetTokens.backgroundDark,
               backgroundColor: signal,
               minimumSize: Size(0, height),
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -316,7 +316,7 @@ class _WatchButton extends StatelessWidget {
                 if (height > 44)
                   const PlayerGlyph(
                     PlayerGlyphKind.play,
-                    color: FrostyTokens.backgroundDark,
+                    color: OnsetTokens.backgroundDark,
                     size: 16,
                   ),
                 Flexible(child: OneLineLabel(label)),
@@ -332,7 +332,7 @@ class _WatchButton extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               side: BorderSide(
                 color: colors.pillBorder,
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               ),
               shape: const StadiumBorder(),
               textStyle: style.copyWith(fontWeight: FontWeight.w600),
@@ -740,7 +740,7 @@ class ProfileSocialPill extends StatelessWidget {
                   shape: StadiumBorder(
                     side: BorderSide(
                       color: colors.pillBorder,
-                      width: FrostyTokens.hairlineWidth,
+                      width: OnsetTokens.hairlineWidth,
                     ),
                   ),
                 ),

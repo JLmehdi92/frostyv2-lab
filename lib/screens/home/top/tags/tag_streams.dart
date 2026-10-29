@@ -22,7 +22,7 @@ class TagStreams extends StatefulWidget {
   final String tag;
 
   /// The header's title row and order row (board: 56 + 48, a hairline).
-  static const headerHeight = 56.0 + 48.0 + FrostyTokens.hairlineWidth;
+  static const headerHeight = 56.0 + 48.0 + OnsetTokens.hairlineWidth;
 
   /// Opens the page of [tag], when it is a Twitch tag.
   static void open(BuildContext context, String tag) {
@@ -49,8 +49,8 @@ class _TagStreamsState extends State<TagStreams> {
     final colors = FeedColors.of(context);
     final padding = MediaQuery.paddingOf(context);
     final gutter = context.isLargeScreen
-        ? FrostySpacing.gutterTablet
-        : FrostySpacing.gutterPhone;
+        ? OnsetSpacing.gutterTablet
+        : OnsetSpacing.gutterPhone;
     final ground = theme.scaffoldBackgroundColor;
 
     // No app bar to set the system bars: the theme's, as on every page.
@@ -88,7 +88,7 @@ class _TagStreamsState extends State<TagStreams> {
                       border: Border(
                         bottom: BorderSide(
                           color: colors.hairline,
-                          width: FrostyTokens.hairlineWidth,
+                          width: OnsetTokens.hairlineWidth,
                         ),
                       ),
                     ),
@@ -141,8 +141,7 @@ class _TagStreamsState extends State<TagStreams> {
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
-                                          fontFamily:
-                                              FrostyTokens.displayFamily,
+                                          fontFamily: OnsetTokens.displayFamily,
                                           fontSize: 20,
                                           fontWeight: FontWeight.w800,
                                           letterSpacing: -0.03 * 20,

@@ -12,8 +12,8 @@ void main() {
       expect(script, contains('content-classification-gate'));
       expect(script, contains('ContentGate.postMessage'));
       // Installed once per page, and silent while nothing changes.
-      expect(script, contains('window._frostyGatePoll'));
-      expect(script, contains('!== window._frostyGateShown'));
+      expect(script, contains('window._onsetGatePoll'));
+      expect(script, contains('!== window._onsetGateShown'));
       // It only looks: clicking stays with the existing accept step.
       expect(script, isNot(contains('.click()')));
     });
@@ -39,7 +39,7 @@ void main() {
   group('our warning over the web player', () {
     test('holds the video paused, now and whenever it starts', () {
       const script = VideoStoreBase.holdScript;
-      expect(script, contains('window._frostyHold = true'));
+      expect(script, contains('window._onsetHold = true'));
       expect(script, contains('v.pause()'));
       expect(script, contains("addEventListener('play'"));
       // Every video of the page, including one that appears or replaces
@@ -50,7 +50,7 @@ void main() {
       expect(script, isNot(contains('setTimeout')));
       expect(script, isNot(contains('setInterval')));
       // Installed once per page.
-      expect(script, contains('if (!window._frostyHoldObserver)'));
+      expect(script, contains('if (!window._onsetHoldObserver)'));
       // Only the video: Twitch's own warning is the viewer's to accept.
       expect(script, isNot(contains('.click()')));
       expect(script, isNot(contains('.play()')));
@@ -58,11 +58,11 @@ void main() {
 
     test('lets it play again only if the hold stopped it', () {
       const script = VideoStoreBase.releaseScript;
-      expect(script, contains('window._frostyHold = false'));
+      expect(script, contains('window._onsetHold = false'));
       // Stops watching the page.
-      expect(script, contains('window._frostyHoldObserver.disconnect()'));
-      expect(script, contains('window._frostyHoldObserver = null'));
-      expect(script, contains('if (window._frostyHeld)'));
+      expect(script, contains('window._onsetHoldObserver.disconnect()'));
+      expect(script, contains('window._onsetHoldObserver = null'));
+      expect(script, contains('if (window._onsetHeld)'));
       expect(script, contains('.play()'));
       expect(script, isNot(contains('.click()')));
     });

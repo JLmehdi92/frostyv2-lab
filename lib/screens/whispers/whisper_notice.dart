@@ -24,9 +24,9 @@ SnackBar whisperNotice(
   final me = store.me;
   final colors = WhisperColors.of(context);
   final large = context.isLargeScreen;
-  final accent = context.frostyColors.live;
+  final accent = context.onsetColors.live;
   final dark = Theme.of(context).brightness == Brightness.dark;
-  final fill = dark ? colors.raised : FrostyTokens.surfaceLight;
+  final fill = dark ? colors.raised : OnsetTokens.surfaceLight;
   final avatar = large ? 38.0 : 34.0;
   final name = whisperPreview(whisper.fromName);
   final text = whisperPreview(whisper.whisper.text);
@@ -49,9 +49,9 @@ SnackBar whisperNotice(
       borderRadius: BorderRadius.circular(large ? 18 : 16),
       side: BorderSide(
         color: dark
-            ? FrostyTokens.hairlineStrongDark.withValues(alpha: 0.14)
-            : FrostyTokens.hairlineLight,
-        width: FrostyTokens.hairlineWidth,
+            ? OnsetTokens.hairlineStrongDark.withValues(alpha: 0.14)
+            : OnsetTokens.hairlineLight,
+        width: OnsetTokens.hairlineWidth,
       ),
     ),
     content: Row(
@@ -75,16 +75,16 @@ SnackBar whisperNotice(
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: dark
-                          ? FrostyTokens.textPrimaryDark
-                          : FrostyTokens.backgroundDark,
+                          ? OnsetTokens.textPrimaryDark
+                          : OnsetTokens.backgroundDark,
                       shape: BoxShape.circle,
                       border: Border.all(color: fill, width: 2),
                     ),
                     child: StateGlyph(
                       StateGlyphKind.whisper,
                       color: dark
-                          ? FrostyTokens.backgroundDark
-                          : FrostyTokens.textPrimaryDark,
+                          ? OnsetTokens.backgroundDark
+                          : OnsetTokens.textPrimaryDark,
                       size: 10,
                       strokeWidth: 2.6,
                     ),

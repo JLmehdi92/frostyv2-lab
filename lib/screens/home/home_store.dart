@@ -270,7 +270,7 @@ abstract class HomeStoreBase with Store {
     controller.animateTo(
       0,
       duration: const Duration(milliseconds: 300),
-      curve: FrostyMotion.standard,
+      curve: OnsetMotion.standard,
     );
   }
 

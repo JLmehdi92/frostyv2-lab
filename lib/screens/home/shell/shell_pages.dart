@@ -67,11 +67,11 @@ class _ShellPagesState<T extends Object> extends State<ShellPages<T>>
     _controller.value = 0;
     final TickerFuture run;
     if (reduceMotionOf(context)) {
-      run = _controller.animateTo(1, duration: FrostyMotion.reducedFade);
+      run = _controller.animateTo(1, duration: OnsetMotion.reducedFade);
     } else {
       run = _controller.animateWith(
         SpringSimulation(
-          FrostyMotion.springStandard,
+          OnsetMotion.springStandard,
           0,
           1,
           0,

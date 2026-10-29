@@ -59,7 +59,7 @@ class StreamTags extends StatelessWidget {
     final radius = BorderRadius.circular(height / 2);
     final lit =
         active != null && tag.toLowerCase() == active!.trim().toLowerCase();
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     final label = Container(
       height: height,
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -69,7 +69,7 @@ class StreamTags extends StatelessWidget {
               borderRadius: radius,
               border: Border.all(
                 color: accent,
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               ),
             )
           : null,

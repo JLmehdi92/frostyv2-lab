@@ -6,7 +6,7 @@ import 'package:onset/screens/channel/hype_train/widgets/hype_train_banner.dart'
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_copy.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_palette.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 
 /// The 20 s after a train, like Twitch's rewards and expired layouts: 74 dp
 /// in the train's style with a 3 dp bar draining along the bottom. A
@@ -70,7 +70,7 @@ class HypeTrainEndStrip extends StatelessWidget {
                     padding: const EdgeInsetsDirectional.only(
                       end: HtDims.margin,
                     ),
-                    child: FrostyCachedNetworkImage(
+                    child: OnsetCachedNetworkImage(
                       key: const ValueKey('ht-strip-golden'),
                       imageUrl: _goldenKappa.emoteUrl.toString(),
                       width: HtDims.iconLarge,
@@ -175,7 +175,7 @@ class _RewardsContent extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                             horizontal: HtDims.margin,
                           ),
-                          child: FrostyCachedNetworkImage(
+                          child: OnsetCachedNetworkImage(
                             imageUrl: emote.emoteUrl.toString(),
                             width: HtDims.icon,
                             height: HtDims.icon,

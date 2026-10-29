@@ -22,8 +22,8 @@ import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/image_size.dart';
 import 'package:onset/utils/twitch_links.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/onset_chip.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
@@ -267,7 +267,7 @@ class _CategoryViewState extends State<CategoryView> {
                   if (!large)
                     const SliverToBoxAdapter(child: SizedBox(height: 4)),
                 ],
-                gridGutter: widget.embedded ? 24 : FrostySpacing.gutterTablet,
+                gridGutter: widget.embedded ? 24 : OnsetSpacing.gutterTablet,
                 tileMinWidth: widget.embedded ? 200 : 240,
               ),
             ),
@@ -353,7 +353,7 @@ class _CategoryHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final padding = MediaQuery.paddingOf(context);
-    final side = embedded ? 24.0 : (large ? FrostySpacing.gutterTablet : 16.0);
+    final side = embedded ? 24.0 : (large ? OnsetSpacing.gutterTablet : 16.0);
     final live = section == CategorySection.live;
     final chips = Row(
       spacing: 8,
@@ -466,7 +466,7 @@ class _HeroWash extends StatelessWidget {
                   );
                   return Opacity(
                     opacity: embedded ? 0.18 : 0.24,
-                    child: FrostyCachedNetworkImage(
+                    child: OnsetCachedNetworkImage(
                       imageUrl: categoryArtUrl(category.boxArtUrl, width),
                       memCacheWidth: width,
                       fit: BoxFit.cover,
@@ -536,7 +536,7 @@ class _Title extends StatelessWidget {
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
       style: TextStyle(
-        fontFamily: FrostyTokens.displayFamily,
+        fontFamily: OnsetTokens.displayFamily,
         fontSize: large ? 30 : 26,
         height: 1.05,
         fontWeight: FontWeight.w800,
@@ -616,7 +616,7 @@ class _FollowButton extends StatelessWidget {
             shape: StadiumBorder(
               side: BorderSide(
                 color: colors.pillBorder,
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               ),
             ),
             clipBehavior: Clip.antiAlias,

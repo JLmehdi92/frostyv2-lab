@@ -190,9 +190,7 @@ class _FollowedVideosScreenState extends State<FollowedVideosScreen>
 
     final sections = groupFollowedVideos(videos, DateTime.now());
     final insets = MediaQuery.paddingOf(context);
-    final side = tablet
-        ? FrostySpacing.gutterTablet
-        : FrostySpacing.gutterPhone;
+    final side = tablet ? OnsetSpacing.gutterTablet : OnsetSpacing.gutterPhone;
     // Where each section's cards start in the one cascade of the page.
     final starts = <int>[];
     var count = 0;
@@ -281,7 +279,7 @@ class _Header extends StatelessWidget {
             side: tablet
                 ? BorderSide(
                     color: colors.pillBorder,
-                    width: FrostyTokens.hairlineWidth,
+                    width: OnsetTokens.hairlineWidth,
                   )
                 : BorderSide.none,
           ),
@@ -308,7 +306,7 @@ class _Header extends StatelessWidget {
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: TextStyle(
-        fontFamily: FrostyTokens.displayFamily,
+        fontFamily: OnsetTokens.displayFamily,
         fontSize: tablet ? 24 : 18,
         fontWeight: FontWeight.w700,
         letterSpacing: tablet ? -0.48 : -0.27,
@@ -321,7 +319,7 @@ class _Header extends StatelessWidget {
         border: Border(
           bottom: BorderSide(
             color: colors.hairline,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
       ),
@@ -352,7 +350,7 @@ class _Header extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontFamily: FrostyTokens.bodyFamily,
+                                fontFamily: OnsetTokens.bodyFamily,
                                 fontSize: 13,
                                 color: colors.secondary,
                               ),
@@ -389,11 +387,11 @@ class _RefreshPill extends StatelessWidget {
         shape: StadiumBorder(
           side: BorderSide(
             color: colors.pillBorder,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
         textStyle: const TextStyle(
-          fontFamily: FrostyTokens.bodyFamily,
+          fontFamily: OnsetTokens.bodyFamily,
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),

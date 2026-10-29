@@ -78,7 +78,7 @@ class SettingsListSelect extends StatelessWidget {
         shape: StadiumBorder(
           side: BorderSide(
             color: colors.trackRing,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
       ),
@@ -99,7 +99,7 @@ class SettingsListSelect extends StatelessWidget {
                           padding: const EdgeInsets.all(4),
                           child: AnimatedContainer(
                             duration: duration,
-                            curve: FrostyMotion.standard,
+                            curve: OnsetMotion.standard,
                             decoration: ShapeDecoration(
                               color: option == selectedOption
                                   ? accent.withValues(alpha: 0.14)
@@ -123,7 +123,7 @@ class SettingsListSelect extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontFamily: FrostyTokens.bodyFamily,
+                              fontFamily: OnsetTokens.bodyFamily,
                               fontSize: 12.5,
                               fontWeight: option == selectedOption
                                   ? FontWeight.w700
@@ -161,7 +161,7 @@ class SettingsListSelect extends StatelessWidget {
             onTap: () => _pick(option),
             child: AnimatedContainer(
               duration: duration,
-              curve: FrostyMotion.standard,
+              curve: OnsetMotion.standard,
               height: 44,
               padding: const EdgeInsets.only(left: 14, right: 12),
               decoration: BoxDecoration(
@@ -175,7 +175,7 @@ class SettingsListSelect extends StatelessWidget {
                       : colors.stackRing,
                   width: option == selectedOption
                       ? 1
-                      : FrostyTokens.hairlineWidth,
+                      : OnsetTokens.hairlineWidth,
                 ),
               ),
               child: Row(
@@ -186,7 +186,7 @@ class SettingsListSelect extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontFamily: FrostyTokens.bodyFamily,
+                        fontFamily: OnsetTokens.bodyFamily,
                         fontSize: 14,
                         fontWeight: option == selectedOption
                             ? FontWeight.w700

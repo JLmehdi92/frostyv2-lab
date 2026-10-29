@@ -18,11 +18,11 @@ import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
-import 'package:onset/widgets/frosty_scrollbar.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/motion/staggered_entrance.dart';
+import 'package:onset/widgets/onset_scrollbar.dart';
 import 'package:onset/widgets/settled_blur.dart';
 import 'package:provider/provider.dart';
 
@@ -269,7 +269,7 @@ class _SearchState extends State<Search> {
       controller.animateTo(
         0,
         duration: const Duration(milliseconds: 300),
-        curve: FrostyMotion.standard,
+        curve: OnsetMotion.standard,
       );
     } else {
       controller.jumpTo(0);
@@ -337,7 +337,7 @@ class _SearchState extends State<Search> {
     final colors = FeedColors.of(context);
     final padding = MediaQuery.paddingOf(context);
     final ground = Theme.of(context).scaffoldBackgroundColor;
-    final gutter = large ? FrostySpacing.gutterTablet : 16.0;
+    final gutter = large ? OnsetSpacing.gutterTablet : 16.0;
     final onBack = widget.onBack;
     final tabs = ShellTabs(
       labels: [for (final tab in _SearchTab.values) tab.label],
@@ -350,7 +350,7 @@ class _SearchState extends State<Search> {
       padding: EdgeInsets.symmetric(horizontal: gutter),
       activeColor: colors.text,
       idleColor: colors.tertiary,
-      indicatorColor: context.frostyColors.live,
+      indicatorColor: context.onsetColors.live,
     );
     return ClipRect(
       // The phone's glass, once the page is in place (search opens over
@@ -364,7 +364,7 @@ class _SearchState extends State<Search> {
             border: Border(
               bottom: BorderSide(
                 color: !large || hasQuery ? colors.hairline : ground,
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               ),
             ),
           ),
@@ -420,7 +420,7 @@ class _SearchState extends State<Search> {
                     context,
                     const Duration(milliseconds: 260),
                   ),
-                  curve: FrostyMotion.standard,
+                  curve: OnsetMotion.standard,
                   alignment: Alignment.topCenter,
                   child: hasQuery ? tabs : const SizedBox(width: 1),
                 ),
@@ -451,7 +451,7 @@ class _SearchState extends State<Search> {
       phase = 'results-${_searchStore.lastQuery}-${_tab.name}';
       slivers = large ? _tabletResults(context) : _phoneResults(context);
     }
-    return FrostyScrollbar(
+    return OnsetScrollbar(
       controller: widget.scrollController,
       padding: EdgeInsets.only(top: top, bottom: padding.bottom),
       child: StaggerScope(
@@ -499,9 +499,9 @@ class _SearchState extends State<Search> {
     return [
       SliverPadding(
         padding: EdgeInsets.fromLTRB(
-          FrostySpacing.gutterTablet + MediaQuery.paddingOf(context).left,
+          OnsetSpacing.gutterTablet + MediaQuery.paddingOf(context).left,
           28,
-          FrostySpacing.gutterTablet + MediaQuery.paddingOf(context).right,
+          OnsetSpacing.gutterTablet + MediaQuery.paddingOf(context).right,
           0,
         ),
         sliver: SliverToBoxAdapter(
@@ -514,7 +514,7 @@ class _SearchState extends State<Search> {
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: colors.hairline,
-                    width: FrostyTokens.hairlineWidth,
+                    width: OnsetTokens.hairlineWidth,
                   ),
                 ),
                 child: Padding(
@@ -573,7 +573,7 @@ class _SearchState extends State<Search> {
           child: _sectionTitle(
             'Channels',
             _SearchTab.channels,
-            gutter: FrostySpacing.gutterPhone,
+            gutter: OnsetSpacing.gutterPhone,
           ),
         ),
         SliverToBoxAdapter(child: channels(limit: 5)),
@@ -581,7 +581,7 @@ class _SearchState extends State<Search> {
           child: _sectionTitle(
             'Categories',
             _SearchTab.categories,
-            gutter: FrostySpacing.gutterPhone,
+            gutter: OnsetSpacing.gutterPhone,
             top: 20,
           ),
         ),
@@ -603,7 +603,7 @@ class _SearchState extends State<Search> {
   }
 
   List<Widget> _tabletResults(BuildContext context) {
-    const gutter = FrostySpacing.gutterTablet;
+    const gutter = OnsetSpacing.gutterTablet;
     final query = _searchStore.searchText;
     final media = MediaQuery.of(context);
     final width = media.size.width - media.padding.horizontal - 2 * gutter;
@@ -754,7 +754,7 @@ class _SearchField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     final focus = store.textFieldFocusNode;
     return ListenableBuilder(
       listenable: focus,
@@ -821,15 +821,15 @@ class _SearchField extends StatelessWidget {
               );
         return AnimatedContainer(
           duration: motionDuration(context, const Duration(milliseconds: 200)),
-          curve: FrostyMotion.standard,
+          curve: OnsetMotion.standard,
           height: large ? 52 : 44,
           padding: EdgeInsets.only(left: large ? 18 : 14, right: large ? 6 : 4),
           decoration: BoxDecoration(
             color: colors.surface,
-            borderRadius: BorderRadius.circular(FrostyTokens.radiusPill),
+            borderRadius: BorderRadius.circular(OnsetTokens.radiusPill),
             border: Border.all(
               color: focused ? accent : colors.pillBorder,
-              width: focused ? 1 : FrostyTokens.hairlineWidth,
+              width: focused ? 1 : OnsetTokens.hairlineWidth,
             ),
           ),
           child: Row(
@@ -898,7 +898,7 @@ class _SectionTitle extends StatelessWidget {
             child: Text(
               title,
               style: TextStyle(
-                fontFamily: FrostyTokens.displayFamily,
+                fontFamily: OnsetTokens.displayFamily,
                 fontSize: 17,
                 fontWeight: FontWeight.w700,
                 letterSpacing: -0.015 * 17,
@@ -964,7 +964,7 @@ class _HistoryList extends StatelessWidget {
                   child: Text(
                     'History',
                     style: TextStyle(
-                      fontFamily: FrostyTokens.displayFamily,
+                      fontFamily: OnsetTokens.displayFamily,
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                       letterSpacing: -0.015 * 17,

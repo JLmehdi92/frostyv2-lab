@@ -49,7 +49,7 @@ class SearchAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         boxShadow: [
-          BoxShadow(color: context.frostyColors.live, spreadRadius: 3.5),
+          BoxShadow(color: context.onsetColors.live, spreadRadius: 3.5),
           BoxShadow(
             color: Theme.of(context).scaffoldBackgroundColor,
             spreadRadius: 2,
@@ -92,7 +92,7 @@ class FeaturedChannelCard extends StatelessWidget {
               const LiveBadge(small: true),
               Uptime(
                 startTime: channel.startedAt,
-                style: FrostyType.tabular(meta),
+                style: OnsetType.tabular(meta),
               ),
               if (channel.gameName.isNotEmpty) ...[
                 Text('·', style: meta),
@@ -144,7 +144,7 @@ class FeaturedChannelCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontFamily: FrostyTokens.displayFamily,
+                  fontFamily: OnsetTokens.displayFamily,
                   fontSize: large ? 20 : 17,
                   fontWeight: large ? FontWeight.w800 : FontWeight.w700,
                   letterSpacing: (large ? -0.02 : -0.015) * (large ? 20 : 17),
@@ -171,7 +171,7 @@ class FeaturedChannelCard extends StatelessWidget {
           borderRadius: radius,
           side: BorderSide(
             color: colors.hairline,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
         clipBehavior: Clip.antiAlias,

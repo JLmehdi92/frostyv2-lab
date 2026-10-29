@@ -101,7 +101,7 @@ class _Harness {
     bool reduceMotion = false,
     bool intro = false,
   }) {
-    final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     return MaterialApp(
       builder: intro
           ? (context, child) => LaunchIntro(
@@ -315,11 +315,11 @@ void main() {
       );
       expect(
         (browseItem.decoration! as BoxDecoration).color,
-        FrostyTokens.accent.withValues(alpha: 0.13),
+        OnsetTokens.accent.withValues(alpha: 0.13),
       );
       expect((homeItem.decoration! as BoxDecoration).color!.a, 0);
-      expect(_textColor(tester, 'Browse'), FrostyTokens.accent);
-      expect(_textColor(tester, 'Home'), FrostyTokens.textSecondaryDark);
+      expect(_textColor(tester, 'Browse'), OnsetTokens.accent);
+      expect(_textColor(tester, 'Home'), OnsetTokens.textSecondaryDark);
 
       // Browse's header: its title, its search field, no Home tabs.
       expect(find.text('Following'), findsNothing);
@@ -387,7 +387,7 @@ void main() {
       final dot = tester.widget<Container>(
         find.byKey(const ValueKey('whispers-dot')),
       );
-      expect((dot.decoration! as BoxDecoration).color, FrostyTokens.danger);
+      expect((dot.decoration! as BoxDecoration).color, OnsetTokens.danger);
     });
 
     testWidgets('logged out: no whispers, Home has Live and Clips', (
@@ -558,7 +558,7 @@ void main() {
       );
       expect(
         (header.decoration as BoxDecoration).color,
-        FrostyTokens.backgroundLight.withValues(alpha: 0.78),
+        OnsetTokens.backgroundLight.withValues(alpha: 0.78),
       );
       final bar = tester.widget<DecoratedBox>(
         find
@@ -572,7 +572,7 @@ void main() {
       // Tabs: dark active, grey idle; the underline in the light live.
       expect(
         _textColor(tester, 'Following'),
-        isNot(FrostyTokens.textPrimaryDark),
+        isNot(OnsetTokens.textPrimaryDark),
       );
       expect(_textColor(tester, 'Live'), const Color(0xFF6B6B6B));
       final line = tester.widget<DecoratedBox>(
@@ -594,9 +594,9 @@ void main() {
       final home = tester.widget<AnimatedContainer>(_nav(ShellSection.home));
       expect(
         (home.decoration! as BoxDecoration).color,
-        FrostyTokens.backgroundDark,
+        OnsetTokens.backgroundDark,
       );
-      expect(_textColor(tester, 'Home'), FrostyTokens.textPrimaryDark);
+      expect(_textColor(tester, 'Home'), OnsetTokens.textPrimaryDark);
       final badge = tester.widget<Container>(
         find.byKey(const ValueKey('activity-badge')),
       );
@@ -655,9 +655,9 @@ void main() {
         final home = tester.widget<AnimatedContainer>(_nav(ShellSection.home));
         expect(
           (home.decoration! as BoxDecoration).color,
-          FrostyTokens.textPrimaryDark,
+          OnsetTokens.textPrimaryDark,
         );
-        expect(_textColor(tester, 'Home'), FrostyTokens.backgroundDark);
+        expect(_textColor(tester, 'Home'), OnsetTokens.backgroundDark);
 
         // Pages sit under the bar and the tabs (72 + 46).
         expect(tester.getTopLeft(find.text('Following 0')).dy, 118);

@@ -82,7 +82,7 @@ void main() {
       Provider<ChannelEventsStore?>.value(
         value: null,
         child: MaterialApp(
-          theme: const FrostyThemes(colorSchemeSeed: FrostyTokens.accent).dark,
+          theme: const OnsetThemes(colorSchemeSeed: OnsetTokens.accent).dark,
           home: Scaffold(
             body: Align(
               alignment: Alignment.bottomRight,

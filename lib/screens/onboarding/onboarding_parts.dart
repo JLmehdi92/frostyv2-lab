@@ -12,9 +12,9 @@ import 'package:onset/widgets/sheet/svg_path.dart';
 /// whatever theme is picked in its Setup step: it continues the launch
 /// intro, and only the Setup preview follows the theme.
 abstract final class OnboardingColors {
-  static const ground = FrostyTokens.backgroundDark;
-  static const surface = FrostyTokens.surfaceDark;
-  static const raised = FrostyTokens.raisedDark;
+  static const ground = OnsetTokens.backgroundDark;
+  static const surface = OnsetTokens.surfaceDark;
+  static const raised = OnsetTokens.raisedDark;
 
   /// The Twitch page's panel.
   static const web = Color(0xFF111111);
@@ -33,11 +33,11 @@ abstract final class OnboardingColors {
   static const ringStrong = Color(0x1FFFFFFF);
   static const ringNumber = Color(0x29FFFFFF);
 
-  static const text = FrostyTokens.textPrimaryDark;
-  static const body = FrostyTokens.textBodyDark;
-  static const secondary = FrostyTokens.textSecondaryDark;
-  static const tertiary = FrostyTokens.textTertiaryDark;
-  static const knobOff = FrostyTokens.textTertiaryDark;
+  static const text = OnsetTokens.textPrimaryDark;
+  static const body = OnsetTokens.textBodyDark;
+  static const secondary = OnsetTokens.textSecondaryDark;
+  static const tertiary = OnsetTokens.textTertiaryDark;
+  static const knobOff = OnsetTokens.textTertiaryDark;
 
   /// A progress segment already passed, one still to come.
   static const segmentDone = Color(0x8CF5F5F5);
@@ -53,7 +53,7 @@ Color onAccentFor(Color accent) {
   final luminance = accent.computeLuminance();
   final onBlack = (luminance + 0.05) / 0.0533;
   final onWhite = 1.05 / (luminance + 0.05);
-  return onBlack >= onWhite ? FrostyTokens.backgroundDark : Colors.white;
+  return onBlack >= onWhite ? OnsetTokens.backgroundDark : Colors.white;
 }
 
 /// The onboarding's type: titles 34 / 40 (tablet) at 800, the text under
@@ -62,7 +62,7 @@ abstract final class OnboardingType {
   static TextStyle title({required bool tablet}) {
     final size = tablet ? 40.0 : 34.0;
     return TextStyle(
-      fontFamily: FrostyTokens.displayFamily,
+      fontFamily: OnsetTokens.displayFamily,
       fontSize: size,
       fontWeight: FontWeight.w800,
       letterSpacing: -0.035 * size,
@@ -103,7 +103,7 @@ BoxDecoration onboardingCard({double radius = 16}) => BoxDecoration(
   borderRadius: BorderRadius.circular(radius),
   border: Border.all(
     color: OnboardingColors.ring,
-    width: FrostyTokens.hairlineWidth,
+    width: OnsetTokens.hairlineWidth,
   ),
 );
 
@@ -484,7 +484,7 @@ class OnboardingSwitch extends StatelessWidget {
     final reduce = reduceMotionOf(context);
     final slide = reduce ? Duration.zero : const Duration(milliseconds: 260);
     final tint = reduce
-        ? FrostyMotion.reducedFade
+        ? OnsetMotion.reducedFade
         : const Duration(milliseconds: 200);
     return Semantics(
       toggled: value,
@@ -512,12 +512,12 @@ class OnboardingSwitch extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: const Color(0x24FFFFFF),
-                    width: FrostyTokens.hairlineWidth,
+                    width: OnsetTokens.hairlineWidth,
                   ),
                 ),
                 child: AnimatedAlign(
                   duration: slide,
-                  curve: FrostyMotion.standard,
+                  curve: OnsetMotion.standard,
                   alignment: value
                       ? AlignmentDirectional.centerEnd
                       : AlignmentDirectional.centerStart,
@@ -615,7 +615,7 @@ class StepRise extends StatelessWidget {
       child: child,
       builder: (context, child) {
         final t = ((entrance.animation.value - start) / span).clamp(0.0, 1.0);
-        final progress = FrostyMotion.emphasizedDecelerate.transform(t);
+        final progress = OnsetMotion.emphasizedDecelerate.transform(t);
         return Opacity(
           opacity: progress,
           child: Transform.translate(

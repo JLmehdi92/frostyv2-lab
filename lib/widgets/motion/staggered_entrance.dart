@@ -11,7 +11,7 @@ import 'package:onset/widgets/motion/reduce_motion.dart';
 /// The launch intro wraps the app in one, closed while it covers the screen:
 /// the home screen builds (and loads its data) underneath, and its cards
 /// enter only once the intro uncovers them. Entrances held by a gate use the
-/// launch step ([FrostyMotion.launchStaggerStep]).
+/// launch step ([OnsetMotion.launchStaggerStep]).
 class EntranceGate extends InheritedNotifier<ValueListenable<bool>> {
   const EntranceGate({
     super.key,
@@ -74,7 +74,7 @@ class _StaggerBatch extends InheritedWidget {
 /// - Plays once per mounted element: a rebuild never replays it.
 /// - Under a [StaggerScope], only the list's first batch plays.
 /// - Under a closed [EntranceGate], it waits for the gate.
-/// - Rows past [FrostyMotion.staggerCap] enter with the last one.
+/// - Rows past [OnsetMotion.staggerCap] enter with the last one.
 /// - Reduce motion: a short fade, no travel, no stagger.
 ///
 /// The animation is a single controller (the delay is an [Interval]), so it
@@ -83,7 +83,7 @@ class StaggeredEntrance extends StatefulWidget {
   /// Position in the list.
   final int index;
 
-  /// Gap between two rows; defaults to [FrostyMotion.staggerStep] (or the
+  /// Gap between two rows; defaults to [OnsetMotion.staggerStep] (or the
   /// launch step when held by a gate).
   final Duration? step;
 
@@ -141,24 +141,22 @@ class _StaggeredEntranceState extends State<StaggeredEntrance>
 
   void _prepare() {
     if (_reduced) {
-      _controller.duration = FrostyMotion.reducedFade;
+      _controller.duration = OnsetMotion.reducedFade;
       _progress = _controller;
       return;
     }
     final step =
         widget.step ??
-        (_heldByGate
-            ? FrostyMotion.launchStaggerStep
-            : FrostyMotion.staggerStep);
-    final delay = step * math.min(widget.index, FrostyMotion.staggerCap);
-    final total = delay + FrostyMotion.enter;
+        (_heldByGate ? OnsetMotion.launchStaggerStep : OnsetMotion.staggerStep);
+    final delay = step * math.min(widget.index, OnsetMotion.staggerCap);
+    final total = delay + OnsetMotion.enter;
     _controller.duration = total;
     _progress = CurvedAnimation(
       parent: _controller,
       curve: Interval(
         delay.inMicroseconds / total.inMicroseconds,
         1,
-        curve: FrostyMotion.emphasizedDecelerate,
+        curve: OnsetMotion.emphasizedDecelerate,
       ),
     );
   }

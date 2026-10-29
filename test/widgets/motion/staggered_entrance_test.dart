@@ -31,7 +31,7 @@ void main() {
     expect(_opacity(tester, key), 0);
     expect(_dy(tester, key), greaterThan(0));
 
-    await tester.pump(FrostyMotion.enter);
+    await tester.pump(OnsetMotion.enter);
     expect(_opacity(tester, key), 1);
     expect(_dy(tester, key), 0);
   });
@@ -168,7 +168,7 @@ void main() {
     expect(_dy(tester, const Key('5')), 0);
     await tester.pump(const Duration(milliseconds: 50));
     expect(_opacity(tester, const Key('5')), greaterThan(0));
-    await tester.pump(FrostyMotion.reducedFade);
+    await tester.pump(OnsetMotion.reducedFade);
     expect(_opacity(tester, const Key('5')), 1);
     expect(_dy(tester, const Key('5')), 0);
   });

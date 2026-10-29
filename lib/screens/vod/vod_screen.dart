@@ -603,7 +603,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
                 color: Colors.black,
                 child: Center(
                   child: CircularProgressIndicator(
-                    color: context.frostyColors.live,
+                    color: context.onsetColors.live,
                   ),
                 ),
               )
@@ -704,7 +704,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
                         border: Border(
                           bottom: BorderSide(
                             color: FeedColors.of(context).hairline,
-                            width: FrostyTokens.hairlineWidth,
+                            width: OnsetTokens.hairlineWidth,
                           ),
                         ),
                       ),
@@ -809,7 +809,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
         final dark = Theme.of(context).brightness == Brightness.dark;
         final hairline = BorderSide(
           color: FeedColors.of(context).hairline,
-          width: FrostyTokens.hairlineWidth,
+          width: OnsetTokens.hairlineWidth,
         );
 
         Widget chatPanel(double totalWidth, {required bool overlay}) =>
@@ -840,11 +840,11 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
             );
 
         if (fullScreen) {
-          final overlayTheme = FrostyThemes(
+          final overlayTheme = OnsetThemes(
             colorSchemeSeed: Color(_settings.accentColor),
           ).dark;
           final onOverlay =
-              Theme.of(context).extension<FrostyColors>()?.overlayOnSurface ??
+              Theme.of(context).extension<OnsetColors>()?.overlayOnSurface ??
               Colors.white;
           return ColoredBox(
             color: Colors.black,

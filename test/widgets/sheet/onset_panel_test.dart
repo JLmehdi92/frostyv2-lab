@@ -124,7 +124,7 @@ void main() {
       final holder = PanelAvoidHolder();
       await tester.pumpWidget(
         MaterialApp(
-          theme: const FrostyThemes(colorSchemeSeed: FrostyTokens.accent).dark,
+          theme: const OnsetThemes(colorSchemeSeed: OnsetTokens.accent).dark,
           home: Scaffold(
             body: PanelAvoidScope(
               holder: holder,

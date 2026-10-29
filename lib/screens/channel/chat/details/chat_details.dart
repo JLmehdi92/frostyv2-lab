@@ -18,9 +18,9 @@ import 'package:onset/screens/settings/settings.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils.dart';
 import 'package:onset/utils/twitch_links.dart';
-import 'package:onset/widgets/frosty_scrollbar.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/onset_scrollbar.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
@@ -495,7 +495,7 @@ class _ChatDetailsState extends State<ChatDetails> {
                 formatTimeLeft(store.timeRemaining),
                 style: SheetText.tabular(
                   TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: accent,
@@ -563,13 +563,13 @@ class _ChatDetailsState extends State<ChatDetails> {
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: colors.hairline,
-                  width: FrostyTokens.hairlineWidth,
+                  width: OnsetTokens.hairlineWidth,
                 ),
               ),
               child: _ColorPreview(chatStore: widget.chatStore, color: picked),
             ),
           Expanded(
-            child: FrostyScrollbar(
+            child: OnsetScrollbar(
               controller: _scrollController,
               child: ListView(
                 controller: _scrollController,
@@ -590,7 +590,7 @@ class _ChatDetailsState extends State<ChatDetails> {
               border: Border(
                 top: BorderSide(
                   color: colors.hairline,
-                  width: FrostyTokens.hairlineWidth,
+                  width: OnsetTokens.hairlineWidth,
                 ),
               ),
             ),
@@ -645,15 +645,15 @@ class _ChatDetailsState extends State<ChatDetails> {
         constraints: const BoxConstraints(maxHeight: ChatDetails.maxHeight),
         child: AnimatedSize(
           duration: motionDuration(context, const Duration(milliseconds: 260)),
-          curve: FrostyMotion.standard,
+          curve: OnsetMotion.standard,
           alignment: Alignment.topCenter,
           child: AnimatedSwitcher(
             duration: motionDuration(
               context,
               const Duration(milliseconds: 240),
             ),
-            switchInCurve: FrostyMotion.emphasizedDecelerate,
-            switchOutCurve: FrostyMotion.emphasizedAccelerate,
+            switchInCurve: OnsetMotion.emphasizedDecelerate,
+            switchOutCurve: OnsetMotion.emphasizedAccelerate,
             layoutBuilder: (current, previous) => Stack(
               alignment: Alignment.topCenter,
               children: [...previous, ?current],

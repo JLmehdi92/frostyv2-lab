@@ -6,9 +6,9 @@ import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/vod/widgets/video_glyph.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
-import 'package:onset/widgets/frosty_photo_view_dialog.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
+import 'package:onset/widgets/onset_photo_view_dialog.dart';
 import 'package:onset/widgets/profile_picture.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
 
@@ -53,14 +53,14 @@ class VideoCardChip extends StatelessWidget {
         border: ring && color == null
             ? Border.all(
                 color: const Color(0x24FFFFFF),
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               )
             : null,
       ),
       child: DefaultTextStyle.merge(
-        style: FrostyType.tabular(
+        style: OnsetType.tabular(
           TextStyle(
-            fontFamily: FrostyTokens.bodyFamily,
+            fontFamily: OnsetTokens.bodyFamily,
             fontSize: large ? 11.5 : 10.5,
             fontWeight: FontWeight.w600,
             height: 1,
@@ -247,7 +247,7 @@ class VideoCardLayout extends StatelessWidget {
     final details = this.details;
     final login = channelLogin;
     final subtitleStyle = TextStyle(
-      fontFamily: FrostyTokens.bodyFamily,
+      fontFamily: OnsetTokens.bodyFamily,
       fontSize: large ? 13 : 12.5,
       height: 1.3,
       color: login != null ? colors.body : colors.secondary,
@@ -261,7 +261,7 @@ class VideoCardLayout extends StatelessWidget {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            fontFamily: FrostyTokens.bodyFamily,
+            fontFamily: OnsetTokens.bodyFamily,
             fontSize: large ? 14.5 : 14,
             fontWeight: FontWeight.w600,
             height: 1.3,
@@ -297,9 +297,9 @@ class VideoCardLayout extends StatelessWidget {
             details,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: FrostyType.tabular(
+            style: OnsetType.tabular(
               TextStyle(
-                fontFamily: FrostyTokens.bodyFamily,
+                fontFamily: OnsetTokens.bodyFamily,
                 fontSize: 12.5,
                 height: 1.3,
                 color: colors.tertiary,
@@ -359,7 +359,7 @@ class _VideoPicture extends StatelessWidget {
                     Text(
                       label,
                       style: TextStyle(
-                        fontFamily: FrostyTokens.bodyFamily,
+                        fontFamily: OnsetTokens.bodyFamily,
                         fontSize: 10.5,
                         fontWeight: FontWeight.w600,
                         color: colors.tertiary,
@@ -378,11 +378,10 @@ class _VideoPicture extends StatelessWidget {
                     HapticFeedback.lightImpact();
                     showDialog(
                       context: context,
-                      builder: (context) =>
-                          FrostyPhotoViewDialog(imageUrl: url),
+                      builder: (context) => OnsetPhotoViewDialog(imageUrl: url),
                     );
                   },
-                  child: FrostyCachedNetworkImage(
+                  child: OnsetCachedNetworkImage(
                     imageUrl: url,
                     fit: BoxFit.cover,
                     placeholder: (context, url) =>
@@ -417,7 +416,7 @@ class _VideoPicture extends StatelessWidget {
                   child: FractionallySizedBox(
                     alignment: Alignment.centerLeft,
                     widthFactor: progress.clamp(0.0, 1.0),
-                    child: ColoredBox(color: context.frostyColors.live),
+                    child: ColoredBox(color: context.onsetColors.live),
                   ),
                 ),
               ),
@@ -514,13 +513,13 @@ class SubscribersOnlyLabel extends StatelessWidget {
   Widget build(BuildContext context) => Text(
     'Subscribers only',
     style: TextStyle(
-      fontFamily: FrostyTokens.bodyFamily,
+      fontFamily: OnsetTokens.bodyFamily,
       fontSize: 12.5,
       fontWeight: FontWeight.w600,
       height: 1.3,
       color: Theme.of(context).brightness == Brightness.dark
-          ? FrostyTokens.hypeText
-          : FrostyColors.light.subNoticeText,
+          ? OnsetTokens.hypeText
+          : OnsetColors.light.subNoticeText,
     ),
   );
 }

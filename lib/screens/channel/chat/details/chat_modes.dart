@@ -95,7 +95,7 @@ class _ModePill extends StatelessWidget {
         shape: StadiumBorder(
           side: BorderSide(
             color: colors.ring,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
       ),
@@ -107,7 +107,7 @@ class _ModePill extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontFamily: FrostyTokens.bodyFamily,
+              fontFamily: OnsetTokens.bodyFamily,
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: colors.body,
@@ -118,7 +118,7 @@ class _ModePill extends StatelessWidget {
               duration,
               style: SheetText.tabular(
                 TextStyle(
-                  fontFamily: FrostyTokens.bodyFamily,
+                  fontFamily: OnsetTokens.bodyFamily,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                   color: colors.secondary,

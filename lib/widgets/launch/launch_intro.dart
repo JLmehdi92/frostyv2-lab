@@ -508,8 +508,8 @@ class _IntroFrame extends StatelessWidget {
   });
 
   static const _tile = OnsetMark.designSize;
-  static const _ground = FrostyTokens.backgroundDark;
-  static const _accent = FrostyTokens.accent;
+  static const _ground = OnsetTokens.backgroundDark;
+  static const _accent = OnsetTokens.accent;
 
   @override
   Widget build(BuildContext context) {
@@ -525,7 +525,7 @@ class _IntroFrame extends StatelessWidget {
     if (fromTile) {
       grow = 1;
     } else if (t < _Timeline.dotEnd) {
-      grow = 0.2 * span(t, 0, _Timeline.dotEnd, FrostyMotion.standard);
+      grow = 0.2 * span(t, 0, _Timeline.dotEnd, OnsetMotion.standard);
     } else {
       grow =
           0.2 +
@@ -534,21 +534,21 @@ class _IntroFrame extends StatelessWidget {
                 t,
                 _Timeline.dotEnd,
                 _Timeline.tileEnd,
-                FrostyMotion.overshoot,
+                OnsetMotion.overshoot,
               );
     }
     final settle = span(
       t,
       _Timeline.dotEnd,
       _Timeline.tileEnd,
-      FrostyMotion.standard,
+      OnsetMotion.standard,
     );
     final radius = fromTile ? 20.0 : 36 - 16 * settle;
     final flight = span(
       t,
       _Timeline.flightStart,
       _Timeline.flightEnd,
-      FrostyMotion.standard,
+      OnsetMotion.standard,
     );
     final tileCenter = Offset.lerp(center, slot.center, flight)!;
     final tileScale = grow * rest + (slot.width / _tile - rest) * flight;
@@ -569,7 +569,7 @@ class _IntroFrame extends StatelessWidget {
       t,
       _Timeline.underlineStart,
       _Timeline.underlineEnd,
-      FrostyMotion.standard,
+      OnsetMotion.standard,
     );
 
     final ground =
@@ -578,7 +578,7 @@ class _IntroFrame extends StatelessWidget {
 
     Widget ring(int index, double start, double end, double width) {
       if (t < start - 0.01) return const SizedBox.shrink();
-      final p = span(t, start, end, FrostyMotion.standard);
+      final p = span(t, start, end, OnsetMotion.standard);
       final maxScale = switch ((index, tablet)) {
         (0, false) => 2.8,
         (0, true) => 3.2,
@@ -609,7 +609,7 @@ class _IntroFrame extends StatelessWidget {
 
     final frame = DefaultTextStyle(
       style: const TextStyle(
-        fontFamily: FrostyTokens.displayFamily,
+        fontFamily: OnsetTokens.displayFamily,
         decoration: TextDecoration.none,
       ),
       child: Stack(
@@ -637,7 +637,7 @@ class _IntroFrame extends StatelessWidget {
                         t,
                         _Timeline.letterStart + i * _Timeline.letterStep,
                         _Timeline.letterEnd + i * _Timeline.letterStep,
-                        FrostyMotion.emphasizedDecelerate,
+                        OnsetMotion.emphasizedDecelerate,
                       ),
                   ],
                   underline: underline,
@@ -711,7 +711,7 @@ class _LandingFrame extends StatelessWidget {
     final rest = from.width / _tile;
 
     final ground = t < timeline.coverEnd
-        ? span(t, 0, timeline.coverEnd, FrostyMotion.emphasizedAccelerate)
+        ? span(t, 0, timeline.coverEnd, OnsetMotion.emphasizedAccelerate)
         : 1 -
               span(
                 t,
@@ -721,14 +721,14 @@ class _LandingFrame extends StatelessWidget {
               );
 
     final pop = timeline.appear
-        ? span(t, 0, timeline.appearEnd, FrostyMotion.overshoot)
+        ? span(t, 0, timeline.appearEnd, OnsetMotion.overshoot)
         : 1.0;
     final popOpacity = timeline.appear ? span(t, 0, timeline.appearEnd) : 1.0;
     final flight = span(
       t,
       timeline.flightStart,
       timeline.flightEnd,
-      FrostyMotion.standard,
+      OnsetMotion.standard,
     );
     final center = Offset.lerp(from.center, slot.center, flight)!;
     final scale =
@@ -749,12 +749,12 @@ class _LandingFrame extends StatelessWidget {
         height: _tile,
         child: Transform.scale(
           key: LaunchIntro.ringKeys[0],
-          scale: rest * (1 + 1.6 * FrostyMotion.standard.transform(p)),
+          scale: rest * (1 + 1.6 * OnsetMotion.standard.transform(p)),
           child: DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(OnsetMark.designRadius),
               border: Border.all(
-                color: FrostyTokens.accent.withValues(alpha: 0.7 * (1 - p)),
+                color: OnsetTokens.accent.withValues(alpha: 0.7 * (1 - p)),
                 width: 2,
               ),
             ),
@@ -768,7 +768,7 @@ class _LandingFrame extends StatelessWidget {
       children: [
         if (ground > 0)
           ColoredBox(
-            color: FrostyTokens.backgroundDark.withValues(
+            color: OnsetTokens.backgroundDark.withValues(
               alpha: ground.clamp(0.0, 1.0),
             ),
           ),
@@ -786,7 +786,7 @@ class _LandingFrame extends StatelessWidget {
               child: OnsetMarkTile(
                 glow: [
                   BoxShadow(
-                    color: FrostyTokens.accent.withValues(
+                    color: OnsetTokens.accent.withValues(
                       alpha: 0.25 * (1 - flight),
                     ),
                     blurRadius: tablet ? 48 : 40,

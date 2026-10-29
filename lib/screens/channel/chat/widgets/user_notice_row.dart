@@ -84,7 +84,7 @@ class UserNoticeRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.frostyColors;
+    final colors = context.onsetColors;
     final accent =
         accentColor ??
         (_tinted ? colors.subNoticeAccent : context.colorScheme.onSurface);
@@ -176,11 +176,11 @@ class UserNoticeRow extends StatelessWidget {
   /// light one).
   Color _tint(BuildContext context) {
     final sponsor = accentColor;
-    if (sponsor == null) return context.frostyColors.subNoticeBackground;
+    if (sponsor == null) return context.onsetColors.subNoticeBackground;
     final dark = Theme.of(context).brightness == Brightness.dark;
     return Color.alphaBlend(
       sponsor.withValues(alpha: dark ? 0.10 : 0.08),
-      dark ? FrostyTokens.backgroundDark : FrostyTokens.backgroundLight,
+      dark ? OnsetTokens.backgroundDark : OnsetTokens.backgroundLight,
     );
   }
 
@@ -262,7 +262,7 @@ class UserNoticeRow extends StatelessWidget {
   }
 
   Widget? _icon(BuildContext context) {
-    final tint = context.frostyColors.metadata;
+    final tint = context.onsetColors.metadata;
     Icon glyph(IconData data) => Icon(data, size: _iconSize, color: tint);
 
     return switch (presentation.icon) {
@@ -313,7 +313,7 @@ class UserNoticeRow extends StatelessWidget {
               child: Icon(
                 Icons.star_rounded,
                 size: _avatarSize - 4,
-                color: context.frostyColors.subNoticeAccent,
+                color: context.onsetColors.subNoticeAccent,
               ),
             ),
           ),

@@ -114,7 +114,7 @@ class SettingsMasterDetail extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 28),
                 child: SizedBox(
-                  width: FrostyTokens.hairlineWidth,
+                  width: OnsetTokens.hairlineWidth,
                   child: ColoredBox(color: SettingsColors.of(context).hairline),
                 ),
               ),
@@ -242,7 +242,7 @@ class _AsideRow extends StatelessWidget {
             onTap: onTap,
             child: AnimatedContainer(
               duration: duration,
-              curve: FrostyMotion.standard,
+              curve: OnsetMotion.standard,
               height: 48,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
@@ -254,7 +254,7 @@ class _AsideRow extends StatelessWidget {
                   color: selected
                       ? accent.withValues(alpha: 0.45)
                       : accent.withValues(alpha: 0),
-                  width: FrostyTokens.hairlineWidth,
+                  width: OnsetTokens.hairlineWidth,
                 ),
               ),
               child: Row(
@@ -270,7 +270,7 @@ class _AsideRow extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontFamily: FrostyTokens.bodyFamily,
+                        fontFamily: OnsetTokens.bodyFamily,
                         fontSize: 15,
                         fontWeight: selected
                             ? FontWeight.w700
@@ -323,7 +323,7 @@ class _LogoutRow extends StatelessWidget {
                   Text(
                     'Log out',
                     style: TextStyle(
-                      fontFamily: FrostyTokens.bodyFamily,
+                      fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                       color: colors.danger,
@@ -355,7 +355,7 @@ class _ProfileCard extends StatelessWidget {
           return ProfileLoginCard(authStore: authStore);
         }
         return SettingsCard(
-          radius: FrostyTokens.radiusLarge,
+          radius: OnsetTokens.radiusLarge,
           padding: const EdgeInsets.all(18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -375,7 +375,7 @@ class _ProfileCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontFamily: FrostyTokens.bodyFamily,
+                            fontFamily: OnsetTokens.bodyFamily,
                             fontSize: 20,
                             fontWeight: FontWeight.w800,
                             letterSpacing: -0.5,
@@ -387,7 +387,7 @@ class _ProfileCard extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontFamily: FrostyTokens.bodyFamily,
+                            fontFamily: OnsetTokens.bodyFamily,
                             fontSize: 13,
                             color: colors.secondary,
                           ),
@@ -478,10 +478,10 @@ class _Pane extends StatelessWidget {
                 Positioned.fill(
                   child: AnimatedSwitcher(
                     duration: reduce
-                        ? FrostyMotion.reducedFade
+                        ? OnsetMotion.reducedFade
                         : const Duration(milliseconds: 300),
-                    switchInCurve: FrostyMotion.standard,
-                    switchOutCurve: FrostyMotion.standard,
+                    switchInCurve: OnsetMotion.standard,
+                    switchOutCurve: OnsetMotion.standard,
                     layoutBuilder: (current, previous) =>
                         Stack(children: [?current]),
                     transitionBuilder: (child, animation) => FadeTransition(
@@ -564,7 +564,7 @@ class _SubPageHostState extends State<_SubPageHost>
     );
     _curved = CurvedAnimation(
       parent: _controller,
-      curve: FrostyMotion.standard,
+      curve: OnsetMotion.standard,
       reverseCurve: const Cubic(0.4, 0, 1, 1),
     );
     _shown = widget.sub;
@@ -577,10 +577,10 @@ class _SubPageHostState extends State<_SubPageHost>
     final reduce = reduceMotionOf(context);
     _controller
       ..duration = reduce
-          ? FrostyMotion.reducedFade
+          ? OnsetMotion.reducedFade
           : const Duration(milliseconds: 360)
       ..reverseDuration = reduce
-          ? FrostyMotion.reducedFade
+          ? OnsetMotion.reducedFade
           : const Duration(milliseconds: 260);
     if (sub != null) {
       _shown = sub;

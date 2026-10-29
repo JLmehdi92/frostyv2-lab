@@ -4,7 +4,7 @@ import 'package:onset/cache_manager.dart';
 import 'package:onset/models/chat_gif.dart';
 import 'package:onset/screens/channel/chat/widgets/overlay_chat_scope.dart';
 import 'package:onset/widgets/first_frame_image.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 
 /// A GIF sent in chat, drawn like the Twitch app draws it: a fixed height,
 /// the width of its own aspect ratio (never wider than the line), an empty
@@ -74,7 +74,7 @@ class ChatGifImage extends StatelessWidget {
 
     final Widget image;
     if (animate) {
-      image = FrostyCachedNetworkImage(
+      image = OnsetCachedNetworkImage(
         imageUrl: gif.url,
         height: height,
         fit: BoxFit.contain,

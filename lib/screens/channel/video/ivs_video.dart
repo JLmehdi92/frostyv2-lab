@@ -109,7 +109,7 @@ class _AudioOnlyBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(FrostyTokens.radiusSmall),
+        borderRadius: BorderRadius.circular(OnsetTokens.radiusSmall),
       ),
       child: const Row(
         mainAxisSize: MainAxisSize.min,
@@ -117,7 +117,7 @@ class _AudioOnlyBadge extends StatelessWidget {
         children: [
           PlayerGlyph(
             PlayerGlyphKind.headphones,
-            color: FrostyTokens.textPrimaryDark,
+            color: OnsetTokens.textPrimaryDark,
             size: 15,
           ),
           Text(
@@ -125,7 +125,7 @@ class _AudioOnlyBadge extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: FrostyTokens.textPrimaryDark,
+              color: OnsetTokens.textPrimaryDark,
             ),
           ),
         ],

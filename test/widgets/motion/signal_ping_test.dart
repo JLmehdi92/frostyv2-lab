@@ -5,7 +5,7 @@ import 'package:onset/widgets/live_indicator.dart';
 import 'package:onset/widgets/motion/signal_ping.dart';
 
 Widget _host(Widget child, {bool disableAnimations = false}) => MaterialApp(
-  theme: const FrostyThemes(colorSchemeSeed: FrostyTokens.accent).dark,
+  theme: const OnsetThemes(colorSchemeSeed: OnsetTokens.accent).dark,
   home: MediaQuery(
     data: MediaQueryData(disableAnimations: disableAnimations),
     child: Center(child: child),
@@ -165,7 +165,7 @@ void main() {
     await tester.pumpWidget(_host(const LiveIndicator(size: 10)));
     final ping = tester.widget<SignalPing>(find.byType(SignalPing));
     expect(ping.size, 10);
-    expect(_painter(tester).color, FrostyColors.dark.live);
+    expect(_painter(tester).color, OnsetColors.dark.live);
     expect(tester.getSize(find.byType(LiveIndicator)), const Size(10, 10));
   });
 }

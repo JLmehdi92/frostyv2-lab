@@ -11,7 +11,7 @@ import 'package:onset/constants.dart';
 import 'package:onset/screens/vod/vod_time.dart';
 import 'package:onset/utils/link_router.dart';
 import 'package:onset/utils/twitch_links.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
 import 'package:provider/provider.dart';
 
@@ -322,7 +322,7 @@ class _ChatLinkCardState extends State<ChatLinkCard> {
                                     : Icons.video_library_outlined,
                               ),
                             )
-                          : FrostyCachedNetworkImage(
+                          : OnsetCachedNetworkImage(
                               imageUrl: preview.thumbnailUrl!,
                               fit: BoxFit.cover,
                               memCacheWidth: 240,

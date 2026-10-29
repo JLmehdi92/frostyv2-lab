@@ -14,7 +14,7 @@ import 'package:onset/constants.dart';
 import 'package:onset/main.dart';
 import 'package:onset/screens/settings/stores/user_store.dart';
 import 'package:onset/services/twitch_web_token_service.dart';
-import 'package:onset/widgets/frosty_dialog.dart';
+import 'package:onset/widgets/onset_alert_dialog.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 part 'auth_store.g.dart';
@@ -124,7 +124,7 @@ abstract class AuthBase with Store {
   /// Optional twitch.tv web session token (the `auth-token` cookie).
   ///
   /// Twitch's GQL endpoint only accepts tokens minted for its own web
-  /// client-id, so Frosty's own login token cannot unlock the
+  /// client-id, so the app's own login token cannot unlock the
   /// enhanced-broadcast renditions (1440p HEVC / AV1). Pasting the web token
   /// in the video settings lets the player request them; when it is absent
   /// everything falls back to the anonymous request.
@@ -772,7 +772,7 @@ abstract class AuthBase with Store {
 
     return showDialog(
       context: context,
-      builder: (context) => FrostyDialog(
+      builder: (context) => OnsetAlertDialog(
         title: title,
         message: message,
         actions: [

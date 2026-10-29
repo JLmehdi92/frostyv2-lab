@@ -9,7 +9,7 @@ import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/vod/vod_comment_to_irc.dart';
 import 'package:onset/screens/vod/widgets/vod_chat_message.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 
 class MockChatAssetsStore extends Mock implements ChatAssetsStore {}
 
@@ -104,8 +104,8 @@ void main() {
 
   testWidgets('emotes stand still when animations are off', (tester) async {
     List<String> urls() => tester
-        .widgetList<FrostyCachedNetworkImage>(
-          find.byType(FrostyCachedNetworkImage),
+        .widgetList<OnsetCachedNetworkImage>(
+          find.byType(OnsetCachedNetworkImage),
         )
         .map((image) => image.imageUrl)
         .toList();

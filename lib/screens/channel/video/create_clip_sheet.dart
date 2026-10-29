@@ -12,10 +12,10 @@ import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/share_link.dart';
 import 'package:onset/widgets/alert_message.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/profile_picture.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
@@ -335,7 +335,7 @@ class CreateClipSheet extends StatelessWidget {
                 context,
                 const Duration(milliseconds: 300),
               ),
-              switchInCurve: FrostyMotion.standard,
+              switchInCurve: OnsetMotion.standard,
               transitionBuilder: (child, animation) => FadeTransition(
                 opacity: animation,
                 child: reduceMotionOf(context)
@@ -401,7 +401,7 @@ class _Working extends StatelessWidget {
                       context,
                       const Duration(milliseconds: 600),
                     ),
-                    child: FrostyCachedNetworkImage(
+                    child: OnsetCachedNetworkImage(
                       imageUrl: frameUrl,
                       // A frame of now, not one cached hours ago (the
                       // stream cards' five-minute key).
@@ -432,7 +432,7 @@ class _Working extends StatelessWidget {
                           style: SheetText.row.copyWith(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: FrostyTokens.textPrimaryDark,
+                            color: OnsetTokens.textPrimaryDark,
                           ),
                         ),
                       ),
@@ -455,7 +455,7 @@ class _Working extends StatelessWidget {
                       borderRadius: radius,
                       border: Border.all(
                         color: colors.ring,
-                        width: FrostyTokens.hairlineWidth,
+                        width: OnsetTokens.hairlineWidth,
                       ),
                     ),
                   ),
@@ -516,7 +516,7 @@ class _ClipPicture extends StatelessWidget {
               Semantics(
                 image: true,
                 label: 'Clip thumbnail',
-                child: FrostyCachedNetworkImage(
+                child: OnsetCachedNetworkImage(
                   imageUrl: url,
                   fit: BoxFit.cover,
                   errorWidget: (context, url, error) => const SizedBox.shrink(),
@@ -548,9 +548,9 @@ class _ClipPicture extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontFamily: FrostyTokens.bodyFamily,
+                          fontFamily: OnsetTokens.bodyFamily,
                           fontSize: 12,
-                          color: FrostyTokens.textBodyDark,
+                          color: OnsetTokens.textBodyDark,
                         ),
                       ),
                     ),
@@ -563,7 +563,7 @@ class _ClipPicture extends StatelessWidget {
                   borderRadius: radius,
                   border: Border.all(
                     color: colors.ring,
-                    width: FrostyTokens.hairlineWidth,
+                    width: OnsetTokens.hairlineWidth,
                   ),
                 ),
               ),
@@ -588,7 +588,7 @@ class _Reveal extends StatelessWidget {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
       duration: motionDuration(context, const Duration(milliseconds: 420)),
-      curve: FrostyMotion.standard,
+      curve: OnsetMotion.standard,
       builder: (context, t, child) {
         // brightness(.45) → none: a black veil that lifts.
         final veil = 0.55 * (1 - t);
@@ -634,7 +634,7 @@ class _EditRow extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             side: BorderSide(
               color: colors.hairline,
-              width: FrostyTokens.hairlineWidth,
+              width: OnsetTokens.hairlineWidth,
             ),
           ),
           clipBehavior: Clip.antiAlias,
@@ -756,11 +756,11 @@ class _QuietPill extends StatelessWidget {
           shape: StadiumBorder(
             side: BorderSide(
               color: colors.ringStrong,
-              width: FrostyTokens.hairlineWidth,
+              width: OnsetTokens.hairlineWidth,
             ),
           ),
           textStyle: const TextStyle(
-            fontFamily: FrostyTokens.bodyFamily,
+            fontFamily: OnsetTokens.bodyFamily,
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
@@ -837,7 +837,7 @@ class _CreateClipButtonState extends State<CreateClipButton> {
   @override
   Widget build(BuildContext context) {
     final icon = widget.icon;
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     final shown = _open ? (widget.activeIcon ?? icon) : icon;
     return Semantics(
       selected: _open,

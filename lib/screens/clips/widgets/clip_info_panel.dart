@@ -69,7 +69,7 @@ class ClipInfoPanel extends StatelessWidget {
         border: Border(
           bottom: BorderSide(
             color: colors.hairline,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
       ),
@@ -84,7 +84,7 @@ class ClipInfoPanel extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontFamily: FrostyTokens.displayFamily,
+                fontFamily: OnsetTokens.displayFamily,
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
                 letterSpacing: -0.16,
@@ -98,9 +98,9 @@ class ClipInfoPanel extends StatelessWidget {
               children: [
                 Text(
                   details,
-                  style: FrostyType.tabular(
+                  style: OnsetType.tabular(
                     TextStyle(
-                      fontFamily: FrostyTokens.bodyFamily,
+                      fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 13,
                       height: 1.3,
                       color: colors.secondary,
@@ -142,7 +142,7 @@ class ClipInfoPanel extends StatelessWidget {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
-                                    fontFamily: FrostyTokens.bodyFamily,
+                                    fontFamily: OnsetTokens.bodyFamily,
                                     fontSize: 14,
                                     fontWeight: FontWeight.w700,
                                     color: colors.text,
@@ -154,7 +154,7 @@ class ClipInfoPanel extends StatelessWidget {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                      fontFamily: FrostyTokens.bodyFamily,
+                                      fontFamily: OnsetTokens.bodyFamily,
                                       fontSize: 12,
                                       color: colors.secondary,
                                     ),
@@ -220,9 +220,9 @@ class _ShareDisc extends StatelessWidget {
           shape: CircleBorder(
             side: BorderSide(
               color: Theme.of(context).brightness == Brightness.dark
-                  ? FrostyTokens.hairlineStrongDark
+                  ? OnsetTokens.hairlineStrongDark
                   : colors.pillBorder,
-              width: FrostyTokens.hairlineWidth,
+              width: OnsetTokens.hairlineWidth,
             ),
           ),
           clipBehavior: material.Clip.antiAlias,

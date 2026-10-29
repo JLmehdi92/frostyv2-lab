@@ -50,7 +50,7 @@ void main() {
       Provider<TwitchApi>.value(
         value: api,
         child: MaterialApp(
-          theme: theme ?? ThemeData(extensions: const [FrostyColors.light]),
+          theme: theme ?? ThemeData(extensions: const [OnsetColors.light]),
           home: FollowedVideosScreen(
             store: FollowedVideosStore(
               twitchApi: api,
@@ -152,10 +152,10 @@ void main() {
       ],
     );
     for (final theme in [
-      ThemeData(extensions: const [FrostyColors.light]),
+      ThemeData(extensions: const [OnsetColors.light]),
       ThemeData(
         brightness: Brightness.dark,
-        extensions: const [FrostyColors.dark],
+        extensions: const [OnsetColors.dark],
       ),
     ]) {
       for (final size in const [Size(1280, 854), Size(854, 1280)]) {

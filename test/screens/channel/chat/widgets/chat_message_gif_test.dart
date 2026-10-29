@@ -8,7 +8,7 @@ import 'package:onset/screens/channel/chat/widgets/overlay_chat_scope.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/widgets/first_frame_image.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 
 import '../../../../fixtures/irc_messages.dart';
 import '../../../../helpers/chat_message_harness.dart';
@@ -21,11 +21,11 @@ String _lineText(WidgetTester tester) => tester
     .map((text) => text.text.toPlainText())
     .join('\n');
 
-FrostyCachedNetworkImage _gifImage(WidgetTester tester) =>
-    tester.widget<FrostyCachedNetworkImage>(
+OnsetCachedNetworkImage _gifImage(WidgetTester tester) =>
+    tester.widget<OnsetCachedNetworkImage>(
       find.descendant(
         of: find.byType(ChatGifImage),
-        matching: find.byType(FrostyCachedNetworkImage),
+        matching: find.byType(OnsetCachedNetworkImage),
       ),
     );
 
@@ -131,7 +131,7 @@ void main() {
 
   testWidgets('a GIF is shorter in the chat over the video', (tester) async {
     _portrait(tester);
-    const themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    const themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       MaterialApp(
         theme: themes.dark,

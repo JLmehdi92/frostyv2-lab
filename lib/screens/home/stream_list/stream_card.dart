@@ -81,9 +81,9 @@ class StreamCard extends StatelessWidget {
         ),
         child: Padding(
           padding: EdgeInsets.fromLTRB(
-            (tile ? 0 : FrostySpacing.gutterPhone) + padding.left,
+            (tile ? 0 : OnsetSpacing.gutterPhone) + padding.left,
             tile ? 0 : 6,
-            (tile ? 0 : FrostySpacing.gutterPhone) + padding.right,
+            (tile ? 0 : OnsetSpacing.gutterPhone) + padding.right,
             tile ? 0 : 6,
           ),
           child: content,
@@ -135,7 +135,7 @@ class StreamCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: large ? 12 : 11,
                     fontWeight: FontWeight.w500,
-                    color: FrostyTokens.textBodyDark,
+                    color: OnsetTokens.textBodyDark,
                     height: 1,
                   ),
                 ),
@@ -185,7 +185,7 @@ class StreamCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontFamily: FrostyTokens.displayFamily,
+                  fontFamily: OnsetTokens.displayFamily,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                   letterSpacing: -0.01 * 15,
@@ -209,7 +209,7 @@ class StreamCard extends StatelessWidget {
             '${formatViewers(streamInfo.viewerCount, compact: false)} viewers',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: FrostyType.tabular(
+            style: OnsetType.tabular(
               TextStyle(fontSize: 12, color: colors.secondary),
             ),
           ),
@@ -230,7 +230,7 @@ class StreamCard extends StatelessWidget {
         if (!showThumbnail)
           // Without a thumbnail, the viewers and uptime come in the text.
           DefaultTextStyle.merge(
-            style: FrostyType.tabular(
+            style: OnsetType.tabular(
               TextStyle(fontSize: 12, color: colors.secondary),
             ),
             child: Row(
@@ -240,7 +240,7 @@ class StreamCard extends StatelessWidget {
                   width: 6,
                   height: 6,
                   decoration: BoxDecoration(
-                    color: context.frostyColors.live,
+                    color: context.onsetColors.live,
                     shape: BoxShape.circle,
                   ),
                 ),

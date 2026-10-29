@@ -19,7 +19,7 @@ void main() {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       MaterialApp(
         theme: themes.light,
@@ -40,7 +40,7 @@ void main() {
   });
 
   test('dark digits on the lime accent, light ones on a dark accent', () {
-    expect(onFillColor(FrostyTokens.accent), FrostyTokens.backgroundDark);
+    expect(onFillColor(OnsetTokens.accent), OnsetTokens.backgroundDark);
     expect(onFillColor(const Color(0xFF3A1A8A)), Colors.white);
   });
 

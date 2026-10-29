@@ -9,10 +9,10 @@ import 'package:onset/screens/vod/widgets/video_kit.dart';
 import 'package:onset/screens/vod/widgets/vod_chat_message.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
-import 'package:onset/widgets/frosty_scrollbar.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/onset_scrollbar.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
 
 /// Why the replay's emotes may differ from the broadcast's.
@@ -126,7 +126,7 @@ class _VodChatReplayState extends State<VodChatReplay> {
             style: context.defaultTextStyle.copyWith(
               fontSize: settings.fontSize,
             ),
-            child: FrostyScrollbar(
+            child: OnsetScrollbar(
               controller: store.scrollController,
               child: ListView.builder(
                 reverse: true,
@@ -150,7 +150,7 @@ class _VodChatReplayState extends State<VodChatReplay> {
               context,
               const Duration(milliseconds: 280),
             ),
-            switchInCurve: FrostyMotion.standard,
+            switchInCurve: OnsetMotion.standard,
             transitionBuilder: (child, animation) => FadeTransition(
               opacity: animation,
               child: reduceMotionOf(context)
@@ -200,7 +200,7 @@ class _ReplayHeader extends StatelessWidget {
               border: Border(
                 bottom: BorderSide(
                   color: colors.hairline,
-                  width: FrostyTokens.hairlineWidth,
+                  width: OnsetTokens.hairlineWidth,
                 ),
               ),
             )
@@ -230,7 +230,7 @@ class _ReplayHeader extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontFamily: FrostyTokens.bodyFamily,
+                          fontFamily: OnsetTokens.bodyFamily,
                           fontSize: large ? 15 : 14,
                           fontWeight: FontWeight.w700,
                           color: colors.text,
@@ -285,7 +285,7 @@ class _EmotesNote extends StatelessWidget {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
       duration: motionDuration(context, const Duration(milliseconds: 220)),
-      curve: FrostyMotion.standard,
+      curve: OnsetMotion.standard,
       builder: (context, t, child) => Opacity(
         opacity: t,
         child: Transform.translate(
@@ -300,11 +300,11 @@ class _EmotesNote extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
-              color: dark ? FrostyTokens.raisedDark : colors.surface,
+              color: dark ? OnsetTokens.raisedDark : colors.surface,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: colors.pillBorder,
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               ),
               boxShadow: const [
                 BoxShadow(
@@ -317,7 +317,7 @@ class _EmotesNote extends StatelessWidget {
             child: Text(
               kReplayEmotesNote,
               style: TextStyle(
-                fontFamily: FrostyTokens.bodyFamily,
+                fontFamily: OnsetTokens.bodyFamily,
                 fontSize: 13,
                 height: 1.45,
                 color: colors.body,
@@ -369,7 +369,7 @@ class ReplayLoading extends StatelessWidget {
                 Text(
                   'Loading chat replay',
                   style: TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 12,
                     color: colors.tertiary,
                   ),
@@ -412,11 +412,11 @@ class ResumeScrollPill extends StatelessWidget {
 
   Widget _pill(FeedColors colors, bool dark) {
     return Material(
-      color: dark ? FrostyTokens.raisedDark : colors.surface,
+      color: dark ? OnsetTokens.raisedDark : colors.surface,
       shape: StadiumBorder(
         side: BorderSide(
-          color: dark ? FrostyTokens.hairlineStrongDark : colors.pillBorder,
-          width: FrostyTokens.hairlineWidth,
+          color: dark ? OnsetTokens.hairlineStrongDark : colors.pillBorder,
+          width: OnsetTokens.hairlineWidth,
         ),
       ),
       clipBehavior: Clip.antiAlias,
@@ -438,7 +438,7 @@ class ResumeScrollPill extends StatelessWidget {
               Text(
                 'Resume scroll',
                 style: TextStyle(
-                  fontFamily: FrostyTokens.bodyFamily,
+                  fontFamily: OnsetTokens.bodyFamily,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: colors.text,

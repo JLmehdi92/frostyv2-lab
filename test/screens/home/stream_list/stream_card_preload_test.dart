@@ -50,7 +50,7 @@ void main() {
         Provider<SettingsStore>.value(
           value: SettingsStore.fromJson({}),
           child: MaterialApp(
-            theme: ThemeData(extensions: const [FrostyColors.light]),
+            theme: ThemeData(extensions: const [OnsetColors.light]),
             home: Scaffold(body: SingleChildScrollView(child: card)),
           ),
         ),
@@ -70,7 +70,7 @@ void main() {
         Provider<SettingsStore>.value(
           value: SettingsStore.fromJson({}),
           child: MaterialApp(
-            theme: ThemeData(extensions: const [FrostyColors.light]),
+            theme: ThemeData(extensions: const [OnsetColors.light]),
             home: Scaffold(body: SingleChildScrollView(child: card)),
           ),
         ),

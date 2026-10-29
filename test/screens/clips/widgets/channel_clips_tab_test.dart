@@ -47,7 +47,7 @@ void main() {
     addTearDown(tester.view.reset);
     return tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData(extensions: const [FrostyColors.light]),
+        theme: ThemeData(extensions: const [OnsetColors.light]),
         home: Scaffold(body: ChannelClipsTab(store: store)),
       ),
     );

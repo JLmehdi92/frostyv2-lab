@@ -142,10 +142,10 @@ class _VodSeekBarState extends State<VodSeekBar> {
                         // Board Rediff: the signal for what was played,
                         // white 22 % / 38 % for the track and the buffer,
                         // the muted parts as light ticks above.
-                        playedColor: context.frostyColors.live,
+                        playedColor: context.onsetColors.live,
                         trackColor: Colors.white.withValues(alpha: 0.22),
                         bufferedColor: Colors.white.withValues(alpha: 0.38),
-                        mutedColor: FrostyTokens.textBodyDark,
+                        mutedColor: OnsetTokens.textBodyDark,
                       ),
                     ),
                   ),

@@ -239,7 +239,7 @@ class ChatTabs extends StatelessWidget {
             displayName,
             style: isActivated
                 ? null
-                : TextStyle(color: context.frostyColors.metadata),
+                : TextStyle(color: context.onsetColors.metadata),
           ),
           selected: isActive,
           showCheckmark: false,

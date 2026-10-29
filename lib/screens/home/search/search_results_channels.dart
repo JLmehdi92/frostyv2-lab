@@ -57,7 +57,7 @@ class SearchResultsChannels extends StatefulWidget {
     this.limit,
     this.large = false,
     this.columns = 1,
-    this.gutter = FrostySpacing.gutterPhone,
+    this.gutter = OnsetSpacing.gutterPhone,
     this.goTo = GoToStyle.row,
   });
 
@@ -371,13 +371,13 @@ class SearchChannelRow extends StatelessWidget {
                               width: 6,
                               height: 6,
                               decoration: BoxDecoration(
-                                color: context.frostyColors.live,
+                                color: context.onsetColors.live,
                                 shape: BoxShape.circle,
                               ),
                             ),
                             Uptime(
                               startTime: channel.startedAt,
-                              style: FrostyType.tabular(meta),
+                              style: OnsetType.tabular(meta),
                             ),
                             if (channel.gameName.isNotEmpty)
                               Flexible(
@@ -444,7 +444,7 @@ class _GoToChannel extends StatelessWidget {
             shape: StadiumBorder(
               side: BorderSide(
                 color: colors.pillBorder,
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               ),
             ),
             clipBehavior: Clip.antiAlias,
@@ -497,7 +497,7 @@ class _GoToChannel extends StatelessWidget {
                     color: colors.surface,
                     border: Border.all(
                       color: colors.pillBorder,
-                      width: FrostyTokens.hairlineWidth,
+                      width: OnsetTokens.hairlineWidth,
                     ),
                   ),
                   child: Icon(

@@ -256,7 +256,7 @@ class _OnboardingFlowState extends State<OnboardingFlow>
     if (_handStarted || !mounted) return;
     _handStarted = true;
     _hand.duration = _reduce
-        ? FrostyMotion.reducedFade
+        ? OnsetMotion.reducedFade
         : OnboardingFlow.handDuration;
     setState(() {});
     _hand.forward();
@@ -310,7 +310,7 @@ class _OnboardingFlowState extends State<OnboardingFlow>
       _rising = forward && !_reduce;
     });
     _switch.duration = _reduce
-        ? FrostyMotion.reducedFade
+        ? OnsetMotion.reducedFade
         : OnboardingFlow.stepDuration;
     _switch.forward(from: 0);
   }
@@ -417,7 +417,7 @@ class _OnboardingFlowState extends State<OnboardingFlow>
     if (step == _step) {
       if (!switching) return (1, 0);
       if (_reduce) return (v, 0);
-      final p = FrostyMotion.standard.transform((v / _enterShare).clamp(0, 1));
+      final p = OnsetMotion.standard.transform((v / _enterShare).clamp(0, 1));
       return (p, (_forward ? 32 : -32) * (1 - p));
     }
     if (step == _previous && switching) {
@@ -434,7 +434,7 @@ class _OnboardingFlowState extends State<OnboardingFlow>
       builder: (context) {
         final accent = Color(_settings.accentColor);
         return Theme(
-          data: FrostyThemes(colorSchemeSeed: accent).dark,
+          data: OnsetThemes(colorSchemeSeed: accent).dark,
           child: AnnotatedRegion<SystemUiOverlayStyle>(
             value: onboardingBars,
             child: PopScope(
@@ -479,7 +479,7 @@ class _OnboardingFlowState extends State<OnboardingFlow>
     final tileView = OnsetMarkTile(
       glow: [
         BoxShadow(
-          color: FrostyTokens.accent.withValues(alpha: 0.25),
+          color: OnsetTokens.accent.withValues(alpha: 0.25),
           blurRadius: tablet ? 48 : 40,
         ),
       ],
@@ -529,9 +529,7 @@ class _OnboardingFlowState extends State<OnboardingFlow>
       builder: (context, _) {
         // The hand-over: the tile from where the intro left it to its
         // place.
-        final slide = _reduce
-            ? 1.0
-            : _handSpan(240, 880, FrostyMotion.standard);
+        final slide = _reduce ? 1.0 : _handSpan(240, 880, OnsetMotion.standard);
         final launch =
             _launchTile ??
             Rect.fromCenter(
@@ -557,7 +555,7 @@ class _OnboardingFlowState extends State<OnboardingFlow>
         final mosaic = _handSpan(
           tablet ? 560 : 280,
           tablet ? 1460 : 1180,
-          FrostyMotion.standard,
+          OnsetMotion.standard,
         );
         final bar = _handSpan(tablet ? 860 : 600, tablet ? 1460 : 1200);
 
@@ -844,7 +842,7 @@ class _Geometry {
         landscape: true,
         brand: Rect.fromLTWH(0, 0, pane, h),
         mosaic: Rect.fromLTWH(0, 0, pane, h),
-        divider: Rect.fromLTWH(pane, 0, FrostyTokens.hairlineWidth, h),
+        divider: Rect.fromLTWH(pane, 0, OnsetTokens.hairlineWidth, h),
         steps: steps,
         bar: Rect.fromLTWH(pane, padding.top, w - pane, 72),
         barSide: 28,
@@ -869,7 +867,7 @@ class _Geometry {
       landscape: false,
       brand: Rect.fromLTWH(0, 0, w, pane),
       mosaic: Rect.fromLTWH(0, 0, w, pane),
-      divider: Rect.fromLTWH(0, pane, w, FrostyTokens.hairlineWidth),
+      divider: Rect.fromLTWH(0, pane, w, OnsetTokens.hairlineWidth),
       steps: Rect.fromLTWH(0, pane, w, h - pane),
       bar: Rect.fromLTWH(0, pane, w, 72),
       barSide: 28,
@@ -989,7 +987,7 @@ class _Progress extends StatelessWidget {
           for (var i = 0; i < 4; i++)
             AnimatedContainer(
               duration: width,
-              curve: FrostyMotion.standard,
+              curve: OnsetMotion.standard,
               width: i == index ? 28 : 14,
               height: 4,
               decoration: BoxDecoration(

@@ -91,8 +91,8 @@ void main() {
             brightness: brightness,
             extensions: [
               brightness == Brightness.dark
-                  ? FrostyColors.dark
-                  : FrostyColors.light,
+                  ? OnsetColors.dark
+                  : OnsetColors.light,
             ],
           ),
           home: ChannelVideosScreen(

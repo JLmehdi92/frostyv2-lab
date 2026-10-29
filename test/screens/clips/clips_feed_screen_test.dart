@@ -12,7 +12,7 @@ import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/vod/vod_player_controller.dart';
 import 'package:onset/services/playback_focus.dart';
 import 'package:onset/stores/mini_player_store.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
 import 'package:provider/provider.dart';
 
@@ -623,8 +623,8 @@ void main() {
   ) async {
     String thumb(String slug) => 'https://clips-media.example/$slug.jpg';
     int? decodedWidth(String slug) => tester
-        .widgetList<FrostyCachedNetworkImage>(
-          find.byType(FrostyCachedNetworkImage),
+        .widgetList<OnsetCachedNetworkImage>(
+          find.byType(OnsetCachedNetworkImage),
         )
         .where((image) => image.imageUrl == thumb(slug))
         .map((image) => image.memCacheWidth)
@@ -671,8 +671,8 @@ void main() {
     await gesture.moveBy(const Offset(0, 150));
     await tester.pump();
     final pictures = tester
-        .widgetList<FrostyCachedNetworkImage>(
-          find.byType(FrostyCachedNetworkImage),
+        .widgetList<OnsetCachedNetworkImage>(
+          find.byType(OnsetCachedNetworkImage),
         )
         .where((image) => image.imageUrl == thumb('a'))
         .where((image) => image.memCacheWidth != 24);

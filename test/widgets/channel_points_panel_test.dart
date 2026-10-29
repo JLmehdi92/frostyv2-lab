@@ -95,7 +95,7 @@ void main() {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    const themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    const themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     final chatWidth = size.width > size.height ? 400.0 : size.width;
     await tester.pumpWidget(
       MaterialApp(

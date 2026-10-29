@@ -132,7 +132,7 @@ abstract final class HtDims {
 
 /// Twitch's type styles on Inter (Roobert maps to Inter on Twitch too).
 abstract final class HtType {
-  static const _family = FrostyTokens.displayFamily;
+  static const _family = OnsetTokens.displayFamily;
 
   static const titleExtraSmall = TextStyle(
     fontFamily: _family,

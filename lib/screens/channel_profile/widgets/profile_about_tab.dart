@@ -6,7 +6,7 @@ import 'package:onset/screens/channel_profile/widgets/profile_header.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_parts.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:simple_icons/simple_icons.dart';
 
 /// The icon of a social site, by Twitch's key; a link icon otherwise.
@@ -69,7 +69,7 @@ class ProfileAboutContent extends StatelessWidget {
             if (facts.isNotEmpty)
               Text(
                 facts.join(' · '),
-                style: FrostyType.tabular(
+                style: OnsetType.tabular(
                   TextStyle(fontSize: 13, height: 1.4, color: colors.secondary),
                 ),
               ),
@@ -143,7 +143,7 @@ class ProfilePanel extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 320),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: FrostyCachedNetworkImage(
+          child: OnsetCachedNetworkImage(
             imageUrl: image,
             fit: BoxFit.fitWidth,
             memCacheWidth: 640,

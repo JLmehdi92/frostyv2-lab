@@ -11,7 +11,7 @@ import 'package:onset/widgets/sheet/onset_sheet.dart';
 ///
 /// Twitch only offers the 1440p HEVC / AV1 tracks of some streams to an
 /// authenticated viewer, and its GQL endpoint rejects tokens minted for
-/// Frosty's own client-id — so the web token is the only way to ask for them.
+/// the app's own client-id — so the web token is the only way to ask for them.
 /// Leaving it empty keeps the previous anonymous behaviour.
 class SettingsTwitchWebToken extends StatelessWidget {
   final AuthStore authStore;
@@ -58,7 +58,7 @@ class SettingsTwitchWebToken extends StatelessWidget {
                 shape: StadiumBorder(
                   side: BorderSide(
                     color: colors.buttonRing,
-                    width: FrostyTokens.hairlineWidth,
+                    width: OnsetTokens.hairlineWidth,
                   ),
                 ),
               ),
@@ -75,7 +75,7 @@ class SettingsTwitchWebToken extends StatelessWidget {
                   Text(
                     set ? '••••••' : 'Not set',
                     style: TextStyle(
-                      fontFamily: FrostyTokens.bodyFamily,
+                      fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.96,
@@ -151,7 +151,7 @@ class _WebTokenDialogState extends State<_WebTokenDialog> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: colors.trackRing,
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               ),
             ),
             child: Row(
@@ -167,7 +167,7 @@ class _WebTokenDialogState extends State<_WebTokenDialog> {
                   child: Text(
                     isSet ? 'A token is set.' : 'No token set.',
                     style: TextStyle(
-                      fontFamily: FrostyTokens.bodyFamily,
+                      fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: colors.text,
@@ -182,7 +182,7 @@ class _WebTokenDialogState extends State<_WebTokenDialog> {
                       minimumSize: const Size(0, 40),
                       shape: const StadiumBorder(),
                       textStyle: const TextStyle(
-                        fontFamily: FrostyTokens.bodyFamily,
+                        fontFamily: OnsetTokens.bodyFamily,
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                       ),
@@ -199,7 +199,7 @@ class _WebTokenDialogState extends State<_WebTokenDialog> {
             enableSuggestions: false,
             cursorColor: accent,
             style: TextStyle(
-              fontFamily: FrostyTokens.bodyFamily,
+              fontFamily: OnsetTokens.bodyFamily,
               fontSize: 15,
               fontWeight: FontWeight.w500,
               letterSpacing: 1.5,

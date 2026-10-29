@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:onset/main.dart';
 import 'package:onset/screens/onboarding/login_webview.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
-import 'package:onset/widgets/frosty_dialog.dart';
+import 'package:onset/widgets/onset_alert_dialog.dart';
 import 'package:provider/provider.dart';
 
 /// Dio interceptor that catches 401 Unauthorized errors and shows a login dialog
@@ -60,7 +60,7 @@ class UnauthorizedInterceptor extends Interceptor {
       context: context,
       barrierDismissible: false, // User must choose an action
       builder: (BuildContext dialogContext) {
-        return FrostyDialog(
+        return OnsetAlertDialog(
           title: title,
           message: message,
           actions: [

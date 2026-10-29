@@ -20,7 +20,7 @@ class IvsStatsPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     // Board ChaineLecteur: light on black 60 %, 10.5 sp tabular figures,
     // the labels at 66 %.
-    const textColor = FrostyTokens.textPrimaryDark;
+    const textColor = OnsetTokens.textPrimaryDark;
     const style = TextStyle(
       color: textColor,
       fontSize: 10.5,
@@ -36,10 +36,10 @@ class IvsStatsPanel extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: Colors.black.withValues(alpha: 0.6),
-          borderRadius: BorderRadius.circular(FrostyTokens.radiusSmall),
+          borderRadius: BorderRadius.circular(OnsetTokens.radiusSmall),
           border: Border.all(
             color: Colors.white.withValues(alpha: 0.10),
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
         child: Padding(

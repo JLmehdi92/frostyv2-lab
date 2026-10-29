@@ -11,7 +11,7 @@ import 'package:onset/screens/settings/widgets/settings_glyph.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
 import 'package:onset/screens/settings/widgets/settings_page.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
 
 /// Account settings only twitch.tv can change: password, email, phone,
@@ -72,7 +72,7 @@ class AccountSettings extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontFamily: FrostyTokens.bodyFamily,
+                                fontFamily: OnsetTokens.bodyFamily,
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
                                 letterSpacing: -0.27,
@@ -84,7 +84,7 @@ class AccountSettings extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontFamily: FrostyTokens.bodyFamily,
+                                fontFamily: OnsetTokens.bodyFamily,
                                 fontSize: 13,
                                 color: colors.secondary,
                               ),
@@ -194,7 +194,7 @@ class SettingsAvatar extends StatelessWidget {
             ? '?'
             : user.displayName.characters.first.toUpperCase(),
         style: TextStyle(
-          fontFamily: FrostyTokens.bodyFamily,
+          fontFamily: OnsetTokens.bodyFamily,
           fontSize: size * 0.4,
           fontWeight: FontWeight.w800,
           color: colors.secondary,
@@ -207,7 +207,7 @@ class SettingsAvatar extends StatelessWidget {
           dimension: size,
           child: user.profileImageUrl.isEmpty
               ? placeholder
-              : FrostyCachedNetworkImage(
+              : OnsetCachedNetworkImage(
                   imageUrl: user.profileImageUrl,
                   width: size,
                   height: size,
@@ -309,7 +309,7 @@ class ProfileLoginCard extends StatelessWidget {
                 ? null
                 : Border.all(
                     color: colors.buttonRing,
-                    width: FrostyTokens.hairlineWidth,
+                    width: OnsetTokens.hairlineWidth,
                   ),
           ),
           child: SettingsGlyph(
@@ -333,7 +333,7 @@ class ProfileLoginCard extends StatelessWidget {
                     child: Text(
                       error ? 'Unable to connect to Twitch' : 'Anonymous',
                       style: TextStyle(
-                        fontFamily: FrostyTokens.bodyFamily,
+                        fontFamily: OnsetTokens.bodyFamily,
                         fontSize: error ? 20 : 24,
                         fontWeight: FontWeight.w800,
                         letterSpacing: error ? -0.4 : -0.72,
@@ -347,7 +347,7 @@ class ProfileLoginCard extends StatelessWidget {
                         ? 'Check your connection, then try again'
                         : 'Watching without an account',
                     style: TextStyle(
-                      fontFamily: FrostyTokens.bodyFamily,
+                      fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 13,
                       color: colors.secondary,
                     ),
@@ -398,7 +398,7 @@ class ProfileLoginCard extends StatelessWidget {
               "official Twitch API. You'll be able to review them before "
               'authorizing.',
               style: TextStyle(
-                fontFamily: FrostyTokens.bodyFamily,
+                fontFamily: OnsetTokens.bodyFamily,
                 fontSize: 12,
                 height: 1.5,
                 color: colors.tertiary,
@@ -411,13 +411,13 @@ class ProfileLoginCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: colors.cardRing,
-                  width: FrostyTokens.hairlineWidth,
+                  width: OnsetTokens.hairlineWidth,
                 ),
               ),
               child: Text(
                 'Have a token copied? Long-press this card to log in with it.',
                 style: TextStyle(
-                  fontFamily: FrostyTokens.bodyFamily,
+                  fontFamily: OnsetTokens.bodyFamily,
                   fontSize: 12,
                   height: 1.5,
                   color: colors.secondary,
@@ -432,7 +432,7 @@ class ProfileLoginCard extends StatelessWidget {
             behavior: HitTestBehavior.translucent,
             onLongPress: error ? null : () => loginFromClipboard(authStore),
             child: SettingsCard(
-              radius: FrostyTokens.radiusLarge,
+              radius: OnsetTokens.radiusLarge,
               padding: const EdgeInsets.all(20),
               ring: error ? colors.dangerFill.withValues(alpha: 0.35) : null,
               child: Column(

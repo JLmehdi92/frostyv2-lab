@@ -221,14 +221,14 @@ class _WhispersScreenState extends State<WhispersScreen>
       await _slide.animateTo(
         0,
         duration: Duration(milliseconds: (340 * value).round()),
-        curve: FrostyMotion.standard,
+        curve: OnsetMotion.standard,
       );
       _closed();
     } else {
       await _slide.animateTo(
         1,
         duration: Duration(milliseconds: (340 * (1 - value)).round()),
-        curve: FrostyMotion.standard,
+        curve: OnsetMotion.standard,
       );
       if (mounted) setState(() => _dragging = false);
     }
@@ -290,7 +290,7 @@ class _WhispersScreenState extends State<WhispersScreen>
       builder: (context, _) {
         final t = _dragging
             ? _slide.value
-            : FrostyMotion.standard.transform(_slide.value);
+            : OnsetMotion.standard.transform(_slide.value);
         final showList =
             (!widget.conversationOnly || selected == null) && _slide.value < 1;
         final showConversation =
@@ -378,10 +378,10 @@ class _WhispersScreenState extends State<WhispersScreen>
     final unread = widget.store.unreadCount;
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        FrostySpacing.gutterTablet + padding.left,
+        OnsetSpacing.gutterTablet + padding.left,
         padding.top + 12,
-        FrostySpacing.gutterTablet + padding.right,
-        FrostySpacing.gutterTablet + padding.bottom,
+        OnsetSpacing.gutterTablet + padding.right,
+        OnsetSpacing.gutterTablet + padding.bottom,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -418,7 +418,7 @@ class _WhispersScreenState extends State<WhispersScreen>
                       ),
                       Text(
                         unread > 0 ? '$unread unread' : 'All read',
-                        style: FrostyType.tabular(
+                        style: OnsetType.tabular(
                           TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
@@ -456,10 +456,10 @@ class _WhispersScreenState extends State<WhispersScreen>
               clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
                 color: colors.pane,
-                borderRadius: BorderRadius.circular(FrostyTokens.radiusLarge),
+                borderRadius: BorderRadius.circular(OnsetTokens.radiusLarge),
                 border: Border.all(
                   color: colors.paneRing,
-                  width: FrostyTokens.hairlineWidth,
+                  width: OnsetTokens.hairlineWidth,
                 ),
               ),
               child: MediaQuery.removePadding(
@@ -510,7 +510,7 @@ class _ListPage extends StatelessWidget {
             border: Border(
               bottom: BorderSide(
                 color: colors.hairline,
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               ),
             ),
           ),

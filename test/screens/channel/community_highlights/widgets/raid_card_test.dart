@@ -47,7 +47,7 @@ void main() {
       ..physicalSize = const Size(1280, 1280)
       ..devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    const themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    const themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       MaterialApp(
         theme: brightness == Brightness.dark ? themes.dark : themes.light,

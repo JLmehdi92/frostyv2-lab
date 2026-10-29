@@ -110,8 +110,8 @@ class _RaidHeadingOverlayState extends State<RaidHeadingOverlay>
     _started = true;
     final reduce = reduceMotionOf(context);
     _controller.duration = widget.leaving
-        ? (reduce ? FrostyMotion.reducedFade : _leaving)
-        : (reduce ? FrostyMotion.reducedFade : _arriving);
+        ? (reduce ? OnsetMotion.reducedFade : _leaving)
+        : (reduce ? OnsetMotion.reducedFade : _arriving);
     _controller.forward().whenCompleteOrCancel(() {
       if (mounted && !widget.leaving) widget.onDone?.call();
     });
@@ -151,16 +151,16 @@ class _RaidHeadingOverlayState extends State<RaidHeadingOverlay>
               } else {
                 final ms = v * _leaving.inMilliseconds;
                 fade = _phase(ms, 380, 600, Curves.ease);
-                avatar = _phase(ms, 440, 1080, FrostyMotion.standard);
+                avatar = _phase(ms, 440, 1080, OnsetMotion.standard);
                 ring = _phase(ms, 500, 1400, Curves.fastOutSlowIn);
-                text = _phase(ms, 640, 960, FrostyMotion.standard);
+                text = _phase(ms, 640, 960, OnsetMotion.standard);
               }
               if (fade <= 0) return const SizedBox.shrink();
               return Opacity(
                 opacity: fade,
                 child: ColoredBox(
                   key: RaidHeadingOverlay.scrimKey,
-                  color: FrostyTokens.backgroundDark.withValues(alpha: 0.9),
+                  color: OnsetTokens.backgroundDark.withValues(alpha: 0.9),
                   child: Center(
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
@@ -201,18 +201,18 @@ class _RaidHeadingOverlayState extends State<RaidHeadingOverlay>
                                       Text(
                                         'Heading to ${arrival.targetName}',
                                         style: const TextStyle(
-                                          fontFamily: FrostyTokens.bodyFamily,
+                                          fontFamily: OnsetTokens.bodyFamily,
                                           fontSize: 16,
                                           fontWeight: FontWeight.w700,
-                                          color: FrostyTokens.textPrimaryDark,
+                                          color: OnsetTokens.textPrimaryDark,
                                         ),
                                       ),
                                       Text(
                                         '${raidViewers(arrival.viewers)} coming with you',
                                         style: const TextStyle(
-                                          fontFamily: FrostyTokens.bodyFamily,
+                                          fontFamily: OnsetTokens.bodyFamily,
                                           fontSize: 12.5,
-                                          color: FrostyTokens.textSecondaryDark,
+                                          color: OnsetTokens.textSecondaryDark,
                                         ),
                                       ),
                                     ],
@@ -252,7 +252,7 @@ class _SweepPainter extends CustomPainter {
       0,
       math.pi * 2,
       false,
-      paint..color = FrostyTokens.accent.withValues(alpha: 0.16),
+      paint..color = OnsetTokens.accent.withValues(alpha: 0.16),
     );
     if (progress <= 0) return;
     canvas.drawArc(
@@ -261,7 +261,7 @@ class _SweepPainter extends CustomPainter {
       math.pi * 2 * progress,
       false,
       paint
-        ..color = FrostyTokens.accent
+        ..color = OnsetTokens.accent
         ..strokeCap = StrokeCap.round,
     );
   }

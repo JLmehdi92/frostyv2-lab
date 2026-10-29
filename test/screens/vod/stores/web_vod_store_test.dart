@@ -219,12 +219,12 @@ void main() {
   group("twitch's web content gate", () {
     test('nothing clicks it before the viewer accepts', () async {
       await Future<void>.delayed(Duration.zero);
-      expect(scripts.where((s) => s.contains('_frostyGateOk = true')), isEmpty);
+      expect(scripts.where((s) => s.contains('_onsetGateOk = true')), isEmpty);
       // The page only ever clicks it behind the viewer's consent.
       final bridge = WebVodStoreBase.bridgeScript;
       expect(bridge, contains('content-classification-gate'));
       expect(
-        bridge.indexOf('window._frostyGateOk === true'),
+        bridge.indexOf('window._onsetGateOk === true'),
         lessThan(bridge.indexOf('.click()')),
       );
     });
@@ -232,7 +232,7 @@ void main() {
     test("the viewer's acceptance lets the page click it", () async {
       store.acceptContentGate();
       await Future<void>.delayed(Duration.zero);
-      expect(scripts, contains('window._frostyGateOk = true;'));
+      expect(scripts, contains('window._onsetGateOk = true;'));
     });
 
     test('a player built after the acceptance clicks it too', () async {
@@ -242,7 +242,7 @@ void main() {
         controller: web,
       );
       await Future<void>.delayed(Duration.zero);
-      expect(scripts, contains('window._frostyGateOk = true;'));
+      expect(scripts, contains('window._onsetGateOk = true;'));
       accepted.dispose();
     });
 
@@ -291,7 +291,7 @@ void main() {
       store.toggleLoop();
       await Future<void>.delayed(Duration.zero);
       expect(store.looping, isTrue);
-      expect(scripts, contains('window._frostyLoop = true;'));
+      expect(scripts, contains('window._onsetLoop = true;'));
     });
 
     test('loop is a boolean literal on the video element', () async {

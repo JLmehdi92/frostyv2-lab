@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/utils/https_url.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/profile_picture.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:provider/provider.dart';
@@ -29,7 +29,7 @@ class RaidAvatar extends StatelessWidget {
     final Widget picture;
     if (url != null) {
       picture = ClipOval(
-        child: FrostyCachedNetworkImage(
+        child: OnsetCachedNetworkImage(
           imageUrl: url,
           width: size,
           height: size,

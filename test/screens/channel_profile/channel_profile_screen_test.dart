@@ -140,7 +140,7 @@ void main() {
       ..physicalSize = size
       ..devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    const themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    const themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       MultiProvider(
         providers: [
@@ -689,7 +689,7 @@ void main() {
 
     testWidgets('a hidden avatar does not pulse', (tester) async {
       Widget avatar({required bool shown}) => MaterialApp(
-        theme: ThemeData(extensions: const [FrostyColors.dark]),
+        theme: ThemeData(extensions: const [OnsetColors.dark]),
         home: ProfileAvatarShown(
           shown: shown,
           child: const Center(

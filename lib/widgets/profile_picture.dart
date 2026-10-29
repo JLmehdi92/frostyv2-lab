@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:onset/apis/twitch_api.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:provider/provider.dart';
 
 class ProfilePicture extends StatefulWidget {
@@ -64,7 +64,7 @@ class _ProfilePictureState extends State<ProfilePicture> {
         future: _getProfileImageUrl(),
         builder: (context, snapshot) {
           return snapshot.hasData
-              ? FrostyCachedNetworkImage(
+              ? OnsetCachedNetworkImage(
                   width: diameter,
                   height: diameter,
                   imageUrl: snapshot.data!,

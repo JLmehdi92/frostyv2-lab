@@ -9,12 +9,12 @@ abstract interface class WebPagePlayer {
   bool get webGateVisible;
 }
 
-/// Page JavaScript declaring `frostyGateShown()`: whether Twitch's content
+/// Page JavaScript declaring `onsetGateShown()`: whether Twitch's content
 /// warning (or its older mature interstitial) is visible in the page. A node
 /// left hidden in the page does not count, so our controls never stay away
 /// over a warning nobody sees.
 const kTwitchWebGateShownJs = '''
-      const frostyGateShown = () => Array.from(document.querySelectorAll(
+      const onsetGateShown = () => Array.from(document.querySelectorAll(
         '[data-a-target*="content-classification-gate"],' +
         '[data-a-target="player-overlay-mature-accept"]'
       )).some((e) => e.getClientRects().length > 0 &&

@@ -179,7 +179,7 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
                           border: Border.fromBorderSide(
                             BorderSide(
                               color: Color(0x29FFFFFF),
-                              width: FrostyTokens.hairlineWidth,
+                              width: OnsetTokens.hairlineWidth,
                             ),
                           ),
                         ),
@@ -267,7 +267,7 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
                 builder: (context, dragging, child) => AnimatedScale(
                   scale: dragging && !reduceMotion ? 1.04 : 1,
                   duration: const Duration(milliseconds: 90),
-                  curve: FrostyMotion.standard,
+                  curve: OnsetMotion.standard,
                   child: child,
                 ),
                 child: content,
@@ -325,7 +325,7 @@ class MiniWindowPlacement extends StatelessWidget {
       duration: glide && !reduceMotionOf(context)
           ? glideDuration
           : Duration.zero,
-      curve: FrostyMotion.standard,
+      curve: OnsetMotion.standard,
       builder: (context, value, child) {
         onDrawn?.call(value);
         return Transform.translate(offset: value, child: child);
@@ -449,7 +449,7 @@ class _CloseButton extends StatelessWidget {
                   border: Border.fromBorderSide(
                     BorderSide(
                       color: Color(0x2EFFFFFF),
-                      width: FrostyTokens.hairlineWidth,
+                      width: OnsetTokens.hairlineWidth,
                     ),
                   ),
                 ),
@@ -495,7 +495,7 @@ class _CornerTargets extends StatelessWidget {
             painter: _CornerTargetsPainter(
               area: area,
               nearest: area.nearest(offset ?? area.initial),
-              accent: context.frostyColors.live,
+              accent: context.onsetColors.live,
             ),
           ),
         );

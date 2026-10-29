@@ -7,8 +7,8 @@ import 'package:onset/screens/channel/chat/details/chat_details_store.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/widgets/frosty_scrollbar.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/onset_scrollbar.dart';
 import 'package:onset/widgets/scroll_to_top_button.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
@@ -103,7 +103,7 @@ class _ChattersListState extends State<ChattersList> {
                         color: focused
                             ? accent.withValues(alpha: 0.55)
                             : colors.ring,
-                        width: focused ? 1 : FrostyTokens.hairlineWidth,
+                        width: focused ? 1 : OnsetTokens.hairlineWidth,
                       ),
                     ),
                     child: Row(
@@ -179,7 +179,7 @@ class _ChattersListState extends State<ChattersList> {
               child: Stack(
                 alignment: AlignmentDirectional.bottomCenter,
                 children: [
-                  FrostyScrollbar(
+                  OnsetScrollbar(
                     controller: store.scrollController,
                     child: Observer(
                       builder: (context) {
@@ -203,7 +203,7 @@ class _ChattersListState extends State<ChattersList> {
                                     '${NumberFormat().format(store.chatUsers.length)} chatters found',
                                     style: SheetText.tabular(
                                       TextStyle(
-                                        fontFamily: FrostyTokens.bodyFamily,
+                                        fontFamily: OnsetTokens.bodyFamily,
                                         fontSize: 13,
                                         color: colors.secondary,
                                       ),

@@ -226,7 +226,7 @@ class ChatMessage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: colors.hairline,
-                  width: FrostyTokens.hairlineWidth,
+                  width: OnsetTokens.hairlineWidth,
                 ),
               ),
               child: Text.rich(
@@ -317,7 +317,7 @@ class ChatMessage extends StatelessWidget {
     final defaultTextStyle = DefaultTextStyle.of(context).style;
     final messageHeaderIconSize =
         defaultBadgeSize * chatStore.settings.badgeScale;
-    final messageHeaderTextColor = context.frostyColors.metadata;
+    final messageHeaderTextColor = context.onsetColors.metadata;
     const messageHeaderFontWeight = FontWeight.w600;
 
     return Observer(
@@ -411,7 +411,7 @@ class ChatMessage extends StatelessWidget {
                 ),
               );
             } else if (shouldHighlightFirstMessage) {
-              highlightColor = context.frostyColors.highlightedMessage;
+              highlightColor = context.onsetColors.highlightedMessage;
               messageHeaderIcon = Icon(
                 Icons.auto_awesome_rounded,
                 size: messageHeaderIconSize,
@@ -425,7 +425,7 @@ class ChatMessage extends StatelessWidget {
                 ),
               );
             } else if (shouldHighlightMessage) {
-              highlightColor = context.frostyColors.highlightedMessage;
+              highlightColor = context.onsetColors.highlightedMessage;
               messageHeader = Text(
                 'Highlighted message',
                 style: TextStyle(
@@ -564,7 +564,7 @@ class ChatMessage extends StatelessWidget {
             break;
           case Command.notice:
             // Les notices portent des comptes a rebours : chasse fixe.
-            final noticeStyle = context.frostyText.metadata;
+            final noticeStyle = context.onsetText.metadata;
             if (ircMessage.raidArrival case final arrival?) {
               // The welcome of a raid the viewer followed: its own card.
               isNoticeRow = true;
@@ -815,6 +815,6 @@ class ChatMessage extends StatelessWidget {
         AnnouncementColor.green => const Color(0xFF2FCE6E),
         AnnouncementColor.orange => const Color(0xFFFF9147),
         AnnouncementColor.purple => const Color(0xFFB15CFF),
-        AnnouncementColor.primary || null => context.frostyColors.live,
+        AnnouncementColor.primary || null => context.onsetColors.live,
       };
 }

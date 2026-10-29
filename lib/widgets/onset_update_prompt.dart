@@ -118,10 +118,10 @@ Future<bool?> _askUpdate(BuildContext context, UpdateAvailable update) {
         elevation: 0,
         insetPadding: const EdgeInsets.all(40),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(FrostyTokens.radiusLarge),
+          borderRadius: BorderRadius.circular(OnsetTokens.radiusLarge),
           side: BorderSide(
             color: colors.cardRing,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
         child: SizedBox(
@@ -146,7 +146,7 @@ Future<bool?> _askUpdate(BuildContext context, UpdateAvailable update) {
     clipBehavior: Clip.antiAlias,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(
-        top: Radius.circular(FrostyTokens.radiusLarge),
+        top: Radius.circular(OnsetTokens.radiusLarge),
       ),
     ),
     builder: (context) => PopScope(
@@ -241,7 +241,7 @@ class UpdateAvailableDialog extends StatelessWidget {
                         height: 24,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: FrostyTokens.backgroundDark,
+                          color: OnsetTokens.backgroundDark,
                           shape: BoxShape.circle,
                           border: Border.all(color: colors.sheet, width: 2),
                         ),
@@ -264,7 +264,7 @@ class UpdateAvailableDialog extends StatelessWidget {
                     Text(
                       'NEW BUILD',
                       style: TextStyle(
-                        fontFamily: FrostyTokens.bodyFamily,
+                        fontFamily: OnsetTokens.bodyFamily,
                         fontSize: 10.5,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 1.26,
@@ -276,7 +276,7 @@ class UpdateAvailableDialog extends StatelessWidget {
                       child: Text(
                         'Update available',
                         style: TextStyle(
-                          fontFamily: FrostyTokens.bodyFamily,
+                          fontFamily: OnsetTokens.bodyFamily,
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.55,
@@ -297,7 +297,7 @@ class UpdateAvailableDialog extends StatelessWidget {
               Text(
                 'ONSET build ${release.build} is ready.',
                 style: TextStyle(
-                  fontFamily: FrostyTokens.bodyFamily,
+                  fontFamily: OnsetTokens.bodyFamily,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: colors.text,
@@ -305,9 +305,9 @@ class UpdateAvailableDialog extends StatelessWidget {
               ),
               Text(
                 installed,
-                style: FrostyType.tabular(
+                style: OnsetType.tabular(
                   TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 12.5,
                     color: colors.secondary,
                   ),
@@ -323,7 +323,7 @@ class UpdateAvailableDialog extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: colors.cardRing,
-                  width: FrostyTokens.hairlineWidth,
+                  width: OnsetTokens.hairlineWidth,
                 ),
               ),
               clipBehavior: Clip.antiAlias,
@@ -336,7 +336,7 @@ class UpdateAvailableDialog extends StatelessWidget {
                       maxLines: 6,
                       overflow: TextOverflow.clip,
                       style: TextStyle(
-                        fontFamily: FrostyTokens.bodyFamily,
+                        fontFamily: OnsetTokens.bodyFamily,
                         fontSize: 13,
                         height: 1.6,
                         color: colors.body,
@@ -477,9 +477,9 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
               _total > 0
                   ? '${_megabytes(_received)} / ${_megabytes(_total)} MB'
                   : '${_megabytes(_received)} MB',
-              style: FrostyType.tabular(
+              style: OnsetType.tabular(
                 TextStyle(
-                  fontFamily: FrostyTokens.bodyFamily,
+                  fontFamily: OnsetTokens.bodyFamily,
                   fontSize: 13,
                   color: colors.secondary,
                 ),

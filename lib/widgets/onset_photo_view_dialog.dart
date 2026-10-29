@@ -5,7 +5,7 @@ import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/blurred_container.dart';
 import 'package:photo_view/photo_view.dart';
 
-class FrostyPhotoViewDialog extends StatefulWidget {
+class OnsetPhotoViewDialog extends StatefulWidget {
   final String imageUrl;
   final String? cacheKey;
 
@@ -14,7 +14,7 @@ class FrostyPhotoViewDialog extends StatefulWidget {
   /// be blurred.
   final bool blurBackground;
 
-  const FrostyPhotoViewDialog({
+  const OnsetPhotoViewDialog({
     super.key,
     required this.imageUrl,
     this.cacheKey,
@@ -22,10 +22,10 @@ class FrostyPhotoViewDialog extends StatefulWidget {
   });
 
   @override
-  State<FrostyPhotoViewDialog> createState() => _FrostyPhotoViewDialogState();
+  State<OnsetPhotoViewDialog> createState() => _OnsetPhotoViewDialogState();
 }
 
-class _FrostyPhotoViewDialogState extends State<FrostyPhotoViewDialog>
+class _OnsetPhotoViewDialogState extends State<OnsetPhotoViewDialog>
     with TickerProviderStateMixin {
   PhotoViewScaleState photoViewScaleState = PhotoViewScaleState.initial;
   bool _isFullResolution = false;
@@ -190,7 +190,7 @@ class _FrostyPhotoViewDialogState extends State<FrostyPhotoViewDialog>
             tooltip: 'Close',
             icon: Icon(
               Icons.close,
-              color: context.frostyColors.overlayOnSurface,
+              color: context.onsetColors.overlayOnSurface,
             ),
             onPressed: Navigator.of(context).pop,
           ),
@@ -215,7 +215,7 @@ class _FrostyPhotoViewDialogState extends State<FrostyPhotoViewDialog>
                     child: Text(
                       _isFullResolution ? 'View thumbnail' : 'View original',
                       style: TextStyle(
-                        color: context.frostyColors.overlayOnSurface,
+                        color: context.onsetColors.overlayOnSurface,
                       ),
                     ),
                   ),

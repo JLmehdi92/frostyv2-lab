@@ -50,7 +50,7 @@ class VodErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const text = FrostyTokens.textPrimaryDark;
+    const text = OnsetTokens.textPrimaryDark;
     final detail = detailFor(problem);
     final retry = _retryable ? onRetry : null;
     // The player's own ground, as the content warning draws it (board
@@ -68,7 +68,7 @@ class VodErrorView extends StatelessWidget {
                 width: 34,
                 height: 34,
                 decoration: const BoxDecoration(
-                  color: FrostyTokens.raisedDark,
+                  color: OnsetTokens.raisedDark,
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -86,7 +86,7 @@ class VodErrorView extends StatelessWidget {
                 messageFor(problem, subject: subject),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontFamily: FrostyTokens.bodyFamily,
+                  fontFamily: OnsetTokens.bodyFamily,
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                   height: 1.35,
@@ -98,10 +98,10 @@ class VodErrorView extends StatelessWidget {
                   detail,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 12.5,
                     height: 1.4,
-                    color: FrostyTokens.textBodyDark,
+                    color: OnsetTokens.textBodyDark,
                   ),
                 ),
               if (retry != null)
@@ -111,17 +111,17 @@ class VodErrorView extends StatelessWidget {
                     onPressed: retry,
                     style: TextButton.styleFrom(
                       foregroundColor: text,
-                      backgroundColor: FrostyTokens.raisedDark,
+                      backgroundColor: OnsetTokens.raisedDark,
                       minimumSize: const Size(0, 44),
                       padding: const EdgeInsets.symmetric(horizontal: 18),
                       shape: const StadiumBorder(
                         side: BorderSide(
                           color: Color(0x24FFFFFF),
-                          width: FrostyTokens.hairlineWidth,
+                          width: OnsetTokens.hairlineWidth,
                         ),
                       ),
                       textStyle: const TextStyle(
-                        fontFamily: FrostyTokens.bodyFamily,
+                        fontFamily: OnsetTokens.bodyFamily,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),

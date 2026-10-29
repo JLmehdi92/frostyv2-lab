@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:onset/models/hype_train.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 
 /// The Mythic train's gold.
 const _mythic = Color(0xFFFFD760);
@@ -11,7 +11,7 @@ Widget _emoteImage(HtReward emote, double size) {
     dimension: size,
     child: url == null
         ? const Icon(Icons.auto_awesome_rounded, color: _mythic)
-        : FrostyCachedNetworkImage(
+        : OnsetCachedNetworkImage(
             imageUrl: url.toString(),
             width: size,
             height: size,

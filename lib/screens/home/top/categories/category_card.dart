@@ -5,10 +5,10 @@ import 'package:onset/screens/home/top/categories/category_streams.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/image_size.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
 
 /// [boxArtUrl] at [width] device pixels wide (3:4). Helix gives either a
@@ -87,7 +87,7 @@ class CategoryArt extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              FrostyCachedNetworkImage(
+              OnsetCachedNetworkImage(
                 imageUrl: categoryArtUrl(category.boxArtUrl, pixels),
                 memCacheWidth: pixels,
                 fit: BoxFit.cover,
@@ -151,7 +151,7 @@ class _Monogram extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.clip,
                 style: TextStyle(
-                  fontFamily: FrostyTokens.displayFamily,
+                  fontFamily: OnsetTokens.displayFamily,
                   fontSize: fontSize,
                   height: 1,
                   fontWeight: FontWeight.w800,
@@ -190,7 +190,7 @@ class CategoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
     final ground = Theme.of(context).scaffoldBackgroundColor;
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     final duration = motionDuration(context, const Duration(milliseconds: 240));
     return Semantics(
       button: true,
@@ -210,7 +210,7 @@ class CategoryTile extends StatelessWidget {
               LayoutBuilder(
                 builder: (context, constraints) => AnimatedContainer(
                   duration: duration,
-                  curve: FrostyMotion.standard,
+                  curve: OnsetMotion.standard,
                   // The ring is drawn outside the art (2 dp of ground, then
                   // 2 dp of signal), so nothing moves when it shows.
                   decoration: BoxDecoration(
@@ -304,9 +304,9 @@ class CategoryCard extends StatelessWidget {
             : null,
         child: Padding(
           padding: EdgeInsets.fromLTRB(
-            FrostySpacing.gutterPhone + padding.left,
+            OnsetSpacing.gutterPhone + padding.left,
             6,
-            FrostySpacing.gutterPhone + padding.right,
+            OnsetSpacing.gutterPhone + padding.right,
             6,
           ),
           child: Row(
@@ -356,9 +356,9 @@ class CategoryCardSkeleton extends StatelessWidget {
     final padding = MediaQuery.paddingOf(context);
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        FrostySpacing.gutterPhone + padding.left,
+        OnsetSpacing.gutterPhone + padding.left,
         6,
-        FrostySpacing.gutterPhone + padding.right,
+        OnsetSpacing.gutterPhone + padding.right,
         6,
       ),
       child: const Row(

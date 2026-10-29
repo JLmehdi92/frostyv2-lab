@@ -181,7 +181,7 @@ class ContentWarningCover extends StatelessWidget {
     // the ground, not a scrim, with the player paused behind it).
     return SizedBox.expand(
       child: ColoredBox(
-        color: FrostyTokens.backgroundDark,
+        color: OnsetTokens.backgroundDark,
         // A portrait 16:9 player is short: the whole card shrinks to fit so
         // its buttons stay on screen (and tappable) instead of scrolling.
         child: LayoutBuilder(
@@ -196,7 +196,7 @@ class ContentWarningCover extends StatelessWidget {
                   children: [
                     const PlayerGlyph(
                       PlayerGlyphKind.eyeOff,
-                      color: FrostyTokens.textPrimaryDark,
+                      color: OnsetTokens.textPrimaryDark,
                       size: 30,
                       strokeWidth: 1.7,
                     ),
@@ -208,7 +208,7 @@ class ContentWarningCover extends StatelessWidget {
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         letterSpacing: -0.16,
-                        color: FrostyTokens.textPrimaryDark,
+                        color: OnsetTokens.textPrimaryDark,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -221,7 +221,7 @@ class ContentWarningCover extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 12.5,
                         height: 1.4,
-                        color: FrostyTokens.textBodyDark,
+                        color: OnsetTokens.textBodyDark,
                       ),
                     ),
                     if (labels.isNotEmpty) ...[
@@ -232,7 +232,7 @@ class ContentWarningCover extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 12,
                           height: 1.4,
-                          color: FrostyTokens.textSecondaryDark,
+                          color: OnsetTokens.textSecondaryDark,
                         ),
                       ),
                     ],
@@ -246,13 +246,13 @@ class ContentWarningCover extends StatelessWidget {
                         FilledButton(
                           onPressed: onAccept,
                           style: FilledButton.styleFrom(
-                            backgroundColor: FrostyTokens.accent,
-                            foregroundColor: FrostyTokens.backgroundDark,
+                            backgroundColor: OnsetTokens.accent,
+                            foregroundColor: OnsetTokens.backgroundDark,
                             minimumSize: const Size(0, 40),
                             padding: const EdgeInsets.symmetric(horizontal: 18),
                             shape: const StadiumBorder(),
                             textStyle: const TextStyle(
-                              fontFamily: FrostyTokens.bodyFamily,
+                              fontFamily: OnsetTokens.bodyFamily,
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
                             ),
@@ -263,17 +263,17 @@ class ContentWarningCover extends StatelessWidget {
                           onPressed:
                               onBack ?? () => Navigator.maybePop(context),
                           style: OutlinedButton.styleFrom(
-                            backgroundColor: FrostyTokens.raisedDark,
-                            foregroundColor: FrostyTokens.textPrimaryDark,
+                            backgroundColor: OnsetTokens.raisedDark,
+                            foregroundColor: OnsetTokens.textPrimaryDark,
                             minimumSize: const Size(0, 40),
                             padding: const EdgeInsets.symmetric(horizontal: 18),
                             side: const BorderSide(
                               color: Color(0x24FFFFFF),
-                              width: FrostyTokens.hairlineWidth,
+                              width: OnsetTokens.hairlineWidth,
                             ),
                             shape: const StadiumBorder(),
                             textStyle: const TextStyle(
-                              fontFamily: FrostyTokens.bodyFamily,
+                              fontFamily: OnsetTokens.bodyFamily,
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                             ),

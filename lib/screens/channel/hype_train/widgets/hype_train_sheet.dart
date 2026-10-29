@@ -10,7 +10,7 @@ import 'package:onset/screens/channel/hype_train/widgets/hype_train_palette.dart
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 
 /// Twitch's guide to hype trains.
 const htHelpUrl = 'https://help.twitch.tv/s/article/hype-train-guide';
@@ -251,7 +251,7 @@ class _Header extends StatelessWidget {
 
   /// The board's section label.
   static const style = TextStyle(
-    fontFamily: FrostyTokens.bodyFamily,
+    fontFamily: OnsetTokens.bodyFamily,
     fontSize: 11,
     fontWeight: FontWeight.w700,
     letterSpacing: 1.54,
@@ -268,8 +268,8 @@ class _Header extends StatelessWidget {
           title.toUpperCase(),
           style: style.copyWith(
             color: dark
-                ? FrostyTokens.hypeText
-                : context.frostyColors.subNoticeText,
+                ? OnsetTokens.hypeText
+                : context.onsetColors.subNoticeText,
           ),
         ),
       ),
@@ -449,7 +449,7 @@ class _ConductorCell extends StatelessWidget {
             key: const ValueKey('ht-conductor-badge'),
             dimension: HtDims.reward,
             child: badgeUrl != null
-                ? FrostyCachedNetworkImage(imageUrl: badgeUrl!)
+                ? OnsetCachedNetworkImage(imageUrl: badgeUrl!)
                 : Icon(
                     bits ? Icons.diamond_rounded : Icons.star_rounded,
                     size: 20,
@@ -513,7 +513,7 @@ class _RewardRow extends StatelessWidget {
               dimension: HtDims.reward,
               child: Stack(
                 children: [
-                  FrostyCachedNetworkImage(
+                  OnsetCachedNetworkImage(
                     imageUrl: reward.emoteUrl.toString(),
                     width: HtDims.reward,
                     height: HtDims.reward,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:onset/widgets/blurred_container.dart';
 
-class FrostyNotification extends StatelessWidget {
+class OnsetNotification extends StatelessWidget {
   final String message;
   final VoidCallback? onDismissed;
   final bool showGradient;
@@ -10,7 +10,7 @@ class FrostyNotification extends StatelessWidget {
   /// opaque surface, never a blur over the video.
   final bool overVideo;
 
-  const FrostyNotification({
+  const OnsetNotification({
     super.key,
     required this.message,
     this.onDismissed,

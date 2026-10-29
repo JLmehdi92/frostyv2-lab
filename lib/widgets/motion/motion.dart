@@ -11,7 +11,7 @@ import 'package:flutter/animation.dart';
 ///   [enter]). What enters from the right leaves by the right.
 /// - Reduce motion (see `reduce_motion.dart`) turns all of it into short
 ///   cross-fades ([reducedFade]): no travel, no overshoot, no stagger.
-abstract final class FrostyMotion {
+abstract final class OnsetMotion {
   /// Menus, tabs, things appearing: critically damped (no bounce), 0.35 s.
   static final springStandard = SpringDescription.withDurationAndBounce(
     duration: const Duration(milliseconds: 350),

@@ -9,10 +9,10 @@ import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
 import 'package:onset/widgets/motion/haptics.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 const _robotty = 'https://recent-messages.robotty.de/';
@@ -244,7 +244,7 @@ class _Divided extends StatelessWidget {
         border: Border(
           top: BorderSide(
             color: OnboardingColors.divider,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
       ),
@@ -283,7 +283,7 @@ class _AccountPill extends StatelessWidget {
               dimension: 24,
               child: details.profileImageUrl.isEmpty
                   ? const ColoredBox(color: OnboardingColors.raised)
-                  : FrostyCachedNetworkImage(
+                  : OnsetCachedNetworkImage(
                       imageUrl: details.profileImageUrl,
                       memCacheWidth: 72,
                       fit: BoxFit.cover,
@@ -384,10 +384,10 @@ class _AccountPill extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               color: OnboardingColors.surface,
-              borderRadius: BorderRadius.circular(FrostyTokens.radiusPill),
+              borderRadius: BorderRadius.circular(OnsetTokens.radiusPill),
               border: Border.all(
                 color: OnboardingColors.ringStrong,
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               ),
             ),
             child: Row(
@@ -420,7 +420,7 @@ class _Preview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final duration = motionDuration(context, const Duration(milliseconds: 260));
-    final text = light ? FrostyTokens.backgroundDark : OnboardingColors.text;
+    final text = light ? OnsetTokens.backgroundDark : OnboardingColors.text;
     final meta = light ? const Color(0xFF5C5C5C) : OnboardingColors.secondary;
     final stream = this.stream;
     final width = tablet ? 128.0 : 96.0;
@@ -437,7 +437,7 @@ class _Preview extends StatelessWidget {
     // An AnimatedDefaultTextStyle replaces the inherited style: the family
     // is said again.
     final textStyle = TextStyle(
-      fontFamily: FrostyTokens.bodyFamily,
+      fontFamily: OnsetTokens.bodyFamily,
       fontSize: 14,
       fontWeight: FontWeight.w700,
       color: text,
@@ -448,14 +448,14 @@ class _Preview extends StatelessWidget {
       child: AnimatedContainer(
         key: const Key('setup-preview'),
         duration: duration,
-        curve: FrostyMotion.standard,
+        curve: OnsetMotion.standard,
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: light ? Colors.white : FrostyTokens.backgroundDark,
+          color: light ? Colors.white : OnsetTokens.backgroundDark,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: light ? const Color(0x1A000000) : const Color(0x1AFFFFFF),
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
         child: Row(
@@ -472,7 +472,7 @@ class _Preview extends StatelessWidget {
                     if (stream == null)
                       const _PlaceholderPicture()
                     else
-                      FrostyCachedNetworkImage(
+                      OnsetCachedNetworkImage(
                         imageUrl: stream.thumbnailUrl.replaceFirst(
                           '-{width}x{height}',
                           '-320x180',
@@ -525,9 +525,9 @@ class _Preview extends StatelessWidget {
                   ),
                   AnimatedDefaultTextStyle(
                     duration: duration,
-                    style: FrostyType.tabular(
+                    style: OnsetType.tabular(
                       TextStyle(
-                        fontFamily: FrostyTokens.bodyFamily,
+                        fontFamily: OnsetTokens.bodyFamily,
                         fontSize: 12,
                         color: meta,
                       ),
@@ -546,7 +546,7 @@ class _Preview extends StatelessWidget {
               child: AnimatedDefaultTextStyle(
                 duration: duration,
                 style: TextStyle(
-                  fontFamily: FrostyTokens.bodyFamily,
+                  fontFamily: OnsetTokens.bodyFamily,
                   fontSize: 10.5,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 1.26,
@@ -598,7 +598,7 @@ class _ThemeChoice extends StatelessWidget {
     final reduce = reduceMotionOf(context);
     final slide = reduce ? Duration.zero : const Duration(milliseconds: 320);
     final tint = reduce
-        ? FrostyMotion.reducedFade
+        ? OnsetMotion.reducedFade
         : const Duration(milliseconds: 200);
     final index = value.index;
     return Column(
@@ -629,17 +629,17 @@ class _ThemeChoice extends StatelessWidget {
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
               color: OnboardingColors.raised,
-              borderRadius: BorderRadius.circular(FrostyTokens.radiusPill),
+              borderRadius: BorderRadius.circular(OnsetTokens.radiusPill),
               border: Border.all(
                 color: OnboardingColors.ring,
-                width: FrostyTokens.hairlineWidth,
+                width: OnsetTokens.hairlineWidth,
               ),
             ),
             child: Stack(
               children: [
                 AnimatedAlign(
                   duration: slide,
-                  curve: FrostyMotion.standard,
+                  curve: OnsetMotion.standard,
                   alignment: Alignment(-1 + index.toDouble(), 0),
                   child: FractionallySizedBox(
                     widthFactor: 1 / 3,
@@ -648,7 +648,7 @@ class _ThemeChoice extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: OnboardingColors.text,
                         borderRadius: BorderRadius.circular(
-                          FrostyTokens.radiusPill,
+                          OnsetTokens.radiusPill,
                         ),
                       ),
                     ),
@@ -673,11 +673,11 @@ class _ThemeChoice extends StatelessWidget {
                               child: AnimatedDefaultTextStyle(
                                 duration: tint,
                                 style: TextStyle(
-                                  fontFamily: FrostyTokens.bodyFamily,
+                                  fontFamily: OnsetTokens.bodyFamily,
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
                                   color: theme == value
-                                      ? FrostyTokens.backgroundDark
+                                      ? OnsetTokens.backgroundDark
                                       : OnboardingColors.body,
                                 ),
                                 child: Text(themeNames[theme.index]),
@@ -730,7 +730,7 @@ class _AccentRow extends StatelessWidget {
               ),
               Text(
                 hex,
-                style: FrostyType.tabular(
+                style: OnsetType.tabular(
                   const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,

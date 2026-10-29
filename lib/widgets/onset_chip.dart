@@ -35,7 +35,7 @@ class OnsetChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     final duration = motionDuration(context, const Duration(milliseconds: 200));
     void select() {
       if (!selected) Haptics.selection();
@@ -61,7 +61,7 @@ class OnsetChip extends StatelessWidget {
               widthFactor: 1,
               child: AnimatedContainer(
                 duration: duration,
-                curve: FrostyMotion.standard,
+                curve: OnsetMotion.standard,
                 height: height,
                 padding: EdgeInsets.symmetric(
                   horizontal: height > 32 ? 14 : 12,
@@ -74,7 +74,7 @@ class OnsetChip extends StatelessWidget {
                   shape: StadiumBorder(
                     side: BorderSide(
                       color: selected ? accent : colors.pillBorder,
-                      width: FrostyTokens.hairlineWidth,
+                      width: OnsetTokens.hairlineWidth,
                     ),
                   ),
                 ),
@@ -82,7 +82,7 @@ class OnsetChip extends StatelessWidget {
                   label,
                   maxLines: 1,
                   style: TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 13,
                     height: 1.2,
                     fontWeight: selected ? FontWeight.w600 : FontWeight.w500,

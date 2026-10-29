@@ -176,7 +176,7 @@ class _SignalPingState extends State<SignalPing>
         child: CustomPaint(
           painter: SignalPingPainter(
             progress: _controller,
-            color: widget.color ?? context.frostyColors.live,
+            color: widget.color ?? context.onsetColors.live,
             maxScale: widget.maxScale,
           ),
         ),
@@ -203,7 +203,7 @@ class SignalPingPainter extends CustomPainter {
     final radius = size.shortestSide / 2;
     final t = progress.value;
     if (t > 0 && t < 1) {
-      final eased = FrostyMotion.standard.transform(t);
+      final eased = OnsetMotion.standard.transform(t);
       canvas.drawCircle(
         center,
         radius * (1 + (maxScale - 1) * eased),

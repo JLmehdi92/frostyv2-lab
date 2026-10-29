@@ -24,8 +24,8 @@ const kOverlayShadow = [
 ///   is everywhere and stops signalling anything.
 /// - Red is not part of the chrome. It survives only where it carries meaning:
 ///   the follower-only chat mode and destructive actions.
-class FrostyTokens {
-  const FrostyTokens._();
+class OnsetTokens {
+  const OnsetTokens._();
 
   // Neutrals ─────────────────────────────────────────────────────────────────
   static const backgroundDark = Color(0xFF0A0A0A);
@@ -83,7 +83,7 @@ class FrostyTokens {
 
   /// Text tiers on the dark ground. Primary for names and titles, body for
   /// live titles and chat, secondary for metadata (the same grey as
-  /// [FrostyColors.metadata]), tertiary for inactive tabs and fine print.
+  /// [OnsetColors.metadata]), tertiary for inactive tabs and fine print.
   static const textPrimaryDark = Color(0xFFF5F5F5);
   static const textBodyDark = Color(0xFFD6D6D6);
   static const textSecondaryDark = Color(0xFFA1A1A1);
@@ -116,7 +116,7 @@ class FrostyTokens {
 
 /// The 4-pt spacing grid of Noir & Signal 2.0: 4 · 8 · 12 · 16 · 24 · 32,
 /// plus a 2-pt hairline step.
-abstract final class FrostySpacing {
+abstract final class OnsetSpacing {
   static const xxs = 2.0;
   static const xs = 4.0;
   static const sm = 8.0;
@@ -137,8 +137,8 @@ abstract final class FrostySpacing {
 ///
 /// Styles carry no colour: they are merged onto the theme's (`copyWith` or
 /// `DefaultTextStyle.merge`), so the scale serves the light theme too.
-abstract final class FrostyType {
-  static const _inter = FrostyTokens.displayFamily;
+abstract final class OnsetType {
+  static const _inter = OnsetTokens.displayFamily;
   static const _tabular = FontFeature.tabularFigures();
 
   /// Hero numbers and empty-state headlines.
@@ -231,9 +231,9 @@ abstract final class FrostyType {
 /// - Mentions → [ColorScheme.error]
 /// - First-time chatters → [ColorScheme.tertiary]
 ///
-/// Access via `Theme.of(context).extension<FrostyColors>()!` or the
-/// `context.frostyColors` convenience extension.
-class FrostyColors extends ThemeExtension<FrostyColors> {
+/// Access via `Theme.of(context).extension<OnsetColors>()!` or the
+/// `context.onsetColors` convenience extension.
+class OnsetColors extends ThemeExtension<OnsetColors> {
   final Color highlightedMessage;
   final Color emoteOnly;
   final Color followersOnly;
@@ -262,7 +262,7 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
   /// Green text that stays readable on [subNoticeBackground].
   final Color subNoticeText;
 
-  const FrostyColors({
+  const OnsetColors({
     required this.highlightedMessage,
     required this.emoteOnly,
     required this.followersOnly,
@@ -278,7 +278,7 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
     required this.subNoticeText,
   });
 
-  static const light = FrostyColors(
+  static const light = OnsetColors(
     // Was Twitch's own #9146ff. Shifted to a colder violet so the app stops
     // borrowing the identity it is trying to move away from.
     highlightedMessage: Color(0xFFB15CFF),
@@ -292,7 +292,7 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
     // falling back to red, which the system reserves for other meanings.
     live: Color(0xFF6B9E00),
     metadata: Color(0xFF6B6B6B),
-    hairline: FrostyTokens.hairlineLight,
+    hairline: OnsetTokens.hairlineLight,
     subNoticeAccent: Color(0xFF12A87A),
     // The accent at 8% over the light background.
     subNoticeBackground: Color(0xFFE6F2EE),
@@ -300,7 +300,7 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
     subNoticeText: Color(0xFF0A7957),
   );
 
-  static const dark = FrostyColors(
+  static const dark = OnsetColors(
     highlightedMessage: Color(0xFFB15CFF),
     emoteOnly: Color(0xFFFFCC80),
     followersOnly: Color(0xFFE57373),
@@ -308,9 +308,9 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
     subOnly: Color(0xFF81C784),
     uniqueMode: Color(0xFFBA68C8),
     overlayOnSurface: Colors.white,
-    live: FrostyTokens.accent,
-    metadata: FrostyTokens.textSecondaryDark,
-    hairline: FrostyTokens.hairlineDark,
+    live: OnsetTokens.accent,
+    metadata: OnsetTokens.textSecondaryDark,
+    hairline: OnsetTokens.hairlineDark,
     subNoticeAccent: Color(0xFF12A87A),
     // The accent at 10% over the dark background.
     subNoticeBackground: Color(0xFF0B1A15),
@@ -318,7 +318,7 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
   );
 
   @override
-  FrostyColors copyWith({
+  OnsetColors copyWith({
     Color? highlightedMessage,
     Color? emoteOnly,
     Color? followersOnly,
@@ -333,7 +333,7 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
     Color? subNoticeBackground,
     Color? subNoticeText,
   }) {
-    return FrostyColors(
+    return OnsetColors(
       highlightedMessage: highlightedMessage ?? this.highlightedMessage,
       emoteOnly: emoteOnly ?? this.emoteOnly,
       followersOnly: followersOnly ?? this.followersOnly,
@@ -351,9 +351,9 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
   }
 
   @override
-  FrostyColors lerp(FrostyColors? other, double t) {
-    if (other is! FrostyColors) return this;
-    return FrostyColors(
+  OnsetColors lerp(OnsetColors? other, double t) {
+    if (other is! OnsetColors) return this;
+    return OnsetColors(
       highlightedMessage: Color.lerp(
         highlightedMessage,
         other.highlightedMessage,
@@ -386,21 +386,21 @@ class FrostyColors extends ThemeExtension<FrostyColors> {
 /// Text styles that sit outside Material's scale: the monospace metadata style
 /// and the wide-tracked uppercase label used for categories and section
 /// headers.
-class FrostyTextStyles extends ThemeExtension<FrostyTextStyles> {
+class OnsetTextStyles extends ThemeExtension<OnsetTextStyles> {
   /// Viewer counts, uptime, latency, resolutions, chat timestamps.
   final TextStyle metadata;
 
   /// Category names and section headers: uppercase, small, widely tracked.
   final TextStyle label;
 
-  const FrostyTextStyles({required this.metadata, required this.label});
+  const OnsetTextStyles({required this.metadata, required this.label});
 
   static const _mono = TextStyle(
-    fontFamily: FrostyTokens.monoFamily,
+    fontFamily: OnsetTokens.monoFamily,
     fontFeatures: [FontFeature.tabularFigures()],
   );
 
-  static FrostyTextStyles resolve(Color metadataColor) => FrostyTextStyles(
+  static OnsetTextStyles resolve(Color metadataColor) => OnsetTextStyles(
     metadata: _mono.copyWith(fontSize: 13, color: metadataColor),
     label: _mono.copyWith(
       fontSize: 11,
@@ -410,31 +410,31 @@ class FrostyTextStyles extends ThemeExtension<FrostyTextStyles> {
   );
 
   @override
-  FrostyTextStyles copyWith({TextStyle? metadata, TextStyle? label}) =>
-      FrostyTextStyles(
+  OnsetTextStyles copyWith({TextStyle? metadata, TextStyle? label}) =>
+      OnsetTextStyles(
         metadata: metadata ?? this.metadata,
         label: label ?? this.label,
       );
 
   @override
-  FrostyTextStyles lerp(FrostyTextStyles? other, double t) {
-    if (other is! FrostyTextStyles) return this;
-    return FrostyTextStyles(
+  OnsetTextStyles lerp(OnsetTextStyles? other, double t) {
+    if (other is! OnsetTextStyles) return this;
+    return OnsetTextStyles(
       metadata: TextStyle.lerp(metadata, other.metadata, t)!,
       label: TextStyle.lerp(label, other.label, t)!,
     );
   }
 }
 
-class FrostyThemes {
+class OnsetThemes {
   final Color colorSchemeSeed;
 
-  const FrostyThemes({required this.colorSchemeSeed});
+  const OnsetThemes({required this.colorSchemeSeed});
 
   ThemeData get light => createBaseTheme(
     colorScheme: ColorScheme.fromSeed(seedColor: colorSchemeSeed),
-    backgroundColor: FrostyTokens.backgroundLight,
-    surfaceColor: FrostyTokens.surfaceLight,
+    backgroundColor: OnsetTokens.backgroundLight,
+    surfaceColor: OnsetTokens.surfaceLight,
   );
 
   ThemeData get dark => createBaseTheme(
@@ -442,8 +442,8 @@ class FrostyThemes {
       seedColor: colorSchemeSeed,
       brightness: Brightness.dark,
     ),
-    backgroundColor: FrostyTokens.backgroundDark,
-    surfaceColor: FrostyTokens.surfaceDark,
+    backgroundColor: OnsetTokens.backgroundDark,
+    surfaceColor: OnsetTokens.surfaceDark,
   );
 
   ThemeData createBaseTheme({
@@ -452,20 +452,17 @@ class FrostyThemes {
     Color? surfaceColor,
   }) {
     final isDark = colorScheme.brightness == Brightness.dark;
-    final frostyColors = isDark ? FrostyColors.dark : FrostyColors.light;
+    final onsetColors = isDark ? OnsetColors.dark : OnsetColors.light;
 
-    final borderColor = frostyColors.hairline;
-    const borderWidth = FrostyTokens.hairlineWidth;
+    final borderColor = onsetColors.hairline;
+    const borderWidth = OnsetTokens.hairlineWidth;
 
     final surface = surfaceColor ?? colorScheme.surface;
 
     return ThemeData(
-      extensions: [
-        frostyColors,
-        FrostyTextStyles.resolve(frostyColors.metadata),
-      ],
+      extensions: [onsetColors, OnsetTextStyles.resolve(onsetColors.metadata)],
       colorScheme: colorScheme,
-      fontFamily: FrostyTokens.bodyFamily,
+      fontFamily: OnsetTokens.bodyFamily,
       splashFactory: Platform.isIOS ? NoSplash.splashFactory : null,
       scaffoldBackgroundColor: backgroundColor,
       // Flat by construction: depth comes from hairlines, never from tints or
@@ -476,7 +473,7 @@ class FrostyThemes {
         surfaceTintColor: surface,
         shape: RoundedRectangleBorder(
           borderRadius: const BorderRadius.all(
-            Radius.circular(FrostyTokens.radiusCard),
+            Radius.circular(OnsetTokens.radiusCard),
           ),
           side: BorderSide(color: borderColor, width: borderWidth),
         ),
@@ -498,7 +495,7 @@ class FrostyThemes {
           shape: WidgetStatePropertyAll(
             RoundedRectangleBorder(
               borderRadius: const BorderRadius.all(
-                Radius.circular(FrostyTokens.radiusCard),
+                Radius.circular(OnsetTokens.radiusCard),
               ),
               side: BorderSide(color: borderColor, width: borderWidth),
             ),
@@ -514,7 +511,7 @@ class FrostyThemes {
         surfaceTintColor: backgroundColor,
         shape: RoundedRectangleBorder(
           borderRadius: const BorderRadius.all(
-            Radius.circular(FrostyTokens.radiusDialog),
+            Radius.circular(OnsetTokens.radiusDialog),
           ),
           side: BorderSide(color: borderColor, width: borderWidth),
         ),
@@ -573,8 +570,8 @@ class FrostyThemes {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           elevation: 0,
-          backgroundColor: frostyColors.live,
-          foregroundColor: isDark ? FrostyTokens.backgroundDark : Colors.white,
+          backgroundColor: onsetColors.live,
+          foregroundColor: isDark ? OnsetTokens.backgroundDark : Colors.white,
           disabledBackgroundColor: colorScheme.onSurface.withValues(
             alpha: 0.12,
           ),
@@ -590,12 +587,12 @@ class FrostyThemes {
           elevation: const WidgetStatePropertyAll(0),
           backgroundColor: WidgetStateProperty.resolveWith(
             (states) => states.contains(WidgetState.selected)
-                ? frostyColors.live
+                ? onsetColors.live
                 : surface,
           ),
           foregroundColor: WidgetStateProperty.resolveWith(
             (states) => states.contains(WidgetState.selected)
-                ? (isDark ? FrostyTokens.backgroundDark : Colors.white)
+                ? (isDark ? OnsetTokens.backgroundDark : Colors.white)
                 : colorScheme.onSurface,
           ),
           side: WidgetStatePropertyAll(
@@ -604,7 +601,7 @@ class FrostyThemes {
           shape: const WidgetStatePropertyAll(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.all(
-                Radius.circular(FrostyTokens.radiusSmall),
+                Radius.circular(OnsetTokens.radiusSmall),
               ),
             ),
           ),
@@ -622,12 +619,12 @@ class FrostyThemes {
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.selected)
-              ? (isDark ? FrostyTokens.backgroundDark : Colors.white)
+              ? (isDark ? OnsetTokens.backgroundDark : Colors.white)
               : null,
         ),
         trackColor: WidgetStateProperty.resolveWith(
           (states) =>
-              states.contains(WidgetState.selected) ? frostyColors.live : null,
+              states.contains(WidgetState.selected) ? onsetColors.live : null,
         ),
         trackOutlineColor: WidgetStateProperty.resolveWith(
           (states) =>
@@ -642,20 +639,20 @@ class FrostyThemes {
       checkboxTheme: CheckboxThemeData(
         fillColor: WidgetStateProperty.resolveWith(
           (states) =>
-              states.contains(WidgetState.selected) ? frostyColors.live : null,
+              states.contains(WidgetState.selected) ? onsetColors.live : null,
         ),
         checkColor: WidgetStatePropertyAll(
-          isDark ? FrostyTokens.backgroundDark : Colors.white,
+          isDark ? OnsetTokens.backgroundDark : Colors.white,
         ),
       ),
       radioTheme: RadioThemeData(
         fillColor: WidgetStateProperty.resolveWith(
           (states) =>
-              states.contains(WidgetState.selected) ? frostyColors.live : null,
+              states.contains(WidgetState.selected) ? onsetColors.live : null,
         ),
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(
-        color: frostyColors.live,
+        color: onsetColors.live,
       ),
       chipTheme: ChipThemeData(
         backgroundColor: surface,
@@ -666,12 +663,12 @@ class FrostyThemes {
         // same way the navigation and tab bars do.
         side: WidgetStateBorderSide.resolveWith(
           (states) => states.contains(WidgetState.selected)
-              ? BorderSide(color: frostyColors.live)
+              ? BorderSide(color: onsetColors.live)
               : BorderSide(color: borderColor, width: borderWidth),
         ),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(
-            Radius.circular(FrostyTokens.radiusSmall),
+            Radius.circular(OnsetTokens.radiusSmall),
           ),
         ),
       ),
@@ -707,10 +704,10 @@ class FrostyThemes {
       tabBarTheme: TabBarThemeData(
         dividerColor: Colors.transparent,
         tabAlignment: TabAlignment.start,
-        indicatorColor: frostyColors.live,
+        indicatorColor: onsetColors.live,
         indicatorSize: TabBarIndicatorSize.label,
         labelColor: colorScheme.onSurface,
-        unselectedLabelColor: frostyColors.metadata,
+        unselectedLabelColor: onsetColors.metadata,
       ),
       tooltipTheme: TooltipThemeData(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -718,7 +715,7 @@ class FrostyThemes {
         decoration: BoxDecoration(
           color: surface,
           borderRadius: const BorderRadius.all(
-            Radius.circular(FrostyTokens.radiusCard),
+            Radius.circular(OnsetTokens.radiusCard),
           ),
           border: Border.all(color: borderColor, width: borderWidth),
         ),
@@ -731,7 +728,7 @@ class FrostyThemes {
         shape: RoundedRectangleBorder(
           side: BorderSide(color: borderColor, width: borderWidth),
           borderRadius: const BorderRadius.all(
-            Radius.circular(FrostyTokens.radiusCard),
+            Radius.circular(OnsetTokens.radiusCard),
           ),
         ),
         behavior: SnackBarBehavior.floating,
@@ -744,31 +741,31 @@ class FrostyThemes {
       textTheme: TextTheme(
         // Alert dialog title
         headlineSmall: TextStyle(
-          fontFamily: FrostyTokens.displayFamily,
-          fontWeight: FrostyTokens.displayWeight(650),
+          fontFamily: OnsetTokens.displayFamily,
+          fontWeight: OnsetTokens.displayWeight(650),
           fontSize: 18,
           letterSpacing: -0.019,
         ),
 
         // App bar title
         titleLarge: TextStyle(
-          fontFamily: FrostyTokens.displayFamily,
-          fontWeight: FrostyTokens.displayWeight(700),
+          fontFamily: OnsetTokens.displayFamily,
+          fontWeight: OnsetTokens.displayWeight(700),
           fontSize: 24,
           letterSpacing: -0.4,
         ),
 
         // Section titles
         titleMedium: TextStyle(
-          fontFamily: FrostyTokens.displayFamily,
-          fontWeight: FrostyTokens.displayWeight(600),
+          fontFamily: OnsetTokens.displayFamily,
+          fontWeight: OnsetTokens.displayWeight(600),
           letterSpacing: -0.011,
         ),
 
         // Tab bar title
         titleSmall: TextStyle(
-          fontFamily: FrostyTokens.displayFamily,
-          fontWeight: FrostyTokens.displayWeight(600),
+          fontFamily: OnsetTokens.displayFamily,
+          fontWeight: OnsetTokens.displayWeight(600),
           fontSize: 16,
           letterSpacing: -0.011,
         ),
@@ -800,7 +797,7 @@ class FrostyThemes {
 
   static OutlineInputBorder _pill(BorderSide side) => OutlineInputBorder(
     borderRadius: const BorderRadius.all(
-      Radius.circular(FrostyTokens.radiusPill),
+      Radius.circular(OnsetTokens.radiusPill),
     ),
     borderSide: side,
   );

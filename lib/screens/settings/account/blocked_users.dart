@@ -60,7 +60,7 @@ class BlockedUsers extends StatelessWidget {
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: colors.trackRing,
-                          width: FrostyTokens.hairlineWidth,
+                          width: OnsetTokens.hairlineWidth,
                         ),
                       ),
                       child: SettingsGlyph(
@@ -72,7 +72,7 @@ class BlockedUsers extends StatelessWidget {
                     Text(
                       'No blocked users',
                       style: TextStyle(
-                        fontFamily: FrostyTokens.bodyFamily,
+                        fontFamily: OnsetTokens.bodyFamily,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: colors.body,
@@ -99,8 +99,8 @@ class BlockedUsers extends StatelessWidget {
                       for (final (index, user) in blocked.indexed) ...[
                         if (index > 0)
                           Divider(
-                            height: FrostyTokens.hairlineWidth,
-                            thickness: FrostyTokens.hairlineWidth,
+                            height: OnsetTokens.hairlineWidth,
+                            thickness: OnsetTokens.hairlineWidth,
                             color: colors.hairline,
                           ),
                         _BlockedRow(

@@ -16,7 +16,7 @@ Future<void> _pump(
   Brightness brightness = Brightness.dark,
   double fontSize = 14,
 }) async {
-  const themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+  const themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
   await tester.pumpWidget(
     MaterialApp(
       theme: brightness == Brightness.dark ? themes.dark : themes.light,
@@ -59,7 +59,7 @@ void main() {
     final border = decoration.border! as Border;
     expect(border.left.width, 4);
     expect(border.left.color, const Color(0xFF12A87A));
-    expect(decoration.color, FrostyColors.dark.subNoticeBackground);
+    expect(decoration.color, OnsetColors.dark.subNoticeBackground);
   });
 
   testWidgets('uses the light tint in the light theme', (tester) async {
@@ -72,7 +72,7 @@ void main() {
       brightness: Brightness.light,
     );
 
-    expect(_decoration(tester).color, FrostyColors.light.subNoticeBackground);
+    expect(_decoration(tester).color, OnsetColors.light.subNoticeBackground);
   });
 
   testWidgets('keeps a 2dp gap above and below the row', (tester) async {
@@ -283,7 +283,7 @@ void main() {
       _decoration(tester).color,
       Color.alphaBlend(
         sponsor.withValues(alpha: 0.10),
-        FrostyTokens.backgroundDark,
+        OnsetTokens.backgroundDark,
       ),
     );
 
@@ -294,7 +294,7 @@ void main() {
       _decoration(tester).color,
       Color.alphaBlend(
         sponsor.withValues(alpha: 0.08),
-        FrostyTokens.backgroundLight,
+        OnsetTokens.backgroundLight,
       ),
     );
   });
@@ -321,7 +321,7 @@ void main() {
       tester.getSize(find.byType(LinearProgressIndicator)).width,
       lessThanOrEqualTo(75),
     );
-    expect(_decoration(tester).color, FrostyColors.dark.subNoticeBackground);
+    expect(_decoration(tester).color, OnsetColors.dark.subNoticeBackground);
   });
 
   group('over the video', () {

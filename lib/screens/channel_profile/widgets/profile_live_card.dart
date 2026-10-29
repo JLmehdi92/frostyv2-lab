@@ -9,9 +9,9 @@ import 'package:onset/services/shared_timer_service.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/image_size.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
-import 'package:onset/widgets/frosty_photo_view_dialog.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
+import 'package:onset/widgets/onset_photo_view_dialog.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
 
@@ -155,12 +155,12 @@ class ProfileLiveCard extends StatelessWidget {
               // A long press enlarges the picture, like the stream cards.
               onLongPress: () => showDialog<void>(
                 context: context,
-                builder: (context) => FrostyPhotoViewDialog(
+                builder: (context) => OnsetPhotoViewDialog(
                   imageUrl: image.url,
                   cacheKey: image.cacheKey,
                 ),
               ),
-              child: FrostyCachedNetworkImage(
+              child: OnsetCachedNetworkImage(
                 imageUrl: image.url,
                 cacheKey: image.cacheKey,
                 memCacheWidth: width,
@@ -188,16 +188,16 @@ class ProfileLiveCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 6),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: context.frostyColors.live,
+          color: context.onsetColors.live,
           borderRadius: BorderRadius.circular(5),
         ),
         child: Text(
           'LIVE',
-          style: FrostyType.badge.copyWith(
+          style: OnsetType.badge.copyWith(
             fontSize: 10,
             letterSpacing: 0.6,
             height: 1,
-            color: FrostyTokens.backgroundDark,
+            color: OnsetTokens.backgroundDark,
           ),
         ),
       );
@@ -209,7 +209,7 @@ class ProfileLiveCard extends StatelessWidget {
       color: OverImage.pillStrong,
       child: Text(
         'RERUN',
-        style: FrostyType.badge.copyWith(
+        style: OnsetType.badge.copyWith(
           fontSize: large ? 11 : 10,
           letterSpacing: 0.6,
           height: 1,
@@ -231,7 +231,7 @@ class ProfileLiveCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: colors.hairline,
-          width: FrostyTokens.hairlineWidth,
+          width: OnsetTokens.hairlineWidth,
         ),
       ),
       child: Row(
@@ -274,7 +274,7 @@ class ProfileLiveCard extends StatelessWidget {
                     details,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: FrostyType.tabular(
+                    style: OnsetType.tabular(
                       TextStyle(
                         fontSize: 12,
                         height: 1.3,
@@ -351,7 +351,7 @@ class ProfileLiveCard extends StatelessWidget {
                       details,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: FrostyType.tabular(
+                      style: OnsetType.tabular(
                         const TextStyle(
                           fontSize: 13,
                           height: 1.3,

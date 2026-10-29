@@ -196,7 +196,7 @@ class _SettingsGroupsViewState extends State<SettingsGroupsView> {
       duration: reduceMotionOf(context)
           ? Duration.zero
           : const Duration(milliseconds: 360),
-      curve: FrostyMotion.standard,
+      curve: OnsetMotion.standard,
     );
   }
 
@@ -300,7 +300,7 @@ class _SettingsGroupsViewState extends State<SettingsGroupsView> {
                         padding: const EdgeInsets.only(left: 6, right: 14),
                         shape: const StadiumBorder(),
                         textStyle: const TextStyle(
-                          fontFamily: FrostyTokens.bodyFamily,
+                          fontFamily: OnsetTokens.bodyFamily,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -325,7 +325,7 @@ class _SettingsGroupsViewState extends State<SettingsGroupsView> {
                   child: Text(
                     title,
                     style: TextStyle(
-                      fontFamily: FrostyTokens.bodyFamily,
+                      fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 30,
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.9,
@@ -416,14 +416,14 @@ class _JumpChip extends StatelessWidget {
               shape: StadiumBorder(
                 side: BorderSide(
                   color: colors.buttonRing,
-                  width: FrostyTokens.hairlineWidth,
+                  width: OnsetTokens.hairlineWidth,
                 ),
               ),
             ),
             child: Text(
               label,
               style: TextStyle(
-                fontFamily: FrostyTokens.bodyFamily,
+                fontFamily: OnsetTokens.bodyFamily,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: colors.body,
@@ -495,7 +495,7 @@ class SettingsScaffold extends StatelessWidget {
                   border: Border(
                     bottom: BorderSide(
                       color: colors.hairline,
-                      width: FrostyTokens.hairlineWidth,
+                      width: OnsetTokens.hairlineWidth,
                     ),
                   ),
                 ),
@@ -581,9 +581,9 @@ class _SettingsFooterState extends State<SettingsFooter> {
   Widget build(BuildContext context) {
     final external = widget.external;
     final colors = SettingsColors.of(context);
-    final style = FrostyType.tabular(
+    final style = OnsetType.tabular(
       TextStyle(
-        fontFamily: FrostyTokens.bodyFamily,
+        fontFamily: OnsetTokens.bodyFamily,
         fontSize: 12,
         color: colors.tertiary,
       ),
@@ -668,10 +668,10 @@ Future<T?> showSettingsSheet<T>({
         insetPadding: const EdgeInsets.all(40),
         insetAnimationDuration: Duration.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(FrostyTokens.radiusLarge),
+          borderRadius: BorderRadius.circular(OnsetTokens.radiusLarge),
           side: BorderSide(
             color: colors.cardRing,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
         clipBehavior: Clip.antiAlias,
@@ -701,7 +701,7 @@ Future<T?> showSettingsSheet<T>({
     clipBehavior: Clip.antiAlias,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(
-        top: Radius.circular(FrostyTokens.radiusLarge),
+        top: Radius.circular(OnsetTokens.radiusLarge),
       ),
     ),
     builder: (context) {
@@ -810,7 +810,7 @@ class SettingsSheetContent extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   shape: const StadiumBorder(),
                   textStyle: const TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                   ),
@@ -890,7 +890,7 @@ class SettingsChoiceRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontFamily: FrostyTokens.bodyFamily,
+                      fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 15,
                       fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                       color: selected ? accent : colors.text,
@@ -972,7 +972,7 @@ class SettingsCheckRow extends StatelessWidget {
                   child: Text(
                     label,
                     style: TextStyle(
-                      fontFamily: FrostyTokens.bodyFamily,
+                      fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 14.5,
                       fontWeight: FontWeight.w500,
                       color: colors.text,

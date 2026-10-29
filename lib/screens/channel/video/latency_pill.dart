@@ -31,13 +31,13 @@ class LatencyPill extends StatelessWidget {
   static const tooltipIvs = 'Latency to broadcaster · tap for video stats';
   static const tooltipOther = 'Latency to broadcaster';
 
-  static final _label = FrostyType.tabular(
+  static final _label = OnsetType.tabular(
     const TextStyle(
-      fontFamily: FrostyTokens.bodyFamily,
+      fontFamily: OnsetTokens.bodyFamily,
       fontSize: 12,
       fontWeight: FontWeight.w600,
       height: 1,
-      color: FrostyTokens.textPrimaryDark,
+      color: OnsetTokens.textPrimaryDark,
     ),
   );
 
@@ -94,7 +94,7 @@ class LatencyPill extends StatelessWidget {
                     borderRadius: BorderRadius.circular(height / 2),
                     border: Border.all(
                       color: Color.fromRGBO(255, 255, 255, large ? 0.16 : 0.14),
-                      width: FrostyTokens.hairlineWidth,
+                      width: OnsetTokens.hairlineWidth,
                     ),
                   ),
                   child: Row(
@@ -105,7 +105,7 @@ class LatencyPill extends StatelessWidget {
                         width: 6,
                         height: 6,
                         decoration: const BoxDecoration(
-                          color: FrostyTokens.accent,
+                          color: OnsetTokens.accent,
                           shape: BoxShape.circle,
                         ),
                       ),

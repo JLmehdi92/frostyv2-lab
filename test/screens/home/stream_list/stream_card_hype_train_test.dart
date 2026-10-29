@@ -21,7 +21,7 @@ const _stream = StreamTwitch(
 
 Future<void> pump(WidgetTester tester, Widget card) => tester.pumpWidget(
   MaterialApp(
-    theme: ThemeData(extensions: const [FrostyColors.light]),
+    theme: ThemeData(extensions: const [OnsetColors.light]),
     home: Scaffold(body: SingleChildScrollView(child: card)),
   ),
 );

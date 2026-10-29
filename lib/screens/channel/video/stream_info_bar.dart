@@ -85,8 +85,8 @@ class StreamInfoBar extends StatelessWidget {
   /// The category, in the wide-tracked uppercase label shared with the stream
   /// cards, so a category reads the same wherever it appears.
   TextStyle _getCategoryTextStyle(BuildContext context) {
-    return context.frostyText.label.copyWith(
-      color: textColor ?? context.frostyColors.metadata,
+    return context.onsetText.label.copyWith(
+      color: textColor ?? context.onsetColors.metadata,
       shadows: showTextShadows ? kOverlayShadow : null,
     );
   }
@@ -94,9 +94,9 @@ class StreamInfoBar extends StatelessWidget {
   /// Numbers the user reads — uptime and viewer count — in the monospace
   /// metadata face, so the digits stop shifting as the values tick.
   TextStyle _getMetricTextStyle(BuildContext context, double fontSize) {
-    return context.frostyText.metadata.copyWith(
+    return context.onsetText.metadata.copyWith(
       fontSize: fontSize,
-      color: textColor ?? context.frostyColors.metadata,
+      color: textColor ?? context.onsetColors.metadata,
       shadows: showTextShadows ? kOverlayShadow : null,
     );
   }
@@ -106,8 +106,7 @@ class StreamInfoBar extends StatelessWidget {
           fontSize: fontSize,
           fontWeight: FontWeight.w500,
           color:
-              textColor?.withValues(alpha: 0.7) ??
-              context.frostyColors.metadata,
+              textColor?.withValues(alpha: 0.7) ?? context.onsetColors.metadata,
           shadows: showTextShadows ? kOverlayShadow : null,
         ) ??
         const TextStyle();
@@ -143,7 +142,7 @@ class StreamInfoBar extends StatelessWidget {
                   ? BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: context.frostyColors.live,
+                        color: context.onsetColors.live,
                         width: 1.5,
                       ),
                     )
@@ -228,7 +227,7 @@ class StreamInfoBar extends StatelessWidget {
                           size: secondLineSize,
                           color:
                               textColor?.withValues(alpha: 0.7) ??
-                              context.frostyColors.metadata,
+                              context.onsetColors.metadata,
                           shadows: showTextShadows ? kOverlayShadow : null,
                         ),
                         const SizedBox(width: 4),
@@ -277,7 +276,7 @@ class StreamInfoBar extends StatelessWidget {
                           Icon(
                             Icons.visibility,
                             size: secondLineSize,
-                            color: textColor ?? context.frostyColors.metadata,
+                            color: textColor ?? context.onsetColors.metadata,
                             shadows: showTextShadows ? kOverlayShadow : null,
                           ),
                           const SizedBox(width: 4),
@@ -298,7 +297,7 @@ class StreamInfoBar extends StatelessWidget {
                           Icon(
                             Icons.gamepad,
                             size: secondLineSize,
-                            color: textColor ?? context.frostyColors.metadata,
+                            color: textColor ?? context.onsetColors.metadata,
                             shadows: showTextShadows ? kOverlayShadow : null,
                           ),
                           const SizedBox(width: 4),

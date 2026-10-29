@@ -4,7 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:onset/models/cheermote.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
-import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/onset_cached_network_image.dart';
 
 class MockChatAssetsStore extends Mock implements ChatAssetsStore {}
 
@@ -70,9 +70,7 @@ void main() {
 
   List<String> images(List<InlineSpan> spans) => [
     for (final span in spans.whereType<WidgetSpan>())
-      if (span.child case Semantics(
-        child: final FrostyCachedNetworkImage image,
-      ))
+      if (span.child case Semantics(child: final OnsetCachedNetworkImage image))
         image.imageUrl,
   ];
 

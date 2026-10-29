@@ -3,8 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/models/emotes.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/widgets/frosty_notification.dart';
-import 'package:onset/widgets/frosty_photo_view_dialog.dart';
+import 'package:onset/widgets/onset_notification.dart';
+import 'package:onset/widgets/onset_photo_view_dialog.dart';
 
 /// The pictures and notices the chat opens: the chat sits beside, under or
 /// over the live video, so none of them may blur it.
@@ -16,7 +16,7 @@ void main() {
   testWidgets("a chat emote's picture opens over a plain dark scrim", (
     tester,
   ) async {
-    final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       MaterialApp(
         theme: themes.dark,
@@ -49,14 +49,14 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.byType(FrostyPhotoViewDialog), findsOneWidget);
+    expect(find.byType(OnsetPhotoViewDialog), findsOneWidget);
     expect(blurring(tester), isFalse);
   });
 
   testWidgets('elsewhere the picture keeps its soft blur', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
-        home: FrostyPhotoViewDialog(imageUrl: 'https://example.com/a.png'),
+        home: OnsetPhotoViewDialog(imageUrl: 'https://example.com/a.png'),
       ),
     );
     expect(blurring(tester), isTrue);
@@ -68,7 +68,7 @@ void main() {
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
-          body: FrostyNotification(message: 'Slow mode', overVideo: true),
+          body: OnsetNotification(message: 'Slow mode', overVideo: true),
         ),
       ),
     );
@@ -77,7 +77,7 @@ void main() {
 
     await tester.pumpWidget(
       const MaterialApp(
-        home: Scaffold(body: FrostyNotification(message: 'Slow mode')),
+        home: Scaffold(body: OnsetNotification(message: 'Slow mode')),
       ),
     );
     expect(blurring(tester), isTrue);

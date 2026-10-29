@@ -76,9 +76,9 @@ class _SettingsListSliderState extends State<SettingsListSlider> {
                 ),
                 Text(
                   widget.trailing,
-                  style: FrostyType.tabular(
+                  style: OnsetType.tabular(
                     TextStyle(
-                      fontFamily: FrostyTokens.bodyFamily,
+                      fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: colors.body,

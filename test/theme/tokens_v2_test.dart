@@ -8,92 +8,89 @@ import 'package:onset/theme.dart';
 void main() {
   group('tokens v2', () {
     test('keep every existing token as it was', () {
-      expect(FrostyTokens.backgroundDark, const Color(0xFF0A0A0A));
-      expect(FrostyTokens.surfaceDark, const Color(0xFF141414));
-      expect(FrostyTokens.backgroundLight, const Color(0xFFF8F8F8));
-      expect(FrostyTokens.surfaceLight, const Color(0xFFFFFFFF));
-      expect(FrostyTokens.hairlineWidth, 0.5);
-      expect(FrostyTokens.hairlineDark, const Color(0x14FFFFFF));
-      expect(FrostyTokens.accent, const Color(0xFFC8FF3D));
-      expect(FrostyTokens.radiusSmall, 8);
-      expect(FrostyTokens.radiusCard, 12);
-      expect(FrostyTokens.radiusDialog, 16);
-      expect(FrostyTokens.radiusPill, 100);
+      expect(OnsetTokens.backgroundDark, const Color(0xFF0A0A0A));
+      expect(OnsetTokens.surfaceDark, const Color(0xFF141414));
+      expect(OnsetTokens.backgroundLight, const Color(0xFFF8F8F8));
+      expect(OnsetTokens.surfaceLight, const Color(0xFFFFFFFF));
+      expect(OnsetTokens.hairlineWidth, 0.5);
+      expect(OnsetTokens.hairlineDark, const Color(0x14FFFFFF));
+      expect(OnsetTokens.accent, const Color(0xFFC8FF3D));
+      expect(OnsetTokens.radiusSmall, 8);
+      expect(OnsetTokens.radiusCard, 12);
+      expect(OnsetTokens.radiusDialog, 16);
+      expect(OnsetTokens.radiusPill, 100);
     });
 
     test('add the raised surface and the three text tiers', () {
-      expect(FrostyTokens.raisedDark, const Color(0xFF1E1E1E));
-      expect(FrostyTokens.textPrimaryDark, const Color(0xFFF5F5F5));
-      expect(FrostyTokens.textBodyDark, const Color(0xFFD6D6D6));
-      expect(FrostyTokens.textSecondaryDark, const Color(0xFFA1A1A1));
-      expect(FrostyTokens.textTertiaryDark, const Color(0xFF8A8A8A));
+      expect(OnsetTokens.raisedDark, const Color(0xFF1E1E1E));
+      expect(OnsetTokens.textPrimaryDark, const Color(0xFFF5F5F5));
+      expect(OnsetTokens.textBodyDark, const Color(0xFFD6D6D6));
+      expect(OnsetTokens.textSecondaryDark, const Color(0xFFA1A1A1));
+      expect(OnsetTokens.textTertiaryDark, const Color(0xFF8A8A8A));
     });
 
     test('the secondary text tier is the metadata colour', () {
-      expect(FrostyColors.dark.metadata, FrostyTokens.textSecondaryDark);
+      expect(OnsetColors.dark.metadata, OnsetTokens.textSecondaryDark);
     });
 
     test('add the stronger hairlines, the signal tint, hype and danger', () {
-      expect(FrostyTokens.hairlineRaisedDark, const Color(0x1FFFFFFF));
-      expect(FrostyTokens.hairlineStrongDark, const Color(0x29FFFFFF));
-      expect(FrostyTokens.accentTint, const Color(0x1AC8FF3D));
-      expect(FrostyTokens.hype, const Color(0xFF12A87A));
-      expect(FrostyTokens.hype, FrostyColors.dark.subNoticeAccent);
-      expect(FrostyTokens.hypeText, const Color(0xFF3DDBA6));
-      expect(FrostyTokens.danger, const Color(0xFFFF5A5F));
+      expect(OnsetTokens.hairlineRaisedDark, const Color(0x1FFFFFFF));
+      expect(OnsetTokens.hairlineStrongDark, const Color(0x29FFFFFF));
+      expect(OnsetTokens.accentTint, const Color(0x1AC8FF3D));
+      expect(OnsetTokens.hype, const Color(0xFF12A87A));
+      expect(OnsetTokens.hype, OnsetColors.dark.subNoticeAccent);
+      expect(OnsetTokens.hypeText, const Color(0xFF3DDBA6));
+      expect(OnsetTokens.danger, const Color(0xFFFF5A5F));
     });
 
     test('skeletons read on the ground and on cards, with a subtle sheen', () {
       int step(Color c) => (c.r * 255).round();
       // Neutral greys.
       for (final c in [
-        FrostyTokens.skeletonDark,
-        FrostyTokens.skeletonSheenDark,
+        OnsetTokens.skeletonDark,
+        OnsetTokens.skeletonSheenDark,
       ]) {
         expect(c.r, c.g);
         expect(c.g, c.b);
       }
-      final base = step(FrostyTokens.skeletonDark);
+      final base = step(OnsetTokens.skeletonDark);
       // Visible on a sheet or card (#141414), not only on the ground.
-      expect(base - step(FrostyTokens.surfaceDark), greaterThanOrEqualTo(12));
-      expect(
-        base - step(FrostyTokens.backgroundDark),
-        greaterThanOrEqualTo(20),
-      );
+      expect(base - step(OnsetTokens.surfaceDark), greaterThanOrEqualTo(12));
+      expect(base - step(OnsetTokens.backgroundDark), greaterThanOrEqualTo(20));
       // The sheen is a hint, not a flash.
-      final sheen = step(FrostyTokens.skeletonSheenDark) - base;
+      final sheen = step(OnsetTokens.skeletonSheenDark) - base;
       expect(sheen, inInclusiveRange(8, 14));
     });
 
     test('radii run 8 / 12 / 16 / 24 / pill', () {
       expect(
         [
-          FrostyTokens.radiusSmall,
-          FrostyTokens.radiusCard,
-          FrostyTokens.radiusDialog,
-          FrostyTokens.radiusLarge,
+          OnsetTokens.radiusSmall,
+          OnsetTokens.radiusCard,
+          OnsetTokens.radiusDialog,
+          OnsetTokens.radiusLarge,
         ],
         [8, 12, 16, 24],
       );
-      expect(FrostyTokens.radiusBadge, 6);
+      expect(OnsetTokens.radiusBadge, 6);
     });
 
     test('spacing is a 4-pt grid', () {
       final scale = [
-        FrostySpacing.xxs,
-        FrostySpacing.xs,
-        FrostySpacing.sm,
-        FrostySpacing.md,
-        FrostySpacing.lg,
-        FrostySpacing.xl,
-        FrostySpacing.xxl,
+        OnsetSpacing.xxs,
+        OnsetSpacing.xs,
+        OnsetSpacing.sm,
+        OnsetSpacing.md,
+        OnsetSpacing.lg,
+        OnsetSpacing.xl,
+        OnsetSpacing.xxl,
       ];
       expect(scale, [2, 4, 8, 12, 16, 24, 32]);
       for (final step in scale.skip(1)) {
         expect(step % 4, 0, reason: '$step is off the 4-pt grid');
       }
-      expect(FrostySpacing.gutterPhone, 16);
-      expect(FrostySpacing.gutterTablet, 28);
+      expect(OnsetSpacing.gutterPhone, 16);
+      expect(OnsetSpacing.gutterTablet, 28);
     });
   });
 
@@ -114,57 +111,57 @@ void main() {
 
     test('matches the board', () {
       expectStyle(
-        FrostyType.display,
+        OnsetType.display,
         size: 34,
         weight: FontWeight.w800,
         trackingEm: -0.035,
       );
-      expect(FrostyType.display.height, 1.05);
+      expect(OnsetType.display.height, 1.05);
       expectStyle(
-        FrostyType.screenTitle,
+        OnsetType.screenTitle,
         size: 24,
         weight: FontWeight.w700,
         trackingEm: -0.02,
       );
       expectStyle(
-        FrostyType.section,
+        OnsetType.section,
         size: 18,
         weight: FontWeight.w700,
         trackingEm: -0.015,
       );
       expectStyle(
-        FrostyType.channelName,
+        OnsetType.channelName,
         size: 16,
         weight: FontWeight.w600,
         trackingEm: -0.01,
       );
       expectStyle(
-        FrostyType.body,
+        OnsetType.body,
         size: 14,
         weight: FontWeight.w400,
         trackingEm: 0,
       );
-      expect(FrostyType.body.height, 1.5);
+      expect(OnsetType.body.height, 1.5);
       expectStyle(
-        FrostyType.meta,
+        OnsetType.meta,
         size: 13,
         weight: FontWeight.w400,
         trackingEm: 0,
       );
       expectStyle(
-        FrostyType.label,
+        OnsetType.label,
         size: 11,
         weight: FontWeight.w600,
         trackingEm: 0.14,
       );
       expectStyle(
-        FrostyType.badge,
+        OnsetType.badge,
         size: 11,
         weight: FontWeight.w800,
         trackingEm: 0.06,
       );
       expectStyle(
-        FrostyType.wordmark,
+        OnsetType.wordmark,
         size: 20,
         weight: FontWeight.w800,
         trackingEm: -0.035,
@@ -173,19 +170,19 @@ void main() {
 
     test('numbers do not dance: metadata uses tabular figures', () {
       expect(
-        FrostyType.meta.fontFeatures,
+        OnsetType.meta.fontFeatures,
         contains(const FontFeature.tabularFigures()),
       );
-      final tabular = FrostyType.tabular(FrostyType.section);
+      final tabular = OnsetType.tabular(OnsetType.section);
       expect(
         tabular.fontFeatures,
         contains(const FontFeature.tabularFigures()),
       );
-      expect(tabular.fontSize, FrostyType.section.fontSize);
+      expect(tabular.fontSize, OnsetType.section.fontSize);
       // Already tabular: not added twice.
       expect(
-        FrostyType.tabular(
-          FrostyType.meta,
+        OnsetType.tabular(
+          OnsetType.meta,
         ).fontFeatures!.where((f) => f == const FontFeature.tabularFigures()),
         hasLength(1),
       );

@@ -21,7 +21,7 @@ class StreamSortButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
-    final accent = context.frostyColors.live;
+    final accent = context.onsetColors.live;
     return PopupMenuButton<StreamSort>(
       tooltip: 'Sort streams',
       initialValue: sort,
@@ -38,7 +38,7 @@ class StreamSortButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
           color: colors.pillBorder,
-          width: FrostyTokens.hairlineWidth,
+          width: OnsetTokens.hairlineWidth,
         ),
       ),
       itemBuilder: (context) => [
@@ -175,7 +175,7 @@ class FollowedSortButton extends StatelessWidget {
               shape: StadiumBorder(
                 side: BorderSide(
                   color: colors.pillBorder,
-                  width: FrostyTokens.hairlineWidth,
+                  width: OnsetTokens.hairlineWidth,
                 ),
               ),
             ),

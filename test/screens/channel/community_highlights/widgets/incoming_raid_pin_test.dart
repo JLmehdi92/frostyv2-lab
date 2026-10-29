@@ -34,8 +34,8 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: brightness == Brightness.dark
-            ? const FrostyThemes(colorSchemeSeed: FrostyTokens.accent).dark
-            : const FrostyThemes(colorSchemeSeed: FrostyTokens.accent).light,
+            ? const OnsetThemes(colorSchemeSeed: OnsetTokens.accent).dark
+            : const OnsetThemes(colorSchemeSeed: OnsetTokens.accent).light,
         builder: (context, child) => MediaQuery(
           data: MediaQuery.of(context).copyWith(
             disableAnimations: reduceMotion,

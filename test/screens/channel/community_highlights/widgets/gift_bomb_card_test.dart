@@ -30,7 +30,7 @@ void main() {
     bool reduceMotion = false,
   }) => tester.pumpWidget(
     MaterialApp(
-      theme: const FrostyThemes(colorSchemeSeed: FrostyTokens.accent).dark,
+      theme: const OnsetThemes(colorSchemeSeed: OnsetTokens.accent).dark,
       home: MediaQuery(
         data: MediaQueryData(disableAnimations: reduceMotion),
         child: Scaffold(
@@ -159,7 +159,7 @@ void main() {
       );
       await tester.pumpWidget(
         MaterialApp(
-          theme: const FrostyThemes(colorSchemeSeed: FrostyTokens.accent).dark,
+          theme: const OnsetThemes(colorSchemeSeed: OnsetTokens.accent).dark,
           home: Scaffold(
             body: Builder(
               builder: (context) => mediaQueryDisableAnimations == null
@@ -206,9 +206,7 @@ void main() {
     Future<void> pumpScaled(WidgetTester tester, double scale) =>
         tester.pumpWidget(
           MaterialApp(
-            theme: const FrostyThemes(
-              colorSchemeSeed: FrostyTokens.accent,
-            ).dark,
+            theme: const OnsetThemes(colorSchemeSeed: OnsetTokens.accent).dark,
             home: Builder(
               builder: (context) => MediaQuery(
                 data: MediaQuery.of(

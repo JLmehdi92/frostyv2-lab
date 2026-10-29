@@ -62,7 +62,7 @@ void main() {
           Provider<TwitchApi>.value(value: api),
         ],
         child: MaterialApp(
-          theme: ThemeData(extensions: const [FrostyColors.light]),
+          theme: ThemeData(extensions: const [OnsetColors.light]),
           home: Scaffold(
             body: StreamsList(
               listType: ListType.top,

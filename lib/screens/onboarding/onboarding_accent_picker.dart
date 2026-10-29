@@ -36,10 +36,10 @@ Future<void> showOnboardingAccentPicker(
         elevation: 0,
         insetPadding: const EdgeInsets.all(24),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(FrostyTokens.radiusLarge),
+          borderRadius: BorderRadius.circular(OnsetTokens.radiusLarge),
           side: const BorderSide(
             color: OnboardingColors.ringStrong,
-            width: FrostyTokens.hairlineWidth,
+            width: OnsetTokens.hairlineWidth,
           ),
         ),
         child: SizedBox(
@@ -62,7 +62,7 @@ Future<void> showOnboardingAccentPicker(
       clipBehavior: Clip.antiAlias,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(FrostyTokens.radiusLarge),
+          top: Radius.circular(OnsetTokens.radiusLarge),
         ),
       ),
       builder: (context) => DecoratedBox(
@@ -71,7 +71,7 @@ Future<void> showOnboardingAccentPicker(
           border: Border(
             top: BorderSide(
               color: Color(0x24FFFFFF),
-              width: FrostyTokens.hairlineWidth,
+              width: OnsetTokens.hairlineWidth,
             ),
           ),
         ),
@@ -165,7 +165,7 @@ class _AccentPickerState extends State<_AccentPicker> {
               ),
               Text(
                 hexOf(color),
-                style: FrostyType.tabular(
+                style: OnsetType.tabular(
                   const TextStyle(
                     fontSize: 13,
                     color: OnboardingColors.secondary,
@@ -181,7 +181,7 @@ class _AccentPickerState extends State<_AccentPicker> {
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: const Color(0x4DFFFFFF),
-                    width: FrostyTokens.hairlineWidth,
+                    width: OnsetTokens.hairlineWidth,
                   ),
                 ),
               ),
@@ -196,7 +196,7 @@ class _AccentPickerState extends State<_AccentPicker> {
               shape: const StadiumBorder(
                 side: BorderSide(
                   color: OnboardingColors.ringStrong,
-                  width: FrostyTokens.hairlineWidth,
+                  width: OnsetTokens.hairlineWidth,
                 ),
               ),
               clipBehavior: Clip.antiAlias,

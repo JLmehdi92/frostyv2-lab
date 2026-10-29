@@ -12,7 +12,7 @@ class MockTwitchApi extends Mock implements TwitchApi {}
 class MockWebTokenService extends Mock implements TwitchWebTokenService {}
 
 /// Tokens of another app (pasted from another tool, or stored by an older
-/// version): base Frosty accepted any token Twitch accepts. Only the login
+/// version): the app used to accept any token Twitch accepts. Only the login
 /// page, where a token could be injected, insists on this app's.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

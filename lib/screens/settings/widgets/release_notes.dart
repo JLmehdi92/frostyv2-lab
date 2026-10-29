@@ -86,7 +86,7 @@ class _ReleaseNotesState extends State<ReleaseNotes> {
         spans.add(
           TextSpan(
             text: match.group(4),
-            style: FrostyType.tabular(const TextStyle()),
+            style: OnsetType.tabular(const TextStyle()),
           ),
         );
       }
@@ -102,7 +102,7 @@ class _ReleaseNotesState extends State<ReleaseNotes> {
     final accent = SettingsColors.accentOf(context);
     final padding = MediaQuery.paddingOf(context);
     final body = TextStyle(
-      fontFamily: FrostyTokens.bodyFamily,
+      fontFamily: OnsetTokens.bodyFamily,
       fontSize: 14,
       height: 1.5,
       color: colors.body,
@@ -114,7 +114,7 @@ class _ReleaseNotesState extends State<ReleaseNotes> {
         child: Text(
           "WHAT'S NEW",
           style: TextStyle(
-            fontFamily: FrostyTokens.bodyFamily,
+            fontFamily: OnsetTokens.bodyFamily,
             fontSize: 10.5,
             fontWeight: FontWeight.w800,
             letterSpacing: 1.26,
@@ -138,7 +138,7 @@ class _ReleaseNotesState extends State<ReleaseNotes> {
                   child: Text(
                     version,
                     style: TextStyle(
-                      fontFamily: FrostyTokens.bodyFamily,
+                      fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
                       letterSpacing: -0.4,
@@ -151,7 +151,7 @@ class _ReleaseNotesState extends State<ReleaseNotes> {
                 Text(
                   date,
                   style: TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
+                    fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 12.5,
                     color: colors.secondary,
                   ),
@@ -166,7 +166,7 @@ class _ReleaseNotesState extends State<ReleaseNotes> {
             child: Text(
               title.toUpperCase(),
               style: TextStyle(
-                fontFamily: FrostyTokens.bodyFamily,
+                fontFamily: OnsetTokens.bodyFamily,
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.78,
@@ -207,13 +207,13 @@ class _ReleaseNotesState extends State<ReleaseNotes> {
                               borderRadius: BorderRadius.circular(5),
                               border: Border.all(
                                 color: colors.buttonRing,
-                                width: FrostyTokens.hairlineWidth,
+                                width: OnsetTokens.hairlineWidth,
                               ),
                             ),
                             child: Text(
                               platform,
                               style: TextStyle(
-                                fontFamily: FrostyTokens.bodyFamily,
+                                fontFamily: OnsetTokens.bodyFamily,
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
                                 color: colors.secondary,
@@ -232,8 +232,8 @@ class _ReleaseNotesState extends State<ReleaseNotes> {
         ReleaseRule() => Padding(
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: Divider(
-            height: FrostyTokens.hairlineWidth,
-            thickness: FrostyTokens.hairlineWidth,
+            height: OnsetTokens.hairlineWidth,
+            thickness: OnsetTokens.hairlineWidth,
             color: colors.hairline,
           ),
         ),
