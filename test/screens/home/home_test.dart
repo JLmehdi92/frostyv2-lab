@@ -26,6 +26,7 @@ import 'package:frosty/screens/settings/settings.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/settings/stores/user_store.dart';
+import 'package:frosty/screens/settings/widgets/release_notes.dart';
 import 'package:frosty/screens/whispers/whispers_screen.dart';
 import 'package:frosty/services/notifications/activity_log.dart';
 import 'package:frosty/services/playback_focus.dart';
@@ -33,6 +34,7 @@ import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/stores/whisper_store.dart';
 import 'package:frosty/theme.dart';
+import 'package:frosty/widgets/launch/launch_intro.dart';
 import 'package:frosty/widgets/profile_picture.dart';
 import 'package:mobx/mobx.dart' show Observable, ObservableList, runInAction;
 import 'package:mocktail/mocktail.dart';
@@ -1007,4 +1009,80 @@ void main() {
     expect(find.byType(Categories), findsOneWidget);
     await close(tester);
   });
+
+  testWidgets('straight from the onboarding, the release notes wait for the '
+      'tile to land', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final pushed = <String?>[];
+    final navigator = GlobalKey<NavigatorState>();
+    final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          Provider<AuthStore>.value(value: FakeAuthStore()),
+          Provider<SettingsStore>.value(value: settings),
+          Provider<TwitchApi>.value(value: api),
+          Provider<TwitchClipService>.value(value: clips),
+          Provider<TwitchVodService>.value(value: vods),
+          Provider<TwitchHypeTrainService>.value(value: MockHypeTrainService()),
+          Provider<ActivityStore>.value(value: activity),
+          Provider<WhisperStore>.value(value: whispers),
+          Provider<MiniPlayerStore>.value(value: mini),
+        ],
+        child: MaterialApp(
+          navigatorKey: navigator,
+          theme: themes.light,
+          navigatorObservers: [
+            LaunchIntro.navigatorObserver,
+            OnsetShell.routeObserver,
+            _RouteNames(pushed),
+          ],
+          builder: (context, child) =>
+              LaunchIntro(slotKey: OnsetShell.markKey, child: child!),
+          home: const Scaffold(body: Text('onboarding')),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(
+      LaunchIntro.land(
+        from: const Rect.fromLTWH(159, 386, 72, 72),
+        onCovered: () => navigator.currentState!.pushAndRemoveUntil(
+          PageRouteBuilder<void>(
+            transitionDuration: Duration.zero,
+            pageBuilder: (_, _, _) => const Home(),
+          ),
+          (_) => false,
+        ),
+      ),
+      isTrue,
+    );
+    await tester.pump();
+    await tester.pump(LaunchIntro.landingDuration * 0.3);
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.byType(Home), findsOneWidget);
+    // The notes are due (no version shown yet) but the tile still flies.
+    expect(pushed, isNot(contains(ReleaseNotes.routeName)));
+    expect(find.byKey(LaunchIntro.overlayKey), findsOneWidget);
+
+    await tester.pump(LaunchIntro.landingDuration);
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byKey(LaunchIntro.overlayKey), findsNothing);
+    expect(pushed, contains(ReleaseNotes.routeName));
+    await close(tester);
+  });
+}
+
+class _RouteNames extends NavigatorObserver {
+  _RouteNames(this.names);
+
+  final List<String?> names;
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) =>
+      names.add(route.settings.name);
 }

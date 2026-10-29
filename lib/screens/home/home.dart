@@ -29,6 +29,7 @@ import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/stores/whisper_store.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
+import 'package:frosty/widgets/launch/launch_intro.dart';
 import 'package:frosty/widgets/onset_update_prompt.dart';
 import 'package:frosty/widgets/profile_picture.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -122,6 +123,21 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     action();
   }
 
+  /// Completes once no [LaunchIntro.land] plays.
+  Future<void> _landed() {
+    final landing = LaunchIntro.landing;
+    if (!landing.value) return Future.value();
+    final done = Completer<void>();
+    void check() {
+      if (landing.value) return;
+      landing.removeListener(check);
+      done.complete();
+    }
+
+    landing.addListener(check);
+    return done.future;
+  }
+
   Future<void> checkAndShowReleaseNotes() async {
     final packageInfo = await PackageInfo.fromPlatform();
     final prefs = await SharedPreferences.getInstance();
@@ -134,6 +150,9 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     final storedMajorMinor = storedVersion?.split('.').take(2).join('.');
 
     if (storedMajorMinor == null || storedMajorMinor != currentMajorMinor) {
+      // Straight from the onboarding, the tile is still flying into the
+      // header: the notes wait for it to land, or they would cut it short.
+      await _landed();
       if (!mounted) return;
 
       Navigator.push(

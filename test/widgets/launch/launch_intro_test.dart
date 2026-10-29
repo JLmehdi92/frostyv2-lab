@@ -23,6 +23,7 @@ void _setSize(WidgetTester tester, Size size) {
 Widget _app({
   bool play = true,
   bool fromTile = false,
+  bool holdOnName = false,
   GlobalKey? slotKey,
   ValueNotifier<Rect?>? splashTile,
   GlobalKey<NavigatorState>? navigatorKey,
@@ -32,6 +33,7 @@ Widget _app({
   builder: (context, child) => LaunchIntro(
     play: play,
     fromTile: fromTile,
+    holdOnName: holdOnName,
     slotKey: slotKey,
     splashTile: splashTile,
     child: child!,
@@ -426,5 +428,222 @@ void main() {
         expect(_overlay, findsNothing);
       });
     }
+  });
+
+  group('first run: it holds on the name for the onboarding', () {
+    testWidgets('no flight: it ends once the name is drawn, on black', (
+      tester,
+    ) async {
+      _setSize(tester, _phone);
+      await tester.pumpWidget(_app(holdOnName: true));
+      await _pumpTo(tester, 0.5);
+      expect(_overlay, findsOneWidget);
+      // Still in the middle, at full size: it never leaves for the header.
+      expect(tester.getCenter(_tile), const Offset(195, 422));
+      expect(tester.getRect(_tile).width, closeTo(72, 0.5));
+      await tester.pump(_at(0.1));
+      await tester.pump();
+      expect(_overlay, findsNothing);
+      expect(LaunchIntro.running.value, isFalse);
+      await tester.pumpAndSettle();
+      expect(tester.binding.transientCallbackCount, 0);
+    });
+
+    testWidgets('it tells where the tile rests', (tester) async {
+      _setSize(tester, _phone);
+      final splash = ValueNotifier<Rect?>(null);
+      addTearDown(splash.dispose);
+      await tester.pumpWidget(
+        _app(holdOnName: true, fromTile: true, splashTile: splash),
+      );
+      splash.value = Rect.fromCenter(
+        center: const Offset(195, 446),
+        width: 60,
+        height: 60,
+      );
+      await tester.pump();
+      await tester.pump(_at(0.4));
+      await tester.pump();
+      expect(_overlay, findsNothing);
+      expect(
+        LaunchIntro.restingTile.value,
+        Rect.fromCenter(center: const Offset(195, 446), width: 60, height: 60),
+      );
+    });
+  });
+
+  group('landing: the end of the intro, played again', () {
+    testWidgets('covers, swaps the page, then flies into the header', (
+      tester,
+    ) async {
+      _setSize(tester, _phone);
+      final navigator = GlobalKey<NavigatorState>();
+      await tester.pumpWidget(_app(play: false, navigatorKey: navigator));
+      await tester.pumpAndSettle();
+      var covered = 0;
+      final played = LaunchIntro.land(
+        from: Rect.fromCenter(
+          center: const Offset(195, 422),
+          width: 72,
+          height: 72,
+        ),
+        onCovered: () {
+          covered++;
+          // The caller swaps the page under the ground: that push does not
+          // end the landing.
+          navigator.currentState!.push(
+            PageRouteBuilder<void>(
+              transitionDuration: Duration.zero,
+              pageBuilder: (_, _, _) => const Text('next'),
+            ),
+          );
+        },
+      );
+      expect(played, isTrue);
+      expect(LaunchIntro.running.value, isTrue);
+      expect(LaunchIntro.landing.value, isTrue);
+      await tester.pump();
+      expect(_overlay, findsOneWidget);
+      expect(covered, 0);
+      await tester.pump(LaunchIntro.landingDuration * 0.25);
+      expect(covered, 1);
+      await tester.pump();
+      expect(find.text('next'), findsOneWidget);
+      expect(_overlay, findsOneWidget);
+      await tester.pump(LaunchIntro.landingDuration * 0.55);
+      final rect = tester.getRect(_tile);
+      expect(rect.left, closeTo(16, 0.5));
+      expect(rect.top, closeTo(24 + 14, 0.5));
+      await tester.pumpAndSettle();
+      expect(_overlay, findsNothing);
+      expect(covered, 1);
+      expect(LaunchIntro.running.value, isFalse);
+      expect(LaunchIntro.landing.value, isFalse);
+    });
+
+    testWidgets('holds the next page\'s entrances until it uncovers them', (
+      tester,
+    ) async {
+      _setSize(tester, _phone);
+      final navigator = GlobalKey<NavigatorState>();
+      await tester.pumpWidget(_app(play: false, navigatorKey: navigator));
+      await tester.pumpAndSettle();
+      LaunchIntro.land(
+        from: Rect.fromCenter(
+          center: const Offset(195, 422),
+          width: 72,
+          height: 72,
+        ),
+        onCovered: () => navigator.currentState!.pushAndRemoveUntil(
+          PageRouteBuilder<void>(
+            transitionDuration: Duration.zero,
+            pageBuilder: (_, _, _) => const Center(
+              child: StaggeredEntrance(
+                key: Key('next-card'),
+                index: 0,
+                child: Text('next'),
+              ),
+            ),
+          ),
+          (_) => false,
+        ),
+      );
+      await tester.pump();
+      await tester.pump(LaunchIntro.landingDuration * 0.3);
+      await tester.pump();
+      double opacity() => tester
+          .widget<FadeTransition>(
+            find.descendant(
+              of: find.byKey(const Key('next-card')),
+              matching: find.byType(FadeTransition),
+            ),
+          )
+          .opacity
+          .value;
+      expect(opacity(), 0);
+      await tester.pumpAndSettle();
+      expect(opacity(), 1);
+    });
+
+    testWidgets('a tap before the swap still swaps the page', (tester) async {
+      _setSize(tester, _phone);
+      await tester.pumpWidget(_app(play: false));
+      await tester.pumpAndSettle();
+      var covered = 0;
+      LaunchIntro.land(
+        from: Rect.fromCenter(
+          center: const Offset(195, 422),
+          width: 72,
+          height: 72,
+        ),
+        onCovered: () => covered++,
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tapAt(const Offset(195, 300));
+      await tester.pump();
+      expect(covered, 1);
+      expect(_overlay, findsNothing);
+      await tester.pumpAndSettle();
+      expect(covered, 1);
+    });
+
+    testWidgets('reduce motion: it does not play, the caller navigates', (
+      tester,
+    ) async {
+      _setSize(tester, _phone);
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: true);
+      await tester.pumpWidget(_app(play: false));
+      await tester.pumpAndSettle();
+      var covered = 0;
+      expect(
+        LaunchIntro.land(
+          from: Rect.fromCenter(
+            center: const Offset(195, 422),
+            width: 72,
+            height: 72,
+          ),
+          onCovered: () => covered++,
+        ),
+        isFalse,
+      );
+      await tester.pump();
+      expect(_overlay, findsNothing);
+      expect(covered, 0);
+    });
+
+    testWidgets('no intro mounted: it does not play', (tester) async {
+      _setSize(tester, _phone);
+      await tester.pumpWidget(const MaterialApp(home: Text('x')));
+      expect(
+        LaunchIntro.land(from: Rect.zero, onCovered: () {}),
+        isFalse,
+      );
+    });
+
+    testWidgets('tablet: from where the tile is, no pop-in', (tester) async {
+      _setSize(tester, _tablet);
+      await tester.pumpWidget(_app(play: false));
+      await tester.pumpAndSettle();
+      LaunchIntro.land(
+        from: Rect.fromCenter(
+          center: const Offset(280, 427),
+          width: 72,
+          height: 72,
+        ),
+        appear: false,
+        onCovered: () {},
+      );
+      await tester.pump();
+      expect(tester.getCenter(_tile), const Offset(280, 427));
+      expect(tester.getRect(_tile).width, closeTo(72, 0.5));
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 70));
+        expect(find.byType(BackdropFilter), findsNothing);
+      }
+      await tester.pumpAndSettle();
+      expect(_overlay, findsNothing);
+    });
   });
 }

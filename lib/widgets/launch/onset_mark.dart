@@ -158,3 +158,124 @@ class _MarkPainter extends CustomPainter {
   bool shouldRepaint(_MarkPainter oldDelegate) =>
       oldDelegate.opacity != opacity || oldDelegate.scale != scale;
 }
+
+/// The "ONSET" name of the launch boards: five letters (Inter 800, 34 sp on
+/// a phone, 40 on a tablet) over the signal underline (120 / 140 × 2 dp,
+/// 12 dp below).
+///
+/// The launch intro raises it letter by letter ([letters], one progress per
+/// letter) and draws the underline in ([underline]); the onboarding shows it
+/// at rest, at the very same place, so the first frame of the onboarding is
+/// the last frame of the intro. Drawn one letter per [Text], as the intro
+/// animates them, so both lay out the same.
+class OnsetWordmark extends StatelessWidget {
+  const OnsetWordmark({
+    super.key,
+    required this.tablet,
+    this.letters = const [1, 1, 1, 1, 1],
+    this.underline = 1,
+    this.opacity = 1,
+    this.underlineColor = FrostyTokens.accent,
+  });
+
+  final bool tablet;
+
+  /// Each letter's rise, 0 (hidden, [rise] below) to 1 (in place).
+  final List<double> letters;
+  final double underline;
+  final double opacity;
+  final Color underlineColor;
+
+  static const name = 'ONSET';
+
+  /// Space between the tile's bottom edge and the name's top.
+  static double gapBelowTile({required bool tablet}) => tablet ? 31 : 30;
+
+  /// Letter size.
+  static double letterSize({required bool tablet}) => tablet ? 40 : 34;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = letterSize(tablet: tablet);
+    final rise = tablet ? 22.0 : 20.0;
+    return Semantics(
+      header: true,
+      label: name,
+      excludeSemantics: true,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final (i, letter) in name.split('').indexed)
+                _Letter(
+                  letter: letter,
+                  size: size,
+                  progress: letters[i],
+                  rise: rise,
+                  opacity: opacity,
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: tablet ? 140 : 120,
+            height: 2,
+            child: Transform.scale(
+              scaleX: underline,
+              alignment: Alignment.centerLeft,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: underlineColor.withValues(
+                    alpha: underlineColor.a * opacity,
+                  ),
+                  borderRadius: BorderRadius.circular(1),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One letter of the wordmark rising into place.
+class _Letter extends StatelessWidget {
+  final String letter;
+  final double size;
+  final double progress;
+  final double rise;
+  final double opacity;
+
+  const _Letter({
+    required this.letter,
+    required this.size,
+    required this.progress,
+    required this.rise,
+    required this.opacity,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.translate(
+      offset: Offset(0, rise * (1 - progress)),
+      child: Text(
+        letter,
+        style: TextStyle(
+          fontFamily: FrostyTokens.displayFamily,
+          fontSize: size,
+          fontWeight: FontWeight.w800,
+          fontStyle: FontStyle.normal,
+          decoration: TextDecoration.none,
+          letterSpacing: -0.035 * size,
+          height: 1.2,
+          color: FrostyTokens.textPrimaryDark.withValues(
+            alpha: (progress * opacity).clamp(0.0, 1.0),
+          ),
+        ),
+      ),
+    );
+  }
+}

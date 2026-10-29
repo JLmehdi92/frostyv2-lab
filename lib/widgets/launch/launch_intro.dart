@@ -30,11 +30,18 @@ import 'package:frosty/widgets/motion/staggered_entrance.dart';
 /// - [slotKey]: the header's mark, where the tile lands. Without one the
 ///   tile lands where the boards put it (16 / 28 dp from the left edge, in
 ///   the header row) and dissolves into the header.
+/// - [holdOnName] (the first run): the intro stops once the name is drawn,
+///   without the flight. The onboarding starts on that very frame (the same
+///   tile at the same place, the same black, the name underlined), told
+///   where the tile rests by [restingTile].
+/// - [land] plays the end of the intro once more when the onboarding hands
+///   over to the home: the tile flies into the header and the home comes in.
 /// - No blur anywhere: fills and a soft shadow only.
 class LaunchIntro extends StatefulWidget {
   final Widget child;
   final bool play;
   final bool fromTile;
+  final bool holdOnName;
   final GlobalKey? slotKey;
   final ValueListenable<Rect?>? splashTile;
 
@@ -43,12 +50,20 @@ class LaunchIntro extends StatefulWidget {
     required this.child,
     this.play = false,
     this.fromTile = false,
+    this.holdOnName = false,
     this.slotKey,
     this.splashTile,
   });
 
   /// The whole sequence (the storyboard's 1 400 ms).
   static const duration = Duration(milliseconds: 1400);
+
+  /// The landing from the onboarding (board Onboarding, its last frame).
+  static const landingDuration = Duration(milliseconds: 1400);
+
+  /// The tablet's landing, from the tile already on screen (board
+  /// OnboardingTablette).
+  static const landingFromTileDuration = Duration(milliseconds: 1250);
 
   @visibleForTesting
   static const overlayKey = ValueKey('launch-intro');
@@ -61,6 +76,24 @@ class LaunchIntro extends StatefulWidget {
   ];
 
   static final _running = <_LaunchIntroState>{};
+  static final _mounted = <_LaunchIntroState>{};
+
+  static final _restingTile = ValueNotifier<Rect?>(null);
+
+  /// Where the tile rested when an intro held on the name ([holdOnName])
+  /// ended, in the app's coordinates: the onboarding picks it up from there.
+  /// Null when no intro held.
+  static ValueListenable<Rect?> get restingTile => _restingTile;
+
+  static final _landingNotifier = ValueNotifier(false);
+
+  /// Whether a [land] plays now: a page that would open over the new one
+  /// (the release notes) waits until it is false, or it would cut it short.
+  static ValueListenable<bool> get landing => _landingNotifier;
+
+  /// Whether a page swap of [land] is under way: its push must not end the
+  /// landing.
+  static bool _swapping = false;
 
   static final _runningNotifier = ValueNotifier(false);
 
@@ -75,6 +108,27 @@ class LaunchIntro extends StatefulWidget {
     for (final intro in _running.toList()) {
       intro._finish();
     }
+  }
+
+  /// Plays the end of the intro over the app once more (the onboarding's
+  /// "Let's go!"): the screen fades to the intro's black around the tile at
+  /// [from] (popping in first when [appear], as on a phone where the last
+  /// step does not show it), [onCovered] swaps the page underneath while it
+  /// is black, then the tile flies into the header ([LaunchIntro.slotKey])
+  /// and the new page's entrances play as the black clears.
+  ///
+  /// [onCovered] runs exactly once, also when the landing is cut short (a
+  /// tap, leaving the app). Returns false, without calling it, when nothing
+  /// can play: no intro mounted, reduce motion or a screen reader. The
+  /// caller then swaps the page itself.
+  static bool land({
+    required Rect from,
+    required VoidCallback onCovered,
+    bool appear = true,
+  }) {
+    final intro = _mounted.isEmpty ? null : _mounted.last;
+    if (intro == null || !intro.mounted) return false;
+    return intro._land(from: from, appear: appear, onCovered: onCovered);
   }
 
   /// Ends the intro as soon as any page opens over the first one (a link, a
@@ -111,6 +165,10 @@ abstract final class _Timeline {
   static const tileOutStart = 0.74;
   static const tileOutEnd = 0.86;
 
+  /// Where a first run's intro stops: the name and its underline are drawn,
+  /// the rings are gone, nothing has started to leave.
+  static const holdEnd = 0.56;
+
   /// Progress through [start]–[end] at [t], through [curve].
   static double span(
     double t,
@@ -118,6 +176,33 @@ abstract final class _Timeline {
     double end, [
     Curve curve = Curves.linear,
   ]) => curve.transform(((t - start) / (end - start)).clamp(0.0, 1.0));
+}
+
+/// The landing's keyframes (board Onboarding: tile pops in 0–18 %, one ring
+/// 18–40 %, flight 40–78 %, header 64–80 %, cards from 66 %; board
+/// OnboardingTablette, from the tile already there: flight 8–52 %, header
+/// 40–62 %, cards from 44 %). The screen first fades to black over the
+/// onboarding (its 280 ms fade-out) and the page is swapped underneath.
+class _LandingTimeline {
+  final bool appear;
+
+  const _LandingTimeline({required this.appear});
+
+  Duration get duration => appear
+      ? LaunchIntro.landingDuration
+      : LaunchIntro.landingFromTileDuration;
+
+  double get coverEnd => appear ? 0.2 : 0.22;
+  double get appearEnd => 0.18;
+  double get ringStart => 0.18;
+  double get ringEnd => 0.40;
+  double get flightStart => appear ? 0.40 : 0.08;
+  double get flightEnd => appear ? 0.78 : 0.52;
+  double get groundOutStart => appear ? 0.64 : 0.40;
+  double get groundOutEnd => appear ? 0.80 : 0.62;
+  double get reveal => appear ? 0.66 : 0.44;
+  double get tileOutStart => appear ? 0.74 : 0.50;
+  double get tileOutEnd => appear ? 0.86 : 0.62;
 }
 
 class _LaunchIntroState extends State<LaunchIntro>
@@ -128,13 +213,23 @@ class _LaunchIntroState extends State<LaunchIntro>
   bool _decided = false;
   bool _done = false;
 
+  /// The landing in progress, if any ([LaunchIntro.land]).
+  _LandingTimeline? _landing;
+  Rect _landFrom = Rect.zero;
+  VoidCallback? _onCovered;
+
   @override
   void initState() {
     super.initState();
+    LaunchIntro._mounted.add(this);
     _controller = AnimationController(
       vsync: this,
       duration: LaunchIntro.duration,
-    );
+    )
+      ..addListener(_onTick)
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed) _finish();
+      });
   }
 
   @override
@@ -143,53 +238,126 @@ class _LaunchIntroState extends State<LaunchIntro>
     if (_decided) return;
     _decided = true;
 
-    final screenReader = MediaQuery.maybeAccessibleNavigationOf(context);
-    if (!widget.play || reduceMotionOf(context) || screenReader == true) {
+    if (!widget.play || !_canPlay(context)) {
       _done = true;
       _revealed.value = true;
       return;
     }
 
+    _start();
+    _controller.forward(from: widget.fromTile ? _Timeline.tileEnd : 0);
+  }
+
+  bool _canPlay(BuildContext context) {
+    final screenReader = MediaQuery.maybeAccessibleNavigationOf(context);
+    return !reduceMotionOf(context) && screenReader != true;
+  }
+
+  void _start() {
     LaunchIntro._running.add(this);
     LaunchIntro._updateRunning();
+    _lifecycle?.dispose();
     _lifecycle = AppLifecycleListener(
       onInactive: _finish,
       onHide: _finish,
       onPause: _finish,
     );
+  }
+
+  bool _land({
+    required Rect from,
+    required bool appear,
+    required VoidCallback onCovered,
+  }) {
+    if (!_canPlay(context)) return false;
+    // A landing replaces whatever still runs (it never does in practice:
+    // the onboarding comes after the intro).
+    if (!_done) _finish();
+    _landing = _LandingTimeline(appear: appear);
+    LaunchIntro._landingNotifier.value = true;
+    _landFrom = from;
+    _onCovered = onCovered;
+    _revealed.value = false;
+    setState(() => _done = false);
+    _start();
     _controller
-      ..addListener(_onTick)
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) _finish();
-      })
-      ..forward(from: widget.fromTile ? _Timeline.tileEnd : 0);
+      ..duration = _landing!.duration
+      ..forward(from: 0);
+    return true;
   }
 
   void _onTick() {
+    final t = _controller.value;
+    final landing = _landing;
+    if (landing != null) {
+      if (t >= landing.coverEnd) _cover();
+      if (!_revealed.value && t >= landing.reveal) _revealed.value = true;
+      return;
+    }
+    if (widget.holdOnName && t >= _Timeline.holdEnd) {
+      _finish();
+      return;
+    }
     if (!_revealed.value && _controller.value >= _Timeline.reveal) {
       _revealed.value = true;
     }
   }
 
+  /// The landing's black is up: the page underneath is swapped, once.
+  void _cover() {
+    final onCovered = _onCovered;
+    if (onCovered == null) return;
+    _onCovered = null;
+    LaunchIntro._swapping = true;
+    try {
+      onCovered();
+    } finally {
+      LaunchIntro._swapping = false;
+    }
+  }
+
   void _finish() {
     if (_done) return;
+    if (_landing != null) {
+      _cover();
+    } else if (widget.holdOnName && mounted) {
+      LaunchIntro._restingTile.value = _restingRect(context);
+    }
     LaunchIntro._running.remove(this);
     LaunchIntro._updateRunning();
     _lifecycle?.dispose();
     _lifecycle = null;
     _controller.stop();
     _revealed.value = true;
+    if (_landing != null) {
+      _landing = null;
+      LaunchIntro._landingNotifier.value = false;
+    }
     if (mounted) setState(() => _done = true);
   }
 
   @override
   void dispose() {
+    if (_landing != null) LaunchIntro._landingNotifier.value = false;
+    LaunchIntro._mounted.remove(this);
     LaunchIntro._running.remove(this);
     LaunchIntro._updateRunning();
     _lifecycle?.dispose();
     _controller.dispose();
     _revealed.dispose();
     super.dispose();
+  }
+
+  /// Where the tile rests once grown: on the native splash's tile when it
+  /// handed over, else in the middle at the boards' 72 dp.
+  Rect _restingRect(BuildContext context) {
+    final splash = widget.fromTile ? widget.splashTile?.value : null;
+    return splash ??
+        Rect.fromCenter(
+          center: MediaQuery.sizeOf(context).center(Offset.zero),
+          width: _IntroFrame._tile,
+          height: _IntroFrame._tile,
+        );
   }
 
   @override
@@ -206,22 +374,31 @@ class _LaunchIntroState extends State<LaunchIntro>
                   animation: Listenable.merge([_controller, widget.splashTile]),
                   builder: (context, _) {
                     final t = _controller.value;
+                    final landing = _landing;
                     // Covering: a tap skips. Once the app shows through,
                     // taps go to it.
                     return IgnorePointer(
-                      ignoring: t >= _Timeline.reveal,
+                      ignoring: t >= (landing?.reveal ?? _Timeline.reveal),
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTap: _finish,
-                        child: _IntroFrame(
-                          t: t,
-                          fromTile: widget.fromTile,
-                          splash: widget.fromTile
-                              ? widget.splashTile?.value
-                              : null,
-                          slot: _slotRect(context),
-                          slotIsReal: _hasRealSlot,
-                        ),
+                        child: landing != null
+                            ? _LandingFrame(
+                                t: t,
+                                timeline: landing,
+                                from: _landFrom,
+                                slot: _slotRect(context),
+                                slotIsReal: _hasRealSlot,
+                              )
+                            : _IntroFrame(
+                                t: t,
+                                fromTile: widget.fromTile,
+                                splash: widget.fromTile
+                                    ? widget.splashTile?.value
+                                    : null,
+                                slot: _slotRect(context),
+                                slotIsReal: _hasRealSlot,
+                              ),
                       ),
                     );
                   },
@@ -242,6 +419,7 @@ class _LaunchIntroState extends State<LaunchIntro>
     final target = widget.slotKey?.currentContext?.findRenderObject();
     final self = context.findRenderObject();
     if (target is RenderBox &&
+        target.attached &&
         target.hasSize &&
         self is RenderBox &&
         self.hasSize) {
@@ -255,10 +433,11 @@ class _LaunchIntroState extends State<LaunchIntro>
   }
 }
 
+
 class _SkipOnPush extends NavigatorObserver {
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (previousRoute != null) LaunchIntro.skipAll();
+    if (previousRoute != null && !LaunchIntro._swapping) LaunchIntro.skipAll();
   }
 }
 
@@ -339,8 +518,6 @@ class _IntroFrame extends StatelessWidget {
     // The name.
     final nameOut =
         1 - span(t, _Timeline.nameOutStart, _Timeline.nameOutEnd, Curves.ease);
-    final letterSize = tablet ? 40.0 : 34.0;
-    final letterRise = tablet ? 22.0 : 20.0;
     final underline = span(
       t,
       _Timeline.underlineStart,
@@ -400,44 +577,25 @@ class _IntroFrame extends StatelessWidget {
             Positioned(
               left: 0,
               right: 0,
-              top: center.dy + _tile / 2 + (tablet ? 31 : 30),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (final (i, letter) in 'ONSET'.split('').indexed)
-                        _Letter(
-                          letter: letter,
-                          size: letterSize,
-                          progress: span(
-                            t,
-                            _Timeline.letterStart + i * _Timeline.letterStep,
-                            _Timeline.letterEnd + i * _Timeline.letterStep,
-                            FrostyMotion.emphasizedDecelerate,
-                          ),
-                          rise: letterRise,
-                          opacity: nameOut,
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: tablet ? 140 : 120,
-                    height: 2,
-                    child: Transform.scale(
-                      scaleX: underline,
-                      alignment: Alignment.centerLeft,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: _accent.withValues(alpha: nameOut),
-                          borderRadius: BorderRadius.circular(1),
-                        ),
+              top:
+                  center.dy +
+                  _tile / 2 +
+                  OnsetWordmark.gapBelowTile(tablet: tablet),
+              child: Center(
+                child: OnsetWordmark(
+                  tablet: tablet,
+                  letters: [
+                    for (var i = 0; i < 5; i++)
+                      span(
+                        t,
+                        _Timeline.letterStart + i * _Timeline.letterStep,
+                        _Timeline.letterEnd + i * _Timeline.letterStep,
+                        FrostyMotion.emphasizedDecelerate,
                       ),
-                    ),
-                  ),
-                ],
+                  ],
+                  underline: underline,
+                  opacity: nameOut,
+                ),
               ),
             ),
           Positioned(
@@ -479,39 +637,128 @@ class _IntroFrame extends StatelessWidget {
   }
 }
 
-/// One letter of the wordmark rising into place.
-class _Letter extends StatelessWidget {
-  final String letter;
-  final double size;
-  final double progress;
-  final double rise;
-  final double opacity;
+/// One frame of the landing at [t] (0–1): the intro's black over the app,
+/// the tile (popping in at [from] on a phone), one ring, the flight into
+/// the header, then the black clears.
+class _LandingFrame extends StatelessWidget {
+  final double t;
+  final _LandingTimeline timeline;
+  final Rect from;
+  final Rect slot;
+  final bool slotIsReal;
 
-  const _Letter({
-    required this.letter,
-    required this.size,
-    required this.progress,
-    required this.rise,
-    required this.opacity,
+  const _LandingFrame({
+    required this.t,
+    required this.timeline,
+    required this.from,
+    required this.slot,
+    required this.slotIsReal,
   });
+
+  static const _tile = OnsetMark.designSize;
 
   @override
   Widget build(BuildContext context) {
-    return Transform.translate(
-      offset: Offset(0, rise * (1 - progress)),
-      child: Text(
-        letter,
-        style: TextStyle(
-          fontFamily: FrostyTokens.displayFamily,
-          fontSize: size,
-          fontWeight: FontWeight.w800,
-          letterSpacing: -0.035 * size,
-          height: 1.2,
-          color: FrostyTokens.textPrimaryDark.withValues(
-            alpha: (progress * opacity).clamp(0.0, 1.0),
+    const span = _Timeline.span;
+    final tablet = isLargeScreenSize(MediaQuery.sizeOf(context));
+    final rest = from.width / _tile;
+
+    final ground = t < timeline.coverEnd
+        ? span(t, 0, timeline.coverEnd, FrostyMotion.emphasizedAccelerate)
+        : 1 -
+              span(
+                t,
+                timeline.groundOutStart,
+                timeline.groundOutEnd,
+                Curves.ease,
+              );
+
+    final pop = timeline.appear
+        ? span(t, 0, timeline.appearEnd, FrostyMotion.overshoot)
+        : 1.0;
+    final popOpacity = timeline.appear
+        ? span(t, 0, timeline.appearEnd)
+        : 1.0;
+    final flight = span(
+      t,
+      timeline.flightStart,
+      timeline.flightEnd,
+      FrostyMotion.standard,
+    );
+    final center = Offset.lerp(from.center, slot.center, flight)!;
+    final scale =
+        (0.6 + 0.4 * pop) * rest + (slot.width / _tile - rest) * flight;
+    final tileOpacity =
+        popOpacity *
+        (slotIsReal
+            ? 1.0
+            : 1 - span(t, timeline.tileOutStart, timeline.tileOutEnd));
+
+    Widget? ring;
+    if (timeline.appear && t >= timeline.ringStart && t < timeline.ringEnd) {
+      final p = span(t, timeline.ringStart, timeline.ringEnd);
+      ring = Positioned(
+        left: from.center.dx - _tile / 2,
+        top: from.center.dy - _tile / 2,
+        width: _tile,
+        height: _tile,
+        child: Transform.scale(
+          key: LaunchIntro.ringKeys[0],
+          scale: rest * (1 + 1.6 * FrostyMotion.standard.transform(p)),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(OnsetMark.designRadius),
+              border: Border.all(
+                color: FrostyTokens.accent.withValues(alpha: 0.7 * (1 - p)),
+                width: 2,
+              ),
+            ),
           ),
         ),
-      ),
+      );
+    }
+
+    final frame = Stack(
+      fit: StackFit.expand,
+      children: [
+        if (ground > 0)
+          ColoredBox(
+            color: FrostyTokens.backgroundDark.withValues(
+              alpha: ground.clamp(0.0, 1.0),
+            ),
+          ),
+        ?ring,
+        Positioned(
+          left: center.dx - _tile / 2,
+          top: center.dy - _tile / 2,
+          width: _tile,
+          height: _tile,
+          child: Transform.scale(
+            scale: scale,
+            child: Opacity(
+              key: LaunchIntro.tileKey,
+              opacity: tileOpacity.clamp(0.0, 1.0),
+              child: OnsetMarkTile(
+                glow: [
+                  BoxShadow(
+                    color: FrostyTokens.accent.withValues(
+                      alpha: 0.25 * (1 - flight),
+                    ),
+                    blurRadius: tablet ? 48 : 40,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
+
+    return ground > 0.5
+        ? AnnotatedRegion<SystemUiOverlayStyle>(
+            value: SystemUiOverlayStyle.light,
+            child: frame,
+          )
+        : frame;
   }
 }
