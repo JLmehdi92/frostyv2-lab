@@ -62,8 +62,9 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
     super.initState();
     // Loads the first time the tab is shown.
     if (!widget.store.loaded) widget.store.load();
-    // Another period or sort starts the list from the top; anything else
-    // (a refresh, loading) leaves it where it is.
+    // Another period or sort starts the list from the top. A refresh is
+    // not sent there, though its skeletons, while it loads, are shorter
+    // than a long list: a deep position ends up nearer the top.
     _onFilter = reaction(
       (_) => (widget.store.period, widget.store.sort),
       (_) => WidgetsBinding.instance.addPostFrameCallback((_) => _toTop()),
@@ -166,7 +167,14 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
             alignment: AlignmentDirectional.bottomCenter,
             children: [
               FrostyScrollbar(controller: store.scrollController, child: list),
-              ScrollToTopButton(scrollController: store.scrollController),
+              // Only over listed clips, not over the skeletons or a message.
+              Observer(
+                builder: (context) => !store.isLoading && store.clips.isNotEmpty
+                    ? ScrollToTopButton(
+                        scrollController: store.scrollController,
+                      )
+                    : const SizedBox.shrink(),
+              ),
             ],
           ),
         ),

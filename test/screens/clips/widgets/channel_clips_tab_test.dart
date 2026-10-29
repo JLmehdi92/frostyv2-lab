@@ -8,6 +8,7 @@ import 'package:frosty/screens/clips/stores/channel_clips_store.dart';
 import 'package:frosty/screens/clips/widgets/channel_clips_tab.dart';
 import 'package:frosty/screens/clips/widgets/clip_card.dart';
 import 'package:frosty/theme.dart';
+import 'package:frosty/widgets/scroll_to_top_button.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../fixtures/clip_responses.dart';
@@ -182,7 +183,7 @@ void main() {
   });
 
   testWidgets('a new period keeps the chips where they were and starts the '
-      'clips from the top; a refresh moves nothing', (tester) async {
+      'clips from the top', (tester) async {
     when(
       () => service.getChannelClips(
         login: any(named: 'login'),
@@ -232,7 +233,7 @@ void main() {
     expect(chips().pixels, 60);
     expect(store.period, ClipPeriod.lastMonth);
 
-    // A refresh leaves the list where it is.
+    // A refresh answered at once leaves the list where it is.
     list().jumpTo(400);
     await tester.pump();
     await store.refresh();
@@ -245,5 +246,71 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(list().pixels, 0);
+  });
+
+  testWidgets('the scroll-to-top button only over listed clips', (
+    tester,
+  ) async {
+    final first = Completer<ClipPage>();
+    when(
+      () => service.getChannelClips(
+        login: any(named: 'login'),
+        period: any(named: 'period'),
+        sort: any(named: 'sort'),
+      ),
+    ).thenAnswer((_) => first.future);
+    await pump(tester);
+    await tester.pump();
+    // Loading: skeletons, no button.
+    expect(find.byType(ScrollToTopButton), findsNothing);
+
+    first.complete(const ClipPage(items: [], hasMore: false));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('No clips for this period'), findsOneWidget);
+    expect(find.byType(ScrollToTopButton), findsNothing);
+
+    when(
+      () => service.getChannelClips(
+        login: any(named: 'login'),
+        period: any(named: 'period'),
+        sort: any(named: 'sort'),
+      ),
+    ).thenAnswer((_) async => ClipPage(items: [clip], hasMore: false));
+    await store.refresh();
+    await tester.pump();
+    expect(find.byType(ClipCard), findsOneWidget);
+    expect(find.byType(ScrollToTopButton), findsOneWidget);
+  });
+
+  testWidgets('on its own screen, a new period starts the clips from the top', (
+    tester,
+  ) async {
+    when(
+      () => service.getChannelClips(
+        login: any(named: 'login'),
+        period: any(named: 'period'),
+        sort: any(named: 'sort'),
+      ),
+    ).thenAnswer(
+      (_) async => ClipPage(items: List.filled(12, clip), hasMore: false),
+    );
+    await pump(tester);
+    await tester.pump();
+    store.scrollController.jumpTo(400);
+    await tester.pump();
+
+    await store.select(sort: ClipSort.trending);
+    await tester.pump();
+    await tester.pump();
+    expect(store.scrollController.offset, 0);
+
+    // The same chip again changes nothing.
+    store.scrollController.jumpTo(400);
+    await tester.pump();
+    await store.select(sort: ClipSort.trending);
+    await tester.pump();
+    await tester.pump();
+    expect(store.scrollController.offset, 400);
   });
 }
