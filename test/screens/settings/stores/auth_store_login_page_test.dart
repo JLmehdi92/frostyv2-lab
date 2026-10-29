@@ -25,7 +25,7 @@ void main() {
       () => api.validateToken(token: any(named: 'token')),
     ).thenAnswer((_) async => true);
     when(
-      () => api.getUserInfo(),
+      () => api.getUserInfo(token: any(named: 'token')),
     ).thenAnswer((_) async => const UserTwitch('1', 'viewer', 'Viewer', ''));
     when(
       () => api.getUserBlockedList(id: any(named: 'id')),

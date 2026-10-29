@@ -42,13 +42,19 @@ void main() {
       () => api.revokeToken(token: any(named: 'token')),
     ).thenAnswer((_) async {});
     when(
-      () => api.getUserInfo(),
+      () => api.getUserInfo(token: any(named: 'token')),
     ).thenAnswer((_) async => const UserTwitch('1', 'viewer', 'Viewer', ''));
     when(
       () => api.getUserBlockedList(id: any(named: 'id')),
     ).thenAnswer((_) async => []);
     when(() => cookies.readAuthToken()).thenAnswer((_) async => jar);
     when(() => cookies.clearCookies()).thenAnswer((_) async {});
+    // Whose a jar token is: "…_2" tokens are account 2's, every other one
+    // account 1's (the account the tests sign in with).
+    when(() => api.tokenUserId(any())).thenAnswer((invocation) async {
+      final token = invocation.positionalArguments.first as String;
+      return token.endsWith('_2') ? '2' : '1';
+    });
   });
 
   AuthStore build({
@@ -151,7 +157,9 @@ void main() {
       expect(store.user.details?.id, '1');
       jar = 'web_of_viewer_2';
       clearInteractions(cookies);
-      when(() => api.getUserInfo()).thenThrow(Exception('offline'));
+      when(
+        () => api.getUserInfo(token: any(named: 'token')),
+      ).thenThrow(Exception('offline'));
 
       expect(await loginPage(store, 'user_2'), isFalse);
 
@@ -187,7 +195,7 @@ void main() {
       final store = await withStoredToken('web_of_viewer_1');
       jar = 'web_of_viewer_2';
       when(
-        () => api.getUserInfo(),
+        () => api.getUserInfo(token: any(named: 'token')),
       ).thenAnswer((_) async => const UserTwitch('2', 'other', 'Other', ''));
 
       expect(await loginPage(store, 'user_2'), isTrue);
@@ -200,13 +208,233 @@ void main() {
     });
   });
 
+  group("a failed login B never makes B's cookie A's web token", () {
+    Future<void> failedLoginPage(AuthStore store) async {
+      final attempt = store.beginLogin();
+      final state = store.authorizationUri(attempt).queryParameters['state'];
+      Future<bool>? outcome;
+      store.handleNavigation(
+        request: NavigationRequest(
+          url: 'https://twitch.tv/login#access_token=user_2&state=$state',
+          isMainFrame: true,
+        ),
+        attempt: attempt,
+        onTokenCaptured: (login) => outcome = login,
+      );
+      store.handleNavigation(
+        request: const NavigationRequest(
+          url: 'https://www.twitch.tv/?no-reload=true',
+          isMainFrame: true,
+        ),
+        attempt: attempt,
+        onSignedIn: () {},
+      );
+      expect(await outcome!, isFalse);
+      await pumpEventQueue();
+    }
+
+    for (final (name, path) in <(String, Future<Object?> Function(AuthStore))>[
+      ('ensure', (store) => store.ensureTwitchWebToken()),
+      ('renew', (store) => store.renewTwitchWebToken()),
+      ('refresh', (store) => store.refreshTwitchWebSession()),
+      ('harvest', (store) => store.harvestTwitchWebToken()),
+    ]) {
+      test("then $name with B's cookie in the jar: A's stays", () async {
+        final store = await withStoredToken('web_of_viewer_1');
+        when(
+          () => api.getUserInfo(token: 'user_2'),
+        ).thenThrow(Exception('offline'));
+        // The login page signed the WebView in as B.
+        jar = 'web_of_viewer_2';
+        await failedLoginPage(store);
+
+        await path(store);
+        await pumpEventQueue();
+
+        expect(store.twitchWebToken, 'web_of_viewer_1');
+        expect(await _storage.read(key: 'twitch_web_token'), 'web_of_viewer_1');
+      });
+    }
+
+    test("the page's twitch.tv session is dropped from the jar", () async {
+      final store = await withStoredToken('web_of_viewer_1');
+      when(
+        () => api.getUserInfo(token: 'user_2'),
+      ).thenThrow(Exception('offline'));
+      jar = 'web_of_viewer_2';
+      clearInteractions(cookies);
+      await failedLoginPage(store);
+      verify(() => cookies.clearCookies()).called(1);
+    });
+
+    test('a jar token that cannot be checked is not stored', () async {
+      final store = await withStoredToken('web_of_viewer_1');
+      jar = 'fresh_web_token';
+      when(() => api.tokenUserId(any())).thenThrow(Exception('offline'));
+      expect(await store.harvestTwitchWebToken(), isFalse);
+      expect(store.twitchWebToken, 'web_of_viewer_1');
+    });
+
+    test('signed out, nothing harvested is stored', () async {
+      final store = build();
+      jar = 'fresh_web_token';
+      expect(await store.harvestTwitchWebToken(), isFalse);
+      expect(store.twitchWebToken, isNull);
+    });
+  });
+
+  group('a login racing another actor', () {
+    test('a logout during the login wins: the login never commits', () async {
+      final store = await withStoredToken('web_of_viewer_1');
+      final details = Completer<UserTwitch>();
+      when(
+        () => api.getUserInfo(token: 'user_2'),
+      ).thenAnswer((_) => details.future);
+      final login = store.login(token: 'user_2');
+      await pumpEventQueue();
+      await store.logout();
+      details.complete(const UserTwitch('2', 'other', 'Other', ''));
+      await login;
+
+      expect(store.isLoggedIn, isFalse);
+      expect(store.user.details, isNull);
+      expect(store.headersTwitch['Authorization'], 'Bearer the_default_token');
+      expect(await _storage.read(key: 'user_token'), isNull);
+    });
+
+    test('two logins at once: the newest wins, the older one finishing '
+        'touches nothing', () async {
+      final store = await withStoredToken('web_of_viewer_1');
+      final older = Completer<UserTwitch>();
+      final newer = Completer<UserTwitch>();
+      when(
+        () => api.getUserInfo(token: 'user_2'),
+      ).thenAnswer((_) => older.future);
+      when(
+        () => api.getUserInfo(token: 'user_3'),
+      ).thenAnswer((_) => newer.future);
+      final first = store.login(token: 'user_2');
+      await pumpEventQueue();
+      final second = store.login(token: 'user_3');
+      await pumpEventQueue();
+      newer.complete(const UserTwitch('3', 'third', 'Third', ''));
+      await second;
+      older.complete(const UserTwitch('2', 'other', 'Other', ''));
+      await first;
+
+      expect(store.headersTwitch['Authorization'], 'Bearer user_3');
+      expect(store.user.details?.id, '3');
+      expect(await _storage.read(key: 'user_token'), 'user_3');
+    });
+
+    test('the reconnect loop waits while a login is in flight', () {
+      fakeAsync((async) {
+        FlutterSecureStorage.setMockInitialValues({
+          'default_token': 'the_default_token',
+          'user_token': 'user',
+        });
+        // The launch cannot validate: the reconnect loop starts.
+        when(
+          () => api.validateToken(token: 'user'),
+        ).thenThrow(const NetworkException('offline'));
+        final store = build();
+        store.init();
+        async.flushMicrotasks();
+
+        final details = Completer<UserTwitch>();
+        when(
+          () => api.getUserInfo(token: 'user_2'),
+        ).thenAnswer((_) => details.future);
+        when(
+          () => api.validateToken(token: 'user'),
+        ).thenAnswer((_) async => true);
+        store.login(token: 'user_2');
+        async.flushMicrotasks();
+
+        // A tick while the login runs does not restore the stored session.
+        clearInteractions(api);
+        async.elapse(const Duration(seconds: 11));
+        expect(store.isLoggedIn, isFalse);
+        verifyNever(() => api.validateToken(token: 'user'));
+
+        details.complete(const UserTwitch('2', 'other', 'Other', ''));
+        async.flushMicrotasks();
+        expect(store.headersTwitch['Authorization'], 'Bearer user_2');
+        expect(store.user.details?.id, '2');
+
+        // Committed: the loop is stopped for good.
+        async.elapse(const Duration(seconds: 30));
+        expect(store.headersTwitch['Authorization'], 'Bearer user_2');
+      });
+    });
+  });
+
+  group('a keystore that refuses a write', () {
+    late _FlakyStorage storage;
+
+    Future<AuthStore> signedInWith(_FlakyStorage storage) async {
+      FlutterSecureStorage.setMockInitialValues({
+        'default_token': 'the_default_token',
+        'twitch_web_token': 'web_of_viewer_1',
+      });
+      final store = AuthStore(
+        twitchApi: api,
+        storage: storage,
+        webTokenService: cookies,
+        isAndroid: true,
+        loadTwitchPage: () async {},
+      );
+      await store.init();
+      await store.login(token: 'user');
+      return store;
+    }
+
+    setUp(() => storage = _FlakyStorage());
+
+    test("the new token cannot be saved: A's session, in memory and on "
+        'disk', () async {
+      final store = await signedInWith(storage);
+      when(
+        () => api.getUserInfo(token: 'user_2'),
+      ).thenAnswer((_) async => const UserTwitch('2', 'other', 'Other', ''));
+      storage.failWrite = 'user_token';
+
+      await store.login(token: 'user_2');
+
+      expect(store.headersTwitch['Authorization'], 'Bearer user');
+      expect(store.user.details?.id, '1');
+      expect(store.twitchWebToken, 'web_of_viewer_1');
+      expect(await _storage.read(key: 'user_token'), 'user');
+      expect(await _storage.read(key: 'twitch_web_token'), 'web_of_viewer_1');
+    });
+
+    test(
+      "A's web token cannot be dropped: the saved token goes back to A's",
+      () async {
+        final store = await signedInWith(storage);
+        when(
+          () => api.getUserInfo(token: 'user_2'),
+        ).thenAnswer((_) async => const UserTwitch('2', 'other', 'Other', ''));
+        storage.failDelete = 'twitch_web_token';
+
+        await store.login(token: 'user_2');
+
+        expect(store.headersTwitch['Authorization'], 'Bearer user');
+        expect(store.user.details?.id, '1');
+        expect(store.twitchWebToken, 'web_of_viewer_1');
+        expect(await _storage.read(key: 'user_token'), 'user');
+        expect(await _storage.read(key: 'twitch_web_token'), 'web_of_viewer_1');
+      },
+    );
+  });
+
   group('a login as another account', () {
     test("drops the previous account's web token", () async {
       final store = await withStoredToken('web_of_viewer_1');
       expect(store.twitchWebToken, 'web_of_viewer_1');
 
       when(
-        () => api.getUserInfo(),
+        () => api.getUserInfo(token: any(named: 'token')),
       ).thenAnswer((_) async => const UserTwitch('2', 'other', 'Other', ''));
       await store.login(token: 'user_2');
 
@@ -231,7 +459,7 @@ void main() {
           when(
             () => api.validateToken(token: any(named: 'token')),
           ).thenAnswer((_) => validated.future);
-          when(() => api.getUserInfo()).thenAnswer(
+          when(() => api.getUserInfo(token: any(named: 'token'))).thenAnswer(
             (_) async => const UserTwitch('2', 'other', 'Other', ''),
           );
           when(() => cookies.readAuthToken()).thenAnswer((_) {
@@ -293,7 +521,7 @@ void main() {
         () => api.validateToken(token: any(named: 'token')),
       ).thenAnswer((_) async => true);
       when(
-        () => api.getUserInfo(),
+        () => api.getUserInfo(token: any(named: 'token')),
       ).thenAnswer((_) async => const UserTwitch('2', 'other', 'Other', ''));
       await store.login(token: 'user_2');
       await pumpEventQueue();
@@ -755,5 +983,40 @@ class _RefusingIdStorage extends FlutterSecureStorage {
   }) {
     if (key == 'user_id') throw Exception('keystore refused');
     return super.read(key: key);
+  }
+}
+
+/// The test keystore, refusing one key's write or delete on demand.
+class _FlakyStorage extends FlutterSecureStorage {
+  String? failWrite;
+  String? failDelete;
+
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    IOSOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    MacOsOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) {
+    if (key == failWrite) throw Exception('keystore refused');
+    return super.write(key: key, value: value);
+  }
+
+  @override
+  Future<void> delete({
+    required String key,
+    IOSOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    MacOsOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) {
+    if (key == failDelete) throw Exception('keystore refused');
+    return super.delete(key: key);
   }
 }

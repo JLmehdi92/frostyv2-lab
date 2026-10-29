@@ -154,12 +154,37 @@ abstract class AuthBase with Store {
       return false;
     }
 
-    _webSessionExpired = false;
-    if (harvested == _twitchWebToken) return true;
+    if (harvested == _twitchWebToken) {
+      _webSessionExpired = false;
+      return true;
+    }
 
+    // The jar is shared by every login page: it may hold the cookie of an
+    // account that is not the session's (a login that failed after Twitch
+    // signed its page in). Only a cookie of the logged-in account is kept.
+    if (!await _isSessionAccounts(harvested, epoch)) return false;
+
+    _webSessionExpired = false;
     await setTwitchWebToken(harvested);
     debugPrint('Harvested a fresh twitch.tv web token from the cookie jar.');
     return true;
+  }
+
+  /// Whether [webToken] is the logged-in account's, still within [epoch].
+  /// Signed out, or when Twitch cannot be asked, it is not.
+  Future<bool> _isSessionAccounts(String webToken, int epoch) async {
+    final account = _isLoggedIn ? user.details?.id : null;
+    if (account == null) return false;
+    try {
+      final owner = await twitchApi.tokenUserId(webToken);
+      return owner == account &&
+          epoch == _authEpoch &&
+          _isLoggedIn &&
+          user.details?.id == account;
+    } catch (e) {
+      debugPrint('Checking the twitch.tv cookie failed: ${e.runtimeType}');
+      return false;
+    }
   }
 
   /// The silent refresh in flight, so overlapping callers share one page load
@@ -403,7 +428,13 @@ abstract class AuthBase with Store {
       if (outcome != null) {
         unawaited(
           outcome
-              .then((worked) => worked ? harvestTwitchWebToken() : false)
+              .then((worked) async {
+                if (worked) return harvestTwitchWebToken();
+                // The page signed the shared jar in as an account that is
+                // not the session's: its twitch.tv session goes.
+                await _clearJar();
+                return false;
+              })
               .catchError((Object _) => false),
         );
       }
@@ -764,76 +795,109 @@ abstract class AuthBase with Store {
     }
   }
 
+  /// Bumped by every [login] as it starts: only the newest one may commit.
+  var _loginGeneration = 0;
+
+  /// Logins between their start and their end: the reconnect loop waits.
+  var _loginsInFlight = 0;
+
+  /// The session changes ([login]'s commit, [logout], the reconnect loop's
+  /// restore) one at a time.
+  Future<void> _sessionChange = Future.value();
+
+  Future<void> _exclusive(Future<void> Function() change) {
+    final done = _sessionChange.then((_) => change());
+    _sessionChange = done.catchError((Object _) {});
+    return done;
+  }
+
   /// Logs in the user with the provided [token] and updates fields accordingly upon successful login.
+  ///
+  /// Nothing of the session changes until the token is validated and its
+  /// user read (with that token, not the session's): then, one at a time
+  /// with any other session change, the token is saved (and, for another
+  /// account, the previous one's web token deleted) first, and the session
+  /// switches in memory only once those writes went through. A write that
+  /// fails puts back what was written, and the previous session stays,
+  /// in memory and on disk. A later login, or a logout, while this one runs
+  /// wins: this one then changes nothing.
   @action
   Future<void> login({required String token}) async {
-    // Who was logged in: a login as another account must not keep their
-    // twitch.tv session token.
-    String? previousId = user.details?.id;
-    // A login that fails before it is committed leaves the session exactly
-    // as it was: the token (also the one requests use while it is being
-    // checked) and its validity.
-    final previousToken = _token;
-    final previousValid = _tokenIsValid;
-    var committed = false;
+    final generation = ++_loginGeneration;
+    final epoch = _authEpoch;
+    _loginsInFlight++;
     try {
-      previousId ??= await _rememberedUser();
+      // Who was logged in: a login as another account must not keep their
+      // twitch.tv session token.
+      final previousId = user.details?.id ?? await _rememberedUser();
 
       // Validate the custom token.
-      final valid = await twitchApi.validateToken(token: token);
-      if (!valid) {
-        _tokenIsValid = previousValid;
-        return;
-      }
+      if (!await twitchApi.validateToken(token: token)) return;
 
-      // The new token, for the user's details below (requests use it).
-      _token = token;
+      // The token's user, read with that token.
+      final details = await twitchApi.getUserInfo(token: token);
 
-      // Initialize the user with the new token.
-      await user.init();
-      if (user.details == null) {
-        throw StateError('No user details for the new token');
-      }
+      await _exclusive(() async {
+        // A later login or a logout came meanwhile: it wins.
+        if (generation != _loginGeneration || epoch != _authEpoch) return;
 
-      // Committed: from here the new account is the session.
-      committed = true;
-      _tokenIsValid = true;
+        final switching = previousId != null && details.id != previousId;
 
-      // Store the user token.
-      await _storage.write(key: _userTokenKey, value: token);
+        // On disk first.
+        final savedBefore = await _storage.read(key: _userTokenKey);
+        await _storage.write(key: _userTokenKey, value: token);
+        if (switching) {
+          // Another account: the stored web token is the previous one's (its
+          // playback, watch positions and shelf would be theirs). It goes.
+          try {
+            await _storage.delete(key: _twitchWebTokenKey);
+          } catch (_) {
+            await _restoreSavedToken(savedBefore);
+            rethrow;
+          }
+        }
+        await _rememberUser(details.id);
 
-      // Another account: the stored web token is the previous one's (its
-      // playback, watch positions and shelf would be theirs). It goes, and
-      // a session read still in flight is dropped (it may have stored the
-      // new account's token already, or be about to store either); the jar
-      // is read again at once, as the login page just put the new account's
-      // cookie there. The cookies are kept.
-      final newId = user.details?.id;
-      if (previousId != null && newId != null && newId != previousId) {
-        _authEpoch++;
-        await setTwitchWebToken(null);
-        if (_isAndroid) unawaited(harvestTwitchWebToken());
-      }
-
-      // Set the login status to logged in.
-      if (user.details != null) {
+        // Then in memory. Another account: a session read still in flight
+        // is dropped (it may be about to store the previous account's token,
+        // or this one's), and the jar is read again at once, as the login
+        // page just put the new account's cookie there. The cookies are kept.
+        if (switching) {
+          _authEpoch++;
+          _twitchWebToken = null;
+        }
+        _token = token;
+        _tokenIsValid = true;
+        await user.init(details: details);
         _isLoggedIn = true;
         _signedInWith = token;
-        await _rememberUser(user.details!.id);
+        _error = null;
         try {
           FirebaseCrashlytics.instance.setCustomKey('is_logged_in', true);
-          FirebaseCrashlytics.instance.setUserIdentifier(user.details!.id);
+          FirebaseCrashlytics.instance.setUserIdentifier(details.id);
         } catch (e) {
           debugPrint('Crash reporting unavailable: ${e.runtimeType}');
         }
         _stopReconnectLoop();
+        if (switching && _isAndroid) unawaited(harvestTwitchWebToken());
+      });
+    } catch (e) {
+      debugPrint('Login failed: ${e.runtimeType}');
+    } finally {
+      _loginsInFlight--;
+    }
+  }
+
+  /// Puts the saved user token back as it was before a login wrote it.
+  Future<void> _restoreSavedToken(String? saved) async {
+    try {
+      if (saved == null) {
+        await _storage.delete(key: _userTokenKey);
+      } else {
+        await _storage.write(key: _userTokenKey, value: saved);
       }
     } catch (e) {
-      debugPrint('Login failed due to $e');
-      if (!committed) {
-        _token = previousToken;
-        _tokenIsValid = previousValid;
-      }
+      debugPrint('Restoring the saved token failed: ${e.runtimeType}');
     }
   }
 
@@ -845,6 +909,10 @@ abstract class AuthBase with Store {
     // session must go even if reading the user token below fails.
     _authEpoch++;
     _stopReconnectLoop();
+    await _exclusive(_endSession);
+  }
+
+  Future<void> _endSession() async {
     await _forgetWebSession();
 
     try {
@@ -908,6 +976,21 @@ abstract class AuthBase with Store {
     }
   }
 
+  /// Clears the WebView cookies (the twitch.tv session in them); never
+  /// throws.
+  Future<void> _clearJar() async {
+    try {
+      await WebViewCookieManager().clearCookies();
+    } catch (e) {
+      debugPrint('Clearing twitch.tv cookies failed: ${e.runtimeType}');
+    }
+    try {
+      await _webTokenService.clearCookies();
+    } catch (e) {
+      debugPrint('Clearing the cookie jar failed: ${e.runtimeType}');
+    }
+  }
+
   /// Revokes [token] at Twitch; never throws.
   Future<void> _revoke(String token) async {
     try {
@@ -923,6 +1006,10 @@ abstract class AuthBase with Store {
     if (_reconnectTimer != null) return;
     _reconnectAttempts = 0;
     _reconnectTimer = Timer.periodic(const Duration(seconds: 10), (_) async {
+      // A login is running: it decides the session; this tick waits.
+      if (_loginsInFlight > 0) return;
+      final generation = _loginGeneration;
+      final epoch = _authEpoch;
       try {
         _reconnectAttempts++;
         if (_reconnectAttempts > _maxReconnectAttempts) {
@@ -945,15 +1032,23 @@ abstract class AuthBase with Store {
           return;
         }
 
-        // Token valid again — restore session.
-        _token = stored;
-        await user.init();
-        if (user.details != null) {
-          _isLoggedIn = true;
-          _error = null;
-          _stopReconnectLoop();
-          await _rememberUser(user.details!.id);
-        }
+        // Token valid again — restore session, unless a login or a logout
+        // came meanwhile (it decided the session).
+        await _exclusive(() async {
+          if (generation != _loginGeneration ||
+              epoch != _authEpoch ||
+              _loginsInFlight > 0) {
+            return;
+          }
+          _token = stored;
+          await user.init();
+          if (user.details != null) {
+            _isLoggedIn = true;
+            _error = null;
+            _stopReconnectLoop();
+            await _rememberUser(user.details!.id);
+          }
+        });
       } on ApiException catch (_) {
         // Continue trying
       } catch (e) {
