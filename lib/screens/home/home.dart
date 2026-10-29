@@ -123,21 +123,6 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     action();
   }
 
-  /// Completes once no [LaunchIntro.land] plays.
-  Future<void> _landed() {
-    final landing = LaunchIntro.landing;
-    if (!landing.value) return Future.value();
-    final done = Completer<void>();
-    void check() {
-      if (landing.value) return;
-      landing.removeListener(check);
-      done.complete();
-    }
-
-    landing.addListener(check);
-    return done.future;
-  }
-
   Future<void> checkAndShowReleaseNotes() async {
     final packageInfo = await PackageInfo.fromPlatform();
     final prefs = await SharedPreferences.getInstance();
@@ -152,7 +137,7 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     if (storedMajorMinor == null || storedMajorMinor != currentMajorMinor) {
       // Straight from the onboarding, the tile is still flying into the
       // header: the notes wait for it to land, or they would cut it short.
-      await _landed();
+      await LaunchIntro.landed();
       if (!mounted) return;
 
       Navigator.push(

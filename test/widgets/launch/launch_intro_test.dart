@@ -616,10 +616,7 @@ void main() {
     testWidgets('no intro mounted: it does not play', (tester) async {
       _setSize(tester, _phone);
       await tester.pumpWidget(const MaterialApp(home: Text('x')));
-      expect(
-        LaunchIntro.land(from: Rect.zero, onCovered: () {}),
-        isFalse,
-      );
+      expect(LaunchIntro.land(from: Rect.zero, onCovered: () {}), isFalse);
     });
 
     testWidgets('tablet: from where the tile is, no pop-in', (tester) async {
@@ -638,6 +635,9 @@ void main() {
       await tester.pump();
       expect(tester.getCenter(_tile), const Offset(280, 427));
       expect(tester.getRect(_tile).width, closeTo(72, 0.5));
+      // It does not leave before the page with the header is in.
+      await tester.pump(LaunchIntro.landingFromTileDuration * 0.22);
+      expect(tester.getCenter(_tile), const Offset(280, 427));
       for (var i = 0; i < 20; i++) {
         await tester.pump(const Duration(milliseconds: 70));
         expect(find.byType(BackdropFilter), findsNothing);
@@ -645,5 +645,28 @@ void main() {
       await tester.pumpAndSettle();
       expect(_overlay, findsNothing);
     });
+  });
+
+  testWidgets('landing: torn down before the swap, it still swaps once', (
+    tester,
+  ) async {
+    _setSize(tester, _phone);
+    await tester.pumpWidget(_app(play: false));
+    await tester.pumpAndSettle();
+    var covered = 0;
+    LaunchIntro.land(
+      from: Rect.fromCenter(
+        center: const Offset(195, 422),
+        width: 72,
+        height: 72,
+      ),
+      onCovered: () => covered++,
+    );
+    await tester.pump();
+    await tester.pumpWidget(const SizedBox());
+    expect(LaunchIntro.landing.value, isFalse);
+    await tester.pump();
+    expect(covered, 1);
+    expect(LaunchIntro.running.value, isFalse);
   });
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -91,6 +93,20 @@ class LaunchIntro extends StatefulWidget {
   /// (the release notes) waits until it is false, or it would cut it short.
   static ValueListenable<bool> get landing => _landingNotifier;
 
+  /// Completes once no [land] plays (at once when none does).
+  static Future<void> landed() {
+    if (!_landingNotifier.value) return Future.value();
+    final done = Completer<void>();
+    void check() {
+      if (_landingNotifier.value) return;
+      _landingNotifier.removeListener(check);
+      done.complete();
+    }
+
+    _landingNotifier.addListener(check);
+    return done.future;
+  }
+
   /// Whether a page swap of [land] is under way: its push must not end the
   /// landing.
   static bool _swapping = false;
@@ -183,6 +199,9 @@ abstract final class _Timeline {
 /// OnboardingTablette, from the tile already there: flight 8–52 %, header
 /// 40–62 %, cards from 44 %). The screen first fades to black over the
 /// onboarding (its 280 ms fade-out) and the page is swapped underneath.
+/// The flight never starts before the swap: the header it lands on only
+/// exists once the new page is built (the tablet's starts at 24 % instead
+/// of 8 %, and ends a little later).
 class _LandingTimeline {
   final bool appear;
 
@@ -192,17 +211,17 @@ class _LandingTimeline {
       ? LaunchIntro.landingDuration
       : LaunchIntro.landingFromTileDuration;
 
-  double get coverEnd => appear ? 0.2 : 0.22;
+  double get coverEnd => 0.2;
   double get appearEnd => 0.18;
   double get ringStart => 0.18;
   double get ringEnd => 0.40;
-  double get flightStart => appear ? 0.40 : 0.08;
-  double get flightEnd => appear ? 0.78 : 0.52;
-  double get groundOutStart => appear ? 0.64 : 0.40;
-  double get groundOutEnd => appear ? 0.80 : 0.62;
-  double get reveal => appear ? 0.66 : 0.44;
-  double get tileOutStart => appear ? 0.74 : 0.50;
-  double get tileOutEnd => appear ? 0.86 : 0.62;
+  double get flightStart => appear ? 0.40 : 0.24;
+  double get flightEnd => appear ? 0.78 : 0.64;
+  double get groundOutStart => appear ? 0.64 : 0.48;
+  double get groundOutEnd => appear ? 0.80 : 0.68;
+  double get reveal => appear ? 0.66 : 0.50;
+  double get tileOutStart => appear ? 0.74 : 0.60;
+  double get tileOutEnd => appear ? 0.86 : 0.72;
 }
 
 class _LaunchIntroState extends State<LaunchIntro>
@@ -222,14 +241,12 @@ class _LaunchIntroState extends State<LaunchIntro>
   void initState() {
     super.initState();
     LaunchIntro._mounted.add(this);
-    _controller = AnimationController(
-      vsync: this,
-      duration: LaunchIntro.duration,
-    )
-      ..addListener(_onTick)
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) _finish();
-      });
+    _controller =
+        AnimationController(vsync: this, duration: LaunchIntro.duration)
+          ..addListener(_onTick)
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed) _finish();
+          });
   }
 
   @override
@@ -339,6 +356,20 @@ class _LaunchIntroState extends State<LaunchIntro>
   @override
   void dispose() {
     if (_landing != null) LaunchIntro._landingNotifier.value = false;
+    // A landing cut short by the app's teardown still swaps the page, as
+    // promised (after this frame: the tree is locked now).
+    final onCovered = _onCovered;
+    _onCovered = null;
+    if (onCovered != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        LaunchIntro._swapping = true;
+        try {
+          onCovered();
+        } finally {
+          LaunchIntro._swapping = false;
+        }
+      });
+    }
     LaunchIntro._mounted.remove(this);
     LaunchIntro._running.remove(this);
     LaunchIntro._updateRunning();
@@ -432,7 +463,6 @@ class _LaunchIntroState extends State<LaunchIntro>
         : Rect.fromLTWH(16, top + 14, 28, 28);
   }
 }
-
 
 class _SkipOnPush extends NavigatorObserver {
   @override
@@ -676,9 +706,7 @@ class _LandingFrame extends StatelessWidget {
     final pop = timeline.appear
         ? span(t, 0, timeline.appearEnd, FrostyMotion.overshoot)
         : 1.0;
-    final popOpacity = timeline.appear
-        ? span(t, 0, timeline.appearEnd)
-        : 1.0;
+    final popOpacity = timeline.appear ? span(t, 0, timeline.appearEnd) : 1.0;
     final flight = span(
       t,
       timeline.flightStart,
