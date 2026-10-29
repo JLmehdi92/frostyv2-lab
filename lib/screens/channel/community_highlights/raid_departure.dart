@@ -60,6 +60,16 @@ class RaidDeparture {
     return true;
   }
 
+  /// Stops the departure under way (the raid was called off): no switch,
+  /// and [current] clears at once.
+  void callOff() {
+    if (_current == null) return;
+    _timer?.cancel();
+    _timer = null;
+    _current = null;
+    onChanged();
+  }
+
   void dispose() {
     _disposed = true;
     _timer?.cancel();

@@ -19,6 +19,54 @@ const kRaidDepartureDelayReduced = Duration(milliseconds: 700);
 /// 150 ms hold and 300 ms fade, and a frame to spare).
 const kRaidArrivalFade = Duration(milliseconds: 500);
 
+/// The raid overlays of the channel screen, over the video: leaving
+/// ([departure]) or arriving ([arrival]); never in the PiP window. A
+/// departure called off fades out.
+class RaidOverlayLayer extends StatelessWidget {
+  const RaidOverlayLayer({
+    super.key,
+    this.departure,
+    this.arrival,
+    this.inPip = false,
+  });
+
+  final RaidArrival? departure;
+  final RaidArrival? arrival;
+  final bool inPip;
+
+  @override
+  Widget build(BuildContext context) {
+    final departure = this.departure;
+    final arrival = this.arrival;
+    final Widget child;
+    if (inPip) {
+      child = const SizedBox.shrink();
+    } else if (departure != null) {
+      child = RaidHeadingOverlay(
+        key: const ValueKey('raid-leaving'),
+        arrival: departure,
+        leaving: true,
+      );
+    } else if (arrival != null) {
+      child = RaidHeadingOverlay(
+        key: const ValueKey('raid-arriving'),
+        arrival: arrival,
+        leaving: false,
+      );
+    } else {
+      child = const SizedBox.shrink();
+    }
+    return AnimatedSwitcher(
+      duration: motionDuration(context, const Duration(milliseconds: 200)),
+      // Out at once into PiP; a called-off departure fades.
+      reverseDuration: inPip ? Duration.zero : null,
+      layoutBuilder: (current, previous) =>
+          Stack(fit: StackFit.expand, children: [...previous, ?current]),
+      child: child,
+    );
+  }
+}
+
 /// "Heading to Y" over the video (board Raids): an opaque scrim — never a
 /// blur over the video —, the target's picture inside a lime ring that
 /// sweeps around it, and "N viewers coming with you".

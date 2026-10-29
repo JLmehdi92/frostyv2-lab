@@ -126,12 +126,14 @@ class RaidCard extends StatelessWidget {
         title: 'You stay on $sourceName',
         detail: 'The raid goes to ${target.targetDisplayName} without you',
         action: _watchButton(context, target),
+        onDismiss: onDismiss,
       ),
       RaidCardPhase.gone => _Line(
         rocket: true,
         title: 'The raid left for ${target.targetDisplayName}',
         detail: '$viewers went along',
         action: _watchButton(context, target),
+        onDismiss: onDismiss,
       ),
       RaidCardPhase.cancelled => _Line(
         glyph: SheetGlyphKind.close,
@@ -366,22 +368,7 @@ class _Header extends StatelessWidget {
             child: _Ring(progress: progress, label: formatTimeLeft(left)),
           ),
         if (card.onDismiss case final onDismiss?)
-          IconButton(
-            tooltip: 'Hide',
-            style: IconButton.styleFrom(
-              fixedSize: const Size(32, 44),
-              minimumSize: const Size(32, 44),
-              padding: EdgeInsets.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            icon: SheetGlyph(
-              SheetGlyphKind.close,
-              size: 14,
-              strokeWidth: 2.2,
-              color: colors.tertiary,
-            ),
-            onPressed: onDismiss,
-          ),
+          _HideButton(onPressed: onDismiss),
       ],
     );
   }
@@ -812,6 +799,7 @@ class _Line extends StatelessWidget {
     this.glyphColor,
     this.rocket = false,
     this.action,
+    this.onDismiss,
   });
 
   final String title;
@@ -820,6 +808,7 @@ class _Line extends StatelessWidget {
   final Color? glyphColor;
   final bool rocket;
   final Widget? action;
+  final VoidCallback? onDismiss;
 
   @override
   Widget build(BuildContext context) {
@@ -879,7 +868,36 @@ class _Line extends StatelessWidget {
           ),
         ),
         ?action,
+        if (onDismiss != null) _HideButton(onPressed: onDismiss!),
       ],
+    );
+  }
+}
+
+/// The card's close button (it stays closable in every state but the
+/// short "cancelled" one).
+class _HideButton extends StatelessWidget {
+  const _HideButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: 'Hide',
+      style: IconButton.styleFrom(
+        fixedSize: const Size(32, 44),
+        minimumSize: const Size(32, 44),
+        padding: EdgeInsets.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      icon: SheetGlyph(
+        SheetGlyphKind.close,
+        size: 14,
+        strokeWidth: 2.2,
+        color: SheetColors.of(context).tertiary,
+      ),
+      onPressed: onPressed,
     );
   }
 }

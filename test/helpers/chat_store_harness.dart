@@ -82,8 +82,9 @@ class _FakeSink implements WebSocketSink {
 ChatStore createTestChatStore({
   required SettingsStore settings,
   required List<FakeSocket> sockets,
+  MockTwitchApi? api,
 }) {
-  final twitchApi = MockTwitchApi();
+  final twitchApi = api ?? MockTwitchApi();
   final auth = MockAuthStore();
   when(() => auth.isLoggedIn).thenReturn(false);
   when(() => auth.token).thenReturn(null);

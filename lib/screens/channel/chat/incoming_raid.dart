@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:frosty/models/user_notice.dart';
 import 'package:frosty/utils/https_url.dart';
@@ -29,8 +31,8 @@ class IncomingRaid {
     return IncomingRaid(
       raiderName: name.trim(),
       raiderLogin: notice.login?.toLowerCase(),
-      viewers: notice.raidViewerCount ?? 0,
-      avatarUrl: httpsOrNull(notice.raiderAvatarUrl),
+      viewers: math.max(0, notice.raidViewerCount ?? 0),
+      avatarUrl: twitchImageOrNull(notice.raiderAvatarUrl),
     );
   }
 
@@ -38,7 +40,7 @@ class IncomingRaid {
   final String? raiderLogin;
   final int viewers;
 
-  /// The raiding channel's picture (https only).
+  /// The raiding channel's picture (Twitch's image host only).
   final String? avatarUrl;
 
   /// Who raided, to tell one raid heard twice apart from another.

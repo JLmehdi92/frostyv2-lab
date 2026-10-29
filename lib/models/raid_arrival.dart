@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:frosty/models/community_highlights.dart';
 import 'package:frosty/utils/https_url.dart';
@@ -26,8 +28,8 @@ class RaidArrival {
       fromName: fromName,
       fromLogin: fromLogin,
       targetName: raid.targetDisplayName,
-      targetAvatarUrl: httpsOrNull(raid.targetProfileImage),
-      viewers: raid.viewerCount,
+      targetAvatarUrl: twitchImageOrNull(raid.targetProfileImage),
+      viewers: math.max(0, raid.viewerCount),
       at: at,
     );
   }
@@ -36,7 +38,7 @@ class RaidArrival {
   final String? fromLogin;
   final String targetName;
 
-  /// The target's picture (https only).
+  /// The target's picture (Twitch's image host only).
   final String? targetAvatarUrl;
 
   /// Viewers going along.

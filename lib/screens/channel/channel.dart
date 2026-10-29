@@ -278,6 +278,10 @@ class _VideoChatState extends State<VideoChat>
   /// [_highlightsStore] is.
   ReactionDisposer? _incomingRaidFeed;
 
+  /// Calls off a departure as soon as its raid is cancelled; up while
+  /// [_highlightsStore] is.
+  ReactionDisposer? _raidCancelFeed;
+
   /// Turns celebrations into chat lines while "Celebrations on video" is
   /// Subtle.
   ReactionDisposer? _subtleCelebrations;
@@ -306,6 +310,12 @@ class _VideoChatState extends State<VideoChat>
         latest: () => _primaryChatStore?.latestGiftBomb,
         show: (bomb) => _highlightsStore?.showGiftBomb(bomb),
       );
+      _raidCancelFeed = reaction(
+        (_) => _highlightsStore?.raid?.cancelled ?? false,
+        (bool cancelled) {
+          if (cancelled) _departure.callOff();
+        },
+      );
       _incomingRaidFeed = reaction(
         (_) => _primaryChatStore?.latestIncomingRaid,
         (IncomingRaid? raid) {
@@ -317,6 +327,8 @@ class _VideoChatState extends State<VideoChat>
       _giftBombFeed = null;
       _incomingRaidFeed?.call();
       _incomingRaidFeed = null;
+      _raidCancelFeed?.call();
+      _raidCancelFeed = null;
       _highlightsStore!.dispose();
       _highlightsStore = null;
     }
@@ -1184,22 +1196,13 @@ class _VideoChatState extends State<VideoChat>
               Positioned.fill(child: statsLayer),
               // Over the picture only, under the content warning: it
               // hides nothing the warning covers and never plays a stream.
-              if (_departure.current case final departure?)
-                Positioned.fill(
-                  child: RaidHeadingOverlay(
-                    key: const ValueKey('raid-leaving'),
-                    arrival: departure,
-                    leaving: true,
-                  ),
-                )
-              else if (_arrival case final arrival?)
-                Positioned.fill(
-                  child: RaidHeadingOverlay(
-                    key: const ValueKey('raid-arriving'),
-                    arrival: arrival,
-                    leaving: false,
-                  ),
+              Positioned.fill(
+                child: RaidOverlayLayer(
+                  departure: _departure.current,
+                  arrival: _arrival,
+                  inPip: _videoStore.isInPipMode,
                 ),
+              ),
             ],
           );
         },
@@ -1747,6 +1750,7 @@ class _VideoChatState extends State<VideoChat>
     _highlightsSettingReaction?.call();
     _giftBombFeed?.call();
     _incomingRaidFeed?.call();
+    _raidCancelFeed?.call();
     _highlightsStore?.dispose();
     _subtleCelebrations?.call();
     _departure.dispose();

@@ -40,4 +40,21 @@ void main() {
     )!;
     expect(raid.avatarUrl, isNull);
   });
+
+  test("only Twitch's picture host; never a negative count", () {
+    final elsewhere = _raid(
+      raidNotice.replaceFirst(
+        'https://static-cdn.jtvnw.net',
+        'https://evil.example.com',
+      ),
+    )!;
+    expect(elsewhere.avatarUrl, isNull);
+    final negative = _raid(
+      raidNotice.replaceFirst(
+        'msg-param-viewerCount=15',
+        'msg-param-viewerCount=-4',
+      ),
+    )!;
+    expect(negative.viewers, 0);
+  });
 }

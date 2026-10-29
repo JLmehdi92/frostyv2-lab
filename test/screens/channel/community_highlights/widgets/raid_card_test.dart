@@ -247,4 +247,45 @@ void main() {
       });
     }
   }
+
+  testWidgets('staying and gone stay dismissible', (tester) async {
+    var dismissed = 0;
+    await pump(
+      tester,
+      card(onStay: () {}, staying: true, onDismiss: () => dismissed++),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Hide'));
+    expect(dismissed, 1);
+
+    await pump(
+      tester,
+      card(raid: _raid(gone: true), onDismiss: () => dismissed++),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Hide'));
+    expect(dismissed, 2);
+  });
+
+  testWidgets("a picture off Twitch's host is not loaded", (tester) async {
+    await pump(
+      tester,
+      card(
+        raid: RaidState(
+          const OutgoingRaid(
+            id: 'r',
+            sourceId: '1',
+            targetId: '2',
+            targetLogin: 'friend',
+            targetDisplayName: 'Friend',
+            viewerCount: -3,
+            targetProfileImage: 'https://evil.example.com/a.png',
+          ),
+        ),
+      ),
+    );
+    expect(find.text('0 viewers'), findsOneWidget);
+    expect(find.byType(Image), findsNothing);
+    await tester.pumpAndSettle();
+  });
 }

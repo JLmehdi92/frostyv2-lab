@@ -4,6 +4,8 @@ import 'package:frosty/models/irc.dart';
 import 'package:frosty/models/raid_arrival.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:mobx/mobx.dart' show autorun;
+import 'package:mocktail/mocktail.dart';
 
 import '../../../../fixtures/irc_messages.dart';
 import '../../../../helpers/chat_store_harness.dart';
@@ -132,5 +134,83 @@ void main() {
       store.dispose();
       async.elapse(const Duration(seconds: 30));
     });
+  });
+
+  test('a held local notice released outside an action is still fine', () {
+    fakeAsync((async) {
+      settings
+        ..showVideo = true
+        ..chatDelay = 3;
+      final store = create();
+      async.flushMicrotasks();
+      // Observed, as the chat list does: a write outside an action asserts.
+      final observe = autorun((_) => store.messageBuffer.length);
+      store.addLocalNotice('Celebration: Rain');
+      // The delay drops under a second: nothing releases the held lines
+      // until the next chat line, from the socket listener (not an
+      // action).
+      settings.chatDelay = 0.5;
+      sockets.single.receive(raidNotice);
+      async.flushMicrotasks();
+      expect(
+        lines(store).where((m) => m.message == 'Celebration: Rain'),
+        hasLength(1),
+      );
+      observe();
+      store.dispose();
+      async.elapse(const Duration(seconds: 30));
+    });
+  });
+
+  test('recent messages count as history: a raid in them pins nothing', () {
+    fakeAsync((async) {
+      settings.showRecentMessages = true;
+      final api = MockTwitchApi();
+      when(
+        () => api.getRecentMessages(userLogin: any(named: 'userLogin')),
+      ).thenAnswer(
+        (_) async => [
+          raidNotice,
+          ':viewer!viewer@viewer.tmi.twitch.tv PRIVMSG #channel :old',
+        ],
+      );
+      final store = createTestChatStore(
+        settings: settings,
+        sockets: sockets,
+        api: api,
+      );
+      async.flushMicrotasks();
+      expect(store.latestIncomingRaid, isNull);
+      final old = lines(store).where((m) => m.message == 'old');
+      expect(old.single.tags['historical'], '1');
+      expect(
+        lines(store)
+            .where((m) => m.command == Command.userNotice)
+            .single
+            .tags['historical'],
+        '1',
+      );
+      store.dispose();
+      async.elapse(const Duration(seconds: 30));
+    });
+  });
+
+  test('history already marked is left as it is', () {
+    expect(
+      ChatStoreBase.markHistorical('@historical=1;id=a :x PRIVMSG #c :hi'),
+      '@historical=1;id=a :x PRIVMSG #c :hi',
+    );
+    expect(
+      ChatStoreBase.markHistorical('@id=a;historical=1 :x PRIVMSG #c :hi'),
+      '@id=a;historical=1 :x PRIVMSG #c :hi',
+    );
+    expect(
+      ChatStoreBase.markHistorical('@id=a :x PRIVMSG #c :historical=0'),
+      '@historical=1;id=a :x PRIVMSG #c :historical=0',
+    );
+    expect(
+      ChatStoreBase.markHistorical(':x PRIVMSG #c :hi'),
+      '@historical=1 :x PRIVMSG #c :hi',
+    );
   });
 }

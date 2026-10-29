@@ -105,4 +105,53 @@ void main() {
     );
     expect(arrival.targetAvatarUrl, isNull);
   });
+
+  test('called off (the raid was cancelled): no switch, at once', () {
+    fakeAsync((async) {
+      start();
+      async.elapse(const Duration(milliseconds: 400));
+      departure.callOff();
+      expect(departure.current, isNull);
+      expect(changes, 2);
+      async.elapse(const Duration(seconds: 2));
+      expect(switched, isEmpty);
+      // Nothing under way: nothing to call off.
+      departure.callOff();
+      expect(changes, 2);
+    });
+  });
+
+  test('Go now, then the raid leaving: one switch', () {
+    fakeAsync((async) {
+      // "Go now".
+      expect(start(), isTrue);
+      async.elapse(const Duration(milliseconds: 500));
+      // The automatic go-along when the raid leaves meanwhile.
+      expect(start(), isFalse);
+      async.elapse(const Duration(seconds: 3));
+      expect(switched, hasLength(1));
+    });
+  });
+
+  test('the screen wiring: a raid cancelled meanwhile never switches', () {
+    fakeAsync((async) {
+      var cancelled = false;
+      final wired = RaidDeparture(
+        // As channel.dart: a cancelled raid takes no one anywhere.
+        canLeave: () => !cancelled && canLeave,
+        onSwitch: (raid, arrival) => switched.add((raid, arrival)),
+        onChanged: () => changes++,
+      );
+      wired.start(
+        _raid,
+        fromName: 'Nisqyy',
+        delay: const Duration(milliseconds: 1350),
+        now: _now,
+      );
+      cancelled = true;
+      async.elapse(const Duration(seconds: 2));
+      expect(switched, isEmpty);
+      expect(wired.current, isNull);
+    });
+  });
 }

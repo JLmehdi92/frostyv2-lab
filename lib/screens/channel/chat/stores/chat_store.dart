@@ -259,11 +259,15 @@ abstract class ChatStoreBase with Store {
   /// step with what it is about.
   void addLocalNotice(String text) {
     if (_shouldDisconnect) return;
-    void add() => messageBuffer.add(IRCMessage.createNotice(message: text));
+    // An action wherever it runs: the delay queue may release it from the
+    // socket listener or a reaction.
+    void add() => runInAction(
+      () => messageBuffer.add(IRCMessage.createNotice(message: text)),
+    );
     if (_hasActiveChatDelay) {
       _enqueueDelayedCallback(_pendingChatCallbacks, add);
     } else {
-      runInAction(add);
+      add();
     }
   }
 
@@ -1746,6 +1750,17 @@ abstract class ChatStoreBase with Store {
     timeRemaining = const Duration();
   }
 
+  /// [line] (one IRC line) tagged `historical=1`, unless it already is.
+  static String markHistorical(String line) {
+    if (!line.startsWith('@')) return '@historical=1 $line';
+    final end = line.indexOf(' ');
+    final tags = end == -1 ? line.substring(1) : line.substring(1, end);
+    if (tags.split(';').any((tag) => tag.startsWith('historical='))) {
+      return line;
+    }
+    return '@historical=1;${line.substring(1)}';
+  }
+
   @action
   Future<void> getRecentMessage() async {
     try {
@@ -1754,7 +1769,9 @@ abstract class ChatStoreBase with Store {
       );
 
       for (final message in recentMessages) {
-        _handleIRCData(message);
+        // History, even when the service leaves out its mark: nothing in
+        // it (a raid, a ban) acts as if it happened now.
+        if (message is String) _handleIRCData(markHistorical(message));
       }
     } catch (e) {
       debugPrint('Failed to fetch recent messages: $e');
