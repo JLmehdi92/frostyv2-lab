@@ -70,7 +70,11 @@ void main() {
     scroll.dispose();
   });
 
-  Future<void> pump(WidgetTester tester, {required Size screen}) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    required Size screen,
+    TextDirection direction = TextDirection.ltr,
+  }) async {
     tester.view.physicalSize = screen;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -85,7 +89,10 @@ void main() {
               child: SizedBox(
                 width: screen.width > screen.height ? 400 : screen.width,
                 height: screen.height,
-                child: Chat(chatStore: chat, onAddChat: () {}),
+                child: Directionality(
+                  textDirection: direction,
+                  child: Chat(chatStore: chat, onAddChat: () {}),
+                ),
               ),
             ),
           ),
@@ -106,6 +113,32 @@ void main() {
     final panel = tester.getRect(find.byType(OnsetPanelSurface));
     expect(panel.size, EmoteMenu.panelSize);
     expect(panel.bottom, lessThanOrEqualTo(854 - 68));
+  });
+
+  testWidgets('right to left: the nub points at the mirrored button', (
+    tester,
+  ) async {
+    double nubX() {
+      final panel = tester.getRect(find.byType(OnsetPanelSurface));
+      final surface = tester.widget<OnsetPanelSurface>(
+        find.byType(OnsetPanelSurface),
+      );
+      return panel.left + surface.nub;
+    }
+
+    // The chat column is 880…1280.
+    for (final atStart in [false, true]) {
+      settings.emoteMenuButtonOnLeft = atStart;
+      await pump(tester, screen: const Size(1280, 854));
+      final ltr = nubX() - 880;
+      await pump(
+        tester,
+        screen: const Size(1280, 854),
+        direction: TextDirection.rtl,
+      );
+      final rtl = 1280 - nubX();
+      expect(rtl, closeTo(ltr, 1), reason: 'at start: $atStart');
+    }
   });
 
   testWidgets('phone: under the input, never a panel', (tester) async {

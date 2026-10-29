@@ -64,10 +64,13 @@ class _ChatState extends State<Chat> {
     // Where the input sits once the menu is a panel: at the bottom of the
     // chat, even while an inline menu still pushes it up.
     final barTop = chat.bottom - bottomInset - chatStore.bottomBarHeight;
-    // The nub points at the emote button, at one end of the input.
-    final buttonX = chatStore.settings.emoteMenuButtonOnLeft
-        ? chat.left + 32
-        : chat.right - 120;
+    // The nub points at the emote button, at one end of the input. The
+    // setting's "left" is the input's start (its prefix), so the right
+    // in a right-to-left language.
+    final atStart = chatStore.settings.emoteMenuButtonOnLeft;
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+    final inset = atStart ? 32.0 : 120.0;
+    final buttonX = atStart != rtl ? chat.left + inset : chat.right - inset;
     return placePanel(
       bounds: Rect.fromLTRB(
         media.padding.left,
