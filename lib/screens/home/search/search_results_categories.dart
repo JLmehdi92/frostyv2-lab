@@ -3,14 +3,65 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/models/category.dart';
 import 'package:frosty/screens/home/search/search_store.dart';
 import 'package:frosty/screens/home/top/categories/category_card.dart';
+import 'package:frosty/screens/home/top/categories/category_streams.dart';
 import 'package:frosty/widgets/alert_message.dart';
-import 'package:frosty/widgets/skeleton_loader.dart';
+import 'package:frosty/widgets/motion/staggered_entrance.dart';
 import 'package:mobx/mobx.dart';
 
+/// The categories found by a search (boards Recherche and
+/// RechercheTablette), the exact name first: rows on a phone, box arts in
+/// [columns] on a tablet. A tap opens the category.
 class SearchResultsCategories extends StatelessWidget {
   final SearchStore searchStore;
 
-  const SearchResultsCategories({super.key, required this.searchStore});
+  /// How many to show (null: all).
+  final int? limit;
+
+  /// Box arts side by side (1: rows).
+  final int columns;
+
+  /// The grid's sides and the gaps between its tiles.
+  final double gutter;
+  final double gap;
+  final double rowGap;
+
+  /// The names' size under the box arts.
+  final double nameSize;
+
+  const SearchResultsCategories({
+    super.key,
+    required this.searchStore,
+    this.limit,
+    this.columns = 1,
+    this.gutter = 0,
+    this.gap = 14,
+    this.rowGap = 18,
+    this.nameSize = 14,
+  });
+
+  Widget _message(String message) => SizedBox(
+    height: 100.0,
+    child: AlertMessage(message: message, vertical: true),
+  );
+
+  Widget _skeleton() {
+    final count = limit ?? 8;
+    if (columns > 1) {
+      return _Tiles(
+        columns: columns,
+        gutter: gutter,
+        gap: gap,
+        rowGap: rowGap,
+        children: [
+          for (var i = 0; i < (count < columns ? columns : count); i++)
+            const CategoryTileSkeleton(),
+        ],
+      );
+    }
+    return Column(
+      children: [for (var i = 0; i < count; i++) const CategoryCardSkeleton()],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,65 +71,108 @@ class SearchResultsCategories extends StatelessWidget {
 
         // Show skeletons immediately while waiting for debounce.
         if (future == null) {
-          if (searchStore.isSearching) {
-            return SliverList.builder(
-              itemCount: 8,
-              itemBuilder: (context, index) => const CategorySkeletonLoader(),
-            );
-          }
-          return const SliverToBoxAdapter(child: SizedBox.shrink());
+          if (searchStore.isSearching) return _skeleton();
+          return const SizedBox.shrink();
         }
 
         switch (future.status) {
           case FutureStatus.pending:
-            return SliverList.builder(
-              itemCount: 8,
-              itemBuilder: (context, index) => const CategorySkeletonLoader(),
-            );
+            return _skeleton();
           case FutureStatus.rejected:
-            return const SliverToBoxAdapter(
-              child: SizedBox(
-                height: 100.0,
-                child: AlertMessage(
-                  message: 'Unable to load categories',
-                  vertical: true,
-                ),
-              ),
-            );
+            return _message('Unable to load categories');
           case FutureStatus.fulfilled:
             final CategoriesTwitch? categories = future.result;
 
             if (categories == null) {
-              return const SliverToBoxAdapter(
-                child: SizedBox(
-                  height: 100.0,
-                  child: AlertMessage(
-                    message: 'Failed to get categories',
-                    vertical: true,
-                  ),
-                ),
-              );
+              return _message('Failed to get categories');
             }
 
             if (categories.data.isEmpty) {
-              return const SliverToBoxAdapter(
-                child: SizedBox(
-                  height: 100.0,
-                  child: AlertMessage(
-                    message: 'No matching categories',
-                    vertical: true,
-                  ),
-                ),
-              );
+              return _message('No matching categories');
             }
 
-            return SliverList.builder(
-              itemCount: categories.data.length,
-              itemBuilder: (context, index) =>
-                  CategoryCard(category: categories.data[index]),
+            final shown = limit == null
+                ? categories.data
+                : categories.data.take(limit!).toList();
+            if (columns > 1) {
+              return _Tiles(
+                columns: columns,
+                gutter: gutter,
+                gap: gap,
+                rowGap: rowGap,
+                children: [
+                  for (var i = 0; i < shown.length; i++)
+                    StaggeredEntrance(
+                      key: ValueKey(shown[i].id),
+                      index: i,
+                      offset: 6,
+                      child: CategoryTile(
+                        category: shown[i],
+                        nameSize: nameSize,
+                        monogramSize: 26,
+                        onTap: () => CategoryStreams.open(context, shown[i].id),
+                      ),
+                    ),
+                ],
+              );
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var i = 0; i < shown.length; i++)
+                  StaggeredEntrance(
+                    key: ValueKey(shown[i].id),
+                    index: i,
+                    offset: 6,
+                    child: CategoryCard(category: shown[i]),
+                  ),
+              ],
             );
         }
       },
+    );
+  }
+}
+
+/// Box arts in [columns], top-aligned.
+class _Tiles extends StatelessWidget {
+  const _Tiles({
+    required this.columns,
+    required this.gutter,
+    required this.gap,
+    required this.rowGap,
+    required this.children,
+  });
+
+  final int columns;
+  final double gutter;
+  final double gap;
+  final double rowGap;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = (children.length / columns).ceil();
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: gutter),
+      child: Column(
+        spacing: rowGap,
+        children: [
+          for (var row = 0; row < rows; row++)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: gap,
+              children: [
+                for (var column = 0; column < columns; column++)
+                  Expanded(
+                    child: row * columns + column < children.length
+                        ? children[row * columns + column]
+                        : const SizedBox.shrink(),
+                  ),
+              ],
+            ),
+        ],
+      ),
     );
   }
 }

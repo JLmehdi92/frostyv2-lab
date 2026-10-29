@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/constants.dart';
 import 'package:frosty/models/channel.dart';
+import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/utils.dart';
-import 'package:frosty/widgets/live_indicator.dart';
+import 'package:frosty/utils/context_extensions.dart';
+import 'package:frosty/widgets/motion/press_scale.dart';
 import 'package:frosty/widgets/profile_picture.dart';
 import 'package:frosty/widgets/uptime.dart';
 
@@ -20,95 +22,171 @@ ChannelQuery? featuredChannel(Iterable<ChannelQuery> results, String query) {
   return null;
 }
 
-/// The exact match of a search: a bigger card with the stream's title and
-/// category.
+/// "Offline · Hytale", or "Offline" without a last category.
+String offlineLine(ChannelQuery channel) =>
+    channel.gameName.isEmpty ? 'Offline' : 'Offline · ${channel.gameName}';
+
+/// A channel's picture, ringed in the signal colour while it is live
+/// (boards Recherche: 2 dp of ground, then 1.5 dp of signal, drawn outside
+/// the picture so nothing moves).
+class SearchAvatar extends StatelessWidget {
+  const SearchAvatar({
+    super.key,
+    required this.login,
+    required this.size,
+    required this.live,
+  });
+
+  final String login;
+  final double size;
+  final bool live;
+
+  @override
+  Widget build(BuildContext context) {
+    final picture = ProfilePicture(userLogin: login, radius: size / 2);
+    if (!live) return picture;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(color: context.frostyColors.live, spreadRadius: 3.5),
+          BoxShadow(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: picture,
+    );
+  }
+}
+
+/// The exact match of a search (boards Recherche and RechercheTablette): a
+/// raised card with the picture, the name, live or offline with the
+/// category, and the stream's title.
 class FeaturedChannelCard extends StatelessWidget {
   const FeaturedChannelCard({
     super.key,
     required this.channel,
     required this.onTap,
     required this.onLongPress,
+    this.large = false,
   });
 
   final ChannelQuery channel;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
 
+  /// The tablet's card: a bigger picture and name, the title under them.
+  final bool large;
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final padding = MediaQuery.paddingOf(context);
+    final colors = FeedColors.of(context);
     final name = getReadableName(channel.displayName, channel.broadcasterLogin);
-
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16 + padding.left, 0, 16 + padding.right, 8),
+    final meta = TextStyle(fontSize: large ? 13 : 12, color: colors.secondary);
+    final status = channel.isLive
+        ? Row(
+            spacing: large ? 7 : 6,
+            children: [
+              const LiveBadge(small: true),
+              Uptime(
+                startTime: channel.startedAt,
+                style: FrostyType.tabular(meta),
+              ),
+              if (channel.gameName.isNotEmpty) ...[
+                Text('·', style: meta),
+                Flexible(
+                  child: Text(
+                    channel.gameName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: meta,
+                  ),
+                ),
+              ],
+            ],
+          )
+        : Text(
+            offlineLine(channel),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: meta,
+          );
+    final title = channel.title.isEmpty
+        ? null
+        : Text(
+            channel.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: large ? 14 : 13,
+              height: large ? 1.45 : 1.4,
+              color: colors.body,
+            ),
+          );
+    final head = Row(
+      spacing: large ? 14 : 12,
+      children: [
+        SearchAvatar(
+          login: channel.broadcasterLogin,
+          size: large ? 64 : 56,
+          live: channel.isLive,
+        ),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            spacing: large ? 5 : 4,
+            children: [
+              Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontFamily: FrostyTokens.displayFamily,
+                  fontSize: large ? 20 : 17,
+                  fontWeight: large ? FontWeight.w800 : FontWeight.w700,
+                  letterSpacing: (large ? -0.02 : -0.015) * (large ? 20 : 17),
+                  color: colors.text,
+                ),
+              ),
+              status,
+              if (!large) ?title,
+            ],
+          ),
+        ),
+        Icon(
+          Icons.chevron_right_rounded,
+          size: large ? 22 : 20,
+          color: colors.secondary,
+        ),
+      ],
+    );
+    final radius = BorderRadius.circular(large ? 18 : 16);
+    return PressScale(
       child: Material(
-        color: theme.colorScheme.surfaceContainer,
-        borderRadius: kCardBorderRadius,
+        color: colors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: radius,
+          side: BorderSide(
+            color: colors.hairline,
+            width: FrostyTokens.hairlineWidth,
+          ),
+        ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
           onLongPress: onLongPress,
           child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              spacing: 12,
-              children: [
-                ProfilePicture(userLogin: channel.broadcasterLogin, radius: 28),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 4,
-                    children: [
-                      Text(
-                        name,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (channel.isLive)
-                        Row(
-                          spacing: 6,
-                          children: [
-                            const LiveIndicator(),
-                            Uptime(startTime: channel.startedAt),
-                            if (channel.gameName.isNotEmpty)
-                              Flexible(
-                                child: Text(
-                                  channel.gameName,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: theme.textTheme.bodySmall,
-                                ),
-                              ),
-                          ],
-                        )
-                      else
-                        Text(
-                          channel.gameName.isEmpty
-                              ? 'Offline'
-                              : 'Offline · ${channel.gameName}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall,
-                        ),
-                      if (channel.title.isNotEmpty)
-                        Text(
-                          channel.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                const Icon(Icons.chevron_right_rounded),
-              ],
-            ),
+            padding: EdgeInsets.all(large ? 16 : 12),
+            child: large && title != null
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    spacing: 12,
+                    children: [head, title],
+                  )
+                : head,
           ),
         ),
       ),

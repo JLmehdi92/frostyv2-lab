@@ -1,6 +1,7 @@
 import 'dart:async';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
 
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -11,12 +12,16 @@ import 'package:frosty/screens/home/search/search_results_channels.dart';
 import 'package:frosty/screens/home/search/search_results_videos.dart';
 import 'package:frosty/screens/home/search/search_store.dart';
 import 'package:frosty/screens/home/search/search_videos_store.dart';
-import 'package:frosty/screens/home/stream_list/streams_list.dart';
+import 'package:frosty/screens/home/shell/shell_tabs.dart';
+import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/widgets/alert_message.dart';
-import 'package:frosty/widgets/blurred_container.dart';
+import 'package:frosty/theme.dart';
+import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/frosty_scrollbar.dart';
-import 'package:frosty/widgets/section_header.dart';
+import 'package:frosty/widgets/motion/motion.dart';
+import 'package:frosty/widgets/motion/press_scale.dart';
+import 'package:frosty/widgets/motion/reduce_motion.dart';
+import 'package:frosty/widgets/motion/staggered_entrance.dart';
 import 'package:mobx/mobx.dart';
 import 'package:provider/provider.dart';
 
@@ -29,7 +34,8 @@ class SearchSession {
 
   final SearchStore store;
 
-  /// Made the first time the Videos tab is opened.
+  /// Made the first time videos are searched (the Videos tab, the tablet's
+  /// Top column).
   SearchVideosStore? videos;
 
   /// The result tab last open.
@@ -93,7 +99,8 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 }
 
-/// The search section that contians search history and search results for channels and categories.
+/// Search (boards Recherche and RechercheTablette): the field, the past
+/// searches, then the results under Top, Channels, Categories and Videos.
 class Search extends StatefulWidget {
   // The scroll controller for handling scroll to top functionality.
   final ScrollController scrollController;
@@ -119,9 +126,6 @@ class Search extends StatefulWidget {
   State<Search> createState() => _SearchState();
 }
 
-// Constants for consistent sizing
-const double _kSearchBarHeight = 80.0;
-
 /// The result tabs, like the official app's search.
 enum _SearchTab {
   top('Top'),
@@ -134,7 +138,13 @@ enum _SearchTab {
   final String label;
 }
 
-class _SearchState extends State<Search> with SingleTickerProviderStateMixin {
+/// The header's rows (boards: the field row, then the result tabs).
+abstract final class _Metrics {
+  static double fieldRow(bool large) => large ? 68 : 64;
+  static double tabsRow(bool large) => large ? 46 : 44;
+}
+
+class _SearchState extends State<Search> {
   /// Given (kept between opens), or this search's own.
   late final _session =
       widget.session ??
@@ -145,317 +155,865 @@ class _SearchState extends State<Search> with SingleTickerProviderStateMixin {
 
   SearchStore get _searchStore => _session.store;
 
-  late final _tabController = TabController(
-    length: _SearchTab.values.length,
-    vsync: this,
-    initialIndex: _session.tab,
-  );
-
-  /// Made the first time the Videos tab is opened.
+  /// Made the first time videos are searched.
   SearchVideosStore get _videosStore => _session.videos ??= SearchVideosStore(
     vodService: context.read<TwitchVodService>(),
   );
 
+  /// The videos for the tablet's Top column: none without the video
+  /// service (the column is left out).
+  SearchVideosStore? get _topVideos =>
+      _session.videos ??
+      (context.read<TwitchVodService?>() == null ? null : _videosStore);
+
+  /// The videos of the open tab, if it shows some.
+  SearchVideosStore? get _shownVideos => switch (_tab) {
+    _SearchTab.videos => _videosStore,
+    _SearchTab.top when _videosOnTop => _topVideos,
+    _ => null,
+  };
+
   late var _tab = _SearchTab.values[_session.tab];
+
+  /// The tablet's Top has a Videos column (an approved addition): videos
+  /// are searched there too.
+  var _videosOnTop = false;
 
   ReactionDisposer? _disposeQueryReaction;
 
   @override
   void initState() {
     super.initState();
-    _tabController.addListener(_onTabChanged);
-    // A kept search reopening on Videos: a query may have landed while it
-    // was closed (the debounce lives in the session, the reaction below in
-    // the page), so the videos catch up with it.
-    if (_tab == _SearchTab.videos) {
-      unawaited(_videosStore.search(_searchStore.lastQuery));
-    }
-    // The Videos tab follows each new query while it is open.
+    // Videos follow each new query while a tab shows them.
     _disposeQueryReaction = reaction((_) => _searchStore.lastQuery, (
       String query,
     ) {
-      if (_tab == _SearchTab.videos) _videosStore.search(query);
+      _shownVideos?.search(query);
     });
   }
 
-  void _onTabChanged() {
-    final tab = _SearchTab.values[_tabController.index];
-    if (tab == _tab) return;
-    _session.tab = tab.index;
-    setState(() => _tab = tab);
-    if (widget.scrollController.hasClients) {
-      widget.scrollController.jumpTo(0);
-    }
-    if (tab == _SearchTab.videos) {
-      _videosStore.search(_searchStore.lastQuery);
+  var _started = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final large = context.isLargeScreen;
+    final changed = large != _videosOnTop;
+    _videosOnTop = large;
+    // A kept search reopening on a tab with videos (or a window grown into
+    // a tablet's): a query may have landed while they were not shown (the
+    // debounce lives in the session, the reaction above in the page), so
+    // the videos catch up with it.
+    if (!_started || changed) {
+      _started = true;
+      final videos = _shownVideos;
+      if (videos != null) unawaited(videos.search(_searchStore.lastQuery));
     }
   }
 
-  /// The results of the open tab.
-  List<Widget> _resultSlivers(BuildContext context) {
-    Widget header(String title, {bool first = false}) => SliverToBoxAdapter(
-      child: Builder(
-        builder: (context) => SectionHeader(
-          title,
-          isFirst: first,
-          padding: EdgeInsets.fromLTRB(
-            16 + MediaQuery.of(context).padding.left,
-            first ? 16 : 8,
-            16 + MediaQuery.of(context).padding.right,
-            8,
-          ),
-        ),
-      ),
-    );
+  void _selectTab(_SearchTab tab) {
+    if (tab == _tab) {
+      _toTop(animate: true);
+      return;
+    }
+    _session.tab = tab.index;
+    setState(() => _tab = tab);
+    _toTop();
+    _shownVideos?.search(_searchStore.lastQuery);
+  }
 
-    final channels = SearchResultsChannels(
-      searchStore: _searchStore,
-      query: _searchStore.searchText,
+  void _toTop({bool animate = false}) {
+    final controller = widget.scrollController;
+    if (!controller.hasClients) return;
+    if (animate && !reduceMotionOf(context)) {
+      controller.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: FrostyMotion.standard,
+      );
+    } else {
+      controller.jumpTo(0);
+    }
+  }
+
+  void _useHistory(String searchTerm) {
+    final controller = _searchStore.textEditingController;
+    controller.text = searchTerm;
+    _searchStore.handleQuery(searchTerm);
+    controller.selection = TextSelection.fromPosition(
+      TextPosition(offset: controller.text.length),
     );
-    final categories = SearchResultsCategories(searchStore: _searchStore);
-    return switch (_tab) {
-      _SearchTab.top => [
-        header('Channels', first: true),
-        channels,
-        header('Categories'),
-        categories,
-      ],
-      _SearchTab.channels => [channels],
-      _SearchTab.categories => [categories],
-      _SearchTab.videos => [SearchResultsVideos(store: _videosStore)],
-    };
+  }
+
+  void _clearField() {
+    if (_searchStore.searchText.isEmpty) {
+      _searchStore.textFieldFocusNode.unfocus();
+    }
+    _searchStore.textEditingController.clear();
+    _searchStore.onSearchTextChanged('');
   }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Content behind the search bar
-        Positioned.fill(
-          child: Observer(
-            builder: (context) {
-              if (_searchStore.searchText.isEmpty) {
-                if (_searchStore.searchHistory.isEmpty) {
-                  return CustomScrollView(
-                    controller: widget.scrollController,
-                    slivers: [
-                      SliverToBoxAdapter(
-                        child: SizedBox(
-                          height:
-                              MediaQuery.of(context).padding.top +
-                              _kSearchBarHeight,
-                        ),
-                      ),
-                      SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            bottom: MediaQuery.of(context).padding.bottom,
-                          ),
-                          child: const AlertMessage(
-                            message: 'No recent searches',
-                            vertical: true,
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                }
-
-                return FrostyScrollbar(
-                  controller: widget.scrollController,
-                  padding: EdgeInsets.only(
-                    top: MediaQuery.of(context).padding.top + _kSearchBarHeight,
-                    bottom: MediaQuery.of(context).padding.bottom,
-                  ),
-                  child: ListView(
-                    controller: widget.scrollController,
-                    padding: EdgeInsets.only(
-                      top:
-                          MediaQuery.of(context).padding.top +
-                          _kSearchBarHeight,
-                      bottom: MediaQuery.of(context).padding.bottom,
-                    ),
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(
-                          left: 16 + MediaQuery.of(context).padding.left,
-                          right: 4 + MediaQuery.of(context).padding.right,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const SectionHeader(
-                              'History',
-                              padding: EdgeInsets.zero,
-                              isFirst: true,
-                            ),
-                            TextButton(
-                              onPressed: _searchStore.searchHistory.clear,
-                              child: const Text('Clear'),
-                            ),
-                          ],
-                        ),
-                      ),
-                      ..._searchStore.searchHistory.mapIndexed(
-                        (index, searchTerm) => ListTile(
-                          leading: const Icon(Icons.history_rounded),
-                          title: Text(searchTerm),
-                          trailing: IconButton(
-                            tooltip: 'Remove $searchTerm from history',
-                            icon: const Icon(Icons.close_rounded),
-                            onPressed: () =>
-                                _searchStore.removeFromHistory(searchTerm),
-                          ),
-                          onTap: () {
-                            _searchStore.textEditingController.text =
-                                searchTerm;
-                            _searchStore.handleQuery(searchTerm);
-                            _searchStore.textEditingController.selection =
-                                TextSelection.fromPosition(
-                                  TextPosition(
-                                    offset: _searchStore
-                                        .textEditingController
-                                        .text
-                                        .length,
-                                  ),
-                                );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }
-              return FrostyScrollbar(
-                controller: widget.scrollController,
-                padding: EdgeInsets.only(
-                  top:
-                      MediaQuery.of(context).padding.top +
-                      _kSearchBarHeight +
-                      kTextTabBarHeight,
-                  bottom: MediaQuery.of(context).padding.bottom,
-                ),
-                child: CustomScrollView(
-                  controller: widget.scrollController,
-                  slivers: [
-                    // Add padding for app bar, search bar and tabs
-                    const _SearchTopPadding(),
-                    ..._resultSlivers(context),
-                    // Add padding for bottom navigation bar
-                    const SliverBottomPadding(),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-        // Blurred search bar on top
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          child: BlurredContainer(
-            gradientDirection: GradientDirection.up,
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top,
-              left: MediaQuery.of(context).padding.left,
-              right: MediaQuery.of(context).padding.right,
+    final large = context.isLargeScreen;
+    final padding = MediaQuery.paddingOf(context);
+    return Observer(
+      builder: (context) {
+        final hasQuery = _searchStore.searchText.isNotEmpty;
+        final headerHeight =
+            padding.top +
+            _Metrics.fieldRow(large) +
+            (hasQuery ? _Metrics.tabsRow(large) : 0);
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: _body(
+                context,
+                large: large,
+                hasQuery: hasQuery,
+                top: headerHeight,
+              ),
             ),
-            child: Observer(
-              builder: (context) {
-                return Column(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        widget.onBack == null ? 16 : 4,
-                        16,
-                        16,
-                        16,
-                      ),
-                      child: Row(
-                        children: [
-                          if (widget.onBack case final onBack?)
-                            IconButton(
-                              tooltip: 'Back',
-                              onPressed: onBack,
-                              icon: Icon(Icons.adaptive.arrow_back_rounded),
-                            ),
-                          Expanded(child: _field()),
-                        ],
-                      ),
-                    ),
-                    if (_searchStore.searchText.isNotEmpty)
-                      TabBar(
-                        controller: _tabController,
-                        isScrollable: true,
-                        tabAlignment: TabAlignment.start,
-                        tabs: [
-                          for (final tab in _SearchTab.values)
-                            Tab(text: tab.label),
-                        ],
-                      ),
-                  ],
-                );
-              },
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: _header(context, large: large, hasQuery: hasQuery),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
-  Widget _field() {
-    return TextField(
-      controller: _searchStore.textEditingController,
-      focusNode: _searchStore.textFieldFocusNode,
-      autocorrect: false,
-      autofocus: widget.autofocus,
-      onChanged: _searchStore.onSearchTextChanged,
-      decoration: InputDecoration(
-        prefixIcon: const Icon(Icons.search_rounded),
-        hintText: 'Search channels, categories or videos',
-        suffixIcon:
-            _searchStore.textFieldFocusNode.hasFocus ||
-                _searchStore.searchText.isNotEmpty
-            ? IconButton(
-                icon: const Icon(Icons.close_rounded),
-                tooltip: _searchStore.searchText.isEmpty ? 'Cancel' : 'Clear',
-                onPressed: () {
-                  if (_searchStore.searchText.isEmpty) {
-                    _searchStore.textFieldFocusNode.unfocus();
-                  }
-                  _searchStore.textEditingController.clear();
-                  _searchStore.onSearchTextChanged('');
-                },
-              )
-            : null,
-      ),
-      onSubmitted: _searchStore.handleQuery,
+  // -------------------------------------------------------------------
+  // Header.
+
+  Widget _header(
+    BuildContext context, {
+    required bool large,
+    required bool hasQuery,
+  }) {
+    final colors = FeedColors.of(context);
+    final padding = MediaQuery.paddingOf(context);
+    final ground = Theme.of(context).scaffoldBackgroundColor;
+    final gutter = large ? FrostySpacing.gutterTablet : 16.0;
+    final onBack = widget.onBack;
+    final tabs = ShellTabs(
+      labels: [for (final tab in _SearchTab.values) tab.label],
+      index: _tab.index,
+      onSelect: (i) => _selectTab(_SearchTab.values[i]),
+      height: _Metrics.tabsRow(large),
+      fontSize: large ? 16 : 15,
+      gap: large ? 28 : 22,
+      bottomPadding: large ? 13 : 12,
+      padding: EdgeInsets.symmetric(horizontal: gutter),
+      activeColor: colors.text,
+      idleColor: colors.tertiary,
+      indicatorColor: context.frostyColors.live,
     );
+    return ClipRect(
+      // The phone's glass (nothing plays under search); the tablet's bar
+      // is opaque.
+      child: BackdropFilter(
+        enabled: !large,
+        filter: ui.ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: large ? ground : ground.withValues(alpha: 0.74),
+            border: Border(
+              bottom: BorderSide(
+                color: !large || hasQuery ? colors.hairline : ground,
+                width: FrostyTokens.hairlineWidth,
+              ),
+            ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.only(
+              top: padding.top,
+              left: padding.left,
+              right: padding.right,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  height: _Metrics.fieldRow(large),
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      left: onBack == null ? gutter : (large ? 20 : 4),
+                      right: gutter,
+                    ),
+                    child: Row(
+                      spacing: large ? 8 : 4,
+                      children: [
+                        if (onBack != null)
+                          IconButton(
+                            tooltip: 'Back',
+                            constraints: const BoxConstraints.tightFor(
+                              width: 44,
+                              height: 44,
+                            ),
+                            padding: EdgeInsets.zero,
+                            icon: Icon(
+                              Icons.chevron_left_rounded,
+                              size: 26,
+                              color: colors.text,
+                            ),
+                            onPressed: onBack,
+                          ),
+                        Expanded(
+                          child: _SearchField(
+                            store: _searchStore,
+                            autofocus: widget.autofocus,
+                            large: large,
+                            onClear: _clearField,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                AnimatedSize(
+                  duration: motionDuration(
+                    context,
+                    const Duration(milliseconds: 260),
+                  ),
+                  curve: FrostyMotion.standard,
+                  alignment: Alignment.topCenter,
+                  child: hasQuery ? tabs : const SizedBox(width: 1),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // -------------------------------------------------------------------
+  // Body.
+
+  Widget _body(
+    BuildContext context, {
+    required bool large,
+    required bool hasQuery,
+    required double top,
+  }) {
+    final padding = MediaQuery.paddingOf(context);
+    final List<Widget> slivers;
+    final String phase;
+    if (!hasQuery) {
+      phase = 'history';
+      slivers = _historySlivers(context, large: large);
+    } else {
+      phase = 'results-${_searchStore.lastQuery}-${_tab.name}';
+      slivers = large ? _tabletResults(context) : _phoneResults(context);
+    }
+    return FrostyScrollbar(
+      controller: widget.scrollController,
+      padding: EdgeInsets.only(top: top, bottom: padding.bottom),
+      child: StaggerScope(
+        key: ValueKey(phase),
+        child: CustomScrollView(
+          controller: widget.scrollController,
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          slivers: [
+            SliverToBoxAdapter(child: SizedBox(height: top)),
+            ...slivers,
+            SliverToBoxAdapter(
+              child: SizedBox(height: padding.bottom + (large ? 40 : 24)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _historySlivers(BuildContext context, {required bool large}) {
+    final history = _searchStore.searchHistory;
+    if (history.isEmpty) {
+      return [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: _NoHistory(large: large),
+        ),
+      ];
+    }
+    final list = _HistoryList(
+      history: history.toList(),
+      onUse: _useHistory,
+      onRemove: _searchStore.removeFromHistory,
+      onClear: _searchStore.searchHistory.clear,
+    );
+    if (!large) {
+      return [
+        SliverPadding(
+          padding: const EdgeInsets.only(top: 12),
+          sliver: SliverToBoxAdapter(child: list),
+        ),
+      ];
+    }
+    final colors = FeedColors.of(context);
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(
+          FrostySpacing.gutterTablet,
+          28,
+          FrostySpacing.gutterTablet,
+          0,
+        ),
+        sliver: SliverToBoxAdapter(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 640),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: colors.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: colors.hairline,
+                    width: FrostyTokens.hairlineWidth,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
+                  child: list,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  /// "Channels" or "Categories" over a part of Top, with "See all".
+  Widget _sectionTitle(
+    String title,
+    _SearchTab tab, {
+    required double gutter,
+    double top = 16,
+  }) => Padding(
+    padding: EdgeInsets.fromLTRB(gutter, top, math.max(0, gutter - 4), 8),
+    child: _SectionTitle(title: title, onSeeAll: () => _selectTab(tab)),
+  );
+
+  List<Widget> _phoneResults(BuildContext context) {
+    final query = _searchStore.searchText;
+    Widget channels({int? limit}) => SearchResultsChannels(
+      searchStore: _searchStore,
+      query: query,
+      limit: limit,
+    );
+    Widget categories({int? limit}) =>
+        SearchResultsCategories(searchStore: _searchStore, limit: limit);
+    return switch (_tab) {
+      _SearchTab.top => [
+        SliverToBoxAdapter(
+          child: _sectionTitle(
+            'Channels',
+            _SearchTab.channels,
+            gutter: FrostySpacing.gutterPhone,
+          ),
+        ),
+        SliverToBoxAdapter(child: channels(limit: 5)),
+        SliverToBoxAdapter(
+          child: _sectionTitle(
+            'Categories',
+            _SearchTab.categories,
+            gutter: FrostySpacing.gutterPhone,
+            top: 20,
+          ),
+        ),
+        SliverToBoxAdapter(child: categories(limit: 4)),
+      ],
+      _SearchTab.channels => [
+        const SliverToBoxAdapter(child: SizedBox(height: 12)),
+        SliverToBoxAdapter(child: channels()),
+      ],
+      _SearchTab.categories => [
+        const SliverToBoxAdapter(child: SizedBox(height: 12)),
+        SliverToBoxAdapter(child: categories()),
+      ],
+      _SearchTab.videos => [
+        const SliverToBoxAdapter(child: SizedBox(height: 8)),
+        SearchResultsVideos(store: _videosStore),
+      ],
+    };
+  }
+
+  List<Widget> _tabletResults(BuildContext context) {
+    const gutter = FrostySpacing.gutterTablet;
+    final query = _searchStore.searchText;
+    final media = MediaQuery.of(context);
+    final width = media.size.width - media.padding.horizontal - 2 * gutter;
+    Widget padded(Widget sliver, {double top = 20}) => SliverPadding(
+      padding: EdgeInsets.fromLTRB(gutter, top, gutter, 0),
+      sliver: sliver,
+    );
+    switch (_tab) {
+      case _SearchTab.top:
+        final channels = Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _sectionTitle('Channels', _SearchTab.channels, gutter: 0, top: 0),
+            SearchResultsChannels(
+              searchStore: _searchStore,
+              query: query,
+              limit: 5,
+              large: true,
+              gutter: 0,
+            ),
+          ],
+        );
+        final categories = Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _sectionTitle(
+              'Categories',
+              _SearchTab.categories,
+              gutter: 0,
+              top: 0,
+            ),
+            SearchResultsCategories(
+              searchStore: _searchStore,
+              limit: 4,
+              columns: 2,
+            ),
+          ],
+        );
+        final topVideos = _topVideos;
+        final videos = topVideos == null
+            ? const SizedBox.shrink()
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _sectionTitle('Videos', _SearchTab.videos, gutter: 0, top: 0),
+                  SearchVideosColumn(store: topVideos),
+                ],
+              );
+        // Three columns where they fit (landscape, board); otherwise the
+        // channels and categories side by side, the videos under them.
+        final Widget top = width >= 400 + 340 + 2 * 36 + 300
+            ? Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(width: 400, child: channels),
+                  const SizedBox(width: 36),
+                  SizedBox(width: 340, child: categories),
+                  const SizedBox(width: 36),
+                  Expanded(child: videos),
+                ],
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: 28,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 28,
+                    children: [
+                      Expanded(flex: 10, child: channels),
+                      Expanded(flex: 9, child: categories),
+                    ],
+                  ),
+                  videos,
+                ],
+              );
+        return [padded(SliverToBoxAdapter(child: top))];
+      case _SearchTab.channels:
+        return [
+          padded(
+            SliverToBoxAdapter(
+              child: SearchResultsChannels(
+                searchStore: _searchStore,
+                query: query,
+                large: true,
+                gutter: 0,
+                columns: math.max(1, math.min(3, (width + 24) ~/ (320 + 24))),
+                goTo: GoToStyle.pill,
+              ),
+            ),
+          ),
+        ];
+      case _SearchTab.categories:
+        return [
+          padded(
+            SliverToBoxAdapter(
+              child: SearchResultsCategories(
+                searchStore: _searchStore,
+                columns: math.max(3, math.min(8, (width + 18) ~/ (170 + 18))),
+                gap: 18,
+                rowGap: 22,
+              ),
+            ),
+          ),
+        ];
+      case _SearchTab.videos:
+        return [
+          const SliverToBoxAdapter(child: SizedBox(height: 12)),
+          SearchResultsVideos(store: _videosStore),
+        ];
+    }
   }
 
   @override
   void dispose() {
     _disposeQueryReaction?.call();
-    _tabController.dispose();
     if (widget.session == null) _session.dispose();
     super.dispose();
   }
 }
 
-/// Room for the search bar and the result tabs above the results.
-class _SearchTopPadding extends StatelessWidget {
-  const _SearchTopPadding();
+/// The search field (boards: a pill on the surface, ringed in the signal
+/// colour while typing; "Clear" once something is typed, "Cancel" to put
+/// the keyboard away).
+class _SearchField extends StatelessWidget {
+  const _SearchField({
+    required this.store,
+    required this.autofocus,
+    required this.large,
+    required this.onClear,
+  });
+
+  final SearchStore store;
+  final bool autofocus;
+  final bool large;
+  final VoidCallback onClear;
 
   @override
   Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: SizedBox(
-        height:
-            MediaQuery.of(context).padding.top +
-            _kSearchBarHeight +
-            kTextTabBarHeight,
+    final colors = FeedColors.of(context);
+    final accent = context.frostyColors.live;
+    final focus = store.textFieldFocusNode;
+    return ListenableBuilder(
+      listenable: focus,
+      builder: (context, _) {
+        final focused = focus.hasFocus;
+        final hasText = store.searchText.isNotEmpty;
+        final label = hasText ? 'Clear' : 'Cancel';
+        final Widget? clear = !(focused || hasText)
+            ? null
+            : large
+            ? Tooltip(
+                message: label,
+                excludeFromSemantics: true,
+                child: Semantics(
+                  button: true,
+                  label: label,
+                  excludeSemantics: true,
+                  child: PressScale(
+                    child: Material(
+                      color: colors.raised,
+                      shape: const StadiumBorder(),
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        onTap: onClear,
+                        child: Container(
+                          height: 40,
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 6,
+                            children: [
+                              Icon(
+                                Icons.close_rounded,
+                                size: 14,
+                                color: colors.body,
+                              ),
+                              Text(
+                                label,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: colors.body,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            : IconButton(
+                tooltip: label,
+                onPressed: onClear,
+                constraints: const BoxConstraints.tightFor(
+                  width: 36,
+                  height: 36,
+                ),
+                padding: EdgeInsets.zero,
+                style: IconButton.styleFrom(backgroundColor: colors.raised),
+                icon: Icon(Icons.close_rounded, size: 16, color: colors.body),
+              );
+        return AnimatedContainer(
+          duration: motionDuration(context, const Duration(milliseconds: 200)),
+          curve: FrostyMotion.standard,
+          height: large ? 52 : 44,
+          padding: EdgeInsets.only(left: large ? 18 : 14, right: large ? 6 : 4),
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(FrostyTokens.radiusPill),
+            border: Border.all(
+              color: focused ? accent : colors.pillBorder,
+              width: focused ? 1 : FrostyTokens.hairlineWidth,
+            ),
+          ),
+          child: Row(
+            spacing: large ? 10 : 8,
+            children: [
+              Icon(
+                Icons.search_rounded,
+                size: large ? 20 : 18,
+                color: colors.secondary,
+              ),
+              Expanded(
+                child: TextField(
+                  controller: store.textEditingController,
+                  focusNode: focus,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  autofocus: autofocus,
+                  textInputAction: TextInputAction.search,
+                  onChanged: store.onSearchTextChanged,
+                  onSubmitted: store.handleQuery,
+                  cursorColor: accent,
+                  style: TextStyle(
+                    fontSize: large ? 17 : 15,
+                    color: colors.text,
+                  ),
+                  decoration: InputDecoration(
+                    isCollapsed: true,
+                    filled: false,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    hintText: 'Search channels, categories or videos',
+                    hintMaxLines: 1,
+                    hintStyle: TextStyle(
+                      fontSize: large ? 17 : 15,
+                      color: colors.tertiary,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ),
+              ?clear,
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// "Channels" and "See all", over a part of Top.
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({required this.title, required this.onSeeAll});
+
+  final String title;
+  final VoidCallback onSeeAll;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FeedColors.of(context);
+    return Row(
+      children: [
+        Expanded(
+          child: Semantics(
+            header: true,
+            child: Text(
+              title,
+              style: TextStyle(
+                fontFamily: FrostyTokens.displayFamily,
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.015 * 17,
+                color: colors.text,
+              ),
+            ),
+          ),
+        ),
+        TextButton(
+          onPressed: onSeeAll,
+          style: TextButton.styleFrom(
+            minimumSize: const Size(44, 32),
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            foregroundColor: colors.secondary,
+            textStyle: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          child: Semantics(
+            label: 'See all $title',
+            child: const Text('See all'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The past searches (8 at most): one tap searches again, the cross forgets
+/// one, "Clear" forgets them all.
+class _HistoryList extends StatelessWidget {
+  const _HistoryList({
+    required this.history,
+    required this.onUse,
+    required this.onRemove,
+    required this.onClear,
+  });
+
+  final List<String> history;
+  final ValueChanged<String> onUse;
+  final ValueChanged<String> onRemove;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FeedColors.of(context);
+    final padding = MediaQuery.paddingOf(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(
+            left: 16 + padding.left,
+            right: 4 + padding.right,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Semantics(
+                  header: true,
+                  child: Text(
+                    'History',
+                    style: TextStyle(
+                      fontFamily: FrostyTokens.displayFamily,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.015 * 17,
+                      color: colors.text,
+                    ),
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: onClear,
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(44, 44),
+                  foregroundColor: colors.secondary,
+                  textStyle: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                child: const Text('Clear'),
+              ),
+            ],
+          ),
+        ),
+        for (var i = 0; i < history.length; i++)
+          StaggeredEntrance(
+            key: ValueKey(history[i]),
+            index: i,
+            offset: 6,
+            child: Padding(
+              padding: EdgeInsets.only(right: 4 + padding.right),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: PressScale(
+                      child: InkWell(
+                        onTap: () => onUse(history[i]),
+                        child: SizedBox(
+                          height: 48,
+                          child: Padding(
+                            padding: EdgeInsets.only(left: 16 + padding.left),
+                            child: Row(
+                              spacing: 14,
+                              children: [
+                                Icon(
+                                  Icons.history_rounded,
+                                  size: 18,
+                                  color: colors.tertiary,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    history[i],
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: colors.text,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Remove ${history[i]} from history',
+                    constraints: const BoxConstraints.tightFor(
+                      width: 44,
+                      height: 44,
+                    ),
+                    padding: EdgeInsets.zero,
+                    icon: Icon(
+                      Icons.close_rounded,
+                      size: 16,
+                      color: colors.tertiary,
+                    ),
+                    onPressed: () => onRemove(history[i]),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// No past search yet.
+class _NoHistory extends StatelessWidget {
+  const _NoHistory({required this.large});
+
+  final bool large;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FeedColors.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 48),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 12,
+          children: [
+            Icon(
+              Icons.history_rounded,
+              size: large ? 30 : 28,
+              color: colors.tertiary,
+            ),
+            Text(
+              'No recent searches',
+              style: TextStyle(
+                fontSize: large ? 15 : 14,
+                color: colors.secondary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

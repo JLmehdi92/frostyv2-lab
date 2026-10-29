@@ -229,32 +229,35 @@ class StreamThumbnail extends StatelessWidget {
 }
 
 /// The signal "LIVE" badge with its pinging dot (boards: 24 high, 11 sp;
-/// [large]: 26 high, 12 sp).
+/// [large]: 26 high, 12 sp; [small], search results: 18 high, 10 sp).
 class LiveBadge extends StatelessWidget {
-  const LiveBadge({super.key, this.large = false});
+  const LiveBadge({super.key, this.large = false, this.small = false});
 
   final bool large;
+  final bool small;
 
   @override
   Widget build(BuildContext context) {
     const onAccent = FrostyTokens.backgroundDark;
+    final double height = small ? 18 : (large ? 26 : 24);
+    final double fontSize = small ? 10 : (large ? 12 : 11);
     return Container(
-      height: large ? 26 : 24,
-      padding: EdgeInsets.symmetric(horizontal: large ? 9 : 8),
+      height: height,
+      padding: EdgeInsets.symmetric(horizontal: small ? 6 : (large ? 9 : 8)),
       decoration: BoxDecoration(
         color: context.frostyColors.live,
-        borderRadius: BorderRadius.circular(large ? 7 : 6),
+        borderRadius: BorderRadius.circular(small ? 5 : (large ? 7 : 6)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        spacing: 6,
+        spacing: small ? 5 : 6,
         children: [
-          const SignalPing(size: 6, color: onAccent),
+          SignalPing(size: small ? 5 : 6, color: onAccent),
           Text(
             'LIVE',
             style: FrostyType.badge.copyWith(
-              fontSize: large ? 12 : 11,
-              letterSpacing: 0.06 * (large ? 12 : 11),
+              fontSize: fontSize,
+              letterSpacing: 0.06 * fontSize,
               color: onAccent,
               height: 1,
             ),

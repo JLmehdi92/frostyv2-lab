@@ -330,40 +330,6 @@ class ChannelSkeletonLoader extends StatelessWidget {
   }
 }
 
-/// A skeleton loader for category list items
-class CategorySkeletonLoader extends StatelessWidget {
-  const CategorySkeletonLoader({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        top: 8,
-        bottom: 8,
-        left: 16 + MediaQuery.of(context).padding.left,
-        right: 16 + MediaQuery.of(context).padding.right,
-      ),
-      child: Row(
-        spacing: 16,
-        children: [
-          // Category box art skeleton (3:4 aspect ratio, 80px wide)
-          SizedBox(
-            width: 80,
-            child: AspectRatio(
-              aspectRatio: 3 / 4,
-              child: const SkeletonLoader(borderRadius: kCardBorderRadius),
-            ),
-          ),
-          // Category name skeleton with random width (matches bodyLarge text)
-          Flexible(
-            child: SkeletonText(height: 18, minWidth: 80, maxWidth: 180),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 /// A skeleton loader for stream cards with thumbnail
 class StreamCardSkeletonLoader extends StatelessWidget {
   final bool showThumbnail;

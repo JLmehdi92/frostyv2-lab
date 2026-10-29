@@ -8,6 +8,7 @@ import 'package:frosty/models/category.dart';
 import 'package:frosty/models/user.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/home/search/search.dart';
+import 'package:frosty/screens/home/shell/shell_tabs.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/user_store.dart';
 import 'package:frosty/screens/vod/widgets/vod_card.dart';
@@ -23,6 +24,18 @@ class MockAuthStore extends Mock implements AuthStore {}
 class MockUserStore extends Mock implements UserStore {}
 
 class MockVodService extends Mock implements TwitchVodService {}
+
+/// A result tab, by its label.
+Finder tab(String label) =>
+    find.descendant(of: find.byType(ShellTabs), matching: find.text(label));
+
+/// Taps a result tab, scrolling the row to it first (the test font is
+/// wider than Inter).
+Future<void> tapTab(WidgetTester tester, String label) async {
+  await tester.ensureVisible(tab(label));
+  await tester.pump();
+  await tester.tap(tab(label));
+}
 
 Vod _vod(String id, String title) => Vod(
   id: id,
@@ -60,7 +73,13 @@ void main() {
     ).thenAnswer((_) async => []);
   });
 
-  Future<void> pumpSearch(WidgetTester tester) async {
+  Future<void> pumpSearch(
+    WidgetTester tester, {
+    Size size = const Size(390, 844),
+  }) async {
+    tester.view.physicalSize = size;
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(
       MultiProvider(
         providers: [
@@ -80,17 +99,19 @@ void main() {
     await tester.enterText(find.byType(TextField), query);
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pump();
+    // The result tabs slide in.
+    await tester.pump(const Duration(milliseconds: 300));
   }
 
   testWidgets('the tabs show only once something is searched', (tester) async {
     await pumpSearch(tester);
 
-    expect(find.widgetWithText(Tab, 'Videos'), findsNothing);
+    expect(tab('Videos'), findsNothing);
 
     await typeQuery(tester, 'mario');
 
     for (final label in ['Top', 'Channels', 'Categories', 'Videos']) {
-      expect(find.widgetWithText(Tab, label), findsOneWidget);
+      expect(tab(label), findsOneWidget);
     }
   });
 
@@ -102,7 +123,7 @@ void main() {
     await typeQuery(tester, 'mario');
 
     verifyNever(() => vods.searchVideos(any()));
-    await tester.tap(find.widgetWithText(Tab, 'Videos'));
+    await tapTab(tester, 'Videos');
     await tester.pumpAndSettle();
 
     expect(find.byType(VodCard), findsOneWidget);
@@ -119,7 +140,7 @@ void main() {
     ).thenAnswer((_) async => VodSearchPage(items: [_vod('2', 'Zelda run')]));
     await pumpSearch(tester);
     await typeQuery(tester, 'mario');
-    await tester.tap(find.widgetWithText(Tab, 'Videos'));
+    await tapTab(tester, 'Videos');
     await tester.pumpAndSettle();
 
     await typeQuery(tester, 'zelda');
@@ -135,7 +156,7 @@ void main() {
     ).thenAnswer((_) async => const VodSearchPage(items: []));
     await pumpSearch(tester);
     await typeQuery(tester, 'nothing');
-    await tester.tap(find.widgetWithText(Tab, 'Videos'));
+    await tapTab(tester, 'Videos');
     await tester.pumpAndSettle();
 
     expect(find.text('No search results found'), findsOneWidget);
@@ -149,7 +170,7 @@ void main() {
     });
     await pumpSearch(tester);
     await typeQuery(tester, 'mario');
-    await tester.tap(find.widgetWithText(Tab, 'Videos'));
+    await tapTab(tester, 'Videos');
     await tester.pumpAndSettle();
 
     expect(find.text('Unable to load videos'), findsOneWidget);
@@ -164,7 +185,7 @@ void main() {
     await typeQuery(tester, 'mario');
 
     expect(find.text('No matching categories'), findsOneWidget);
-    await tester.tap(find.widgetWithText(Tab, 'Channels'));
+    await tapTab(tester, 'Channels');
     await tester.pumpAndSettle();
 
     expect(find.text('No matching categories'), findsNothing);
@@ -183,7 +204,7 @@ void main() {
     ).thenAnswer((_) async => VodSearchPage(items: [_vod('99', 'Last run')]));
     await pumpSearch(tester);
     await typeQuery(tester, 'mario');
-    await tester.tap(find.widgetWithText(Tab, 'Videos'));
+    await tapTab(tester, 'Videos');
     await tester.pumpAndSettle();
 
     await tester.scrollUntilVisible(

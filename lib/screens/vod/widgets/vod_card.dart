@@ -25,7 +25,11 @@ class VodCard extends StatelessWidget {
     this.watched = false,
     this.onTap,
     this.showChannel = false,
+    this.sidePadding = 16,
   });
+
+  /// The card's sides (see [VideoCardLayout.sidePadding]).
+  final double sidePadding;
 
   /// Names the channel instead of the category (a category's list).
   final bool showChannel;
@@ -82,6 +86,7 @@ class VodCard extends StatelessWidget {
             )
           : null,
       onTap: onTap ?? () => VodScreen.open(context, vodId: vod.id, vod: vod),
+      sidePadding: sidePadding,
     );
   }
 }

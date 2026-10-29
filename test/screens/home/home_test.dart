@@ -318,8 +318,8 @@ void main() {
       tester.widget<TextField>(find.byType(TextField)).controller!.text,
       'chess',
     );
-    final tabs = tester.widget<TabBar>(find.byType(TabBar));
-    expect(tabs.controller!.index, 2);
+    final tabs = tester.widget<ShellTabs>(find.byType(ShellTabs).last);
+    expect(tabs.index, 2);
     verify(() => api.searchChannels(query: 'chess')).called(1);
     await close(tester);
   });
@@ -364,7 +364,7 @@ void main() {
     await tester.pumpAndSettle();
     // A kept search shows its results, not the keyboard.
     expect(focus().hasFocus, isFalse);
-    expect(tester.widget<TabBar>(find.byType(TabBar)).controller!.index, 3);
+    expect(tester.widget<ShellTabs>(find.byType(ShellTabs).last).index, 3);
     verify(() => vods.searchVideos('go')).called(1);
     await close(tester);
   });

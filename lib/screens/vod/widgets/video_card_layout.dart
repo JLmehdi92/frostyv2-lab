@@ -57,7 +57,12 @@ class VideoCardLayout extends StatelessWidget {
     this.subtitle,
     this.details,
     this.footer,
+    this.sidePadding = 16,
   });
+
+  /// The card's sides (before the window's insets): none in a column that
+  /// has its own.
+  final double sidePadding;
 
   /// Null when there is no usable image yet ([fallbackIcon] is shown).
   final String? thumbnailUrl;
@@ -198,8 +203,8 @@ class VideoCardLayout extends StatelessWidget {
         padding: EdgeInsets.only(
           top: 8,
           bottom: 8,
-          left: 16 + MediaQuery.of(context).padding.left,
-          right: 16 + MediaQuery.of(context).padding.right,
+          left: sidePadding + MediaQuery.of(context).padding.left,
+          right: sidePadding + MediaQuery.of(context).padding.right,
         ),
         child: Row(
           children: [
