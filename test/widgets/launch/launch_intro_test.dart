@@ -669,4 +669,43 @@ void main() {
     expect(covered, 1);
     expect(LaunchIntro.running.value, isFalse);
   });
+
+  testWidgets('landing: a page opening before the swap ends it, and the '
+      'swap follows after that push, once', (tester) async {
+    _setSize(tester, _phone);
+    final navigator = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(_app(play: false, navigatorKey: navigator));
+    await tester.pumpAndSettle();
+    var covered = 0;
+    LaunchIntro.land(
+      from: Rect.fromCenter(
+        center: const Offset(195, 422),
+        width: 72,
+        height: 72,
+      ),
+      onCovered: () {
+        covered++;
+        navigator.currentState!.push(
+          PageRouteBuilder<void>(
+            transitionDuration: Duration.zero,
+            pageBuilder: (_, _, _) => const Text('next'),
+          ),
+        );
+      },
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 60));
+    // A link opens a page: the landing ends, but the swap must not push
+    // from inside that push.
+    navigator.currentState!.push(
+      MaterialPageRoute<void>(builder: (_) => const Text('link')),
+    );
+    expect(covered, 0);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    expect(covered, 1);
+    expect(find.byKey(LaunchIntro.overlayKey), findsNothing);
+    await tester.pumpAndSettle();
+    expect(covered, 1);
+  });
 }

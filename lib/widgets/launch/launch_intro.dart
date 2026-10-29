@@ -120,9 +120,13 @@ class LaunchIntro extends StatefulWidget {
   static void _updateRunning() => _runningNotifier.value = _running.isNotEmpty;
 
   /// Ends any running intro at once (the app was opened on a channel).
-  static void skipAll() {
+  static void skipAll() => _skipAll();
+
+  /// [fromPush]: a page is being pushed now, so a landing's own swap (a
+  /// push too) waits until after this frame.
+  static void _skipAll({bool fromPush = false}) {
     for (final intro in _running.toList()) {
-      intro._finish();
+      intro._finish(deferCover: fromPush);
     }
   }
 
@@ -333,10 +337,32 @@ class _LaunchIntroState extends State<LaunchIntro>
     }
   }
 
-  void _finish() {
+  /// [_cover], after this frame: when it cannot push now (inside another
+  /// push, or while the tree is locked).
+  void _coverAfterFrame() {
+    final onCovered = _onCovered;
+    _onCovered = null;
+    if (onCovered == null) return;
+    WidgetsBinding.instance
+      ..addPostFrameCallback((_) {
+        LaunchIntro._swapping = true;
+        try {
+          onCovered();
+        } finally {
+          LaunchIntro._swapping = false;
+        }
+      })
+      ..ensureVisualUpdate();
+  }
+
+  void _finish({bool deferCover = false}) {
     if (_done) return;
     if (_landing != null) {
-      _cover();
+      if (deferCover) {
+        _coverAfterFrame();
+      } else {
+        _cover();
+      }
     } else if (widget.holdOnName && mounted) {
       LaunchIntro._restingTile.value = _restingRect(context);
     }
@@ -358,18 +384,7 @@ class _LaunchIntroState extends State<LaunchIntro>
     if (_landing != null) LaunchIntro._landingNotifier.value = false;
     // A landing cut short by the app's teardown still swaps the page, as
     // promised (after this frame: the tree is locked now).
-    final onCovered = _onCovered;
-    _onCovered = null;
-    if (onCovered != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        LaunchIntro._swapping = true;
-        try {
-          onCovered();
-        } finally {
-          LaunchIntro._swapping = false;
-        }
-      });
-    }
+    _coverAfterFrame();
     LaunchIntro._mounted.remove(this);
     LaunchIntro._running.remove(this);
     LaunchIntro._updateRunning();
@@ -467,7 +482,9 @@ class _LaunchIntroState extends State<LaunchIntro>
 class _SkipOnPush extends NavigatorObserver {
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (previousRoute != null && !LaunchIntro._swapping) LaunchIntro.skipAll();
+    if (previousRoute != null && !LaunchIntro._swapping) {
+      LaunchIntro._skipAll(fromPush: true);
+    }
   }
 }
 
