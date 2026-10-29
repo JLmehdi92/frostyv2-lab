@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/models/user.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
+import 'package:frosty/screens/channel/tablet_video_column.dart';
 import 'package:frosty/screens/channel/video/latency_pill.dart';
 import 'package:frosty/screens/channel/video/video_overlay.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
@@ -38,11 +39,17 @@ void main() {
     required Size screen,
     required Size video,
     bool dark = true,
+    bool? infoBelow,
   }) async {
     tester.view.physicalSize = screen;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     const themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    final overlay = VideoOverlay(
+      videoStore: player,
+      chatStore: chat,
+      settingsStore: player.settingsStore,
+    );
     await tester.pumpWidget(
       Provider<TwitchApi>.value(
         value: api,
@@ -57,11 +64,9 @@ void main() {
                 size: video,
                 child: ColoredBox(
                   color: Colors.black,
-                  child: VideoOverlay(
-                    videoStore: player,
-                    chatStore: chat,
-                    settingsStore: player.settingsStore,
-                  ),
+                  child: infoBelow == null
+                      ? overlay
+                      : TabletInfoBelow(shown: infoBelow, child: overlay),
                 ),
               ),
             ),
@@ -363,6 +368,38 @@ void main() {
       await tester.tap(find.byTooltip('Show chat'));
       await tester.pump();
       expect(settings.fullScreen, isFalse);
+      await done(tester);
+    });
+
+    testWidgets('beside the chat with no room for the info area: the title', (
+      tester,
+    ) async {
+      final settings = SettingsStore.fromJson({})..fullScreen = false;
+      final player = FakePlayer(settings: settings, stream: fakeStream());
+      // The info area under the video has the title while it shows.
+      await pump(
+        tester,
+        player,
+        screen: const Size(1280, 600),
+        video: const Size(704, 396),
+        infoBelow: true,
+      );
+      expect(find.text('ON TEST DOTA 2 AVEC @befreesh'), findsNothing);
+
+      // A narrower chat leaves it no room: the video takes the column and
+      // its controls carry the title, with the category and the profile.
+      await pump(
+        tester,
+        player,
+        screen: const Size(1280, 600),
+        video: const Size(1024, 600),
+        infoBelow: false,
+      );
+      expect(tester.takeException(), isNull);
+      expect(find.text('ON TEST DOTA 2 AVEC @befreesh'), findsOneWidget);
+      expect(find.text('Dota 2'), findsOneWidget);
+      expect(find.byTooltip('Channel profile'), findsOneWidget);
+      expect(find.byTooltip('Hide chat'), findsOneWidget);
       await done(tester);
     });
 

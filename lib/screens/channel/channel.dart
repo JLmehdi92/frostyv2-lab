@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -30,6 +29,7 @@ import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:frosty/screens/channel/portrait_split.dart';
 import 'package:frosty/screens/channel/stores/channel_events_store.dart';
 import 'package:frosty/screens/channel/stores/channel_info_store.dart';
+import 'package:frosty/screens/channel/tablet_video_column.dart';
 import 'package:frosty/screens/channel/video/content_warning_gate.dart';
 import 'package:frosty/screens/channel/video/ivs_stats_panel.dart';
 import 'package:frosty/screens/channel/video/ivs_video.dart';
@@ -476,40 +476,30 @@ class _VideoChatState extends State<VideoChat>
     fromChannel: true,
   );
 
-  /// Below a tablet's video beside its chat, the channel's info area keeps
-  /// at least this much room.
-  static const _minTabletInfoHeight = 120.0;
-
-  /// A tablet beside its chat (board Tablette): the 16:9 video at the top,
-  /// the channel's info area under it.
+  /// A tablet beside its chat (board Tablette): the video first, the
+  /// channel's info area under it while there is room for it.
   Widget _buildTabletVideoColumn(Widget video) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final videoHeight = math.min(
-          constraints.maxWidth * 9 / 16,
-          math.max(0.0, constraints.maxHeight - _minTabletInfoHeight),
-        );
-        return Column(
-          children: [
-            SizedBox(
-              height: videoHeight,
-              width: double.infinity,
-              child: _buildPipGestureWrapper(child: video),
-            ),
-            Expanded(
-              child: TabletChannelPanel(
-                player: _videoStore,
-                login: widget.userLogin,
-                displayName: widget.userName,
-                info: _infoStore,
-                viewerLogin: _viewerLogin,
-                onOpenChannel: _openChannel,
-                watchStreak: () => _eventsStore.watchStreak?.value,
-              ),
-            ),
-          ],
-        );
-      },
+    return Observer(
+      // Only the IVS engine has a fill toggle to read.
+      warnWhenNoObservables: false,
+      builder: (context) => TabletVideoColumn(
+        // A filled picture asks for the whole column, as it had before
+        // the info area.
+        fill: switch (_videoStore) {
+          final IvsVideoStore ivs => ivs.fillScreen,
+          _ => false,
+        },
+        video: _buildPipGestureWrapper(child: video),
+        info: TabletChannelPanel(
+          player: _videoStore,
+          login: widget.userLogin,
+          displayName: widget.userName,
+          info: _infoStore,
+          viewerLogin: _viewerLogin,
+          onOpenChannel: _openChannel,
+          watchStreak: () => _eventsStore.watchStreak?.value,
+        ),
+      ),
     );
   }
 

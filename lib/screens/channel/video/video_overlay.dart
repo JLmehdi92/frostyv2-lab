@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/channel/chat/details/chat_users_list.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
+import 'package:frosty/screens/channel/tablet_video_column.dart';
 import 'package:frosty/screens/channel/video/caption_menu.dart';
 import 'package:frosty/screens/channel/video/create_clip_sheet.dart';
 import 'package:frosty/screens/channel/video/latency_pill.dart';
@@ -424,10 +425,14 @@ class VideoOverlay extends StatelessWidget {
         // A tablet in portrait shows the channel under the video; a tablet
         // beside its chat shows the category here and the title below.
         final showIdentity = !(metrics.large && !landscape);
-        // Beside a tablet's chat the title is in the info area below. In
-        // portrait the info under the video has the category; in landscape
-        // the overlay is where it is.
-        final tabletColumn = metrics.large && landscape && !fullScreen;
+        // Beside a tablet's chat the title is in the info area below, while
+        // the video leaves it room. In portrait the info under the video has
+        // the category; in landscape the overlay is where it is.
+        final tabletColumn =
+            metrics.large &&
+            landscape &&
+            !fullScreen &&
+            (TabletInfoBelow.maybeOf(context) ?? true);
         final title = tabletColumn ? '' : streamInfo.title.trim();
         final category = landscape ? streamInfo.gameName : '';
         final showLatency = settingsStore.showLatency;
