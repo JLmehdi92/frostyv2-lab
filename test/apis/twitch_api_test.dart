@@ -405,6 +405,25 @@ void main() {
     });
   });
 
+  group('revokeToken', () {
+    test("revokes with the token's own app client id", () async {
+      api = TwitchApi(dio, appClientId: 'test_client_id');
+      dioAdapter
+        ..onPost(
+          'https://id.twitch.tv/oauth2/revoke',
+          (server) => server.reply(200, null),
+          data: {'client_id': 'other_app', 'token': 'theirs'},
+        )
+        ..onPost(
+          'https://id.twitch.tv/oauth2/revoke',
+          (server) => server.reply(200, null),
+          data: {'client_id': 'test_client_id', 'token': 'ours'},
+        );
+      await api.revokeToken(token: 'theirs', clientId: 'other_app');
+      await api.revokeToken(token: 'ours');
+    });
+  });
+
   group('checkToken', () {
     setUp(() => api = TwitchApi(dio, appClientId: 'test_client_id'));
 

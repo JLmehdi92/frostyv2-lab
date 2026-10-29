@@ -56,6 +56,12 @@ void main() {
     when(
       () => api.revokeToken(token: any(named: 'token')),
     ).thenAnswer((_) async {});
+    when(
+      () => api.revokeToken(
+        token: any(named: 'token'),
+        clientId: any(named: 'clientId'),
+      ),
+    ).thenAnswer((_) async {});
   });
 
   AuthStore build() =>
@@ -78,6 +84,13 @@ void main() {
       await const FlutterSecureStorage().read(key: 'user_token'),
       'foreign',
     );
+    // Kept with the token, for the background go-live check.
+    expect(
+      await const FlutterSecureStorage().read(
+        key: AuthBase.userTokenClientIdKey,
+      ),
+      'other_app',
+    );
     store.clearTokenNotice();
     expect(store.tokenNotice, isNull);
 
@@ -92,9 +105,17 @@ void main() {
     FlutterSecureStorage.setMockInitialValues({
       'default_token': 'the_default_token',
       'user_token': 'ours',
+      'user_token_client_id': 'stale_app',
     });
     final store = build();
     await store.init();
+    // Nothing of another app's kept for it.
+    expect(
+      await const FlutterSecureStorage().read(
+        key: AuthBase.userTokenClientIdKey,
+      ),
+      isNull,
+    );
     expect(store.isLoggedIn, isTrue);
     expect(store.tokenNotice, isNull);
     expect(store.headersTwitch['Client-Id'], isNot('other_app'));
@@ -118,9 +139,26 @@ void main() {
       'foreign',
     );
 
-    // Logging out: the app's own Client-Id again.
+    expect(
+      await const FlutterSecureStorage().read(
+        key: AuthBase.userTokenClientIdKey,
+      ),
+      'other_app',
+    );
+
+    // Logging out: revoked with its own app's client id, and the app's own
+    // Client-Id again; the stored client id goes with the token.
     await store.logout();
     expect(store.headersTwitch['Client-Id'], isNot('other_app'));
+    verify(
+      () => api.revokeToken(token: 'foreign', clientId: 'other_app'),
+    ).called(1);
+    expect(
+      await const FlutterSecureStorage().read(
+        key: AuthBase.userTokenClientIdKey,
+      ),
+      isNull,
+    );
   });
 
   test("the login page still refuses another app's token", () async {

@@ -17,6 +17,14 @@ import 'package:workmanager/workmanager.dart';
 
 const _task = 'frosty.goLive';
 
+/// The headers of the background check's Helix calls: [token] with its own
+/// app's client id ([tokenClientId], kept with a token of another app),
+/// else this app's.
+Map<String, String> goLiveHeaders(String token, {String? tokenClientId}) => {
+  'Client-Id': tokenClientId ?? clientId,
+  'Authorization': 'Bearer $token',
+};
+
 /// Android runs it at most every 15 minutes, when the phone allows it.
 const kGoLiveInterval = Duration(minutes: 15);
 
@@ -50,16 +58,23 @@ void goLiveCallbackDispatcher() {
 
     try {
       await GoLiveNotifications.init();
+      // The app a token of another app was issued to (kept with it): Helix
+      // takes the token only with that app's client id.
+      String? tokenClientId;
+      try {
+        tokenClientId = await const FlutterSecureStorage().read(
+          key: AuthBase.userTokenClientIdKey,
+        );
+      } catch (error, stack) {
+        report(error, stack);
+      }
       return await runGoLiveTask(
         readToken: () =>
             const FlutterSecureStorage().read(key: AuthBase.userTokenKey),
         buildApi: (token) => TwitchApi(
           Dio(
             BaseOptions(
-              headers: {
-                'Client-Id': clientId,
-                'Authorization': 'Bearer $token',
-              },
+              headers: goLiveHeaders(token, tokenClientId: tokenClientId),
               connectTimeout: const Duration(seconds: 10),
               receiveTimeout: const Duration(seconds: 15),
             ),

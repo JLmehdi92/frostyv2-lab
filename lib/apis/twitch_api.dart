@@ -315,10 +315,13 @@ class TwitchApi extends BaseApiClient {
   }
 
   /// Revokes the user's [token] so it stops working everywhere (logout).
-  Future<void> revokeToken({required String token}) async {
+  ///
+  /// [clientId]: the app [token] was issued to, when it is not this one
+  /// (Twitch revokes a token only with its own app's client id).
+  Future<void> revokeToken({required String token, String? clientId}) async {
     await post<dynamic>(
       '$_oauthBaseUrl/revoke',
-      data: {'client_id': clientId, 'token': token},
+      data: {'client_id': clientId ?? _appClientId, 'token': token},
       headers: {Headers.contentTypeHeader: Headers.formUrlEncodedContentType},
     );
   }

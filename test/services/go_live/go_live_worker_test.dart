@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/constants.dart';
 import 'package:frosty/services/go_live/go_live_worker.dart';
 
 void main() {
@@ -22,5 +23,14 @@ void main() {
     expect(GoLiveNotifications.mentionLoginOf('mention:../evil'), isNull);
     expect(GoLiveNotifications.mentionLoginOf('mention:${'a' * 26}'), isNull);
     expect(GoLiveNotifications.mentionLoginOf(null), isNull);
+  });
+
+  test("the background check sends the token with its own app's client id", () {
+    expect(goLiveHeaders('tok', tokenClientId: 'other_app'), {
+      'Client-Id': 'other_app',
+      'Authorization': 'Bearer tok',
+    });
+    // This app's token (nothing stored): this app's client id.
+    expect(goLiveHeaders('tok')['Client-Id'], clientId);
   });
 }

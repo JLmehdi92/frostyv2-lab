@@ -71,6 +71,15 @@ abstract class AuthBase with Store {
   /// loaded (a launch still reconnecting).
   static const _userIdKey = 'user_id';
 
+  /// The app the stored user token was issued to, when it is not this one
+  /// (kept with the token, deleted with it): the go-live background check
+  /// and the revoke on logout need it.
+  static const _userTokenClientIdKey = 'user_token_client_id';
+
+  /// Where [_userTokenClientIdKey] is kept, for the go-live background
+  /// check.
+  static const userTokenClientIdKey = _userTokenClientIdKey;
+
   /// The account last told that its token was created for another app (the
   /// notice is shown once).
   static const _foreignNoticeKey = 'foreign_token_notice_user';
@@ -822,6 +831,7 @@ abstract class AuthBase with Store {
           check = await twitchApi.checkToken(token: _token!);
           _tokenIsValid = !check.isInvalid;
           _tokenClientId = check.clientId;
+          if (_tokenIsValid) await _saveTokenClientId(check.clientId);
         } on ApiException catch (e) {
           debugPrint('Token validation failed: $e');
           _isLoggedIn = false;
@@ -925,6 +935,7 @@ abstract class AuthBase with Store {
         // On disk first.
         final savedBefore = await _storage.read(key: _userTokenKey);
         await _storage.write(key: _userTokenKey, value: token);
+        await _saveTokenClientId(foreignClient);
         if (switching) {
           // Another account: the stored web token is the previous one's (its
           // playback, watch positions and shelf would be theirs). It goes.
@@ -932,6 +943,8 @@ abstract class AuthBase with Store {
             await _storage.delete(key: _twitchWebTokenKey);
           } catch (_) {
             await _restoreSavedToken(savedBefore);
+            // The session in memory is still the previous one: its app.
+            await _saveTokenClientId(_tokenClientId);
             rethrow;
           }
         }
@@ -1001,9 +1014,16 @@ abstract class AuthBase with Store {
       // Revoke the user token so it stops working everywhere; logging out
       // goes on even when Twitch cannot be reached.
       final userToken = await _storage.read(key: _userTokenKey);
-      if (userToken != null) unawaited(_revoke(userToken));
+      String? tokenClient;
+      try {
+        tokenClient = await _storage.read(key: _userTokenClientIdKey);
+      } catch (e) {
+        debugPrint('Reading the token app failed: ${e.runtimeType}');
+      }
+      if (userToken != null) unawaited(_revoke(userToken, tokenClient));
       // Delete the existing user token.
       await _storage.delete(key: _userTokenKey);
+      await _saveTokenClientId(null);
       await _storage.delete(key: _userIdKey);
       _token = null;
       _tokenClientId = null;
@@ -1104,10 +1124,11 @@ abstract class AuthBase with Store {
   }
 
   /// Revokes [token] at Twitch; never throws.
-  Future<void> _revoke(String token) async {
+  Future<void> _revoke(String token, [String? tokenClientId]) async {
     try {
-      await twitchApi
-          .revokeToken(token: token)
+      await (tokenClientId == null
+              ? twitchApi.revokeToken(token: token)
+              : twitchApi.revokeToken(token: token, clientId: tokenClientId))
           .timeout(const Duration(seconds: 5));
     } catch (e) {
       debugPrint('Token revoke failed: $e');
@@ -1155,6 +1176,7 @@ abstract class AuthBase with Store {
           }
           _token = stored;
           _tokenClientId = check.clientId;
+          await _saveTokenClientId(check.clientId);
           await user.init();
           if (user.details != null) {
             _isLoggedIn = true;
@@ -1201,6 +1223,21 @@ abstract class AuthBase with Store {
     _stopReconnectLoop();
     await _endSession();
   });
+
+  /// Keeps the stored user token's app ([clientId], null for this app's),
+  /// beside the token. Best effort: without it the background check and
+  /// the revoke use this app's client id.
+  Future<void> _saveTokenClientId(String? clientId) async {
+    try {
+      if (clientId == null) {
+        await _storage.delete(key: _userTokenClientIdKey);
+      } else {
+        await _storage.write(key: _userTokenClientIdKey, value: clientId);
+      }
+    } catch (e) {
+      debugPrint('Saving the token app failed: ${e.runtimeType}');
+    }
+  }
 
   /// Keeps [id] as the account last logged in. Best effort: a keystore that
   /// refuses it never changes a login or a launch (the next one tries
