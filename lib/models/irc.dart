@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/gestures.dart';
@@ -27,7 +29,6 @@ import 'package:frosty/widgets/frosty_photo_view_dialog.dart';
 import 'package:frosty/widgets/sheet/onset_sheet.dart';
 import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 // Constants for IRC message rendering
 const String _ircActionPrefix = '\x01';
@@ -1361,12 +1362,8 @@ class IRCMessage {
               glyph: SheetGlyphKind.external,
               label: 'Open in browser',
               onTap: () {
-                launchUrl(
-                  Uri.parse(url),
-                  mode: launchExternal
-                      ? LaunchMode.externalApplication
-                      : LaunchMode.inAppBrowserView,
-                );
+                // Web links only, like every link the app opens.
+                unawaited(LinkRouter.open(url, launchExternal: launchExternal));
 
                 Navigator.pop(context);
               },
