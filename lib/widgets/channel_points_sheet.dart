@@ -103,7 +103,7 @@ class _PanelState extends State<_Panel> {
       });
       return;
     }
-    final messengerContext = context;
+    final messenger = ScaffoldMessenger.of(context);
     final stake = await showOnsetSheet<int>(
       context: context,
       panel: true,
@@ -120,8 +120,7 @@ class _PanelState extends State<_Panel> {
       outcomeId: outcome.id,
       points: stake,
     );
-    if (!messengerContext.mounted) return;
-    _report(messengerContext, result);
+    _report(messenger, result);
   }
 
   @override
@@ -157,7 +156,7 @@ class _PanelState extends State<_Panel> {
         onBet: (stake) {
           // The panel closes with the bet, as the board's does.
           final navigator = Navigator.of(context);
-          final messenger = navigator.context;
+          final messenger = ScaffoldMessenger.of(context);
           navigator.pop();
           unawaited(
             events
@@ -167,7 +166,7 @@ class _PanelState extends State<_Panel> {
                   points: stake,
                 )
                 .then((result) {
-                  if (messenger.mounted) _report(messenger, result);
+                  _report(messenger, result);
                 }),
           );
         },
@@ -463,8 +462,13 @@ class WatchStreakCard extends StatelessWidget {
 /// A refusal is distinguished by wording and dwell time, not by colour: red is
 /// reserved elsewhere in this design, and the accent is built on lightness
 /// difference rather than hue, so a tinted background would carry no meaning.
-void _report(BuildContext context, PointsActionResult result) {
-  ScaffoldMessenger.of(context)
+/// Says how a points action went. [messenger] is taken before the wait:
+/// the sheet or panel that started it may be gone by the answer (a tablet
+/// panel closes on a rotation, even under its confirm dialog), the app's
+/// messenger is not.
+void _report(ScaffoldMessengerState messenger, PointsActionResult result) {
+  if (!messenger.mounted) return;
+  messenger
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
@@ -542,10 +546,9 @@ class _ClaimButton extends StatelessWidget {
   );
 
   Future<void> _claim(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
     final result = await store.claimBonus();
-
-    if (!context.mounted) return;
-    _report(context, result);
+    _report(messenger, result);
   }
 }
 
@@ -1105,7 +1108,7 @@ class RewardRow extends StatelessWidget {
     BuildContext context,
     ChannelEventsStore events,
   ) async {
-    final messengerContext = context;
+    final messenger = ScaffoldMessenger.of(context);
 
     final input = await showDialog<String?>(
       context: context,
@@ -1120,9 +1123,7 @@ class RewardRow extends StatelessWidget {
       reward,
       userInput: input.isEmpty ? null : input,
     );
-
-    if (!messengerContext.mounted) return;
-    _report(messengerContext, result);
+    _report(messenger, result);
   }
 }
 

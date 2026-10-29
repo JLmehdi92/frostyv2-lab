@@ -48,6 +48,11 @@ void main() {
   late MockPointsService service;
   late ChannelEventsStore store;
 
+  setUpAll(
+    () =>
+        registerFallbackValue(const PointsReward(id: 'x', title: 'x', cost: 1)),
+  );
+
   setUp(() {
     service = MockPointsService();
     when(
@@ -62,6 +67,14 @@ void main() {
         outcomeId: any(named: 'outcomeId'),
         points: any(named: 'points'),
         authToken: any(named: 'authToken'),
+      ),
+    ).thenAnswer((_) async => null);
+    when(
+      () => service.redeemReward(
+        channelId: any(named: 'channelId'),
+        reward: any(named: 'reward'),
+        authToken: any(named: 'authToken'),
+        userInput: any(named: 'userInput'),
       ),
     ).thenAnswer((_) async => null);
     store = ChannelEventsStore(
@@ -244,5 +257,30 @@ void main() {
     // Back on the list: the old outcome is not offered against the new one.
     expect(find.text('BET ON'), findsNothing);
     expect(find.text('Next round?'), findsOneWidget);
+  });
+
+  testWidgets('a redeem confirmed after a rotation closed the panel '
+      'still reports', (tester) async {
+    await pump(tester, const Size(1280, 854));
+    await tester.tap(find.byType(ChannelPointsButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Hydrate'));
+    await tester.pumpAndSettle();
+    expect(find.text('Redeem'), findsOneWidget);
+    // The rotation strands the panel under the dialog: it is removed.
+    tester.view.physicalSize = const Size(854, 1280);
+    await tester.pumpAndSettle();
+    expect(find.byType(OnsetPanelSurface), findsNothing);
+    await tester.tap(find.text('Redeem'));
+    await tester.pumpAndSettle();
+    verify(
+      () => service.redeemReward(
+        channelId: '42',
+        reward: any(named: 'reward'),
+        authToken: 'tok',
+        userInput: any(named: 'userInput'),
+      ),
+    ).called(1);
+    expect(find.byType(SnackBar), findsOneWidget);
   });
 }
