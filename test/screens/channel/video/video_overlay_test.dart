@@ -131,23 +131,42 @@ void main() {
         screen: const Size(390, 844),
         video: const Size(390, 220),
       );
-      final pill = find.byType(LatencyPill);
-      expect(pill, findsOneWidget);
-      // Laid out (the room) but neither painted nor tappable: the channel
-      // screen draws the real one, which never hides with the controls.
-      final visibility = tester.widget<Visibility>(
-        find.ancestor(of: pill, matching: find.byType(Visibility)).first,
-      );
-      expect(visibility.visible, isFalse);
-      expect(visibility.maintainSize, isTrue);
-      final metrics = PlayerChromeMetrics.of(tester.element(pill));
-      final rect = tester.getRect(pill);
+      // Room for the pill the channel screen draws over this spot (it never
+      // hides with the controls), without a second pill.
+      expect(find.byType(LatencyPill), findsNothing);
+      final slot = find.byKey(VideoOverlay.latencySlotKey);
+      final metrics = PlayerChromeMetrics.of(tester.element(slot));
+      final rect = tester.getRect(slot);
       expect(rect.right, closeTo(390 - metrics.pillEdge, 0.01));
-      expect(rect.top, closeTo(metrics.pillTop, 0.01));
+      expect(rect.width, LatencyPill.slotWidth(tester.element(slot)));
+      final settings = tester.getRect(find.byTooltip('Quality and settings'));
+      expect(
+        settings.right + PlayerChromeMetrics.pillGap,
+        closeTo(rect.left, 0.01),
+      );
+
+      // The widest label fits in the room kept for it.
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Center(
+            child: LatencyPill(store: FakePlayer(latency: '188.8s')),
+          ),
+        ),
+      );
+      expect(
+        tester.getSize(find.byType(LatencyPill)).width,
+        lessThanOrEqualTo(rect.width + 0.5),
+      );
+      await pump(
+        tester,
+        player,
+        screen: const Size(390, 844),
+        video: const Size(390, 220),
+      );
 
       player.settingsStore.showLatency = false;
       await tester.pump();
-      expect(find.byType(LatencyPill), findsNothing);
+      expect(find.byKey(VideoOverlay.latencySlotKey), findsNothing);
       await done(tester);
     });
 

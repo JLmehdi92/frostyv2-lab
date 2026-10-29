@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/channel/video/player_controller.dart';
@@ -28,6 +30,37 @@ class LatencyPill extends StatelessWidget {
 
   static const tooltipIvs = 'Latency to broadcaster · tap for video stats';
   static const tooltipOther = 'Latency to broadcaster';
+
+  static final _label = FrostyType.tabular(
+    const TextStyle(
+      fontFamily: FrostyTokens.bodyFamily,
+      fontSize: 12,
+      fontWeight: FontWeight.w600,
+      height: 1,
+      color: FrostyTokens.textPrimaryDark,
+    ),
+  );
+
+  /// The widest the pill gets ("188.8s", "↻ 9/9"), so the controls' top row
+  /// can keep its place without drawing a second pill.
+  static double slotWidth(BuildContext context, {bool large = false}) {
+    final scaler = MediaQuery.textScalerOf(context);
+    double measure(String text) {
+      final painter = TextPainter(
+        text: TextSpan(text: text, style: _label),
+        textDirection: TextDirection.ltr,
+        textScaler: scaler,
+        maxLines: 1,
+      )..layout();
+      final width = painter.width;
+      painter.dispose();
+      return width;
+    }
+
+    final text = math.max(measure('188.8s'), measure('↻ 9/9'));
+    // Padding, the dot and its gap, the hairline.
+    return (large ? 10 : 9) * 2 + 6 + 6 + text + 1;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,19 +109,7 @@ class LatencyPill extends StatelessWidget {
                           shape: BoxShape.circle,
                         ),
                       ),
-                      Text(
-                        label,
-                        maxLines: 1,
-                        style: FrostyType.tabular(
-                          const TextStyle(
-                            fontFamily: FrostyTokens.bodyFamily,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            height: 1,
-                            color: FrostyTokens.textPrimaryDark,
-                          ),
-                        ),
-                      ),
+                      Text(label, maxLines: 1, style: _label),
                     ],
                   ),
                 ),

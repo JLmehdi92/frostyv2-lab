@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:frosty/screens/channel/video/overlay_common.dart';
 
 /// The live player's icons, drawn from the boards' own 24 × 24 paths
 /// (Chaine, ChaineLecteur, Tablette, TablettePortrait): stroked, round caps
@@ -34,8 +35,8 @@ class PlayerGlyph extends StatelessWidget {
   final double size;
   final double strokeWidth;
 
-  /// The boards' `drop-shadow(0 1px 2px rgba(0,0,0,.6))`, so a glyph reads
-  /// over a bright picture where the scrim is thin.
+  /// [kPlayerChromeShadow], so a glyph reads over a bright picture where
+  /// the scrim is thin.
   final bool shadow;
 
   const PlayerGlyph(
@@ -78,7 +79,7 @@ class _PlayerGlyphPainter extends CustomPainter {
     required this.shadow,
   });
 
-  static const _shadowColor = Color(0x99000000);
+  static final _shadowColor = kPlayerChromeShadow.first.color;
 
   @override
   void paint(Canvas canvas, Size size) {

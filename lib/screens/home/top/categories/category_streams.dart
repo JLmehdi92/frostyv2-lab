@@ -31,6 +31,19 @@ class CategoryStreams extends StatefulWidget {
 
   const CategoryStreams({super.key, required this.categoryId});
 
+  /// Opens the streams of the category [categoryId] (nothing for an empty
+  /// id: a stream without a category).
+  static Future<void> open(BuildContext context, String categoryId) async {
+    if (categoryId.isEmpty) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        settings: const RouteSettings(name: routeName),
+        builder: (context) => CategoryStreams(categoryId: categoryId),
+      ),
+    );
+  }
+
   @override
   State<CategoryStreams> createState() => _CategoryStreamsState();
 }

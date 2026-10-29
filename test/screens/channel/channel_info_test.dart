@@ -200,6 +200,38 @@ void main() {
     });
   });
 
+  testWidgets('a narrow info area gets one card that fits', (tester) async {
+    await pump(
+      tester,
+      Align(
+        alignment: Alignment.topLeft,
+        child: SizedBox(
+          // The video column of a split-screen tablet window.
+          width: 304,
+          height: 400,
+          child: TabletChannelPanel(
+            player: FakePlayer(stream: fakeStream()),
+            login: 'streamer',
+            displayName: 'Streamer',
+            info: info,
+            viewerLogin: null,
+            onOpenChannel: (_) {},
+          ),
+        ),
+      ),
+      screen: const Size(760, 1000),
+    );
+    info.alsoLive.value = [
+      fakeStream(userId: '1', login: 'a', name: 'A'),
+      fakeStream(userId: '2', login: 'b', name: 'B'),
+    ];
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    expect(find.text('A'), findsOneWidget);
+    expect(find.text('B'), findsNothing);
+    await done(tester);
+  });
+
   testWidgets('TabletChatHeader says whether chat waits for the video', (
     tester,
   ) async {

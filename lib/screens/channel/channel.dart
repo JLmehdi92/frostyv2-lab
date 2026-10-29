@@ -117,6 +117,10 @@ class _VideoChatState extends State<VideoChat>
     );
   }();
 
+  /// Asks about the viewer again when they become known (a cold start) or
+  /// change (signed in or out).
+  ReactionDisposer? _viewerReaction;
+
   // PiP drag state - essential only
   double _pipDragDistance = 0;
   bool _isPipDragging = false;
@@ -502,6 +506,11 @@ class _VideoChatState extends State<VideoChat>
     // a real-time connection failing is not a reason to delay playback.
     unawaited(_eventsStore.connect());
     _infoStore.start();
+    final auth = context.authStore;
+    _viewerReaction = reaction(
+      (_) => auth.user.details?.id,
+      (_) => _infoStore.viewerChanged(),
+    );
 
     // If the native engine fails to load the stream (offline, geo-block, or a
     // Twitch API change), fall back to the WebView engine for this session so
@@ -986,9 +995,15 @@ class _VideoChatState extends State<VideoChat>
                   settingsStore.showLatency &&
                   _videoStore.streamInfo != null &&
                   !_videoStore.isInPipMode;
-              return show
-                  ? LatencyPill(store: _videoStore, large: metrics.large)
-                  : const SizedBox.shrink();
+              if (!show) return const SizedBox.shrink();
+              // While the controls are hidden a tap there brings them
+              // back, as anywhere on the video; then it opens the stats.
+              final controlsShown =
+                  _videoStore.overlayVisible || _videoStore.paused;
+              return IgnorePointer(
+                ignoring: !controlsShown,
+                child: LatencyPill(store: _videoStore, large: metrics.large),
+              );
             },
           ),
         ),
@@ -1018,7 +1033,8 @@ class _VideoChatState extends State<VideoChat>
                   when ivs.statsVisible && !ivs.isInPipMode)
                 Positioned.fill(
                   left: 8,
-                  top: 48,
+                  // Under the controls' top row.
+                  top: metrics.top + 44,
                   right: 8,
                   bottom: 8,
                   child: IgnorePointer(
@@ -1556,6 +1572,7 @@ class _VideoChatState extends State<VideoChat>
     // shows no hype train or celebration, and leaving the socket open would
     // keep a channel's events flowing after leaving it.
     _eventsStore.dispose();
+    _viewerReaction?.call();
     _infoStore.dispose();
 
     // Skip disposal when handed to the mini window — the player and the live

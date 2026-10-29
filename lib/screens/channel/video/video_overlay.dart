@@ -125,9 +125,7 @@ class PlayerChromeMetrics {
 abstract final class _Over {
   static const text = FrostyTokens.textPrimaryDark;
   static const body = Color(0xFFE5E5E5);
-  static const shadow = [
-    Shadow(offset: Offset(0, 1), blurRadius: 2, color: Color(0x99000000)),
-  ];
+  static const shadow = kPlayerChromeShadow;
 }
 
 /// The scrim behind a row of controls: black 80 % at the edge, clear
@@ -152,6 +150,9 @@ class VideoOverlay extends StatelessWidget {
   /// the animation could never be reviewed on a real screen — the one place
   /// that decides whether it is too loud or too dim.
   final VoidCallback? onLongPressStats;
+
+  /// The room the top row keeps for the latency pill.
+  static const latencySlotKey = ValueKey('latency-slot');
 
   const VideoOverlay({
     super.key,
@@ -472,14 +473,14 @@ class VideoOverlay extends StatelessWidget {
                   if (landscape) fillScreenButton,
                   if (!Platform.isIOS || isIPad()) videoSettingsButton,
                   // The latency pill is drawn by the channel screen over
-                  // this spot, outside the controls that hide: it keeps the
-                  // room it needs here.
+                  // this spot, outside the controls that hide: the row
+                  // keeps the room it needs.
                   if (showLatency) ...[
                     const SizedBox(width: PlayerChromeMetrics.pillGap),
-                    Visibility.maintain(
-                      visible: false,
-                      child: LatencyPill(
-                        store: videoStore,
+                    SizedBox(
+                      key: VideoOverlay.latencySlotKey,
+                      width: LatencyPill.slotWidth(
+                        context,
                         large: metrics.large,
                       ),
                     ),
@@ -762,18 +763,6 @@ class _ChannelIdentity extends StatelessWidget {
   /// Set when [subtitle] is the category.
   final String? categoryId;
 
-  void _openCategory(BuildContext context) {
-    final id = categoryId;
-    if (id == null || id.isEmpty) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        settings: const RouteSettings(name: CategoryStreams.routeName),
-        builder: (context) => CategoryStreams(categoryId: id),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     const ring = 1.5;
@@ -790,73 +779,90 @@ class _ChannelIdentity extends StatelessWidget {
         shadows: _Over.shadow,
       ),
     );
-    return Row(
-      children: [
-        Semantics(
-          button: true,
-          label: 'Channel profile',
-          child: Tooltip(
-            message: 'Channel profile',
-            child: InkWell(
-              customBorder: const CircleBorder(),
-              onTap: onTap,
-              child: Container(
-                width: avatar + ring * 4,
-                height: avatar + ring * 4,
-                padding: const EdgeInsets.all(ring),
-                decoration: const BoxDecoration(
-                  color: FrostyTokens.accent,
-                  shape: BoxShape.circle,
-                ),
-                child: Container(
-                  padding: const EdgeInsets.all(ring),
-                  decoration: const BoxDecoration(
-                    color: Colors.black,
-                    shape: BoxShape.circle,
+    final picture = avatar + ring * 4;
+    // A row too narrow for the picture and some of the name (a small
+    // phone with large text) leaves the channel to the info under the
+    // video rather than overflow.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final row = Row(
+          children: [
+            Semantics(
+              button: true,
+              label: 'Channel profile',
+              child: Tooltip(
+                message: 'Channel profile',
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: onTap,
+                  child: Container(
+                    width: avatar + ring * 4,
+                    height: avatar + ring * 4,
+                    padding: const EdgeInsets.all(ring),
+                    decoration: const BoxDecoration(
+                      color: FrostyTokens.accent,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.all(ring),
+                      decoration: const BoxDecoration(
+                        color: Colors.black,
+                        shape: BoxShape.circle,
+                      ),
+                      child: ProfilePicture(
+                        userLogin: login,
+                        radius: avatar / 2,
+                      ),
+                    ),
                   ),
-                  child: ProfilePicture(userLogin: login, radius: avatar / 2),
                 ),
               ),
             ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Flexible(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: large ? 15 : 14,
-                  fontWeight: FontWeight.w700,
-                  height: 1.25,
-                  color: _Over.text,
-                  shadows: _Over.shadow,
-                ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: large ? 15 : 14,
+                      fontWeight: FontWeight.w700,
+                      height: 1.25,
+                      color: _Over.text,
+                      shadows: _Over.shadow,
+                    ),
+                  ),
+                  if (subtitle.isNotEmpty)
+                    Tooltip(
+                      message: subtitle,
+                      triggerMode: TooltipTriggerMode.tap,
+                      child: categoryId == null
+                          ? subtitleText
+                          : Semantics(
+                              link: true,
+                              onTap: () =>
+                                  CategoryStreams.open(context, categoryId!),
+                              child: GestureDetector(
+                                onDoubleTap: () =>
+                                    CategoryStreams.open(context, categoryId!),
+                                child: subtitleText,
+                              ),
+                            ),
+                    ),
+                ],
               ),
-              if (subtitle.isNotEmpty)
-                Tooltip(
-                  message: subtitle,
-                  triggerMode: TooltipTriggerMode.tap,
-                  child: categoryId == null
-                      ? subtitleText
-                      : Semantics(
-                          link: true,
-                          onTap: () => _openCategory(context),
-                          child: GestureDetector(
-                            onDoubleTap: () => _openCategory(context),
-                            child: subtitleText,
-                          ),
-                        ),
-                ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+        if (constraints.maxWidth < picture + 8 + 24) {
+          return const SizedBox.shrink();
+        }
+        return row;
+      },
     );
   }
 }

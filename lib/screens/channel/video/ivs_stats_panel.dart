@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/channel/video/latency_stats.dart';
+import 'package:frosty/screens/channel/video/overlay_common.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:frosty/theme.dart';
 
@@ -26,9 +27,7 @@ class IvsStatsPanel extends StatelessWidget {
       height: 1.33,
       fontWeight: FontWeight.w500,
       fontFeatures: [FontFeature.tabularFigures()],
-      shadows: [
-        Shadow(offset: Offset(0, 1), blurRadius: 2, color: Color(0x99000000)),
-      ],
+      shadows: kPlayerChromeShadow,
     );
 
     return FittedBox(

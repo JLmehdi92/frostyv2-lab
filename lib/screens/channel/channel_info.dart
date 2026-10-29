@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -26,18 +27,6 @@ String shortUptime(Duration elapsed) {
   final minutes = elapsed.inMinutes % 60;
   if (hours == 0) return '$minutes min';
   return '$hours h ${minutes.toString().padLeft(2, '0')}';
-}
-
-/// The stream's category, opening its streams.
-void _openCategory(BuildContext context, String categoryId) {
-  if (categoryId.isEmpty) return;
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      settings: const RouteSettings(name: CategoryStreams.routeName),
-      builder: (context) => CategoryStreams(categoryId: categoryId),
-    ),
-  );
 }
 
 /// Whether the viewer can follow or subscribe to [login] (signed in, not
@@ -115,7 +104,7 @@ class ChannelInfoRow extends StatelessWidget {
                     link: true,
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTap: () => _openCategory(context, categoryId),
+                      onTap: () => CategoryStreams.open(context, categoryId),
                       child: Text(
                         category,
                         maxLines: 1,
@@ -547,7 +536,10 @@ class _TabletChannelPanelState extends State<TabletChannelPanel> {
                                 label: category,
                                 onTap: categoryId.isEmpty
                                     ? null
-                                    : () => _openCategory(context, categoryId),
+                                    : () => CategoryStreams.open(
+                                        context,
+                                        categoryId,
+                                      ),
                               ),
                             if (language != null) _Chip(label: language),
                             if (streak != null && streak > 0)
@@ -666,12 +658,14 @@ class _AlsoLive extends StatelessWidget {
             final fit = ((constraints.maxWidth + _gap) / (_cardWidth + _gap))
                 .floor()
                 .clamp(1, streams.length);
+            // A panel narrower than one card gets one card that fits.
+            final width = math.min(_cardWidth, constraints.maxWidth);
             return Row(
               spacing: _gap,
               children: [
                 for (final stream in streams.take(fit))
                   SizedBox(
-                    width: _cardWidth,
+                    width: width,
                     child: _AlsoLiveCard(
                       stream: stream,
                       onTap: () => onOpenChannel(stream),

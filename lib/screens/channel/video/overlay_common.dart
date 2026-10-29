@@ -5,6 +5,13 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
 
+/// The soft shadow under the live player's chrome (the boards'
+/// `drop-shadow(0 1px 2px rgba(0,0,0,.6))`), so its text and glyphs read
+/// over a bright picture where the scrim is thin.
+const kPlayerChromeShadow = [
+  Shadow(offset: Offset(0, 1), blurRadius: 2, color: Color(0x99000000)),
+];
+
 /// Scrim behind the top or bottom controls of a video overlay (live and
 /// VOD), dark at the edge and clear towards the middle of the video.
 BoxDecoration overlayGradient({required bool fromTop}) => BoxDecoration(
