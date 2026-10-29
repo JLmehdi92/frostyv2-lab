@@ -84,6 +84,22 @@ void main() {
     expect(tester.hasRunningAnimations, isFalse);
   });
 
+  testWidgets('fresh from when it joined the chat, not from the departure', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: RaidWelcomeCard(
+          arrival: _arrival,
+          shownAt: _at.add(const Duration(seconds: 10)),
+          now: () => _at.add(const Duration(seconds: 11)),
+        ),
+      ),
+    );
+    expect(tester.hasRunningAnimations, isTrue);
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('under reduce motion, it is just there', (tester) async {
     await pump(tester, reduceMotion: true);
     expect(tester.hasRunningAnimations, isFalse);

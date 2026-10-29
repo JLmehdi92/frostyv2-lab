@@ -87,6 +87,10 @@ abstract class CommunityHighlightsStoreBase with Store {
   final _raidSeen = _FirstSeen();
   final _raidGone = _FirstSeen();
   final _raidCancelled = _FirstSeen();
+
+  /// Raids called off this session (the latest few): a late event of one
+  /// never brings it back.
+  final _raidsCalledOff = <String>{};
   final _lastFetch = <HighlightTopic, DateTime>{};
   final _inFlight = <HighlightTopic, Future<void>>{};
   final _trailing = <HighlightTopic, Timer>{};
@@ -300,7 +304,9 @@ abstract class CommunityHighlightsStoreBase with Store {
           _pinnedSticky = false;
           _changed(urgent: true);
         }
-      case RaidEvent():
+      case RaidEvent(:final raid):
+        // A raid called off stays so, even once its card is gone.
+        if (_raidsCalledOff.contains(raid.id)) return;
         final before = _nextRaid;
         _nextRaid = reduceRaid(before, event, channelId: channelId);
         if (identical(before, _nextRaid)) return;
@@ -312,6 +318,12 @@ abstract class CommunityHighlightsStoreBase with Store {
               before.cancelled != _nextRaid!.cancelled,
         );
         final next = _nextRaid;
+        if (next != null && next.cancelled) {
+          _raidsCalledOff.add(next.raid.id);
+          if (_raidsCalledOff.length > 8) {
+            _raidsCalledOff.remove(_raidsCalledOff.first);
+          }
+        }
         if (before != null &&
             !before.gone &&
             !before.cancelled &&
@@ -398,10 +410,14 @@ abstract class CommunityHighlightsStoreBase with Store {
         kind: kind,
         id: id,
         sticky: sticky,
-        // A pinned message and the short-lived pins never arrive expanded,
-        // so none holds a new highlight back.
+        // A pinned message, a raid (its card has no collapsed form) and
+        // the short-lived pins never arrive expanded, so none holds a new
+        // highlight back.
         expanded:
-            expandNew && kind != HighlightKind.pinned && !kind.shortLived,
+            expandNew &&
+            kind != HighlightKind.pinned &&
+            kind != HighlightKind.raid &&
+            !kind.shortLived,
       ),
     );
   }

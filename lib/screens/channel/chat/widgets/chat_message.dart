@@ -568,7 +568,13 @@ class ChatMessage extends StatelessWidget {
             if (ircMessage.raidArrival case final arrival?) {
               // The welcome of a raid the viewer followed: its own card.
               isNoticeRow = true;
-              renderMessage = RaidWelcomeCard(arrival: arrival);
+              final sent = int.tryParse(ircMessage.tags['tmi-sent-ts'] ?? '');
+              renderMessage = RaidWelcomeCard(
+                arrival: arrival,
+                shownAt: sent == null
+                    ? null
+                    : DateTime.fromMillisecondsSinceEpoch(sent),
+              );
             } else if (ircMessage.actionCallback != null &&
                 ircMessage.actionLabel != null) {
               renderMessage = Text.rich(

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:frosty/models/user_notice.dart';
+import 'package:frosty/utils/https_url.dart';
 
 /// A channel raiding the one being watched, as its chat announced it (or
 /// as the viewer brought it along, following the raid from that channel).
@@ -25,14 +26,11 @@ class IncomingRaid {
     if (source != null && source != channelId) return null;
     final name = notice.raiderDisplayName ?? notice.displayName ?? notice.login;
     if (name == null || name.trim().isEmpty) return null;
-    final avatar = notice.raiderAvatarUrl;
     return IncomingRaid(
       raiderName: name.trim(),
       raiderLogin: notice.login?.toLowerCase(),
       viewers: notice.raidViewerCount ?? 0,
-      avatarUrl: avatar != null && avatar.startsWith('https://')
-          ? avatar
-          : null,
+      avatarUrl: httpsOrNull(notice.raiderAvatarUrl),
     );
   }
 

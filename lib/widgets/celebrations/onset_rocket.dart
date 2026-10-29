@@ -70,7 +70,7 @@ void debugSetRocketArt(String? svg) {
 const _flickerCount = 22;
 
 class _OnsetRocketState extends State<OnsetRocket>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   static RocketArt _artOfSvg(String svg) =>
       splitRocketSvg(svg) ?? (whole: svg, body: svg, flame: '');
 
@@ -125,7 +125,9 @@ class _OnsetRocketState extends State<OnsetRocket>
         duration: const Duration(milliseconds: 110),
       )..repeat(reverse: true, count: _flickerCount);
     } else {
-      _flame?.stop();
+      // Gone, so turning it back on gives a new burst.
+      _flame?.dispose();
+      _flame = null;
     }
   }
 

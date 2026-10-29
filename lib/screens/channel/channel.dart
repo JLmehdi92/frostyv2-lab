@@ -344,7 +344,9 @@ class _VideoChatState extends State<VideoChat>
 
   /// Leaving with a raid: the "Heading to" overlay plays, then the switch.
   late final RaidDeparture _departure = RaidDeparture(
-    canLeave: _canLeaveWithRaid,
+    // A raid called off meanwhile takes no one anywhere.
+    canLeave: () =>
+        !(_highlightsStore?.raid?.cancelled ?? false) && _canLeaveWithRaid(),
     onSwitch: (raid, arrival) => _watchRaid(raid, arrival: arrival),
     onChanged: () {
       if (!mounted) return;
@@ -355,6 +357,10 @@ class _VideoChatState extends State<VideoChat>
 
   /// The raid that brought the viewer here, while its overlay fades out.
   late RaidArrival? _arrival = widget.raidArrival;
+
+  /// Ends the arrival on time, whether or not its overlay could show (chat
+  /// only, PiP, a layout change).
+  Timer? _arrivalTimer;
 
   /// "Go now" or "Watch" on an outgoing raid, or the raid leaving: the
   /// target's picture is hit on the card, "Heading to Y" plays over the
@@ -687,10 +693,7 @@ class _VideoChatState extends State<VideoChat>
     _syncHighlightsStore();
     if (widget.raidArrival case final arrival?) {
       _primaryChatStore?.addArrivalNotice(arrival);
-      // Chat only: no video for the overlay to fade from.
-      if (!settings.showVideo) {
-        WidgetsBinding.instance.addPostFrameCallback((_) => _onArrived());
-      }
+      _arrivalTimer = Timer(kRaidArrivalFade, _onArrived);
     }
     _highlightsSettingReaction = reaction(
       (_) => settings.showCommunityHighlights,
@@ -1195,7 +1198,6 @@ class _VideoChatState extends State<VideoChat>
                     key: const ValueKey('raid-arriving'),
                     arrival: arrival,
                     leaving: false,
-                    onDone: _onArrived,
                   ),
                 ),
             ],
@@ -1748,6 +1750,7 @@ class _VideoChatState extends State<VideoChat>
     _highlightsStore?.dispose();
     _subtleCelebrations?.call();
     _departure.dispose();
+    _arrivalTimer?.cancel();
     // Always disposed, even on hand-off to the mini window: the mini player
     // shows no hype train or celebration, and leaving the socket open would
     // keep a channel's events flowing after leaving it.

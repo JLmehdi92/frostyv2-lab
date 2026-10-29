@@ -255,10 +255,16 @@ abstract class ChatStoreBase with Store {
   }
 
   /// Adds a line of ONSET's own to this chat (a celebration said quietly),
-  /// after what already waits to show.
+  /// held like chat while it is delayed to match the video, so it shows in
+  /// step with what it is about.
   void addLocalNotice(String text) {
     if (_shouldDisconnect) return;
-    runInAction(() => messageBuffer.add(IRCMessage.createNotice(message: text)));
+    void add() => messageBuffer.add(IRCMessage.createNotice(message: text));
+    if (_hasActiveChatDelay) {
+      _enqueueDelayedCallback(_pendingChatCallbacks, add);
+    } else {
+      runInAction(add);
+    }
   }
 
   /// The latest live raid on this channel, set as its notice reaches the

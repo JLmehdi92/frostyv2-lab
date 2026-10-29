@@ -12,9 +12,17 @@ import 'package:frosty/widgets/sheet/onset_sheet.dart';
 ///
 /// It animates only while fresh: scrolled back to later, it is just there.
 class RaidWelcomeCard extends StatelessWidget {
-  const RaidWelcomeCard({super.key, required this.arrival, this.now});
+  const RaidWelcomeCard({
+    super.key,
+    required this.arrival,
+    this.shownAt,
+    this.now,
+  });
 
   final RaidArrival arrival;
+
+  /// When it joined the chat (else when the viewer left with the raid).
+  final DateTime? shownAt;
 
   /// The current time (tests).
   final DateTime Function()? now;
@@ -28,7 +36,7 @@ class RaidWelcomeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = SheetColors.of(context);
     final accent = SheetColors.accentOf(context);
-    final age = (now ?? DateTime.now)().difference(arrival.at);
+    final age = (now ?? DateTime.now)().difference(shownAt ?? arrival.at);
     final animate = !reduceMotionOf(context) && age < fresh;
     return MediaQuery.withClampedTextScaling(
       maxScaleFactor: 1.3,

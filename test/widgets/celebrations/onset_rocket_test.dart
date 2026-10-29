@@ -71,4 +71,14 @@ void main() {
     expect(find.byType(SvgPicture), findsOneWidget);
     expect(tester.hasRunningAnimations, isFalse);
   });
+
+  testWidgets('flicker turned off then on again bursts again', (tester) async {
+    await pump(tester);
+    await tester.pump(const Duration(milliseconds: 2500));
+    await pump(tester, reduceMotion: true);
+    expect(tester.hasRunningAnimations, isFalse);
+    await pump(tester);
+    expect(tester.hasRunningAnimations, isTrue);
+    await tester.pump(const Duration(milliseconds: 2500));
+  });
 }

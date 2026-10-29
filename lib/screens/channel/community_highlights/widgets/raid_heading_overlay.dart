@@ -2,11 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:frosty/models/raid_arrival.dart';
+import 'package:frosty/screens/channel/community_highlights/raid_text.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/raid_avatar.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/widgets/motion/motion.dart';
 import 'package:frosty/widgets/motion/reduce_motion.dart';
-import 'package:intl/intl.dart';
 
 /// When the channel switches after "Go now" (or the raid leaving): long
 /// enough for the hit on the card and the overlay to read.
@@ -14,6 +14,10 @@ const kRaidDepartureDelay = Duration(milliseconds: 1350);
 
 /// The same under reduce motion: a short fade, then the switch.
 const kRaidDepartureDelayReduced = Duration(milliseconds: 700);
+
+/// How long the overlay takes to fade out on the channel arrived at (its
+/// 150 ms hold and 300 ms fade, and a frame to spare).
+const kRaidArrivalFade = Duration(milliseconds: 500);
 
 /// "Heading to Y" over the video (board Raids): an opaque scrim — never a
 /// blur over the video —, the target's picture inside a lime ring that
@@ -79,7 +83,6 @@ class _RaidHeadingOverlayState extends State<RaidHeadingOverlay>
   Widget build(BuildContext context) {
     final reduce = reduceMotionOf(context);
     final arrival = widget.arrival;
-    final viewers = NumberFormat.decimalPattern().format(arrival.viewers);
     return IgnorePointer(
       child: RepaintBoundary(
         child: Semantics(
@@ -157,10 +160,7 @@ class _RaidHeadingOverlayState extends State<RaidHeadingOverlay>
                                         ),
                                       ),
                                       Text(
-                                        arrival.viewers == 1
-                                            ? '1 viewer coming with you'
-                                            : '$viewers viewers coming with '
-                                                  'you',
+                                        '${raidViewers(arrival.viewers)} coming with you',
                                         style: const TextStyle(
                                           fontFamily: FrostyTokens.bodyFamily,
                                           fontSize: 12.5,

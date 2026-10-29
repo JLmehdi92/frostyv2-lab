@@ -1619,10 +1619,11 @@ class IRCMessage {
     );
   }
 
-  /// "You followed X's raid", at the top of the new chat.
+  /// "You followed X's raid", at the top of the new chat (stamped when it
+  /// joins the chat).
   factory IRCMessage.raidWelcome(RaidArrival arrival) => IRCMessage(
     raw: '',
-    tags: {'tmi-sent-ts': '${arrival.at.millisecondsSinceEpoch}'},
+    tags: {'tmi-sent-ts': '${DateTime.now().millisecondsSinceEpoch}'},
     command: Command.notice,
     message: "You followed ${arrival.fromName}'s raid",
     raidArrival: arrival,

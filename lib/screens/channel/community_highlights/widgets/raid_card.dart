@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:frosty/models/community_highlights.dart';
 import 'package:frosty/screens/channel/community_highlights/highlight_reducers.dart';
+import 'package:frosty/screens/channel/community_highlights/raid_text.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/highlight_countdown.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/raid_avatar.dart';
 import 'package:frosty/theme.dart';
@@ -11,7 +12,6 @@ import 'package:frosty/widgets/motion/motion.dart';
 import 'package:frosty/widgets/motion/reduce_motion.dart';
 import 'package:frosty/widgets/sheet/onset_sheet.dart';
 import 'package:frosty/widgets/sheet/sheet_glyph.dart';
-import 'package:intl/intl.dart';
 
 /// Where an outgoing raid stands on the card.
 enum RaidCardPhase {
@@ -111,7 +111,7 @@ class RaidCard extends StatelessWidget {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final target = raid.raid;
     final phase = raidCardPhase(raid, staying: staying, leaving: leaving);
-    final viewers = _viewers(target.viewerCount);
+    final viewers = raidViewers(target.viewerCount);
     final duration = motionDuration(context, const Duration(milliseconds: 280));
 
     final Widget content = switch (phase) {
@@ -235,10 +235,6 @@ class RaidCard extends StatelessWidget {
     );
   }
 }
-
-String _viewers(int count) =>
-    '${NumberFormat.decimalPattern().format(count)} '
-    '${count == 1 ? 'viewer' : 'viewers'}';
 
 /// The counting card: header and ring, the track (not compact), and the
 /// two buttons, or "Heading out…" once the viewer is on their way.

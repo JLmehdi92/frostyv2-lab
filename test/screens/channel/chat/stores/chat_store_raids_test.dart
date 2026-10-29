@@ -109,4 +109,28 @@ void main() {
       async.elapse(const Duration(seconds: 30));
     });
   });
+
+  test('a local notice waits like chat while chat is delayed', () {
+    fakeAsync((async) {
+      settings
+        ..showVideo = true
+        ..chatDelay = 3;
+      final store = create();
+      async.flushMicrotasks();
+      store.addLocalNotice('Celebration: Rain');
+      store.addMessages();
+      expect(
+        lines(store).where((m) => m.message == 'Celebration: Rain'),
+        isEmpty,
+      );
+      async.elapse(const Duration(seconds: 3));
+      store.addMessages();
+      expect(
+        lines(store).where((m) => m.message == 'Celebration: Rain'),
+        hasLength(1),
+      );
+      store.dispose();
+      async.elapse(const Duration(seconds: 30));
+    });
+  });
 }

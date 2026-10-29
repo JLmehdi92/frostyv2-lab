@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:frosty/models/community_highlights.dart';
+import 'package:frosty/utils/https_url.dart';
 
 /// The viewer followed a raid: from the channel they were watching
 /// ([fromName]) to the one they arrive on ([targetName]).
@@ -21,14 +22,11 @@ class RaidArrival {
     required DateTime at,
     String? fromLogin,
   }) {
-    final image = raid.targetProfileImage;
     return RaidArrival(
       fromName: fromName,
       fromLogin: fromLogin,
       targetName: raid.targetDisplayName,
-      targetAvatarUrl: image != null && image.startsWith('https://')
-          ? image
-          : null,
+      targetAvatarUrl: httpsOrNull(raid.targetProfileImage),
       viewers: raid.viewerCount,
       at: at,
     );

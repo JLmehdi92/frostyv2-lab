@@ -445,6 +445,36 @@ void main() {
     });
   });
 
+  test('a late event of a raid called off never brings it back', () {
+    run((async) {
+      h.create();
+      async.flushMicrotasks();
+      h.send(HighlightTopic.raid, raidPayload('raid_update_v2'));
+      h.send(HighlightTopic.raid, raidPayload('raid_cancel_v2'));
+      async.elapse(const Duration(seconds: 4));
+      expect(h.store.raid, isNull);
+      h.send(HighlightTopic.raid, raidPayload('raid_update_v2'));
+      h.send(HighlightTopic.raid, raidPayload('raid_go_v2'));
+      expect(h.store.raid, isNull);
+      expect(h.wentAlong, isEmpty);
+      h.store.dispose();
+    });
+  });
+
+  test('a raid never arrives expanded: a poll after it takes the slot', () {
+    run((async) {
+      h.create(expandNew: true);
+      async.flushMicrotasks();
+      h.send(HighlightTopic.raid, raidPayload('raid_update_v2'));
+      expect(h.store.current!.kind, HighlightKind.raid);
+      expect(h.store.current!.expanded, isFalse);
+      h.send(HighlightTopic.polls, pollPayload('POLL_CREATE'));
+      expect(h.store.current!.kind, HighlightKind.poll);
+      expect(h.store.stack.items, hasLength(2));
+      h.store.dispose();
+    });
+  });
+
   test('a raid first seen leaving does not take the viewer', () {
     run((async) {
       h.create();
