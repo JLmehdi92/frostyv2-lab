@@ -175,19 +175,79 @@ abstract class VideoStoreBase with Store implements WebPagePlayer {
 
   ReactionDisposer? _disposeAndroidAutoPipReaction;
 
-  /// True while the mature-content warning covers the stream (observable
-  /// without codegen: the auto-PiP autorun follows it).
-  final _contentGated = Observable(false);
+  /// Where the mature-content warning stands (observable without codegen:
+  /// the auto-PiP autorun follows it).
+  final _coverGate = Observable(ContentGate.clear);
 
-  bool get contentGated => _contentGated.value;
+  ContentGate get contentGate => _coverGate.value;
 
-  void setContentGated(bool gated) =>
-      runInAction(() => _contentGated.value = gated);
+  /// Covering: the page's video is held paused ([holdScript]), whatever
+  /// Twitch's own warning does for this account; clear: what was held plays
+  /// again ([releaseScript]). Twitch's warning is never clicked here.
+  void setContentGate(ContentGate gate) {
+    final before = _coverGate.value;
+    if (gate == before) return;
+    runInAction(() => _coverGate.value = gate);
+    if (gate == ContentGate.covering) {
+      _runPageScript(holdScript);
+    } else if (before == ContentGate.covering) {
+      _runPageScript(releaseScript);
+    }
+  }
+
+  void _runPageScript(String script) {
+    try {
+      unawaited(
+        videoWebViewController.runJavaScript(script).catchError((Object e) {
+          debugPrint('Content warning hold: $e');
+        }),
+      );
+    } catch (e) {
+      debugPrint('Content warning hold: $e');
+    }
+  }
+
+  /// Holds the page's video paused while our warning covers it: pauses it
+  /// now (or as soon as it exists) and again whenever it starts. Only the
+  /// video element: Twitch's own warning is left alone.
+  @visibleForTesting
+  static const holdScript = '''(function () {
+  window._frostyHold = true;
+  const find = () => window._videoEl || document.getElementsByTagName('video')[0];
+  const hold = (v) => {
+    if (!v) return false;
+    if (!v._frostyHoldBound) {
+      v._frostyHoldBound = true;
+      v.addEventListener('play', () => {
+        if (window._frostyHold) { window._frostyHeld = true; v.pause(); }
+      });
+    }
+    if (!v.paused) { window._frostyHeld = true; v.pause(); }
+    return true;
+  };
+  if (!hold(find())) {
+    const t = setInterval(() => {
+      if (!window._frostyHold || hold(find())) clearInterval(t);
+    }, 250);
+    setTimeout(() => clearInterval(t), 30000);
+  }
+})();''';
+
+  /// Lets the page's video go: it plays again if the hold stopped it.
+  @visibleForTesting
+  static const releaseScript = '''(function () {
+  window._frostyHold = false;
+  if (window._frostyHeld) {
+    window._frostyHeld = false;
+    const v = window._videoEl || document.getElementsByTagName('video')[0];
+    if (v) v.play().catch(() => {});
+  }
+})();''';
 
   Future<void> _applyAutoPip() async {
     // Read first: the autorun follows it (a covered stream never goes to
     // picture-in-picture on its own).
-    if (!_contentGated.value &&
+    if (_coverGate.value.allowsLeaving &&
         settingsStore.showVideo &&
         await SimplePip.isAutoPipAvailable) {
       pip.setAutoPipMode();
@@ -924,9 +984,16 @@ $kTwitchWebGateShownJs
             }
 
             // Explicitly attempt autoplay in case the player loaded paused
-            try { await videoElement.play(); } catch (e) {}
+            // (not while our content warning holds it).
+            if (!window._frostyHold) {
+              try { await videoElement.play(); } catch (e) {}
+            }
           });
         ''');
+        // A new page knows nothing of the hold: set it again.
+        if (_coverGate.value == ContentGate.covering) {
+          _runPageScript(holdScript);
+        }
         if (settingsStore.showOverlay) {
           await _hideDefaultOverlay();
           // Start latency tracking if either:
@@ -1151,7 +1218,7 @@ $kTwitchWebGateShownJs
   /// On Android, this will utilize the native Android PiP API.
   /// On iOS, this will utilize the web picture-in-picture API.
   void requestPictureInPicture() {
-    if (_contentGated.value) return;
+    if (!_coverGate.value.allowsLeaving) return;
     try {
       if (Platform.isAndroid) {
         pip.enterPipMode(autoEnter: true);

@@ -129,12 +129,9 @@ class _VideoChatState extends State<VideoChat>
   /// and the tap stand down (see [PinchToFill]).
   final _pinching = ValueNotifier(false);
 
-  /// True while the mature-content warning paused the player, so accepting
-  /// it resumes only what the gate paused.
-  bool _pausedForContentGate = false;
-
-  /// True while the mature-content warning covers the stream.
-  bool _contentGateUp = false;
+  /// Where the mature-content warning stands. Pending until it has read
+  /// the labels: the stream plays, but it may not leave the screen yet.
+  ContentGate _contentGate = ContentGate.pending;
 
   /// The one content warning of the screen: every layout (portrait, side
   /// chat, full screen) draws the video inside it, and the key carries its
@@ -499,6 +496,12 @@ class _VideoChatState extends State<VideoChat>
     // Build the player first — this adopts the live player back from the mini
     // window when we're restoring this same channel (seamless, no reload).
     final store = _videoStore;
+    // The warning has not read the labels yet (it says so once it has, or
+    // clear when there is no video to cover).
+    store.setContentGate(
+      context.settingsStore.showVideo ? ContentGate.pending : ContentGate.clear,
+    );
+    if (!context.settingsStore.showVideo) _contentGate = ContentGate.clear;
     _liveProgress
       ..attach(store)
       ..start();
@@ -537,7 +540,7 @@ class _VideoChatState extends State<VideoChat>
       setState(() {
         store.dispose();
         _videoStore = _buildPlayerController(forceWeb: true)
-          ..setContentGated(_contentGateUp);
+          ..setContentGate(_contentGate);
         _liveProgress.attach(_videoStore);
       });
       if (notice != null) {
@@ -668,34 +671,29 @@ class _VideoChatState extends State<VideoChat>
     _ => false,
   };
 
-  /// Pauses the player while the mature-content warning covers the video
-  /// (the cover hides the picture but the audio would keep playing), and
-  /// resumes it on accept if the gate was what paused it.
-  void _onContentGate(bool active) {
-    _contentGateUp = active;
-    // First: no picture-in-picture, no automatic start while it is up, and
-    // the store is free to play again before the resume below.
-    _videoStore.setContentGated(active);
-    if (active) {
-      if (!_videoStore.paused) {
-        _pausedForContentGate = true;
-        _videoStore.handlePausePlay();
-      }
-      return;
-    }
-    // Accepted: Twitch's own warning in the web player may go too.
+  /// The player follows the mature-content warning: held paused while it
+  /// covers the video (the cover hides the picture but the audio would go
+  /// on), free again when it is clear, and kept on the screen until then.
+  void _onContentGate(ContentGate gate) {
+    if (!mounted) return;
+    _contentGate = gate;
+    _videoStore.setContentGate(gate);
+  }
+
+  /// "Start watching": Twitch's own warning in the web player may go too.
+  void _onContentAccepted() {
     if (_videoStore case final VideoStore web) {
       unawaited(web.acceptContentGate());
-    }
-    if (_pausedForContentGate) {
-      _pausedForContentGate = false;
-      if (_videoStore.paused) _videoStore.handlePausePlay();
     }
   }
 
   void _handlePipDragStart(DragStartDetails details) {
-    // Disable drag gesture when already in PiP mode or video is not playing
-    if (_videoStore.isInPipMode || _videoStore.paused || _pinching.value) {
+    // Disable drag gesture when already in PiP mode or video is not playing,
+    // and until the content warning is clear.
+    if (_videoStore.isInPipMode ||
+        _videoStore.paused ||
+        _pinching.value ||
+        !_contentGate.allowsLeaving) {
       return;
     }
 
@@ -766,8 +764,9 @@ class _VideoChatState extends State<VideoChat>
   /// Minimizes the current channel into the floating in-app mini player and
   /// leaves the channel screen so the user can keep browsing/switching streams.
   void _minimizeToMiniPlayer() {
-    // A covered stream stays here until its warning is accepted.
-    if (_contentGateUp) return;
+    // A covered stream (or one whose labels are still being read) stays
+    // here until its warning is clear.
+    if (!_contentGate.allowsLeaving) return;
     final store = _videoStore;
     // Only the IVS (texture) engine can hand its live player to the mini.
     if (store is! IvsVideoStore) {
@@ -1054,7 +1053,8 @@ class _VideoChatState extends State<VideoChat>
       key: _contentGateKey,
       userId: widget.userId,
       displayName: widget.userName,
-      onActiveChanged: _onContentGate,
+      onStateChanged: _onContentGate,
+      onAccepted: _onContentAccepted,
       child: child,
     );
 

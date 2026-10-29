@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:frosty/screens/channel/video/player_glyph.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/content_labels.dart';
@@ -36,24 +39,32 @@ bool contentWarningConsented({
 /// itself (any engine) and fails open (no warning) so a hiccup never blocks
 /// playback.
 ///
-/// While the warning shows it calls [onActiveChanged] so the channel can
-/// pause the player: the cover alone would hide the picture but still play
-/// the audio.
+/// It always says where it stands ([onStateChanged]): [ContentGate.pending]
+/// while it reads the labels, then [ContentGate.covering] or
+/// [ContentGate.clear] (nothing to warn about, the setting off, a failed
+/// read, or accepted), and [ContentGate.clear] when it leaves the screen
+/// for good — so the player is never held by a warning that is not there.
+/// Moved with a [GlobalKey] (another layout), it reports nothing new.
 class ContentWarningGate extends StatefulWidget {
   const ContentWarningGate({
     super.key,
     required this.userId,
     required this.displayName,
-    required this.onActiveChanged,
+    required this.onStateChanged,
+    this.onAccepted,
     required this.child,
   });
 
   final String userId;
   final String displayName;
 
-  /// Called with true when the warning starts covering the video and false
-  /// when it is accepted (never called when there is nothing to warn about).
-  final ValueChanged<bool> onActiveChanged;
+  /// Where the warning stands, each time it changes. Never called during a
+  /// build: the player it drives may notify its observers.
+  final ValueChanged<ContentGate> onStateChanged;
+
+  /// The viewer chose "Start watching" (consent to click Twitch's own
+  /// warning in a web player too).
+  final VoidCallback? onAccepted;
   final Widget child;
 
   @override
@@ -64,15 +75,36 @@ class _ContentWarningGateState extends State<ContentWarningGate> {
   List<String> _labels = const [];
   var _resolved = false;
 
+  /// The last state said or about to be said.
+  late ContentGate _state;
+
   @override
   void initState() {
     super.initState();
     if (!context.settingsStore.warnMatureContent ||
         AcceptedContentWarnings.has(widget.userId)) {
       _resolved = true;
+      _report(ContentGate.clear);
     } else {
-      _load();
+      _report(ContentGate.pending);
+      // Never inside this build, even when the read fails at once.
+      scheduleMicrotask(_load);
     }
+  }
+
+  /// Says where it stands, after the frame being built, unless something
+  /// newer was said meanwhile (labels read in the same frame).
+  void _report(ContentGate gate) {
+    _state = gate;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _state == gate) widget.onStateChanged(gate);
+    });
+  }
+
+  /// Says it now (not in a build).
+  void _say(ContentGate gate) {
+    _state = gate;
+    widget.onStateChanged(gate);
   }
 
   Future<void> _load() async {
@@ -90,13 +122,24 @@ class _ContentWarningGateState extends State<ContentWarningGate> {
       _labels = labels;
       _resolved = true;
     });
-    if (labels.isNotEmpty) widget.onActiveChanged(true);
+    _say(labels.isNotEmpty ? ContentGate.covering : ContentGate.clear);
   }
 
   void _accept() {
     AcceptedContentWarnings.add(widget.userId);
     setState(() => _labels = const []);
-    widget.onActiveChanged(false);
+    widget.onAccepted?.call();
+    _say(ContentGate.clear);
+  }
+
+  @override
+  void dispose() {
+    // Gone for good (not moved to another layout: a GlobalKey move keeps
+    // this state): nothing covers the stream any more. Told once the tree
+    // is settled.
+    final report = widget.onStateChanged;
+    scheduleMicrotask(() => report(ContentGate.clear));
+    super.dispose();
   }
 
   @override

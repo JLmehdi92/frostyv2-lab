@@ -33,4 +33,26 @@ void main() {
       expect(VideoStoreBase.gateVisibleFromMessage(''), isFalse);
     });
   });
+
+  group('our warning over the web player', () {
+    test('holds the video paused, now and whenever it starts', () {
+      const script = VideoStoreBase.holdScript;
+      expect(script, contains('window._frostyHold = true'));
+      expect(script, contains('v.pause()'));
+      expect(script, contains("addEventListener('play'"));
+      // The video may not exist yet: it waits for it.
+      expect(script, contains('setInterval'));
+      // Only the video: Twitch's own warning is the viewer's to accept.
+      expect(script, isNot(contains('.click()')));
+      expect(script, isNot(contains('.play()')));
+    });
+
+    test('lets it play again only if the hold stopped it', () {
+      const script = VideoStoreBase.releaseScript;
+      expect(script, contains('window._frostyHold = false'));
+      expect(script, contains('if (window._frostyHeld)'));
+      expect(script, contains('.play()'));
+      expect(script, isNot(contains('.click()')));
+    });
+  });
 }

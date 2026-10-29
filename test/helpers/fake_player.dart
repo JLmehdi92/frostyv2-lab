@@ -127,11 +127,11 @@ class FakePlayer implements PlayerController {
   void dispose() => calls.add('dispose');
 
   @override
-  var contentGated = false;
+  var contentGate = ContentGate.clear;
 
   @override
-  void setContentGated(bool gated) {
-    contentGated = gated;
-    calls.add('gated $gated');
+  void setContentGate(ContentGate gate) {
+    contentGate = gate;
+    calls.add('gate ${gate.name}');
   }
 }

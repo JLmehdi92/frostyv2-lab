@@ -10,6 +10,7 @@ import 'package:frosty/models/playback_access_token.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/channel/video/ivs_recovery.dart';
 import 'package:frosty/screens/channel/video/ivs_video.dart';
+import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
@@ -820,23 +821,65 @@ void main() {
   });
 
   group('content warning', () {
-    test(
-      'a covered stream is paused again when it starts on its own',
-      () async {
-        store = await createStore();
-        store.setContentGated(true);
-        expect(store.contentGated, isTrue);
+    test('covered before it plays: held, then started on clear', () async {
+      store = await createStore();
+      store.setContentGate(ContentGate.covering);
+      // Not playing yet: nothing to pause, and above all no toggle (it
+      // would start the stream behind the cover).
+      expect(native.callsNamed('play'), isEmpty);
 
-        await native.emit({'type': 'state', 'state': 'PLAYING'});
-        expect(native.callsNamed('pause'), hasLength(1));
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      expect(native.callsNamed('pause'), hasLength(1));
+      await native.emit({'type': 'state', 'state': 'IDLE'});
 
-        // Accepted: the native auto-play is left alone again.
-        store.setContentGated(false);
-        native.playerCalls.clear();
-        await native.emit({'type': 'state', 'state': 'PLAYING'});
-        expect(native.callsNamed('pause'), isEmpty);
-      },
-    );
+      store.setContentGate(ContentGate.clear);
+      expect(native.callsNamed('play'), hasLength(1));
+
+      // Clear: the native auto-play is left alone again.
+      native.playerCalls.clear();
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      expect(native.callsNamed('pause'), isEmpty);
+    });
+
+    test('covered while playing: an explicit pause, resumed once', () async {
+      store = await createStore();
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      native.playerCalls.clear();
+
+      store.setContentGate(ContentGate.covering);
+      store.setContentGate(ContentGate.covering);
+      expect(native.callsNamed('pause'), hasLength(1));
+      expect(native.callsNamed('play'), isEmpty);
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+
+      store.setContentGate(ContentGate.clear);
+      store.setContentGate(ContentGate.clear);
+      expect(native.callsNamed('play'), hasLength(1));
+    });
+
+    test('pending: playback goes on, nothing is held', () async {
+      store = await createStore();
+      store.setContentGate(ContentGate.pending);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      expect(native.callsNamed('pause'), isEmpty);
+      expect(store.contentGate, ContentGate.pending);
+
+      // Cleared without ever covering: nothing to resume.
+      store.setContentGate(ContentGate.clear);
+      expect(native.callsNamed('play'), isEmpty);
+    });
+
+    test('a stream the viewer paused is not started by a clear', () async {
+      store = await createStore();
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      store.handlePausePlay();
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      native.playerCalls.clear();
+
+      store.setContentGate(ContentGate.covering);
+      store.setContentGate(ContentGate.clear);
+      expect(native.playerCalls, isEmpty);
+    });
   });
 
   group('audio focus', () {

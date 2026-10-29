@@ -6,9 +6,12 @@ import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/models/channel.dart';
 import 'package:frosty/screens/channel/video/content_warning_gate.dart';
+import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
+
+import '../../../helpers/fake_player.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 
@@ -26,11 +29,11 @@ Channel _channel(List<String> labels) => Channel(
 void main() {
   late MockTwitchApi api;
   late SettingsStore settings;
-  final active = <bool>[];
+  final states = <ContentGate>[];
 
   setUp(() {
     AcceptedContentWarnings.reset();
-    active.clear();
+    states.clear();
     api = MockTwitchApi();
     settings = SettingsStore.fromJson({});
   });
@@ -46,7 +49,7 @@ void main() {
           body: ContentWarningGate(
             userId: '1',
             displayName: 'Streamer',
-            onActiveChanged: active.add,
+            onStateChanged: states.add,
             child: const Text('VIDEO'),
           ),
         ),
@@ -69,8 +72,13 @@ void main() {
     await tester.pump();
     expect(find.text('Start watching'), findsNothing);
     expect(AcceptedContentWarnings.has('1'), isTrue);
-    // The channel is told to pause while covered, then resume on accept.
-    expect(active, [true, false]);
+    // The channel is told to hold the player while covered, then to let
+    // it go on accept.
+    expect(states, [
+      ContentGate.pending,
+      ContentGate.covering,
+      ContentGate.clear,
+    ]);
   });
 
   testWidgets('no labels, no warning', (tester) async {
@@ -80,7 +88,8 @@ void main() {
     await pump(tester);
     await tester.pump();
     expect(find.text('Start watching'), findsNothing);
-    expect(active, isEmpty);
+    // Said all the same: a player held by an earlier warning goes free.
+    expect(states, [ContentGate.pending, ContentGate.clear]);
   });
 
   testWidgets('already accepted this session: never asks again', (
@@ -90,6 +99,7 @@ void main() {
     await pump(tester);
     await tester.pump();
     expect(find.text('Start watching'), findsNothing);
+    expect(states, [ContentGate.clear]);
     verifyNever(() => api.getChannel(userId: any(named: 'userId')));
   });
 
@@ -100,6 +110,7 @@ void main() {
     await pump(tester);
     await tester.pump();
     expect(find.text('Start watching'), findsNothing);
+    expect(states, [ContentGate.clear]);
     verifyNever(() => api.getChannel(userId: any(named: 'userId')));
   });
 
@@ -111,6 +122,37 @@ void main() {
     await tester.pump();
     expect(find.text('Start watching'), findsNothing);
     expect(find.text('VIDEO'), findsOneWidget);
+    expect(states, [ContentGate.pending, ContentGate.clear]);
+  });
+
+  testWidgets('pending while the labels are read', (tester) async {
+    final channel = Completer<Channel>();
+    when(() => api.getChannel(userId: '1')).thenAnswer((_) => channel.future);
+    await pump(tester);
+    await tester.pump();
+    expect(states, [ContentGate.pending]);
+    channel.complete(_channel(['Gambling']));
+    await tester.pump();
+    expect(states, [ContentGate.pending, ContentGate.covering]);
+  });
+
+  testWidgets('gone for good (chat only), it lets the player go', (
+    tester,
+  ) async {
+    when(
+      () => api.getChannel(userId: '1'),
+    ).thenAnswer((_) async => _channel(['Gambling']));
+    await pump(tester);
+    await tester.pump();
+    expect(states, [ContentGate.pending, ContentGate.covering]);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    expect(states, [
+      ContentGate.pending,
+      ContentGate.covering,
+      ContentGate.clear,
+    ]);
   });
 
   group('ContentWarningCover', () {
@@ -251,7 +293,7 @@ void main() {
                   key: gateKey,
                   userId: '1',
                   displayName: 'Streamer',
-                  onActiveChanged: active.add,
+                  onStateChanged: states.add,
                   child: const Stack(
                     children: [Text('VIDEO'), Text('CHAT OVERLAY')],
                   ),
@@ -264,7 +306,7 @@ void main() {
                         key: gateKey,
                         userId: '1',
                         displayName: 'Streamer',
-                        onActiveChanged: active.add,
+                        onStateChanged: states.add,
                         child: const Text('VIDEO'),
                       ),
                     ),
@@ -284,7 +326,7 @@ void main() {
       await tester.pumpWidget(layout(fullScreen: true));
       await tester.pump();
       expect(find.text('Start watching'), findsOneWidget);
-      expect(active, [true]);
+      expect(states, [ContentGate.pending, ContentGate.covering]);
     });
 
     testWidgets('portrait to full screen keeps the cover, asks once', (
@@ -302,7 +344,7 @@ void main() {
       expect(find.text('Start watching'), findsOneWidget);
       // Neither fetched again nor resumed by the move.
       verify(() => api.getChannel(userId: '1')).called(1);
-      expect(active, [true]);
+      expect(states, [ContentGate.pending, ContentGate.covering]);
 
       // Accepted in full screen, it stays accepted back in portrait.
       await tester.tap(find.text('Start watching'));
@@ -310,8 +352,70 @@ void main() {
       await tester.pumpWidget(layout(fullScreen: false));
       await tester.pump();
       expect(find.text('Start watching'), findsNothing);
-      expect(active, [true, false]);
+      expect(states, [
+        ContentGate.pending,
+        ContentGate.covering,
+        ContentGate.clear,
+      ]);
       verifyNoMoreInteractions(api);
     });
+  });
+
+  group('the player is never held by a warning that is not there', () {
+    /// The channel screen's wiring: the gate drives the player, and chat
+    /// only removes the video (and the gate) from the screen.
+    Widget screen(FakePlayer player, {required bool video}) => MultiProvider(
+      providers: [
+        Provider<TwitchApi>.value(value: api),
+        Provider<SettingsStore>.value(value: settings),
+      ],
+      child: MaterialApp(
+        home: Scaffold(
+          body: video
+              ? ContentWarningGate(
+                  userId: '1',
+                  displayName: 'Streamer',
+                  onStateChanged: player.setContentGate,
+                  child: const Text('VIDEO'),
+                )
+              : const Text('CHAT ONLY'),
+        ),
+      ),
+    );
+
+    for (final (label, reopen) in [
+      ('the setting turned off', () => settings.warnMatureContent = false),
+      (
+        'a failed read',
+        () => when(
+          () => api.getChannel(userId: '1'),
+        ).thenThrow(const ApiException('offline')),
+      ),
+    ]) {
+      testWidgets('covered, chat only, then $label: it plays and leaves', (
+        tester,
+      ) async {
+        when(
+          () => api.getChannel(userId: '1'),
+        ).thenAnswer((_) async => _channel(['Gambling']));
+        final player = FakePlayer();
+        await tester.pumpWidget(screen(player, video: true));
+        await tester.pump();
+        expect(player.contentGate, ContentGate.covering);
+
+        await tester.pumpWidget(screen(player, video: false));
+        await tester.pump();
+        expect(player.contentGate, ContentGate.clear);
+
+        reopen();
+        await tester.pumpWidget(screen(player, video: true));
+        await tester.pump();
+        await tester.pump();
+        expect(find.text('Start watching'), findsNothing);
+        expect(player.contentGate, ContentGate.clear);
+        pipPlayPause(player);
+        expect(player.calls, contains('pausePlay'));
+      });
+    }
   });
 }

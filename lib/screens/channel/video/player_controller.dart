@@ -39,15 +39,35 @@ abstract class PlayerController {
   void handleAppResume();
   void dispose();
 
-  /// Whether the mature-content warning covers the stream: it stays paused,
-  /// no picture-in-picture shows it and nothing resumes it until accepted.
-  bool get contentGated;
-  void setContentGated(bool gated);
+  /// Where the mature-content warning stands. [ContentGate.covering]: the
+  /// player pauses itself (an explicit pause, never a toggle), nothing
+  /// starts it again and no picture-in-picture shows it until it is
+  /// [ContentGate.clear], when it resumes what it held. While the labels
+  /// are still being read ([ContentGate.pending]) playback goes on, but the
+  /// stream may not leave for picture-in-picture or the mini player.
+  ContentGate get contentGate;
+  void setContentGate(ContentGate gate);
 }
 
-/// The picture-in-picture window's play / pause: nothing while the content
-/// warning covers the stream (it was never accepted).
+/// The mature-content warning of the channel screen, as the player sees it.
+enum ContentGate {
+  /// Its labels are being read: playback goes on, PiP and the mini player
+  /// wait.
+  pending,
+
+  /// It covers the stream: held paused, no PiP.
+  covering,
+
+  /// Nothing to warn about, or accepted.
+  clear;
+
+  /// Whether the stream may leave the screen (PiP, the mini player).
+  bool get allowsLeaving => this == clear;
+}
+
+/// The picture-in-picture window's play / pause: nothing unless the content
+/// warning is clear (it was never accepted).
 void pipPlayPause(PlayerController player) {
-  if (player.contentGated) return;
+  if (!player.contentGate.allowsLeaving) return;
   player.handlePausePlay();
 }

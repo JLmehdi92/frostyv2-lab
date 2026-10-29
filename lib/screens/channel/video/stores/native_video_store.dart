@@ -40,9 +40,7 @@ abstract class NativeVideoStoreBase with Store implements PlayerController {
   final bool _ownsStreamService;
 
   /// The native player. `bufferSize` is kept small to stay near the live edge.
-  final Player player = Player(
-    configuration: const PlayerConfiguration(bufferSize: 8 * 1024 * 1024),
-  );
+  final Player player;
 
   late final VideoController videoController = VideoController(player);
 
@@ -95,7 +93,15 @@ abstract class NativeVideoStoreBase with Store implements PlayerController {
     required this.authStore,
     required this.settingsStore,
     TwitchStreamService? streamService,
-  }) : _ownsStreamService = streamService == null,
+    @visibleForTesting Player? nativePlayer,
+  }) : player =
+           nativePlayer ??
+           Player(
+             configuration: const PlayerConfiguration(
+               bufferSize: 8 * 1024 * 1024,
+             ),
+           ),
+       _ownsStreamService = streamService == null,
        _streamService = streamService ?? TwitchStreamService(Dio()) {
     // Same renewal hook as the IVS engine: a refused web token should mint a
     // replacement instead of silently downgrading playback.
@@ -178,8 +184,15 @@ abstract class NativeVideoStoreBase with Store implements PlayerController {
       prefs.getString('last_stream_quality'),
     );
 
-    await player.open(Media(_variants[_streamQualityIndex].url));
-    await player.play();
+    // A covered stream opens paused: the content warning holds it.
+    await player.open(Media(_variants[_streamQualityIndex].url), play: !_covered);
+    if (_covered) {
+      // Covered while it opened: held all the same.
+      _heldForContentGate = true;
+      await player.pause();
+    } else {
+      await player.play();
+    }
   }
 
   /// Picks the starting variant, honouring the same preferences the WebView
@@ -209,8 +222,12 @@ abstract class NativeVideoStoreBase with Store implements PlayerController {
     SharedPreferences.getInstance().then(
       (prefs) => prefs.setString('last_stream_quality', quality),
     );
-    player.open(Media(_variants[index].url));
-    player.play();
+    player.open(Media(_variants[index].url), play: !_covered);
+    if (_covered) {
+      _heldForContentGate = true;
+    } else {
+      player.play();
+    }
   }
 
   @override
@@ -265,14 +282,34 @@ abstract class NativeVideoStoreBase with Store implements PlayerController {
   @override
   void togglePictureInPicture() => requestPictureInPicture();
 
-  /// This engine has no picture-in-picture; the flag is only kept.
-  var _contentGated = false;
+  /// Where the mature-content warning stands (this engine has no
+  /// picture-in-picture: only playback is held).
+  var _contentGate = ContentGate.clear;
+
+  /// True when the warning paused the stream (or opened it paused), so
+  /// clearing it resumes only that.
+  var _heldForContentGate = false;
+
+  bool get _covered => _contentGate == ContentGate.covering;
 
   @override
-  bool get contentGated => _contentGated;
+  ContentGate get contentGate => _contentGate;
 
   @override
-  void setContentGated(bool gated) => _contentGated = gated;
+  void setContentGate(ContentGate gate) {
+    if (gate == _contentGate) return;
+    _contentGate = gate;
+    if (gate == ContentGate.covering) {
+      // An explicit pause: a toggle would start a stream not playing yet.
+      if (player.state.playing) {
+        _heldForContentGate = true;
+        unawaited(player.pause());
+      }
+    } else if (gate == ContentGate.clear && _heldForContentGate) {
+      _heldForContentGate = false;
+      unawaited(player.play());
+    }
+  }
 
   void _scheduleOverlayHide([Duration delay = const Duration(seconds: 5)]) {
     _overlayTimer?.cancel();
