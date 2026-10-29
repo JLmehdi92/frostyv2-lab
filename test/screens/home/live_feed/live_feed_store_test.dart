@@ -173,6 +173,77 @@ void main() {
       },
     );
 
+    test('a channel that adds labels mid-stream is warned about after a '
+        'refresh; a failed re-read keeps what was known', () async {
+      var labelled = false;
+      var fail = false;
+      when(() => api.getChannelsByIds(any())).thenAnswer((invocation) async {
+        if (fail) throw Exception('helix down');
+        return {
+          for (final id in invocation.positionalArguments.first as List)
+            id as String: channel(
+              id,
+              labelled && id == '1' ? ['SexualThemes'] : [],
+            ),
+        };
+      });
+      final store = await build();
+      expect(store.labelsOf('1'), isEmpty);
+
+      labelled = true;
+      await store.refresh();
+      for (var i = 0; i < 6; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(store.labelsOf('1'), ['Sexual Themes']);
+
+      fail = true;
+      await store.refresh();
+      for (var i = 0; i < 6; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      expect(store.labelsOf('1'), ['Sexual Themes']);
+      expect(store.labelsOf('2'), isEmpty);
+      store.dispose();
+    });
+
+    test(
+      'labels older than the time to live are read again as pages come',
+      () async {
+        var now = DateTime.utc(2026, 10, 29, 12);
+        var labelled = false;
+        when(() => api.getChannelsByIds(any())).thenAnswer(
+          (invocation) async => {
+            for (final id in invocation.positionalArguments.first as List)
+              id as String: channel(
+                id,
+                labelled && id == '1' ? ['SexualThemes'] : [],
+              ),
+          },
+        );
+        final store = LiveFeedStore(
+          authStore: auth,
+          settingsStore: settings,
+          twitchApi: api,
+          now: () => now,
+        );
+        for (var i = 0; i < 4; i++) {
+          await Future<void>.delayed(Duration.zero);
+        }
+        expect(store.labelsOf('1'), isEmpty);
+
+        labelled = true;
+        now = now.add(LiveFeedStoreBase.labelsTtl + const Duration(seconds: 1));
+        // The next page arrives.
+        store.setIndex(6);
+        for (var i = 0; i < 6; i++) {
+          await Future<void>.delayed(Duration.zero);
+        }
+        expect(store.labelsOf('1'), ['Sexual Themes']);
+        store.dispose();
+      },
+    );
+
     test('warnings off: nothing is read', () async {
       settings.warnMatureContent = false;
       final store = await build();

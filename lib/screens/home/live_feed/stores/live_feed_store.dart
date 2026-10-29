@@ -38,7 +38,9 @@ abstract class LiveFeedStoreBase with Store {
     required TwitchApi twitchApi,
     TwitchDirectoryService? directoryService,
     LiveFeedListFactory? listFactory,
+    DateTime Function()? now,
   }) : _twitchApi = twitchApi,
+       _now = now ?? DateTime.now,
        _listFactory =
            listFactory ??
            (({required type, categoryId}) => ListStore(
@@ -85,6 +87,12 @@ abstract class LiveFeedStoreBase with Store {
 
   final SettingsStore settingsStore;
   final TwitchApi _twitchApi;
+  final DateTime Function() _now;
+
+  /// How long a channel's labels are trusted: a channel may add some
+  /// mid-stream, so older ones are read again with the next page (and
+  /// every refresh reads them all again).
+  static const labelsTtl = Duration(minutes: 10);
   final LiveFeedListFactory _listFactory;
   late final ListStore _all;
   ListStore? _category;
@@ -114,6 +122,9 @@ abstract class LiveFeedStoreBase with Store {
 
   /// The channels whose labels are being read.
   final _reading = <String>{};
+
+  /// When each channel's labels were last read.
+  final _readAt = <String, DateTime>{};
   var _disposed = false;
 
   /// Whether [userId]'s labels were read (or could not be).
@@ -123,12 +134,22 @@ abstract class LiveFeedStoreBase with Store {
   /// not known (not read yet, or Twitch could not say).
   List<String>? labelsOf(String userId) => _labels[userId];
 
-  Future<void> _readLabels() async {
+  /// Reads the labels of the feed's channels not known yet, or read more
+  /// than [labelsTtl] ago ([again]: all of them, a refresh). Labels known
+  /// before stay when a new read fails: only channels never read become
+  /// unknown.
+  Future<void> _readLabels({bool again = false}) async {
     if (!settingsStore.warnMatureContent) return;
+    final now = _now();
+    bool due(String id) {
+      if (again || !_labels.containsKey(id)) return true;
+      final readAt = _readAt[id];
+      return readAt == null || now.difference(readAt) >= labelsTtl;
+    }
+
     final ids = [
       for (final stream in streams)
-        if (!_labels.containsKey(stream.userId) &&
-            !_reading.contains(stream.userId))
+        if (!_reading.contains(stream.userId) && due(stream.userId))
           stream.userId,
     ];
     if (ids.isEmpty) return;
@@ -146,10 +167,16 @@ abstract class LiveFeedStoreBase with Store {
             null => null,
           },
       };
+      for (final id in ids) {
+        _readAt[id] = now;
+      }
     } catch (e) {
       // Unknown: the previews ask first (they never fail open).
       debugPrint('Preview content labels unavailable: ${e.runtimeType}');
-      read = {for (final id in ids) id: null};
+      read = {
+        for (final id in ids)
+          if (_labels[id] == null) id: null,
+      };
     }
     _reading.removeAll(ids);
     if (_disposed) return;
@@ -240,10 +267,9 @@ abstract class LiveFeedStoreBase with Store {
     final kept = keepPosition ? current?.userId : null;
     final keptIndex = _index;
     if (!keepPosition) runInAction(() => _index = 0);
-    // Labels Twitch could not give are asked for again, now (the new list
-    // may bring the same channels, which would not ask again by itself).
-    runInAction(() => _labels.removeWhere((_, labels) => labels == null));
-    unawaited(_readLabels());
+    // Every channel's labels are read again (one may have added some
+    // mid-stream), also when the new list brings the same channels.
+    unawaited(_readLabels(again: true));
     list.lastTimeRefreshed = DateTime.now();
     await list.refreshStreams();
     // Not kept when the viewer moved meanwhile: they stay where they went,
