@@ -342,6 +342,27 @@ void main() {
     });
   });
 
+  test('a raid called off says so for 3 s, and never takes the viewer', () {
+    run((async) {
+      h.create();
+      async.flushMicrotasks();
+      h.send(HighlightTopic.raid, raidPayload('raid_update_v2'));
+      h.send(HighlightTopic.raid, raidPayload('raid_cancel_v2'));
+      expect(h.store.raid!.cancelled, isTrue);
+      expect(h.store.current!.kind, HighlightKind.raid);
+      // A late "go" of the same raid changes nothing.
+      h.send(HighlightTopic.raid, raidPayload('raid_go_v2'));
+      expect(h.store.raid!.cancelled, isTrue);
+      expect(h.wentAlong, isEmpty);
+      async.elapse(const Duration(milliseconds: 2900));
+      expect(h.store.raid, isNotNull);
+      async.elapse(const Duration(milliseconds: 200));
+      expect(h.store.raid, isNull);
+      expect(h.store.visible, isFalse);
+      h.store.dispose();
+    });
+  });
+
   test('a raid first seen leaving does not take the viewer', () {
     run((async) {
       h.create();

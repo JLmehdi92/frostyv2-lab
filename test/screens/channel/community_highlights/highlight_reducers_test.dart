@@ -247,6 +247,43 @@ void main() {
         ),
         isNull,
       );
+      // Called off before it left: final, whatever comes next.
+      final counting = reduceRaid(
+        null,
+        RaidEvent(RaidEventKind.update, raid()),
+        channelId: '1',
+      );
+      final cancelled = reduceRaid(
+        counting,
+        RaidEvent(RaidEventKind.cancel, raid()),
+        channelId: '1',
+      );
+      expect(cancelled!.cancelled, isTrue);
+      expect(cancelled.gone, isFalse);
+      for (final kind in RaidEventKind.values) {
+        expect(
+          reduceRaid(cancelled, RaidEvent(kind, raid()), channelId: '1'),
+          same(cancelled),
+        );
+      }
+      // Another raid replaces it.
+      expect(
+        reduceRaid(
+          cancelled,
+          RaidEvent(RaidEventKind.update, raid(id: 'r2')),
+          channelId: '1',
+        )!.cancelled,
+        isFalse,
+      );
+      // A cancel of another raid changes nothing.
+      expect(
+        reduceRaid(
+          counting,
+          RaidEvent(RaidEventKind.cancel, raid(id: 'r2')),
+          channelId: '1',
+        ),
+        same(counting),
+      );
       expect(
         reduceRaid(
           null,

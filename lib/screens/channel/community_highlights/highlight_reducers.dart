@@ -81,17 +81,22 @@ bool pinExpired(PinnedChatMessage pin, DateTime now) {
   return end != null && !now.isBefore(end);
 }
 
-/// An outgoing raid and whether it already left.
+/// An outgoing raid, and whether it already left or was called off.
 class RaidState {
-  const RaidState(this.raid, {this.gone = false});
+  const RaidState(this.raid, {this.gone = false, this.cancelled = false});
 
   final OutgoingRaid raid;
   final bool gone;
+
+  /// Called off before it left: it shows so for a moment, then goes away
+  /// (see kRaidCancelledLinger), and never takes the viewer along.
+  final bool cancelled;
 }
 
 /// The raid of [channelId] after [event]: another channel's raid is
-/// ignored, a cancel removes it, and the repeated "go" events change
-/// nothing once it left.
+/// ignored, a cancel before it left marks it called off (final: later
+/// events of that raid change nothing) and one after removes it, and the
+/// repeated "go" events change nothing once it left.
 RaidState? reduceRaid(
   RaidState? current,
   RaidEvent event, {
@@ -100,8 +105,14 @@ RaidState? reduceRaid(
   final raid = event.raid;
   if (raid.sourceId != channelId) return current;
   final same = current != null && current.raid.id == raid.id;
+  if (same && current.cancelled) return current;
   return switch (event.kind) {
-    RaidEventKind.cancel => same ? null : current,
+    RaidEventKind.cancel =>
+      !same
+          ? current
+          : current.gone
+          ? null
+          : RaidState(current.raid, cancelled: true),
     RaidEventKind.go =>
       same && current.gone ? current : RaidState(raid, gone: true),
     RaidEventKind.update => RaidState(raid, gone: same && current.gone),

@@ -19,6 +19,9 @@ const kPredictionResolvedMaxAge = Duration(minutes: 2);
 /// How long the raid card stays after the raid left.
 const kRaidAfterGoLinger = Duration(seconds: 60);
 
+/// How long a raid called off says so before it goes away.
+const kRaidCancelledLinger = Duration(seconds: 3);
+
 /// How long past its own departure time a raid that never said "go" or
 /// "cancel" (a lost event) stays up.
 const kRaidMissedGoMargin = Duration(seconds: 30);

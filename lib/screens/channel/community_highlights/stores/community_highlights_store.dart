@@ -81,6 +81,7 @@ abstract class CommunityHighlightsStoreBase with Store {
   final _predictionEnded = _FirstSeen();
   final _raidSeen = _FirstSeen();
   final _raidGone = _FirstSeen();
+  final _raidCancelled = _FirstSeen();
   final _lastFetch = <HighlightTopic, DateTime>{};
   final _inFlight = <HighlightTopic, Future<void>>{};
   final _trailing = <HighlightTopic, Timer>{};
@@ -255,11 +256,13 @@ abstract class CommunityHighlightsStoreBase with Store {
           urgent:
               before == null ||
               _nextRaid == null ||
-              before.gone != _nextRaid!.gone,
+              before.gone != _nextRaid!.gone ||
+              before.cancelled != _nextRaid!.cancelled,
         );
         final next = _nextRaid;
         if (before != null &&
             !before.gone &&
+            !before.cancelled &&
             next != null &&
             next.gone &&
             next.raid.id == before.raid.id &&
@@ -390,6 +393,9 @@ abstract class CommunityHighlightsStoreBase with Store {
     final raid = _nextRaid;
     _deadline(HighlightKind.raid, switch (raid) {
       null => null,
+      // Says so for a moment, from the first cancel seen.
+      RaidState(cancelled: true, :final raid) =>
+        _raidCancelled.of(raid.id, now).add(kRaidCancelledLinger),
       // From the first "go" (it is sent several times).
       RaidState(gone: true, :final raid) =>
         _raidGone.of(raid.id, now).add(kRaidAfterGoLinger),
