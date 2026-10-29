@@ -1251,11 +1251,9 @@ packages:
   simple_pip_mode:
     dependency: "direct main"
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "0da5255545e10b18883c737c9eca3ec619ccc2f6"
-      url: "https://github.com/tommyxchow/simple_pip_mode_flutter"
-    source: git
+      path: "packages/simple_pip_mode"
+      relative: true
+    source: path
     version: "1.0.0"
   sky_engine:
     dependency: transitive
