@@ -142,21 +142,13 @@ class _FollowedVideosScreenState extends State<FollowedVideosScreen>
     final store = widget.store;
     final videos = store.videos;
     final error = store.error;
-    final gutter = tablet ? AdaptiveSliverList.videoTileGutter : 0.0;
 
-    Widget grid(int count, NullableIndexedWidgetBuilder builder) {
-      final list = AdaptiveSliverList(
-        itemCount: count,
-        maxItemWidth: tablet
-            ? AdaptiveSliverList.videoTileWidth
-            : AdaptiveSliverList.rowCardWidth,
-        itemBuilder: builder,
-      );
-      return SliverPadding(
-        padding: EdgeInsets.symmetric(horizontal: gutter),
-        sliver: list,
-      );
-    }
+    Widget grid(int count, NullableIndexedWidgetBuilder builder) =>
+        AdaptiveSliverList.videos(
+          tiles: tablet,
+          itemCount: count,
+          itemBuilder: builder,
+        );
 
     if (videos.isEmpty) {
       if (store.loading) {

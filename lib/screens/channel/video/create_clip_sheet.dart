@@ -46,6 +46,9 @@ String? clipFramePreviewUrl(String? login) {
 
 final _login = RegExp(r'^[a-zA-Z0-9_]{1,25}$');
 
+String _frameCacheKey(String url, DateTime now) =>
+    '$url-${now.day}-${now.hour}-${now.minute ~/ 5}';
+
 /// The official app's Create Clip panel (board CreerClip): the clip is made
 /// as soon as it opens, over the live frame while Twitch works; once Twitch
 /// has it, its picture, Edit (twitch.tv's clip editor, where the title and
@@ -400,6 +403,9 @@ class _Working extends StatelessWidget {
                     ),
                     child: FrostyCachedNetworkImage(
                       imageUrl: frameUrl,
+                      // A frame of now, not one cached hours ago (the
+                      // stream cards' five-minute key).
+                      cacheKey: _frameCacheKey(frameUrl, DateTime.now()),
                       fit: BoxFit.cover,
                       errorWidget: (context, url, error) =>
                           const SizedBox.shrink(),

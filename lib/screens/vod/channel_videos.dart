@@ -90,7 +90,9 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen>
     vsync: this,
     initialIndex: widget.startOnClips
         ? _tabs.length
-        : _tabs.indexWhere((t) => t.$1 == widget.initialTab).clamp(0, 2),
+        : _tabs
+              .indexWhere((t) => t.$1 == widget.initialTab)
+              .clamp(0, _tabs.length - 1),
   );
 
   /// The tab under the underline: it follows a swipe as it passes half way.

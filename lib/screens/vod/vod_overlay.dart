@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -101,10 +102,10 @@ class _OverlayMetrics {
     topScrim: 64,
     bottomScrim: 88,
     edge: 2,
-    disc: 44,
-    discGlyph: 22,
-    skip: 40,
-    skipGlyph: 24,
+    disc: 40,
+    discGlyph: 20,
+    skip: 36,
+    skipGlyph: 22,
     centerGap: 16,
     seekSide: 12,
     seekBottom: 40,
@@ -315,7 +316,7 @@ class _VodOverlayState extends State<VodOverlay> {
                   child: AnimatedOpacity(
                     opacity: visible ? 1 : 0,
                     duration: fade,
-                    child: _controls(context, m),
+                    child: _controls(context, m, constraints.maxHeight),
                   ),
                 );
               },
@@ -326,7 +327,7 @@ class _VodOverlayState extends State<VodOverlay> {
     );
   }
 
-  Widget _controls(BuildContext context, _OverlayMetrics m) {
+  Widget _controls(BuildContext context, _OverlayMetrics m, double height) {
     final accent = context.frostyColors.live;
     return Stack(
       fit: StackFit.expand,
@@ -363,7 +364,10 @@ class _VodOverlayState extends State<VodOverlay> {
             ],
           ),
         ),
-        Positioned.fill(child: Center(child: _center(m))),
+        // Centred on the player, unless a short one would put the centre
+        // buttons under the top row or the seek bar's touch band: then
+        // centred between them.
+        _centerSlot(m, height),
         Positioned(
           left: m.edge,
           right: m.edge,
@@ -396,6 +400,21 @@ class _VodOverlayState extends State<VodOverlay> {
           child: _bottomRow(context, m, accent),
         ),
       ],
+    );
+  }
+
+  Widget _centerSlot(_OverlayMetrics m, double height) {
+    final top = m.edge + 44;
+    final bottom = m.seekBottom - 8 + 40;
+    final half = math.max(m.disc, m.skip) / 2;
+    final clear =
+        height / 2 - half >= top && height / 2 + half <= height - bottom;
+    return Positioned(
+      left: 0,
+      right: 0,
+      top: clear ? 0 : top,
+      bottom: clear ? 0 : bottom,
+      child: Center(child: _center(m)),
     );
   }
 
@@ -664,7 +683,9 @@ class _VodOverlayState extends State<VodOverlay> {
               ),
             _OverlayButton(
               tooltip: widget.isLandscape ? 'Exit full screen' : 'Full screen',
-              glyph: VideoGlyphKind.fullscreen,
+              glyph: widget.isLandscape
+                  ? VideoGlyphKind.exitFullscreen
+                  : VideoGlyphKind.fullscreen,
               below: false,
               onPressed: () async {
                 if (widget.isLandscape) {

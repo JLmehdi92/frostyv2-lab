@@ -310,6 +310,21 @@ void main() {
       await close(tester);
     });
 
+    testWidgets('a phone held sideways fits the clip and its details', (
+      tester,
+    ) async {
+      await pump(tester, first: ClipFeedPage(items: [clip('a'), clip('b')]));
+      tester.view.physicalSize = const Size(844, 390);
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      final box = tester.getRect(find.bySemanticsLabel(RegExp('Clip player')));
+      expect(box.bottom, lessThanOrEqualTo(390));
+      final open = tester.getRect(find.text('Open clip'));
+      expect(open.bottom, lessThanOrEqualTo(390));
+      await close(tester);
+    });
+
     testWidgets('the hint stands still under reduce motion', (tester) async {
       tester.platformDispatcher.accessibilityFeaturesTestValue =
           const FakeAccessibilityFeatures(disableAnimations: true);

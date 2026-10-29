@@ -6,6 +6,7 @@ import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/player_media.dart';
 import 'package:frosty/screens/vod/vod_overlay.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
+import 'package:frosty/screens/vod/widgets/video_glyph.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/fake_vod_controller.dart';
@@ -59,6 +60,7 @@ void main() {
               looping: looping,
               onToggleLoop: onToggleLoop,
               onCycleChatMode: onCycleChatMode,
+              isLandscape: isLandscape,
             ),
           ),
         ),
@@ -383,7 +385,33 @@ void main() {
       await pump(tester, size: const Size(320, 180));
 
       expect(tester.takeException(), isNull);
-      expect(tester.getSize(find.byTooltip('Play')).width, 44);
+      expect(tester.getSize(find.byTooltip('Play')).width, 40);
+    });
+
+    testWidgets('a 160 dp player keeps play clear of the seek bar', (
+      tester,
+    ) async {
+      await pump(tester, size: const Size(320, 160));
+      final play = tester.getRect(find.byTooltip('Play'));
+
+      await tester.tapAt(play.bottomCenter - const Offset(0, 2));
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tapAt(play.topCenter + const Offset(0, 2));
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(controller.calls, ['togglePlay', 'togglePlay']);
+    });
+
+    testWidgets('in landscape the button shows the way out', (tester) async {
+      await pump(tester, isLandscape: true);
+
+      final glyph = tester.widget<VideoGlyph>(
+        find.descendant(
+          of: find.byTooltip('Exit full screen'),
+          matching: find.byType(VideoGlyph),
+        ),
+      );
+      expect(glyph.kind, VideoGlyphKind.exitFullscreen);
     });
 
     testWidgets('the skip badge only fades under reduce motion', (

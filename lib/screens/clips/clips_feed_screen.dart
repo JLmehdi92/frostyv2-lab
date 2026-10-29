@@ -407,6 +407,11 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
     final padding = MediaQuery.paddingOf(context);
     return LayoutBuilder(
       builder: (context, constraints) {
+        // A phone held sideways: the clip fills the page, its details over
+        // the bottom (a gradient, never a blur).
+        if (constraints.maxWidth > constraints.maxHeight) {
+          return _buildWidePage(context, index, padding);
+        }
         final width = constraints.maxWidth;
         final videoTop = padding.top + 24;
         final videoHeight = width * 9 / 16;
@@ -497,6 +502,98 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildWidePage(BuildContext context, int index, EdgeInsets padding) {
+    final clip = _store.clips[index];
+    final title = clip.title.trim().isEmpty
+        ? 'Untitled clip'
+        : clip.title.trim();
+    final game = clip.gameName;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const ColoredBox(color: Colors.black),
+        Positioned(
+          left: padding.left,
+          right: padding.right,
+          top: padding.top,
+          bottom: padding.bottom,
+          child: _videoBox(index, large: false),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: DecoratedBox(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [Color(0xD1000000), Color(0x00000000)],
+              ),
+            ),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                16 + padding.left,
+                40,
+                16 + padding.right,
+                12 + padding.bottom,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                spacing: 16,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      spacing: 2,
+                      children: [
+                        Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontFamily: FrostyTokens.bodyFamily,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: FrostyTokens.textPrimaryDark,
+                          ),
+                        ),
+                        Text(
+                          [
+                            _channelOf(clip),
+                            if (game != null && game.isNotEmpty) game,
+                            _views(clip),
+                          ].join(' · '),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: FrostyType.tabular(
+                            const TextStyle(
+                              fontFamily: FrostyTokens.bodyFamily,
+                              fontSize: 13,
+                              color: FrostyTokens.textSecondaryDark,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  _OpenClipButton(onPressed: () => _openClip(clip), pill: true),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: _progress(index, height: 2, track: const Color(0x1FFFFFFF)),
+        ),
+      ],
     );
   }
 

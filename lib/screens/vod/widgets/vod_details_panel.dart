@@ -77,10 +77,13 @@ class VodDetailsPanel extends StatelessWidget {
         Expanded(child: content),
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
-          child: _Legend(
-            colors: colors,
-            muted: mutedSegments.isNotEmpty,
-            upNext: upNext ? settings.vodAutoplay : null,
+          // Its own observer: the autoplay setting can change meanwhile.
+          child: Observer(
+            builder: (context) => _Legend(
+              colors: colors,
+              muted: mutedSegments.isNotEmpty,
+              upNext: upNext ? settings.vodAutoplay : null,
+            ),
           ),
         ),
       ],

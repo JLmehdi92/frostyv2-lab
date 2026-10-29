@@ -54,15 +54,15 @@ class _VodChatReplayState extends State<VodChatReplay> {
 
   @override
   Widget build(BuildContext context) {
-    // One observer: the header follows the status the messages follow.
-    return Observer(
-      builder: (context) {
-        final status = _store.status;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (widget.showHeader)
-              _ReplayHeader(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // The header follows the status only, not each message.
+        if (widget.showHeader)
+          Observer(
+            builder: (context) {
+              final status = _store.status;
+              return _ReplayHeader(
                 large: widget.large,
                 syncLabel:
                     status == ReplayStatus.unavailable ||
@@ -71,26 +71,26 @@ class _VodChatReplayState extends State<VodChatReplay> {
                     : widget.syncLabel,
                 noteShown: _noteShown,
                 onNote: () => setState(() => _noteShown = !_noteShown),
-              ),
-            Expanded(
-              child: Stack(
-                children: [
-                  Positioned.fill(child: _body(context)),
-                  if (_noteShown)
-                    Positioned(
-                      left: 12,
-                      right: 12,
-                      top: 4,
-                      child: _EmotesNote(
-                        onClose: () => setState(() => _noteShown = false),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
+              );
+            },
+          ),
+        Expanded(
+          child: Stack(
+            children: [
+              Positioned.fill(child: Observer(builder: _body)),
+              if (_noteShown)
+                Positioned(
+                  left: 12,
+                  right: 12,
+                  top: 4,
+                  child: _EmotesNote(
+                    onClose: () => setState(() => _noteShown = false),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

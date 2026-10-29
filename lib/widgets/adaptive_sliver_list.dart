@@ -37,6 +37,25 @@ class AdaptiveSliverList extends StatelessWidget {
   final NullableIndexedWidgetBuilder itemBuilder;
   final double maxItemWidth;
 
+  /// Video cards: rows on a phone, or [tiles] in a grid with the tablet's
+  /// gutter (the cards' own 10 dp plus [videoTileGutter]).
+  static Widget videos({
+    required bool tiles,
+    required int itemCount,
+    required NullableIndexedWidgetBuilder itemBuilder,
+  }) {
+    final list = AdaptiveSliverList(
+      itemCount: itemCount,
+      maxItemWidth: tiles ? videoTileWidth : rowCardWidth,
+      itemBuilder: itemBuilder,
+    );
+    if (!tiles) return list;
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: videoTileGutter),
+      sliver: list,
+    );
+  }
+
   /// How many cards share a row in [width].
   @visibleForTesting
   static int columnsFor(

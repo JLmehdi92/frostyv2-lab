@@ -97,23 +97,12 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
     final store = widget.store;
     final clips = store.clips;
     final tiles = context.isLargeScreen;
-    Widget grid(int count, NullableIndexedWidgetBuilder builder) {
-      final list = AdaptiveSliverList(
-        itemCount: count,
-        maxItemWidth: tiles
-            ? AdaptiveSliverList.videoTileWidth
-            : AdaptiveSliverList.rowCardWidth,
-        itemBuilder: builder,
-      );
-      return tiles
-          ? SliverPadding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AdaptiveSliverList.videoTileGutter,
-              ),
-              sliver: list,
-            )
-          : list;
-    }
+    Widget grid(int count, NullableIndexedWidgetBuilder builder) =>
+        AdaptiveSliverList.videos(
+          tiles: tiles,
+          itemCount: count,
+          itemBuilder: builder,
+        );
 
     if (store.isLoading) {
       return grid(

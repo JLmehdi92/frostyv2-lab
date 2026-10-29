@@ -5,7 +5,6 @@ import 'package:frosty/screens/vod/vod_time.dart';
 import 'package:frosty/screens/vod/widgets/video_card_layout.dart';
 import 'package:frosty/screens/vod/widgets/video_glyph.dart';
 import 'package:frosty/screens/vod/widgets/vod_info_strip.dart';
-import 'package:intl/intl.dart';
 
 /// [vod]'s picture, or null while Twitch still serves its "processing"
 /// image (a video being encoded).
@@ -61,11 +60,7 @@ class VodCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final title = vod.title.trim().isEmpty ? 'Untitled' : vod.title.trim();
-    final details = [
-      formatTimeAgo(vod.createdAt),
-      '${NumberFormat().format(vod.viewCount)} '
-          '${vod.viewCount == 1 ? 'view' : 'views'}',
-    ].join(' · ');
+    final details = vodDetails(vod);
     final channel = vod.ownerDisplayName.isNotEmpty
         ? vod.ownerDisplayName
         : vod.ownerLogin;
