@@ -50,6 +50,10 @@ void main() {
     });
     when(player.play).thenAnswer((_) async => isPlaying = true);
     when(player.pause).thenAnswer((_) async => isPlaying = false);
+    when(player.playOrPause).thenAnswer((_) async {
+      isPlaying = !isPlaying;
+      playing.add(isPlaying);
+    });
     when(player.dispose).thenAnswer((_) async {});
 
     service = MockStreamService();
@@ -98,8 +102,12 @@ void main() {
     verifyNever(player.play);
     expect(isPlaying, isFalse);
 
+    // Accepted: re-opened, so it starts at the live edge, not where the
+    // warning left it.
     store.setContentGate(ContentGate.clear);
-    verify(player.play).called(1);
+    await pumpEventQueue();
+    verify(() => player.open(any(), play: true)).called(1);
+    expect(isPlaying, isTrue);
     store.dispose();
   });
 
@@ -120,7 +128,9 @@ void main() {
     verifyNever(player.play);
 
     store.setContentGate(ContentGate.clear);
-    verify(player.play).called(1);
+    await pumpEventQueue();
+    verify(() => player.open(any(), play: true)).called(1);
+    expect(isPlaying, isTrue);
     store.dispose();
   });
 
@@ -132,6 +142,74 @@ void main() {
     verify(() => player.open(any(), play: any(named: 'play'))).called(1);
     verifyNever(() => player.open(any(), play: false));
     verify(player.play).called(1);
+    store.dispose();
+  });
+
+  test('a resume while covered stays held, and plays once accepted', () async {
+    // Pending, playing; another player pauses it, the labels then cover it.
+    final store = create();
+    variants.complete([variant]);
+    await store.ready;
+    store.setContentGate(ContentGate.pending);
+    store.handlePausePlay();
+    expect(isPlaying, isFalse);
+    store.setContentGate(ContentGate.covering);
+    clearInteractions(player);
+
+    // The other player closes: its resume must not start the covered stream.
+    store.handlePausePlay();
+    await pumpEventQueue();
+    expect(isPlaying, isFalse);
+    verifyNever(player.play);
+
+    store.setContentGate(ContentGate.clear);
+    await pumpEventQueue();
+    verify(() => player.open(any(), play: true)).called(1);
+    expect(isPlaying, isTrue);
+    store.dispose();
+  });
+
+  test('a play reported while covered is paused at once', () async {
+    final store = create();
+    variants.complete([variant]);
+    await store.ready;
+    isPlaying = false;
+    store.setContentGate(ContentGate.covering);
+    clearInteractions(player);
+
+    // Whatever started it (the OS, a toggle, a late open).
+    isPlaying = true;
+    playing.add(true);
+    await pumpEventQueue();
+    verify(player.pause).called(1);
+    expect(isPlaying, isFalse);
+
+    store.setContentGate(ContentGate.clear);
+    await pumpEventQueue();
+    verify(() => player.open(any(), play: true)).called(1);
+    store.dispose();
+  });
+
+  test('covered while the load is starting playback: held', () async {
+    final started = Completer<void>();
+    when(player.play).thenAnswer((_) => started.future);
+    final store = create();
+    variants.complete([variant]);
+    await pumpEventQueue();
+    // open(play: true) went out; play() has not returned yet.
+    verify(() => player.open(any(), play: true)).called(1);
+    isPlaying = false;
+
+    store.setContentGate(ContentGate.covering);
+    // Playback actually starts now.
+    isPlaying = true;
+    playing.add(true);
+    started.complete();
+    await store.ready;
+    await pumpEventQueue();
+
+    verify(player.pause).called(1);
+    expect(isPlaying, isFalse);
     store.dispose();
   });
 }

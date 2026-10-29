@@ -110,9 +110,16 @@ abstract class NativeVideoStoreBase with Store implements PlayerController {
     if (settingsStore.autoSyncChatDelay) settingsStore.syncedChatDelay = 0.0;
 
     _subscriptions.add(
-      player.stream.playing.listen(
-        (playing) => runInAction(() => _paused = !playing),
-      ),
+      player.stream.playing.listen((playing) {
+        runInAction(() => _paused = !playing);
+        // Whatever started it (a resume after another player, the OS, a load
+        // that was already starting), a covered stream does not play: held,
+        // and started again only once the warning is accepted.
+        if (playing && _covered) {
+          _heldForContentGate = true;
+          unawaited(player.pause());
+        }
+      }),
     );
 
     // Estimate distance-from-live (live edge minus current position) to drive
@@ -185,7 +192,10 @@ abstract class NativeVideoStoreBase with Store implements PlayerController {
     );
 
     // A covered stream opens paused: the content warning holds it.
-    await player.open(Media(_variants[_streamQualityIndex].url), play: !_covered);
+    await player.open(
+      Media(_variants[_streamQualityIndex].url),
+      play: !_covered,
+    );
     if (_covered) {
       // Covered while it opened: held all the same.
       _heldForContentGate = true;
@@ -236,7 +246,14 @@ abstract class NativeVideoStoreBase with Store implements PlayerController {
   }
 
   @override
-  void handlePausePlay() => player.playOrPause();
+  void handlePausePlay() {
+    // A resume while covered is remembered, not played (the warning is up).
+    if (_covered && !player.state.playing) {
+      _heldForContentGate = true;
+      return;
+    }
+    unawaited(player.playOrPause());
+  }
 
   @override
   @action
@@ -307,7 +324,22 @@ abstract class NativeVideoStoreBase with Store implements PlayerController {
       }
     } else if (gate == ContentGate.clear && _heldForContentGate) {
       _heldForContentGate = false;
-      unawaited(player.play());
+      unawaited(_reopenAtLiveEdge());
+    }
+  }
+
+  /// Re-opens the stream rather than resuming it: a stream held while the
+  /// warning was up would otherwise start as far behind live as the time
+  /// spent reading it.
+  Future<void> _reopenAtLiveEdge() async {
+    runInAction(() => _latency = null);
+    _lastLatencySecond = null;
+    try {
+      await _load();
+    } catch (e) {
+      debugPrint('NativeVideoStore re-open after the warning failed: $e');
+      // Behind live beats not playing at all.
+      if (!_covered) unawaited(player.play());
     }
   }
 
