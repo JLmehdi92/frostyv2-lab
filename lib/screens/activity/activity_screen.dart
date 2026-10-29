@@ -207,8 +207,10 @@ class _NotificationsList extends StatefulWidget {
 }
 
 class _NotificationsListState extends State<_NotificationsList> {
-  /// Rows folding away before they are removed.
-  final _removing = <String>{};
+  /// Rows folding away, kept on screen while they fold: the notification
+  /// itself is removed at once (the fold is only the look), so leaving the
+  /// list mid-fold cannot bring it back.
+  final _folding = <String, ActivityEntry>{};
 
   void _open(ActivityEntry entry) {
     unawaited(widget.store.markRead(entry.id));
@@ -216,19 +218,16 @@ class _NotificationsListState extends State<_NotificationsList> {
     if (login != null) widget.onOpenChannel(login);
   }
 
-  /// "Remove notification": the row folds (300 ms), then goes.
+  /// "Remove notification": removed, and the row folds (300 ms).
   void _remove(ActivityEntry entry) {
-    if (reduceMotionOf(context)) {
-      unawaited(widget.store.remove(entry.id));
-      return;
-    }
-    setState(() => _removing.add(entry.id));
+    unawaited(widget.store.remove(entry.id));
+    if (reduceMotionOf(context)) return;
+    setState(() => _folding[entry.id] = entry);
   }
 
-  /// Folded: removed from the list (still there if storage refused).
-  Future<void> _folded(String id) async {
-    await widget.store.remove(id);
-    if (mounted) setState(() => _removing.remove(id));
+  /// Folded: the row goes (it comes back if storage refused the removal).
+  void _folded(String id) {
+    if (mounted) setState(() => _folding.remove(id));
   }
 
   Future<void> _menu(BuildContext rowContext, ActivityEntry entry) async {
@@ -303,7 +302,14 @@ class _NotificationsListState extends State<_NotificationsList> {
     return Observer(
       builder: (context) {
         final store = widget.store;
-        final entries = store.entries;
+        final stored = store.entries;
+        final ids = {for (final e in stored) e.id};
+        // The rows still folding away are shown in their place.
+        final entries = [
+          ...stored,
+          for (final e in _folding.values)
+            if (!ids.contains(e.id)) e,
+        ]..sort((a, b) => b.at.compareTo(a.at));
         final at = widget.now();
         // Twitch splits at a day: "Most Recent", then "Earlier".
         final recent = [
@@ -318,8 +324,8 @@ class _NotificationsListState extends State<_NotificationsList> {
 
         Widget row(ActivityEntry entry) => _Folding(
           key: ValueKey(entry.id),
-          folding: _removing.contains(entry.id),
-          onFolded: () => unawaited(_folded(entry.id)),
+          folding: _folding.containsKey(entry.id),
+          onFolded: () => _folded(entry.id),
           child: Builder(
             builder: (rowContext) => _EntryRow(
               entry: entry,
@@ -520,6 +526,16 @@ class _FoldingState extends State<_Folding>
     value: 1,
   );
 
+  /// Made once: a curve made in build would add a listener at each build.
+  late final _size = CurvedAnimation(
+    parent: _controller,
+    curve: FrostyMotion.standard,
+  );
+  late final _fade = CurvedAnimation(
+    parent: _controller,
+    curve: const Interval(1 / 3, 1),
+  );
+
   @override
   void initState() {
     super.initState();
@@ -545,26 +561,18 @@ class _FoldingState extends State<_Folding>
 
   @override
   void dispose() {
+    _size.dispose();
+    _fade.dispose();
     _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = CurvedAnimation(
-      parent: _controller,
-      curve: FrostyMotion.standard,
-    );
     return SizeTransition(
-      sizeFactor: size,
+      sizeFactor: _size,
       axisAlignment: -1,
-      child: FadeTransition(
-        opacity: CurvedAnimation(
-          parent: _controller,
-          curve: const Interval(1 / 3, 1),
-        ),
-        child: widget.child,
-      ),
+      child: FadeTransition(opacity: _fade, child: widget.child),
     );
   }
 }

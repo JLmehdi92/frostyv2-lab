@@ -300,6 +300,22 @@ void main() {
     expect(store.newCount, 0);
   });
 
+  testWidgets('removed at once: the fold is only the look', (tester) async {
+    await store.addAll([_entry('a', ago: const Duration(minutes: 5))]);
+    await pump(tester);
+    await tester.longPress(find.text('Title a'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove notification'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    // Mid-fold, the list goes (a tab switch, a phone-tablet switch).
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(store.entries, isEmpty);
+    await store.refresh();
+    expect(store.entries, isEmpty);
+  });
+
   testWidgets('a long press with reduce motion removes it at once', (
     tester,
   ) async {
