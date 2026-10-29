@@ -91,7 +91,8 @@ void main() {
       'tel:+15555550100',
       'market://details?id=x',
       'content://contacts/people/1',
-      'example.com',
+      'mailto:someone@example.com',
+      'tel:+15555550100',
       '://broken',
     ]) {
       await LinkRouter.open(link, launchExternal: true);
@@ -101,9 +102,12 @@ void main() {
 
     await LinkRouter.open('http://example.com/a', launchExternal: true);
     await LinkRouter.open('HTTPS://example.com/b', launchExternal: false);
+    // Written in chat without a scheme: https.
+    await LinkRouter.open('youtube.com/watch?v=abc', launchExternal: true);
     expect(launched.map((l) => l.$1.toString()), [
       'http://example.com/a',
       'https://example.com/b',
+      'https://youtube.com/watch?v=abc',
     ]);
   });
 
