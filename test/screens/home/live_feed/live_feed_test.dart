@@ -528,6 +528,54 @@ void main() {
     await close(tester);
   });
 
+  for (final (name, size) in [
+    ('phone', const Size(390, 844)),
+    ('tablet', const Size(1280, 854)),
+  ]) {
+    testWidgets('$name: the enlarged picture never blurs over a playing '
+        'preview; it plays again once the picture closes', (tester) async {
+      await pump(tester, size: size);
+      expect(log, ['open https://usher/login1']);
+      final video = find.byKey(const ValueKey('preview-video'));
+      final blur = find.byType(BackdropFilter);
+      expect(video, findsOneWidget);
+
+      await tester.longPress(
+        find.bySemanticsLabel(RegExp('Name 1 live preview')),
+      );
+      // Every frame of the dialog coming in: never a blur over the video.
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+        expect(
+          blur.evaluate().isNotEmpty && video.evaluate().isNotEmpty,
+          isFalse,
+          reason: 'frame $i',
+        );
+      }
+      expect(find.byType(FrostyPhotoViewDialog), findsOneWidget);
+      await tester.pump(const Duration(seconds: 1));
+      expect(log, [
+        'open https://usher/login1',
+        'dispose https://usher/login1',
+      ]);
+
+      Navigator.of(tester.element(find.byType(FrostyPhotoViewDialog))).pop();
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+        expect(
+          blur.evaluate().isNotEmpty && video.evaluate().isNotEmpty,
+          isFalse,
+          reason: 'closing, frame $i',
+        );
+      }
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byType(FrostyPhotoViewDialog), findsNothing);
+      expect(log.last, 'open https://usher/login1');
+      expect(video, findsOneWidget);
+      await close(tester);
+    });
+  }
+
   testWidgets('logged out: no Follow', (tester) async {
     loggedIn = false;
     await pump(tester);

@@ -107,10 +107,11 @@ Route<void> streamRoute(StreamTwitch stream) => MaterialPageRoute(
 Future<void> openStream(BuildContext context, StreamTwitch stream) =>
     Navigator.push(context, streamRoute(stream));
 
-/// Shows [stream]'s preview picture full screen (a long press on it).
-void enlargeThumbnail(BuildContext context, StreamTwitch stream) {
+/// Shows [stream]'s preview picture full screen (a long press on it);
+/// completes once it is closed.
+Future<void> enlargeThumbnail(BuildContext context, StreamTwitch stream) {
   HapticFeedback.lightImpact();
-  showDialog<void>(
+  return showDialog<void>(
     context: context,
     builder: (context) => FrostyPhotoViewDialog(
       // The original URL, with its {width}x{height}.

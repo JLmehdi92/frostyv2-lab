@@ -206,6 +206,10 @@ class _LiveFeedState extends State<LiveFeed> {
   /// preview may start under its player, whatever else changes meanwhile.
   var _channelOpen = false;
 
+  /// The enlarged picture is open: its blurred backdrop must never cover a
+  /// playing preview, so none plays until it is closed.
+  var _dialogOpen = false;
+
   StreamSubscription<bool?>? _meteredChanges;
 
   late final ValueListenable<bool> _intro =
@@ -342,6 +346,7 @@ class _LiveFeedState extends State<LiveFeed> {
     _preview.setActive(
       widget.active &&
           !_channelOpen &&
+          !_dialogOpen &&
           !_intro.value &&
           _tickers &&
           _foreground &&
@@ -434,11 +439,20 @@ class _LiveFeedState extends State<LiveFeed> {
     _reportError();
   }
 
-  void _enlarge(StreamTwitch stream) {
-    if (_settings.showThumbnails) {
-      enlargeThumbnail(context, stream);
-    } else {
+  Future<void> _enlarge(StreamTwitch stream) async {
+    if (!_settings.showThumbnails) {
       showStreamActions(context, stream);
+      return;
+    }
+    if (_dialogOpen) return;
+    // The preview goes before the dialog draws its first frame.
+    _dialogOpen = true;
+    _sync();
+    try {
+      await enlargeThumbnail(context, stream);
+    } finally {
+      _dialogOpen = false;
+      _sync();
     }
   }
 
@@ -593,7 +607,7 @@ class _LiveFeedState extends State<LiveFeed> {
                   onOpen: () => unawaited(_open(stream)),
                   onPreload: () => preloadStream(context, stream),
                   onActions: () => showStreamActions(context, stream),
-                  onEnlarge: () => _enlarge(stream),
+                  onEnlarge: () => unawaited(_enlarge(stream)),
                   onNotInterested: () => _notInterested(stream),
                   onPlay: () => _playByHand(stream),
                 ),
@@ -659,7 +673,7 @@ class _LiveFeedState extends State<LiveFeed> {
                     onOpen: () => unawaited(_open(stream)),
                     onPreload: () => preloadStream(context, stream),
                     onActions: () => showStreamActions(context, stream),
-                    onEnlarge: () => _enlarge(stream),
+                    onEnlarge: () => unawaited(_enlarge(stream)),
                     onNotInterested: () => _notInterested(stream),
                     onPlay: () => _playByHand(stream),
                   ),
