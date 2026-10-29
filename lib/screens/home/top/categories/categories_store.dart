@@ -36,6 +36,9 @@ abstract class CategoriesStoreBase with Store {
   @readonly
   String? _error;
 
+  /// Whether the next page (not a refresh) is loading.
+  bool get isLoadingMore => _isLoading && _categoriesCursor != null;
+
   /// Returns whether or not there are more streams and loading status for pagination.
   @computed
   bool get hasMore => _isLoading == false && _categoriesCursor != null;

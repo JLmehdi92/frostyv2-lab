@@ -12,6 +12,7 @@ import 'package:frosty/models/category.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/models/user.dart';
 import 'package:frosty/screens/home/home_store.dart';
+import 'package:frosty/screens/home/stream_list/stream_card.dart';
 import 'package:frosty/screens/home/stream_list/stream_list_store.dart';
 import 'package:frosty/screens/home/stream_list/streams_list.dart';
 import 'package:frosty/screens/home/top/browse_page.dart';
@@ -349,6 +350,94 @@ void main() {
       find.text('Last game'),
       300,
       scrollable: find.byType(Scrollable).first,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a page that fails is not asked for again by itself', (
+    tester,
+  ) async {
+    var pages = 0;
+    when(() => api.getTopCategories()).thenAnswer(
+      (_) async => CategoriesTwitch(
+        [
+          for (var i = 0; i < 30; i++)
+            CategoryTwitch('https://art/{width}x{height}.jpg', '$i', 'Game $i'),
+        ],
+        const {'cursor': 'page2'},
+      ),
+    );
+    when(() => api.getTopCategories(cursor: 'page2')).thenAnswer((_) async {
+      pages++;
+      throw Exception('offline');
+    });
+    await pump(tester);
+    await tester.scrollUntilVisible(
+      find.text('Game 29'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await settle(tester);
+    await settle(tester);
+    expect(pages, 1);
+    // The grid stays, with a way to try the page again.
+    expect(find.text('Game 29'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Try again'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Try again'));
+    await settle(tester);
+    expect(pages, 2);
+  });
+
+  testWidgets('a refresh adds no row of loading tiles', (tester) async {
+    final refresh = Completer<CategoriesTwitch>();
+    await pump(tester);
+    when(() => api.getTopCategories()).thenAnswer((_) => refresh.future);
+    await tester.fling(
+      find.byType(CustomScrollView),
+      const Offset(0, 400),
+      1000,
+    );
+    await settle(tester);
+    expect(find.byType(CategoryTile), findsNWidgets(_categories.length));
+    expect(find.byType(CategoryTileSkeleton), findsNothing);
+    refresh.complete(const CategoriesTwitch(_categories, {}));
+    await settle(tester);
+  });
+
+  testWidgets('the pane keeps a category a refresh no longer lists', (
+    tester,
+  ) async {
+    await pump(tester, size: const Size(1280, 854));
+    await tester.tap(find.text('Counter-Strike').first);
+    await settle(tester);
+    when(() => api.getTopCategories()).thenAnswer(
+      (_) async => CategoriesTwitch(_categories.take(2).toList(), const {}),
+    );
+    await tester.fling(
+      find.byType(CustomScrollView).first,
+      const Offset(0, 400),
+      1000,
+    );
+    await settle(tester);
+    expect(find.byType(CategoryTile), findsNWidgets(2));
+    expect(
+      tester.widget<CategoryView>(find.byType(CategoryView)).categoryId,
+      '32399',
+    );
+  });
+
+  testWidgets('a short landscape tablet keeps the pane\'s grid', (
+    tester,
+  ) async {
+    await pump(tester, size: const Size(1280, 610));
+    // The tiles of the pane's streams: thumbnail on top, three a row.
+    expect(
+      find.byWidgetPredicate((widget) => widget is StreamCard && widget.tile),
+      findsOneWidget,
     );
     expect(tester.takeException(), isNull);
   });

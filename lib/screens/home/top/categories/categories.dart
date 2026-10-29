@@ -198,7 +198,10 @@ class _CategoriesState extends State<Categories>
               }
 
               final selectedId = widget.selectedId;
-              final loadingMore = _store.isLoading;
+              final loadingMore = _store.isLoadingMore;
+              // A page that failed is not asked for again by itself (it
+              // would be, at every rebuild): "Try again" or a refresh does.
+              final pagingFailed = error != null && _store.hasMore;
               return FrostyScrollbar(
                 controller: widget.scrollController,
                 padding: EdgeInsets.only(
@@ -230,12 +233,15 @@ class _CategoriesState extends State<Categories>
                             return const CategoryTileSkeleton();
                           }
                           if (index > categories.length - 10 &&
-                              _store.hasMore) {
+                              _store.hasMore &&
+                              !pagingFailed) {
                             // After the frame: the next page flips the
                             // loading state this grid reads, which must not
                             // change while it is being laid out.
                             WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (mounted && _store.hasMore) {
+                              if (mounted &&
+                                  _store.hasMore &&
+                                  _store.error == null) {
                                 _store.getCategories();
                               }
                             });
@@ -252,6 +258,22 @@ class _CategoriesState extends State<Categories>
                           );
                         },
                       ),
+                      if (pagingFailed)
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: Center(
+                              child: TextButton.icon(
+                                onPressed: _store.getCategories,
+                                icon: const Icon(
+                                  Icons.refresh_rounded,
+                                  size: 18,
+                                ),
+                                label: const Text('Try again'),
+                              ),
+                            ),
+                          ),
+                        ),
                       SliverToBoxAdapter(
                         child: SizedBox(
                           height: padding.bottom + (widget.rail ? 32 : 0),

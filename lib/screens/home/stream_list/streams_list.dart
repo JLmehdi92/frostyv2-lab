@@ -736,7 +736,9 @@ class _StreamsListState extends State<StreamsList>
   List<Widget> _skeleton(BuildContext context, SettingsStore settings) {
     final large = context.isLargeScreen;
     final thumbnails = settings.showThumbnails;
-    final showCategory = widget.listType != ListType.category;
+    // A category's rows name their viewers where the others name the
+    // category (with thumbnails): the same height either way.
+    final showCategory = widget.listType != ListType.category || thumbnails;
     final heroAll = settings.largeStreamCard && thumbnails;
     if (_following && !large) {
       return [

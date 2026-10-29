@@ -96,10 +96,9 @@ class _BrowsePageState extends State<BrowsePage> {
     return Observer(
       builder: (context) {
         final categories = _categories.categories;
-        final picked = _picked;
-        final selected = picked != null && categories.any((c) => c.id == picked)
-            ? picked
-            : categories.firstOrNull?.id;
+        // The pick stays even when a refresh no longer lists it (it was on
+        // a later page): the pane keeps it, only the ring goes.
+        final selected = _picked ?? categories.firstOrNull?.id;
         return Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -165,11 +164,12 @@ class _CategoryPane extends StatelessWidget {
           builder: (context, constraints) {
             final media = MediaQuery.of(context);
             return MediaQuery(
-              // The pane is the category's whole window: its grid counts
-              // its columns in the pane, and nothing pads it but the
-              // system's bottom inset.
+              // The pane is the category's window: its grid counts its
+              // columns in the pane's width (its height stays the screen's,
+              // so a short pane is not taken for a phone), and nothing pads
+              // it but the system's bottom inset.
               data: media.copyWith(
-                size: constraints.biggest,
+                size: Size(constraints.maxWidth, media.size.height),
                 padding: EdgeInsets.only(bottom: media.padding.bottom),
                 viewPadding: EdgeInsets.only(bottom: media.viewPadding.bottom),
               ),
