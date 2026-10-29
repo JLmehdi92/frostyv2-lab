@@ -38,4 +38,16 @@ abstract class PlayerController {
   void togglePictureInPicture();
   void handleAppResume();
   void dispose();
+
+  /// Whether the mature-content warning covers the stream: it stays paused,
+  /// no picture-in-picture shows it and nothing resumes it until accepted.
+  bool get contentGated;
+  void setContentGated(bool gated);
+}
+
+/// The picture-in-picture window's play / pause: nothing while the content
+/// warning covers the stream (it was never accepted).
+void pipPlayPause(PlayerController player) {
+  if (player.contentGated) return;
+  player.handlePausePlay();
 }

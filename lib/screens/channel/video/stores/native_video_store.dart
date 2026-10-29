@@ -265,6 +265,15 @@ abstract class NativeVideoStoreBase with Store implements PlayerController {
   @override
   void togglePictureInPicture() => requestPictureInPicture();
 
+  /// This engine has no picture-in-picture; the flag is only kept.
+  var _contentGated = false;
+
+  @override
+  bool get contentGated => _contentGated;
+
+  @override
+  void setContentGated(bool gated) => _contentGated = gated;
+
   void _scheduleOverlayHide([Duration delay = const Duration(seconds: 5)]) {
     _overlayTimer?.cancel();
     _overlayTimer = Timer(

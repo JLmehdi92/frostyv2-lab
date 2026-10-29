@@ -175,8 +175,21 @@ abstract class VideoStoreBase with Store implements WebPagePlayer {
 
   ReactionDisposer? _disposeAndroidAutoPipReaction;
 
+  /// True while the mature-content warning covers the stream (observable
+  /// without codegen: the auto-PiP autorun follows it).
+  final _contentGated = Observable(false);
+
+  bool get contentGated => _contentGated.value;
+
+  void setContentGated(bool gated) =>
+      runInAction(() => _contentGated.value = gated);
+
   Future<void> _applyAutoPip() async {
-    if (settingsStore.showVideo && await SimplePip.isAutoPipAvailable) {
+    // Read first: the autorun follows it (a covered stream never goes to
+    // picture-in-picture on its own).
+    if (!_contentGated.value &&
+        settingsStore.showVideo &&
+        await SimplePip.isAutoPipAvailable) {
       pip.setAutoPipMode();
     } else {
       pip.setAutoPipMode(autoEnter: false);
@@ -1138,6 +1151,7 @@ $kTwitchWebGateShownJs
   /// On Android, this will utilize the native Android PiP API.
   /// On iOS, this will utilize the web picture-in-picture API.
   void requestPictureInPicture() {
+    if (_contentGated.value) return;
     try {
       if (Platform.isAndroid) {
         pip.enterPipMode(autoEnter: true);

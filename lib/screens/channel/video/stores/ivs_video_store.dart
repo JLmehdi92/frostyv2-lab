@@ -524,7 +524,11 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   }
 
   Future<void> _applyAutoPip() async {
-    if (settingsStore.showVideo && await SimplePip.isAutoPipAvailable) {
+    // Read first: the autorun follows it (a covered stream never goes to
+    // picture-in-picture on its own).
+    if (!_contentGated.value &&
+        settingsStore.showVideo &&
+        await SimplePip.isAutoPipAvailable) {
       pip.setAutoPipMode();
     } else {
       pip.setAutoPipMode(autoEnter: false);
@@ -561,7 +565,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         if (_pausedForFocus) {
           _pausedForFocus = false;
           // A VOD on top has the sound now.
-          if (_paused && !_focusSuppressed) handlePausePlay();
+          if (_paused && !_holdsPlayback) handlePausePlay();
         }
     }
   }
@@ -579,7 +583,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     switch (command) {
       case MediaCommand.play:
         // A VOD on top has the sound: it would pause this again at once.
-        if (_paused && !_focusSuppressed) handlePausePlay();
+        if (_paused && !_holdsPlayback) handlePausePlay();
       case MediaCommand.pause:
         _keepPausedAfterCall();
         if (!_paused) handlePausePlay();
@@ -592,6 +596,21 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
 
   /// True while another player (a VOD on top) has playback focus.
   var _focusSuppressed = false;
+
+  /// True while the mature-content warning covers the stream (observable
+  /// without codegen: the auto-PiP autorun follows it).
+  final _contentGated = Observable(false);
+
+  @override
+  bool get contentGated => _contentGated.value;
+
+  @override
+  void setContentGated(bool gated) =>
+      runInAction(() => _contentGated.value = gated);
+
+  /// Nothing may start the sound on its own: a VOD on top has it, or the
+  /// content warning was not accepted.
+  bool get _holdsPlayback => _focusSuppressed || _contentGated.value;
 
   /// Keeps this stream silent while another player has focus: automatic
   /// playback after a load or a reconnect is paused again.
@@ -724,8 +743,9 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
           _pausedAt = null;
           _lastErrorRefused = false;
           _audioNotificationStopped = false;
-          // Native auto-play after a (re)load while a VOD on top has focus.
-          if (_focusSuppressed) _channel?.invokeMethod('pause');
+          // Native auto-play after a (re)load while a VOD on top has focus
+          // or the content warning is up.
+          if (_holdsPlayback) _channel?.invokeMethod('pause');
           _paused = false;
           _status = IvsPlaybackStatus.playing;
           if (_startupMs == null) {
@@ -1265,6 +1285,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
 
   @override
   void requestPictureInPicture() {
+    if (_contentGated.value) return;
     if (Platform.isAndroid) pip.enterPipMode(autoEnter: true);
   }
 

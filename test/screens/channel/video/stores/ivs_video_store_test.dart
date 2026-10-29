@@ -819,6 +819,26 @@ void main() {
     });
   });
 
+  group('content warning', () {
+    test(
+      'a covered stream is paused again when it starts on its own',
+      () async {
+        store = await createStore();
+        store.setContentGated(true);
+        expect(store.contentGated, isTrue);
+
+        await native.emit({'type': 'state', 'state': 'PLAYING'});
+        expect(native.callsNamed('pause'), hasLength(1));
+
+        // Accepted: the native auto-play is left alone again.
+        store.setContentGated(false);
+        native.playerCalls.clear();
+        await native.emit({'type': 'state', 'state': 'PLAYING'});
+        expect(native.callsNamed('pause'), isEmpty);
+      },
+    );
+  });
+
   group('audio focus', () {
     const focusChannel = MethodChannel('frosty/audio-focus-ivs-test');
     final messenger =
