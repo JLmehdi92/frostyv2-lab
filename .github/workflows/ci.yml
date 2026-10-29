@@ -14,8 +14,12 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v6
+      # Pinned: newer Flutter releases break extended_text_field and
+      # simple_icons and deprecate APIs the code still uses.
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: 3.38.4
+          channel: stable
           cache: true
       - run: flutter doctor -v
       - run: flutter pub get

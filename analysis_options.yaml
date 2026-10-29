@@ -15,7 +15,7 @@ analyzer:
     - build/**
     - ios/**
     - android/**
-    - web/**
+    - packages/**
 
 linter:
   # The lint rules applied to this project can be customized in the
