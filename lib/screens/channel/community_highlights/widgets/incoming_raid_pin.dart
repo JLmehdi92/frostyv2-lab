@@ -1,0 +1,184 @@
+import 'package:flutter/material.dart';
+import 'package:frosty/screens/channel/chat/incoming_raid.dart';
+import 'package:frosty/screens/channel/community_highlights/widgets/raid_avatar.dart';
+import 'package:frosty/theme.dart';
+import 'package:frosty/widgets/celebrations/onset_rocket.dart';
+import 'package:frosty/widgets/motion/motion.dart';
+import 'package:frosty/widgets/motion/reduce_motion.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:frosty/widgets/sheet/sheet_glyph.dart';
+import 'package:intl/intl.dart';
+
+/// "X is raiding with N viewers" (board Raids, incoming pin): a 54 dp row
+/// with 14 dp corners, the raider's picture with the ONSET rocket flying
+/// in, and a close button. It leaves by itself after a few seconds.
+class IncomingRaidPin extends StatelessWidget {
+  const IncomingRaidPin({super.key, required this.raid, this.onDismiss});
+
+  final IncomingRaid raid;
+  final VoidCallback? onDismiss;
+
+  static const _height = 54.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = SheetColors.of(context);
+    final viewers = NumberFormat.decimalPattern().format(raid.viewers);
+    final noun = raid.viewers == 1 ? 'viewer' : 'viewers';
+    final reduceMotion = reduceMotionOf(context);
+    final textScaler = MediaQuery.textScalerOf(
+      context,
+    ).clamp(maxScaleFactor: 1.3);
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.3,
+      child: Semantics(
+        container: true,
+        liveRegion: true,
+        label: '${raid.raiderName} is raiding with $viewers $noun',
+        child: Container(
+          constraints: BoxConstraints(minHeight: textScaler.scale(_height)),
+          padding: const EdgeInsetsDirectional.only(start: 8, end: 4),
+          decoration: ShapeDecoration(
+            color: colors.sheet,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: BorderSide(
+                color: colors.ring,
+                width: FrostyTokens.hairlineWidth,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              SizedBox.square(
+                dimension: 42,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned(
+                      left: 0,
+                      top: 4,
+                      child: RaidAvatar(
+                        name: raid.raiderName,
+                        url: raid.avatarUrl,
+                        login: raid.raiderLogin,
+                        size: 34,
+                      ),
+                    ),
+                    Positioned(
+                      right: -4,
+                      top: -2,
+                      child: reduceMotion
+                          ? const OnsetRocket()
+                          : const _FlyIn(child: OnsetRocket(flicker: true)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ExcludeSemantics(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: raid.raiderName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              TextSpan(text: ' is raiding with '),
+                              TextSpan(
+                                text: viewers,
+                                style: const TextStyle(
+                                  fontFeatures: [
+                                    FontFeature.tabularFigures(),
+                                  ],
+                                ),
+                              ),
+                              TextSpan(text: ' $noun'),
+                            ],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: FrostyTokens.bodyFamily,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            height: 1.3,
+                            color: colors.text,
+                          ),
+                        ),
+                        Text(
+                          'Say hi in chat',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: FrostyTokens.bodyFamily,
+                            fontSize: 12,
+                            height: 1.3,
+                            color: colors.secondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              if (onDismiss != null)
+                IconButton(
+                  tooltip: 'Hide',
+                  style: IconButton.styleFrom(
+                    fixedSize: const Size(40, 40),
+                    minimumSize: const Size(40, 40),
+                    padding: EdgeInsets.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: SheetGlyph(
+                    SheetGlyphKind.close,
+                    size: 14,
+                    strokeWidth: 2.2,
+                    color: colors.tertiary,
+                  ),
+                  onPressed: onDismiss,
+                )
+              else
+                const SizedBox(width: 4),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The rocket flying in from below left (board `rkIn`: 760 ms, from
+/// (-26, 26) at half size, fully opaque by 60 %).
+class _FlyIn extends StatelessWidget {
+  const _FlyIn({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 760),
+      curve: FrostyMotion.standard,
+      builder: (context, t, child) => Opacity(
+        opacity: (t / 0.6).clamp(0.0, 1.0),
+        child: Transform.translate(
+          offset: Offset(-26 * (1 - t), 26 * (1 - t)),
+          child: Transform.scale(scale: 0.5 + 0.5 * t, child: child),
+        ),
+      ),
+      child: child,
+    );
+  }
+}

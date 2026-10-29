@@ -6,6 +6,7 @@ import 'package:frosty/models/hype_train.dart';
 import 'package:frosty/models/hype_train_event.dart';
 import 'package:frosty/screens/channel/channel_top_overlays.dart';
 import 'package:frosty/screens/channel/chat/gift_bomb_tracker.dart';
+import 'package:frosty/screens/channel/chat/incoming_raid.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/highlight_slot.dart';
 import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
@@ -478,6 +479,22 @@ void main() {
       expect(find.byType(HighlightSlot), findsOneWidget);
       // Disposed in the test body: its banner deadline is a timer the test
       // binding checks before tear-down runs.
+      hl.store.dispose();
+      await train.close(tester);
+    });
+
+    testWidgets('an incoming raid stays up while the train details are '
+        'open', (tester) async {
+      hl.create();
+      hl.store.showIncomingRaid(
+        const IncomingRaid(raiderName: 'Raider', viewers: 15),
+      );
+      await tester.pump();
+      final train = running();
+      await pumpAt(tester, const Size(360, 740), chat(train: train));
+      train.store.toggleExpanded();
+      await tester.pump();
+      expect(find.byType(HighlightSlot), findsOneWidget);
       hl.store.dispose();
       await train.close(tester);
     });

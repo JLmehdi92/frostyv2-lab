@@ -17,6 +17,7 @@ import 'package:frosty/screens/channel/chat/chat_restrictions.dart';
 import 'package:frosty/screens/channel/chat/details/chat_details_store.dart';
 import 'package:frosty/screens/channel/chat/gift_bomb_tracker.dart';
 import 'package:frosty/screens/channel/chat/held_messages.dart';
+import 'package:frosty/screens/channel/chat/incoming_raid.dart';
 import 'package:frosty/screens/channel/chat/moderation.dart';
 import 'package:frosty/screens/channel/chat/moderation_notice.dart';
 import 'package:frosty/screens/channel/chat/muted_words.dart';
@@ -243,6 +244,11 @@ abstract class ChatStoreBase with Store {
     if (_shouldDisconnect) return;
     runInAction(() => messageBuffer.add(IRCMessage.createNotice(message: text)));
   }
+
+  /// The latest live raid on this channel, set as its notice reaches the
+  /// chat (after the chat delay), for the pin above chat.
+  @readonly
+  IncomingRaid? _latestIncomingRaid;
 
   /// Pending delayed 7TV payloads waiting to be rendered.
   final _pendingSevenTVCallbacks = ChatDelayQueue();
@@ -928,6 +934,10 @@ abstract class ChatStoreBase with Store {
               );
               if (decision.banner case final banner?) {
                 _latestGiftBomb = banner;
+              }
+              if (IncomingRaid.fromNotice(notice, channelId: channelId)
+                  case final raid?) {
+                _latestIncomingRaid = raid;
               }
               if (!decision.show) continue;
             }

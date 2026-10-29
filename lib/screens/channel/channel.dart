@@ -14,6 +14,7 @@ import 'package:frosty/screens/channel/celebrations/subtle_celebrations.dart';
 import 'package:frosty/screens/channel/channel_info.dart';
 import 'package:frosty/screens/channel/channel_top_overlays.dart';
 import 'package:frosty/screens/channel/chat/details/chat_details.dart';
+import 'package:frosty/screens/channel/chat/incoming_raid.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_bottom_bar.dart';
@@ -264,6 +265,10 @@ class _VideoChatState extends State<VideoChat>
   /// [_highlightsStore] is.
   ReactionDisposer? _giftBombFeed;
 
+  /// Pins the raids on the primary chat's channel; up while
+  /// [_highlightsStore] is.
+  ReactionDisposer? _incomingRaidFeed;
+
   /// Turns celebrations into chat lines while "Celebrations on video" is
   /// Subtle.
   ReactionDisposer? _subtleCelebrations;
@@ -291,9 +296,17 @@ class _VideoChatState extends State<VideoChat>
         latest: () => _primaryChatStore?.latestGiftBomb,
         show: (bomb) => _highlightsStore?.showGiftBomb(bomb),
       );
+      _incomingRaidFeed = reaction(
+        (_) => _primaryChatStore?.latestIncomingRaid,
+        (IncomingRaid? raid) {
+          if (raid != null) _highlightsStore?.showIncomingRaid(raid);
+        },
+      );
     } else if (!show && _highlightsStore != null) {
       _giftBombFeed?.call();
       _giftBombFeed = null;
+      _incomingRaidFeed?.call();
+      _incomingRaidFeed = null;
       _highlightsStore!.dispose();
       _highlightsStore = null;
     }
@@ -1639,6 +1652,7 @@ class _VideoChatState extends State<VideoChat>
     _hypeTrainStore?.dispose();
     _highlightsSettingReaction?.call();
     _giftBombFeed?.call();
+    _incomingRaidFeed?.call();
     _highlightsStore?.dispose();
     _subtleCelebrations?.call();
     // Always disposed, even on hand-off to the mini window: the mini player

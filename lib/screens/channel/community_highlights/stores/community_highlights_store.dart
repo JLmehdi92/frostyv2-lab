@@ -8,6 +8,7 @@ import 'package:frosty/apis/twitch_community_highlights_service.dart';
 import 'package:frosty/models/community_highlight_event.dart';
 import 'package:frosty/models/community_highlights.dart';
 import 'package:frosty/screens/channel/chat/gift_bomb_tracker.dart';
+import 'package:frosty/screens/channel/chat/incoming_raid.dart';
 import 'package:frosty/screens/channel/community_highlights/highlight_reducers.dart';
 import 'package:frosty/screens/channel/community_highlights/highlight_stack.dart';
 import 'package:frosty/screens/channel/community_highlights/highlight_timings.dart';
@@ -107,6 +108,12 @@ abstract class CommunityHighlightsStoreBase with Store {
   var _pinnedSticky = false;
   RaidState? _nextRaid;
   GiftBombBanner? _nextGiftBomb;
+  IncomingRaidBanner? _nextIncomingRaid;
+
+  /// When each raider was last pinned (Twitch time), so one raid heard
+  /// twice pins once.
+  final _incomingPinned = <String, DateTime>{};
+  var _incomingCount = 0;
 
   @readonly
   Poll? _poll;
@@ -123,6 +130,11 @@ abstract class CommunityHighlightsStoreBase with Store {
   /// The gift bomb banner, fed from the channel's chat (see [showGiftBomb]).
   @readonly
   GiftBombBanner? _giftBomb;
+
+  /// A channel raiding this one, pinned for a few seconds (see
+  /// [showIncomingRaid]).
+  @readonly
+  IncomingRaidBanner? _incomingRaid;
 
   /// Takes the viewer to the raid's target when it leaves, as Twitch does,
   /// unless they chose to stay ([stayOnRaid]). Only a raid seen counting
@@ -189,6 +201,26 @@ abstract class CommunityHighlightsStoreBase with Store {
       bomb: bomb,
       startedAt: startedAt,
       endsAt: startedAt.add(duration),
+    );
+    _changed(urgent: true);
+  }
+
+  /// Pins [raid] for [kIncomingRaidPin] from now; the same raider again
+  /// within [kIncomingRaidRepeat] is the same raid, and pins nothing.
+  @action
+  void showIncomingRaid(IncomingRaid raid) {
+    if (_disposed) return;
+    final now = serverNow();
+    _incomingPinned.removeWhere(
+      (_, at) => now.difference(at) >= kIncomingRaidRepeat,
+    );
+    final key = raid.raiderKey;
+    if (_incomingPinned.containsKey(key)) return;
+    _incomingPinned[key] = now;
+    _nextIncomingRaid = IncomingRaidBanner(
+      raid: raid,
+      id: 'raid-${++_incomingCount}',
+      endsAt: now.add(kIncomingRaidPin),
     );
     _changed(urgent: true);
   }
@@ -314,6 +346,7 @@ abstract class CommunityHighlightsStoreBase with Store {
     _pinned = _nextPinned;
     _raid = _nextRaid;
     _giftBomb = _nextGiftBomb;
+    _incomingRaid = _nextIncomingRaid;
 
     var stack = _stack;
     stack = _sync(stack, HighlightKind.poll, _poll?.id);
@@ -326,6 +359,7 @@ abstract class CommunityHighlightsStoreBase with Store {
     );
     stack = _sync(stack, HighlightKind.raid, _raid?.raid.id);
     stack = _sync(stack, HighlightKind.giftBomb, _giftBomb?.id);
+    stack = _sync(stack, HighlightKind.incomingRaid, _incomingRaid?.id);
     _stack = stack;
     _scheduleDeadlines();
   }
@@ -344,12 +378,10 @@ abstract class CommunityHighlightsStoreBase with Store {
         kind: kind,
         id: id,
         sticky: sticky,
-        // A pinned message and a gift bomb banner never arrive expanded,
-        // so neither holds a new highlight back.
+        // A pinned message and the short-lived pins never arrive expanded,
+        // so none holds a new highlight back.
         expanded:
-            expandNew &&
-            kind != HighlightKind.pinned &&
-            kind != HighlightKind.giftBomb,
+            expandNew && kind != HighlightKind.pinned && !kind.shortLived,
       ),
     );
   }
@@ -412,6 +444,11 @@ abstract class CommunityHighlightsStoreBase with Store {
       HighlightKind.giftBomb,
       _nextGiftBomb?.endsAt,
       () => _nextGiftBomb = null,
+    );
+    _deadline(
+      HighlightKind.incomingRaid,
+      _nextIncomingRaid?.endsAt,
+      () => _nextIncomingRaid = null,
     );
   }
 

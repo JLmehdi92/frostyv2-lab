@@ -4,8 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/models/community_highlight_event.dart';
 import 'package:frosty/models/community_highlights.dart';
 import 'package:frosty/screens/channel/chat/gift_bomb_tracker.dart';
+import 'package:frosty/screens/channel/chat/incoming_raid.dart';
 import 'package:frosty/screens/channel/community_highlights/highlight_stack.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/highlight_slot.dart';
+import 'package:frosty/screens/channel/community_highlights/widgets/incoming_raid_pin.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../helpers/community_highlights_harness.dart';
@@ -173,6 +175,37 @@ void main() {
     await tester.pump();
     expect(watched.single.targetLogin, 'friend');
     h.store.dispose();
+  });
+
+  testWidgets('an incoming raid pins over the poll, then gives it back', (
+    tester,
+  ) async {
+    await start(tester);
+    await pump(tester, slot());
+    h.send(HighlightTopic.polls, pollPayload('POLL_CREATE'));
+    await tester.pumpAndSettle();
+
+    h.store.showIncomingRaid(
+      const IncomingRaid(raiderName: 'Raider', viewers: 15),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(IncomingRaidPin), findsOneWidget);
+    expect(find.text('1 / 2'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Hide'));
+    await tester.pumpAndSettle();
+    expect(find.byType(IncomingRaidPin), findsNothing);
+    expect(find.text('Which?'), findsOneWidget);
+
+    // Another one leaves by itself.
+    h.store.showIncomingRaid(
+      const IncomingRaid(raiderName: 'Other', viewers: 3),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(IncomingRaidPin), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 6600));
+    await tester.pumpAndSettle();
+    expect(find.byType(IncomingRaidPin), findsNothing);
   });
 
   testWidgets('the video pill names the kind and how many more', (

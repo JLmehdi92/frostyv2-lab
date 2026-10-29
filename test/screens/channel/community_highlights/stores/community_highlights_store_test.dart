@@ -7,6 +7,7 @@ import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_community_highlights_service.dart';
 import 'package:frosty/models/community_highlight_event.dart';
 import 'package:frosty/models/community_highlights.dart';
+import 'package:frosty/screens/channel/chat/incoming_raid.dart';
 import 'package:frosty/screens/channel/community_highlights/highlight_stack.dart';
 import 'package:frosty/services/realtime/twitch_realtime_client.dart';
 import 'package:mobx/mobx.dart' as mobx;
@@ -360,6 +361,75 @@ void main() {
       expect(h.store.raid, isNull);
       expect(h.store.visible, isFalse);
       h.store.dispose();
+    });
+  });
+
+  group('an incoming raid', () {
+    const raid = IncomingRaid(
+      raiderName: 'Raider',
+      raiderLogin: 'raider',
+      viewers: 15,
+    );
+
+    test('pins for 6.5 s, over an expanded highlight', () {
+      run((async) {
+        h.create(expandNew: true);
+        async.flushMicrotasks();
+        h.send(HighlightTopic.polls, pollPayload('POLL_CREATE'));
+        expect(h.store.current!.expanded, isTrue);
+
+        h.store.showIncomingRaid(raid);
+        expect(h.store.current!.kind, HighlightKind.incomingRaid);
+        expect(h.store.current!.expanded, isFalse);
+        expect(h.store.incomingRaid!.raid.raiderName, 'Raider');
+
+        async.elapse(const Duration(milliseconds: 6400));
+        expect(h.store.incomingRaid, isNotNull);
+        async.elapse(const Duration(milliseconds: 200));
+        expect(h.store.incomingRaid, isNull);
+        expect(h.store.current!.kind, HighlightKind.poll);
+        h.store.dispose();
+      });
+    });
+
+    test('one raider heard twice pins once; another raider pins', () {
+      run((async) {
+        h.create();
+        async.flushMicrotasks();
+        h.store.showIncomingRaid(raid);
+        final first = h.store.incomingRaid;
+        h.store.showIncomingRaid(
+          const IncomingRaid(raiderName: 'RAIDER', viewers: 20),
+        );
+        expect(h.store.incomingRaid, same(first));
+
+        h.store.showIncomingRaid(
+          const IncomingRaid(raiderName: 'Other', viewers: 3),
+        );
+        expect(h.store.incomingRaid!.raid.raiderName, 'Other');
+
+        // Long after, the first raider raids again.
+        async.elapse(const Duration(minutes: 3));
+        h.store.showIncomingRaid(raid);
+        expect(h.store.incomingRaid!.raid.raiderName, 'Raider');
+        h.store.dispose();
+      });
+    });
+
+    test('dismissed, it goes', () {
+      run((async) {
+        h.create();
+        async.flushMicrotasks();
+        h.store.showIncomingRaid(raid);
+        h.store.dismissCurrent();
+        expect(h.store.visible, isFalse);
+        h.store.dispose();
+        // Nothing after dispose.
+        h.store.showIncomingRaid(
+          const IncomingRaid(raiderName: 'Late', viewers: 1),
+        );
+        expect(h.store.visible, isFalse);
+      });
     });
   });
 

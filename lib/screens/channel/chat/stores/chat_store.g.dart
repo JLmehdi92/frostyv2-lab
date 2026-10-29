@@ -80,6 +80,26 @@ mixin _$ChatStore on ChatStoreBase, Store {
     });
   }
 
+  late final _$_latestIncomingRaidAtom = Atom(
+    name: 'ChatStoreBase._latestIncomingRaid',
+    context: context,
+  );
+
+  IncomingRaid? get latestIncomingRaid {
+    _$_latestIncomingRaidAtom.reportRead();
+    return super._latestIncomingRaid;
+  }
+
+  @override
+  IncomingRaid? get _latestIncomingRaid => latestIncomingRaid;
+
+  @override
+  set _latestIncomingRaid(IncomingRaid? value) {
+    _$_latestIncomingRaidAtom.reportWrite(value, super._latestIncomingRaid, () {
+      super._latestIncomingRaid = value;
+    });
+  }
+
   late final _$timeRemainingAtom = Atom(
     name: 'ChatStoreBase.timeRemaining',
     context: context,

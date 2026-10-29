@@ -1,6 +1,14 @@
 /// The kinds of community highlight above chat. A gift bomb is the banner
-/// Twitch pins for a mass gift of five subs or more.
-enum HighlightKind { poll, prediction, pinned, raid, giftBomb }
+/// Twitch pins for a mass gift of five subs or more; an incoming raid, the
+/// short pin of a channel raiding this one.
+enum HighlightKind { poll, prediction, pinned, raid, giftBomb, incomingRaid }
+
+extension HighlightKindLife on HighlightKind {
+  /// Up for seconds: takes the slot at once, never arrives expanded, and
+  /// shows even under the hype train's details.
+  bool get shortLived =>
+      this == HighlightKind.giftBomb || this == HighlightKind.incomingRaid;
+}
 
 /// One highlight in the stack (its data lives in the store, by kind).
 class HighlightItem {
@@ -35,7 +43,8 @@ class HighlightItem {
 /// - A sticky one is appended at the end.
 /// - Otherwise the new one takes the visible slot, unless the visible one is
 ///   expanded: then it waits right behind it as [unseen]. A gift bomb banner
-///   is short-lived and always takes the slot, as Twitch pins it on top.
+///   or an incoming raid is short-lived and always takes the slot, as
+///   Twitch pins it on top.
 class HighlightStack {
   const HighlightStack({
     this.items = const [],
@@ -114,9 +123,7 @@ class HighlightStack {
       );
     }
     final current = stack.current;
-    if (current != null &&
-        current.expanded &&
-        item.kind != HighlightKind.giftBomb) {
+    if (current != null && current.expanded && !item.kind.shortLived) {
       list.insert(stack.currentIndex + 1, item);
       return stack._copy(items: list, unseenKey: _key(item.kind, item.id));
     }

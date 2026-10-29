@@ -204,12 +204,13 @@ class _ChannelChatTopOverlayState extends State<ChannelChatTopOverlay> {
           final compact = placement == HtPlacement.bannerCompact && !wide;
           final trainUp = hypeTrain?.visible ?? false;
           // The hype train details take the room; the highlight comes back
-          // when they close. Not a gift bomb: its banner lasts seconds, so
-          // waiting for the details to close would mean never seeing it.
+          // when they close. Not a gift bomb or an incoming raid: they last
+          // seconds, so waiting for the details would mean never seeing
+          // them.
           final showHighlights =
               highlights != null &&
               (!(trainUp && hypeTrain!.expanded) ||
-                  highlights.current?.kind == HighlightKind.giftBomb);
+                  (highlights.current?.kind.shortLived ?? false));
           // On a phone the highlight stays one line under a running train,
           // and while typing.
           final highlightsCompact = compact || (!wide && (trainUp || typing));

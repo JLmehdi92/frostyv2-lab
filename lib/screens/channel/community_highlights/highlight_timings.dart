@@ -31,3 +31,10 @@ const kHighlightPollFallback = Duration(seconds: 30);
 
 /// Minimum gap between two GQL fetches of one kind.
 const kHighlightRefetchGap = Duration(seconds: 2);
+
+/// How long an incoming raid stays pinned above chat.
+const kIncomingRaidPin = Duration(milliseconds: 6500);
+
+/// One raider's raid heard twice within this (its notice, and the raid the
+/// viewer followed here) pins once.
+const kIncomingRaidRepeat = Duration(minutes: 2);

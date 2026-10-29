@@ -4,6 +4,7 @@ import 'package:frosty/models/community_highlights.dart';
 import 'package:frosty/screens/channel/community_highlights/highlight_stack.dart';
 import 'package:frosty/screens/channel/community_highlights/stores/community_highlights_store.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/highlight_cards.dart';
+import 'package:frosty/screens/channel/community_highlights/widgets/incoming_raid_pin.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/widgets/motion/motion.dart';
 import 'package:frosty/widgets/motion/reduce_motion.dart';
@@ -24,6 +25,7 @@ String highlightLabel(HighlightKind kind) => switch (kind) {
   HighlightKind.pinned => 'Pinned',
   HighlightKind.raid => 'Raid',
   HighlightKind.giftBomb => 'Gift Subs',
+  HighlightKind.incomingRaid => 'Incoming raid',
 };
 
 IconData highlightIcon(HighlightKind kind) => switch (kind) {
@@ -32,6 +34,7 @@ IconData highlightIcon(HighlightKind kind) => switch (kind) {
   HighlightKind.pinned => Icons.push_pin_outlined,
   HighlightKind.raid => Icons.groups_outlined,
   HighlightKind.giftBomb => Icons.card_giftcard_rounded,
+  HighlightKind.incomingRaid => Icons.rocket_launch_outlined,
 };
 
 /// The card of [item], or nothing when its data is gone.
@@ -92,6 +95,13 @@ Widget buildHighlightCard(
       },
       HighlightKind.giftBomb => switch (store.giftBomb) {
         final banner? => GiftBombCard(banner: banner, card: cardFor(context)),
+        null => const SizedBox.shrink(),
+      },
+      HighlightKind.incomingRaid => switch (store.incomingRaid) {
+        final banner? => IncomingRaidPin(
+          raid: banner.raid,
+          onDismiss: dismissible ? store.dismissCurrent : null,
+        ),
         null => const SizedBox.shrink(),
       },
     },
@@ -165,6 +175,7 @@ SheetGlyphKind highlightGlyph(HighlightKind kind) => switch (kind) {
   HighlightKind.pinned => SheetGlyphKind.pin,
   HighlightKind.raid => SheetGlyphKind.people,
   HighlightKind.giftBomb => SheetGlyphKind.gift,
+  HighlightKind.incomingRaid => SheetGlyphKind.people,
 };
 
 /// "‹ 2 / 3 ›" and the "New poll" pill (board ChaineSondagePari: a 40 dp

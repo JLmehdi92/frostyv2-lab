@@ -131,6 +131,26 @@ mixin _$CommunityHighlightsStore on CommunityHighlightsStoreBase, Store {
     });
   }
 
+  late final _$_incomingRaidAtom = Atom(
+    name: 'CommunityHighlightsStoreBase._incomingRaid',
+    context: context,
+  );
+
+  IncomingRaidBanner? get incomingRaid {
+    _$_incomingRaidAtom.reportRead();
+    return super._incomingRaid;
+  }
+
+  @override
+  IncomingRaidBanner? get _incomingRaid => incomingRaid;
+
+  @override
+  set _incomingRaid(IncomingRaidBanner? value) {
+    _$_incomingRaidAtom.reportWrite(value, super._incomingRaid, () {
+      super._incomingRaid = value;
+    });
+  }
+
   late final _$_stayingForAtom = Atom(
     name: 'CommunityHighlightsStoreBase._stayingFor',
     context: context,
@@ -226,6 +246,17 @@ mixin _$CommunityHighlightsStore on CommunityHighlightsStoreBase, Store {
         .startAction(name: 'CommunityHighlightsStoreBase.showGiftBomb');
     try {
       return super.showGiftBomb(bomb);
+    } finally {
+      _$CommunityHighlightsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void showIncomingRaid(IncomingRaid raid) {
+    final _$actionInfo = _$CommunityHighlightsStoreBaseActionController
+        .startAction(name: 'CommunityHighlightsStoreBase.showIncomingRaid');
+    try {
+      return super.showIncomingRaid(raid);
     } finally {
       _$CommunityHighlightsStoreBaseActionController.endAction(_$actionInfo);
     }
