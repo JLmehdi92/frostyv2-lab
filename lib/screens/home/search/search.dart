@@ -42,7 +42,42 @@ class SearchSession {
   /// The result tab last open.
   var tab = 0;
 
+  /// Where the results were scrolled when search last closed (a page's own
+  /// scroll is not kept from one push to the next).
+  var scrollOffset = 0.0;
+
   void dispose() => store.dispose();
+}
+
+/// The scroll of a search page opened on a [SearchSession]: its first list
+/// opens where the session's last one was, and every list it lets go of
+/// tells the session where it was. A list made later on the same page (a
+/// new query, another tab) starts at the top, as before.
+class _SessionScrollController extends ScrollController {
+  _SessionScrollController(this.session);
+
+  final SearchSession session;
+  var _restored = false;
+
+  @override
+  double get initialScrollOffset => _restored ? 0 : session.scrollOffset;
+
+  @override
+  ScrollPosition createScrollPosition(
+    ScrollPhysics physics,
+    ScrollContext context,
+    ScrollPosition? oldPosition,
+  ) {
+    final position = super.createScrollPosition(physics, context, oldPosition);
+    _restored = true;
+    return position;
+  }
+
+  @override
+  void detach(ScrollPosition position) {
+    if (position.hasPixels) session.scrollOffset = position.pixels;
+    super.detach(position);
+  }
 }
 
 /// Search, opened from the shell (the header's search button, Browse's
@@ -69,7 +104,11 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final _scrollController = ScrollController();
+  /// Kept between opens through the session, when there is one.
+  late final _scrollController = switch (widget.session) {
+    final session? => _SessionScrollController(session),
+    null => ScrollController(),
+  };
 
   @override
   void dispose() {

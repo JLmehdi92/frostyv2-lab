@@ -9,6 +9,7 @@ import 'package:frosty/apis/twitch_clip_service.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/models/category.dart';
+import 'package:frosty/models/channel.dart';
 import 'package:frosty/models/clip.dart';
 import 'package:frosty/models/followed_channel.dart';
 import 'package:frosty/models/stream.dart';
@@ -326,6 +327,52 @@ void main() {
     final tabs = tester.widget<ShellTabs>(find.byType(ShellTabs).last);
     expect(tabs.index, 2);
     verify(() => api.searchChannels(query: 'chess')).called(1);
+    await close(tester);
+  });
+
+  testWidgets('search keeps where its results were scrolled between opens', (
+    tester,
+  ) async {
+    when(() => api.searchChannels(query: any(named: 'query'))).thenAnswer(
+      (_) async => [
+        for (var i = 0; i < 40; i++)
+          ChannelQuery(
+            broadcasterLogin: 'chess$i',
+            displayName: 'Chess $i',
+            id: '${100 + i}',
+            isLive: false,
+            startedAt: '',
+          ),
+      ],
+    );
+    when(
+      () => api.searchCategories(query: any(named: 'query')),
+    ).thenAnswer((_) async => const CategoriesTwitch([], {}));
+    await pump(tester);
+    ScrollController results() => tester
+        .widget<CustomScrollView>(
+          find.descendant(
+            of: find.byType(SearchScreen),
+            matching: find.byType(CustomScrollView),
+          ),
+        )
+        .controller!;
+
+    await tester.tap(find.byTooltip('Search'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'chess');
+    await tester.testTextInput.receiveAction(TextInputAction.search);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Channels').last);
+    await tester.pumpAndSettle();
+    results().jumpTo(600);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Search'));
+    await tester.pumpAndSettle();
+    expect(results().offset, 600);
     await close(tester);
   });
 
