@@ -2,11 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/channel/video/live_progress.dart';
 import 'package:frosty/screens/vod/stores/channel_videos_store.dart';
 import 'package:frosty/screens/vod/vod_resume.dart';
 import 'package:frosty/screens/vod/vod_screen.dart';
+import 'package:frosty/screens/vod/vod_watch_progress.dart';
 import 'package:frosty/screens/vod/widgets/vod_card.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/adaptive_sliver_list.dart';
@@ -24,7 +23,12 @@ class ChannelVideosTab extends StatefulWidget {
     required this.emptyMessage,
     this.nested = false,
     this.showChannel = false,
+    this.leadingSlivers = const [],
   });
+
+  /// Slivers before the list, in every state (loading, empty, error): a
+  /// [NestedScrollView]'s overlap injectors, the profile's video types.
+  final List<Widget> leadingSlivers;
 
   /// Cards name each video's channel (a category's videos).
   final bool showChannel;
@@ -48,14 +52,9 @@ class _ChannelVideosTabState extends State<ChannelVideosTab>
   @override
   bool get wantKeepAlive => !widget.nested;
 
-  final _resumeRepository = VodResumeRepository.shared;
-
-  /// Saved watch positions, refreshed when coming back from a video.
-  var _resume = const <String, VodResumeEntry>{};
-
-  /// Where the viewer left live broadcasts, by stream id: a past broadcast
-  /// not opened yet shows that progress.
-  var _live = const <String, LiveProgressEntry>{};
+  /// Saved watch positions and live progress, refreshed when coming back
+  /// from a video.
+  var _progress = VodWatchProgress.none;
 
   @override
   void initState() {
@@ -73,28 +72,9 @@ class _ChannelVideosTabState extends State<ChannelVideosTab>
   Future<void> _loadResume() async {
     // The logged-in viewer's own positions only.
     final viewer = widget.store.vodService.viewerId?.call();
-    final (resume, live) = await (
-      _resumeRepository.snapshot(viewer: viewer),
-      LiveProgressRepository.shared.snapshot(viewer: viewer),
-    ).wait;
+    final progress = await VodWatchProgress.load(viewer: viewer);
     if (!mounted) return;
-    setState(() {
-      _resume = resume;
-      _live = live;
-    });
-  }
-
-  /// How far the viewer got in [vod] live, as a fraction of its length.
-  double? _liveProgress(Vod vod) {
-    final broadcastId = vod.broadcastId;
-    if (vod.type != VodType.archive ||
-        broadcastId == null ||
-        vod.lengthSeconds <= 0) {
-      return null;
-    }
-    final entry = _live[broadcastId];
-    if (entry == null) return null;
-    return (entry.offsetSec / vod.lengthSeconds).clamp(0.0, 1.0);
+    setState(() => _progress = progress);
   }
 
   @override
@@ -113,6 +93,7 @@ class _ChannelVideosTabState extends State<ChannelVideosTab>
         if (!store.loaded && store.isLoading) {
           return CustomScrollView(
             slivers: [
+              ...widget.leadingSlivers,
               AdaptiveSliverList(
                 itemCount: 6,
                 itemBuilder: (context, _) =>
@@ -125,14 +106,24 @@ class _ChannelVideosTabState extends State<ChannelVideosTab>
           final error = store.error;
           return RefreshIndicator.adaptive(
             onRefresh: store.refresh,
-            child: ListView(
-              children: [
-                const SizedBox(height: 120),
-                AlertMessage(
-                  message: error ?? widget.emptyMessage,
-                  vertical: error == null,
-                  trailingIcon: error == null ? null : Icons.refresh_rounded,
-                  onTrailingIconPressed: error == null ? null : store.refresh,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                ...widget.leadingSlivers,
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 120),
+                    child: AlertMessage(
+                      message: error ?? widget.emptyMessage,
+                      vertical: error == null,
+                      trailingIcon: error == null
+                          ? null
+                          : Icons.refresh_rounded,
+                      onTrailingIconPressed: error == null
+                          ? null
+                          : store.refresh,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -141,20 +132,17 @@ class _ChannelVideosTabState extends State<ChannelVideosTab>
         final list = CustomScrollView(
           controller: widget.nested ? null : store.scrollController,
           slivers: [
+            ...widget.leadingSlivers,
             AdaptiveSliverList(
               itemCount: videos.length,
               itemBuilder: (context, index) {
                 final vod = videos[index];
-                final saved = _resume[vod.id];
+                final progress = _progress.of(vod);
                 return VodCard(
                   vod: vod,
                   showChannel: widget.showChannel,
-                  progress: saved == null
-                      ? _liveProgress(vod)
-                      : saved.finished
-                      ? null
-                      : saved.progress,
-                  watched: saved?.finished ?? false,
+                  progress: progress.progress,
+                  watched: progress.watched,
                   onTap: () => unawaited(
                     VodScreen.open(context, vodId: vod.id, vod: vod),
                   ),

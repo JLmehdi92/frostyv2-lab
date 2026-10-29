@@ -18,7 +18,12 @@ class ChannelClipsTab extends StatefulWidget {
     required this.store,
     this.nested = false,
     this.showChannel = false,
+    this.leadingSlivers = const [],
   });
+
+  /// Slivers before the list, in every state: a [NestedScrollView]'s
+  /// overlap injectors.
+  final List<Widget> leadingSlivers;
 
   /// Cards name each clip's channel (a category's clips).
   final bool showChannel;
@@ -52,98 +57,111 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
   Widget build(BuildContext context) {
     super.build(context);
     final store = widget.store;
+    final nested = widget.nested;
+    // Nested, the chips go inside the list, after the injectors (a sliver
+    // pinned there would sit under the profile's own pinned headers).
+    final leading = [
+      ...widget.leadingSlivers,
+      if (nested) SliverToBoxAdapter(child: ClipFilterBar(store: store)),
+    ];
+    final lists = Observer(
+      builder: (context) {
+        final clips = store.clips;
+        if (store.isLoading) {
+          return CustomScrollView(
+            slivers: [
+              ...leading,
+              AdaptiveSliverList(
+                itemCount: 6,
+                itemBuilder: (context, _) =>
+                    const StreamCardSkeletonLoader(showCategory: false),
+              ),
+            ],
+          );
+        }
+        if (clips.isEmpty) {
+          final error = store.error;
+          return RefreshIndicator.adaptive(
+            onRefresh: store.refresh,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                ...leading,
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 120),
+                    child: AlertMessage(
+                      message: error ?? 'No clips for this period',
+                      vertical: error == null,
+                      trailingIcon: error == null
+                          ? null
+                          : Icons.refresh_rounded,
+                      onTrailingIconPressed: error == null
+                          ? null
+                          : store.refresh,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        final list = CustomScrollView(
+          controller: nested ? null : store.scrollController,
+          slivers: [
+            ...leading,
+            AdaptiveSliverList(
+              itemCount: clips.length,
+              itemBuilder: (context, index) =>
+                  ClipCard(clip: clips[index], showChannel: widget.showChannel),
+            ),
+            if (store.hasMore)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Showing the top ${clips.length} clips',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: context.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ),
+            SliverPadding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.paddingOf(context).bottom + 16,
+              ),
+            ),
+          ],
+        );
+        if (nested) {
+          return RefreshIndicator.adaptive(
+            onRefresh: store.refresh,
+            child: list,
+          );
+        }
+        return Stack(
+          alignment: AlignmentDirectional.bottomCenter,
+          children: [
+            RefreshIndicator.adaptive(
+              onRefresh: store.refresh,
+              child: FrostyScrollbar(
+                controller: store.scrollController,
+                child: list,
+              ),
+            ),
+            ScrollToTopButton(scrollController: store.scrollController),
+          ],
+        );
+      },
+    );
+    if (nested) return lists;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ClipFilterBar(store: store),
-        Expanded(
-          child: Observer(
-            builder: (context) {
-              final clips = store.clips;
-              if (store.isLoading) {
-                return CustomScrollView(
-                  slivers: [
-                    AdaptiveSliverList(
-                      itemCount: 6,
-                      itemBuilder: (context, _) =>
-                          const StreamCardSkeletonLoader(showCategory: false),
-                    ),
-                  ],
-                );
-              }
-              if (clips.isEmpty) {
-                final error = store.error;
-                return RefreshIndicator.adaptive(
-                  onRefresh: store.refresh,
-                  child: ListView(
-                    children: [
-                      const SizedBox(height: 120),
-                      AlertMessage(
-                        message: error ?? 'No clips for this period',
-                        vertical: error == null,
-                        trailingIcon: error == null
-                            ? null
-                            : Icons.refresh_rounded,
-                        onTrailingIconPressed: error == null
-                            ? null
-                            : store.refresh,
-                      ),
-                    ],
-                  ),
-                );
-              }
-              final list = CustomScrollView(
-                controller: widget.nested ? null : store.scrollController,
-                slivers: [
-                  AdaptiveSliverList(
-                    itemCount: clips.length,
-                    itemBuilder: (context, index) => ClipCard(
-                      clip: clips[index],
-                      showChannel: widget.showChannel,
-                    ),
-                  ),
-                  if (store.hasMore)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(
-                          'Showing the top ${clips.length} clips',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: context.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ),
-                  SliverPadding(
-                    padding: EdgeInsets.only(
-                      bottom: MediaQuery.paddingOf(context).bottom + 16,
-                    ),
-                  ),
-                ],
-              );
-              if (widget.nested) {
-                return RefreshIndicator.adaptive(
-                  onRefresh: store.refresh,
-                  child: list,
-                );
-              }
-              return Stack(
-                alignment: AlignmentDirectional.bottomCenter,
-                children: [
-                  RefreshIndicator.adaptive(
-                    onRefresh: store.refresh,
-                    child: FrostyScrollbar(
-                      controller: store.scrollController,
-                      child: list,
-                    ),
-                  ),
-                  ScrollToTopButton(scrollController: store.scrollController),
-                ],
-              );
-            },
-          ),
-        ),
+        Expanded(child: lists),
       ],
     );
   }

@@ -129,4 +129,53 @@ void main() {
     expect(second.left, greaterThan(first.right - 1));
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('nested in a profile: the injectors, then the chips', (
+    tester,
+  ) async {
+    when(
+      () => service.getChannelClips(
+        login: any(named: 'login'),
+        period: any(named: 'period'),
+        sort: any(named: 'sort'),
+      ),
+    ).thenAnswer(
+      (_) async => ClipPage(items: List.filled(12, clip), hasMore: false),
+    );
+    tester.view
+      ..physicalSize = const Size(390, 844)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ChannelClipsTab(
+            store: store,
+            nested: true,
+            leadingSlivers: const [
+              SliverToBoxAdapter(
+                child: SizedBox(height: 40, child: Text('injected')),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final view = find.byType(CustomScrollView);
+    expect(
+      find.descendant(of: view, matching: find.text('injected')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: view, matching: find.text('All time')),
+      findsOneWidget,
+    );
+    expect(tester.getTopLeft(find.text('7 days')).dy, greaterThanOrEqualTo(40));
+    // They scroll with the clips, after the injected sliver.
+    await tester.drag(view, const Offset(0, -300));
+    await tester.pump();
+    expect(find.text('7 days'), findsNothing);
+  });
 }

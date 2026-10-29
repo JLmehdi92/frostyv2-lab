@@ -135,4 +135,41 @@ void main() {
     await pump(tester, []);
     expect(find.text('No videos'), findsOneWidget);
   });
+
+  testWidgets('leading slivers stay in every state', (tester) async {
+    for (final videos in [
+      <Vod>[],
+      [_vod('1')],
+    ]) {
+      when(
+        () => service.getChannelVideos(
+          login: any(named: 'login'),
+          type: any(named: 'type'),
+        ),
+      ).thenAnswer((_) async => VodPage(items: videos, hasMore: false));
+      final store = ChannelVideosStore(
+        login: 'streamer',
+        type: VodType.archive,
+        vodService: service,
+      );
+      addTearDown(store.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ChannelVideosTab(
+              key: UniqueKey(),
+              store: store,
+              emptyMessage: 'No videos',
+              leadingSlivers: const [SliverToBoxAdapter(child: Text('types'))],
+            ),
+          ),
+        ),
+      );
+      // Loading.
+      expect(find.text('types'), findsOneWidget);
+      await tester.pumpAndSettle();
+      // Empty, or the list.
+      expect(find.text('types'), findsOneWidget);
+    }
+  });
 }
