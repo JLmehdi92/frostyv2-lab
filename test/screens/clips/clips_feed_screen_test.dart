@@ -10,6 +10,7 @@ import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:frosty/services/playback_focus.dart';
 import 'package:frosty/stores/mini_player_store.dart';
+import 'package:frosty/widgets/skeleton_loader.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 
@@ -18,6 +19,20 @@ import '../../helpers/fake_vod_controller.dart';
 class MockClipService extends Mock implements TwitchClipService {}
 
 class MockMiniPlayerStore extends Mock implements MiniPlayerStore {}
+
+/// A player that draws its own video, marked with its clip's slug.
+class FakeSurfaceController extends FakeVodController
+    implements VideoSurfacePlayer {
+  FakeSurfaceController(this.slug);
+
+  final String slug;
+
+  bool get disposed => calls.contains('dispose');
+
+  @override
+  Widget buildVideo({required bool fill}) =>
+      SizedBox.expand(key: ValueKey('video-$slug'));
+}
 
 Clip clip(String slug) => Clip(
   id: slug,
@@ -340,6 +355,56 @@ void main() {
     });
   });
 
+  group('loading', () {
+    testWidgets('the skeleton fits a phone held sideways, notch included, '
+        'and a rotation', (tester) async {
+      final page = Completer<ClipFeedPage>();
+      when(
+        () => service.getTopClips(language: any(named: 'language')),
+      ).thenAnswer((_) => page.future);
+      final settings = SettingsStore.fromJson({})..keepScreenAwake = false;
+      tester.view.physicalSize = const Size(844, 390);
+      tester.view.devicePixelRatio = 1;
+      tester.view.padding = const FakeViewPadding(left: 48, right: 48);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<SettingsStore>.value(value: settings),
+            Provider<MiniPlayerStore>.value(value: mini),
+            Provider<TwitchClipService>.value(value: service),
+          ],
+          child: MaterialApp(
+            home: ClipsFeedScreen(
+              store: ClipsFeedStore(clipService: service),
+              playerFactory: (clip, {required focused}) =>
+                  players[clip.slug] = FakeVodController(),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      final box = tester.getRect(find.byType(SkeletonLoader).first);
+      expect(box.left, greaterThanOrEqualTo(48));
+      expect(box.right, lessThanOrEqualTo(844 - 48));
+      expect(box.bottom, lessThanOrEqualTo(390));
+
+      // Rotated while the first page still loads.
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.padding = FakeViewPadding.zero;
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      tester.view.physicalSize = const Size(844, 390);
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+
+      page.complete(ClipFeedPage(items: [clip('a')]));
+      await tester.pump();
+      await close(tester);
+    });
+  });
+
   group('board ClipsTablette', () {
     Future<void> pumpAt(
       WidgetTester tester,
@@ -392,6 +457,62 @@ void main() {
       expect(built.last, ('d', false), reason: 'the one after is preloaded');
       expect(players.containsKey('b'), isTrue);
       expect(players['b']!.calls, contains('dispose'));
+      await close(tester);
+    });
+
+    testWidgets('a clip sliding off the stage never draws a disposed player', (
+      tester,
+    ) async {
+      when(
+        () => service.getTopClips(language: any(named: 'language')),
+      ).thenAnswer(
+        (_) async =>
+            ClipFeedPage(items: [for (final s in 'abcd'.split('')) clip(s)]),
+      );
+      final settings = SettingsStore.fromJson({})..keepScreenAwake = false;
+      final surfaces = <String, FakeSurfaceController>{};
+      tester.view.physicalSize = const Size(1280, 854);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<SettingsStore>.value(value: settings),
+            Provider<MiniPlayerStore>.value(value: mini),
+            Provider<TwitchClipService>.value(value: service),
+          ],
+          child: MaterialApp(
+            home: ClipsFeedScreen(
+              store: ClipsFeedStore(clipService: service),
+              disableAutoPip: () {},
+              playerFactory: (clip, {required focused}) =>
+                  surfaces[clip.slug] = FakeSurfaceController(clip.slug),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(find.byKey(const ValueKey('video-a')), findsOneWidget);
+
+      await tester.tap(find.text('Clip c').last);
+      // Every frame of the 460 ms slide.
+      for (var i = 0; i < 30; i++) {
+        await tester.pump(const Duration(milliseconds: 20));
+        expect(tester.takeException(), isNull);
+        for (final slug in ['a', 'b']) {
+          if (surfaces[slug]!.disposed) {
+            expect(
+              find.byKey(ValueKey('video-$slug')),
+              findsNothing,
+              reason: '$slug is drawn after its player was let go',
+            );
+          }
+        }
+      }
+      expect(surfaces['a']!.disposed, isTrue);
+      expect(surfaces['b']!.disposed, isTrue);
+      expect(find.byKey(const ValueKey('video-c')), findsOneWidget);
       await close(tester);
     });
 

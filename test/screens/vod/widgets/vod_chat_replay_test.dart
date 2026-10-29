@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/models/cheermote.dart';
 import 'package:frosty/models/irc.dart';
@@ -125,5 +127,55 @@ void main() {
     expect(find.textContaining('hi', findRichText: true), findsWidgets);
     await tester.tap(find.text('Resume scroll'));
     verify(() => store.resumeScroll()).called(1);
+  });
+
+  group('header room', () {
+    bool cut(WidgetTester tester, String text) =>
+        tester.renderObject<RenderParagraph>(find.text(text)).didExceedMaxLines;
+
+    Future<void> pumpWidth(
+      WidgetTester tester,
+      double width, {
+      String syncLabel = 'synced to video',
+    }) async {
+      when(() => store.status).thenReturn(ReplayStatus.active);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Align(
+              alignment: Alignment.topLeft,
+              child: SizedBox(
+                width: width,
+                height: 400,
+                child: VodChatReplay(store: store, syncLabel: syncLabel),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Measured in the app's own font, not the test font's square letters.
+    setUpAll(() async {
+      final inter = FontLoader('Inter');
+      for (final weight in ['Regular', 'SemiBold', 'Bold']) {
+        inter.addFont(rootBundle.load('assets/fonts/Inter-$weight.ttf'));
+      }
+      await inter.load();
+    });
+
+    testWidgets('a phone shows the title and the pill whole', (tester) async {
+      for (final label in ['synced to video', 'synced to the clip']) {
+        await pumpWidth(tester, 390, syncLabel: label);
+        expect(cut(tester, 'Chat replay'), isFalse);
+        expect(cut(tester, label), isFalse, reason: label);
+      }
+    });
+
+    testWidgets('a narrow side chat keeps the whole title', (tester) async {
+      await pumpWidth(tester, 230);
+      expect(tester.takeException(), isNull);
+      expect(cut(tester, 'Chat replay'), isFalse);
+    });
   });
 }

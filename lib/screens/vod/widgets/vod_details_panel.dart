@@ -227,7 +227,7 @@ class _Actions extends StatelessWidget {
         final qualities = player?.qualities ?? const <String>[];
         final quality = player?.quality;
         final captions = player is IvsVodStore ? player.captions : null;
-        final captionsOn = captions?.settings.showCaptions ?? false;
+        final captionsOn = captions?.enabled ?? false;
         return Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -272,7 +272,7 @@ class _Actions extends StatelessWidget {
                       'Closed Captions, ${captionsOn ? 'on' : 'off'}',
                   onTap: () {
                     HapticFeedback.selectionClick();
-                    captions.settings.showCaptions = !captionsOn;
+                    captions.setEnabled(!captionsOn);
                   },
                 ),
             ],

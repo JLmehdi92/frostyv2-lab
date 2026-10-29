@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
@@ -207,25 +209,38 @@ class _ReplayHeader extends StatelessWidget {
         builder: (context, constraints) {
           // A narrow side chat keeps the title and the note.
           final roomy = constraints.maxWidth >= 240;
+          // The title first, whole when it fits, then the pill in what is
+          // left (shortened only then), then the note button.
+          final pill = syncLabel != null && roomy;
+          final gap = large ? 10.0 : 8.0;
+          final titleRoom = math.max(
+            0.0,
+            constraints.maxWidth - 44 - (pill ? gap : 0),
+          );
           return Row(
-            spacing: large ? 10 : 8,
             children: [
-              Flexible(
-                child: Text(
-                  'Chat replay',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontFamily: FrostyTokens.bodyFamily,
-                    fontSize: large ? 15 : 14,
-                    fontWeight: FontWeight.w700,
-                    color: colors.text,
-                  ),
+              Expanded(
+                child: Row(
+                  spacing: gap,
+                  children: [
+                    ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: titleRoom),
+                      child: Text(
+                        'Chat replay',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: FrostyTokens.bodyFamily,
+                          fontSize: large ? 15 : 14,
+                          fontWeight: FontWeight.w700,
+                          color: colors.text,
+                        ),
+                      ),
+                    ),
+                    if (pill) Flexible(child: SyncedPill(label: syncLabel)),
+                  ],
                 ),
               ),
-              if (syncLabel != null && roomy)
-                Flexible(child: SyncedPill(label: syncLabel)),
-              const Spacer(),
               Tooltip(
                 message: 'About emotes in replays',
                 child: Semantics(

@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
 
 /// Playback lifecycle of a VOD player.
@@ -78,4 +79,10 @@ abstract class VodPlayerController {
 abstract interface class LoopingPlayer {
   bool get looping;
   void toggleLoop();
+}
+
+/// A player that draws its own video (the clips' media_kit player).
+abstract interface class VideoSurfacePlayer {
+  /// The video, contained ([fill] false) or cropped to fill.
+  Widget buildVideo({required bool fill});
 }

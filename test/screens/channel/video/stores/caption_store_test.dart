@@ -103,4 +103,30 @@ void main() {
     captions.onLoad();
     expectLast('setCaptions', {'enabled': true});
   });
+
+  test('the menus\' rules live here: switch, choices, selection', () async {
+    captions.start();
+    captions.handleEvent(tracks(selected: 'a'));
+    expect(captions.enabled, isFalse);
+    expect(captions.choices, isEmpty, reason: 'off: nothing to pick');
+
+    captions.setEnabled(true);
+    await settle();
+    expect(settings.showCaptions, isTrue);
+    expect(captions.choices.map((t) => t.id), ['a', 'b']);
+    expect(captions.isSelected(captions.choices.first), isTrue);
+
+    captions.selectTrack(captions.choices.last);
+    expect(captions.isSelected(captions.choices.last), isTrue);
+    expect(settings.captionLanguage, 'es', reason: 'remembered');
+
+    captions.handleEvent({
+      'type': 'textTracks',
+      'list': [
+        {'id': 'a', 'label': 'English', 'language': 'en'},
+      ],
+      'selected': 'a',
+    });
+    expect(captions.choices, isEmpty, reason: 'one track: no choice');
+  });
 }

@@ -13,33 +13,29 @@ class CaptionMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final settings = captions.settings;
     return Observer(
       builder: (context) {
-        final on = settings.showCaptions;
-        final tracks = captions.tracks;
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             SwitchListTile(
               title: const Text('Closed Captions'),
               subtitle: const Text('When the stream has them'),
-              value: on,
-              onChanged: (value) => settings.showCaptions = value,
+              value: captions.enabled,
+              onChanged: captions.setEnabled,
             ),
-            if (on && tracks.length > 1)
-              for (final track in tracks)
-                ListTile(
-                  contentPadding: const EdgeInsets.only(left: 32, right: 16),
-                  title: Text(track.name),
-                  trailing: captions.selectedTrackId == track.id
-                      ? Icon(
-                          Icons.check_rounded,
-                          color: context.frostyColors.live,
-                        )
-                      : null,
-                  onTap: () => captions.selectTrack(track),
-                ),
+            for (final track in captions.choices)
+              ListTile(
+                contentPadding: const EdgeInsets.only(left: 32, right: 16),
+                title: Text(track.name),
+                trailing: captions.isSelected(track)
+                    ? Icon(
+                        Icons.check_rounded,
+                        color: context.frostyColors.live,
+                      )
+                    : null,
+                onTap: () => captions.selectTrack(track),
+              ),
           ],
         );
       },

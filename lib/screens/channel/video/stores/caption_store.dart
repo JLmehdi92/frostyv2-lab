@@ -38,6 +38,22 @@ abstract class CaptionStoreBase with Store {
   @readonly
   String? _selectedTrackId;
 
+  // --- What the captions menus show and do (live and VOD share them) ----
+
+  /// The "Closed Captions" switch.
+  bool get enabled => settings.showCaptions;
+
+  /// Turns captions on or off (the player follows through [start]).
+  void setEnabled(bool on) => settings.showCaptions = on;
+
+  /// The tracks offered to pick from: only when captions are on and the
+  /// stream has several.
+  List<CaptionTrack> get choices =>
+      enabled && _tracks.length > 1 ? _tracks : const [];
+
+  /// Whether [track] is the one shown.
+  bool isSelected(CaptionTrack track) => _selectedTrackId == track.id;
+
   /// Follows the setting: tells the player at once, clears the line when
   /// turned off.
   void start() {

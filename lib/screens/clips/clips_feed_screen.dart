@@ -91,6 +91,13 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
 
   /// The players alive: the current clip's and the next one's, by index.
   final _players = <int, VodPlayerController>{};
+
+  /// Changes whenever [_players] does: each video slot (outgoing pages and
+  /// stages included) redraws from it.
+  final _playersVersion = ValueNotifier(0);
+
+  /// Players let go of, disposed after the frame that stops drawing them.
+  final _retiring = <VodPlayerController>{};
   var _index = 0;
 
   /// The clip last started as the current one: a later sync (more clips
@@ -183,11 +190,20 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
     };
     for (final index in _players.keys.toList()) {
       if (wanted.contains(index)) continue;
-      _players.remove(index)!
+      final gone = _players.remove(index)!
         ..setFocused(false)
-        ..pause()
-        ..dispose();
+        ..pause();
+      // Let go after the next frame: a page or a stage still sliding out
+      // draws this clip, and its video must give way (to the picture)
+      // before its player goes, never draw a disposed one.
+      _retiring.add(gone);
+      WidgetsBinding.instance
+        ..addPostFrameCallback((_) {
+          if (_retiring.remove(gone)) gone.dispose();
+        })
+        ..ensureVisualUpdate();
     }
+    _playersVersion.value++;
     for (final index in wanted) {
       final current = index == _index;
       final existing = _players[index];
@@ -270,10 +286,29 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
     WidgetsBinding.instance.ensureVisualUpdate();
   }
 
+  /// Clip [index]'s video while its player lives, else its picture (or
+  /// nothing): a slot that follows [_playersVersion] even inside a child
+  /// an [AnimatedSwitcher] or a page keeps while it leaves.
   Widget _video(int index) {
-    final player = _players[index];
-    if (player is ClipPlayerStore) return player.buildVideo(fill: false);
-    return const SizedBox.expand();
+    final clips = _store.clips;
+    final thumbnail = index < clips.length ? clips[index].thumbnailUrl : null;
+    return ValueListenableBuilder<int>(
+      valueListenable: _playersVersion,
+      builder: (context, _, _) {
+        final player = _players[index];
+        if (player is VideoSurfacePlayer) {
+          return (player as VideoSurfacePlayer).buildVideo(fill: false);
+        }
+        if (player == null && thumbnail != null) {
+          return FrostyCachedNetworkImage(
+            imageUrl: thumbnail,
+            fit: BoxFit.contain,
+            errorWidget: (context, url, error) => const SizedBox.shrink(),
+          );
+        }
+        return const SizedBox.expand();
+      },
+    );
   }
 
   /// The clip's video in its black box: the picture until the player draws
@@ -288,7 +323,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
       fit: StackFit.expand,
       children: [
         const ColoredBox(color: Colors.black),
-        if (thumbnail != null && player is! ClipPlayerStore)
+        if (thumbnail != null && player is! VideoSurfacePlayer)
           FrostyCachedNetworkImage(
             imageUrl: thumbnail,
             fit: BoxFit.contain,
@@ -852,6 +887,11 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
         player.dispose();
       }
       _players.clear();
+      for (final player in _retiring) {
+        player.dispose();
+      }
+      _retiring.clear();
+      _playersVersion.dispose();
       if (_hasFocus) _disableAutoPip();
     } finally {
       final wasTop = _hasFocus;
@@ -1822,56 +1862,78 @@ class _FeedSkeleton extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final side = large ? FrostySpacing.gutterTablet : 0.0;
-        final width = large
-            ? math.min(800.0, constraints.maxWidth - side * 2)
-            : constraints.maxWidth;
+        final top = padding.top + (large ? 20 : 24);
+        final roomWidth = math.max(
+          0.0,
+          constraints.maxWidth - padding.left - padding.right - side * 2,
+        );
+        final roomHeight = math.max(
+          0.0,
+          constraints.maxHeight - top - padding.bottom,
+        );
+        // The details' lines under the box (avatar row, title, gaps).
+        const details = 104.0;
+        // The board's full width (800 dp at most on a tablet), unless the
+        // height cannot hold it with the details (a phone held sideways):
+        // then as wide as the height allows.
+        var width = math.min(roomWidth, large ? 800.0 : double.infinity);
+        final byHeight = (roomHeight - details) * 16 / 9;
+        if (byHeight < width) width = math.max(0.0, byHeight);
+        // Too short for both: the box alone.
+        if (width < 120) width = math.min(roomWidth, roomHeight * 16 / 9);
+        final showDetails = roomHeight - width * 9 / 16 >= details;
         return Padding(
           padding: EdgeInsets.fromLTRB(
             side + padding.left,
-            padding.top + (large ? 20 : 24),
+            top,
             side + padding.right,
-            0,
+            padding.bottom,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 14,
-            children: [
-              SkeletonLoader(
-                width: width,
-                height: width * 9 / 16,
-                borderRadius: BorderRadius.circular(large ? 20 : 0),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: large ? 4 : 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 10,
-                  children: [
-                    const SizedBox(height: 8),
-                    Row(
+          child: ClipRect(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 14,
+              children: [
+                SkeletonLoader(
+                  width: width,
+                  height: width * 9 / 16,
+                  borderRadius: BorderRadius.circular(large ? 20 : 0),
+                ),
+                if (showDetails)
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: large ? 4 : 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       spacing: 10,
                       children: [
-                        const SkeletonLoader(
-                          width: 42,
-                          height: 42,
-                          borderRadius: BorderRadius.all(Radius.circular(21)),
+                        const SizedBox(height: 8),
+                        Row(
+                          spacing: 10,
+                          children: [
+                            const SkeletonLoader(
+                              width: 42,
+                              height: 42,
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(21),
+                              ),
+                            ),
+                            SkeletonLoader(
+                              width: 140,
+                              height: 12,
+                              borderRadius: radius,
+                            ),
+                          ],
                         ),
                         SkeletonLoader(
-                          width: 140,
-                          height: 12,
+                          width: math.max(0.0, math.min(300.0, width - 32)),
+                          height: 16,
                           borderRadius: radius,
                         ),
                       ],
                     ),
-                    SkeletonLoader(
-                      width: math.min(300.0, width - 32),
-                      height: 16,
-                      borderRadius: radius,
-                    ),
-                  ],
-                ),
-              ),
-            ],
+                  ),
+              ],
+            ),
           ),
         );
       },

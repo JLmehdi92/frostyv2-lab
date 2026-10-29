@@ -1266,14 +1266,12 @@ class _CaptionsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = SheetColors.of(context);
     final accent = SheetColors.accentOf(context);
-    final settings = captions.settings;
     return Observer(
       builder: (context) {
-        final on = settings.showCaptions;
-        final tracks = captions.tracks;
+        final on = captions.enabled;
         void toggle() {
           HapticFeedback.selectionClick();
-          settings.showCaptions = !on;
+          captions.setEnabled(!on);
         }
 
         return Column(
@@ -1344,24 +1342,23 @@ class _CaptionsCard extends StatelessWidget {
                 ),
               ),
             ),
-            if (on && tracks.length > 1)
-              for (final track in tracks)
-                Semantics(
-                  selected: captions.selectedTrackId == track.id,
-                  inMutuallyExclusiveGroup: true,
-                  child: SheetRow(
-                    label: track.name,
-                    minHeight: 46,
-                    trailing: captions.selectedTrackId == track.id
-                        ? SheetGlyph(
-                            SheetGlyphKind.check,
-                            strokeWidth: 2.4,
-                            color: accent,
-                          )
-                        : null,
-                    onTap: () => captions.selectTrack(track),
-                  ),
+            for (final track in captions.choices)
+              Semantics(
+                selected: captions.isSelected(track),
+                inMutuallyExclusiveGroup: true,
+                child: SheetRow(
+                  label: track.name,
+                  minHeight: 46,
+                  trailing: captions.isSelected(track)
+                      ? SheetGlyph(
+                          SheetGlyphKind.check,
+                          strokeWidth: 2.4,
+                          color: accent,
+                        )
+                      : null,
+                  onTap: () => captions.selectTrack(track),
                 ),
+              ),
           ],
         );
       },

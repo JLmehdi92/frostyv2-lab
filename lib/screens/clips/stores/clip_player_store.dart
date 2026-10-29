@@ -27,7 +27,7 @@ class ClipPlayerStore = ClipPlayerStoreBase with _$ClipPlayerStore;
 /// overlay, seek bar and settings sheet drive it unchanged.
 abstract class ClipPlayerStoreBase
     with Store
-    implements VodPlayerController, LoopingPlayer {
+    implements VodPlayerController, LoopingPlayer, VideoSurfacePlayer {
   ClipPlayerStoreBase({
     required this.slug,
     required this.clipService,
@@ -423,6 +423,7 @@ abstract class ClipPlayerStoreBase
   }
 
   /// The video surface (letterboxed, or cropped with [fill]).
+  @override
   Widget buildVideo({required bool fill}) => backend.buildVideo(fill: fill);
 
   // --- Overlay & PiP ---------------------------------------------------------
