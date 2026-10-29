@@ -109,6 +109,26 @@ mixin _$ClipsFeedStore on ClipsFeedStoreBase, Store {
     });
   }
 
+  late final _$_endedOnErrorAtom = Atom(
+    name: 'ClipsFeedStoreBase._endedOnError',
+    context: context,
+  );
+
+  bool get endedOnError {
+    _$_endedOnErrorAtom.reportRead();
+    return super._endedOnError;
+  }
+
+  @override
+  bool get _endedOnError => endedOnError;
+
+  @override
+  set _endedOnError(bool value) {
+    _$_endedOnErrorAtom.reportWrite(value, super._endedOnError, () {
+      super._endedOnError = value;
+    });
+  }
+
   late final _$loadAsyncAction = AsyncAction(
     'ClipsFeedStoreBase.load',
     context: context,
@@ -127,6 +147,33 @@ mixin _$ClipsFeedStore on ClipsFeedStoreBase, Store {
   @override
   Future<void> loadMore() {
     return _$loadMoreAsyncAction.run(() => super.loadMore());
+  }
+
+  late final _$retryMoreAsyncAction = AsyncAction(
+    'ClipsFeedStoreBase.retryMore',
+    context: context,
+  );
+
+  @override
+  Future<void> retryMore() {
+    return _$retryMoreAsyncAction.run(() => super.retryMore());
+  }
+
+  late final _$ClipsFeedStoreBaseActionController = ActionController(
+    name: 'ClipsFeedStoreBase',
+    context: context,
+  );
+
+  @override
+  void clear() {
+    final _$actionInfo = _$ClipsFeedStoreBaseActionController.startAction(
+      name: 'ClipsFeedStoreBase.clear',
+    );
+    try {
+      return super.clear();
+    } finally {
+      _$ClipsFeedStoreBaseActionController.endAction(_$actionInfo);
+    }
   }
 
   @override

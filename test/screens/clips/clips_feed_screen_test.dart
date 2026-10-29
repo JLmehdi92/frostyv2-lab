@@ -426,6 +426,60 @@ void main() {
       await close(tester);
     });
 
+    testWidgets('a kept list ten minutes old starts over from fresh clips', (
+      tester,
+    ) async {
+      var now = DateTime.utc(2026, 10, 29, 12);
+      final store = ClipsFeedStore(clipService: service, now: () => now);
+      await pump(
+        tester,
+        first: ClipFeedPage(items: [clip('a'), clip('b'), clip('c')]),
+        store: store,
+      );
+      await swipeUp(tester);
+      await close(tester);
+      built.clear();
+
+      now = now.add(ClipsFeedStoreBase.staleAfter);
+      await pump(
+        tester,
+        first: ClipFeedPage(items: [clip('x'), clip('y')]),
+        store: store,
+      );
+      expect(find.text('Clip x'), findsOneWidget);
+      expect(built, [('x', true), ('y', false)]);
+      expect(store.position, 0);
+      await close(tester);
+    });
+
+    testWidgets('the end after a page that failed offers to try again', (
+      tester,
+    ) async {
+      var fail = true;
+      when(
+        () => service.getTopClips(
+          cursor: 'Mg==',
+          language: any(named: 'language'),
+        ),
+      ).thenAnswer((_) async {
+        if (fail) throw const ClipApiException('down');
+        return ClipFeedPage(items: [clip('b')]);
+      });
+      await pump(
+        tester,
+        first: ClipFeedPage(items: [clip('a')], cursor: 'Mg=='),
+      );
+      await swipeUp(tester);
+      await tester.pumpAndSettle();
+      expect(find.text('Try again'), findsOneWidget);
+
+      fail = false;
+      await tester.tap(find.text('Try again'));
+      await tester.pumpAndSettle();
+      expect(find.text('Clip b'), findsWidgets);
+      await close(tester);
+    });
+
     testWidgets('a feed made again on a kept list opens at the same clip, '
         'without loading it again', (tester) async {
       final store = ClipsFeedStore(clipService: service);

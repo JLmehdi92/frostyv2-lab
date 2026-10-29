@@ -115,4 +115,51 @@ void main() {
       ),
     ).called(1);
   });
+
+  test('a list ten minutes old is stale', () async {
+    var now = DateTime.utc(2026, 10, 29, 12);
+    when(
+      () => service.getTopClips(language: ''),
+    ).thenAnswer((_) async => ClipFeedPage(items: [clip('a')]));
+    final store = ClipsFeedStore(clipService: service, now: () => now);
+    expect(store.stale, isFalse, reason: 'nothing loaded yet');
+
+    await store.load();
+    expect(store.stale, isFalse);
+    now = now.add(ClipsFeedStoreBase.staleAfter);
+    expect(store.stale, isTrue);
+
+    store
+      ..position = 1
+      ..clear();
+    expect(store.clips, isEmpty);
+    expect(store.position, 0);
+  });
+
+  test(
+    'a page that fails ends the feed on an error; Try again loads it',
+    () async {
+      var fail = true;
+      when(() => service.getTopClips(language: '')).thenAnswer(
+        (_) async => ClipFeedPage(items: [clip('a')], cursor: 'MQ=='),
+      );
+      when(() => service.getTopClips(cursor: 'MQ==', language: '')).thenAnswer((
+        _,
+      ) async {
+        if (fail) throw const ClipApiException('down');
+        return ClipFeedPage(items: [clip('b')]);
+      });
+      final store = make();
+      await store.load();
+
+      await store.loadMore();
+      expect(store.hasMore, isFalse);
+      expect(store.endedOnError, isTrue);
+
+      fail = false;
+      await store.retryMore();
+      expect(store.endedOnError, isFalse);
+      expect(store.clips.map((c) => c.slug), ['a', 'b']);
+    },
+  );
 }

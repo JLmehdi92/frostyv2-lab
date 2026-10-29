@@ -157,6 +157,8 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
   @override
   void initState() {
     super.initState();
+    // A kept list gone stale starts over with fresh clips, from the first.
+    if (_store.stale) _store.clear();
     // One player at a time: the mini player closes and a stream or VOD
     // beneath pauses until the feed closes.
     _miniPlayer.close();
@@ -705,7 +707,9 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 40),
           child: Observer(
-            builder: (context) => _store.loadingMore
+            builder: (context) => _store.endedOnError
+                ? _FeedFailed(onRetry: _store.retryMore)
+                : _store.loadingMore
                 ? Column(
                     mainAxisSize: MainAxisSize.min,
                     spacing: 16,
@@ -778,7 +782,9 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
           direction: _stageDirection,
           end: atEnd
               ? Observer(
-                  builder: (context) => _store.loadingMore
+                  builder: (context) => _store.endedOnError
+                      ? _FeedFailed(onRetry: _store.retryMore)
+                      : _store.loadingMore
                       ? const _StageLoading()
                       : const _FeedEnd(large: true),
                 )
@@ -1373,6 +1379,20 @@ class _SwipeHintState extends State<_SwipeHint>
 }
 
 /// The end of the feed: a check in its tile and Twitch's words.
+/// The end of a feed a page that could not be had ended: why, and "Try
+/// again".
+class _FeedFailed extends StatelessWidget {
+  const _FeedFailed({required this.onRetry});
+
+  final Future<void> Function() onRetry;
+
+  @override
+  Widget build(BuildContext context) => InlineStatus.error(
+    message: 'Unable to load more clips',
+    onRetry: () => unawaited(onRetry()),
+  );
+}
+
 class _FeedEnd extends StatelessWidget {
   const _FeedEnd({this.large = false});
 

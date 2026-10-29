@@ -14,7 +14,24 @@ abstract class ClipsFeedStoreBase with Store {
     required this.clipService,
     this.language = '',
     this.maxClips = 200,
-  });
+    DateTime Function()? now,
+  }) : _now = now ?? DateTime.now;
+
+  final DateTime Function() _now;
+
+  /// How old a list may get before the feed starts over with fresh clips
+  /// when it is opened again (Twitch's top clips move, and an ended feed
+  /// would otherwise stay ended).
+  static const staleAfter = Duration(minutes: 10);
+
+  /// When the first page was last loaded.
+  DateTime? _loadedAt;
+
+  /// Whether the list was loaded more than [staleAfter] ago.
+  bool get stale {
+    final loadedAt = _loadedAt;
+    return loadedAt != null && _now().difference(loadedAt) >= staleAfter;
+  }
 
   final TwitchClipService clipService;
 
@@ -46,6 +63,23 @@ abstract class ClipsFeedStoreBase with Store {
   @readonly
   String? _error;
 
+  /// The feed ended because a page could not be had (it can be tried
+  /// again), not because there are no more clips.
+  @readonly
+  var _endedOnError = false;
+
+  /// Lets the list go (a stale one): the feed starts over, empty, at the
+  /// first clip.
+  @action
+  void clear() {
+    _clips = ObservableList<Clip>();
+    position = 0;
+    _cursor = null;
+    _hasMore = false;
+    _endedOnError = false;
+    _loadedAt = null;
+  }
+
   /// Loads the first page (again, after a failure).
   @action
   Future<void> load() async {
@@ -57,6 +91,8 @@ abstract class ClipsFeedStoreBase with Store {
       runInAction(() {
         _clips = ObservableList<Clip>();
         position = 0;
+        _endedOnError = false;
+        _loadedAt = _now();
         _add(page);
       });
     } catch (e) {
@@ -67,8 +103,9 @@ abstract class ClipsFeedStoreBase with Store {
     }
   }
 
-  /// The next page, once; a failure ends the feed without a word (Twitch
-  /// may refuse a page to an anonymous client).
+  /// The next page, once; a failure ends the feed ([endedOnError]: its
+  /// end offers to try again; Twitch may refuse a page to an anonymous
+  /// client).
   @action
   Future<void> loadMore() async {
     final cursor = _cursor;
@@ -82,10 +119,22 @@ abstract class ClipsFeedStoreBase with Store {
       runInAction(() => _add(page));
     } catch (e) {
       debugPrint('Clips feed paging failed: ${e.runtimeType}');
-      runInAction(() => _hasMore = false);
+      runInAction(() {
+        _hasMore = false;
+        _endedOnError = true;
+      });
     } finally {
       runInAction(() => _loadingMore = false);
     }
+  }
+
+  /// "Try again" at the end of a feed a failed page ended: that page again.
+  @action
+  Future<void> retryMore() async {
+    if (!_endedOnError || _cursor == null) return;
+    _endedOnError = false;
+    _hasMore = true;
+    await loadMore();
   }
 
   void _add(ClipFeedPage page) {
