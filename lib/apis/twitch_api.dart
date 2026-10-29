@@ -74,7 +74,14 @@ class TwitchApi extends BaseApiClient {
   static const String _recentMessagesUrl =
       'https://recent-messages.robotty.de/api/v2';
 
-  TwitchApi(Dio dio) : super(dio, _helixBaseUrl);
+  /// [appClientId] is this app's Twitch client id (the build's
+  /// `CLIENT_ID`); a token is only accepted when Twitch says it was issued
+  /// to it.
+  TwitchApi(Dio dio, {String? appClientId})
+    : _appClientId = appClientId ?? clientId,
+      super(dio, _helixBaseUrl);
+
+  final String _appClientId;
 
   /// Returns a list of all Twitch global emotes.
   Future<List<Emote>> getEmotesGlobal() async {
@@ -252,12 +259,21 @@ class TwitchApi extends BaseApiClient {
   }
 
   /// Returns a bool indicating the validity of the given token.
+  ///
+  /// A token Twitch issued to another app is not valid here: a login page
+  /// handed one (an injected redirect) would otherwise sign the user into
+  /// someone else's account.
   Future<bool> validateToken({required String token}) async {
     try {
-      await get<JsonMap>(
+      final data = await get<JsonMap>(
         '$_oauthBaseUrl/validate',
         headers: {'Authorization': 'Bearer $token'},
       );
+      final issuedTo = data['client_id'];
+      if (issuedTo is! String || issuedTo != _appClientId) {
+        debugPrint('Token validation: issued to another app.');
+        return false;
+      }
       return true;
     } on UnauthorizedException {
       // 401 -> token is invalid/expired (propagated from interceptor for validate requests)
@@ -341,9 +357,13 @@ class TwitchApi extends BaseApiClient {
   }
 
   /// Returns a [StreamsTwitch] object that contains the top 20 streams and a cursor for further requests.
+  ///
+  /// [quiet]: a refusal shows no "Session expired" prompt (the onboarding's
+  /// mosaic is decoration, no reason to interrupt).
   Future<StreamsTwitch> getTopStreams({
     String? cursor,
     String language = '',
+    bool quiet = false,
   }) async {
     final queryParams = <String, String>{};
     if (cursor != null) queryParams['after'] = cursor;
@@ -351,6 +371,7 @@ class TwitchApi extends BaseApiClient {
     final data = await get<JsonMap>(
       '/streams',
       queryParameters: queryParams.isEmpty ? null : queryParams,
+      extra: quiet ? {UnauthorizedInterceptor.quiet: true} : null,
     );
 
     return StreamsTwitch.fromJson(data);

@@ -261,6 +261,8 @@ void main() {
   });
 
   group('validateToken', () {
+    setUp(() => api = TwitchApi(dio, appClientId: 'test_client_id'));
+
     test('returns true for valid token', () async {
       dioAdapter.onGet(
         'https://id.twitch.tv/oauth2/validate',
@@ -270,6 +272,32 @@ void main() {
       final isValid = await api.validateToken(token: 'valid_token');
 
       expect(isValid, isTrue);
+    });
+
+    test("a valid token of another app is refused (it is not this app's "
+        'login)', () async {
+      dioAdapter.onGet(
+        'https://id.twitch.tv/oauth2/validate',
+        (server) => server.reply(200, {
+          ...twitchValidateTokenResponse,
+          'client_id': 'someone_elses_app',
+        }),
+      );
+
+      expect(await api.validateToken(token: 'foreign_token'), isFalse);
+    });
+
+    test('a validation without a client id is refused', () async {
+      dioAdapter.onGet(
+        'https://id.twitch.tv/oauth2/validate',
+        (server) => server.reply(200, {
+          'login': 'testuser',
+          'user_id': '12345',
+          'expires_in': 5000000,
+        }),
+      );
+
+      expect(await api.validateToken(token: 'odd_token'), isFalse);
     });
 
     test('returns false for expired token (401)', () async {
@@ -419,6 +447,31 @@ void main() {
   });
 
   group('getTopStreams', () {
+    test('can be asked quietly (no "Session expired" prompt)', () async {
+      final extras = <Map<String, dynamic>>[];
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            extras.add(Map.of(options.extra));
+            handler.next(options);
+          },
+        ),
+      );
+      dioAdapter.onGet(
+        'https://api.twitch.tv/helix/streams',
+        (server) => server.reply(200, {
+          'data': <dynamic>[],
+          'pagination': <String, String>{},
+        }),
+      );
+
+      await api.getTopStreams(quiet: true);
+      await api.getTopStreams();
+
+      expect(extras[0][UnauthorizedInterceptor.quiet], isTrue);
+      expect(extras[1].containsKey(UnauthorizedInterceptor.quiet), isFalse);
+    });
+
     test('returns streams with pagination', () async {
       dioAdapter.onGet(
         'https://api.twitch.tv/helix/streams',
