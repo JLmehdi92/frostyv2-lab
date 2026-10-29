@@ -76,6 +76,16 @@ void main() {
     expect(whisperPreview('a\u200Bb\u2060c\uFEFFd'), 'abcd');
   });
 
+  test('whisperPreview drops a joiner beside Latin letters, where it only '
+      'hides a difference', () {
+    expect(whisperPreview('m\u200Cod'), 'mod');
+    expect(whisperPreview('adm\u200Din'), 'admin');
+    expect(whisperPreview('Staff\u200D'), 'Staff');
+    // Beside an emoji or another script it stays.
+    const flag = '\u{1F3F3}\uFE0F\u200D\u{1F308}';
+    expect(whisperPreview('go $flag'), 'go $flag');
+  });
+
   group('WhisperStore', () {
     late MockTwitchApi api;
     late Observable<String?> user;

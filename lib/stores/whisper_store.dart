@@ -19,9 +19,16 @@ final _unsafeForPreview = RegExp(
 );
 
 /// Characters that take no room: dropped, so a name cannot hide a
-/// difference from another one. The joiners (U+200C, U+200D) stay: emoji
-/// sequences and scripts such as Persian or the Indic ones need them.
-final _invisibleForPreview = RegExp('[\u200b\u2060\ufeff]');
+/// difference from another one. The joiners (U+200C, U+200D) stay where
+/// they mean something, between emoji or in scripts such as Persian or the
+/// Indic ones; beside a Latin letter, digit or sign (or at either end)
+/// they only hide a difference ("m\u200Cod"), and go.
+final _invisibleForPreview = RegExp(
+  '[\u200b\u2060\ufeff]'
+  '|(?<=[\u0000-\u024f])[\u200c\u200d]'
+  '|[\u200c\u200d](?=[\u0000-\u024f]|\$)'
+  '|^[\u200c\u200d]',
+);
 
 /// [text] on one line for a preview or a notice: line breaks (Unicode's
 /// too), control and direction characters become spaces and invisible
