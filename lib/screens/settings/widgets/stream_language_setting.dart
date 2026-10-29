@@ -23,7 +23,6 @@ class StreamLanguageSetting extends StatelessWidget {
           end: SettingsRowEnd.chevron,
           onTap: () => showSettingsSheet<void>(
             context: context,
-            title: 'Stream language',
             builder: (context) => _LanguageList(
               selected: selected,
               onSelected: (code) {
@@ -46,23 +45,32 @@ class _LanguageList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      label: 'Stream language',
-      container: true,
-      explicitChildNodes: true,
-      child: ListView(
-        shrinkWrap: true,
-        padding: const EdgeInsets.fromLTRB(12, 4, 12, 20),
-        children: [
-          for (final MapEntry(key: code, value: name)
-              in kStreamLanguages.entries)
-            SettingsChoiceRow(
-              label: name,
-              selected: code == selected,
-              onTap: () => onSelected(code),
+    return SettingsSheetContent(
+      title: 'Stream language',
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(12, 4, 12, 20),
+          sliver: SliverToBoxAdapter(
+            child: Semantics(
+              label: 'Stream language',
+              container: true,
+              explicitChildNodes: true,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (final MapEntry(key: code, value: name)
+                      in kStreamLanguages.entries)
+                    SettingsChoiceRow(
+                      label: name,
+                      selected: code == selected,
+                      onTap: () => onSelected(code),
+                    ),
+                ],
+              ),
             ),
-        ],
-      ),
+          ),
+        ),
+      ],
     );
   }
 }

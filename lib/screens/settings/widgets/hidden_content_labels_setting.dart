@@ -27,7 +27,6 @@ class HiddenContentLabelsSetting extends StatelessWidget {
           end: SettingsRowEnd.chevron,
           onTap: () => showSettingsSheet<void>(
             context: context,
-            title: 'Hide labeled streams',
             builder: (context) => _LabelsList(settingsStore: settingsStore),
           ),
         );
@@ -52,28 +51,37 @@ class _LabelsList extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = SettingsColors.of(context);
     return Observer(
-      builder: (context) => ListView(
-        shrinkWrap: true,
-        padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(8, 4, 8, 12),
-            child: Text(
-              'Streams with these labels are left out of Top, '
-              'categories and tags. Followed channels always show.',
-              style: SettingsText.body.copyWith(
-                fontSize: 13,
-                height: 1.5,
-                color: colors.secondary,
+      builder: (context) => SettingsSheetContent(
+        title: 'Hide labeled streams',
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 12),
+                    child: Text(
+                      'Streams with these labels are left out of Top, '
+                      'categories and tags. Followed channels always show.',
+                      style: SettingsText.body.copyWith(
+                        fontSize: 13,
+                        height: 1.5,
+                        color: colors.secondary,
+                      ),
+                    ),
+                  ),
+                  for (final id in knownContentLabels)
+                    SettingsCheckRow(
+                      label: contentLabelName(id),
+                      value: settingsStore.hiddenContentLabels.contains(id),
+                      onChanged: (hide) => _toggle(id, hide),
+                    ),
+                ],
               ),
             ),
           ),
-          for (final id in knownContentLabels)
-            SettingsCheckRow(
-              label: contentLabelName(id),
-              value: settingsStore.hiddenContentLabels.contains(id),
-              onChanged: (hide) => _toggle(id, hide),
-            ),
         ],
       ),
     );

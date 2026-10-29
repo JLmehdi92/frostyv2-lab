@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:frosty/screens/settings/widgets/settings_glyph.dart';
@@ -645,80 +647,16 @@ class _SettingsFooterState extends State<SettingsFooter> {
 }
 
 /// Shows a settings list (a language, labels, muted keywords): a sheet on a
-/// phone (its handle, [title] and "Done"), a dialog on a tablet. [builder]
-/// gets the room left under the title and fills it (a list scrolls in it).
+/// phone, a dialog on a tablet. [builder] makes its [SettingsSheetContent].
+///
+/// The keyboard never covers it: the sheet stands on the keyboard and is
+/// bounded by the room left above it (its title and any field stay pinned,
+/// the list scrolls); the dialog takes the keyboard's room at once.
 Future<T?> showSettingsSheet<T>({
   required BuildContext context,
-  required String title,
   required WidgetBuilder builder,
 }) {
   final colors = SettingsColors.of(context);
-  Widget top(BuildContext context, {required bool handle}) => Padding(
-    padding: const EdgeInsets.fromLTRB(20, 8, 8, 4),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (handle)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: colors.handle,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-        Row(
-          children: [
-            Expanded(
-              child: Semantics(
-                header: true,
-                child: Text(
-                  title,
-                  style: SettingsText.pageTitle.copyWith(
-                    letterSpacing: -0.27,
-                    color: colors.text,
-                  ),
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              style: TextButton.styleFrom(
-                foregroundColor: SettingsColors.accentOf(context),
-                minimumSize: const Size(0, 44),
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                shape: const StadiumBorder(),
-                textStyle: const TextStyle(
-                  fontFamily: FrostyTokens.bodyFamily,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              child: const Text('Done'),
-            ),
-          ],
-        ),
-      ],
-    ),
-  );
-  Widget body(BuildContext context, {required bool handle}) => Semantics(
-    scopesRoute: true,
-    namesRoute: true,
-    explicitChildNodes: true,
-    label: title,
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        top(context, handle: handle),
-        Flexible(child: builder(context)),
-      ],
-    ),
-  );
-
   if (context.isLargeScreen) {
     return showDialog<T>(
       context: context,
@@ -728,6 +666,7 @@ Future<T?> showSettingsSheet<T>({
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         insetPadding: const EdgeInsets.all(40),
+        insetAnimationDuration: Duration.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(FrostyTokens.radiusLarge),
           side: BorderSide(
@@ -740,12 +679,18 @@ Future<T?> showSettingsSheet<T>({
           constraints: const BoxConstraints(maxWidth: 460, maxHeight: 640),
           child: Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: body(context, handle: false),
+            child: _SheetChrome(
+              handle: false,
+              background: colors.dialog,
+              child: Builder(builder: builder),
+            ),
           ),
         ),
       ),
     );
   }
+  // The sheet route drops the status bar's padding: kept from here.
+  final statusBar = MediaQuery.paddingOf(context).top;
   return showModalBottomSheet<T>(
     context: context,
     isScrollControlled: true,
@@ -754,17 +699,152 @@ Future<T?> showSettingsSheet<T>({
     barrierColor: kSheetScrim,
     elevation: 0,
     clipBehavior: Clip.antiAlias,
-    constraints: BoxConstraints(
-      maxHeight: MediaQuery.sizeOf(context).height * 0.82,
-    ),
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(
         top: Radius.circular(FrostyTokens.radiusLarge),
       ),
     ),
-    builder: (context) =>
-        SafeArea(top: false, child: body(context, handle: true)),
+    builder: (context) {
+      final media = MediaQuery.of(context);
+      final keyboard = media.viewInsets.bottom;
+      final height = keyboard > 0
+          ? media.size.height - statusBar - 8 - keyboard
+          : media.size.height * 0.82;
+      return Padding(
+        padding: EdgeInsets.only(bottom: keyboard),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: math.max(0, height)),
+          child: MediaQuery.removeViewInsets(
+            context: context,
+            removeBottom: true,
+            child: SafeArea(
+              top: false,
+              child: _SheetChrome(
+                handle: true,
+                background: colors.sheet,
+                child: Builder(builder: builder),
+              ),
+            ),
+          ),
+        ),
+      );
+    },
   );
+}
+
+/// How the surrounding sheet or dialog draws a [SettingsSheetContent].
+class _SheetChrome extends InheritedWidget {
+  const _SheetChrome({
+    required this.handle,
+    required this.background,
+    required super.child,
+  });
+
+  final bool handle;
+  final Color background;
+
+  static _SheetChrome? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_SheetChrome>();
+
+  @override
+  bool updateShouldNotify(_SheetChrome oldWidget) =>
+      handle != oldWidget.handle || background != oldWidget.background;
+}
+
+/// A settings list in its sheet or dialog: the handle (phone), [title] and
+/// "Done", then [pinned] (a field) all kept on top, and [slivers] scrolling
+/// under them.
+class SettingsSheetContent extends StatelessWidget {
+  const SettingsSheetContent({
+    super.key,
+    required this.title,
+    this.pinned,
+    required this.slivers,
+  });
+
+  final String title;
+  final Widget? pinned;
+  final List<Widget> slivers;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = SettingsColors.of(context);
+    final chrome = _SheetChrome.maybeOf(context);
+    final handle = chrome?.handle ?? false;
+    final top = Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 8, 4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (handle)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colors.handle,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+          Row(
+            children: [
+              Expanded(
+                child: Semantics(
+                  header: true,
+                  child: Text(
+                    title,
+                    style: SettingsText.pageTitle.copyWith(
+                      letterSpacing: -0.27,
+                      color: colors.text,
+                    ),
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                style: TextButton.styleFrom(
+                  foregroundColor: SettingsColors.accentOf(context),
+                  minimumSize: const Size(0, 44),
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  shape: const StadiumBorder(),
+                  textStyle: const TextStyle(
+                    fontFamily: FrostyTokens.bodyFamily,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                child: const Text('Done'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    return Semantics(
+      scopesRoute: true,
+      namesRoute: true,
+      explicitChildNodes: true,
+      label: title,
+      child: CustomScrollView(
+        shrinkWrap: true,
+        slivers: [
+          PinnedHeaderSliver(
+            child: ColoredBox(
+              color: chrome?.background ?? colors.sheet,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [top, ?pinned],
+              ),
+            ),
+          ),
+          ...slivers,
+        ],
+      ),
+    );
+  }
 }
 
 /// A choice in a settings list: 48 dp, tinted in the signal colour with a

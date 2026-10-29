@@ -699,6 +699,10 @@ class SettingsDialog extends StatelessWidget {
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       insetPadding: const EdgeInsets.all(20),
+      // The keyboard's room at once: an animated inset lags the keyboard,
+      // and a focused field revealed before the dialog shrinks ends up
+      // under it.
+      insetAnimationDuration: Duration.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(FrostyTokens.radiusLarge),
         side: BorderSide(

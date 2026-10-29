@@ -151,15 +151,13 @@ class SettingsSectionRow extends StatelessWidget {
   final String? summary;
 
   @override
-  Widget build(BuildContext context) => Observer(
-    builder: (context) => SettingsRow(
+  Widget build(BuildContext context) {
+    Widget row(String summary) => SettingsRow(
       glyph: page.glyph,
       title: page.title,
       strong: true,
       minHeight: 60,
-      subtitle: Text(
-        summary ?? settingsSectionSummary(page, loggedIn: authStore.isLoggedIn),
-      ),
+      subtitle: Text(summary),
       end: SettingsRowEnd.chevron,
       onTap: () => openSettingsPage(
         context,
@@ -170,8 +168,14 @@ class SettingsSectionRow extends StatelessWidget {
           authStore: authStore,
         ),
       ),
-    ),
-  );
+    );
+    // A given summary is already up to date (its owner observes it).
+    if (summary case final summary?) return row(summary);
+    return Observer(
+      builder: (context) =>
+          row(settingsSectionSummary(page, loggedIn: authStore.isLoggedIn)),
+    );
+  }
 }
 
 /// The page [id] of the settings.
