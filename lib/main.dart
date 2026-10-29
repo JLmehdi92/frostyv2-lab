@@ -433,30 +433,24 @@ class _MyAppState extends State<MyApp> {
 
   /// A tapped mention notice: its chat back on screen. The channel is
   /// usually still open (the app was only in the background) and simply
-  /// comes back; in the mini player it is restored; closed, it opens.
+  /// comes back (pages opened over it close); in the mini player it is
+  /// restored; closed, it opens.
   void _openMention(String login) {
     if (!mounted) return;
     final mini = context.read<MiniPlayerStore>();
+    final route = VideoChat.routeOf(login);
     switch (mentionTapFor(
       login,
-      openChannels: VideoChat.openLogins,
+      open: route != null,
+      shown: route?.isCurrent ?? false,
       miniLogin: mini.userLogin,
     )) {
       case MentionTap.bringToFront:
         return;
+      case MentionTap.backToChannel:
+        navigatorKey.currentState?.popUntil((page) => page == route);
       case MentionTap.restoreMini:
-        final userId = mini.userId;
-        final name = mini.displayName;
-        final miniLogin = mini.userLogin;
-        if (userId == null || name == null || miniLogin == null) return;
-        // The channel adopts the mini window's player back (no reload).
-        navigatorKey.currentState?.push(
-          MaterialPageRoute(
-            settings: const RouteSettings(name: VideoChat.routeName),
-            builder: (_) =>
-                VideoChat(userId: userId, userName: name, userLogin: miniLogin),
-          ),
-        );
+        GlobalMiniPlayer.restore(mini);
       case MentionTap.openChannel:
         unawaited(handleDeepLink(Uri.https('www.twitch.tv', '/$login')));
     }

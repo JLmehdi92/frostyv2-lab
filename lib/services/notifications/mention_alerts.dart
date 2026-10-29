@@ -93,9 +93,12 @@ String _oneLine(String text, {int max = kMentionMaxLength}) {
 
 /// What a tapped mention notice does.
 enum MentionTap {
-  /// The channel is open (the app was in the background): the app comes
-  /// back to the front, nothing more.
+  /// The channel is the page on screen (the app was in the background):
+  /// the app comes back to the front, nothing more.
   bringToFront,
+
+  /// The channel is open under other pages: back to it.
+  backToChannel,
 
   /// The channel is in the mini player: it is restored.
   restoreMini,
@@ -104,16 +107,19 @@ enum MentionTap {
   openChannel,
 }
 
-/// What a tapped mention notice for [login]'s chat does, given the logins
-/// of the [openChannels] and the channel in the mini player ([miniLogin]).
+/// What a tapped mention notice for [login]'s chat does: whether its
+/// channel is [open], and [shown] (its page on top), and the channel in the
+/// mini player ([miniLogin]).
 MentionTap mentionTapFor(
   String login, {
-  required Set<String> openChannels,
+  required bool open,
+  required bool shown,
   String? miniLogin,
 }) {
-  final channel = login.toLowerCase();
-  if (openChannels.contains(channel)) return MentionTap.bringToFront;
-  if (miniLogin?.toLowerCase() == channel) return MentionTap.restoreMini;
+  if (open) return shown ? MentionTap.bringToFront : MentionTap.backToChannel;
+  if (miniLogin?.toLowerCase() == login.toLowerCase()) {
+    return MentionTap.restoreMini;
+  }
   return MentionTap.openChannel;
 }
 

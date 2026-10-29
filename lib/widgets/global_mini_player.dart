@@ -29,6 +29,24 @@ class GlobalMiniPlayer extends StatefulWidget {
   /// The window's corners (board MiniLecteur).
   static const radius = 16.0;
 
+  /// Opens the mini window's channel again (a tap on the window, a mention
+  /// notice of its chat).
+  static void restore(MiniPlayerStore store) {
+    final login = store.userLogin;
+    final userId = store.userId;
+    final name = store.displayName;
+    if (login == null || userId == null || name == null) return;
+    // Don't close — opening the channel adopts this live player back so the
+    // stream keeps playing without a reload.
+    navigatorKey.currentState?.push(
+      MaterialPageRoute(
+        settings: const RouteSettings(name: VideoChat.routeName),
+        builder: (_) =>
+            VideoChat(userId: userId, userName: name, userLogin: login),
+      ),
+    );
+  }
+
   @override
   State<GlobalMiniPlayer> createState() => _GlobalMiniPlayerState();
 }
@@ -53,6 +71,7 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
     vsync: this,
     duration: const Duration(milliseconds: 240),
   );
+
   /// The snap's curve, made once (one per release would pile listeners up
   /// on the controller).
   late final _snapCurve = CurvedAnimation(
@@ -274,21 +293,7 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
     );
   }
 
-  void _restore(MiniPlayerStore store) {
-    final login = store.userLogin;
-    final userId = store.userId;
-    final name = store.displayName;
-    if (login == null || userId == null || name == null) return;
-    // Don't close — opening the channel adopts this live player back so the
-    // stream keeps playing without a reload.
-    navigatorKey.currentState?.push(
-      MaterialPageRoute(
-        settings: const RouteSettings(name: VideoChat.routeName),
-        builder: (_) =>
-            VideoChat(userId: userId, userName: name, userLogin: login),
-      ),
-    );
-  }
+  void _restore(MiniPlayerStore store) => GlobalMiniPlayer.restore(store);
 }
 
 /// Puts the mini window at [offset]. While it rests in a corner ([glide])

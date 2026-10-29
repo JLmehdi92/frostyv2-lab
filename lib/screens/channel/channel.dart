@@ -89,11 +89,17 @@ class VideoChat extends StatefulWidget {
     this.raidArrival,
   });
 
-  /// The logins of the channels open (their pages built), lower case.
-  static Set<String> get openLogins => {
-    for (final state in _VideoChatState._alive)
-      state.widget.userLogin.toLowerCase(),
-  };
+  /// The page of [login]'s channel when it is open (the latest one), or
+  /// null.
+  static Route<dynamic>? routeOf(String login) {
+    final name = login.toLowerCase();
+    for (final state in _VideoChatState._alive.reversed) {
+      if (state.widget.userLogin.toLowerCase() != name) continue;
+      final route = ModalRoute.of(state.context);
+      if (route != null && route.isActive) return route;
+    }
+    return null;
+  }
 
   @override
   State<VideoChat> createState() => _VideoChatState();
