@@ -80,6 +80,19 @@ void main() {
     );
   }
 
+  /// The input row with its padding, which must fit in the 68 dp the chat
+  /// list keeps free for the bar (ChatStore.bottomBarHeight).
+  double inputRowHeight(WidgetTester tester) => tester
+      .getSize(
+        find
+            .ancestor(
+              of: find.byType(ChatMoreButton),
+              matching: find.byType(Padding),
+            )
+            .first,
+      )
+      .height;
+
   testWidgets('the message pill, then "⋯" for the chat details', (
     tester,
   ) async {
@@ -94,8 +107,10 @@ void main() {
       // On the right of the message box (board ChaineDetailsTchat).
       expect(more.right, closeTo(390 - 12, 0.5));
       final field = tester.getRect(find.byType(ExtendedTextField));
-      expect(field.right, lessThan(more.left));
+      // No points here (signed out of them): no empty gap for them.
+      expect(more.left - field.right, closeTo(8, 0.5));
       expect(field.height, closeTo(44, 1));
+      expect(inputRowHeight(tester), lessThanOrEqualTo(68));
     }
   });
 
@@ -122,6 +137,8 @@ void main() {
       tester.getRect(find.byType(ExtendedTextField)).height,
       closeTo(48, 1),
     );
+    // Within the room the chat list keeps free for the bar.
+    expect(inputRowHeight(tester), 68);
   });
 
   testWidgets('the narrowest side chat shrinks its controls, no overflow', (

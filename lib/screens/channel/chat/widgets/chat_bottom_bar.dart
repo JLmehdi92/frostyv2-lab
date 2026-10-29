@@ -301,14 +301,16 @@ class ChatBottomBar extends StatelessWidget {
               ),
             ],
             Padding(
-              // Board Chaine: 10 above, 12 at the sides, 14 below.
-              padding: EdgeInsets.fromLTRB(12, 10, 12, large ? 14 : 12),
+              // Board Chaine: 10 above, 12 at the sides and below (44 dp
+              // pill); 8 above on a tablet (48 dp). Both stay within the
+              // 68 dp the chat list keeps free for the bar
+              // (ChatStore.bottomBarHeight).
+              padding: EdgeInsets.fromLTRB(12, large ? 8 : 10, 12, 12),
               // A side chat at its narrowest (20 %) is smaller than the
               // pencil, the points and "⋯": they shrink rather than spill.
               child: _ShrinkWhenNarrow(
                 enabled: inputControls.pencil,
                 child: Row(
-                  spacing: 8,
                   mainAxisSize: inputControls.pencil
                       ? MainAxisSize.min
                       : MainAxisSize.max,
@@ -477,15 +479,18 @@ class ChatBottomBar extends StatelessWidget {
                           },
                         ),
                       ),
-                    // Beside the message box, where Twitch puts it.
+                    // Beside the message box, where Twitch puts it (its gap
+                    // goes with it when there are no points to show).
                     ChannelPointsButton(
                       channelId: chatStore.channelId,
                       large: large,
+                      gap: 8,
                     ),
                     // The chat's details, always one tap away (approved
                     // addition next to the points), unless the chat's header
                     // already has it (a tablet's side chat).
-                    if (!ChatMoreInHeader.of(context))
+                    if (!ChatMoreInHeader.of(context)) ...[
+                      const SizedBox(width: 8),
                       TextFieldTapRegion(
                         child: ChatMoreButton(
                           large: large,
@@ -501,6 +506,7 @@ class ChatBottomBar extends StatelessWidget {
                           ),
                         ),
                       ),
+                    ],
                   ],
                 ),
               ),

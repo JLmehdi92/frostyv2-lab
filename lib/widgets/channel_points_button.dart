@@ -69,7 +69,15 @@ class ChannelPointsButton extends StatelessWidget {
   /// The tablet-portrait size (48 high instead of 44).
   final bool large;
 
-  const ChannelPointsButton({super.key, this.channelId, this.large = false});
+  /// Space before the button, only when it shows.
+  final double gap;
+
+  const ChannelPointsButton({
+    super.key,
+    this.channelId,
+    this.large = false,
+    this.gap = 0,
+  });
 
   /// The generic points mark, when the channel kept Twitch's default.
   static const genericIconKey = ValueKey('channel-points-generic-icon');
@@ -129,7 +137,7 @@ class ChannelPointsButton extends StatelessWidget {
         );
 
         // A pill beside the message box (boards Chaine, TablettePortrait).
-        return Tooltip(
+        final button = Tooltip(
           message: points.pointsName ?? 'Channel points',
           preferBelow: false,
           child: Semantics(
@@ -202,6 +210,12 @@ class ChannelPointsButton extends StatelessWidget {
             ),
           ),
         );
+        return gap == 0
+            ? button
+            : Padding(
+                padding: EdgeInsetsDirectional.only(start: gap),
+                child: button,
+              );
       },
     );
   }
