@@ -38,6 +38,7 @@ import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
 import 'package:frosty/screens/clips/clip_screen.dart';
 import 'package:frosty/screens/home/home.dart';
 import 'package:frosty/screens/home/shell/onset_shell.dart';
+import 'package:frosty/screens/home/top/categories/category_streams.dart';
 import 'package:frosty/screens/onboarding/onboarding_flow.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
@@ -64,6 +65,7 @@ import 'package:frosty/utils/twitch_links.dart';
 import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/global_mini_player.dart';
 import 'package:frosty/widgets/launch/launch_intro.dart';
+import 'package:frosty/widgets/twitch_web_page.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:mobx/mobx.dart';
 import 'package:provider/provider.dart';
@@ -433,6 +435,40 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  /// Opens a category link: its page when Twitch's search finds it, else
+  /// the twitch.tv page in the app.
+  Future<void> _openCategoryLink(CategoryLink link) async {
+    String? id;
+    try {
+      id = await CategoryStreams.idOf(context.read<TwitchApi>(), link);
+    } catch (e) {
+      debugPrint('Category link: lookup failed: ${e.runtimeType}');
+    }
+    if (!mounted) return;
+    if (id != null) {
+      final categoryId = id;
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => navigatorKey.currentState?.push(
+          MaterialPageRoute(
+            settings: const RouteSettings(name: CategoryStreams.routeName),
+            builder: (context) => CategoryStreams(categoryId: categoryId),
+          ),
+        ),
+      );
+      return;
+    }
+    final path = link.slug != null
+        ? '/directory/category/${link.slug}'
+        : '/directory/game/${link.name}';
+    final navigatorContext = navigatorKey.currentContext;
+    if (navigatorContext == null || !navigatorContext.mounted) return;
+    await TwitchWebPage.open(
+      navigatorContext,
+      title: link.name ?? 'Category',
+      url: Uri.https('www.twitch.tv', path),
+    );
+  }
+
   /// Opens video and clip links in-app (from chat or deep links).
   Future<bool> _openTwitchLinkInApp(TwitchLink link) async {
     final Route<void> route;
@@ -479,7 +515,7 @@ class _MyAppState extends State<MyApp> {
             },
           ),
         );
-      case ChannelLink() || OtherLink():
+      case ChannelLink() || CategoryLink() || OtherLink():
         return false;
     }
     if (navigatorKey.currentState == null) return false;
@@ -568,6 +604,11 @@ class _MyAppState extends State<MyApp> {
       return;
     }
     if (!mounted) return;
+    // A category: its page, never a channel named "directory".
+    if (link is CategoryLink) {
+      await _openCategoryLink(link);
+      return;
+    }
 
     final failureSnackbar = SnackBar(
       content: AlertMessage(

@@ -21,6 +21,7 @@ import 'package:frosty/screens/vod/widgets/channel_videos_tab.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/image_size.dart';
+import 'package:frosty/utils/twitch_links.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
 import 'package:frosty/widgets/motion/press_scale.dart';
 import 'package:frosty/widgets/onset_chip.dart';
@@ -38,6 +39,23 @@ class CategoryStreams extends StatelessWidget {
   final String categoryId;
 
   const CategoryStreams({super.key, required this.categoryId});
+
+  /// The id of the category a twitch.tv [link] names, found among the
+  /// categories Twitch's search gives for it; null when none matches.
+  static Future<String?> idOf(TwitchApi api, CategoryLink link) async {
+    final slug = link.slug;
+    final name = link.name?.toLowerCase();
+    final found = await api.searchCategories(
+      query: slug?.replaceAll('-', ' ') ?? link.name!,
+    );
+    for (final category in found.data) {
+      final matches = slug != null
+          ? twitchCategorySlug(category.name) == slug
+          : category.name.toLowerCase() == name;
+      if (matches) return category.id;
+    }
+    return null;
+  }
 
   /// Opens the streams of the category [categoryId] (nothing for an empty
   /// id: a stream without a category).

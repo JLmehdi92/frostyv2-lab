@@ -94,7 +94,7 @@ void main() {
 
     test('reserved pages are not channels', () {
       for (final page in [
-        'directory/game/x',
+        'directory/following',
         'videos',
         'settings',
         'search',
@@ -204,6 +204,60 @@ void main() {
   test('a malformed escape is an other link, not an exception', () {
     expect(_p('https://clips.twitch.tv/%9a'), isA<OtherLink>());
     expect(_p('https://www.twitch.tv/%9a'), isA<OtherLink>());
+  });
+
+  group('category links', () {
+    test('directory/category/<slug>, and the old directory/game/<name>', () {
+      expect(
+        _p('https://www.twitch.tv/directory/category/just-chatting'),
+        const CategoryLink(slug: 'just-chatting'),
+      );
+      expect(
+        _p('twitch.tv/directory/category/grand-theft-auto-v?sort=VIEWERS'),
+        const CategoryLink(slug: 'grand-theft-auto-v'),
+      );
+      expect(
+        _p('https://m.twitch.tv/directory/game/Just%20Chatting'),
+        const CategoryLink(name: 'Just Chatting'),
+      );
+      // A category is never mistaken for a channel named "directory".
+      expect(
+        _p('https://www.twitch.tv/directory/category/chess'),
+        isNot(isA<ChannelLink>()),
+      );
+      // Chat keeps launching them; the deep link handler opens them.
+      expect(_p('twitch.tv/directory/category/chess').opensInApp, isFalse);
+    });
+
+    test('not category links', () {
+      for (final page in [
+        'directory',
+        'directory/category',
+        'directory/category/Bad%20Slug!',
+        'directory/category/chess/clips/extra/more',
+        'directory/game/',
+      ]) {
+        expect(
+          _p('https://www.twitch.tv/$page'),
+          isA<OtherLink>(),
+          reason: page,
+        );
+      }
+    });
+
+    test("a category name's slug, as twitch.tv writes it", () {
+      expect(twitchCategorySlug('Just Chatting'), 'just-chatting');
+      expect(twitchCategorySlug('Grand Theft Auto V'), 'grand-theft-auto-v');
+      expect(
+        twitchCategorySlug("Tom Clancy's Rainbow Six Siege"),
+        'tom-clancys-rainbow-six-siege',
+      );
+      expect(
+        twitchCategorySlug('Pokémon Legends: Arceus'),
+        'pokemon-legends-arceus',
+      );
+      expect(twitchCategorySlug('  Art  '), 'art');
+    });
   });
 
   group('profile links', () {

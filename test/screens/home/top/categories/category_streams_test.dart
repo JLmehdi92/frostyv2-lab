@@ -20,6 +20,7 @@ import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/settings/stores/user_store.dart';
 import 'package:frosty/screens/vod/widgets/vod_card.dart';
 import 'package:frosty/theme.dart';
+import 'package:frosty/utils/twitch_links.dart';
 import 'package:frosty/widgets/onset_chip.dart';
 import 'package:mobx/mobx.dart' show Observable, ObservableList, runInAction;
 import 'package:mocktail/mocktail.dart';
@@ -79,6 +80,46 @@ Future<void> settle(WidgetTester tester) async {
 }
 
 void main() {
+  group('a category link (twitch.tv/directory/...)', () {
+    late MockTwitchApi api;
+
+    setUp(() {
+      api = MockTwitchApi();
+      when(() => api.searchCategories(query: any(named: 'query'))).thenAnswer(
+        (_) async => const CategoriesTwitch([
+          CategoryTwitch('', '1', 'Grand Theft Auto IV'),
+          _gta,
+          CategoryTwitch('', '509658', 'Just Chatting'),
+        ], null),
+      );
+    });
+
+    test('finds the category of a slug, or of a name', () async {
+      expect(
+        await CategoryStreams.idOf(
+          api,
+          const CategoryLink(slug: 'grand-theft-auto-v'),
+        ),
+        '32982',
+      );
+      verify(() => api.searchCategories(query: 'grand theft auto v')).called(1);
+      expect(
+        await CategoryStreams.idOf(
+          api,
+          const CategoryLink(name: 'just chatting'),
+        ),
+        '509658',
+      );
+    });
+
+    test('none that matches: null (the link opens on twitch.tv)', () async {
+      expect(
+        await CategoryStreams.idOf(api, const CategoryLink(slug: 'chess')),
+        isNull,
+      );
+    });
+  });
+
   late MockTwitchApi helix;
   late MockVodService vods;
   late MockClipService clips;

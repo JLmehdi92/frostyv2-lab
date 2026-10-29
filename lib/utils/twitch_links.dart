@@ -14,7 +14,9 @@ sealed class TwitchLink {
     ClipLink() ||
     ChannelClipsLink() ||
     ChannelProfileLink() => true,
-    ChannelLink() || OtherLink() => false,
+    // A category opens in-app from a deep link only (the app's handler);
+    // tapped in chat it keeps the browser, as before.
+    ChannelLink() || CategoryLink() || OtherLink() => false,
   };
 
   /// Parses a link found in text (chat, a deep link). A scheme-less
@@ -59,6 +61,19 @@ sealed class TwitchLink {
     }
     // /clip/<slug> (mobile web)
     if (first == 'clip' && segments.length == 2) return _clip(segments[1]);
+    // /directory/category/<slug>, /directory/game/<name> (the older form)
+    if (first == 'directory' && segments.length == 3) {
+      final kind = segments[1].toLowerCase();
+      final value = segments[2];
+      if (kind == 'category' && _categorySlug.hasMatch(value)) {
+        return CategoryLink(slug: value.toLowerCase());
+      }
+      final name = value.trim();
+      if (kind == 'game' && name.isNotEmpty && name.length <= 100) {
+        return CategoryLink(name: name);
+      }
+      return const OtherLink();
+    }
     if (_reserved.contains(first) || !_login.hasMatch(first)) {
       return const OtherLink();
     }
@@ -127,6 +142,10 @@ sealed class TwitchLink {
   }
 
   static final _vodId = RegExp(r'^[0-9]{1,20}$');
+  static final _categorySlug = RegExp(
+    r'^[a-z0-9]+(?:-[a-z0-9]+)*$',
+    caseSensitive: false,
+  );
   static final _login = RegExp(r'^[a-z0-9_]{1,25}$');
 
   static const _ranges = {
@@ -291,9 +310,57 @@ final class ChannelLink extends TwitchLink {
   String toString() => 'ChannelLink($login)';
 }
 
+/// A category's page: by its [slug] (`/directory/category/<slug>`) or, in
+/// the older form, by its [name] (`/directory/game/<name>`).
+final class CategoryLink extends TwitchLink {
+  const CategoryLink({this.slug, this.name})
+    : assert((slug == null) != (name == null));
+
+  final String? slug;
+  final String? name;
+
+  @override
+  bool operator ==(Object other) =>
+      other is CategoryLink && other.slug == slug && other.name == name;
+
+  @override
+  int get hashCode => Object.hash(slug, name);
+
+  @override
+  String toString() => 'CategoryLink(${slug ?? name})';
+}
+
 /// Anything the app does not open itself.
 final class OtherLink extends TwitchLink {
   const OtherLink();
+}
+
+/// [name]'s slug, as twitch.tv writes it in a category's address
+/// ("Tom Clancy's Rainbow Six Siege" → `tom-clancys-rainbow-six-siege`).
+String twitchCategorySlug(String name) {
+  const accents = {
+    'a': 'àáâãäåā',
+    'c': 'çć',
+    'e': 'èéêëē',
+    'i': 'ìíîïī',
+    'n': 'ñń',
+    'o': 'òóôõöøō',
+    'u': 'ùúûüū',
+    'y': 'ýÿ',
+  };
+  final buffer = StringBuffer();
+  for (final char in name.toLowerCase().split('')) {
+    final plain = accents.entries
+        .where((entry) => entry.value.contains(char))
+        .firstOrNull
+        ?.key;
+    buffer.write(plain ?? char);
+  }
+  return buffer
+      .toString()
+      .replaceAll(RegExp("['’]"), '')
+      .replaceAll(RegExp('[^a-z0-9]+'), '-')
+      .replaceAll(RegExp(r'^-+|-+$'), '');
 }
 
 /// The channel [login]'s subscription page on twitch.tv, where Twitch offers
