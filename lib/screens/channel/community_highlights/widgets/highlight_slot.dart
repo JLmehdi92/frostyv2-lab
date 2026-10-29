@@ -5,6 +5,7 @@ import 'package:frosty/screens/channel/community_highlights/highlight_stack.dart
 import 'package:frosty/screens/channel/community_highlights/stores/community_highlights_store.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/highlight_cards.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/incoming_raid_pin.dart';
+import 'package:frosty/screens/channel/community_highlights/widgets/raid_card.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/widgets/motion/motion.dart';
 import 'package:frosty/widgets/motion/reduce_motion.dart';
@@ -46,6 +47,7 @@ Widget buildHighlightCard(
   required ValueChanged<OutgoingRaid> onWatchRaid,
   PinnedMessageBuilder? pinnedMessage,
   bool dismissible = true,
+  bool compact = false,
 }) {
   final login = store.channelLogin;
   HighlightCardContext cardFor(BuildContext context) => HighlightCardContext(
@@ -86,10 +88,16 @@ Widget buildHighlightCard(
       HighlightKind.raid => switch (store.raid) {
         final raid? => RaidCard(
           raid: raid,
-          card: cardFor(context),
+          sourceName: store.channelName ?? login ?? 'This channel',
+          sourceLogin: login,
+          now: store.serverNow,
           onWatch: () => onWatchRaid(raid.raid),
           onStay: store.onGoAlong == null ? null : store.stayOnRaid,
+          onDismiss: dismissible ? store.dismissCurrent : null,
+          onOpen: compact ? onToggle : null,
           staying: store.stayingOnRaid,
+          leaving: store.departing,
+          compact: compact,
         ),
         null => const SizedBox.shrink(),
       },
@@ -146,6 +154,7 @@ class HighlightSlot extends StatelessWidget {
               : store.toggleExpanded,
           onWatchRaid: onWatchRaid,
           pinnedMessage: pinnedMessage,
+          compact: compact,
         );
         return Column(
           mainAxisSize: MainAxisSize.min,

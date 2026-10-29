@@ -4,12 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:frosty/models/community_highlights.dart';
 import 'package:frosty/screens/channel/chat/gift_bomb_tracker.dart';
 import 'package:frosty/screens/channel/community_highlights/highlight_math.dart';
-import 'package:frosty/screens/channel/community_highlights/highlight_reducers.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/highlight_card_shell.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/highlight_countdown.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
 import 'package:frosty/widgets/sheet/onset_sheet.dart';
 import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 import 'package:intl/intl.dart';
@@ -421,105 +419,6 @@ class PinnedCard extends StatelessWidget {
       return null;
     }
     return Color(int.parse('FF${hex.substring(1)}', radix: 16));
-  }
-}
-
-/// This channel is raiding another: who, with how many viewers, the time
-/// left before it leaves, and a button to follow it in-app. The viewer goes
-/// along when it leaves unless they choose to stay ([onStay]).
-class RaidCard extends StatelessWidget {
-  const RaidCard({
-    super.key,
-    required this.raid,
-    required this.card,
-    required this.onWatch,
-    this.onStay,
-    this.staying = false,
-  });
-
-  final RaidState raid;
-  final HighlightCardContext card;
-  final VoidCallback onWatch;
-
-  /// Stays here when the raid leaves (null: nothing to choose).
-  final VoidCallback? onStay;
-  final bool staying;
-
-  @override
-  Widget build(BuildContext context) {
-    final target = raid.raid;
-    final goAt = target.goAt;
-    final viewers = _count(target.viewerCount, 'viewer', 'viewers');
-    final image = target.targetProfileImage;
-    return HighlightCardShell(
-      icon: Icons.groups_outlined,
-      title: 'Raid',
-      expanded: card.expanded,
-      onToggle: card.onToggle,
-      onDismiss: card.onDismiss,
-      semanticsLabel: raid.gone
-          ? 'The raid to ${target.targetDisplayName} has started'
-          : 'Raiding ${target.targetDisplayName} with $viewers',
-      status: raid.gone || goAt == null
-          ? Text(raid.gone ? 'Raid started' : viewers)
-          : HighlightCountdown(
-              deadline: goAt,
-              now: card.now,
-              builder: (context, left) =>
-                  Text('$viewers · leaves in ${formatTimeLeft(left)}'),
-            ),
-      headline: Row(
-        spacing: 8,
-        children: [
-          if (image != null)
-            ClipOval(
-              child: SizedBox.square(
-                dimension: 24,
-                child: FrostyCachedNetworkImage(imageUrl: image),
-              ),
-            ),
-          Expanded(
-            child: Text(
-              'Raiding ${target.targetDisplayName}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-          ),
-        ],
-      ),
-      footer: Wrap(
-        spacing: 8,
-        runSpacing: 4,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          FilledButton.tonalIcon(
-            style: FilledButton.styleFrom(minimumSize: const Size(48, 48)),
-            onPressed: onWatch,
-            icon: const Icon(Icons.play_arrow_rounded),
-            label: Text('Watch ${target.targetDisplayName}'),
-          ),
-          if (!raid.gone && onStay != null) ...[
-            if (staying)
-              Text(
-                'You stay here',
-                style: Theme.of(context).textTheme.bodySmall,
-              )
-            else ...[
-              Text(
-                'You go along when it leaves',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              TextButton(
-                style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-                onPressed: onStay,
-                child: const Text('Stay here'),
-              ),
-            ],
-          ],
-        ],
-      ),
-    );
   }
 }
 

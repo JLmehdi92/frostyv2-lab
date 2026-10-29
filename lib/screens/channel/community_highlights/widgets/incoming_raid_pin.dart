@@ -97,9 +97,7 @@ class IncomingRaidPin extends StatelessWidget {
                               TextSpan(
                                 text: viewers,
                                 style: const TextStyle(
-                                  fontFeatures: [
-                                    FontFeature.tabularFigures(),
-                                  ],
+                                  fontFeatures: [FontFeature.tabularFigures()],
                                 ),
                               ),
                               TextSpan(text: ' $noun'),

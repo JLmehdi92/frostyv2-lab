@@ -70,10 +70,12 @@ void main() {
       findsOne,
     );
     final pin = tester.getSize(
-      find.descendant(
-        of: find.byType(IncomingRaidPin),
-        matching: find.byType(Container),
-      ).first,
+      find
+          .descendant(
+            of: find.byType(IncomingRaidPin),
+            matching: find.byType(Container),
+          )
+          .first,
     );
     expect(pin.height, 54);
 
@@ -119,9 +121,7 @@ void main() {
 
   testWidgets('light theme reads on the light sheet', (tester) async {
     await pump(tester, brightness: Brightness.light);
-    final title = tester.widget<Text>(
-      find.textContaining('is raiding with'),
-    );
+    final title = tester.widget<Text>(find.textContaining('is raiding with'));
     expect(title.style!.color, SheetColors.light.text);
     await tester.pumpAndSettle();
   });

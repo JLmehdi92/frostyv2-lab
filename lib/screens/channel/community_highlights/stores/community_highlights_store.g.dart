@@ -16,6 +16,13 @@ mixin _$CommunityHighlightsStore on CommunityHighlightsStoreBase, Store {
     () => super.stayingOnRaid,
     name: 'CommunityHighlightsStoreBase.stayingOnRaid',
   )).value;
+  Computed<bool>? _$departingComputed;
+
+  @override
+  bool get departing => (_$departingComputed ??= Computed<bool>(
+    () => super.departing,
+    name: 'CommunityHighlightsStoreBase.departing',
+  )).value;
   Computed<HighlightItem?>? _$currentComputed;
 
   @override
@@ -171,6 +178,26 @@ mixin _$CommunityHighlightsStore on CommunityHighlightsStoreBase, Store {
     });
   }
 
+  late final _$_departingForAtom = Atom(
+    name: 'CommunityHighlightsStoreBase._departingFor',
+    context: context,
+  );
+
+  String? get departingFor {
+    _$_departingForAtom.reportRead();
+    return super._departingFor;
+  }
+
+  @override
+  String? get _departingFor => departingFor;
+
+  @override
+  set _departingFor(String? value) {
+    _$_departingForAtom.reportWrite(value, super._departingFor, () {
+      super._departingFor = value;
+    });
+  }
+
   late final _$_stackAtom = Atom(
     name: 'CommunityHighlightsStoreBase._stack',
     context: context,
@@ -195,6 +222,17 @@ mixin _$CommunityHighlightsStore on CommunityHighlightsStoreBase, Store {
     name: 'CommunityHighlightsStoreBase',
     context: context,
   );
+
+  @override
+  void markDeparting(OutgoingRaid raid) {
+    final _$actionInfo = _$CommunityHighlightsStoreBaseActionController
+        .startAction(name: 'CommunityHighlightsStoreBase.markDeparting');
+    try {
+      return super.markDeparting(raid);
+    } finally {
+      _$CommunityHighlightsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
 
   @override
   void stayOnRaid() {
@@ -277,6 +315,7 @@ mixin _$CommunityHighlightsStore on CommunityHighlightsStoreBase, Store {
   String toString() {
     return '''
 stayingOnRaid: ${stayingOnRaid},
+departing: ${departing},
 current: ${current},
 visible: ${visible}
     ''';

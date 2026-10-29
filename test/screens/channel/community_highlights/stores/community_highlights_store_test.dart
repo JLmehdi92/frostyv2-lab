@@ -433,6 +433,18 @@ void main() {
     });
   });
 
+  test('the card knows the viewer is on their way', () {
+    run((async) {
+      h.create();
+      async.flushMicrotasks();
+      h.send(HighlightTopic.raid, raidPayload('raid_update_v2'));
+      expect(h.store.departing, isFalse);
+      h.store.markDeparting(h.store.raid!.raid);
+      expect(h.store.departing, isTrue);
+      h.store.dispose();
+    });
+  });
+
   test('a raid first seen leaving does not take the viewer', () {
     run((async) {
       h.create();

@@ -33,6 +33,7 @@ abstract class CommunityHighlightsStoreBase with Store {
   CommunityHighlightsStoreBase({
     required this.channelId,
     this.channelLogin,
+    this.channelName,
     required TwitchCommunityHighlightsService service,
     required TwitchRealtimeClient realtime,
     ServerClock? serverClock,
@@ -62,6 +63,9 @@ abstract class CommunityHighlightsStoreBase with Store {
 
   /// The channel's login, to vote or predict on its twitch.tv chat page.
   final String? channelLogin;
+
+  /// The channel's display name ("X is raiding Y").
+  final String? channelName;
   final TwitchCommunityHighlightsService _service;
 
   /// Twitch's time, learnt from notification timestamps.
@@ -151,6 +155,21 @@ abstract class CommunityHighlightsStoreBase with Store {
     final raid = _raid;
     return raid != null && raid.raid.id == _stayingFor;
   }
+
+  /// The raid the viewer is on their way to (the card shows them leaving).
+  @readonly
+  String? _departingFor;
+
+  /// Whether the viewer is leaving with the current raid.
+  @computed
+  bool get departing {
+    final raid = _raid;
+    return raid != null && raid.raid.id == _departingFor;
+  }
+
+  /// The viewer is on their way to [raid]'s target.
+  @action
+  void markDeparting(OutgoingRaid raid) => _departingFor = raid.id;
 
   /// Stays on this channel when the current raid leaves.
   @action

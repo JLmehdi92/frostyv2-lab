@@ -168,10 +168,8 @@ void main() {
       raidPayload('raid_update_v2', createdAt: clock.now()),
     );
     await tester.pumpAndSettle();
-    h.store.toggleExpanded();
-    await tester.pumpAndSettle();
 
-    await tester.tap(find.textContaining('Watch'));
+    await tester.tap(find.text('Go now'));
     await tester.pump();
     expect(watched.single.targetLogin, 'friend');
     h.store.dispose();

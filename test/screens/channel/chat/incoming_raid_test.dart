@@ -26,10 +26,7 @@ void main() {
 
   test('history, another channel of a shared chat: no pin', () {
     expect(_raid(raidNotice.replaceFirst('@', '@historical=1;')), isNull);
-    expect(
-      _raid(raidNotice.replaceFirst('@', '@source-room-id=999;')),
-      isNull,
-    );
+    expect(_raid(raidNotice.replaceFirst('@', '@source-room-id=999;')), isNull);
     expect(
       _raid(raidNotice.replaceFirst('@', '@source-room-id=12345;')),
       isNotNull,
@@ -39,10 +36,7 @@ void main() {
   test('not a raid: no pin; a picture that is not https: none', () {
     expect(_raid(raidNotice.replaceFirst('msg-id=raid', 'msg-id=sub')), isNull);
     final raid = _raid(
-      raidNotice.replaceFirst(
-        'https://static-cdn',
-        'http://static-cdn',
-      ),
+      raidNotice.replaceFirst('https://static-cdn', 'http://static-cdn'),
     )!;
     expect(raid.avatarUrl, isNull);
   });

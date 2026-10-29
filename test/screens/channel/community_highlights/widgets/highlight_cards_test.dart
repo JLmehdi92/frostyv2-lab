@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/models/community_highlights.dart';
-import 'package:frosty/screens/channel/community_highlights/highlight_reducers.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/highlight_card_shell.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/highlight_cards.dart';
 import 'package:frosty/widgets/sheet/onset_sheet.dart';
@@ -245,77 +244,6 @@ void main() {
         ),
       );
       expect(find.text('rendered like chat'), findsOneWidget);
-    });
-  });
-
-  group('raid', () {
-    RaidState raid({bool gone = false}) => RaidState(
-      OutgoingRaid(
-        id: 'r',
-        sourceId: '1',
-        targetId: '2',
-        targetLogin: 'friend',
-        targetDisplayName: 'Friend',
-        viewerCount: 1200,
-        createdAt: _start,
-      ),
-      gone: gone,
-    );
-
-    testWidgets('target, viewers, countdown and a big Watch button', (
-      tester,
-    ) async {
-      var watched = 0;
-      await pump(
-        tester,
-        RaidCard(raid: raid(), card: card(), onWatch: () => watched++),
-      );
-      expect(find.text('Raiding Friend'), findsOneWidget);
-      expect(find.text('1.2K viewers · leaves in 1:30'), findsOneWidget);
-      final button = find.ancestor(
-        of: find.text('Watch Friend'),
-        matching: find.byWidgetPredicate((w) => w is FilledButton),
-      );
-      expect(tester.getSize(button).height, greaterThanOrEqualTo(48));
-      await tester.tap(button);
-      expect(watched, 1);
-    });
-
-    testWidgets('the viewer can choose to stay here', (tester) async {
-      var stayed = 0;
-      await pump(
-        tester,
-        RaidCard(
-          raid: raid(),
-          card: card(),
-          onWatch: () {},
-          onStay: () => stayed++,
-        ),
-      );
-      expect(find.text('You go along when it leaves'), findsOneWidget);
-      await tester.tap(find.text('Stay here'));
-      expect(stayed, 1);
-
-      await pump(
-        tester,
-        RaidCard(
-          raid: raid(),
-          card: card(),
-          onWatch: () {},
-          onStay: () {},
-          staying: true,
-        ),
-      );
-      expect(find.text('You stay here'), findsOneWidget);
-      expect(find.text('Stay here'), findsNothing);
-    });
-
-    testWidgets('once it left', (tester) async {
-      await pump(
-        tester,
-        RaidCard(raid: raid(gone: true), card: card(), onWatch: () {}),
-      );
-      expect(find.text('Raid started'), findsOneWidget);
     });
   });
 

@@ -127,4 +127,3 @@ ChatStore createTestChatStore({
     },
   );
 }
-
