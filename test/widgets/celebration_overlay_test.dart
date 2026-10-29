@@ -143,6 +143,26 @@ void main() {
     verifyNever(() => store.clearCelebration());
   });
 
+  for (final change in ['Subtle', 'Show celebrations off']) {
+    testWidgets('switched to $change mid-celebration, it is cleared, not '
+        'kept to replay later', (tester) async {
+      await pump(tester);
+      await tester.pump(const Duration(milliseconds: 500));
+      verifyNever(() => store.clearCelebration());
+
+      if (change == 'Subtle') {
+        settings.celebrationsOnVideo = CelebrationsOnVideo.subtle;
+      } else {
+        settings.showCelebrations = false;
+      }
+      await tester.pump();
+      await tester.pump();
+      verify(() => store.clearCelebration()).called(1);
+      await tester.pump(const Duration(seconds: 5));
+      verifyNever(() => store.clearCelebration());
+    });
+  }
+
   group('a CHAT celebration lands on the chat', () {
     setUp(
       () => when(

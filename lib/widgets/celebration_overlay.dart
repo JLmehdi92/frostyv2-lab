@@ -27,16 +27,16 @@ class CelebrationOverlay extends StatelessWidget {
         // Twitch has this switch too (`celebrations_switch` in its resources):
         // a full-screen animation on every gifted sub is not for everyone.
         final settings = context.settingsStore;
-        if (!settings.showCelebrations) {
-          return const SizedBox.shrink();
-        }
-        // Subtle: nothing covers the video; the channel says it in chat
-        // (see feedSubtleCelebrations).
-        if (settings.celebrationsOnVideo == CelebrationsOnVideo.subtle) {
+        final celebration = store.celebration;
+        // Off, or Subtle (nothing covers the video; the channel says it in
+        // chat, see feedSubtleCelebrations): a celebration cut short by the
+        // switch is over, never kept to replay when it is switched back.
+        if (!settings.showCelebrations ||
+            settings.celebrationsOnVideo == CelebrationsOnVideo.subtle) {
+          if (celebration != null) _clearAfterFrame(context, celebration);
           return const SizedBox.shrink();
         }
 
-        final celebration = store.celebration;
         if (celebration == null) return const SizedBox.shrink();
 
         return IgnorePointer(
@@ -51,6 +51,17 @@ class CelebrationOverlay extends StatelessWidget {
         );
       },
     );
+  }
+
+  /// Clears [celebration] once this frame is built (an observer may not
+  /// change the store it reads), unless the channel closed meanwhile or
+  /// another celebration came.
+  void _clearAfterFrame(BuildContext context, Celebration celebration) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (context.mounted && identical(store.celebration, celebration)) {
+        store.clearCelebration();
+      }
+    });
   }
 }
 
