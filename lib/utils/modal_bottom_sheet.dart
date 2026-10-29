@@ -26,6 +26,7 @@ Future<T?> showModalBottomSheetWithProperFocus<T>({
   String? barrierLabel,
   AnimationController? transitionAnimationController,
   Offset? anchorPoint,
+  bool? showDragHandle,
 }) {
   final videoBottom = SheetsUnderVideo.of(context);
 
@@ -50,6 +51,7 @@ Future<T?> showModalBottomSheetWithProperFocus<T>({
       barrierLabel: barrierLabel,
       transitionAnimationController: transitionAnimationController,
       anchorPoint: anchorPoint,
+      showDragHandle: showDragHandle,
     );
   } else {
     final navigator = Navigator.of(context, rootNavigator: useRootNavigator);
@@ -86,6 +88,7 @@ Future<T?> showModalBottomSheetWithProperFocus<T>({
         enableDrag: enableDrag,
         transitionAnimationController: transitionAnimationController,
         anchorPoint: anchorPoint,
+        showDragHandle: showDragHandle,
       ),
     );
   }
@@ -174,6 +177,7 @@ class _UnderVideoSheetRoute<T> extends ModalBottomSheetRoute<T> {
     required super.isScrollControlled,
     super.transitionAnimationController,
     super.anchorPoint,
+    super.showDragHandle,
   });
 
   final double videoBottom;
