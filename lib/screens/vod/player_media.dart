@@ -17,6 +17,7 @@ class PlayerMedia {
     required this.ownerDisplayName,
     required this.shareLabel,
     required this.shareLink,
+    this.kindLabel,
   });
 
   PlayerMedia.vod(Vod vod)
@@ -27,6 +28,7 @@ class PlayerMedia {
         ownerDisplayName: vod.ownerDisplayName,
         shareLabel: 'Copy link at current time',
         shareLink: (at) => vodShareLink(vod, at),
+        kindLabel: vodKindLabel(vod.type),
       );
 
   final String title;
@@ -39,4 +41,16 @@ class PlayerMedia {
 
   /// The link copied for the current playback position.
   final String Function(Duration position) shareLink;
+
+  /// What kind of video it is ("Past broadcast"), in the tablet's top row;
+  /// null when unknown.
+  final String? kindLabel;
 }
+
+/// "Past broadcast", "Highlight" or "Upload" (null when unknown).
+String? vodKindLabel(VodType? type) => switch (type) {
+  VodType.archive => 'Past broadcast',
+  VodType.highlight => 'Highlight',
+  VodType.upload => 'Upload',
+  null => null,
+};

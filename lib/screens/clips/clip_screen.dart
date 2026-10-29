@@ -19,15 +19,17 @@ import 'package:frosty/screens/vod/stores/web_vod_store.dart';
 import 'package:frosty/screens/vod/vod_overlay.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:frosty/screens/vod/vod_screen.dart';
+import 'package:frosty/screens/vod/widgets/video_back_button.dart';
+import 'package:frosty/screens/vod/widgets/video_kit.dart';
 import 'package:frosty/screens/vod/widgets/vod_chat_replay.dart';
 import 'package:frosty/screens/vod/widgets/vod_error_view.dart';
 import 'package:frosty/services/playback_focus.dart';
 import 'package:frosty/stores/mini_player_store.dart';
-import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/pip_callbacks.dart';
 import 'package:frosty/utils/share_link.dart';
 import 'package:frosty/widgets/alert_message.dart';
+import 'package:frosty/widgets/skeleton_loader.dart';
 import 'package:mobx/mobx.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_pip_mode/actions/pip_actions_layout.dart';
@@ -368,24 +370,7 @@ class _ClipScreenState extends State<ClipScreen> {
   }
 
   /// Black area with a back button, for when nothing can play.
-  Widget _withBackButton(Widget child) => Stack(
-    fit: StackFit.expand,
-    children: [
-      child,
-      Align(
-        alignment: Alignment.topLeft,
-        child: IconButton(
-          tooltip: 'Back',
-          onPressed: () => Navigator.maybePop(context),
-          icon: Icon(
-            Icons.adaptive.arrow_back_rounded,
-            color: Colors.white,
-            shadows: kOverlayShadow,
-          ),
-        ),
-      ),
-    ],
-  );
+  Widget _withBackButton(Widget child) => VideoBackButtonLayer(child: child);
 
   Widget _buildPlayerArea({required bool landscape}) {
     final loadProblem = _loadProblem;
@@ -448,20 +433,13 @@ class _ClipScreenState extends State<ClipScreen> {
     final clip = _clip;
     if (clip == null) {
       if (_detailsFailed) {
-        return Padding(
-          padding: const EdgeInsets.all(24),
-          child: AlertMessage(
-            message: "Couldn't load the clip details",
-            trailingIcon: Icons.refresh_rounded,
-            onTrailingIconPressed: _retryDetails,
-          ),
+        return VideoPaneNotice(
+          message: "Couldn't load the clip details",
+          onRetry: _retryDetails,
         );
       }
       return _loadProblem == null
-          ? const Padding(
-              padding: EdgeInsets.all(24),
-              child: Center(child: CircularProgressIndicator()),
-            )
+          ? const _DetailsSkeleton()
           : const SizedBox.shrink();
     }
     return ClipInfoPanel(
@@ -502,10 +480,15 @@ class _ClipScreenState extends State<ClipScreen> {
         // At most a third of the room (it scrolls), so large text on a small
         // phone still leaves the chat its place.
         Flexible(child: SingleChildScrollView(child: _buildDetails())),
-        const Divider(height: 1),
         Expanded(
           flex: 2,
-          child: SafeArea(top: false, child: VodChatReplay(store: replay)),
+          child: SafeArea(
+            top: false,
+            child: VodChatReplay(
+              store: replay,
+              syncLabel: 'synced to the clip',
+            ),
+          ),
         ),
       ],
     );
@@ -580,9 +563,20 @@ class _ClipScreenState extends State<ClipScreen> {
     final landscape = context.isLandscape;
     _syncSystemUi(immersive: landscape);
 
-    final page = Scaffold(
-      backgroundColor: landscape ? Colors.black : null,
-      body: landscape ? _buildLandscape() : _buildPortrait(),
+    final theme = Theme.of(context);
+    // No app bar to set the system bars: the theme's in portrait, light
+    // icons over the black of landscape.
+    final page = AnnotatedRegion<SystemUiOverlayStyle>(
+      value: landscape
+          ? SystemUiOverlayStyle.light
+          : theme.appBarTheme.systemOverlayStyle ??
+                (theme.brightness == Brightness.dark
+                    ? SystemUiOverlayStyle.light
+                    : SystemUiOverlayStyle.dark),
+      child: Scaffold(
+        backgroundColor: landscape ? Colors.black : null,
+        body: landscape ? _buildLandscape() : _buildPortrait(),
+      ),
     );
 
     if (!Platform.isAndroid) return page;
@@ -624,5 +618,37 @@ class _ClipScreenState extends State<ClipScreen> {
       if (wasTop && PlaybackFocus.shared.top == null) WakelockPlus.disable();
       super.dispose();
     }
+  }
+}
+
+/// The details loading: the title and two lines under the global sheen.
+class _DetailsSkeleton extends StatelessWidget {
+  const _DetailsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(6);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 10,
+        children: [
+          SkeletonLoader(width: 260, height: 16, borderRadius: radius),
+          SkeletonLoader(width: 180, height: 12, borderRadius: radius),
+          Row(
+            spacing: 10,
+            children: [
+              const SkeletonLoader(
+                width: 32,
+                height: 32,
+                borderRadius: BorderRadius.all(Radius.circular(16)),
+              ),
+              SkeletonLoader(width: 120, height: 12, borderRadius: radius),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

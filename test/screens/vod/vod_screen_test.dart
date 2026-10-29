@@ -16,6 +16,9 @@ import 'package:frosty/screens/vod/vod_overlay.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:frosty/screens/vod/vod_resume.dart';
 import 'package:frosty/screens/vod/vod_screen.dart';
+import 'package:frosty/screens/vod/widgets/vod_chat_replay.dart';
+import 'package:frosty/screens/vod/widgets/vod_details_panel.dart';
+import 'package:frosty/screens/vod/widgets/vod_info_strip.dart';
 import 'package:frosty/services/playback_focus.dart';
 import 'package:frosty/stores/mini_player_store.dart';
 import 'package:mobx/mobx.dart' show Observable, ObservableList, runInAction;
@@ -617,5 +620,112 @@ void main() {
     );
     expect(saved?.positionSec, 420);
     await close(tester);
+  });
+
+  group('layouts (boards Rediff, RediffTablette)', () {
+    testWidgets('a phone: the title strip, then the synced replay', (
+      tester,
+    ) async {
+      await pump(tester, size: const Size(390, 844));
+      await ready(tester);
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(VodInfoStrip), findsOneWidget);
+      expect(find.byType(VodDetailsPanel), findsNothing);
+      expect(find.text('Chat replay'), findsOneWidget);
+      expect(find.text('synced to video'), findsOneWidget);
+      await close(tester);
+    });
+
+    testWidgets('a tablet in landscape: details under the video, chat beside', (
+      tester,
+    ) async {
+      await pump(tester, size: const Size(1280, 854));
+      await ready(tester);
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(VodDetailsPanel), findsOneWidget);
+      expect(find.text('Copy link at current time'), findsOneWidget);
+      expect(find.text('Speed Normal'), findsOneWidget);
+      expect(find.text('Quality Auto'), findsOneWidget);
+      expect(find.text('Double-tap the sides to skip 10 s'), findsOneWidget);
+      expect(find.text('Chat replay'), findsOneWidget);
+      // The video keeps 16:9 at the top of its column.
+      final details = tester.getRect(find.byType(VodDetailsPanel));
+      final chat = tester.getRect(find.byType(VodChatReplay));
+      expect(details.right, lessThanOrEqualTo(chat.left + 0.5));
+      expect(details.top, closeTo(details.width * 9 / 16, 1));
+      await close(tester);
+    });
+
+    testWidgets('the speed pill follows the player and opens its settings', (
+      tester,
+    ) async {
+      await pump(tester, size: const Size(1280, 854));
+      await ready(tester);
+
+      player.setPlaybackRate(1.5);
+      await tester.pump();
+      expect(find.text('Speed 1.5×'), findsOneWidget);
+
+      await tester.tap(find.text('Speed 1.5×'));
+      await tester.pumpAndSettle();
+      expect(find.byType(VodSettingsSheet), findsOneWidget);
+      await close(tester);
+    });
+
+    testWidgets('a tablet in portrait: details between video and chat', (
+      tester,
+    ) async {
+      await pump(tester, size: const Size(854, 1280));
+      await ready(tester);
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(VodDetailsPanel), findsOneWidget);
+      // Under a portrait video, no legend: the chat replay needs the room.
+      expect(find.text('Double-tap the sides to skip 10 s'), findsNothing);
+      final details = tester.getRect(find.byType(VodDetailsPanel));
+      final chat = tester.getRect(find.byType(VodChatReplay));
+      expect(chat.top, greaterThanOrEqualTo(details.bottom - 0.5));
+      await close(tester);
+    });
+
+    testWidgets('the tablet keeps the full screen modes', (tester) async {
+      settings.fullScreen = true;
+      await pump(tester, size: const Size(1280, 854));
+      await ready(tester);
+
+      expect(find.byType(VodDetailsPanel), findsNothing);
+      await close(tester);
+    });
+
+    testWidgets('light theme lays out too', (tester) async {
+      tester.view.physicalSize = const Size(1280, 854);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<SettingsStore>.value(value: settings),
+            Provider<TwitchVodService>.value(value: service),
+            Provider<MiniPlayerStore>.value(value: mini),
+          ],
+          child: MaterialApp(
+            theme: ThemeData.light(),
+            home: VodScreen(
+              vodId: _vod.id,
+              vod: _vod,
+              playerFactory: (vod, startAt) => player,
+              replayFactory: (vod) => replay,
+            ),
+          ),
+        ),
+      );
+      await ready(tester);
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(VodDetailsPanel), findsOneWidget);
+      await close(tester);
+    });
   });
 }

@@ -3,8 +3,9 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/models/clip.dart';
 import 'package:frosty/screens/clips/stores/channel_clips_store.dart';
 import 'package:frosty/screens/clips/widgets/clip_card.dart';
+import 'package:frosty/screens/vod/widgets/video_card_layout.dart';
+import 'package:frosty/screens/vod/widgets/video_kit.dart';
 import 'package:frosty/widgets/adaptive_sliver_list.dart';
-import 'package:frosty/widgets/section_header.dart';
 
 /// The channel's other top clips of the week, under a clip.
 class MoreClipsSliver extends StatelessWidget {
@@ -31,11 +32,9 @@ class MoreClipsSliver extends StatelessWidget {
             if (clip.slug != current.slug) clip,
         ];
         if (store.isLoading) {
-          return const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Center(child: CircularProgressIndicator()),
-            ),
+          return SliverList.builder(
+            itemCount: 3,
+            itemBuilder: (context, _) => const VideoRowSkeleton(),
           );
         }
         if (others.isEmpty) {
@@ -44,10 +43,14 @@ class MoreClipsSliver extends StatelessWidget {
         return SliverMainAxisGroup(
           slivers: [
             SliverToBoxAdapter(
-              child: SectionHeader(
+              child: VideoSectionLabel(
                 'More clips from ${current.broadcasterDisplayName}',
-                isFirst: true,
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                padding: EdgeInsets.fromLTRB(
+                  16 + MediaQuery.paddingOf(context).left,
+                  16,
+                  16 + MediaQuery.paddingOf(context).right,
+                  4,
+                ),
               ),
             ),
             AdaptiveSliverList(

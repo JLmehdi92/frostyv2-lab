@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/home/search/search_videos_store.dart';
+import 'package:frosty/screens/vod/widgets/video_card_layout.dart';
 import 'package:frosty/screens/vod/widgets/vod_card.dart';
+import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/adaptive_sliver_list.dart';
 import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/skeleton_loader.dart';
@@ -22,12 +24,30 @@ class SearchResultsVideos extends StatelessWidget {
       builder: (context) {
         final videos = store.videos;
         final error = store.error;
+        final tiles = context.isLargeScreen;
+        Widget grid(int count, NullableIndexedWidgetBuilder builder) {
+          final list = AdaptiveSliverList(
+            itemCount: count,
+            maxItemWidth: tiles
+                ? AdaptiveSliverList.videoTileWidth
+                : AdaptiveSliverList.rowCardWidth,
+            itemBuilder: builder,
+          );
+          return tiles
+              ? SliverPadding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AdaptiveSliverList.videoTileGutter,
+                  ),
+                  sliver: list,
+                )
+              : list;
+        }
+
         if (store.loading) {
-          return const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(32),
-              child: Center(child: CircularProgressIndicator()),
-            ),
+          return grid(
+            tiles ? 8 : 4,
+            (context, _) =>
+                tiles ? const VideoTileSkeleton() : const VideoRowSkeleton(),
           );
         }
         if (error != null) {
@@ -61,25 +81,26 @@ class SearchResultsVideos extends StatelessWidget {
         final hasMore = store.hasMore;
         return SliverMainAxisGroup(
           slivers: [
-            // Rows of cards on a tablet, a list on a phone.
-            AdaptiveSliverList(
-              itemCount: videos.length,
-              itemBuilder: (context, index) {
-                if (hasMore && index >= videos.length - _prefetchDistance) {
-                  // After the frame: never change the store while building.
-                  WidgetsBinding.instance.addPostFrameCallback(
-                    (_) => store.loadMore(),
-                  );
-                }
-                return VodCard(vod: videos[index], showChannel: true);
-              },
-            ),
+            // Tiles on a tablet, a list on a phone.
+            grid(videos.length, (context, index) {
+              if (hasMore && index >= videos.length - _prefetchDistance) {
+                // After the frame: never change the store while building.
+                WidgetsBinding.instance.addPostFrameCallback(
+                  (_) => store.loadMore(),
+                );
+              }
+              return VodCard(
+                vod: videos[index],
+                showChannel: true,
+                tile: tiles,
+              );
+            }),
             if (loadingMore)
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
+              grid(
+                tiles ? 4 : 1,
+                (context, _) => tiles
+                    ? const VideoTileSkeleton()
+                    : const VideoRowSkeleton(),
               ),
           ],
         );

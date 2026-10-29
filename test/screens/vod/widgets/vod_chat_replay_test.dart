@@ -7,8 +7,8 @@ import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/stores/vod_chat_replay_store.dart';
 import 'package:frosty/screens/vod/widgets/vod_chat_replay.dart';
-import 'package:frosty/widgets/alert_message.dart';
-import 'package:frosty/widgets/loading_indicator.dart';
+import 'package:frosty/screens/vod/widgets/video_kit.dart';
+import 'package:frosty/widgets/skeleton_loader.dart';
 import 'package:mobx/mobx.dart' show ObservableList;
 import 'package:mocktail/mocktail.dart';
 
@@ -77,10 +77,11 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('loading shows a spinner with a caption', (tester) async {
+  testWidgets('loading shows message skeletons with a caption', (tester) async {
     await pump(tester, ReplayStatus.loading);
 
-    expect(find.byType(LoadingIndicator), findsOneWidget);
+    expect(find.byType(ReplayLoading), findsOneWidget);
+    expect(find.byType(SkeletonLoader), findsNWidgets(3));
     expect(find.text('Loading chat replay'), findsOneWidget);
   });
 
@@ -104,8 +105,10 @@ void main() {
   testWidgets('uploads explain there is no chat', (tester) async {
     await pump(tester, ReplayStatus.notApplicable);
 
-    expect(find.byType(AlertMessage), findsOneWidget);
+    expect(find.byType(VideoPaneNotice), findsOneWidget);
     expect(find.text('Uploads have no chat replay'), findsOneWidget);
+    expect(find.text('synced to video'), findsNothing);
+    expect(find.byIcon(Icons.refresh_rounded), findsNothing);
   });
 
   testWidgets('the resume pill calls resumeScroll', (tester) async {

@@ -1,87 +1,148 @@
 import 'package:flutter/material.dart';
 import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/home/top/categories/category_streams.dart';
+import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
 import 'package:frosty/screens/vod/vod_time.dart';
+import 'package:frosty/screens/vod/widgets/video_kit.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:intl/intl.dart';
 
-/// Title and details of a VOD under the player (portrait).
+/// "Yesterday · 3,104 views".
+String vodDetails(Vod vod) => [
+  formatTimeAgo(vod.createdAt),
+  '${NumberFormat().format(vod.viewCount)} '
+      '${vod.viewCount == 1 ? 'view' : 'views'}',
+].join(' · ');
+
+/// Title and details of a VOD under the player (boards Rediff and
+/// RediffTablette): the title, then the category pill and the age and
+/// views; a broadcast still recording says so.
 class VodInfoStrip extends StatelessWidget {
-  const VodInfoStrip({super.key, required this.vod});
+  const VodInfoStrip({
+    super.key,
+    required this.vod,
+    this.large = false,
+    this.padding = const EdgeInsets.fromLTRB(16, 12, 16, 12),
+    this.divider = true,
+  });
 
   final Vod vod;
 
+  /// A tablet's title (20 / 800).
+  final bool large;
+  final EdgeInsetsGeometry padding;
+
+  /// The hairline under the strip (above the chat replay).
+  final bool divider;
+
   @override
   Widget build(BuildContext context) {
-    final muted = context.colorScheme.onSurfaceVariant;
-    final details = [
-      formatTimeAgo(vod.createdAt),
-      '${NumberFormat().format(vod.viewCount)} '
-          '${vod.viewCount == 1 ? 'view' : 'views'}',
-    ].join(' · ');
+    final colors = FeedColors.of(context);
     final gameId = vod.gameId;
     final gameName = vod.gameName;
+    final hasCategory = gameId != null && gameName != null;
+    final title = vod.title.trim().isEmpty
+        ? 'Untitled broadcast'
+        : vod.title.trim();
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: divider
+            ? Border(
+                bottom: BorderSide(
+                  color: colors.hairline,
+                  width: FrostyTokens.hairlineWidth,
+                ),
+              )
+            : null,
+      ),
+      child: Padding(
+        padding: padding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              maxLines: large ? 3 : 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontFamily: FrostyTokens.displayFamily,
+                fontSize: large ? 20 : 16,
+                fontWeight: large ? FontWeight.w800 : FontWeight.w700,
+                letterSpacing: large ? -0.4 : -0.16,
+                height: 1.3,
+                color: colors.text,
+              ),
+            ),
+            // The pill's 44 dp target takes the board's 8 dp gap.
+            if (!hasCategory) const SizedBox(height: 8),
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                if (vod.isRecording) const RecordingBadge(),
+                if (hasCategory)
+                  VideoCategoryChip(name: gameName, gameId: gameId),
+                Text(
+                  vodDetails(vod),
+                  style: FrostyType.tabular(
+                    TextStyle(
+                      fontFamily: FrostyTokens.bodyFamily,
+                      fontSize: 13,
+                      height: 1.3,
+                      color: colors.secondary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// "● Recording": a broadcast still live, in the signal (boards
+/// VideosChaine, VideosSuivies).
+class RecordingBadge extends StatelessWidget {
+  const RecordingBadge({super.key, this.height = 19, this.fontSize = 10.5});
+
+  final double height;
+  final double fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = context.frostyColors.live;
+    return Container(
+      height: height,
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      decoration: BoxDecoration(
+        color: accent,
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         spacing: 4,
         children: [
-          Text(
-            vod.title.isEmpty ? 'Untitled broadcast' : vod.title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: context.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
+          Container(
+            width: 5,
+            height: 5,
+            decoration: const BoxDecoration(
+              color: FrostyTokens.backgroundDark,
+              shape: BoxShape.circle,
             ),
           ),
-          Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 6,
-            runSpacing: 4,
-            children: [
-              if (vod.isRecording)
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: context.colorScheme.error,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                    child: Text(
-                      'Recording',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              Text(details, style: TextStyle(color: muted, fontSize: 13)),
-              if (gameId != null && gameName != null)
-                InkWell(
-                  borderRadius: BorderRadius.circular(4),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      settings: const RouteSettings(
-                        name: CategoryStreams.routeName,
-                      ),
-                      builder: (context) => CategoryStreams(categoryId: gameId),
-                    ),
-                  ),
-                  child: Text(
-                    gameName,
-                    style: TextStyle(
-                      color: context.colorScheme.primary,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-            ],
+          Text(
+            'Recording',
+            style: TextStyle(
+              fontFamily: FrostyTokens.bodyFamily,
+              fontSize: fontSize,
+              fontWeight: FontWeight.w800,
+              height: 1,
+              color: FrostyTokens.backgroundDark,
+            ),
           ),
         ],
       ),

@@ -1,22 +1,28 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Clip;
 import 'package:frosty/models/clip.dart';
 import 'package:frosty/screens/clips/clip_screen.dart';
 import 'package:frosty/screens/vod/vod_time.dart';
 import 'package:frosty/screens/vod/widgets/video_card_layout.dart';
+import 'package:frosty/screens/vod/widgets/video_glyph.dart';
 import 'package:intl/intl.dart';
 
-/// A clip in a list, laid out like the VOD cards: thumbnail with its length
-/// and views, then the title, category, age and clipper.
+/// A clip in a list, laid out like the VOD cards (board VideosChaine's
+/// Clips): thumbnail with its views and length, then the title, category
+/// (or channel), age and clipper.
 class ClipCard extends StatelessWidget {
   const ClipCard({
     super.key,
     required this.clip,
     this.onTap,
     this.showChannel = false,
+    this.tile = false,
   });
 
   /// Names the channel instead of the category (a category's list).
   final bool showChannel;
+
+  /// The picture on top, for a tablet's grid.
+  final bool tile;
 
   final Clip clip;
 
@@ -37,11 +43,13 @@ class ClipCard extends StatelessWidget {
 
     return VideoCardLayout(
       thumbnailUrl: clip.thumbnailUrl,
-      fallbackIcon: Icons.movie_outlined,
+      fallback: (glyph: VideoGlyphKind.clip, label: null),
       lengthLabel: formatVodTime(clip.duration),
-      topChips: [VideoCardChip(child: Text(views))],
+      tile: tile,
+      topChips: [VideoCardChip(large: tile, child: Text(views))],
       title: title.isEmpty ? 'Untitled clip' : title,
       subtitle: showChannel ? clip.broadcasterDisplayName : clip.gameName,
+      channelLogin: showChannel && tile ? clip.broadcasterLogin : null,
       details: details,
       onTap:
           onTap ?? () => ClipScreen.open(context, slug: clip.slug, clip: clip),

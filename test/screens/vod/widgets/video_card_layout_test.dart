@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/screens/vod/widgets/video_card_layout.dart';
+import 'package:frosty/screens/vod/widgets/video_glyph.dart';
 
 void main() {
   testWidgets('shows the fallback, chips, lines and taps through', (
@@ -12,7 +13,7 @@ void main() {
         home: Scaffold(
           body: VideoCardLayout(
             thumbnailUrl: null,
-            fallbackIcon: Icons.movie_outlined,
+            fallback: (glyph: VideoGlyphKind.clip, label: 'Processing'),
             lengthLabel: '0:30',
             topChips: const [VideoCardChip(child: Text('1.2K views'))],
             title: 'A clip',
@@ -25,7 +26,7 @@ void main() {
       ),
     );
 
-    expect(find.byIcon(Icons.movie_outlined), findsOneWidget);
+    expect(find.text('Processing'), findsOneWidget);
     for (final text in [
       '0:30',
       '1.2K views',

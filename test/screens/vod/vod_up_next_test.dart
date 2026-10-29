@@ -139,7 +139,7 @@ void main() {
     players[first.id]!.status = VodPlaybackStatus.ended;
     await settle(tester);
 
-    expect(find.textContaining('Up Next'), findsOneWidget);
+    expect(find.textContaining('UP NEXT'), findsOneWidget);
     expect(find.textContaining('10 seconds'), findsOneWidget);
     expect(find.text('Evening stream'), findsWidgets);
     expect(find.text('Cancel'), findsOneWidget);
@@ -165,7 +165,7 @@ void main() {
     await tester.tap(find.text('Cancel'));
     await tester.pump();
 
-    expect(find.textContaining('Up Next'), findsNothing);
+    expect(find.textContaining('UP NEXT'), findsNothing);
     await tester.pump(const Duration(seconds: 15));
     expect(players.keys, isNot(contains(second.id)));
 
@@ -174,7 +174,7 @@ void main() {
     player.status = VodPlaybackStatus.ended;
     await settle(tester);
     expect(
-      find.textContaining('Up Next'),
+      find.textContaining('UP NEXT'),
       findsOneWidget,
       reason: 'the next end offers it again',
     );
@@ -269,7 +269,7 @@ void main() {
     players[live.id]!.status = VodPlaybackStatus.ended;
     await settle(tester);
 
-    expect(find.textContaining('Up Next'), findsNothing);
+    expect(find.textContaining('UP NEXT'), findsNothing);
     verifyNever(() => service.getChannelVideos(login: 'streamer'));
     await close(tester);
   });

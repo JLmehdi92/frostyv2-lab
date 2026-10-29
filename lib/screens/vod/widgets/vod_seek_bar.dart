@@ -65,7 +65,6 @@ class _VodSeekBarState extends State<VodSeekBar> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colorScheme;
     final drag = _drag;
     final played = drag ?? _fractionOf(widget.position);
     final muted = [
@@ -140,14 +139,13 @@ class _VodSeekBarState extends State<VodSeekBar> {
                         mutedRanges: muted,
                         enabled: _enabled,
                         dragging: drag != null,
-                        playedColor: colors.primary,
-                        trackColor: Colors.white.withValues(alpha: 0.24),
-                        bufferedColor: Colors.white.withValues(alpha: 0.4),
-                        mutedColor:
-                            Theme.of(
-                              context,
-                            ).extension<FrostyColors>()?.followersOnly ??
-                            colors.tertiary,
+                        // Board Rediff: the signal for what was played,
+                        // white 22 % / 38 % for the track and the buffer,
+                        // the muted parts as light ticks above.
+                        playedColor: context.frostyColors.live,
+                        trackColor: Colors.white.withValues(alpha: 0.22),
+                        bufferedColor: Colors.white.withValues(alpha: 0.38),
+                        mutedColor: FrostyTokens.textBodyDark,
                       ),
                     ),
                   ),
@@ -242,21 +240,24 @@ class VodSeekBarPainter extends CustomPainter {
     canvas.drawRRect(bar(0, played), Paint()..color = playedColor);
     final mutedPaint = Paint()..color = mutedColor;
     for (final (start, end) in mutedRanges) {
-      canvas.drawRect(
-        Rect.fromLTRB(
+      // 2 px tall, 3 px above the track (board Rediff).
+      canvas.drawRRect(
+        RRect.fromLTRBR(
           start * width,
-          y - _trackHeight / 2 - 4,
+          y - _trackHeight / 2 - 5,
           (end * width).clamp(start * width + 2, width),
-          y - _trackHeight / 2 - 2,
+          y - _trackHeight / 2 - 3,
+          const Radius.circular(1),
         ),
         mutedPaint,
       );
     }
-    canvas.drawCircle(
-      Offset(played * width, y),
-      dragging ? 8 : 6,
-      Paint()..color = playedColor,
-    );
+    final knob = Offset(played * width, y);
+    final radius = dragging ? 8.0 : 6.0;
+    // The knob's 3 px dark ring, so it reads over a bright picture.
+    canvas
+      ..drawCircle(knob, radius + 3, Paint()..color = const Color(0x40000000))
+      ..drawCircle(knob, radius, Paint()..color = playedColor);
   }
 
   @override

@@ -3,6 +3,8 @@ import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/vod/vod_screen.dart';
 import 'package:frosty/screens/vod/vod_time.dart';
 import 'package:frosty/screens/vod/widgets/video_card_layout.dart';
+import 'package:frosty/screens/vod/widgets/video_glyph.dart';
+import 'package:frosty/screens/vod/widgets/vod_info_strip.dart';
 import 'package:intl/intl.dart';
 
 /// [vod]'s picture, or null while Twitch still serves its "processing"
@@ -15,8 +17,10 @@ String? vodThumbnailUrl(Vod vod) {
   return url;
 }
 
-/// A past broadcast, highlight or upload in a list, laid out like the live
-/// stream cards: thumbnail with its length, then title and details.
+/// A past broadcast, highlight or upload in a list (boards VideosChaine,
+/// VideosSuivies, VideosSuiviesTablette): the thumbnail with Recording,
+/// Watched or the lock and its length and progress, then the title, the
+/// category (or the channel) and the age and views.
 class VodCard extends StatelessWidget {
   const VodCard({
     super.key,
@@ -26,6 +30,8 @@ class VodCard extends StatelessWidget {
     this.onTap,
     this.showChannel = false,
     this.sidePadding = 16,
+    this.tile = false,
+    this.channelAvatar = false,
   });
 
   /// The card's sides (see [VideoCardLayout.sidePadding]).
@@ -33,6 +39,13 @@ class VodCard extends StatelessWidget {
 
   /// Names the channel instead of the category (a category's list).
   final bool showChannel;
+
+  /// With [showChannel], the channel's picture beside its name (followed
+  /// videos).
+  final bool channelAvatar;
+
+  /// The picture on top, for a tablet's grid.
+  final bool tile;
 
   final Vod vod;
 
@@ -47,44 +60,64 @@ class VodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final title = vod.title.trim().isEmpty ? 'Untitled' : vod.title.trim();
     final details = [
       formatTimeAgo(vod.createdAt),
       '${NumberFormat().format(vod.viewCount)} '
           '${vod.viewCount == 1 ? 'view' : 'views'}',
     ].join(' · ');
+    final channel = vod.ownerDisplayName.isNotEmpty
+        ? vod.ownerDisplayName
+        : vod.ownerLogin;
 
     return VideoCardLayout(
       thumbnailUrl: vodThumbnailUrl(vod),
-      fallbackIcon: Icons.video_library_outlined,
+      fallback: (glyph: VideoGlyphKind.camera, label: 'Processing'),
       lengthLabel: formatVodTime(vod.duration),
+      tile: tile,
       topChips: [
         if (vod.isRecording)
+          RecordingBadge(height: tile ? 22 : 19, fontSize: tile ? 11.5 : 10.5),
+        if (watched)
           VideoCardChip(
-            color: colors.error.withValues(alpha: 0.9),
-            child: const Text('Recording'),
+            large: tile,
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 4,
+              children: [
+                VideoGlyph(
+                  VideoGlyphKind.check,
+                  color: Color(0xFFF5F5F5),
+                  size: 10,
+                  strokeWidth: 3,
+                ),
+                Text('Watched'),
+              ],
+            ),
           ),
-        if (watched) const VideoCardChip(child: Text('Watched')),
         if (vod.isRestricted)
           VideoCardChip(
-            child: Icon(
-              Icons.lock_rounded,
-              size: 12,
-              color: videoCardOnImage(context),
+            large: tile,
+            square: true,
+            child: Semantics(
+              label: 'Subscribers only',
+              child: const VideoGlyph(
+                VideoGlyphKind.lock,
+                color: Color(0xFFF5F5F5),
+                size: 11,
+                strokeWidth: 2.4,
+              ),
             ),
           ),
       ],
       progress: progress,
       title: title,
-      subtitle: showChannel ? vod.ownerDisplayName : vod.gameName,
-      details: details,
-      footer: vod.isRestricted
-          ? Text(
-              'Subscribers only',
-              style: TextStyle(fontSize: 14, color: colors.primary),
-            )
+      subtitle: showChannel ? channel : vod.gameName,
+      channelLogin: showChannel && (channelAvatar || tile)
+          ? vod.ownerLogin
           : null,
+      details: details,
+      footer: vod.isRestricted ? const SubscribersOnlyLabel() : null,
       onTap: onTap ?? () => VodScreen.open(context, vodId: vod.id, vod: vod),
       sidePadding: sidePadding,
     );

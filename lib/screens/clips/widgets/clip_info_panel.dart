@@ -1,14 +1,19 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Clip;
+import 'package:flutter/material.dart' as material show Clip;
 import 'package:frosty/models/clip.dart';
 import 'package:frosty/screens/channel/channel.dart';
-import 'package:frosty/screens/home/top/categories/category_streams.dart';
+import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
 import 'package:frosty/screens/vod/vod_time.dart';
-import 'package:frosty/utils/context_extensions.dart';
+import 'package:frosty/screens/vod/widgets/video_glyph.dart';
+import 'package:frosty/screens/vod/widgets/video_kit.dart';
+import 'package:frosty/theme.dart';
+import 'package:frosty/widgets/motion/press_scale.dart';
 import 'package:frosty/widgets/profile_picture.dart';
 import 'package:intl/intl.dart';
 
-/// Title, channel, clipper and actions of a clip under (or beside) the
-/// player.
+/// Title, views and age, category, channel and clipper, and the actions of
+/// a clip under the player (board Clips): Watch full video, Copy link and
+/// Share.
 class ClipInfoPanel extends StatelessWidget {
   const ClipInfoPanel({
     super.key,
@@ -42,7 +47,7 @@ class ClipInfoPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = context.colorScheme.onSurfaceVariant;
+    final colors = FeedColors.of(context);
     final details = [
       '${NumberFormat().format(clip.viewCount)} '
           '${clip.viewCount == 1 ? 'view' : 'views'}',
@@ -51,108 +56,191 @@ class ClipInfoPanel extends StatelessWidget {
     final gameId = clip.gameId;
     final gameName = clip.gameName;
     final curator = clip.curatorDisplayName;
+    final title = clip.title.trim().isEmpty
+        ? 'Untitled clip'
+        : clip.title.trim();
+    final channel = clip.broadcasterDisplayName.isNotEmpty
+        ? clip.broadcasterDisplayName
+        : clip.broadcasterLogin;
+    final watchFull = onWatchFullVideo;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: 6,
-        children: [
-          Text(
-            clip.title.trim().isEmpty ? 'Untitled clip' : clip.title.trim(),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: context.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: colors.hairline,
+            width: FrostyTokens.hairlineWidth,
           ),
-          Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 6,
-            runSpacing: 4,
-            children: [
-              Text(details, style: TextStyle(color: muted, fontSize: 13)),
-              if (gameId != null && gameName != null)
-                InkWell(
-                  borderRadius: BorderRadius.circular(4),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      settings: const RouteSettings(
-                        name: CategoryStreams.routeName,
-                      ),
-                      builder: (context) => CategoryStreams(categoryId: gameId),
-                    ),
-                  ),
-                  child: Text(
-                    gameName,
-                    style: TextStyle(
-                      color: context.colorScheme.primary,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 6,
+          children: [
+            Text(
+              title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontFamily: FrostyTokens.displayFamily,
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.16,
+                height: 1.3,
+                color: colors.text,
+              ),
+            ),
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              children: [
+                Text(
+                  details,
+                  style: FrostyType.tabular(
+                    TextStyle(
+                      fontFamily: FrostyTokens.bodyFamily,
                       fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                      height: 1.3,
+                      color: colors.secondary,
                     ),
                   ),
                 ),
-            ],
-          ),
-          if (clip.broadcasterLogin.isNotEmpty)
-            InkWell(
-              borderRadius: BorderRadius.circular(8),
-              onTap: () => _openChannel(context),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Row(
-                  spacing: 8,
-                  children: [
-                    ProfilePicture(
-                      userLogin: clip.broadcasterLogin,
-                      radius: 14,
-                    ),
-                    Flexible(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                if (gameId != null && gameName != null)
+                  VideoCategoryChip(name: gameName, gameId: gameId, height: 26),
+              ],
+            ),
+            if (clip.broadcasterLogin.isNotEmpty)
+              Semantics(
+                button: true,
+                label: curator == null
+                    ? 'Open $channel'
+                    : 'Open $channel, clipped by $curator',
+                excludeSemantics: true,
+                child: PressScale(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => _openChannel(context),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 44),
+                      child: Row(
+                        spacing: 10,
                         children: [
-                          Text(
-                            clip.broadcasterDisplayName,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ProfilePicture(
+                            userLogin: clip.broadcasterLogin,
+                            radius: 16,
                           ),
-                          if (curator != null)
-                            Text(
-                              'Clipped by $curator',
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(color: muted, fontSize: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              spacing: 1,
+                              children: [
+                                Text(
+                                  channel,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontFamily: FrostyTokens.bodyFamily,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: colors.text,
+                                  ),
+                                ),
+                                if (curator != null)
+                                  Text(
+                                    'Clipped by $curator',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontFamily: FrostyTokens.bodyFamily,
+                                      fontSize: 12,
+                                      color: colors.secondary,
+                                    ),
+                                  ),
+                              ],
                             ),
+                          ),
+                          VideoGlyph(
+                            VideoGlyphKind.chevronRight,
+                            color: colors.secondary,
+                            size: 16,
+                            strokeWidth: 2,
+                          ),
                         ],
                       ),
                     ),
-                  ],
+                  ),
+                ),
+              ),
+            const SizedBox(height: 2),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (watchFull != null)
+                  VideoActionPill(
+                    glyph: VideoGlyphKind.broadcast,
+                    label: 'Watch full video',
+                    raised: true,
+                    onTap: watchFull,
+                  ),
+                VideoActionPill(
+                  glyph: VideoGlyphKind.link,
+                  label: 'Copy link',
+                  raised: true,
+                  onTap: onCopyLink,
+                ),
+                _ShareDisc(onTap: onShare),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Share in a 40 dp disc.
+class _ShareDisc extends StatelessWidget {
+  const _ShareDisc({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = FeedColors.of(context);
+    return Tooltip(
+      message: 'Share',
+      child: PressScale(
+        child: Material(
+          color: colors.raised,
+          shape: CircleBorder(
+            side: BorderSide(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? FrostyTokens.hairlineStrongDark
+                  : colors.pillBorder,
+              width: FrostyTokens.hairlineWidth,
+            ),
+          ),
+          clipBehavior: material.Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            child: SizedBox.square(
+              dimension: 40,
+              child: Center(
+                child: VideoGlyph(
+                  VideoGlyphKind.share,
+                  color: colors.text,
+                  size: 16,
+                  strokeWidth: 1.9,
                 ),
               ),
             ),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              if (onWatchFullVideo != null)
-                FilledButton.tonalIcon(
-                  onPressed: onWatchFullVideo,
-                  icon: const Icon(Icons.video_library_outlined, size: 18),
-                  label: const Text('Watch full video'),
-                ),
-              FilledButton.tonalIcon(
-                onPressed: onCopyLink,
-                icon: const Icon(Icons.link_rounded, size: 18),
-                label: const Text('Copy link'),
-              ),
-              FilledButton.tonalIcon(
-                onPressed: onShare,
-                icon: const Icon(Icons.share_outlined, size: 18),
-                label: const Text('Share'),
-              ),
-            ],
           ),
-        ],
+        ),
       ),
     );
   }

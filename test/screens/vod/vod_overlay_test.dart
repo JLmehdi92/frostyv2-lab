@@ -338,4 +338,96 @@ void main() {
     expect(controller.calls, isNot(contains('togglePlay')));
     await tester.pump(const Duration(seconds: 1));
   });
+
+  group('board sizes', () {
+    final archive = Vod(
+      id: '1000000001',
+      title: 'Morning stream',
+      lengthSeconds: 3600,
+      createdAt: DateTime.utc(2026, 10, 12),
+      viewCount: 5,
+      ownerId: '42',
+      ownerLogin: '',
+      ownerDisplayName: 'Streamer',
+      type: VodType.archive,
+    );
+
+    testWidgets('a tablet player names the kind of video', (tester) async {
+      await pump(
+        tester,
+        size: const Size(1280, 720),
+        media: PlayerMedia.vod(archive),
+      );
+
+      expect(find.text('Past broadcast'), findsOneWidget);
+      // RediffTablette: a 68 dp play disc.
+      expect(tester.getSize(find.byTooltip('Play')).width, 68);
+    });
+
+    testWidgets('a phone player keeps the 56 dp disc, no kind pill', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        size: const Size(390, 219),
+        media: PlayerMedia.vod(archive),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Past broadcast'), findsNothing);
+      expect(tester.getSize(find.byTooltip('Play')).width, 56);
+      expect(tester.getSize(find.byTooltip('Back 10 seconds')).width, 44);
+    });
+
+    testWidgets('a short player shrinks the centre', (tester) async {
+      await pump(tester, size: const Size(320, 180));
+
+      expect(tester.takeException(), isNull);
+      expect(tester.getSize(find.byTooltip('Play')).width, 44);
+    });
+
+    testWidgets('the skip badge only fades under reduce motion', (
+      tester,
+    ) async {
+      controller.overlayVisible = false;
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: true);
+      addTearDown(
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+      );
+      await pump(tester);
+
+      await tester.tapAt(const Offset(100, 450));
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tapAt(const Offset(100, 450));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 60));
+
+      final scales = tester
+          .widgetList<Transform>(
+            find.ancestor(
+              of: find.text('−10 s'),
+              matching: find.byType(Transform),
+            ),
+          )
+          .map((t) => t.transform.getMaxScaleOnAxis());
+      expect(scales, everyElement(1.0));
+      await tester.pump(const Duration(seconds: 1));
+    });
+
+    testWidgets('the sheet shows the time the link carries', (tester) async {
+      await pump(tester);
+
+      await tester.tap(find.byTooltip('Settings'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Normal'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('?t=10m0s'),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
+      expect(find.text('?t=10m0s'), findsOneWidget);
+    });
+  });
 }

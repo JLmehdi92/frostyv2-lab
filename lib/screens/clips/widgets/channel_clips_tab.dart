@@ -3,12 +3,14 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/clips/stores/channel_clips_store.dart';
 import 'package:frosty/screens/clips/widgets/clip_card.dart';
 import 'package:frosty/screens/clips/widgets/clip_filter_bar.dart';
+import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
+import 'package:frosty/screens/home/stream_list/streams_list.dart';
+import 'package:frosty/screens/vod/widgets/video_card_layout.dart';
+import 'package:frosty/screens/vod/widgets/video_kit.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/adaptive_sliver_list.dart';
-import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/frosty_scrollbar.dart';
 import 'package:frosty/widgets/scroll_to_top_button.dart';
-import 'package:frosty/widgets/skeleton_loader.dart';
 import 'package:mobx/mobx.dart';
 
 /// A channel's clips: period and sort chips above the top 100 (rows of
@@ -89,37 +91,57 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
     super.dispose();
   }
 
-  /// What the list shows now: skeletons, the message, or the clips.
+  /// What the list shows now: skeletons, the message, or the clips (rows,
+  /// or tiles on a tablet).
   Widget _content(BuildContext context) {
     final store = widget.store;
     final clips = store.clips;
+    final tiles = context.isLargeScreen;
+    Widget grid(int count, NullableIndexedWidgetBuilder builder) {
+      final list = AdaptiveSliverList(
+        itemCount: count,
+        maxItemWidth: tiles
+            ? AdaptiveSliverList.videoTileWidth
+            : AdaptiveSliverList.rowCardWidth,
+        itemBuilder: builder,
+      );
+      return tiles
+          ? SliverPadding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AdaptiveSliverList.videoTileGutter,
+              ),
+              sliver: list,
+            )
+          : list;
+    }
+
     if (store.isLoading) {
-      return AdaptiveSliverList(
-        itemCount: 6,
-        itemBuilder: (context, _) =>
-            const StreamCardSkeletonLoader(showCategory: false),
+      return grid(
+        6,
+        (context, _) =>
+            tiles ? const VideoTileSkeleton() : const VideoRowSkeleton(),
       );
     }
     if (clips.isEmpty) {
       final error = store.error;
       return SliverToBoxAdapter(
         child: Padding(
-          padding: const EdgeInsets.only(top: 120),
-          child: AlertMessage(
-            message: error ?? 'No clips for this period',
-            vertical: error == null,
-            trailingIcon: error == null ? null : Icons.refresh_rounded,
-            onTrailingIconPressed: error == null ? null : store.refresh,
-          ),
+          padding: const EdgeInsets.only(top: 100),
+          child: error == null
+              ? const VideoListEmpty(message: 'No clips for this period')
+              : FeedStatusView.error(message: error, onRetry: store.refresh),
         ),
       );
     }
     return SliverMainAxisGroup(
       slivers: [
-        AdaptiveSliverList(
-          itemCount: clips.length,
-          itemBuilder: (context, index) =>
-              ClipCard(clip: clips[index], showChannel: widget.showChannel),
+        grid(
+          clips.length,
+          (context, index) => ClipCard(
+            clip: clips[index],
+            tile: tiles,
+            showChannel: widget.showChannel,
+          ),
         ),
         if (store.hasMore)
           SliverToBoxAdapter(
@@ -128,7 +150,10 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
               child: Text(
                 'Showing the top ${clips.length} clips',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: context.colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                  fontSize: 12.5,
+                  color: FeedColors.of(context).tertiary,
+                ),
               ),
             ),
           ),

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +12,7 @@ import 'package:frosty/screens/channel/video/content_warning_gate.dart';
 import 'package:frosty/screens/channel/video/live_progress.dart';
 import 'package:frosty/screens/channel/video/player_engine_resolver.dart';
 import 'package:frosty/screens/channel/video/web_content_gate.dart';
+import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/player_media.dart';
 import 'package:frosty/screens/vod/stores/ivs_vod_store.dart';
@@ -21,7 +23,9 @@ import 'package:frosty/screens/vod/vod_overlay.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:frosty/screens/vod/vod_resume.dart';
 import 'package:frosty/screens/vod/widgets/up_next_overlay.dart';
+import 'package:frosty/screens/vod/widgets/video_back_button.dart';
 import 'package:frosty/screens/vod/widgets/vod_chat_replay.dart';
+import 'package:frosty/screens/vod/widgets/vod_details_panel.dart';
 import 'package:frosty/screens/vod/widgets/vod_error_view.dart';
 import 'package:frosty/screens/vod/widgets/vod_info_strip.dart';
 import 'package:frosty/screens/vod/widgets/vod_video.dart';
@@ -33,7 +37,6 @@ import 'package:frosty/utils/content_labels.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/pip_callbacks.dart';
 import 'package:frosty/widgets/draggable_divider.dart';
-import 'package:frosty/widgets/loading_indicator.dart';
 import 'package:mobx/mobx.dart';
 import 'package:simple_pip_mode/actions/pip_actions_layout.dart';
 import 'package:simple_pip_mode/pip_widget.dart';
@@ -162,6 +165,9 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   /// starts without it.
   static const _historyTimeout = Duration(seconds: 3);
   var _mutedSegments = const <MutedSegment>[];
+
+  /// A tablet's side chat in the dark theme (board RediffTablette).
+  static const _tabletChatColor = Color(0xFF0D0D0D);
   var _fillScreen = false;
   var _forceWeb = false;
   var _isDividerDragging = false;
@@ -574,24 +580,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   }
 
   /// Black area with a back button, for when there is no player yet.
-  Widget _withBackButton(Widget child) => Stack(
-    fit: StackFit.expand,
-    children: [
-      child,
-      Align(
-        alignment: Alignment.topLeft,
-        child: IconButton(
-          tooltip: 'Back',
-          onPressed: () => Navigator.maybePop(context),
-          icon: Icon(
-            Icons.adaptive.arrow_back_rounded,
-            color: Colors.white,
-            shadows: kOverlayShadow,
-          ),
-        ),
-      ),
-    ],
-  );
+  Widget _withBackButton(Widget child) => VideoBackButtonLayer(child: child);
 
   Widget _buildPlayerArea({required bool landscape, required bool hasChat}) {
     final player = _player;
@@ -610,9 +599,13 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
       final error = _loadError;
       return _withBackButton(
         error == null
-            ? const ColoredBox(
+            ? ColoredBox(
                 color: Colors.black,
-                child: Center(child: CircularProgressIndicator()),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: context.frostyColors.live,
+                  ),
+                ),
               )
             : VodErrorView(
                 problem: error == 'This video is no longer available'
@@ -665,18 +658,33 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildChat({bool header = true}) {
+  Widget _buildChat({bool header = true, bool large = false}) {
     final replay = _replay;
     if (replay == null) {
       return _loadError == null
-          ? const LoadingIndicator(subtitle: 'Loading chat replay')
+          ? const ReplayLoading()
           : const SizedBox.shrink();
     }
-    return VodChatReplay(store: replay, showHeader: header);
+    return VodChatReplay(store: replay, showHeader: header, large: large);
   }
+
+  /// A tablet's details (board RediffTablette): under a portrait video
+  /// above the chat, or under a landscape video beside it.
+  Widget _details(Vod vod, {required bool legend}) => Observer(
+    builder: (context) => VodDetailsPanel(
+      vod: vod,
+      // Followed so the pills follow the player after a fallback.
+      player: _currentPlayer.value,
+      settings: _settings,
+      mutedSegments: _mutedSegments,
+      upNext: _upNext != null,
+      legend: legend,
+    ),
+  );
 
   Widget _buildPortrait() {
     final vod = _vod;
+    final tablet = context.isLargeScreen;
     return SafeArea(
       bottom: false,
       child: Column(
@@ -686,11 +694,60 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
             aspectRatio: 16 / 9,
             child: _buildPlayerArea(landscape: false, hasChat: true),
           ),
-          if (vod != null) VodInfoStrip(vod: vod),
-          const Divider(height: 1),
-          Expanded(child: SafeArea(top: false, child: _buildChat())),
+          if (vod != null)
+            tablet
+                ? DecoratedBox(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: FeedColors.of(context).hairline,
+                          width: FrostyTokens.hairlineWidth,
+                        ),
+                      ),
+                    ),
+                    child: _details(vod, legend: false),
+                  )
+                : VodInfoStrip(vod: vod),
+          Expanded(
+            child: SafeArea(top: false, child: _buildChat(large: tablet)),
+          ),
         ],
       ),
+    );
+  }
+
+  /// Below a tablet's video beside its chat, the details keep at least
+  /// this much room.
+  static const _minTabletDetailsHeight = 120.0;
+
+  /// A tablet beside its chat (board RediffTablette): the 16:9 video at the
+  /// top, the details under it.
+  Widget _buildTabletVideoColumn(Widget video) {
+    final vod = _vod;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final videoHeight = math.min(
+          constraints.maxWidth * 9 / 16,
+          math.max(0.0, constraints.maxHeight - _minTabletDetailsHeight),
+        );
+        return ColoredBox(
+          color: context.scaffoldColor,
+          child: Column(
+            children: [
+              SizedBox(
+                height: videoHeight,
+                width: double.infinity,
+                child: ColoredBox(color: Colors.black, child: video),
+              ),
+              Expanded(
+                child: vod == null
+                    ? const SizedBox.shrink()
+                    : _details(vod, legend: true),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -732,6 +789,15 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
           ),
         );
 
+        // A tablet puts the details under the video and a header on its
+        // chat (board RediffTablette).
+        final tablet = context.isLargeScreen;
+        final dark = Theme.of(context).brightness == Brightness.dark;
+        final hairline = BorderSide(
+          color: FeedColors.of(context).hairline,
+          width: FrostyTokens.hairlineWidth,
+        );
+
         Widget chatPanel(double totalWidth, {required bool overlay}) =>
             AnimatedContainer(
               curve: Curves.ease,
@@ -739,13 +805,23 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
                   ? Duration.zero
                   : const Duration(milliseconds: 200),
               width: totalWidth * chatWidth,
-              color: overlay
-                  ? Colors.black.withValues(alpha: overlayOpacity)
-                  : context.scaffoldColor,
+              decoration: BoxDecoration(
+                color: overlay
+                    ? Colors.black.withValues(alpha: overlayOpacity)
+                    : tablet && dark
+                    ? _tabletChatColor
+                    : context.scaffoldColor,
+                border: overlay || !tablet
+                    ? null
+                    : Border(
+                        left: leftSide ? BorderSide.none : hairline,
+                        right: leftSide ? hairline : BorderSide.none,
+                      ),
+              ),
               child: SafeArea(
                 left: leftSide,
                 right: !leftSide,
-                child: _buildChat(header: !overlay),
+                child: _buildChat(header: !overlay, large: tablet && !overlay),
               ),
             );
 
@@ -803,7 +879,11 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final width = constraints.maxWidth;
-                final video = Expanded(child: playerArea);
+                final video = Expanded(
+                  child: tablet
+                      ? _buildTabletVideoColumn(playerArea)
+                      : playerArea,
+                );
                 final chat = chatPanel(width, overlay: false);
                 return Stack(
                   children: [
@@ -825,9 +905,20 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
         context.isLandscape && !_settings.landscapeForceVerticalChat;
     _syncSystemUi(immersive: landscape);
 
-    final page = Scaffold(
-      backgroundColor: landscape ? Colors.black : null,
-      body: landscape ? _buildLandscape() : _buildPortrait(),
+    final theme = Theme.of(context);
+    // No app bar to set the system bars: the theme's in portrait, light
+    // icons over the black of landscape.
+    final page = AnnotatedRegion<SystemUiOverlayStyle>(
+      value: landscape
+          ? SystemUiOverlayStyle.light
+          : theme.appBarTheme.systemOverlayStyle ??
+                (theme.brightness == Brightness.dark
+                    ? SystemUiOverlayStyle.light
+                    : SystemUiOverlayStyle.dark),
+      child: Scaffold(
+        backgroundColor: landscape ? Colors.black : null,
+        body: landscape ? _buildLandscape() : _buildPortrait(),
+      ),
     );
 
     if (!Platform.isAndroid) return page;

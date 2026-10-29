@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/widgets/alert_message.dart';
+import 'package:frosty/screens/vod/widgets/video_glyph.dart';
+import 'package:frosty/theme.dart';
 
 /// Why a VOD (or a clip) cannot play, over a black player area. Never opens
 /// a browser.
@@ -48,31 +49,92 @@ class VodErrorView extends StatelessWidget {
       problem == VodPlaybackProblem.subscriberOnly;
 
   @override
-  Widget build(BuildContext context) => ColoredBox(
-    color: Colors.black,
-    child: Center(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AlertMessage(
-              message: messageFor(problem, subject: subject),
-              color: Colors.white,
-              trailingIcon: _retryable && onRetry != null
-                  ? Icons.refresh_rounded
-                  : null,
-              onTrailingIconPressed: _retryable ? onRetry : null,
-            ),
-            if (detailFor(problem) case final detail?)
-              Text(
-                detail,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white70),
+  Widget build(BuildContext context) {
+    const text = FrostyTokens.textPrimaryDark;
+    final detail = detailFor(problem);
+    final retry = _retryable ? onRetry : null;
+    // The player's own ground, as the content warning draws it (board
+    // Rediff): a glyph in its disc, the message, the detail, "Try again".
+    return ColoredBox(
+      color: Colors.black,
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 6,
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: const BoxDecoration(
+                  color: FrostyTokens.raisedDark,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: VideoGlyph(
+                    problem == VodPlaybackProblem.subscriberOnly
+                        ? VideoGlyphKind.lock
+                        : VideoGlyphKind.alert,
+                    color: text,
+                    size: 18,
+                    strokeWidth: 2,
+                  ),
+                ),
               ),
-          ],
+              Text(
+                messageFor(problem, subject: subject),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontFamily: FrostyTokens.bodyFamily,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  height: 1.35,
+                  color: text,
+                ),
+              ),
+              if (detail != null)
+                Text(
+                  detail,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontFamily: FrostyTokens.bodyFamily,
+                    fontSize: 12.5,
+                    height: 1.4,
+                    color: FrostyTokens.textBodyDark,
+                  ),
+                ),
+              if (retry != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: TextButton.icon(
+                    onPressed: retry,
+                    style: TextButton.styleFrom(
+                      foregroundColor: text,
+                      backgroundColor: FrostyTokens.raisedDark,
+                      minimumSize: const Size(0, 44),
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      shape: const StadiumBorder(
+                        side: BorderSide(
+                          color: Color(0x24FFFFFF),
+                          width: FrostyTokens.hairlineWidth,
+                        ),
+                      ),
+                      textStyle: const TextStyle(
+                        fontFamily: FrostyTokens.bodyFamily,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    icon: const Icon(Icons.refresh_rounded, size: 17),
+                    label: const Text('Try again'),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

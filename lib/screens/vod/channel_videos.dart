@@ -1,17 +1,22 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:frosty/models/clip.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/clips/stores/channel_clips_store.dart';
 import 'package:frosty/screens/clips/widgets/channel_clips_tab.dart';
+import 'package:frosty/screens/home/shell/shell_tabs.dart';
+import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
 import 'package:frosty/screens/vod/stores/channel_videos_store.dart';
 import 'package:frosty/screens/vod/widgets/channel_videos_tab.dart';
+import 'package:frosty/screens/vod/widgets/video_glyph.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/frosty_app_bar.dart';
-import 'package:frosty/widgets/frosty_page_view.dart';
+import 'package:frosty/widgets/motion/press_scale.dart';
+import 'package:frosty/widgets/profile_picture.dart';
 
-/// A channel's past broadcasts, highlights and uploads, each played in-app.
+/// A channel's past broadcasts, highlights, uploads and clips, each played
+/// in-app (board VideosChaine): the channel and "· Videos" over the tabs
+/// with the signal underline; the tabs also follow a swipe.
 class ChannelVideosScreen extends StatefulWidget {
   static const routeName = 'ChannelVideos';
 
@@ -57,7 +62,8 @@ class ChannelVideosScreen extends StatefulWidget {
   State<ChannelVideosScreen> createState() => _ChannelVideosScreenState();
 }
 
-class _ChannelVideosScreenState extends State<ChannelVideosScreen> {
+class _ChannelVideosScreenState extends State<ChannelVideosScreen>
+    with SingleTickerProviderStateMixin {
   static const _tabs = [
     (VodType.archive, 'Past broadcasts', 'No past broadcasts'),
     (VodType.highlight, 'Highlights', 'No highlights'),
@@ -79,8 +85,35 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen> {
     period: widget.clipPeriod,
   );
 
+  late final TabController _tabController = TabController(
+    length: _tabs.length + 1,
+    vsync: this,
+    initialIndex: widget.startOnClips
+        ? _tabs.length
+        : _tabs.indexWhere((t) => t.$1 == widget.initialTab).clamp(0, 2),
+  );
+
+  /// The tab under the underline: it follows a swipe as it passes half way.
+  late int _shown = _tabController.index;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController.animation?.addListener(_onSwipe);
+  }
+
+  void _onSwipe() {
+    // A tap animates across the tabs between: the underline goes straight
+    // to the one tapped.
+    if (_tabController.indexIsChanging) return;
+    final shown = _tabController.animation!.value.round();
+    if (shown != _shown) setState(() => _shown = shown);
+  }
+
   @override
   void dispose() {
+    _tabController.animation?.removeListener(_onSwipe);
+    _tabController.dispose();
     for (final store in _stores.values) {
       store.dispose();
     }
@@ -90,19 +123,144 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: FrostyAppBar(title: Text('${widget.displayName} · Videos')),
-      body: SafeArea(
-        bottom: false,
-        child: FrostyPageView(
-          initialIndex: widget.startOnClips
-              ? _tabs.length
-              : _tabs.indexWhere((t) => t.$1 == widget.initialTab),
-          headers: [for (final (_, header, _) in _tabs) header, 'Clips'],
+    final theme = Theme.of(context);
+    final colors = FeedColors.of(context);
+    final accent = context.frostyColors.live;
+    final ground = theme.scaffoldBackgroundColor;
+    final padding = MediaQuery.paddingOf(context);
+    final labels = [for (final (_, label, _) in _tabs) label, 'Clips'];
+
+    final header = DecoratedBox(
+      decoration: BoxDecoration(
+        color: ground.withValues(alpha: 0.92),
+        border: Border(
+          bottom: BorderSide(
+            color: colors.hairline,
+            width: FrostyTokens.hairlineWidth,
+          ),
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.only(
+          top: padding.top,
+          left: padding.left,
+          right: padding.right,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            for (final (type, _, empty) in _tabs)
-              ChannelVideosTab(store: _stores[type]!, emptyMessage: empty),
-            ChannelClipsTab(store: _clipsStore),
+            SizedBox(
+              height: 56,
+              child: Padding(
+                padding: const EdgeInsetsDirectional.only(start: 4, end: 8),
+                child: Row(
+                  spacing: 6,
+                  children: [
+                    Tooltip(
+                      message: 'Back',
+                      child: PressScale(
+                        child: IconButton(
+                          onPressed: () => Navigator.maybePop(context),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints.tightFor(
+                            width: 44,
+                            height: 44,
+                          ),
+                          style: IconButton.styleFrom(
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          icon: VideoGlyph(
+                            VideoGlyphKind.back,
+                            color: colors.text,
+                            size: 22,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                    ProfilePicture(userLogin: widget.userLogin, radius: 15),
+                    Expanded(
+                      child: Semantics(
+                        header: true,
+                        child: Text.rich(
+                          TextSpan(
+                            text: widget.displayName,
+                            children: [
+                              TextSpan(
+                                text: ' · Videos',
+                                style: TextStyle(
+                                  color: colors.tertiary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontFamily: FrostyTokens.displayFamily,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.27,
+                            color: colors.text,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            ShellTabs(
+              labels: labels,
+              index: _shown,
+              onSelect: (i) {
+                setState(() => _shown = i);
+                _tabController.animateTo(i);
+              },
+              height: 44,
+              fontSize: 15,
+              gap: 22,
+              bottomPadding: 11,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              activeColor: colors.text,
+              idleColor: colors.tertiary,
+              indicatorColor: accent,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value:
+          theme.appBarTheme.systemOverlayStyle ??
+          (theme.brightness == Brightness.dark
+              ? SystemUiOverlayStyle.light
+              : SystemUiOverlayStyle.dark),
+      child: Scaffold(
+        backgroundColor: ground,
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            header,
+            Expanded(
+              child: MediaQuery.removePadding(
+                context: context,
+                removeTop: true,
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    for (final (type, _, empty) in _tabs)
+                      ChannelVideosTab(
+                        store: _stores[type]!,
+                        emptyMessage: empty,
+                      ),
+                    ChannelClipsTab(store: _clipsStore),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/models/vod.dart';
+import 'package:frosty/screens/vod/widgets/video_glyph.dart';
 import 'package:frosty/screens/vod/widgets/vod_card.dart';
 
 Vod _vod({
@@ -33,11 +34,7 @@ void main() {
     expect(find.text('Speedrun attempts'), findsOneWidget);
     expect(find.text('Celeste'), findsOneWidget);
     expect(find.text('2 days ago · 1,500 views'), findsOneWidget);
-    expect(
-      find.byIcon(Icons.video_library_outlined),
-      findsOneWidget,
-      reason: 'no thumbnail yet',
-    );
+    expect(find.text('Processing'), findsOneWidget, reason: 'no thumbnail yet');
   });
 
   testWidgets('in a category list it names the channel instead', (
@@ -55,7 +52,12 @@ void main() {
     );
 
     expect(find.text('Recording'), findsOneWidget);
-    expect(find.byIcon(Icons.lock_rounded), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is VideoGlyph && w.kind == VideoGlyphKind.lock,
+      ),
+      findsOneWidget,
+    );
     expect(find.text('Subscribers only'), findsOneWidget);
   });
 
@@ -71,7 +73,7 @@ void main() {
       ),
     );
 
-    expect(find.byIcon(Icons.video_library_outlined), findsOneWidget);
+    expect(find.text('Processing'), findsOneWidget);
   });
 
   testWidgets('shows resume progress and watched', (tester) async {

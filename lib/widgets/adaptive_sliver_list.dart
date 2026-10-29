@@ -26,6 +26,13 @@ class AdaptiveSliverList extends StatelessWidget {
   /// Short rows without a thumbnail (categories, offline channels).
   static const compactCardWidth = 400.0;
 
+  /// Video tiles (board VideosSuiviesTablette: four in a 1280 dp window).
+  static const videoTileWidth = 320.0;
+
+  /// The side padding around a grid of video tiles: with the tiles' own
+  /// 10 dp, the tablet's 28 dp gutter.
+  static const videoTileGutter = 18.0;
+
   final int itemCount;
   final NullableIndexedWidgetBuilder itemBuilder;
   final double maxItemWidth;
