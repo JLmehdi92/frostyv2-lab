@@ -118,6 +118,88 @@ void main() {
     expect(store.webSessionExpired, isFalse);
   });
 
+  group('a login page login that fails leaves account A as it was', () {
+    /// The redirect of a login page for [token], then Twitch's own.
+    Future<bool> loginPage(AuthStore store, String token) async {
+      final attempt = store.beginLogin();
+      final state = store.authorizationUri(attempt).queryParameters['state'];
+      Future<bool>? outcome;
+      store.handleNavigation(
+        request: NavigationRequest(
+          url: 'https://twitch.tv/login#access_token=$token&state=$state',
+          isMainFrame: true,
+        ),
+        attempt: attempt,
+        onTokenCaptured: (login) => outcome = login,
+      );
+      store.handleNavigation(
+        request: const NavigationRequest(
+          url: 'https://www.twitch.tv/?no-reload=true',
+          isMainFrame: true,
+        ),
+        attempt: attempt,
+        onSignedIn: () {},
+      );
+      final worked = await outcome!;
+      await pumpEventQueue();
+      return worked;
+    }
+
+    test("B's details cannot be read: token, stored token, web token and "
+        "user stay A's, and B's cookie is not harvested", () async {
+      final store = await withStoredToken('web_of_viewer_1');
+      expect(store.user.details?.id, '1');
+      jar = 'web_of_viewer_2';
+      clearInteractions(cookies);
+      when(() => api.getUserInfo()).thenThrow(Exception('offline'));
+
+      expect(await loginPage(store, 'user_2'), isFalse);
+
+      expect(store.headersTwitch['Authorization'], 'Bearer user');
+      expect(await _storage.read(key: 'user_token'), 'user');
+      expect(store.twitchWebToken, 'web_of_viewer_1');
+      expect(await _storage.read(key: 'twitch_web_token'), 'web_of_viewer_1');
+      expect(store.user.details?.id, '1');
+      expect(store.isLoggedIn, isTrue);
+      verifyNever(() => cookies.readAuthToken());
+    });
+
+    test(
+      'B refused by Twitch: nothing of A changes, nothing harvested',
+      () async {
+        final store = await withStoredToken('web_of_viewer_1');
+        jar = 'web_of_viewer_2';
+        clearInteractions(cookies);
+        when(
+          () => api.validateToken(token: 'user_2'),
+        ).thenAnswer((_) async => false);
+
+        expect(await loginPage(store, 'user_2'), isFalse);
+
+        expect(store.headersTwitch['Authorization'], 'Bearer user');
+        expect(await _storage.read(key: 'user_token'), 'user');
+        expect(store.twitchWebToken, 'web_of_viewer_1');
+        verifyNever(() => cookies.readAuthToken());
+      },
+    );
+
+    test("a real switch to B still harvests B's cookie", () async {
+      final store = await withStoredToken('web_of_viewer_1');
+      jar = 'web_of_viewer_2';
+      when(
+        () => api.getUserInfo(),
+      ).thenAnswer((_) async => const UserTwitch('2', 'other', 'Other', ''));
+
+      expect(await loginPage(store, 'user_2'), isTrue);
+
+      expect(store.headersTwitch['Authorization'], 'Bearer user_2');
+      expect(await _storage.read(key: 'user_token'), 'user_2');
+      expect(store.user.details?.id, '2');
+      expect(store.twitchWebToken, 'web_of_viewer_2');
+      expect(await _storage.read(key: 'twitch_web_token'), 'web_of_viewer_2');
+    });
+  });
+
   group('a login as another account', () {
     test("drops the previous account's web token", () async {
       final store = await withStoredToken('web_of_viewer_1');

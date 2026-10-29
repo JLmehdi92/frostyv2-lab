@@ -31,6 +31,9 @@ class LoginAttempt {
   String? _state;
   bool _captured = false;
 
+  /// The outcome of the login its token started.
+  Future<bool>? _outcome;
+
   /// Whether the redirect brought this page's token back.
   bool get captured => _captured;
 }
@@ -371,9 +374,11 @@ abstract class AuthBase with Store {
     // inside it, another path or host, or a token without the state of the
     // login this app opened (an injected redirect: someone else's token,
     // which would sign the user into their account) is never taken.
-    final token = _redirectToken(request, attempt);
-    if (token != null) {
-      onTokenCaptured?.call(_loginWith(token));
+    final captured = _redirectToken(request, attempt);
+    if (captured != null) {
+      final (token, owner) = captured;
+      final outcome = owner._outcome = _loginWith(token);
+      onTokenCaptured?.call(outcome);
     }
 
     // Check if the the URL has been redirected to "https://www.twitch.tv/?no-reload=true".
@@ -385,8 +390,23 @@ abstract class AuthBase with Store {
       // WebView, so its jar now holds the `auth-token` cookie. Grab it here:
       // it is the only credential that unlocks the 1440p HEVC rendition, and
       // harvesting it now spares the user pasting it into settings by hand.
-      // Deliberately not awaited — navigation must not wait on a cookie read.
-      unawaited(harvestTwitchWebToken());
+      // Only once this page's login is known to have gone through: a login
+      // that failed keeps the previous account, whose web token must not
+      // become the other account's cookie. Deliberately not awaited —
+      // navigation must not wait on a cookie read.
+      final outcome = attempt != null
+          ? attempt._outcome
+          : _openLogins
+                .map((open) => open._outcome)
+                .whereType<Future<bool>>()
+                .firstOrNull;
+      if (outcome != null) {
+        unawaited(
+          outcome
+              .then((worked) => worked ? harvestTwitchWebToken() : false)
+              .catchError((Object _) => false),
+        );
+      }
 
       final signedIn =
           attempt?.captured ?? _openLogins.any((open) => open.captured);
@@ -438,14 +458,18 @@ abstract class AuthBase with Store {
   void endLogin(LoginAttempt attempt) {
     attempt
       .._state = null
-      .._captured = false;
+      .._captured = false
+      .._outcome = null;
     _openLogins.remove(attempt);
   }
 
-  /// The token of [request] when it is Twitch's redirect for [attempt] (or,
-  /// without one, for any open login), else null. The state is used up
-  /// when it matches.
-  String? _redirectToken(NavigationRequest request, LoginAttempt? attempt) {
+  /// The token of [request] and the login it belongs to, when it is
+  /// Twitch's redirect for [attempt] (or, without one, for any open login),
+  /// else null. The state is used up when it matches.
+  (String, LoginAttempt)? _redirectToken(
+    NavigationRequest request,
+    LoginAttempt? attempt,
+  ) {
     if (!request.isMainFrame) return null;
     final uri = Uri.tryParse(request.url);
     if (uri == null ||
@@ -474,7 +498,7 @@ abstract class AuthBase with Store {
         open
           .._state = null
           .._captured = true;
-        return token;
+        return (token, open);
       }
     }
     return null;
@@ -503,7 +527,8 @@ abstract class AuthBase with Store {
     _openLogins.add(attempt);
     attempt
       .._state = state
-      .._captured = false;
+      .._captured = false
+      .._outcome = null;
     return Uri(
       scheme: 'https',
       host: 'id.twitch.tv',
@@ -745,21 +770,37 @@ abstract class AuthBase with Store {
     // Who was logged in: a login as another account must not keep their
     // twitch.tv session token.
     String? previousId = user.details?.id;
+    // A login that fails before it is committed leaves the session exactly
+    // as it was: the token (also the one requests use while it is being
+    // checked) and its validity.
+    final previousToken = _token;
+    final previousValid = _tokenIsValid;
+    var committed = false;
     try {
       previousId ??= await _rememberedUser();
 
       // Validate the custom token.
-      _tokenIsValid = await twitchApi.validateToken(token: token);
-      if (!_tokenIsValid) return;
+      final valid = await twitchApi.validateToken(token: token);
+      if (!valid) {
+        _tokenIsValid = previousValid;
+        return;
+      }
 
-      // Replace the current default token with the new custom token.
+      // The new token, for the user's details below (requests use it).
       _token = token;
-
-      // Store the user token.
-      await _storage.write(key: _userTokenKey, value: token);
 
       // Initialize the user with the new token.
       await user.init();
+      if (user.details == null) {
+        throw StateError('No user details for the new token');
+      }
+
+      // Committed: from here the new account is the session.
+      committed = true;
+      _tokenIsValid = true;
+
+      // Store the user token.
+      await _storage.write(key: _userTokenKey, value: token);
 
       // Another account: the stored web token is the previous one's (its
       // playback, watch positions and shelf would be theirs). It goes, and
@@ -779,12 +820,20 @@ abstract class AuthBase with Store {
         _isLoggedIn = true;
         _signedInWith = token;
         await _rememberUser(user.details!.id);
-        FirebaseCrashlytics.instance.setCustomKey('is_logged_in', true);
-        FirebaseCrashlytics.instance.setUserIdentifier(user.details!.id);
+        try {
+          FirebaseCrashlytics.instance.setCustomKey('is_logged_in', true);
+          FirebaseCrashlytics.instance.setUserIdentifier(user.details!.id);
+        } catch (e) {
+          debugPrint('Crash reporting unavailable: ${e.runtimeType}');
+        }
         _stopReconnectLoop();
       }
     } catch (e) {
       debugPrint('Login failed due to $e');
+      if (!committed) {
+        _token = previousToken;
+        _tokenIsValid = previousValid;
+      }
     }
   }
 

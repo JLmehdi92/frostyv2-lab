@@ -322,11 +322,16 @@ class _OnboardingFlowState extends State<OnboardingFlow>
 
   /// Twitch handed a token back: Setup says "Signing you in…" until the
   /// login ends, then who is logged in, or that it failed.
+  /// The latest login's outcome: an earlier attempt ending late (the user
+  /// tried again) says nothing about the session.
+  Future<bool>? _latestLogin;
+
   void _onTokenCaptured(Future<bool> login) {
     if (!mounted) return;
+    _latestLogin = login;
     setState(() => _login = OnboardingLogin.pending);
     login.catchError((Object _) => false).then((worked) {
-      if (!mounted || _login != OnboardingLogin.pending) return;
+      if (!mounted || !identical(login, _latestLogin)) return;
       setState(
         () => _login = worked ? OnboardingLogin.none : OnboardingLogin.failed,
       );

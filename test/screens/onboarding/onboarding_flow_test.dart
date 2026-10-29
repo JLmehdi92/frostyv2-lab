@@ -324,6 +324,34 @@ void main() {
       expect(find.textContaining('Viewer'), findsOneWidget);
     });
 
+    testWidgets('a retried login: only the latest attempt\'s outcome counts', (
+      tester,
+    ) async {
+      await pump(tester);
+      await settle(tester);
+      await tapText(tester, 'Next');
+      await tapText(tester, 'Connect with Twitch');
+      final first = Completer<bool>();
+      final second = Completer<bool>();
+      tokenBack!(first.future);
+      tokenBack!(second.future);
+      signIn!();
+      await settle(tester);
+      // The first attempt failing late (the second still running) changes
+      // nothing…
+      first.complete(false);
+      await tester.pump();
+      await tester.pump();
+      expect(find.textContaining('Login failed'), findsNothing);
+      // …and the second one going through is what Setup says.
+      auth.setLoggedIn(true);
+      second.complete(true);
+      await tester.pump();
+      await tester.pump();
+      expect(find.textContaining('Login failed'), findsNothing);
+      expect(find.textContaining('Logged in as'), findsOneWidget);
+    });
+
     testWidgets('a login that fails says so on Setup', (tester) async {
       await pump(tester);
       await settle(tester);
