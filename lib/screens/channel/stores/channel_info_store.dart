@@ -49,10 +49,28 @@ class ChannelInfoStore {
     });
   }
 
+  /// The signed-in viewer changed (known late on a cold start, signed in or
+  /// out): what they follow is read again, once the head start is over.
+  void viewerChanged() {
+    if (_disposed || !_ready) return;
+    if (_viewerId() == null) {
+      following.value = null;
+      alsoLive.value = const [];
+      _alsoLiveAsked = false;
+      return;
+    }
+    unawaited(refreshFollowing());
+    if (_alsoLiveWanted) {
+      _alsoLiveAsked = false;
+      unawaited(_loadAlsoLive());
+    }
+  }
+
   /// Reads the follow again (after the viewer came back from twitch.tv).
   Future<void> refreshFollowing() async {
+    if (_disposed) return;
     final viewer = _viewerId();
-    if (viewer == null || _disposed) return;
+    if (viewer == null) return;
     try {
       final follows = await _api.isFollowing(
         userId: viewer,

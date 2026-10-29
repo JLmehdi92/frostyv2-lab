@@ -157,4 +157,49 @@ void main() {
       info.dispose();
     });
   });
+
+  test('a viewer known late is asked about then; signing out forgets', () {
+    fakeAsync((async) {
+      String? viewer;
+      final info =
+          ChannelInfoStore(channelId: '42', api: api, viewerId: () => viewer)
+            ..start()
+            ..wantAlsoLive();
+      async.elapse(ChannelInfoStore.headStart);
+      async.flushMicrotasks();
+      expect(info.following.value, isNull);
+      expect(info.alsoLive.value, isEmpty);
+
+      viewer = '7';
+      info.viewerChanged();
+      async.flushMicrotasks();
+      expect(info.following.value, isTrue);
+      expect(info.alsoLive.value, isNotEmpty);
+
+      viewer = null;
+      info.viewerChanged();
+      async.flushMicrotasks();
+      expect(info.following.value, isNull);
+      expect(info.alsoLive.value, isEmpty);
+      info.dispose();
+    });
+  });
+
+  test('a viewer change before the head start waits for it', () {
+    fakeAsync((async) {
+      final info = store()..start();
+      info.viewerChanged();
+      async.flushMicrotasks();
+      verifyNever(
+        () => api.isFollowing(
+          userId: any(named: 'userId'),
+          broadcasterId: any(named: 'broadcasterId'),
+        ),
+      );
+      async.elapse(ChannelInfoStore.headStart);
+      async.flushMicrotasks();
+      expect(info.following.value, isTrue);
+      info.dispose();
+    });
+  });
 }
