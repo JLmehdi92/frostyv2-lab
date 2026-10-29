@@ -14,7 +14,7 @@ import 'package:frosty/screens/channel/hype_train/widgets/hype_train_video_pill.
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/link_router.dart';
-import 'package:frosty/utils/modal_bottom_sheet.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
 import 'package:mobx/mobx.dart';
 
 /// The keyboard, read from the view: the channel `Scaffold` removes the
@@ -51,10 +51,12 @@ Future<void> showHypeTrainDetails(
   BuildContext context,
   HypeTrainStore store,
   SettingsStore settings,
-) => showModalBottomSheetWithProperFocus<void>(
+) => showOnsetSheet<void>(
   context: context,
-  isScrollControlled: true,
   constraints: const BoxConstraints(maxWidth: 480),
+  // Board ChaineHypeDetail: the details on the community green, the hype
+  // train itself unchanged.
+  background: context.frostyColors.subNoticeBackground,
   builder: (context) => _ClosesWhenHidden(
     store: store,
     child: SafeArea(

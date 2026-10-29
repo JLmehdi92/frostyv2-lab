@@ -8,6 +8,8 @@ import 'package:frosty/screens/channel/hype_train/widgets/hype_train_banner.dart
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_copy.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_palette.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
+import 'package:frosty/theme.dart';
+import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
 
 /// Twitch's guide to hype trains.
@@ -239,24 +241,40 @@ class HypeTrainSheet extends StatelessWidget {
   }
 }
 
-/// A section title in Twitch's Header style, 16 dp below the previous one.
+/// A section title, 16 dp below the previous one: board ChaineHypeDetail's
+/// label (11 / 700, wide tracking, upper case) in the community green.
 class _Header extends StatelessWidget {
   const _Header(this.title, {required this.neutrals});
 
   final String title;
   final HtNeutrals neutrals;
 
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-    child: Semantics(
-      header: true,
-      child: Text(
-        title,
-        style: HtType.header.copyWith(color: neutrals.textBase),
-      ),
-    ),
+  /// The board's section label.
+  static const style = TextStyle(
+    fontFamily: FrostyTokens.bodyFamily,
+    fontSize: 11,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 1.54,
   );
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
+      child: Semantics(
+        header: true,
+        child: Text(
+          title.toUpperCase(),
+          style: style.copyWith(
+            color: dark
+                ? FrostyTokens.hypeText
+                : context.frostyColors.subNoticeText,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// What the variant adds, on Twitch's bordered card: its icon, its name

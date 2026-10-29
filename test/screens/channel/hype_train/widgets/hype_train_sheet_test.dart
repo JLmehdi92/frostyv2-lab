@@ -259,7 +259,7 @@ void main() {
   });
 
   group('twitch layout', () {
-    testWidgets('headers are Header-styled headings', (tester) async {
+    testWidgets('headers are the board labels, as headings', (tester) async {
       final semantics = tester.ensureSemantics();
       final h = harnessFor(withRewards(liveTrain()));
       await pumpSheet(tester, h.store);
@@ -269,9 +269,12 @@ void main() {
           tester.getSemantics(find.text(header)),
           containsSemantics(isHeader: true),
         );
+        // Board ChaineHypeDetail: 11 / 700, wide tracking, green.
         final style = tester.widget<Text>(find.text(header)).style;
-        expect(style?.fontSize, 14);
-        expect(style?.fontWeight, FontWeight.w600);
+        expect(style?.fontSize, 11);
+        expect(style?.fontWeight, FontWeight.w700);
+        expect(style?.letterSpacing, greaterThan(1));
+        expect(style?.color?.g, greaterThan(style?.color?.r ?? 1));
       }
       expect(find.text('Current Hype Train top supporters.'), findsOneWidget);
       await h.close(tester);

@@ -261,8 +261,9 @@ const kSheetScrim = Color(0x9E000000);
 
 /// Shows a channel-screen sheet with the boards' frame: #141414 (or
 /// [panel] #181818 for a sheet over a sheet), 24 dp top corners, the light
-/// top edge, the 36 × 4 handle, the 62 % scrim. On a phone it still starts
-/// under the video ([SheetsUnderVideo]).
+/// top edge, the 36 × 4 handle, the 62 % scrim; [background] tints it (the
+/// hype train's green). On a phone it still starts under the video
+/// ([SheetsUnderVideo]).
 Future<T?> showOnsetSheet<T>({
   required BuildContext context,
   required WidgetBuilder builder,
@@ -272,9 +273,10 @@ Future<T?> showOnsetSheet<T>({
   bool enableDrag = true,
   bool isDismissible = true,
   BoxConstraints? constraints,
+  Color? background,
 }) {
   final colors = SheetColors.of(context);
-  final background = panel ? colors.panel : colors.sheet;
+  background ??= panel ? colors.panel : colors.sheet;
   return showModalBottomSheetWithProperFocus<T>(
     context: context,
     isScrollControlled: isScrollControlled,

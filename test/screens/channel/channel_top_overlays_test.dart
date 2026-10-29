@@ -15,6 +15,7 @@ import 'package:frosty/screens/channel/hype_train/widgets/hype_train_sheet.dart'
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_slot.dart';
 import 'package:frosty/screens/channel/hype_train/widgets/hype_train_video_pill.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/utils/context_extensions.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../helpers/community_highlights_harness.dart' as ch;
@@ -270,6 +271,11 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.byType(HypeTrainSheet), findsOneWidget);
+    // Board ChaineHypeDetail: the sheet on the community green.
+    expect(
+      tester.widget<BottomSheet>(find.byType(BottomSheet)).backgroundColor,
+      context.frostyColors.subNoticeBackground,
+    );
 
     h.inject(const HtEndEvent(reason: HtEndReason.expired));
     await tester.pump(const Duration(seconds: 21));
