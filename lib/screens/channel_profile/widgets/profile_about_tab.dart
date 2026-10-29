@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:frosty/models/channel_profile.dart';
-import 'package:frosty/utils/context_extensions.dart';
+import 'package:frosty/screens/channel_profile/widgets/profile_header.dart';
+import 'package:frosty/screens/channel_profile/widgets/profile_parts.dart';
+import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
 import 'package:intl/intl.dart';
 import 'package:simple_icons/simple_icons.dart';
@@ -40,7 +43,7 @@ class ProfileAboutContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = context.colorScheme.onSurfaceVariant;
+    final colors = FeedColors.of(context);
     final description = profile.description?.trim();
     final followers = profile.followers;
     final joined = profile.createdAt;
@@ -52,47 +55,39 @@ class ProfileAboutContent extends StatelessWidget {
       if (profile.role == BroadcasterRole.partner) 'Partner',
       if (profile.role == BroadcasterRole.affiliate) 'Affiliate',
     ];
+    final noBio = description == null || description.isEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 16,
+      spacing: 18,
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 6,
           children: [
-            Text(
-              'About ${profile.displayName}',
-              style: context.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
+            ProfileSectionTitle(title: 'About ${profile.displayName}'),
             if (facts.isNotEmpty)
-              Text(facts.join(' · '), style: TextStyle(color: muted)),
-            Text(
-              description == null || description.isEmpty
-                  ? 'No bio yet.'
-                  : description,
-              style: description == null || description.isEmpty
-                  ? TextStyle(color: muted)
-                  : null,
+              Text(
+                facts.join(' · '),
+                style: FrostyType.tabular(
+                  TextStyle(fontSize: 13, height: 1.4, color: colors.secondary),
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                noBio ? 'No bio yet.' : description,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.55,
+                  color: noBio ? colors.secondary : colors.body,
+                ),
+              ),
             ),
           ],
         ),
         if (profile.socials.isNotEmpty)
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final social in profile.socials)
-                ActionChip(
-                  avatar: Icon(socialIcon(social.name), size: 16),
-                  label: Text(social.title),
-                  tooltip: social.url,
-                  onPressed: () => onOpenLink(social.url),
-                ),
-            ],
-          ),
+          ProfileSocials(socials: profile.socials, onOpenLink: onOpenLink),
         if (profile.panels.isNotEmpty)
           LayoutBuilder(
             builder: (context, constraints) {
@@ -102,12 +97,17 @@ class ProfileAboutContent extends StatelessWidget {
                   (constraints.maxWidth - (columns - 1) * 12) / columns;
               return Wrap(
                 spacing: 12,
-                runSpacing: 16,
+                runSpacing: 12,
                 children: [
                   for (final panel in profile.panels)
                     SizedBox(
                       width: width,
-                      child: ProfilePanel(panel: panel, onOpenLink: onOpenLink),
+                      child: ProfileCard(
+                        child: ProfilePanel(
+                          panel: panel,
+                          onOpenLink: onOpenLink,
+                        ),
+                      ),
                     ),
                 ],
               );
@@ -142,7 +142,7 @@ class ProfilePanel extends StatelessWidget {
       picture = ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 320),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           child: FrostyCachedNetworkImage(
             imageUrl: image,
             fit: BoxFit.fitWidth,
@@ -157,7 +157,7 @@ class ProfilePanel extends StatelessWidget {
         child: link == null
             ? ExcludeSemantics(child: picture)
             : InkWell(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
                 onTap: () => onOpenLink(link),
                 child: ExcludeSemantics(child: picture),
               ),
@@ -172,8 +172,11 @@ class ProfilePanel extends StatelessWidget {
         if (title != null)
           Text(
             title,
-            style: context.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              height: 1.3,
+              color: FeedColors.of(context).text,
             ),
           ),
         if (description != null)

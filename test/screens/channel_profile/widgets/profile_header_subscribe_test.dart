@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/models/channel_profile.dart';
 import 'package:frosty/screens/channel_profile/widgets/profile_header.dart';
+import 'package:frosty/theme.dart';
 
 ChannelProfile _profile(BroadcasterRole role) => ChannelProfile(
   id: '42',
@@ -18,46 +19,86 @@ void main() {
   Future<void> pump(
     WidgetTester tester,
     ChannelProfile? profile, {
-    bool canSubscribe = true,
+    required bool showSubscribe,
   }) => tester.pumpWidget(
     MaterialApp(
-      home: Scaffold(
-        body: SingleChildScrollView(
-          child: ProfileHeader(
-            login: 'streamer',
-            displayName: 'Streamer',
-            profile: profile,
-            onOpenChannel: () => taps.add('open'),
-            onShare: () => taps.add('share'),
-            onSubscribe: canSubscribe ? () => taps.add('subscribe') : null,
+      theme: ThemeData(extensions: const [FrostyColors.dark]),
+      home: MediaQuery(
+        data: const MediaQueryData(
+          size: Size(390, 844),
+          disableAnimations: true,
+        ),
+        child: Scaffold(
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 60),
+              child: ProfileHeader(
+                login: 'streamer',
+                displayName: 'Streamer',
+                profile: profile,
+                onOpenChannel: () => taps.add('open'),
+                showSubscribe: showSubscribe,
+              ),
+            ),
           ),
         ),
       ),
     ),
   );
 
-  testWidgets('a partner or affiliate offers Subscribe, like Twitch', (
-    tester,
-  ) async {
+  test('a partner or an affiliate offers Subscribe, like Twitch', () {
     for (final role in [BroadcasterRole.partner, BroadcasterRole.affiliate]) {
-      await pump(tester, _profile(role));
-      expect(find.text('Subscribe'), findsOneWidget);
+      expect(
+        profileOffersSubscribe(profile: _profile(role), login: 'streamer'),
+        isTrue,
+      );
+      // Signed in as someone else, too.
+      expect(
+        profileOffersSubscribe(
+          profile: _profile(role),
+          login: 'streamer',
+          viewerLogin: 'viewer',
+        ),
+        isTrue,
+      );
     }
-    await tester.tap(find.text('Subscribe'));
-    expect(taps, ['subscribe']);
   });
 
-  testWidgets('a channel without subscriptions does not', (tester) async {
-    await pump(tester, _profile(BroadcasterRole.none));
-    expect(find.text('Subscribe'), findsNothing);
-
+  test('not without subscriptions, unknown, own or unusable', () {
+    expect(
+      profileOffersSubscribe(
+        profile: _profile(BroadcasterRole.none),
+        login: 'streamer',
+      ),
+      isFalse,
+    );
     // Not known yet: nothing either.
-    await pump(tester, null);
-    expect(find.text('Subscribe'), findsNothing);
+    expect(profileOffersSubscribe(profile: null, login: 'streamer'), isFalse);
+    // The viewer's own channel.
+    expect(
+      profileOffersSubscribe(
+        profile: _profile(BroadcasterRole.partner),
+        login: 'streamer',
+        viewerLogin: 'Streamer',
+      ),
+      isFalse,
+    );
+    // A login twitch.tv would not take is never put in a link.
+    expect(
+      profileOffersSubscribe(
+        profile: _profile(BroadcasterRole.partner),
+        login: '../x',
+      ),
+      isFalse,
+    );
   });
 
-  testWidgets('nor without a way to subscribe', (tester) async {
-    await pump(tester, _profile(BroadcasterRole.partner), canSubscribe: false);
+  testWidgets('the header shows it when offered', (tester) async {
+    await pump(tester, _profile(BroadcasterRole.partner), showSubscribe: true);
+    expect(find.text('Subscribe'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await pump(tester, _profile(BroadcasterRole.partner), showSubscribe: false);
     expect(find.text('Subscribe'), findsNothing);
   });
 }

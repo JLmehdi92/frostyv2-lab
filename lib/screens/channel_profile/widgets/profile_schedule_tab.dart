@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:frosty/models/channel_profile.dart';
+import 'package:frosty/screens/channel_profile/widgets/profile_parts.dart';
+import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
+import 'package:frosty/screens/home/stream_list/streams_list.dart';
 import 'package:frosty/services/notifications/schedule_reminders.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
+import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 import 'package:intl/intl.dart';
 
 /// "in 3 hours", "in 2 days", "now" for a start [at] seen from [now].
@@ -20,7 +25,7 @@ String formatStartsIn(DateTime at, DateTime now) {
 }
 
 /// Sets or clears [segment]'s reminder, and says when it could not.
-Future<void> _toggleReminder(
+Future<void> toggleScheduleReminder(
   BuildContext context,
   ScheduleReminders reminders,
   ScheduleSegment segment, {
@@ -44,27 +49,38 @@ Future<void> _toggleReminder(
     ..showSnackBar(SnackBar(content: Text(message)));
 }
 
-/// The coming streams of a channel, by local day: time, title, category,
-/// cancelled ones struck through; the next start on top. With [reminders],
-/// "Remind Me" on the next stream and on each segment to come, like
-/// Twitch.
-class ProfileScheduleContent extends StatelessWidget {
-  const ProfileScheduleContent({
+/// The segments still to come and not cancelled, the next first: what the
+/// Home tab's "Coming up" shows.
+List<ScheduleSegment> comingUp(ChannelSchedule schedule, DateTime now) => [
+  for (final segment in schedule.upcoming(now))
+    if (!segment.isCancelled && segment.startAt.isAfter(now)) segment,
+];
+
+/// A stream to come in the boards' card: its day in a tile, the time (and
+/// category), the title, and Twitch's "Remind Me" when it can have one.
+class ProfileScheduleCard extends StatelessWidget {
+  const ProfileScheduleCard({
     super.key,
-    required this.schedule,
-    required this.now,
+    required this.segment,
+    required this.meta,
+    this.next = false,
     this.reminders,
     this.login = '',
     this.channelName = '',
+    this.large = false,
   });
 
-  final ChannelSchedule schedule;
-  final DateTime now;
-  final ScheduleReminders? reminders;
+  final ScheduleSegment segment;
 
-  /// The channel the reminders are for.
+  /// "Next stream · 21:00", "21:00 · Just Chatting".
+  final String meta;
+
+  /// The next stream: its weekday in the signal colour.
+  final bool next;
+  final ScheduleReminders? reminders;
   final String login;
   final String channelName;
+  final bool large;
 
   @override
   Widget build(BuildContext context) {
@@ -77,16 +93,108 @@ class ProfileScheduleContent extends StatelessWidget {
   }
 
   Widget _build(BuildContext context, ScheduleReminders? reminders) {
-    final muted = context.colorScheme.onSurfaceVariant;
+    final colors = FeedColors.of(context);
+    final title = segment.title?.trim();
+    final canRemind = reminders != null && reminders.canRemind(segment);
+    return ProfileCard(
+      child: Row(
+        spacing: 12,
+        children: [
+          ProfileDateTile(
+            date: segment.startAt.toLocal(),
+            highlighted: next,
+            large: large,
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              spacing: 2,
+              children: [
+                Text(
+                  meta,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: FrostyType.tabular(
+                    TextStyle(
+                      fontSize: 12,
+                      height: 1.3,
+                      color: colors.secondary,
+                    ),
+                  ),
+                ),
+                Text(
+                  title == null || title.isEmpty ? 'Stream' : title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: large ? 15 : 14,
+                    fontWeight: FontWeight.w600,
+                    height: 1.3,
+                    color: colors.text,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (canRemind)
+            ProfileRemindButton(
+              set: reminders.isSet(segment.id),
+              onPressed: () => toggleScheduleReminder(
+                context,
+                reminders,
+                segment,
+                login: login,
+                channelName: channelName,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The coming streams of a channel, by local day: time, title, category,
+/// cancelled ones struck through; the next start on top. With [reminders],
+/// "Remind Me" on the next stream and on each segment to come, like
+/// Twitch.
+class ProfileScheduleContent extends StatelessWidget {
+  const ProfileScheduleContent({
+    super.key,
+    required this.schedule,
+    required this.now,
+    this.reminders,
+    this.login = '',
+    this.channelName = '',
+    this.large = false,
+  });
+
+  final ChannelSchedule schedule;
+  final DateTime now;
+  final ScheduleReminders? reminders;
+
+  /// The channel the reminders are for.
+  final String login;
+  final String channelName;
+  final bool large;
+
+  @override
+  Widget build(BuildContext context) {
+    final reminders = this.reminders;
+    if (reminders == null) return _build(context, null);
+    return ListenableBuilder(
+      listenable: reminders,
+      builder: (context, _) => _build(context, reminders),
+    );
+  }
+
+  Widget _build(BuildContext context, ScheduleReminders? reminders) {
+    final colors = FeedColors.of(context);
     final upcoming = schedule.upcoming(now);
     if (upcoming.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 48),
-        child: Text(
-          'No streams scheduled',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: muted),
-        ),
+        child: const FeedStatusView.empty(message: 'No streams scheduled'),
       );
     }
 
@@ -96,10 +204,6 @@ class ProfileScheduleContent extends StatelessWidget {
         : upcoming
               .where((s) => !s.isCancelled && s.startAt.isAtSameMomentAs(next))
               .firstOrNull;
-    final remindNext =
-        reminders != null &&
-        nextSegment != null &&
-        reminders.canRemind(nextSegment);
     final days = <DateTime, List<ScheduleSegment>>{};
     for (final segment in upcoming) {
       final local = segment.startAt.toLocal();
@@ -113,53 +217,52 @@ class ProfileScheduleContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (next != null && next.isAfter(now))
-          Card.filled(
-            margin: const EdgeInsets.only(bottom: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.schedule_rounded),
-                  title: Text('Next stream ${formatStartsIn(next, now)}'),
-                  subtitle: Text(
-                    DateFormat.MMMEd().add_jm().format(next.toLocal()),
-                  ),
-                ),
-                if (remindNext)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                    child: _RemindButton(
-                      set: reminders.isSet(nextSegment.id),
-                      onPressed: () => _toggleReminder(
-                        context,
-                        reminders,
-                        nextSegment,
-                        login: login,
-                        channelName: channelName,
-                      ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: nextSegment != null
+                ? ProfileScheduleCard(
+                    segment: nextSegment,
+                    next: true,
+                    meta:
+                        'Next stream ${formatStartsIn(next, now)} · '
+                        '${time.format(next.toLocal())}',
+                    reminders: reminders,
+                    login: login,
+                    channelName: channelName,
+                    large: large,
+                  )
+                : ProfileCard(
+                    child: Text(
+                      'Next stream ${formatStartsIn(next, now)} · '
+                      '${DateFormat.MMMEd().add_jm().format(next.toLocal())}',
+                      style: TextStyle(fontSize: 14, color: colors.text),
                     ),
                   ),
-              ],
-            ),
           ),
         for (final MapEntry(key: day, value: segments) in days.entries) ...[
           Padding(
-            padding: const EdgeInsets.fromLTRB(4, 16, 4, 4),
-            child: Text(
-              DateFormat.MMMMEEEEd().format(day),
-              style: context.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
+            padding: const EdgeInsets.fromLTRB(2, 18, 2, 6),
+            child: Semantics(
+              header: true,
+              child: Text(
+                DateFormat.MMMMEEEEd().format(day),
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.15,
+                  color: colors.text,
+                ),
               ),
             ),
           ),
           for (final segment in segments)
-            _SegmentTile(
+            _SegmentRow(
               segment: segment,
               time: time,
               reminder: reminders != null && reminders.canRemind(segment)
                   ? (
                       set: reminders.isSet(segment.id),
-                      toggle: () => _toggleReminder(
+                      toggle: () => toggleScheduleReminder(
                         context,
                         reminders,
                         segment,
@@ -175,37 +278,10 @@ class ProfileScheduleContent extends StatelessWidget {
   }
 }
 
-/// Twitch's toggle: "Remind Me" with a bell, then "Reminder Set" with a
-/// check, the set state quieter.
-class _RemindButton extends StatelessWidget {
-  const _RemindButton({required this.set, required this.onPressed});
-
-  final bool set;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final label = Text(set ? 'Reminder Set' : 'Remind Me');
-    return set
-        ? OutlinedButton.icon(
-            onPressed: onPressed,
-            icon: const Icon(Icons.check_rounded),
-            label: label,
-          )
-        : FilledButton.icon(
-            onPressed: onPressed,
-            icon: const Icon(Icons.notifications_none_rounded),
-            label: label,
-          );
-  }
-}
-
-class _SegmentTile extends StatelessWidget {
-  const _SegmentTile({
-    required this.segment,
-    required this.time,
-    this.reminder,
-  });
+/// One stream of the day: the start in a narrow column, the title, the
+/// hours and category, and its bell.
+class _SegmentRow extends StatelessWidget {
+  const _SegmentRow({required this.segment, required this.time, this.reminder});
 
   final ScheduleSegment segment;
   final DateFormat time;
@@ -215,7 +291,7 @@ class _SegmentTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = context.colorScheme.onSurfaceVariant;
+    final colors = FeedColors.of(context);
     final end = segment.endAt;
     final hours = end == null
         ? time.format(segment.startAt.toLocal())
@@ -226,27 +302,81 @@ class _SegmentTile extends StatelessWidget {
     final strike = cancelled
         ? const TextStyle(decoration: TextDecoration.lineThrough)
         : null;
+    final reminder = this.reminder;
 
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-      title: Text(
-        title == null || title.isEmpty ? 'Stream' : title,
-        style: strike,
-      ),
-      subtitle: Text(
-        [hours, ?segment.categoryName, if (cancelled) 'Cancelled'].join(' · '),
-        style: TextStyle(color: muted).merge(strike),
-      ),
-      trailing: switch (reminder) {
-        (:final set, :final toggle) => IconButton(
-          tooltip: set ? 'Reminder Set' : 'Remind Me',
-          isSelected: set,
-          onPressed: toggle,
-          icon: const Icon(Icons.notifications_none_rounded),
-          selectedIcon: const Icon(Icons.notifications_active_rounded),
+    return Container(
+      constraints: const BoxConstraints(minHeight: 60),
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: colors.hairline,
+            width: FrostyTokens.hairlineWidth,
+          ),
         ),
-        null => null,
-      },
+      ),
+      child: Row(
+        spacing: 12,
+        children: [
+          Container(
+            width: 4,
+            height: 36,
+            decoration: BoxDecoration(
+              color: cancelled ? colors.raised : colors.pillBorder,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              spacing: 2,
+              children: [
+                Text(
+                  title == null || title.isEmpty ? 'Stream' : title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    height: 1.3,
+                    color: cancelled ? colors.secondary : colors.text,
+                  ).merge(strike),
+                ),
+                Text(
+                  [
+                    hours,
+                    ?segment.categoryName,
+                    if (cancelled) 'Cancelled',
+                  ].join(' · '),
+                  style: FrostyType.tabular(
+                    TextStyle(
+                      fontSize: 12,
+                      height: 1.3,
+                      color: colors.secondary,
+                    ).merge(strike),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (reminder != null)
+            IconButton(
+              tooltip: reminder.set ? 'Reminder Set' : 'Remind Me',
+              isSelected: reminder.set,
+              onPressed: reminder.toggle,
+              icon: SheetGlyph(SheetGlyphKind.bell, color: colors.secondary),
+              // The signal reads on the dark ground only.
+              selectedIcon: SheetGlyph(
+                SheetGlyphKind.check,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? context.frostyColors.live
+                    : colors.text,
+                strokeWidth: 2.2,
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

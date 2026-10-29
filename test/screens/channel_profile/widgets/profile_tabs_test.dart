@@ -6,13 +6,14 @@ import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/models/channel_profile.dart';
 import 'package:frosty/models/clip.dart';
 import 'package:frosty/models/vod.dart';
+import 'package:frosty/screens/channel/video/live_progress.dart';
 import 'package:frosty/screens/channel_profile/widgets/profile_about_tab.dart';
 import 'package:frosty/screens/channel_profile/widgets/profile_home_tab.dart';
+import 'package:frosty/screens/channel_profile/widgets/profile_live_card.dart';
 import 'package:frosty/screens/channel_profile/widgets/profile_schedule_tab.dart';
 import 'package:frosty/screens/clips/stores/channel_clips_store.dart';
-import 'package:frosty/screens/clips/widgets/clip_card.dart';
 import 'package:frosty/screens/vod/stores/channel_videos_store.dart';
-import 'package:frosty/screens/vod/widgets/vod_card.dart';
+import 'package:frosty/screens/vod/vod_resume.dart';
 import 'package:frosty/services/notifications/schedule_reminders.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -65,6 +66,11 @@ const _profile = ChannelProfile(
 );
 
 Widget _app(Widget child, {double width = 400}) => MaterialApp(
+  // Still: the live badge's ping and the skeletons' sheen.
+  builder: (context, child) => MediaQuery(
+    data: MediaQuery.of(context).copyWith(disableAnimations: true),
+    child: child!,
+  ),
   home: Scaffold(
     body: SingleChildScrollView(
       child: Center(
@@ -179,9 +185,10 @@ void main() {
         _app(ProfileScheduleContent(schedule: schedule, now: now)),
       );
 
-      expect(find.text('Next stream in 4 hours'), findsOneWidget);
+      expect(find.textContaining('Next stream in 4 hours · '), findsOneWidget);
       expect(find.text('Yesterday'), findsNothing);
-      expect(find.text('Ranked'), findsOneWidget);
+      // The next stream on top, and in its day.
+      expect(find.text('Ranked'), findsNWidgets(2));
       expect(find.textContaining('Chess'), findsOneWidget);
       expect(find.textContaining('Cancelled'), findsOneWidget);
       expect(find.text('Wednesday, October 14'), findsOneWidget);
@@ -402,6 +409,7 @@ void main() {
             onOpenChannel: () => taps.add('channel'),
             onViewAllVideos: () => taps.add('videos'),
             onViewAllClips: () => taps.add('clips'),
+            showStream: true,
           ),
           width: 600,
         ),
@@ -410,14 +418,161 @@ void main() {
 
       expect(find.text('Chess with viewers'), findsOneWidget);
       expect(find.text('Last live 2 days ago · Chess'), findsOneWidget);
-      expect(find.byType(VodCard), findsNWidgets(4));
-      expect(find.byType(ClipCard), findsNWidgets(4));
+      expect(find.byType(ProfileVideoTile), findsNWidgets(4));
+      expect(find.byType(ProfileClipTile), findsNWidgets(4));
 
       await tester.tap(find.text('Chess with viewers'));
-      await tester.tap(find.text('View all').first);
-      await tester.ensureVisible(find.text('View all').last);
-      await tester.tap(find.text('View all').last);
+      await tester.tap(find.text('See all').first);
+      await tester.ensureVisible(find.text('See all').last);
+      await tester.tap(find.text('See all').last);
       expect(taps, ['channel', 'videos', 'clips']);
+    });
+
+    testWidgets('tablet: the stream beside what comes up, three columns', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({});
+      final now = DateTime(2026, 10, 14, 12);
+      final reminders = ScheduleReminders(
+        prefs: await SharedPreferences.getInstance(),
+        platform: FakeReminderPlatform(),
+        now: () => now,
+      );
+      final videoStore = ChannelVideosStore(
+        login: 'streamer',
+        type: VodType.archive,
+        vodService: vods,
+      );
+      final clipStore = ChannelClipsStore(
+        login: 'streamer',
+        clipService: clips,
+      );
+      addTearDown(videoStore.dispose);
+      addTearDown(clipStore.dispose);
+
+      await tester.pumpWidget(
+        _app(
+          ProfileHomeContent(
+            login: 'streamer',
+            channelName: 'Streamer',
+            profile: const ChannelProfile(
+              id: '42',
+              login: 'streamer',
+              displayName: 'Streamer',
+              lastBroadcast: LastBroadcast(title: 'Ranked'),
+              live: LiveStatus(isRerun: false, viewers: 963),
+            ),
+            videos: videoStore,
+            clips: clipStore,
+            schedule: ChannelSchedule(
+              nextStartAt: DateTime(2026, 10, 15, 21).toUtc(),
+              segments: [
+                ScheduleSegment(
+                  id: 'a',
+                  startAt: DateTime(2026, 10, 15, 21).toUtc(),
+                  title: 'Soirée GTA RP',
+                  categoryName: 'GTA V',
+                ),
+                ScheduleSegment(
+                  id: 'b',
+                  startAt: DateTime(2026, 10, 18, 18).toUtc(),
+                  title: 'Annonces',
+                ),
+                ScheduleSegment(
+                  id: 'c',
+                  startAt: DateTime(2026, 10, 19, 18).toUtc(),
+                  title: 'Third',
+                ),
+              ],
+            ),
+            reminders: reminders,
+            now: now,
+            onOpenChannel: () {},
+            onViewAllVideos: () {},
+            onViewAllClips: () {},
+            showStream: true,
+            large: true,
+          ),
+          width: 840,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+
+      final card = find.byType(ProfileLiveCard);
+      expect(tester.widget<ProfileLiveCard>(card).large, isTrue);
+      expect(find.text('COMING UP'), findsOneWidget);
+      // The next two, beside the stream.
+      expect(find.text('Soirée GTA RP'), findsOneWidget);
+      expect(find.text('Annonces'), findsOneWidget);
+      expect(find.text('Third'), findsNothing);
+      expect(
+        tester.getTopLeft(find.text('Soirée GTA RP')).dx,
+        greaterThan(tester.getRect(card).right),
+      );
+      expect(find.textContaining('GTA V'), findsOneWidget);
+      expect(find.text('Remind Me'), findsNWidgets(2));
+      // Two rows of three.
+      expect(find.byType(ProfileVideoTile), findsNWidgets(6));
+      final tiles = tester
+          .widgetList(find.byType(ProfileVideoTile))
+          .map((w) => tester.getTopLeft(find.byWidget(w)).dy)
+          .toSet();
+      expect(tiles, hasLength(2));
+    });
+
+    testWidgets('a tile shows how far the viewer got', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      VodResumeRepository.shared.resetQueue();
+      LiveProgressRepository.shared.resetQueue();
+      await tester.runAsync(
+        () => VodResumeRepository.shared.save(
+          '1',
+          positionSec: 1800,
+          lengthSec: 3600,
+        ),
+      );
+      final videoStore = ChannelVideosStore(
+        login: 'streamer',
+        type: VodType.archive,
+        vodService: vods,
+      );
+      final clipStore = ChannelClipsStore(
+        login: 'streamer',
+        clipService: clips,
+      );
+      addTearDown(videoStore.dispose);
+      addTearDown(clipStore.dispose);
+      await tester.pumpWidget(
+        _app(
+          ProfileHomeContent(
+            login: 'streamer',
+            profile: null,
+            videos: videoStore,
+            clips: clipStore,
+            onOpenChannel: () {},
+            onViewAllVideos: () {},
+            onViewAllClips: () {},
+          ),
+          width: 390,
+        ),
+      );
+      for (var i = 0; i < 3; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 10)),
+        );
+        await tester.pump();
+      }
+      final tiles = tester
+          .widgetList<ProfileVideoTile>(find.byType(ProfileVideoTile))
+          .toList();
+      expect(tiles.map((t) => t.progress.progress), [
+        isNull,
+        closeTo(0.5, 0.01),
+        isNull,
+        isNull,
+      ]);
+      expect(tester.takeException(), isNull);
     });
   });
 }
