@@ -7,10 +7,10 @@ Contrainte utilisateur : **ne pas toucher au support 2K** (`supported_codecs=av1
 1. Libellés des réglages en anglais (le reste de l'UI est en anglais).
 2. Chaîne hors-ligne : on reste sur IVS avec l'overlay hors-ligne (plus de bascule WebView pour ce cas).
 3. `showLatency` : nouveau défaut `true`, la valeur déjà sauvegardée est respectée.
-4. Le chemin SurfaceView mort (`IvsPlayerView.kt`, `IvsVideo`, `frosty/ivs-player`) sera supprimé dans un commit de nettoyage séparé après C4.
+4. Le chemin SurfaceView mort (`IvsPlayerView.kt`, `IvsVideo`, `onset/ivs-player`) sera supprimé dans un commit de nettoyage séparé après C4.
 
 ## Infrastructure de test commune (C1)
-- `test/helpers/fake_ivs_native.dart` : handlers mock sur `frosty/ivs-texture-manager` (`create` → 7, `dispose` enregistré) et `frosty/ivs-texture/7` (enregistre `load/setQuality/setMuted/...`), `emit(Map)` qui pousse un `onEvent`.
+- `test/helpers/fake_ivs_native.dart` : handlers mock sur `onset/ivs-texture-manager` (`create` → 7, `dispose` enregistré) et `onset/ivs-texture/7` (enregistre `load/setQuality/setMuted/...`), `emit(Map)` qui pousse un `onEvent`.
 - `test/screens/channel/video/stores/ivs_video_store_test.dart` : mocktail `MockTwitchApi`, `MockAuthStore`, `MockTwitchStreamService` injecté, `SettingsStore.fromJson({})` réel, `dispose()` en tearDown.
 
 ## C1 — PLY-04 latence visible + stats
@@ -64,4 +64,4 @@ Contrainte utilisateur : **ne pas toucher au support 2K** (`supported_codecs=av1
 - Démarrage : 5 ouvertures à froid par chaîne (+ 5 réouvertures à chaud pour C5).
 - Comparaison avec l'appli officielle (overlay « latency to broadcaster ») et, idéalement, vidéo des deux écrans sur une chaîne affichant une horloge.
 - Critères : médiane R3a ≤ R1 (cible 2-4 s), rebuffers R3a ≤ R1 + 1 / 5 min, démarrage R4 < R3a, chaîne C liste toujours 1440p, délai de chat entier.
-- Logs : `adb logcat -s FrostyIVS flutter`.
+- Logs : `adb logcat -s OnsetIVS flutter`.

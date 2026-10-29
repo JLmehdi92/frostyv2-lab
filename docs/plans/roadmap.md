@@ -3,7 +3,7 @@
 Ordre fixé avec l'utilisateur (2026-10-13) : **VOD d'abord**, puis **Hype Train** (animations comprises, dans la DA ONSET), puis le reste de `GAP.md` par priorité. Chaque épopée suit le cycle ECC : plan (`planner`) → TDD (`tdd-workflow`) → review (`flutter-reviewer` / `kotlin-reviewer`) → build → un commit par feature.
 
 Règles transverses :
-- DA ONSET = `lib/theme.dart` + `lib/widgets/` (+ `FrostyColors`). Aucun asset, texte ou animation Twitch n'est copié : tout est redessiné.
+- DA ONSET = `lib/theme.dart` + `lib/widgets/` (+ `OnsetColors`). Aucun asset, texte ou animation Twitch n'est copié : tout est redessiné.
 - GQL privé autorisé par l'utilisateur, isolé dans un service dédié (`BaseApiClient`), avec repli propre si Twitch change l'API.
 - Aucune régression : latence (panneau stats), 7TV/BTTV/FFZ, affichage modération (messages supprimés, durées de ban/TO), mini-player, PiP, WebView.
 

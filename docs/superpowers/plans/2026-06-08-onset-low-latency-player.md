@@ -1,8 +1,8 @@
-# Frosty Low-Latency Native Player — Implementation Plan
+# ONSET Low-Latency Native Player — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Replace Frosty's high-latency Twitch WebView player with a native low-latency HLS player (`media_kit`), kept behind a settings toggle with the WebView as fallback, without removing any existing feature.
+**Goal:** Replace the app's high-latency Twitch WebView player with a native low-latency HLS player (`media_kit`), kept behind a settings toggle with the WebView as fallback, without removing any existing feature.
 
 **Architecture:** A new `TwitchStreamService` fetches the raw HLS playlist (Twitch GQL token → usher.ttvnw.net) and a `NativeVideoStore` plays it via `media_kit` (libmpv) tuned for low latency. Both the existing `VideoStore` (WebView) and the new `NativeVideoStore` implement a shared `PlayerController` interface so the existing `VideoOverlay` and `channel.dart` drive either engine. A `PlayerEngine` setting selects the engine; default is native, WebView remains as a fallback.
 
@@ -65,14 +65,14 @@ Expected: the phone/emulator is listed.
 
 Create an app at https://dev.twitch.tv/console/apps (OAuth redirect `http://localhost`), copy the **Client ID** and generate a **Client Secret**.
 
-- [ ] **Step 5: Install deps and run upstream Frosty**
+- [ ] **Step 5: Install deps and run the unmodified app**
 
 Run:
 ```bash
 flutter pub get
 flutter run --dart-define=clientId=YOUR_ID --dart-define=secret=YOUR_SECRET
 ```
-Expected: Frosty launches on the device, you can open a live channel, and video plays (with the current high latency). **This is the baseline.** Note the latency shown in the overlay for later A/B comparison.
+Expected: the app launches on the device, you can open a live channel, and video plays (with the current high latency). **This is the baseline.** Note the latency shown in the overlay for later A/B comparison.
 
 - [ ] **Step 6: Commit the project baseline (branch first)**
 
@@ -138,7 +138,7 @@ git commit -m "add media_kit dependencies and init"
 `test/models/hls_variant_test.dart`:
 ```dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/hls_variant.dart';
+import 'package:onset/models/hls_variant.dart';
 
 void main() {
   // A trimmed Twitch master playlist (two qualities).
@@ -252,7 +252,7 @@ Reference: it must extend `BaseApiClient` like the other services in `lib/apis/`
 ```dart
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_stream_service.dart';
+import 'package:onset/apis/twitch_stream_service.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 
 void main() {
@@ -323,7 +323,7 @@ Expected: FAIL — `TwitchStreamService` is undefined.
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:frosty/models/hls_variant.dart';
+import 'package:onset/models/hls_variant.dart';
 
 /// Fetches the raw Twitch HLS playlist for a channel so it can be played by a
 /// native low-latency player instead of the Twitch web embed.
@@ -444,9 +444,9 @@ Determine the exact member set by reading every `videoStore.` usage in `video_ov
 
 `lib/screens/channel/video/player_controller.dart`:
 ```dart
-import 'package:frosty/models/channel.dart';
-import 'package:frosty/models/stream.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:onset/models/channel.dart';
+import 'package:onset/models/stream.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 
 /// The contract the video overlay and channel screen depend on, so they can
 /// drive either the WebView engine ([VideoStore]) or the native engine
@@ -488,7 +488,7 @@ abstract class PlayerController {
 
 In `lib/screens/channel/video/video_store.dart`, add the import and `implements PlayerController` on the public class typedef line:
 ```dart
-import 'package:frosty/screens/channel/video/player_controller.dart';
+import 'package:onset/screens/channel/video/player_controller.dart';
 ```
 ```dart
 class VideoStore = VideoStoreBase with _$VideoStore implements PlayerController;
@@ -577,14 +577,14 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/apis/twitch_stream_service.dart';
-import 'package:frosty/models/channel.dart';
-import 'package:frosty/models/hls_variant.dart';
-import 'package:frosty/models/stream.dart';
-import 'package:frosty/screens/channel/video/player_controller.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_stream_service.dart';
+import 'package:onset/models/channel.dart';
+import 'package:onset/models/hls_variant.dart';
+import 'package:onset/models/stream.dart';
+import 'package:onset/screens/channel/video/player_controller.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:mobx/mobx.dart';
 
@@ -809,7 +809,7 @@ git commit -m "add native video store using media_kit low-latency player"
 `lib/screens/channel/video/native_video.dart`:
 ```dart
 import 'package:flutter/material.dart';
-import 'package:frosty/screens/channel/video/stores/native_video_store.dart';
+import 'package:onset/screens/channel/video/stores/native_video_store.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
 /// Renders the native low-latency video surface for [NativeVideoStore].
@@ -822,7 +822,7 @@ class NativeVideo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Video(
       controller: videoStore.videoController,
-      controls: NoVideoControls, // Frosty draws its own overlay.
+      controls: NoVideoControls, // ONSET draws its own overlay.
       fit: BoxFit.contain,
     );
   }
@@ -853,7 +853,7 @@ git commit -m "add native video widget"
 
 In `lib/screens/channel/video/video_overlay.dart`, change the field type and import:
 ```dart
-import 'package:frosty/screens/channel/video/player_controller.dart';
+import 'package:onset/screens/channel/video/player_controller.dart';
 ```
 ```dart
   final PlayerController videoStore;
@@ -871,9 +871,9 @@ In `lib/screens/channel/channel.dart`:
 
 Add imports:
 ```dart
-import 'package:frosty/screens/channel/video/native_video.dart';
-import 'package:frosty/screens/channel/video/stores/native_video_store.dart';
-import 'package:frosty/screens/channel/video/player_controller.dart';
+import 'package:onset/screens/channel/video/native_video.dart';
+import 'package:onset/screens/channel/video/stores/native_video_store.dart';
+import 'package:onset/screens/channel/video/player_controller.dart';
 ```
 
 Replace the `late final VideoStore _videoStore = VideoStore(...)` initializer (around line 78) with an engine-typed controller built once from the setting:

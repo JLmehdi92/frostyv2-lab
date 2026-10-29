@@ -1,7 +1,5 @@
 # AGENTS.md
 
-> **Monorepo note:** `web/` is a separate Next.js landing page with its own `AGENTS.md`. This file covers the Flutter app only.
-
 ## Workflow
 
 - In plan mode, interview thoroughly — ask about UI/UX, tradeoffs, and edge cases before coding
@@ -39,7 +37,7 @@ dart run build_runner build --delete-conflicting-outputs             # Same, but
 
 - After changing MobX stores or `@JsonSerializable` models, regenerate with `dart run build_runner build`. Never edit `.g.dart` files directly. Commit `.g.dart` files to source control.
 - The secure storage cleanup in `main.dart` looks unnecessary but handles an Android/iOS edge case where secure storage persists after uninstall. Don't remove it.
-- Use package imports (`import 'package:frosty/...'`), not relative imports
+- Use package imports (`import 'package:onset/...'`), not relative imports
 - Always include trailing commas
 - Use single quotes
 

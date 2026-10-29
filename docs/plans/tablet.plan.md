@@ -3,7 +3,7 @@
 ## Overview
 
 The owner mainly uses the app on a Xiaomi Pad 7: 11.2", 3200×2136 px, about
-1600×1067 dp, 144 Hz, HyperOS. Upstream Frosty has no tablet layout. Every
+1600×1067 dp, 144 Hz, HyperOS. The upstream app had no tablet layout. Every
 decision keys off `Orientation`, so the tablet gets phone cards stretched to
 1600 dp. Its video buttons also rotate the screen instead of changing the
 layout, which Android 16 ignores on large screens (targetSdk 36).

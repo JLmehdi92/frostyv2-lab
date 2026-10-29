@@ -1,6 +1,6 @@
 # Implementation Plan: E3 "minimal realtime layer" + E4 "Hype Train (viewer side, ONSET design)"
 
-Planner: ECC `planner` (read-only; the repo was not modified). Repo: `/home/user/frostyv2-lab`. Base: `wip/vod` @ `921077b` (E1 VOD still in progress). E3/E4 branch from E1's landed tip.
+Planner: ECC `planner` (read-only; the repo was not modified). Repo: ONSET. Base: `wip/vod` @ `921077b` (E1 VOD still in progress). E3/E4 branch from E1's landed tip.
 **Complexity:** Large. About 16 small commits (Dart only, no Kotlin): 3 for E3 (+1 optional), 12 for E4 (+1 optional).
 **WAITING FOR CONFIRMATION:** no code is written until the user approves the "Decisions to confirm" section at the end.
 
@@ -21,13 +21,13 @@ It is fully isolated: it has its own socket and never touches the IRC or 7TV soc
 - **Initial state:** an anonymous GQL `GetHypeTrainExecution`-equivalent full document (`TwitchHypeTrainService extends BaseApiClient`).
 - **Live updates:** the `hype-train-events-v2.<channelId>` topic.
 - **Logic:** pure, unit-tested parts (models, a reducer, a back-pressure queue, a sequence planner that turns each event into timed animation steps) driven by a MobX `HypeTrainStore`. The store owns the state machine (Init/Idling/Approaching/Ongoing), one-at-a-time pacing, the 1 s countdown, the +10 s expiry fallback and the 20 s approaching rule.
-- **UI**, first built ONSET-style (Frosty theme plus `lib/widgets`), now restyled to match the official Twitch Android app in green (#12A87A) with Twitch's English wording (see "UI and strings: Twitch's layout in green" below); still no Twitch assets:
+- **UI**, first built ONSET-style (the app theme plus `lib/widgets`), now restyled to match the official Twitch Android app in green (#12A87A) with Twitch's English wording (see "UI and strings: Twitch's layout in green" below); still no Twitch assets:
   - a banner above chat (portrait), compact in landscape, and a pill over the video when landscape chat is hidden
   - an expanded detail sheet
   - end strips: rewards or expired, 20 s each
   - every variant (Regular, Golden Kappa, Treasure, Community, Mythic, All-Time-High, Shared), with animations rebuilt as Flutter explicit animations and `CustomPainter`s
 
-Chat code (`chat.dart`, `chat_store.dart`, `chat_tabs_store.dart`, `chat_tabs.dart`, `irc.dart`) gets **zero** diff. The banner sits in the screen-owned `chat` `Stack` in `channel.dart`, the same slot `FrostyNotification` already uses.
+Chat code (`chat.dart`, `chat_store.dart`, `chat_tabs_store.dart`, `chat_tabs.dart`, `irc.dart`) gets **zero** diff. The banner sits in the screen-owned `chat` `Stack` in `channel.dart`, the same slot `OnsetNotification` already uses.
 
 ## Requirements (restated)
 
@@ -171,9 +171,9 @@ Captured types: `hype-train-progression` ×24, `hype-train-level-up` ×5, `hype-
 | Store tests | `test/screens/vod/stores/vod_chat_replay_store_test.dart` | mocktail `Mock implements Service`, helper builders, `tearDown(store.dispose)`. |
 | API tests | `test/apis/twitch_vod_service_test.dart` | `DioAdapter` with the full URL `https://gql.twitch.tv/gql`, `data: Matchers.any`, fixtures in `test/fixtures/*.dart`. |
 | Model parsing | `lib/models/vod.dart`, `vod_comment.dart`, `hls_variant.dart` | Hand-written `fromGql` / `fromJson` (no codegen); strict on ids, tolerant elsewhere. |
-| Screen layout | `lib/screens/channel/channel.dart:479 build`, `:534 video` Stack (stats panel `Positioned` l.540-553), `:559 chat` Stack (`FrostyNotification` at top), `:258 didChangeAppLifecycleState`, `:330 _minimizeToMiniPlayer`, `:946 dispose` | Screen-owned overlays in Stacks. The `chat` widget is reused by the portrait column, the landscape side column and the overlay chat, so one slot covers all three. |
+| Screen layout | `lib/screens/channel/channel.dart:479 build`, `:534 video` Stack (stats panel `Positioned` l.540-553), `:559 chat` Stack (`OnsetNotification` at top), `:258 didChangeAppLifecycleState`, `:330 _minimizeToMiniPlayer`, `:946 dispose` | Screen-owned overlays in Stacks. The `chat` widget is reused by the portrait column, the landscape side column and the overlay chat, so one slot covers all three. |
 | Settings | `settings_store.dart` (`static const defaultX`, `@JsonKey(defaultValue:)`, `resetChatSettings()` l.346), `chat_settings.dart:181 'Alerts'` with `SettingsListSwitch` | New boolean setting plus switch; regenerate `.g.dart`. |
-| ONSET UI | `lib/theme.dart` (`FrostyColors`, `kOverlayShadow`, Inter, text theme), `lib/constants.dart:46 kCardBorderRadius`, `lib/widgets/{frosty_cached_network_image,profile_picture,blurred_container,section_header,alert_message,live_indicator}.dart`, `lib/utils/modal_bottom_sheet.dart` | Colours come from `colorScheme` (accent-seeded) and `FrostyColors`; 0.5 px `outlineVariant` borders; radius 8/12; `BlurredContainer` for translucent bars; bottom sheets via the shared helper. |
+| ONSET UI | `lib/theme.dart` (`OnsetColors`, `kOverlayShadow`, Inter, text theme), `lib/constants.dart:46 kCardBorderRadius`, `lib/widgets/{onset_cached_network_image,profile_picture,blurred_container,section_header,alert_message,live_indicator}.dart`, `lib/utils/modal_bottom_sheet.dart` | Colours come from `colorScheme` (accent-seeded) and `OnsetColors`; 0.5 px `outlineVariant` borders; radius 8/12; `BlurredContainer` for translucent bars; bottom sheets via the shared helper. |
 | Dev harness | `lib/dev_player_harness.dart` (`flutter run -t …`, not shipped) | Separate entrypoint for device checks without credentials. |
 | Emote CDN | `lib/models/irc.dart:27` `_twitchEmoteBaseUrl` | `https://static-cdn.jtvnw.net/emoticons/v2/<id>/default/dark/3.0`. |
 
@@ -767,7 +767,7 @@ Presenter, recovery and lifecycle:
 - `hype_train_progress_bar.dart`: a rounded 6 px bar driven by an `AnimationController` (`fillTo` uses the step duration, 200 ms) with the gradient fill from the palette.
 - `hype_train_countdown.dart`: `mm:ss`, tabular figures, its own `Observer` on `remaining` only, `ExcludeSemantics` (it is in the banner label instead).
 - `hype_train_level_pill.dart`: "LVL n" pill; `TweenAnimationBuilder<int>` counts on merge.
-- `hype_train_marquee.dart`: a single-line text plus inline emotes (`FrostyCachedNetworkImage` 20 px). It slides from the trailing edge to off the leading edge over the step duration, mirrored in RTL via `Directionality`. With reduceMotion it is centred static text.
+- `hype_train_marquee.dart`: a single-line text plus inline emotes (`OnsetCachedNetworkImage` 20 px). It slides from the trailing edge to off the leading edge over the step duration, mirrored in RTL via `Directionality`. With reduceMotion it is centred static text.
 - `hype_train_banner.dart` (`HypeTrainBanner({required HypeTrainStore store, bool compact})`):
   - **Layout:** icon + level pill | title and subtitle (or the active step's content) | big % | countdown | expand chevron | collapse affordance. Below them, the progress bar. Height is about 72 default and about 48 compact, plus text scaling.
   - **Step content** via an `AnimatedSwitcher(duration: HtTimings.short)` keyed by `ValueKey('ht-step-${step.kind.name}')`: marquee, instruction, levelComplete, largeContribution, flash100 (a scale and opacity pulse on the %), totals, summary.
@@ -920,7 +920,7 @@ Presenter, recovery and lifecycle:
   - `didChangeAppLifecycleState` (l.258): `if (state == AppLifecycleState.resumed) _hypeTrainStore?.handleAppResume();`.
   - `_minimizeToMiniPlayer` (l.330) and `dispose` (l.946): **always** dispose the hype-train store, even when `_handedOff`. The mini player shows no banner; restoring the channel builds a new store, which refetches.
   - **`chat` Stack** (l.559):
-    - Replace the lone top `Align(FrostyNotification)` with an `Align(topCenter)` → `Column(mainAxisSize: min)` holding `[if (_hypeTrainStore != null) HypeTrainSlot(store, compact: landscapeChat), notification]`.
+    - Replace the lone top `Align(OnsetNotification)` with an `Align(topCenter)` → `Column(mainAxisSize: min)` holding `[if (_hypeTrainStore != null) HypeTrainSlot(store, compact: landscapeChat), notification]`.
     - The top padding is the existing chat-only `safePaddingTop` plus 48 when `_chatTabsStore.showTabBar`, so the banner sits under the tab bar.
     - Hidden while `context.isLandscape && MediaQuery.viewInsetsOf(context).bottom > 0` (keyboard open in landscape).
     - This one slot covers the portrait column, the landscape side column and the landscape overlay chat (the `chat` widget is reused; the overlay chat gets the dark theme already applied at l.674).
@@ -1020,10 +1020,10 @@ Presenter, recovery and lifecycle:
 
 ## Manual test protocol (Hype Train specific, real Android phone, release build)
 
-- **M1 Find live trains:** the H7 live mode (anonymous bulk statuses over the top streams). It typically finds 2–10 active trains, as verified on 2026-10-13. Open two of them in Frosty and twitch.tv side by side, then compare:
+- **M1 Find live trains:** the H7 live mode (anonymous bulk statuses over the top streams). It typically finds 2–10 active trains, as verified on 2026-10-13. Open two of them in ONSET and twitch.tv side by side, then compare:
   - level, % (within one event) and countdown (±1 s)
   - conductor names; the sheet's level emotes
-- **M2 Event parity:** leave a busy train open for 5 min. Every level-up in the browser plays the Frosty level-up sequence within about 2 s. No double level-up (the verified early progression is deferred).
+- **M2 Event parity:** leave a busy train open for 5 min. Every level-up in the browser plays the ONSET level-up sequence within about 2 s. No double level-up (the verified early progression is deferred).
 - **M3 End:** stay until the train ends. COMPLETED → success marquee, then totals, then the 20 s rewards strip with the earned emotes, then hidden. With a socket killed beforehand (airplane mode at T−20 s), the +10 s fallback ends it.
 - **M4 Variants:** replay every scenario in the harness (both orientations, light and dark, reduce motion on and off). Also verify any live Golden or Treasure train found by M1 (both verified to exist).
 - **M5 Stress:** the harness's back-pressure scenario (40 progressions in 10 s plus large ones): the banner never lags more than one sequence behind and the large ones all show.
@@ -1091,12 +1091,12 @@ Presenter, recovery and lifecycle:
 
 ### Critical Files for Implementation
 
-- `/home/user/frostyv2-lab/lib/screens/channel/channel.dart`: `video` Stack l.534, `chat` Stack l.559, lifecycle l.258, mini hand-off l.330, dispose l.946 (CRLF)
-- `/home/user/frostyv2-lab/lib/apis/twitch_vod_service.dart`: template for `twitch_hype_train_service.dart` (`_gql`, own Dio, id validation)
-- `/home/user/frostyv2-lab/lib/screens/channel/chat/stores/chat_store.dart`: websocket usage reference (l.798, l.884); **must stay untouched**
-- `/home/user/frostyv2-lab/lib/main.dart`: providers (l.~122-165), `AppLifecycleListener` wiring
-- `/home/user/frostyv2-lab/lib/screens/settings/stores/settings_store.dart` and `/home/user/frostyv2-lab/lib/screens/settings/chat_settings.dart`: the `showHypeTrain` setting
-- `/home/user/frostyv2-lab/lib/theme.dart`, `/home/user/frostyv2-lab/lib/constants.dart`, `/home/user/frostyv2-lab/lib/widgets/`: ONSET tokens and components
-- `/home/user/frostyv2-lab/lib/dev_player_harness.dart`: template for `lib/dev_hype_train_harness.dart`
+- `lib/screens/channel/channel.dart`: `video` Stack l.534, `chat` Stack l.559, lifecycle l.258, mini hand-off l.330, dispose l.946 (CRLF)
+- `lib/apis/twitch_vod_service.dart`: template for `twitch_hype_train_service.dart` (`_gql`, own Dio, id validation)
+- `lib/screens/channel/chat/stores/chat_store.dart`: websocket usage reference (l.798, l.884); **must stay untouched**
+- `lib/main.dart`: providers (l.~122-165), `AppLifecycleListener` wiring
+- `lib/screens/settings/stores/settings_store.dart` and `lib/screens/settings/chat_settings.dart`: the `showHypeTrain` setting
+- `lib/theme.dart`, `lib/constants.dart`, `lib/widgets/`: ONSET tokens and components
+- `lib/dev_player_harness.dart`: template for `lib/dev_hype_train_harness.dart`
 - `/root/twitch-re/notes/hype_train.md` §2–§3 and `/root/twitch-re/notes/protocols.md` §2.1: behaviour spec (not copied)
 - Live-verification scripts and raw captures (scratch only, not for the repo): `/tmp/claude-0/-home-user/3ed6b763-835a-5414-a8f4-34d9902c2253/scratchpad/ht/` (`exec.py` = the verified query document builder, `hermes.py`, `captures.jsonl`, `run2.log`). Anonymise before turning anything into `test/fixtures/`.

@@ -1,6 +1,6 @@
 # Catalogue des fonctionnalités — Twitch Android officiel v31.5.2
 
-> Étude de parité fonctionnelle pour **frostyv2** (client Twitch Flutter). Ce document liste **uniquement des fonctionnalités**. Aucun texte d'interface, code, design ou asset Twitch n'est reproduit : les noms de ressources, de classes, d'opérations GQL, de topics et de flags ne sont cités qu'à titre de **preuve**. Ils ne doivent pas être réutilisés tels quels dans frostyv2.
+> Étude de parité fonctionnelle pour **ONSET** (client Twitch Flutter). Ce document liste **uniquement des fonctionnalités**. Aucun texte d'interface, code, design ou asset Twitch n'est reproduit : les noms de ressources, de classes, d'opérations GQL, de topics et de flags ne sont cités qu'à titre de **preuve**. Ils ne doivent pas être réutilisés tels quels dans ONSET.
 
 ## 1. En-tête
 
@@ -437,9 +437,9 @@ Les colonnes « Comportement attendu » sont reformulées à partir des noms de 
 
 ## 3. Réglages de lecture du lecteur officiel
 
-La mission de frostyv2 est la latence : cette section résume ce que fait le lecteur officiel. Sources : `notes/protocols.md` §3, vérifications ponctuelles dans `jadx-base`.
+La mission de ONSET est la latence : cette section résume ce que fait le lecteur officiel. Sources : `notes/protocols.md` §3, vérifications ponctuelles dans `jadx-base`.
 
-| Sujet | Lecteur officiel 31.5.2 | Preuve | frostyv2 actuel (pour comparaison) |
+| Sujet | Lecteur officiel 31.5.2 | Preuve | ONSET actuel (pour comparaison) |
 |---|---|---|---|
 | Moteur | Amazon IVS player core **1.57.0-rc.2** (`MediaPlayer.Builder(ctx).sessionConfig(cfg)`), en natif comme en RN. Media3/ExoPlayer est embarqué mais jamais utilisé pour le live (`player_backend=Core`). | cls:MediaPlayer, cls:SessionConfig, cls:TwitchPlayerConfigKt | IVS `ivs-player:1.52.0` |
 | **Catch-up par accélération** | `SessionConfig.setLiveCatchUpSpeedUpEnabled(true)` sur **chaque** lecteur. Le retard accumulé est rattrapé par accélération, pas par saut. La valeur par défaut du core est `false`. | `TwitchPlayerConfigKt`, classe obfusquée de config ; défaut `bufferControl.liveCatchUpSpeedUpEnabled=false` | Non défini (setter absent du SDK public 1.52, présent en 1.57) |
@@ -457,7 +457,7 @@ La mission de frostyv2 est la latence : cette section résume ce que fait le lec
 | Mesure | Overlay « statistiques vidéo » avec la latence au diffuseur (RN `VideoStatsOverlay`). Méthodes publiques `getLiveLatency()` / `isLiveLowLatency()`. | rn:VideoStatsOverlay, rn:isLiveLowLatency | `showLatency=false` par défaut |
 | Pubs | SSAI SureStream (cues `X-TV-TWITCH-AD-*` dans la playlist), `setSuppressSegmentMetadataCue(false)` pour recevoir les cues, `setSendTwitchEvents(true)`. | `notes/protocols.md` §3.4 | — |
 
-**Implications pour frostyv2** (rappel, non normatif) :
+**Implications pour ONSET** (rappel, non normatif) :
 
 1. Passer à `ivs-player:1.57.0` et activer `setLiveCatchUpSpeedUpEnabled(true)`.
 2. Faire de `rebufferToLive` une option plutôt qu'un défaut.

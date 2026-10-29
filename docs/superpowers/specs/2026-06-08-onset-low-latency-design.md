@@ -1,4 +1,4 @@
-# Frosty Low-Latency Fork — Design
+# ONSET Low-Latency Player — Design
 
 **Date:** 2026-06-08
 **Status:** Approved (pending spec review)
@@ -6,12 +6,12 @@
 
 ## Problem
 
-Frosty (mobile Twitch client, Flutter) shows 7TV/BTTV/FFZ emotes and full mod
+ONSET (mobile Twitch client, Flutter) shows 7TV/BTTV/FFZ emotes and full mod
 visibility, but its video runs ~8–15s behind live because it plays the **Twitch
 web player inside a `webview_flutter` WebView** (`player.twitch.tv` embed):
 
 ```
-https://player.twitch.tv/?channel=$userLogin&muted=false&parent=frosty
+https://player.twitch.tv/?channel=$userLogin&muted=false&parent=onset
 ```
 
 The official Twitch app uses a **native low-latency HLS player** (~2–4s). The
@@ -108,7 +108,7 @@ channel screen
 
 ## Phasing
 
-- **Phase 0:** Install Flutter + Android SDK on Windows; run *unmodified* Frosty
+- **Phase 0:** Install Flutter + Android SDK on Windows; run the *unmodified* app
   on the device (proves toolchain + Twitch credentials).
 - **Phase 1:** Add `TwitchStreamService` + native store + `media_kit`, behind the
   engine toggle (WebView stays default). Measure latency.

@@ -1,6 +1,6 @@
 # Implementation Plan: E1 "VOD" (in-app past broadcasts with chat replay, ONSET design)
 
-Planner: ECC `planner` (read-only). Base: `ef1a80c` ("add roadmap for full twitch parity"). Repo: `/home/user/frostyv2-lab`.
+Planner: ECC `planner` (read-only). Base: `ef1a80c` ("add roadmap for full twitch parity"). Repo: ONSET.
 **Complexity: Large** (about 10 tightly scoped commits, Kotlin + Dart + UI).
 **WAITING FOR CONFIRMATION**: no code is written until the user approves (see "Decisions to confirm" at the end).
 
@@ -44,7 +44,7 @@ The live path is kept byte-for-byte where possible:
    - saved every 20 s, on pause, on app background and on exit
    - reopening starts 30 s before the saved position
    - `?t=` overrides the saved position
-6. ONSET design only: `lib/theme.dart`, `FrostyColors`, `kOverlayShadow`, `kCardBorderRadius`, and the `lib/widgets/` kit (`SectionHeader`, `AlertMessage`, `FrostyPageView`, `SkeletonLoader*`, `BlurredContainer`, `DraggableDivider`, `FrostyCachedNetworkImage`, `ProfilePicture`, `ScrollToTopButton`). No Twitch assets or text are copied.
+6. ONSET design only: `lib/theme.dart`, `OnsetColors`, `kOverlayShadow`, `kCardBorderRadius`, and the `lib/widgets/` kit (`SectionHeader`, `AlertMessage`, `OnsetPageView`, `SkeletonLoader*`, `BlurredContainer`, `DraggableDivider`, `OnsetCachedNetworkImage`, `ProfilePicture`, `ScrollToTopButton`). No Twitch assets or text are copied.
 7. No regressions in: live latency, stats panel, chat, 7TV live updates, moderation rendering, mini player, PiP, WebView fallback, iOS (web engine).
 
 ## Verified facts used by this plan (live, 2026-10-13, public web Client-ID, full query text, no user token, no integrity header)
@@ -66,7 +66,7 @@ Fields marked **(TBC)** below must be confirmed by a captured fixture before the
 |---|---|---|
 | API service | `lib/apis/twitch_stream_service.dart:16-49,122-160` | Extends `BaseApiClient`. Public web Client-ID header. Full GQL document, no persisted hash. Keeps `_http` for raw needs. `@visibleForTesting static` parameter builder (`usherQueryParameters`, l.101). Throws `ApiException` when the token is missing. |
 | Token cache | `lib/services/playback_token_cache.dart` + `lib/models/playback_access_token.dart` | `PlaybackAccessToken.fromValue` parses `expires`. LRU cache with a 60 s safety margin, never persisted or logged. |
-| Native player store | `lib/screens/channel/video/stores/ivs_video_store.dart` (l.293 `_createTexture`, l.346 `_onEvent`, l.417 `_applyRecovery`, l.591 `_restoreQuality`, l.746 `dispose`, l.242 auto-PiP autorun) | Store-owned texture via `frosty/ivs-texture-manager`, per-texture channel `frosty/ivs-texture/<id>`, `_recoveryEpoch` staleness guard, `_textureReady` gate, quality restore generation counter, sound re-send after each load. |
+| Native player store | `lib/screens/channel/video/stores/ivs_video_store.dart` (l.293 `_createTexture`, l.346 `_onEvent`, l.417 `_applyRecovery`, l.591 `_restoreQuality`, l.746 `dispose`, l.242 auto-PiP autorun) | Store-owned texture via `onset/ivs-texture-manager`, per-texture channel `onset/ivs-texture/<id>`, `_recoveryEpoch` staleness guard, `_textureReady` gate, quality restore generation counter, sound re-send after each load. |
 | Recovery | `lib/screens/channel/video/ivs_recovery.dart` | `classifyIvsError` → `IvsRecoveryPolicy.onError` → `IvsRetry` / `IvsOffline` / `IvsFallback`. |
 | Native config | `lib/screens/channel/video/ivs_player_config.dart` + `IvsTuning.kt:70 fromArgs` | Dart config map → tolerant Kotlin parsing with defaults. |
 | Kotlin bridge | `IvsPlayerCore.kt:59 "load"`, `:108 onDurationChanged` (empty today), `:120 startLatencyTicker` | `when(call.method)`, `send(mapOf("type" to …))` posted on the main looper, every getter wrapped in `runCatching`. |
@@ -77,7 +77,7 @@ Fields marked **(TBC)** below must be confirmed by a captured fixture before the
 | Chat assets | `chat_store.dart:748-760` + `chat_assets_store.dart:131,156` | `assetsStore.init()` then `assetsFuture(channelId, headers: auth.headersTwitch, show* flags from settings)`. **`dispose()` needs `init()` first** (late `_disposeReaction`). |
 | Chat filters | `chat_store.dart:531-555` | Blocked users (`auth.user.blockedUsers`), muted words (`settings.mutedWords`, `matchWholeWord`). |
 | Paged list | `lib/screens/home/stream_list/stream_list_store.dart:46-60,142` + `streams_list.dart:338` | `hasMore`, `isLoading`, `_error`, cursor, load more near the end. |
-| Card UI | `lib/screens/home/stream_list/stream_card.dart:52-120` | 16:9 `FrostyCachedNetworkImage`, `SkeletonLoader(borderRadius: kCardBorderRadius)`, black 55% chip with a 0.5 px white 8% border, `ProfilePicture(radius: 10)`, subtitle size 14. |
+| Card UI | `lib/screens/home/stream_list/stream_card.dart:52-120` | 16:9 `OnsetCachedNetworkImage`, `SkeletonLoader(borderRadius: kCardBorderRadius)`, black 55% chip with a 0.5 px white 8% border, `ProfilePicture(radius: 10)`, subtitle size 14. |
 | Overlay UI | `lib/screens/channel/video/video_overlay.dart:35-82,140-235` | Gradient overlay, `kOverlayShadow` icons in `overlayOnSurface`, settings bottom sheet built from `SectionHeader` + `ListTile` + check icon, volume `Slider.adaptive(divisions: 20)`. |
 | Layout / PiP | `lib/screens/channel/channel.dart:165,287,871` | Close the mini player when a player opens. `PipWidget(pipLayout: mediaOnlyPause)`. Landscape column with `DraggableDivider` and `chatWidth` / `landscapeChatLeftSide` / `fullScreen*` settings. Dispose restores `SystemChrome`. |
 | Deep links | `lib/main.dart:220-298` | `app_links`, `handleDeepLink(Uri)`, `navigatorKey`, failure `SnackBar(AlertMessage)`. |
@@ -236,7 +236,7 @@ Trim and anonymise the captures into `test/fixtures/vod_responses.dart`. Every f
 **Goal:** native support for VOD playback without changing live behaviour.
 
 **Files**
-- UPDATE `android/app/src/main/kotlin/com/tommychow/frosty/IvsTuning.kt`:
+- UPDATE `android/app/src/main/kotlin/app/onset/IvsTuning.kt`:
   - New field `val vod: Boolean = false`, parsed in `fromArgs` (`args["vod"] as? Boolean ?: false`).
   - `buildPlayer`: when `vod`, build `MediaPlayer.Builder(context).build()` (no `SessionConfig` live catch-up), falling back to `Player.Factory.create`.
   - `applyTo`: when `vod`, call `setLiveLowLatencyEnabled(false)` and `setRebufferToLive(false)`, and do **not** set the 100 ms initial buffer (keep the SDK default for VOD smoothness). The live branch is byte-identical.
@@ -511,13 +511,13 @@ Trim and anonymise the captures into `test/fixtures/vod_responses.dart`. Every f
   - Gradients from `overlayGradient`. Auto-hide follows `overlayVisible`, but stays shown while paused or ended.
   - The settings sheet reuses the live sheet structure: `SectionHeader('Quality')` with check tiles (writes `last_stream_quality` like live), `SectionHeader('Volume')` via `buildVolumeSection`, `SectionHeader('Playback speed')` with 7 tiles, and a "Copy link at current time" tile (`twitch.tv/videos/<id>?t=…`, clipboard only).
 - CREATE `lib/screens/vod/widgets/vod_seek_bar.dart`:
-  - Custom painter or `SliderTheme`: track 3 dp, buffered segment at 40% alpha, played in `colorScheme.primary`, muted segments drawn as `frostyColors.followersOnly` ticks above the track (from `getMutedSegments`, loaded lazily, empty on error).
+  - Custom painter or `SliderTheme`: track 3 dp, buffered segment at 40% alpha, played in `colorScheme.primary`, muted segments drawn as `onsetColors.followersOnly` ticks above the track (from `getMutedSegments`, loaded lazily, empty on error).
   - Thumb grows from 6 to 8 on drag.
   - While dragging, local state only; a time bubble shows the target. `seekTo` is called once on release.
   - Semantics labels "Elapsed time", "Seek".
 - CREATE `lib/screens/vod/widgets/vod_chat_replay.dart`:
   - `SectionHeader('Chat replay')`-style slim header with a tooltip ("Third-party emotes reflect the channel's current sets").
-  - A `ListView.builder(reverse: true)` of `VodChatMessage`, wrapped like `chat.dart`: `MediaQuery` textScaler `settings.messageScale`, `DefaultTextStyle` `fontSize`, `FrostyScrollbar`.
+  - A `ListView.builder(reverse: true)` of `VodChatMessage`, wrapped like `chat.dart`: `MediaQuery` textScaler `settings.messageScale`, `DefaultTextStyle` `fontSize`, `OnsetScrollbar`.
   - A "Resume auto-scroll" pill with the same look as live `_buildResumeScrollButton`.
   - States:
     - loading → `LoadingIndicator(subtitle: 'Loading chat replay')`
@@ -571,7 +571,7 @@ Trim and anonymise the captures into `test/fixtures/vod_responses.dart`. Every f
 
 **Files**
 - CREATE `lib/screens/vod/stores/web_vod_store.dart` `WebVodStore implements VodPlayerController`:
-  - `WebViewController` loading `https://player.twitch.tv/?video=v<id>&time=<1h2m3s>&autoplay=true&muted=false&parent=frosty`, with the same platform params as `video_store.dart:220-238` (iOS inline playback, Android `setMediaPlaybackRequiresUserGesture(false)`).
+  - `WebViewController` loading `https://player.twitch.tv/?video=v<id>&time=<1h2m3s>&autoplay=true&muted=false&parent=onset`, with the same platform params as `video_store.dart:220-238` (iOS inline playback, Android `setMediaPlaybackRequiresUserGesture(false)`).
   - A 1 s JS poll: `document.querySelector('video')` → `currentTime`, `duration`, `paused`, `playbackRate` → `JavaScriptChannel('VodState')` → observables.
   - `seekTo`, `play`, `pause` and `setPlaybackRate` via `runJavaScript` on the `<video>` element.
   - Qualities: `['Auto']` only (the Twitch embed controls remain usable).
@@ -602,8 +602,8 @@ Trim and anonymise the captures into `test/fixtures/vod_responses.dart`. Every f
   - `fetchMore()` guarded against concurrent calls, `refresh()`, `ScrollController` with load-more at 80% (the `stream_list_store` pattern)
   - page size 20
 - CREATE `lib/screens/vod/channel_videos.dart` `ChannelVideosScreen({userId, userLogin, displayName, VodType initialTab = archive})`:
-  - `FrostyAppBar(title: '<name> · Videos')`
-  - `FrostyPageView(headers: ['Past broadcasts', 'Highlights', 'Uploads'])`, one store per tab, created lazily
+  - `OnsetAppBar(title: '<name> · Videos')`
+  - `OnsetPageView(headers: ['Past broadcasts', 'Highlights', 'Uploads'])`, one store per tab, created lazily
   - `RefreshIndicator`, `ScrollToTopButton`
   - skeleton `StreamCardSkeletonLoader` ×6 while loading
   - `AlertMessage('No past broadcasts')` etc. when empty
@@ -790,7 +790,7 @@ Trim and anonymise the captures into `test/fixtures/vod_responses.dart`. Every f
   - Each tab paginates to the end and the empty states show.
   - Recording VOD chip on a currently live channel.
   - Sub-only VOD shows the lock.
-- **M2 Playback start:** open five VODs from the list; measure time to first frame (stopwatch or `adb logcat -s FrostyIVS flutter`); default quality restore matches the saved quality.
+- **M2 Playback start:** open five VODs from the list; measure time to first frame (stopwatch or `adb logcat -s OnsetIVS flutter`); default quality restore matches the saved quality.
 - **M3 Transport:**
   - −10 s and +30 s at the start and end edges
   - scrub to 75%
@@ -848,12 +848,12 @@ Trim and anonymise the captures into `test/fixtures/vod_responses.dart`. Every f
 - [ ] GAP.md and ARCHITECTURE.md are updated.
 
 ### Critical Files for Implementation
-- /home/user/frostyv2-lab/android/app/src/main/kotlin/com/tommychow/frosty/IvsPlayerCore.kt
-- /home/user/frostyv2-lab/android/app/src/main/kotlin/com/tommychow/frosty/IvsTuning.kt
-- /home/user/frostyv2-lab/lib/screens/channel/video/stores/ivs_video_store.dart (template for the new `lib/screens/vod/stores/ivs_vod_store.dart`)
-- /home/user/frostyv2-lab/lib/apis/twitch_stream_service.dart (template for the new `lib/apis/twitch_vod_service.dart`)
-- /home/user/frostyv2-lab/lib/models/irc.dart (`fromString` l.950 and `generateSpan` l.651 are reused unchanged; `onTap` l.843 goes through `LinkRouter`)
-- /home/user/frostyv2-lab/lib/main.dart (provider, `handleDeepLink` l.241, link router registration)
-- /home/user/frostyv2-lab/lib/screens/channel/channel.dart (PlaybackFocus hook; layout reference for `vod_layout.dart`)
-- /home/user/frostyv2-lab/test/helpers/fake_ivs_native.dart (MethodChannel fake extended additively)
-- /home/user/frostyv2-lab/lib/screens/channel/chat/stores/chat_assets_store.dart (reused for replay emotes and badges; call `init()` before `dispose()`)
+- android/app/src/main/kotlin/app/onset/IvsPlayerCore.kt
+- android/app/src/main/kotlin/app/onset/IvsTuning.kt
+- lib/screens/channel/video/stores/ivs_video_store.dart (template for the new `lib/screens/vod/stores/ivs_vod_store.dart`)
+- lib/apis/twitch_stream_service.dart (template for the new `lib/apis/twitch_vod_service.dart`)
+- lib/models/irc.dart (`fromString` l.950 and `generateSpan` l.651 are reused unchanged; `onTap` l.843 goes through `LinkRouter`)
+- lib/main.dart (provider, `handleDeepLink` l.241, link router registration)
+- lib/screens/channel/channel.dart (PlaybackFocus hook; layout reference for `vod_layout.dart`)
+- test/helpers/fake_ivs_native.dart (MethodChannel fake extended additively)
+- lib/screens/channel/chat/stores/chat_assets_store.dart (reused for replay emotes and badges; call `init()` before `dispose()`)

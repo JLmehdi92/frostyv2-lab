@@ -1,12 +1,12 @@
 # CLAUDE.md
 
-Fork of **Frosty** (mobile Twitch client, Flutter) whose goal is to **drastically cut stream latency** while keeping **every** existing feature.
+**ONSET** is a mobile Twitch client (Flutter) whose goal is to **drastically cut stream latency** while keeping **every** existing feature.
 
-> Base conventions, commands, source structure and gotchas live in **`AGENTS.md`** — read it first; it is the source of truth for how this codebase works. This file only adds what is specific to the fork.
+> Base conventions, commands, source structure and gotchas live in **`AGENTS.md`** — read it first; it is the source of truth for how this codebase works. This file only adds what is specific to ONSET.
 
-## Mission (why this fork exists)
+## Mission
 
-- Upstream Frosty plays video via the **Twitch web player inside a `webview_flutter` WebView** (`lib/screens/channel/video/`), which sits ~8–15s behind live.
+- The original player is the **Twitch web player inside a `webview_flutter` WebView** (`lib/screens/channel/video/`), which sits ~8–15s behind live.
 - We are adding a **native low-latency HLS player** (target ~2–4s, official-app level) as the new default, with the **WebView kept as a selectable fallback**.
 - **Non-negotiable:** no feature may be removed. The chat layer (7TV/BTTV/FFZ emotes, deleted-message reveal, timeout/ban rendering, chat-delay sync, badges, autocomplete) is independent of the player and must stay untouched.
 
@@ -28,7 +28,7 @@ dart run build_runner build --delete-conflicting-outputs   # after MobX/JSON mod
 
 ## Conventions (from AGENTS.md — enforced)
 
-- Package imports only (`import 'package:frosty/...'`), single quotes, trailing commas everywhere.
+- Package imports only (`import 'package:onset/...'`), single quotes, trailing commas everywhere.
 - Feature stores go in `lib/screens/{feature}/stores/` (e.g. the new player store). Only `lib/stores/` holds global stores.
 - All API services extend `BaseApiClient` (`lib/apis/base_api_client.dart`) — the Twitch stream/token service must follow this.
 - Never edit `.g.dart` files; regenerate them. Commit `.g.dart` files.
@@ -46,15 +46,15 @@ dart run build_runner build --delete-conflicting-outputs   # after MobX/JSON mod
 If the working copy is broken, restore from GitHub and rebuild:
 
 ```bash
-git clone https://github.com/JLmehdi92/frostyv2.git
-cd frostyv2
+git clone https://github.com/JLmehdi92/onset.git
+cd onset
 flutter pub get
 dart run build_runner build --delete-conflicting-outputs
 flutter build apk --debug --dart-define=CLIENT_ID=<id> --dart-define=SECRET=<secret>
 ```
 
 - **Flutter version: 3.38.4** (Dart 3.10.3). Newer (3.44+) breaks `extended_text_field`/`simple_icons`; older (3.35) breaks `app_links`. Pin with the matching stable tag.
-- `android/app/google-services.json` and `lib/firebase_options.dart` are committed — no extra setup needed.
+- Firebase is optional and no config is committed: without the `FIREBASE_*` `--dart-define`s the app runs with Crashlytics/Analytics/Performance off (`lib/services/telemetry.dart`); the Gradle Firebase plugins apply only when an `android/app/google-services.json` is present (git-ignored). See README.
 - `android/local.properties` is git-ignored and regenerated automatically.
 - Twitch `CLIENT_ID`/`SECRET` are NOT in the repo (build-time only) — supply them via `--dart-define`.
 

@@ -1,114 +1,86 @@
-![Showcase of the Frosty app with screenshots in a masonry grid](https://github.com/tommyxchow/frosty/assets/54859075/09178dcc-2fd2-4618-8076-502719159424)
+# ONSET
 
-<p>
-  <a href="https://github.com/tommyxchow/frosty/actions/workflows/ci.yml">
-    <img
-      alt="Badge showing the CI status."
-      src="https://github.com/tommyxchow/frosty/actions/workflows/ci.yml/badge.svg"
-    />
-  </a>
-  <a href="https://github.com/tommyxchow/frosty/issues">
-    <img
-      alt="Badge showing the number of open issues."
-      src="https://img.shields.io/github/issues/tommyxchow/frosty"
-    />
-  </a>
-  <a href="https://github.com/tommyxchow/frosty/commits">
-    <img
-      alt="Badge showing the date of the last commit."
-      src="https://img.shields.io/github/last-commit/tommyxchow/frosty"
-    />
-  </a>
-  <a href="https://github.com/tommyxchow/frosty/blob/main/LICENSE">
-    <img
-      alt="Badge showing the current license of the repo."
-      src="https://img.shields.io/github/license/tommyxchow/frosty"
-    />
-  </a>
-  <a href="https://github.com/tommyxchow/frosty/releases/latest">
-    <img
-      alt="Badge showing the version of the latest release."
-      src="https://img.shields.io/github/v/release/tommyxchow/frosty"
-    />
-  </a>
-</p>
+ONSET is a mobile Twitch client for Android (iOS-compatible code), built with
+Flutter, that aims to watch live streams as close to real time as the official
+app while keeping a full-featured chat.
 
-## Download
-
-<p>
-  <a href="https://apps.apple.com/us/app/frosty-for-twitch/id1603987585">
-    <img
-      title="Get it on iOS (Apple App Store)"
-      alt="Apple App Store badge."
-      src="https://user-images.githubusercontent.com/54859075/160051843-1d8b2186-97e9-4edd-a957-bb4797b71b4a.svg"
-      width="200px"
-    />
-  </a>
-  <a href="https://play.google.com/store/apps/details?id=com.tommychow.frosty">
-    <img
-      title="Get it on Android (Google Play Store)"
-      alt="Google Play Store badge."
-      src="https://user-images.githubusercontent.com/54859075/160051854-21a57556-6b5a-41e9-8127-334daf1fac47.svg"
-      width="225px"
-    />
-  </a>
-</p>
-
-## Why
-
-The official Twitch mobile app doesn't support emotes from [7TV](https://chrome.google.com/webstore/detail/7tv/ammjkodgmmoknidbanneddgankgfejfh), [BetterTTV (BTTV)](https://chrome.google.com/webstore/detail/betterttv/ajopnjidmegmdimjlfnijceegpefgped), and [FrankerFaceZ (FFZ)](https://chrome.google.com/webstore/detail/frankerfacez/fadndhdgpmmaapbmfcknlfgcflmmmieb) — third-party extensions for Twitch used by millions. As a result, only emote text names are rendered rather than their actual image or GIF, making the chat unreadable in many channels.
+ONSET is a modified version of an AGPL-3.0 licensed open-source Twitch client.
 
 ## Features
 
-- Support for 7TV, BetterTTV, and FrankerFaceZ emotes and badges
-- Browse followed streams, top streams, and top categories
-- Autocomplete for emotes and user mentions
-- Light, dark, and black (OLED) themes
-- Search for channels and categories
-- See and filter chatters in a channel
-- Local chat user message history
-- Theater and fullscreen mode
-- Watch live streams with chat
-- Picture-in-picture mode
-- Block and report users
-- Emote menu
-- Sleep timer
-- And more...
+- Low-latency live playback with a native player (Amazon IVS), plus a
+  `media_kit` engine and the Twitch web player as selectable fallbacks;
+  latency shown in the player overlay
+- 7TV, BetterTTV and FrankerFaceZ emotes and badges, emote menu,
+  autocomplete for emotes and mentions
+- Moderation tools, deleted-message reveal, timeout and ban rendering,
+  chat delay sync, local chat history, chatter list and filters
+- Followed and top streams, categories, search, channel profiles
+- VODs with chat replay, clips, followed videos
+- Hype trains, raids, community highlights, channel points, whispers
+- Picture-in-picture, mini player, background audio, theater and fullscreen
+- Go-live and mention notifications, schedule reminders
+- Phone and tablet layouts, light and dark themes, reduce motion
+- In-app updates from this repository's releases (optional, see
+  `docs/MISES_A_JOUR.md`)
 
-For a more detailed overview, visit [frostyapp.io](https://www.frostyapp.io/).
+## Build
 
-## Development setup
-
-1. [Install Flutter](https://docs.flutter.dev/get-started/install).
-
-2. Clone this repo (e.g., `git clone https://github.com/tommyxchow/frosty.git`).
-
-3. Go to the [Twitch dev console](https://dev.twitch.tv/login) and register a new application to retrieve a **Client ID** and **Client Secret**.
-
-4. Copy `.env.example` to `.env` and fill in your credentials:
+1. Install Flutter **3.38.4** (Dart 3.10.3). Newer releases break
+   `extended_text_field` and `simple_icons`; older ones break `app_links`.
+2. Register an application in the [Twitch developer console](https://dev.twitch.tv/console)
+   to get a **Client ID** and a **Client Secret**.
+3. Copy `.env.example` to `.env` and fill in `CLIENT_ID` and `SECRET` (the
+   VS Code launch configurations read it with `--dart-define-from-file=.env`).
+4. Fetch the dependencies and generate the MobX / JSON code:
 
    ```bash
-   cp .env.example .env
+   flutter pub get
+   dart run build_runner build --delete-conflicting-outputs
    ```
 
-5. Run `flutter pub get` to fetch all the dependencies.
+5. Run or build:
 
-6. Choose an emulator or device and run the app! The included VS Code launch configurations will automatically read your `.env` file.
+   ```bash
+   flutter run --dart-define=CLIENT_ID=<id> --dart-define=SECRET=<secret>
+   flutter build apk --release --dart-define=CLIENT_ID=<id> --dart-define=SECRET=<secret>
+   ```
 
-7. (Optional) Run `dart run scripts/get_twitch_token.dart` to quickly get a user auth token. Long-press the **Anonymous** account tile in the app to log in.
+   A release build without `android/key.properties` is signed with the debug
+   key.
 
-> [!IMPORTANT]
-> Frosty uses [MobX](https://mobx.netlify.app/) for state management. Please refer to the documentation about code generation, otherwise your changes within MobX stores may not be applied.
+### Firebase (optional)
 
-## Donate
+No Firebase project is committed. Without configuration the app runs with
+crash reports, analytics and performance traces off, and the "Share crash logs
+and analytics" setting has no effect. To enable them, create your own Firebase
+project with an Android app `app.onset` (and an iOS app `app.onset` if needed)
+and pass:
 
-If you appreciate my work and would like to donate/tip, you can through:
+```bash
+--dart-define=FIREBASE_API_KEY=<api key>
+--dart-define=FIREBASE_APP_ID_ANDROID=<1:…:android:…>
+--dart-define=FIREBASE_APP_ID_IOS=<1:…:ios:…>
+--dart-define=FIREBASE_MESSAGING_SENDER_ID=<project number>
+--dart-define=FIREBASE_PROJECT_ID=<project id>
+--dart-define=FIREBASE_STORAGE_BUCKET=<bucket>   # optional
+```
 
-- [GitHub Sponsors](https://github.com/sponsors/tommyxchow)
-- [Buy Me a Coffee](https://www.buymeacoffee.com/tommychow)
+Placing your `google-services.json` in `android/app/` (git-ignored) also
+applies the Firebase Gradle plugins (Crashlytics mapping upload, automatic
+performance traces). The update workflow passes the same values from the
+`FIREBASE_*` repository secrets when they exist.
 
-Otherwise, downloading Frosty, leaving a review, or starring this repository is more than enough to show support. Thank you!
+## Development
+
+- `flutter analyze` must stay clean and `flutter test` green.
+- State management is [MobX](https://mobx.netlify.app/): rerun `build_runner`
+  after changing a store or a `@JsonSerializable` model, and commit the
+  generated `.g.dart` files.
+- Conventions and architecture: `AGENTS.md`, `CLAUDE.md`,
+  `docs/ARCHITECTURE.md`.
 
 ## License
 
-Frosty is licensed under [AGPL-3.0-or-later](LICENSE).
+[AGPL-3.0-or-later](LICENSE). `packages/simple_pip_mode` is a vendored copy of
+the MIT-licensed `simple_pip_mode` plugin (see its `LICENSE`).

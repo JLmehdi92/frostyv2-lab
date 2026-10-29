@@ -51,7 +51,7 @@ github.com → photo de profil → **Settings** → **Developer settings** →
 **Personal access tokens** → **Fine-grained tokens** → **Generate new token** :
 
 - **Repository access** : *Only select repositories* → uniquement
-  `JLmehdi92/frostyv2-lab` ;
+  `JLmehdi92/onset` ;
 - **Permissions** → **Repository permissions** → **Contents** : *Read-only*
   (rien d'autre) ;
 - **Expiration** : 1 an (préférable à *No expiration*). À l'expiration, seules
@@ -70,7 +70,7 @@ github.com → photo de profil → **Settings** → **Developer settings** →
 
 ## 3. Les secrets du dépôt
 
-`JLmehdi92/frostyv2-lab` → **Settings** → **Secrets and variables** →
+`JLmehdi92/onset` → **Settings** → **Secrets and variables** →
 **Actions** → **New repository secret**, pour chacun :
 
 | Secret | Valeur |
@@ -84,7 +84,21 @@ github.com → photo de profil → **Settings** → **Developer settings** →
 | `ANDROID_KEY_PASSWORD` | mot de passe de la clé |
 
 Si l'un d'eux manque, le workflow s'arrête tout de suite en le nommant (sans
-jamais afficher de valeur). Le dépôt n'est pas à renseigner : le workflow
+jamais afficher de valeur).
+
+**Facultatifs — Firebase** (Crashlytics, Analytics, Performance) : sans eux,
+l'appli tourne simplement sans Firebase. Pour l'activer, créez votre projet
+Firebase (console Firebase → ajouter une appli Android `app.onset`, et iOS
+`app.onset` si besoin), puis ajoutez :
+
+| Secret | Valeur |
+|---|---|
+| `FIREBASE_API_KEY` | clé API Web/Android du projet |
+| `FIREBASE_APP_ID_ANDROID` | identifiant d'appli Android (`1:…:android:…`) |
+| `FIREBASE_APP_ID_IOS` | identifiant d'appli iOS (`1:…:ios:…`), vide sinon |
+| `FIREBASE_MESSAGING_SENDER_ID` | numéro du projet |
+| `FIREBASE_PROJECT_ID` | identifiant du projet |
+| `FIREBASE_STORAGE_BUCKET` | facultatif | Le dépôt n'est pas à renseigner : le workflow
 utilise celui où il tourne, et déclare lui-même les droits dont il a besoin
 (rien à changer dans les réglages Actions du dépôt).
 
@@ -102,7 +116,7 @@ build verbeux affiche ses `--dart-define`, donc les secrets, dans les journaux.
    de la release dans le navigateur **connecté à GitHub** (le dépôt est privé),
    téléchargez `onset-arm64.apk` et ouvrez-le.
 
-Ensuite, chaque push sur `main` (hors `docs/`, fichiers `.md` et `web/`) produit
+Ensuite, chaque push sur `main` (hors `docs/` et fichiers `.md`) produit
 une release que l'appli propose d'elle-même.
 
 ## 5. Ce que l'on voit sur la tablette
@@ -160,5 +174,5 @@ adb install -r build\app\outputs\flutter-apk\app-release.apk
 
 Un build local sans `UPDATE_TOKEN` ne propose aucune mise à jour : le build CI
 suivant devra être installé à la main (étape 4), sauf si vous ajoutez
-`--dart-define=UPDATE_TOKEN=<jeton> --dart-define=UPDATE_REPO=JLmehdi92/frostyv2-lab`
+`--dart-define=UPDATE_TOKEN=<jeton> --dart-define=UPDATE_REPO=JLmehdi92/onset`
 à la commande de build.

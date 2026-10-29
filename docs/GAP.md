@@ -1,6 +1,6 @@
-# Écarts de fonctionnalités — Twitch Android 31.5.2 vs frostyv2
+# Écarts de fonctionnalités — Twitch Android 31.5.2 vs ONSET
 
-> Ce document compare, ligne par ligne, le catalogue `docs/TWITCH_FEATURES.md` (317 lignes) au code de `frostyv2-lab` (base `bb2d838`).
+> Ce document compare, ligne par ligne, le catalogue `docs/TWITCH_FEATURES.md` (317 lignes) au code d'ONSET (base `bb2d838`).
 > Chaque statut ✅ ou ⚠️ a été vérifié dans le code par `grep` et lecture ; l'inventaire de `docs/ARCHITECTURE.md` n'a servi que de point de départ.
 > Ce document ne contient que de l'analyse : aucun code n'a été modifié.
 
@@ -37,7 +37,7 @@
 | ✅ | Implémentée et conforme au comportement officiel (de petits écarts peuvent figurer en remarque) |
 | ⚠️ | Partielle |
 | ❌ | Absente |
-| ➕ | frostyv2 fait clairement mieux que l'officiel ou va au-delà |
+| ➕ | ONSET fait clairement mieux que l'officiel ou va au-delà |
 
 | Faisabilité | Sens |
 |---|---|
@@ -47,7 +47,7 @@
 | « Impossible proprement » | Achats Play Billing, DRM signé Twitch, SDK pub, ingest de diffusion, services internes Twitch… |
 
 **Chemins abrégés.** Les références `fichier:ligne` donnent le nom du fichier seul. Correspondance :
-`channel.dart`, `video_overlay.dart`, `stream_info_bar.dart`, `ivs_video.dart`, `video_store.dart` → `lib/screens/channel/video/` (sauf `channel.dart` : `lib/screens/channel/`) · `ivs_video_store.dart`, `native_video_store.dart` → `lib/screens/channel/video/stores/` · `chat_store.dart`, `chat_tabs_store.dart`, `chat_assets_store.dart` → `lib/screens/channel/chat/stores/` · `chat_message.dart`, `chat_bottom_bar.dart`, `chat_user_modal.dart`, `reply_thread.dart` → `lib/screens/channel/chat/widgets/` · `chat_details.dart`, `chat_details_store.dart`, `chat_modes.dart`, `chat_users_list.dart` → `lib/screens/channel/chat/details/` · `chat.dart` → `lib/screens/channel/chat/` · `irc.dart` → `lib/models/` · `twitch_api.dart`, `twitch_stream_service.dart`, `seventv_api.dart` → `lib/apis/` · `settings_store.dart`, `auth_store.dart` → `lib/screens/settings/stores/` · `video_settings.dart`, `chat_settings.dart`, `other_settings.dart`, `settings.dart` → `lib/screens/settings/` · `account_options.dart`, `blocked_users.dart`, `profile_card.dart` → `lib/screens/settings/account/` (et `widgets/`) · `settings_muted_words.dart`, `release_notes.dart` → `lib/screens/settings/widgets/` · `streams_list.dart`, `stream_card.dart`, `offline_channel_card.dart` → `lib/screens/home/stream_list/` · `home.dart` → `lib/screens/home/` · `search.dart`, `search_store.dart`, `search_results_channels.dart` → `lib/screens/home/search/` · `categories.dart`, `category_streams.dart` → `lib/screens/home/top/categories/` · `mini_player_store.dart` → `lib/stores/` · `global_mini_player.dart`, `user_actions_modal.dart`, `live_indicator.dart` → `lib/widgets/` · `utils.dart`, `main.dart`, `theme.dart`, `dev_player_harness.dart` → `lib/` · `onboarding_intro.dart` → `lib/screens/onboarding/` · `IvsPlayerCore.kt` → `android/app/src/main/kotlin/com/tommychow/frosty/` · `AndroidManifest.xml` → `android/app/src/main/`.
+`channel.dart`, `video_overlay.dart`, `stream_info_bar.dart`, `ivs_video.dart`, `video_store.dart` → `lib/screens/channel/video/` (sauf `channel.dart` : `lib/screens/channel/`) · `ivs_video_store.dart`, `native_video_store.dart` → `lib/screens/channel/video/stores/` · `chat_store.dart`, `chat_tabs_store.dart`, `chat_assets_store.dart` → `lib/screens/channel/chat/stores/` · `chat_message.dart`, `chat_bottom_bar.dart`, `chat_user_modal.dart`, `reply_thread.dart` → `lib/screens/channel/chat/widgets/` · `chat_details.dart`, `chat_details_store.dart`, `chat_modes.dart`, `chat_users_list.dart` → `lib/screens/channel/chat/details/` · `chat.dart` → `lib/screens/channel/chat/` · `irc.dart` → `lib/models/` · `twitch_api.dart`, `twitch_stream_service.dart`, `seventv_api.dart` → `lib/apis/` · `settings_store.dart`, `auth_store.dart` → `lib/screens/settings/stores/` · `video_settings.dart`, `chat_settings.dart`, `other_settings.dart`, `settings.dart` → `lib/screens/settings/` · `account_options.dart`, `blocked_users.dart`, `profile_card.dart` → `lib/screens/settings/account/` (et `widgets/`) · `settings_muted_words.dart`, `release_notes.dart` → `lib/screens/settings/widgets/` · `streams_list.dart`, `stream_card.dart`, `offline_channel_card.dart` → `lib/screens/home/stream_list/` · `home.dart` → `lib/screens/home/` · `search.dart`, `search_store.dart`, `search_results_channels.dart` → `lib/screens/home/search/` · `categories.dart`, `category_streams.dart` → `lib/screens/home/top/categories/` · `mini_player_store.dart` → `lib/stores/` · `global_mini_player.dart`, `user_actions_modal.dart`, `live_indicator.dart` → `lib/widgets/` · `utils.dart`, `main.dart`, `theme.dart`, `dev_player_harness.dart` → `lib/` · `onboarding_intro.dart` → `lib/screens/onboarding/` · `IvsPlayerCore.kt` → `android/app/src/main/kotlin/app/onset/` · `AndroidManifest.xml` → `android/app/src/main/`.
 
 **Constats de vérification** (par rapport à `ARCHITECTURE.md`, tous confirmés dans le code) :
 
@@ -61,7 +61,7 @@
 
 ### Lecture vidéo (PLY)
 
-| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+| ID | Feature | Priorité | Statut | Implémentation ONSET (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
 | PLY-01 | Lecture live native | P0 | ⚠️ | `IvsTuning.kt`, `IvsPlayerCore.kt`, `ivs_video_store.dart` (`d4ca773`, `fe2e1c1`) | IVS 1.57 avec la config de session de l'officiel, reprise gérée (C2). Reste : jeton demandé en `platform:"web"`/`playerType:"embed"` au lieu de `android`/`mobile_player` (A/B à mesurer, impact pubs inconnu). À valider sur appareil. | OK |
 | PLY-02 | Préchargement du théâtre | P0 | ⚠️ | `ivs_video_store.dart`, `playback_token_cache.dart` (`d4ca773`), `playback_preloader.dart`, `stream_card.dart` | Le lecteur natif est créé en parallèle du jeton, et le jeton est mis en cache jusqu'à son expiration. Le jeton est préchargé dès l'appui sur une carte de live (`PlaybackPreloader`, `onTapDown`) ; le lecteur reprend la requête en cours (`PlaybackTokenCache.pending`) au lieu d'en relancer une. Reste : pas de requête unique jeton + métadonnées + chat comme `TheatrePortalPreloadQuery`. Gain à mesurer sur appareil. | OK |
@@ -99,7 +99,7 @@
 
 ### Chat (CHT)
 
-| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+| ID | Feature | Priorité | Statut | Implémentation ONSET (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
 | CHT-01 | Connexion au chat | P0 | ✅ | `chat_store.dart:884-1005,1058-1061,678-679` | Anonyme `justinfan888`, PING/PONG, 5 tentatives avec backoff. `RECONNECT` non géré explicitement. | OK |
 | CHT-02 | Historique récent | P0 | ✅ | `chat_store.dart:402-405,1328`, `twitch_api.dart:460`, `irc.dart:165` | Via `recent-messages.robotty.de` (tiers), avec marqueur d'historique. | OK |
@@ -152,7 +152,7 @@
 
 ### Interactions communautaires (INT)
 
-| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+| ID | Feature | Priorité | Statut | Implémentation ONSET (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
 | INT-01 | Sondages (vote) | P1 | ⚠️ | `community_highlights/widgets/highlight_cards.dart` | Lecture en direct (épopée E5) : question, barres et %, votes, temps restant, résultats finaux puis disparition. GQL anonyme `viewablePoll` + sujet Hermes public `polls.<id>`. Voter : bouton « Vote on Twitch » sur la carte ouverte, qui ouvre le chat de la chaîne sur twitch.tv dans l'appli (E9) ; pas de vote natif (mutation réservée à twitch.tv, protégée par `Client-Integrity`). | GQL privé |
 | INT-02 | Prédictions (parier) | P1 | ⚠️ | `community_highlights/widgets/highlight_cards.dart` | Lecture en direct (E5) : 2 à 10 issues avec couleurs, points, participants, cote « 1:x » et meilleurs parieurs ; verrouillée, en attente, gagnante, remboursée. GQL anonyme + `predictions-channel-v1.<id>`. Pari natif depuis la feuille des points (`channel_points_sheet.dart`, portage ONSET) : mise minimale 10, préréglages, Max, mutation GQL `makePrediction` avec le jeton web du viewer, jamais automatique ; Twitch peut la refuser (contrôle d'intégrité, refus affiché tel quel) : à valider sur appareil. « Predict on Twitch » reste disponible (E9). | GQL privé |
@@ -188,7 +188,7 @@
 
 ### Modération (MOD)
 
-| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+| ID | Feature | Priorité | Statut | Implémentation ONSET (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
 | MOD-01 | Actions de modération rapides [M] | P0 | ✅ | `chat_moderation_bar.dart`, `chat_user_modal.dart`, `moderation.dart` (`ChatModeration`), `chat_store.dart` (`moderate`, `canModerate`) | Barre Timeout (1 s purge → 2 semaines) / Ban / Unban / Warn dans la fiche, visible si mod (USERSTATE) ou diffuseur, cachée sur soi et le diffuseur. Résultat sous la barre et en ligne de chat. Scopes `moderator:*` demandés à la connexion : un ancien jeton reçoit un 401 → dialogue « Log in again ». | Compte requis |
 | MOD-02 | Bannir avec motif [M] | P0 | ✅ | `twitch_api.dart` (`banUser`), `chat_moderation_bar.dart` (dialogue de motif) | Confirmation avec motif facultatif (500 caractères max). | Compte requis |
@@ -224,7 +224,7 @@
 
 ### Social & notifications (SOC)
 
-| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+| ID | Feature | Priorité | Statut | Implémentation ONSET (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
 | SOC-01 | Suivre / ne plus suivre | P0 | ⚠️ | `user_actions_modal.dart`, `widgets/twitch_web_page.dart` | « Follow X on Twitch » dans le menu d'actions d'une chaîne : la page de la chaîne sur twitch.tv dans l'appli, connectée. Pas de bouton natif : Helix n'a plus d'endpoint de follow et la mutation GQL exige `Client-Integrity` (non contourné). | GQL privé |
 | SOC-02 | Liste des chaînes suivies | P0 | ✅ | `twitch_api.dart:177-207`, `streams_list.dart`, `stream_list_store.dart` (`sortFollowedStreams`), `stream_sort_button.dart` (`FollowedSortButton`) | Live et hors ligne (« followed since »). « Sorted by » au-dessus des lives, comme Twitch, mémorisé (`settingsStore.followedSort`) : Viewers (High to Low) (ordre de Helix, inchangé), Recently Started, Name (A-Z), Category ; un ordre local charge d'abord les pages restantes (5 au plus). « Recommended For You » est un classement serveur privé : absent. | OK |
@@ -251,7 +251,7 @@
 
 ### Découverte & recherche (DSC)
 
-| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+| ID | Feature | Priorité | Statut | Implémentation ONSET (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
 | DSC-01 | Navigation principale | P0 | ⚠️ | `home.dart` | Following, Top, Search ; l'avatar mène aux réglages ; barre de navigation du bas sur téléphone comme sur tablette (le rail latéral a été retiré avec le retour à ONSET). Ni Activité, ni Profil. | OK |
 | DSC-02 | Catégories | P0 | ✅ | `twitch_api.dart:292-300`, `categories.dart` | Pas de pastille « nouveau ». | OK |
@@ -278,7 +278,7 @@
 
 ### Profil de chaîne & contenus (VOD / clips) (PRF)
 
-| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+| ID | Feature | Priorité | Statut | Implémentation ONSET (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
 | PRF-01 | Page chaîne | P1 | ✅ | `channel_profile/channel_profile_screen.dart` | Profil de chaîne (épopée E6) : bannière, avatar (anneau rouge en direct), nom et badge partenaire, followers, Regarder/Chat, Partager, Plus ; onglets Accueil, À propos, Programme, Vidéos, Clips. Ouvert depuis une chaîne hors ligne, la recherche, l'avatar sous la vidéo, la carte d'utilisateur du chat, le menu d'actions et les liens `/about`, `/schedule`. GQL anonyme, en-tête Helix en repli. | OK |
 | PRF-02 | Accueil de profil | P1 | ✅ | `channel_profile/widgets/profile_home_tab.dart` | Direct en cours (aperçu) ou image hors ligne avec la dernière diffusion, puis 4 rediffusions et 4 clips de la semaine avec « View all ». | OK |
@@ -312,7 +312,7 @@
 
 ### Monétisation (MON)
 
-| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+| ID | Feature | Priorité | Statut | Implémentation ONSET (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
 | MON-01 | S'abonner | P2 | ⚠️ | `profile_header.dart` (`onSubscribe`), `channel_profile_screen.dart`, `chat_details.dart`, `utils/twitch_links.dart` (`twitchSubscribeUrl`) | « Subscribe » sur l'en-tête du profil (partenaire ou affilié) et dans le menu du chat (connecté), jamais sur sa propre chaîne : la page `twitch.tv/subs/<login>` dans l'appli. L'achat natif (Google Play Billing de Twitch) reste impossible. | Impossible proprement |
 | MON-02 | Avantages d'abonné | P2 | ❌ | — | — | GQL privé |
@@ -332,7 +332,7 @@
 
 ### Compte & réglages (ACC)
 
-| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+| ID | Feature | Priorité | Statut | Implémentation ONSET (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
 | ACC-01 | Connexion | P0 | ✅ | `auth_store.dart:101-170,264` | OAuth implicite dans une WebView (pas `passport`). Le CAPTCHA est géré par la page Twitch. | OK |
 | ACC-02 | Vérification à la connexion | P1 | ✅ | `auth_store.dart:101-170` | Délégué à la page OAuth Twitch. | OK |
@@ -353,7 +353,7 @@
 | ACC-17 | Mot de passe, email, téléphone | P2 | ⚠️ | `account_options.dart` | « Security and privacy » ouvre `twitch.tv/settings/security` dans l'appli, connecté. | OK |
 | ACC-18 | Vérification du compte | P1 | ⚠️ | `account_options.dart` | Par la page sécurité de twitch.tv dans l'appli (vérification email/téléphone). Pas de bannière d'incitation native. | OK |
 | ACC-19 | Comptes liés | P2 | ⚠️ | `account_options.dart` | « Connections » ouvre `twitch.tv/settings/connections` dans l'appli. | OK |
-| ACC-20 | Consentements et vie privée | P2 | ❌ | — | WebView. Frostyv2 n'a qu'un opt-out Crashlytics (`other_settings.dart:105`). | OK |
+| ACC-20 | Consentements et vie privée | P2 | ❌ | — | WebView. ONSET n'a qu'un opt-out Crashlytics (`other_settings.dart:105`). | OK |
 | ACC-21 | Demande de données personnelles | P2 | ❌ | — | Lien web. | OK |
 | ACC-22 | Préférences de contenu | P1 | ⚠️ | `hidden_content_labels_setting.dart`, `stream_list_store.dart`, `content_warning_gate.dart` | Version locale : choix des labels masqués en exploration (DSC-19) et avertissement avant une chaîne labellisée (PLY-25). Non synchronisée avec le compte (mutation GQL privée), sans tuteur. | GQL privé |
 | ACC-23 | Gestion des retours de recommandation | P2 | ❌ | — | — | GQL privé |
@@ -363,13 +363,13 @@
 | ACC-27 | Mises à jour des conditions | P2 | ❌ | — | Géré par le site Twitch. | OK |
 | ACC-28 | À propos, aide, avis | P2 | ⚠️ | `settings.dart:127-190`, `other_settings.dart:65-70`, `main.dart:174` | Version, notes de version, invite d'avis, lien GitHub. | OK |
 | ACC-29 | Mise à jour forcée ou suggérée | P2 | ❌ | — | Non pertinent pour un build personnel. | OK |
-| ACC-30 | Accessibilité | P1 | ✅ | `overlay_common.dart` (`VideoSurfaceSemantics`), `irc.dart`, `frosty_cached_network_image.dart` (`semanticLabel`), `draggable_divider.dart`, `stream_info_bar.dart` (`_CategoryLink`) | Boutons icônes nommés (réglages vidéo, réessayer, fermer, etc.). Emotes, badges et piles zero-width lus par leur nom (chat, menu, récents, autocomplétion). Surfaces vidéo live et VOD : « Video player » avec indice afficher/masquer, double-tap proposé en actions (±10 s, disposition du chat). Catégorie ouvrable comme lien, séparateur du chat réglable comme un curseur, aperçus de miniature nommés, appui long des messages annoncé. À valider avec TalkBack sur appareil. | OK |
+| ACC-30 | Accessibilité | P1 | ✅ | `overlay_common.dart` (`VideoSurfaceSemantics`), `irc.dart`, `onset_cached_network_image.dart` (`semanticLabel`), `draggable_divider.dart`, `stream_info_bar.dart` (`_CategoryLink`) | Boutons icônes nommés (réglages vidéo, réessayer, fermer, etc.). Emotes, badges et piles zero-width lus par leur nom (chat, menu, récents, autocomplétion). Surfaces vidéo live et VOD : « Video player » avec indice afficher/masquer, double-tap proposé en actions (±10 s, disposition du chat). Catégorie ouvrable comme lien, séparateur du chat réglable comme un curseur, aperçus de miniature nommés, appui long des messages annoncé. À valider avec TalkBack sur appareil. | OK |
 | ACC-31 | Défis anti-abus | P2 | ❌ | — | Play Integrity et `Client-Integrity`. | Impossible proprement |
 | ACC-32 | Informations légales Corée | P2 | ❌ | — | Non pertinent. | OK |
 
 ### Créateur (CRE)
 
-| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+| ID | Feature | Priorité | Statut | Implémentation ONSET (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
 | CRE-01 | Mode créateur [C] | P2 | ❌ | — | UI locale. | OK |
 | CRE-02 | Menu Créer [C] | P2 | ❌ | — | UI locale. | OK |
@@ -411,7 +411,7 @@
 
 ### Divers / technique (MSC)
 
-| ID | Feature | Priorité | Statut | Implémentation frostyv2 (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
+| ID | Feature | Priorité | Statut | Implémentation ONSET (fichier:ligne) | Ce qui manque / remarque | Faisabilité |
 |---|---|---|---|---|---|---|
 | MSC-01 | Deep links et App Links | P0 | ⚠️ | `AndroidManifest.xml:40-48`, `main.dart`, `twitch_links.dart`, `link_router.dart` | `twitch.tv`, `www.`, `m.` et `clips.twitch.tv` : chaîne, `/videos/<id>`, `/v/<id>`, `/<chaîne>/v/<id>`, `?t=`, `/<chaîne>/videos?filter=`, clips (`clips.twitch.tv/<slug>`, `/<chaîne>/clip/<slug>`, `/embed?clip=`) et `/<chaîne>/clips?range=` ouverts dans l'appli, y compris depuis le chat. Pas de schéma `twitch://`. | OK |
 | MSC-02 | Transport GraphQL | P0 | ⚠️ | `twitch_stream_service.dart:20-34,98-113` | Une seule requête GQL, non persistée (choix volontaire contre la rotation des hashes). Ni APQ ni intégrité. | GQL privé |
@@ -470,7 +470,7 @@ Lecture : sur 60 lignes P0, **46** sont entièrement couvertes (42 ✅ et 4 ➕)
 
 Colonne « Latence » : ↓ = peut réduire la latence glass-to-glass, ⏱ = réduit seulement le temps de démarrage, 📏 = mesure seulement, ↔ = neutre.
 
-| # | Sujet | Officiel 31.5.2 | frostyv2 (fichier:ligne) | Changement proposé | Latence | Risque |
+| # | Sujet | Officiel 31.5.2 | ONSET (fichier:ligne) | Changement proposé | Latence | Risque |
 |---|---|---|---|---|---|---|
 | L1 | Version IVS | `ivs-player` 1.57.0-rc.2 | 1.52.0 (`android/app/build.gradle.kts:65`) | Passer à 1.57.x. C'est un prérequis de L2 ; vérifier sur Maven Central si une version stable existe. | ↓ (indirect) | Moyen : changements d'API possibles, régression du rendu texture à revérifier |
 | L2 | Rattrapage par accélération | `setLiveCatchUpSpeedUpEnabled(true)` sur chaque lecteur | Absent (setter inexistant en 1.52) | Activer après L1, dans un `try` comme `IvsPlayerCore.kt:81-86` | **↓** rattrape la dérive sans saut | Faible : son légèrement accéléré pendant le rattrapage |
@@ -580,7 +580,7 @@ Un commit par groupe, dans l'ordre. Les lignes [C] seules et « Impossible propr
 
 ## 7. Questions ouvertes
 
-1. **Design system ONSET** : il n'existe nulle part dans le repo (ni `lib/`, ni `docs/`, ni l'historique). Le seul thème est Frosty : Material 3 seedé sur `#9146FF`, police Inter, kit `lib/widgets/` (`theme.dart`). Où est la source de vérité (Figma, doc, autre repo) ? Sans elle, les nouveaux écrans suivront le thème Frosty.
+1. **Design system ONSET** : il n'existe nulle part dans le repo (ni `lib/`, ni `docs/`, ni l'historique). Le seul thème est celui d'origine : Material 3 seedé sur `#9146FF`, police Inter, kit `lib/widgets/` (`theme.dart`). Où est la source de vérité (Figma, doc, autre repo) ? Sans elle, les nouveaux écrans suivront le thème d'origine.
 2. **Compte modérateur ou diffuseur** : l'utilisateur est-il modérateur, ou diffuseur, d'une chaîne active pour tester MOD-xx, CHT-46 et le commit 29 ? Lesquelles ? Sinon, ces groupes ne sont pas vérifiables et doivent passer après le reste.
 3. **Jeton GQL `platform=android` / `playerType=mobile_player`** au lieu de `web`/`embed` (L7) ? Proposition : un réglage développeur, puis un A/B de latence et de pubs sur 3 chaînes avant de changer le défaut.
 4. **GQL privé** : faut-il accepter les features qui exigent l'`auth-token` web (cookie twitch.tv) en plus de notre OAuth ? Cela pose une question de sécurité (stockage d'un second jeton), de CGU et de risque pour le compte.
