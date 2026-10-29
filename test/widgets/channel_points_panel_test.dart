@@ -195,4 +195,54 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(OnsetPanelSurface), findsOneWidget);
   });
+  testWidgets('tablet: a bet left open never carries to a new prediction', (
+    tester,
+  ) async {
+    await pump(tester, const Size(1280, 854));
+    await tester.tap(find.byType(ChannelPointsButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Yes'));
+    await tester.pumpAndSettle();
+    expect(find.text('BET ON'), findsOneWidget);
+
+    // The prediction ends and another opens, its outcome named alike.
+    when(
+      () => service.fetchContext(
+        userLogin: any(named: 'userLogin'),
+        authToken: any(named: 'authToken'),
+      ),
+    ).thenAnswer(
+      (_) async => CommunityPointsContext(
+        balance: 12840,
+        predictions: [
+          Prediction(
+            id: 'next',
+            title: 'Next round?',
+            status: 'ACTIVE',
+            outcomes: const [
+              PredictionOutcome(
+                id: 'yes-2',
+                title: 'Yes',
+                color: 'BLUE',
+                totalPoints: 10,
+                totalUsers: 1,
+              ),
+              PredictionOutcome(
+                id: 'no-2',
+                title: 'No',
+                color: 'PINK',
+                totalPoints: 10,
+                totalUsers: 1,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    await store.refreshPoints();
+    await tester.pumpAndSettle();
+    // Back on the list: the old outcome is not offered against the new one.
+    expect(find.text('BET ON'), findsNothing);
+    expect(find.text('Next round?'), findsOneWidget);
+  });
 }

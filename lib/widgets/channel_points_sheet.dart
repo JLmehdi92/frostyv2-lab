@@ -85,6 +85,10 @@ class _PanelState extends State<_Panel> {
   /// ChaineOutilsTablette: the bet replaces the list in the same panel).
   PredictionOutcome? _betOn;
 
+  /// The prediction [_betOn] belongs to: a bet view left open across a new
+  /// prediction must not send the old outcome against the new event.
+  String? _betPrediction;
+
   Future<void> _bet(
     BuildContext context,
     ChannelEventsStore events,
@@ -93,7 +97,10 @@ class _PanelState extends State<_Panel> {
   ) async {
     final balance = widget.points.balance ?? 0;
     if (SheetPresentation.isPanel(context)) {
-      setState(() => _betOn = outcome);
+      setState(() {
+        _betOn = outcome;
+        _betPrediction = prediction.id;
+      });
       return;
     }
     final messengerContext = context;
@@ -127,7 +134,14 @@ class _PanelState extends State<_Panel> {
     final canSpend = events != null && points.balance != null;
     final panel = SheetPresentation.isPanel(context);
 
-    final betOn = _betOn;
+    // The outcome as it stands now (its pot moves with every bet), and only
+    // while the prediction it was picked from is still open.
+    final picked = _betOn;
+    final betOn = picked == null || prediction?.id != _betPrediction
+        ? null
+        : prediction?.outcomes
+              .where((outcome) => outcome.id == picked.id)
+              .firstOrNull;
     if (betOn != null &&
         events != null &&
         prediction != null &&
@@ -136,7 +150,10 @@ class _PanelState extends State<_Panel> {
         prediction: prediction,
         outcome: betOn,
         balance: points.balance ?? 0,
-        onBack: () => setState(() => _betOn = null),
+        onBack: () => setState(() {
+          _betOn = null;
+          _betPrediction = null;
+        }),
         onBet: (stake) {
           // The panel closes with the bet, as the board's does.
           final navigator = Navigator.of(context);
