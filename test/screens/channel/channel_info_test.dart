@@ -141,10 +141,17 @@ void main() {
         screen: const Size(854, 1280),
       );
       expect(tester.takeException(), isNull);
-      expect(
-        find.text('ON TEST DOTA 2 AVEC @befreesh — Dota 2'),
-        findsOneWidget,
+      expect(find.text('ON TEST DOTA 2 AVEC @befreesh'), findsOneWidget);
+      // The category opens its streams here too.
+      final link = tester.widget<GestureDetector>(
+        find
+            .ancestor(
+              of: find.text('Dota 2'),
+              matching: find.byType(GestureDetector),
+            )
+            .first,
       );
+      expect(link.onTap, isNotNull);
       expect(find.text('Follow'), findsOneWidget);
       expect(find.text('Subscribe'), findsOneWidget);
       await done(tester);

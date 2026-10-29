@@ -263,6 +263,80 @@ void main() {
     });
   });
 
+  group('the category stays one double tap away in landscape', () {
+    /// The category's text, and whether a double tap opens its streams.
+    bool linked(WidgetTester tester, String text) {
+      final detector = tester.widget<GestureDetector>(
+        find
+            .ancestor(
+              of: find.text(text),
+              matching: find.byType(GestureDetector),
+            )
+            .first,
+      );
+      return detector.onDoubleTap != null;
+    }
+
+    for (final (label, screen, video, fullScreen) in [
+      (
+        'phone beside its chat',
+        const Size(844, 390),
+        const Size(591, 390),
+        false,
+      ),
+      ('phone full screen', const Size(844, 390), const Size(844, 390), true),
+      (
+        'tablet full screen',
+        const Size(1280, 854),
+        const Size(1280, 854),
+        true,
+      ),
+      (
+        'tablet beside its chat',
+        const Size(1280, 854),
+        const Size(880, 495),
+        false,
+      ),
+    ]) {
+      testWidgets(label, (tester) async {
+        final settings = SettingsStore.fromJson({})..fullScreen = fullScreen;
+        final player = FakePlayer(settings: settings, stream: fakeStream());
+        await pump(tester, player, screen: screen, video: video);
+        expect(tester.takeException(), isNull);
+        expect(find.text('Dota 2'), findsOneWidget);
+        expect(linked(tester, 'Dota 2'), isTrue);
+        await done(tester);
+      });
+    }
+
+    testWidgets('offline too', (tester) async {
+      final player = FakePlayer(offline: fakeOfflineChannel);
+      await pump(
+        tester,
+        player,
+        screen: const Size(844, 390),
+        video: const Size(844, 390),
+      );
+      expect(find.text('Dota 2'), findsOneWidget);
+      expect(linked(tester, 'Dota 2'), isTrue);
+      await done(tester);
+    });
+
+    testWidgets('not in portrait: the info under the video has it', (
+      tester,
+    ) async {
+      final player = FakePlayer(stream: fakeStream());
+      await pump(
+        tester,
+        player,
+        screen: const Size(390, 844),
+        video: const Size(390, 220),
+      );
+      expect(find.text('Dota 2'), findsNothing);
+      await done(tester);
+    });
+  });
+
   group('tablet (boards Tablette, TablettePortrait)', () {
     testWidgets('beside the chat: the category, and "Hide chat"', (
       tester,

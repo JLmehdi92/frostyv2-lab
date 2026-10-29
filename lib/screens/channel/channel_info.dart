@@ -86,34 +86,43 @@ class ChannelInfoRow extends StatelessWidget {
           height: 1.35,
           color: large ? colors.body : colors.secondary,
         );
+        // The category opens its streams, on a phone and a tablet alike.
+        Widget categoryLink(String text) => Semantics(
+          link: true,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => CategoryStreams.open(context, categoryId),
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: meta,
+            ),
+          ),
+        );
         Widget metaLine;
         if (large) {
           final title = live ? stream.title.trim() : 'Offline';
-          metaLine = Text(
-            [title, if (category.isNotEmpty) category].join(' — '),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: meta,
+          metaLine = Row(
+            children: [
+              Flexible(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: meta,
+                ),
+              ),
+              if (category.isNotEmpty) ...[
+                Text(' — ', style: meta),
+                Flexible(child: categoryLink(category)),
+              ],
+            ],
           );
         } else {
           metaLine = Row(
             children: [
-              if (category.isNotEmpty)
-                Flexible(
-                  child: Semantics(
-                    link: true,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () => CategoryStreams.open(context, categoryId),
-                      child: Text(
-                        category,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: meta,
-                      ),
-                    ),
-                  ),
-                ),
+              if (category.isNotEmpty) Flexible(child: categoryLink(category)),
               Flexible(
                 child: live
                     ? _LiveFacts(

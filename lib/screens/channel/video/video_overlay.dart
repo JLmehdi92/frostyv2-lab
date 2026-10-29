@@ -373,12 +373,17 @@ class VideoOverlay extends StatelessWidget {
                         child: _ChannelIdentity(
                           login: login,
                           name: name,
-                          subtitle: 'Offline',
+                          title: 'Offline',
+                          // In portrait the info under the video has it.
+                          category: landscape
+                              ? offlineChannelInfo!.gameName
+                              : '',
+                          categoryId: offlineChannelInfo!.gameId,
                           avatar: metrics.avatar,
                           sharedChat: chatStore.isInSharedChatMode,
                           onTap: () => ChannelProfileScreen.open(
                             context,
-                            login: offlineChannelInfo!.broadcasterLogin,
+                            login: offlineChannelInfo.broadcasterLogin,
                             displayName: offlineChannelInfo.broadcasterName,
                             fromChannel: true,
                           ),
@@ -419,9 +424,12 @@ class VideoOverlay extends StatelessWidget {
         // A tablet in portrait shows the channel under the video; a tablet
         // beside its chat shows the category here and the title below.
         final showIdentity = !(metrics.large && !landscape);
-        final subtitle = metrics.large && landscape && !fullScreen
-            ? streamInfo.gameName
-            : streamInfo.title.trim();
+        // Beside a tablet's chat the title is in the info area below. In
+        // portrait the info under the video has the category; in landscape
+        // the overlay is where it is.
+        final tabletColumn = metrics.large && landscape && !fullScreen;
+        final title = tabletColumn ? '' : streamInfo.title.trim();
+        final category = landscape ? streamInfo.gameName : '';
         final showLatency = settingsStore.showLatency;
 
         return Stack(
@@ -442,13 +450,12 @@ class VideoOverlay extends StatelessWidget {
                           streamInfo.userName,
                           streamInfo.userLogin,
                         ),
-                        subtitle: subtitle,
+                        title: title,
+                        category: category,
+                        categoryId: streamInfo.gameId,
                         avatar: metrics.avatar,
                         large: metrics.large || landscape,
                         sharedChat: chatStore.isInSharedChatMode,
-                        categoryId: subtitle == streamInfo.gameName
-                            ? streamInfo.gameId
-                            : null,
                         onTap: () => ChannelProfileScreen.open(
                           context,
                           login: streamInfo.userLogin,
@@ -742,17 +749,20 @@ class _ChannelIdentity extends StatelessWidget {
   const _ChannelIdentity({
     required this.login,
     required this.name,
-    required this.subtitle,
+    required this.title,
     required this.avatar,
     required this.onTap,
     this.large = false,
     this.sharedChat = false,
-    this.categoryId,
+    this.category = '',
+    this.categoryId = '',
   });
 
   final String login;
   final String name;
-  final String subtitle;
+
+  /// The stream's title ("Offline" for an offline channel), may be empty.
+  final String title;
   final double avatar;
   final VoidCallback onTap;
   final bool large;
@@ -760,25 +770,66 @@ class _ChannelIdentity extends StatelessWidget {
   /// A shared chat session: the ring says so, as it did before.
   final bool sharedChat;
 
-  /// Set when [subtitle] is the category.
-  final String? categoryId;
+  /// The category after the title; a double tap opens its streams (as the
+  /// player always did). Empty when the info under the video shows it.
+  final String category;
+  final String categoryId;
 
   @override
   Widget build(BuildContext context) {
     const ring = 1.5;
-    final subtitleText = Text(
-      // The avatar ring used to be the only sign of a shared chat session;
-      // every live channel wears the signal ring now, so it is said.
-      sharedChat && subtitle.isNotEmpty ? 'Shared chat · $subtitle' : subtitle,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: TextStyle(
-        fontSize: large ? 12 : 11.5,
-        height: 1.3,
-        color: _Over.body,
-        shadows: _Over.shadow,
-      ),
+    final style = TextStyle(
+      fontSize: large ? 12 : 11.5,
+      height: 1.3,
+      color: _Over.body,
+      shadows: _Over.shadow,
     );
+    // The avatar ring used to be the only sign of a shared chat session;
+    // every live channel wears the signal ring now, so it is said.
+    final shownTitle = sharedChat && title.isNotEmpty
+        ? 'Shared chat · $title'
+        : title;
+    final line = [
+      if (shownTitle.isNotEmpty)
+        Flexible(
+          child: Tooltip(
+            message: shownTitle,
+            triggerMode: TooltipTriggerMode.tap,
+            child: Text(
+              shownTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: style,
+            ),
+          ),
+        ),
+      if (shownTitle.isNotEmpty && category.isNotEmpty)
+        Text(' · ', style: style),
+      if (category.isNotEmpty)
+        Flexible(
+          child: Tooltip(
+            message: category,
+            triggerMode: TooltipTriggerMode.tap,
+            child: Semantics(
+              link: true,
+              onTap: categoryId.isEmpty
+                  ? null
+                  : () => CategoryStreams.open(context, categoryId),
+              child: GestureDetector(
+                onDoubleTap: categoryId.isEmpty
+                    ? null
+                    : () => CategoryStreams.open(context, categoryId),
+                child: Text(
+                  category,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: style,
+                ),
+              ),
+            ),
+          ),
+        ),
+    ];
     final picture = avatar + ring * 4;
     // A row too narrow for the picture and some of the name (a small
     // phone with large text) leaves the channel to the info under the
@@ -796,8 +847,8 @@ class _ChannelIdentity extends StatelessWidget {
                   customBorder: const CircleBorder(),
                   onTap: onTap,
                   child: Container(
-                    width: avatar + ring * 4,
-                    height: avatar + ring * 4,
+                    width: picture,
+                    height: picture,
                     padding: const EdgeInsets.all(ring),
                     decoration: const BoxDecoration(
                       color: FrostyTokens.accent,
@@ -836,23 +887,7 @@ class _ChannelIdentity extends StatelessWidget {
                       shadows: _Over.shadow,
                     ),
                   ),
-                  if (subtitle.isNotEmpty)
-                    Tooltip(
-                      message: subtitle,
-                      triggerMode: TooltipTriggerMode.tap,
-                      child: categoryId == null
-                          ? subtitleText
-                          : Semantics(
-                              link: true,
-                              onTap: () =>
-                                  CategoryStreams.open(context, categoryId!),
-                              child: GestureDetector(
-                                onDoubleTap: () =>
-                                    CategoryStreams.open(context, categoryId!),
-                                child: subtitleText,
-                              ),
-                            ),
-                    ),
+                  if (line.isNotEmpty) Row(children: line),
                 ],
               ),
             ),
