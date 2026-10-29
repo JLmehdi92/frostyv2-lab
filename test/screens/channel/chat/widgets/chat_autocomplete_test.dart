@@ -112,6 +112,40 @@ void main() {
     });
   }
 
+  testWidgets('a malformed emote size (0 high) still lays out', (tester) async {
+    const flat = Emote(
+      name: 'Flat',
+      width: 28,
+      height: 0,
+      zeroWidth: false,
+      url: 'https://cdn.7tv.app/emote/flat/2x.webp',
+      type: EmoteType.sevenTVChannel,
+    );
+    when(() => chat.showEmoteAutocomplete).thenReturn(true);
+    when(() => chat.matchingEmotes).thenReturn(const [flat]);
+    await pump(tester);
+    expect(tester.takeException(), isNull);
+    expect(find.text('Flat'), findsOneWidget);
+  });
+
+  testWidgets('hundreds of matches: only the chips on screen are built', (
+    tester,
+  ) async {
+    when(() => chat.showEmoteAutocomplete).thenReturn(true);
+    when(() => chat.matchingEmotes).thenReturn([
+      for (var i = 0; i < 400; i++)
+        Emote(
+          name: 'Emote$i',
+          zeroWidth: false,
+          url: 'https://static-cdn.jtvnw.net/emoticons/v2/$i/3.0',
+          type: EmoteType.twitchGlobal,
+        ),
+    ]);
+    await pump(tester);
+    expect(find.text('Emote0'), findsOneWidget);
+    expect(find.text('Emote399'), findsNothing);
+  });
+
   testWidgets('a command fills the input with itself', (tester) async {
     when(() => chat.matchingCommands).thenReturn(const [
       (name: 'me', usage: '/me <message>', description: 'Third person'),

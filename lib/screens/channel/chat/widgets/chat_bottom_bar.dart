@@ -164,7 +164,8 @@ class ChatBottomBar extends StatelessWidget {
                                     assetsStore: chatStore.assetsStore,
                                     emoteScale: chatStore.settings.emoteScale,
                                     badgeScale: chatStore.settings.badgeScale,
-                                    animateEmotes: chatStore.settings.animateEmotes,
+                                    animateEmotes:
+                                        chatStore.settings.animateEmotes,
                                     // One line: a GIF shows as its title.
                                     showGifs: false,
                                     launchExternal:
@@ -198,79 +199,85 @@ class ChatBottomBar extends StatelessWidget {
             if (chatStore.settings.autocomplete &&
                 chatStore.showEmoteAutocomplete &&
                 matchingEmotes.isNotEmpty)
+              // Keyed: the rows take turns in the same slots, and one must
+              // not inherit another's scroll offset or grow-in.
               _AutocompleteRow(
+                key: const ValueKey('emotes'),
                 itemCount: matchingEmotes.length,
                 itemBuilder: (context, index) {
                   final emote = matchingEmotes[index];
                   return _AutocompleteChip(
-                      leading: FrostyCachedNetworkImage(
-                        imageUrl: emote.url,
-                        useFade: false,
-                        height: 28,
-                        width: emote.width == null || emote.height == null
-                            ? null
-                            : 28 * emote.width! / emote.height!,
-                        semanticLabel: emote.name,
-                      ),
-                      label: emote.name,
-                      onTap: () =>
-                          chatStore.addEmote(emote, autocompleteMode: true),
-                      onLongPress: () {
-                        HapticFeedback.lightImpact();
-
-                        IRCMessage.showEmoteDetailsBottomSheet(
-                          context,
-                          emote: emote,
-                          launchExternal: chatStore.settings.launchUrlExternal,
-                        );
+                    leading: FrostyCachedNetworkImage(
+                      imageUrl: emote.url,
+                      useFade: false,
+                      height: 28,
+                      // Malformed third-party sizes (0, missing) fall
+                      // back to the image's own width.
+                      width: switch ((emote.width, emote.height)) {
+                        (final w?, final h?) when w > 0 && h > 0 => 28 * w / h,
+                        _ => null,
                       },
-                    );
+                      semanticLabel: emote.name,
+                    ),
+                    label: emote.name,
+                    onTap: () =>
+                        chatStore.addEmote(emote, autocompleteMode: true),
+                    onLongPress: () {
+                      HapticFeedback.lightImpact();
+
+                      IRCMessage.showEmoteDetailsBottomSheet(
+                        context,
+                        emote: emote,
+                        launchExternal: chatStore.settings.launchUrlExternal,
+                      );
+                    },
+                  );
                 },
               ),
             if (chatStore.settings.autocomplete && matchingCommands.isNotEmpty)
               _AutocompleteRow(
+                key: const ValueKey('commands'),
                 itemCount: matchingCommands.length,
                 itemBuilder: (context, index) {
                   final command = matchingCommands[index];
                   return _CommandTile(
-                      name: command.name,
-                      detail: '${command.usage} · ${command.description}',
-                      onTap: () {
-                        final text = '/${command.name} ';
-                        chatStore.textController.value = TextEditingValue(
-                          text: text,
-                          selection: TextSelection.collapsed(
-                            offset: text.length,
-                          ),
-                        );
-                      },
-                    );
+                    name: command.name,
+                    detail: '${command.usage} · ${command.description}',
+                    onTap: () {
+                      final text = '/${command.name} ';
+                      chatStore.textController.value = TextEditingValue(
+                        text: text,
+                        selection: TextSelection.collapsed(offset: text.length),
+                      );
+                    },
+                  );
                 },
               ),
             if (chatStore.settings.autocomplete &&
                 chatStore.showMentionAutocomplete &&
                 matchingChatters.isNotEmpty)
               _AutocompleteRow(
+                key: const ValueKey('mentions'),
                 itemCount: matchingChatters.length,
                 itemBuilder: (context, index) {
                   final chatter = matchingChatters[index];
                   return _AutocompleteChip(
-                      leading: InitialAvatar(name: chatter),
-                      label: '@$chatter',
-                      onTap: () {
-                        final split = chatStore.textController.text.split(' ')
-                          ..removeLast()
-                          ..add('@$chatter ');
+                    leading: InitialAvatar(name: chatter),
+                    label: '@$chatter',
+                    onTap: () {
+                      final split = chatStore.textController.text.split(' ')
+                        ..removeLast()
+                        ..add('@$chatter ');
 
-                        chatStore.textController.text = split.join(' ');
-                        chatStore.textController.selection =
-                            TextSelection.fromPosition(
-                              TextPosition(
-                                offset: chatStore.textController.text.length,
-                              ),
-                            );
-                      },
-                    );
+                      chatStore.textController.text = split.join(' ');
+                      chatStore.textController.selection =
+                          TextSelection.fromPosition(
+                            TextPosition(
+                              offset: chatStore.textController.text.length,
+                            ),
+                          );
+                    },
+                  );
                 },
               ),
             Padding(
@@ -661,7 +668,11 @@ class _ShrinkWhenNarrow extends StatelessWidget {
 /// A row of autocomplete suggestions over the input: 56 dp, a hairline
 /// above, chips 8 dp apart; it opens by growing (board ChaineTchatOutils).
 class _AutocompleteRow extends StatelessWidget {
-  const _AutocompleteRow({required this.itemCount, required this.itemBuilder});
+  const _AutocompleteRow({
+    super.key,
+    required this.itemCount,
+    required this.itemBuilder,
+  });
 
   final int itemCount;
 
