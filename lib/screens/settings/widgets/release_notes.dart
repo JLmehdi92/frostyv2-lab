@@ -12,6 +12,13 @@ import 'package:provider/provider.dart';
 class ReleaseNotes extends StatefulWidget {
   static const routeName = 'ReleaseNotes';
 
+  /// Replaces the bundled notes in tests.
+  static Future<String> Function()? debugSource;
+
+  /// The release notes' Markdown (assets/release-notes.md).
+  static Future<String> load() =>
+      (debugSource ?? () => rootBundle.loadString('assets/release-notes.md'))();
+
   const ReleaseNotes({super.key});
 
   @override
@@ -29,7 +36,7 @@ class _ReleaseNotesState extends State<ReleaseNotes> {
   void initState() {
     super.initState();
 
-    rootBundle.loadString('assets/release-notes.md').then((changelog) {
+    ReleaseNotes.load().then((changelog) {
       if (!mounted) return;
       setState(() => _blocks = parseReleaseNotes(changelog));
     });
@@ -276,7 +283,7 @@ sealed class ReleaseNotesBlock {
   const ReleaseNotesBlock();
 }
 
-/// "## v5.0.5" and the date written under it.
+/// "## v1.0.0" and the date written under it.
 final class ReleaseVersion extends ReleaseNotesBlock {
   const ReleaseVersion(this.version, this.date);
 
@@ -371,4 +378,21 @@ List<ReleaseNotesBlock> parseReleaseNotes(String markdown) {
     }
   }
   return blocks;
+}
+
+/// Whether the release notes open by themselves at launch: only after an
+/// update to a new major.minor version (never on a first launch, when
+/// [lastShown] is null), and only when [notes] have an entry for [current]
+/// ("## v1.1.0" or "## 1.1.0").
+bool shouldShowReleaseNotes({
+  required String? lastShown,
+  required String current,
+  required String notes,
+}) {
+  if (lastShown == null) return false;
+  String majorMinor(String version) => version.split('.').take(2).join('.');
+  if (majorMinor(lastShown) == majorMinor(current)) return false;
+  return parseReleaseNotes(notes).whereType<ReleaseVersion>().any(
+    (entry) => entry.version.replaceFirst(RegExp('^v'), '') == current,
+  );
 }

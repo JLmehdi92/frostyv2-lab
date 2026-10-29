@@ -1400,9 +1400,71 @@ void main() {
     await close(tester);
   });
 
+  /// Notes with an entry for the version under test (1.0.0).
+  void notesFor100() {
+    ReleaseNotes.debugSource = () async => '## v1.0.0\n\n- Something new.\n';
+    addTearDown(() => ReleaseNotes.debugSource = null);
+  }
+
+  testWidgets('a first launch never opens the release notes, and remembers '
+      'the version', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    notesFor100();
+    await pump(tester);
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byType(ReleaseNotes), findsNothing);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('last_shown_version'), '1.0.0');
+    await close(tester);
+  });
+
+  testWidgets('after an update, the release notes open when they have the '
+      'new version', (tester) async {
+    SharedPreferences.setMockInitialValues({'last_shown_version': '0.9.0'});
+    notesFor100();
+    await pump(tester);
+    expect(find.byType(ReleaseNotes), findsOneWidget);
+    expect(find.text('v1.0.0'), findsOneWidget);
+    Navigator.of(tester.element(find.byType(ReleaseNotes))).pop();
+    await tester.pumpAndSettle();
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('last_shown_version'), '1.0.0');
+    await close(tester);
+  });
+
+  testWidgets('after an update, no release notes without an entry for the '
+      'new version', (tester) async {
+    SharedPreferences.setMockInitialValues({'last_shown_version': '0.9.0'});
+    ReleaseNotes.debugSource = () async => '## v0.9.0\n\n- Older.\n';
+    addTearDown(() => ReleaseNotes.debugSource = null);
+    await pump(tester);
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byType(ReleaseNotes), findsNothing);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('last_shown_version'), '1.0.0');
+    await close(tester);
+  });
+
+  testWidgets('after an update, the bundled (empty) notes open nothing', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({'last_shown_version': '0.9.0'});
+    await pump(tester);
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byType(ReleaseNotes), findsNothing);
+    await close(tester);
+  });
+
   testWidgets('straight from the onboarding, the release notes wait for the '
       'tile to land', (tester) async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'last_shown_version': '0.9.0'});
+    notesFor100();
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -1454,7 +1516,8 @@ void main() {
     await tester.pump(LaunchIntro.landingDuration * 0.3);
     await tester.pump(const Duration(milliseconds: 50));
     expect(find.byType(Home), findsOneWidget);
-    // The notes are due (no version shown yet) but the tile still flies.
+    // The notes are due (an update with notes for it) but the tile still
+    // flies.
     expect(pushed, isNot(contains(ReleaseNotes.routeName)));
     expect(find.byKey(LaunchIntro.overlayKey), findsOneWidget);
 
@@ -1469,7 +1532,8 @@ void main() {
   testWidgets('opened under a page (first run, a deep-linked channel during '
       'the landing): no orientation reset and no release notes over it, '
       'until it closes', (tester) async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'last_shown_version': '0.9.0'});
+    notesFor100();
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);

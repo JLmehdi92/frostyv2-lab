@@ -96,6 +96,17 @@ void main() {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    ReleaseNotes.debugSource = () async => '''
+## v5.0.5
+
+January 9, 2026
+
+### Bug Fixes
+
+- Fixed lag.
+- [iOS] Fixed user agent breaking login.
+''';
+    addTearDown(() => ReleaseNotes.debugSource = null);
     await tester.pumpWidget(
       Provider<SettingsStore>.value(
         value: SettingsStore.fromJson({}),
@@ -109,6 +120,23 @@ void main() {
     expect(find.text('January 9, 2026'), findsOneWidget);
     expect(find.text('BUG FIXES'), findsWidgets);
     expect(find.text('iOS'), findsWidgets);
+    expect(find.byTooltip('Back'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the release notes page with no entries yet', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      Provider<SettingsStore>.value(
+        value: SettingsStore.fromJson({}),
+        child: const MaterialApp(home: ReleaseNotes()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Release notes'), findsOneWidget);
+    expect(find.text("WHAT'S NEW"), findsOneWidget);
     expect(find.byTooltip('Back'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

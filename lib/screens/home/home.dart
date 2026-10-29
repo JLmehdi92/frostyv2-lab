@@ -143,6 +143,9 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     action();
   }
 
+  /// Opens the release notes after an update whose version they have an
+  /// entry for (see [shouldShowReleaseNotes]); a first launch only notes the
+  /// version.
   Future<void> checkAndShowReleaseNotes() async {
     final packageInfo = await PackageInfo.fromPlatform();
     final prefs = await SharedPreferences.getInstance();
@@ -150,30 +153,43 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     final currentVersion = packageInfo.version;
     final storedVersion = prefs.getString('last_shown_version');
 
-    // Extract major.minor version (ignore patch)
-    final currentMajorMinor = currentVersion.split('.').take(2).join('.');
-    final storedMajorMinor = storedVersion?.split('.').take(2).join('.');
-
-    if (storedMajorMinor == null || storedMajorMinor != currentMajorMinor) {
-      // Straight from the onboarding, the tile is still flying into the
-      // header: the notes wait for it to land, or they would cut it short.
-      await LaunchIntro.landed();
-      if (!mounted) return;
-      // A page opened over Home meanwhile (a link): the notes wait until
-      // Home is in front again.
-      if (_covered) {
-        _notesPending = true;
-        return;
-      }
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          settings: const RouteSettings(name: ReleaseNotes.routeName),
-          builder: (context) => const ReleaseNotes(),
-        ),
-      ).then((_) => prefs.setString('last_shown_version', currentVersion));
+    String notes;
+    try {
+      notes = await ReleaseNotes.load();
+    } catch (e) {
+      debugPrint('Release notes unavailable: $e');
+      notes = '';
     }
+
+    if (!shouldShowReleaseNotes(
+      lastShown: storedVersion,
+      current: currentVersion,
+      notes: notes,
+    )) {
+      if (storedVersion != currentVersion) {
+        await prefs.setString('last_shown_version', currentVersion);
+      }
+      return;
+    }
+
+    // Straight from the onboarding, the tile is still flying into the
+    // header: the notes wait for it to land, or they would cut it short.
+    await LaunchIntro.landed();
+    if (!mounted) return;
+    // A page opened over Home meanwhile (a link): the notes wait until
+    // Home is in front again.
+    if (_covered) {
+      _notesPending = true;
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        settings: const RouteSettings(name: ReleaseNotes.routeName),
+        builder: (context) => const ReleaseNotes(),
+      ),
+    ).then((_) => prefs.setString('last_shown_version', currentVersion));
   }
 
   @override

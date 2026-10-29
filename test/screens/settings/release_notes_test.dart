@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/screens/settings/widgets/release_notes.dart';
 
@@ -53,5 +55,87 @@ A big update.
     final nested = blocks[3] as ReleasePoint;
     expect((nested.text, nested.level), ('A point under it.', 1));
     expect(blocks, hasLength(4));
+  });
+
+  group('shouldShowReleaseNotes', () {
+    const notes = '''
+## v1.1.0
+
+- New.
+
+---
+
+## v1.0.0
+
+- First.
+''';
+
+    test('never on a first launch', () {
+      expect(
+        shouldShowReleaseNotes(lastShown: null, current: '1.1.0', notes: notes),
+        isFalse,
+      );
+    });
+
+    test('after an update with an entry for the new version', () {
+      expect(
+        shouldShowReleaseNotes(
+          lastShown: '1.0.0',
+          current: '1.1.0',
+          notes: notes,
+        ),
+        isTrue,
+      );
+    });
+
+    test('not after an update without an entry for the new version', () {
+      expect(
+        shouldShowReleaseNotes(
+          lastShown: '1.0.0',
+          current: '1.2.0',
+          notes: notes,
+        ),
+        isFalse,
+      );
+      expect(
+        shouldShowReleaseNotes(lastShown: '1.0.0', current: '1.1.0', notes: ''),
+        isFalse,
+      );
+    });
+
+    test('not for the same version or a patch of it', () {
+      expect(
+        shouldShowReleaseNotes(
+          lastShown: '1.1.0',
+          current: '1.1.0',
+          notes: notes,
+        ),
+        isFalse,
+      );
+      expect(
+        shouldShowReleaseNotes(
+          lastShown: '1.1.0',
+          current: '1.1.3',
+          notes: '## v1.1.3\n\n- Fix.\n',
+        ),
+        isFalse,
+      );
+    });
+
+    test('an entry may be written with or without the v', () {
+      expect(
+        shouldShowReleaseNotes(
+          lastShown: '1.0.0',
+          current: '2.0.0',
+          notes: '## 2.0.0\n\n- Big.\n',
+        ),
+        isTrue,
+      );
+    });
+  });
+
+  test('the bundled release notes have no entries yet', () {
+    final bundled = File('assets/release-notes.md').readAsStringSync();
+    expect(parseReleaseNotes(bundled).whereType<ReleaseVersion>(), isEmpty);
   });
 }
