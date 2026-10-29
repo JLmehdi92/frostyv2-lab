@@ -489,15 +489,12 @@ class _MyAppState extends State<MyApp> {
       );
       return;
     }
-    final path = link.slug != null
-        ? '/directory/category/${link.slug}'
-        : '/directory/game/${link.name}';
     final navigatorContext = navigatorKey.currentContext;
     if (navigatorContext == null || !navigatorContext.mounted) return;
     await TwitchWebPage.open(
       navigatorContext,
       title: link.name ?? 'Category',
-      url: Uri.https('www.twitch.tv', path),
+      url: twitchCategoryUrl(link),
     );
   }
 

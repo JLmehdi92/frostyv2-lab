@@ -245,6 +245,37 @@ void main() {
       }
     });
 
+    test('a name that would leave the category page is not one', () {
+      for (final page in [
+        'directory/game/..%2F..%2Fsettings%2Fconnections',
+        'directory/game/a%2Fb',
+        'directory/game/..',
+        'directory/game/a%5Cb',
+      ]) {
+        expect(
+          _p('https://www.twitch.tv/$page'),
+          isA<OtherLink>(),
+          reason: page,
+        );
+      }
+    });
+
+    test('its twitch.tv page keeps the name in one segment', () {
+      final byName = twitchCategoryUrl(
+        const CategoryLink(name: 'Just Chatting'),
+      );
+      expect(byName.host, 'www.twitch.tv');
+      expect(byName.pathSegments, ['directory', 'game', 'Just Chatting']);
+      final odd = twitchCategoryUrl(const CategoryLink(name: 'a/../b?c#d'));
+      expect(odd.pathSegments, ['directory', 'game', 'a/../b?c#d']);
+      expect(odd.query, isEmpty);
+      expect(odd.fragment, isEmpty);
+      expect(
+        twitchCategoryUrl(const CategoryLink(slug: 'chess')).toString(),
+        'https://www.twitch.tv/directory/category/chess',
+      );
+    });
+
     test("a category name's slug, as twitch.tv writes it", () {
       expect(twitchCategorySlug('Just Chatting'), 'just-chatting');
       expect(twitchCategorySlug('Grand Theft Auto V'), 'grand-theft-auto-v');

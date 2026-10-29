@@ -69,7 +69,14 @@ sealed class TwitchLink {
         return CategoryLink(slug: value.toLowerCase());
       }
       final name = value.trim();
-      if (kind == 'game' && name.isNotEmpty && name.length <= 100) {
+      // A name is one path segment: one that would climb out of the page
+      // ("..", a slash once decoded) is not a category.
+      if (kind == 'game' &&
+          name.isNotEmpty &&
+          name.length <= 100 &&
+          name != '.' &&
+          name != '..' &&
+          !name.contains(RegExp(r'[/\\\x00-\x1f\x7f]'))) {
         return CategoryLink(name: name);
       }
       return const OtherLink();
@@ -329,6 +336,16 @@ final class CategoryLink extends TwitchLink {
   @override
   String toString() => 'CategoryLink(${slug ?? name})';
 }
+
+/// [link]'s page on twitch.tv, its slug or name kept as one path segment
+/// (encoded, never read as a path).
+Uri twitchCategoryUrl(CategoryLink link) => Uri(
+  scheme: 'https',
+  host: 'www.twitch.tv',
+  pathSegments: link.slug != null
+      ? ['directory', 'category', link.slug!]
+      : ['directory', 'game', link.name!],
+);
 
 /// Anything the app does not open itself.
 final class OtherLink extends TwitchLink {
