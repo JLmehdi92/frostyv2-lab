@@ -84,8 +84,9 @@ abstract class ChatStoreBase with Store {
   /// Base height of the bottom bar (input field area).
   static const _baseBottomBarHeight = 68.0;
 
-  /// Height of the autocomplete bar (SizedBox + Divider).
-  static const _autocompleteHeight = 51.0;
+  /// Height of the autocomplete bar: the board's 56 dp row of chips
+  /// (ChaineTchatOutils), its hairline drawn inside.
+  static const _autocompleteHeight = 56.0;
 
   /// Height of the reply bar (Container + Divider).
   static const _replyBarHeight = 41.0;

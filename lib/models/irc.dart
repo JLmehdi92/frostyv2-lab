@@ -21,9 +21,10 @@ import 'package:frosty/theme.dart';
 import 'package:frosty/utils.dart' as utils;
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/link_router.dart';
-import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
 import 'package:frosty/widgets/frosty_photo_view_dialog.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -1207,26 +1208,39 @@ class IRCMessage {
   }) {
     _showAssetDetailsBottomSheet(
       context,
-      leading: FrostyCachedNetworkImage(imageUrl: emote.url, width: 56),
+      leading: FrostyCachedNetworkImage(imageUrl: emote.url, width: 48),
       url: emote.url,
       title: emote.realName != null
           ? '${emote.name} (${emote.realName})'
           : emote.name,
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(emote.type.toString()),
-          if (emote.ownerDisplayName != null && emote.ownerUsername != null)
-            Text(
-              'by ${utils.getReadableName(emote.ownerDisplayName!, emote.ownerUsername!)}',
-            ),
-          if (emote.unlockHint case final hint?) Text(hint),
-        ],
+      subtitle: Builder(
+        builder: (context) {
+          final detail = SheetText.rowDetail.copyWith(
+            color: SheetColors.of(context).secondary,
+          );
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 3,
+            children: [
+              Text(emote.type.toString()),
+              if (emote.ownerDisplayName != null &&
+                  emote.ownerUsername != null)
+                Text(
+                  'by ${utils.getReadableName(emote.ownerDisplayName!, emote.ownerUsername!)}',
+                  style: detail,
+                ),
+              if (emote.unlockHint case final hint?) Text(hint, style: detail),
+            ],
+          );
+        },
       ),
       launchExternal: launchExternal,
     );
   }
 
+  /// An emote's or a badge's details (board ChaineTchatOutils): the
+  /// picture in a 64 dp tile (a tap opens it full size), its name and what
+  /// it is, then copy and open.
   static void _showAssetDetailsBottomSheet(
     BuildContext context, {
     required Widget leading,
@@ -1237,62 +1251,120 @@ class IRCMessage {
     bool showCopyName = true,
     String? copyName,
   }) {
-    showModalBottomSheetWithProperFocus(
+    showOnsetSheet<void>(
       context: context,
-      builder: (context) => ListView(
-        shrinkWrap: true,
-        primary: false,
-        children: [
-          ListTile(
-            leading: InkWell(
-              onTap: () => showDialog(
-                context: context,
-                builder: (context) => FrostyPhotoViewDialog(imageUrl: url),
+      isScrollControlled: false,
+      builder: (context) {
+        final colors = SheetColors.of(context);
+        return ListView(
+          shrinkWrap: true,
+          primary: false,
+          padding: const EdgeInsets.only(bottom: 18),
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+              child: Row(
+                spacing: 14,
+                children: [
+                  Material(
+                    color: colors.raised,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(
+                        color: colors.ring,
+                        width: FrostyTokens.hairlineWidth,
+                      ),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: () => showDialog(
+                        context: context,
+                        builder: (context) =>
+                            FrostyPhotoViewDialog(imageUrl: url),
+                      ),
+                      child: SizedBox.square(
+                        dimension: 64,
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              maxWidth: 48,
+                              maxHeight: 48,
+                            ),
+                            child: leading,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 3,
+                      children: [
+                        Text(
+                          title,
+                          style: SheetText.title.copyWith(color: colors.text),
+                        ),
+                        DefaultTextStyle.merge(
+                          style: TextStyle(
+                            fontFamily: FrostyTokens.bodyFamily,
+                            fontSize: 13,
+                            height: 1.35,
+                            color: colors.body,
+                          ),
+                          child: subtitle,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              child: leading,
             ),
-            title: Text(title, style: context.textTheme.titleMedium),
-            subtitle: subtitle,
-          ),
-          const Divider(indent: 16, endIndent: 16),
-          if (showCopyName)
-            ListTile(
-              leading: const Icon(Icons.copy_rounded),
-              title: const Text('Copy name'),
+            Container(
+              height: FrostyTokens.hairlineWidth,
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              color: colors.hairline,
+            ),
+            const SizedBox(height: 6),
+            if (showCopyName)
+              SheetRow(
+                glyph: SheetGlyphKind.copy,
+                label: 'Copy name',
+                onTap: () {
+                  // An emote's title is "name (real name)": only the name.
+                  Clipboard.setData(
+                    ClipboardData(text: copyName ?? title.split(' (')[0]),
+                  );
+
+                  Navigator.pop(context);
+                },
+              ),
+            SheetRow(
+              glyph: SheetGlyphKind.link,
+              label: 'Copy image URL',
               onTap: () {
-                // An emote's title is "name (real name)": only the name.
-                Clipboard.setData(
-                  ClipboardData(text: copyName ?? title.split(' (')[0]),
+                Clipboard.setData(ClipboardData(text: url));
+
+                Navigator.pop(context);
+              },
+            ),
+            SheetRow(
+              glyph: SheetGlyphKind.external,
+              label: 'Open in browser',
+              onTap: () {
+                launchUrl(
+                  Uri.parse(url),
+                  mode: launchExternal
+                      ? LaunchMode.externalApplication
+                      : LaunchMode.inAppBrowserView,
                 );
 
                 Navigator.pop(context);
               },
             ),
-          ListTile(
-            leading: const Icon(Icons.copy_rounded),
-            title: const Text('Copy image URL'),
-            onTap: () {
-              Clipboard.setData(ClipboardData(text: url));
-
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.launch_rounded),
-            title: const Text('Open in browser'),
-            onTap: () {
-              launchUrl(
-                Uri.parse(url),
-                mode: launchExternal
-                    ? LaunchMode.externalApplication
-                    : LaunchMode.inAppBrowserView,
-              );
-
-              Navigator.pop(context);
-            },
-          ),
-        ],
-      ),
+          ],
+        );
+      },
     );
   }
 

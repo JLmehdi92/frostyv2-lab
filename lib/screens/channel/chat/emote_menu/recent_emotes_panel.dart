@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/constants.dart';
 import 'package:frosty/models/irc.dart';
+import 'package:frosty/screens/channel/chat/emote_menu/emote_menu_section.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/alert_message.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
-import 'package:provider/provider.dart';
+import 'package:frosty/widgets/sheet/onset_panel.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 
 class RecentEmotesPanel extends StatelessWidget {
   final ChatStore chatStore;
@@ -20,22 +18,35 @@ class RecentEmotesPanel extends StatelessWidget {
     return Observer(
       builder: (context) {
         if (chatStore.assetsStore.recentEmotes.isEmpty) {
-          return const Center(
-            child: AlertMessage(message: 'No recent emotes'),
+          // The board's empty state.
+          final color = SheetColors.of(context).tertiary;
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 6,
+              children: [
+                SheetGlyph(
+                  SheetGlyphKind.emote,
+                  size: 26,
+                  strokeWidth: 1.6,
+                  color: color,
+                ),
+                Text(
+                  'No recent emotes',
+                  style: SheetText.status.copyWith(fontSize: 13, color: color),
+                ),
+              ],
+            ),
           );
         }
 
+        final panel = SheetPresentation.isPanel(context);
         return MediaQuery.removePadding(
           context: context,
           removeTop: true,
           child: GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: context.isPortrait
-                  ? 8
-                  : context.read<SettingsStore>().showVideo
-                  ? 6
-                  : 16,
-            ),
+            gridDelegate: emoteGridDelegate(context, panel: panel),
+            padding: EdgeInsets.fromLTRB(panel ? 6 : 4, 4, panel ? 6 : 4, 10),
             itemBuilder: (context, index) {
               final emote = chatStore.assetsStore.recentEmotes[index];
               final validEmotes = [
@@ -48,7 +59,12 @@ class RecentEmotesPanel extends StatelessWidget {
                     existingEmote.type == emote.type,
               );
 
-              return InkWell(
+              return EmoteCell(
+                emote: emote,
+                url: matchingEmotes.isNotEmpty
+                    ? matchingEmotes.first.url
+                    : emote.url,
+                locked: matchingEmotes.isEmpty,
                 onTap: matchingEmotes.isNotEmpty
                     ? () => chatStore.addEmote(emote)
                     : null,
@@ -61,26 +77,6 @@ class RecentEmotesPanel extends StatelessWidget {
                     launchExternal: chatStore.settings.launchUrlExternal,
                   );
                 },
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Center(
-                    child: FrostyCachedNetworkImage(
-                      imageUrl: matchingEmotes.isNotEmpty
-                          ? matchingEmotes.first.url
-                          : emote.url,
-                      color: matchingEmotes.isNotEmpty
-                          ? null
-                          : const Color.fromRGBO(255, 255, 255, 0.5),
-                      colorBlendMode: matchingEmotes.isNotEmpty
-                          ? null
-                          : BlendMode.modulate,
-                      height:
-                          emote.height?.toDouble() ?? defaultEmoteSize,
-                      width: emote.width?.toDouble(),
-                      semanticLabel: emote.name,
-                    ),
-                  ),
-                ),
               );
             },
             itemCount: chatStore.assetsStore.recentEmotes.length,

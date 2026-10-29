@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:frosty/models/emotes.dart';
+import 'package:frosty/screens/channel/chat/emote_menu/emote_menu.dart';
 import 'package:frosty/screens/channel/chat/emote_menu/emote_menu_section.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
-import 'package:frosty/widgets/frosty_page_view.dart';
+import 'package:frosty/widgets/sheet/onset_panel.dart';
 
 class EmoteMenuPanel extends StatelessWidget {
   final ChatStore chatStore;
@@ -38,7 +39,9 @@ class EmoteMenuPanel extends StatelessWidget {
           )
           .toList();
 
-      return FrostyPageView(
+      return EmoteTabsView(
+        style: EmoteTabsStyle.pills,
+        panel: SheetPresentation.isPanel(context),
         headers: [if (channelEmotes.isNotEmpty) 'Channel', 'Global'],
         children: [
           if (channelEmotes.isNotEmpty)
@@ -53,7 +56,9 @@ class EmoteMenuPanel extends StatelessWidget {
         (key, value) => key.toLowerCase() == chatStore.channelName,
       );
 
-      return FrostyPageView(
+      return EmoteTabsView(
+        style: EmoteTabsStyle.pills,
+        panel: SheetPresentation.isPanel(context),
         headers: twitchEmotes!.keys
             .map((header) => header.split(' ')[0])
             .toList(),

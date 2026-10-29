@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/channel/chat/emote_menu/emote_menu_panel.dart';
-import 'package:frosty/screens/channel/chat/emote_menu/recent_emotes_panel.dart';
+import 'package:frosty/screens/channel/chat/emote_menu/emote_menu.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_bottom_bar.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_message.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_rules_sheet.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/frosty_page_view.dart';
 import 'package:frosty/widgets/frosty_scrollbar.dart';
+import 'package:frosty/widgets/motion/motion.dart';
+import 'package:frosty/widgets/motion/reduce_motion.dart';
+import 'package:frosty/widgets/sheet/onset_panel.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
 
 class Chat extends StatelessWidget {
   final ChatStore chatStore;
@@ -34,105 +37,154 @@ class Chat extends StatelessWidget {
 
   bool get _isMerged => chatTabsStore != null;
 
+  /// Where the tablet's emote panel goes, above the input in this chat
+  /// (board ChaineOutilsTablette); null when it does not fit (the menu
+  /// then opens under the input, as on a phone). Read from the last layout.
+  PanelPlacement? _emotePanelPlacement(BuildContext context) {
+    final chat = globalRectOf(context);
+    if (chat == null || chat.isEmpty) return null;
+    final media = MediaQuery.of(context);
+    final isHorizontalLandscape =
+        context.isLandscape && !chatStore.settings.landscapeForceVerticalChat;
+    final bottomInset = isHorizontalLandscape ? 0.0 : media.padding.bottom;
+    final barTop = chat.bottom - bottomInset - chatStore.bottomBarHeight;
+    // The nub points at the emote button, at one end of the input.
+    final buttonX = chatStore.settings.emoteMenuButtonOnLeft
+        ? chat.left + 32
+        : chat.right - 120;
+    return placePanel(
+      bounds: Rect.fromLTRB(
+        media.padding.left,
+        media.padding.top,
+        media.size.width - media.padding.right,
+        media.size.height - media.padding.bottom,
+      ),
+      anchor: Rect.fromLTWH(buttonX - 18, barTop, 36, 44),
+      size: EmoteMenu.panelSize,
+      sides: const [PanelSide.above],
+      region: chat,
+      avoid: PanelAvoidScope.of(context),
+      gap: 10,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Observer(
       builder: (context) {
-        return Column(
-          children: [
-            Expanded(
-              child: Stack(
-                alignment: AlignmentDirectional.bottomCenter,
-                children: [
-                  // Wrap only the message list with GestureDetector
-                  // so taps on ChatBottomBar don't trigger unfocus
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      if (chatStore.assetsStore.showEmoteMenu) {
-                        chatStore.assetsStore.showEmoteMenu = false;
-                      } else if (chatStore.textFieldFocusNode.hasFocus) {
-                        chatStore.unfocusInput();
-                      }
-                    },
-                    child: MediaQuery(
-                      data: MediaQuery.of(context).copyWith(
-                        textScaler: chatStore.settings.messageScale.textScaler,
-                      ),
-                      child: DefaultTextStyle(
-                        style: context.defaultTextStyle.copyWith(
-                          fontSize: chatStore.settings.fontSize,
+        final showEmoteMenu = chatStore.assetsStore.showEmoteMenu;
+        // A tablet's emote menu is a panel over the chat when it fits.
+        final tablet = context.isLargeScreen;
+        final emoteMenuInline =
+            showEmoteMenu && (!tablet || _emotePanelPlacement(context) == null);
+        return PanelRegion(
+          child: Column(
+            children: [
+              Expanded(
+                child: Stack(
+                  alignment: AlignmentDirectional.bottomCenter,
+                  children: [
+                    // Wrap only the message list with GestureDetector
+                    // so taps on ChatBottomBar don't trigger unfocus
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        if (chatStore.assetsStore.showEmoteMenu) {
+                          chatStore.assetsStore.showEmoteMenu = false;
+                        } else if (chatStore.textFieldFocusNode.hasFocus) {
+                          chatStore.unfocusInput();
+                        }
+                      },
+                      child: MediaQuery(
+                        data: MediaQuery.of(context).copyWith(
+                          textScaler:
+                              chatStore.settings.messageScale.textScaler,
                         ),
-                        child: Builder(
-                          builder: (context) {
-                            // Don't add bottom padding in horizontal landscape
-                            // (immersive mode with home indicator on side).
-                            // landscapeForceVerticalChat uses portrait layout
-                            // with normal system UI, so still needs padding.
-                            final isHorizontalLandscape =
-                                context.isLandscape &&
-                                !chatStore.settings.landscapeForceVerticalChat;
-                            final bottomPadding =
-                                chatStore.assetsStore.showEmoteMenu ||
-                                    isHorizontalLandscape
-                                ? 0.0
-                                : MediaQuery.of(context).padding.bottom;
+                        child: DefaultTextStyle(
+                          style: context.defaultTextStyle.copyWith(
+                            fontSize: chatStore.settings.fontSize,
+                          ),
+                          child: Builder(
+                            builder: (context) {
+                              // Don't add bottom padding in horizontal landscape
+                              // (immersive mode with home indicator on side).
+                              // landscapeForceVerticalChat uses portrait layout
+                              // with normal system UI, so still needs padding.
+                              final isHorizontalLandscape =
+                                  context.isLandscape &&
+                                  !chatStore
+                                      .settings
+                                      .landscapeForceVerticalChat;
+                              final bottomPadding =
+                                  emoteMenuInline || isHorizontalLandscape
+                                  ? 0.0
+                                  : MediaQuery.of(context).padding.bottom;
 
-                            final scrollController = _isMerged
-                                ? chatTabsStore!.mergedScrollController
-                                : chatStore.scrollController;
+                              final scrollController = _isMerged
+                                  ? chatTabsStore!.mergedScrollController
+                                  : chatStore.scrollController;
 
-                            return FrostyScrollbar(
-                              controller: scrollController,
-                              padding: EdgeInsets.only(
-                                top: MediaQuery.of(context).padding.top,
-                                bottom:
-                                    chatStore.bottomBarHeight + bottomPadding,
-                              ),
-                              child: Observer(
-                                builder: (context) {
-                                  return _isMerged
-                                      ? _buildMergedList(
-                                          scrollController,
-                                          bottomPadding,
-                                        )
-                                      : _buildNormalList(
-                                          scrollController,
-                                          bottomPadding,
-                                        );
-                                },
-                              ),
-                            );
-                          },
+                              return FrostyScrollbar(
+                                controller: scrollController,
+                                padding: EdgeInsets.only(
+                                  top: MediaQuery.of(context).padding.top,
+                                  bottom:
+                                      chatStore.bottomBarHeight + bottomPadding,
+                                ),
+                                child: Observer(
+                                  builder: (context) {
+                                    return _isMerged
+                                        ? _buildMergedList(
+                                            scrollController,
+                                            bottomPadding,
+                                          )
+                                        : _buildNormalList(
+                                            scrollController,
+                                            bottomPadding,
+                                          );
+                                  },
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: ChatRulesPrompt(
-                      rules: chatStore.chatRules,
-                      focus: chatStore.textFieldFocusNode,
-                      child: ChatBottomBar(
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: ChatRulesPrompt(
+                        rules: chatStore.chatRules,
+                        focus: chatStore.textFieldFocusNode,
+                        child: ChatBottomBar(
+                          chatStore: chatStore,
+                          onAddChat: onAddChat,
+                          emoteMenuInline: emoteMenuInline,
+                          channelDisplayName: _isMerged
+                              ? getReadableName(
+                                  chatTabsStore!.activeTab.displayName,
+                                  chatTabsStore!.activeTab.channelLogin,
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                    _buildResumeScrollButton(emoteMenuInline),
+                    if (tablet)
+                      EmoteMenuPanelOverlay(
                         chatStore: chatStore,
-                        onAddChat: onAddChat,
-                        channelDisplayName: _isMerged
-                            ? getReadableName(
-                                chatTabsStore!.activeTab.displayName,
-                                chatTabsStore!.activeTab.channelLogin,
-                              )
-                            : null,
+                        open: showEmoteMenu && !emoteMenuInline,
+                        onClose: () =>
+                            chatStore.assetsStore.showEmoteMenu = false,
+                        placement: () => _emotePanelPlacement(context),
                       ),
-                    ),
-                  ),
-                  _buildResumeScrollButton(),
-                ],
+                  ],
+                ),
               ),
-            ),
-            _buildEmoteMenu(context),
-          ],
+              _buildEmoteMenu(context, open: emoteMenuInline),
+            ],
+          ),
         );
       },
     );
@@ -145,16 +197,14 @@ class Chat extends StatelessWidget {
     return ListView.builder(
       reverse: true,
       padding: (listPadding ?? EdgeInsets.zero).add(
-        EdgeInsets.only(
-          bottom: chatStore.bottomBarHeight + bottomPadding,
-        ),
+        EdgeInsets.only(bottom: chatStore.bottomBarHeight + bottomPadding),
       ),
       addAutomaticKeepAlives: false,
       controller: scrollController,
       itemCount: chatStore.renderMessages.length,
       itemBuilder: (context, index) => ChatMessage(
-        ircMessage: chatStore.renderMessages[
-            chatStore.renderMessages.length - 1 - index],
+        ircMessage: chatStore
+            .renderMessages[chatStore.renderMessages.length - 1 - index],
         chatStore: chatStore,
       ),
     );
@@ -165,23 +215,19 @@ class Chat extends StatelessWidget {
     double bottomPadding,
   ) {
     final mergedMessages = chatTabsStore!.mergedMessages;
-    final channelIdToUserTwitch =
-        chatTabsStore!.mergedChannelIdToUserTwitch;
+    final channelIdToUserTwitch = chatTabsStore!.mergedChannelIdToUserTwitch;
     final currentChannelId = chatTabsStore!.activeTab.channelId;
 
     return ListView.builder(
       reverse: true,
       padding: (listPadding ?? EdgeInsets.zero).add(
-        EdgeInsets.only(
-          bottom: chatStore.bottomBarHeight + bottomPadding,
-        ),
+        EdgeInsets.only(bottom: chatStore.bottomBarHeight + bottomPadding),
       ),
       addAutomaticKeepAlives: false,
       controller: scrollController,
       itemCount: mergedMessages.length,
       itemBuilder: (context, index) {
-        final merged =
-            mergedMessages[mergedMessages.length - 1 - index];
+        final merged = mergedMessages[mergedMessages.length - 1 - index];
         return ChatMessage(
           ircMessage: merged.ircMessage,
           chatStore: merged.chatStore,
@@ -202,7 +248,7 @@ class Chat extends StatelessWidget {
     );
   }
 
-  Widget _buildResumeScrollButton() {
+  Widget _buildResumeScrollButton(bool emoteMenuInline) {
     return Builder(
       builder: (context) {
         final isHorizontalLandscape =
@@ -216,8 +262,7 @@ class Chat extends StatelessWidget {
             right: 4,
             bottom:
                 chatStore.bottomBarHeight +
-                (chatStore.assetsStore.showEmoteMenu ||
-                        isHorizontalLandscape
+                (emoteMenuInline || isHorizontalLandscape
                     ? 0
                     : MediaQuery.of(context).padding.bottom),
           ),
@@ -241,9 +286,7 @@ class Chat extends StatelessWidget {
                     ? null
                     : ElevatedButton.icon(
                         onPressed: onResume,
-                        icon: const Icon(
-                          Icons.arrow_downward_rounded,
-                        ),
+                        icon: const Icon(Icons.arrow_downward_rounded),
                         label: Text(
                           bufferCount > 0
                               ? '$bufferCount new ${bufferCount == 1 ? 'message' : 'messages'}'
@@ -259,76 +302,28 @@ class Chat extends StatelessWidget {
     );
   }
 
-  Widget _buildEmoteMenu(BuildContext context) {
+  /// The emote menu under the input (a phone, or a tablet without room
+  /// for the panel): board ChaineTchatOutils, #101010 under a hairline.
+  Widget _buildEmoteMenu(BuildContext context, {required bool open}) {
+    final colors = SheetColors.of(context);
     return AnimatedContainer(
-      curve: Curves.ease,
-      duration: const Duration(milliseconds: 200),
-      height: chatStore.assetsStore.showEmoteMenu
-          ? context.screenHeight / (context.isPortrait ? 3 : 2)
-          : 0,
+      curve: FrostyMotion.standard,
+      duration: motionDuration(context, const Duration(milliseconds: 260)),
+      height: open ? context.screenHeight / (context.isPortrait ? 3 : 2) : 0,
+      color: colors.emoteMenu,
       child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 100),
+        duration: motionDuration(context, const Duration(milliseconds: 100)),
         switchInCurve: Curves.easeOut,
         switchOutCurve: Curves.easeIn,
-        child: chatStore.assetsStore.showEmoteMenu
+        child: open
             ? ClipRect(
                 child: Column(
                   children: [
-                    const Divider(),
-                    Expanded(
-                      child: FrostyPageView(
-                        headers: [
-                          'Recent',
-                          if (chatStore.settings.showTwitchEmotes)
-                            'Twitch',
-                          if (chatStore.settings.show7TVEmotes) '7TV',
-                          if (chatStore.settings.showBTTVEmotes) 'BTTV',
-                          if (chatStore.settings.showFFZEmotes) 'FFZ',
-                        ],
-                        tabActions: {
-                          if (chatStore
-                              .assetsStore
-                              .recentEmotes
-                              .isNotEmpty)
-                            0: IconButton(
-                              onPressed: () {
-                                chatStore.assetsStore.recentEmotes.clear();
-                                chatStore.updateNotification(
-                                  'Recent emotes cleared',
-                                );
-                              },
-                              icon: const Icon(
-                                Icons.delete_outline_rounded,
-                              ),
-                              tooltip: 'Clear recent emotes',
-                              iconSize: 20,
-                            ),
-                        },
-                        children: [
-                          RecentEmotesPanel(chatStore: chatStore),
-                          if (chatStore.settings.showTwitchEmotes)
-                            EmoteMenuPanel(
-                              chatStore: chatStore,
-                              twitchEmotes: chatStore
-                                  .assetsStore
-                                  .userEmoteSectionToEmotes,
-                            ),
-                          ...[
-                            if (chatStore.settings.show7TVEmotes)
-                              chatStore.assetsStore.sevenTVEmotes,
-                            if (chatStore.settings.showBTTVEmotes)
-                              chatStore.assetsStore.bttvEmotes,
-                            if (chatStore.settings.showFFZEmotes)
-                              chatStore.assetsStore.ffzEmotes,
-                          ].map(
-                            (emotes) => EmoteMenuPanel(
-                              chatStore: chatStore,
-                              emotes: emotes,
-                            ),
-                          ),
-                        ],
-                      ),
+                    Container(
+                      height: FrostyTokens.hairlineWidth,
+                      color: colors.ring,
                     ),
+                    Expanded(child: EmoteMenu(chatStore: chatStore)),
                   ],
                 ),
               )
