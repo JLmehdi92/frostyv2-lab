@@ -66,6 +66,9 @@ class SearchResultsChannels extends StatefulWidget {
 }
 
 class _SearchResultsChannelsState extends State<SearchResultsChannels> {
+  /// "Try again" (approved addition): the same search again.
+  void _retry() => widget.searchStore.handleQuery(widget.searchStore.lastQuery);
+
   Future<void> _handleSearch(BuildContext context, String search) async {
     try {
       final channelInfo = await widget.searchStore.searchChannel(search);
@@ -183,7 +186,10 @@ class _SearchResultsChannelsState extends State<SearchResultsChannels> {
             return ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 100),
               child: Center(
-                child: InlineStatus.error(message: 'Unable to load channels'),
+                child: InlineStatus.error(
+                  message: 'Unable to load channels',
+                  onRetry: _retry,
+                ),
               ),
             );
           case FutureStatus.fulfilled:

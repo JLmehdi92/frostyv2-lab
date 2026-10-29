@@ -45,7 +45,11 @@ class SearchResultsCategories extends StatelessWidget {
     constraints: const BoxConstraints(minHeight: 100),
     child: Center(
       child: failed
-          ? InlineStatus.error(message: message)
+          // "Try again" (approved addition): the same search again.
+          ? InlineStatus.error(
+              message: message,
+              onRetry: () => searchStore.handleQuery(searchStore.lastQuery),
+            )
           : InlineStatus(message: message, glyph: null),
     ),
   );

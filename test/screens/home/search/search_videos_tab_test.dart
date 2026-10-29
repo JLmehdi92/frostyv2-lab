@@ -216,4 +216,30 @@ void main() {
     expect(find.text('Last run'), findsOneWidget);
     verify(() => vods.searchVideos('mario', cursor: 'MjU=')).called(1);
   });
+
+  testWidgets('failed channels and categories: Try again searches again', (
+    tester,
+  ) async {
+    var channelCalls = 0;
+    var categoryCalls = 0;
+    when(() => api.searchChannels(query: 'mario')).thenAnswer((_) async {
+      if (channelCalls++ == 0) throw Exception('offline');
+      return [];
+    });
+    when(() => api.searchCategories(query: 'mario')).thenAnswer((_) async {
+      if (categoryCalls++ == 0) throw Exception('offline');
+      return const CategoriesTwitch([], null);
+    });
+    await pumpSearch(tester);
+    await typeQuery(tester, 'mario');
+    await tester.pumpAndSettle();
+    await tapTab(tester, 'Channels');
+    await tester.pumpAndSettle();
+    expect(find.text('Unable to load channels'), findsOneWidget);
+    await tester.tap(find.text('Try again'));
+    await tester.pumpAndSettle();
+    expect(channelCalls, 2);
+    expect(categoryCalls, 2);
+    expect(find.text('Unable to load channels'), findsNothing);
+  });
 }

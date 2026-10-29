@@ -166,33 +166,23 @@ class _ActivityColors {
   final Color tertiary;
   final Color menu;
 
+  /// The whispers' greys (one palette for the two columns), with the
+  /// page's ground and the raised pill's ring.
   factory _ActivityColors.of(BuildContext context) {
-    final ground = Theme.of(context).scaffoldBackgroundColor;
-    if (Theme.of(context).brightness == Brightness.dark) {
-      return _ActivityColors(
-        ground: ground,
-        card: FrostyTokens.surfaceDark,
-        cardRing: FrostyTokens.hairlineDark,
-        raised: FrostyTokens.raisedDark,
-        ring: FrostyTokens.hairlineStrongDark,
-        text: FrostyTokens.textPrimaryDark,
-        body: FrostyTokens.textBodyDark,
-        secondary: FrostyTokens.textSecondaryDark,
-        tertiary: FrostyTokens.textTertiaryDark,
-        menu: FrostyTokens.raisedDark,
-      );
-    }
+    final theme = Theme.of(context);
+    final shared = WhisperColors.of(context);
+    final dark = theme.brightness == Brightness.dark;
     return _ActivityColors(
-      ground: ground,
-      card: FrostyTokens.surfaceLight,
-      cardRing: FrostyTokens.hairlineLight,
-      raised: const Color(0xFFF0F0F0),
-      ring: const Color(0x1F000000),
-      text: const Color(0xFF0A0A0A),
-      body: const Color(0xFF3A3A3A),
-      secondary: const Color(0xFF6B6B6B),
-      tertiary: const Color(0xFF6B6B6B),
-      menu: FrostyTokens.surfaceLight,
+      ground: theme.scaffoldBackgroundColor,
+      card: shared.card,
+      cardRing: shared.paneRing,
+      raised: shared.raised,
+      ring: dark ? FrostyTokens.hairlineStrongDark : const Color(0x1F000000),
+      text: shared.text,
+      body: shared.body,
+      secondary: shared.secondary,
+      tertiary: shared.tertiary,
+      menu: dark ? shared.raised : shared.card,
     );
   }
 }
@@ -869,61 +859,101 @@ class _TabletActivity extends StatelessWidget {
     final padding = MediaQuery.paddingOf(context);
     final width = MediaQuery.sizeOf(context).width;
     final whispers = this.whispers;
-    final column = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(4, 4, 4, 14),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 4,
-                  children: [
-                    Semantics(
-                      header: true,
-                      child: Text(
-                        'Activity',
-                        style: TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.9,
-                          color: colors.text,
-                        ),
-                      ),
+    final asideWidth = width >= 1100 ? 392.0 : 320.0;
+    final header = Padding(
+      padding: const EdgeInsets.fromLTRB(4, 4, 4, 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 4,
+              children: [
+                Semantics(
+                  header: true,
+                  child: Text(
+                    'Activity',
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.9,
+                      color: colors.text,
                     ),
-                    Text(
-                      'Notifications ONSET posted on this device.',
-                      style: TextStyle(fontSize: 13, color: colors.tertiary),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-              Observer(
-                builder: (context) {
-                  final unread = store.unreadCount;
-                  if (unread == 0) return const SizedBox.shrink();
-                  return _MarkAllPill(
-                    count: unread,
-                    colors: colors,
-                    onPressed: () => unawaited(store.markAllRead()),
-                  );
-                },
-              ),
+                Text(
+                  'Notifications ONSET posted on this device.',
+                  style: TextStyle(fontSize: 13, color: colors.tertiary),
+                ),
+              ],
+            ),
+          ),
+          Observer(
+            builder: (context) {
+              final unread = store.unreadCount;
+              if (unread == 0) return const SizedBox.shrink();
+              return _MarkAllPill(
+                count: unread,
+                colors: colors,
+                onPressed: () => unawaited(store.markAllRead()),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+    final list = MediaQuery.removePadding(
+      context: context,
+      removeTop: true,
+      child: notifications,
+    );
+    final Widget body;
+    if (whispers == null) {
+      body = Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 860),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              header,
+              Expanded(child: list),
             ],
           ),
         ),
-        Expanded(
-          child: MediaQuery.removePadding(
-            context: context,
-            removeTop: true,
-            child: notifications,
+      );
+    } else {
+      // The header spans the notifications only; the whispers start where
+      // the first card does, whatever the header's height (text size).
+      body = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(child: header),
+              SizedBox(width: 24 + asideWidth),
+            ],
           ),
-        ),
-      ],
-    );
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: list),
+                const SizedBox(width: 24),
+                SizedBox(
+                  width: asideWidth,
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: 28 + padding.bottom),
+                    child: _WhispersColumn(store: whispers, colors: colors),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
     return Padding(
       padding: EdgeInsets.fromLTRB(
         FrostySpacing.gutterTablet + padding.left,
@@ -931,31 +961,7 @@ class _TabletActivity extends StatelessWidget {
         FrostySpacing.gutterTablet + padding.right,
         0,
       ),
-      child: whispers == null
-          ? Align(
-              alignment: Alignment.topCenter,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 860),
-                child: column,
-              ),
-            )
-          : Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(child: column),
-                const SizedBox(width: 24),
-                SizedBox(
-                  width: width >= 1100 ? 392 : 320,
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      top: 70,
-                      bottom: 28 + padding.bottom,
-                    ),
-                    child: _WhispersColumn(store: whispers, colors: colors),
-                  ),
-                ),
-              ],
-            ),
+      child: body,
     );
   }
 }

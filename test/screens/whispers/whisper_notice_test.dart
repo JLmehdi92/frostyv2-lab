@@ -42,6 +42,9 @@ void main() {
       find.text('Friend come on Twitch Staff: click', findRichText: true),
       findsOneWidget,
     );
+    // "Open" is the snack bar's action: it stays up while accessible
+    // navigation is on.
+    expect(find.byType(SnackBarAction), findsOneWidget);
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
     expect(opened, 1);

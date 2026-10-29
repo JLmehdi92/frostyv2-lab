@@ -171,9 +171,7 @@ void main() {
     );
   });
 
-  testWidgets('a name cannot turn text around or fake a line', (
-    tester,
-  ) async {
+  testWidgets('a name cannot turn text around or fake a line', (tester) async {
     init();
     receive('hey', name: 'Fr\u202Eiend\nStaff');
     await tester.pump();
@@ -355,6 +353,34 @@ void main() {
     expect(store.unreadCount, 0);
     expect(tester.takeException(), isNull);
   });
+
+  for (final size in [_phone, _tablet]) {
+    testWidgets('a bubble keeps its state when whispers arrive below it '
+        '(${size.width}x${size.height})', (tester) async {
+      init();
+      receive('hey');
+      await tester.pump();
+      await pumpScreen(
+        tester,
+        WhisperConversation(
+          store: store,
+          userId: '8',
+          login: 'friend',
+          displayName: 'Friend',
+          pane: size == _tablet,
+        ),
+        size: size,
+      );
+      final hey = find.byWidgetPredicate(
+        (w) => w is EditableText && w.controller.text == 'hey',
+      );
+      final before = tester.state(hey);
+      receive('again', id: 'w2');
+      await settle(tester);
+      expect(find.text('again'), findsOneWidget);
+      expect(identical(tester.state(hey), before), isTrue);
+    });
+  }
 
   testWidgets('one conversation alone (from a chat): back leaves the page', (
     tester,

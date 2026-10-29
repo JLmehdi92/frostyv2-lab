@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/apis/twitch_api.dart';
@@ -90,6 +91,7 @@ class _WhisperConversationState extends State<WhisperConversation> {
 
   /// The whispers already on screen: those that come later slide in.
   late final Set<String> _known;
+  final _arrivals = <String, DateTime>{};
 
   @override
   void initState() {
@@ -152,6 +154,7 @@ class _WhisperConversationState extends State<WhisperConversation> {
           child: _Messages(
             thread: _thread,
             known: _known,
+            arrivals: _arrivals,
             pane: pane,
             colors: colors,
           ),
@@ -378,14 +381,21 @@ class _Messages extends StatelessWidget {
   const _Messages({
     required this.thread,
     required this.known,
+    required this.arrivals,
     required this.pane,
     required this.colors,
   });
 
   final WhisperThread thread;
+
+  /// The whispers seen so far, and when the new ones arrived.
   final Set<String> known;
+  final Map<String, DateTime> arrivals;
   final bool pane;
   final WhisperColors colors;
+
+  /// How long after arriving a whisper still slides in when built.
+  static const _freshFor = Duration(seconds: 1);
 
   static const _note =
       'Twitch keeps no history the app can show, so only this session’s '
@@ -397,6 +407,12 @@ class _Messages extends StatelessWidget {
       builder: (context) {
         final whispers = thread.whispers.toList();
         final count = whispers.length;
+        // What arrived since the last look slides in, if it is built soon
+        // (a whisper first built later, scrolled to, just shows).
+        final now = clock.now();
+        for (final whisper in whispers) {
+          if (known.add(whisper.id)) arrivals[whisper.id] = now;
+        }
         return LayoutBuilder(
           builder: (context, constraints) {
             final width = pane
@@ -440,9 +456,11 @@ class _Messages extends StatelessWidget {
                   final newer = index + 1 < count ? whispers[index + 1] : null;
                   // Only what arrives while the conversation is open
                   // slides in.
-                  final fresh = known.add(whisper.id);
+                  final arrived = arrivals.remove(whisper.id);
+                  final fresh =
+                      arrived != null &&
+                      clock.now().difference(arrived) < _freshFor;
                   item = _Bubble(
-                    key: ValueKey(whisper.id),
                     whisper: whisper,
                     first: older == null || older.mine != whisper.mine,
                     last: newer == null || newer.mine != whisper.mine,
@@ -452,7 +470,12 @@ class _Messages extends StatelessWidget {
                     colors: colors,
                   );
                 }
-                return _Centered(enabled: pane, maxWidth: 720, child: item);
+                // Keyed at the root: a bubble keeps its state (its
+                // entrance, a selection) when whispers arrive below it.
+                return KeyedSubtree(
+                  key: ValueKey(i == count ? '' : whispers[count - 1 - i].id),
+                  child: _Centered(enabled: pane, maxWidth: 720, child: item),
+                );
               },
             );
           },
@@ -466,7 +489,6 @@ class _Messages extends StatelessWidget {
 /// person's on the left; the corners between whispers of a run are tight.
 class _Bubble extends StatefulWidget {
   const _Bubble({
-    super.key,
     required this.whisper,
     required this.first,
     required this.last,

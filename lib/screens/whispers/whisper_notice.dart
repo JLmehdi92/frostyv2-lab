@@ -9,7 +9,8 @@ import 'package:frosty/widgets/state_glyph.dart';
 /// A whisper received elsewhere in the app (boards Etats 06 and
 /// EtatsTablette): a floating card with the sender's picture and its
 /// whisper mark, their name and the whisper on two lines at most, and
-/// "Open". It leaves by itself, like any snack bar.
+/// "Open". It leaves by itself, like any snack bar (not while accessible
+/// navigation is on: "Open" is its action).
 SnackBar whisperNotice(
   BuildContext context,
   IncomingWhisper whisper, {
@@ -29,7 +30,9 @@ SnackBar whisperNotice(
     elevation: 10,
     width: large ? 480 : null,
     margin: large ? null : const EdgeInsets.fromLTRB(10, 0, 10, 8),
-    padding: EdgeInsets.fromLTRB(large ? 14 : 12, 10, 4, 10),
+    padding: EdgeInsets.fromLTRB(large ? 14 : 12, 10, 8, 10),
+    // An action keeps the notice up while accessible navigation is on.
+    action: SnackBarAction(label: 'Open', textColor: accent, onPressed: onOpen),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(large ? 18 : 16),
       side: BorderSide(
@@ -98,25 +101,6 @@ SnackBar whisperNotice(
             overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 14, height: 1.4, color: colors.body),
           ),
-        ),
-        TextButton(
-          onPressed: () {
-            ScaffoldMessenger.maybeOf(context)?.hideCurrentSnackBar();
-            onOpen();
-          },
-          style: TextButton.styleFrom(
-            foregroundColor: accent,
-            minimumSize: const Size(0, 44),
-            padding: EdgeInsets.symmetric(horizontal: large ? 14 : 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            textStyle: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          child: const Text('Open'),
         ),
       ],
     ),
