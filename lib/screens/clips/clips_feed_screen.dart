@@ -1381,7 +1381,6 @@ class _SwipeHintState extends State<_SwipeHint>
   }
 }
 
-/// The end of the feed: a check in its tile and Twitch's words.
 /// The end of a feed a page that could not be had ended: why, and "Try
 /// again".
 class _FeedFailed extends StatelessWidget {
@@ -1396,6 +1395,7 @@ class _FeedFailed extends StatelessWidget {
   );
 }
 
+/// The end of the feed: a check in its tile and Twitch's words.
 class _FeedEnd extends StatelessWidget {
   const _FeedEnd({this.large = false});
 
