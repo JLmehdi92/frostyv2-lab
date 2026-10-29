@@ -17,9 +17,11 @@ import 'package:frosty/screens/channel/chat/widgets/filtered_message_sheet.dart'
 import 'package:frosty/screens/channel/chat/widgets/overlay_chat_scope.dart';
 import 'package:frosty/screens/channel/chat/widgets/reply_thread.dart';
 import 'package:frosty/screens/channel/chat/widgets/user_notice_row.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/sheet/onset_panel.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 import 'package:provider/provider.dart';
 
 class ChatMessage extends StatelessWidget {
@@ -183,7 +185,7 @@ class ChatMessage extends StatelessWidget {
   /// Twitch's "Message Blocked" question; "Show Message" reveals it.
   Future<void> _onTapFiltered(BuildContext context) async {
     if (isModal) return;
-    final show = await showModalBottomSheet<bool>(
+    final show = await showOnsetSheet<bool>(
       context: context,
       builder: (context) => const FilteredMessageSheet(),
     );
@@ -204,97 +206,108 @@ class ChatMessage extends StatelessWidget {
       return;
     }
 
-    showModalBottomSheetWithProperFocus(
+    // Board ChaineModeration: the message in a card, then what can be
+    // done with it.
+    showOnsetSheet<void>(
       context: context,
-      isScrollControlled: true,
-      builder: (context) => ListView(
-        shrinkWrap: true,
-        primary: false,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text.rich(
-              TextSpan(
-                children: ircMessage.generateSpan(
-                  context,
-                  assetsStore: chatStore.assetsStore,
-                  emoteScale: chatStore.settings.emoteScale,
-                  badgeScale: chatStore.settings.badgeScale,
-                  animateEmotes: chatStore.settings.animateEmotes,
-                  showGifs: chatStore.settings.showGifs,
-                  animateGifs: chatStore.settings.animateGifs,
-                  launchExternal: chatStore.settings.launchUrlExternal,
-                  timestamp: chatStore.settings.timestampType,
-                  channelIdToUserTwitch:
-                      overrideChannelIdToUserTwitch ??
-                      chatStore.assetsStore.channelIdToUserTwitch,
-                  currentChannelId:
-                      overrideCurrentChannelId ?? chatStore.channelId,
-                  chatFilters: _chatFilters,
+      builder: (context) {
+        final colors = SheetColors.of(context);
+        return ListView(
+          shrinkWrap: true,
+          primary: false,
+          padding: const EdgeInsets.only(bottom: 14),
+          children: [
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 6, 16, 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: colors.well,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: colors.hairline,
+                  width: FrostyTokens.hairlineWidth,
                 ),
-                style: defaultTextStyle,
+              ),
+              child: Text.rich(
+                TextSpan(
+                  children: ircMessage.generateSpan(
+                    context,
+                    assetsStore: chatStore.assetsStore,
+                    emoteScale: chatStore.settings.emoteScale,
+                    badgeScale: chatStore.settings.badgeScale,
+                    animateEmotes: chatStore.settings.animateEmotes,
+                    showGifs: chatStore.settings.showGifs,
+                    animateGifs: chatStore.settings.animateGifs,
+                    launchExternal: chatStore.settings.launchUrlExternal,
+                    timestamp: chatStore.settings.timestampType,
+                    channelIdToUserTwitch:
+                        overrideChannelIdToUserTwitch ??
+                        chatStore.assetsStore.channelIdToUserTwitch,
+                    currentChannelId:
+                        overrideCurrentChannelId ?? chatStore.channelId,
+                    chatFilters: _chatFilters,
+                  ),
+                  style: defaultTextStyle,
+                ),
               ),
             ),
-          ),
-          const Divider(indent: 12, endIndent: 12),
-          ListTile(
-            onTap: () {
-              copyMessage();
-              Navigator.pop(context);
-            },
-            leading: const Icon(Icons.copy),
-            title: const Text('Copy message'),
-          ),
-          ListTile(
-            onTap: () async {
-              await copyMessage();
-
-              // A message delay only holds what others send; typing stays
-              // open (the composer shows the delay), so pasting does too.
-              // In merged mode, switch to the source tab so the paste
-              // targets the correct channel's composer.
-              onActivateSourceTab?.call();
-
-              // Paste the copied message into the text controller
-              chatStore.textController.text = ircMessage.message ?? '';
-              chatStore.safeRequestFocus();
-              if (context.mounted) {
-                Navigator.pop(context);
-              }
-            },
-            leading: const Icon(Icons.content_paste),
-            title: const Text('Copy message and paste'),
-          ),
-          ListTile(
-            onTap: () {
-              // In merged mode, switch to the source tab so the reply
-              // targets the correct channel (reply-parent-msg-id is
-              // channel-scoped).
-              onActivateSourceTab?.call();
-
-              chatStore.replyingToMessage = ircMessage;
-              chatStore.safeRequestFocus();
-              Navigator.pop(context);
-            },
-            leading: const Icon(Icons.reply),
-            title: const Text('Reply to message'),
-          ),
-          if (_canDelete)
-            ListTile(
+            SheetRow(
+              glyph: SheetGlyphKind.copy,
+              label: 'Copy message',
               onTap: () {
+                copyMessage();
                 Navigator.pop(context);
-                chatStore.moderate(
-                  DeleteMessageCommand(ircMessage.tags['id']!),
-                );
               },
-              leading: Icon(
-                Icons.delete_outline_rounded,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              title: const Text('Delete message'),
             ),
-        ],
-      ),
+            SheetRow(
+              glyph: SheetGlyphKind.paste,
+              label: 'Copy message and paste',
+              onTap: () async {
+                await copyMessage();
+
+                // A message delay only holds what others send; typing stays
+                // open (the composer shows the delay), so pasting does too.
+                // In merged mode, switch to the source tab so the paste
+                // targets the correct channel's composer.
+                onActivateSourceTab?.call();
+
+                // Paste the copied message into the text controller
+                chatStore.textController.text = ircMessage.message ?? '';
+                chatStore.safeRequestFocus();
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
+              },
+            ),
+            SheetRow(
+              glyph: SheetGlyphKind.reply,
+              label: 'Reply to message',
+              onTap: () {
+                // In merged mode, switch to the source tab so the reply
+                // targets the correct channel (reply-parent-msg-id is
+                // channel-scoped).
+                onActivateSourceTab?.call();
+
+                chatStore.replyingToMessage = ircMessage;
+                chatStore.safeRequestFocus();
+                Navigator.pop(context);
+              },
+            ),
+            if (_canDelete)
+              SheetRow(
+                glyph: SheetGlyphKind.trash,
+                label: 'Delete message',
+                danger: true,
+                onTap: () {
+                  Navigator.pop(context);
+                  chatStore.moderate(
+                    DeleteMessageCommand(ircMessage.tags['id']!),
+                  );
+                },
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -366,8 +379,9 @@ class ChatMessage extends StatelessWidget {
               messageHeader = GestureDetector(
                 onTap: isModal
                     ? null
-                    : () => showModalBottomSheetWithProperFocus(
+                    : () => showOnsetSheet<void>(
                         context: context,
+                        isScrollControlled: false,
                         builder: (context) {
                           return ReplyThread(
                             selectedMessage: ircMessage,

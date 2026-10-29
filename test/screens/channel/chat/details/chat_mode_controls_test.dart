@@ -6,6 +6,7 @@ import 'package:frosty/models/irc.dart';
 import 'package:frosty/screens/channel/chat/chat_commands.dart';
 import 'package:frosty/screens/channel/chat/details/chat_mode_controls.dart';
 import 'package:frosty/screens/channel/chat/moderation.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
 
 void main() {
   final commands = <ModerationCommand>[];
@@ -31,13 +32,12 @@ void main() {
     );
   }
 
-  Finder switchOf(String label) => find.descendant(
-    of: find.widgetWithText(ListTile, label),
-    matching: find.byType(Switch),
+  Finder switchOf(String label) => find.byWidgetPredicate(
+    (widget) => widget is OnsetSwitch && widget.semanticsLabel == label,
   );
 
-  Switch tile(WidgetTester tester, String label) =>
-      tester.widget<Switch>(switchOf(label));
+  OnsetSwitch tile(WidgetTester tester, String label) =>
+      tester.widget<OnsetSwitch>(switchOf(label));
 
   testWidgets('the switches show the room as Twitch has it', (tester) async {
     await pump(
@@ -148,5 +148,23 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'Clear'));
     await tester.pump(const Duration(milliseconds: 500));
     expect(commands.single, isA<ClearChatCommand>());
+  });
+
+  testWidgets('board rows: 56 dp modes, a red clear row, no overflow', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await pump(tester, const ROOMSTATE(slowMode: '30'));
+    expect(tester.takeException(), isNull);
+    expect(find.text('Chat modes'), findsOneWidget);
+    expect(find.text('Moderator'), findsOneWidget);
+    expect(switchOf('Slow mode'), findsOneWidget);
+    expect(find.byType(OnsetSwitch), findsNWidgets(5));
+    expect(
+      tester.widget<Text>(find.text('Clear chat')).style?.color,
+      SheetColors.light.danger,
+    );
   });
 }

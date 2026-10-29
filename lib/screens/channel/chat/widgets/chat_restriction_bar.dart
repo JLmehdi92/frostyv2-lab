@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:frosty/screens/channel/chat/chat_restrictions.dart';
-import 'package:frosty/utils/context_extensions.dart';
+import 'package:frosty/theme.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 
 /// The line above the chat input saying why the viewer cannot chat (a ban,
 /// a timeout, the slow-mode wait), with a live countdown.
@@ -50,13 +52,14 @@ class _ChatRestrictionBarState extends State<ChatRestrictionBar> {
     super.dispose();
   }
 
-  static IconData _icon(ChatRestrictionKind kind) => switch (kind) {
-    ChatRestrictionKind.banned => Icons.block_rounded,
-    ChatRestrictionKind.timedOut => Icons.timer_off_outlined,
-    ChatRestrictionKind.slowMode => Icons.hourglass_bottom_rounded,
-    ChatRestrictionKind.emoteOnly => Icons.emoji_emotions_outlined,
-    ChatRestrictionKind.subscribersOnly => Icons.star_outline_rounded,
-    ChatRestrictionKind.followersOnly => Icons.favorite_border_rounded,
+  /// The board's glyphs (ChaineModeration).
+  static SheetGlyphKind _glyph(ChatRestrictionKind kind) => switch (kind) {
+    ChatRestrictionKind.banned => SheetGlyphKind.block,
+    ChatRestrictionKind.timedOut => SheetGlyphKind.timer,
+    ChatRestrictionKind.slowMode => SheetGlyphKind.hourglass,
+    ChatRestrictionKind.emoteOnly => SheetGlyphKind.emote,
+    ChatRestrictionKind.subscribersOnly => SheetGlyphKind.star,
+    ChatRestrictionKind.followersOnly => SheetGlyphKind.heart,
   };
 
   @override
@@ -69,25 +72,25 @@ class _ChatRestrictionBarState extends State<ChatRestrictionBar> {
     }
     final until = restriction.until;
     final left = until?.difference(widget.now());
-    final scheme = context.colorScheme;
-    final color = scheme.error;
+    final color = SheetColors.of(context).danger;
     return Semantics(
       liveRegion: until == null,
       container: true,
       // A fixed height: the chat list pads for it.
       child: Container(
         height: kRestrictionBarHeight,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
-          spacing: 6,
+          spacing: 7,
           children: [
-            Icon(_icon(restriction.kind), size: 16, color: color),
+            SheetGlyph(_glyph(restriction.kind), size: 16, color: color),
             Expanded(
               child: Text(
                 restriction.describe(left),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
+                  fontFamily: FrostyTokens.bodyFamily,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: color,

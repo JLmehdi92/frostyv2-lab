@@ -6,7 +6,7 @@ import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_message.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/widgets/frosty_scrollbar.dart';
-import 'package:frosty/widgets/section_header.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
 
 class ReplyThread extends StatelessWidget {
   final IRCMessage selectedMessage;
@@ -49,10 +49,9 @@ class ReplyThread extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SectionHeader(
+                  const SheetSectionLabel(
                     'Replies',
-                    isFirst: true,
-                    padding: EdgeInsets.fromLTRB(12, 0, 12, 8),
+                    padding: EdgeInsets.fromLTRB(16, 4, 16, 8),
                   ),
                   if (replyParent != null)
                     ChatMessage(ircMessage: replyParent, chatStore: chatStore)

@@ -3,7 +3,9 @@ import 'package:frosty/models/irc.dart';
 import 'package:frosty/screens/channel/chat/chat_commands.dart';
 import 'package:frosty/screens/channel/chat/moderation.dart';
 import 'package:frosty/screens/channel/chat/moderation_notice.dart';
-import 'package:frosty/widgets/frosty_dialog.dart';
+import 'package:frosty/theme.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 
 /// Twitch's slow-mode waits.
 const kSlowModeWaits = [
@@ -99,17 +101,19 @@ class _ChatModeControlsState extends State<ChatModeControls> {
   Future<void> _clear() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => FrostyDialog(
+      builder: (context) => OnsetDialog(
         title: 'Clear chat?',
         message: 'Every message is deleted for everyone.',
         actions: [
-          TextButton(
+          SheetButton(
+            label: 'Cancel',
+            tone: SheetButtonTone.text,
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
           ),
-          FilledButton(
+          SheetButton(
+            label: 'Clear',
+            tone: SheetButtonTone.danger,
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Clear'),
           ),
         ],
       ),
@@ -117,33 +121,76 @@ class _ChatModeControlsState extends State<ChatModeControls> {
     if (mounted && (confirmed ?? false)) await _run(const ClearChatCommand());
   }
 
-  /// A choice of [values] that, while the mode is on, applies at once.
+  /// A choice of [values] that, while the mode is on, applies at once: the
+  /// board's 34 dp select under the mode's name.
   Widget _picker({
     required Duration value,
     required List<Duration> values,
     required String Function(Duration) label,
     required ValueChanged<Duration> onChanged,
-  }) => DropdownButton<Duration>(
-    value: values.contains(value) ? value : null,
-    hint: Text(label(value), overflow: TextOverflow.ellipsis),
-    isExpanded: true,
-    underline: const SizedBox.shrink(),
-    onChanged: _busy ? null : (value) => onChanged(value!),
-    items: [
-      for (final value in values)
-        DropdownMenuItem(
-          value: value,
-          child: Text(label(value), overflow: TextOverflow.ellipsis),
+  }) {
+    final colors = SheetColors.of(context);
+    final style = TextStyle(
+      fontFamily: FrostyTokens.bodyFamily,
+      fontSize: 13,
+      fontWeight: FontWeight.w500,
+      color: colors.text,
+    );
+    return Container(
+      height: 34,
+      // The board's select, as wide as its longest choice reads.
+      constraints: const BoxConstraints(maxWidth: 220),
+      margin: const EdgeInsets.only(top: 6),
+      padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
+      decoration: BoxDecoration(
+        color: colors.raised,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: colors.ring,
+          width: FrostyTokens.hairlineWidth,
         ),
-    ],
-  );
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<Duration>(
+          value: values.contains(value) ? value : null,
+          hint: Text(
+            label(value),
+            overflow: TextOverflow.ellipsis,
+            style: style,
+          ),
+          isDense: true,
+          isExpanded: true,
+          style: style,
+          dropdownColor: colors.dialog,
+          borderRadius: BorderRadius.circular(12),
+          icon: Padding(
+            padding: const EdgeInsetsDirectional.only(start: 8),
+            child: SheetGlyph(
+              SheetGlyphKind.chevronDown,
+              size: 16,
+              strokeWidth: 2.2,
+              color: colors.secondary,
+            ),
+          ),
+          onChanged: _busy ? null : (value) => onChanged(value!),
+          items: [
+            for (final value in values)
+              DropdownMenuItem(
+                value: value,
+                child: Text(label(value), overflow: TextOverflow.ellipsis),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final room = widget.roomState;
     final slowOn = room.slowMode != '0';
     final followersOn = room.followersOnly != '-1';
-    final theme = Theme.of(context);
+    final colors = SheetColors.of(context);
     final last = _last;
 
     void toggle(ChatMode mode, bool value, Duration? duration) => _run(
@@ -155,36 +202,78 @@ class _ChatModeControlsState extends State<ChatModeControls> {
     Widget mode(
       ChatMode mode,
       bool on,
-      IconData icon, {
+      SheetGlyphKind glyph, {
       Duration? duration,
       Widget? picker,
-    }) => picker == null
-        ? SwitchListTile(
-            secondary: Icon(icon),
-            title: Text(mode.label),
-            value: on,
-            onChanged: _busy ? null : (value) => toggle(mode, value, null),
-          )
-        : ListTile(
-            leading: Icon(icon),
-            title: Text(mode.label),
-            subtitle: picker,
-            trailing: Switch(
+    }) => ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 56),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          spacing: 14,
+          children: [
+            SheetGlyph(glyph, color: colors.secondary),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    mode.label,
+                    style: SheetText.row.copyWith(color: colors.text),
+                  ),
+                  ?picker,
+                ],
+              ),
+            ),
+            OnsetSwitch(
               value: on,
+              semanticsLabel: mode.label,
               onChanged: _busy
                   ? null
                   : (value) => toggle(mode, value, duration),
             ),
-          );
+          ],
+        ),
+      ),
+    );
 
+    // Board ChaineModeration: "Chat modes", the five switches, then
+    // "Clear chat" in red and how the last change went.
     return ListView(
       primary: false,
       shrinkWrap: true,
+      padding: const EdgeInsets.only(bottom: 12),
       children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Expanded(
+                child: Semantics(
+                  header: true,
+                  child: Text(
+                    'Chat modes',
+                    style: SheetText.title.copyWith(color: colors.text),
+                  ),
+                ),
+              ),
+              Text(
+                'Moderator',
+                style: SheetText.status.copyWith(
+                  fontSize: 12,
+                  color: colors.secondary,
+                ),
+              ),
+            ],
+          ),
+        ),
         mode(
           ChatMode.slow,
           slowOn,
-          Icons.hourglass_top_rounded,
+          SheetGlyphKind.hourglass,
           duration: _slowWait,
           picker: _picker(
             value: _slowWait,
@@ -201,7 +290,7 @@ class _ChatModeControlsState extends State<ChatModeControls> {
         mode(
           ChatMode.followers,
           followersOn,
-          Icons.favorite_rounded,
+          SheetGlyphKind.heart,
           duration: _followAge,
           picker: _picker(
             value: _followAge,
@@ -217,43 +306,27 @@ class _ChatModeControlsState extends State<ChatModeControls> {
             },
           ),
         ),
-        mode(
-          ChatMode.subscribers,
-          room.subMode != '0',
-          Icons.monetization_on_rounded,
+        mode(ChatMode.subscribers, room.subMode != '0', SheetGlyphKind.star),
+        mode(ChatMode.emoteOnly, room.emoteOnly != '0', SheetGlyphKind.emote),
+        mode(ChatMode.uniqueChat, room.r9k != '0', SheetGlyphKind.unique),
+        Container(
+          height: FrostyTokens.hairlineWidth,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          color: colors.hairline,
         ),
-        mode(
-          ChatMode.emoteOnly,
-          room.emoteOnly != '0',
-          Icons.emoji_emotions_rounded,
+        SheetRow(
+          glyph: SheetGlyphKind.clearChat,
+          label: 'Clear chat',
+          danger: true,
+          onTap: _busy ? null : _clear,
         ),
-        mode(ChatMode.uniqueChat, room.r9k != '0', Icons.quiz_rounded),
-        ListTile(
-          leading: Icon(
-            Icons.delete_sweep_rounded,
-            color: theme.colorScheme.error,
-          ),
-          title: const Text('Clear chat'),
-          enabled: !_busy,
-          onTap: _clear,
+        SheetStatusLine(
+          busy: _busy,
+          message: last?.message,
+          ok: last?.ok ?? true,
+          minHeight: 26,
+          padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
         ),
-        if (_busy)
-          const Padding(
-            padding: EdgeInsets.all(16),
-            child: LinearProgressIndicator(),
-          )
-        else if (last != null)
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              last.message,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: last.ok
-                    ? theme.colorScheme.onSurfaceVariant
-                    : theme.colorScheme.error,
-              ),
-            ),
-          ),
       ],
     );
   }
