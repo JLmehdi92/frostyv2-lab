@@ -442,6 +442,37 @@ void main() {
     await close(tester);
   });
 
+  testWidgets('a clip without a player draws its picture once', (
+    tester,
+  ) async {
+    String thumb(String slug) => 'https://clips-media.example/$slug.jpg';
+    await pump(
+      tester,
+      first: ClipFeedPage(
+        items: [for (final s in 'abc'.split('')) clip(s, thumbnail: thumb(s))],
+      ),
+    );
+    await swipeUp(tester);
+    expect(players['a']!.calls, contains('dispose'));
+
+    // Dragged back towards the first clip, whose player is gone: its page
+    // shows its picture (the soft one behind aside), once.
+    final gesture = await tester.startGesture(const Offset(200, 400));
+    await gesture.moveBy(const Offset(0, 150));
+    await gesture.moveBy(const Offset(0, 150));
+    await tester.pump();
+    final pictures = tester
+        .widgetList<FrostyCachedNetworkImage>(
+          find.byType(FrostyCachedNetworkImage),
+        )
+        .where((image) => image.imageUrl == thumb('a'))
+        .where((image) => image.memCacheWidth != 24);
+    expect(pictures, hasLength(1));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    await close(tester);
+  });
+
   group('board ClipsTablette', () {
     Future<void> pumpAt(
       WidgetTester tester,

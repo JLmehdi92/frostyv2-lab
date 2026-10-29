@@ -323,7 +323,10 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
       fit: StackFit.expand,
       children: [
         const ColoredBox(color: Colors.black),
-        if (thumbnail != null && player is! VideoSurfacePlayer)
+        // Without a player the video slot shows the picture itself.
+        if (thumbnail != null &&
+            player != null &&
+            player is! VideoSurfacePlayer)
           FrostyCachedNetworkImage(
             imageUrl: thumbnail,
             fit: BoxFit.contain,
