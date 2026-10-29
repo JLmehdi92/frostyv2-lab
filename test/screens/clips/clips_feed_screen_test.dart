@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_clip_service.dart';
@@ -66,7 +67,12 @@ void main() {
     when(() => mini.visible).thenReturn(false);
   });
 
-  Future<void> pump(WidgetTester tester, {required ClipFeedPage first}) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    required ClipFeedPage first,
+    ValueListenable<bool>? active,
+    ClipsFeedStore? store,
+  }) async {
     when(
       () => service.getTopClips(language: any(named: 'language')),
     ).thenAnswer((_) async => first);
@@ -74,6 +80,16 @@ void main() {
     tester.view.physicalSize = const Size(400, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    final feedStore = store ?? ClipsFeedStore(clipService: service);
+    Widget feed(bool isActive) => ClipsFeedScreen(
+      store: feedStore,
+      active: isActive,
+      disableAutoPip: () => autoPipOff++,
+      playerFactory: (clip, {required focused}) {
+        built.add((clip.slug, focused));
+        return players[clip.slug] = FakeVodController();
+      },
+    );
     await tester.pumpWidget(
       MultiProvider(
         providers: [
@@ -82,14 +98,12 @@ void main() {
           Provider<TwitchClipService>.value(value: service),
         ],
         child: MaterialApp(
-          home: ClipsFeedScreen(
-            store: ClipsFeedStore(clipService: service),
-            disableAutoPip: () => autoPipOff++,
-            playerFactory: (clip, {required focused}) {
-              built.add((clip.slug, focused));
-              return players[clip.slug] = FakeVodController();
-            },
-          ),
+          home: active == null
+              ? feed(true)
+              : ValueListenableBuilder<bool>(
+                  valueListenable: active,
+                  builder: (context, isActive, _) => feed(isActive),
+                ),
         ),
       ),
     );
@@ -307,6 +321,138 @@ void main() {
     await close(tester);
   });
 
+  group('only while the feed is the page in front', () {
+    testWidgets('covered, the clip pauses and auto-PiP goes off; uncovered, '
+        'it plays again', (tester) async {
+      final active = ValueNotifier(true);
+      addTearDown(active.dispose);
+      await pump(
+        tester,
+        first: ClipFeedPage(items: [clip('a'), clip('b')]),
+        active: active,
+      );
+      final current = players['a']!..status = VodPlaybackStatus.playing;
+      current.calls.clear();
+      final pipOffBefore = autoPipOff;
+
+      active.value = false;
+      await tester.pump();
+      expect(current.calls, containsAllInOrder(['focused false', 'pause']));
+      expect(autoPipOff, greaterThan(pipOffBefore));
+      current.status = VodPlaybackStatus.paused;
+
+      current.calls.clear();
+      active.value = true;
+      await tester.pump();
+      await tester.pump();
+      expect(current.calls, containsAllInOrder(['focused true', 'play']));
+      await close(tester);
+    });
+
+    testWidgets('a clip the viewer paused stays paused when uncovered', (
+      tester,
+    ) async {
+      final active = ValueNotifier(true);
+      addTearDown(active.dispose);
+      await pump(
+        tester,
+        first: ClipFeedPage(items: [clip('a')]),
+        active: active,
+      );
+      final current = players['a']!..status = VodPlaybackStatus.paused;
+      active.value = false;
+      await tester.pump();
+      current.calls.clear();
+      active.value = true;
+      await tester.pump();
+      await tester.pump();
+      expect(current.calls, isNot(contains('play')));
+      await close(tester);
+    });
+
+    testWidgets('focus coming back while covered leaves the clip paused', (
+      tester,
+    ) async {
+      final active = ValueNotifier(true);
+      addTearDown(active.dispose);
+      await pump(
+        tester,
+        first: ClipFeedPage(items: [clip('a'), clip('b')]),
+        active: active,
+      );
+      final current = players['a']!..status = VodPlaybackStatus.playing;
+      // A page over Home (search), then a channel opened from it.
+      active.value = false;
+      await tester.pump();
+      current.status = VodPlaybackStatus.paused;
+      final channel = Object();
+      PlaybackFocus.shared
+        ..register(channel, onLost: () {}, onRegained: () {})
+        ..claim(channel);
+      current.calls.clear();
+
+      // The channel closes; the search is still over Home.
+      PlaybackFocus.shared.release(channel);
+      await tester.pump();
+      await tester.pump();
+      expect(current.calls, isNot(contains('play')));
+      expect(current.calls, isNot(contains('focused true')));
+
+      // The search closes too: the clip plays on.
+      active.value = true;
+      await tester.pump();
+      await tester.pump();
+      expect(current.calls, containsAllInOrder(['focused true', 'play']));
+      await close(tester);
+    });
+
+    testWidgets('made while not in front (the launch intro), nothing plays '
+        'until it is', (tester) async {
+      final active = ValueNotifier(false);
+      addTearDown(active.dispose);
+      await pump(
+        tester,
+        first: ClipFeedPage(items: [clip('a'), clip('b')]),
+        active: active,
+      );
+      expect(built, [('a', false), ('b', false)]);
+      expect(players['a']!.calls, isNot(contains('play')));
+
+      active.value = true;
+      await tester.pump();
+      await tester.pump();
+      expect(players['a']!.calls, containsAllInOrder(['focused true', 'play']));
+      expect(players['b']!.calls, isNot(contains('play')));
+      await close(tester);
+    });
+
+    testWidgets('a feed made again on a kept list opens at the same clip, '
+        'without loading it again', (tester) async {
+      final store = ClipsFeedStore(clipService: service);
+      await pump(
+        tester,
+        first: ClipFeedPage(items: [clip('a'), clip('b'), clip('c')]),
+        store: store,
+      );
+      await swipeUp(tester);
+      await close(tester);
+      expect(players['b']!.calls, contains('dispose'));
+      built.clear();
+
+      await pump(
+        tester,
+        first: ClipFeedPage(items: [clip('x')]),
+        store: store,
+      );
+      verify(
+        () => service.getTopClips(language: any(named: 'language')),
+      ).called(1);
+      expect(find.text('Clip b'), findsOneWidget);
+      expect(built, [('b', true), ('c', false)]);
+      await close(tester);
+    });
+  });
+
   group('board Clips', () {
     testWidgets('the next clip waits under the details; a tap goes there', (
       tester,
@@ -442,9 +588,7 @@ void main() {
     await close(tester);
   });
 
-  testWidgets('a clip without a player draws its picture once', (
-    tester,
-  ) async {
+  testWidgets('a clip without a player draws its picture once', (tester) async {
     String thumb(String slug) => 'https://clips-media.example/$slug.jpg';
     await pump(
       tester,

@@ -10,6 +10,7 @@ import 'package:frosty/screens/activity/activity_screen.dart';
 import 'package:frosty/screens/activity/stores/activity_store.dart';
 import 'package:frosty/screens/channel/channel.dart';
 import 'package:frosty/screens/clips/clips_feed_screen.dart';
+import 'package:frosty/screens/clips/stores/clips_feed_store.dart';
 import 'package:frosty/screens/home/home_store.dart';
 import 'package:frosty/screens/home/live_feed/live_feed.dart';
 import 'package:frosty/screens/home/live_feed/stores/live_feed_store.dart';
@@ -91,6 +92,22 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
   /// The Live feed's list, made when Live is first shown (it loads).
   LiveFeedStore? _liveFeed;
 
+  /// The clips feed's list and the clip shown, made when Clips is first
+  /// shown and kept across its visits (the feed itself, with its players,
+  /// lives only while it is on screen). Another browse language starts a
+  /// new one.
+  ClipsFeedStore? _clipsFeed;
+
+  ClipsFeedStore get _clips {
+    final language = _settingsStore.streamLanguage;
+    final kept = _clipsFeed;
+    if (kept != null && kept.language == language) return kept;
+    return _clipsFeed = ClipsFeedStore(
+      clipService: context.twitchClipService,
+      language: language,
+    );
+  }
+
   LiveFeedStore get _live => _liveFeed ??= LiveFeedStore(
     authStore: _authStore,
     settingsStore: _settingsStore,
@@ -166,7 +183,11 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     _disposeAccount = reaction((_) => _whisperStore.me, _onAccount);
     OnsetShell.routeObserver.addListener(_onRoutes);
     _lifecycle = AppLifecycleListener(onResume: _checkPip);
+    // Nothing plays under the launch intro (the clips may be the start tab).
+    LaunchIntro.running.addListener(_onIntro);
   }
+
+  void _onIntro() => _update(() {});
 
   late final AppLifecycleListener _lifecycle;
 
@@ -408,9 +429,16 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
             feed == HomeFeed.live &&
             onScreen &&
             !_covered;
+        // The clips the same way, and never under the launch intro.
+        final clipsActive =
+            page == HomeFeed.clips &&
+            feed == HomeFeed.clips &&
+            onScreen &&
+            !_covered &&
+            !LaunchIntro.running.value;
         return _memo(
           page,
-          (data, page == HomeFeed.clips && onScreen, liveActive),
+          (data, page == HomeFeed.clips && onScreen, liveActive, clipsActive),
           () => MediaQuery(
             data: data,
             child: switch (page) {
@@ -428,6 +456,8 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
               HomeFeed.clips =>
                 onScreen
                     ? ClipsFeedScreen(
+                        store: _clips,
+                        active: clipsActive,
                         onPipChanged: (pip) => _update(() => _clipsInPip = pip),
                       )
                     : const SizedBox.shrink(),
@@ -586,6 +616,7 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
   @override
   void dispose() {
     OnsetShell.routeObserver.removeListener(_onRoutes);
+    LaunchIntro.running.removeListener(_onIntro);
     _lifecycle.dispose();
     _miniPlayer.setShellChrome(null);
     _whispers?.cancel();

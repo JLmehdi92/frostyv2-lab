@@ -58,7 +58,9 @@ abstract class ClipPlayerStoreBase
         // Another player on top owns auto-PiP.
         if (!_focused) return;
         final available = !paused && await SimplePip.isAutoPipAvailable;
-        if (_disposed) return;
+        // Focus may have gone while the plugin answered (the feed covered
+        // by a page turns auto-PiP off itself): never arm it after that.
+        if (_disposed || !_focused) return;
         if (available) {
           pip.setAutoPipMode();
         } else {

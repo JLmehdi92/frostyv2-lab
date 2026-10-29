@@ -26,6 +26,10 @@ abstract class ClipsFeedStoreBase with Store {
 
   String? _cursor;
 
+  /// The clip the viewer is on (the end page is one past the last clip):
+  /// the feed opens there again when it is made again on this list.
+  int position = 0;
+
   @readonly
   var _clips = ObservableList<Clip>();
 
@@ -52,6 +56,7 @@ abstract class ClipsFeedStoreBase with Store {
       final page = await clipService.getTopClips(language: language);
       runInAction(() {
         _clips = ObservableList<Clip>();
+        position = 0;
         _add(page);
       });
     } catch (e) {

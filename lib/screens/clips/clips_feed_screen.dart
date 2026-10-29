@@ -46,12 +46,21 @@ typedef FeedPlayerFactory =
 /// (paused), every other player is let go.
 ///
 /// Home's Clips tab: the shell builds it while the tab is on screen and
-/// lets it go when another tab or section is chosen, which stops the clips.
+/// lets it go when another tab or section is chosen, which stops the clips
+/// (their players go with it). The shell keeps the list and the clip shown
+/// ([store]): coming back opens the same clip, without loading the list
+/// again.
+///
+/// A clip plays only while the feed is [active] (the page in front: not
+/// covered by another page, not leaving for another tab, not under the
+/// launch intro); otherwise it pauses, auto-PiP is off, and it plays again
+/// once the feed is in front, if it was playing.
 class ClipsFeedScreen extends StatefulWidget {
   const ClipsFeedScreen({
     super.key,
     this.onPipChanged,
-    @visibleForTesting this.store,
+    this.store,
+    this.active = true,
     @visibleForTesting this.playerFactory,
     @visibleForTesting this.disableAutoPip,
   });
@@ -64,7 +73,18 @@ class ClipsFeedScreen extends StatefulWidget {
   @visibleForTesting
   static bool? debugPipSupported;
 
+  /// Builds the players when [playerFactory] is not given (tests of the
+  /// screens that build the feed).
+  @visibleForTesting
+  static FeedPlayerFactory? debugPlayerFactory;
+
+  /// The clips and the clip shown, kept by the caller across the feed's
+  /// rebuilds (null: the feed's own, loaded when it opens).
   final ClipsFeedStore? store;
+
+  /// Whether the feed is the page in front: its clip may play.
+  final bool active;
+
   final FeedPlayerFactory? playerFactory;
 
   /// Turns Android's auto-PiP off (tests count the calls).
@@ -98,7 +118,10 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
 
   /// Players let go of, disposed after the frame that stops drawing them.
   final _retiring = <VodPlayerController>{};
-  var _index = 0;
+
+  /// The clip shown (the end page is one past the last clip), kept in the
+  /// store so that the feed opens there again.
+  late var _index = math.min(_store.position, _store.clips.length);
 
   /// The clip last started as the current one: a later sync (more clips
   /// arriving) must not start it again after the viewer paused it.
@@ -107,7 +130,8 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
   /// Whether the app is in picture-in-picture from this feed.
   var _inPip = false;
 
-  /// Whether the clip was playing when another player took focus.
+  /// Whether the clip was playing when another player took focus, or when
+  /// the feed stopped being in front.
   var _playingBeforeFocusLoss = false;
 
   /// Which way the tablet's stage moved last (1: to a later clip).
@@ -159,11 +183,33 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
         })
         ..ensureVisualUpdate();
     });
-    unawaited(_store.load());
+    // A kept list opens where it was; only a list never had is loaded.
+    if (_store.clips.isEmpty) {
+      unawaited(_store.load());
+    } else {
+      _syncPlayers(rebuild: false);
+    }
+  }
+
+  @override
+  void didUpdateWidget(ClipsFeedScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.active == widget.active) return;
+    if (widget.active) {
+      _onFocusRegained();
+    } else {
+      _suspend();
+      // Nothing plays while the feed is not in front: Android must not
+      // shrink a page over it into a PiP window, and the screen may sleep.
+      if (_hasFocus) {
+        _disableAutoPip();
+        if (_settings.keepScreenAwake) WakelockPlus.disable();
+      }
+    }
   }
 
   VodPlayerController _createPlayer(Clip clip, {required bool focused}) {
-    final factory = widget.playerFactory;
+    final factory = widget.playerFactory ?? ClipsFeedScreen.debugPlayerFactory;
     final player =
         factory?.call(clip, focused: focused) ??
         ClipPlayerStore(
@@ -180,8 +226,9 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
   }
 
   /// Keeps exactly the current clip's player (focused, playing) and the
-  /// next one's (preloaded, paused).
-  void _syncPlayers() {
+  /// next one's (preloaded, paused). [rebuild]: false while the state is
+  /// being made (its first build follows).
+  void _syncPlayers({bool rebuild = true}) {
     if (!mounted) return;
     final clips = _store.clips;
     final wanted = {
@@ -207,7 +254,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
     for (final index in wanted) {
       final current = index == _index;
       final existing = _players[index];
-      final start = current && _hasFocus && _started != index;
+      final start = current && _hasFocus && widget.active && _started != index;
       if (existing == null) {
         _players[index] = _createPlayer(clips[index], focused: start);
       } else if (start) {
@@ -218,7 +265,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
       if (start) _started = index;
     }
     if (!wanted.contains(_index) && _hasFocus) _disableAutoPip();
-    setState(() {});
+    if (rebuild) setState(() {});
   }
 
   void _onPageChanged(int index) {
@@ -232,6 +279,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
     }
     _stageDirection = index > _index ? 1 : -1;
     _index = index;
+    _store.position = index;
     _syncPlayers();
     if (index >= _store.clips.length - 3) unawaited(_store.loadMore());
   }
@@ -257,24 +305,38 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
     }
   }
 
-  void _onFocusLost() {
+  void _onFocusLost() => _suspend();
+
+  /// Pauses the clip, remembering whether it played (a second reason to
+  /// pause, the feed covered and then a player above it, keeps that).
+  void _suspend() {
     final player = _players[_index];
     if (player == null) return;
     player.setFocused(false);
     // A player still loading would start on its own: treat it as playing.
-    _playingBeforeFocusLoss =
-        !player.paused || player.status == VodPlaybackStatus.loading;
+    if (!player.paused || player.status == VodPlaybackStatus.loading) {
+      _playingBeforeFocusLoss = true;
+    }
     if (!player.paused) player.pause();
   }
 
+  /// Focus is back (the player above closed), or the feed is in front
+  /// again: the clip plays on if both are true.
   void _onFocusRegained() {
     // After the frame: the screen above may be closing with this one.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
+      // Still covered (a page above the closing player): the clip waits
+      // until the feed is in front.
+      if (!mounted || !widget.active || !_hasFocus) return;
       final player = _players[_index];
       if (!_miniPlayer.visible && player != null) {
-        player.setFocused(true);
-        if (_playingBeforeFocusLoss) player.play();
+        if (_started != _index) {
+          // Made while the feed was not in front: it starts now.
+          _syncPlayers();
+        } else {
+          player.setFocused(true);
+          if (_playingBeforeFocusLoss) player.play();
+        }
       }
       // The screen above had its own PipWidget, which took the plugin's
       // single handler: the PiP events must come here again.

@@ -35,6 +35,7 @@ import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/settings/stores/user_store.dart';
 import 'package:frosty/screens/settings/widgets/release_notes.dart';
+import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:frosty/screens/whispers/whispers_screen.dart';
 import 'package:frosty/services/notifications/activity_log.dart';
 import 'package:frosty/services/playback_focus.dart';
@@ -50,6 +51,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_pip_mode/simple_pip.dart';
+
+import '../../helpers/fake_vod_controller.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 
@@ -412,6 +415,172 @@ void main() {
     expect(find.byType(ClipsFeedScreen, skipOffstage: false), findsNothing);
     expect(find.text('No top streams'), findsOneWidget);
     await close(tester);
+  });
+
+  group('the clips play only while their feed is in front', () {
+    late Map<String, FakeVodController> players;
+    late List<(String, bool)> built;
+
+    Clip feedClip(String slug) => Clip(
+      id: slug,
+      slug: slug,
+      title: 'Clip $slug',
+      viewCount: 1,
+      createdAt: DateTime.utc(2026, 10, 2),
+      durationSeconds: 30,
+      broadcasterId: '42',
+      broadcasterLogin: 'streamer',
+      broadcasterDisplayName: 'Streamer',
+    );
+
+    setUp(() {
+      players = {};
+      built = [];
+      when(
+        () => clips.getTopClips(language: any(named: 'language')),
+      ).thenAnswer(
+        (_) async =>
+            ClipFeedPage(items: [feedClip('a'), feedClip('b'), feedClip('c')]),
+      );
+      ClipsFeedScreen.debugPlayerFactory = (clip, {required focused}) {
+        built.add((clip.slug, focused));
+        return players[clip.slug] = FakeVodController();
+      };
+    });
+
+    tearDown(() => ClipsFeedScreen.debugPlayerFactory = null);
+
+    bool feedActive(WidgetTester tester) =>
+        tester.widget<ClipsFeedScreen>(find.byType(ClipsFeedScreen)).active;
+
+    testWidgets('a page pushed over Home pauses the clip; closing it plays '
+        'the clip on', (tester) async {
+      await pump(tester, reduceMotion: true);
+      await tester.tap(find.text('Clips'));
+      await tester.pumpAndSettle();
+      final current = players['a']!..status = VodPlaybackStatus.playing;
+      expect(feedActive(tester), isTrue);
+
+      await tester.tap(find.byTooltip('Search'));
+      await tester.pumpAndSettle();
+      expect(find.byType(SearchScreen), findsOneWidget);
+      expect(
+        tester
+            .widget<ClipsFeedScreen>(
+              find.byType(ClipsFeedScreen, skipOffstage: false),
+            )
+            .active,
+        isFalse,
+      );
+      expect(current.calls, containsAllInOrder(['focused false', 'pause']));
+      current
+        ..status = VodPlaybackStatus.paused
+        ..calls.clear();
+
+      await tester.tap(find.byTooltip('Back'));
+      await tester.pumpAndSettle();
+      expect(feedActive(tester), isTrue);
+      expect(current.calls, containsAllInOrder(['focused true', 'play']));
+      await close(tester);
+    });
+
+    testWidgets('switching to Live stops the clip in that very frame', (
+      tester,
+    ) async {
+      await pump(tester, reduceMotion: true);
+      await tester.tap(find.text('Clips'));
+      await tester.pumpAndSettle();
+      final current = players['a']!..status = VodPlaybackStatus.playing;
+      current.calls.clear();
+
+      await tester.tap(find.text('Live'));
+      await tester.pump();
+      // Still fading out, already silent: before any Live preview starts.
+      expect(find.byType(ClipsFeedScreen), findsOneWidget);
+      expect(feedActive(tester), isFalse);
+      expect(current.calls, containsAllInOrder(['focused false', 'pause']));
+      await tester.pumpAndSettle();
+      expect(find.byType(ClipsFeedScreen, skipOffstage: false), findsNothing);
+      expect(current.calls, contains('dispose'));
+      await close(tester);
+    });
+
+    testWidgets('back on Clips: the same clip, the list not loaded again', (
+      tester,
+    ) async {
+      await pump(tester, reduceMotion: true);
+      await tester.tap(find.text('Clips'));
+      await tester.pumpAndSettle();
+      await tester.fling(find.byType(PageView), const Offset(0, -600), 2000);
+      await tester.pumpAndSettle();
+      expect(built.last, ('c', false));
+
+      await tester.tap(find.text('Live'));
+      await tester.pumpAndSettle();
+      built.clear();
+      await tester.tap(find.text('Clips'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Clip b'), findsOneWidget);
+      expect(built, [('b', true), ('c', false)]);
+      verify(
+        () => clips.getTopClips(language: any(named: 'language')),
+      ).called(1);
+      await close(tester);
+    });
+
+    testWidgets('opened on Clips: nothing plays under the launch intro', (
+      tester,
+    ) async {
+      settings.startTab = HomeTab.clips;
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<AuthStore>.value(value: FakeAuthStore()),
+            Provider<SettingsStore>.value(value: settings),
+            Provider<TwitchApi>.value(value: api),
+            Provider<TwitchClipService>.value(value: clips),
+            Provider<TwitchVodService>.value(value: vods),
+            Provider<TwitchHypeTrainService>.value(
+              value: MockHypeTrainService(),
+            ),
+            Provider<ActivityStore>.value(value: activity),
+            Provider<WhisperStore>.value(value: whispers),
+            Provider<MiniPlayerStore>.value(value: mini),
+          ],
+          child: MaterialApp(
+            theme: themes.light,
+            navigatorObservers: [
+              LaunchIntro.navigatorObserver,
+              OnsetShell.routeObserver,
+            ],
+            builder: (context, child) => LaunchIntro(
+              play: true,
+              slotKey: OnsetShell.markKey,
+              child: child!,
+            ),
+            home: const Home(),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(LaunchIntro.duration * 0.3);
+      expect(LaunchIntro.running.value, isTrue);
+      expect(feedActive(tester), isFalse);
+      expect(built, [('a', false), ('b', false)]);
+      expect(players['a']!.calls, isNot(contains('play')));
+
+      await tester.pump(LaunchIntro.duration);
+      await tester.pump(const Duration(seconds: 1));
+      expect(LaunchIntro.running.value, isFalse);
+      expect(feedActive(tester), isTrue);
+      expect(players['a']!.calls, containsAllInOrder(['focused true', 'play']));
+      await close(tester);
+    });
   });
 
   testWidgets('the mini player keeps under the header and above the bar', (
