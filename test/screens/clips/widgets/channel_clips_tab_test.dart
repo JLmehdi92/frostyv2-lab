@@ -118,7 +118,7 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(find.text("Couldn't load clips"), findsOneWidget);
-    expect(find.byIcon(Icons.refresh_rounded), findsOneWidget);
+    expect(find.text('Try again'), findsOneWidget);
   });
 
   testWidgets('a tablet shows the clips side by side', (tester) async {

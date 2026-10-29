@@ -14,6 +14,7 @@ import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/frosty_scrollbar.dart';
 import 'package:frosty/widgets/motion/staggered_entrance.dart';
+import 'package:frosty/widgets/state_views.dart';
 
 /// Browse's top categories as a grid of box arts (boards Parcourir and
 /// ParcourirTablette), most watched first, more as the end comes into view.
