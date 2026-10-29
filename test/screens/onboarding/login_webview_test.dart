@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/screens/onboarding/login_webview.dart';
+import 'package:frosty/screens/onboarding/onboarding_parts.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
@@ -30,7 +33,8 @@ void main() {
     onError = null;
     onTokenCaptured = null;
     onSignedIn = null;
-    when(() => auth.authorizeUri).thenReturn(authorize);
+    when(() => auth.startAuthorization()).thenReturn(authorize);
+    when(() => auth.isLoggedIn).thenReturn(false);
     when(
       () => auth.createAuthWebViewController(
         routeAfter: any(named: 'routeAfter'),
@@ -165,7 +169,7 @@ void main() {
     tester,
   ) async {
     await open(tester);
-    onTokenCaptured!(Future.value());
+    onTokenCaptured!(Completer<void>().future);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Signing you in…'), findsOneWidget);
@@ -203,8 +207,88 @@ void main() {
     await tester.tap(find.text('Try again'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
+    // A fresh attempt (a new state), never the old address again.
+    verify(() => auth.startAuthorization()).called(1);
     verify(() => controller.loadRequest(authorize)).called(1);
     expect(find.text('Twitch could not be reached'), findsNothing);
+  });
+
+  testWidgets('a login that succeeds keeps "Signing you in…" until the '
+      'page goes', (tester) async {
+    await open(tester);
+    when(() => auth.isLoggedIn).thenReturn(true);
+    onTokenCaptured!(Future.value());
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Signing you in…'), findsOneWidget);
+    expect(find.textContaining('did not sign you in'), findsNothing);
+  });
+
+  testWidgets('a login that fails shows the page again, and says so', (
+    tester,
+  ) async {
+    await open(tester);
+    final login = Completer<void>();
+    onTokenCaptured!(login.future);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Signing you in…'), findsOneWidget);
+    login.complete();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Signing you in…'), findsNothing);
+    expect(find.text('Twitch did not sign you in. Try again.'), findsOneWidget);
+  });
+
+  testWidgets('the failure clears once another page loads', (tester) async {
+    await open(tester);
+    onError!(
+      const WebResourceError(
+        errorCode: -2,
+        description: 'net::ERR_NAME_NOT_RESOLVED',
+        isForMainFrame: true,
+        url: 'https://id.twitch.tv/failed',
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Twitch could not be reached'), findsOneWidget);
+    // The failed page itself finishing (its error page) changes nothing.
+    onPage!(Uri.parse('https://id.twitch.tv/failed'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Twitch could not be reached'), findsOneWidget);
+    // The page Twitch moves on to clears it.
+    onPage!(Uri.parse('https://id.twitch.tv/oauth2/authorize'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Twitch could not be reached'), findsNothing);
+  });
+
+  testWidgets('the lock only for https; a page without host shows no host', (
+    tester,
+  ) async {
+    await open(tester);
+    final lock = find.byWidgetPredicate(
+      (w) => w is OnboardingGlyph && w.kind == OnboardingGlyphKind.lock,
+    );
+    expect(lock, findsOneWidget);
+
+    onPage!(Uri.parse('http://twitch.example/login'));
+    await tester.pump();
+    expect(find.text('http://twitch.example'), findsOneWidget);
+    expect(lock, findsNothing);
+
+    onPage!(Uri.parse('about:blank'));
+    await tester.pump();
+    expect(find.text('twitch.example'), findsNothing);
+    expect(find.text('http://twitch.example'), findsNothing);
+    expect(find.text('about:'), findsOneWidget);
+    expect(lock, findsNothing);
+
+    onPage!(Uri.parse('https://id.twitch.tv/x?state=s3cret#access_token=t'));
+    await tester.pump();
+    expect(find.text('id.twitch.tv'), findsOneWidget);
+    expect(find.textContaining('s3cret'), findsNothing);
+    expect(lock, findsOneWidget);
   });
 
   testWidgets('a navigation replaced by another is no failure (iOS)', (

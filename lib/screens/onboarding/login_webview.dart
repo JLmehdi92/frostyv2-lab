@@ -309,9 +309,17 @@ class TwitchLoginPanel extends StatefulWidget {
 class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
   late final WebViewController _controller;
   late final AuthStore _auth;
-  String _host = 'id.twitch.tv';
+
+  /// The page the WebView shows (only its scheme and host are ever drawn).
+  Uri _page = Uri.parse('https://id.twitch.tv');
   bool _signingIn = false;
+
+  /// The page itself failed to load ([_failedUrl]); another page clears it.
   bool _failed = false;
+  String? _failedUrl;
+
+  /// Twitch handed a token back but the login did not go through.
+  bool _loginFailed = false;
   Timer? _signingLimit;
 
   @override
@@ -328,8 +336,13 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
   }
 
   void _onPage(Uri uri) {
-    if (!mounted || uri.host.isEmpty || uri.host == _host) return;
-    setState(() => _host = uri.host);
+    if (!mounted) return;
+    final moved = _failed && uri.toString() != _failedUrl;
+    if (uri == _page && !moved) return;
+    setState(() {
+      _page = uri;
+      if (moved) _failed = false;
+    });
   }
 
   void _onTokenCaptured(Future<void> login) {
@@ -342,7 +355,18 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
     setState(() {
       _signingIn = true;
       _failed = false;
+      _loginFailed = false;
     });
+    login.whenComplete(() {
+      // Signed in: the page goes once Twitch is done. Refused: the page
+      // shows again at once, with what happened.
+      if (!mounted || !_signingIn || _auth.isLoggedIn) return;
+      _signingLimit?.cancel();
+      setState(() {
+        _signingIn = false;
+        _loginFailed = true;
+      });
+    }).ignore();
   }
 
   void _onError(WebResourceError error) {
@@ -353,13 +377,22 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
     // A navigation replaced by another (a quick tap, a redirect) is not a
     // failure: iOS reports it as cancelled (-999) or interrupted (102).
     if (error.errorCode == -999 || error.errorCode == 102) return;
-    setState(() => _failed = true);
+    setState(() {
+      _failed = true;
+      _failedUrl = error.url;
+    });
   }
 
   void _retry() {
-    setState(() => _failed = false);
+    setState(() {
+      _failed = false;
+      _loginFailed = false;
+    });
+    // A new attempt: a new state, the earlier one is no longer accepted.
     unawaited(
-      _controller.loadRequest(_auth.authorizeUri).catchError((Object e) {
+      _controller.loadRequest(_auth.startAuthorization()).catchError((
+        Object e,
+      ) {
         debugPrint('Login page reload failed: ${e.runtimeType}');
         if (mounted) setState(() => _failed = true);
       }),
@@ -399,7 +432,8 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
       ),
       child: Column(
         children: [
-          _HostStrip(host: _host),
+          _HostStrip(page: _page),
+          if (_loginFailed) const _LoginFailedLine(),
           Expanded(
             child: Stack(
               fit: StackFit.expand,
@@ -430,14 +464,22 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
   }
 }
 
-/// The 30 dp strip naming the page's host, with a lock.
+/// The 30 dp strip naming the page: its host, with a lock when the page is
+/// https; the scheme (`http://host`, `about:`) otherwise. Never the path,
+/// the query or the fragment (they carry the state and the token).
 class _HostStrip extends StatelessWidget {
-  const _HostStrip({required this.host});
+  const _HostStrip({required this.page});
 
-  final String host;
+  final Uri page;
 
   @override
   Widget build(BuildContext context) {
+    final secure = page.scheme == 'https' && page.host.isNotEmpty;
+    final label = page.host.isEmpty
+        ? '${page.scheme}:'
+        : secure
+        ? page.host
+        : '${page.scheme}://${page.host}';
     return Container(
       height: 30,
       decoration: const BoxDecoration(
@@ -449,22 +491,24 @@ class _HostStrip extends StatelessWidget {
         ),
       ),
       alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         spacing: 6,
         children: [
-          const OnboardingGlyph(
-            OnboardingGlyphKind.lock,
-            size: 12,
-            strokeWidth: 2,
-            color: OnboardingColors.tertiary,
-          ),
+          if (secure)
+            const OnboardingGlyph(
+              OnboardingGlyphKind.lock,
+              size: 12,
+              strokeWidth: 2,
+              color: OnboardingColors.tertiary,
+            ),
           Flexible(
             child: Text(
-              host,
+              label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              semanticsLabel: 'Page: $host',
+              semanticsLabel: secure ? 'Secure page: $label' : 'Page: $label',
               style: const TextStyle(
                 fontSize: 12,
                 color: OnboardingColors.tertiary,
@@ -472,6 +516,29 @@ class _HostStrip extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The line under the address when Twitch handed a token back that did not
+/// sign the user in.
+class _LoginFailedLine extends StatelessWidget {
+  const _LoginFailedLine();
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      liveRegion: true,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        color: FrostyTokens.danger.withValues(alpha: 0.12),
+        child: const Text(
+          'Twitch did not sign you in. Try again.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 13, color: OnboardingColors.text),
+        ),
       ),
     );
   }

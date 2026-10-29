@@ -158,9 +158,12 @@ void main() {
             return reads == 1 ? read.future : Future.value(jar);
           });
 
+          final state = store.startAuthorization().queryParameters['state']!;
           store.handleNavigation(
-            request: const NavigationRequest(
-              url: 'https://twitch.tv/login#access_token=user_2&scope=x',
+            request: NavigationRequest(
+              url:
+                  'https://twitch.tv/login#access_token=user_2&scope=x'
+                  '&state=$state',
               isMainFrame: true,
             ),
           );

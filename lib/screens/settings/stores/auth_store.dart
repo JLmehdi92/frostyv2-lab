@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:clock/clock.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -342,23 +344,21 @@ abstract class AuthBase with Store {
     ValueChanged<Future<void>>? onTokenCaptured,
     VoidCallback? onSignedIn,
   }) {
-    // Check if the URL is the redirect URI.
-    if (request.url.startsWith('https://twitch.tv/login')) {
-      // Extract the token from the query parameters.
-      final uri = Uri.parse(request.url.replaceFirst('#', '?'));
-      final token = uri.queryParameters['access_token'];
-
-      // Login with the provided token.
-      if (token != null) {
-        final signingIn = login(token: token);
-        onTokenCaptured?.call(signingIn);
-      }
+    // The redirect URI, exactly, and only for the page itself: a frame
+    // inside it, another path or host, or a token without the state of the
+    // login this app opened (an injected redirect: someone else's token,
+    // which would sign the user into their account) is never taken.
+    final token = _redirectToken(request);
+    if (token != null) {
+      final signingIn = login(token: token);
+      onTokenCaptured?.call(signingIn);
     }
 
     // Check if the the URL has been redirected to "https://www.twitch.tv/?no-reload=true".
     // When redirected to the redirect_uri, there will be another redirect to "https://www.twitch.tv/?no-reload=true".
     // Checking for this will ensure that the user has automatically logged in to Twitch on the WebView itself.
-    if (request.url == 'https://www.twitch.tv/?no-reload=true') {
+    if (request.isMainFrame &&
+        request.url == 'https://www.twitch.tv/?no-reload=true') {
       // Reaching this URL means Twitch has signed the user in inside the
       // WebView, so its jar now holds the `auth-token` cookie. Grab it here:
       // it is the only credential that unlocks the 1440p HEVC rendition, and
@@ -383,21 +383,78 @@ abstract class AuthBase with Store {
     return NavigationDecision.navigate;
   }
 
-  /// The Twitch authorization page the login WebView opens (and opens again
-  /// to retry): the implicit grant with this app's scopes, always asking
-  /// the user to confirm them (`force_verify`).
-  Uri get authorizeUri => Uri(
-    scheme: 'https',
-    host: 'id.twitch.tv',
-    path: '/oauth2/authorize',
-    queryParameters: {
-      'client_id': clientId,
-      'redirect_uri': 'https://twitch.tv/login',
-      'response_type': 'token',
-      'scope': loginScopes,
-      'force_verify': 'true',
-    },
-  );
+  /// The `state` of the authorization the login page opened last
+  /// ([startAuthorization]); a redirect must carry it back, once.
+  String? _authorizationState;
+
+  /// The token of [request] when it is Twitch's redirect for the login this
+  /// app opened, else null. The state is used up when it matches.
+  String? _redirectToken(NavigationRequest request) {
+    if (!request.isMainFrame) return null;
+    final uri = Uri.tryParse(request.url);
+    if (uri == null ||
+        uri.scheme != 'https' ||
+        uri.host != 'twitch.tv' ||
+        uri.port != 443 ||
+        uri.userInfo.isNotEmpty ||
+        uri.path != '/login') {
+      return null;
+    }
+    final Map<String, String> fragment;
+    try {
+      fragment = Uri.splitQueryString(uri.fragment);
+    } on FormatException {
+      return null;
+    }
+    final token = fragment['access_token'];
+    final state = fragment['state'];
+    final expected = _authorizationState;
+    if (token == null ||
+        token.isEmpty ||
+        state == null ||
+        expected == null ||
+        !_sameText(state, expected)) {
+      return null;
+    }
+    _authorizationState = null;
+    return token;
+  }
+
+  /// [a] == [b], in a time that does not tell how much of them matched.
+  static bool _sameText(String a, String b) {
+    if (a.length != b.length) return false;
+    var difference = 0;
+    for (var i = 0; i < a.length; i++) {
+      difference |= a.codeUnitAt(i) ^ b.codeUnitAt(i);
+    }
+    return difference == 0;
+  }
+
+  /// The Twitch authorization page for a new login attempt: the implicit
+  /// grant with this app's scopes, always asking the user to confirm them
+  /// (`force_verify`), and a fresh unguessable `state` (32 random bytes)
+  /// that the redirect must bring back. Each call starts a new attempt: the
+  /// state of an earlier one is no longer accepted.
+  Uri startAuthorization() {
+    final random = Random.secure();
+    final state = base64Url
+        .encode(List<int>.generate(32, (_) => random.nextInt(256)))
+        .replaceAll('=', '');
+    _authorizationState = state;
+    return Uri(
+      scheme: 'https',
+      host: 'id.twitch.tv',
+      path: '/oauth2/authorize',
+      queryParameters: {
+        'client_id': clientId,
+        'redirect_uri': 'https://twitch.tv/login',
+        'response_type': 'token',
+        'scope': loginScopes,
+        'force_verify': 'true',
+        'state': state,
+      },
+    );
+  }
 
   /// The login WebView's controller. [onTokenCaptured] and [onSignedIn] are
   /// passed to [handleNavigation]; [onPage] is told each page the WebView
@@ -441,7 +498,8 @@ abstract class AuthBase with Store {
             debugPrint('Auth WebView error: ${error.description}');
             onError?.call(error);
           },
-          onPageFinished: (_) async {
+          onPageFinished: (url) async {
+            page(url);
             try {
               await webViewController.runJavaScript('''
                 {
@@ -475,7 +533,7 @@ abstract class AuthBase with Store {
           },
         ),
       )
-      ..loadRequest(authorizeUri);
+      ..loadRequest(startAuthorization());
   }
 
   /// Shows a dialog verifying that the user is sure they want to block/unblock the target user.
