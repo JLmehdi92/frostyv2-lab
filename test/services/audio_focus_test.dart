@@ -4,7 +4,7 @@ import 'package:onset/services/audio_focus.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  const channel = MethodChannel('frosty/audio-focus-test');
+  const channel = MethodChannel('onset/audio-focus-test');
   final messenger =
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
   late List<MethodCall> calls;

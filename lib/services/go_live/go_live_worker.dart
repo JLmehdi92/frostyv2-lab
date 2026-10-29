@@ -15,7 +15,7 @@ import 'package:onset/services/go_live/go_live.dart';
 import 'package:onset/services/notifications/activity_log.dart';
 import 'package:workmanager/workmanager.dart';
 
-const _task = 'frosty.goLive';
+const _task = 'onset.goLive';
 
 /// The headers of the background check's Helix calls: [token] with its own
 /// app's client id ([tokenClientId], kept with a token of another app),
@@ -146,7 +146,7 @@ abstract final class GoLiveNotifications {
       'go_live',
       'Go live',
       channelDescription: 'When channels you follow go live',
-      groupKey: 'frosty.goLive',
+      groupKey: 'onset.goLive',
       // A channel announced twice (the app and the background task at the
       // same moment) replaces its notice without a second alert.
       onlyAlertOnce: true,

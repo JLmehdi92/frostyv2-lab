@@ -27,7 +27,7 @@ class TwitchWebTokenService {
   /// Only Android has the native side of the channel.
   bool get _isAndroid => _isAndroidOverride ?? Platform.isAndroid;
 
-  static const _channel = MethodChannel('frosty/cookies');
+  static const _channel = MethodChannel('onset/cookies');
 
   /// The URL whose jar entry is read. `auth-token` is set on the `.twitch.tv`
   /// domain, so it is returned for any twitch.tv host.

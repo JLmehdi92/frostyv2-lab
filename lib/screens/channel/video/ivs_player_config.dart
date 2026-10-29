@@ -1,7 +1,7 @@
 import 'package:onset/screens/settings/stores/settings_store.dart';
 
 /// Native IVS player tuning derived from the user's settings, passed as the
-/// `config` argument of `frosty/ivs-texture-manager.create`.
+/// `config` argument of `onset/ivs-texture-manager.create`.
 class IvsPlayerConfig {
   const IvsPlayerConfig({required this.catchUp, required this.buffer});
 

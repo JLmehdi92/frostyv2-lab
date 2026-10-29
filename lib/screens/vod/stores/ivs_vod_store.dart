@@ -71,7 +71,7 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
   final TwitchVodService vodService;
   final SettingsStore settingsStore;
 
-  static const _textureManager = MethodChannel('frosty/ivs-texture-manager');
+  static const _textureManager = MethodChannel('onset/ivs-texture-manager');
 
   /// The video's closed captions: the line on screen, its tracks.
   late final captions = CaptionStore(
@@ -287,7 +287,7 @@ abstract class IvsVodStoreBase with Store implements VodPlayerController {
       await _textureManager.invokeMethod('dispose', {'textureId': id});
       return;
     }
-    final channel = MethodChannel('frosty/ivs-texture/$id');
+    final channel = MethodChannel('onset/ivs-texture/$id');
     _channel = channel;
     channel.setMethodCallHandler((call) async {
       if (call.method == 'onEvent') {

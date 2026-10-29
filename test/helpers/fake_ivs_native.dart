@@ -6,9 +6,9 @@ import 'package:flutter_test/flutter_test.dart';
 /// Fakes the native side of the IVS texture player so `IvsVideoStore` can be
 /// driven from unit tests.
 ///
-/// - `frosty/ivs-texture-manager`: `create` returns [textureId] and records its
+/// - `onset/ivs-texture-manager`: `create` returns [textureId] and records its
 ///   arguments, `dispose` is recorded.
-/// - `frosty/ivs-texture/<id>`: every Dart → native call is recorded in
+/// - `onset/ivs-texture/<id>`: every Dart → native call is recorded in
 ///   [playerCalls].
 /// - [emit] delivers an `onEvent` call native → Dart, exactly like
 ///   `IvsPlayerCore.send` does on device.
@@ -32,9 +32,9 @@ class FakeIvsNative {
   int? nativePosition;
   final playerCalls = <MethodCall>[];
 
-  static const _manager = MethodChannel('frosty/ivs-texture-manager');
+  static const _manager = MethodChannel('onset/ivs-texture-manager');
 
-  String get playerChannelName => 'frosty/ivs-texture/$textureId';
+  String get playerChannelName => 'onset/ivs-texture/$textureId';
 
   TestDefaultBinaryMessenger get _messenger =>
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;

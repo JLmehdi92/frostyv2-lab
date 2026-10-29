@@ -26,7 +26,7 @@ enum AudioFocusChange {
 /// failures are logged, never thrown: playback goes on without it.
 class AudioFocus {
   AudioFocus({MethodChannel? channel, bool? supported})
-    : _channel = channel ?? const MethodChannel('frosty/audio-focus'),
+    : _channel = channel ?? const MethodChannel('onset/audio-focus'),
       _supported = supported ?? Platform.isAndroid {
     if (_supported) _channel.setMethodCallHandler(_onCall);
   }

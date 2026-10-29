@@ -1,4 +1,4 @@
-package com.tommychow.frosty
+package app.onset
 
 import android.content.Context
 import android.net.ConnectivityManager
@@ -13,17 +13,17 @@ import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 
 /**
- * The active network's cost, on the `frosty/network` channel: `isMetered`
+ * The active network's cost, on the `onset/network` channel: `isMetered`
  * answers true on mobile data (or a metered Wi-Fi), false on an unmetered
  * network, and null when Android cannot say.
  *
- * `frosty/network/metered` streams the same answer each time the network
+ * `onset/network/metered` streams the same answer each time the network
  * changes (leaving Wi-Fi for mobile data), while someone listens: the
  * "Wi-Fi Only" previews stop at once instead of at the next check.
  */
 class NetworkBridge(private val context: Context, messenger: BinaryMessenger) {
-    private val channel = MethodChannel(messenger, "frosty/network")
-    private val events = EventChannel(messenger, "frosty/network/metered")
+    private val channel = MethodChannel(messenger, "onset/network")
+    private val events = EventChannel(messenger, "onset/network/metered")
     private val main = Handler(Looper.getMainLooper())
     private var callback: ConnectivityManager.NetworkCallback? = null
 

@@ -1,4 +1,4 @@
-package com.tommychow.frosty
+package app.onset
 
 import android.annotation.TargetApi
 import android.content.Intent

@@ -293,7 +293,7 @@ class LocalReminderPlatform implements ReminderPlatform {
       'schedule_reminders',
       'Stream reminders',
       channelDescription: 'Scheduled streams you asked to be reminded of',
-      groupKey: 'frosty.reminders',
+      groupKey: 'onset.reminders',
     ),
     iOS: DarwinNotificationDetails(threadIdentifier: 'schedule_reminders'),
   );

@@ -2,7 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/services/twitch_web_token_service.dart';
 
-const _channel = MethodChannel('frosty/cookies');
+const _channel = MethodChannel('onset/cookies');
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

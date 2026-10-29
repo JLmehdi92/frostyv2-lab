@@ -1,4 +1,4 @@
-package com.tommychow.frosty
+package app.onset
 
 import android.app.PendingIntent
 import android.content.ActivityNotFoundException

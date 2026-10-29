@@ -16,7 +16,7 @@ enum MediaCommand { play, pause, stop }
 /// Native failures are logged, never thrown: playback goes on without it.
 class BackgroundAudio {
   BackgroundAudio({MethodChannel? channel, bool? supported})
-    : _channel = channel ?? const MethodChannel('frosty/background-audio'),
+    : _channel = channel ?? const MethodChannel('onset/background-audio'),
       _supported = supported ?? Platform.isAndroid {
     if (_supported) _channel.setMethodCallHandler(_onCall);
   }

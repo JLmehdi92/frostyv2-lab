@@ -85,7 +85,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   /// sends them.
   String? get caption => captions.caption;
 
-  static const _textureManager = MethodChannel('frosty/ivs-texture-manager');
+  static const _textureManager = MethodChannel('onset/ivs-texture-manager');
 
   /// The Flutter texture this store's IVS stream renders into (null until
   /// created). Owned by the store — not the widget — so the live player can
@@ -682,7 +682,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
 
   /// Wires the per-texture MethodChannel for the texture-backed mini player.
   void attachTextureChannel(int textureId) =>
-      _attachChannel('frosty/ivs-texture/$textureId');
+      _attachChannel('onset/ivs-texture/$textureId');
 
   void _attachChannel(String name) {
     final channel = MethodChannel(name);

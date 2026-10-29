@@ -4,7 +4,7 @@ import 'package:onset/services/network_metering.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  const channel = MethodChannel('frosty/network-test');
+  const channel = MethodChannel('onset/network-test');
   final messenger =
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
   late List<MethodCall> calls;
@@ -56,7 +56,7 @@ void main() {
   });
 
   group('changes', () {
-    const events = EventChannel('frosty/network/metered-test');
+    const events = EventChannel('onset/network/metered-test');
 
     tearDown(() => messenger.setMockStreamHandler(events, null));
 

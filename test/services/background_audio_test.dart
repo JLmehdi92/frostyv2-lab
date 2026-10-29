@@ -4,7 +4,7 @@ import 'package:onset/services/background_audio.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  const channel = MethodChannel('frosty/background-audio-test');
+  const channel = MethodChannel('onset/background-audio-test');
   final messenger =
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
   late List<MethodCall> calls;

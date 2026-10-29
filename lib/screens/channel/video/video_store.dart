@@ -386,7 +386,7 @@ $kTwitchWebGateShownJs
 
   /// The video URL to use for the webview.
   String get videoUrl =>
-      'https://player.twitch.tv/?channel=$userLogin&muted=false&parent=frosty';
+      'https://player.twitch.tv/?channel=$userLogin&muted=false&parent=onset';
 
   VideoStoreBase({
     required this.userLogin,
@@ -599,9 +599,9 @@ $kTwitchWebGateShownJs
     try {
       await videoWebViewController.runJavaScript('''
         {
-          if (!document.getElementById('frosty-overlay-styles')) {
+          if (!document.getElementById('onset-overlay-styles')) {
             const style = document.createElement('style');
-            style.id = 'frosty-overlay-styles';
+            style.id = 'onset-overlay-styles';
             style.textContent = `
               .top-bar,
               .player-controls,
@@ -627,7 +627,7 @@ $kTwitchWebGateShownJs
   void _showDefaultOverlay() {
     try {
       videoWebViewController.runJavaScript(
-        "document.getElementById('frosty-overlay-styles')?.remove();",
+        "document.getElementById('onset-overlay-styles')?.remove();",
       );
     } catch (e) {
       debugPrint(e.toString());

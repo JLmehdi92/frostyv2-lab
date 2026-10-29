@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 /// Whether the active network costs data (mobile data, a metered hotspot),
-/// asked of Android on the `frosty/network` channel, for settings like
+/// asked of Android on the `onset/network` channel, for settings like
 /// Twitch's "Wi-Fi Only" autoplay. Elsewhere, or without an answer, it is
 /// unknown (null).
 class NetworkMetering {
@@ -12,8 +12,8 @@ class NetworkMetering {
     MethodChannel? channel,
     EventChannel? events,
     bool? supported,
-  }) : _channel = channel ?? const MethodChannel('frosty/network'),
-       _events = events ?? const EventChannel('frosty/network/metered'),
+  }) : _channel = channel ?? const MethodChannel('onset/network'),
+       _events = events ?? const EventChannel('onset/network/metered'),
        _supported = supported ?? Platform.isAndroid;
 
   static final shared = NetworkMetering();

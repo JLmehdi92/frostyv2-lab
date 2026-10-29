@@ -1,4 +1,4 @@
-package com.tommychow.frosty
+package app.onset
 
 import android.webkit.CookieManager
 import io.flutter.plugin.common.BinaryMessenger
@@ -77,6 +77,6 @@ class TwitchCookies(messenger: BinaryMessenger) {
     }
 
     companion object {
-        const val CHANNEL = "frosty/cookies"
+        const val CHANNEL = "onset/cookies"
     }
 }

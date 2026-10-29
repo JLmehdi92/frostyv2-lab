@@ -1,4 +1,4 @@
-package com.tommychow.frosty
+package app.onset
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -20,7 +20,7 @@ import android.util.Log
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
 
-private const val AUDIO_TAG = "FrostyAudio"
+private const val AUDIO_TAG = "OnsetAudio"
 
 /**
  * Keeps a live stream's sound going with the app in the background: a
@@ -33,10 +33,10 @@ private const val AUDIO_TAG = "FrostyAudio"
  */
 class BackgroundAudioService : Service() {
     companion object {
-        const val ACTION_SHOW = "com.tommychow.frosty.audio.SHOW"
-        const val ACTION_PLAY = "com.tommychow.frosty.audio.PLAY"
-        const val ACTION_PAUSE = "com.tommychow.frosty.audio.PAUSE"
-        const val ACTION_STOP = "com.tommychow.frosty.audio.STOP"
+        const val ACTION_SHOW = "app.onset.audio.SHOW"
+        const val ACTION_PLAY = "app.onset.audio.PLAY"
+        const val ACTION_PAUSE = "app.onset.audio.PAUSE"
+        const val ACTION_STOP = "app.onset.audio.STOP"
         const val EXTRA_TITLE = "title"
         const val EXTRA_SUBTITLE = "subtitle"
         const val EXTRA_PLAYING = "playing"
@@ -70,7 +70,7 @@ class BackgroundAudioService : Service() {
     override fun onCreate() {
         super.onCreate()
         instance = this
-        session = MediaSession(this, "Frosty").apply {
+        session = MediaSession(this, "ONSET").apply {
             setCallback(object : MediaSession.Callback() {
                 override fun onPlay() { onCommand?.invoke("play") }
                 override fun onPause() { onCommand?.invoke("pause") }
@@ -218,12 +218,12 @@ class BackgroundAudioService : Service() {
 }
 
 /**
- * The `frosty/background-audio` channel: `show {title, subtitle, playing}`
+ * The `onset/background-audio` channel: `show {title, subtitle, playing}`
  * starts or updates [BackgroundAudioService], `hide` stops it, and media
  * buttons come back as `command {action}`.
  */
 class BackgroundAudioBridge(private val context: Context, messenger: BinaryMessenger) {
-    private val channel = MethodChannel(messenger, "frosty/background-audio")
+    private val channel = MethodChannel(messenger, "onset/background-audio")
     private val main = Handler(Looper.getMainLooper())
 
     init {

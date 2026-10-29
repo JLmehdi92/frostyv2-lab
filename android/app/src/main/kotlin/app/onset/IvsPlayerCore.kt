@@ -1,4 +1,4 @@
-package com.tommychow.frosty
+package app.onset
 
 import android.net.Uri
 import android.os.Handler
@@ -12,7 +12,7 @@ import com.amazonaws.ivs.player.TextCue
 import com.amazonaws.ivs.player.TextTrack
 import io.flutter.plugin.common.MethodChannel
 
-private const val CORE_TAG = "FrostyIVS"
+private const val CORE_TAG = "OnsetIVS"
 
 /**
  * Amazon IVS control/event wiring for a texture-backed player

@@ -245,7 +245,7 @@ abstract final class MentionNotifications {
       channelDescription:
           'When someone mentions you in a chat you are watching while ONSET '
           'is in the background',
-      groupKey: 'frosty.mentions',
+      groupKey: 'onset.mentions',
       category: AndroidNotificationCategory.message,
     ),
     iOS: DarwinNotificationDetails(threadIdentifier: 'chat_mentions'),

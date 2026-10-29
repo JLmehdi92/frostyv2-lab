@@ -1,4 +1,4 @@
-package com.tommychow.frosty
+package app.onset
 
 import android.content.Context
 import com.amazonaws.ivs.player.Player
@@ -24,7 +24,7 @@ class IvsTexturePlayer(
     private val surfaceProducer = textureRegistry.createSurfaceProducer()
     val textureId: Long = surfaceProducer.id()
     private val player: Player = tuning.buildPlayer(context)
-    private val channel = MethodChannel(messenger, "frosty/ivs-texture/$textureId")
+    private val channel = MethodChannel(messenger, "onset/ivs-texture/$textureId")
     private val core = IvsPlayerCore(player, channel) { w, h ->
         if (w > 0 && h > 0) surfaceProducer.setSize(w, h)
     }
@@ -43,7 +43,7 @@ class IvsTexturePlayer(
 
 /**
  * Creates and tracks [IvsTexturePlayer]s on demand from Dart over the
- * `frosty/ivs-texture-manager` channel: `create {config, url?} -> textureId`
+ * `onset/ivs-texture-manager` channel: `create {config, url?} -> textureId`
  * (the URL usually arrives later via the player's `load`),
  * `dispose {textureId}`.
  */
@@ -52,7 +52,7 @@ class IvsTextureManager(
     private val textureRegistry: TextureRegistry,
     private val messenger: BinaryMessenger,
 ) {
-    private val channel = MethodChannel(messenger, "frosty/ivs-texture-manager")
+    private val channel = MethodChannel(messenger, "onset/ivs-texture-manager")
     private val players = HashMap<Long, IvsTexturePlayer>()
 
     init {

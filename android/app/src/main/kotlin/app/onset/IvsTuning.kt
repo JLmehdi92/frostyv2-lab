@@ -1,4 +1,4 @@
-package com.tommychow.frosty
+package app.onset
 
 import android.content.Context
 import android.util.Log
@@ -6,11 +6,11 @@ import com.amazonaws.ivs.player.MediaPlayer
 import com.amazonaws.ivs.player.Player
 import com.amazonaws.ivs.player.SessionConfig
 
-private const val TUNING_TAG = "FrostyIVS"
+private const val TUNING_TAG = "OnsetIVS"
 
 /**
  * Low-latency tuning for a native IVS player, sent from Dart as the `config`
- * map of `frosty/ivs-texture-manager.create` (see `IvsPlayerConfig`).
+ * map of `onset/ivs-texture-manager.create` (see `IvsPlayerConfig`).
  *
  * Defaults match the official Twitch app: live catch-up by speeding playback
  * up (not by jumping to live), a 100 ms initial buffer and the IVS default

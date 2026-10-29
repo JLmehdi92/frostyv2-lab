@@ -25,7 +25,7 @@ String webVodEmbedUrl({required String vodId, required Duration startAt}) {
     'video': 'v$id',
     'autoplay': 'true',
     'muted': 'false',
-    'parent': 'frosty',
+    'parent': 'onset',
     if (startAt.inSeconds > 0) 'time': formatVodTimeForShare(startAt),
   }).toString();
 }
@@ -40,7 +40,7 @@ String webClipEmbedUrl(String slug) {
     'clip': slug,
     'autoplay': 'true',
     'muted': 'false',
-    'parent': 'frosty',
+    'parent': 'onset',
   }).toString();
 }
 
@@ -237,9 +237,9 @@ abstract class WebVodStoreBase
   static const bridgeScript =
       '''
     (() => {
-      if (!document.getElementById('frosty-vod-styles')) {
+      if (!document.getElementById('onset-vod-styles')) {
         const style = document.createElement('style');
-        style.id = 'frosty-vod-styles';
+        style.id = 'onset-vod-styles';
         style.textContent = `
           .top-bar,
           .player-controls,

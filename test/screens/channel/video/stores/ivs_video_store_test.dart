@@ -883,7 +883,7 @@ void main() {
   });
 
   group('audio focus', () {
-    const focusChannel = MethodChannel('frosty/audio-focus-ivs-test');
+    const focusChannel = MethodChannel('onset/audio-focus-ivs-test');
     final messenger =
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     late List<String> focusCalls;
@@ -974,7 +974,7 @@ void main() {
     });
 
     test('a pause asked for during a call is kept after it', () async {
-      final audioChannel = const MethodChannel('frosty/bg-focus-test');
+      final audioChannel = const MethodChannel('onset/bg-focus-test');
       messenger.setMockMethodCallHandler(audioChannel, (_) async => null);
       final audio = BackgroundAudio(channel: audioChannel, supported: true);
       settingsStore.backgroundAudio = true;
@@ -1056,7 +1056,7 @@ void main() {
   });
 
   group('background audio', () {
-    const audioChannel = MethodChannel('frosty/background-audio-ivs-test');
+    const audioChannel = MethodChannel('onset/background-audio-ivs-test');
     final messenger =
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     late List<MethodCall> audioCalls;

@@ -1,4 +1,4 @@
-package com.tommychow.frosty
+package app.onset
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -14,14 +14,14 @@ import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
 
 /**
- * Android audio focus for the live player, on the `frosty/audio-focus`
+ * Android audio focus for the live player, on the `onset/audio-focus`
  * channel: `request` takes the focus (and listens for headphones being
  * unplugged), `abandon` lets it go, and changes come back as
  * `change {state: loss | lossTransient | gain | noisy}`. Ducking is left
  * to the system (Android 8+ lowers the volume itself).
  */
 class AudioFocusBridge(private val context: Context, messenger: BinaryMessenger) {
-    private val channel = MethodChannel(messenger, "frosty/audio-focus")
+    private val channel = MethodChannel(messenger, "onset/audio-focus")
     private val main = Handler(Looper.getMainLooper())
     private val audioManager =
         context.getSystemService(Context.AUDIO_SERVICE) as AudioManager

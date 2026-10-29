@@ -18,7 +18,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.tommychow.frosty"
+    namespace = "app.onset"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -34,13 +34,10 @@ android {
     }
 
     defaultConfig {
-        // ONSET installs alongside the original Frosty rather than replacing it,
-        // so it needs its own applicationId. The namespace stays put: relative
-        // manifest names and the Kotlin package resolve against it, and the
-        // `frosty/ivs-*` MethodChannels are name-based, so nothing native moves.
-        // Consequence: this is a distinct app to Android, with its own storage —
-        // it starts logged out.
-        applicationId = "com.tommychow.frosty.onset"
+        // The Kotlin sources live in the same package (kotlin/app/onset), so
+        // relative manifest names (.MainActivity, .BackgroundAudioService)
+        // resolve against the namespace.
+        applicationId = "app.onset"
         minSdk = maxOf(flutter.minSdkVersion, 23) // Amazon IVS player requires Android 6.0+
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

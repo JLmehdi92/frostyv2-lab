@@ -14,7 +14,7 @@ class UnauthorizedInterceptor extends Interceptor {
 
   /// Set to true in a request's `extra` when a 401 is an expected answer
   /// the caller handles (e.g. a scope older tokens lack): no login dialog.
-  static const quiet = 'frosty.quietUnauthorized';
+  static const quiet = 'onset.quietUnauthorized';
 
   /// Whether a 401 to [request] asks the user to log in again.
   static bool promptsLogin(RequestOptions request) =>
