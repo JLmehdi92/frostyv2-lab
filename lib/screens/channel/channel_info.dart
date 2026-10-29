@@ -393,7 +393,7 @@ class _FollowButton extends StatelessWidget {
       title: name,
       url: Uri.https('www.twitch.tv', '/${login.toLowerCase()}'),
     );
-    unawaited(info.refreshFollowing());
+    info.refresh();
   }
 
   @override

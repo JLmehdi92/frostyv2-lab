@@ -38,32 +38,37 @@ class ChannelInfoStore {
   Timer? _timer;
   var _ready = false;
   var _alsoLiveWanted = false;
-  var _alsoLiveAsked = false;
+
+  /// True once "also live" was had for the current viewer, or while it is
+  /// being asked; a failure leaves it false so the next refresh asks again.
+  var _alsoLiveDone = false;
+  var _alsoLiveLoading = false;
   var _disposed = false;
 
   void start() {
     _timer ??= Timer(headStart, () {
       _ready = true;
-      unawaited(refreshFollowing());
-      if (_alsoLiveWanted) unawaited(_loadAlsoLive());
+      refresh();
     });
+  }
+
+  /// Reads everything again: the follow, and "also live" when it is wanted
+  /// and not had yet (after a failure, or after the viewer changed).
+  void refresh() {
+    if (_disposed || !_ready) return;
+    unawaited(refreshFollowing());
+    if (_alsoLiveWanted) unawaited(_loadAlsoLive());
   }
 
   /// The signed-in viewer changed (known late on a cold start, signed in or
   /// out): what they follow is read again, once the head start is over.
   void viewerChanged() {
-    if (_disposed || !_ready) return;
-    if (_viewerId() == null) {
-      following.value = null;
-      alsoLive.value = const [];
-      _alsoLiveAsked = false;
-      return;
-    }
-    unawaited(refreshFollowing());
-    if (_alsoLiveWanted) {
-      _alsoLiveAsked = false;
-      unawaited(_loadAlsoLive());
-    }
+    if (_disposed) return;
+    // What was read was the previous account's.
+    following.value = null;
+    alsoLive.value = const [];
+    _alsoLiveDone = false;
+    refresh();
   }
 
   /// Reads the follow again (after the viewer came back from twitch.tv).
@@ -76,7 +81,9 @@ class ChannelInfoStore {
         userId: viewer,
         broadcasterId: channelId,
       );
-      if (!_disposed) following.value = follows;
+      // Dropped when the account changed meanwhile: never one account's
+      // follows on another's screen.
+      if (!_disposed && _viewerId() == viewer) following.value = follows;
     } catch (error) {
       debugPrint('Follow state unavailable: $error');
     }
@@ -89,23 +96,34 @@ class ChannelInfoStore {
   }
 
   Future<void> _loadAlsoLive() async {
-    if (_alsoLiveAsked || _disposed) return;
+    if (_alsoLiveDone || _alsoLiveLoading || _disposed) return;
     final viewer = _viewerId();
     if (viewer == null) return;
-    _alsoLiveAsked = true;
+    _alsoLiveLoading = true;
+    var askAgain = false;
     try {
       final streams = await _api.getFollowedStreams(
         id: viewer,
         first: alsoLiveLimit + 1,
+        quiet: true,
       );
       if (_disposed) return;
+      if (_viewerId() != viewer) {
+        // Another account now: its own list is asked for.
+        askAgain = true;
+        return;
+      }
       alsoLive.value = List.unmodifiable(
         streams.data
             .where((stream) => stream.userId != channelId)
             .take(alsoLiveLimit),
       );
+      _alsoLiveDone = true;
     } catch (error) {
       debugPrint('Followed live channels unavailable: $error');
+    } finally {
+      _alsoLiveLoading = false;
+      if (askAgain) unawaited(_loadAlsoLive());
     }
   }
 

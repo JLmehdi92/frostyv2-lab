@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/apis/unauthorized_interceptor.dart';
 import 'package:frosty/models/emotes.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 
@@ -332,6 +333,34 @@ void main() {
       final blocked = await api.getUserBlockedList(id: '12345');
 
       expect(blocked, isEmpty);
+    });
+  });
+
+  group('getFollowedStreams', () {
+    test('can be asked quietly (no "Session expired" prompt)', () async {
+      final extras = <Map<String, dynamic>>[];
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            extras.add(Map.of(options.extra));
+            handler.next(options);
+          },
+        ),
+      );
+      dioAdapter.onGet(
+        'https://api.twitch.tv/helix/streams/followed',
+        (server) => server.reply(200, {
+          'data': <dynamic>[],
+          'pagination': <String, String>{},
+        }),
+        queryParameters: {'user_id': '7', 'first': '7'},
+      );
+
+      await api.getFollowedStreams(id: '7', first: 7, quiet: true);
+      await api.getFollowedStreams(id: '7', first: 7);
+
+      expect(extras[0][UnauthorizedInterceptor.quiet], isTrue);
+      expect(extras[1].containsKey(UnauthorizedInterceptor.quiet), isFalse);
     });
   });
 

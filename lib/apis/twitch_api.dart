@@ -357,10 +357,14 @@ class TwitchApi extends BaseApiClient {
   }
 
   /// Returns a [StreamsTwitch] object that contains the given user ID's top 20 followed streams and a cursor for further requests.
+  ///
+  /// [quiet]: a refusal shows no "Session expired" prompt (a side list, like
+  /// the channel screen's "Also live", is no reason to interrupt).
   Future<StreamsTwitch> getFollowedStreams({
     required String id,
     String? cursor,
     int? first,
+    bool quiet = false,
   }) async {
     final queryParams = {'user_id': id};
     if (cursor != null) queryParams['after'] = cursor;
@@ -368,6 +372,7 @@ class TwitchApi extends BaseApiClient {
 
     final data = await get<JsonMap>(
       '/streams/followed',
+      extra: quiet ? {UnauthorizedInterceptor.quiet: true} : null,
       queryParameters: queryParams,
     );
 

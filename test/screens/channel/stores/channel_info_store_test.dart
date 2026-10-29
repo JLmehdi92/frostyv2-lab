@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
@@ -34,6 +36,7 @@ void main() {
       () => api.getFollowedStreams(
         id: any(named: 'id'),
         first: any(named: 'first'),
+        quiet: any(named: 'quiet'),
       ),
     ).thenAnswer(
       (_) async =>
@@ -86,6 +89,7 @@ void main() {
         () => api.getFollowedStreams(
           id: any(named: 'id'),
           first: any(named: 'first'),
+          quiet: any(named: 'quiet'),
         ),
       );
 
@@ -100,6 +104,7 @@ void main() {
         () => api.getFollowedStreams(
           id: '7',
           first: any(named: 'first'),
+          quiet: any(named: 'quiet'),
         ),
       ).called(1);
       info.dispose();
@@ -199,6 +204,78 @@ void main() {
       async.elapse(ChannelInfoStore.headStart);
       async.flushMicrotasks();
       expect(info.following.value, isTrue);
+      info.dispose();
+    });
+  });
+
+  test('an answer for the previous account is dropped', () {
+    fakeAsync((async) {
+      String? viewer = '7';
+      final follow = Completer<bool>();
+      final streams = Completer<StreamsTwitch>();
+      when(
+        () => api.isFollowing(
+          userId: any(named: 'userId'),
+          broadcasterId: any(named: 'broadcasterId'),
+        ),
+      ).thenAnswer((_) => follow.future);
+      when(
+        () => api.getFollowedStreams(
+          id: any(named: 'id'),
+          first: any(named: 'first'),
+          quiet: any(named: 'quiet'),
+        ),
+      ).thenAnswer((_) => streams.future);
+      final info =
+          ChannelInfoStore(channelId: '42', api: api, viewerId: () => viewer)
+            ..start()
+            ..wantAlsoLive();
+      async.elapse(ChannelInfoStore.headStart);
+
+      // Signed out while Twitch answers for the previous account.
+      viewer = null;
+      info.viewerChanged();
+      follow.complete(true);
+      streams.complete(StreamsTwitch([_stream('1')], const {}));
+      async.flushMicrotasks();
+      expect(info.following.value, isNull);
+      expect(info.alsoLive.value, isEmpty);
+      info.dispose();
+    });
+  });
+
+  test('a failed "also live" is asked again, quietly', () {
+    fakeAsync((async) {
+      var fail = true;
+      when(
+        () => api.getFollowedStreams(
+          id: any(named: 'id'),
+          first: any(named: 'first'),
+          quiet: any(named: 'quiet'),
+        ),
+      ).thenAnswer((_) async {
+        if (fail) throw Exception('offline');
+        return StreamsTwitch([_stream('1')], const {});
+      });
+      final info = store()
+        ..start()
+        ..wantAlsoLive();
+      async.elapse(ChannelInfoStore.headStart);
+      async.flushMicrotasks();
+      expect(info.alsoLive.value, isEmpty);
+
+      fail = false;
+      info.refresh();
+      async.flushMicrotasks();
+      expect(info.alsoLive.value.map((s) => s.userId), ['1']);
+      // Never a "Session expired" prompt for it.
+      verify(
+        () => api.getFollowedStreams(
+          id: '7',
+          first: any(named: 'first'),
+          quiet: true,
+        ),
+      ).called(2);
       info.dispose();
     });
   });
