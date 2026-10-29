@@ -355,6 +355,10 @@ class _VideoChatState extends State<VideoChat>
     );
   }
 
+  /// The signed-in viewer's login, for the widgets that read it in their
+  /// own observers (Follow shows as soon as the account is known).
+  String? _viewerLogin() => context.authStore.user.details?.login;
+
   void _openProfile() => ChannelProfileScreen.open(
     context,
     login: widget.userLogin,
@@ -388,7 +392,7 @@ class _VideoChatState extends State<VideoChat>
                 login: widget.userLogin,
                 displayName: widget.userName,
                 info: _infoStore,
-                viewerLogin: context.authStore.user.details?.login,
+                viewerLogin: _viewerLogin,
                 onOpenChannel: _openChannel,
                 watchStreak: () => _eventsStore.watchStreak?.value,
               ),
@@ -1521,8 +1525,7 @@ class _VideoChatState extends State<VideoChat>
                                     login: widget.userLogin,
                                     displayName: widget.userName,
                                     info: _infoStore,
-                                    viewerLogin:
-                                        context.authStore.user.details?.login,
+                                    viewerLogin: _viewerLogin,
                                     onOpenProfile: _openProfile,
                                     large: large,
                                   ),

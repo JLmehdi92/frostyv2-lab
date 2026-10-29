@@ -7,6 +7,7 @@ import 'package:frosty/screens/channel/channel_info.dart';
 import 'package:frosty/screens/channel/stores/channel_info_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/theme.dart';
+import 'package:mobx/mobx.dart' show Observable, runInAction;
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 
@@ -78,7 +79,7 @@ void main() {
           login: 'streamer',
           displayName: 'Streamer',
           info: info,
-          viewerLogin: viewer,
+          viewerLogin: () => viewer,
           onOpenProfile: onOpenProfile ?? () {},
           large: large,
         ),
@@ -122,6 +123,37 @@ void main() {
         tester,
         row(FakePlayer(stream: fakeStream()), viewer: 'Streamer'),
       );
+      expect(find.text('Follow'), findsNothing);
+      await done(tester);
+    });
+
+    testWidgets('Follow follows the account: known late, then signed out', (
+      tester,
+    ) async {
+      final viewer = Observable<String?>(null);
+      await pump(
+        tester,
+        Column(
+          children: [
+            ChannelInfoRow(
+              player: FakePlayer(stream: fakeStream()),
+              login: 'streamer',
+              displayName: 'Streamer',
+              info: info,
+              viewerLogin: () => viewer.value,
+              onOpenProfile: () {},
+            ),
+          ],
+        ),
+      );
+      expect(find.text('Follow'), findsNothing);
+
+      runInAction(() => viewer.value = 'viewer');
+      await tester.pump();
+      expect(find.text('Follow'), findsOneWidget);
+
+      runInAction(() => viewer.value = null);
+      await tester.pump();
       expect(find.text('Follow'), findsNothing);
       await done(tester);
     });
@@ -179,7 +211,7 @@ void main() {
               login: 'streamer',
               displayName: 'Streamer',
               info: info,
-              viewerLogin: 'viewer',
+              viewerLogin: () => 'viewer',
               onOpenChannel: (stream) => opened.add(stream.userLogin),
               watchStreak: () => 12,
             ),
@@ -207,6 +239,33 @@ void main() {
     });
   });
 
+  testWidgets('the tablet panel shows Follow once the account is known', (
+    tester,
+  ) async {
+    final viewer = Observable<String?>(null);
+    await pump(
+      tester,
+      SizedBox(
+        width: 880,
+        height: 359,
+        child: TabletChannelPanel(
+          player: FakePlayer(stream: fakeStream()),
+          login: 'streamer',
+          displayName: 'Streamer',
+          info: info,
+          viewerLogin: () => viewer.value,
+          onOpenChannel: (_) {},
+        ),
+      ),
+      screen: const Size(1280, 854),
+    );
+    expect(find.text('Follow'), findsNothing);
+    runInAction(() => viewer.value = 'viewer');
+    await tester.pump();
+    expect(find.text('Follow'), findsOneWidget);
+    await done(tester);
+  });
+
   testWidgets('a narrow info area gets one card that fits', (tester) async {
     await pump(
       tester,
@@ -221,7 +280,7 @@ void main() {
             login: 'streamer',
             displayName: 'Streamer',
             info: info,
-            viewerLogin: null,
+            viewerLogin: () => null,
             onOpenChannel: (_) {},
           ),
         ),

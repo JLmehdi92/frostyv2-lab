@@ -55,8 +55,9 @@ class ChannelInfoRow extends StatelessWidget {
   final String displayName;
   final ChannelInfoStore info;
 
-  /// The signed-in viewer, null when signed out.
-  final String? viewerLogin;
+  /// The signed-in viewer, null when signed out; read inside this row's
+  /// observer, so signing in or out shows or hides Follow at once.
+  final String? Function() viewerLogin;
   final VoidCallback onOpenProfile;
 
   /// The tablet-portrait version.
@@ -142,7 +143,7 @@ class ChannelInfoRow extends StatelessWidget {
         }
 
         final avatar = large ? 48.0 : 40.0;
-        final canAct = _canAct(viewerLogin, login);
+        final canAct = _canAct(viewerLogin(), login);
         return Container(
           padding: large
               ? const EdgeInsets.fromLTRB(24, 4, 24, 16)
@@ -471,7 +472,9 @@ class TabletChannelPanel extends StatefulWidget {
   final String login;
   final String displayName;
   final ChannelInfoStore info;
-  final String? viewerLogin;
+
+  /// The signed-in viewer, read inside the panel's observer.
+  final String? Function() viewerLogin;
 
   /// Another live channel picked from "Also live from your follows".
   final ValueChanged<StreamTwitch> onOpenChannel;
@@ -493,7 +496,6 @@ class _TabletChannelPanelState extends State<TabletChannelPanel> {
   @override
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
-    final canAct = _canAct(widget.viewerLogin, widget.login);
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 18, 24, 18),
       child: Column(
@@ -513,6 +515,7 @@ class _TabletChannelPanelState extends State<TabletChannelPanel> {
                 _ => null,
               };
               final streak = widget.watchStreak?.call();
+              final canAct = _canAct(widget.viewerLogin(), widget.login);
               final name = stream != null
                   ? getReadableName(stream.userName, stream.userLogin)
                   : getReadableName(widget.displayName, widget.login);
