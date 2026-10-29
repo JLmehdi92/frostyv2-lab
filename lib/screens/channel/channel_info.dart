@@ -481,7 +481,7 @@ class FollowButton extends StatelessWidget {
                       shape: const StadiumBorder(),
                       textStyle: style,
                     ),
-                    child: const Text('Following'),
+                    child: const OneLineLabel('Following'),
                   )
                 : FilledButton(
                     onPressed: () => _open(context),
@@ -495,7 +495,7 @@ class FollowButton extends StatelessWidget {
                       shape: const StadiumBorder(),
                       textStyle: style,
                     ),
-                    child: const Text('Follow'),
+                    child: const OneLineLabel('Follow'),
                   ),
           ),
         );
@@ -549,7 +549,7 @@ class SubscribeButton extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          child: const Text('Subscribe'),
+          child: const OneLineLabel('Subscribe'),
         ),
       ),
     );
@@ -954,4 +954,18 @@ class TabletChatHeader extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A pill's label on one line, scaled down rather than broken mid-word when
+/// large text leaves it too little room.
+class OneLineLabel extends StatelessWidget {
+  const OneLineLabel(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => FittedBox(
+    fit: BoxFit.scaleDown,
+    child: Text(text, maxLines: 1, softWrap: false),
+  );
 }
