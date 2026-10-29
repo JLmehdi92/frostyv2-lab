@@ -295,7 +295,8 @@ class _EmoteTabsViewState extends State<EmoteTabsView>
 
 /// The emote menu in a tablet panel, above the chat input
 /// (ChaineOutilsTablette). Shown while [open]; a tap anywhere but the
-/// panel and the input closes it ([onClose]). The input stays usable.
+/// panel and the input closes it ([onClose]). Focusing the input closes
+/// it too, as on a phone (the keyboard and the menu take turns).
 class EmoteMenuPanelOverlay extends StatefulWidget {
   const EmoteMenuPanelOverlay({
     super.key,
@@ -358,6 +359,8 @@ class _EmoteMenuPanelOverlayState extends State<EmoteMenuPanelOverlay> {
                     Positioned.fromRect(
                       rect: placement.rect,
                       child: TextFieldTapRegion(
+                        // Taps in a sheet the panel opened (an emote's
+                        // details) do not count as outside: tested.
                         onTapOutside: (_) => widget.onClose(),
                         child: SheetPresentation(
                           panel: true,

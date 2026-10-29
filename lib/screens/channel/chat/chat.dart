@@ -15,7 +15,7 @@ import 'package:frosty/widgets/motion/reduce_motion.dart';
 import 'package:frosty/widgets/sheet/onset_panel.dart';
 import 'package:frosty/widgets/sheet/onset_sheet.dart';
 
-class Chat extends StatelessWidget {
+class Chat extends StatefulWidget {
   final ChatStore chatStore;
   final EdgeInsetsGeometry? listPadding;
 
@@ -35,18 +35,34 @@ class Chat extends StatelessWidget {
     this.chatTabsStore,
   });
 
+  @override
+  State<Chat> createState() => _ChatState();
+}
+
+class _ChatState extends State<Chat> {
+  ChatStore get chatStore => widget.chatStore;
+  EdgeInsetsGeometry? get listPadding => widget.listPadding;
+  VoidCallback get onAddChat => widget.onAddChat;
+  ChatTabsStore? get chatTabsStore => widget.chatTabsStore;
+
   bool get _isMerged => chatTabsStore != null;
+
+  /// Whether the last build put the emote menu under the input.
+  bool _builtInline = false;
 
   /// Where the tablet's emote panel goes, above the input in this chat
   /// (board ChaineOutilsTablette); null when it does not fit (the menu
-  /// then opens under the input, as on a phone). Read from the last layout.
-  PanelPlacement? _emotePanelPlacement(BuildContext context) {
+  /// then opens under the input, as on a phone). Read from the last
+  /// layout, so [_recheckPlacement] confirms it after each frame.
+  PanelPlacement? _emotePanelPlacement() {
     final chat = globalRectOf(context);
     if (chat == null || chat.isEmpty) return null;
     final media = MediaQuery.of(context);
     final isHorizontalLandscape =
         context.isLandscape && !chatStore.settings.landscapeForceVerticalChat;
     final bottomInset = isHorizontalLandscape ? 0.0 : media.padding.bottom;
+    // Where the input sits once the menu is a panel: at the bottom of the
+    // chat, even while an inline menu still pushes it up.
     final barTop = chat.bottom - bottomInset - chatStore.bottomBarHeight;
     // The nub points at the emote button, at one end of the input.
     final buttonX = chatStore.settings.emoteMenuButtonOnLeft
@@ -68,6 +84,16 @@ class Chat extends StatelessWidget {
     );
   }
 
+  /// A rotation, the video toggling or a first open decide on a layout
+  /// that is about to change: once laid out, decide again.
+  void _recheckPlacement() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !chatStore.assetsStore.showEmoteMenu) return;
+      final inline = _emotePanelPlacement() == null;
+      if (inline != _builtInline) setState(() {});
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Observer(
@@ -76,7 +102,9 @@ class Chat extends StatelessWidget {
         // A tablet's emote menu is a panel over the chat when it fits.
         final tablet = context.isLargeScreen;
         final emoteMenuInline =
-            showEmoteMenu && (!tablet || _emotePanelPlacement(context) == null);
+            showEmoteMenu && (!tablet || _emotePanelPlacement() == null);
+        _builtInline = emoteMenuInline;
+        if (tablet && showEmoteMenu) _recheckPlacement();
         return PanelRegion(
           child: Column(
             children: [
@@ -177,7 +205,7 @@ class Chat extends StatelessWidget {
                         open: showEmoteMenu && !emoteMenuInline,
                         onClose: () =>
                             chatStore.assetsStore.showEmoteMenu = false,
-                        placement: () => _emotePanelPlacement(context),
+                        placement: _emotePanelPlacement,
                       ),
                   ],
                 ),

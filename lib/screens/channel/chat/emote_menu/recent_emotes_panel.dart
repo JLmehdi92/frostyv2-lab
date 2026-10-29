@@ -20,22 +20,30 @@ class RecentEmotesPanel extends StatelessWidget {
         if (chatStore.assetsStore.recentEmotes.isEmpty) {
           // The board's empty state.
           final color = SheetColors.of(context).tertiary;
+          // Scrolls (never by hand) rather than overflow while the menu
+          // folds away under it.
           return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              spacing: 6,
-              children: [
-                SheetGlyph(
-                  SheetGlyphKind.emote,
-                  size: 26,
-                  strokeWidth: 1.6,
-                  color: color,
-                ),
-                Text(
-                  'No recent emotes',
-                  style: SheetText.status.copyWith(fontSize: 13, color: color),
-                ),
-              ],
+            child: SingleChildScrollView(
+              physics: const NeverScrollableScrollPhysics(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                spacing: 6,
+                children: [
+                  SheetGlyph(
+                    SheetGlyphKind.emote,
+                    size: 26,
+                    strokeWidth: 1.6,
+                    color: color,
+                  ),
+                  Text(
+                    'No recent emotes',
+                    style: SheetText.status.copyWith(
+                      fontSize: 13,
+                      color: color,
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         }

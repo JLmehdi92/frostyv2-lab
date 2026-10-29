@@ -211,6 +211,27 @@ void main() {
       expect(closed, 1);
     });
 
+    testWidgets('taps in a sheet the panel opened do not close it', (
+      tester,
+    ) async {
+      captureClipboard(tester);
+      var closed = 0;
+      await pump(
+        tester,
+        overlay(open: true, onClose: () => closed++),
+        size: const Size(1280, 854),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('7TV'));
+      await tester.pumpAndSettle();
+      await tester.longPress(find.byType(EmoteCell).first);
+      await tester.pumpAndSettle();
+      expect(find.byType(BottomSheet), findsOneWidget);
+      await tester.tap(find.text('Copy name'));
+      await tester.pumpAndSettle();
+      expect(closed, 0);
+    });
+
     testWidgets('closed, nothing is drawn', (tester) async {
       await pump(
         tester,
