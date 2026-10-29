@@ -87,6 +87,15 @@ void main() {
     expect(notice.title, 'A B mentioned you in Streamer');
   });
 
+  test('emoji and scripts keep their joiners', () async {
+    const family = '\u{1F468}\u200D\u{1F469}\u200D\u{1F467}';
+    const persian = '\u0645\u06CC\u200C\u062E\u0648\u0627\u0647\u0645';
+    await alerts.onMention(_mention(text: '$family $persian', from: persian));
+    final notice = posted.single;
+    expect(notice.body, '$family $persian');
+    expect(notice.title, '$persian mentioned you in Streamer');
+  });
+
   test('its Activity entry names the message', () {
     final entry = mentionEntry((
       messageId: 'm1',

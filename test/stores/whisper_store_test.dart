@@ -64,7 +64,16 @@ void main() {
       'characters', () {
     expect(whisperPreview('hi\u2028Staff\u2029: x'), 'hi Staff : x');
     expect(whisperPreview('a\u061Cb'), 'a b');
-    expect(whisperPreview('St\u200Ba\u200Cf\u200Df\u2060\uFEFF'), 'Staff');
+    expect(whisperPreview('St\u200Baf\u2060f\uFEFF'), 'Staff');
+  });
+
+  test('whisperPreview keeps the joiners that emoji and scripts need', () {
+    // A family emoji is joined by U+200D; a Persian word needs U+200C.
+    const family = '\u{1F468}\u200D\u{1F469}\u200D\u{1F467}';
+    const persian = '\u0645\u06CC\u200C\u062E\u0648\u0627\u0647\u0645';
+    expect(whisperPreview('hi $family'), 'hi $family');
+    expect(whisperPreview(persian), persian);
+    expect(whisperPreview('a\u200Bb\u2060c\uFEFFd'), 'abcd');
   });
 
   group('WhisperStore', () {

@@ -80,6 +80,20 @@ void main() {
     expect(notice, endsWith('…"'));
   });
 
+  test('a quote keeps the joiners of emoji and scripts', () async {
+    const family = '\u{1F468}\u200D\u{1F469}\u200D\u{1F467}';
+    const persian = '\u0645\u06CC\u200C\u062E\u0648\u0627\u0647\u0645';
+    watch();
+    topics['channel.chat.user_message_update']!.add(
+      EventSubData(update('approved', text: '$family $persian')),
+    );
+    await pumpEventQueue();
+
+    expect(notices, [
+      'Moderators approved your held message: "$family $persian"',
+    ]);
+  });
+
   test(
     'other viewers and unknown statuses say nothing, odd text is left out',
     () async {
