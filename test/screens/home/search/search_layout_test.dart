@@ -292,4 +292,65 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('"See all" is read once, with its section', (tester) async {
+    final handle = tester.ensureSemantics();
+    await pump(tester, size: const Size(390, 844));
+    await search(tester, 'chess');
+    expect(find.bySemanticsLabel('See all Channels'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp(r'See all\nSee all')), findsNothing);
+    expect(find.bySemanticsLabel('See all'), findsNothing);
+    handle.dispose();
+  });
+
+  testWidgets('nothing is blurred under search until it is in place', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final auth = MockAuthStore();
+    when(() => auth.isLoggedIn).thenReturn(false);
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          Provider<AuthStore>.value(value: auth),
+          Provider<TwitchApi>.value(value: api),
+          Provider<TwitchVodService>.value(value: vods),
+        ],
+        child: MaterialApp(
+          home: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => SearchScreen.open(context),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 60));
+    // Mid-transition: the page below (a live preview, a video) shows
+    // through, and must not be blurred.
+    expect(
+      tester.widget<BackdropFilter>(find.byType(BackdropFilter)).enabled,
+      isFalse,
+    );
+    await settle(tester);
+    expect(
+      tester.widget<BackdropFilter>(find.byType(BackdropFilter)).enabled,
+      isTrue,
+    );
+
+    // Leaving: no blur while the page slides away.
+    Navigator.of(tester.element(find.byType(SearchScreen))).pop();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 60));
+    expect(
+      tester.widget<BackdropFilter>(find.byType(BackdropFilter)).enabled,
+      isFalse,
+    );
+    await settle(tester);
+  });
 }

@@ -76,6 +76,36 @@ void main() {
     ).called(1);
   });
 
+  testWidgets('the header is not blurred until the page is in place', (
+    tester,
+  ) async {
+    await pumpApp(
+      tester,
+      Builder(
+        builder: (context) => TextButton(
+          onPressed: () => TagStreams.open(context, 'Chill'),
+          child: const Text('open'),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 60));
+    // Mid-transition the page below (the Live feed's preview) shows
+    // through: never blurred.
+    expect(
+      tester.widget<BackdropFilter>(find.byType(BackdropFilter)).enabled,
+      isFalse,
+    );
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(
+      tester.widget<BackdropFilter>(find.byType(BackdropFilter)).enabled,
+      isTrue,
+    );
+  });
+
   testWidgets('only Twitch tags open a page', (tester) async {
     await pumpApp(
       tester,

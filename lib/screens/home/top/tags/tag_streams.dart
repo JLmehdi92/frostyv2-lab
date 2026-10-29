@@ -9,6 +9,7 @@ import 'package:frosty/screens/home/stream_list/stream_sort_button.dart';
 import 'package:frosty/screens/home/stream_list/streams_list.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
+import 'package:frosty/widgets/settled_blur.dart';
 
 /// The live streams with a tag, in any of Twitch's orders (board Categorie,
 /// "tag" state): a glass header with the tag and the order over the list,
@@ -76,9 +77,10 @@ class _TagStreamsState extends State<TagStreams> {
               top: 0,
               left: 0,
               right: 0,
-              // The glass of the shell's header (nothing plays under it).
+              // The glass of the shell's header, once the page is in place
+              // (the Live feed's preview can be under it while it moves).
               child: ClipRect(
-                child: BackdropFilter(
+                child: SettledBlur(
                   filter: ui.ImageFilter.blur(sigmaX: 22, sigmaY: 22),
                   child: DecoratedBox(
                     decoration: BoxDecoration(

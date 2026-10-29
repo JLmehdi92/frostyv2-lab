@@ -22,6 +22,7 @@ import 'package:frosty/widgets/motion/motion.dart';
 import 'package:frosty/widgets/motion/press_scale.dart';
 import 'package:frosty/widgets/motion/reduce_motion.dart';
 import 'package:frosty/widgets/motion/staggered_entrance.dart';
+import 'package:frosty/widgets/settled_blur.dart';
 import 'package:mobx/mobx.dart';
 import 'package:provider/provider.dart';
 
@@ -313,9 +314,9 @@ class _SearchState extends State<Search> {
       indicatorColor: context.frostyColors.live,
     );
     return ClipRect(
-      // The phone's glass (nothing plays under search); the tablet's bar
-      // is opaque.
-      child: BackdropFilter(
+      // The phone's glass, once the page is in place (search opens over
+      // the Live feed's preview too); the tablet's bar is opaque.
+      child: SettledBlur(
         enabled: !large,
         filter: ui.ImageFilter.blur(sigmaX: 22, sigmaY: 22),
         child: DecoratedBox(
@@ -880,6 +881,7 @@ class _SectionTitle extends StatelessWidget {
           ),
           child: Semantics(
             label: 'See all $title',
+            excludeSemantics: true,
             child: const Text('See all'),
           ),
         ),
