@@ -109,6 +109,38 @@ void main() {
       expect(profile.live?.viewers, 12);
     });
 
+    test('a live stream: when it started and what it plays', () {
+      final profile = ChannelProfile.fromGql({
+        'id': '1',
+        'login': 'someone',
+        'stream': {
+          'id': '9',
+          'type': 'live',
+          'viewersCount': 963,
+          'createdAt': '2026-10-28T21:47:06Z',
+          'game': {'id': '32982', 'displayName': 'Grand Theft Auto V'},
+        },
+      })!;
+      expect(profile.live?.startedAt, DateTime.utc(2026, 10, 28, 21, 47, 6));
+      expect(profile.live?.gameId, '32982');
+      expect(profile.live?.gameName, 'Grand Theft Auto V');
+
+      // Odd values are dropped, the stream still reads.
+      final odd = ChannelProfile.fromGql({
+        'id': '1',
+        'login': 'someone',
+        'stream': {
+          'id': '9',
+          'createdAt': 'soon',
+          'game': {'id': '12a', 'displayName': 3},
+        },
+      })!;
+      expect(odd.live, isNotNull);
+      expect(odd.live?.startedAt, isNull);
+      expect(odd.live?.gameId, isNull);
+      expect(odd.live?.gameName, isNull);
+    });
+
     test('garbage never throws', () {
       for (final value in <Object?>[
         null,

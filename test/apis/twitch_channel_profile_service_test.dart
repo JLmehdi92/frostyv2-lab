@@ -50,6 +50,14 @@ void main() {
     expect(data['operationName'], 'ChannelProfile');
     expect(data['variables'], {'login': 'xqc'});
     expect(data['query'], contains('panels'));
+    // The live card's uptime and category (verified anonymously on
+    // 2026-10-29).
+    expect(
+      data['query'],
+      contains(
+        'stream { id type viewersCount createdAt game { id displayName } }',
+      ),
+    );
   });
 
   test('an unknown channel is null', () async {

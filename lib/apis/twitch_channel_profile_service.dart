@@ -20,7 +20,8 @@ class TwitchChannelProfileService extends BaseApiClient {
   static const _gqlUrl = 'https://gql.twitch.tv/gql';
   static final _login = RegExp(r'^[a-zA-Z0-9_]{1,25}$');
 
-  // Verified anonymously on 2026-10-13.
+  // Verified anonymously on 2026-10-13 (the stream's `createdAt` and `game`
+  // on 2026-10-29).
   static const _profileQuery =
       'query ChannelProfile(\$login: String!) { user(login: \$login) { id '
       'login displayName description createdAt profileImageURL(width: 300) '
@@ -30,7 +31,7 @@ class TwitchChannelProfileService extends BaseApiClient {
       'panels { id type ... on DefaultPanel { title imageURL linkURL '
       'description altText } } '
       'lastBroadcast { id title startedAt game { id displayName } } '
-      'stream { id type viewersCount } } }';
+      'stream { id type viewersCount createdAt game { id displayName } } } }';
 
   // `segments` takes no `first`: it answers this week and the next.
   static const _scheduleQuery =
