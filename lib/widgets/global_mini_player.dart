@@ -53,6 +53,12 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
     vsync: this,
     duration: const Duration(milliseconds: 240),
   );
+  /// The snap's curve, made once (one per release would pile listeners up
+  /// on the controller).
+  late final _snapCurve = CurvedAnimation(
+    parent: _snapController,
+    curve: Curves.easeOutCubic,
+  );
   Animation<Offset>? _snapAnim;
 
   @override
@@ -67,10 +73,10 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
   /// Smoothly animates the window to [target] (used for the release snap).
   void _snapTo(MiniWindowArea area, MiniCorner corner) {
     final target = area.at(corner);
-    _snapAnim = Tween<Offset>(begin: _offset.value ?? target, end: target)
-        .animate(
-          CurvedAnimation(parent: _snapController, curve: Curves.easeOutCubic),
-        );
+    _snapAnim = Tween<Offset>(
+      begin: _offset.value ?? target,
+      end: target,
+    ).animate(_snapCurve);
     _snapController
       ..reset()
       ..forward().whenCompleteOrCancel(() {
@@ -87,6 +93,7 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
 
   @override
   void dispose() {
+    _snapCurve.dispose();
     _snapController.dispose();
     _offset.dispose();
     _dragging.dispose();

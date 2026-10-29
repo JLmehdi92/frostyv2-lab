@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -264,6 +265,71 @@ void main() {
     await tester.pump();
     expect(mini.visible, isFalse);
     await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('drag releases do not pile up curved animations', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    const channel = MethodChannel('puntito.simple_pip_mode');
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      channel,
+      (call) async => true,
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        channel,
+        null,
+      ),
+    );
+    // Every CurvedAnimation made from here on, until it is disposed.
+    final alive = <Object>{};
+    void track(ObjectEvent event) {
+      if (event.object is! CurvedAnimation) return;
+      if (event is ObjectCreated) alive.add(event.object);
+      if (event is ObjectDisposed) alive.remove(event.object);
+    }
+
+    FlutterMemoryAllocations.instance.addListener(track);
+    addTearDown(() => FlutterMemoryAllocations.instance.removeListener(track));
+    final mini = MiniPlayerStore();
+    final player = MockIvsVideoStore();
+    when(player.dispose).thenAnswer((_) async {});
+    final chat = MockChatTabsStore();
+    when(chat.dispose).thenReturn(null);
+    mini.adopt(
+      player: player,
+      chatTabsStore: chat,
+      userLogin: 'a',
+      userId: '1',
+      displayName: 'A',
+    );
+    await tester.pumpWidget(
+      Provider<MiniPlayerStore>.value(
+        value: mini,
+        child: const MaterialApp(
+          home: Stack(children: [Positioned.fill(child: GlobalMiniPlayer())]),
+        ),
+      ),
+    );
+    await tester.pump();
+    final window = find.byType(IvsTextureVideo).first;
+    for (final move in const [Offset(-200, 300), Offset(200, -300)]) {
+      for (var i = 0; i < 2; i++) {
+        final gesture = await tester.startGesture(tester.getCenter(window));
+        await gesture.moveBy(move / 2);
+        await gesture.moveBy(move / 2);
+        await gesture.up();
+        await tester.pump(const Duration(seconds: 1));
+      }
+    }
+    final whileShown = alive.length;
+    mini.close();
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+    expect(alive, isEmpty, reason: '$whileShown alive while it was shown');
   });
 
   test('the landing corners read over a dark stream and a light page', () {
