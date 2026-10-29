@@ -157,32 +157,99 @@ void main() {
         verifyNever(() => api.validateToken(token: 'attacker'));
       });
 
-      test('with the state of an earlier attempt', () {
-        store.startAuthorization();
-        expectRefused(request(redirect('attacker', state: state)));
+      test('with the earlier state of the same page (it was opened again)', () {
+        final attempt = store.beginLogin();
+        final first = stateOf(store.authorizationUri(attempt));
+        store.authorizationUri(attempt);
+        var captured = 0;
+        store.handleNavigation(
+          request: request(redirect('attacker', state: first)),
+          attempt: attempt,
+          onTokenCaptured: (_) => captured++,
+        );
+        expect(captured, 0);
+      });
+
+      test('with the state of a login page that was closed', () {
+        final attempt = store.beginLogin();
+        final closed = stateOf(store.authorizationUri(attempt));
+        store.endLogin(attempt);
+        expectRefused(request(redirect('attacker', state: closed)));
       });
     });
 
-    test('signed in on twitch.tv: the onboarding is told, once', () {
+    test('two login pages at once (the onboarding, and one opened over '
+        'it): each takes its own token', () async {
+      final onboarding = store.beginLogin();
+      final onboardingState = stateOf(store.authorizationUri(onboarding));
+      final overIt = store.beginLogin();
+      final overItState = stateOf(store.authorizationUri(overIt));
+      final captured = <String>[];
+
+      // The page over it never takes the onboarding's token…
+      store.handleNavigation(
+        request: request(redirect('a', state: onboardingState)),
+        attempt: overIt,
+        onTokenCaptured: (_) => captured.add('over it'),
+      );
+      expect(captured, isEmpty);
+      // …it is closed, and the onboarding's own login still goes through.
+      store.endLogin(overIt);
+      store.handleNavigation(
+        request: request(redirect('abc', state: onboardingState)),
+        attempt: onboarding,
+        onTokenCaptured: (_) => captured.add('onboarding'),
+      );
+      expect(captured, ['onboarding']);
+      expect(onboarding.captured, isTrue);
+      expect(overIt.captured, isFalse);
+      // The closed page's state is gone for good.
+      store.handleNavigation(
+        request: request(redirect('x', state: overItState)),
+        onTokenCaptured: (_) => captured.add('closed'),
+      );
+      expect(captured, ['onboarding']);
+      await pumpEventQueue();
+    });
+
+    test('signed in on twitch.tv after its token: told, once', () {
+      final attempt = store.beginLogin();
+      final state = stateOf(store.authorizationUri(attempt));
+      store.handleNavigation(
+        request: request(redirect('abc', state: state)),
+        attempt: attempt,
+      );
       var signedIn = 0;
+      var notSignedIn = 0;
+      void go(NavigationRequest request) => store.handleNavigation(
+        request: request,
+        attempt: attempt,
+        onSignedIn: () => signedIn++,
+        onNotSignedIn: () => notSignedIn++,
+      );
+      go(request('https://www.twitch.tv/?no-reload=true'));
+      expect(signedIn, 1);
+      go(request('https://www.twitch.tv/directory'));
+      // A frame inside the page reaching that address is not the page.
+      go(request('https://www.twitch.tv/?no-reload=true', mainFrame: false));
+      expect(signedIn, 1);
+      expect(notSignedIn, 0);
+    });
+
+    test('twitch.tv without a token for this page: not signed in, and said '
+        'so (no Setup, no pop)', () {
+      final attempt = store.beginLogin();
+      store.authorizationUri(attempt);
+      var signedIn = 0;
+      var notSignedIn = 0;
       store.handleNavigation(
         request: request('https://www.twitch.tv/?no-reload=true'),
+        attempt: attempt,
         onSignedIn: () => signedIn++,
+        onNotSignedIn: () => notSignedIn++,
       );
-      expect(signedIn, 1);
-      store.handleNavigation(
-        request: request('https://www.twitch.tv/directory'),
-        onSignedIn: () => signedIn++,
-      );
-      // A frame inside the page reaching that address is not the page.
-      store.handleNavigation(
-        request: request(
-          'https://www.twitch.tv/?no-reload=true',
-          mainFrame: false,
-        ),
-        onSignedIn: () => signedIn++,
-      );
-      expect(signedIn, 1);
+      expect(signedIn, 0);
+      expect(notSignedIn, 1);
     });
 
     test('opens the implicit grant with every scope, always confirmed, '

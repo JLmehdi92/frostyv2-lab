@@ -314,9 +314,10 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
   Uri _page = Uri.parse('https://id.twitch.tv');
   bool _signingIn = false;
 
-  /// The page itself failed to load ([_failedUrl]); another page clears it.
+  /// The page itself failed to load ([_failedPage]); another page clears
+  /// it.
   bool _failed = false;
-  String? _failedUrl;
+  Uri? _failedPage;
 
   /// Twitch handed a token back but the login did not go through.
   bool _loginFailed = false;
@@ -330,14 +331,25 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
       routeAfter: widget.routeAfter,
       onSignedIn: widget.onSignedIn,
       onTokenCaptured: _onTokenCaptured,
+      onNotSignedIn: _onNotSignedIn,
       onPage: _onPage,
       onError: _onError,
     );
   }
 
+  /// [uri] without what does not make it another page (the fragment, an
+  /// empty path, the host's case).
+  static Uri _pageOf(Uri uri) {
+    final page = uri.removeFragment().normalizePath();
+    return page.path.isEmpty && page.hasAuthority
+        ? page.replace(path: '/')
+        : page;
+  }
+
   void _onPage(Uri uri) {
     if (!mounted) return;
-    final moved = _failed && uri.toString() != _failedUrl;
+    final failed = _failedPage;
+    final moved = _failed && (failed == null || _pageOf(uri) != failed);
     if (uri == _page && !moved) return;
     setState(() {
       _page = uri;
@@ -369,6 +381,17 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
     }).ignore();
   }
 
+  /// Twitch signed the page in without handing this login a token (the
+  /// user said no): the page stays, with what happened.
+  void _onNotSignedIn() {
+    if (!mounted) return;
+    _signingLimit?.cancel();
+    setState(() {
+      _signingIn = false;
+      _loginFailed = true;
+    });
+  }
+
   void _onError(WebResourceError error) {
     // A picture or a script that failed leaves the page usable; only the
     // page itself failing is shown. Once the token is back, the page
@@ -377,9 +400,11 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
     // A navigation replaced by another (a quick tap, a redirect) is not a
     // failure: iOS reports it as cancelled (-999) or interrupted (102).
     if (error.errorCode == -999 || error.errorCode == 102) return;
+    // iOS may not say which page failed: it is the one that was loading.
+    final url = error.url == null ? null : Uri.tryParse(error.url!);
     setState(() {
       _failed = true;
-      _failedUrl = error.url;
+      _failedPage = _pageOf(url ?? _page);
     });
   }
 
@@ -390,9 +415,7 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
     });
     // A new attempt: a new state, the earlier one is no longer accepted.
     unawaited(
-      _controller.loadRequest(_auth.startAuthorization()).catchError((
-        Object e,
-      ) {
+      _auth.retryLogin(_controller).catchError((Object e) {
         debugPrint('Login page reload failed: ${e.runtimeType}');
         if (mounted) setState(() => _failed = true);
       }),
@@ -402,6 +425,8 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
   @override
   void dispose() {
     _signingLimit?.cancel();
+    // The page is gone: its login's state is no longer accepted.
+    _auth.closeLogin(_controller);
     super.dispose();
   }
 

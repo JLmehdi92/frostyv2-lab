@@ -20,11 +20,12 @@ void main() {
   ValueChanged<WebResourceError>? onError;
   ValueChanged<Future<void>>? onTokenCaptured;
   VoidCallback? onSignedIn;
-  final authorize = Uri.parse(
-    'https://id.twitch.tv/oauth2/authorize?client_id=x&force_verify=true',
-  );
+  VoidCallback? onNotSignedIn;
 
-  setUpAll(() => registerFallbackValue(Uri()));
+  setUpAll(() {
+    registerFallbackValue(Uri());
+    registerFallbackValue(MockWebViewController());
+  });
 
   setUp(() {
     auth = MockAuthStore();
@@ -33,13 +34,16 @@ void main() {
     onError = null;
     onTokenCaptured = null;
     onSignedIn = null;
-    when(() => auth.startAuthorization()).thenReturn(authorize);
+    onNotSignedIn = null;
+    when(() => auth.retryLogin(any())).thenAnswer((_) async {});
+    when(() => auth.closeLogin(any())).thenReturn(null);
     when(() => auth.isLoggedIn).thenReturn(false);
     when(
       () => auth.createAuthWebViewController(
         routeAfter: any(named: 'routeAfter'),
         onSignedIn: any(named: 'onSignedIn'),
         onTokenCaptured: any(named: 'onTokenCaptured'),
+        onNotSignedIn: any(named: 'onNotSignedIn'),
         onPage: any(named: 'onPage'),
         onError: any(named: 'onError'),
       ),
@@ -52,6 +56,8 @@ void main() {
           invocation.namedArguments[#onTokenCaptured]
               as ValueChanged<Future<void>>?;
       onSignedIn = invocation.namedArguments[#onSignedIn] as VoidCallback?;
+      onNotSignedIn =
+          invocation.namedArguments[#onNotSignedIn] as VoidCallback?;
       return controller;
     });
     when(() => controller.loadRequest(any())).thenAnswer((_) async {});
@@ -133,6 +139,7 @@ void main() {
     verify(
       () => auth.createAuthWebViewController(
         onTokenCaptured: any(named: 'onTokenCaptured'),
+        onNotSignedIn: any(named: 'onNotSignedIn'),
         onPage: any(named: 'onPage'),
         onError: any(named: 'onError'),
       ),
@@ -148,6 +155,7 @@ void main() {
         routeAfter: any(named: 'routeAfter'),
         onSignedIn: any(named: 'onSignedIn'),
         onTokenCaptured: any(named: 'onTokenCaptured'),
+        onNotSignedIn: any(named: 'onNotSignedIn'),
         onPage: any(named: 'onPage'),
         onError: any(named: 'onError'),
       ),
@@ -207,9 +215,9 @@ void main() {
     await tester.tap(find.text('Try again'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    // A fresh attempt (a new state), never the old address again.
-    verify(() => auth.startAuthorization()).called(1);
-    verify(() => controller.loadRequest(authorize)).called(1);
+    // A fresh attempt of this page's login (a new state), never the old
+    // address again.
+    verify(() => auth.retryLogin(controller)).called(1);
     expect(find.text('Twitch could not be reached'), findsNothing);
   });
 
@@ -238,6 +246,46 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Signing you in…'), findsNothing);
     expect(find.text('Twitch did not sign you in. Try again.'), findsOneWidget);
+  });
+
+  testWidgets('Twitch signing the page in without its token: the page '
+      'stays and says so', (tester) async {
+    await open(tester);
+    onNotSignedIn!();
+    await tester.pump();
+    expect(find.text('Twitch did not sign you in. Try again.'), findsOneWidget);
+    expect(find.text('Connect with Twitch'), findsOneWidget);
+  });
+
+  testWidgets('closing the page closes its login', (tester) async {
+    await open(tester);
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+    verify(() => auth.closeLogin(controller)).called(1);
+  });
+
+  testWidgets('iOS not naming the failed page: it is the one that was '
+      'loading', (tester) async {
+    await open(tester);
+    onPage!(Uri.parse('https://id.twitch.tv/oauth2/authorize?x=1'));
+    await tester.pump();
+    onError!(
+      const WebResourceError(
+        errorCode: -1009,
+        description: 'offline',
+        isForMainFrame: true,
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Twitch could not be reached'), findsOneWidget);
+    // The same page again (a fragment, the host's case) is not another one.
+    onPage!(Uri.parse('https://ID.twitch.tv/oauth2/authorize?x=1#top'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Twitch could not be reached'), findsOneWidget);
+    onPage!(Uri.parse('https://www.twitch.tv/'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Twitch could not be reached'), findsNothing);
   });
 
   testWidgets('the failure clears once another page loads', (tester) async {

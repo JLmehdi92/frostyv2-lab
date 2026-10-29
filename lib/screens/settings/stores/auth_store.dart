@@ -21,6 +21,20 @@ part 'auth_store.g.dart';
 
 class AuthStore = AuthBase with _$AuthStore;
 
+/// One opened login page ([AuthBase.beginLogin]): the `state` its
+/// authorization carries, and whether Twitch handed it a token. Several can
+/// be open at once (a login opened over the onboarding's), each taking only
+/// its own token.
+class LoginAttempt {
+  LoginAttempt._();
+
+  String? _state;
+  bool _captured = false;
+
+  /// Whether the redirect brought this page's token back.
+  bool get captured => _captured;
+}
+
 abstract class AuthBase with Store {
   /// Secure storage to store tokens.
   final FlutterSecureStorage _storage;
@@ -338,17 +352,24 @@ abstract class AuthBase with Store {
   /// given, is called once Twitch has signed
   /// the WebView in, instead of the page being popped (the onboarding moves
   /// on to its next step itself).
+  ///
+  /// [attempt] is the page's own login: only its token is taken, and
+  /// Twitch's sign-in counts only once that token came back; otherwise the
+  /// page stays (nothing is popped, no next step) and [onNotSignedIn] is
+  /// told. Without one, any open login's state is accepted.
   FutureOr<NavigationDecision> handleNavigation({
     required NavigationRequest request,
     Widget? routeAfter,
     ValueChanged<Future<void>>? onTokenCaptured,
     VoidCallback? onSignedIn,
+    VoidCallback? onNotSignedIn,
+    LoginAttempt? attempt,
   }) {
     // The redirect URI, exactly, and only for the page itself: a frame
     // inside it, another path or host, or a token without the state of the
     // login this app opened (an injected redirect: someone else's token,
     // which would sign the user into their account) is never taken.
-    final token = _redirectToken(request);
+    final token = _redirectToken(request, attempt);
     if (token != null) {
       final signingIn = login(token: token);
       onTokenCaptured?.call(signingIn);
@@ -366,7 +387,14 @@ abstract class AuthBase with Store {
       // Deliberately not awaited — navigation must not wait on a cookie read.
       unawaited(harvestTwitchWebToken());
 
-      if (onSignedIn != null) {
+      final signedIn =
+          attempt?.captured ?? _openLogins.any((open) => open.captured);
+      if (!signedIn) {
+        // Twitch signed the page in, but no token of this login came back
+        // (the user said no, or another page's login was the one asked):
+        // nothing is logged in, so nothing moves on.
+        onNotSignedIn?.call();
+      } else if (onSignedIn != null) {
         onSignedIn();
       } else if (routeAfter != null) {
         navigatorKey.currentState?.pop();
@@ -383,13 +411,28 @@ abstract class AuthBase with Store {
     return NavigationDecision.navigate;
   }
 
-  /// The `state` of the authorization the login page opened last
-  /// ([startAuthorization]); a redirect must carry it back, once.
-  String? _authorizationState;
+  /// The login pages open now, each with the state its redirect must bring
+  /// back.
+  final _openLogins = <LoginAttempt>{};
 
-  /// The token of [request] when it is Twitch's redirect for the login this
-  /// app opened, else null. The state is used up when it matches.
-  String? _redirectToken(NavigationRequest request) {
+  /// Opens a login (a login page): [authorizationUri] gives its address,
+  /// [endLogin] closes it.
+  LoginAttempt beginLogin() {
+    final attempt = LoginAttempt._();
+    _openLogins.add(attempt);
+    return attempt;
+  }
+
+  /// Closes [attempt]: its state is no longer accepted.
+  void endLogin(LoginAttempt attempt) {
+    attempt._state = null;
+    _openLogins.remove(attempt);
+  }
+
+  /// The token of [request] when it is Twitch's redirect for [attempt] (or,
+  /// without one, for any open login), else null. The state is used up
+  /// when it matches.
+  String? _redirectToken(NavigationRequest request, LoginAttempt? attempt) {
     if (!request.isMainFrame) return null;
     final uri = Uri.tryParse(request.url);
     if (uri == null ||
@@ -408,16 +451,20 @@ abstract class AuthBase with Store {
     }
     final token = fragment['access_token'];
     final state = fragment['state'];
-    final expected = _authorizationState;
-    if (token == null ||
-        token.isEmpty ||
-        state == null ||
-        expected == null ||
-        !_sameText(state, expected)) {
-      return null;
+    if (token == null || token.isEmpty || state == null) return null;
+    final candidates = attempt == null
+        ? _openLogins.toList()
+        : [if (_openLogins.contains(attempt)) attempt];
+    for (final open in candidates) {
+      final expected = open._state;
+      if (expected != null && _sameText(state, expected)) {
+        open
+          .._state = null
+          .._captured = true;
+        return token;
+      }
     }
-    _authorizationState = null;
-    return token;
+    return null;
   }
 
   /// [a] == [b], in a time that does not tell how much of them matched.
@@ -430,17 +477,20 @@ abstract class AuthBase with Store {
     return difference == 0;
   }
 
-  /// The Twitch authorization page for a new login attempt: the implicit
-  /// grant with this app's scopes, always asking the user to confirm them
+  /// The Twitch authorization page for [attempt]: the implicit grant with
+  /// this app's scopes, always asking the user to confirm them
   /// (`force_verify`), and a fresh unguessable `state` (32 random bytes)
-  /// that the redirect must bring back. Each call starts a new attempt: the
-  /// state of an earlier one is no longer accepted.
-  Uri startAuthorization() {
+  /// that the redirect must bring back. Asked again (Try again), the page
+  /// gets a new state and its earlier one is no longer accepted.
+  Uri authorizationUri(LoginAttempt attempt) {
     final random = Random.secure();
     final state = base64Url
         .encode(List<int>.generate(32, (_) => random.nextInt(256)))
         .replaceAll('=', '');
-    _authorizationState = state;
+    _openLogins.add(attempt);
+    attempt
+      .._state = state
+      .._captured = false;
     return Uri(
       scheme: 'https',
       host: 'id.twitch.tv',
@@ -456,6 +506,26 @@ abstract class AuthBase with Store {
     );
   }
 
+  /// A new login's authorization page ([beginLogin] then
+  /// [authorizationUri]).
+  @visibleForTesting
+  Uri startAuthorization() => authorizationUri(beginLogin());
+
+  /// The login of each login WebView.
+  final _loginOf = Expando<LoginAttempt>('login');
+
+  /// Opens [controller]'s login again, with a new state (Try again).
+  Future<void> retryLogin(WebViewController controller) {
+    final attempt = _loginOf[controller] ??= beginLogin();
+    return controller.loadRequest(authorizationUri(attempt));
+  }
+
+  /// [controller]'s page is gone: its login is closed.
+  void closeLogin(WebViewController controller) {
+    final attempt = _loginOf[controller];
+    if (attempt != null) endLogin(attempt);
+  }
+
   /// The login WebView's controller. [onTokenCaptured] and [onSignedIn] are
   /// passed to [handleNavigation]; [onPage] is told each page the WebView
   /// moves to (the login page shows its host, never the rest of the URL,
@@ -464,9 +534,11 @@ abstract class AuthBase with Store {
     Widget? routeAfter,
     ValueChanged<Future<void>>? onTokenCaptured,
     VoidCallback? onSignedIn,
+    VoidCallback? onNotSignedIn,
     ValueChanged<Uri>? onPage,
     ValueChanged<WebResourceError>? onError,
   }) {
+    final attempt = beginLogin();
     final webViewController = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       // Use platform-specific user agents to allow Google OAuth sign-in.
@@ -483,6 +555,7 @@ abstract class AuthBase with Store {
       if (uri != null && onPage != null) onPage(uri);
     }
 
+    _loginOf[webViewController] = attempt;
     return webViewController
       ..setNavigationDelegate(
         NavigationDelegate(
@@ -491,6 +564,8 @@ abstract class AuthBase with Store {
             routeAfter: routeAfter,
             onTokenCaptured: onTokenCaptured,
             onSignedIn: onSignedIn,
+            onNotSignedIn: onNotSignedIn,
+            attempt: attempt,
           ),
           onPageStarted: page,
           onUrlChange: (change) => page(change.url),
@@ -533,7 +608,7 @@ abstract class AuthBase with Store {
           },
         ),
       )
-      ..loadRequest(startAuthorization());
+      ..loadRequest(authorizationUri(attempt));
   }
 
   /// Shows a dialog verifying that the user is sure they want to block/unblock the target user.
