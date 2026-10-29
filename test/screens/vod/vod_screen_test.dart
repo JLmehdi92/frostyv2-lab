@@ -690,6 +690,33 @@ void main() {
       await close(tester);
     });
 
+    testWidgets('an upload (no chat) on a tablet keeps its details', (
+      tester,
+    ) async {
+      when(() => replay.status).thenReturn(ReplayStatus.notApplicable);
+      await pump(tester, size: const Size(1280, 854));
+      await ready(tester);
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(VodDetailsPanel), findsOneWidget);
+      expect(find.byType(VodChatReplay), findsNothing);
+      await close(tester);
+    });
+
+    testWidgets('large text in tablet portrait leaves the chat its room', (
+      tester,
+    ) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await pump(tester, size: const Size(854, 1280));
+      await ready(tester);
+
+      expect(tester.takeException(), isNull);
+      final chat = tester.getRect(find.byType(VodChatReplay));
+      expect(chat.height, greaterThan(300));
+      await close(tester);
+    });
+
     testWidgets('the tablet keeps the full screen modes', (tester) async {
       settings.fullScreen = true;
       await pump(tester, size: const Size(1280, 854));

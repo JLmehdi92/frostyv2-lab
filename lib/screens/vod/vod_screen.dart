@@ -696,19 +696,24 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
           ),
           if (vod != null)
             tablet
-                ? DecoratedBox(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: FeedColors.of(context).hairline,
-                          width: FrostyTokens.hairlineWidth,
+                // At most a third of the room (it scrolls): the chat keeps
+                // its place with large text.
+                ? Flexible(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: FeedColors.of(context).hairline,
+                            width: FrostyTokens.hairlineWidth,
+                          ),
                         ),
                       ),
+                      child: _details(vod, legend: false),
                     ),
-                    child: _details(vod, legend: false),
                   )
                 : VodInfoStrip(vod: vod),
           Expanded(
+            flex: 2,
             child: SafeArea(top: false, child: _buildChat(large: tablet)),
           ),
         ],
@@ -769,7 +774,17 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
         final cutout = _settings.landscapeCutout;
 
         final playerArea = _buildPlayerArea(landscape: true, hasChat: hasChat);
-        if (!hasChat) return ColoredBox(color: Colors.black, child: playerArea);
+        final tablet = context.isLargeScreen;
+        if (!hasChat) {
+          // An upload (no chat) on a tablet keeps its details under it.
+          if (tablet && !fullScreen) {
+            return SafeArea(
+              bottom: false,
+              child: _buildTabletVideoColumn(playerArea),
+            );
+          }
+          return ColoredBox(color: Colors.black, child: playerArea);
+        }
 
         Widget divider(double totalWidth) => Positioned(
           top: 0,
@@ -791,7 +806,6 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
 
         // A tablet puts the details under the video and a header on its
         // chat (board RediffTablette).
-        final tablet = context.isLargeScreen;
         final dark = Theme.of(context).brightness == Brightness.dark;
         final hairline = BorderSide(
           color: FeedColors.of(context).hairline,

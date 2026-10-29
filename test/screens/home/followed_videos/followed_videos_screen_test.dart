@@ -6,8 +6,8 @@ import 'package:frosty/models/followed_channel.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/home/followed_videos/followed_videos_screen.dart';
 import 'package:frosty/screens/home/followed_videos/stores/followed_videos_store.dart';
-import 'package:frosty/theme.dart';
 import 'package:frosty/screens/vod/widgets/vod_card.dart';
+import 'package:frosty/theme.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 
