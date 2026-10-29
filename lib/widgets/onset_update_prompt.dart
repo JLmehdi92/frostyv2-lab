@@ -4,13 +4,19 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:frosty/apis/onset_update_service.dart';
 import 'package:frosty/models/onset_release.dart';
+import 'package:frosty/screens/settings/widgets/settings_glyph.dart';
+import 'package:frosty/screens/settings/widgets/settings_kit.dart';
 import 'package:frosty/services/onset_updater.dart';
+import 'package:frosty/theme.dart';
+import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/alert_message.dart';
-import 'package:frosty/widgets/frosty_dialog.dart';
+import 'package:frosty/widgets/launch/onset_mark.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
 import 'package:provider/provider.dart';
 
-/// Offers [update]: the "Update available" popup, then the install permission
-/// when Android asks for it, the download and the system installer.
+/// Offers [update]: the "Update available" sheet (a dialog on a tablet),
+/// then the install permission when Android asks for it, the download and
+/// the system installer.
 ///
 /// [waitForResume] completes when the viewer is back from the system settings
 /// (the next app resume by default).
@@ -21,11 +27,7 @@ Future<void> offerUpdate(
   Future<void> Function()? waitForResume,
 }) async {
   final release = update.release;
-  final accepted = await showDialog<bool>(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) => UpdateAvailableDialog(release: release),
-  );
+  final accepted = await _askUpdate(context, update);
   if (accepted != true) {
     await updater.postpone(release);
     return;
@@ -34,26 +36,16 @@ Future<void> offerUpdate(
 
   if (!await updater.canInstall()) {
     if (!context.mounted) return;
-    final openSettings = await showDialog<bool>(
-      context: context,
-      builder: (context) => FrostyDialog(
-        title: 'Allow updates',
-        message:
-            'Android asks you to let ONSET install apps. Turn on "Allow from '
-            'this source" on the next screen, then come back.',
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Open settings'),
-          ),
-        ],
-      ),
+    final openSettings = await confirmSettingsAction(
+      context,
+      title: 'Allow updates',
+      message:
+          'Android asks you to let ONSET install apps. Turn on "Allow from '
+          'this source" on the next screen, then come back.',
+      confirm: 'Open settings',
+      danger: false,
     );
-    if (openSettings != true) return;
+    if (!openSettings) return;
 
     final back = (waitForResume ?? _nextResume)();
     await updater.openInstallSettings();
@@ -70,6 +62,7 @@ Future<void> offerUpdate(
   final error = await showDialog<Object?>(
     context: context,
     barrierDismissible: false,
+    barrierColor: kSheetScrim,
     builder: (context) =>
         UpdateProgressDialog(updater: updater, release: release),
   );
@@ -105,44 +98,295 @@ void _tell(BuildContext context, String message) {
   );
 }
 
-/// "Update available": the build, the start of its release notes, and the
-/// choice between "Later" (pops false) and "Update" (pops true).
+/// Offers [update]: a sheet on a phone (board MiseAJour), a dialog on a
+/// tablet; it is answered with "Update" (true) or "Later" (false), never
+/// dismissed in passing.
+Future<bool?> _askUpdate(BuildContext context, UpdateAvailable update) {
+  final colors = SettingsColors.of(context);
+  final content = UpdateAvailableDialog(
+    release: update.release,
+    currentBuild: update.currentBuild,
+  );
+  if (context.isLargeScreen) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: kSheetScrim,
+      builder: (context) => Dialog(
+        backgroundColor: colors.dialog,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        insetPadding: const EdgeInsets.all(40),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(FrostyTokens.radiusLarge),
+          side: BorderSide(
+            color: colors.cardRing,
+            width: FrostyTokens.hairlineWidth,
+          ),
+        ),
+        child: SizedBox(
+          width: 420,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: content,
+          ),
+        ),
+      ),
+    );
+  }
+  return showModalBottomSheet<bool>(
+    context: context,
+    isDismissible: false,
+    enableDrag: false,
+    isScrollControlled: true,
+    showDragHandle: false,
+    backgroundColor: colors.sheet,
+    barrierColor: kSheetScrim,
+    elevation: 0,
+    clipBehavior: Clip.antiAlias,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(FrostyTokens.radiusLarge),
+      ),
+    ),
+    builder: (context) => PopScope(
+      // Back answers "Later", as the button does.
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) Navigator.pop(context, false);
+      },
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: colors.handle,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              content,
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+/// "Update available" (board MiseAJour): the ONSET tile, the build, what is
+/// installed and the download's size, the start of its release notes, and
+/// the choice between "Update" (pops true) and "Later" (pops false).
 class UpdateAvailableDialog extends StatelessWidget {
   final OnsetRelease release;
 
-  const UpdateAvailableDialog({super.key, required this.release});
+  /// The installed build; unknown when null.
+  final int? currentBuild;
+
+  const UpdateAvailableDialog({
+    super.key,
+    required this.release,
+    this.currentBuild,
+  });
+
+  static String _megabytes(int bytes) =>
+      (bytes / (1024 * 1024)).toStringAsFixed(1);
 
   @override
   Widget build(BuildContext context) {
+    final colors = SettingsColors.of(context);
+    final accent = SettingsColors.accentOf(context);
     final notes = release.notes.trim();
+    final installed = [
+      if (currentBuild case final build?) 'Installed: build $build',
+      if (release.apkSize > 0) '${_megabytes(release.apkSize)} MB',
+      'SHA-256 checked before install',
+    ].join(' · ');
 
-    return FrostyDialog(
-      title: 'Update available',
-      content: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Semantics(
+      scopesRoute: true,
+      namesRoute: true,
+      explicitChildNodes: true,
+      label: 'Update available',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 16,
         children: [
-          Text('ONSET build ${release.build} is ready.'),
-          if (notes.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              notes,
-              maxLines: 6,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall,
+          Row(
+            spacing: 14,
+            children: [
+              SizedBox.square(
+                dimension: 52,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const ExcludeSemantics(
+                      child: OnsetMarkTile(size: 52, radius: 15),
+                    ),
+                    Positioned(
+                      right: -5,
+                      bottom: -5,
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: FrostyTokens.backgroundDark,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: colors.sheet, width: 2),
+                        ),
+                        child: SettingsGlyph(
+                          SettingsGlyphKind.update,
+                          size: 14,
+                          strokeWidth: 2.6,
+                          color: accent,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 3,
+                  children: [
+                    Text(
+                      'NEW BUILD',
+                      style: TextStyle(
+                        fontFamily: FrostyTokens.bodyFamily,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.26,
+                        color: accent,
+                      ),
+                    ),
+                    Semantics(
+                      header: true,
+                      child: Text(
+                        'Update available',
+                        style: TextStyle(
+                          fontFamily: FrostyTokens.bodyFamily,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.55,
+                          height: 1.15,
+                          color: colors.text,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 4,
+            children: [
+              Text(
+                'ONSET build ${release.build} is ready.',
+                style: TextStyle(
+                  fontFamily: FrostyTokens.bodyFamily,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: colors.text,
+                ),
+              ),
+              Text(
+                installed,
+                style: FrostyType.tabular(
+                  TextStyle(
+                    fontFamily: FrostyTokens.bodyFamily,
+                    fontSize: 12.5,
+                    color: colors.secondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (notes.isNotEmpty)
+            Container(
+              constraints: const BoxConstraints(maxHeight: 123),
+              decoration: BoxDecoration(
+                color: colors.well,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: colors.cardRing,
+                  width: FrostyTokens.hairlineWidth,
+                ),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Text(
+                      notes,
+                      maxLines: 6,
+                      overflow: TextOverflow.clip,
+                      style: TextStyle(
+                        fontFamily: FrostyTokens.bodyFamily,
+                        fontSize: 13,
+                        height: 1.6,
+                        color: colors.body,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: 34,
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              colors.well.withValues(alpha: 0),
+                              colors.well,
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: 8,
+            children: [
+              SettingsButton(
+                label: 'Update',
+                tone: SettingsButtonTone.primary,
+                large: true,
+                expand: true,
+                onPressed: () => Navigator.pop(context, true),
+              ),
+              SettingsButton(
+                label: 'Later',
+                large: true,
+                expand: true,
+                onPressed: () => Navigator.pop(context, false),
+              ),
+            ],
+          ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: const Text('Later'),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.pop(context, true),
-          child: const Text('Update'),
-        ),
-      ],
     );
   }
 }
@@ -213,28 +457,45 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
         ? null
         : (_received / _total).clamp(0.0, 1.0);
 
+    final colors = SettingsColors.of(context);
     return PopScope(
       canPop: false,
-      child: FrostyDialog(
+      child: SettingsDialog(
         title: _installing ? 'Installing update' : 'Downloading update',
         content: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 14,
           children: [
-            LinearProgressIndicator(value: progress),
-            const SizedBox(height: 8),
+            LinearProgressIndicator(
+              value: progress,
+              minHeight: 6,
+              borderRadius: BorderRadius.circular(3),
+              color: SettingsColors.accentOf(context),
+              backgroundColor: colors.switchOff,
+            ),
             Text(
               _total > 0
                   ? '${_megabytes(_received)} / ${_megabytes(_total)} MB'
                   : '${_megabytes(_received)} MB',
+              style: FrostyType.tabular(
+                TextStyle(
+                  fontFamily: FrostyTokens.bodyFamily,
+                  fontSize: 13,
+                  color: colors.secondary,
+                ),
+              ),
             ),
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: _installing || _cancelToken.isCancelled
-                ? null
-                : () => setState(() => _cancelToken.cancel()),
-            child: const Text('Cancel'),
+          Opacity(
+            opacity: _installing ? 0.4 : 1,
+            child: SettingsButton(
+              label: 'Cancel',
+              onPressed: _installing || _cancelToken.isCancelled
+                  ? null
+                  : () => setState(() => _cancelToken.cancel()),
+            ),
           ),
         ],
       ),

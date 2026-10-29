@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/onset_update_service.dart';
 import 'package:frosty/models/onset_release.dart';
+import 'package:frosty/screens/settings/widgets/settings_kit.dart';
 import 'package:frosty/services/onset_updater.dart';
 import 'package:frosty/widgets/onset_update_prompt.dart';
 import 'package:mocktail/mocktail.dart';
@@ -159,8 +160,11 @@ void main() {
 
     expect(find.text('Installing update'), findsOneWidget);
     expect(find.text('Downloading update'), findsNothing);
-    final cancel = tester.widget<TextButton>(
-      find.ancestor(of: find.text('Cancel'), matching: find.byType(TextButton)),
+    final cancel = tester.widget<SettingsButton>(
+      find.ancestor(
+        of: find.text('Cancel'),
+        matching: find.byType(SettingsButton),
+      ),
     );
     expect(cancel.onPressed, isNull);
 
