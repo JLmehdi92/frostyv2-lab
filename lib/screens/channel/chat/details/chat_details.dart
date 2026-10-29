@@ -276,9 +276,10 @@ class _ChatDetailsState extends State<ChatDetails> {
 
   Widget _menu(BuildContext context) {
     final store = widget.chatStore;
-    final loggedIn = store.auth.isLoggedIn;
     return Observer(
       builder: (context) {
+        // Read in the observer: the menu follows a login while it is open.
+        final loggedIn = store.auth.isLoggedIn;
         final children = [
           if (_hasActiveModes())
             SingleChildScrollView(
