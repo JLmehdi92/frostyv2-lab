@@ -37,6 +37,11 @@ void main() {
     expect(() => parseSvgPath('5 5'), throwsFormatException);
     expect(() => parseSvgPath('M5'), throwsFormatException);
     expect(() => parseSvgPath('M5 5 X 3'), throwsFormatException);
+    // A number after Z has no command to belong to: refused, not looped on.
+    expect(() => parseSvgPath('M0 0Z 1 1'), throwsFormatException);
+    expect(() => parseSvgPath('M0 0 L1 1 z 3'), throwsFormatException);
+    // Z then a command is fine.
+    expect(() => parseSvgPath('M0 0 L1 1 Z M2 2 L3 3 z'), returnsNormally);
   });
 
   test('every sheet glyph parses inside its 24 dp box', () {

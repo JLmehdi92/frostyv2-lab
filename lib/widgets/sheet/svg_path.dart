@@ -18,7 +18,7 @@ Path parseSvgPath(String data) {
   Offset? lastCubic;
   Offset? lastQuad;
 
-  bool isCommand(String token) => RegExp(r'^[A-Za-z]$').hasMatch(token);
+  bool isCommand(String token) => _command.hasMatch(token);
 
   double number() {
     if (i >= tokens.length || isCommand(tokens[i])) {
@@ -34,7 +34,7 @@ Path parseSvgPath(String data) {
       throw FormatException('Missing arc flag in path', data);
     }
     final token = tokens[i];
-    if (token.length > 1 && RegExp(r'^[01]+').hasMatch(token)) {
+    if (token.length > 1 && _flags.hasMatch(token)) {
       // "011" is a flag followed by the rest.
       tokens[i] = token.substring(1);
       return token[0] == '1';
@@ -134,6 +134,10 @@ Path parseSvgPath(String data) {
         current = start;
         lastCubic = null;
         lastQuad = null;
+        // Z takes no numbers: one after it would be read again and again.
+        if (i < tokens.length && !isCommand(tokens[i])) {
+          throw FormatException('Number after closepath in path', data);
+        }
       default:
         throw FormatException('Unsupported path command $command', data);
     }
@@ -141,12 +145,15 @@ Path parseSvgPath(String data) {
   return path;
 }
 
+final _command = RegExp(r'^[A-Za-z]$');
+final _flags = RegExp(r'^[01]+');
+final _token = RegExp(r'[A-Za-z]|[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?');
+
 /// Numbers and command letters, in order. Handles "-", "." and exponent
 /// joins the way SVG writes them ("1-2", "1.5.5", "2e-3").
 List<String> _tokenize(String data) {
   final tokens = <String>[];
-  final pattern = RegExp(r'[A-Za-z]|[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?');
-  for (final match in pattern.allMatches(data)) {
+  for (final match in _token.allMatches(data)) {
     tokens.add(match.group(0)!);
   }
   return tokens;
