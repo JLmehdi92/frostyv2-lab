@@ -129,10 +129,12 @@ abstract class HomeStoreBase with Store {
     _section = place.section;
     _feed = place.feed;
     // Following and Whispers come and go with the account: a tab that is
-    // gone gives way (Home to its start tab, Activity to Notifications);
-    // a tab still there stays, so a session restored behind the viewer
-    // (an offline launch back online) never moves Live or the clips. The
-    // section on screen stays (logging out from Profile keeps Profile).
+    // gone gives way (Home to its start tab, Activity to Notifications).
+    // Logging in while away from Home (Profile, a login page) opens Home
+    // on its start tab, as a launch would; while Home is on screen (a
+    // session restored behind the viewer, an offline launch back online)
+    // Live and the clips stay where they are. The section on screen stays
+    // (logging out from Profile keeps Profile).
     _disposeReaction = reaction(
       (_) => authStore.isLoggedIn,
       (bool loggedIn) => _resetTabs(),
@@ -141,7 +143,10 @@ abstract class HomeStoreBase with Store {
 
   @action
   void _resetTabs() {
-    if (!feeds.contains(_feed)) _feed = _restFeed;
+    if (!feeds.contains(_feed) ||
+        (authStore.isLoggedIn && _section != ShellSection.home)) {
+      _feed = _restFeed;
+    }
     if (!activityTabs.contains(_activityTab)) {
       _activityTab = ActivityTab.notifications;
     }

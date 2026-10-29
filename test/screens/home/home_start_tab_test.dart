@@ -53,8 +53,8 @@ void main() {
       store.dispose();
     });
 
-    test('logging in or out only drops the tabs that need an account, '
-        'never the section on screen', () {
+    test('logging in or out drops the tabs that need an account, never the '
+        'section on screen', () {
       final auth = FakeAuthStore(true);
       final store = HomeStore(authStore: auth);
       store
@@ -68,10 +68,11 @@ void main() {
       expect(store.feed, HomeFeed.live);
       expect(store.activityTab, ActivityTab.notifications);
 
-      // Logging in: the tabs on screen are still there, they stay.
+      // Logging in away from Home: Home opens on its start tab, as at
+      // launch.
       auth.setLoggedIn(true);
       expect(store.section, ShellSection.profile);
-      expect(store.feed, HomeFeed.live);
+      expect(store.feed, HomeFeed.following);
       expect(store.activityTab, ActivityTab.notifications);
       store.dispose();
     });
