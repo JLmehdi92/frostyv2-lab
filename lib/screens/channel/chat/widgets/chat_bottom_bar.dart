@@ -106,6 +106,7 @@ class ChatBottomBar extends StatelessWidget {
         final large = context.isLargeScreen && context.isPortrait;
         final matchingEmotes = chatStore.matchingEmotes;
         final matchingChatters = chatStore.matchingChatters;
+        final matchingCommands = chatStore.matchingCommands;
 
         final isFullscreenOverlay =
             chatStore.settings.fullScreen && context.isLandscape;
@@ -198,9 +199,10 @@ class ChatBottomBar extends StatelessWidget {
                 chatStore.showEmoteAutocomplete &&
                 matchingEmotes.isNotEmpty)
               _AutocompleteRow(
-                children: [
-                  for (final emote in matchingEmotes)
-                    _AutocompleteChip(
+                itemCount: matchingEmotes.length,
+                itemBuilder: (context, index) {
+                  final emote = matchingEmotes[index];
+                  return _AutocompleteChip(
                       leading: FrostyCachedNetworkImage(
                         imageUrl: emote.url,
                         useFade: false,
@@ -222,15 +224,15 @@ class ChatBottomBar extends StatelessWidget {
                           launchExternal: chatStore.settings.launchUrlExternal,
                         );
                       },
-                    ),
-                ],
+                    );
+                },
               ),
-            if (chatStore.settings.autocomplete &&
-                chatStore.matchingCommands.isNotEmpty)
+            if (chatStore.settings.autocomplete && matchingCommands.isNotEmpty)
               _AutocompleteRow(
-                children: [
-                  for (final command in chatStore.matchingCommands)
-                    _CommandTile(
+                itemCount: matchingCommands.length,
+                itemBuilder: (context, index) {
+                  final command = matchingCommands[index];
+                  return _CommandTile(
                       name: command.name,
                       detail: '${command.usage} · ${command.description}',
                       onTap: () {
@@ -242,16 +244,17 @@ class ChatBottomBar extends StatelessWidget {
                           ),
                         );
                       },
-                    ),
-                ],
+                    );
+                },
               ),
             if (chatStore.settings.autocomplete &&
                 chatStore.showMentionAutocomplete &&
                 matchingChatters.isNotEmpty)
               _AutocompleteRow(
-                children: [
-                  for (final chatter in matchingChatters)
-                    _AutocompleteChip(
+                itemCount: matchingChatters.length,
+                itemBuilder: (context, index) {
+                  final chatter = matchingChatters[index];
+                  return _AutocompleteChip(
                       leading: InitialAvatar(name: chatter),
                       label: '@$chatter',
                       onTap: () {
@@ -267,8 +270,8 @@ class ChatBottomBar extends StatelessWidget {
                               ),
                             );
                       },
-                    ),
-                ],
+                    );
+                },
               ),
             Padding(
               // Board Chaine: 10 above, 12 at the sides and below (44 dp
@@ -658,9 +661,12 @@ class _ShrinkWhenNarrow extends StatelessWidget {
 /// A row of autocomplete suggestions over the input: 56 dp, a hairline
 /// above, chips 8 dp apart; it opens by growing (board ChaineTchatOutils).
 class _AutocompleteRow extends StatelessWidget {
-  const _AutocompleteRow({required this.children});
+  const _AutocompleteRow({required this.itemCount, required this.itemBuilder});
 
-  final List<Widget> children;
+  final int itemCount;
+
+  /// Built lazily: a short prefix can match hundreds of emotes.
+  final IndexedWidgetBuilder itemBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -678,18 +684,13 @@ class _AutocompleteRow extends StatelessWidget {
           ),
           child: SizedBox(
             height: 56,
-            child: ListView(
+            child: ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               scrollDirection: Axis.horizontal,
-              children: [
-                for (final (index, child) in children.indexed)
-                  Padding(
-                    padding: EdgeInsetsDirectional.only(
-                      start: index == 0 ? 0 : 8,
-                    ),
-                    child: Center(child: child),
-                  ),
-              ],
+              itemCount: itemCount,
+              separatorBuilder: (context, index) => const SizedBox(width: 8),
+              itemBuilder: (context, index) =>
+                  Center(child: itemBuilder(context, index)),
             ),
           ),
         ),
