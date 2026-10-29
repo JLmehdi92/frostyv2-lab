@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/video/latency_pill.dart';
-import 'package:frosty/screens/channel/video/player_controller.dart';
-import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/screens/channel/video/latency_pill.dart';
+import 'package:onset/screens/channel/video/player_controller.dart';
+import 'package:onset/screens/channel/video/stores/ivs_video_store.dart';
 
 import '../../../helpers/fake_player.dart';
 

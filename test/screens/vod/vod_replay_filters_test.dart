@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/screens/vod/vod_replay_filters.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/screens/vod/vod_replay_filters.dart';
 
 IRCMessage _msg(String user, String text) => IRCMessage.fromString(
   '@display-name=$user;id=1 :$user!$user@$user.tmi.twitch.tv '

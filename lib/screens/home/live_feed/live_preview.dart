@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:dio/dio.dart' show CancelToken;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:frosty/models/hls_variant.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'package:onset/models/hls_variant.dart';
 
 /// The decoder of a live preview, so the preview logic is testable without
 /// libmpv.

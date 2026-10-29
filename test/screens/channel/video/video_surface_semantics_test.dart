@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/video/overlay_common.dart';
+import 'package:onset/screens/channel/video/overlay_common.dart';
 
 void main() {
   Future<void> pump(

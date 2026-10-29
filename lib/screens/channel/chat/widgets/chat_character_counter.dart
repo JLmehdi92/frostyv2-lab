@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/utils/context_extensions.dart';
+import 'package:onset/utils/context_extensions.dart';
 
 /// Twitch refuses chat messages longer than this.
 const kChatMessageMaxLength = 500;

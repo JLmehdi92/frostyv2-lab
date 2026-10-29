@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/widgets/go_live_setting.dart';
-import 'package:frosty/screens/settings/widgets/mention_notification_setting.dart';
-import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/go_live_setting.dart';
+import 'package:onset/screens/settings/widgets/mention_notification_setting.dart';
+import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
 
 class FakePlatform extends GoLivePlatform {
   FakePlatform({this.granted = true, this.isAllowed = true});

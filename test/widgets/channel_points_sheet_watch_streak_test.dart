@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_points_service.dart';
-import 'package:frosty/apis/twitch_watch_streak_service.dart';
-import 'package:frosty/models/community_points.dart';
-import 'package:frosty/models/watch_streak.dart';
-import 'package:frosty/screens/channel/stores/channel_events_store.dart';
-import 'package:frosty/services/hermes_client.dart';
-import 'package:frosty/widgets/channel_points_sheet.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_points_service.dart';
+import 'package:onset/apis/twitch_watch_streak_service.dart';
+import 'package:onset/models/community_points.dart';
+import 'package:onset/models/watch_streak.dart';
+import 'package:onset/screens/channel/stores/channel_events_store.dart';
+import 'package:onset/services/hermes_client.dart';
+import 'package:onset/widgets/channel_points_sheet.dart';
 
 class MockPointsService extends Mock implements TwitchPointsService {}
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/channel/video/stores/caption_store.dart';
-import 'package:frosty/utils/context_extensions.dart';
+import 'package:onset/screens/channel/video/stores/caption_store.dart';
+import 'package:onset/utils/context_extensions.dart';
 
 /// The player menu's captions: Twitch's "Closed Captions" switch, then the
 /// stream's caption tracks to choose from when it offers more than one.

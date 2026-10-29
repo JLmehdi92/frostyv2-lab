@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/video/video_store.dart';
+import 'package:onset/screens/channel/video/video_store.dart';
 
 void main() {
   group('the live web player low-latency mode', () {

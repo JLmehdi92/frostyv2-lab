@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:frosty/models/playback_access_token.dart';
+import 'package:onset/models/playback_access_token.dart';
 
 /// What a VOD playback token says about access (decoded from its JSON value).
 class VodAccessInfo {

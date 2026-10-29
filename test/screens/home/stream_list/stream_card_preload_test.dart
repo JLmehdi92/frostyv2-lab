@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_stream_service.dart';
-import 'package:frosty/models/stream.dart';
-import 'package:frosty/screens/home/stream_list/large_stream_card.dart';
-import 'package:frosty/screens/home/stream_list/stream_card.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/services/playback_preloader.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_stream_service.dart';
+import 'package:onset/models/stream.dart';
+import 'package:onset/screens/home/stream_list/large_stream_card.dart';
+import 'package:onset/screens/home/stream_list/stream_card.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/services/playback_preloader.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:provider/provider.dart';
 
 class MockTwitchStreamService extends Mock implements TwitchStreamService {}

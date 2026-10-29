@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
+import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 
 /// Colours and icon of one hype train style: Twitch's per-variant styles,
 /// green where Twitch is purple. Only the theme's brightness is read.

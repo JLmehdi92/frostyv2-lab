@@ -1,4 +1,4 @@
-import 'package:frosty/models/irc.dart';
+import 'package:onset/models/irc.dart';
 
 /// Why the viewer cannot chat right now, or what limits their messages.
 enum ChatRestrictionKind {

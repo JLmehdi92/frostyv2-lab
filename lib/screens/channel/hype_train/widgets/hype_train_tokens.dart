@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/theme.dart';
+import 'package:onset/theme.dart';
 
 /// Twitch's purple ramp (`twitch_purple_7`–`11`) moved to the hue of
 /// #12A87A, each step's lightness solved to keep its purple's luminance.

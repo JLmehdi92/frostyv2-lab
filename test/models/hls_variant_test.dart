@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/hls_variant.dart';
+import 'package:onset/models/hls_variant.dart';
 
 void main() {
   // A trimmed Twitch master playlist (two qualities).

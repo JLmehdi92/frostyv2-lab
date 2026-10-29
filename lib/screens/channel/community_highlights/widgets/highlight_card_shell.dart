@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
 /// The frame of a community highlight card (board ChaineSondagePari): a
 /// 16 dp card, the kind's tile, its title and a status line, the expand

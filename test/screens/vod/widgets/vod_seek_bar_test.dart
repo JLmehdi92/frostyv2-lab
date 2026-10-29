@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/vod/widgets/vod_seek_bar.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/vod/widgets/vod_seek_bar.dart';
 
 void main() {
   Future<List<Duration>> pump(

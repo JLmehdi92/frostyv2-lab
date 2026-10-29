@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
-import 'package:frosty/models/hype_train.dart';
-import 'package:frosty/models/hype_train_event.dart';
-import 'package:frosty/screens/channel/hype_train/hype_train_math.dart';
-import 'package:frosty/screens/channel/hype_train/hype_train_reducer.dart';
-import 'package:frosty/screens/channel/hype_train/hype_train_timings.dart';
+import 'package:onset/models/hype_train.dart';
+import 'package:onset/models/hype_train_event.dart';
+import 'package:onset/screens/channel/hype_train/hype_train_math.dart';
+import 'package:onset/screens/channel/hype_train/hype_train_reducer.dart';
+import 'package:onset/screens/channel/hype_train/hype_train_timings.dart';
 
 /// What the banner shows during one step of a sequence.
 enum HtStepKind {

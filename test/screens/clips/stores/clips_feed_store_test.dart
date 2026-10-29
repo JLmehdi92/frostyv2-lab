@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_clip_service.dart';
-import 'package:frosty/models/clip.dart';
-import 'package:frosty/screens/clips/stores/clips_feed_store.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_clip_service.dart';
+import 'package:onset/models/clip.dart';
+import 'package:onset/screens/clips/stores/clips_feed_store.dart';
 
 class MockClipService extends Mock implements TwitchClipService {}
 

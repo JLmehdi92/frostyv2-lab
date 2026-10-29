@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/services/audio_focus.dart';
+import 'package:onset/services/audio_focus.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

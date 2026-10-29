@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
 
 /// A draggable vertical divider that allows users to resize content areas
 class DraggableDivider extends StatefulWidget {

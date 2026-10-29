@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/twitch_channel_profile_service.dart';
-import 'package:frosty/models/channel_profile.dart';
-import 'package:frosty/models/user.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_channel_profile_service.dart';
+import 'package:onset/models/channel_profile.dart';
+import 'package:onset/models/user.dart';
 
 part 'channel_profile_store.g.dart';
 

@@ -2,12 +2,12 @@ import 'dart:convert';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/stream.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/channel/video/live_progress.dart';
-import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:mobx/mobx.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/models/stream.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/channel/video/live_progress.dart';
+import 'package:onset/screens/channel/video/player_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// A live player whose state tests set directly.

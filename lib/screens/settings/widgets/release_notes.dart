@@ -1,10 +1,10 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/widgets/settings_kit.dart';
-import 'package:frosty/screens/settings/widgets/settings_page.dart';
-import 'package:frosty/theme.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
+import 'package:onset/screens/settings/widgets/settings_page.dart';
+import 'package:onset/theme.dart';
 import 'package:provider/provider.dart';
 
 /// The release notes (board MiseAJour): each version with its date, its

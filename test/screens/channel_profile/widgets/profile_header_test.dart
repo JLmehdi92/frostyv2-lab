@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/channel_profile.dart';
-import 'package:frosty/screens/channel_profile/widgets/profile_header.dart';
-import 'package:frosty/screens/channel_profile/widgets/profile_live_card.dart';
-import 'package:frosty/screens/channel_profile/widgets/profile_parts.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
+import 'package:onset/models/channel_profile.dart';
+import 'package:onset/screens/channel_profile/widgets/profile_header.dart';
+import 'package:onset/screens/channel_profile/widgets/profile_live_card.dart';
+import 'package:onset/screens/channel_profile/widgets/profile_parts.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
 
 const _offline = ChannelProfile(
   id: '42',

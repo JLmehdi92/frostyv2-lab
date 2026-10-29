@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/settings/chat_settings.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/chat_settings.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 
 void main() {
   testWidgets('a switch under the notices collapses gift bombs', (

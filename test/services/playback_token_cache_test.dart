@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/playback_access_token.dart';
-import 'package:frosty/services/playback_token_cache.dart';
+import 'package:onset/models/playback_access_token.dart';
+import 'package:onset/services/playback_token_cache.dart';
 
 void main() {
   late DateTime now;

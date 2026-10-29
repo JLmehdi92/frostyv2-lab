@@ -1,17 +1,17 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/bttv_api.dart';
-import 'package:frosty/apis/ffz_api.dart';
-import 'package:frosty/apis/seventv_api.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/models/badges.dart';
-import 'package:frosty/models/cheermote.dart';
-import 'package:frosty/models/emotes.dart';
-import 'package:frosty/models/shared_chat_session.dart';
-import 'package:frosty/models/user.dart';
-import 'package:frosty/stores/global_assets_store.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/bttv_api.dart';
+import 'package:onset/apis/ffz_api.dart';
+import 'package:onset/apis/seventv_api.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/models/badges.dart';
+import 'package:onset/models/cheermote.dart';
+import 'package:onset/models/emotes.dart';
+import 'package:onset/models/shared_chat_session.dart';
+import 'package:onset/models/user.dart';
+import 'package:onset/stores/global_assets_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 part 'chat_assets_store.g.dart';

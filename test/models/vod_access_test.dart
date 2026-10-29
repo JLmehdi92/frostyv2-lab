@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/vod_access.dart';
+import 'package:onset/models/vod_access.dart';
 
 import '../fixtures/vod_responses.dart';
 

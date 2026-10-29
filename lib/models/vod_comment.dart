@@ -1,4 +1,4 @@
-import 'package:frosty/apis/base_api_client.dart';
+import 'package:onset/apis/base_api_client.dart';
 
 /// Part of a replayed chat message: plain text or a Twitch emote.
 class VodFragment {

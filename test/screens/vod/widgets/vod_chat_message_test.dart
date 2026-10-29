@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/cheermote.dart';
-import 'package:frosty/models/emotes.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/models/vod_comment.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/vod/vod_comment_to_irc.dart';
-import 'package:frosty/screens/vod/widgets/vod_chat_message.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/models/cheermote.dart';
+import 'package:onset/models/emotes.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/models/vod_comment.dart';
+import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/vod/vod_comment_to_irc.dart';
+import 'package:onset/screens/vod/widgets/vod_chat_message.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
 
 class MockChatAssetsStore extends Mock implements ChatAssetsStore {}
 

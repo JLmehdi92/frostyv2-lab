@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/widgets/settings_kit.dart';
-import 'package:frosty/screens/settings/widgets/settings_page.dart';
-import 'package:frosty/utils/stream_languages.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
+import 'package:onset/screens/settings/widgets/settings_page.dart';
+import 'package:onset/utils/stream_languages.dart';
 
 /// Picks the language Top and category lists are filtered by.
 class StreamLanguageSetting extends StatelessWidget {

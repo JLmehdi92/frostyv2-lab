@@ -1,4 +1,4 @@
-import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 
 /// Native IVS player tuning derived from the user's settings, passed as the
 /// `config` argument of `frosty/ivs-texture-manager.create`.

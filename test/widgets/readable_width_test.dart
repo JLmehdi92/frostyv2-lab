@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/widgets/readable_width.dart';
+import 'package:onset/widgets/readable_width.dart';
 
 void main() {
   test('the inset centres a 720 dp column', () {

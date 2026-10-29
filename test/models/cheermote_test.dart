@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/cheermote.dart';
+import 'package:onset/models/cheermote.dart';
 
 Map<String, Object?> _tier(int min, String color) => {
   'min_bits': min,

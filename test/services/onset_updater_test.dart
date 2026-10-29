@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/onset_update_service.dart';
-import 'package:frosty/models/onset_release.dart';
-import 'package:frosty/services/onset_installer.dart';
-import 'package:frosty/services/onset_updater.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/onset_update_service.dart';
+import 'package:onset/models/onset_release.dart';
+import 'package:onset/services/onset_installer.dart';
+import 'package:onset/services/onset_updater.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _MockService extends Mock implements OnsetUpdateService {}

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/vod/widgets/vod_info_strip.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/vod/widgets/vod_info_strip.dart';
 
 Vod _vod({bool recording = false, String? game = 'Chess'}) => Vod(
   id: '1',

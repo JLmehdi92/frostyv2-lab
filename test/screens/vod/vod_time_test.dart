@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/vod/vod_time.dart';
+import 'package:onset/screens/vod/vod_time.dart';
 
 void main() {
   group('formatVodTime', () {

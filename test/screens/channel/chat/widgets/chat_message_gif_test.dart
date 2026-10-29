@@ -1,14 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/screens/channel/chat/widgets/chat_gif_image.dart';
-import 'package:frosty/screens/channel/chat/widgets/chat_message.dart';
-import 'package:frosty/screens/channel/chat/widgets/overlay_chat_scope.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/first_frame_image.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_gif_image.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
+import 'package:onset/screens/channel/chat/widgets/overlay_chat_scope.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/first_frame_image.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
 
 import '../../../../fixtures/irc_messages.dart';
 import '../../../../helpers/chat_message_harness.dart';

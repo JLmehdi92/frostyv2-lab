@@ -4,11 +4,11 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/twitch_stream_service.dart';
-import 'package:frosty/models/playback_access_token.dart';
-import 'package:frosty/services/playback_token_cache.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_stream_service.dart';
+import 'package:onset/models/playback_access_token.dart';
+import 'package:onset/services/playback_token_cache.dart';
 
 void main() {
   late Dio dio;

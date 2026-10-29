@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/playback_access_token.dart';
+import 'package:onset/models/playback_access_token.dart';
 
 void main() {
   group('PlaybackAccessToken.parseExpiry', () {

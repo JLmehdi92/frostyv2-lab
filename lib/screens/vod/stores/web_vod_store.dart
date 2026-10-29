@@ -3,12 +3,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/models/clip.dart';
-import 'package:frosty/screens/channel/video/web_content_gate.dart';
-import 'package:frosty/screens/vod/vod_player_controller.dart';
-import 'package:frosty/screens/vod/vod_time.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/models/clip.dart';
+import 'package:onset/screens/channel/video/web_content_gate.dart';
+import 'package:onset/screens/vod/vod_player_controller.dart';
+import 'package:onset/screens/vod/vod_time.dart';
 import 'package:simple_pip_mode/simple_pip.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';

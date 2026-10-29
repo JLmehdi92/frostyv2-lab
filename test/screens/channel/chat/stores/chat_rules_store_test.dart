@@ -1,9 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_chat_rules_service.dart';
-import 'package:frosty/models/chat_rules.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_rules_store.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_chat_rules_service.dart';
+import 'package:onset/models/chat_rules.dart';
+import 'package:onset/screens/channel/chat/stores/chat_rules_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _MockService extends Mock implements TwitchChatRulesService {}

@@ -1,5 +1,5 @@
-import 'package:frosty/models/hype_train.dart';
-import 'package:frosty/models/hype_train_event.dart';
+import 'package:onset/models/hype_train.dart';
+import 'package:onset/models/hype_train_event.dart';
 
 /// Where a level-gated reward (treasure discount, community emotes) stands.
 enum HtUnlockState { locked, oneLevelAway, unlockNow, unlocked }

@@ -4,8 +4,8 @@ import 'dart:convert';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/hermes.dart';
-import 'package:frosty/services/hermes_client.dart';
+import 'package:onset/models/hermes.dart';
+import 'package:onset/services/hermes_client.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 /// A socket that records what the client sends and whether it was closed.

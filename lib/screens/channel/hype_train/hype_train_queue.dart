@@ -1,7 +1,7 @@
 import 'dart:collection';
 
-import 'package:frosty/models/hype_train.dart';
-import 'package:frosty/models/hype_train_event.dart';
+import 'package:onset/models/hype_train.dart';
+import 'package:onset/models/hype_train_event.dart';
 
 /// Realtime events waiting for the presenter, which shows them one at a
 /// time. Bursts are coalesced so the banner never falls far behind.

@@ -3,9 +3,9 @@ import 'dart:math';
 
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/services/realtime/eventsub_protocol.dart';
-import 'package:frosty/services/realtime/realtime_socket.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/services/realtime/eventsub_protocol.dart';
+import 'package:onset/services/realtime/realtime_socket.dart';
 
 /// One EventSub subscription type for one condition, e.g. the whispers of
 /// a user: `EventSubTopic('user.whisper.message', '1', {'user_id': id})`.

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/models/category.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/screens/home/top/categories/category_streams.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/utils/image_size.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
-import 'package:frosty/widgets/skeleton_loader.dart';
+import 'package:onset/models/category.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/home/top/categories/category_streams.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/utils/image_size.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/skeleton_loader.dart';
 
 /// [boxArtUrl] at [width] device pixels wide (3:4). Helix gives either a
 /// template (`{width}x{height}`) or a sized URL (`-285x380.jpg`).

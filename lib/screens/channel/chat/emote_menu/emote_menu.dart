@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/channel/chat/emote_menu/emote_menu_panel.dart';
-import 'package:frosty/screens/channel/chat/emote_menu/recent_emotes_panel.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
-import 'package:frosty/widgets/sheet/onset_panel.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
+import 'package:onset/screens/channel/chat/emote_menu/emote_menu_panel.dart';
+import 'package:onset/screens/channel/chat/emote_menu/recent_emotes_panel.dart';
+import 'package:onset/screens/channel/chat/stores/chat_store.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/sheet/onset_panel.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
 /// The emote menu (board ChaineTchatOutils): Recent, Twitch, 7TV, BTTV and
 /// FFZ as underlined tabs, their sets as pills, the grid. Under the chat

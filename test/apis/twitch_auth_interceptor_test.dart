@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_auth_interceptor.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_auth_interceptor.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
 
 class MockAuthStore extends Mock implements AuthStore {}
 

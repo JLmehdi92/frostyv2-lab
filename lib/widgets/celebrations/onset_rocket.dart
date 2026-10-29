@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
 
 /// ONSET's own raid rocket (board KitAssets), drawn for this project.
 const kRocketAsset = 'assets/celebrations/rocket.svg';

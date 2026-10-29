@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/models/channel.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
-import 'package:frosty/widgets/profile_picture.dart';
-import 'package:frosty/widgets/uptime.dart';
+import 'package:onset/models/channel.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/profile_picture.dart';
+import 'package:onset/widgets/uptime.dart';
 
 /// The result whose login or name is exactly [query] (case and spaces
 /// aside), shown first and larger like Twitch's top result; null when none.

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/widgets/draggable_divider.dart';
+import 'package:onset/widgets/draggable_divider.dart';
 
 void main() {
   Future<List<double>> pump(WidgetTester tester, double width) async {

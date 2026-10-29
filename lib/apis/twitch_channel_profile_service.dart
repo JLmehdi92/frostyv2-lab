@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/constants.dart';
-import 'package:frosty/models/channel_profile.dart';
-import 'package:frosty/models/community_highlights.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/constants.dart';
+import 'package:onset/models/channel_profile.dart';
+import 'package:onset/models/community_highlights.dart';
 
 /// A GQL error answered for a channel profile request.
 class ChannelProfileApiException extends ApiException {

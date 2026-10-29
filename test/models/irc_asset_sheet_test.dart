@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/emotes.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/link_router.dart';
+import 'package:onset/models/emotes.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/link_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 void main() {

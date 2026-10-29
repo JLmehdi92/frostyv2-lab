@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/utils/modal_bottom_sheet.dart';
+import 'package:onset/utils/modal_bottom_sheet.dart';
 
 void main() {
   const videoBottom = 267.0;

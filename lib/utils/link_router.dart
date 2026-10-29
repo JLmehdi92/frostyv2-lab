@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:frosty/utils/twitch_links.dart';
+import 'package:onset/utils/twitch_links.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 typedef UrlLauncher = Future<bool> Function(Uri url, {LaunchMode mode});

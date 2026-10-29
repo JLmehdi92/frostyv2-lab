@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/utils/irc_privmsg_builder.dart';
+import 'package:onset/utils/irc_privmsg_builder.dart';
 
 void main() {
   test('builds a chat message with emotes, badges and colour', () {

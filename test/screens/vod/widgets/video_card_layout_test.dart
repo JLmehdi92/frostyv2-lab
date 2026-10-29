@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/vod/widgets/video_card_layout.dart';
-import 'package:frosty/screens/vod/widgets/video_glyph.dart';
+import 'package:onset/screens/vod/widgets/video_card_layout.dart';
+import 'package:onset/screens/vod/widgets/video_glyph.dart';
 
 void main() {
   testWidgets('shows the fallback, chips, lines and taps through', (

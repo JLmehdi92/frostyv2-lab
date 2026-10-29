@@ -3,12 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/channel/chat/chat.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
-import 'package:frosty/screens/channel/chat/widgets/add_chat_dialog.dart';
-import 'package:frosty/utils.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/profile_picture.dart';
+import 'package:onset/screens/channel/chat/chat.dart';
+import 'package:onset/screens/channel/chat/stores/chat_tabs_store.dart';
+import 'package:onset/screens/channel/chat/widgets/add_chat_dialog.dart';
+import 'package:onset/utils.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/profile_picture.dart';
 
 /// Widget that displays multiple chat tabs with a tab bar.
 /// Wraps the existing Chat widget and manages tab switching.

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-import 'package:frosty/screens/clips/clip_media_backend.dart';
+import 'package:onset/screens/clips/clip_media_backend.dart';
 
 /// A scripted [ClipMediaBackend] that records what the store asks of it.
 class FakeClipBackend implements ClipMediaBackend {

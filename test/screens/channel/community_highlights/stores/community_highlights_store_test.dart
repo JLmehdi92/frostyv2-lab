@@ -3,15 +3,15 @@ import 'dart:convert';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/twitch_community_highlights_service.dart';
-import 'package:frosty/models/community_highlight_event.dart';
-import 'package:frosty/models/community_highlights.dart';
-import 'package:frosty/screens/channel/chat/incoming_raid.dart';
-import 'package:frosty/screens/channel/community_highlights/highlight_stack.dart';
-import 'package:frosty/services/realtime/twitch_realtime_client.dart';
 import 'package:mobx/mobx.dart' as mobx;
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_community_highlights_service.dart';
+import 'package:onset/models/community_highlight_event.dart';
+import 'package:onset/models/community_highlights.dart';
+import 'package:onset/screens/channel/chat/incoming_raid.dart';
+import 'package:onset/screens/channel/community_highlights/highlight_stack.dart';
+import 'package:onset/services/realtime/twitch_realtime_client.dart';
 
 import '../../../../helpers/community_highlights_harness.dart';
 

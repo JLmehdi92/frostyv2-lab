@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/widgets/settings_glyph.dart';
-import 'package:frosty/screens/settings/widgets/settings_kit.dart';
-import 'package:frosty/screens/settings/widgets/settings_page.dart';
-import 'package:frosty/theme.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/settings_glyph.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
+import 'package:onset/screens/settings/widgets/settings_page.dart';
+import 'package:onset/theme.dart';
 
 /// "Muted keywords": how many there are; a tap opens the list (board
 /// Parametres: the field, the words, "Undo" after a removal).

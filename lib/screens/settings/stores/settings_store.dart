@@ -1,7 +1,7 @@
-import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
-import 'package:frosty/screens/channel/video/captions.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/screens/channel/chat/stores/chat_tabs_store.dart';
+import 'package:onset/screens/channel/video/captions.dart';
 
 part 'settings_store.g.dart';
 

@@ -1,6 +1,6 @@
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/models/vod_comment.dart';
-import 'package:frosty/utils/irc_privmsg_builder.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/models/vod_comment.dart';
+import 'package:onset/utils/irc_privmsg_builder.dart';
 
 /// Turns a replayed chat comment into the [IRCMessage] live chat would have
 /// produced, so it renders through the same pipeline (see

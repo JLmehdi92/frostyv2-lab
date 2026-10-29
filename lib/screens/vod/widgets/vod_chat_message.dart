@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/screens/channel/channel.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/vod/vod_time.dart';
-import 'package:frosty/utils/modal_bottom_sheet.dart';
-import 'package:frosty/widgets/profile_picture.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/screens/channel/channel.dart';
+import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/vod/vod_time.dart';
+import 'package:onset/utils/modal_bottom_sheet.dart';
+import 'package:onset/widgets/profile_picture.dart';
 
 /// One replayed chat message, rendered exactly like live chat (badges,
 /// colours, Twitch/7TV/BTTV/FFZ emotes, mentions). Read-only: no reply or

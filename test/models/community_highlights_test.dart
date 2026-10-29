@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/community_highlight_event.dart';
-import 'package:frosty/models/community_highlights.dart';
+import 'package:onset/models/community_highlight_event.dart';
+import 'package:onset/models/community_highlights.dart';
 
 import '../fixtures/community_highlights_payloads.dart';
 

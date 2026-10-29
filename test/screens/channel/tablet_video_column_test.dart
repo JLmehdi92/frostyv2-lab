@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/tablet_video_column.dart';
+import 'package:onset/screens/channel/tablet_video_column.dart';
 
 /// Stands in for the player: counts how often its state is created, the way
 /// a recreated player would restart its stream.

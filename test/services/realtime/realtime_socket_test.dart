@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/services/realtime/realtime_socket.dart';
+import 'package:onset/services/realtime/realtime_socket.dart';
 
 void main() {
   test('a failed connect ends the stream and leaks no zone error', () async {

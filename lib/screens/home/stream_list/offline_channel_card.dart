@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frosty/models/followed_channel.dart';
-import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils.dart';
-import 'package:frosty/utils/modal_bottom_sheet.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
-import 'package:frosty/widgets/profile_picture.dart';
-import 'package:frosty/widgets/user_actions_modal.dart';
+import 'package:onset/models/followed_channel.dart';
+import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils.dart';
+import 'package:onset/utils/modal_bottom_sheet.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/profile_picture.dart';
+import 'package:onset/widgets/user_actions_modal.dart';
 import 'package:provider/provider.dart';
 
 /// A tappable card widget that displays an offline followed channel's details.

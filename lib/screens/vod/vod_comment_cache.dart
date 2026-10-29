@@ -1,4 +1,4 @@
-import 'package:frosty/models/vod_comment.dart';
+import 'package:onset/models/vod_comment.dart';
 
 /// Replayed chat fetched by offset, indexed by second, with the ranges of
 /// seconds known to be complete.

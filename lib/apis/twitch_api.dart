@@ -1,19 +1,19 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/twitch_auth_interceptor.dart';
-import 'package:frosty/apis/unauthorized_interceptor.dart';
-import 'package:frosty/constants.dart';
-import 'package:frosty/models/badges.dart';
-import 'package:frosty/models/category.dart';
-import 'package:frosty/models/channel.dart';
-import 'package:frosty/models/cheermote.dart';
-import 'package:frosty/models/clip.dart' show isValidClipSlug;
-import 'package:frosty/models/emotes.dart';
-import 'package:frosty/models/followed_channel.dart';
-import 'package:frosty/models/shared_chat_session.dart';
-import 'package:frosty/models/stream.dart';
-import 'package:frosty/models/user.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_auth_interceptor.dart';
+import 'package:onset/apis/unauthorized_interceptor.dart';
+import 'package:onset/constants.dart';
+import 'package:onset/models/badges.dart';
+import 'package:onset/models/category.dart';
+import 'package:onset/models/channel.dart';
+import 'package:onset/models/cheermote.dart';
+import 'package:onset/models/clip.dart' show isValidClipSlug;
+import 'package:onset/models/emotes.dart';
+import 'package:onset/models/followed_channel.dart';
+import 'package:onset/models/shared_chat_session.dart';
+import 'package:onset/models/stream.dart';
+import 'package:onset/models/user.dart';
 
 /// Why Twitch would not clip a stream (Helix `POST /clips` answers).
 enum ClipCreateFailure {

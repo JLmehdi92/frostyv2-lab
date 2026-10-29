@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/screens/onboarding/onboarding_parts.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/theme.dart';
+import 'package:onset/screens/onboarding/onboarding_parts.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/theme.dart';
 
 /// One thing the login lets ONSET do, and the Twitch scopes behind it
 /// ([AuthBase.loginScopes]; a test checks that every scope is listed).

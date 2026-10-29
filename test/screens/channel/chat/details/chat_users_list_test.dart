@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/screens/channel/chat/details/chat_details_store.dart';
-import 'package:frosty/screens/channel/chat/details/chat_users_list.dart';
-import 'package:frosty/theme.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/screens/channel/chat/details/chat_details_store.dart';
+import 'package:onset/screens/channel/chat/details/chat_users_list.dart';
+import 'package:onset/theme.dart';
 
 import '../../../../helpers/chat_message_harness.dart';
 

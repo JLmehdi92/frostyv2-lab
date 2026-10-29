@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/services/network_metering.dart';
+import 'package:onset/services/network_metering.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

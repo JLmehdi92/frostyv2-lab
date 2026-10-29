@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_copy.dart';
+import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_copy.dart';
 
 /// `m:ss` (or `h:mm:ss`) until the level runs out. Read out as part of the banner's
 /// label, so it has no semantics of its own.

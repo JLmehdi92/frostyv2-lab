@@ -1,7 +1,7 @@
 import 'package:flutter/physics.dart';
 import 'package:flutter/widgets.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
 
 /// How a [ShellPages] change enters.
 enum ShellPagesMotion {

@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/vod/up_next.dart';
-import 'package:frosty/screens/vod/vod_resume.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/vod/up_next.dart';
+import 'package:onset/screens/vod/vod_resume.dart';
 
 part 'up_next_store.g.dart';
 

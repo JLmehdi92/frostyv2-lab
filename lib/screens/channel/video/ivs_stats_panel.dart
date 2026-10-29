@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/channel/video/latency_stats.dart';
-import 'package:frosty/screens/channel/video/overlay_common.dart';
-import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
-import 'package:frosty/theme.dart';
+import 'package:onset/screens/channel/video/latency_stats.dart';
+import 'package:onset/screens/channel/video/overlay_common.dart';
+import 'package:onset/screens/channel/video/stores/ivs_video_store.dart';
+import 'package:onset/theme.dart';
 
 /// Compact technical overlay for measuring the IVS player on a real device:
 /// live latency with its rolling median / p90 / max, buffer, bitrate, frames,

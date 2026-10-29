@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/celebration.dart';
-import 'package:frosty/screens/channel/celebrations/subtle_celebrations.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/models/celebration.dart';
+import 'package:onset/screens/channel/celebrations/subtle_celebrations.dart';
 
 Celebration _celebration({
   CelebrationEffect effect = CelebrationEffect.fireworks,

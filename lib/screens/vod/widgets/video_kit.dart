@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/screens/home/top/categories/category_streams.dart';
-import 'package:frosty/screens/vod/widgets/video_glyph.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/home/top/categories/category_streams.dart';
+import 'package:onset/screens/vod/widgets/video_glyph.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
 
 /// "● synced to video": the signal pill beside a replay's title (boards
 /// Rediff, Clips).

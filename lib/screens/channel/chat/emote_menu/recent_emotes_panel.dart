@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/screens/channel/chat/emote_menu/emote_menu_section.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
-import 'package:frosty/widgets/sheet/onset_panel.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/screens/channel/chat/emote_menu/emote_menu_section.dart';
+import 'package:onset/screens/channel/chat/stores/chat_store.dart';
+import 'package:onset/widgets/sheet/onset_panel.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
 class RecentEmotesPanel extends StatelessWidget {
   final ChatStore chatStore;

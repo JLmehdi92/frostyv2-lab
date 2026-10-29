@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/user.dart';
-import 'package:frosty/screens/settings/account/blocked_users.dart';
-import 'package:frosty/screens/settings/chat_settings.dart';
-import 'package:frosty/screens/settings/general_settings.dart';
-import 'package:frosty/screens/settings/notifications_settings.dart';
-import 'package:frosty/screens/settings/profile_tab.dart';
-import 'package:frosty/screens/settings/settings.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/video_settings.dart';
-import 'package:frosty/screens/settings/widgets/chat_filters_setting.dart';
-import 'package:frosty/screens/settings/widgets/settings_kit.dart';
 import 'package:mobx/mobx.dart' show runInAction;
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/models/user.dart';
+import 'package:onset/screens/settings/account/blocked_users.dart';
+import 'package:onset/screens/settings/chat_settings.dart';
+import 'package:onset/screens/settings/general_settings.dart';
+import 'package:onset/screens/settings/notifications_settings.dart';
+import 'package:onset/screens/settings/profile_tab.dart';
+import 'package:onset/screens/settings/settings.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/video_settings.dart';
+import 'package:onset/screens/settings/widgets/chat_filters_setting.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
 
 import 'settings_harness.dart';
 

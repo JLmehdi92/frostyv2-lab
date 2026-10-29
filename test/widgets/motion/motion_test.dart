@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/widgets/motion/haptics.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/motion/haptics.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
 
 void main() {
   group('motion tokens', () {

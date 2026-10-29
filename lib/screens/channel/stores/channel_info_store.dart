@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/models/stream.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/models/stream.dart';
 
 /// What the channel screen says about the viewer and this channel beyond
 /// the stream itself: whether they follow it (the "Follow" / "Following"

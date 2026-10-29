@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
-import 'package:frosty/constants.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:onset/constants.dart';
 
 part 'emotes.g.dart';
 

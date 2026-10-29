@@ -1,4 +1,4 @@
-import 'package:frosty/apis/base_api_client.dart';
+import 'package:onset/apis/base_api_client.dart';
 
 /// Kind of past video, as named by Twitch GQL `BroadcastType`.
 enum VodType {

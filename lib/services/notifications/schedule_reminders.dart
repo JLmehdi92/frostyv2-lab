@@ -3,9 +3,9 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:frosty/models/channel_profile.dart';
-import 'package:frosty/services/notifications/activity_log.dart';
-import 'package:frosty/services/notifications/notice_ids.dart';
+import 'package:onset/models/channel_profile.dart';
+import 'package:onset/services/notifications/activity_log.dart';
+import 'package:onset/services/notifications/notice_ids.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 

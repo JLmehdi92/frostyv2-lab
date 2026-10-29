@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/chat/chat_commands.dart';
+import 'package:onset/screens/channel/chat/chat_commands.dart';
 
 void main() {
   test('messages and /me go out as they are', () {

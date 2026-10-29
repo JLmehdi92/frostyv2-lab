@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/video/latency_stats.dart';
+import 'package:onset/screens/channel/video/latency_stats.dart';
 
 void main() {
   group('formatLatency', () {

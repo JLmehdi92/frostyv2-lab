@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/chat/widgets/chat_character_counter.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_character_counter.dart';
 
 void main() {
   testWidgets('hidden until 50 are left, then counts down', (tester) async {

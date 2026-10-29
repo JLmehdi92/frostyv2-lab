@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/models/vod.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/models/vod.dart';
 
 part 'search_videos_store.g.dart';
 

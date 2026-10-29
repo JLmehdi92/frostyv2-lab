@@ -1,5 +1,5 @@
-import 'package:frosty/models/hype_train.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/models/hype_train.dart';
 
 /// The hype train's English copy, in the official app's wording (a
 /// personal build: decision S1).

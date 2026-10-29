@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/models/badges.dart';
-import 'package:frosty/models/emotes.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/models/badges.dart';
+import 'package:onset/models/emotes.dart';
 
 /// The BTTV service for making API calls.
 class BTTVApi extends BaseApiClient {

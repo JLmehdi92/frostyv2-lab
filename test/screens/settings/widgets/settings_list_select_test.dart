@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/settings/widgets/settings_list_select.dart';
+import 'package:onset/screens/settings/widgets/settings_list_select.dart';
 
 void main() {
   Widget host(Widget child) => MaterialApp(home: Scaffold(body: child));

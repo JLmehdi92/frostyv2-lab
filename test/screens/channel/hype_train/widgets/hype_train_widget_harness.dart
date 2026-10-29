@@ -3,13 +3,13 @@ import 'dart:async';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_hype_train_service.dart';
-import 'package:frosty/models/hype_train.dart';
-import 'package:frosty/models/hype_train_event.dart';
-import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_slot.dart';
-import 'package:frosty/services/realtime/twitch_realtime_client.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_hype_train_service.dart';
+import 'package:onset/models/hype_train.dart';
+import 'package:onset/models/hype_train_event.dart';
+import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_slot.dart';
+import 'package:onset/services/realtime/twitch_realtime_client.dart';
 
 import '../hype_train_test_data.dart';
 

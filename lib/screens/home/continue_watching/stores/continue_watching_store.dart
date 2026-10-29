@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/vod/vod_resume.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/vod/vod_resume.dart';
 
 part 'continue_watching_store.g.dart';
 

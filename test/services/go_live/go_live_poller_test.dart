@@ -1,7 +1,7 @@
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/services/go_live/go_live_poller.dart';
+import 'package:onset/services/go_live/go_live_poller.dart';
 
 void main() {
   late int checks;

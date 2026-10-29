@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/home/stream_list/streams_list.dart';
+import 'package:onset/screens/home/stream_list/streams_list.dart';
 
 void main() {
   Future<void> pump(WidgetTester tester, int hidden, VoidCallback onShow) =>

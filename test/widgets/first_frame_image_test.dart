@@ -3,7 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/widgets/first_frame_image.dart';
+import 'package:onset/widgets/first_frame_image.dart';
 
 /// A 4x2 GIF of two frames, red then blue, 20 ms each, looping.
 final _twoFrames = MemoryImage(

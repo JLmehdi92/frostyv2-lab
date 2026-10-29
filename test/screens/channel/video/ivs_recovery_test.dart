@@ -1,8 +1,8 @@
 import 'dart:async' as async;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/screens/channel/video/ivs_recovery.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/screens/channel/video/ivs_recovery.dart';
 
 void main() {
   group('classifyIvsError', () {

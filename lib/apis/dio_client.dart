@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/firebase_performance_interceptor.dart';
+import 'package:onset/apis/firebase_performance_interceptor.dart';
 
 /// Centralized Dio client configuration with interceptors and error handling
 class DioClient {

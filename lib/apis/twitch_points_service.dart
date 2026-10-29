@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/models/community_points.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/models/community_points.dart';
 
 /// Reads channel points and predictions from Twitch's private GQL endpoint.
 ///

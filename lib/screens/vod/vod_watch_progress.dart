@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/channel/video/live_progress.dart';
-import 'package:frosty/screens/vod/vod_resume.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/channel/video/live_progress.dart';
+import 'package:onset/screens/vod/vod_resume.dart';
 
 /// How far a video got: the bar along its thumbnail, and whether it was
 /// watched to the end.

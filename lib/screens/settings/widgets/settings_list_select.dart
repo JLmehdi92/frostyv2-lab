@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frosty/screens/settings/widgets/settings_glyph.dart';
-import 'package:frosty/screens/settings/widgets/settings_kit.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
+import 'package:onset/screens/settings/widgets/settings_glyph.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
 
 /// A setting with a few options: a segmented pill (boards Parametres), or
 /// with [stacked] one option per line (Video Autoplaying).

@@ -1,6 +1,6 @@
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/models/user.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/models/user.dart';
 
 part 'user_store.g.dart';
 

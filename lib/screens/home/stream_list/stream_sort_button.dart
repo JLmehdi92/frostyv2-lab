@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/apis/twitch_directory_service.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
+import 'package:onset/apis/twitch_directory_service.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
 
 /// "Sorted by …" above a category's or a tag's live streams (boards
 /// Categorie and ParcourirTablette): a quiet text button that opens the

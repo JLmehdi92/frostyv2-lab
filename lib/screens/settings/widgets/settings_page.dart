@@ -2,14 +2,14 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frosty/screens/settings/widgets/settings_glyph.dart';
-import 'package:frosty/screens/settings/widgets/settings_kit.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:onset/screens/settings/widgets/settings_glyph.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 

@@ -2,16 +2,16 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:frosty/apis/onset_update_service.dart';
-import 'package:frosty/models/onset_release.dart';
-import 'package:frosty/screens/settings/widgets/settings_glyph.dart';
-import 'package:frosty/screens/settings/widgets/settings_kit.dart';
-import 'package:frosty/services/onset_updater.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/alert_message.dart';
-import 'package:frosty/widgets/launch/onset_mark.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:onset/apis/onset_update_service.dart';
+import 'package:onset/models/onset_release.dart';
+import 'package:onset/screens/settings/widgets/settings_glyph.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
+import 'package:onset/services/onset_updater.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/alert_message.dart';
+import 'package:onset/widgets/launch/onset_mark.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:provider/provider.dart';
 
 /// Offers [update]: the "Update available" sheet (a dialog on a tablet),

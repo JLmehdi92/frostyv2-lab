@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/models/user.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
-import 'package:frosty/screens/channel/tablet_video_column.dart';
-import 'package:frosty/screens/channel/video/latency_pill.dart';
-import 'package:frosty/screens/channel/video/video_overlay.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/theme.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/models/user.dart';
+import 'package:onset/screens/channel/chat/stores/chat_store.dart';
+import 'package:onset/screens/channel/tablet_video_column.dart';
+import 'package:onset/screens/channel/video/latency_pill.dart';
+import 'package:onset/screens/channel/video/video_overlay.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/theme.dart';
 import 'package:provider/provider.dart';
 
 import '../../../helpers/fake_player.dart';

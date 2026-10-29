@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
 
 void main() {
   test('logging in asks for the clip scope, keeping the others', () {

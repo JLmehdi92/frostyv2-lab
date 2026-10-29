@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/video/ivs_video.dart';
-import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/screens/channel/video/ivs_video.dart';
+import 'package:onset/screens/channel/video/stores/ivs_video_store.dart';
 
 class MockIvsVideoStore extends Mock implements IvsVideoStore {}
 

@@ -1,12 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/apis/twitch_auth_interceptor.dart';
-import 'package:frosty/constants.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/services/twitch_web_token_service.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_auth_interceptor.dart';
+import 'package:onset/constants.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/services/twitch_web_token_service.dart';
 
 import '../../../helpers/fake_twitch_http.dart';
 

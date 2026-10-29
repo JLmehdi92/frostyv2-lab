@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/chat_rules.dart';
+import 'package:onset/models/chat_rules.dart';
 
 void main() {
   Map<String, Object?> user({required Object? rules, Object? icon}) => {

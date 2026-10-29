@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/channel/video/captions.dart';
-import 'package:frosty/screens/vod/stores/ivs_vod_store.dart';
-import 'package:frosty/screens/vod/vod_player_controller.dart';
+import 'package:onset/screens/channel/video/captions.dart';
+import 'package:onset/screens/vod/stores/ivs_vod_store.dart';
+import 'package:onset/screens/vod/vod_player_controller.dart';
 
 /// Renders the IVS VOD player's texture, 16:9, fitted or filling the box
 /// (never distorted), with a spinner while loading or buffering.

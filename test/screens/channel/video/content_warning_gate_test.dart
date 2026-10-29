@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/models/channel.dart';
-import 'package:frosty/screens/channel/video/content_warning_gate.dart';
-import 'package:frosty/screens/channel/video/player_controller.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/models/channel.dart';
+import 'package:onset/screens/channel/video/content_warning_gate.dart';
+import 'package:onset/screens/channel/video/player_controller.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:provider/provider.dart';
 
 import '../../../helpers/fake_player.dart';

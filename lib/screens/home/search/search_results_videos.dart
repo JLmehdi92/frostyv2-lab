@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/home/search/search_videos_store.dart';
-import 'package:frosty/screens/vod/widgets/video_card_layout.dart';
-import 'package:frosty/screens/vod/widgets/vod_card.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/adaptive_sliver_list.dart';
-import 'package:frosty/widgets/skeleton_loader.dart';
-import 'package:frosty/widgets/state_views.dart';
+import 'package:onset/screens/home/search/search_videos_store.dart';
+import 'package:onset/screens/vod/widgets/video_card_layout.dart';
+import 'package:onset/screens/vod/widgets/vod_card.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/adaptive_sliver_list.dart';
+import 'package:onset/widgets/skeleton_loader.dart';
+import 'package:onset/widgets/state_views.dart';
 
 /// The Videos tab of search: the matching videos (with their channel),
 /// the next page loading as the end comes into view.

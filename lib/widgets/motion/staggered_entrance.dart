@@ -3,8 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
 
 /// Holds every [StaggeredEntrance] below it until [open] turns true.
 ///

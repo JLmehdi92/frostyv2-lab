@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frosty/models/clip.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/clips/stores/channel_clips_store.dart';
-import 'package:frosty/screens/clips/widgets/channel_clips_tab.dart';
-import 'package:frosty/screens/home/shell/shell_tabs.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/screens/vod/stores/channel_videos_store.dart';
-import 'package:frosty/screens/vod/widgets/channel_videos_tab.dart';
-import 'package:frosty/screens/vod/widgets/video_glyph.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
-import 'package:frosty/widgets/profile_picture.dart';
+import 'package:onset/models/clip.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/clips/stores/channel_clips_store.dart';
+import 'package:onset/screens/clips/widgets/channel_clips_tab.dart';
+import 'package:onset/screens/home/shell/shell_tabs.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/vod/stores/channel_videos_store.dart';
+import 'package:onset/screens/vod/widgets/channel_videos_tab.dart';
+import 'package:onset/screens/vod/widgets/video_glyph.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/profile_picture.dart';
 
 /// A channel's past broadcasts, highlights, uploads and clips, each played
 /// in-app (board VideosChaine): the channel and "· Videos" over the tabs

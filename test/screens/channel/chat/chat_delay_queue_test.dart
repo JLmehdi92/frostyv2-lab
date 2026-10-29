@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/chat/chat_delay_queue.dart';
+import 'package:onset/screens/channel/chat/chat_delay_queue.dart';
 
 void main() {
   final t0 = DateTime(2026, 10, 20, 12);

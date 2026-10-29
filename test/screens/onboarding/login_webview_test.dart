@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/onboarding/login_webview.dart';
-import 'package:frosty/screens/onboarding/onboarding_parts.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/screens/onboarding/login_webview.dart';
+import 'package:onset/screens/onboarding/onboarding_parts.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 

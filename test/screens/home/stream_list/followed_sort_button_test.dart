@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/home/stream_list/stream_sort_button.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/home/stream_list/stream_sort_button.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 
 void main() {
   testWidgets('says the order and changes the remembered one', (tester) async {

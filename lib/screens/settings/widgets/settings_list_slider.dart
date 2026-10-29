@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frosty/screens/settings/widgets/settings_kit.dart';
-import 'package:frosty/theme.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
+import 'package:onset/theme.dart';
 
 /// A setting picked on a scale: its title and value, then the boards'
 /// slider (a 4 dp track filled in the signal colour, a 20 dp thumb).

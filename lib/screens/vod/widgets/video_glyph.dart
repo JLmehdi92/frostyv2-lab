@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
-import 'package:frosty/screens/channel/video/overlay_common.dart';
-import 'package:frosty/widgets/sheet/svg_path.dart';
+import 'package:onset/screens/channel/video/overlay_common.dart';
+import 'package:onset/widgets/sheet/svg_path.dart';
 
 /// The icons of the recorded-video screens (boards Rediff, RediffTablette,
 /// VideosChaine, Clips, ClipsTablette, CreerClip, VideosSuivies), read from

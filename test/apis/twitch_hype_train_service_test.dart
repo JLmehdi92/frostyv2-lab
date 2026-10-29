@@ -2,11 +2,11 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/twitch_hype_train_service.dart';
-import 'package:frosty/constants.dart';
-import 'package:frosty/models/hype_train.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_hype_train_service.dart';
+import 'package:onset/constants.dart';
+import 'package:onset/models/hype_train.dart';
 
 import '../fixtures/hype_train_gql.dart';
 import '../fixtures/hype_train_payloads.dart';

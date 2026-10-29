@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/constants.dart';
-import 'package:frosty/models/community_highlights.dart';
-import 'package:frosty/models/stream.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/constants.dart';
+import 'package:onset/models/community_highlights.dart';
+import 'package:onset/models/stream.dart';
 
 /// A GQL error answered for a directory request.
 class DirectoryApiException extends ApiException {

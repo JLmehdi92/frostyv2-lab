@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/services/notifications/activity_log.dart';
-import 'package:frosty/services/notifications/notice_ids.dart';
-import 'package:frosty/stores/whisper_store.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/services/notifications/activity_log.dart';
+import 'package:onset/services/notifications/notice_ids.dart';
+import 'package:onset/stores/whisper_store.dart';
 
 /// A chat message that mentions the viewer.
 typedef ChatMention = ({

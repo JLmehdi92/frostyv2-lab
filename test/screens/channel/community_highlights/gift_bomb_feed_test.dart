@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/chat/gift_bomb_tracker.dart';
-import 'package:frosty/screens/channel/community_highlights/gift_bomb_feed.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/screens/channel/chat/gift_bomb_tracker.dart';
+import 'package:onset/screens/channel/community_highlights/gift_bomb_feed.dart';
 
 GiftBomb _bomb(String key) => GiftBomb(
   key: key,

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
-import 'package:frosty/widgets/motion/haptics.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
-import 'package:frosty/widgets/profile_picture.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/motion/haptics.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/profile_picture.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
 // The shared pieces of the channel profile (boards Profil and
 // ProfilTablette).

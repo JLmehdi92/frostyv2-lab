@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/screens/channel/video/player_controller.dart';
-import 'package:frosty/screens/channel/video/player_glyph.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/content_labels.dart';
-import 'package:frosty/utils/context_extensions.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/screens/channel/video/player_controller.dart';
+import 'package:onset/screens/channel/video/player_glyph.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/content_labels.dart';
+import 'package:onset/utils/context_extensions.dart';
 import 'package:provider/provider.dart';
 
 /// Channels whose content warning the viewer accepted this session, so

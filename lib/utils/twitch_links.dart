@@ -1,6 +1,6 @@
-import 'package:frosty/models/clip.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/vod/vod_time.dart';
+import 'package:onset/models/clip.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/vod/vod_time.dart';
 
 /// What a twitch.tv link points to, for the links the app opens itself.
 sealed class TwitchLink {

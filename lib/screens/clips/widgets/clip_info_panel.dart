@@ -1,15 +1,15 @@
-import 'package:flutter/material.dart' hide Clip;
 import 'package:flutter/material.dart' as material show Clip;
-import 'package:frosty/models/clip.dart';
-import 'package:frosty/screens/channel/channel.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/screens/vod/vod_time.dart';
-import 'package:frosty/screens/vod/widgets/video_glyph.dart';
-import 'package:frosty/screens/vod/widgets/video_kit.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
-import 'package:frosty/widgets/profile_picture.dart';
+import 'package:flutter/material.dart' hide Clip;
 import 'package:intl/intl.dart';
+import 'package:onset/models/clip.dart';
+import 'package:onset/screens/channel/channel.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/vod/vod_time.dart';
+import 'package:onset/screens/vod/widgets/video_glyph.dart';
+import 'package:onset/screens/vod/widgets/video_kit.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/profile_picture.dart';
 
 /// Title, views and age, category, channel and clipper, and the actions of
 /// a clip under the player (board Clips): Watch full video, Copy link and

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/home/shell/onset_shell.dart';
+import 'package:onset/screens/home/shell/onset_shell.dart';
 
 void main() {
   late ShellCoverObserver observer;

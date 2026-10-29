@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/vod/stores/channel_videos_store.dart';
-import 'package:frosty/screens/vod/widgets/channel_videos_tab.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/vod/stores/channel_videos_store.dart';
+import 'package:onset/screens/vod/widgets/channel_videos_tab.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
 
 /// The profile's video types: past broadcasts (the default), highlights
 /// and uploads, each with its empty message.

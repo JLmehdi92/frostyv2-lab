@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/emotes.dart';
-import 'package:frosty/screens/channel/chat/widgets/chat_bottom_bar.dart';
-import 'package:frosty/screens/channel/stores/channel_events_store.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/theme.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/models/emotes.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_bottom_bar.dart';
+import 'package:onset/screens/channel/stores/channel_events_store.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/theme.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../helpers/chat_message_harness.dart';

@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/models/category.dart';
-import 'package:frosty/models/channel.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/models/category.dart';
+import 'package:onset/models/channel.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 part 'search_store.g.dart';

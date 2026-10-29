@@ -1,6 +1,6 @@
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/vod/vod_resume.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/vod/vod_resume.dart';
 
 /// Whether the viewer has seen enough of [vod] for Up Next to skip it, with
 /// the official app's rule (`VodModel.isWatched`): to the end of a video

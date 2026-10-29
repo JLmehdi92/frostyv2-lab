@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/models/vod.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/models/vod.dart';
 
 part 'channel_videos_store.g.dart';
 

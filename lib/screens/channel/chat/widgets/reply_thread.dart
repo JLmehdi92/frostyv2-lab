@@ -1,12 +1,12 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
-import 'package:frosty/screens/channel/chat/widgets/chat_message.dart';
-import 'package:frosty/utils.dart';
-import 'package:frosty/widgets/frosty_scrollbar.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/screens/channel/chat/stores/chat_store.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
+import 'package:onset/utils.dart';
+import 'package:onset/widgets/frosty_scrollbar.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
 
 class ReplyThread extends StatelessWidget {
   final IRCMessage selectedMessage;

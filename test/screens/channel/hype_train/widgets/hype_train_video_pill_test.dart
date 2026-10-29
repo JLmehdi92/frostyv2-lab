@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_hype_train_service.dart';
-import 'package:frosty/models/hype_train.dart';
-import 'package:frosty/models/hype_train_event.dart';
-import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_video_pill.dart';
+import 'package:onset/apis/twitch_hype_train_service.dart';
+import 'package:onset/models/hype_train.dart';
+import 'package:onset/models/hype_train_event.dart';
+import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_video_pill.dart';
 
 import '../hype_train_test_data.dart';
 import 'hype_train_widget_harness.dart';

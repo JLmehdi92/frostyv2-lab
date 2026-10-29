@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
 
 void main() {
   int taps = 0;

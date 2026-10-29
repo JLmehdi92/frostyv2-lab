@@ -1,14 +1,14 @@
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/community_highlight_event.dart';
-import 'package:frosty/models/community_highlights.dart';
-import 'package:frosty/screens/channel/chat/gift_bomb_tracker.dart';
-import 'package:frosty/screens/channel/chat/incoming_raid.dart';
-import 'package:frosty/screens/channel/community_highlights/highlight_stack.dart';
-import 'package:frosty/screens/channel/community_highlights/widgets/highlight_slot.dart';
-import 'package:frosty/screens/channel/community_highlights/widgets/incoming_raid_pin.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/models/community_highlight_event.dart';
+import 'package:onset/models/community_highlights.dart';
+import 'package:onset/screens/channel/chat/gift_bomb_tracker.dart';
+import 'package:onset/screens/channel/chat/incoming_raid.dart';
+import 'package:onset/screens/channel/community_highlights/highlight_stack.dart';
+import 'package:onset/screens/channel/community_highlights/widgets/highlight_slot.dart';
+import 'package:onset/screens/channel/community_highlights/widgets/incoming_raid_pin.dart';
 
 import '../../../../helpers/community_highlights_harness.dart';
 import '../../../../helpers/live_curves.dart';

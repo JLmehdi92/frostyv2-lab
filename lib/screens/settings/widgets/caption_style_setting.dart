@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/channel/video/captions.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/widgets/settings_list_select.dart';
-import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
+import 'package:onset/screens/channel/video/captions.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/settings_list_select.dart';
+import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
 
 /// Closed captions in Settings › Video: Twitch's switch, then the line's
 /// size and background (an ONSET addition; Twitch's line is Medium on

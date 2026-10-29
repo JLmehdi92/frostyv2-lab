@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/painting.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
-import 'package:frosty/screens/channel/video/live_progress.dart';
-import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/screens/channel/chat/stores/chat_tabs_store.dart';
+import 'package:onset/screens/channel/video/live_progress.dart';
+import 'package:onset/screens/channel/video/stores/ivs_video_store.dart';
 
 part 'mini_player_store.g.dart';
 

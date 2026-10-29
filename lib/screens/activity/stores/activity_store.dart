@@ -1,7 +1,7 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
-import 'package:frosty/services/notifications/activity_log.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/services/notifications/activity_log.dart';
 
 part 'activity_store.g.dart';
 

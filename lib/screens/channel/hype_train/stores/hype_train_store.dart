@@ -3,17 +3,17 @@ import 'dart:math';
 
 import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/twitch_hype_train_service.dart';
-import 'package:frosty/models/hype_train.dart';
-import 'package:frosty/models/hype_train_event.dart';
-import 'package:frosty/screens/channel/hype_train/hype_train_clock.dart';
-import 'package:frosty/screens/channel/hype_train/hype_train_math.dart' as htm;
-import 'package:frosty/screens/channel/hype_train/hype_train_queue.dart';
-import 'package:frosty/screens/channel/hype_train/hype_train_reducer.dart';
-import 'package:frosty/screens/channel/hype_train/hype_train_sequence.dart';
-import 'package:frosty/screens/channel/hype_train/hype_train_timings.dart';
-import 'package:frosty/services/realtime/twitch_realtime_client.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_hype_train_service.dart';
+import 'package:onset/models/hype_train.dart';
+import 'package:onset/models/hype_train_event.dart';
+import 'package:onset/screens/channel/hype_train/hype_train_clock.dart';
+import 'package:onset/screens/channel/hype_train/hype_train_math.dart' as htm;
+import 'package:onset/screens/channel/hype_train/hype_train_queue.dart';
+import 'package:onset/screens/channel/hype_train/hype_train_reducer.dart';
+import 'package:onset/screens/channel/hype_train/hype_train_sequence.dart';
+import 'package:onset/screens/channel/hype_train/hype_train_timings.dart';
+import 'package:onset/services/realtime/twitch_realtime_client.dart';
 
 part 'hype_train_store.g.dart';
 

@@ -1,8 +1,8 @@
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
-import 'package:frosty/widgets/sheet/svg_path.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
+import 'package:onset/widgets/sheet/svg_path.dart';
 
 void main() {
   test('absolute and relative lines end where the data says', () {

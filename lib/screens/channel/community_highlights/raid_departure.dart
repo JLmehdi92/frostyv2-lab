@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:frosty/models/community_highlights.dart';
-import 'package:frosty/models/raid_arrival.dart';
+import 'package:onset/models/community_highlights.dart';
+import 'package:onset/models/raid_arrival.dart';
 
 /// Leaving a channel with its raid: one departure at a time, the switch
 /// after a delay (the card's hit and the "Heading to" overlay), and the

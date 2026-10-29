@@ -1,5 +1,5 @@
-import 'package:frosty/screens/channel/chat/gift_bomb_tracker.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/screens/channel/chat/gift_bomb_tracker.dart';
 
 /// Pins each gift bomb a chat announces from now on: every time [latest]
 /// changes to a bomb, [show] gets it.

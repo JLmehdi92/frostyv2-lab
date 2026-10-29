@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/models/user.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/services/twitch_web_token_service.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/models/user.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/services/twitch_web_token_service.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}

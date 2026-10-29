@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/unauthorized_interceptor.dart';
+import 'package:onset/apis/unauthorized_interceptor.dart';
 
 void main() {
   RequestOptions request(String url, {Map<String, Object?>? extra}) =>

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/motion/haptics.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
-import 'package:frosty/widgets/sheet/svg_path.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/motion/haptics.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/sheet/svg_path.dart';
 
 /// The colours of the first launch (boards Onboarding, OnboardingTablette,
 /// OnboardingEtapes). The onboarding is always drawn in the intro's black,

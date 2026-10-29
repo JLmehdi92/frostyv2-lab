@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/widgets/motion/signal_ping.dart';
+import 'package:onset/widgets/motion/signal_ping.dart';
 
 /// The live dot shown next to a live channel: the design system's
 /// [SignalPing] in the theme's live colour (the one place the accent is

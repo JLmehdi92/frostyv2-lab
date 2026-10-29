@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/channel.dart';
-import 'package:frosty/screens/channel/video/stream_info_bar.dart';
-import 'package:frosty/screens/home/top/categories/category_streams.dart';
+import 'package:onset/models/channel.dart';
+import 'package:onset/screens/channel/video/stream_info_bar.dart';
+import 'package:onset/screens/home/top/categories/category_streams.dart';
 
 class _Pushes extends NavigatorObserver {
   final names = <String?>[];

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:frosty/services/realtime/realtime_socket.dart';
+import 'package:onset/services/realtime/realtime_socket.dart';
 
 /// A scripted [RealtimeSocket]: tests push server frames and closes.
 class FakeRealtimeSocket implements RealtimeSocket {

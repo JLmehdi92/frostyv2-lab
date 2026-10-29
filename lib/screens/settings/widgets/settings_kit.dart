@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/screens/settings/widgets/settings_glyph.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:onset/screens/settings/widgets/settings_glyph.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
 
 /// The colours of the profile and settings screens (boards Moi,
 /// MoiDeconnecte, Parametres, ParametresTablette, ParametresDetails,

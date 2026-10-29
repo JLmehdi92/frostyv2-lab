@@ -1,10 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:frosty/cache_manager.dart';
-import 'package:frosty/models/user_notice_presentation.dart';
-import 'package:frosty/models/user_notice_text.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
+import 'package:onset/cache_manager.dart';
+import 'package:onset/models/user_notice_presentation.dart';
+import 'package:onset/models/user_notice_text.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
 
 /// A sub, gift or other `USERNOTICE`, drawn as Twitch's Android app draws its
 /// notice rows, in green where Twitch uses purple.

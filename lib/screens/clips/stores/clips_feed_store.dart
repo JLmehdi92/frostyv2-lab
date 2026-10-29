@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/twitch_clip_service.dart';
-import 'package:frosty/models/clip.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_clip_service.dart';
+import 'package:onset/models/clip.dart';
 
 part 'clips_feed_store.g.dart';
 

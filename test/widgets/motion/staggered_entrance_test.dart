@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/staggered_entrance.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/staggered_entrance.dart';
 
 Finder _entrance(Key key) =>
     find.descendant(of: find.byKey(key), matching: find.byType(FadeTransition));

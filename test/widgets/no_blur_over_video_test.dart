@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/emotes.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/frosty_notification.dart';
-import 'package:frosty/widgets/frosty_photo_view_dialog.dart';
+import 'package:onset/models/emotes.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/frosty_notification.dart';
+import 'package:onset/widgets/frosty_photo_view_dialog.dart';
 
 /// The pictures and notices the chat opens: the chat sits beside, under or
 /// over the live video, so none of them may blur it.

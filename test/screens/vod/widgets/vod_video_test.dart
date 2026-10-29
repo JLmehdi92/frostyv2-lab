@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/video/stores/caption_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/vod/stores/ivs_vod_store.dart';
-import 'package:frosty/screens/vod/vod_player_controller.dart';
-import 'package:frosty/screens/vod/widgets/vod_video.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/screens/channel/video/stores/caption_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/vod/stores/ivs_vod_store.dart';
+import 'package:onset/screens/vod/vod_player_controller.dart';
+import 'package:onset/screens/vod/widgets/vod_video.dart';
 
 class MockIvsVodStore extends Mock implements IvsVodStore {}
 

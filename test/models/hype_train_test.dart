@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/hype_train.dart';
+import 'package:onset/models/hype_train.dart';
 
 import '../fixtures/hype_train_payloads.dart';
 import '../fixtures/hype_train_payloads_tbc.dart';

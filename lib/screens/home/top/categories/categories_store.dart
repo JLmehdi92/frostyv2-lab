@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/models/category.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/models/category.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
 
 part 'categories_store.g.dart';
 

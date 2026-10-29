@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/video/captions.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/widgets/caption_style_setting.dart';
+import 'package:onset/screens/channel/video/captions.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/caption_style_setting.dart';
 
 void main() {
   testWidgets('captions on, then their size and background', (tester) async {

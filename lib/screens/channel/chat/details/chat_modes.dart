@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
 class ChatModes extends StatelessWidget {
   final ROOMSTATE roomState;

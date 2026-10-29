@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/services/twitch_web_token_service.dart';
+import 'package:onset/services/twitch_web_token_service.dart';
 
 const _channel = MethodChannel('frosty/cookies');
 

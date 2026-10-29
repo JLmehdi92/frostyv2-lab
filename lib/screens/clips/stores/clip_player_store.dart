@@ -3,15 +3,15 @@ import 'dart:io';
 
 import 'package:clock/clock.dart';
 import 'package:flutter/widgets.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/twitch_clip_service.dart';
-import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/models/clip.dart';
-import 'package:frosty/screens/channel/video/quality_selection.dart';
-import 'package:frosty/screens/clips/clip_media_backend.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_clip_service.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/models/clip.dart';
+import 'package:onset/screens/channel/video/quality_selection.dart';
+import 'package:onset/screens/clips/clip_media_backend.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/vod/vod_player_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_pip_mode/simple_pip.dart';
 

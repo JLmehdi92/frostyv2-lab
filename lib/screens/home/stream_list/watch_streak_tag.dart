@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/screens/home/stream_list/stream_tags.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/home/stream_list/stream_tags.dart';
 
 /// "Streak N" on a followed card, with its tags, like Twitch's Following
 /// tab: the viewer's running streak in that channel, as Twitch counts it,

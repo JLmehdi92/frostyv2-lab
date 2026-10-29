@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/models/community_highlights.dart';
-import 'package:frosty/screens/channel/community_highlights/highlight_stack.dart';
-import 'package:frosty/screens/channel/community_highlights/stores/community_highlights_store.dart';
-import 'package:frosty/screens/channel/community_highlights/widgets/highlight_cards.dart';
-import 'package:frosty/screens/channel/community_highlights/widgets/incoming_raid_pin.dart';
-import 'package:frosty/screens/channel/community_highlights/widgets/raid_card.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
-import 'package:frosty/widgets/twitch_web_page.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/models/community_highlights.dart';
+import 'package:onset/screens/channel/community_highlights/highlight_stack.dart';
+import 'package:onset/screens/channel/community_highlights/stores/community_highlights_store.dart';
+import 'package:onset/screens/channel/community_highlights/widgets/highlight_cards.dart';
+import 'package:onset/screens/channel/community_highlights/widgets/incoming_raid_pin.dart';
+import 'package:onset/screens/channel/community_highlights/widgets/raid_card.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
+import 'package:onset/widgets/twitch_web_page.dart';
 
 /// Renders a pinned message like chat (the channel screen passes its chat
 /// renderer); null falls back to plain text.

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/video/web_page_init.dart';
+import 'package:onset/screens/channel/video/web_page_init.dart';
 
 void main() {
   const player = 'https://player.twitch.tv/?channel=x';

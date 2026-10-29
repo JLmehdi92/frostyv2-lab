@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/services/shared_timer_service.dart';
-import 'package:frosty/utils/context_extensions.dart';
+import 'package:onset/services/shared_timer_service.dart';
+import 'package:onset/utils/context_extensions.dart';
 
 /// A widget that displays a timer representing the time since the given start time.
 /// Uses a shared timer service to keep all uptime displays synchronized.

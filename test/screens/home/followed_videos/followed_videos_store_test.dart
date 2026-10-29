@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/models/followed_channel.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/home/followed_videos/stores/followed_videos_store.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/models/followed_channel.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/home/followed_videos/stores/followed_videos_store.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 

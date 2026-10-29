@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_followed_categories_service.dart';
-import 'package:frosty/models/followed_category.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
+import 'package:onset/apis/twitch_followed_categories_service.dart';
+import 'package:onset/models/followed_category.dart';
 
 const _gql = 'https://gql.twitch.tv/gql';
 

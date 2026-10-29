@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frosty/utils/context_extensions.dart';
+import 'package:onset/utils/context_extensions.dart';
 
 class ExpandableSectionHeader extends StatelessWidget {
   final String text;

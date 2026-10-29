@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
 
 /// Dio interceptor that automatically adds Twitch authentication headers
 /// to requests targeting Twitch API endpoints.

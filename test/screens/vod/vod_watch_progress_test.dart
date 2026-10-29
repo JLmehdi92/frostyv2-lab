@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/channel/video/live_progress.dart';
-import 'package:frosty/screens/vod/vod_resume.dart';
-import 'package:frosty/screens/vod/vod_watch_progress.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/channel/video/live_progress.dart';
+import 'package:onset/screens/vod/vod_resume.dart';
+import 'package:onset/screens/vod/vod_watch_progress.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Vod _vod(

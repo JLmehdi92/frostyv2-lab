@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/screens/channel/video/stores/native_video_store.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'package:onset/screens/channel/video/stores/native_video_store.dart';
 
 /// Renders the native low-latency video surface for a [NativeVideoStore].
 ///

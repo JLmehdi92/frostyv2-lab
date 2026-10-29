@@ -2,15 +2,15 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/widgets/caption_style_setting.dart';
-import 'package:frosty/screens/settings/widgets/settings_kit.dart';
-import 'package:frosty/screens/settings/widgets/settings_list_select.dart';
-import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
-import 'package:frosty/screens/settings/widgets/settings_page.dart';
-import 'package:frosty/screens/settings/widgets/settings_twitch_web_token.dart';
-import 'package:frosty/utils.dart';
-import 'package:frosty/utils/context_extensions.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/caption_style_setting.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
+import 'package:onset/screens/settings/widgets/settings_list_select.dart';
+import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
+import 'package:onset/screens/settings/widgets/settings_page.dart';
+import 'package:onset/screens/settings/widgets/settings_twitch_web_token.dart';
+import 'package:onset/utils.dart';
+import 'package:onset/utils/context_extensions.dart';
 
 /// Settings › Video (board Parametres): the low-latency player, playback,
 /// the overlay, videos and content, captions.

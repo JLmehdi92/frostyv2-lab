@@ -1,4 +1,4 @@
-import 'package:frosty/models/hype_train.dart';
+import 'package:onset/models/hype_train.dart';
 
 /// Small builders for hype train states in tests.
 HtUser user(String id) => HtUser(id: id, login: id, displayName: id);

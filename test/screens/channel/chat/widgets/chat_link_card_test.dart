@@ -3,15 +3,15 @@ import 'dart:async';
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_clip_service.dart';
-import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/models/clip.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/channel/chat/widgets/chat_link_card.dart';
-import 'package:frosty/utils/link_router.dart';
-import 'package:frosty/utils/twitch_links.dart';
-import 'package:frosty/widgets/skeleton_loader.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_clip_service.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/models/clip.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_link_card.dart';
+import 'package:onset/utils/link_router.dart';
+import 'package:onset/utils/twitch_links.dart';
+import 'package:onset/widgets/skeleton_loader.dart';
 import 'package:provider/provider.dart';
 
 class MockClipService extends Mock implements TwitchClipService {}

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/cheermote.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/models/cheermote.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
 
 class MockChatAssetsStore extends Mock implements ChatAssetsStore {}
 

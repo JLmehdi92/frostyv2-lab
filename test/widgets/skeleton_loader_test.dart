@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/skeleton_loader.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/skeleton_loader.dart';
 
 Widget _host(Widget child, {bool dark = true, bool disableAnimations = false}) {
   const themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/chat/chat_filters.dart';
+import 'package:onset/screens/channel/chat/chat_filters.dart';
 
 const _all = ChatFilterSettings(
   enabled: true,

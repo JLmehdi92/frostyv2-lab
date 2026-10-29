@@ -2,14 +2,14 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frosty/apis/twitch_directory_service.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/screens/home/stream_list/stream_list_store.dart';
-import 'package:frosty/screens/home/stream_list/stream_sort_button.dart';
-import 'package:frosty/screens/home/stream_list/streams_list.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/settled_blur.dart';
+import 'package:onset/apis/twitch_directory_service.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/home/stream_list/stream_list_store.dart';
+import 'package:onset/screens/home/stream_list/stream_sort_button.dart';
+import 'package:onset/screens/home/stream_list/streams_list.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/settled_blur.dart';
 
 /// The live streams with a tag, in any of Twitch's orders (board Categorie,
 /// "tag" state): a glass header with the tag and the order over the list,

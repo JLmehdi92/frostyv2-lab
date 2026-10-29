@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/widgets/go_live_setting.dart';
-import 'package:frosty/screens/settings/widgets/mention_notification_setting.dart';
-import 'package:frosty/screens/settings/widgets/settings_kit.dart';
-import 'package:frosty/screens/settings/widgets/settings_page.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/go_live_setting.dart';
+import 'package:onset/screens/settings/widgets/mention_notification_setting.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
+import 'package:onset/screens/settings/widgets/settings_page.dart';
 
 /// Settings › Notifications (board Parametres): go-live notices for the
 /// channels followed, chat mentions. Both were under General before.

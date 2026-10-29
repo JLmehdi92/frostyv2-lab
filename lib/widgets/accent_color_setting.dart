@@ -3,13 +3,13 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/widgets/settings_glyph.dart';
-import 'package:frosty/screens/settings/widgets/settings_kit.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/accent_picker_controls.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/settings_glyph.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/accent_picker_controls.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
 
 /// "Accent color" in Settings › General: the colour's hex and swatch; a tap
 /// opens the picker (a sheet on a phone, a dialog on a tablet), which

@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
-import 'package:frosty/screens/channel/video/live_progress.dart';
-import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
-import 'package:frosty/stores/mini_player_store.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/screens/channel/chat/stores/chat_tabs_store.dart';
+import 'package:onset/screens/channel/video/live_progress.dart';
+import 'package:onset/screens/channel/video/stores/ivs_video_store.dart';
+import 'package:onset/stores/mini_player_store.dart';
 
 class _MockPlayer extends Mock implements IvsVideoStore {}
 

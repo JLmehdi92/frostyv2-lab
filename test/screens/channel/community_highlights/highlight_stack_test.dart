@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/community_highlights/highlight_stack.dart';
+import 'package:onset/screens/channel/community_highlights/highlight_stack.dart';
 
 HighlightItem item(HighlightKind kind, String id, {bool sticky = false}) =>
     HighlightItem(kind: kind, id: id, sticky: sticky);

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/models/followed_category.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/screens/home/top/categories/category_streams.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
-import 'package:frosty/widgets/skeleton_loader.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/models/followed_category.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/home/top/categories/category_streams.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/skeleton_loader.dart';
 
 /// Opens the live streams of [category].
 void _openCategory(BuildContext context, FollowedCategory category) =>

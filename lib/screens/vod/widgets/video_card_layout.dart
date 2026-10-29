@@ -2,15 +2,15 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/screens/vod/widgets/video_glyph.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
-import 'package:frosty/widgets/frosty_photo_view_dialog.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
-import 'package:frosty/widgets/profile_picture.dart';
-import 'package:frosty/widgets/skeleton_loader.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/vod/widgets/video_glyph.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/frosty_photo_view_dialog.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/profile_picture.dart';
+import 'package:onset/widgets/skeleton_loader.dart';
 
 /// A small label over a video thumbnail (length, "Watched", views…): 19 dp
 /// (22 on a tile), black at 65 %, a light hairline (boards VideosChaine,

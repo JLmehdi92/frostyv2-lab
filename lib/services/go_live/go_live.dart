@@ -1,7 +1,7 @@
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/models/stream.dart';
-import 'package:frosty/services/notifications/activity_log.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/models/stream.dart';
+import 'package:onset/services/notifications/activity_log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// What the go-live check needs between runs, kept in plain preferences so

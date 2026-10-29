@@ -1,16 +1,16 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/models/channel.dart';
-import 'package:frosty/utils.dart';
-import 'package:frosty/widgets/alert_message.dart';
-import 'package:frosty/widgets/animated_scroll_border.dart';
-import 'package:frosty/widgets/live_indicator.dart';
-import 'package:frosty/widgets/profile_picture.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
-import 'package:frosty/widgets/skeleton_loader.dart';
-import 'package:frosty/widgets/uptime.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/models/channel.dart';
+import 'package:onset/utils.dart';
+import 'package:onset/widgets/alert_message.dart';
+import 'package:onset/widgets/animated_scroll_border.dart';
+import 'package:onset/widgets/live_indicator.dart';
+import 'package:onset/widgets/profile_picture.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:onset/widgets/skeleton_loader.dart';
+import 'package:onset/widgets/uptime.dart';
 
 /// Data class returned when a channel is selected in the AddChatSheet.
 class AddChatResult {

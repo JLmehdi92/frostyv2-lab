@@ -2,10 +2,10 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/twitch_directory_service.dart';
-import 'package:frosty/constants.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_directory_service.dart';
+import 'package:onset/constants.dart';
 
 import '../fixtures/directory_payloads.dart';
 

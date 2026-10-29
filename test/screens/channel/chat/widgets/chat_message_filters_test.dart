@@ -1,11 +1,11 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/screens/channel/chat/chat_filters.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/screens/channel/chat/chat_filters.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
 
 import '../../../../helpers/chat_message_harness.dart';
 

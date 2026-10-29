@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/cheermote.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/vod/stores/vod_chat_replay_store.dart';
-import 'package:frosty/screens/vod/widgets/video_kit.dart';
-import 'package:frosty/screens/vod/widgets/vod_chat_replay.dart';
-import 'package:frosty/widgets/skeleton_loader.dart';
 import 'package:mobx/mobx.dart' show ObservableList;
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/models/cheermote.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/vod/stores/vod_chat_replay_store.dart';
+import 'package:onset/screens/vod/widgets/video_kit.dart';
+import 'package:onset/screens/vod/widgets/vod_chat_replay.dart';
+import 'package:onset/widgets/skeleton_loader.dart';
 
 class MockReplayStore extends Mock implements VodChatReplayStore {}
 

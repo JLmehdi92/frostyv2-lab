@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:frosty/models/user_notice.dart';
-import 'package:frosty/models/user_notice_text.dart';
+import 'package:onset/models/user_notice.dart';
+import 'package:onset/models/user_notice_text.dart';
 
 /// A mass gift: one `submysterygift` header and the `subgift` lines that
 /// follow it, one per recipient.

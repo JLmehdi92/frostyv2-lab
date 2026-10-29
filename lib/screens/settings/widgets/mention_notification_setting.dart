@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/widgets/go_live_setting.dart';
-import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/go_live_setting.dart';
+import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
 
 /// Turns chat mention notices on or off (Twitch's "Chat Mentions").
 class MentionNotificationSetting extends StatefulWidget {

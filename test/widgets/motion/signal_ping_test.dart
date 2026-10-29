@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/live_indicator.dart';
-import 'package:frosty/widgets/motion/signal_ping.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/live_indicator.dart';
+import 'package:onset/widgets/motion/signal_ping.dart';
 
 Widget _host(Widget child, {bool disableAnimations = false}) => MaterialApp(
   theme: const FrostyThemes(colorSchemeSeed: FrostyTokens.accent).dark,

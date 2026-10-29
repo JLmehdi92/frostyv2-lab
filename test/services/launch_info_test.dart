@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/services/launch_info.dart';
+import 'package:onset/services/launch_info.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

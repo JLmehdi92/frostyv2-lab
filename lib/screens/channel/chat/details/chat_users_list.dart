@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/screens/channel/chat/details/chat_details_store.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
-import 'package:frosty/screens/channel/chat/widgets/chat_user_modal.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/frosty_scrollbar.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
-import 'package:frosty/widgets/scroll_to_top_button.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/screens/channel/chat/details/chat_details_store.dart';
+import 'package:onset/screens/channel/chat/stores/chat_store.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/frosty_scrollbar.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/scroll_to_top_button.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:provider/provider.dart';
 
 class ChattersList extends StatefulWidget {

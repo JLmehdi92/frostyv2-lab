@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/settings/account/account_settings.dart';
-import 'package:frosty/screens/settings/account/blocked_users.dart';
-import 'package:frosty/screens/settings/chat_settings.dart';
-import 'package:frosty/screens/settings/general_settings.dart';
-import 'package:frosty/screens/settings/notifications_settings.dart';
-import 'package:frosty/screens/settings/other_settings.dart';
-import 'package:frosty/screens/settings/settings_master_detail.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/video_settings.dart';
-import 'package:frosty/screens/settings/widgets/settings_glyph.dart';
-import 'package:frosty/screens/settings/widgets/settings_kit.dart';
-import 'package:frosty/screens/settings/widgets/settings_page.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
+import 'package:onset/screens/settings/account/account_settings.dart';
+import 'package:onset/screens/settings/account/blocked_users.dart';
+import 'package:onset/screens/settings/chat_settings.dart';
+import 'package:onset/screens/settings/general_settings.dart';
+import 'package:onset/screens/settings/notifications_settings.dart';
+import 'package:onset/screens/settings/other_settings.dart';
+import 'package:onset/screens/settings/settings_master_detail.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/video_settings.dart';
+import 'package:onset/screens/settings/widgets/settings_glyph.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
+import 'package:onset/screens/settings/widgets/settings_page.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
 import 'package:provider/provider.dart';
 
 /// The settings page pushed over the app (Profile's "Settings", the chat's

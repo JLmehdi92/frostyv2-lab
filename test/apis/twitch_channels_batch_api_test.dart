@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_api.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
+import 'package:onset/apis/twitch_api.dart';
 
 const _helix = 'https://api.twitch.tv/helix';
 

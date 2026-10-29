@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/models/user.dart';
-import 'package:frosty/screens/channel/channel.dart';
-import 'package:frosty/screens/onboarding/login_webview.dart';
-import 'package:frosty/screens/settings/account/blocked_users.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/screens/settings/widgets/settings_glyph.dart';
-import 'package:frosty/screens/settings/widgets/settings_kit.dart';
-import 'package:frosty/screens/settings/widgets/settings_page.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
-import 'package:frosty/widgets/twitch_web_page.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/models/user.dart';
+import 'package:onset/screens/channel/channel.dart';
+import 'package:onset/screens/onboarding/login_webview.dart';
+import 'package:onset/screens/settings/account/blocked_users.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/widgets/settings_glyph.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
+import 'package:onset/screens/settings/widgets/settings_page.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/twitch_web_page.dart';
 
 /// Account settings only twitch.tv can change: password, email, phone,
 /// two-factor and verification; linked accounts.

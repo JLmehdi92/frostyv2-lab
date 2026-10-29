@@ -1,4 +1,4 @@
-import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 
 /// Picks the player engine that can actually run on this platform.
 ///

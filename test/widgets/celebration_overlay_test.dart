@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/celebration.dart';
-import 'package:frosty/screens/channel/stores/channel_events_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/widgets/celebration_overlay.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/models/celebration.dart';
+import 'package:onset/screens/channel/stores/channel_events_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/widgets/celebration_overlay.dart';
 import 'package:provider/provider.dart';
 
 class MockChannelEventsStore extends Mock implements ChannelEventsStore {}

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/vod/stores/web_vod_store.dart';
-import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/screens/vod/stores/web_vod_store.dart';
+import 'package:onset/screens/vod/vod_player_controller.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class MockWebViewController extends Mock implements WebViewController {}

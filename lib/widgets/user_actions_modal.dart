@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/widgets/go_live_setting.dart';
-import 'package:frosty/screens/vod/channel_videos.dart';
-import 'package:frosty/utils/share_link.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
-import 'package:frosty/widgets/twitch_web_page.dart';
+import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/go_live_setting.dart';
+import 'package:onset/screens/vod/channel_videos.dart';
+import 'package:onset/utils/share_link.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
+import 'package:onset/widgets/twitch_web_page.dart';
 import 'package:provider/provider.dart';
 
 class UserActionsModal extends StatelessWidget {

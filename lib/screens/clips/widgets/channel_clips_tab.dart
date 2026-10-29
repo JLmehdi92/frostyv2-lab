@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/clips/stores/channel_clips_store.dart';
-import 'package:frosty/screens/clips/widgets/clip_card.dart';
-import 'package:frosty/screens/clips/widgets/clip_filter_bar.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/screens/vod/widgets/video_card_layout.dart';
-import 'package:frosty/screens/vod/widgets/video_kit.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/adaptive_sliver_list.dart';
-import 'package:frosty/widgets/frosty_scrollbar.dart';
-import 'package:frosty/widgets/scroll_to_top_button.dart';
-import 'package:frosty/widgets/state_views.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/screens/clips/stores/channel_clips_store.dart';
+import 'package:onset/screens/clips/widgets/clip_card.dart';
+import 'package:onset/screens/clips/widgets/clip_filter_bar.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/vod/widgets/video_card_layout.dart';
+import 'package:onset/screens/vod/widgets/video_kit.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/adaptive_sliver_list.dart';
+import 'package:onset/widgets/frosty_scrollbar.dart';
+import 'package:onset/widgets/scroll_to_top_button.dart';
+import 'package:onset/widgets/state_views.dart';
 
 /// A channel's clips: period and sort chips above the top 100 (rows of
 /// cards on a tablet).

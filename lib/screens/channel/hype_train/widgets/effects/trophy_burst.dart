@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 
 /// A new all-time high: the gold trophy pops in elastically over a glow,
 /// with a ring pulse.

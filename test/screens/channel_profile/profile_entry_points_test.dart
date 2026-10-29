@@ -2,22 +2,22 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/apis/twitch_channel_profile_service.dart';
-import 'package:frosty/apis/twitch_clip_service.dart';
-import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/models/channel_profile.dart';
-import 'package:frosty/models/clip.dart';
-import 'package:frosty/models/followed_channel.dart';
-import 'package:frosty/models/user.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/channel/video/stream_info_bar.dart';
-import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
-import 'package:frosty/screens/home/stream_list/offline_channel_card.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/widgets/user_actions_modal.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_channel_profile_service.dart';
+import 'package:onset/apis/twitch_clip_service.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/models/channel_profile.dart';
+import 'package:onset/models/clip.dart';
+import 'package:onset/models/followed_channel.dart';
+import 'package:onset/models/user.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/channel/video/stream_info_bar.dart';
+import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
+import 'package:onset/screens/home/stream_list/offline_channel_card.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/widgets/user_actions_modal.dart';
 import 'package:provider/provider.dart';
 
 class MockProfileService extends Mock implements TwitchChannelProfileService {}

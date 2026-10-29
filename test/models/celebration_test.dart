@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/celebration.dart';
+import 'package:onset/models/celebration.dart';
 
 void main() {
   group('Celebration.tryParse', () {

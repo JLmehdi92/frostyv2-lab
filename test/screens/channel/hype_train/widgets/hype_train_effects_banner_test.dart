@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_hype_train_service.dart';
-import 'package:frosty/models/hype_train.dart';
-import 'package:frosty/models/hype_train_event.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/effects/coin_unlock.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/effects/hype_train_avatar_stack.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/effects/merge_aura.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/effects/mythic_reveal.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/effects/rainbow_sweep.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/effects/rocket_launch.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/effects/trophy_burst.dart';
+import 'package:onset/apis/twitch_hype_train_service.dart';
+import 'package:onset/models/hype_train.dart';
+import 'package:onset/models/hype_train_event.dart';
+import 'package:onset/screens/channel/hype_train/widgets/effects/coin_unlock.dart';
+import 'package:onset/screens/channel/hype_train/widgets/effects/hype_train_avatar_stack.dart';
+import 'package:onset/screens/channel/hype_train/widgets/effects/merge_aura.dart';
+import 'package:onset/screens/channel/hype_train/widgets/effects/mythic_reveal.dart';
+import 'package:onset/screens/channel/hype_train/widgets/effects/rainbow_sweep.dart';
+import 'package:onset/screens/channel/hype_train/widgets/effects/rocket_launch.dart';
+import 'package:onset/screens/channel/hype_train/widgets/effects/trophy_burst.dart';
 
 import '../hype_train_test_data.dart';
 import 'hype_train_widget_harness.dart';

@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/widgets/motion/motion.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/widgets/motion/motion.dart';
 
 part 'home_store.g.dart';
 

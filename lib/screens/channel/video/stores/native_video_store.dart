@@ -3,18 +3,18 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/apis/twitch_stream_service.dart';
-import 'package:frosty/models/channel.dart';
-import 'package:frosty/models/hls_variant.dart';
-import 'package:frosty/models/stream.dart';
-import 'package:frosty/screens/channel/video/player_controller.dart';
-import 'package:frosty/screens/channel/video/quality_selection.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_stream_service.dart';
+import 'package:onset/models/channel.dart';
+import 'package:onset/models/hls_variant.dart';
+import 'package:onset/models/stream.dart';
+import 'package:onset/screens/channel/video/player_controller.dart';
+import 'package:onset/screens/channel/video/quality_selection.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 part 'native_video_store.g.dart';

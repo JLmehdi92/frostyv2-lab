@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:frosty/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/motion.dart';
 
 /// Whether the viewer asked for less motion.
 ///

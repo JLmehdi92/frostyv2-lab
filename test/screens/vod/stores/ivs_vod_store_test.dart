@@ -2,18 +2,18 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/screens/channel/video/captions.dart';
-import 'package:frosty/screens/channel/video/ivs_recovery.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/vod/player_media.dart';
-import 'package:frosty/screens/vod/stores/ivs_vod_store.dart';
-import 'package:frosty/screens/vod/vod_overlay.dart';
-import 'package:frosty/screens/vod/vod_player_controller.dart';
-import 'package:frosty/screens/vod/widgets/vod_video.dart';
 import 'package:mobx/mobx.dart' show reaction;
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/screens/channel/video/captions.dart';
+import 'package:onset/screens/channel/video/ivs_recovery.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/vod/player_media.dart';
+import 'package:onset/screens/vod/stores/ivs_vod_store.dart';
+import 'package:onset/screens/vod/vod_overlay.dart';
+import 'package:onset/screens/vod/vod_player_controller.dart';
+import 'package:onset/screens/vod/widgets/vod_video.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../fixtures/vod_responses.dart';

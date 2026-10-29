@@ -1,19 +1,19 @@
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/screens/whispers/whisper_kit.dart';
-import 'package:frosty/screens/whispers/whispers_screen.dart';
-import 'package:frosty/stores/whisper_store.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/motion/haptics.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
-import 'package:frosty/widgets/profile_picture.dart';
-import 'package:frosty/widgets/state_glyph.dart';
-import 'package:frosty/widgets/state_views.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/screens/whispers/whisper_kit.dart';
+import 'package:onset/screens/whispers/whispers_screen.dart';
+import 'package:onset/stores/whisper_store.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/motion/haptics.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/profile_picture.dart';
+import 'package:onset/widgets/state_glyph.dart';
+import 'package:onset/widgets/state_views.dart';
 
 /// The whispers with one person, and a field to answer (boards Messages
 /// and MessagesTablette): the phone's page over the list, or the tablet's

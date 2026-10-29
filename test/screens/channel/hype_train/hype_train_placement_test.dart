@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/hype_train/hype_train_placement.dart';
+import 'package:onset/screens/channel/hype_train/hype_train_placement.dart';
 
 void main() {
   HtPlacement place({

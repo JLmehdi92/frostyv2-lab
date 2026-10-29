@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/screens/channel/chat/stores/chat_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 
 import '../../../../helpers/chat_store_harness.dart';
 

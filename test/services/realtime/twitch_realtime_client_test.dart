@@ -4,8 +4,8 @@ import 'dart:math';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/services/realtime/hermes_protocol.dart';
-import 'package:frosty/services/realtime/twitch_realtime_client.dart';
+import 'package:onset/services/realtime/hermes_protocol.dart';
+import 'package:onset/services/realtime/twitch_realtime_client.dart';
 
 import '../../fixtures/hermes_frames.dart';
 import '../../helpers/fake_realtime_socket.dart';

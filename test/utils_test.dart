@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/utils.dart';
+import 'package:onset/utils.dart';
 
 void main() {
   group('getReadableName', () {

@@ -1,15 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/models/channel.dart';
-import 'package:frosty/models/stream.dart';
-import 'package:frosty/screens/home/live_feed/stores/live_feed_store.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/stores/user_store.dart';
 import 'package:mobx/mobx.dart' show ObservableList;
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/models/channel.dart';
+import 'package:onset/models/stream.dart';
+import 'package:onset/screens/home/live_feed/stores/live_feed_store.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/stores/user_store.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 

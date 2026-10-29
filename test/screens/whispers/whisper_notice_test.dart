@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/screens/whispers/whisper_notice.dart';
-import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
-import 'package:frosty/stores/whisper_store.dart';
 import 'package:mobx/mobx.dart' show Observable, runInAction;
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/screens/whispers/whisper_notice.dart';
+import 'package:onset/services/realtime/twitch_eventsub_client.dart';
+import 'package:onset/stores/whisper_store.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 

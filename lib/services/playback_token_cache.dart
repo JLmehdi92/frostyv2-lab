@@ -1,4 +1,4 @@
-import 'package:frosty/models/playback_access_token.dart';
+import 'package:onset/models/playback_access_token.dart';
 
 /// In-memory cache of playback access tokens per channel login, so reloads,
 /// refreshes and reopening a channel skip the GQL round trip while the token

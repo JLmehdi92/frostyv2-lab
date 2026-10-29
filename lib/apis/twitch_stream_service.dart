@@ -3,10 +3,10 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/models/hls_variant.dart';
-import 'package:frosty/models/playback_access_token.dart';
-import 'package:frosty/services/playback_token_cache.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/models/hls_variant.dart';
+import 'package:onset/models/playback_access_token.dart';
+import 'package:onset/services/playback_token_cache.dart';
 
 /// Fetches the raw Twitch HLS playlist for a channel so it can be played by a
 /// native low-latency player instead of the Twitch web embed.

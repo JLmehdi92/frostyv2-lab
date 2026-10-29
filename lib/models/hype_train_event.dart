@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:frosty/models/hype_train.dart';
+import 'package:onset/models/hype_train.dart';
 
 /// A realtime message of the `hype-train-events-v2.<channelId>` topic.
 @immutable

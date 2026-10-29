@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/widgets/launch/launch_intro.dart';
-import 'package:frosty/widgets/launch/onset_mark.dart';
-import 'package:frosty/widgets/motion/staggered_entrance.dart';
+import 'package:onset/widgets/launch/launch_intro.dart';
+import 'package:onset/widgets/launch/onset_mark.dart';
+import 'package:onset/widgets/motion/staggered_entrance.dart';
 
 const _phone = Size(390, 844);
 const _tablet = Size(1280, 854);

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/home/stream_list/stream_tags.dart';
+import 'package:onset/screens/home/stream_list/stream_tags.dart';
 
 void main() {
   Future<void> pump(

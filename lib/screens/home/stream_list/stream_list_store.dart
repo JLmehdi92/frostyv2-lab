@@ -3,21 +3,21 @@ import 'dart:io';
 
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/widgets.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/apis/twitch_directory_service.dart';
-import 'package:frosty/apis/twitch_followed_categories_service.dart';
-import 'package:frosty/apis/twitch_hype_train_service.dart';
-import 'package:frosty/apis/twitch_watch_streak_service.dart';
-import 'package:frosty/models/category.dart';
-import 'package:frosty/models/followed_category.dart';
-import 'package:frosty/models/followed_channel.dart';
-import 'package:frosty/models/hype_train.dart';
-import 'package:frosty/models/stream.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/utils/stream_languages.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_directory_service.dart';
+import 'package:onset/apis/twitch_followed_categories_service.dart';
+import 'package:onset/apis/twitch_hype_train_service.dart';
+import 'package:onset/apis/twitch_watch_streak_service.dart';
+import 'package:onset/models/category.dart';
+import 'package:onset/models/followed_category.dart';
+import 'package:onset/models/followed_channel.dart';
+import 'package:onset/models/hype_train.dart';
+import 'package:onset/models/stream.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/utils/stream_languages.dart';
 
 part 'stream_list_store.g.dart';
 

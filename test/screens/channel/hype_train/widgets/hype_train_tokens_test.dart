@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 
 double _contrast(Color a, Color b) {
   final la = a.computeLuminance();

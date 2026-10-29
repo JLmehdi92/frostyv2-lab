@@ -4,8 +4,8 @@ import 'package:dio/dio.dart' show CancelToken;
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/hls_variant.dart';
-import 'package:frosty/screens/home/live_feed/live_preview.dart';
+import 'package:onset/models/hls_variant.dart';
+import 'package:onset/screens/home/live_feed/live_preview.dart';
 
 /// Counts the decoders alive at once.
 class FakePreviewBackend implements LivePreviewBackend {

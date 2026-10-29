@@ -2,18 +2,18 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/screens/vod/stores/channel_videos_store.dart';
-import 'package:frosty/screens/vod/vod_screen.dart';
-import 'package:frosty/screens/vod/vod_watch_progress.dart';
-import 'package:frosty/screens/vod/widgets/video_card_layout.dart';
-import 'package:frosty/screens/vod/widgets/video_kit.dart';
-import 'package:frosty/screens/vod/widgets/vod_card.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/adaptive_sliver_list.dart';
-import 'package:frosty/widgets/frosty_scrollbar.dart';
-import 'package:frosty/widgets/scroll_to_top_button.dart';
-import 'package:frosty/widgets/state_views.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/vod/stores/channel_videos_store.dart';
+import 'package:onset/screens/vod/vod_screen.dart';
+import 'package:onset/screens/vod/vod_watch_progress.dart';
+import 'package:onset/screens/vod/widgets/video_card_layout.dart';
+import 'package:onset/screens/vod/widgets/video_kit.dart';
+import 'package:onset/screens/vod/widgets/vod_card.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/adaptive_sliver_list.dart';
+import 'package:onset/widgets/frosty_scrollbar.dart';
+import 'package:onset/widgets/scroll_to_top_button.dart';
+import 'package:onset/widgets/state_views.dart';
 
 /// One list of a channel's videos (past broadcasts, highlights or uploads)
 /// with watch progress; a video opens in-app.

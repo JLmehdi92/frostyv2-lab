@@ -2,16 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/home/continue_watching/stores/continue_watching_store.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/screens/vod/vod_screen.dart';
-import 'package:frosty/screens/vod/widgets/vod_card.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
-import 'package:frosty/widgets/profile_picture.dart';
-import 'package:frosty/widgets/skeleton_loader.dart';
+import 'package:onset/screens/home/continue_watching/stores/continue_watching_store.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/vod/vod_screen.dart';
+import 'package:onset/screens/vod/widgets/vod_card.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/profile_picture.dart';
+import 'package:onset/widgets/skeleton_loader.dart';
 
 /// "2:31:04" (or "31:04" under an hour).
 String formatResumeTime(int seconds) {

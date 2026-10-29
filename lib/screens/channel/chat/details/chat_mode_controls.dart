@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/screens/channel/chat/chat_commands.dart';
-import 'package:frosty/screens/channel/chat/moderation.dart';
-import 'package:frosty/screens/channel/chat/moderation_notice.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/screens/channel/chat/chat_commands.dart';
+import 'package:onset/screens/channel/chat/moderation.dart';
+import 'package:onset/screens/channel/chat/moderation_notice.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
 /// Twitch's slow-mode waits.
 const kSlowModeWaits = [

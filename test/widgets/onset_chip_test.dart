@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/widgets/onset_chip.dart';
+import 'package:onset/widgets/onset_chip.dart';
 
 void main() {
   testWidgets('a screen reader can pick a chip', (tester) async {

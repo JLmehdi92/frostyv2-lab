@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/screens/channel/chat/incoming_raid.dart';
-import 'package:frosty/screens/channel/community_highlights/raid_text.dart';
-import 'package:frosty/screens/channel/community_highlights/widgets/raid_avatar.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/celebrations/onset_rocket.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
+import 'package:onset/screens/channel/chat/incoming_raid.dart';
+import 'package:onset/screens/channel/community_highlights/raid_text.dart';
+import 'package:onset/screens/channel/community_highlights/widgets/raid_avatar.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/celebrations/onset_rocket.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
 /// "X is raiding with N viewers" (board Raids, incoming pin): a 54 dp row
 /// with 14 dp corners, the raider's picture with the ONSET rocket flying

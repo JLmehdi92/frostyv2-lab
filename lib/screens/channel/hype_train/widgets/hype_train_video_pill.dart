@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/models/hype_train.dart';
-import 'package:frosty/screens/channel/hype_train/hype_train_sequence.dart';
-import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_banner.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_copy.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_pill_shell.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
+import 'package:onset/models/hype_train.dart';
+import 'package:onset/screens/channel/hype_train/hype_train_sequence.dart';
+import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_banner.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_copy.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_pill_shell.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 
 /// The train over the video when landscape chat is hidden, as Twitch's
 /// landscape pill: "Approaching" with its check circles, the level and

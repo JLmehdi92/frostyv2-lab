@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/utils/https_url.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
-import 'package:frosty/widgets/profile_picture.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/utils/https_url.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/profile_picture.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:provider/provider.dart';
 
 /// A channel's round picture in the raid cards: [url] when Twitch gave

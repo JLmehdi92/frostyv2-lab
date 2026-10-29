@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/launch/onset_mark.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/launch/onset_mark.dart';
 
 void main() {
   group('ON outline', () {

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:frosty/models/community_highlights.dart';
+import 'package:onset/models/community_highlights.dart';
 
 /// The Hermes topics carrying community highlights, per channel.
 enum HighlightTopic {

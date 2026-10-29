@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/apis/bttv_api.dart';
-import 'package:frosty/apis/ffz_api.dart';
-import 'package:frosty/apis/seventv_api.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/apis/twitch_channel_profile_service.dart';
-import 'package:frosty/apis/twitch_clip_service.dart';
-import 'package:frosty/apis/twitch_community_highlights_service.dart';
-import 'package:frosty/apis/twitch_directory_service.dart';
-import 'package:frosty/apis/twitch_hype_train_service.dart';
-import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/services/realtime/twitch_realtime_client.dart';
-import 'package:frosty/stores/global_assets_store.dart';
-import 'package:frosty/stores/mini_player_store.dart';
-import 'package:frosty/theme.dart';
+import 'package:onset/apis/bttv_api.dart';
+import 'package:onset/apis/ffz_api.dart';
+import 'package:onset/apis/seventv_api.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_channel_profile_service.dart';
+import 'package:onset/apis/twitch_clip_service.dart';
+import 'package:onset/apis/twitch_community_highlights_service.dart';
+import 'package:onset/apis/twitch_directory_service.dart';
+import 'package:onset/apis/twitch_hype_train_service.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/services/realtime/twitch_realtime_client.dart';
+import 'package:onset/stores/global_assets_store.dart';
+import 'package:onset/stores/mini_player_store.dart';
+import 'package:onset/theme.dart';
 import 'package:provider/provider.dart';
 
 /// Shortest window side, in dp, from which a layout is a tablet's (Android's

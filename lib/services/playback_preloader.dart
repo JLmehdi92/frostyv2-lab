@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:frosty/apis/twitch_stream_service.dart';
-import 'package:frosty/screens/channel/video/player_engine_resolver.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/services/playback_token_cache.dart';
+import 'package:onset/apis/twitch_stream_service.dart';
+import 'package:onset/screens/channel/video/player_engine_resolver.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/services/playback_token_cache.dart';
 
 /// Asks for a stream's playback token as soon as its card is pressed, so the
 /// native player finds it cached (or on its way, see

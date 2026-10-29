@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/hype_train.dart';
-import 'package:frosty/models/hype_train_event.dart';
-import 'package:frosty/screens/channel/hype_train/hype_train_reducer.dart';
-import 'package:frosty/screens/channel/hype_train/hype_train_sequence.dart';
-import 'package:frosty/screens/channel/hype_train/hype_train_timings.dart';
+import 'package:onset/models/hype_train.dart';
+import 'package:onset/models/hype_train_event.dart';
+import 'package:onset/screens/channel/hype_train/hype_train_reducer.dart';
+import 'package:onset/screens/channel/hype_train/hype_train_sequence.dart';
+import 'package:onset/screens/channel/hype_train/hype_train_timings.dart';
 
 import 'hype_train_test_data.dart';
 

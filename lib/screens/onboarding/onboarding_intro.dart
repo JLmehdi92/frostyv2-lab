@@ -1,11 +1,11 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:frosty/models/stream.dart';
-import 'package:frosty/screens/onboarding/onboarding_parts.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
+import 'package:onset/models/stream.dart';
+import 'package:onset/screens/onboarding/onboarding_parts.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
 
 /// The intro's text (the app's own description).
 const onboardingDescription =

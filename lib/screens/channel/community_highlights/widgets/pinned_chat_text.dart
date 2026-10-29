@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/models/community_highlights.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
-import 'package:frosty/screens/channel/community_highlights/pinned_to_irc.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:onset/models/community_highlights.dart';
+import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
+import 'package:onset/screens/channel/community_highlights/pinned_to_irc.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 
 /// A pinned message as the channel's chat shows it: badges, name colour,
 /// Twitch emotes and 7TV/BTTV/FFZ words, at the chat's emote and badge

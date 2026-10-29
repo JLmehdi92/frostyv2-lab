@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:frosty/constants.dart';
+import 'package:onset/constants.dart';
 
 /// Twitch's realtime websocket (the successor of PubSub), used anonymously
 /// for public topics.

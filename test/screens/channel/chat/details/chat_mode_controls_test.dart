@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/screens/channel/chat/chat_commands.dart';
-import 'package:frosty/screens/channel/chat/details/chat_mode_controls.dart';
-import 'package:frosty/screens/channel/chat/moderation.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/screens/channel/chat/chat_commands.dart';
+import 'package:onset/screens/channel/chat/details/chat_mode_controls.dart';
+import 'package:onset/screens/channel/chat/moderation.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
 
 void main() {
   final commands = <ModerationCommand>[];

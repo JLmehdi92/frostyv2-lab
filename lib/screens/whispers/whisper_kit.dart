@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/stores/whisper_store.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
-import 'package:frosty/widgets/profile_picture.dart';
-import 'package:frosty/widgets/state_glyph.dart';
-import 'package:frosty/widgets/state_views.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/stores/whisper_store.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/profile_picture.dart';
+import 'package:onset/widgets/state_glyph.dart';
+import 'package:onset/widgets/state_views.dart';
 
 /// The colours of the whispers (boards Messages, MessagesTablette), dark
 /// from the boards and their light counterparts.

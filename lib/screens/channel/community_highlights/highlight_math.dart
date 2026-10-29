@@ -1,4 +1,4 @@
-import 'package:frosty/models/community_highlights.dart';
+import 'package:onset/models/community_highlights.dart';
 
 /// Whole percentages of [counts] that add up to exactly 100 (largest
 /// remainder); all 0 when nothing was counted.

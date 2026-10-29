@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/theme.dart';
+import 'package:onset/theme.dart';
 
 /// The "Noir & Signal 2.0" values, read off the design system board
 /// (Main.dc.html). The board is the source of truth: a token that drifts from

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/category.dart';
+import 'package:onset/models/category.dart';
 
 void main() {
   group('CategoryTwitch', () {

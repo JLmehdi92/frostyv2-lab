@@ -4,12 +4,12 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/models/playback_access_token.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/models/vod_access.dart';
-import 'package:frosty/models/vod_comment.dart';
-import 'package:frosty/services/playback_token_cache.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/models/playback_access_token.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/models/vod_access.dart';
+import 'package:onset/models/vod_comment.dart';
+import 'package:onset/services/playback_token_cache.dart';
 
 /// A GQL error answered for a VOD request.
 class VodApiException extends ApiException {

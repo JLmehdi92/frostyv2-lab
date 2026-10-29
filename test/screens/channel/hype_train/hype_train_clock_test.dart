@@ -1,6 +1,6 @@
 import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/hype_train/hype_train_clock.dart';
+import 'package:onset/screens/channel/hype_train/hype_train_clock.dart';
 
 void main() {
   final base = DateTime.utc(2026, 10, 13, 16);

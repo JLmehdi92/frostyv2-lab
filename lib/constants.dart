@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/theme.dart';
+import 'package:onset/theme.dart';
 
 /// Twitch API client ID.
 const clientId = String.fromEnvironment('CLIENT_ID');

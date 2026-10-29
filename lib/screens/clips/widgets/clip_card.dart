@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart' hide Clip;
-import 'package:frosty/models/clip.dart';
-import 'package:frosty/screens/clips/clip_screen.dart';
-import 'package:frosty/screens/vod/vod_time.dart';
-import 'package:frosty/screens/vod/widgets/video_card_layout.dart';
-import 'package:frosty/screens/vod/widgets/video_glyph.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/models/clip.dart';
+import 'package:onset/screens/clips/clip_screen.dart';
+import 'package:onset/screens/vod/vod_time.dart';
+import 'package:onset/screens/vod/widgets/video_card_layout.dart';
+import 'package:onset/screens/vod/widgets/video_glyph.dart';
 
 /// A clip in a list, laid out like the VOD cards (board VideosChaine's
 /// Clips): thumbnail with its views and length, then the title, category

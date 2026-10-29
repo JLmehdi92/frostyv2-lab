@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/utils/context_extensions.dart';
+import 'package:onset/utils/context_extensions.dart';
 
 void main() {
   test('a tablet is large in both orientations; a phone is not', () {

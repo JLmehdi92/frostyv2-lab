@@ -1,14 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/bttv_api.dart';
-import 'package:frosty/apis/ffz_api.dart';
-import 'package:frosty/apis/seventv_api.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/models/emotes.dart';
-import 'package:frosty/models/user.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
-import 'package:frosty/stores/global_assets_store.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/bttv_api.dart';
+import 'package:onset/apis/ffz_api.dart';
+import 'package:onset/apis/seventv_api.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/models/emotes.dart';
+import 'package:onset/models/user.dart';
+import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
+import 'package:onset/stores/global_assets_store.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 

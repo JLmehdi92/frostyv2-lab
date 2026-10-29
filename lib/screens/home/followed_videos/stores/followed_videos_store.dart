@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/models/vod.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/models/vod.dart';
 
 part 'followed_videos_store.g.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/models/hype_train.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
+import 'package:onset/models/hype_train.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
 
 /// Twitch's scrolling announcement: one line of text and emotes starting
 /// just past the trailing edge and travelling linearly over [duration]

@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:frosty/apis/base_api_client.dart';
+import 'package:onset/apis/base_api_client.dart';
 
 /// How far back a channel's clips list looks (GQL `ClipsPeriod`).
 enum ClipPeriod {

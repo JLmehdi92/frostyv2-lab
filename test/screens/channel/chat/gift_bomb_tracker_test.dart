@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/models/user_notice.dart';
-import 'package:frosty/screens/channel/chat/gift_bomb_tracker.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/models/user_notice.dart';
+import 'package:onset/screens/channel/chat/gift_bomb_tracker.dart';
 
 import '../../../fixtures/irc_messages.dart';
 

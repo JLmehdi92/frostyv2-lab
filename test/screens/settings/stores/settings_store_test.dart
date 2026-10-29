@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 
 void main() {
   group('SettingsStore JSON serialization', () {

@@ -2,14 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_clip_service.dart';
-import 'package:frosty/models/clip.dart';
-import 'package:frosty/screens/clips/stores/channel_clips_store.dart';
-import 'package:frosty/screens/clips/widgets/channel_clips_tab.dart';
-import 'package:frosty/screens/clips/widgets/clip_card.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/scroll_to_top_button.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_clip_service.dart';
+import 'package:onset/models/clip.dart';
+import 'package:onset/screens/clips/stores/channel_clips_store.dart';
+import 'package:onset/screens/clips/widgets/channel_clips_tab.dart';
+import 'package:onset/screens/clips/widgets/clip_card.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/scroll_to_top_button.dart';
 
 import '../../../fixtures/clip_responses.dart';
 

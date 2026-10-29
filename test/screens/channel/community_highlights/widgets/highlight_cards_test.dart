@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/community_highlights.dart';
-import 'package:frosty/screens/channel/community_highlights/widgets/highlight_card_shell.dart';
-import 'package:frosty/screens/channel/community_highlights/widgets/highlight_cards.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:onset/models/community_highlights.dart';
+import 'package:onset/screens/channel/community_highlights/widgets/highlight_card_shell.dart';
+import 'package:onset/screens/channel/community_highlights/widgets/highlight_cards.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
 
 final _start = DateTime.utc(2026, 10, 13, 20);
 

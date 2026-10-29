@@ -1,21 +1,21 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
-import 'package:frosty/screens/channel/chat/widgets/chat_message.dart';
-import 'package:frosty/screens/channel/chat/widgets/chat_moderation_bar.dart';
-import 'package:frosty/screens/channel/chat/widgets/user_card_info.dart';
-import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
-import 'package:frosty/screens/whispers/whisper_conversation.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils.dart';
-import 'package:frosty/widgets/alert_message.dart';
-import 'package:frosty/widgets/frosty_scrollbar.dart';
-import 'package:frosty/widgets/profile_picture.dart';
-import 'package:frosty/widgets/sheet/onset_panel.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
-import 'package:frosty/widgets/user_actions_modal.dart';
+import 'package:onset/screens/channel/chat/stores/chat_store.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_moderation_bar.dart';
+import 'package:onset/screens/channel/chat/widgets/user_card_info.dart';
+import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
+import 'package:onset/screens/whispers/whisper_conversation.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils.dart';
+import 'package:onset/widgets/alert_message.dart';
+import 'package:onset/widgets/frosty_scrollbar.dart';
+import 'package:onset/widgets/profile_picture.dart';
+import 'package:onset/widgets/sheet/onset_panel.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
+import 'package:onset/widgets/user_actions_modal.dart';
 
 /// Opens someone's user card (board ChaineCarteUtilisateur): a sheet on a
 /// phone (under the video), a panel beside the chat on a tablet when

@@ -4,9 +4,9 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:frosty/constants.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
+import 'package:onset/constants.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
 
 /// A placeholder in the exact shape of what is loading, with a discreet
 /// sheen sweeping across it (the "Chargement" card of the micro-animation

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
 /// The official app's "Message Blocked" sheet, shown when the viewer taps
 /// a word their chat filters hid. Pops true for "Show Message".

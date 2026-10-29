@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/onset_release.dart';
+import 'package:onset/models/onset_release.dart';
 
 Map<String, dynamic> releaseJson({
   Object? tag = 'build-1023',

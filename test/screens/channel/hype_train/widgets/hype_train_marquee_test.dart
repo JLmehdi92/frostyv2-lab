@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_marquee.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_marquee.dart';
 
 const _duration = Duration(milliseconds: 3000);
 final _moving = find.byKey(const ValueKey('ht-marquee'));

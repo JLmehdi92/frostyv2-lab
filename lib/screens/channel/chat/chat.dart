@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/channel/chat/emote_menu/emote_menu.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
-import 'package:frosty/screens/channel/chat/widgets/chat_bottom_bar.dart';
-import 'package:frosty/screens/channel/chat/widgets/chat_message.dart';
-import 'package:frosty/screens/channel/chat/widgets/chat_rules_sheet.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/frosty_scrollbar.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
-import 'package:frosty/widgets/sheet/onset_panel.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:onset/screens/channel/chat/emote_menu/emote_menu.dart';
+import 'package:onset/screens/channel/chat/stores/chat_store.dart';
+import 'package:onset/screens/channel/chat/stores/chat_tabs_store.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_bottom_bar.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_rules_sheet.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/frosty_scrollbar.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/sheet/onset_panel.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
 
 class Chat extends StatefulWidget {
   final ChatStore chatStore;

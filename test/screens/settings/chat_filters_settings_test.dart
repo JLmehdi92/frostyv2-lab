@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/settings/chat_settings.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/widgets/chat_filters_setting.dart';
-import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
+import 'package:onset/screens/settings/chat_settings.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/chat_filters_setting.dart';
+import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
 
 void main() {
   testWidgets("Twitch's chat filters, under Edit Chat Filters in Chat", (

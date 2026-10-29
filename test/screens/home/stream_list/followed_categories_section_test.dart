@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/followed_category.dart';
-import 'package:frosty/screens/home/stream_list/followed_categories_section.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
+import 'package:onset/models/followed_category.dart';
+import 'package:onset/screens/home/stream_list/followed_categories_section.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
 
 Widget _host(List<FollowedCategory> categories) => MaterialApp(
   theme: ThemeData(extensions: const [FrostyColors.light]),

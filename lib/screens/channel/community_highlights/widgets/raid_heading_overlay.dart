@@ -1,12 +1,12 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:frosty/models/raid_arrival.dart';
-import 'package:frosty/screens/channel/community_highlights/raid_text.dart';
-import 'package:frosty/screens/channel/community_highlights/widgets/raid_avatar.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
+import 'package:onset/models/raid_arrival.dart';
+import 'package:onset/screens/channel/community_highlights/raid_text.dart';
+import 'package:onset/screens/channel/community_highlights/widgets/raid_avatar.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
 
 /// When the channel switches after "Go now" (or the raid leaving): long
 /// enough for the hit on the card and the overlay to read.

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/video/web_content_gate.dart';
+import 'package:onset/screens/channel/video/web_content_gate.dart';
 
 void main() {
   group('WebContentGateClicker', () {

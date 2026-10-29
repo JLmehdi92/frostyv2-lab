@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/models/vod_comment.dart';
-import 'package:frosty/screens/vod/vod_comment_to_irc.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/models/vod_comment.dart';
+import 'package:onset/screens/vod/vod_comment_to_irc.dart';
 
 final _createdAt = DateTime.utc(2026, 10, 12, 17, 33, 44);
 

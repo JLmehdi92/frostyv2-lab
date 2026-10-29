@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_stream_service.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/services/playback_preloader.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_stream_service.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/services/playback_preloader.dart';
 
 class MockTwitchStreamService extends Mock implements TwitchStreamService {}
 

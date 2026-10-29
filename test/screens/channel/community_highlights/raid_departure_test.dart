@@ -1,8 +1,8 @@
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/community_highlights.dart';
-import 'package:frosty/models/raid_arrival.dart';
-import 'package:frosty/screens/channel/community_highlights/raid_departure.dart';
+import 'package:onset/models/community_highlights.dart';
+import 'package:onset/models/raid_arrival.dart';
+import 'package:onset/screens/channel/community_highlights/raid_departure.dart';
 
 const _raid = OutgoingRaid(
   id: 'r',

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/events.dart';
+import 'package:onset/models/events.dart';
 
 import '../fixtures/api_responses.dart';
 

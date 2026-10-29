@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/video/video_store.dart';
-import 'package:frosty/screens/channel/video/web_content_gate.dart';
-import 'package:frosty/screens/vod/stores/web_vod_store.dart';
+import 'package:onset/screens/channel/video/video_store.dart';
+import 'package:onset/screens/channel/video/web_content_gate.dart';
+import 'package:onset/screens/vod/stores/web_vod_store.dart';
 
 void main() {
   group("the live web player and twitch's own warning", () {

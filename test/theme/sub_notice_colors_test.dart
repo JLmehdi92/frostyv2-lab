@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/theme.dart';
+import 'package:onset/theme.dart';
 
 /// WCAG contrast ratio between two opaque colours.
 double _contrast(Color a, Color b) {

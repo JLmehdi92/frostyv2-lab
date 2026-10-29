@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/video/caption_menu.dart';
-import 'package:frosty/screens/channel/video/stores/caption_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/channel/video/caption_menu.dart';
+import 'package:onset/screens/channel/video/stores/caption_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 
 void main() {
   late SettingsStore settings;

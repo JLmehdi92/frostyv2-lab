@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/models/user_notice.dart';
-import 'package:frosty/models/user_notice_presentation.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/models/user_notice.dart';
+import 'package:onset/models/user_notice_presentation.dart';
 
 import '../fixtures/irc_messages.dart';
 

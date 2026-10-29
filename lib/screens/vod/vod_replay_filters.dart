@@ -1,5 +1,5 @@
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/screens/channel/chat/muted_words.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/screens/channel/chat/muted_words.dart';
 
 /// Whether a replayed chat message is hidden by the viewer's blocked users or
 /// muted words, mirroring live chat: the channel owner still sees blocked

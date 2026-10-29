@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
-import 'package:frosty/models/channel_profile.dart';
-import 'package:frosty/screens/channel_profile/widgets/profile_header.dart';
-import 'package:frosty/screens/channel_profile/widgets/profile_parts.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/models/channel_profile.dart';
+import 'package:onset/screens/channel_profile/widgets/profile_header.dart';
+import 'package:onset/screens/channel_profile/widgets/profile_parts.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
 import 'package:simple_icons/simple_icons.dart';
 
 /// The icon of a social site, by Twitch's key; a link icon otherwise.

@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:frosty/utils/context_extensions.dart';
+import 'package:onset/utils/context_extensions.dart';
 
 /// A list of cards on phones; on a large screen, rows of as many cards as
 /// fit at up to [maxItemWidth] each. Rows size to their tallest card, so

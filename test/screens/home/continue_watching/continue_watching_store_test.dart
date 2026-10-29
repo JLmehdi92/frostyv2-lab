@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/home/continue_watching/stores/continue_watching_store.dart';
-import 'package:frosty/screens/vod/vod_resume.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/home/continue_watching/stores/continue_watching_store.dart';
+import 'package:onset/screens/vod/vod_resume.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MockVodService extends Mock implements TwitchVodService {}

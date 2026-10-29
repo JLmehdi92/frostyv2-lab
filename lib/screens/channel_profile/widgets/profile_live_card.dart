@@ -1,19 +1,19 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:frosty/models/channel_profile.dart';
-import 'package:frosty/screens/channel/channel_info.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/screens/vod/vod_time.dart';
-import 'package:frosty/services/shared_timer_service.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/utils/image_size.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
-import 'package:frosty/widgets/frosty_photo_view_dialog.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
-import 'package:frosty/widgets/skeleton_loader.dart';
+import 'package:onset/models/channel_profile.dart';
+import 'package:onset/screens/channel/channel_info.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/vod/vod_time.dart';
+import 'package:onset/services/shared_timer_service.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/utils/image_size.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/frosty_photo_view_dialog.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
+import 'package:onset/widgets/skeleton_loader.dart';
 
 /// What the profile's stream card shows: live, a rerun, or the offline
 /// image with the last broadcast.

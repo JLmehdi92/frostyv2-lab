@@ -2,18 +2,18 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/video/captions.dart';
-import 'package:frosty/screens/settings/account/account_settings.dart';
-import 'package:frosty/screens/settings/chat_settings.dart';
-import 'package:frosty/screens/settings/general_settings.dart';
-import 'package:frosty/screens/settings/notifications_settings.dart';
-import 'package:frosty/screens/settings/other_settings.dart';
-import 'package:frosty/screens/settings/settings.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/video_settings.dart';
-import 'package:frosty/screens/settings/widgets/settings_kit.dart';
-import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/screens/channel/video/captions.dart';
+import 'package:onset/screens/settings/account/account_settings.dart';
+import 'package:onset/screens/settings/chat_settings.dart';
+import 'package:onset/screens/settings/general_settings.dart';
+import 'package:onset/screens/settings/notifications_settings.dart';
+import 'package:onset/screens/settings/other_settings.dart';
+import 'package:onset/screens/settings/settings.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/video_settings.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
+import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
 
 import 'settings_harness.dart';
 

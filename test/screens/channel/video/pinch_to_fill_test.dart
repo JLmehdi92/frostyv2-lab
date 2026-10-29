@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/video/pinch_to_fill.dart';
+import 'package:onset/screens/channel/video/pinch_to_fill.dart';
 
 void main() {
   test('spread fills, close fits, a small move says nothing', () {

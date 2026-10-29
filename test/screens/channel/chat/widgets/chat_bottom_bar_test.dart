@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/chat/widgets/chat_bottom_bar.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_bottom_bar.dart';
 
 void main() {
   ({bool pencil, bool send}) controls({

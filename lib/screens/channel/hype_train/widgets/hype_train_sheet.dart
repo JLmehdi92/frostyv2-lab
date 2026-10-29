@@ -1,16 +1,16 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/models/hype_train.dart';
-import 'package:frosty/screens/channel/hype_train/hype_train_math.dart';
-import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_banner.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_copy.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_palette.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
+import 'package:onset/models/hype_train.dart';
+import 'package:onset/screens/channel/hype_train/hype_train_math.dart';
+import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_banner.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_copy.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_palette.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
 
 /// Twitch's guide to hype trains.
 const htHelpUrl = 'https://help.twitch.tv/s/article/hype-train-guide';

@@ -1,12 +1,12 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/bttv_api.dart';
-import 'package:frosty/apis/ffz_api.dart';
-import 'package:frosty/apis/seventv_api.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/models/badges.dart';
-import 'package:frosty/models/emotes.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/bttv_api.dart';
+import 'package:onset/apis/ffz_api.dart';
+import 'package:onset/apis/seventv_api.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/models/badges.dart';
+import 'package:onset/models/emotes.dart';
 
 part 'global_assets_store.g.dart';
 

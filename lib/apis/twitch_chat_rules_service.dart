@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/constants.dart';
-import 'package:frosty/models/chat_rules.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/constants.dart';
+import 'package:onset/models/chat_rules.dart';
 
 /// A GQL answer for chat rules that could not be read.
 class ChatRulesApiException extends ApiException {

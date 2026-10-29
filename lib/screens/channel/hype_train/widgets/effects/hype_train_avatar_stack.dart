@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/models/hype_train.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
+import 'package:onset/models/hype_train.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
 
 /// A channel or viewer picture; the initial when there is no (Twitch CDN)
 /// picture.

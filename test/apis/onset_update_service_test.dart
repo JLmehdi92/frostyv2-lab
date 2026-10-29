@@ -6,8 +6,8 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/onset_update_service.dart';
-import 'package:frosty/models/onset_release.dart';
+import 'package:onset/apis/onset_update_service.dart';
+import 'package:onset/models/onset_release.dart';
 
 const _token = 'github_pat_secret';
 const _repo = 'owner/app';

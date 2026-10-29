@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/models/category.dart';
-import 'package:frosty/screens/home/search/search_store.dart';
-import 'package:frosty/screens/home/top/categories/category_card.dart';
-import 'package:frosty/screens/home/top/categories/category_streams.dart';
-import 'package:frosty/widgets/motion/staggered_entrance.dart';
-import 'package:frosty/widgets/state_views.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/models/category.dart';
+import 'package:onset/screens/home/search/search_store.dart';
+import 'package:onset/screens/home/top/categories/category_card.dart';
+import 'package:onset/screens/home/top/categories/category_streams.dart';
+import 'package:onset/widgets/motion/staggered_entrance.dart';
+import 'package:onset/widgets/state_views.dart';
 
 /// The categories found by a search (boards Recherche and
 /// RechercheTablette), the exact name first: rows on a phone, box arts in

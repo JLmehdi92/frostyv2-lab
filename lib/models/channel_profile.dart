@@ -1,4 +1,4 @@
-import 'package:frosty/models/community_highlights.dart';
+import 'package:onset/models/community_highlights.dart';
 
 // A channel's profile page: header, about, panels and schedule, read from
 // anonymous GQL. Every parser tolerates missing or odd fields, never

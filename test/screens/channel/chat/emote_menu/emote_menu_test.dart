@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/emotes.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/screens/channel/chat/emote_menu/emote_menu.dart';
-import 'package:frosty/screens/channel/chat/emote_menu/emote_menu_section.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/sheet/onset_panel.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
 import 'package:mobx/mobx.dart' show ObservableList;
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/models/emotes.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/screens/channel/chat/emote_menu/emote_menu.dart';
+import 'package:onset/screens/channel/chat/emote_menu/emote_menu_section.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/sheet/onset_panel.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../helpers/chat_message_harness.dart';

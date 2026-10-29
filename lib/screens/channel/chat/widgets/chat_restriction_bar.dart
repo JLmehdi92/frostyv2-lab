@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:frosty/screens/channel/chat/chat_restrictions.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
+import 'package:onset/screens/channel/chat/chat_restrictions.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
 /// The line above the chat input saying why the viewer cannot chat (a ban,
 /// a timeout, the slow-mode wait), with a live countdown.

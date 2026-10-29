@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/screens/channel/chat/incoming_raid.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/screens/channel/chat/incoming_raid.dart';
 
 import '../../../fixtures/irc_messages.dart';
 

@@ -1,9 +1,9 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/screens/channel/chat/chat_commands.dart';
-import 'package:frosty/screens/channel/chat/moderation_notice.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/screens/channel/chat/chat_commands.dart';
+import 'package:onset/screens/channel/chat/moderation_notice.dart';
 
 /// What a moderation action ended with: whether it worked, and the line to
 /// show either way.

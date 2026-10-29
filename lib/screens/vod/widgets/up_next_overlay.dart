@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/screens/vod/stores/up_next_store.dart';
-import 'package:frosty/screens/vod/vod_time.dart';
-import 'package:frosty/screens/vod/widgets/video_glyph.dart';
-import 'package:frosty/screens/vod/widgets/vod_card.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/vod/stores/up_next_store.dart';
+import 'package:onset/screens/vod/vod_time.dart';
+import 'package:onset/screens/vod/widgets/video_glyph.dart';
+import 'package:onset/screens/vod/widgets/vod_card.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
 
 /// The official app's Up Next card over the ended video (board Rediff):
 /// "UP NEXT" and the seconds left, Cancel, the next video's picture, title

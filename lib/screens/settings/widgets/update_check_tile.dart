@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/screens/settings/widgets/settings_glyph.dart';
-import 'package:frosty/screens/settings/widgets/settings_kit.dart';
-import 'package:frosty/services/onset_updater.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/alert_message.dart';
-import 'package:frosty/widgets/onset_update_prompt.dart';
+import 'package:onset/screens/settings/widgets/settings_glyph.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
+import 'package:onset/services/onset_updater.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/alert_message.dart';
+import 'package:onset/widgets/onset_update_prompt.dart';
 
 /// "Check for updates": shows the installed build and looks for a newer one
 /// right away, whatever the last automatic check found.

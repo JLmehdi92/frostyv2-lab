@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/portrait_split.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/channel/portrait_split.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 
 void main() {
   test('a tablet can go down to 40 %, a phone keeps room for the controls', () {

@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
-import 'package:frosty/utils/context_extensions.dart';
+import 'package:onset/utils/context_extensions.dart';
 
 /// Widest a column of settings tiles gets on a large screen, in dp.
 const kReadableMaxWidth = 720.0;

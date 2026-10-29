@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/screens/vod/vod_time.dart';
-import 'package:frosty/screens/vod/widgets/video_kit.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/vod/vod_time.dart';
+import 'package:onset/screens/vod/widgets/video_kit.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
 
 /// "Yesterday · 3,104 views".
 String vodDetails(Vod vod) => [

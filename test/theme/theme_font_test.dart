@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/theme.dart';
+import 'package:onset/theme.dart';
 
 void main() {
   test('headings, body and numbers all use Inter', () {

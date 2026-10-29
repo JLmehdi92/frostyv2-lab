@@ -4,16 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/home/home_store.dart';
-import 'package:frosty/screens/home/shell/onset_shell.dart';
-import 'package:frosty/screens/home/shell/shell_pages.dart';
-import 'package:frosty/screens/home/shell/shell_tabs.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/launch/launch_intro.dart';
-import 'package:frosty/widgets/launch/onset_mark.dart';
 import 'package:mobx/mobx.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/screens/home/home_store.dart';
+import 'package:onset/screens/home/shell/onset_shell.dart';
+import 'package:onset/screens/home/shell/shell_pages.dart';
+import 'package:onset/screens/home/shell/shell_tabs.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/launch/launch_intro.dart';
+import 'package:onset/widgets/launch/onset_mark.dart';
 
 class FakeAuthStore extends Mock implements AuthStore {
   FakeAuthStore(bool loggedIn) : _loggedIn = Observable(loggedIn);

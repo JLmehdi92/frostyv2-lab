@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/channel_profile.dart';
-import 'package:frosty/services/notifications/activity_log.dart';
-import 'package:frosty/services/notifications/schedule_reminders.dart';
+import 'package:onset/models/channel_profile.dart';
+import 'package:onset/services/notifications/activity_log.dart';
+import 'package:onset/services/notifications/schedule_reminders.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FakeReminderPlatform implements ReminderPlatform {

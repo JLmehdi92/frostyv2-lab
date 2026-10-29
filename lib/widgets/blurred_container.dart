@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:frosty/widgets/settled_blur.dart';
+import 'package:onset/widgets/settled_blur.dart';
 
 /// Gradient direction for the blurred container
 enum GradientDirection {

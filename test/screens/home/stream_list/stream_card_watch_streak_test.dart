@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/stream.dart';
-import 'package:frosty/screens/home/stream_list/large_stream_card.dart';
-import 'package:frosty/screens/home/stream_list/stream_card.dart';
-import 'package:frosty/theme.dart';
+import 'package:onset/models/stream.dart';
+import 'package:onset/screens/home/stream_list/large_stream_card.dart';
+import 'package:onset/screens/home/stream_list/stream_card.dart';
+import 'package:onset/theme.dart';
 
 const _stream = StreamTwitch(
   '1',

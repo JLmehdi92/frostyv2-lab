@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/state_glyph.dart';
-import 'package:frosty/widgets/state_views.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/state_glyph.dart';
+import 'package:onset/widgets/state_views.dart';
 
 const _sizes = [Size(390, 844), Size(1280, 854), Size(854, 1280)];
 

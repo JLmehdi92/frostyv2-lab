@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:frosty/widgets/sheet/svg_path.dart';
+import 'package:onset/widgets/sheet/svg_path.dart';
 
 /// The icons of the profile and settings screens, drawn from the boards' own
 /// 24 × 24 strokes (Moi, MoiDeconnecte, Parametres, ParametresTablette,

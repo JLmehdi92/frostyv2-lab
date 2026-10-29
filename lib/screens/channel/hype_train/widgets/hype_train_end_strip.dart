@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/models/hype_train.dart';
-import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_banner.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_copy.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_palette.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
+import 'package:onset/models/hype_train.dart';
+import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_banner.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_copy.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_palette.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
 
 /// The 20 s after a train, like Twitch's rewards and expired layouts: 74 dp
 /// in the train's style with a 3 dp bar draining along the bottom. A

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/user_notice_presentation.dart';
-import 'package:frosty/models/user_notice_text.dart';
-import 'package:frosty/screens/channel/chat/widgets/user_notice_row.dart';
-import 'package:frosty/theme.dart';
+import 'package:onset/models/user_notice_presentation.dart';
+import 'package:onset/models/user_notice_text.dart';
+import 'package:onset/screens/channel/chat/widgets/user_notice_row.dart';
+import 'package:onset/theme.dart';
 
 const _segments = [
   NoticeSegment('ReSubber', bold: true),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frosty/widgets/blurred_container.dart';
+import 'package:onset/widgets/blurred_container.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 /// A twitch.tv page in the app, signed in with the session from the login

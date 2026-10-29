@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/screens/channel/chat/chat_commands.dart';
-import 'package:frosty/screens/channel/chat/moderation.dart';
-import 'package:frosty/screens/channel/chat/moderation_notice.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
-import 'package:frosty/widgets/sheet/onset_panel.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/screens/channel/chat/chat_commands.dart';
+import 'package:onset/screens/channel/chat/moderation.dart';
+import 'package:onset/screens/channel/chat/moderation_notice.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/sheet/onset_panel.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
 /// The timeout lengths offered in one tap; a 1-second timeout purges the
 /// person's messages.

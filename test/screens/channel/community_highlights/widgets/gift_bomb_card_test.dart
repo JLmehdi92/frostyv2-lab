@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/chat/gift_bomb_tracker.dart';
-import 'package:frosty/screens/channel/community_highlights/widgets/highlight_cards.dart';
-import 'package:frosty/theme.dart';
+import 'package:onset/screens/channel/chat/gift_bomb_tracker.dart';
+import 'package:onset/screens/channel/community_highlights/widgets/highlight_cards.dart';
+import 'package:onset/theme.dart';
 
 final _start = DateTime.utc(2026, 10, 13, 20);
 

@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:frosty/widgets/sheet/svg_path.dart';
+import 'package:onset/widgets/sheet/svg_path.dart';
 
 /// The icons of the shared states, Activity and Whispers (boards Etats,
 /// EtatsTablette, Activite, ActiviteTablette, Messages, MessagesTablette),

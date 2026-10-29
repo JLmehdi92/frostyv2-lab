@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:frosty/models/user_notice.dart';
+import 'package:onset/models/user_notice.dart';
 
 /// The row a notice is drawn in, after Twitch's Android app.
 enum NoticeLayout {

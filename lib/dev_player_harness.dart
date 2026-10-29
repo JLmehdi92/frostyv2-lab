@@ -12,13 +12,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/apis/twitch_stream_service.dart';
-import 'package:frosty/screens/channel/video/native_video.dart';
-import 'package:frosty/screens/channel/video/stores/native_video_store.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:media_kit/media_kit.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_stream_service.dart';
+import 'package:onset/screens/channel/video/native_video.dart';
+import 'package:onset/screens/channel/video/stores/native_video_store.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 
 const _candidates = [
   'kaicenat',

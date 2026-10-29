@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/utils/stream_languages.dart';
+import 'package:onset/utils/stream_languages.dart';
 
 void main() {
   test('every language comes first', () {

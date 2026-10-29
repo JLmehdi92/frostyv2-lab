@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:frosty/widgets/sheet/svg_path.dart';
+import 'package:onset/widgets/sheet/svg_path.dart';
 
 /// The icons of the channel screen's sheets, menus and panels, drawn from
 /// the boards' own 24 × 24 strokes (ChaineTchatOutils, ChaineCarteUtilisateur,

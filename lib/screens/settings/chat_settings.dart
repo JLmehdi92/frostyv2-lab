@@ -3,19 +3,19 @@ import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/constants.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/widgets/chat_filters_setting.dart';
-import 'package:frosty/screens/settings/widgets/settings_glyph.dart';
-import 'package:frosty/screens/settings/widgets/settings_kit.dart';
-import 'package:frosty/screens/settings/widgets/settings_list_select.dart';
-import 'package:frosty/screens/settings/widgets/settings_list_slider.dart';
-import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
-import 'package:frosty/screens/settings/widgets/settings_muted_words.dart';
-import 'package:frosty/screens/settings/widgets/settings_page.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
-import 'package:frosty/widgets/motion/motion.dart';
+import 'package:onset/constants.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/chat_filters_setting.dart';
+import 'package:onset/screens/settings/widgets/settings_glyph.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
+import 'package:onset/screens/settings/widgets/settings_list_select.dart';
+import 'package:onset/screens/settings/widgets/settings_list_slider.dart';
+import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
+import 'package:onset/screens/settings/widgets/settings_muted_words.dart';
+import 'package:onset/screens/settings/widgets/settings_page.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/motion/motion.dart';
 
 /// Settings › Chat (board Parametres): sizing with its preview, how
 /// messages look, the delay, layout, alerts, autocomplete, landscape,

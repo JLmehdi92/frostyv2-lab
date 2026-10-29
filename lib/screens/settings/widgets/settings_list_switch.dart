@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frosty/screens/settings/widgets/settings_kit.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
 
 /// A setting turned on or off: its title (and explanation) and the boards'
 /// switch; the whole row toggles it. Without [onChanged] it is dimmed and

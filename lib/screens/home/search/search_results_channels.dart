@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/models/channel.dart';
-import 'package:frosty/screens/channel/channel.dart';
-import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
-import 'package:frosty/screens/home/search/featured_channel.dart';
-import 'package:frosty/screens/home/search/search_store.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/utils/modal_bottom_sheet.dart';
-import 'package:frosty/widgets/alert_message.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
-import 'package:frosty/widgets/motion/staggered_entrance.dart';
-import 'package:frosty/widgets/skeleton_loader.dart';
-import 'package:frosty/widgets/state_views.dart';
-import 'package:frosty/widgets/uptime.dart';
-import 'package:frosty/widgets/user_actions_modal.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/models/channel.dart';
+import 'package:onset/screens/channel/channel.dart';
+import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
+import 'package:onset/screens/home/search/featured_channel.dart';
+import 'package:onset/screens/home/search/search_store.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/utils/modal_bottom_sheet.dart';
+import 'package:onset/widgets/alert_message.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/motion/staggered_entrance.dart';
+import 'package:onset/widgets/skeleton_loader.dart';
+import 'package:onset/widgets/state_views.dart';
+import 'package:onset/widgets/uptime.dart';
+import 'package:onset/widgets/user_actions_modal.dart';
 
 /// How "Go to channel" is drawn: a row under a list, or a pill under the
 /// tablet's grid.

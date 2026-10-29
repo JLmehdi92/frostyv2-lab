@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/video/player_engine_resolver.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/channel/video/player_engine_resolver.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 
 void main() {
   group('resolvePlayerEngine', () {

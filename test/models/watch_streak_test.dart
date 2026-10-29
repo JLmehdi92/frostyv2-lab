@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/watch_streak.dart';
+import 'package:onset/models/watch_streak.dart';
 
 Map<String, Object?> _milestone({
   Object? value = '4',

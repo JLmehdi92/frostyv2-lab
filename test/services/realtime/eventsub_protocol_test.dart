@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/services/realtime/eventsub_protocol.dart';
+import 'package:onset/services/realtime/eventsub_protocol.dart';
 
 String _frame(String type, [Map<String, Object?>? payload, Map? metadata]) =>
     jsonEncode({

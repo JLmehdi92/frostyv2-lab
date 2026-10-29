@@ -3,16 +3,16 @@ import 'dart:async';
 import 'package:clock/clock.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/twitch_clip_service.dart';
-import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/constants.dart';
-import 'package:frosty/screens/vod/vod_time.dart';
-import 'package:frosty/utils/link_router.dart';
-import 'package:frosty/utils/twitch_links.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
-import 'package:frosty/widgets/skeleton_loader.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_clip_service.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/constants.dart';
+import 'package:onset/screens/vod/vod_time.dart';
+import 'package:onset/utils/link_router.dart';
+import 'package:onset/utils/twitch_links.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/skeleton_loader.dart';
 import 'package:provider/provider.dart';
 
 /// The first clip or video link of a chat message, with the text it was

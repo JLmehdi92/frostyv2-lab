@@ -7,12 +7,12 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/constants.dart';
-import 'package:frosty/firebase_options.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/services/go_live/go_live.dart';
-import 'package:frosty/services/notifications/activity_log.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/constants.dart';
+import 'package:onset/firebase_options.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/services/go_live/go_live.dart';
+import 'package:onset/services/notifications/activity_log.dart';
 import 'package:workmanager/workmanager.dart';
 
 const _task = 'frosty.goLive';

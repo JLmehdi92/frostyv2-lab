@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
-import 'package:frosty/models/user_notice.dart';
-import 'package:frosty/utils/https_url.dart';
+import 'package:onset/models/user_notice.dart';
+import 'package:onset/utils/https_url.dart';
 
 /// A channel raiding the one being watched, as its chat announced it (or
 /// as the viewer brought it along, following the raid from that channel).

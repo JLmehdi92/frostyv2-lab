@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/clip.dart';
-import 'package:frosty/screens/clips/widgets/clip_card.dart';
+import 'package:onset/models/clip.dart';
+import 'package:onset/screens/clips/widgets/clip_card.dart';
 
 final _clip = Clip(
   id: '1',

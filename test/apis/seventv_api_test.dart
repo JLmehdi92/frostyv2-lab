@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/seventv_api.dart';
-import 'package:frosty/models/emotes.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/seventv_api.dart';
+import 'package:onset/models/emotes.dart';
 
 import '../fixtures/api_responses.dart';
 

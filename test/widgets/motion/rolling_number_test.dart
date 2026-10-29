@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/widgets/motion/rolling_number.dart';
+import 'package:onset/widgets/motion/rolling_number.dart';
 
 Widget _host(String text, {bool disableAnimations = false}) => MaterialApp(
   home: MediaQuery(

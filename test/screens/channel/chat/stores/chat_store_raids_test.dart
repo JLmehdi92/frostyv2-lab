@@ -1,11 +1,11 @@
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/models/raid_arrival.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:mobx/mobx.dart' show autorun;
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/models/raid_arrival.dart';
+import 'package:onset/screens/channel/chat/stores/chat_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 
 import '../../../../fixtures/irc_messages.dart';
 import '../../../../helpers/chat_store_harness.dart';

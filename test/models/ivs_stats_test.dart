@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/ivs_stats.dart';
+import 'package:onset/models/ivs_stats.dart';
 
 void main() {
   group('IvsStats.fromEvent', () {

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/onset_release.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/widgets/release_notes.dart';
-import 'package:frosty/services/onset_updater.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/onset_update_prompt.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/models/onset_release.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/release_notes.dart';
+import 'package:onset/services/onset_updater.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/onset_update_prompt.dart';
 import 'package:provider/provider.dart';
 
 class _MockUpdater extends Mock implements OnsetUpdater {}

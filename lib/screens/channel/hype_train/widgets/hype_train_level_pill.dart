@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/screens/channel/hype_train/hype_train_timings.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_copy.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
+import 'package:onset/screens/channel/hype_train/hype_train_timings.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_copy.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 
 /// "LVL n" on Twitch's black pill, with a trophy on a record. A jump of
 /// several levels (a merge) counts up.

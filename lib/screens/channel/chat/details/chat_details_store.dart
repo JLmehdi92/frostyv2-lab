@@ -1,9 +1,9 @@
 import 'dart:collection';
 
 import 'package:flutter/widgets.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/models/irc.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/models/irc.dart';
 
 part 'chat_details_store.g.dart';
 

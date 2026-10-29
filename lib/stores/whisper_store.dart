@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:clock/clock.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 
 part 'whisper_store.g.dart';
 

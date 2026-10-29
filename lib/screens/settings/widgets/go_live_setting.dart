@@ -1,10 +1,10 @@
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
-import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
-import 'package:frosty/services/go_live/go_live.dart';
-import 'package:frosty/services/go_live/go_live_worker.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
+import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
+import 'package:onset/services/go_live/go_live.dart';
+import 'package:onset/services/go_live/go_live_worker.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
 /// The platform side of go-live notices, swappable in tests.
 class GoLivePlatform {

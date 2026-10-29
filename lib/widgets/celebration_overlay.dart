@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/models/celebration.dart';
-import 'package:frosty/screens/channel/stores/channel_events_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/utils/context_extensions.dart';
 import 'package:lottie/lottie.dart';
+import 'package:onset/models/celebration.dart';
+import 'package:onset/screens/channel/stores/channel_events_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/utils/context_extensions.dart';
 
 /// Plays a celebration over the channel, then gets out of the way.
 ///

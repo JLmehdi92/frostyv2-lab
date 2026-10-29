@@ -2,20 +2,20 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/home/shell/onset_shell.dart';
-import 'package:frosty/screens/settings/account/account_settings.dart';
-import 'package:frosty/screens/settings/settings.dart';
-import 'package:frosty/screens/settings/settings_master_detail.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/widgets/go_live_setting.dart';
-import 'package:frosty/screens/settings/widgets/settings_glyph.dart';
-import 'package:frosty/screens/settings/widgets/settings_kit.dart';
-import 'package:frosty/screens/settings/widgets/settings_page.dart';
-import 'package:frosty/services/go_live/go_live.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/motion/staggered_entrance.dart';
+import 'package:onset/screens/home/shell/onset_shell.dart';
+import 'package:onset/screens/settings/account/account_settings.dart';
+import 'package:onset/screens/settings/settings.dart';
+import 'package:onset/screens/settings/settings_master_detail.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/go_live_setting.dart';
+import 'package:onset/screens/settings/widgets/settings_glyph.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
+import 'package:onset/screens/settings/widgets/settings_page.dart';
+import 'package:onset/services/go_live/go_live.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/motion/staggered_entrance.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 /// The navigation shell's Profile: on a phone the board Moi (the viewer,

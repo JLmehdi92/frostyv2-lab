@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/channel/video/captions.dart';
-import 'package:frosty/screens/channel/video/player_glyph.dart';
-import 'package:frosty/screens/channel/video/quality_selection.dart';
-import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
-import 'package:frosty/theme.dart';
+import 'package:onset/screens/channel/video/captions.dart';
+import 'package:onset/screens/channel/video/player_glyph.dart';
+import 'package:onset/screens/channel/video/quality_selection.dart';
+import 'package:onset/screens/channel/video/stores/ivs_video_store.dart';
+import 'package:onset/theme.dart';
 
 /// Renders the IVS player into a Flutter [Texture] (instead of a SurfaceView)
 /// so it can be dragged and animated smoothly. The texture is owned by the

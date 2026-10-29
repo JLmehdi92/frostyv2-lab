@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
-import 'package:frosty/apis/twitch_community_highlights_service.dart';
-import 'package:frosty/models/community_highlight_event.dart';
-import 'package:frosty/models/community_highlights.dart';
-import 'package:frosty/screens/channel/community_highlights/stores/community_highlights_store.dart';
-import 'package:frosty/services/realtime/twitch_realtime_client.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_community_highlights_service.dart';
+import 'package:onset/models/community_highlight_event.dart';
+import 'package:onset/models/community_highlights.dart';
+import 'package:onset/screens/channel/community_highlights/stores/community_highlights_store.dart';
+import 'package:onset/services/realtime/twitch_realtime_client.dart';
 
 class MockService extends Mock implements TwitchCommunityHighlightsService {}
 

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:frosty/models/hype_train.dart';
-import 'package:frosty/models/hype_train_event.dart';
+import 'package:onset/models/hype_train.dart';
+import 'package:onset/models/hype_train_event.dart';
 
 /// A change of the channel's record (all-time high) state worth showing.
 enum HtAthTransition { none, approaching, reached }

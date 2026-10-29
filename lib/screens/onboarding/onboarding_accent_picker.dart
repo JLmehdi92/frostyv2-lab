@@ -1,10 +1,10 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:frosty/screens/onboarding/onboarding_parts.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/accent_picker_controls.dart';
-import 'package:frosty/widgets/motion/haptics.dart';
+import 'package:onset/screens/onboarding/onboarding_parts.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/accent_picker_controls.dart';
+import 'package:onset/widgets/motion/haptics.dart';
 
 /// The accent colour picker of Setup (boards Onboarding: a sheet;
 /// OnboardingTablette: a dialog): the colour square, the hue slider,

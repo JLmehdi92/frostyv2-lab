@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/screens/whispers/whisper_kit.dart';
-import 'package:frosty/stores/whisper_store.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/profile_picture.dart';
-import 'package:frosty/widgets/state_glyph.dart';
+import 'package:onset/screens/whispers/whisper_kit.dart';
+import 'package:onset/stores/whisper_store.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/profile_picture.dart';
+import 'package:onset/widgets/state_glyph.dart';
 
 /// A whisper received elsewhere in the app (boards Etats 06 and
 /// EtatsTablette): a floating card with the sender's picture and its

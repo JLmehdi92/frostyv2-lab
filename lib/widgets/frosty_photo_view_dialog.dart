@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:frosty/cache_manager.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/blurred_container.dart';
+import 'package:onset/cache_manager.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/blurred_container.dart';
 import 'package:photo_view/photo_view.dart';
 
 class FrostyPhotoViewDialog extends StatefulWidget {

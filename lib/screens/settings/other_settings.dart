@@ -4,16 +4,16 @@ import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/cache_manager.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/widgets/release_notes.dart';
-import 'package:frosty/screens/settings/widgets/settings_glyph.dart';
-import 'package:frosty/screens/settings/widgets/settings_kit.dart';
-import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
-import 'package:frosty/screens/settings/widgets/settings_page.dart';
-import 'package:frosty/screens/settings/widgets/update_check_tile.dart';
-import 'package:frosty/services/onset_updater.dart';
-import 'package:frosty/widgets/alert_message.dart';
+import 'package:onset/cache_manager.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/release_notes.dart';
+import 'package:onset/screens/settings/widgets/settings_glyph.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
+import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
+import 'package:onset/screens/settings/widgets/settings_page.dart';
+import 'package:onset/screens/settings/widgets/update_check_tile.dart';
+import 'package:onset/services/onset_updater.dart';
+import 'package:onset/widgets/alert_message.dart';
 import 'package:provider/provider.dart';
 
 /// Settings › Other (boards Parametres, MiseAJour): updates and release

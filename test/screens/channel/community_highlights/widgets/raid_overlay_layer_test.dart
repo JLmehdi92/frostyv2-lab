@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/raid_arrival.dart';
-import 'package:frosty/screens/channel/community_highlights/widgets/raid_heading_overlay.dart';
+import 'package:onset/models/raid_arrival.dart';
+import 'package:onset/screens/channel/community_highlights/widgets/raid_heading_overlay.dart';
 
 final _arrival = RaidArrival(
   fromName: 'Nisqyy',

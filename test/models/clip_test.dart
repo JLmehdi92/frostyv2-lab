@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/clip.dart';
+import 'package:onset/models/clip.dart';
 
 import '../fixtures/clip_responses.dart';
 

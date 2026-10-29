@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/screens/channel/chat/chat_restrictions.dart';
-import 'package:frosty/screens/channel/chat/widgets/chat_restriction_bar.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/screens/channel/chat/chat_restrictions.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_restriction_bar.dart';
 
 void main() {
   var now = DateTime.utc(2026, 10, 13, 20);

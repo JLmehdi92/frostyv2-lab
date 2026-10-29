@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/constants.dart';
-import 'package:frosty/models/hype_train.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/constants.dart';
+import 'package:onset/models/hype_train.dart';
 
 /// A GQL error answered for a hype train request.
 class HypeTrainApiException extends ApiException {

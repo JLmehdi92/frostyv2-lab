@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/models/community_points.dart';
-import 'package:frosty/screens/channel/stores/channel_events_store.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/channel_points_sheet.dart';
-import 'package:frosty/widgets/sheet/onset_panel.dart';
+import 'package:onset/models/community_points.dart';
+import 'package:onset/screens/channel/stores/channel_events_store.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/channel_points_sheet.dart';
+import 'package:onset/widgets/sheet/onset_panel.dart';
 import 'package:provider/provider.dart';
 
 /// The channel points balance, sitting in the chat's bottom bar.

@@ -1,5 +1,5 @@
-import 'package:frosty/models/celebration.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/models/celebration.dart';
 
 /// The compact chat line a celebration becomes when "Celebrations on video"
 /// is Subtle: what played, never over the video.

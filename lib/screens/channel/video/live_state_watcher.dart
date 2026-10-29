@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
+import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 
 /// What a channel's live state did, as EventSub tells it.
 enum LiveChange {

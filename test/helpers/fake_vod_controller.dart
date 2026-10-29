@@ -1,6 +1,6 @@
-import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/screens/vod/vod_player_controller.dart';
 
 /// A [VodPlayerController] whose state tests set directly; every command is
 /// recorded in [calls].

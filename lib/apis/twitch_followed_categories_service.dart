@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/models/followed_category.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/models/followed_category.dart';
 
 /// The categories the viewer follows, from Twitch's private GQL with the
 /// viewer's twitch.tv web token (Helix has no such list).

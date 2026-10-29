@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart' show StringCharacters;
-import 'package:frosty/models/irc.dart' show regexEmoji;
-import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:onset/models/irc.dart' show regexEmoji;
+import 'package:onset/screens/settings/stores/settings_store.dart';
 
 /// The invisible character some clients add to repeat a message; never
 /// masked, as chat removes it.

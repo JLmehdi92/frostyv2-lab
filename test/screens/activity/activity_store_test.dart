@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/activity/stores/activity_store.dart';
-import 'package:frosty/services/notifications/activity_log.dart';
+import 'package:onset/screens/activity/stores/activity_store.dart';
+import 'package:onset/services/notifications/activity_log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 ActivityEntry _entry(String id, {int minute = 0}) => ActivityEntry(

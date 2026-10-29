@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/models/chat_rules.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_rules_store.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/models/chat_rules.dart';
+import 'package:onset/screens/channel/chat/stores/chat_rules_store.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
 /// The official app's "Chat Rules" sheet: the channel's picture and name
 /// over the title, the rules as a numbered list, and "OK, Got it!" (board

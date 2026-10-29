@@ -1,18 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
-import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/models/badges.dart';
-import 'package:frosty/models/emotes.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/models/vod_comment.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/vod/vod_comment_cache.dart';
-import 'package:frosty/screens/vod/vod_comment_to_irc.dart';
-import 'package:frosty/screens/vod/vod_replay_filters.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/models/badges.dart';
+import 'package:onset/models/emotes.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/models/vod_comment.dart';
+import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/vod/vod_comment_cache.dart';
+import 'package:onset/screens/vod/vod_comment_to_irc.dart';
+import 'package:onset/screens/vod/vod_replay_filters.dart';
 
 part 'vod_chat_replay_store.g.dart';
 

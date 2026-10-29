@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:frosty/theme.dart';
+import 'package:onset/theme.dart';
 
 /// The ONSET mark as drawn by the launch intro and, later, the header: "ON"
 /// in the signal tile.

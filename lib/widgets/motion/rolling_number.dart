@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
 
 /// A number that rolls to its new value instead of jumping (viewer counts,
 /// channel points, a hype train level): the "Compteurs" card of the

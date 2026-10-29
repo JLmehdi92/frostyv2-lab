@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/utils/twitch_links.dart';
+import 'package:onset/utils/twitch_links.dart';
 
 void main() {
   test("a channel's subscription page on twitch.tv", () {

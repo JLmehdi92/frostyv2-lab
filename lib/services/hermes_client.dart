@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
-import 'package:frosty/models/hermes.dart';
+import 'package:onset/models/hermes.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 /// One real-time event, already routed back to the topic that produced it.

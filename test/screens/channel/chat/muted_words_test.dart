@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/chat/muted_words.dart';
+import 'package:onset/screens/channel/chat/muted_words.dart';
 
 void main() {
   test('substring mode matches inside words, ignoring case', () {

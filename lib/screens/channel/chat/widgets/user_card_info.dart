@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/models/badges.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/models/badges.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
 /// A Twitch badge someone wears, with what it says ("Subscriber · 14
 /// months").

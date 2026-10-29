@@ -1,16 +1,16 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:frosty/models/community_highlights.dart';
-import 'package:frosty/screens/channel/chat/gift_bomb_tracker.dart';
-import 'package:frosty/screens/channel/community_highlights/highlight_math.dart';
-import 'package:frosty/screens/channel/community_highlights/widgets/highlight_card_shell.dart';
-import 'package:frosty/screens/channel/community_highlights/widgets/highlight_countdown.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/models/community_highlights.dart';
+import 'package:onset/screens/channel/chat/gift_bomb_tracker.dart';
+import 'package:onset/screens/channel/community_highlights/highlight_math.dart';
+import 'package:onset/screens/channel/community_highlights/widgets/highlight_card_shell.dart';
+import 'package:onset/screens/channel/community_highlights/widgets/highlight_countdown.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
 /// Twitch's prediction colours.
 const kPredictionBlue = Color(0xFF387AFF);

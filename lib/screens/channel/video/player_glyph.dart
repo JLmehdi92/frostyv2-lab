@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:frosty/screens/channel/video/overlay_common.dart';
+import 'package:onset/screens/channel/video/overlay_common.dart';
 
 /// The live player's icons, drawn from the boards' own 24 × 24 paths
 /// (Chaine, ChaineLecteur, Tablette, TablettePortrait): stroked, round caps

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/utils/content_labels.dart';
+import 'package:onset/utils/content_labels.dart';
 
 void main() {
   test('known labels get Twitch\'s wording', () {

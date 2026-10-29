@@ -3,8 +3,8 @@ import 'dart:math';
 
 import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
-import 'package:frosty/services/realtime/hermes_protocol.dart';
-import 'package:frosty/services/realtime/realtime_socket.dart';
+import 'package:onset/services/realtime/hermes_protocol.dart';
+import 'package:onset/services/realtime/realtime_socket.dart';
 
 /// What a topic subscriber receives.
 sealed class RealtimeTopicEvent {

@@ -3,14 +3,14 @@ import 'dart:convert';
 
 import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/twitch_points_service.dart';
-import 'package:frosty/apis/twitch_watch_streak_service.dart';
-import 'package:frosty/models/celebration.dart';
-import 'package:frosty/models/community_points.dart';
-import 'package:frosty/models/hermes.dart';
-import 'package:frosty/models/watch_streak.dart';
-import 'package:frosty/services/hermes_client.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_points_service.dart';
+import 'package:onset/apis/twitch_watch_streak_service.dart';
+import 'package:onset/models/celebration.dart';
+import 'package:onset/models/community_points.dart';
+import 'package:onset/models/hermes.dart';
+import 'package:onset/models/watch_streak.dart';
+import 'package:onset/services/hermes_client.dart';
 
 part 'channel_events_store.g.dart';
 

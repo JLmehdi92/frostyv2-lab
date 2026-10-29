@@ -1,4 +1,4 @@
-import 'package:frosty/models/community_highlights.dart';
+import 'package:onset/models/community_highlights.dart';
 
 const _imageHosts = {'static-cdn.jtvnw.net'};
 

@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:frosty/apis/onset_update_service.dart';
-import 'package:frosty/constants.dart';
-import 'package:frosty/models/onset_release.dart';
-import 'package:frosty/services/onset_installer.dart';
+import 'package:onset/apis/onset_update_service.dart';
+import 'package:onset/constants.dart';
+import 'package:onset/models/onset_release.dart';
+import 'package:onset/services/onset_installer.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

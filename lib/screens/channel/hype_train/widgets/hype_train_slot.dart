@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/channel/hype_train/hype_train_timings.dart';
-import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_approaching_banner.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_banner.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_end_strip.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_sheet.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/screens/channel/hype_train/hype_train_timings.dart';
+import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_approaching_banner.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_banner.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_end_strip.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_sheet.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 
 /// Where the hype train lives on screen: nothing when there is no train,
 /// else the approaching banner, the banner (or its pill) or the end strip.

@@ -1,6 +1,6 @@
 import 'dart:async' as async;
 
-import 'package:frosty/apis/base_api_client.dart';
+import 'package:onset/apis/base_api_client.dart';
 
 /// How the IVS player should react to a native player error.
 enum IvsErrorKind {

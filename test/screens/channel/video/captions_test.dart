@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/video/captions.dart';
+import 'package:onset/screens/channel/video/captions.dart';
 
 void main() {
   test('a cue becomes one tidy line for its own length', () {

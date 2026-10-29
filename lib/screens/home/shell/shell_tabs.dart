@@ -1,11 +1,11 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/motion/haptics.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
-import 'package:frosty/widgets/state_views.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/motion/haptics.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/state_views.dart';
 
 /// A row of tabs with the signal underline sliding under the active one
 /// (Accueil's Following / Live / Clips).

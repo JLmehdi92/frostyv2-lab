@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/models/watch_streak.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/models/watch_streak.dart';
 
 /// Reads the viewer's watch streaks from Twitch's private GQL, with the
 /// viewer's twitch.tv web token (Helix has no streaks).

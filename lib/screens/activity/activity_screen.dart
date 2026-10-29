@@ -2,25 +2,25 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/activity/stores/activity_store.dart';
-import 'package:frosty/screens/home/home_store.dart';
-import 'package:frosty/screens/vod/vod_time.dart';
-import 'package:frosty/screens/whispers/whisper_kit.dart';
-import 'package:frosty/screens/whispers/whispers_screen.dart';
-import 'package:frosty/services/notifications/activity_log.dart';
-import 'package:frosty/stores/whisper_store.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/motion/haptics.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
-import 'package:frosty/widgets/profile_picture.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
-import 'package:frosty/widgets/state_glyph.dart';
-import 'package:frosty/widgets/state_views.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/screens/activity/stores/activity_store.dart';
+import 'package:onset/screens/home/home_store.dart';
+import 'package:onset/screens/vod/vod_time.dart';
+import 'package:onset/screens/whispers/whisper_kit.dart';
+import 'package:onset/screens/whispers/whispers_screen.dart';
+import 'package:onset/services/notifications/activity_log.dart';
+import 'package:onset/stores/whisper_store.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/motion/haptics.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/profile_picture.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
+import 'package:onset/widgets/state_glyph.dart';
+import 'package:onset/widgets/state_views.dart';
 
 /// Twitch's Activity (boards Activite and ActiviteTablette): the
 /// notifications (here, those ONSET posted on this device: go-live,

@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
-import 'package:frosty/stores/whisper_store.dart';
+import 'package:onset/services/realtime/twitch_eventsub_client.dart';
+import 'package:onset/stores/whisper_store.dart';
 
 final _numericId = RegExp(r'^[0-9]{1,20}$');
 

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/clip.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/utils/twitch_links.dart';
+import 'package:onset/models/clip.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/utils/twitch_links.dart';
 
 TwitchLink _p(String s) => TwitchLink.parseText(s);
 

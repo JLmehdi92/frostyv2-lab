@@ -2,9 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/channel/video/player_controller.dart';
-import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
-import 'package:frosty/theme.dart';
+import 'package:onset/screens/channel/video/player_controller.dart';
+import 'package:onset/screens/channel/video/stores/ivs_video_store.dart';
+import 'package:onset/theme.dart';
 
 /// The latency text of the pill, or the reconnect progress while the IVS
 /// engine is recovering from an error ("↻ 2/5").

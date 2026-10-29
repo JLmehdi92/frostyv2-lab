@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/vod/vod_screen.dart';
-import 'package:frosty/screens/vod/vod_time.dart';
-import 'package:frosty/screens/vod/widgets/video_card_layout.dart';
-import 'package:frosty/screens/vod/widgets/video_glyph.dart';
-import 'package:frosty/screens/vod/widgets/vod_info_strip.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/vod/vod_screen.dart';
+import 'package:onset/screens/vod/vod_time.dart';
+import 'package:onset/screens/vod/widgets/video_card_layout.dart';
+import 'package:onset/screens/vod/widgets/video_glyph.dart';
+import 'package:onset/screens/vod/widgets/vod_info_strip.dart';
 
 /// [vod]'s picture, or null while Twitch still serves its "processing"
 /// image (a video being encoded).

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/vod_comment.dart';
-import 'package:frosty/screens/vod/vod_comment_cache.dart';
+import 'package:onset/models/vod_comment.dart';
+import 'package:onset/screens/vod/vod_comment_cache.dart';
 
 VodComment _c(String id, int second, [String text = 'hi']) => VodComment(
   id: id,

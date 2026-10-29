@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/screens/settings/widgets/settings_glyph.dart';
-import 'package:frosty/screens/settings/widgets/settings_kit.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/widgets/settings_glyph.dart';
+import 'package:onset/screens/settings/widgets/settings_kit.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
 
 /// Lets the user store the twitch.tv web session token (the `auth-token`
 /// cookie) that unlocks Twitch's enhanced-broadcast renditions.

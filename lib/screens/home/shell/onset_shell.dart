@@ -2,17 +2,17 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:frosty/screens/home/home_store.dart';
-import 'package:frosty/screens/home/shell/shell_glyph.dart';
-import 'package:frosty/screens/home/shell/shell_tabs.dart';
-import 'package:frosty/screens/settings/widgets/settings_glyph.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/launch/onset_mark.dart';
-import 'package:frosty/widgets/motion/haptics.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
+import 'package:onset/screens/home/home_store.dart';
+import 'package:onset/screens/home/shell/shell_glyph.dart';
+import 'package:onset/screens/home/shell/shell_tabs.dart';
+import 'package:onset/screens/settings/widgets/settings_glyph.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/launch/onset_mark.dart';
+import 'package:onset/widgets/motion/haptics.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
 
 /// What the header shows for the page on screen.
 @immutable

@@ -3,15 +3,15 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/models/vod_access.dart';
-import 'package:frosty/screens/channel/video/ivs_player_config.dart';
-import 'package:frosty/screens/channel/video/ivs_recovery.dart';
-import 'package:frosty/screens/channel/video/quality_selection.dart';
-import 'package:frosty/screens/channel/video/stores/caption_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/models/vod_access.dart';
+import 'package:onset/screens/channel/video/ivs_player_config.dart';
+import 'package:onset/screens/channel/video/ivs_recovery.dart';
+import 'package:onset/screens/channel/video/quality_selection.dart';
+import 'package:onset/screens/channel/video/stores/caption_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/vod/vod_player_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_pip_mode/simple_pip.dart';
 

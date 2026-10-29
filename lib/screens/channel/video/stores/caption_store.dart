@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:frosty/screens/channel/video/captions.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/screens/channel/video/captions.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 
 part 'caption_store.g.dart';
 

@@ -5,8 +5,8 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/models/onset_release.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/models/onset_release.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// The download failed (network, server or an unexpected redirect).

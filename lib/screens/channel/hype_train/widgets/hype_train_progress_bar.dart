@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/screens/channel/hype_train/hype_train_timings.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_palette.dart';
+import 'package:onset/screens/channel/hype_train/hype_train_timings.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_palette.dart';
 
 /// The level's progress as the banner's background, as on Twitch: the
 /// track fills the banner and the fill grows over it from the start edge.

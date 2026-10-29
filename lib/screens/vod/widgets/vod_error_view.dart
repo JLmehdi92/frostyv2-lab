@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/screens/vod/widgets/video_glyph.dart';
-import 'package:frosty/theme.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/screens/vod/widgets/video_glyph.dart';
+import 'package:onset/theme.dart';
 
 /// Why a VOD (or a clip) cannot play, over a black player area. Never opens
 /// a browser.

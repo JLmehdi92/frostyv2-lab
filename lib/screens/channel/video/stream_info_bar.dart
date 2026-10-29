@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/models/channel.dart';
-import 'package:frosty/models/stream.dart';
-import 'package:frosty/screens/home/top/categories/category_streams.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/live_indicator.dart';
-import 'package:frosty/widgets/profile_picture.dart';
-import 'package:frosty/widgets/uptime.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/models/channel.dart';
+import 'package:onset/models/stream.dart';
+import 'package:onset/screens/home/top/categories/category_streams.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/live_indicator.dart';
+import 'package:onset/widgets/profile_picture.dart';
+import 'package:onset/widgets/uptime.dart';
 
 class StreamInfoBar extends StatelessWidget {
   final StreamTwitch? streamInfo;

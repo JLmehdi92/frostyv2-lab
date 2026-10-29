@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/models/hype_train.dart';
-import 'package:frosty/models/stream.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_card_pill.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/screens/home/stream_list/stream_tags.dart';
-import 'package:frosty/screens/home/stream_list/watch_streak_tag.dart';
-import 'package:frosty/screens/home/top/tags/tag_streams.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
-import 'package:frosty/widgets/profile_picture.dart';
-import 'package:frosty/widgets/uptime.dart';
+import 'package:onset/models/hype_train.dart';
+import 'package:onset/models/stream.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_card_pill.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/home/stream_list/stream_tags.dart';
+import 'package:onset/screens/home/stream_list/watch_streak_tag.dart';
+import 'package:onset/screens/home/top/tags/tag_streams.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/profile_picture.dart';
+import 'package:onset/widgets/uptime.dart';
 
 /// A live stream in a list (board Accueil: the 150 x 84 thumbnail beside
 /// the channel, title and category) or, as a [tile], in a tablet grid

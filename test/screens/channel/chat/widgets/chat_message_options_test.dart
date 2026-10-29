@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/screens/channel/chat/chat_commands.dart';
-import 'package:frosty/screens/channel/chat/widgets/chat_message.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/screens/channel/chat/chat_commands.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
 
 import '../../../../helpers/chat_message_harness.dart';
 

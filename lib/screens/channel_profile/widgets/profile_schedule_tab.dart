@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/models/channel_profile.dart';
-import 'package:frosty/screens/channel_profile/widgets/profile_parts.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/services/notifications/schedule_reminders.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/sheet/sheet_glyph.dart';
-import 'package:frosty/widgets/state_views.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/models/channel_profile.dart';
+import 'package:onset/screens/channel_profile/widgets/profile_parts.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/services/notifications/schedule_reminders.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/sheet/sheet_glyph.dart';
+import 'package:onset/widgets/state_views.dart';
 
 /// "in 3 hours", "in 2 days", "now" for a start [at] seen from [now].
 String formatStartsIn(DateTime at, DateTime now) {

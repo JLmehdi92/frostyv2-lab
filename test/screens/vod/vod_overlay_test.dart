@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/vod/player_media.dart';
-import 'package:frosty/screens/vod/vod_overlay.dart';
-import 'package:frosty/screens/vod/vod_player_controller.dart';
-import 'package:frosty/screens/vod/widgets/video_glyph.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/vod/player_media.dart';
+import 'package:onset/screens/vod/vod_overlay.dart';
+import 'package:onset/screens/vod/vod_player_controller.dart';
+import 'package:onset/screens/vod/widgets/video_glyph.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/fake_vod_controller.dart';

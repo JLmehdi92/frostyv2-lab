@@ -3,22 +3,22 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/vod/player_media.dart';
-import 'package:frosty/screens/vod/stores/ivs_vod_store.dart';
-import 'package:frosty/screens/vod/vod_overlay.dart';
-import 'package:frosty/screens/vod/vod_player_controller.dart';
-import 'package:frosty/screens/vod/widgets/video_glyph.dart';
-import 'package:frosty/screens/vod/widgets/video_kit.dart';
-import 'package:frosty/screens/vod/widgets/vod_info_strip.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/share_link.dart';
-import 'package:frosty/widgets/alert_message.dart';
-import 'package:frosty/widgets/motion/press_scale.dart';
-import 'package:frosty/widgets/profile_picture.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/vod/player_media.dart';
+import 'package:onset/screens/vod/stores/ivs_vod_store.dart';
+import 'package:onset/screens/vod/vod_overlay.dart';
+import 'package:onset/screens/vod/vod_player_controller.dart';
+import 'package:onset/screens/vod/widgets/video_glyph.dart';
+import 'package:onset/screens/vod/widgets/video_kit.dart';
+import 'package:onset/screens/vod/widgets/vod_info_strip.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/share_link.dart';
+import 'package:onset/widgets/alert_message.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
+import 'package:onset/widgets/profile_picture.dart';
 
 /// A tablet's area around the VOD (board RediffTablette): the title,
 /// category and views, the channel's card with "Open channel", the player's

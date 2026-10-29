@@ -2,17 +2,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/screens/activity/activity_screen.dart';
-import 'package:frosty/screens/activity/stores/activity_store.dart';
-import 'package:frosty/screens/home/home_store.dart';
-import 'package:frosty/screens/whispers/whisper_conversation.dart';
-import 'package:frosty/screens/whispers/whispers_screen.dart';
-import 'package:frosty/services/notifications/activity_log.dart';
-import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
-import 'package:frosty/stores/whisper_store.dart';
-import 'package:frosty/theme.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/screens/activity/activity_screen.dart';
+import 'package:onset/screens/activity/stores/activity_store.dart';
+import 'package:onset/screens/home/home_store.dart';
+import 'package:onset/screens/whispers/whisper_conversation.dart';
+import 'package:onset/screens/whispers/whispers_screen.dart';
+import 'package:onset/services/notifications/activity_log.dart';
+import 'package:onset/services/realtime/twitch_eventsub_client.dart';
+import 'package:onset/stores/whisper_store.dart';
+import 'package:onset/theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}

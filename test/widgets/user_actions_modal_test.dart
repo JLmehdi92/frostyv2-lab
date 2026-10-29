@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/widgets/twitch_web_page.dart';
-import 'package:frosty/widgets/user_actions_modal.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/widgets/twitch_web_page.dart';
+import 'package:onset/widgets/user_actions_modal.dart';
 
 class MockAuthStore extends Mock implements AuthStore {}
 

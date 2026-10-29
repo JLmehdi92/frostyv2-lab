@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/models/clip.dart';
-import 'package:frosty/screens/clips/stores/channel_clips_store.dart';
-import 'package:frosty/screens/clips/widgets/clip_card.dart';
-import 'package:frosty/screens/vod/widgets/video_card_layout.dart';
-import 'package:frosty/screens/vod/widgets/video_kit.dart';
-import 'package:frosty/widgets/adaptive_sliver_list.dart';
+import 'package:onset/models/clip.dart';
+import 'package:onset/screens/clips/stores/channel_clips_store.dart';
+import 'package:onset/screens/clips/widgets/clip_card.dart';
+import 'package:onset/screens/vod/widgets/video_card_layout.dart';
+import 'package:onset/screens/vod/widgets/video_kit.dart';
+import 'package:onset/widgets/adaptive_sliver_list.dart';
 
 /// The channel's other top clips of the week, under a clip.
 class MoreClipsSliver extends StatelessWidget {

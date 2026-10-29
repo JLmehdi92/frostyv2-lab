@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_hype_train_service.dart';
-import 'package:frosty/models/hype_train.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_banner.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_copy.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_countdown.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_level_pill.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_progress_bar.dart';
+import 'package:onset/apis/twitch_hype_train_service.dart';
+import 'package:onset/models/hype_train.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_banner.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_copy.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_countdown.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_level_pill.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_progress_bar.dart';
 
 import 'hype_train_widget_harness.dart';
 

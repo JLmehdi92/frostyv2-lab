@@ -1,4 +1,4 @@
-import 'package:frosty/models/irc.dart';
+import 'package:onset/models/irc.dart';
 
 final _twitchLogin = RegExp(r'^[a-zA-Z0-9_]{1,25}$');
 final _lineBreaks = RegExp(r'[\r\n]');

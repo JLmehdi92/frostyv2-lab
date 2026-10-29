@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/category.dart';
-import 'package:frosty/screens/home/shell/shell_tabs.dart';
-import 'package:frosty/screens/home/top/categories/category_card.dart';
+import 'package:onset/models/category.dart';
+import 'package:onset/screens/home/shell/shell_tabs.dart';
+import 'package:onset/screens/home/top/categories/category_card.dart';
 
 void main() {
   testWidgets('a screen reader can open a tab', (tester) async {

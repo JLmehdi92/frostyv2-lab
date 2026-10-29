@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/models/stream.dart';
-import 'package:frosty/models/user.dart';
-import 'package:frosty/screens/channel/channel_info.dart';
-import 'package:frosty/screens/channel/stores/channel_info_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/motion/motion.dart';
 import 'package:mobx/mobx.dart' show Observable, runInAction;
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/models/stream.dart';
+import 'package:onset/models/user.dart';
+import 'package:onset/screens/channel/channel_info.dart';
+import 'package:onset/screens/channel/stores/channel_info_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/motion/motion.dart';
 import 'package:provider/provider.dart';
 
 import '../../helpers/fake_player.dart';

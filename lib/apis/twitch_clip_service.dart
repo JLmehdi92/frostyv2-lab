@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/models/clip.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/models/clip.dart';
 
 /// A GQL error answered for a clip request.
 class ClipApiException extends ApiException {

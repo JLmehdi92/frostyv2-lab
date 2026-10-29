@@ -4,12 +4,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
-import 'package:frosty/screens/channel/video/ivs_video.dart';
-import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
-import 'package:frosty/stores/mini_player_store.dart';
-import 'package:frosty/widgets/global_mini_player.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/screens/channel/chat/stores/chat_tabs_store.dart';
+import 'package:onset/screens/channel/video/ivs_video.dart';
+import 'package:onset/screens/channel/video/stores/ivs_video_store.dart';
+import 'package:onset/stores/mini_player_store.dart';
+import 'package:onset/widgets/global_mini_player.dart';
 import 'package:provider/provider.dart';
 
 class MockIvsVideoStore extends Mock implements IvsVideoStore {}

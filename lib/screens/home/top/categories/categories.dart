@@ -3,18 +3,18 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/models/category.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/screens/home/stream_list/streams_list.dart';
-import 'package:frosty/screens/home/top/categories/categories_store.dart';
-import 'package:frosty/screens/home/top/categories/category_card.dart';
-import 'package:frosty/screens/home/top/categories/category_streams.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/widgets/alert_message.dart';
-import 'package:frosty/widgets/frosty_scrollbar.dart';
-import 'package:frosty/widgets/motion/staggered_entrance.dart';
-import 'package:frosty/widgets/state_views.dart';
+import 'package:onset/models/category.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/screens/home/stream_list/streams_list.dart';
+import 'package:onset/screens/home/top/categories/categories_store.dart';
+import 'package:onset/screens/home/top/categories/category_card.dart';
+import 'package:onset/screens/home/top/categories/category_streams.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/alert_message.dart';
+import 'package:onset/widgets/frosty_scrollbar.dart';
+import 'package:onset/widgets/motion/staggered_entrance.dart';
+import 'package:onset/widgets/state_views.dart';
 
 /// Browse's top categories as a grid of box arts (boards Parcourir and
 /// ParcourirTablette), most watched first, more as the end comes into view.

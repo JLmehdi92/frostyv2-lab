@@ -1,6 +1,6 @@
-import 'package:frosty/models/community_highlights.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/utils/irc_privmsg_builder.dart';
+import 'package:onset/models/community_highlights.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/utils/irc_privmsg_builder.dart';
 
 /// A pinned chat message as the [IRCMessage] live chat would have shown,
 /// so it renders with the same badges, colour and emotes (Twitch emotes

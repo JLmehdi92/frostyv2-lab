@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/utils/https_url.dart';
+import 'package:onset/utils/https_url.dart';
 
 void main() {
   test("raid pictures come from Twitch's image host over https only", () {

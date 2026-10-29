@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:frosty/apis/twitch_vod_service.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
 
 /// Playback lifecycle of a VOD player.
 enum VodPlaybackStatus {

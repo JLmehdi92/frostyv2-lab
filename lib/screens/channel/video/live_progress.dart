@@ -3,10 +3,10 @@ import 'dart:convert';
 
 import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
-import 'package:frosty/models/stream.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/channel/video/player_controller.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/models/stream.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/channel/video/player_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final _numericId = RegExp(r'^[0-9]{1,20}$');

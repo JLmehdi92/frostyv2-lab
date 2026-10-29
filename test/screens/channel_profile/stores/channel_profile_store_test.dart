@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_channel_profile_service.dart';
-import 'package:frosty/models/channel_profile.dart';
-import 'package:frosty/models/user.dart';
-import 'package:frosty/screens/channel_profile/stores/channel_profile_store.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_channel_profile_service.dart';
+import 'package:onset/models/channel_profile.dart';
+import 'package:onset/models/user.dart';
+import 'package:onset/screens/channel_profile/stores/channel_profile_store.dart';
 
 class MockProfileService extends Mock implements TwitchChannelProfileService {}
 

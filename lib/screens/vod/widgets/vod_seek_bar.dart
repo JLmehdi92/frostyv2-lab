@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/vod/vod_time.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/utils/context_extensions.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/vod/vod_time.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/utils/context_extensions.dart';
 
 /// Seek bar of the VOD player: played and buffered parts, copyright-muted
 /// parts as ticks above the track, a time bubble while scrubbing. Seeks

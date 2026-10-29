@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/models/clip.dart';
-import 'package:frosty/screens/clips/stores/channel_clips_store.dart';
-import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/onset_chip.dart';
+import 'package:onset/models/clip.dart';
+import 'package:onset/screens/clips/stores/channel_clips_store.dart';
+import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/onset_chip.dart';
 
 /// The period and sort chips above a channel's or a category's clips
 /// (boards Categorie, VideosChaine): 30 dp pills, the chosen ones in the

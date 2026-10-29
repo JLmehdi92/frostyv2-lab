@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/stream.dart';
+import 'package:onset/models/stream.dart';
 
 import '../fixtures/api_responses.dart';
 

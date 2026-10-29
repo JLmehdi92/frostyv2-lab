@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/base_api_client.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
+import 'package:onset/apis/base_api_client.dart';
 
 /// Concrete test subclass to test BaseApiClient through its public interface.
 class TestApiClient extends BaseApiClient {

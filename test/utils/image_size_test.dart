@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/utils/image_size.dart';
+import 'package:onset/utils/image_size.dart';
 
 void main() {
   test('rounds up to the step at the device pixel ratio', () {

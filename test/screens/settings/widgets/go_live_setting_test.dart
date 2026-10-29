@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/settings/widgets/go_live_setting.dart';
-import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
-import 'package:frosty/services/go_live/go_live.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:onset/screens/settings/widgets/go_live_setting.dart';
+import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
+import 'package:onset/services/go_live/go_live.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FakePlatform extends GoLivePlatform {

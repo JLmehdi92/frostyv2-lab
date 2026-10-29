@@ -1,9 +1,9 @@
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/screens/channel/stores/create_clip_store.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/screens/channel/stores/create_clip_store.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 

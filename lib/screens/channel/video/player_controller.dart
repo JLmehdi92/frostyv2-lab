@@ -1,6 +1,6 @@
-import 'package:frosty/models/channel.dart';
-import 'package:frosty/models/stream.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:onset/models/channel.dart';
+import 'package:onset/models/stream.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 
 /// The contract the video overlay and channel screen depend on, so they can
 /// drive either the WebView engine ([VideoStore]) or the native low-latency

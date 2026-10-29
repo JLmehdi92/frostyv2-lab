@@ -1,8 +1,8 @@
-import 'package:frosty/models/channel.dart';
-import 'package:frosty/models/stream.dart';
-import 'package:frosty/screens/channel/video/player_controller.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/models/channel.dart';
+import 'package:onset/models/stream.dart';
+import 'package:onset/screens/channel/video/player_controller.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 
 /// A live stream as Helix sends it, for the channel screen's widgets.
 StreamTwitch fakeStream({

@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:frosty/models/user_notice.dart';
+import 'package:onset/models/user_notice.dart';
 
 /// One run of a notice's sentence: a name or count Twitch sets in bold, or
 /// the plain words between them.

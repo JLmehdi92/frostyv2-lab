@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/channel_profile.dart';
+import 'package:onset/models/channel_profile.dart';
 
 import '../fixtures/channel_profile_payloads.dart';
 

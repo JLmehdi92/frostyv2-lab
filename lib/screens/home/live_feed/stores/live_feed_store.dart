@@ -1,14 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/apis/twitch_directory_service.dart';
-import 'package:frosty/models/stream.dart';
-import 'package:frosty/screens/home/stream_list/stream_list_store.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/utils/content_labels.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_directory_service.dart';
+import 'package:onset/models/stream.dart';
+import 'package:onset/screens/home/stream_list/stream_list_store.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/utils/content_labels.dart';
 
 part 'live_feed_store.g.dart';
 

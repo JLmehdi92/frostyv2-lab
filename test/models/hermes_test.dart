@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/hermes.dart';
+import 'package:onset/models/hermes.dart';
 
 import '../fixtures/hermes_frames.dart';
 

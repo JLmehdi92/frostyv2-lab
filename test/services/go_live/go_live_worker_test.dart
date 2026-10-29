@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/constants.dart';
-import 'package:frosty/services/go_live/go_live_worker.dart';
+import 'package:onset/constants.dart';
+import 'package:onset/services/go_live/go_live_worker.dart';
 
 void main() {
   test('a notice opens only a well-formed login', () {

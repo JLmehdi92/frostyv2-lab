@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/video/live_edge_guard.dart';
+import 'package:onset/screens/channel/video/live_edge_guard.dart';
 
 void main() {
   late DateTime now;

@@ -1,13 +1,13 @@
 import 'dart:async';
 
-import 'package:frosty/apis/twitch_api.dart';
-import 'package:frosty/screens/channel/chat/details/chat_details_store.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
-import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/screens/settings/stores/user_store.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/screens/channel/chat/details/chat_details_store.dart';
+import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
+import 'package:onset/screens/channel/chat/stores/chat_store.dart';
+import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/stores/user_store.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}

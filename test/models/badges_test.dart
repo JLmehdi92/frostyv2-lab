@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/badges.dart';
+import 'package:onset/models/badges.dart';
 
 void main() {
   group('ChatBadge.fromTwitch', () {

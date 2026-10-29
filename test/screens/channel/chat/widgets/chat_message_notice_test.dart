@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/irc.dart';
-import 'package:frosty/models/user.dart';
-import 'package:frosty/screens/channel/chat/widgets/chat_message.dart';
-import 'package:frosty/screens/channel/chat/widgets/overlay_chat_scope.dart';
-import 'package:frosty/screens/channel/chat/widgets/user_notice_row.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:mobx/mobx.dart' show ObservableMap, runInAction;
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/models/irc.dart';
+import 'package:onset/models/user.dart';
+import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
+import 'package:onset/screens/channel/chat/widgets/overlay_chat_scope.dart';
+import 'package:onset/screens/channel/chat/widgets/user_notice_row.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 
 import '../../../../fixtures/irc_messages.dart';
 import '../../../../helpers/chat_message_harness.dart';

@@ -4,10 +4,10 @@ import 'dart:math';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/base_api_client.dart';
-import 'package:frosty/services/realtime/eventsub_protocol.dart';
-import 'package:frosty/services/realtime/realtime_socket.dart';
-import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/services/realtime/eventsub_protocol.dart';
+import 'package:onset/services/realtime/realtime_socket.dart';
+import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 
 import '../../helpers/fake_realtime_socket.dart';
 

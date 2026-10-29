@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/screens/channel/chat/held_messages.dart';
-import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
+import 'package:onset/screens/channel/chat/held_messages.dart';
+import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 
 void main() {
   late Map<String, StreamController<EventSubTopicEvent>> topics;

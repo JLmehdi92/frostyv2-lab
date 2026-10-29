@@ -1,5 +1,5 @@
-import 'package:frosty/models/community_highlight_event.dart';
-import 'package:frosty/models/community_highlights.dart';
+import 'package:onset/models/community_highlight_event.dart';
+import 'package:onset/models/community_highlights.dart';
 
 int _pollRank(PollStatus status) => switch (status) {
   PollStatus.active => 0,

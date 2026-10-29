@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:frosty/models/community_highlights.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
-import 'package:frosty/screens/channel/community_highlights/highlight_stack.dart';
-import 'package:frosty/screens/channel/community_highlights/stores/community_highlights_store.dart';
-import 'package:frosty/screens/channel/community_highlights/widgets/highlight_slot.dart';
-import 'package:frosty/screens/channel/hype_train/hype_train_placement.dart';
-import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_sheet.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_slot.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_tokens.dart';
-import 'package:frosty/screens/channel/hype_train/widgets/hype_train_video_pill.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/utils/link_router.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/models/community_highlights.dart';
+import 'package:onset/screens/channel/chat/stores/chat_tabs_store.dart';
+import 'package:onset/screens/channel/community_highlights/highlight_stack.dart';
+import 'package:onset/screens/channel/community_highlights/stores/community_highlights_store.dart';
+import 'package:onset/screens/channel/community_highlights/widgets/highlight_slot.dart';
+import 'package:onset/screens/channel/hype_train/hype_train_placement.dart';
+import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_sheet.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_slot.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_video_pill.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/utils/link_router.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
 
 /// The keyboard, read from the view: the channel `Scaffold` removes the
 /// inset from its body.

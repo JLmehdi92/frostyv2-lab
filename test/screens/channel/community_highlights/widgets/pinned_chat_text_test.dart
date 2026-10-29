@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/models/cheermote.dart';
-import 'package:frosty/models/community_highlights.dart';
-import 'package:frosty/models/emotes.dart';
-import 'package:frosty/screens/channel/chat/stores/chat_assets_store.dart';
-import 'package:frosty/screens/channel/community_highlights/widgets/pinned_chat_text.dart';
-import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/models/cheermote.dart';
+import 'package:onset/models/community_highlights.dart';
+import 'package:onset/models/emotes.dart';
+import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
+import 'package:onset/screens/channel/community_highlights/widgets/pinned_chat_text.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 
 class MockChatAssetsStore extends Mock implements ChatAssetsStore {}
 

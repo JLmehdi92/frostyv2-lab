@@ -1,5 +1,5 @@
-import 'package:frosty/models/emotes.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:onset/models/emotes.dart';
 
 part 'events.g.dart';
 

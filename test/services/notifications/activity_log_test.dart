@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/services/notifications/activity_log.dart';
+import 'package:onset/services/notifications/activity_log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 ActivityEntry _entry(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/screens/onboarding/onboarding_parts.dart';
-import 'package:frosty/theme.dart';
+import 'package:onset/screens/onboarding/onboarding_parts.dart';
+import 'package:onset/theme.dart';
 
 /// The app's three tips, as the Welcome step lists them.
 const onboardingTips = [

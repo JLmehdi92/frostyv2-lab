@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/models/hype_train.dart';
-import 'package:frosty/widgets/frosty_cached_network_image.dart';
+import 'package:onset/models/hype_train.dart';
+import 'package:onset/widgets/frosty_cached_network_image.dart';
 
 /// The Mythic train's gold.
 const _mythic = Color(0xFFFFD760);

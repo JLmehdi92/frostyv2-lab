@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:frosty/models/raid_arrival.dart';
-import 'package:frosty/theme.dart';
-import 'package:frosty/widgets/celebrations/onset_rocket.dart';
-import 'package:frosty/widgets/motion/motion.dart';
-import 'package:frosty/widgets/motion/reduce_motion.dart';
-import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:onset/models/raid_arrival.dart';
+import 'package:onset/theme.dart';
+import 'package:onset/widgets/celebrations/onset_rocket.dart';
+import 'package:onset/widgets/motion/motion.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
+import 'package:onset/widgets/sheet/onset_sheet.dart';
 
 /// "You followed X's raid" (board Raids, welcome): a 12 dp card washed in
 /// the signal colour with its rule drawing in down the left edge and the

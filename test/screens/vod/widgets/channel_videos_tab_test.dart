@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/channel/video/live_progress.dart';
-import 'package:frosty/screens/vod/stores/channel_videos_store.dart';
-import 'package:frosty/screens/vod/vod_resume.dart';
-import 'package:frosty/screens/vod/widgets/channel_videos_tab.dart';
-import 'package:frosty/screens/vod/widgets/vod_card.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/channel/video/live_progress.dart';
+import 'package:onset/screens/vod/stores/channel_videos_store.dart';
+import 'package:onset/screens/vod/vod_resume.dart';
+import 'package:onset/screens/vod/widgets/channel_videos_tab.dart';
+import 'package:onset/screens/vod/widgets/vod_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MockTwitchVodService extends Mock implements TwitchVodService {}

@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/home/search/search_videos_store.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/home/search/search_videos_store.dart';
 
 class _MockVodService extends Mock implements TwitchVodService {}
 

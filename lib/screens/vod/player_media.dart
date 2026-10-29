@@ -1,5 +1,5 @@
-import 'package:frosty/models/vod.dart';
-import 'package:frosty/screens/vod/vod_time.dart';
+import 'package:onset/models/vod.dart';
+import 'package:onset/screens/vod/vod_time.dart';
 
 /// Link to [vod] at [at], as Twitch shares it.
 String vodShareLink(Vod vod, Duration at) {

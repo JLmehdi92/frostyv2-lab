@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:frosty/apis/twitch_vod_service.dart';
-import 'package:frosty/screens/vod/widgets/vod_error_view.dart';
+import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/screens/vod/widgets/vod_error_view.dart';
 
 void main() {
   Future<void> pump(
