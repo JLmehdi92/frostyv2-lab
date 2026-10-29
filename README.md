@@ -68,7 +68,8 @@ and pass:
 
 Placing your `google-services.json` in `android/app/` (git-ignored) also
 applies the Firebase Gradle plugins (Crashlytics mapping upload, automatic
-performance traces). The update workflow passes the same values from the
+performance traces); the dart-defines are still what starts Firebase, and
+native collection stays off until the app applies the setting. The update workflow passes the same values from the
 `FIREBASE_*` repository secrets when they exist.
 
 ## Development

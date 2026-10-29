@@ -4,6 +4,12 @@
 	<dict>
 		<key>ITSAppUsesNonExemptEncryption</key>
 		<false/>
+		<key>FirebaseCrashlyticsCollectionEnabled</key>
+		<false/>
+		<key>FIREBASE_ANALYTICS_COLLECTION_ENABLED</key>
+		<false/>
+		<key>firebase_performance_collection_enabled</key>
+		<false/>
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>

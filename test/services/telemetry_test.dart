@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -158,6 +160,52 @@ void main() {
           ),
         ),
       );
+    });
+  });
+
+  group('with a bundled native Firebase config', () {
+    // A google-services.json / GoogleService-Info.plist starts Firebase
+    // natively even without the dart-defines: nothing may be collected until
+    // the app applies the "Share crash logs and analytics" setting.
+    test('Android collects nothing by default', () {
+      final manifest = File(
+        'android/app/src/main/AndroidManifest.xml',
+      ).readAsStringSync().replaceAll(RegExp(r'\s+'), ' ');
+      for (final key in [
+        'firebase_crashlytics_collection_enabled',
+        'firebase_analytics_collection_enabled',
+        'firebase_performance_collection_enabled',
+      ]) {
+        expect(
+          manifest,
+          contains('android:name="$key" android:value="false"'),
+          reason: key,
+        );
+      }
+    });
+
+    test('iOS collects nothing by default', () {
+      final plist = File(
+        'ios/Runner/Info.plist',
+      ).readAsStringSync().replaceAll(RegExp(r'\s+'), '');
+      for (final key in [
+        'FirebaseCrashlyticsCollectionEnabled',
+        'FIREBASE_ANALYTICS_COLLECTION_ENABLED',
+        'firebase_performance_collection_enabled',
+      ]) {
+        expect(plist, contains('<key>$key</key><false/>'), reason: key);
+      }
+    });
+
+    test('the repository carries no Firebase project config', () {
+      for (final path in [
+        'android/app/google-services.json',
+        'ios/Runner/GoogleService-Info.plist',
+        'ios/firebase_app_id_file.json',
+        'lib/firebase_options.dart',
+      ]) {
+        expect(File(path).existsSync(), isFalse, reason: path);
+      }
     });
   });
 }
