@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/models/community_highlights.dart';
 import 'package:frosty/screens/channel/community_highlights/highlight_reducers.dart';
+import 'package:frosty/screens/channel/community_highlights/widgets/highlight_card_shell.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/highlight_cards.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
 
 final _start = DateTime.utc(2026, 10, 13, 20);
 
@@ -190,7 +192,17 @@ void main() {
         ),
       );
       expect(find.text('Winner: No'), findsOneWidget);
-      expect(find.text('✓ No'), findsOneWidget);
+      // The winner's bar carries the check (board ChaineSondagePari).
+      final winnerBar = find.ancestor(
+        of: find.text('No'),
+        matching: find.byType(HighlightBar),
+      );
+      expect(tester.widget<HighlightBar>(winnerBar).leading, isNotNull);
+      final loserBar = find.ancestor(
+        of: find.text('Yes'),
+        matching: find.byType(HighlightBar),
+      );
+      expect(tester.widget<HighlightBar>(loserBar).leading, isNull);
 
       await pump(
         tester,
@@ -377,5 +389,57 @@ void main() {
       await pump(tester, PollCard(poll: _poll(), card: card()));
       expect(find.text('Vote on Twitch'), findsNothing);
     });
+  });
+
+  group('board chrome', () {
+    testWidgets('a 16 dp card in the sheet tone, 36 dp bars', (tester) async {
+      await pump(tester, PollCard(poll: _poll(), card: card()));
+      final material = tester.widget<Material>(
+        find
+            .descendant(
+              of: find.byType(HighlightCardShell),
+              matching: find.byType(Material),
+            )
+            .first,
+      );
+      expect(material.color, SheetColors.light.sheet);
+      expect(
+        (material.shape! as RoundedRectangleBorder).borderRadius,
+        BorderRadius.circular(16),
+      );
+      for (final bar in tester.widgetList<HighlightBar>(
+        find.byType(HighlightBar),
+      )) {
+        expect(bar.fill.a, greaterThan(0));
+      }
+      expect(
+        tester.getSize(find.byType(HighlightBar).first).height,
+        greaterThanOrEqualTo(36),
+      );
+    });
+
+    testWidgets('the chevron turns with the card', (tester) async {
+      await pump(tester, PollCard(poll: _poll(), card: card(expanded: false)));
+      expect(
+        tester.widget<AnimatedRotation>(find.byType(AnimatedRotation)).turns,
+        0,
+      );
+      await pump(tester, PollCard(poll: _poll(), card: card()));
+      expect(
+        tester.widget<AnimatedRotation>(find.byType(AnimatedRotation)).turns,
+        0.5,
+      );
+    });
+
+    for (final width in [390.0 - 24, 560.0, 854.0 - 24]) {
+      testWidgets('no overflow at $width dp', (tester) async {
+        await pump(
+          tester,
+          PredictionCard(prediction: _prediction(), card: card()),
+          width: width,
+        );
+        expect(tester.takeException(), isNull);
+      });
+    }
   });
 }

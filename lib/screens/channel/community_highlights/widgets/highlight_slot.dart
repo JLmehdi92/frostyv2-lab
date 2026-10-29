@@ -4,7 +4,11 @@ import 'package:frosty/models/community_highlights.dart';
 import 'package:frosty/screens/channel/community_highlights/highlight_stack.dart';
 import 'package:frosty/screens/channel/community_highlights/stores/community_highlights_store.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/highlight_cards.dart';
-import 'package:frosty/utils/modal_bottom_sheet.dart';
+import 'package:frosty/theme.dart';
+import 'package:frosty/widgets/motion/motion.dart';
+import 'package:frosty/widgets/motion/reduce_motion.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 import 'package:frosty/widgets/twitch_web_page.dart';
 import 'package:mobx/mobx.dart';
 
@@ -154,7 +158,17 @@ class HighlightSlot extends StatelessWidget {
   }
 }
 
-/// "‹ 2 / 3 ›" and the "New poll" pill.
+/// The board's glyph for a highlight kind.
+SheetGlyphKind highlightGlyph(HighlightKind kind) => switch (kind) {
+  HighlightKind.poll => SheetGlyphKind.poll,
+  HighlightKind.prediction => SheetGlyphKind.trophy,
+  HighlightKind.pinned => SheetGlyphKind.pin,
+  HighlightKind.raid => SheetGlyphKind.people,
+  HighlightKind.giftBomb => SheetGlyphKind.gift,
+};
+
+/// "‹ 2 / 3 ›" and the "New poll" pill (board ChaineSondagePari: a 40 dp
+/// row under the card).
 class HighlightPager extends StatelessWidget {
   const HighlightPager({super.key, required this.store});
 
@@ -162,50 +176,169 @@ class HighlightPager extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final colors = SheetColors.of(context);
+    Widget arrow({
+      required String tooltip,
+      required SheetGlyphKind glyph,
+      required VoidCallback? onPressed,
+    }) => IconButton(
+      tooltip: tooltip,
+      onPressed: onPressed,
+      style: IconButton.styleFrom(
+        fixedSize: const Size(40, 40),
+        minimumSize: const Size(40, 40),
+        padding: EdgeInsets.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      icon: SheetGlyph(
+        glyph,
+        size: 18,
+        strokeWidth: 2,
+        color: onPressed == null ? colors.pagerOff : colors.text,
+      ),
+    );
     return Observer(
       builder: (context) {
         final stack = store.stack;
         final count = stack.items.length;
         final index = stack.currentIndex;
         final behind = stack.unseen;
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            IconButton(
-              tooltip: 'Previous highlight',
-              visualDensity: VisualDensity.compact,
-              onPressed: index > 0 ? () => store.select(index - 1) : null,
-              icon: const Icon(Icons.chevron_left_rounded),
-            ),
-            Text(
-              '${index + 1} / $count',
-              semanticsLabel: 'Highlight ${index + 1} of $count',
-              style: Theme.of(context).textTheme.labelMedium,
-            ),
-            IconButton(
-              tooltip: 'Next highlight',
-              visualDensity: VisualDensity.compact,
-              onPressed: index + 1 < count
-                  ? () => store.select(index + 1)
-                  : null,
-              icon: const Icon(Icons.chevron_right_rounded),
-            ),
-            if (behind != null)
-              ActionChip(
-                avatar: Icon(
-                  highlightIcon(behind.kind),
-                  size: 16,
-                  color: scheme.onPrimary,
-                ),
-                label: Text('New ${highlightLabel(behind.kind).toLowerCase()}'),
-                labelStyle: TextStyle(color: scheme.onPrimary),
-                backgroundColor: scheme.primary,
-                onPressed: () => store.select(stack.items.indexOf(behind)),
+        return SizedBox(
+          height: 40,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 2,
+            children: [
+              arrow(
+                tooltip: 'Previous highlight',
+                glyph: SheetGlyphKind.chevronLeft,
+                onPressed: index > 0 ? () => store.select(index - 1) : null,
               ),
-          ],
+              Text(
+                '${index + 1} / $count',
+                semanticsLabel: 'Highlight ${index + 1} of $count',
+                style: SheetText.tabular(
+                  TextStyle(
+                    fontFamily: FrostyTokens.bodyFamily,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: colors.body,
+                  ),
+                ),
+              ),
+              arrow(
+                tooltip: 'Next highlight',
+                glyph: SheetGlyphKind.chevronRight,
+                onPressed: index + 1 < count
+                    ? () => store.select(index + 1)
+                    : null,
+              ),
+              if (behind != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 6),
+                  child: HighlightNewPill(
+                    kind: behind.kind,
+                    onPressed: () => store.select(stack.items.indexOf(behind)),
+                  ),
+                ),
+            ],
+          ),
         );
       },
+    );
+  }
+}
+
+/// "New prediction": a 30 dp signal pill that pops in when a highlight
+/// arrived behind an expanded card.
+class HighlightNewPill extends StatefulWidget {
+  const HighlightNewPill({
+    super.key,
+    required this.kind,
+    required this.onPressed,
+  });
+
+  final HighlightKind kind;
+  final VoidCallback onPressed;
+
+  @override
+  State<HighlightNewPill> createState() => _HighlightNewPillState();
+}
+
+class _HighlightNewPillState extends State<HighlightNewPill>
+    with SingleTickerProviderStateMixin {
+  late final _pop = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 220),
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_pop.status == AnimationStatus.dismissed) {
+      _pop.duration = motionDuration(
+        context,
+        const Duration(milliseconds: 220),
+      );
+      _pop.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _pop.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = SheetColors.accentOf(context);
+    final onAccent = SheetColors.onAccentOf(context);
+    final curved = CurvedAnimation(parent: _pop, curve: FrostyMotion.standard);
+    final label = 'New ${highlightLabel(widget.kind).toLowerCase()}';
+    Widget pill = Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: Material(
+        color: accent,
+        shape: const StadiumBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: widget.onPressed,
+          child: Container(
+            height: 30,
+            padding: const EdgeInsetsDirectional.only(start: 9, end: 12),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 6,
+              children: [
+                SheetGlyph(
+                  highlightGlyph(widget.kind),
+                  size: 14,
+                  strokeWidth: 2.2,
+                  color: onAccent,
+                ),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontFamily: FrostyTokens.bodyFamily,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: onAccent,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    pill = FadeTransition(opacity: curved, child: pill);
+    if (reduceMotionOf(context)) return pill;
+    return ScaleTransition(
+      scale: Tween(begin: 0.97, end: 1.0).animate(curved),
+      child: pill,
     );
   }
 }
@@ -280,9 +413,8 @@ Future<void> showHighlightDetails(
   CommunityHighlightsStore store, {
   required ValueChanged<OutgoingRaid> onWatchRaid,
   PinnedMessageBuilder? pinnedMessage,
-}) => showModalBottomSheetWithProperFocus<void>(
+}) => showOnsetSheet<void>(
   context: context,
-  isScrollControlled: true,
   constraints: const BoxConstraints(maxWidth: 480),
   builder: (context) => _ClosesWhenEmpty(
     store: store,
@@ -292,7 +424,7 @@ Future<void> showHighlightDetails(
           maxHeight: MediaQuery.sizeOf(context).height * 0.8,
         ),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          padding: const EdgeInsets.fromLTRB(12, 6, 12, 12),
           child: Observer(
             builder: (context) {
               final item = store.current;

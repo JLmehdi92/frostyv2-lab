@@ -124,12 +124,19 @@ void main() {
     await tester.pumpAndSettle();
     // The expanded poll keeps the slot.
     expect(h.store.current!.kind, HighlightKind.poll);
-    expect(find.widgetWithText(ActionChip, 'New pinned'), findsOneWidget);
+    expect(find.widgetWithText(HighlightNewPill, 'New pinned'), findsOneWidget);
+    // The board's 30 dp signal pill.
+    expect(
+      tester
+          .getSize(find.widgetWithText(HighlightNewPill, 'New pinned'))
+          .height,
+      30,
+    );
 
-    await tester.tap(find.widgetWithText(ActionChip, 'New pinned'));
+    await tester.tap(find.widgetWithText(HighlightNewPill, 'New pinned'));
     await tester.pumpAndSettle();
     expect(h.store.current!.kind, HighlightKind.pinned);
-    expect(find.byType(ActionChip), findsNothing);
+    expect(find.byType(HighlightNewPill), findsNothing);
   });
 
   testWidgets('compact keeps the card collapsed; a tap opens the details', (

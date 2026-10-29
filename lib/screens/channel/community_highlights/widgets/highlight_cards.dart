@@ -7,8 +7,11 @@ import 'package:frosty/screens/channel/community_highlights/highlight_math.dart'
 import 'package:frosty/screens/channel/community_highlights/highlight_reducers.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/highlight_card_shell.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/highlight_countdown.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 import 'package:intl/intl.dart';
 
 /// Twitch's prediction colours.
@@ -48,7 +51,7 @@ class HighlightCardContext {
 }
 
 /// The button that sends a viewer to twitch.tv to take part (Twitch keeps
-/// voting and predicting to its own pages).
+/// voting and predicting to its own pages): the board's 40 dp text button.
 Widget? _takePart(
   HighlightCardContext card,
   String label, {
@@ -56,13 +59,43 @@ Widget? _takePart(
 }) {
   final onTap = card.onTakePart;
   if (!open || !card.expanded || onTap == null) return null;
-  return Align(
-    alignment: AlignmentDirectional.centerEnd,
-    child: TextButton.icon(
-      onPressed: onTap,
-      icon: const Icon(Icons.open_in_new_rounded, size: 18),
-      label: Text(label),
-    ),
+  return Builder(
+    builder: (context) {
+      final colors = SheetColors.of(context);
+      return Align(
+        alignment: AlignmentDirectional.centerEnd,
+        child: TextButton.icon(
+          onPressed: onTap,
+          style: TextButton.styleFrom(
+            minimumSize: const Size(0, 40),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            foregroundColor: colors.text,
+            shape: const StadiumBorder(),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            textStyle: const TextStyle(
+              fontFamily: FrostyTokens.bodyFamily,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          icon: SheetGlyph(
+            SheetGlyphKind.external,
+            size: 16,
+            color: colors.text,
+          ),
+          label: Text(label),
+        ),
+      );
+    },
+  );
+}
+
+/// The poll bars' fills: the leaders brighter (board ChaineSondagePari).
+Color _pollFill(BuildContext context, {required bool leader}) {
+  final dark = Theme.of(context).brightness == Brightness.dark;
+  final base = dark ? Colors.white : Colors.black;
+  return base.withValues(
+    alpha: leader ? (dark ? 0.20 : 0.12) : (dark ? 0.08 : 0.06),
   );
 }
 
@@ -76,7 +109,6 @@ class PollCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final votes = [for (final c in poll.choices) c.votes];
     final shares = percentages(votes);
     final top = leaders(votes);
@@ -95,6 +127,7 @@ class PollCard extends StatelessWidget {
 
     return HighlightCardShell(
       icon: Icons.poll_outlined,
+      glyph: SheetGlyphKind.poll,
       title: 'Poll',
       expanded: card.expanded,
       onToggle: card.onToggle,
@@ -114,7 +147,6 @@ class PollCard extends StatelessWidget {
         poll.title,
         maxLines: card.expanded ? 3 : 1,
         overflow: TextOverflow.ellipsis,
-        style: Theme.of(context).textTheme.titleSmall,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -123,14 +155,20 @@ class PollCard extends StatelessWidget {
           for (var i = 0; i < poll.choices.length; i++)
             HighlightBar(
               fraction: shares[i] / 100,
-              color: top.contains(i) ? scheme.primary : scheme.outline,
+              fill: _pollFill(context, leader: top.contains(i)),
               label: poll.choices[i].title,
               trailing: '${shares[i]}%',
               bold: top.contains(i),
             ),
           Text(
             _count(poll.totalVotes, 'vote', 'votes'),
-            style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
+            style: SheetText.tabular(
+              TextStyle(
+                fontFamily: FrostyTokens.bodyFamily,
+                fontSize: 12,
+                color: SheetColors.of(context).secondary,
+              ),
+            ),
           ),
         ],
       ),
@@ -179,10 +217,14 @@ class PredictionCard extends StatelessWidget {
         '${prediction.outcomes[i].title} ${shares[i]} percent',
     ].where((s) => s.isNotEmpty).join(', ');
 
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return HighlightCardShell(
       icon: Icons.emoji_events_outlined,
+      glyph: SheetGlyphKind.trophy,
       title: 'Prediction',
-      accent: kPredictionBlue,
+      // Board: the trophy in light blue on a blue-tinted tile.
+      accent: dark ? const Color(0xFF8DB4FF) : kPredictionBlue,
+      tint: kPredictionBlue.withValues(alpha: 0.18),
       expanded: card.expanded,
       onToggle: card.onToggle,
       onDismiss: card.onDismiss,
@@ -204,11 +246,10 @@ class PredictionCard extends StatelessWidget {
         prediction.title,
         maxLines: card.expanded ? 3 : 1,
         overflow: TextOverflow.ellipsis,
-        style: Theme.of(context).textTheme.titleSmall,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 6,
+        spacing: 10,
         children: [
           for (var i = 0; i < prediction.outcomes.length; i++)
             _OutcomeRow(
@@ -216,6 +257,7 @@ class PredictionCard extends StatelessWidget {
               outcome: prediction.outcomes[i],
               share: shares[i],
               isWinner: prediction.outcomes[i].id == winner?.id,
+              resolved: winner != null,
               color: predictionColor(prediction.outcomes[i], scheme),
             ),
         ],
@@ -230,6 +272,7 @@ class _OutcomeRow extends StatelessWidget {
     required this.outcome,
     required this.share,
     required this.isWinner,
+    required this.resolved,
     required this.color,
   });
 
@@ -237,44 +280,63 @@ class _OutcomeRow extends StatelessWidget {
   final PredictionOutcome outcome;
   final int share;
   final bool isWinner;
+
+  /// A winner is known: the other outcomes fade to grey.
+  final bool resolved;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
-    final muted = Theme.of(context).colorScheme.onSurfaceVariant;
+    final colors = SheetColors.of(context);
+    final dark = Theme.of(context).brightness == Brightness.dark;
     final top = outcome.topPredictors.firstOrNull;
+    final meta = SheetText.tabular(
+      TextStyle(
+        fontFamily: FrostyTokens.bodyFamily,
+        fontSize: 12,
+        color: colors.secondary,
+      ),
+    );
+    final fill = resolved && !isWinner
+        ? (dark ? Colors.white : Colors.black).withValues(alpha: 0.06)
+        : color.withValues(alpha: 0.38);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 2,
+      spacing: 4,
       children: [
         HighlightBar(
           fraction: share / 100,
-          color: color,
-          label: isWinner ? '✓ ${outcome.title}' : outcome.title,
+          fill: fill,
+          label: outcome.title,
           trailing: '$share%',
           bold: isWinner,
+          leading: isWinner
+              ? Semantics(
+                  label: 'Winner',
+                  child: SheetGlyph(
+                    SheetGlyphKind.check,
+                    size: 16,
+                    strokeWidth: 2.6,
+                    color: colors.text,
+                  ),
+                )
+              : null,
         ),
-        Wrap(
-          spacing: 10,
-          children: [
-            Text(
-              _count(outcome.points, 'point', 'points'),
-              style: TextStyle(color: muted, fontSize: 12),
-            ),
-            Text(
-              formatRatio(returnRatio(prediction, outcome)),
-              style: TextStyle(color: muted, fontSize: 12),
-            ),
-            Text(
-              _count(outcome.users, 'predictor', 'predictors'),
-              style: TextStyle(color: muted, fontSize: 12),
-            ),
-            if (top != null && top.name.isNotEmpty)
+        Padding(
+          padding: const EdgeInsets.only(left: 2),
+          child: Wrap(
+            spacing: 10,
+            children: [
+              Text(_count(outcome.points, 'point', 'points'), style: meta),
+              Text(formatRatio(returnRatio(prediction, outcome)), style: meta),
               Text(
-                'Top: ${top.name}',
-                style: TextStyle(color: muted, fontSize: 12),
+                _count(outcome.users, 'predictor', 'predictors'),
+                style: meta,
               ),
-          ],
+              if (top != null && top.name.isNotEmpty)
+                Text('Top: ${top.name}', style: meta),
+            ],
+          ),
         ),
       ],
     );
@@ -316,9 +378,18 @@ class PinnedCard extends StatelessWidget {
       ),
       maxLines: card.expanded ? 12 : 2,
       overflow: TextOverflow.ellipsis,
+      // Board: the pinned message at 14 / 1.5, not the 15 / 600 headline.
+      style: TextStyle(
+        fontFamily: FrostyTokens.bodyFamily,
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        height: 1.5,
+        color: SheetColors.of(context).text,
+      ),
     );
     return HighlightCardShell(
       icon: Icons.push_pin_outlined,
+      glyph: SheetGlyphKind.pin,
       title: 'Pinned',
       expanded: card.expanded,
       onToggle: card.onToggle,
