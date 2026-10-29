@@ -189,15 +189,24 @@ class _ChatDetailsState extends State<ChatDetails> {
 
   Future<void> _saveColor(String color) async {
     setState(() => _savingColor = true);
-    final success = await widget.chatStore.twitchApi.updateUserChatColor(
-      userId: widget.chatStore.auth.user.details!.id,
-      color: color,
-    );
+    bool success;
+    try {
+      success = await widget.chatStore.twitchApi.updateUserChatColor(
+        userId: widget.chatStore.auth.user.details!.id,
+        color: color,
+      );
+    } catch (error) {
+      // Anything but an API error (offline, signed out meanwhile) must not
+      // leave Save greyed out for good.
+      debugPrint('Failed to update chat color: $error');
+      success = false;
+    }
 
     if (!mounted) return;
     setState(() {
       _savingColor = false;
-      _view = ChatDetailsView.menu;
+      // A failed save keeps the pick on screen for another try.
+      if (success) _view = ChatDetailsView.menu;
     });
 
     final message = success

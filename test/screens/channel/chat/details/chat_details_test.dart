@@ -255,6 +255,43 @@ void main() {
     expect(find.text('Reconnect'), findsOneWidget);
   });
 
+  testWidgets('a save that throws keeps the pick and frees Save', (
+    tester,
+  ) async {
+    when(
+      () => api.updateUserChatColor(
+        userId: any(named: 'userId'),
+        color: any(named: 'color'),
+      ),
+    ).thenThrow(StateError('offline'));
+    await open(tester);
+    await tester.tap(find.text('Username color'));
+    await tester.pumpAndSettle();
+    await tester.dragUntilVisible(
+      find.text('Hot Pink'),
+      find.byType(ListView).last,
+      const Offset(0, -60),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Hot Pink'));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Failed to update chat color. Please try again.'),
+      findsOneWidget,
+    );
+    // Still on the colours, Save usable again.
+    expect(
+      find.textContaining('How it will look in chat', findRichText: true),
+      findsOneWidget,
+    );
+    final save = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Save'),
+    );
+    expect(save.onPressed, isNotNull);
+  });
+
   testWidgets('add chat runs the callback', (tester) async {
     await open(tester);
     await scrollTo(tester, 'Add chat');
