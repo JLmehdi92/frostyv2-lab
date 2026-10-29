@@ -1,9 +1,13 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_directory_service.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/home/stream_list/stream_list_store.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/utils/content_labels.dart';
 import 'package:mobx/mobx.dart';
 
 part 'live_feed_store.g.dart';
@@ -23,6 +27,10 @@ class LiveFeedStore = LiveFeedStoreBase with _$LiveFeedStore;
 ///
 /// The lists are [ListStore]s, so the language, the hidden content labels
 /// (with their "Show"), the pages and the refresh work as on any list.
+///
+/// While mature-content warnings are on, it also reads each channel's
+/// content labels (a page at a time, once per channel) so that a labelled
+/// channel's preview waits for the viewer's consent ([labelsOf]).
 abstract class LiveFeedStoreBase with Store {
   LiveFeedStoreBase({
     required AuthStore authStore,
@@ -30,7 +38,8 @@ abstract class LiveFeedStoreBase with Store {
     required TwitchApi twitchApi,
     TwitchDirectoryService? directoryService,
     LiveFeedListFactory? listFactory,
-  }) : _listFactory =
+  }) : _twitchApi = twitchApi,
+       _listFactory =
            listFactory ??
            (({required type, categoryId}) => ListStore(
              authStore: authStore,
@@ -58,10 +67,22 @@ abstract class LiveFeedStoreBase with Store {
           (_) => settingsStore.streamLanguage,
           (_) => runInAction(() => _index = 0),
         ),
+      )
+      // The previews' warnings: the labels of the channels as they come.
+      ..add(
+        reaction(
+          (_) => (
+            settingsStore.warnMatureContent,
+            [for (final stream in streams) stream.userId],
+          ),
+          (_) => unawaited(_readLabels()),
+          fireImmediately: true,
+        ),
       );
   }
 
   final SettingsStore settingsStore;
+  final TwitchApi _twitchApi;
   final LiveFeedListFactory _listFactory;
   late final ListStore _all;
   ListStore? _category;
@@ -84,6 +105,54 @@ abstract class LiveFeedStoreBase with Store {
   /// The stream on screen, in [streams].
   @readonly
   var _index = 0;
+
+  /// The content labels of the channels read so far (readable names, empty
+  /// when none; null when Twitch could not say).
+  final _labels = ObservableMap<String, List<String>?>();
+
+  /// The channels whose labels are being read.
+  final _reading = <String>{};
+  var _disposed = false;
+
+  /// Whether [userId]'s labels were read (or could not be).
+  bool knowsLabelsOf(String userId) => _labels.containsKey(userId);
+
+  /// [userId]'s content labels: empty when it has none, null when they are
+  /// not known (not read yet, or Twitch could not say).
+  List<String>? labelsOf(String userId) => _labels[userId];
+
+  Future<void> _readLabels() async {
+    if (!settingsStore.warnMatureContent) return;
+    final ids = [
+      for (final stream in streams)
+        if (!_labels.containsKey(stream.userId) &&
+            !_reading.contains(stream.userId))
+          stream.userId,
+    ];
+    if (ids.isEmpty) return;
+    _reading.addAll(ids);
+    Map<String, List<String>?> read;
+    try {
+      final channels = await _twitchApi.getChannelsByIds(ids);
+      read = {
+        for (final id in ids)
+          id: switch (channels[id]) {
+            final channel? => contentLabelNames(
+              channel.contentClassificationLabels,
+            ),
+            // Not in Twitch's answer: unknown, so not previewed unasked.
+            null => null,
+          },
+      };
+    } catch (e) {
+      // Unknown: the previews ask first (they never fail open).
+      debugPrint('Preview content labels unavailable: ${e.runtimeType}');
+      read = {for (final id in ids) id: null};
+    }
+    _reading.removeAll(ids);
+    if (_disposed) return;
+    runInAction(() => _labels.addAll(read));
+  }
 
   /// The list on screen.
   @computed
@@ -169,6 +238,8 @@ abstract class LiveFeedStoreBase with Store {
     final kept = keepPosition ? current?.userId : null;
     final keptIndex = _index;
     if (!keepPosition) runInAction(() => _index = 0);
+    // Labels Twitch could not give are asked for again with the new list.
+    runInAction(() => _labels.removeWhere((_, labels) => labels == null));
     list.lastTimeRefreshed = DateTime.now();
     await list.refreshStreams();
     // Not kept when the viewer moved meanwhile: they stay where they went,
@@ -211,6 +282,7 @@ abstract class LiveFeedStoreBase with Store {
       DateTime.now().difference(list.lastTimeRefreshed) >= staleAfter;
 
   void dispose() {
+    _disposed = true;
     for (final dispose in _disposers) {
       dispose();
     }

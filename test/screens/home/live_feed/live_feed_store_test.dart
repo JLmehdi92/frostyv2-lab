@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/models/channel.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/home/live_feed/stores/live_feed_store.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
@@ -65,6 +66,17 @@ void main() {
     );
   });
 
+  Channel channel(String id, [List<String> labels = const []]) => Channel(
+    broadcasterId: id,
+    broadcasterLogin: 'l$id',
+    broadcasterName: 'N$id',
+    broadcasterLanguage: 'en',
+    title: 'T',
+    gameId: '',
+    gameName: '',
+    contentClassificationLabels: labels,
+  );
+
   Future<LiveFeedStore> build() async {
     final store = LiveFeedStore(
       authStore: auth,
@@ -76,6 +88,68 @@ void main() {
     }
     return store;
   }
+
+  group('content labels for the previews', () {
+    test('read once per channel, a page at a time', () async {
+      when(() => api.getChannelsByIds(any())).thenAnswer(
+        (invocation) async => {
+          for (final id in invocation.positionalArguments.first as List)
+            id as String: channel(id, id == '2' ? ['SexualThemes'] : []),
+        },
+      );
+      final store = await build();
+
+      expect(store.knowsLabelsOf('1'), isTrue);
+      expect(store.labelsOf('1'), isEmpty);
+      expect(store.labelsOf('2'), ['Sexual Themes']);
+      expect(store.knowsLabelsOf('9'), isFalse);
+      verify(
+        () => api.getChannelsByIds(['1', '2', '3', '4', '5', '6', '7', '8']),
+      ).called(1);
+
+      // The next page: only its new channel.
+      store.setIndex(6);
+      for (var i = 0; i < 6; i++) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      verify(() => api.getChannelsByIds(['9'])).called(1);
+      expect(store.labelsOf('9'), isEmpty);
+      store.dispose();
+    });
+
+    test(
+      'unreadable labels are unknown (null), read again on a refresh',
+      () async {
+        var fail = true;
+        when(() => api.getChannelsByIds(any())).thenAnswer((invocation) async {
+          if (fail) throw Exception('helix down');
+          return {
+            for (final id in invocation.positionalArguments.first as List)
+              id as String: channel(id),
+          };
+        });
+        final store = await build();
+        expect(store.knowsLabelsOf('1'), isTrue);
+        expect(store.labelsOf('1'), isNull);
+
+        fail = false;
+        await store.refresh();
+        for (var i = 0; i < 6; i++) {
+          await Future<void>.delayed(Duration.zero);
+        }
+        expect(store.labelsOf('1'), isEmpty);
+        store.dispose();
+      },
+    );
+
+    test('warnings off: nothing is read', () async {
+      settings.warnMatureContent = false;
+      final store = await build();
+      verifyNever(() => api.getChannelsByIds(any()));
+      expect(store.knowsLabelsOf('1'), isFalse);
+      store.dispose();
+    });
+  });
 
   test('chips: the categories of the first page, most streams first', () async {
     final store = await build();

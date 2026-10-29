@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/apis/twitch_stream_service.dart';
 import 'package:frosty/models/stream.dart';
+import 'package:frosty/screens/channel/video/content_warning_gate.dart';
+import 'package:frosty/screens/channel/video/player_glyph.dart';
 import 'package:frosty/screens/home/live_feed/live_preview.dart';
 import 'package:frosty/screens/home/live_feed/stores/live_feed_store.dart';
 import 'package:frosty/screens/home/stream_list/large_stream_card.dart';
@@ -57,6 +59,11 @@ void selectLiveCategory(
 ///   while the feed is on screen ([active], the shell's tab, the app in
 ///   front, no mini player) and the "Video Autoplaying" setting allows it;
 ///   otherwise the channel's picture shows, with a button to play it.
+/// - A channel with content labels (mature content warnings on, not
+///   accepted this session) never previews on its own: its picture shows
+///   "Content warning · Play preview", which asks first (the channel's own
+///   warning, [ContentWarningCover]); so does a channel whose labels Twitch
+///   could not give.
 /// - A tap (or "Watch with chat") opens the channel, after letting the
 ///   preview's decoder go; a long press opens its actions.
 /// - Pull down on the first channel to refresh; the chips filter by
@@ -157,6 +164,44 @@ class _LiveFeedState extends State<LiveFeed> {
   /// A preview started by hand while autoplay is off.
   String? _playedByHand;
 
+  /// The channel whose content warning is open over its picture (the
+  /// viewer asked to play its preview).
+  final _asking = ValueNotifier<String?>(null);
+
+  /// What the pages need of the previews' content warnings.
+  late final _gate = _PreviewGate(
+    warningOf: _warningOf,
+    asking: _asking,
+    ask: (stream) {
+      Haptics.light();
+      _asking.value = stream.userLogin;
+    },
+    accept: (stream) {
+      AcceptedContentWarnings.add(stream.userId);
+      _asking.value = null;
+      _playByHand(stream);
+    },
+    decline: () => _asking.value = null,
+  );
+
+  /// Whether [stream]'s preview may play without asking: the warnings off,
+  /// its warning accepted this session, or Twitch says it has no labels.
+  bool _previewClear(StreamTwitch stream) =>
+      contentWarningConsented(
+        warnMatureContent: _settings.warnMatureContent,
+        channelId: stream.userId,
+      ) ||
+      (widget.store.labelsOf(stream.userId)?.isEmpty ?? false);
+
+  /// The labels [stream]'s picture warns about instead of previewing (empty
+  /// when Twitch could not say), or null: it may preview, or its labels are
+  /// still being read (then it waits, without a warning).
+  List<String>? _warningOf(StreamTwitch stream) {
+    if (_previewClear(stream)) return null;
+    if (!widget.store.knowsLabelsOf(stream.userId)) return null;
+    return widget.store.labelsOf(stream.userId) ?? const [];
+  }
+
   /// A channel opened from the feed is on screen (or still leaving): no
   /// preview may start under its player, whatever else changes meanwhile.
   var _channelOpen = false;
@@ -183,9 +228,22 @@ class _LiveFeedState extends State<LiveFeed> {
       ..add(
         reaction((_) => widget.store.current?.userLogin, (String? login) {
           _playedByHand = null;
+          _asking.value = null;
           _preview.show(login);
           _sync();
         }, fireImmediately: true),
+      )
+      // The labels of the channel on screen arrive, or the warnings are
+      // switched: it may preview, or not.
+      ..add(
+        reaction((_) {
+          final stream = widget.store.current;
+          return (
+            _settings.warnMatureContent,
+            stream == null ? null : widget.store.knowsLabelsOf(stream.userId),
+            stream == null ? null : widget.store.labelsOf(stream.userId),
+          );
+        }, (_) => _sync()),
       )
       ..add(reaction((_) => _settings.vodAutoplay, (_) => _sync()))
       ..add(reaction((_) => _settings.showThumbnails, (_) => _sync()))
@@ -275,7 +333,8 @@ class _LiveFeedState extends State<LiveFeed> {
   /// Whether a preview may play now, and tells the preview.
   void _sync() {
     if (!mounted) return;
-    final current = widget.store.current?.userLogin;
+    final stream = widget.store.current;
+    final current = stream?.userLogin;
     // Thumbnails off: no picture, no preview unless asked for.
     final allowed =
         (_autoplay && _settings.showThumbnails) ||
@@ -287,11 +346,20 @@ class _LiveFeedState extends State<LiveFeed> {
           _tickers &&
           _foreground &&
           !(_mini?.visible ?? false) &&
-          allowed,
+          allowed &&
+          // A labelled channel (or one whose labels are not known) only
+          // once the viewer said yes.
+          stream != null &&
+          _previewClear(stream),
     );
   }
 
   void _playByHand(StreamTwitch stream) {
+    // A labelled channel asks first.
+    if (!_previewClear(stream)) {
+      _gate.ask(stream);
+      return;
+    }
     Haptics.light();
     setState(() => _playedByHand = stream.userLogin);
     _sync();
@@ -387,6 +455,7 @@ class _LiveFeedState extends State<LiveFeed> {
     }
     if (widget.preview == null) _preview.dispose();
     _service?.close();
+    _asking.dispose();
     super.dispose();
   }
 
@@ -515,6 +584,7 @@ class _LiveFeedState extends State<LiveFeed> {
                 page: (context, stream, index) => _PhonePage(
                   stream: stream,
                   preview: _preview,
+                  gate: _gate,
                   first: index == 0,
                   hasNext: index < widget.store.streams.length - 1,
                   loggedIn: _auth.isLoggedIn,
@@ -582,6 +652,7 @@ class _LiveFeedState extends State<LiveFeed> {
                   page: (context, stream, index) => _TabletPage(
                     stream: stream,
                     preview: _preview,
+                    gate: _gate,
                     loggedIn: _auth.isLoggedIn,
                     canPlayByHand: !_autoplay || !_settings.showThumbnails,
                     showThumbnail: _settings.showThumbnails,
@@ -785,17 +856,48 @@ class _HiddenNote extends StatelessWidget {
   }
 }
 
+/// What a page needs of the previews' content warnings (see
+/// [_LiveFeedState._warningOf]).
+class _PreviewGate {
+  const _PreviewGate({
+    required this.warningOf,
+    required this.asking,
+    required this.ask,
+    required this.accept,
+    required this.decline,
+  });
+
+  /// The labels a channel's picture warns about instead of previewing, or
+  /// null (read inside an observer: the labels arrive later).
+  final List<String>? Function(StreamTwitch stream) warningOf;
+
+  /// The channel whose warning is open (its login).
+  final ValueListenable<String?> asking;
+
+  /// Opens the channel's warning.
+  final void Function(StreamTwitch stream) ask;
+
+  /// "Start watching": accepted for the session, the preview plays.
+  final void Function(StreamTwitch stream) accept;
+
+  /// "Go back": the warning closes, nothing plays.
+  final VoidCallback decline;
+}
+
 /// A channel's picture, then its preview over it once the first frame is
-/// on screen (only the channel the preview plays).
+/// on screen (only the channel the preview plays); for a labelled channel,
+/// its content warning instead (see [_PreviewGate]).
 class _PreviewSurface extends StatelessWidget {
   const _PreviewSurface({
     required this.stream,
     required this.preview,
+    required this.gate,
     required this.showThumbnail,
   });
 
   final StreamTwitch stream;
   final LivePreviewController preview;
+  final _PreviewGate gate;
 
   /// The "show thumbnails" setting: off, no picture (a preview asked for
   /// still plays).
@@ -842,7 +944,91 @@ class _PreviewSurface extends StatelessWidget {
               );
             },
           ),
+          Observer(
+            builder: (context) {
+              final labels = gate.warningOf(stream);
+              if (labels == null) return const SizedBox.shrink();
+              return ValueListenableBuilder<String?>(
+                valueListenable: gate.asking,
+                builder: (context, asking, _) {
+                  if (asking != stream.userLogin) {
+                    return Center(
+                      child: _WarningPill(onPressed: () => gate.ask(stream)),
+                    );
+                  }
+                  // Over the picture, it takes every tap (none opens the
+                  // channel behind it by accident).
+                  return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {},
+                    onLongPress: () {},
+                    child: ContentWarningCover(
+                      displayName: getReadableName(
+                        stream.userName,
+                        stream.userLogin,
+                      ),
+                      labels: labels,
+                      onAccept: () => gate.accept(stream),
+                      onBack: gate.decline,
+                    ),
+                  );
+                },
+              );
+            },
+          ),
         ],
+      ),
+    );
+  }
+}
+
+/// "Content warning · Play preview" over a labelled channel's picture.
+class _WarningPill extends StatelessWidget {
+  const _WarningPill({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Content warning. Play preview',
+      excludeSemantics: true,
+      child: PressScale(
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onPressed,
+          child: const OverlayPill(
+            height: 36,
+            radius: 18,
+            padding: 14,
+            color: Color(0xB3000000),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 8,
+              children: [
+                PlayerGlyph(
+                  PlayerGlyphKind.eyeOff,
+                  color: OverImage.text,
+                  size: 16,
+                  strokeWidth: 1.7,
+                ),
+                Flexible(
+                  child: Text(
+                    'Content warning · Play preview',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: OverImage.text,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -1119,6 +1305,7 @@ class _PhonePage extends StatelessWidget {
   const _PhonePage({
     required this.stream,
     required this.preview,
+    required this.gate,
     required this.first,
     required this.hasNext,
     required this.loggedIn,
@@ -1134,6 +1321,7 @@ class _PhonePage extends StatelessWidget {
 
   final StreamTwitch stream;
   final LivePreviewController preview;
+  final _PreviewGate gate;
   final bool first;
   final bool hasNext;
   final bool loggedIn;
@@ -1180,6 +1368,7 @@ class _PhonePage extends StatelessWidget {
                   child: _PreviewSurface(
                     stream: stream,
                     preview: preview,
+                    gate: gate,
                     showThumbnail: showThumbnail,
                   ),
                 ),
@@ -1415,6 +1604,7 @@ class _TabletPage extends StatelessWidget {
   const _TabletPage({
     required this.stream,
     required this.preview,
+    required this.gate,
     required this.loggedIn,
     required this.canPlayByHand,
     required this.showThumbnail,
@@ -1428,6 +1618,7 @@ class _TabletPage extends StatelessWidget {
 
   final StreamTwitch stream;
   final LivePreviewController preview;
+  final _PreviewGate gate;
   final bool loggedIn;
   final bool canPlayByHand;
   final bool showThumbnail;
@@ -1464,6 +1655,7 @@ class _TabletPage extends StatelessWidget {
                 child: _PreviewSurface(
                   stream: stream,
                   preview: preview,
+                  gate: gate,
                   showThumbnail: showThumbnail,
                 ),
               ),

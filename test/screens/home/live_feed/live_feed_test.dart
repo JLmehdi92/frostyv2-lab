@@ -6,9 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_stream_service.dart';
+import 'package:frosty/models/channel.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/models/user.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_tabs_store.dart';
+import 'package:frosty/screens/channel/video/content_warning_gate.dart';
 import 'package:frosty/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:frosty/screens/home/live_feed/live_feed.dart';
 import 'package:frosty/screens/home/live_feed/live_preview.dart';
@@ -103,6 +105,9 @@ void main() {
   late List<String> log;
   late bool loggedIn;
 
+  /// The content labels Twitch gives each channel (by id).
+  late Map<String, List<String>> labels;
+
   setUp(() {
     api = MockTwitchApi();
     auth = MockAuthStore();
@@ -140,7 +145,26 @@ void main() {
     when(
       () => api.getUser(userLogin: any(named: 'userLogin')),
     ).thenAnswer((_) => Future.error(Exception('offline')));
+    labels = {};
+    when(() => api.getChannelsByIds(any())).thenAnswer(
+      (invocation) async => {
+        for (final id in invocation.positionalArguments.first as List)
+          id as String: Channel(
+            broadcasterId: id,
+            broadcasterLogin: 'login$id',
+            broadcasterName: 'Name $id',
+            broadcasterLanguage: 'fr',
+            title: 'Title $id',
+            gameId: '',
+            gameName: '',
+            contentClassificationLabels: labels[id] ?? const [],
+          ),
+      },
+    );
+    AcceptedContentWarnings.reset();
   });
+
+  tearDown(AcceptedContentWarnings.reset);
 
   late LiveFeedStore store;
   late PageController controller;
@@ -258,6 +282,136 @@ void main() {
       });
     }
   }
+
+  group('content warnings (the setting on)', () {
+    Finder warning() => find.text('Content warning · Play preview');
+
+    for (final (name, size) in [
+      ('phone', const Size(390, 844)),
+      ('tablet', const Size(1280, 854)),
+    ]) {
+      testWidgets('$name: a labelled channel never previews on its own; '
+          'its warning, then Start watching plays it', (tester) async {
+        labels = {
+          '1': ['SexualThemes'],
+        };
+        await pump(tester, size: size);
+        await tester.pump(const Duration(seconds: 1));
+
+        expect(log, isEmpty);
+        expect(find.byKey(const ValueKey('preview-video')), findsNothing);
+        expect(warning(), findsOneWidget);
+        // Nothing to unmute.
+        expect(find.byTooltip('Unmute'), findsNothing);
+
+        await tester.tap(warning());
+        await tester.pump();
+        expect(find.text('Just one second…'), findsOneWidget);
+        expect(find.text('It may contain: Sexual Themes'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        expect(log, isEmpty);
+
+        await tester.tap(find.text('Start watching'));
+        await tester.pump(const Duration(seconds: 1));
+        expect(AcceptedContentWarnings.has('1'), isTrue);
+        expect(log, ['open https://usher/login1']);
+        expect(find.text('Just one second…'), findsNothing);
+        expect(warning(), findsNothing);
+        await close(tester);
+      });
+    }
+
+    testWidgets('Go back: the picture again, nothing plays, Home stays', (
+      tester,
+    ) async {
+      labels = {
+        '1': ['SexualThemes'],
+      };
+      await pump(tester);
+      await tester.tap(warning());
+      await tester.pump();
+      await tester.tap(find.text('Go back'));
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text('Just one second…'), findsNothing);
+      expect(warning(), findsOneWidget);
+      expect(find.byType(LiveFeed), findsOneWidget);
+      expect(AcceptedContentWarnings.has('1'), isFalse);
+      expect(log, isEmpty);
+      await close(tester);
+    });
+
+    testWidgets('labels Twitch cannot give: no preview (fail closed), the '
+        'same consent plays it', (tester) async {
+      when(
+        () => api.getChannelsByIds(any()),
+      ).thenAnswer((_) => Future.error(Exception('helix down')));
+      await pump(tester);
+      await tester.pump(const Duration(seconds: 1));
+      expect(log, isEmpty);
+
+      await tester.tap(warning());
+      await tester.pump();
+      expect(find.text('Just one second…'), findsOneWidget);
+      await tester.tap(find.text('Start watching'));
+      await tester.pump(const Duration(seconds: 1));
+      expect(log, ['open https://usher/login1']);
+      await close(tester);
+    });
+
+    testWidgets('the next unlabelled channel previews as before', (
+      tester,
+    ) async {
+      labels = {
+        '1': ['SexualThemes'],
+      };
+      await pump(tester);
+      await tester.fling(find.text('Title 1'), const Offset(0, -500), 2000);
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(store.current!.userId, '2');
+      expect(log, ['open https://usher/login2']);
+      await close(tester);
+    });
+
+    testWidgets('accepted on the channel this session, or warnings off: it '
+        'previews', (tester) async {
+      labels = {
+        '1': ['SexualThemes'],
+      };
+      AcceptedContentWarnings.add('1');
+      await pump(tester);
+      await tester.pump(const Duration(seconds: 1));
+      expect(log, ['open https://usher/login1']);
+      expect(warning(), findsNothing);
+      await close(tester);
+
+      AcceptedContentWarnings.reset();
+      log.clear();
+      settings.warnMatureContent = false;
+      await pump(tester);
+      await tester.pump(const Duration(seconds: 1));
+      expect(log, ['open https://usher/login1']);
+      expect(warning(), findsNothing);
+      await close(tester);
+    });
+
+    testWidgets('autoplay off: Play preview asks first', (tester) async {
+      labels = {
+        '1': ['SexualThemes'],
+      };
+      settings.vodAutoplay = VodAutoplay.never;
+      await pump(tester);
+      await tester.tap(find.byTooltip('Play preview'));
+      await tester.pump();
+      expect(find.text('Just one second…'), findsOneWidget);
+      expect(log, isEmpty);
+      await tester.tap(find.text('Start watching'));
+      await tester.pump(const Duration(seconds: 1));
+      expect(log, ['open https://usher/login1']);
+      await close(tester);
+    });
+  });
 
   testWidgets('a swipe up: the next live, its preview, never two', (
     tester,

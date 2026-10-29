@@ -162,13 +162,17 @@ class ContentWarningCover extends StatelessWidget {
     required this.displayName,
     required this.labels,
     required this.onAccept,
+    this.onBack,
   });
 
   final String displayName;
 
-  /// Readable label names.
+  /// Readable label names (empty: not known, the line is left out).
   final List<String> labels;
   final VoidCallback onAccept;
+
+  /// "Go back" (default: the page goes back).
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
@@ -220,16 +224,18 @@ class ContentWarningCover extends StatelessWidget {
                         color: FrostyTokens.textBodyDark,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'It may contain: ${labels.join(', ')}',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        height: 1.4,
-                        color: FrostyTokens.textSecondaryDark,
+                    if (labels.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        'It may contain: ${labels.join(', ')}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          height: 1.4,
+                          color: FrostyTokens.textSecondaryDark,
+                        ),
                       ),
-                    ),
+                    ],
                     const SizedBox(height: 12),
                     // Side by side; one above the other on a very small player.
                     Wrap(
@@ -254,7 +260,8 @@ class ContentWarningCover extends StatelessWidget {
                           child: const Text('Start watching'),
                         ),
                         OutlinedButton(
-                          onPressed: () => Navigator.maybePop(context),
+                          onPressed:
+                              onBack ?? () => Navigator.maybePop(context),
                           style: OutlinedButton.styleFrom(
                             backgroundColor: FrostyTokens.raisedDark,
                             foregroundColor: FrostyTokens.textPrimaryDark,
