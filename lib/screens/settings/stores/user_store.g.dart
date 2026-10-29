@@ -55,8 +55,8 @@ mixin _$UserStore on UserStoreBase, Store {
   );
 
   @override
-  Future<void> init() {
-    return _$initAsyncAction.run(() => super.init());
+  Future<void> init({UserTwitch? details}) {
+    return _$initAsyncAction.run(() => super.init(details: details));
   }
 
   late final _$blockAsyncAction = AsyncAction(

@@ -21,10 +21,14 @@ abstract class UserStoreBase with Store {
 
   UserStoreBase({required this.twitchApi});
 
+  /// Loads the current user. [details]: already read (a login checks its
+  /// new token's user before making it the session), so the session switches
+  /// at once, without another request that could fail half-way.
   @action
-  Future<void> init() async {
+  Future<void> init({UserTwitch? details}) async {
     // Get and update the current user's info.
-    _details = await twitchApi.getUserInfo();
+    _details = details ?? await twitchApi.getUserInfo();
+    _disposeReaction?.call();
 
     // Get and update the current user's list of blocked users.
     // Don't use await because having a huge list of blocked users will block the UI.

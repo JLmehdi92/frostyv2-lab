@@ -47,6 +47,19 @@ void main() {
       expect(options.headers['Client-Id'], 'test_client_id');
     });
 
+    test('never replaces a token the request names itself (checking another '
+        "token must check that one, not the session's)", () {
+      final options = RequestOptions(
+        path: 'https://id.twitch.tv/oauth2/validate',
+        headers: {'Authorization': 'Bearer other_token'},
+      );
+
+      interceptor.onRequest(options, RequestInterceptorHandler());
+
+      expect(options.headers['Authorization'], 'Bearer other_token');
+      expect(options.headers['Client-Id'], 'test_client_id');
+    });
+
     test('does not add headers for BTTV API requests', () {
       final options = RequestOptions(
         path: 'https://api.betterttv.net/3/cached/emotes/global',

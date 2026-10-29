@@ -227,8 +227,15 @@ class TwitchApi extends BaseApiClient {
   }
 
   /// Returns the user's info given their token.
-  Future<UserTwitch> getUserInfo() async {
-    final data = await get<JsonMap>('/users');
+  ///
+  /// [token]: the user of that token instead of the session's (a login page
+  /// checks its new token before it becomes the session), quietly.
+  Future<UserTwitch> getUserInfo({String? token}) async {
+    final data = await get<JsonMap>(
+      '/users',
+      headers: token == null ? null : {'Authorization': 'Bearer $token'},
+      extra: token == null ? null : {UnauthorizedInterceptor.quiet: true},
+    );
 
     final userData = data['data'] as JsonList;
     return UserTwitch.fromJson(userData.first);
@@ -282,6 +289,22 @@ class TwitchApi extends BaseApiClient {
       // Network/timeout/server errors -> treat as indeterminate, not invalid
       debugPrint('Token validation indeterminate: $e');
       rethrow;
+    }
+  }
+
+  /// The id of the user [token] belongs to, whatever app it was issued to
+  /// (the twitch.tv web token is the web client's), or null when Twitch
+  /// refuses it. Network failures throw.
+  Future<String?> tokenUserId(String token) async {
+    try {
+      final data = await get<JsonMap>(
+        '$_oauthBaseUrl/validate',
+        headers: {'Authorization': 'OAuth $token'},
+      );
+      final id = data['user_id'];
+      return id is String && id.isNotEmpty ? id : null;
+    } on UnauthorizedException {
+      return null;
     }
   }
 

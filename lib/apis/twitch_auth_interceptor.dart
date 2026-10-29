@@ -12,9 +12,16 @@ class TwitchAuthInterceptor extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     // Check if this is a Twitch API request that needs authentication
     if (_shouldAddTwitchHeaders(options.uri)) {
-      // Add Twitch auth headers automatically
+      // Add Twitch auth headers automatically, never over a token the
+      // request names itself: validating a login page's token (or reading
+      // its user) must use that token, not the session's.
       final twitchHeaders = _authStore.headersTwitch;
-      options.headers.addAll(twitchHeaders);
+      for (final MapEntry(:key, :value) in twitchHeaders.entries) {
+        final named = options.headers.keys.any(
+          (name) => name.toLowerCase() == key.toLowerCase(),
+        );
+        if (!named) options.headers[key] = value;
+      }
     }
 
     handler.next(options);

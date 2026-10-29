@@ -260,6 +260,57 @@ void main() {
     });
   });
 
+  group('a token other than the session\'s', () {
+    test('getUserInfo(token:) reads that token\'s user, quietly', () async {
+      final sent = <RequestOptions>[];
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            sent.add(options);
+            handler.next(options);
+          },
+        ),
+      );
+      dioAdapter.onGet(
+        'https://api.twitch.tv/helix/users',
+        (server) => server.reply(200, {
+          'data': [
+            {
+              'id': '2',
+              'login': 'other',
+              'display_name': 'Other',
+              'profile_image_url': '',
+            },
+          ],
+        }),
+      );
+
+      final user = await api.getUserInfo(token: 'page_token');
+
+      expect(user.id, '2');
+      expect(sent.single.headers['Authorization'], 'Bearer page_token');
+      expect(sent.single.extra[UnauthorizedInterceptor.quiet], isTrue);
+    });
+
+    test('tokenUserId: whose a token is (any app), null when refused', () async {
+      dioAdapter.onGet(
+        'https://id.twitch.tv/oauth2/validate',
+        (server) => server.reply(200, {
+          ...twitchValidateTokenResponse,
+          'client_id': 'the_web_client',
+          'user_id': '777',
+        }),
+      );
+      expect(await api.tokenUserId('web_token'), '777');
+
+      dioAdapter.onGet(
+        'https://id.twitch.tv/oauth2/validate',
+        (server) => server.reply(401, {'message': 'invalid access token'}),
+      );
+      expect(await api.tokenUserId('dead_token'), isNull);
+    });
+  });
+
   group('validateToken', () {
     setUp(() => api = TwitchApi(dio, appClientId: 'test_client_id'));
 
