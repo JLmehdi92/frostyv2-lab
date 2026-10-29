@@ -12,6 +12,10 @@ class TwitchWebPage extends StatefulWidget {
   final String title;
   final Uri url;
 
+  /// Stands in for the WebView (tests have no platform view).
+  @visibleForTesting
+  static Widget Function()? debugBody;
+
   /// Opens [url] when it is on twitch.tv.
   static Future<void> open(
     BuildContext context, {
@@ -80,7 +84,9 @@ class _TwitchWebPageState extends State<TwitchWebPage> {
           Positioned.fill(
             child: Padding(
               padding: EdgeInsets.only(top: padding.top + kToolbarHeight),
-              child: WebViewWidget(controller: _controller),
+              child:
+                  TwitchWebPage.debugBody?.call() ??
+                  WebViewWidget(controller: _controller),
             ),
           ),
           Positioned(
@@ -88,6 +94,8 @@ class _TwitchWebPageState extends State<TwitchWebPage> {
             left: 0,
             right: 0,
             child: BlurredContainer(
+              // The channel's video shows under the page while it slides.
+              onlyWhenSettled: true,
               gradientDirection: GradientDirection.up,
               padding: EdgeInsets.only(
                 top: padding.top,

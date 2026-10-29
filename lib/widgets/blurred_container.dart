@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:frosty/widgets/settled_blur.dart';
 
 /// Gradient direction for the blurred container
 enum GradientDirection {
@@ -31,6 +32,10 @@ class BlurredContainer extends StatelessWidget {
   final bool? forceDarkMode;
   final GradientDirection gradientDirection;
 
+  /// Blurs only while its page is in place ([SettledBlur]): for a page that
+  /// slides over (or away from) a video, which must never be blurred.
+  final bool onlyWhenSettled;
+
   const BlurredContainer({
     super.key,
     required this.child,
@@ -40,6 +45,7 @@ class BlurredContainer extends StatelessWidget {
     this.backgroundAlpha,
     this.forceDarkMode,
     this.gradientDirection = GradientDirection.none,
+    this.onlyWhenSettled = false,
   });
 
   @override
@@ -105,18 +111,19 @@ class BlurredContainer extends StatelessWidget {
       );
     }
 
+    final filter = ImageFilter.blur(
+      sigmaX: sigmaX ?? BlurConfig.sigmaX,
+      sigmaY: sigmaY ?? BlurConfig.sigmaY,
+    );
+    final content = Container(
+      padding: padding,
+      decoration: decoration,
+      child: child,
+    );
     return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: sigmaX ?? BlurConfig.sigmaX,
-          sigmaY: sigmaY ?? BlurConfig.sigmaY,
-        ),
-        child: Container(
-          padding: padding,
-          decoration: decoration,
-          child: child,
-        ),
-      ),
+      child: onlyWhenSettled
+          ? SettledBlur(filter: filter, child: content)
+          : BackdropFilter(filter: filter, child: content),
     );
   }
 }
