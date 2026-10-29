@@ -100,6 +100,24 @@ void main() {
     expect((commands.single as WarnCommand).reason, 'no spam');
   });
 
+  testWidgets('an action that throws says so and frees the buttons', (
+    tester,
+  ) async {
+    await pump(tester);
+    await tester.tap(find.text('Unban'));
+    await tester.pump();
+    answer.completeError(StateError('offline'));
+    await tester.pump();
+    expect(find.byType(LinearProgressIndicator), findsNothing);
+    expect(find.text(moderationFailed.message), findsOneWidget);
+    expect(
+      tester
+          .widget<ModerationPill>(find.widgetWithText(ModerationPill, 'Unban'))
+          .onPressed,
+      isNotNull,
+    );
+  });
+
   testWidgets('a refusal shows, and the buttons come back', (tester) async {
     await pump(tester);
     await tester.tap(find.text('Unban'));

@@ -76,6 +76,19 @@ void main() {
     expect(tile(tester, 'Emote-only mode').onChanged, isNotNull);
   });
 
+  testWidgets('a mode change that throws says so and frees the switches', (
+    tester,
+  ) async {
+    await pump(tester, const ROOMSTATE());
+    await tester.tap(switchOf('Slow mode'));
+    await tester.pump();
+    expect(tile(tester, 'Emote-only mode').onChanged, isNull);
+    answer.completeError(StateError('offline'));
+    await tester.pump();
+    expect(find.text(moderationFailed.message), findsOneWidget);
+    expect(tile(tester, 'Emote-only mode').onChanged, isNotNull);
+  });
+
   testWidgets('turning a mode off sends no length', (tester) async {
     await pump(tester, const ROOMSTATE(emoteOnly: '1'));
 

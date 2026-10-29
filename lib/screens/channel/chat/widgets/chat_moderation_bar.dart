@@ -57,7 +57,15 @@ class _ChatModerationBarState extends State<ChatModerationBar> {
 
   Future<void> _run(ModerationCommand command) async {
     setState(() => _busy = true);
-    final outcome = await widget.onModerate(command);
+    ModerationOutcome? outcome;
+    try {
+      outcome = await widget.onModerate(command);
+    } catch (error) {
+      // A throw (rather than a refusal) must not leave every button
+      // disabled for good.
+      debugPrint('Moderation action failed: $error');
+      outcome = moderationFailed;
+    }
     if (!mounted) return;
     setState(() {
       _busy = false;

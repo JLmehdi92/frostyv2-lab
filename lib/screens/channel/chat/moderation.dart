@@ -9,6 +9,13 @@ import 'package:frosty/screens/channel/chat/moderation_notice.dart';
 /// show either way.
 typedef ModerationOutcome = ({bool ok, String message});
 
+/// What an action says when it threw instead of answering (the bars that
+/// run it must not stay busy for good).
+const ModerationOutcome moderationFailed = (
+  ok: false,
+  message: 'That did not go through. Try again.',
+);
+
 /// Runs moderation commands in one chat, as one moderator (the broadcaster
 /// is their own moderator), through Helix.
 class ChatModeration {
