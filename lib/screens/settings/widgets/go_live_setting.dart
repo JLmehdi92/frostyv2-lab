@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
 import 'package:frosty/services/go_live/go_live.dart';
 import 'package:frosty/services/go_live/go_live_worker.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 
 /// The platform side of go-live notices, swappable in tests.
 class GoLivePlatform {
@@ -184,27 +186,28 @@ class _GoLiveBellTileState extends State<GoLiveBellTile> {
     final prefs = _prefs;
     if (prefs == null || !prefs.enabled) return const SizedBox.shrink();
     final on = !prefs.muted.contains(widget.channelId);
-    return SwitchListTile.adaptive(
-      secondary: Icon(
-        on
-            ? Icons.notifications_active_outlined
-            : Icons.notifications_off_outlined,
-      ),
-      title: Text('Notify when ${widget.name} goes live'),
-      value: on,
-      onChanged: (value) async {
-        try {
-          await prefs.setMuted(widget.channelId, !value);
-        } catch (e, stack) {
-          _GoLiveSettingState._report(e, stack);
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Couldn't change the bell.")),
-            );
-          }
+    Future<void> change(bool value) async {
+      try {
+        await prefs.setMuted(widget.channelId, !value);
+      } catch (e, stack) {
+        _GoLiveSettingState._report(e, stack);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Couldn't change the bell.")),
+          );
         }
-        if (mounted) setState(() {});
-      },
+      }
+      if (mounted) setState(() {});
+    }
+
+    // The board's row with a switch (ChaineCarteUtilisateur's "More").
+    return MergeSemantics(
+      child: SheetRow(
+        glyph: SheetGlyphKind.bell,
+        label: 'Notify when ${widget.name} goes live',
+        onTap: () => change(!on),
+        trailing: OnsetSwitch(value: on, onChanged: change),
+      ),
     );
   }
 }

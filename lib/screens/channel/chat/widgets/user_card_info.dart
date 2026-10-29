@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/models/badges.dart';
 import 'package:frosty/models/irc.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 import 'package:intl/intl.dart';
 
 /// A Twitch badge someone wears, with what it says ("Subscriber · 14
@@ -38,8 +41,9 @@ String _label(String name, String id, Map<String, String> months) {
 }
 
 /// What the user card tells about someone besides their messages: their
-/// badges, when they made their account and, to a moderator, since when
-/// they follow the channel (Twitch only tells moderators).
+/// badges (as the board's pills), when they made their account and, to a
+/// moderator, since when they follow the channel (Twitch only tells
+/// moderators).
 class UserCardInfo extends StatefulWidget {
   const UserCardInfo({
     super.key,
@@ -48,6 +52,7 @@ class UserCardInfo extends StatefulWidget {
     required this.channelId,
     required this.showFollowAge,
     required this.badges,
+    this.dense = false,
   });
 
   final TwitchApi api;
@@ -55,6 +60,9 @@ class UserCardInfo extends StatefulWidget {
   final String channelId;
   final bool showFollowAge;
   final List<UserCardBadge> badges;
+
+  /// The tablet panel's smaller sizes.
+  final bool dense;
 
   @override
   State<UserCardInfo> createState() => _UserCardInfoState();
@@ -88,24 +96,25 @@ class _UserCardInfoState extends State<UserCardInfo> {
     }
   }
 
-  Widget _line(Future<DateTime?>? date, IconData icon, String label) =>
+  Widget _line(Future<DateTime?>? date, SheetGlyphKind glyph, String label) =>
       FutureBuilder<DateTime?>(
         future: date,
         builder: (context, snapshot) {
           final value = snapshot.data;
           if (value == null) return const SizedBox.shrink();
-          final theme = Theme.of(context);
+          final color = SheetColors.of(context).secondary;
           return Row(
             mainAxisSize: MainAxisSize.min,
+            spacing: 5,
             children: [
-              Icon(icon, size: 14, color: theme.colorScheme.onSurfaceVariant),
-              const SizedBox(width: 4),
+              SheetGlyph(glyph, size: widget.dense ? 13 : 14, color: color),
               Flexible(
                 child: Text(
                   '$label ${DateFormat.yMMMd().format(value.toLocal())}',
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                  style: SheetText.status.copyWith(
+                    fontSize: widget.dense ? 12 : 12.5,
+                    color: color,
                   ),
                 ),
               ),
@@ -116,35 +125,89 @@ class _UserCardInfoState extends State<UserCardInfo> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 4,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          for (final (:badge, :label) in widget.badges)
-            Tooltip(
-              message: label,
-              triggerMode: TooltipTriggerMode.tap,
-              child: Semantics(
-                label: label,
-                child: FrostyCachedNetworkImage(
-                  imageUrl: badge.url,
-                  width: 18,
-                  height: 18,
-                ),
-              ),
+    final colors = SheetColors.of(context);
+    final dense = widget.dense;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (widget.badges.isNotEmpty)
+          Padding(
+            padding: EdgeInsets.fromLTRB(16, dense ? 10 : 12, 16, 0),
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final (:badge, :label) in widget.badges)
+                  Tooltip(
+                    message: label,
+                    triggerMode: TooltipTriggerMode.tap,
+                    child: Semantics(
+                      label: label,
+                      child: ExcludeSemantics(
+                        child: Container(
+                          height: dense ? 26 : 28,
+                          padding: EdgeInsetsDirectional.only(
+                            start: 4,
+                            end: dense ? 9 : 10,
+                          ),
+                          decoration: ShapeDecoration(
+                            color: dense ? colors.chip : colors.raised,
+                            shape: StadiumBorder(
+                              side: dense
+                                  ? BorderSide.none
+                                  : BorderSide(
+                                      color: colors.ring,
+                                      width: FrostyTokens.hairlineWidth,
+                                    ),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 6,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                  dense ? 5 : 6,
+                                ),
+                                child: FrostyCachedNetworkImage(
+                                  imageUrl: badge.url,
+                                  width: dense ? 18 : 20,
+                                  height: dense ? 18 : 20,
+                                ),
+                              ),
+                              Text(
+                                label,
+                                style: TextStyle(
+                                  fontFamily: FrostyTokens.bodyFamily,
+                                  fontSize: dense ? 11.5 : 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: colors.body,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
-          _line(_createdAt, Icons.cake_outlined, 'Account created'),
-          if (_followedAt != null)
-            _line(
-              _followedAt,
-              Icons.favorite_outline_rounded,
-              'Following since',
-            ),
-        ],
-      ),
+          ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(16, dense ? 8 : 10, 16, 0),
+          child: Wrap(
+            spacing: dense ? 12 : 14,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              _line(_createdAt, SheetGlyphKind.cake, 'Account created'),
+              if (_followedAt != null)
+                _line(_followedAt, SheetGlyphKind.heart, 'Following since'),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

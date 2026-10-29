@@ -19,6 +19,7 @@ import 'package:frosty/screens/channel/chat/widgets/reply_thread.dart';
 import 'package:frosty/screens/channel/chat/widgets/user_notice_row.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/modal_bottom_sheet.dart';
+import 'package:frosty/widgets/sheet/onset_panel.dart';
 import 'package:provider/provider.dart';
 
 class ChatMessage extends StatelessWidget {
@@ -65,15 +66,14 @@ class ChatMessage extends StatelessWidget {
       return;
     }
 
-    showModalBottomSheetWithProperFocus(
-      isScrollControlled: true,
-      context: context,
-      builder: (context) => ChatUserModal(
-        chatStore: chatStore,
-        username: ircMessage.user!,
-        userId: ircMessage.tags['user-id']!,
-        displayName: ircMessage.tags['display-name']!,
-      ),
+    showChatUserCard(
+      context,
+      chatStore: chatStore,
+      username: ircMessage.user!,
+      userId: ircMessage.tags['user-id']!,
+      displayName: ircMessage.tags['display-name']!,
+      // A tablet's card opens beside the tapped message.
+      anchor: globalRectOf(context),
     );
   }
 
@@ -84,15 +84,13 @@ class ChatMessage extends StatelessWidget {
     final twitchApi = context.read<TwitchApi>();
     twitchApi.getUser(userLogin: nickname).then((user) {
       if (context.mounted) {
-        showModalBottomSheetWithProperFocus(
-          isScrollControlled: true,
-          context: context,
-          builder: (context) => ChatUserModal(
-            chatStore: chatStore,
-            username: user.login,
-            userId: user.id,
-            displayName: user.displayName,
-          ),
+        showChatUserCard(
+          context,
+          chatStore: chatStore,
+          username: user.login,
+          userId: user.id,
+          displayName: user.displayName,
+          anchor: globalRectOf(context),
         );
       }
     });

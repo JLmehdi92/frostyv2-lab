@@ -12,19 +12,26 @@ void main() {
 
   setUp(commands.clear);
 
-  Future<void> pump(WidgetTester tester) {
+  Future<void> pump(WidgetTester tester, {Size size = const Size(390, 844)}) {
+    tester.view.physicalSize = size;
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
     // Made in the test's zone, so its answer arrives on pump.
     answer = Completer();
     return tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: ChatModerationBar(
-            login: 'troll',
-            name: 'Troll',
-            onModerate: (command) {
-              commands.add(command);
-              return answer.future;
-            },
+          // Where the user card puts it: in the lower half of the screen.
+          body: Align(
+            alignment: const Alignment(0, 0.4),
+            child: ChatModerationBar(
+              login: 'troll',
+              name: 'Troll',
+              onModerate: (command) {
+                commands.add(command);
+                return answer.future;
+              },
+            ),
           ),
         ),
       ),
@@ -78,6 +85,8 @@ void main() {
 
   testWidgets('warn needs a reason', (tester) async {
     await pump(tester);
+    // The last pill scrolls in on a phone.
+    await tester.ensureVisible(find.text('Warn'));
     await tester.tap(find.text('Warn'));
     await tester.pumpAndSettle();
 
@@ -98,7 +107,7 @@ void main() {
     expect(commands.single, isA<UnbanCommand>());
     expect(
       tester
-          .widget<OutlinedButton>(find.widgetWithText(OutlinedButton, 'Unban'))
+          .widget<ModerationPill>(find.widgetWithText(ModerationPill, 'Unban'))
           .onPressed,
       isNull,
     );
@@ -108,9 +117,53 @@ void main() {
     expect(find.text("Couldn't unban: not banned"), findsOneWidget);
     expect(
       tester
-          .widget<OutlinedButton>(find.widgetWithText(OutlinedButton, 'Unban'))
+          .widget<ModerationPill>(find.widgetWithText(ModerationPill, 'Unban'))
           .onPressed,
       isNotNull,
     );
+  });
+
+  testWidgets('board pills: 44 dp, the menu opens above the timeout', (
+    tester,
+  ) async {
+    await pump(tester);
+    for (final label in ['Timeout', 'Ban', 'Unban', 'Warn']) {
+      expect(
+        tester.getSize(find.widgetWithText(ModerationPill, label)).height,
+        44,
+        reason: label,
+      );
+    }
+    final pill = tester.getRect(find.widgetWithText(ModerationPill, 'Timeout'));
+    await tester.tap(find.text('Timeout'));
+    await tester.pumpAndSettle();
+    final first = tester.getRect(find.text('1 second (purge)'));
+
+    final last = tester.getRect(find.text('2 weeks'));
+    expect(last.bottom, lessThan(pill.top));
+    expect(first.top, lessThan(last.top));
+    // The chevron says the menu is open.
+    expect(
+      tester
+          .widget<ModerationPill>(
+            find.widgetWithText(ModerationPill, 'Timeout'),
+          )
+          .expanded,
+      isTrue,
+    );
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+    expect(find.text('2 weeks'), findsNothing);
+  });
+
+  testWidgets('the ban reason counts to 500', (tester) async {
+    await pump(tester);
+    await tester.tap(find.text('Ban'));
+    await tester.pumpAndSettle();
+    expect(find.text('Reason (optional)'), findsOneWidget);
+    expect(find.text('0 / 500'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'x' * 600);
+    await tester.pump();
+    expect(find.text('500 / 500'), findsOneWidget);
   });
 }

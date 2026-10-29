@@ -6,6 +6,8 @@ import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/settings/widgets/go_live_setting.dart';
 import 'package:frosty/screens/vod/channel_videos.dart';
 import 'package:frosty/utils/share_link.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 import 'package:frosty/widgets/twitch_web_page.dart';
 import 'package:provider/provider.dart';
 
@@ -33,14 +35,16 @@ class UserActionsModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The board's "More" sheet (ChaineCarteUtilisateur).
     return ListView(
       primary: false,
       shrinkWrap: true,
+      padding: const EdgeInsets.only(bottom: 10),
       children: [
         if (showProfile)
-          ListTile(
-            leading: const Icon(Icons.account_circle_outlined),
-            title: const Text('Profile'),
+          SheetRow(
+            glyph: SheetGlyphKind.profile,
+            label: 'Profile',
             onTap: () {
               Navigator.pop(context);
               ChannelProfileScreen.open(
@@ -51,9 +55,9 @@ class UserActionsModal extends StatelessWidget {
               );
             },
           ),
-        ListTile(
-          leading: const Icon(Icons.video_library_outlined),
-          title: const Text('Videos'),
+        SheetRow(
+          glyph: SheetGlyphKind.videos,
+          label: 'Videos',
           onTap: () {
             Navigator.pop(context);
             ChannelVideosScreen.open(
@@ -64,9 +68,9 @@ class UserActionsModal extends StatelessWidget {
           },
         ),
         if (showPinOption)
-          ListTile(
-            leading: const Icon(Icons.push_pin_outlined),
-            title: Text('${isPinned == true ? 'Unpin' : 'Pin'} $name'),
+          SheetRow(
+            glyph: SheetGlyphKind.pin,
+            label: '${isPinned == true ? 'Unpin' : 'Pin'} $name',
             onTap: () {
               if (isPinned == true) {
                 context.read<SettingsStore>().pinnedChannelIds = [
@@ -84,8 +88,9 @@ class UserActionsModal extends StatelessWidget {
             },
           ),
         if (authStore.isLoggedIn)
-          ListTile(
-            leading: const Icon(Icons.block_rounded),
+          SheetRow(
+            glyph: SheetGlyphKind.block,
+            label: 'Block $name',
             onTap: () => authStore
                 .showBlockDialog(
                   context,
@@ -97,14 +102,14 @@ class UserActionsModal extends StatelessWidget {
                     Navigator.pop(context);
                   }
                 }),
-            title: Text('Block $name'),
           ),
         if (authStore.isLoggedIn) GoLiveBellTile(channelId: userId, name: name),
         if (authStore.isLoggedIn)
-          ListTile(
-            leading: const Icon(Icons.favorite_border_rounded),
-            title: Text('Follow $name on Twitch'),
-            subtitle: const Text('Opens the channel on twitch.tv'),
+          SheetRow(
+            glyph: SheetGlyphKind.heart,
+            label: 'Follow $name on Twitch',
+            detail: 'Opens the channel on twitch.tv',
+            end: SheetRowEnd.external,
             onTap: () {
               Navigator.pop(context);
               TwitchWebPage.open(
@@ -114,9 +119,9 @@ class UserActionsModal extends StatelessWidget {
               );
             },
           ),
-        ListTile(
-          leading: const Icon(Icons.link_rounded),
-          title: const Text('Copy link'),
+        SheetRow(
+          glyph: SheetGlyphKind.link,
+          label: 'Copy link',
           onTap: () async {
             await Clipboard.setData(
               ClipboardData(text: 'https://www.twitch.tv/$userLogin'),
@@ -128,22 +133,22 @@ class UserActionsModal extends StatelessWidget {
             Navigator.pop(context);
           },
         ),
-        ListTile(
-          leading: const Icon(Icons.share_outlined),
-          title: Text('Share $name'),
+        SheetRow(
+          glyph: SheetGlyphKind.share,
+          label: 'Share $name',
           onTap: () async {
             await shareLink(context, 'https://www.twitch.tv/$userLogin');
             if (context.mounted) Navigator.pop(context);
           },
         ),
-        ListTile(
-          leading: const Icon(Icons.outlined_flag_rounded),
+        SheetRow(
+          glyph: SheetGlyphKind.flag,
+          label: 'Report $name',
           onTap: () => TwitchWebPage.open(
             context,
             title: 'Report $name',
             url: Uri.https('www.twitch.tv', '/$userLogin/report'),
           ),
-          title: Text('Report $name'),
         ),
       ],
     );

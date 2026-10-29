@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/screens/settings/widgets/go_live_setting.dart';
 import 'package:frosty/services/go_live/go_live.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FakePlatform extends GoLivePlatform {
@@ -138,17 +139,25 @@ void main() {
     tester,
   ) async {
     await pump(tester, const GoLiveBellTile(channelId: '42', name: 'Streamer'));
-    expect(find.byType(SwitchListTile), findsNothing);
+    expect(find.byType(OnsetSwitch), findsNothing);
 
     final prefs = await GoLivePrefs.load();
     await prefs.setEnabled(true);
     await pump(tester, const SizedBox());
     await pump(tester, const GoLiveBellTile(channelId: '42', name: 'Streamer'));
-    expect(switchValue(tester), isTrue);
+    bool bell() => tester.widget<OnsetSwitch>(find.byType(OnsetSwitch)).value;
+    expect(find.text('Notify when Streamer goes live'), findsOneWidget);
+    expect(bell(), isTrue);
 
-    await tester.tap(find.byType(SwitchListTile));
+    // The whole row toggles it (board ChaineCarteUtilisateur).
+    await tester.tap(find.text('Notify when Streamer goes live'));
     await tester.pumpAndSettle();
-    expect(switchValue(tester), isFalse);
+    expect(bell(), isFalse);
     expect((await GoLivePrefs.load()).muted, {'42'});
+
+    await tester.tap(find.byType(OnsetSwitch));
+    await tester.pumpAndSettle();
+    expect(bell(), isTrue);
+    expect((await GoLivePrefs.load()).muted, isEmpty);
   });
 }

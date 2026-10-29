@@ -226,6 +226,12 @@ class SheetPresentation extends InheritedWidget {
       context.dependOnInheritedWidgetOfExactType<SheetPresentation>()?.panel ??
       false;
 
+  /// The ground of what is being built: a panel's or a sheet's.
+  static Color surfaceOf(BuildContext context) {
+    final colors = SheetColors.of(context);
+    return isPanel(context) ? colors.panel : colors.sheet;
+  }
+
   @override
   bool updateShouldNotify(SheetPresentation oldWidget) =>
       oldWidget.panel != panel;

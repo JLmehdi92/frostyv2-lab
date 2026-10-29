@@ -6,7 +6,6 @@ import 'package:frosty/screens/channel/chat/details/chat_details_store.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_user_modal.dart';
 import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/animated_scroll_border.dart';
 import 'package:frosty/widgets/frosty_scrollbar.dart';
@@ -147,15 +146,12 @@ class _ChattersListState extends State<ChattersList> {
 
                                     if (!context.mounted) return;
 
-                                    showModalBottomSheetWithProperFocus(
-                                      isScrollControlled: true,
-                                      context: context,
-                                      builder: (context) => ChatUserModal(
-                                        chatStore: widget.chatStore,
-                                        username: userInfo.login,
-                                        userId: userInfo.id,
-                                        displayName: userInfo.displayName,
-                                      ),
+                                    showChatUserCard(
+                                      context,
+                                      chatStore: widget.chatStore,
+                                      username: userInfo.login,
+                                      userId: userInfo.id,
+                                      displayName: userInfo.displayName,
                                     );
                                   },
                                 ),
