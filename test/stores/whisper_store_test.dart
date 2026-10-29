@@ -81,6 +81,11 @@ void main() {
     expect(whisperPreview('m\u200Cod'), 'mod');
     expect(whisperPreview('adm\u200Din'), 'admin');
     expect(whisperPreview('Staff\u200D'), 'Staff');
+    // Another invisible beside it does not shield it.
+    expect(whisperPreview('Ivan\u2060\u200C\u043E\u0432'), 'Ivan\u043E\u0432');
+    expect(whisperPreview('m\u200B\u200Cod'), 'mod');
+    expect(whisperPreview('m\u200C\u200Dod'), 'mod');
+    expect(whisperPreview('ad\u200Cm\uFEFF\u200Din'), 'admin');
     // Beside an emoji or another script it stays.
     const flag = '\u{1F3F3}\uFE0F\u200D\u{1F308}';
     expect(whisperPreview('go $flag'), 'go $flag');

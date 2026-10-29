@@ -19,13 +19,16 @@ final _unsafeForPreview = RegExp(
 );
 
 /// Characters that take no room: dropped, so a name cannot hide a
-/// difference from another one. The joiners (U+200C, U+200D) stay where
-/// they mean something, between emoji or in scripts such as Persian or the
-/// Indic ones; beside a Latin letter, digit or sign (or at either end)
-/// they only hide a difference ("m\u200Cod"), and go.
-final _invisibleForPreview = RegExp(
-  '[\u200b\u2060\ufeff]'
-  '|(?<=[\u0000-\u024f])[\u200c\u200d]'
+/// difference from another one.
+final _invisibleForPreview = RegExp('[\u200b\u2060\ufeff]');
+
+/// The joiners (U+200C, U+200D) where they mean nothing: beside a Latin
+/// letter, digit or sign, or at either end, they only hide a difference
+/// ("m\u200Cod"), and go. Between emoji or in scripts such as Persian or
+/// the Indic ones they stay. Applied once the other invisibles are gone,
+/// so none of them can shield a joiner.
+final _strayJoiner = RegExp(
+  '(?<=[\u0000-\u024f])[\u200c\u200d]'
   '|[\u200c\u200d](?=[\u0000-\u024f]|\$)'
   '|^[\u200c\u200d]',
 );
@@ -35,6 +38,7 @@ final _invisibleForPreview = RegExp(
 /// ones go, so a whisper cannot fake a second line or turn text around.
 String whisperPreview(String text) => text
     .replaceAll(_invisibleForPreview, '')
+    .replaceAll(_strayJoiner, '')
     .replaceAll(_unsafeForPreview, ' ')
     .replaceAll(RegExp(' {2,}'), ' ')
     .trim();
