@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/models/community_points.dart';
@@ -5,6 +7,11 @@ import 'package:frosty/models/watch_streak.dart';
 import 'package:frosty/screens/channel/stores/channel_events_store.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
+import 'package:frosty/widgets/motion/motion.dart';
+import 'package:frosty/widgets/motion/reduce_motion.dart';
+import 'package:frosty/widgets/sheet/onset_panel.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 
 /// The channel points panel: balance, what the channel offers, and any
 /// prediction running.
@@ -27,6 +34,9 @@ class ChannelPointsSheet extends StatelessWidget {
   final ChannelEventsStore? store;
 
   const ChannelPointsSheet({super.key, required this.points, this.store});
+
+  /// The tablet panel above the points pill (board ChaineOutilsTablette).
+  static const panelSize = Size(384, 562);
 
   static String formatPoints(int value) {
     final digits = value.toString();
@@ -57,7 +67,7 @@ class ChannelPointsSheet extends StatelessWidget {
   }
 }
 
-class _Panel extends StatelessWidget {
+class _Panel extends StatefulWidget {
   final CommunityPointsContext points;
   final ChannelEventsStore? store;
 
@@ -67,121 +77,240 @@ class _Panel extends StatelessWidget {
   const _Panel({required this.points, required this.store, this.watchStreak});
 
   @override
-  Widget build(BuildContext context) {
-    final colors = context.frostyColors;
-    final prediction = points.activePrediction;
-    final events = store;
-    final canSpend = events != null && points.balance != null;
+  State<_Panel> createState() => _PanelState();
+}
 
-    return SafeArea(
-      child: ConstrainedBox(
-        // Landscape leaves very little height. Without a cap the sheet grows
-        // past the screen on a channel with a long reward list; with one it
-        // scrolls, which is the behaviour that survives both orientations.
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * 0.85,
-        ),
-        child: ListView(
-          shrinkWrap: true,
-          padding: const EdgeInsets.only(bottom: 16),
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: Row(
-                children: [
-                  if (points.pointsImageUrl != null) ...[
-                    Image.network(
-                      // 4x: this one is larger than the bar's copy.
-                      points.pointsImageUrlAt(4)!,
-                      width: 20,
-                      height: 20,
-                      errorBuilder: (_, _, _) => const SizedBox.shrink(),
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-                  Expanded(
-                    child: Text(
-                      points.pointsName?.toUpperCase() ?? 'CHANNEL POINTS',
-                      style: context.frostyText.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+class _PanelState extends State<_Panel> {
+  /// The outcome being bet on inside a tablet panel (board
+  /// ChaineOutilsTablette: the bet replaces the list in the same panel).
+  PredictionOutcome? _betOn;
+
+  Future<void> _bet(
+    BuildContext context,
+    ChannelEventsStore events,
+    Prediction prediction,
+    PredictionOutcome outcome,
+  ) async {
+    final balance = widget.points.balance ?? 0;
+    if (SheetPresentation.isPanel(context)) {
+      setState(() => _betOn = outcome);
+      return;
+    }
+    final messengerContext = context;
+    final stake = await showOnsetSheet<int>(
+      context: context,
+      panel: true,
+      builder: (context) => BetSheet(
+        prediction: prediction,
+        outcome: outcome,
+        balance: balance,
+        onBet: (stake) => Navigator.of(context).pop(stake),
+      ),
+    );
+    if (stake == null) return;
+    final result = await events.placePrediction(
+      eventId: prediction.id,
+      outcomeId: outcome.id,
+      points: stake,
+    );
+    if (!messengerContext.mounted) return;
+    _report(messengerContext, result);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = SheetColors.of(context);
+    final accent = SheetColors.accentOf(context);
+    final points = widget.points;
+    final prediction = points.activePrediction;
+    final events = widget.store;
+    final canSpend = events != null && points.balance != null;
+    final panel = SheetPresentation.isPanel(context);
+
+    final betOn = _betOn;
+    if (betOn != null &&
+        events != null &&
+        prediction != null &&
+        prediction.isOpen) {
+      return BetSheet(
+        prediction: prediction,
+        outcome: betOn,
+        balance: points.balance ?? 0,
+        onBack: () => setState(() => _betOn = null),
+        onBet: (stake) {
+          // The panel closes with the bet, as the board's does.
+          final navigator = Navigator.of(context);
+          final messenger = navigator.context;
+          navigator.pop();
+          unawaited(
+            events
+                .placePrediction(
+                  eventId: prediction.id,
+                  outcomeId: betOn.id,
+                  points: stake,
+                )
+                .then((result) {
+                  if (messenger.mounted) _report(messenger, result);
+                }),
+          );
+        },
+      );
+    }
+
+    final balanceText = points.balance == null
+        ? null
+        : ChannelPointsSheet.formatPoints(points.balance!);
+
+    return ConstrainedBox(
+      // Landscape leaves very little height. Without a cap the sheet grows
+      // past the screen on a channel with a long reward list; with one it
+      // scrolls, which is the behaviour that survives both orientations.
+      constraints: BoxConstraints(
+        maxHeight: panel
+            ? double.infinity
+            : MediaQuery.sizeOf(context).height * 0.85,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Board ChainePoints: the points mark, the name, the balance.
+          Padding(
+            padding: EdgeInsets.fromLTRB(16, panel ? 14 : 6, 16, 12),
+            child: Row(
+              spacing: 10,
+              children: [
+                if (points.pointsImageUrl != null)
+                  Image.network(
+                    // 4x: this one is larger than the bar's copy.
+                    points.pointsImageUrlAt(4)!,
+                    width: 20,
+                    height: 20,
+                    errorBuilder: (_, _, _) => _PointsRing(size: 20),
+                  )
+                else
+                  const _PointsRing(size: 20),
+                Expanded(
+                  child: Text(
+                    points.pointsName?.toUpperCase() ?? 'CHANNEL POINTS',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SheetText.section.copyWith(color: colors.secondary),
                   ),
-                  if (points.balance != null)
-                    Text(
-                      ChannelPointsSheet.formatPoints(points.balance!),
-                      style: context.frostyText.metadata.copyWith(
-                        fontSize: 18,
-                        color: colors.live,
+                ),
+                if (balanceText != null)
+                  Text(
+                    balanceText,
+                    style: SheetText.tabular(
+                      TextStyle(
+                        fontFamily: FrostyTokens.bodyFamily,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.44,
+                        color: accent,
                       ),
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
+          ),
+          Flexible(
+            child: ListView(
+              shrinkWrap: !panel,
+              padding: const EdgeInsets.only(bottom: 20),
+              children: [
+                if (widget.watchStreak case final streak?)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: WatchStreakCard(
+                      streak: streak,
+                      live: events?.isChannelLive?.call() ?? true,
+                      channelName:
+                          events?.channelName ?? events?.channelLogin ?? '',
+                    ),
+                  ),
 
-            if (watchStreak case final streak?)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                child: WatchStreakCard(
-                  streak: streak,
-                  live: events?.isChannelLive?.call() ?? true,
-                  channelName:
-                      events?.channelName ?? events?.channelLogin ?? '',
-                ),
-              ),
+                if (events != null && points.hasClaim)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: _ClaimButton(store: events),
+                  ),
 
-            if (events != null && points.hasClaim)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                child: _ClaimButton(store: events),
-              ),
+                if (points.balance == null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: Text(
+                      'Log in to see your balance.',
+                      style: SheetText.body.copyWith(color: colors.secondary),
+                    ),
+                  ),
 
-            if (points.balance == null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: Text(
-                  'Log in to see your balance.',
-                  style: TextStyle(color: colors.metadata),
-                ),
-              ),
+                if (prediction != null) ...[
+                  SheetSectionLabel(
+                    prediction.isOpen
+                        ? 'Prediction — open'
+                        : 'Prediction — locked',
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  ),
+                  _PredictionCard(
+                    prediction: prediction,
+                    // Only an open prediction takes bets. A locked one still
+                    // shows its odds, which is why it is rendered at all.
+                    onBet: prediction.isOpen && canSpend
+                        ? (outcome) =>
+                              _bet(context, events, prediction, outcome)
+                        : null,
+                  ),
+                ],
 
-            if (prediction != null) ...[
-              _SectionLabel(
-                prediction.isOpen ? 'PREDICTION — OPEN' : 'PREDICTION — LOCKED',
-              ),
-              _PredictionCard(
-                prediction: prediction,
-                balance: points.balance,
-                // Only an open prediction takes bets. A locked one still shows
-                // its odds, which is why it is rendered at all.
-                store: prediction.isOpen && canSpend ? events : null,
-              ),
-            ],
+                if (points.rewards.isNotEmpty) ...[
+                  const SheetSectionLabel('Rewards'),
+                  ...points.rewards.map(
+                    (reward) => RewardRow(
+                      reward: reward,
+                      balance: points.balance,
+                      store: canSpend ? events : null,
+                    ),
+                  ),
+                ],
 
-            if (points.rewards.isNotEmpty) ...[
-              const _SectionLabel('REWARDS'),
-              ...points.rewards.map(
-                (reward) => _RewardTile(
-                  reward: reward,
-                  balance: points.balance,
-                  store: canSpend ? events : null,
-                ),
-              ),
-            ],
-
-            if (points.rewards.isEmpty && prediction == null)
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  'This channel has no rewards set up.',
-                  style: TextStyle(color: colors.metadata),
-                ),
-              ),
-          ],
-        ),
+                if (points.rewards.isEmpty && prediction == null)
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      'This channel has no rewards set up.',
+                      style: SheetText.body.copyWith(color: colors.secondary),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
+}
+
+/// The boards' generic points mark: a ring in the signal colour.
+class _PointsRing extends StatelessWidget {
+  const _PointsRing({required this.size, this.stroke = 2.5, this.color});
+
+  final double size;
+  final double stroke;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      border: Border.all(
+        color: color ?? SheetColors.accentOf(context),
+        width: stroke,
+      ),
+    ),
+  );
 }
 
 /// The viewer's watch streak, worded like Twitch's channel points panel.
@@ -200,7 +329,7 @@ class WatchStreakCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.frostyColors;
+    final colors = SheetColors.of(context);
     final copy = streak.copy(
       live: live,
       channelName: channelName,
@@ -209,16 +338,26 @@ class WatchStreakCard extends StatelessWidget {
     final next = streak.threshold;
     final showProgress =
         next != null && streak.state != WatchStreakState.suspended;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final green = dark
+        ? FrostyTokens.hypeText
+        : context.frostyColors.subNoticeText;
 
+    // Board ChainePoints: a #1A1A1A card, the green flame, the community
+    // green bar towards the next milestone.
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: context.colorScheme.surfaceContainerHighest,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(FrostyTokens.radiusCard),
+        color: SheetPresentation.isPanel(context)
+            ? (dark ? const Color(0xFF202020) : colors.well)
+            : colors.well,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colors.hairline,
+          width: FrostyTokens.hairlineWidth,
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 4,
@@ -226,33 +365,69 @@ class WatchStreakCard extends StatelessWidget {
             Row(
               spacing: 8,
               children: [
-                Icon(
-                  Icons.local_fire_department_rounded,
-                  size: 20,
-                  color: colors.live,
+                SheetGlyph(
+                  SheetGlyphKind.flame,
+                  strokeWidth: 1.9,
+                  color: green,
                 ),
                 Expanded(
                   child: Text(
                     copy.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w700),
+                    style: TextStyle(
+                      fontFamily: FrostyTokens.bodyFamily,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: colors.text,
+                    ),
                   ),
                 ),
                 if (showProgress)
                   Text(
                     '${streak.value}/$next',
-                    style: context.frostyText.metadata,
+                    style: SheetText.tabular(
+                      TextStyle(
+                        fontFamily: FrostyTokens.bodyFamily,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: colors.secondary,
+                      ),
+                    ),
                   ),
               ],
             ),
+            if (showProgress)
+              Padding(
+                padding: const EdgeInsets.only(top: 4, bottom: 2),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: LinearProgressIndicator(
+                    value: (streak.value / next).clamp(0.0, 1.0),
+                    minHeight: 4,
+                    color: FrostyTokens.hype,
+                    backgroundColor: FrostyTokens.hype.withValues(alpha: 0.2),
+                  ),
+                ),
+              ),
             if (copy.subtitle case final subtitle?)
-              Text(subtitle, style: TextStyle(color: colors.metadata)),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontFamily: FrostyTokens.bodyFamily,
+                  fontSize: 13,
+                  height: 1.35,
+                  color: colors.body,
+                ),
+              ),
             Text(
               'Twitch counts streaks. Watching in this app may not count '
               'toward them.',
-              style: context.textTheme.bodySmall?.copyWith(
-                color: colors.metadata,
+              style: TextStyle(
+                fontFamily: FrostyTokens.bodyFamily,
+                fontSize: 12,
+                height: 1.45,
+                color: colors.tertiary,
               ),
             ),
           ],
@@ -260,18 +435,6 @@ class WatchStreakCard extends StatelessWidget {
       ),
     );
   }
-}
-
-class _SectionLabel extends StatelessWidget {
-  final String text;
-
-  const _SectionLabel(this.text);
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-    child: Text(text, style: context.frostyText.label),
-  );
 }
 
 /// Shows the outcome of a points action.
@@ -314,34 +477,49 @@ class _ClaimButton extends StatelessWidget {
       // inviting a retry — eight taps in twelve seconds were all refused, and
       // a control that keeps offering an impossible action is a lie.
       final blocked = store.isIntegrityBlocked(claimAction);
+      final colors = SheetColors.of(context);
 
       if (blocked) {
         return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: 8,
           children: [
-            Icon(
-              Icons.block_rounded,
-              size: 16,
-              color: context.frostyColors.metadata,
+            Padding(
+              padding: const EdgeInsets.only(top: 1),
+              child: SheetGlyph(
+                SheetGlyphKind.block,
+                size: 15,
+                color: colors.tertiary,
+              ),
             ),
-            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 'Twitch blocks collecting the bonus from here — its anti-bot '
                 'check. Collect it on twitch.tv and the balance follows.',
-                style: context.frostyText.metadata.copyWith(fontSize: 11),
+                style: TextStyle(
+                  fontFamily: FrostyTokens.bodyFamily,
+                  fontSize: 12,
+                  height: 1.45,
+                  color: colors.secondary,
+                ),
               ),
             ),
           ],
         );
       }
 
-      return SizedBox(
-        width: double.infinity,
-        child: FilledButton.icon(
-          onPressed: store.pointsActionInFlight ? null : () => _claim(context),
-          icon: const Icon(Icons.card_giftcard_rounded, size: 18),
-          label: const Text('Collect bonus'),
+      return SheetButton(
+        label: 'Collect bonus',
+        expand: true,
+        icon: SheetGlyph(
+          SheetGlyphKind.gift,
+          size: 18,
+          strokeWidth: 2,
+          color: store.pointsActionInFlight
+              ? colors.disabledText
+              : SheetColors.onAccentOf(context),
         ),
+        onPressed: store.pointsActionInFlight ? null : () => _claim(context),
       );
     },
   );
@@ -354,173 +532,219 @@ class _ClaimButton extends StatelessWidget {
   }
 }
 
+/// Twitch's prediction colours, for an outcome.
+Color _outcomeColor(
+  BuildContext context,
+  PredictionOutcome outcome,
+  int index,
+) => switch (outcome.color.toUpperCase()) {
+  'BLUE' => const Color(0xFF387AFF),
+  'PINK' => const Color(0xFFF5009B),
+  _ => index.isEven ? const Color(0xFF387AFF) : const Color(0xFFF5009B),
+};
+
 class _PredictionCard extends StatelessWidget {
   final Prediction prediction;
-  final int? balance;
 
   /// Null when betting is not on offer — locked, signed out, or no store.
-  final ChannelEventsStore? store;
+  final ValueChanged<PredictionOutcome>? onBet;
 
-  const _PredictionCard({
-    required this.prediction,
-    required this.balance,
-    required this.store,
-  });
+  const _PredictionCard({required this.prediction, required this.onBet});
 
   @override
   Widget build(BuildContext context) {
+    final colors = SheetColors.of(context);
     final total = prediction.totalPoints;
-    final events = store;
+    final onBet = this.onBet;
+    final duration = motionDuration(context, const Duration(milliseconds: 420));
 
+    // The outcomes reach 8 dp past the text on each side (board: the tap
+    // area is wider than the column, the text lines up with it).
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            prediction.title,
-            style: context.textTheme.titleSmall,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 6),
+            child: Text(
+              prediction.title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontFamily: FrostyTokens.bodyFamily,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                height: 1.4,
+                color: colors.text,
+              ),
+            ),
           ),
-          const SizedBox(height: 10),
-          ...prediction.outcomes.map((outcome) {
-            final odds = outcome.odds(total);
-            final share = total <= 0 ? 0.0 : outcome.totalPoints / total;
-
-            final body = Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        outcome.title,
+          for (final (index, outcome) in prediction.outcomes.indexed)
+            Builder(
+              builder: (context) {
+                final odds = outcome.odds(total);
+                final share = total <= 0 ? 0.0 : outcome.totalPoints / total;
+                final color = _outcomeColor(context, outcome, index);
+                final body = Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 9,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    spacing: 6,
+                    children: [
+                      Row(
+                        spacing: 8,
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: color,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              outcome.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontFamily: FrostyTokens.bodyFamily,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: colors.text,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            odds == null ? '—' : '${odds.toStringAsFixed(2)} ×',
+                            style: SheetText.tabular(
+                              TextStyle(
+                                fontFamily: FrostyTokens.bodyFamily,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: colors.body,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(2),
+                        child: SizedBox(
+                          height: 4,
+                          child: Stack(
+                            children: [
+                              Positioned.fill(
+                                child: ColoredBox(color: colors.hairline),
+                              ),
+                              TweenAnimationBuilder<double>(
+                                tween: Tween(end: share.clamp(0.0, 1.0)),
+                                duration: duration,
+                                curve: FrostyMotion.standard,
+                                builder: (context, value, _) =>
+                                    FractionallySizedBox(
+                                      widthFactor: value,
+                                      heightFactor: 1,
+                                      child: ColoredBox(color: color),
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Text(
+                        '${ChannelPointsSheet.formatPoints(outcome.totalPoints)}'
+                        '  ·  ${outcome.totalUsers} '
+                        '${outcome.totalUsers == 1 ? 'viewer' : 'viewers'}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                        style: SheetText.tabular(
+                          TextStyle(
+                            fontFamily: FrostyTokens.bodyFamily,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w500,
+                            color: colors.secondary,
+                          ),
+                        ),
                       ),
-                    ),
-                    Text(
-                      odds == null ? '—' : '${odds.toStringAsFixed(2)} ×',
-                      style: context.frostyText.metadata,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                ClipRRect(
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(FrostyTokens.radiusSmall),
+                    ],
                   ),
-                  child: LinearProgressIndicator(
-                    value: share,
-                    minHeight: 3,
-                    backgroundColor: context.frostyColors.hairline,
-                    valueColor: AlwaysStoppedAnimation(
-                      context.frostyColors.live,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${ChannelPointsSheet.formatPoints(outcome.totalPoints)}'
-                  '  ·  ${outcome.totalUsers} '
-                  '${outcome.totalUsers == 1 ? 'viewer' : 'viewers'}',
-                  style: context.frostyText.metadata.copyWith(fontSize: 11),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            );
-
-            if (events == null) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: body,
-              );
-            }
-
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: InkWell(
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(FrostyTokens.radiusSmall),
-                ),
-                onTap: () => _openBetSheet(context, events, outcome),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 6,
-                    horizontal: 4,
-                  ),
-                  child: body,
-                ),
-              ),
-            );
-          }),
-          if (events != null)
+                );
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 2),
+                  child: onBet == null
+                      ? body
+                      : Semantics(
+                          button: true,
+                          label:
+                              'Bet on ${outcome.title}, pays '
+                              '${odds == null ? 'unknown' : '${odds.toStringAsFixed(2)} times'}',
+                          child: Material(
+                            type: MaterialType.transparency,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () => onBet(outcome),
+                              child: ExcludeSemantics(child: body),
+                            ),
+                          ),
+                        ),
+                );
+              },
+            ),
+          if (onBet != null)
             Padding(
-              padding: const EdgeInsets.only(top: 2, bottom: 8),
+              padding: const EdgeInsets.fromLTRB(8, 2, 8, 6),
               child: Text(
                 'Tap an outcome to bet.',
-                style: context.frostyText.metadata.copyWith(fontSize: 11),
+                style: TextStyle(
+                  fontFamily: FrostyTokens.bodyFamily,
+                  fontSize: 11.5,
+                  color: colors.tertiary,
+                ),
               ),
             ),
         ],
       ),
     );
   }
-
-  Future<void> _openBetSheet(
-    BuildContext context,
-    ChannelEventsStore events,
-    PredictionOutcome outcome,
-  ) async {
-    final messengerContext = context;
-
-    final stake = await showModalBottomSheet<int>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => _BetSheet(
-        prediction: prediction,
-        outcome: outcome,
-        balance: balance ?? 0,
-      ),
-    );
-
-    if (stake == null) return;
-
-    final result = await events.placePrediction(
-      eventId: prediction.id,
-      outcomeId: outcome.id,
-      points: stake,
-    );
-
-    if (!messengerContext.mounted) return;
-    _report(messengerContext, result);
-  }
 }
 
-/// Picks a stake for one outcome.
+/// Picks a stake for one outcome (board ChainePoints' bet sheet; inside the
+/// panel on a tablet, with a way back to the list).
 ///
 /// Presets rather than a free slider: this opens over a narrow landscape chat
 /// column where a drag target would be both cramped and easy to misfire, and
 /// the amounts people actually bet cluster on round numbers anyway. The exact
 /// field is there for everything else.
-class _BetSheet extends StatefulWidget {
+class BetSheet extends StatefulWidget {
   final Prediction prediction;
   final PredictionOutcome outcome;
   final int balance;
 
-  const _BetSheet({
+  /// Called with the stake when the viewer bets.
+  final ValueChanged<int> onBet;
+
+  /// Back to the list (a tablet's panel); null in a sheet.
+  final VoidCallback? onBack;
+
+  const BetSheet({
+    super.key,
     required this.prediction,
     required this.outcome,
     required this.balance,
+    required this.onBet,
+    this.onBack,
   });
 
   @override
-  State<_BetSheet> createState() => _BetSheetState();
+  State<BetSheet> createState() => _BetSheetState();
 }
 
-class _BetSheetState extends State<_BetSheet> {
+class _BetSheetState extends State<BetSheet> {
   /// Twitch's own floor, and the amount worth risking to learn whether the
   /// mutation passes the integrity check at all.
   static const _minimumStake = 10;
@@ -547,8 +771,11 @@ class _BetSheetState extends State<_BetSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.frostyColors;
+    final colors = SheetColors.of(context);
     final affordable = widget.balance >= _minimumStake;
+    final index = widget.prediction.outcomes.indexOf(widget.outcome);
+    final color = _outcomeColor(context, widget.outcome, index);
+    final panel = widget.onBack != null;
 
     // Payout is quoted against the pot as it stands, which is what Twitch
     // shows too — it moves with every other bet, so this is an indication and
@@ -556,167 +783,304 @@ class _BetSheetState extends State<_BetSheet> {
     final projectedPot = widget.prediction.totalPoints + _stake;
     final projectedOutcome = widget.outcome.totalPoints + _stake;
     final odds = projectedOutcome <= 0 ? null : projectedPot / projectedOutcome;
+    final canBet = _stake >= _minimumStake && _stake <= widget.balance;
 
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.viewInsetsOf(context).bottom,
+    final label = Text(
+      'BET ON',
+      style: SheetText.section.copyWith(color: colors.secondary),
+    );
+
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: panel ? 0 : MediaQuery.viewInsetsOf(context).bottom,
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: panel
+              ? double.infinity
+              : MediaQuery.sizeOf(context).height * 0.9,
         ),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(context).height * 0.9,
-          ),
-          child: ListView(
-            shrinkWrap: true,
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-            children: [
-              Text('BET ON', style: context.frostyText.label),
-              const SizedBox(height: 6),
-              Text(
-                widget.outcome.title,
-                style: context.textTheme.titleMedium,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+        child: ListView(
+          shrinkWrap: !panel,
+          padding: EdgeInsets.fromLTRB(16, panel ? 6 : 8, 16, 18),
+          children: [
+            if (widget.onBack case final back?)
+              Row(
+                children: [
+                  Transform.translate(
+                    offset: const Offset(-12, 0),
+                    child: IconButton(
+                      tooltip: 'Back',
+                      onPressed: back,
+                      style: IconButton.styleFrom(
+                        fixedSize: const Size(44, 44),
+                        padding: EdgeInsets.zero,
+                      ),
+                      icon: SheetGlyph(
+                        SheetGlyphKind.chevronLeft,
+                        size: 22,
+                        strokeWidth: 2,
+                        color: colors.text,
+                      ),
+                    ),
+                  ),
+                  label,
+                ],
+              )
+            else
+              label,
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Row(
+                spacing: 8,
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      widget.outcome.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: SheetText.title.copyWith(color: colors.text),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
                 'Balance ${ChannelPointsSheet.formatPoints(widget.balance)}',
-                style: context.frostyText.metadata,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                style: SheetText.tabular(
+                  TextStyle(
+                    fontFamily: FrostyTokens.bodyFamily,
+                    fontSize: 13,
+                    color: colors.secondary,
+                  ),
+                ),
               ),
-              const SizedBox(height: 16),
+            ),
+            const SizedBox(height: 16),
 
-              if (!affordable)
-                Text(
-                  'You need at least $_minimumStake points to bet.',
-                  style: TextStyle(color: colors.metadata),
-                )
-              else ...[
-                Wrap(
+            if (!affordable)
+              Text(
+                'You need at least $_minimumStake points to bet.',
+                style: SheetText.body.copyWith(color: colors.secondary),
+              )
+            else ...[
+              Semantics(
+                container: true,
+                label: 'Stake',
+                child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
                     for (final preset in _presets)
                       if (preset <= widget.balance)
-                        ChoiceChip(
-                          label: Text(ChannelPointsSheet.formatPoints(preset)),
+                        SheetChoicePill(
+                          label: ChannelPointsSheet.formatPoints(preset),
+                          large: true,
+                          tabular: true,
                           selected: _stake == preset,
-                          onSelected: (_) => _setStake(preset),
+                          onSelected: () => _setStake(preset),
                         ),
-                    ChoiceChip(
-                      label: const Text('Max'),
+                    SheetChoicePill(
+                      label: 'Max',
+                      large: true,
                       selected: _stake == widget.balance,
-                      onSelected: (_) => _setStake(widget.balance),
+                      onSelected: () => _setStake(widget.balance),
                     ),
                   ],
                 ),
-                const SizedBox(height: 14),
-                TextField(
-                  controller: _controller,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Points',
-                    isDense: true,
-                    border: OutlineInputBorder(),
-                  ),
-                  // An empty or unreadable field is no stake: keeping the
-                  // last one would leave "Bet 500" armed over a blank field.
-                  onChanged: (value) =>
-                      setState(() => _stake = int.tryParse(value.trim()) ?? 0),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  odds == null
-                      ? 'No odds yet.'
-                      : 'Pays about ${odds.toStringAsFixed(2)} × '
-                            'if this wins — moves with every other bet.',
-                  style: context.frostyText.metadata.copyWith(fontSize: 11),
-                ),
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: _stake >= _minimumStake && _stake <= widget.balance
-                      ? () => Navigator.of(context).pop(_stake)
-                      : null,
-                  child: Text(
-                    _stake > 0
-                        ? 'Bet ${ChannelPointsSheet.formatPoints(_stake)}'
-                        : 'Bet',
+              ),
+              const SizedBox(height: 14),
+              SheetTextField(
+                controller: _controller,
+                label: 'Points',
+                keyboardType: TextInputType.number,
+                fill: colors.field,
+                textStyle: SheetText.tabular(
+                  TextStyle(
+                    fontFamily: FrostyTokens.bodyFamily,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: colors.text,
                   ),
                 ),
-              ],
+                // An empty or unreadable field is no stake: keeping the
+                // last one would leave "Bet 500" armed over a blank field.
+                onChanged: (value) =>
+                    setState(() => _stake = int.tryParse(value.trim()) ?? 0),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                odds == null
+                    ? 'No odds yet.'
+                    : 'Pays about ${odds.toStringAsFixed(2)} × '
+                          'if this wins — moves with every other bet.',
+                style: TextStyle(
+                  fontFamily: FrostyTokens.bodyFamily,
+                  fontSize: 12,
+                  height: 1.45,
+                  color: colors.secondary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              SheetButton(
+                label: _stake > 0
+                    ? 'Bet ${ChannelPointsSheet.formatPoints(_stake)}'
+                    : 'Bet',
+                large: true,
+                expand: true,
+                onPressed: canBet ? () => widget.onBet(_stake) : null,
+              ),
             ],
-          ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _RewardTile extends StatelessWidget {
+/// A reward: its tile, title and cost (board ChainePoints); dimmed and not
+/// tappable when out of reach.
+class RewardRow extends StatelessWidget {
   final PointsReward reward;
   final int? balance;
 
   /// Null when redeeming is not on offer.
   final ChannelEventsStore? store;
 
-  const _RewardTile({
+  const RewardRow({
+    super.key,
     required this.reward,
     required this.balance,
     required this.store,
   });
 
+  /// What a tap does; null when the reward cannot be redeemed from here.
+  VoidCallback? onTapFor(BuildContext context) {
+    final events = store;
+    // Out of reach means no tap target: offering one that can only fail is
+    // worse than offering none.
+    if (events == null ||
+        !reward.affordableWith(balance) ||
+        !reward.isRedeemable) {
+      return null;
+    }
+    return () => _confirmAndRedeem(context, events);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final colors = SheetColors.of(context);
     final affordable = reward.affordableWith(balance);
-    final events = store;
+    final onTap = onTapFor(context);
+    final panel = SheetPresentation.isPanel(context);
+    // Dimmed when out of reach, so the list reads at a glance rather than
+    // needing the numbers compared one by one.
+    final costColor = affordable ? colors.text : colors.tertiary;
 
-    return ListTile(
-      // Out of reach means no tap target: offering one that can only fail is
-      // worse than offering none.
-      onTap: events == null || !affordable || !reward.isRedeemable
-          ? null
-          : () => _confirmAndRedeem(context, events),
-      leading: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: reward.backgroundColor ?? context.frostyColors.hairline,
-          borderRadius: const BorderRadius.all(
-            Radius.circular(FrostyTokens.radiusSmall),
-          ),
-        ),
-        child: reward.imageUrl == null
-            ? null
-            : ClipRRect(
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(FrostyTokens.radiusSmall),
+    return Semantics(
+      button: onTap != null,
+      enabled: onTap != null,
+      child: Opacity(
+        opacity: affordable ? 1 : 0.5,
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: onTap,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: panel ? 56 : 60),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
                 ),
-                child: Image.network(
-                  reward.imageUrl!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                child: Row(
+                  spacing: 12,
+                  children: [
+                    Container(
+                      width: panel ? 34 : 36,
+                      height: panel ? 34 : 36,
+                      decoration: BoxDecoration(
+                        color: reward.backgroundColor ?? colors.raised,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: reward.imageUrl == null
+                          ? null
+                          : Image.network(
+                              reward.imageUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) =>
+                                  const SizedBox.shrink(),
+                            ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: 3,
+                        children: [
+                          Text(
+                            reward.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontFamily: FrostyTokens.bodyFamily,
+                              fontSize: panel ? 14 : 14.5,
+                              fontWeight: FontWeight.w500,
+                              color: colors.text,
+                            ),
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 5,
+                            children: [
+                              _PointsRing(
+                                size: panel ? 10 : 11,
+                                stroke: 1.8,
+                                color: costColor,
+                              ),
+                              Text(
+                                ChannelPointsSheet.formatPoints(reward.cost),
+                                style: SheetText.tabular(
+                                  TextStyle(
+                                    fontFamily: FrostyTokens.bodyFamily,
+                                    fontSize: panel ? 12 : 12.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: costColor,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (onTap != null)
+                      SheetGlyph(
+                        SheetGlyphKind.chevronRight,
+                        size: 18,
+                        strokeWidth: 2,
+                        color: colors.tertiary,
+                      ),
+                  ],
                 ),
               ),
-      ),
-      title: Text(reward.title, maxLines: 2, overflow: TextOverflow.ellipsis),
-      subtitle: Text(
-        ChannelPointsSheet.formatPoints(reward.cost),
-        // Dimmed when out of reach, so the list reads at a glance rather than
-        // needing the numbers compared one by one.
-        style: context.frostyText.metadata.copyWith(
-          color: affordable
-              ? context.frostyColors.live
-              : context.frostyColors.metadata,
+            ),
+          ),
         ),
       ),
-      trailing: events == null || !affordable || !reward.isRedeemable
-          ? null
-          : Icon(
-              Icons.chevron_right_rounded,
-              size: 18,
-              color: context.frostyColors.metadata,
-            ),
     );
   }
 
@@ -771,44 +1135,50 @@ class _RedeemDialogState extends State<_RedeemDialog> {
   @override
   Widget build(BuildContext context) {
     final needsInput = widget.reward.requiresInput;
+    final colors = SheetColors.of(context);
 
-    return AlertDialog(
-      title: Text(widget.reward.title),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Spend ${ChannelPointsSheet.formatPoints(widget.reward.cost)} '
-            'points?',
-          ),
-          if (needsInput) ...[
-            const SizedBox(height: 12),
-            TextField(
-              controller: _controller,
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Your message',
-                isDense: true,
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (_) => setState(() {}),
-            ),
-          ],
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+    return OnsetDialog(
+      title: widget.reward.title,
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: widget.reward.backgroundColor ?? colors.raised,
+          borderRadius: BorderRadius.circular(12),
         ),
-        FilledButton(
+        clipBehavior: Clip.antiAlias,
+        child: widget.reward.imageUrl == null
+            ? null
+            : Image.network(
+                widget.reward.imageUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => const SizedBox.shrink(),
+              ),
+      ),
+      message:
+          'Spend ${ChannelPointsSheet.formatPoints(widget.reward.cost)} '
+          'points?',
+      content: needsInput
+          ? SheetTextField(
+              controller: _controller,
+              label: 'Your message',
+              autofocus: true,
+              onChanged: (_) => setState(() {}),
+            )
+          : null,
+      actions: [
+        SheetButton(
+          label: 'Cancel',
+          tone: SheetButtonTone.text,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        SheetButton(
+          label: 'Redeem',
           // Twitch rejects an empty prompt on a reward that requires one, so
           // the button waits rather than sending a request that cannot work.
           onPressed: needsInput && _controller.text.trim().isEmpty
               ? null
               : () => Navigator.of(context).pop(_controller.text.trim()),
-          child: const Text('Redeem'),
         ),
       ],
     );

@@ -6,8 +6,8 @@ import 'package:frosty/models/community_points.dart';
 import 'package:frosty/screens/channel/stores/channel_events_store.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/channel_points_sheet.dart';
+import 'package:frosty/widgets/sheet/onset_panel.dart';
 import 'package:provider/provider.dart';
 
 /// The channel points balance, sitting in the chat's bottom bar.
@@ -153,9 +153,14 @@ class ChannelPointsButton extends StatelessWidget {
                 onTap: () {
                   // Fresh, like Twitch's panel (at most once a minute).
                   unawaited(store.refreshWatchStreak());
-                  showModalBottomSheetWithProperFocus(
+                  // A sheet on a phone; on a tablet a panel above the pill
+                  // (board ChaineOutilsTablette).
+                  showSheetOrPanel<void>(
                     context: context,
-                    isScrollControlled: true,
+                    size: ChannelPointsSheet.panelSize,
+                    sides: const [PanelSide.above, PanelSide.below],
+                    anchor: globalRectOf(context),
+                    region: PanelRegion.of(context),
                     // The store goes with it: the sheet is where points are
                     // spent, and it stays live so a redeem's new balance lands
                     // without reopening the panel.

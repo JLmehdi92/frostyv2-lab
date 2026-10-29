@@ -7,6 +7,7 @@ import 'package:frosty/models/community_points.dart';
 import 'package:frosty/screens/channel/stores/channel_events_store.dart';
 import 'package:frosty/services/hermes_client.dart';
 import 'package:frosty/widgets/channel_points_sheet.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockPointsService extends Mock implements TwitchPointsService {}
@@ -131,9 +132,14 @@ void main() {
     ),
   );
 
-  ListTile tile(WidgetTester tester, String title) => tester.widget<ListTile>(
-    find.ancestor(of: find.text(title), matching: find.byType(ListTile)),
-  );
+  /// What a tap on the reward [title] does (null: not tappable).
+  VoidCallback? tile(WidgetTester tester, String title) {
+    final row = find.ancestor(
+      of: find.text(title),
+      matching: find.byType(RewardRow),
+    );
+    return tester.widget<RewardRow>(row).onTapFor(tester.element(row));
+  }
 
   void verifyNoRedeem() => verifyNever(
     () => service.redeemReward(
@@ -156,9 +162,9 @@ void main() {
         ),
       );
 
-      expect(tile(tester, 'Hydrate').onTap, isNotNull);
-      expect(tile(tester, 'Pick a game').onTap, isNull);
-      expect(tile(tester, 'Highlight my message').onTap, isNull);
+      expect(tile(tester, 'Hydrate'), isNotNull);
+      expect(tile(tester, 'Pick a game'), isNull);
+      expect(tile(tester, 'Highlight my message'), isNull);
     });
 
     testWidgets('signed out: nothing can be tapped, and it says why', (
@@ -167,7 +173,7 @@ void main() {
       await pump(tester, const CommunityPointsContext(rewards: [_hydrate]));
 
       expect(find.text('Log in to see your balance.'), findsOneWidget);
-      expect(tile(tester, 'Hydrate').onTap, isNull);
+      expect(tile(tester, 'Hydrate'), isNull);
     });
 
     testWidgets('a reward that asks for text waits for it', (tester) async {
@@ -370,12 +376,12 @@ void main() {
 
       expect(find.text('BET ON'), findsOneWidget);
       expect(find.text('Bet 10'), findsOneWidget);
-      expect(find.widgetWithText(ChoiceChip, '10'), findsOneWidget);
-      expect(find.widgetWithText(ChoiceChip, '100'), findsOneWidget);
-      expect(find.widgetWithText(ChoiceChip, '1 000'), findsOneWidget);
-      expect(find.widgetWithText(ChoiceChip, '10 000'), findsNothing);
+      expect(find.widgetWithText(SheetChoicePill, '10'), findsOneWidget);
+      expect(find.widgetWithText(SheetChoicePill, '100'), findsOneWidget);
+      expect(find.widgetWithText(SheetChoicePill, '1 000'), findsOneWidget);
+      expect(find.widgetWithText(SheetChoicePill, '10 000'), findsNothing);
 
-      await tester.tap(find.widgetWithText(ChoiceChip, 'Max'));
+      await tester.tap(find.widgetWithText(SheetChoicePill, 'Max'));
       await tester.pump();
       expect(find.text('Bet 1 500'), findsOneWidget);
     });
@@ -401,7 +407,7 @@ void main() {
     testWidgets('a bet is sent with its outcome and stake', (tester) async {
       await openBet(tester);
 
-      await tester.tap(find.widgetWithText(ChoiceChip, '100'));
+      await tester.tap(find.widgetWithText(SheetChoicePill, '100'));
       await tester.pump();
       await tester.tap(find.text('Bet 100'));
       await tester.pumpAndSettle();
