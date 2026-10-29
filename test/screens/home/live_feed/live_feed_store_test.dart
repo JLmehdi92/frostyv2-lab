@@ -142,6 +142,37 @@ void main() {
       },
     );
 
+    test(
+      'a refresh that brings the same channels reads the unknown again',
+      () async {
+        var fail = true;
+        when(() => api.getChannelsByIds(any())).thenAnswer((invocation) async {
+          if (fail) throw Exception('helix down');
+          return {
+            for (final id in invocation.positionalArguments.first as List)
+              id as String: channel(id),
+          };
+        });
+        final store = await build();
+        expect(store.labelsOf('1'), isNull);
+        // The refresh fails too: the list (and its channels) stay as they are.
+        when(
+          () => api.getTopStreams(
+            cursor: any(named: 'cursor'),
+            language: any(named: 'language'),
+          ),
+        ).thenAnswer((_) => Future.error(Exception('offline')));
+        fail = false;
+        await store.refresh();
+        for (var i = 0; i < 6; i++) {
+          await Future<void>.delayed(Duration.zero);
+        }
+        expect(store.knowsLabelsOf('1'), isTrue);
+        expect(store.labelsOf('1'), isEmpty);
+        store.dispose();
+      },
+    );
+
     test('warnings off: nothing is read', () async {
       settings.warnMatureContent = false;
       final store = await build();

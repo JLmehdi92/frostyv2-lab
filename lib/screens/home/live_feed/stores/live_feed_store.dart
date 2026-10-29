@@ -70,13 +70,15 @@ abstract class LiveFeedStoreBase with Store {
       )
       // The previews' warnings: the labels of the channels as they come.
       ..add(
-        reaction(
+        reaction<(bool, List<String>)>(
           (_) => (
             settingsStore.warnMatureContent,
             [for (final stream in streams) stream.userId],
           ),
           (_) => unawaited(_readLabels()),
           fireImmediately: true,
+          // The same channels again (a page that changed nothing): no scan.
+          equals: (a, b) => a?.$1 == b?.$1 && listEquals(a?.$2, b?.$2),
         ),
       );
   }
@@ -238,8 +240,10 @@ abstract class LiveFeedStoreBase with Store {
     final kept = keepPosition ? current?.userId : null;
     final keptIndex = _index;
     if (!keepPosition) runInAction(() => _index = 0);
-    // Labels Twitch could not give are asked for again with the new list.
+    // Labels Twitch could not give are asked for again, now (the new list
+    // may bring the same channels, which would not ask again by itself).
     runInAction(() => _labels.removeWhere((_, labels) => labels == null));
+    unawaited(_readLabels());
     list.lastTimeRefreshed = DateTime.now();
     await list.refreshStreams();
     // Not kept when the viewer moved meanwhile: they stay where they went,

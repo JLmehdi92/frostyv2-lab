@@ -360,8 +360,9 @@ class _LiveFeedState extends State<LiveFeed> {
   }
 
   void _playByHand(StreamTwitch stream) {
-    // A labelled channel asks first.
-    if (!_previewClear(stream)) {
+    // A labelled channel asks first. One whose labels are still being read
+    // is played by hand once they say it may be (else its warning shows).
+    if (_warningOf(stream) != null) {
       _gate.ask(stream);
       return;
     }

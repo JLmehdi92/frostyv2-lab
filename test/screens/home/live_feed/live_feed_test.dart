@@ -397,6 +397,53 @@ void main() {
       await close(tester);
     });
 
+    testWidgets('autoplay off: Play preview tapped while the labels are '
+        'read waits for them, then plays or asks', (tester) async {
+      final read = Completer<Map<String, Channel>>();
+      when(() => api.getChannelsByIds(any())).thenAnswer((_) => read.future);
+      settings.vodAutoplay = VodAutoplay.never;
+      await pump(tester);
+      await tester.tap(find.byTooltip('Play preview'));
+      await tester.pump(const Duration(seconds: 1));
+      expect(log, isEmpty);
+
+      // No labels: the tap plays it.
+      read.complete({});
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(log, isEmpty, reason: 'not in the answer: unknown, it asks');
+      expect(warning(), findsOneWidget);
+      await close(tester);
+    });
+
+    testWidgets('autoplay off: Play preview tapped before an unlabelled '
+        "channel's labels arrive plays it once they do", (tester) async {
+      final read = Completer<Map<String, Channel>>();
+      when(() => api.getChannelsByIds(any())).thenAnswer((_) => read.future);
+      settings.vodAutoplay = VodAutoplay.never;
+      await pump(tester);
+      await tester.tap(find.byTooltip('Play preview'));
+      await tester.pump(const Duration(seconds: 1));
+      expect(log, isEmpty);
+
+      read.complete({
+        for (var i = 1; i <= 6; i++)
+          '$i': Channel(
+            broadcasterId: '$i',
+            broadcasterLogin: 'login$i',
+            broadcasterName: 'Name $i',
+            broadcasterLanguage: 'fr',
+            title: 'Title $i',
+            gameId: '',
+            gameName: '',
+          ),
+      });
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(log, ['open https://usher/login1']);
+      await close(tester);
+    });
+
     testWidgets('autoplay off: Play preview asks first', (tester) async {
       labels = {
         '1': ['SexualThemes'],
