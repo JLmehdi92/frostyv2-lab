@@ -289,6 +289,7 @@ void main() {
     for (final (name, size) in [
       ('phone', const Size(390, 844)),
       ('tablet', const Size(1280, 854)),
+      ('tablet portrait', const Size(854, 1280)),
     ]) {
       testWidgets('$name: a labelled channel never previews on its own; '
           'its warning, then Start watching plays it', (tester) async {
@@ -531,6 +532,7 @@ void main() {
   for (final (name, size) in [
     ('phone', const Size(390, 844)),
     ('tablet', const Size(1280, 854)),
+    ('tablet portrait', const Size(854, 1280)),
   ]) {
     testWidgets('$name: the enlarged picture never blurs over a playing '
         'preview; it plays again once the picture closes', (tester) async {
