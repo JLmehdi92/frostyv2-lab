@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -262,5 +264,34 @@ void main() {
     await tester.pump();
     expect(mini.visible, isFalse);
     await tester.pump(const Duration(seconds: 1));
+  });
+
+  test('the landing corners read over a dark stream and a light page', () {
+    /// The contrast of [over] laid on [ground].
+    double contrast(Color over, Color ground) {
+      final drawn = Color.alphaBlend(over, ground);
+      final a = drawn.computeLuminance();
+      final b = ground.computeLuminance();
+      return (math.max(a, b) + 0.05) / (math.min(a, b) + 0.05);
+    }
+
+    for (final nearest in [false, true]) {
+      final strokes = cornerTargetStrokes(
+        nearest: nearest,
+        accent: const Color(0xFFC8FF3D),
+      );
+      final best = [
+        for (final ground in const [
+          Color(0xFF000000),
+          Color(0xFFFFFFFF),
+          Color(0xFFF8F8F8),
+          Color(0xFF0A0A0A),
+        ])
+          strokes.map((stroke) => contrast(stroke.$1, ground)).reduce(math.max),
+      ];
+      for (final ratio in best) {
+        expect(ratio, greaterThanOrEqualTo(1.8), reason: 'nearest $nearest');
+      }
+    }
   });
 }

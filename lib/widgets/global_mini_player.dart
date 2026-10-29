@@ -492,6 +492,17 @@ class _CornerTargets extends StatelessWidget {
   }
 }
 
+/// How a landing corner's dashes are stroked, bottom first: a dark halo,
+/// then the light line (the signal for the nearest corner), so the corners
+/// read over a dark stream and a light page alike.
+List<(Color, double)> cornerTargetStrokes({
+  required bool nearest,
+  required Color accent,
+}) => [
+  (const Color(0x73000000), 3.5),
+  (nearest ? accent.withValues(alpha: 0.9) : const Color(0xB3FFFFFF), 1.5),
+];
+
 class _CornerTargetsPainter extends CustomPainter {
   const _CornerTargetsPainter({
     required this.area,
@@ -514,15 +525,22 @@ class _CornerTargetsPainter extends CustomPainter {
             const Radius.circular(GlobalMiniPlayer.radius),
           ),
         );
-      final paint = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5
-        ..color = corner == nearest
-            ? accent.withValues(alpha: 0.75)
-            : const Color(0x2EFFFFFF);
+      final paints = [
+        for (final (color, width) in cornerTargetStrokes(
+          nearest: corner == nearest,
+          accent: accent,
+        ))
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = width
+            ..color = color,
+      ];
       for (final metric in path.computeMetrics()) {
         for (var d = 0.0; d < metric.length; d += 10) {
-          canvas.drawPath(metric.extractPath(d, d + 6), paint);
+          final dash = metric.extractPath(d, d + 6);
+          for (final paint in paints) {
+            canvas.drawPath(dash, paint);
+          }
         }
       }
     }
