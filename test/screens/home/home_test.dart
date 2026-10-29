@@ -1075,6 +1075,86 @@ void main() {
     expect(pushed, contains(ReleaseNotes.routeName));
     await close(tester);
   });
+
+  testWidgets('opened under a page (first run, a deep-linked channel during '
+      'the landing): no orientation reset and no release notes over it, '
+      'until it closes', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final orientations = <List<String>>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'SystemChrome.setPreferredOrientations') {
+          orientations.add(List<String>.from(call.arguments as List));
+        }
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    final pushed = <String?>[];
+    final navigator = GlobalKey<NavigatorState>();
+    final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          Provider<AuthStore>.value(value: FakeAuthStore()),
+          Provider<SettingsStore>.value(value: settings),
+          Provider<TwitchApi>.value(value: api),
+          Provider<TwitchClipService>.value(value: clips),
+          Provider<TwitchVodService>.value(value: vods),
+          Provider<TwitchHypeTrainService>.value(value: MockHypeTrainService()),
+          Provider<ActivityStore>.value(value: activity),
+          Provider<WhisperStore>.value(value: whispers),
+          Provider<MiniPlayerStore>.value(value: mini),
+        ],
+        child: MaterialApp(
+          navigatorKey: navigator,
+          theme: themes.light,
+          navigatorObservers: [OnsetShell.routeObserver, _RouteNames(pushed)],
+          home: const Scaffold(body: Text('onboarding')),
+        ),
+      ),
+    );
+    final onboarding = ModalRoute.of(tester.element(find.text('onboarding')))!;
+    navigator.currentState!.push(
+      MaterialPageRoute<void>(
+        builder: (_) => const Scaffold(body: Text('channel')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    orientations.clear();
+
+    // The landing swaps the onboarding for Home, under the channel.
+    navigator.currentState!.replace(
+      oldRoute: onboarding,
+      newRoute: PageRouteBuilder<void>(
+        transitionDuration: Duration.zero,
+        pageBuilder: (_, _, _) => const Home(),
+      ),
+    );
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.text('channel'), findsOneWidget);
+    expect(orientations, isEmpty);
+    expect(pushed, isNot(contains(ReleaseNotes.routeName)));
+
+    navigator.currentState!.pop();
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(orientations, contains(isEmpty));
+    expect(pushed, contains(ReleaseNotes.routeName));
+    await close(tester);
+  });
 }
 
 class _RouteNames extends NavigatorObserver {

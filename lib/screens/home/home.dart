@@ -139,6 +139,12 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
       // header: the notes wait for it to land, or they would cut it short.
       await LaunchIntro.landed();
       if (!mounted) return;
+      // A page opened over Home meanwhile (a link): the notes wait until
+      // Home is in front again.
+      if (_covered) {
+        _notesPending = true;
+        return;
+      }
 
       Navigator.push(
         context,
@@ -153,8 +159,6 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
   @override
   void initState() {
     super.initState();
-    SystemChrome.setPreferredOrientations([]);
-    checkAndShowReleaseNotes();
     _whispers = _whisperStore.incoming.listen(_onWhisper);
     OnsetShell.routeObserver.addListener(_onRoutes);
     _lifecycle = AppLifecycleListener(onResume: _checkPip);
@@ -183,12 +187,31 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     _onRoutes();
   }
 
+  /// What Home does once it is in front: free the orientation and show the
+  /// release notes. Home can be built under a page (the first run's
+  /// landing with a deep-linked channel kept on top): then neither may undo
+  /// that page's orientation or open over it, and both wait.
+  var _orientationPending = true;
+  var _notesPending = true;
+
+  void _inFront() {
+    if (_orientationPending) {
+      _orientationPending = false;
+      SystemChrome.setPreferredOrientations([]);
+    }
+    if (_notesPending) {
+      _notesPending = false;
+      unawaited(checkAndShowReleaseNotes());
+    }
+  }
+
   /// A page opened over the shell, or left it.
   void _onRoutes() => _whenUnlocked(() {
     // Read now: a page pushed and popped while the frame was locked must
     // not leave the shell covered.
     final route = _route;
     final covered = route != null && OnsetShell.routeObserver.covers(route);
+    if (!covered && route != null) _inFront();
     if (covered == _covered) return;
     if (covered) _miniPlayer.setShellChrome(null);
     // The chrome is published again by the next build.
