@@ -106,7 +106,12 @@ void main() {
     // warning left it.
     store.setContentGate(ContentGate.clear);
     await pumpEventQueue();
-    verify(() => player.open(any(), play: true)).called(1);
+    verify(
+      () => player.open(
+        any(),
+        play: any(named: 'play', that: isTrue),
+      ),
+    ).called(1);
     expect(isPlaying, isTrue);
     store.dispose();
   });
@@ -129,7 +134,12 @@ void main() {
 
     store.setContentGate(ContentGate.clear);
     await pumpEventQueue();
-    verify(() => player.open(any(), play: true)).called(1);
+    verify(
+      () => player.open(
+        any(),
+        play: any(named: 'play', that: isTrue),
+      ),
+    ).called(1);
     expect(isPlaying, isTrue);
     store.dispose();
   });
@@ -164,7 +174,12 @@ void main() {
 
     store.setContentGate(ContentGate.clear);
     await pumpEventQueue();
-    verify(() => player.open(any(), play: true)).called(1);
+    verify(
+      () => player.open(
+        any(),
+        play: any(named: 'play', that: isTrue),
+      ),
+    ).called(1);
     expect(isPlaying, isTrue);
     store.dispose();
   });
@@ -186,7 +201,12 @@ void main() {
 
     store.setContentGate(ContentGate.clear);
     await pumpEventQueue();
-    verify(() => player.open(any(), play: true)).called(1);
+    verify(
+      () => player.open(
+        any(),
+        play: any(named: 'play', that: isTrue),
+      ),
+    ).called(1);
     store.dispose();
   });
 
@@ -197,7 +217,12 @@ void main() {
     variants.complete([variant]);
     await pumpEventQueue();
     // open(play: true) went out; play() has not returned yet.
-    verify(() => player.open(any(), play: true)).called(1);
+    verify(
+      () => player.open(
+        any(),
+        play: any(named: 'play', that: isTrue),
+      ),
+    ).called(1);
     isPlaying = false;
 
     store.setContentGate(ContentGate.covering);
