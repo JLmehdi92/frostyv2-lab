@@ -66,6 +66,8 @@ void main() {
 
     await tester.pump(const Duration(seconds: 1));
     await tester.pump();
+    // The work cross-fades into the finished clip.
+    await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.text('Rendering Clip'), findsNothing);
     await tester.tap(find.text('Edit'));
@@ -151,5 +153,52 @@ void main() {
       'This channel does not permit clips of this category.',
     );
     expect(messages[ClipCreateFailure.unknown], 'Hmm... Something went wrong');
+  });
+
+  test('the live frame is only asked for a Twitch login', () {
+    expect(
+      clipFramePreviewUrl('Streamer_1'),
+      'https://static-cdn.jtvnw.net/previews-ttv/live_user_streamer_1-640x360.jpg',
+    );
+    expect(clipFramePreviewUrl(null), isNull);
+    expect(clipFramePreviewUrl(''), isNull);
+    expect(clipFramePreviewUrl('a/../b'), isNull);
+    expect(clipFramePreviewUrl('x' * 26), isNull);
+  });
+
+  testWidgets('the work shows over the frame, the finished clip names its '
+      'channel', (tester) async {
+    final store = CreateClipStore(
+      twitchApi: api,
+      broadcasterId: '42',
+      isLoggedIn: () => loggedIn,
+      pollInterval: const Duration(seconds: 1),
+    );
+    addTearDown(store.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CreateClipSheet(
+            store: store,
+            framePreviewUrl: clipFramePreviewUrl('streamer'),
+            channelName: 'Streamer',
+            gameName: 'Dota 2',
+            onLogIn: () {},
+            onOpenEditor: (_) {},
+            onShare: (_) {},
+          ),
+        ),
+      ),
+    );
+    store.start();
+    await tester.pump();
+    expect(find.text('Rendering Clip'), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('Streamer · Dota 2'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

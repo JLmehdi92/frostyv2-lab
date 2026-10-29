@@ -468,11 +468,22 @@ class VideoOverlay extends StatelessWidget {
                     const Spacer(),
                   CreateClipButton(
                     broadcasterId: streamInfo.userId,
+                    channelLogin: streamInfo.userLogin,
+                    channelName: getReadableName(
+                      streamInfo.userName,
+                      streamInfo.userLogin,
+                    ),
+                    gameName: streamInfo.gameName,
                     color: _Over.text,
                     icon: const PlayerGlyph(
                       PlayerGlyphKind.clip,
                       color: _Over.text,
                       shadow: true,
+                    ),
+                    // Lit while its panel is open (board CreerClip).
+                    activeIcon: PlayerGlyph(
+                      PlayerGlyphKind.clip,
+                      color: context.frostyColors.live,
                     ),
                   ),
                   videosButton,

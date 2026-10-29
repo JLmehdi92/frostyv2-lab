@@ -216,8 +216,6 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
     }
     _stageDirection = index > _index ? 1 : -1;
     _index = index;
-    // A clip picked again plays again.
-    if (_started == index) _started = null;
     _syncPlayers();
     if (index >= _store.clips.length - 3) unawaited(_store.loadMore());
   }
