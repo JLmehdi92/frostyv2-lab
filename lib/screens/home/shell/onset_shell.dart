@@ -38,6 +38,9 @@ class ShellHeader {
   /// The tabs under the title row, and the one selected.
   final List<String> tabs;
   final int tabIndex;
+
+  /// A count after each tab (Activity's unread), none at 0.
+  final List<int>? tabBadges;
   final ValueChanged<int>? onTab;
 
   /// The page is a video (the clips feed, the phone's Live feed): the phone
@@ -60,6 +63,7 @@ class ShellHeader {
     this.searchField = false,
     this.tabs = const [],
     this.tabIndex = 0,
+    this.tabBadges,
     this.onTab,
     this.overVideo = false,
     this.tabsTrailing,
@@ -540,6 +544,7 @@ class OnsetShell extends StatelessWidget {
                   Expanded(
                     child: ShellTabs(
                       labels: header.tabs,
+                      badges: header.tabBadges,
                       index: header.tabIndex,
                       onSelect: header.onTab ?? (_) {},
                       height: ShellMetrics.tabletTabsRow,
@@ -700,6 +705,7 @@ class _PhoneHeader extends StatelessWidget {
         ? null
         : ShellTabs(
             labels: header.tabs,
+            badges: header.tabBadges,
             index: header.tabIndex,
             onSelect: header.onTab ?? (_) {},
             height: header.overVideo
