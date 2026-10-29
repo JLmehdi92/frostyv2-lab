@@ -217,7 +217,8 @@ class _CategoryViewState extends State<CategoryView> {
         onSection: (section) => setState(() => _section = section),
         sort: _sort,
         onSort: (sort) => setState(() => _sort = sort),
-        onFollow: context.read<AuthStore>().isLoggedIn ? _followOnTwitch : null,
+        authStore: context.read<AuthStore>(),
+        onFollow: _followOnTwitch,
       ),
     );
   }
@@ -308,6 +309,7 @@ class _CategoryHeader extends StatelessWidget {
     required this.onSection,
     required this.sort,
     required this.onSort,
+    required this.authStore,
     required this.onFollow,
   });
 
@@ -322,8 +324,10 @@ class _CategoryHeader extends StatelessWidget {
   final StreamSort sort;
   final ValueChanged<StreamSort> onSort;
 
-  /// Null when logged out (following is twitch.tv's own button).
-  final ValueChanged<String>? onFollow;
+  /// Its login decides whether "Follow on Twitch" shows (following is
+  /// twitch.tv's own button, behind a login); it is followed live.
+  final AuthStore authStore;
+  final ValueChanged<String> onFollow;
 
   @override
   Widget build(BuildContext context) {
@@ -346,6 +350,7 @@ class _CategoryHeader extends StatelessWidget {
     return Observer(
       builder: (context) {
         final category = store.categoryDetails;
+        final loggedIn = authStore.isLoggedIn;
         return Stack(
           children: [
             if (category != null)
@@ -368,7 +373,7 @@ class _CategoryHeader extends StatelessWidget {
                         : _Title(
                             category: category,
                             large: large,
-                            onFollow: onFollow,
+                            onFollow: loggedIn ? onFollow : null,
                           ),
                   ),
                   if (large)
@@ -533,24 +538,33 @@ class _Title extends StatelessWidget {
             large: large,
             onPressed: () => onFollow!(category.name),
           );
-    return Semantics(
-      header: true,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        spacing: large ? 20 : 14,
-        children: [
-          art,
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              spacing: 8,
-              children: [eyebrow, name, if (!large) ?follow],
-            ),
-          ),
-          if (large) ?follow,
-        ],
+    // The heading is the eyebrow and the name; the button is its own node.
+    final heading = MergeSemantics(
+      child: Semantics(
+        header: true,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          spacing: 8,
+          children: [eyebrow, name],
+        ),
       ),
+    );
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      spacing: large ? 20 : 14,
+      children: [
+        art,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            spacing: 8,
+            children: [heading, if (!large) ?follow],
+          ),
+        ),
+        if (large) ?follow,
+      ],
     );
   }
 }
@@ -566,51 +580,58 @@ class _FollowButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
-    return Tooltip(
-      message: 'Follow on Twitch',
-      excludeFromSemantics: true,
-      child: PressScale(
-        child: Material(
-          color: colors.raised,
-          shape: StadiumBorder(
-            side: BorderSide(
-              color: colors.pillBorder,
-              width: FrostyTokens.hairlineWidth,
+    return Semantics(
+      container: true,
+      button: true,
+      label: 'Follow on Twitch',
+      onTap: onPressed,
+      excludeSemantics: true,
+      child: Tooltip(
+        message: 'Follow on Twitch',
+        excludeFromSemantics: true,
+        child: PressScale(
+          child: Material(
+            color: colors.raised,
+            shape: StadiumBorder(
+              side: BorderSide(
+                color: colors.pillBorder,
+                width: FrostyTokens.hairlineWidth,
+              ),
             ),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onPressed,
-            child: Container(
-              height: 44,
-              padding: EdgeInsets.symmetric(horizontal: large ? 18 : 16),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                spacing: 8,
-                children: [
-                  Icon(
-                    Icons.favorite_border_rounded,
-                    size: 16,
-                    color: colors.text,
-                  ),
-                  Flexible(
-                    child: Text(
-                      'Follow on Twitch',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: large ? 14 : 13,
-                        fontWeight: FontWeight.w600,
-                        color: colors.text,
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: onPressed,
+              child: Container(
+                height: 44,
+                padding: EdgeInsets.symmetric(horizontal: large ? 18 : 16),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 8,
+                  children: [
+                    Icon(
+                      Icons.favorite_border_rounded,
+                      size: 16,
+                      color: colors.text,
+                    ),
+                    Flexible(
+                      child: Text(
+                        'Follow on Twitch',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: large ? 14 : 13,
+                          fontWeight: FontWeight.w600,
+                          color: colors.text,
+                        ),
                       ),
                     ),
-                  ),
-                  Icon(
-                    Icons.north_east_rounded,
-                    size: 12,
-                    color: colors.tertiary,
-                  ),
-                ],
+                    Icon(
+                      Icons.north_east_rounded,
+                      size: 12,
+                      color: colors.tertiary,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

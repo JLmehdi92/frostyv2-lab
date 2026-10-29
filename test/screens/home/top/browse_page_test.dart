@@ -408,6 +408,46 @@ void main() {
     await settle(tester);
   });
 
+  for (final size in const [Size(1024, 768), Size(1024, 600)]) {
+    testWidgets('a narrow pane keeps the tablet\'s tiles '
+        '(${size.width.toInt()}x${size.height.toInt()})', (tester) async {
+      await pump(tester, size: size);
+      expect(find.byType(CategoryView), findsOneWidget);
+      expect(
+        find.byWidgetPredicate((widget) => widget is StreamCard && widget.tile),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  testWidgets('the category shown first stays when a refresh reorders', (
+    tester,
+  ) async {
+    await pump(tester, size: const Size(1280, 854));
+    expect(
+      tester.widget<CategoryView>(find.byType(CategoryView)).categoryId,
+      '509658',
+    );
+    when(() => api.getTopCategories()).thenAnswer(
+      (_) async => CategoriesTwitch(_categories.reversed.toList(), const {}),
+    );
+    await tester.fling(
+      find.byType(CustomScrollView).first,
+      const Offset(0, 400),
+      1000,
+    );
+    await settle(tester);
+    expect(
+      tester.widget<CategoryTile>(find.byType(CategoryTile).first).category.id,
+      '32399',
+    );
+    expect(
+      tester.widget<CategoryView>(find.byType(CategoryView)).categoryId,
+      '509658',
+    );
+  });
+
   testWidgets('the pane keeps a category a refresh no longer lists', (
     tester,
   ) async {

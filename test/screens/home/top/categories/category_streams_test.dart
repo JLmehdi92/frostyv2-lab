@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/apis/twitch_clip_service.dart';
@@ -20,7 +21,7 @@ import 'package:frosty/screens/settings/stores/user_store.dart';
 import 'package:frosty/screens/vod/widgets/vod_card.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/widgets/onset_chip.dart';
-import 'package:mobx/mobx.dart' show ObservableList;
+import 'package:mobx/mobx.dart' show Observable, ObservableList, runInAction;
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,6 +29,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 class MockTwitchApi extends Mock implements TwitchApi {}
 
 class MockAuthStore extends Mock implements AuthStore {}
+
+/// A viewer whose login can change while the page is open.
+class FakeAuthStore extends Mock implements AuthStore {
+  FakeAuthStore(bool loggedIn) : _loggedIn = Observable(loggedIn);
+
+  final Observable<bool> _loggedIn;
+
+  @override
+  bool get isLoggedIn => _loggedIn.value;
+
+  void setLoggedIn(bool value) => runInAction(() => _loggedIn.value = value);
+}
 
 class MockVodService extends Mock implements TwitchVodService {}
 
@@ -153,15 +166,16 @@ void main() {
     bool loggedIn = false,
     bool reduceMotion = false,
     bool pushed = false,
+    AuthStore? authStore,
   }) async {
     if (size != null) {
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
     }
-    final auth = MockAuthStore();
     final user = MockUserStore();
-    when(() => auth.isLoggedIn).thenReturn(loggedIn);
+    final auth = authStore ?? MockAuthStore();
+    if (authStore == null) when(() => auth.isLoggedIn).thenReturn(loggedIn);
     when(() => auth.user).thenReturn(user);
     when(() => auth.twitchWebToken).thenReturn(null);
     when(() => user.details).thenReturn(null);
@@ -380,6 +394,44 @@ void main() {
       await pumpPage(tester, size: const Size(390, 844), loggedIn: true);
       await settle(tester);
       expect(find.text('Follow on Twitch'), findsOneWidget);
+    });
+
+    testWidgets('a screen reader hears the title, then the follow button', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      await pumpPage(tester, size: const Size(390, 844), loggedIn: true);
+      await settle(tester);
+      // The heading is the category alone: no action, no button in it.
+      final heading = tester.getSemantics(find.text('Grand Theft Auto V'));
+      expect(heading.flagsCollection.isHeader, isTrue);
+      expect(heading.label, isNot(contains('Follow on Twitch')));
+      expect(
+        heading.getSemanticsData().hasAction(SemanticsAction.tap),
+        isFalse,
+      );
+      expect(
+        tester.getSemantics(find.text('Follow on Twitch')),
+        matchesSemantics(
+          label: 'Follow on Twitch',
+          isButton: true,
+          hasTapAction: true,
+        ),
+      );
+      handle.dispose();
+    });
+
+    testWidgets('"Follow on Twitch" follows the login', (tester) async {
+      final auth = FakeAuthStore(false);
+      await pumpPage(tester, size: const Size(390, 844), authStore: auth);
+      await settle(tester);
+      expect(find.text('Follow on Twitch'), findsNothing);
+      auth.setLoggedIn(true);
+      await settle(tester);
+      expect(find.text('Follow on Twitch'), findsOneWidget);
+      auth.setLoggedIn(false);
+      await settle(tester);
+      expect(find.text('Follow on Twitch'), findsNothing);
     });
 
     testWidgets('the order menu ticks the current order', (tester) async {

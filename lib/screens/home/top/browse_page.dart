@@ -98,7 +98,9 @@ class _BrowsePageState extends State<BrowsePage> {
         final categories = _categories.categories;
         // The pick stays even when a refresh no longer lists it (it was on
         // a later page): the pane keeps it, only the ring goes.
-        final selected = _picked ?? categories.firstOrNull?.id;
+        // The first category, once shown, stays the pick: a refresh that
+        // reorders the list does not swap the pane.
+        final selected = _picked ??= categories.firstOrNull?.id;
         return Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -165,11 +167,11 @@ class _CategoryPane extends StatelessWidget {
             final media = MediaQuery.of(context);
             return MediaQuery(
               // The pane is the category's window: its grid counts its
-              // columns in the pane's width (its height stays the screen's,
-              // so a short pane is not taken for a phone), and nothing pads
-              // it but the system's bottom inset.
+              // columns in the pane, and nothing pads it but the system's
+              // bottom inset. It stays a tablet's layout however narrow or
+              // short (LargeScreenScope below).
               data: media.copyWith(
-                size: Size(constraints.maxWidth, media.size.height),
+                size: constraints.biggest,
                 padding: EdgeInsets.only(bottom: media.padding.bottom),
                 viewPadding: EdgeInsets.only(bottom: media.viewPadding.bottom),
               ),
@@ -197,10 +199,10 @@ class _CategoryPane extends StatelessWidget {
                 },
                 child: id == null
                     ? const SizedBox.shrink(key: ValueKey('none'))
-                    : CategoryView(
+                    : LargeScreenScope(
                         key: ValueKey(id),
-                        categoryId: id,
-                        embedded: true,
+                        large: true,
+                        child: CategoryView(categoryId: id, embedded: true),
                       ),
               ),
             );

@@ -25,6 +25,26 @@ const kLargeScreenShortestSide = 600.0;
 bool isLargeScreenSize(Size size) =>
     size.shortestSide >= kLargeScreenShortestSide;
 
+/// Says whether its subtree gets the large-screen layouts, whatever its
+/// window: a panel of a tablet layout (Browse's category pane) narrower
+/// than [kLargeScreenShortestSide] is still a tablet's.
+class LargeScreenScope extends InheritedWidget {
+  const LargeScreenScope({
+    super.key,
+    required this.large,
+    required super.child,
+  });
+
+  final bool large;
+
+  static bool? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<LargeScreenScope>()?.large;
+
+  @override
+  bool updateShouldNotify(LargeScreenScope oldWidget) =>
+      large != oldWidget.large;
+}
+
 /// Static utility class for orientation-related operations
 class OrientationUtils {
   /// Gets the current orientation from the given context
@@ -92,7 +112,9 @@ extension ContextExtensions on BuildContext {
 
   /// Tablet-sized window (both sides at least 600 dp). A split-screen half
   /// narrower than that keeps the phone layouts.
-  bool get isLargeScreen => isLargeScreenSize(MediaQuery.sizeOf(this));
+  bool get isLargeScreen =>
+      LargeScreenScope.maybeOf(this) ??
+      isLargeScreenSize(MediaQuery.sizeOf(this));
 
   /// Gets the safe area padding top (commonly used)
   double get safePaddingTop => MediaQuery.of(this).padding.top;
