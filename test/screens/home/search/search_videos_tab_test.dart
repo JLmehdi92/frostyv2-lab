@@ -174,7 +174,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Unable to load videos'), findsOneWidget);
-    await tester.tap(find.byTooltip('Try again'));
+    await tester.tap(find.text('Try again'));
     await tester.pumpAndSettle();
 
     expect(find.text('Mario run'), findsOneWidget);

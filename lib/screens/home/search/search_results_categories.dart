@@ -4,8 +4,8 @@ import 'package:frosty/models/category.dart';
 import 'package:frosty/screens/home/search/search_store.dart';
 import 'package:frosty/screens/home/top/categories/category_card.dart';
 import 'package:frosty/screens/home/top/categories/category_streams.dart';
-import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/motion/staggered_entrance.dart';
+import 'package:frosty/widgets/state_views.dart';
 import 'package:mobx/mobx.dart';
 
 /// The categories found by a search (boards Recherche and
@@ -39,9 +39,15 @@ class SearchResultsCategories extends StatelessWidget {
     this.nameSize = 14,
   });
 
-  Widget _message(String message) => SizedBox(
-    height: 100.0,
-    child: AlertMessage(message: message, vertical: true),
+  /// A status in the room the results would start in: a failure with its
+  /// mark, nothing found without one.
+  Widget _message(String message, {bool failed = false}) => ConstrainedBox(
+    constraints: const BoxConstraints(minHeight: 100),
+    child: Center(
+      child: failed
+          ? InlineStatus.error(message: message)
+          : InlineStatus(message: message, glyph: null),
+    ),
   );
 
   Widget _skeleton() {
@@ -79,12 +85,12 @@ class SearchResultsCategories extends StatelessWidget {
           case FutureStatus.pending:
             return _skeleton();
           case FutureStatus.rejected:
-            return _message('Unable to load categories');
+            return _message('Unable to load categories', failed: true);
           case FutureStatus.fulfilled:
             final CategoriesTwitch? categories = future.result;
 
             if (categories == null) {
-              return _message('Failed to get categories');
+              return _message('Failed to get categories', failed: true);
             }
 
             if (categories.data.isEmpty) {

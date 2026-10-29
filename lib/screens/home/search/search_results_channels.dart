@@ -16,6 +16,7 @@ import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/motion/press_scale.dart';
 import 'package:frosty/widgets/motion/staggered_entrance.dart';
 import 'package:frosty/widgets/skeleton_loader.dart';
+import 'package:frosty/widgets/state_views.dart';
 import 'package:frosty/widgets/uptime.dart';
 import 'package:frosty/widgets/user_actions_modal.dart';
 import 'package:mobx/mobx.dart';
@@ -179,11 +180,10 @@ class _SearchResultsChannelsState extends State<SearchResultsChannels> {
           case FutureStatus.pending:
             return _skeleton();
           case FutureStatus.rejected:
-            return const SizedBox(
-              height: 100.0,
-              child: AlertMessage(
-                message: 'Unable to load channels',
-                vertical: true,
+            return ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 100),
+              child: Center(
+                child: InlineStatus.error(message: 'Unable to load channels'),
               ),
             );
           case FutureStatus.fulfilled:

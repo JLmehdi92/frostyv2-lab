@@ -5,8 +5,8 @@ import 'package:frosty/screens/vod/widgets/video_card_layout.dart';
 import 'package:frosty/screens/vod/widgets/vod_card.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/adaptive_sliver_list.dart';
-import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/skeleton_loader.dart';
+import 'package:frosty/widgets/state_views.dart';
 
 /// The Videos tab of search: the matching videos (with their channel),
 /// the next page loading as the end comes into view.
@@ -41,14 +41,8 @@ class SearchResultsVideos extends StatelessWidget {
         }
         if (error != null) {
           return SliverToBoxAdapter(
-            child: SizedBox(
-              height: 100,
-              child: AlertMessage(
-                message: error,
-                trailingIcon: Icons.refresh_rounded,
-                trailingTooltip: 'Try again',
-                onTrailingIconPressed: store.retry,
-              ),
+            child: _SectionStatus(
+              InlineStatus.error(message: error, onRetry: store.retry),
             ),
           );
         }
@@ -57,12 +51,8 @@ class SearchResultsVideos extends StatelessWidget {
             return const SliverToBoxAdapter(child: SizedBox.shrink());
           }
           return const SliverToBoxAdapter(
-            child: SizedBox(
-              height: 100,
-              child: AlertMessage(
-                message: 'No search results found',
-                vertical: true,
-              ),
+            child: _SectionStatus(
+              InlineStatus(message: 'No search results found', glyph: null),
             ),
           );
         }
@@ -121,25 +111,15 @@ class SearchVideosColumn extends StatelessWidget {
           );
         }
         if (error != null) {
-          return SizedBox(
-            height: 100,
-            child: AlertMessage(
-              message: error,
-              trailingIcon: Icons.refresh_rounded,
-              trailingTooltip: 'Try again',
-              onTrailingIconPressed: store.retry,
-            ),
+          return _SectionStatus(
+            InlineStatus.error(message: error, onRetry: store.retry),
           );
         }
         final videos = store.videos;
         if (videos.isEmpty) {
           if (store.query.isEmpty) return const SizedBox.shrink();
-          return const SizedBox(
-            height: 100,
-            child: AlertMessage(
-              message: 'No search results found',
-              vertical: true,
-            ),
+          return const _SectionStatus(
+            InlineStatus(message: 'No search results found', glyph: null),
           );
         }
         return Column(
@@ -152,4 +132,17 @@ class SearchVideosColumn extends StatelessWidget {
       },
     );
   }
+}
+
+/// A search section's status, in the room its results would start in.
+class _SectionStatus extends StatelessWidget {
+  const _SectionStatus(this.status);
+
+  final Widget status;
+
+  @override
+  Widget build(BuildContext context) => ConstrainedBox(
+    constraints: const BoxConstraints(minHeight: 100),
+    child: Center(child: status),
+  );
 }

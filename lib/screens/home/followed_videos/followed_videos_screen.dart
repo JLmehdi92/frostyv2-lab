@@ -6,7 +6,6 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/home/followed_videos/stores/followed_videos_store.dart';
 import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
-import 'package:frosty/screens/home/stream_list/streams_list.dart';
 import 'package:frosty/screens/vod/vod_screen.dart';
 import 'package:frosty/screens/vod/vod_watch_progress.dart';
 import 'package:frosty/screens/vod/widgets/video_card_layout.dart';
@@ -16,9 +15,9 @@ import 'package:frosty/screens/vod/widgets/vod_card.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/adaptive_sliver_list.dart';
-import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/motion/press_scale.dart';
 import 'package:frosty/widgets/motion/staggered_entrance.dart';
+import 'package:frosty/widgets/state_views.dart';
 
 /// The day sections of the followed videos, newest first (an approved
 /// addition to board VideosSuivies).
@@ -212,11 +211,14 @@ class _FollowedVideosScreenState extends State<FollowedVideosScreen>
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
                     side + insets.left,
-                    12,
+                    4,
                     side + insets.right,
                     0,
                   ),
-                  child: AlertMessage(message: error),
+                  child: InlineStatus.error(
+                    message: error,
+                    onRetry: store.load,
+                  ),
                 ),
               ),
             for (final (n, (section, list)) in sections.indexed) ...[
