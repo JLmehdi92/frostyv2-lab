@@ -44,17 +44,35 @@ void main() {
   group('the login page', () {
     test('the redirect with a token logs in and says so, without the '
         'token', () async {
-      var captured = 0;
+      final logins = <Future<void>>[];
       final decision = store.handleNavigation(
         request: request('https://twitch.tv/login#access_token=abc&scope=x'),
-        onTokenCaptured: () => captured++,
+        onTokenCaptured: logins.add,
       );
       expect(decision, NavigationDecision.navigate);
-      expect(captured, 1);
-      await pumpEventQueue();
+      expect(logins, hasLength(1));
+      // What it is given is the login itself: once it ends, the store says
+      // whether it worked.
+      await logins.single;
       verify(() => api.validateToken(token: 'abc')).called(1);
       expect(store.isLoggedIn, isTrue);
     });
+
+    test(
+      'a token Twitch refuses: the login ends, nobody is logged in',
+      () async {
+        when(
+          () => api.validateToken(token: any(named: 'token')),
+        ).thenAnswer((_) async => false);
+        final logins = <Future<void>>[];
+        store.handleNavigation(
+          request: request('https://twitch.tv/login#access_token=old&scope=x'),
+          onTokenCaptured: logins.add,
+        );
+        await logins.single;
+        expect(store.isLoggedIn, isFalse);
+      },
+    );
 
     test('a redirect without a token (the user said no) logs nobody in', () {
       var captured = 0;
@@ -62,7 +80,7 @@ void main() {
         request: request(
           'https://twitch.tv/login?error=access_denied&error_description=x',
         ),
-        onTokenCaptured: () => captured++,
+        onTokenCaptured: (_) => captured++,
       );
       expect(captured, 0);
       verifyNever(() => api.validateToken(token: any(named: 'token')));
@@ -77,7 +95,7 @@ void main() {
       ]) {
         store.handleNavigation(
           request: request(url),
-          onTokenCaptured: () => captured++,
+          onTokenCaptured: (_) => captured++,
         );
       }
       expect(captured, 0);

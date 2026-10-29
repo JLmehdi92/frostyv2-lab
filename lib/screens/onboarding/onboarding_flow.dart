@@ -30,12 +30,12 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Builds the Twitch page of the Log in step: [onSignedIn] moves on to
-/// Setup, [onTokenCaptured] says the login is under way.
+/// Setup, [onTokenCaptured] is given the login in flight.
 typedef LoginPanelBuilder =
     Widget Function(
       BuildContext context,
       VoidCallback onSignedIn,
-      VoidCallback onTokenCaptured,
+      ValueChanged<Future<void>> onTokenCaptured,
     );
 
 /// The onboarding's steps. The Twitch page belongs to Log in (the progress
@@ -165,8 +165,7 @@ class _OnboardingFlowState extends State<OnboardingFlow>
   bool? _phone;
   String? _version;
   List<StreamTwitch> _streams = const [];
-  var _signingIn = false;
-  Timer? _signingInLimit;
+  var _login = OnboardingLogin.none;
   var _finishing = false;
 
   late final SettingsStore _settings = context.read<SettingsStore>();
@@ -252,7 +251,6 @@ class _OnboardingFlowState extends State<OnboardingFlow>
   @override
   void dispose() {
     LaunchIntro.running.removeListener(_onIntro);
-    _signingInLimit?.cancel();
     _switch.dispose();
     _hand.dispose();
     SystemChrome.setPreferredOrientations(const []);
@@ -281,12 +279,19 @@ class _OnboardingFlowState extends State<OnboardingFlow>
     if (back != null) _go(back, forward: false);
   }
 
-  void _onTokenCaptured() {
-    _signingInLimit?.cancel();
-    _signingInLimit = Timer(const Duration(seconds: 15), () {
-      if (mounted) setState(() => _signingIn = false);
-    });
-    if (mounted) setState(() => _signingIn = true);
+  /// Twitch handed a token back: Setup says "Signing you in…" until the
+  /// login ends, then who is logged in, or that it failed.
+  void _onTokenCaptured(Future<void> login) {
+    if (!mounted) return;
+    setState(() => _login = OnboardingLogin.pending);
+    login.whenComplete(() {
+      if (!mounted || _login != OnboardingLogin.pending) return;
+      setState(
+        () => _login = _auth.isLoggedIn
+            ? OnboardingLogin.none
+            : OnboardingLogin.failed,
+      );
+    }).ignore();
   }
 
   Future<void> _markFirstRunDone() async {
@@ -298,13 +303,14 @@ class _OnboardingFlowState extends State<OnboardingFlow>
     }
   }
 
-  Future<void> _finish(_Geometry geometry) async {
+  void _finish(_Geometry geometry) {
     if (_finishing) return;
     setState(() => _finishing = true);
     final navigator = Navigator.of(context);
     final home = widget.homeBuilder ?? (context) => const Home();
-    await _markFirstRunDone();
-    if (!mounted) return;
+    // Already written when Welcome opened; written again (without waiting
+    // for it) in case that write failed.
+    unawaited(_markFirstRunDone());
 
     final played = LaunchIntro.land(
       from: Rect.fromCenter(
@@ -676,12 +682,19 @@ class _OnboardingFlowState extends State<OnboardingFlow>
               onSignedIn: signedIn,
               onTokenCaptured: _onTokenCaptured,
             );
+        // The page shrinks above the keyboard, so the Twitch fields stay
+        // in view.
+        final keyboard = MediaQuery.viewInsetsOf(context).bottom;
         return Padding(
           padding: EdgeInsets.only(top: geometry.webTop),
           child: ColoredBox(
             color: OnboardingColors.web,
             child: Padding(
-              padding: EdgeInsets.only(bottom: geometry.bottomInset),
+              padding: EdgeInsets.only(
+                bottom: keyboard > geometry.bottomInset
+                    ? keyboard
+                    : geometry.bottomInset,
+              ),
               child: panel,
             ),
           ),
@@ -692,7 +705,7 @@ class _OnboardingFlowState extends State<OnboardingFlow>
           accent: accent,
           settings: _settings,
           auth: _auth,
-          signingIn: _signingIn,
+          login: _login,
           preview: _streams.isEmpty ? null : _streams.first,
           onShareCrashLogsChanged:
               widget.onShareCrashLogsChanged ?? setFirebaseCollection,
@@ -863,7 +876,7 @@ class _TopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasBack = step.back != null;
     if (step == OnboardingStep.web) {
-      return LoginBar(tablet: tablet, onBack: onBack);
+      return LoginBar(tablet: tablet, inOnboarding: true, onBack: onBack);
     }
     return Row(
       children: [

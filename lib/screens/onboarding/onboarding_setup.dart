@@ -17,6 +17,18 @@ import 'package:url_launcher/url_launcher.dart';
 
 const _robotty = 'https://recent-messages.robotty.de/';
 
+/// Where the login of the onboarding stands, as Setup tells it.
+enum OnboardingLogin {
+  /// Not tried, or done: the store says who is logged in.
+  none,
+
+  /// Twitch handed a token back and the login is under way.
+  pending,
+
+  /// Twitch handed a token back but the login did not go through.
+  failed,
+}
+
 /// Step 3, Setup (boards Onboarding and OnboardingTablette): who is logged
 /// in, a small live preview that follows the theme and the accent, the
 /// theme, the accent colour, the chat history and the crash reports.
@@ -27,7 +39,7 @@ class OnboardingSetupStep extends StatefulWidget {
     required this.accent,
     required this.settings,
     required this.auth,
-    required this.signingIn,
+    required this.login,
     required this.preview,
     required this.onShareCrashLogsChanged,
     required this.onNext,
@@ -38,8 +50,8 @@ class OnboardingSetupStep extends StatefulWidget {
   final SettingsStore settings;
   final AuthStore auth;
 
-  /// Twitch handed a token back and the login is still under way.
-  final bool signingIn;
+  /// Where the login stands.
+  final OnboardingLogin login;
 
   /// The live channel the preview shows, when one could be had.
   final StreamTwitch? preview;
@@ -100,7 +112,7 @@ class _OnboardingSetupStepState extends State<OnboardingSetupStep> {
             child: _AccountPill(
               auth: widget.auth,
               accent: accent,
-              signingIn: widget.signingIn,
+              login: widget.login,
             ),
           ),
         ),
@@ -246,12 +258,12 @@ class _AccountPill extends StatelessWidget {
   const _AccountPill({
     required this.auth,
     required this.accent,
-    required this.signingIn,
+    required this.login,
   });
 
   final AuthStore auth;
   final Color accent;
-  final bool signingIn;
+  final OnboardingLogin login;
 
   @override
   Widget build(BuildContext context) {
@@ -314,7 +326,7 @@ class _AccountPill extends StatelessWidget {
               ),
             ),
           ];
-        } else if (signingIn) {
+        } else if (login == OnboardingLogin.pending) {
           leading = SizedBox.square(
             dimension: 14,
             child: CircularProgressIndicator(
@@ -341,11 +353,14 @@ class _AccountPill extends StatelessWidget {
             strokeWidth: 2,
             color: OnboardingColors.secondary,
           );
-          content = const [
+          content = [
             Flexible(
               child: Text(
-                'Not logged in · you can log in later from Profile',
-                style: TextStyle(
+                login == OnboardingLogin.failed
+                    ? 'Login failed · go back to try again, or log in later '
+                          'from Profile'
+                    : 'Not logged in · you can log in later from Profile',
+                style: const TextStyle(
                   fontSize: 13,
                   color: OnboardingColors.secondary,
                 ),

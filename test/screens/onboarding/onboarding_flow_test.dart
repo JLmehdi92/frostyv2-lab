@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -49,7 +51,7 @@ void main() {
   late List<bool> crashChoices;
   late List<List<String>> orientations;
   VoidCallback? signIn;
-  VoidCallback? tokenBack;
+  ValueChanged<Future<void>>? tokenBack;
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
@@ -301,7 +303,8 @@ void main() {
       await settle(tester);
       await tapText(tester, 'Next');
       await tapText(tester, 'Connect with Twitch');
-      tokenBack!();
+      final login = Completer<void>();
+      tokenBack!(login.future);
       await tester.pump();
       signIn!();
       await settle(tester);
@@ -309,9 +312,47 @@ void main() {
       expect(find.text('Signing you in…'), findsOneWidget);
 
       auth.setLoggedIn(true);
+      login.complete();
       await tester.pump();
+      expect(find.text('Signing you in…'), findsNothing);
       expect(find.textContaining('Logged in as'), findsOneWidget);
       expect(find.textContaining('Viewer'), findsOneWidget);
+    });
+
+    testWidgets('a login that fails says so on Setup', (tester) async {
+      await pump(tester);
+      await settle(tester);
+      await tapText(tester, 'Next');
+      await tapText(tester, 'Connect with Twitch');
+      final login = Completer<void>();
+      tokenBack!(login.future);
+      signIn!();
+      await settle(tester);
+      login.complete();
+      await tester.pump();
+      expect(
+        find.text(
+          'Login failed · go back to try again, or log in later from Profile',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the Twitch page shrinks above the keyboard', (tester) async {
+      await pump(tester);
+      await settle(tester);
+      await tapText(tester, 'Next');
+      await tapText(tester, 'Connect with Twitch');
+      expect(
+        tester.getRect(find.byKey(const Key('twitch-page'))).bottom,
+        844 - 16,
+      );
+      tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+      await tester.pump();
+      expect(
+        tester.getRect(find.byKey(const Key('twitch-page'))).bottom,
+        844 - 300,
+      );
     });
 
     testWidgets('skipped: Setup says how to log in later', (tester) async {

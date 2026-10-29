@@ -15,7 +15,7 @@ void main() {
   late MockWebViewController controller;
   ValueChanged<Uri>? onPage;
   ValueChanged<WebResourceError>? onError;
-  VoidCallback? onTokenCaptured;
+  ValueChanged<Future<void>>? onTokenCaptured;
   VoidCallback? onSignedIn;
   final authorize = Uri.parse(
     'https://id.twitch.tv/oauth2/authorize?client_id=x&force_verify=true',
@@ -45,7 +45,8 @@ void main() {
           invocation.namedArguments[#onError]
               as ValueChanged<WebResourceError>?;
       onTokenCaptured =
-          invocation.namedArguments[#onTokenCaptured] as VoidCallback?;
+          invocation.namedArguments[#onTokenCaptured]
+              as ValueChanged<Future<void>>?;
       onSignedIn = invocation.namedArguments[#onSignedIn] as VoidCallback?;
       return controller;
     });
@@ -164,7 +165,7 @@ void main() {
     tester,
   ) async {
     await open(tester);
-    onTokenCaptured!();
+    onTokenCaptured!(Future.value());
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Signing you in…'), findsOneWidget);
@@ -204,6 +205,45 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     verify(() => controller.loadRequest(authorize)).called(1);
     expect(find.text('Twitch could not be reached'), findsNothing);
+  });
+
+  testWidgets('a navigation replaced by another is no failure (iOS)', (
+    tester,
+  ) async {
+    await open(tester);
+    for (final code in [-999, 102]) {
+      onError!(
+        WebResourceError(
+          errorCode: code,
+          description: 'cancelled',
+          isForMainFrame: true,
+        ),
+      );
+    }
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Twitch could not be reached'), findsNothing);
+  });
+
+  testWidgets('the page shrinks above the keyboard', (tester) async {
+    await open(tester);
+    final page = find.byWidgetPredicate(
+      (w) => w is ColoredBox && w.color == const Color(0xFFFFFFFF),
+    );
+    expect(tester.getRect(page).bottom, 844);
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    await tester.pumpAndSettle();
+    expect(tester.getRect(page).bottom, 844 - 300);
+  });
+
+  testWidgets('the help does not send back to an onboarding', (tester) async {
+    await open(tester);
+    await tester.tap(find.byTooltip('Login help'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('first step of the onboarding'), findsNothing);
+    expect(
+      find.textContaining('go back, then open the login again.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('back leaves the page', (tester) async {

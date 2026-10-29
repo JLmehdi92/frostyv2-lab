@@ -41,9 +41,11 @@ class LoginWebView extends StatelessWidget {
       data: themes.dark,
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: onboardingBars,
-        child: Material(
-          color: OnboardingColors.ground,
-          child: Column(
+        // A Scaffold, so the page shrinks above the keyboard (the username
+        // and password fields stay in view).
+        child: Scaffold(
+          backgroundColor: OnboardingColors.ground,
+          body: Column(
             children: [
               SizedBox(height: padding.top),
               SizedBox(
@@ -52,6 +54,7 @@ class LoginWebView extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: tablet ? 28 : 6),
                   child: LoginBar(
                     tablet: tablet,
+                    inOnboarding: false,
                     onBack: () => Navigator.maybePop(context),
                   ),
                 ),
@@ -84,9 +87,18 @@ const onboardingBars = SystemUiOverlayStyle(
 
 /// The login page's bar: back, "Connect with Twitch", the "?" help.
 class LoginBar extends StatelessWidget {
-  const LoginBar({super.key, required this.tablet, required this.onBack});
+  const LoginBar({
+    super.key,
+    required this.tablet,
+    required this.inOnboarding,
+    required this.onBack,
+  });
 
   final bool tablet;
+
+  /// The help's last advice differs: the onboarding has a first step to go
+  /// back to, the other entry points do not.
+  final bool inOnboarding;
   final VoidCallback onBack;
 
   @override
@@ -120,7 +132,11 @@ class LoginBar extends StatelessWidget {
           tooltip: 'Login help',
           size: 21,
           strokeWidth: 1.8,
-          onPressed: () => showLoginHelp(context, tablet: tablet),
+          onPressed: () => showLoginHelp(
+            context,
+            tablet: tablet,
+            inOnboarding: inOnboarding,
+          ),
         ),
       ],
     );
@@ -130,8 +146,15 @@ class LoginBar extends StatelessWidget {
 /// The "?" of the login page: how to get past the Twitch cookie banner when
 /// it still blocks the login (boards' dialog: 24 dp corners, #1E1E1E, an
 /// icon tile, the title, the text, "Close"; 440 dp wide on a tablet).
-Future<void> showLoginHelp(BuildContext context, {required bool tablet}) {
+Future<void> showLoginHelp(
+  BuildContext context, {
+  required bool tablet,
+  bool inOnboarding = true,
+}) {
   final theme = Theme.of(context);
+  final retry = inOnboarding
+      ? 'go back to the first step of the onboarding and then try again.'
+      : 'go back, then open the login again.';
   return showDialog<void>(
     context: context,
     barrierColor: OnboardingColors.scrim,
@@ -164,14 +187,13 @@ Future<void> showLoginHelp(BuildContext context, {required bool tablet}) {
               color: OnboardingColors.text,
             ),
           ),
-          const Text(
+          Text(
             'If the Twitch cookie banner is still blocking the login, try '
             'clicking one of the links in the cookie policy description and '
             'navigating until you reach the Twitch home page. From there, you '
             'can try logging in on the top right profile icon. Once logged '
-            'in, go back to the first step of the onboarding and then try '
-            'again.',
-            style: TextStyle(
+            'in, $retry',
+            style: const TextStyle(
               fontSize: 14,
               height: 1.55,
               color: OnboardingColors.body,
@@ -268,7 +290,9 @@ class TwitchLoginPanel extends StatefulWidget {
   final Color accent;
   final Widget? routeAfter;
   final VoidCallback? onSignedIn;
-  final VoidCallback? onTokenCaptured;
+
+  /// Given the login in flight once Twitch handed a token back.
+  final ValueChanged<Future<void>>? onTokenCaptured;
 
   /// Draws the page in place of the WebView (tests have no WebView).
   @visibleForTesting
@@ -308,8 +332,8 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
     setState(() => _host = uri.host);
   }
 
-  void _onTokenCaptured() {
-    widget.onTokenCaptured?.call();
+  void _onTokenCaptured(Future<void> login) {
+    widget.onTokenCaptured?.call(login);
     if (!mounted) return;
     _signingLimit?.cancel();
     _signingLimit = Timer(TwitchLoginPanel.signingInLimit, () {
@@ -326,6 +350,9 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
     // page itself failing is shown. Once the token is back, the page
     // underneath no longer matters.
     if (error.isForMainFrame != true || _signingIn || !mounted) return;
+    // A navigation replaced by another (a quick tap, a redirect) is not a
+    // failure: iOS reports it as cancelled (-999) or interrupted (102).
+    if (error.errorCode == -999 || error.errorCode == 102) return;
     setState(() => _failed = true);
   }
 

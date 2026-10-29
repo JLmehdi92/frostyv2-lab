@@ -330,15 +330,16 @@ abstract class AuthBase with Store {
 
   /// Navigation handler for the login webview. Fires on every navigation request (whenever the URL changes).
   ///
-  /// [onTokenCaptured] is told when the redirect carried a token (the login
-  /// is under way: the page can say "Signing you in…"); it is never given
-  /// the token. [onSignedIn], when given, is called once Twitch has signed
+  /// [onTokenCaptured] is given the login in flight when the redirect
+  /// carried a token (the page can say "Signing you in…" until it ends, then
+  /// read [isLoggedIn]); it is never given the token. [onSignedIn], when
+  /// given, is called once Twitch has signed
   /// the WebView in, instead of the page being popped (the onboarding moves
   /// on to its next step itself).
   FutureOr<NavigationDecision> handleNavigation({
     required NavigationRequest request,
     Widget? routeAfter,
-    VoidCallback? onTokenCaptured,
+    ValueChanged<Future<void>>? onTokenCaptured,
     VoidCallback? onSignedIn,
   }) {
     // Check if the URL is the redirect URI.
@@ -349,8 +350,8 @@ abstract class AuthBase with Store {
 
       // Login with the provided token.
       if (token != null) {
-        login(token: token);
-        onTokenCaptured?.call();
+        final signingIn = login(token: token);
+        onTokenCaptured?.call(signingIn);
       }
     }
 
@@ -404,7 +405,7 @@ abstract class AuthBase with Store {
   /// which carries the token); [onError] each resource that failed to load.
   WebViewController createAuthWebViewController({
     Widget? routeAfter,
-    VoidCallback? onTokenCaptured,
+    ValueChanged<Future<void>>? onTokenCaptured,
     VoidCallback? onSignedIn,
     ValueChanged<Uri>? onPage,
     ValueChanged<WebResourceError>? onError,
