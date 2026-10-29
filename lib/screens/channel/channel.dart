@@ -10,6 +10,7 @@ import 'package:frosty/apis/twitch_watch_streak_service.dart';
 import 'package:frosty/models/community_highlights.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/models/vod.dart';
+import 'package:frosty/screens/channel/celebrations/subtle_celebrations.dart';
 import 'package:frosty/screens/channel/channel_info.dart';
 import 'package:frosty/screens/channel/channel_top_overlays.dart';
 import 'package:frosty/screens/channel/chat/details/chat_details.dart';
@@ -262,6 +263,10 @@ class _VideoChatState extends State<VideoChat>
   /// Pins the gift bombs of the primary chat as banners; up while
   /// [_highlightsStore] is.
   ReactionDisposer? _giftBombFeed;
+
+  /// Turns celebrations into chat lines while "Celebrations on video" is
+  /// Subtle.
+  ReactionDisposer? _subtleCelebrations;
 
   /// The video channel's own chat, once it is up.
   ChatStore? get _primaryChatStore =>
@@ -592,6 +597,14 @@ class _VideoChatState extends State<VideoChat>
     _hypeTrainSettingReaction = reaction((_) => settings.showHypeTrain, (_) {
       if (mounted) setState(_syncHypeTrainStore);
     });
+    _subtleCelebrations = feedSubtleCelebrations(
+      latest: () => _eventsStore.celebration,
+      subtle: () =>
+          settings.showCelebrations &&
+          settings.celebrationsOnVideo == CelebrationsOnVideo.subtle,
+      post: (line) => _primaryChatStore?.addLocalNotice(line),
+      clear: _eventsStore.clearCelebration,
+    );
     _syncHighlightsStore();
     _highlightsSettingReaction = reaction(
       (_) => settings.showCommunityHighlights,
@@ -1627,6 +1640,7 @@ class _VideoChatState extends State<VideoChat>
     _highlightsSettingReaction?.call();
     _giftBombFeed?.call();
     _highlightsStore?.dispose();
+    _subtleCelebrations?.call();
     // Always disposed, even on hand-off to the mini window: the mini player
     // shows no hype train or celebration, and leaving the socket open would
     // keep a channel's events flowing after leaving it.

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/models/celebration.dart';
 import 'package:frosty/screens/channel/stores/channel_events_store.dart';
+import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:lottie/lottie.dart';
 
@@ -25,7 +26,13 @@ class CelebrationOverlay extends StatelessWidget {
       builder: (context) {
         // Twitch has this switch too (`celebrations_switch` in its resources):
         // a full-screen animation on every gifted sub is not for everyone.
-        if (!context.settingsStore.showCelebrations) {
+        final settings = context.settingsStore;
+        if (!settings.showCelebrations) {
+          return const SizedBox.shrink();
+        }
+        // Subtle: nothing covers the video; the channel says it in chat
+        // (see feedSubtleCelebrations).
+        if (settings.celebrationsOnVideo == CelebrationsOnVideo.subtle) {
           return const SizedBox.shrink();
         }
 
@@ -39,7 +46,7 @@ class CelebrationOverlay extends StatelessWidget {
             key: ValueKey(celebration.eventId ?? celebration.hashCode),
             celebration: celebration,
             onFinished: store.clearCelebration,
-            chatOnLeft: context.settingsStore.landscapeChatLeftSide,
+            chatOnLeft: settings.landscapeChatLeftSide,
           ),
         );
       },

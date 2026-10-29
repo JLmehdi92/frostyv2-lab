@@ -74,6 +74,21 @@ void main() {
     );
   });
 
+  testWidgets('Subtle keeps the video clear (chat says it instead)', (
+    tester,
+  ) async {
+    settings.celebrationsOnVideo = CelebrationsOnVideo.subtle;
+    await pump(tester);
+
+    expect(
+      find.descendant(
+        of: find.byType(CelebrationOverlay),
+        matching: find.byType(FadeTransition),
+      ),
+      findsNothing,
+    );
+  });
+
   testWidgets('without a celebration, nothing plays', (tester) async {
     when(() => store.celebration).thenReturn(null);
     await pump(tester);

@@ -237,6 +237,13 @@ abstract class ChatStoreBase with Store {
   @readonly
   GiftBomb? _latestGiftBomb;
 
+  /// Adds a line of ONSET's own to this chat (a celebration said quietly),
+  /// after what already waits to show.
+  void addLocalNotice(String text) {
+    if (_shouldDisconnect) return;
+    runInAction(() => messageBuffer.add(IRCMessage.createNotice(message: text)));
+  }
+
   /// Pending delayed 7TV payloads waiting to be rendered.
   final _pendingSevenTVCallbacks = ChatDelayQueue();
 
