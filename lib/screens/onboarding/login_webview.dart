@@ -1,50 +1,541 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:frosty/screens/onboarding/onboarding_parts.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
-import 'package:frosty/widgets/frosty_app_bar.dart';
-import 'package:frosty/widgets/frosty_dialog.dart';
+import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/theme.dart';
+import 'package:frosty/utils/context_extensions.dart';
+import 'package:frosty/widgets/motion/motion.dart';
+import 'package:frosty/widgets/motion/reduce_motion.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-/// Reusable WebView widget for Twitch OAuth login flow
+/// The "Connect with Twitch" page, on its own (the login from Profile, the
+/// "Session expired" prompt, clip creation): the board's bar (back, title,
+/// "?" help) over the Twitch page.
+///
+/// Signing in pops it, or replaces it with [routeAfter] when given, as the
+/// login page always did ([AuthStore.handleNavigation]).
 class LoginWebView extends StatelessWidget {
   /// Optional widget to navigate to after successful login
   final Widget? routeAfter;
 
-  const LoginWebView({super.key, this.routeAfter});
+  /// Draws the page in place of the WebView (tests have no WebView).
+  @visibleForTesting
+  final Widget Function(WebViewController controller)? pageBuilder;
+
+  const LoginWebView({super.key, this.routeAfter, this.pageBuilder});
 
   @override
   Widget build(BuildContext context) {
-    final authStore = context.read<AuthStore>();
+    final tablet = context.isLargeScreen;
+    final padding = MediaQuery.paddingOf(context);
+    final accent = Color(
+      context.read<SettingsStore?>()?.accentColor ??
+          FrostyTokens.accent.toARGB32(),
+    );
+    final themes = FrostyThemes(colorSchemeSeed: accent);
+    return Theme(
+      data: themes.dark,
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: onboardingBars,
+        child: Material(
+          color: OnboardingColors.ground,
+          child: Column(
+            children: [
+              SizedBox(height: padding.top),
+              SizedBox(
+                height: tablet ? 72 : 56,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: tablet ? 28 : 6),
+                  child: LoginBar(
+                    tablet: tablet,
+                    onBack: () => Navigator.maybePop(context),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: TwitchLoginPanel(
+                  tablet: tablet,
+                  accent: accent,
+                  routeAfter: routeAfter,
+                  pageBuilder: pageBuilder,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-    return Scaffold(
-      appBar: FrostyAppBar(
-        title: const Text('Connect with Twitch'),
-        actions: [
-          IconButton(
-            tooltip: 'Login help',
-            icon: const Icon(Icons.help_rounded),
-            onPressed: () => showDialog(
-              context: context,
-              builder: (context) {
-                return FrostyDialog(
-                  title: 'Workaround for the Twitch cookie banner',
-                  message:
-                      'If the Twitch cookie banner is still blocking the login, try clicking one of the links in the cookie policy description and navigating until you reach the Twitch home page. From there, you can try logging in on the top right profile icon. Once logged in, go back to the first step of the onboarding and then try again.',
-                  actions: [
-                    TextButton(
-                      onPressed: Navigator.of(context).pop,
-                      child: const Text('Close'),
-                    ),
-                  ],
-                );
-              },
+/// The light status and navigation bars over the onboarding's black.
+const onboardingBars = SystemUiOverlayStyle(
+  statusBarColor: Colors.transparent,
+  statusBarIconBrightness: Brightness.light,
+  statusBarBrightness: Brightness.dark,
+  systemNavigationBarColor: OnboardingColors.ground,
+  systemNavigationBarDividerColor: Colors.transparent,
+  systemNavigationBarIconBrightness: Brightness.light,
+);
+
+/// The login page's bar: back, "Connect with Twitch", the "?" help.
+class LoginBar extends StatelessWidget {
+  const LoginBar({super.key, required this.tablet, required this.onBack});
+
+  final bool tablet;
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        OnboardingIconButton(
+          glyph: OnboardingGlyphKind.chevronLeft,
+          tooltip: 'Back',
+          onPressed: onBack,
+        ),
+        Expanded(
+          child: Semantics(
+            header: true,
+            child: Text(
+              'Connect with Twitch',
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: tablet ? 18 : 17,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.015 * (tablet ? 18 : 17),
+                color: OnboardingColors.text,
+              ),
+            ),
+          ),
+        ),
+        OnboardingIconButton(
+          glyph: OnboardingGlyphKind.help,
+          tooltip: 'Login help',
+          size: 21,
+          strokeWidth: 1.8,
+          onPressed: () => showLoginHelp(context, tablet: tablet),
+        ),
+      ],
+    );
+  }
+}
+
+/// The "?" of the login page: how to get past the Twitch cookie banner when
+/// it still blocks the login (boards' dialog: 24 dp corners, #1E1E1E, an
+/// icon tile, the title, the text, "Close"; 440 dp wide on a tablet).
+Future<void> showLoginHelp(BuildContext context, {required bool tablet}) {
+  final theme = Theme.of(context);
+  return showDialog<void>(
+    context: context,
+    barrierColor: OnboardingColors.scrim,
+    builder: (context) => Theme(
+      data: theme,
+      child: _OnboardingDialog(
+        width: tablet ? 440 : null,
+        label: 'Login help',
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: OnboardingColors.control,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            alignment: Alignment.center,
+            child: const OnboardingGlyph(
+              OnboardingGlyphKind.help,
+              color: OnboardingColors.text,
+            ),
+          ),
+          const Text(
+            'Workaround for the Twitch cookie banner',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.27,
+              height: 1.3,
+              color: OnboardingColors.text,
+            ),
+          ),
+          const Text(
+            'If the Twitch cookie banner is still blocking the login, try '
+            'clicking one of the links in the cookie policy description and '
+            'navigating until you reach the Twitch home page. From there, you '
+            'can try logging in on the top right profile icon. Once logged '
+            'in, go back to the first step of the onboarding and then try '
+            'again.',
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.55,
+              color: OnboardingColors.body,
+            ),
+          ),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: OnboardingTextButton(
+              label: 'Close',
+              fontSize: 14,
+              color: OnboardingColors.text,
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              onPressed: () => Navigator.pop(context),
             ),
           ),
         ],
       ),
-      body: WebViewWidget(
-        controller: authStore.createAuthWebViewController(
-          routeAfter: routeAfter,
+    ),
+  );
+}
+
+/// The boards' dialog card: #1E1E1E, 24 dp corners, the 0.5 dp ring.
+class _OnboardingDialog extends StatelessWidget {
+  const _OnboardingDialog({
+    required this.children,
+    required this.label,
+    this.width,
+  });
+
+  final List<Widget> children;
+  final String label;
+  final double? width;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: OnboardingColors.raised,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(FrostyTokens.radiusLarge),
+        side: const BorderSide(
+          color: OnboardingColors.ringStrong,
+          width: FrostyTokens.hairlineWidth,
+        ),
+      ),
+      child: Semantics(
+        scopesRoute: true,
+        namesRoute: true,
+        explicitChildNodes: true,
+        label: label,
+        child: SizedBox(
+          width: width,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 12,
+              children: children,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The Twitch login page in its panel (#111111 under a 0.5 dp edge): the
+/// host it shows (the full address carries the token, so only the host is
+/// ever shown), the WebView, and over it "Signing you in…" once Twitch
+/// handed the token back, or what failed with "Try again".
+///
+/// Every rule of the login is [AuthStore]'s: the authorization page, the
+/// token taken from the redirect, the cookie banner capped at 20 % of the
+/// page, the browser user agent. [onSignedIn] (the onboarding) is told when
+/// Twitch has signed the WebView in; without it the page is popped (or
+/// replaced by [routeAfter]).
+class TwitchLoginPanel extends StatefulWidget {
+  const TwitchLoginPanel({
+    super.key,
+    required this.tablet,
+    required this.accent,
+    this.routeAfter,
+    this.onSignedIn,
+    this.onTokenCaptured,
+    this.pageBuilder,
+  });
+
+  final bool tablet;
+
+  /// The colour picked in Setup (the spinner, "Try again").
+  final Color accent;
+  final Widget? routeAfter;
+  final VoidCallback? onSignedIn;
+  final VoidCallback? onTokenCaptured;
+
+  /// Draws the page in place of the WebView (tests have no WebView).
+  @visibleForTesting
+  final Widget Function(WebViewController controller)? pageBuilder;
+
+  /// How long "Signing you in…" may cover the page before the page shows
+  /// again (Twitch never redirected to its home).
+  static const signingInLimit = Duration(seconds: 20);
+
+  @override
+  State<TwitchLoginPanel> createState() => _TwitchLoginPanelState();
+}
+
+class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
+  late final WebViewController _controller;
+  late final AuthStore _auth;
+  String _host = 'id.twitch.tv';
+  bool _signingIn = false;
+  bool _failed = false;
+  Timer? _signingLimit;
+
+  @override
+  void initState() {
+    super.initState();
+    _auth = context.read<AuthStore>();
+    _controller = _auth.createAuthWebViewController(
+      routeAfter: widget.routeAfter,
+      onSignedIn: widget.onSignedIn,
+      onTokenCaptured: _onTokenCaptured,
+      onPage: _onPage,
+      onError: _onError,
+    );
+  }
+
+  void _onPage(Uri uri) {
+    if (!mounted || uri.host.isEmpty || uri.host == _host) return;
+    setState(() => _host = uri.host);
+  }
+
+  void _onTokenCaptured() {
+    widget.onTokenCaptured?.call();
+    if (!mounted) return;
+    _signingLimit?.cancel();
+    _signingLimit = Timer(TwitchLoginPanel.signingInLimit, () {
+      if (mounted) setState(() => _signingIn = false);
+    });
+    setState(() {
+      _signingIn = true;
+      _failed = false;
+    });
+  }
+
+  void _onError(WebResourceError error) {
+    // A picture or a script that failed leaves the page usable; only the
+    // page itself failing is shown. Once the token is back, the page
+    // underneath no longer matters.
+    if (error.isForMainFrame != true || _signingIn || !mounted) return;
+    setState(() => _failed = true);
+  }
+
+  void _retry() {
+    setState(() => _failed = false);
+    unawaited(
+      _controller.loadRequest(_auth.authorizeUri).catchError((Object e) {
+        debugPrint('Login page reload failed: ${e.runtimeType}');
+        if (mounted) setState(() => _failed = true);
+      }),
+    );
+  }
+
+  @override
+  void dispose() {
+    _signingLimit?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final fade = motionDuration(context, const Duration(milliseconds: 220));
+    Widget page =
+        widget.pageBuilder?.call(_controller) ??
+        WebViewWidget(controller: _controller);
+    if (widget.tablet) {
+      // The page is a phone page: centred in the panel, as on the board.
+      page = Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: page,
+        ),
+      );
+    }
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: OnboardingColors.web,
+        border: Border(
+          top: BorderSide(
+            color: OnboardingColors.ring,
+            width: FrostyTokens.hairlineWidth,
+          ),
+        ),
+      ),
+      child: Column(
+        children: [
+          _HostStrip(host: _host),
+          Expanded(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                page,
+                AnimatedSwitcher(
+                  duration: fade,
+                  switchInCurve: FrostyMotion.standard,
+                  child: _signingIn
+                      ? _SigningIn(
+                          key: const ValueKey('signing-in'),
+                          accent: widget.accent,
+                        )
+                      : _failed
+                      ? _LoadFailed(
+                          key: const ValueKey('load-failed'),
+                          accent: widget.accent,
+                          onRetry: _retry,
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The 30 dp strip naming the page's host, with a lock.
+class _HostStrip extends StatelessWidget {
+  const _HostStrip({required this.host});
+
+  final String host;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 30,
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: OnboardingColors.divider,
+            width: FrostyTokens.hairlineWidth,
+          ),
+        ),
+      ),
+      alignment: Alignment.center,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 6,
+        children: [
+          const OnboardingGlyph(
+            OnboardingGlyphKind.lock,
+            size: 12,
+            strokeWidth: 2,
+            color: OnboardingColors.tertiary,
+          ),
+          Flexible(
+            child: Text(
+              host,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              semanticsLabel: 'Page: $host',
+              style: const TextStyle(
+                fontSize: 12,
+                color: OnboardingColors.tertiary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "Signing you in…" over the page, with the accent spinner.
+class _SigningIn extends StatelessWidget {
+  const _SigningIn({super.key, required this.accent});
+
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: OnboardingColors.web,
+      child: Semantics(
+        liveRegion: true,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 14,
+          children: [
+            SizedBox.square(
+              dimension: 28,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.4,
+                strokeCap: StrokeCap.round,
+                color: accent,
+                backgroundColor: OnboardingColors.ringStrong,
+                value: reduceMotionOf(context) ? 0.25 : null,
+              ),
+            ),
+            const Text(
+              'Signing you in…',
+              style: TextStyle(fontSize: 14, color: OnboardingColors.secondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The page could not be loaded: what happened and "Try again".
+class _LoadFailed extends StatelessWidget {
+  const _LoadFailed({super.key, required this.accent, required this.onRetry});
+
+  final Color accent;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: OnboardingColors.web,
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 8,
+            children: [
+              const Text(
+                'Twitch could not be reached',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: OnboardingColors.text,
+                ),
+              ),
+              const Text(
+                'Check your connection, then try again.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.5,
+                  color: OnboardingColors.secondary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: 200,
+                child: OnboardingButton(
+                  label: 'Try again',
+                  accent: accent,
+                  height: 44,
+                  leading: OnboardingGlyphKind.refresh,
+                  onPressed: onRetry,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

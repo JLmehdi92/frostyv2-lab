@@ -38,7 +38,7 @@ import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
 import 'package:frosty/screens/clips/clip_screen.dart';
 import 'package:frosty/screens/home/home.dart';
 import 'package:frosty/screens/home/shell/onset_shell.dart';
-import 'package:frosty/screens/onboarding/onboarding_intro.dart';
+import 'package:frosty/screens/onboarding/onboarding_flow.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/channel_videos.dart';
@@ -513,13 +513,16 @@ class _MyAppState extends State<MyApp> {
             LaunchIntro.navigatorObserver,
             OnsetShell.routeObserver,
           ],
-          home: widget.firstRun ? const OnboardingIntro() : const Home(),
+          home: widget.firstRun ? const OnboardingFlow() : const Home(),
           navigatorKey: navigatorKey,
           // The launch intro covers the app on a cold start while it builds
           // and loads underneath.
           builder: (context, child) => LaunchIntro(
             play: widget.launchInfo.playsIntro,
             fromTile: widget.launchInfo.nativeTile,
+            // The first run stops on the name: the onboarding picks it up
+            // from there.
+            holdOnName: widget.firstRun,
             splashTile: LaunchInfo.splashTile,
             // The tile lands on the header's mark.
             slotKey: OnsetShell.markKey,
