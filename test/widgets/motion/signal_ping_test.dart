@@ -23,6 +23,15 @@ SignalPingPainter _painter(WidgetTester tester) =>
             .painter!
         as SignalPingPainter;
 
+/// Lets [duration] pass frame by frame (an animation only notices its end
+/// on a frame).
+Future<void> _advance(WidgetTester tester, Duration duration) async {
+  const step = Duration(milliseconds: 100);
+  for (var t = Duration.zero; t < duration; t += step) {
+    await tester.pump(step);
+  }
+}
+
 void main() {
   tearDown(() {
     TestWidgetsFlutterBinding.instance.handleAppLifecycleStateChanged(
@@ -39,6 +48,73 @@ void main() {
     final start = _painter(tester).progress.value;
     await tester.pump(const Duration(milliseconds: 600));
     expect(_painter(tester).progress.value, isNot(start));
+  });
+
+  testWidgets('ripples in short bursts, then rests with no ticker at all', (
+    tester,
+  ) async {
+    const ping = SignalPing();
+    await tester.pumpWidget(_host(ping));
+    final burst = ping.period * ping.ripples;
+    // The burst: frames all along.
+    for (var t = Duration.zero; t < burst; t += ping.period ~/ 4) {
+      expect(tester.binding.transientCallbackCount, greaterThan(0));
+      await tester.pump(ping.period ~/ 4);
+    }
+    await _advance(tester, ping.period ~/ 2);
+    // The rest: nothing asks for a frame (Home can sit idle).
+    for (
+      var t = Duration.zero;
+      t < ping.rest;
+      t += const Duration(seconds: 1)
+    ) {
+      expect(tester.binding.transientCallbackCount, 0, reason: 'resting $t');
+      expect(tester.binding.hasScheduledFrame, isFalse);
+      await tester.pump(const Duration(seconds: 1));
+    }
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(tester.binding.transientCallbackCount, greaterThan(0));
+  });
+
+  testWidgets('scrolled out of its list, it does not ripple until it is back', (
+    tester,
+  ) async {
+    const ping = SignalPing();
+    final controller = ScrollController();
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CustomScrollView(
+          controller: controller,
+          slivers: const [
+            // A hero card at the top of a feed (kept built when scrolled
+            // away, like a tablet's).
+            SliverToBoxAdapter(
+              child: SizedBox(height: 200, child: Center(child: ping)),
+            ),
+            SliverToBoxAdapter(child: SizedBox(height: 6000)),
+          ],
+        ),
+      ),
+    );
+    controller.jumpTo(3000);
+    await tester.pump();
+    // The burst under way ends; the next one finds it out of view.
+    await _advance(tester, ping.period * ping.ripples + ping.rest);
+    await tester.pump(const Duration(milliseconds: 100));
+    for (var i = 0; i < 3; i++) {
+      expect(tester.binding.transientCallbackCount, 0, reason: 'round $i');
+      await tester.pump(ping.rest);
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    controller.jumpTo(0);
+    await tester.pump();
+    await tester.pump(ping.rest);
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(tester.binding.transientCallbackCount, greaterThan(0));
+    // Torn down mid-rest: no timer left behind.
+    await tester.pumpWidget(const SizedBox());
   });
 
   testWidgets('stops in the background and resumes in front', (tester) async {
