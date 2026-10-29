@@ -1251,6 +1251,12 @@ class _VideoChatState extends State<VideoChat>
                           child: FrostyNotification(
                             message: _chatStore.notification!,
                             onDismissed: _chatStore.clearNotification,
+                            // Full screen in landscape: the chat (overlay
+                            // or column) is drawn over the video.
+                            overVideo:
+                                !chatOnly &&
+                                settingsStore.fullScreen &&
+                                context.isLandscape,
                           ),
                         ),
                       )

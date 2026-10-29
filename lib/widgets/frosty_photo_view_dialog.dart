@@ -9,10 +9,16 @@ class FrostyPhotoViewDialog extends StatefulWidget {
   final String imageUrl;
   final String? cacheKey;
 
+  /// A soft blur behind the picture; false for a plain dark scrim, when the
+  /// dialog can open over a playing video (from the chat), which must never
+  /// be blurred.
+  final bool blurBackground;
+
   const FrostyPhotoViewDialog({
     super.key,
     required this.imageUrl,
     this.cacheKey,
+    this.blurBackground = true,
   });
 
   @override
@@ -94,14 +100,18 @@ class _FrostyPhotoViewDialogState extends State<FrostyPhotoViewDialog>
     return Stack(
       alignment: Alignment.topCenter,
       children: [
-        // Very weak blurred background behind the image (fills the screen)
-        BlurredContainer(
-          sigmaX: 4.0,
-          sigmaY: 4.0,
-          // Use a very low alpha so the blur is subtle
-          backgroundAlpha: 0,
-          child: const SizedBox.expand(),
-        ),
+        // Very weak blurred background behind the image (fills the screen),
+        // or a plain scrim over a video.
+        if (widget.blurBackground)
+          BlurredContainer(
+            sigmaX: 4.0,
+            sigmaY: 4.0,
+            // Use a very low alpha so the blur is subtle
+            backgroundAlpha: 0,
+            child: const SizedBox.expand(),
+          )
+        else
+          const SizedBox.expand(child: ColoredBox(color: Color(0x66000000))),
         // Use a GestureDetector so we can track vertical drags and translate the
         // PhotoView accordingly. When the photo is zoomed (not initial) we disable dragging.
         GestureDetector(

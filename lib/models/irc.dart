@@ -1285,8 +1285,11 @@ class IRCMessage {
                     child: InkWell(
                       onTap: () => showDialog(
                         context: context,
-                        builder: (context) =>
-                            FrostyPhotoViewDialog(imageUrl: url),
+                        // The chat is beside, under or over the video.
+                        builder: (context) => FrostyPhotoViewDialog(
+                          imageUrl: url,
+                          blurBackground: false,
+                        ),
                       ),
                       child: SizedBox.square(
                         dimension: 64,
