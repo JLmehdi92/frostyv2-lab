@@ -158,6 +158,10 @@ abstract class HomeStoreBase with Store {
   HomeFeed get _homeFeed =>
       startPlace(startTab, loggedIn: authStore.isLoggedIn).feed;
 
+  /// The section the app opens on (Browse when "Open the app on" says so).
+  ShellSection get _startSection =>
+      startPlace(startTab, loggedIn: authStore.isLoggedIn).section;
+
   /// Opens [section]; tapping the one on screen scrolls it to the top.
   /// Returns whether the section changed.
   @action
@@ -220,19 +224,28 @@ abstract class HomeStoreBase with Store {
     return true;
   }
 
-  /// Whether Android's back leaves the app (Home, on its start tab).
+  /// Whether Android's back leaves the app: on the section it opens on
+  /// (Home on its start tab, or Browse).
   @computed
-  bool get canLeave => _section == ShellSection.home && _feed == _restFeed;
+  bool get canLeave =>
+      _section == _startSection &&
+      (_section != ShellSection.home || _feed == _restFeed);
 
-  /// Android's back: another section goes back to Home, another Home tab
-  /// to the start one (never to the clips, which play); only then does the
-  /// app close (false).
+  /// Android's back: another section goes back to the one the app opens on
+  /// (Home, or Browse), another Home tab to the start one (never to the
+  /// clips, which play); only then does the app close (false).
   @action
   bool handleBack() {
-    if (_section != ShellSection.home) {
-      _section = ShellSection.home;
+    final start = _startSection;
+    if (_section != start) {
+      // Leaving the clips stops them, as when another section is chosen.
+      if (_section == ShellSection.home && _feed == HomeFeed.clips) {
+        _feed = _restFeed;
+      }
+      _section = start;
       return true;
     }
+    if (_section != ShellSection.home) return false;
     final rest = _restFeed;
     if (_feed != rest) {
       _feed = rest;

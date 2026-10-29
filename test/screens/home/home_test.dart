@@ -1325,6 +1325,8 @@ void main() {
     await pump(tester);
     expect(find.byType(Categories), findsOneWidget);
     expect(find.text('Browse'), findsWidgets);
+    // Its first section: Back closes the app from there.
+    expect(await tester.binding.handlePopRoute(), isFalse);
     await close(tester);
   });
 

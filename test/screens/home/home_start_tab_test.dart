@@ -113,6 +113,47 @@ void main() {
       clips.dispose();
     });
 
+    test('opened on Browse: Back leaves from Browse, and leads there', () {
+      final store = HomeStore(
+        authStore: FakeAuthStore(true),
+        startTab: HomeTab.browse,
+      );
+      expect(store.canLeave, isTrue);
+      expect(store.handleBack(), isFalse);
+      expect(store.section, ShellSection.browse);
+
+      // From Home's clips: back to Browse, and the clips stop.
+      store
+        ..selectSection(ShellSection.home)
+        ..selectFeed(HomeFeed.clips);
+      expect(store.canLeave, isFalse);
+      expect(store.handleBack(), isTrue);
+      expect(store.section, ShellSection.browse);
+      expect(store.feed, HomeFeed.following);
+      expect(store.canLeave, isTrue);
+
+      // From Activity too.
+      store.selectSection(ShellSection.activity);
+      expect(store.handleBack(), isTrue);
+      expect(store.section, ShellSection.browse);
+      store.dispose();
+    });
+
+    test('opened on Home: Back still leads to Home, then to its tab', () {
+      final store = HomeStore(authStore: FakeAuthStore(true))
+        ..selectSection(ShellSection.browse);
+      expect(store.canLeave, isFalse);
+      expect(store.handleBack(), isTrue);
+      expect(store.section, ShellSection.home);
+      expect(store.canLeave, isTrue);
+      store.selectFeed(HomeFeed.live);
+      expect(store.canLeave, isFalse);
+      expect(store.handleBack(), isTrue);
+      expect(store.feed, HomeFeed.following);
+      expect(store.canLeave, isTrue);
+      store.dispose();
+    });
+
     test('the choices of the setting are the new places', () {
       expect(
         [for (final tab in HomeTab.values) tab.label],
