@@ -37,6 +37,10 @@ class StreamCard extends StatelessWidget {
   /// The grid tile of a tablet (thumbnail on top).
   final bool tile;
 
+  /// The tag of the list the card is in (a tag's page): its pill is lit
+  /// and does not open the page again.
+  final String? activeTag;
+
   const StreamCard({
     super.key,
     required this.streamInfo,
@@ -47,6 +51,7 @@ class StreamCard extends StatelessWidget {
     this.hypeTrain,
     this.watchStreak,
     this.tile = false,
+    this.activeTag,
   });
 
   /// The row's thumbnail width (board: 150; 200 in a wide row).
@@ -158,6 +163,7 @@ class StreamCard extends StatelessWidget {
         ? null
         : StreamTags(
             tags: streamInfo.tags,
+            active: activeTag,
             onTap: (tag) => TagStreams.open(context, tag),
           );
     return Column(
@@ -195,6 +201,17 @@ class StreamCard extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 13, color: colors.body),
+          ),
+        // A category's list names no category: its viewers instead (board
+        // Categorie).
+        if (!showCategory && showThumbnail)
+          Text(
+            '${formatViewers(streamInfo.viewerCount, compact: false)} viewers',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: FrostyType.tabular(
+              TextStyle(fontSize: 12, color: colors.secondary),
+            ),
           ),
         if (showCategory)
           Semantics(

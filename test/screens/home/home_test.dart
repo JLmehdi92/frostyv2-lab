@@ -21,6 +21,9 @@ import 'package:frosty/screens/home/home.dart';
 import 'package:frosty/screens/home/live_feed/live_feed.dart';
 import 'package:frosty/screens/home/search/search.dart';
 import 'package:frosty/screens/home/shell/onset_shell.dart';
+import 'package:frosty/screens/home/shell/shell_tabs.dart';
+import 'package:frosty/screens/home/stream_list/stream_list_store.dart';
+import 'package:frosty/screens/home/stream_list/streams_list.dart';
 import 'package:frosty/screens/home/top/categories/categories.dart';
 import 'package:frosty/screens/settings/general_settings.dart';
 import 'package:frosty/screens/settings/profile_tab.dart';
@@ -1032,6 +1035,52 @@ void main() {
     await pump(tester);
     expect(find.byType(Categories), findsOneWidget);
     expect(find.text('Browse'), findsWidgets);
+    await close(tester);
+  });
+
+  testWidgets('Browse: Categories and Live channels, kept between visits', (
+    tester,
+  ) async {
+    await pump(tester);
+    await tester.tap(nav('browse'));
+    await tester.pumpAndSettle();
+    ShellTabs browseTabs() => tester.widget<ShellTabs>(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is ShellTabs && widget.labels.contains('Live channels'),
+      ),
+    );
+    expect(browseTabs().labels, ['Categories', 'Live channels']);
+    expect(browseTabs().index, 0);
+    expect(find.byType(Categories), findsOneWidget);
+    expect(find.text('No top categories'), findsOneWidget);
+
+    await tester.tap(find.text('Live channels'));
+    await tester.pumpAndSettle();
+    final live = find.byWidgetPredicate(
+      (widget) => widget is StreamsList && widget.listType == ListType.top,
+    );
+    expect(live, findsOneWidget);
+    expect(find.text('No top streams'), findsOneWidget);
+
+    // Home and back: Browse is still on its live channels.
+    await tester.tap(nav('home'));
+    await tester.pumpAndSettle();
+    await tester.tap(nav('browse'));
+    await tester.pumpAndSettle();
+    expect(browseTabs().index, 1);
+    expect(live, findsOneWidget);
+    await close(tester);
+  });
+
+  testWidgets('Browse on a tablet: the tabs under the top bar, the rail', (
+    tester,
+  ) async {
+    settings.startTab = HomeTab.browse;
+    await pump(tester, size: const Size(1280, 854), mode: ThemeMode.dark);
+    expect(find.text('Live channels'), findsOneWidget);
+    expect(find.text('Top categories'), findsOneWidget);
+    expect(tester.takeException(), isNull);
     await close(tester);
   });
 

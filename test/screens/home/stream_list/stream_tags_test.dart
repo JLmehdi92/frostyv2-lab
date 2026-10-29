@@ -8,6 +8,7 @@ void main() {
     List<String> tags,
     double width, {
     ValueChanged<String>? onTap,
+    String? active,
   }) => tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
@@ -15,7 +16,7 @@ void main() {
           alignment: Alignment.topLeft,
           child: SizedBox(
             width: width,
-            child: StreamTags(tags: tags, onTap: onTap),
+            child: StreamTags(tags: tags, onTap: onTap, active: active),
           ),
         ),
       ),
@@ -65,5 +66,26 @@ void main() {
     // Cut off by the card's edge: not reachable.
     await tester.tapAt(tester.getCenter(find.text('Hidden')));
     expect(opened, ['Chill']);
+  });
+
+  testWidgets('on its own page, a tag is lit and does not open again', (
+    tester,
+  ) async {
+    final opened = <String>[];
+    await pump(
+      tester,
+      ['Chill', 'Speedrun'],
+      300,
+      onTap: opened.add,
+      active: 'chill',
+    );
+
+    await tester.tap(find.text('Chill'));
+    await tester.tap(find.text('Speedrun'));
+    expect(opened, ['Speedrun']);
+    expect(find.bySemanticsLabel('Tag Chill'), findsNothing);
+    final lit = tester.widget<Text>(find.text('Chill'));
+    final other = tester.widget<Text>(find.text('Speedrun'));
+    expect(lit.style!.color, isNot(other.style!.color));
   });
 }

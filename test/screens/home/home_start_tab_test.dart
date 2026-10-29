@@ -250,4 +250,55 @@ void main() {
       store.dispose();
     });
   });
+
+  group('Browse tabs', () {
+    testWidgets('a tab is kept across sections; a second tap goes back up', (
+      tester,
+    ) async {
+      final store = HomeStore(authStore: FakeAuthStore(true));
+      addTearDown(store.dispose);
+      expect(store.browseTab, BrowseTab.categories);
+      expect(store.selectBrowseTab(BrowseTab.live), isTrue);
+      store
+        ..selectSection(ShellSection.browse)
+        ..selectSection(ShellSection.home)
+        ..selectSection(ShellSection.browse);
+      expect(store.browseTab, BrowseTab.live);
+
+      // The live channels scrolled down: tapping their tab, or Browse,
+      // brings them back to the top; the categories stay where they were.
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Row(
+            children: [
+              for (final controller in [
+                store.categoriesScrollController,
+                store.browseLiveScrollController,
+              ])
+                Expanded(
+                  child: ListView.builder(
+                    controller: controller,
+                    itemExtent: 100,
+                    itemCount: 100,
+                    itemBuilder: (context, index) => Text('$index'),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+      store.categoriesScrollController.jumpTo(500);
+      store.browseLiveScrollController.jumpTo(500);
+      expect(store.selectBrowseTab(BrowseTab.live), isFalse);
+      await tester.pumpAndSettle();
+      expect(store.browseLiveScrollController.offset, 0);
+      expect(store.categoriesScrollController.offset, 500);
+
+      store.browseLiveScrollController.jumpTo(500);
+      expect(store.selectSection(ShellSection.browse), isFalse);
+      await tester.pumpAndSettle();
+      expect(store.browseLiveScrollController.offset, 0);
+      expect(store.categoriesScrollController.offset, 500);
+    });
+  });
 }

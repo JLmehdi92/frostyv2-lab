@@ -10,7 +10,6 @@ import 'package:frosty/apis/twitch_followed_categories_service.dart';
 import 'package:frosty/apis/twitch_hype_train_service.dart';
 import 'package:frosty/apis/twitch_vod_service.dart';
 import 'package:frosty/apis/twitch_watch_streak_service.dart';
-import 'package:frosty/constants.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/screens/home/continue_watching/continue_watching.dart';
 import 'package:frosty/screens/home/continue_watching/stores/continue_watching_store.dart';
@@ -61,6 +60,18 @@ class StreamsList extends StatefulWidget {
 
   final bool showJumpButton;
 
+  /// Room above the list for a fixed header drawn over it (the tag page's).
+  final double topInset;
+
+  /// Slivers before the list, in every state (loading, empty, error): a
+  /// header that scrolls with it (the category page's, a section title).
+  final List<Widget> leadingSlivers;
+
+  /// The sides of a tablet grid (top, category and tag lists), and the
+  /// narrowest a tile may get (more columns fit a narrower one).
+  final double gridGutter;
+  final double tileMinWidth;
+
   const StreamsList({
     super.key,
     required this.listType,
@@ -69,6 +80,10 @@ class StreamsList extends StatefulWidget {
     this.sort = StreamSort.viewersHigh,
     this.scrollController,
     this.showJumpButton = false,
+    this.topInset = 0,
+    this.leadingSlivers = const [],
+    this.gridGutter = FrostySpacing.gutterTablet,
+    this.tileMinWidth = 240,
   });
 
   @override
@@ -182,11 +197,7 @@ class _StreamsListState extends State<StreamsList>
   /// "Try again" (approved addition): the same as pulling to refresh.
   void _retry() => unawaited(_refresh());
 
-  double get _extraTopPadding => switch (widget.listType) {
-    ListType.category => kToolbarHeight + 122 + kCategorySectionsHeight,
-    ListType.tag => kToolbarHeight + kCategorySectionsHeight,
-    _ => 0.0,
-  };
+  double get _extraTopPadding => widget.topInset;
 
   @override
   Widget build(BuildContext context) {
@@ -215,6 +226,7 @@ class _StreamsListState extends State<StreamsList>
           physics: const NeverScrollableScrollPhysics(),
           slivers: [
             SliverTopPadding(extraTopPadding: _extraTopPadding),
+            ...widget.leadingSlivers,
             ..._skeleton(context, settingsStore),
             const SliverBottomPadding(),
           ],
@@ -249,6 +261,7 @@ class _StreamsListState extends State<StreamsList>
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverTopPadding(extraTopPadding: _extraTopPadding),
+            ...widget.leadingSlivers,
             // Past videos, videos to resume and the followed categories are
             // worth a look most when nobody is live, and they load on their
             // own: they stay when the live list failed.
@@ -305,6 +318,7 @@ class _StreamsListState extends State<StreamsList>
               controller: _listStore.scrollController,
               slivers: [
                 SliverTopPadding(extraTopPadding: _extraTopPadding),
+                ...widget.leadingSlivers,
                 ...slivers,
                 // Room for the bottom navigation bar.
                 const SliverBottomPadding(),
@@ -375,6 +389,7 @@ class _StreamsListState extends State<StreamsList>
       hypeTrain: hypeTrain,
       watchStreak: _streak(stream),
       tile: tile,
+      activeTag: widget.listType == ListType.tag ? widget.tag : null,
     );
   }
 
@@ -483,7 +498,7 @@ class _StreamsListState extends State<StreamsList>
         ),
       ),
       if (_listStore.isOfflineChannelsExpanded)
-        _GridSliver(
+        RowGridSliver(
           itemCount: _listStore.offlineChannels.length,
           columns: large ? _columns(context, minWidth: 360) : 1,
           gutter: large ? FrostySpacing.gutterTablet - 16 : 0,
@@ -512,12 +527,14 @@ class _StreamsListState extends State<StreamsList>
   // Following, tablet (board TabletteAccueil).
 
   /// Grid columns in this page's width, each at least [minWidth] wide.
-  int _columns(BuildContext context, {required double minWidth}) {
+  int _columns(
+    BuildContext context, {
+    required double minWidth,
+    double gutter = FrostySpacing.gutterTablet,
+  }) {
     final padding = MediaQuery.paddingOf(context);
     final width =
-        MediaQuery.sizeOf(context).width -
-        padding.horizontal -
-        2 * FrostySpacing.gutterTablet;
+        MediaQuery.sizeOf(context).width - padding.horizontal - 2 * gutter;
     return math.max(1, ((width + 20) / (minWidth + 20)).floor());
   }
 
@@ -545,7 +562,7 @@ class _StreamsListState extends State<StreamsList>
         : _columns(context, minWidth: 240);
 
     Widget grid(List<StreamTwitch> streams, {required bool isPinned}) =>
-        _GridSliver(
+        RowGridSliver(
           itemCount: streams.length,
           columns: columns,
           itemBuilder: (context, index) {
@@ -669,13 +686,14 @@ class _StreamsListState extends State<StreamsList>
     final streams = _listStore.streams;
     final large = context.isLargeScreen;
     final heroAll = settings.largeStreamCard && settings.showThumbnails;
+    final gutter = widget.gridGutter;
     final columns = !large
         ? 1
         : !settings.showThumbnails
-        ? _columns(context, minWidth: 360)
+        ? _columns(context, minWidth: 360, gutter: gutter)
         : heroAll
-        ? _columns(context, minWidth: 380)
-        : _columns(context, minWidth: 240);
+        ? _columns(context, minWidth: 380, gutter: gutter)
+        : _columns(context, minWidth: widget.tileMinWidth, gutter: gutter);
     return [
       SliverToBoxAdapter(
         child: Observer(
@@ -686,10 +704,10 @@ class _StreamsListState extends State<StreamsList>
         ),
       ),
       if (large) const SliverToBoxAdapter(child: SizedBox(height: 12)),
-      _GridSliver(
+      RowGridSliver(
         itemCount: streams.length,
         columns: columns,
-        gutter: large ? FrostySpacing.gutterTablet : 0,
+        gutter: large ? gutter : 0,
         gap: large ? 20 : 0,
         rowGap: large ? 22 : 0,
         itemBuilder: (context, index) {
@@ -762,11 +780,16 @@ class _StreamsListState extends State<StreamsList>
       ];
     }
     final padding = MediaQuery.paddingOf(context);
+    final gutter = _following ? FrostySpacing.gutterTablet : widget.gridGutter;
     final columns = !thumbnails
-        ? _columns(context, minWidth: 360)
+        ? _columns(context, minWidth: 360, gutter: gutter)
         : heroAll
-        ? _columns(context, minWidth: 380)
-        : _columns(context, minWidth: 240);
+        ? _columns(context, minWidth: 380, gutter: gutter)
+        : _columns(
+            context,
+            minWidth: _following ? 240 : widget.tileMinWidth,
+            gutter: gutter,
+          );
     return [
       if (_following && thumbnails)
         SliverPadding(
@@ -811,8 +834,9 @@ class _StreamsListState extends State<StreamsList>
         )
       else
         const SliverToBoxAdapter(child: SizedBox(height: 12)),
-      _GridSliver(
+      RowGridSliver(
         itemCount: columns * 2,
+        gutter: gutter,
         columns: columns,
         itemBuilder: (context, index) => StaggeredEntrance(
           index: index,
@@ -837,14 +861,16 @@ class _StreamsListState extends State<StreamsList>
 
 /// Cards in [columns] (one: a plain list), [gap] apart, in the page's
 /// [gutter]; a row's cards top-aligned.
-class _GridSliver extends StatelessWidget {
-  const _GridSliver({
+class RowGridSliver extends StatelessWidget {
+  const RowGridSliver({
+    super.key,
     required this.itemCount,
     required this.columns,
     required this.itemBuilder,
     this.gutter = FrostySpacing.gutterTablet,
     this.gap = 20,
     this.rowGap = 22,
+    this.padding,
   });
 
   final int itemCount;
@@ -854,17 +880,22 @@ class _GridSliver extends StatelessWidget {
   final double gap;
   final double rowGap;
 
+  /// The grid's sides, instead of [gutter] and the window's insets.
+  final EdgeInsets? padding;
+
   @override
   Widget build(BuildContext context) {
     if (columns <= 1) {
       return SliverList.builder(itemCount: itemCount, itemBuilder: itemBuilder);
     }
-    final padding = MediaQuery.paddingOf(context);
+    final window = MediaQuery.paddingOf(context);
     return SliverPadding(
-      padding: EdgeInsets.only(
-        left: gutter + padding.left,
-        right: gutter + padding.right,
-      ),
+      padding:
+          padding ??
+          EdgeInsets.only(
+            left: gutter + window.left,
+            right: gutter + window.right,
+          ),
       sliver: SliverList.builder(
         itemCount: (itemCount / columns).ceil(),
         itemBuilder: (context, row) => Padding(

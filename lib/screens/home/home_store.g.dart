@@ -89,6 +89,26 @@ mixin _$HomeStore on HomeStoreBase, Store {
     });
   }
 
+  late final _$_browseTabAtom = Atom(
+    name: 'HomeStoreBase._browseTab',
+    context: context,
+  );
+
+  BrowseTab get browseTab {
+    _$_browseTabAtom.reportRead();
+    return super._browseTab;
+  }
+
+  @override
+  BrowseTab get _browseTab => browseTab;
+
+  @override
+  set _browseTab(BrowseTab value) {
+    _$_browseTabAtom.reportWrite(value, super._browseTab, () {
+      super._browseTab = value;
+    });
+  }
+
   late final _$HomeStoreBaseActionController = ActionController(
     name: 'HomeStoreBase',
     context: context,
@@ -125,6 +145,18 @@ mixin _$HomeStore on HomeStoreBase, Store {
     );
     try {
       return super.selectFeed(feed);
+    } finally {
+      _$HomeStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  bool selectBrowseTab(BrowseTab tab) {
+    final _$actionInfo = _$HomeStoreBaseActionController.startAction(
+      name: 'HomeStoreBase.selectBrowseTab',
+    );
+    try {
+      return super.selectBrowseTab(tab);
     } finally {
       _$HomeStoreBaseActionController.endAction(_$actionInfo);
     }

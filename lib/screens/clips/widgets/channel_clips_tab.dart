@@ -21,7 +21,12 @@ class ChannelClipsTab extends StatefulWidget {
     this.showChannel = false,
     this.leadingSlivers = const [],
     this.refreshEdgeOffset = 0,
+    this.filtersInList = false,
   });
+
+  /// The period and sort chips scroll with the list, after
+  /// [leadingSlivers] (a category's header), instead of staying above it.
+  final bool filtersInList;
 
   /// Where the pull-to-refresh spinner starts: under a [NestedScrollView]'s
   /// pinned headers.
@@ -152,7 +157,8 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           ...widget.leadingSlivers,
-          if (nested) SliverToBoxAdapter(child: ClipFilterBar(store: store)),
+          if (nested || widget.filtersInList)
+            SliverToBoxAdapter(child: ClipFilterBar(store: store)),
           Observer(key: _contentKey, builder: _content),
         ],
       ),
@@ -161,7 +167,7 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        ClipFilterBar(store: store),
+        if (!widget.filtersInList) ClipFilterBar(store: store),
         Expanded(
           child: Stack(
             alignment: AlignmentDirectional.bottomCenter,

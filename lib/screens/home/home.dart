@@ -18,7 +18,7 @@ import 'package:frosty/screens/home/shell/onset_shell.dart';
 import 'package:frosty/screens/home/shell/shell_pages.dart';
 import 'package:frosty/screens/home/stream_list/stream_list_store.dart';
 import 'package:frosty/screens/home/stream_list/streams_list.dart';
-import 'package:frosty/screens/home/top/categories/categories.dart';
+import 'package:frosty/screens/home/top/browse_page.dart';
 import 'package:frosty/screens/settings/profile_tab.dart';
 import 'package:frosty/screens/settings/settings.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
@@ -321,11 +321,15 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
               : null,
         );
       case ShellSection.browse:
+        const tabs = BrowseTab.values;
         return ShellHeader(
           title: 'Browse',
           showSearch: false,
           showWhispers: loggedIn,
           searchField: true,
+          tabs: [for (final tab in tabs) tab.label],
+          tabIndex: tabs.indexOf(_homeStore.browseTab),
+          onTab: (i) => _homeStore.selectBrowseTab(tabs[i]),
         );
       case ShellSection.activity:
         final tabs = _homeStore.activityTabs;
@@ -432,17 +436,22 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     final data = ShellMetrics.page(media, _headerFor(page, feed, page: true));
     final loggedIn = _authStore.isLoggedIn;
     final activityTab = _homeStore.activityTab;
+    final browseTab = _homeStore.browseTab;
     final active = section == ShellSection.activity && !_covered;
     return _memo(
       page,
-      page == ShellSection.activity
-          ? (data, loggedIn, activityTab, active)
-          : data,
+      switch (page) {
+        ShellSection.activity => (data, loggedIn, activityTab, active),
+        ShellSection.browse => (data, browseTab),
+        _ => data,
+      },
       () => MediaQuery(
         data: data,
         child: switch (page) {
-          ShellSection.browse => Categories(
-            scrollController: _homeStore.categoriesScrollController,
+          ShellSection.browse => BrowsePage(
+            tab: browseTab,
+            categoriesController: _homeStore.categoriesScrollController,
+            liveController: _homeStore.browseLiveScrollController,
           ),
           ShellSection.activity => ActivityScreen(
             store: _activityStore,

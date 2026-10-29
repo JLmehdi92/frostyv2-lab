@@ -30,6 +30,16 @@ enum HomeFeed {
   final String label;
 }
 
+/// Browse's tabs (boards Parcourir and ParcourirTablette).
+enum BrowseTab {
+  categories('Categories'),
+  live('Live channels');
+
+  const BrowseTab(this.label);
+
+  final String label;
+}
+
 /// Activity's tabs (Whispers only when logged in).
 enum ActivityTab {
   notifications('Notifications'),
@@ -78,6 +88,9 @@ abstract class HomeStoreBase with Store {
   /// Browse's categories.
   final categoriesScrollController = ScrollController();
 
+  /// Browse's live channels (the top streams).
+  final browseLiveScrollController = ScrollController();
+
   /// The section on screen.
   @readonly
   var _section = ShellSection.home;
@@ -89,6 +102,10 @@ abstract class HomeStoreBase with Store {
   /// Activity's tab.
   @readonly
   var _activityTab = ActivityTab.notifications;
+
+  /// Browse's tab.
+  @readonly
+  var _browseTab = BrowseTab.categories;
 
   /// Home's tabs: no Following when logged out.
   @computed
@@ -154,7 +171,7 @@ abstract class HomeStoreBase with Store {
       case ShellSection.home:
         _scrollToTop(_controllerOf(_feed));
       case ShellSection.browse:
-        _scrollToTop(categoriesScrollController);
+        _scrollToTop(_browseController(_browseTab));
       case ShellSection.activity || ShellSection.profile:
         break;
     }
@@ -173,6 +190,23 @@ abstract class HomeStoreBase with Store {
     _scrollToTop(_controllerOf(feed));
     return false;
   }
+
+  /// Opens Browse's [tab]; tapping the one on screen scrolls it to the top.
+  /// Returns whether the tab changed.
+  @action
+  bool selectBrowseTab(BrowseTab tab) {
+    if (tab != _browseTab) {
+      _browseTab = tab;
+      return true;
+    }
+    _scrollToTop(_browseController(tab));
+    return false;
+  }
+
+  ScrollController _browseController(BrowseTab tab) => switch (tab) {
+    BrowseTab.categories => categoriesScrollController,
+    BrowseTab.live => browseLiveScrollController,
+  };
 
   /// Opens Activity's [tab]. Returns whether it changed.
   @action
@@ -223,5 +257,6 @@ abstract class HomeStoreBase with Store {
     followedScrollController.dispose();
     liveScrollController.dispose();
     categoriesScrollController.dispose();
+    browseLiveScrollController.dispose();
   }
 }
