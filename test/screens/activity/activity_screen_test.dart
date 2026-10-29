@@ -120,6 +120,35 @@ void main() {
     );
   });
 
+  testWidgets('phone: Notifications and Whispers keep their scroll between '
+      'their tabs', (tester) async {
+    await store.addAll([
+      for (var i = 0; i < 40; i++) _entry('$i', ago: Duration(minutes: i + 1)),
+    ]);
+    final whispers = whisperStore(const Stream.empty());
+    double offset() => tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position
+        .pixels;
+
+    await pump(tester, whispers: whispers);
+    tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position
+        .jumpTo(900);
+    await tester.pump();
+    expect(offset(), 900);
+
+    await pump(tester, whispers: whispers, tab: ActivityTab.whispers);
+    expect(find.byType(WhispersList), findsOneWidget);
+    expect(find.text('Title 0'), findsNothing);
+
+    await pump(tester, whispers: whispers);
+    expect(find.byType(WhispersList), findsNothing);
+    expect(offset(), 900);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('most recent and earlier, with their category and time', (
     tester,
   ) async {

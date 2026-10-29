@@ -108,10 +108,20 @@ class _ActivityScreenState extends State<ActivityScreen> {
   void _opened() =>
       unawaited(widget.store.refresh().then((_) => widget.store.markViewed()));
 
+  /// The phone's two tabs keep their scroll while the other one shows.
+  final _notificationsScroll = ScrollController();
+  final _whispersScroll = ScrollController();
+
+  /// Whispers was shown on this phone page: it stays built (its list is
+  /// in memory, nothing is loaded for it).
+  var _whispersBuilt = false;
+
   @override
   void dispose() {
     _lifecycle.dispose();
     _disposeSeen?.call();
+    _notificationsScroll.dispose();
+    _whispersScroll.dispose();
     super.dispose();
   }
 
@@ -131,10 +141,38 @@ class _ActivityScreenState extends State<ActivityScreen> {
         whispers: whispers,
       );
     }
-    if (whispers != null && widget.tab == ActivityTab.whispers) {
-      return WhispersList(store: whispers);
+    final showWhispers = whispers != null && widget.tab == ActivityTab.whispers;
+    if (whispers == null) {
+      _whispersBuilt = false;
+    } else if (showWhispers) {
+      _whispersBuilt = true;
     }
-    return notifications;
+    // Both kept, each with its own scroll: switching tabs never resets
+    // either. Each list scrolls with its own primary controller (as the
+    // page's only list did).
+    return IndexedStack(
+      index: showWhispers ? 1 : 0,
+      sizing: StackFit.expand,
+      children: [
+        TickerMode(
+          enabled: !showWhispers,
+          child: PrimaryScrollController(
+            controller: _notificationsScroll,
+            child: notifications,
+          ),
+        ),
+        if (whispers != null && _whispersBuilt)
+          TickerMode(
+            enabled: showWhispers,
+            child: PrimaryScrollController(
+              controller: _whispersScroll,
+              child: WhispersList(store: whispers),
+            ),
+          )
+        else
+          const SizedBox.shrink(),
+      ],
+    );
   }
 }
 
