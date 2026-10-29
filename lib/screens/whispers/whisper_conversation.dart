@@ -518,20 +518,24 @@ class _Bubble extends StatefulWidget {
 
 class _BubbleState extends State<_Bubble> with SingleTickerProviderStateMixin {
   AnimationController? _entrance;
+  CurvedAnimation? _curve;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_entrance == null && widget.fresh && !reduceMotionOf(context)) {
-      _entrance = AnimationController(
+      final entrance = AnimationController(
         vsync: this,
         duration: const Duration(milliseconds: 280),
       )..forward();
+      _entrance = entrance;
+      _curve = CurvedAnimation(parent: entrance, curve: FrostyMotion.standard);
     }
   }
 
   @override
   void dispose() {
+    _curve?.dispose();
     _entrance?.dispose();
     super.dispose();
   }
@@ -595,12 +599,8 @@ class _BubbleState extends State<_Bubble> with SingleTickerProviderStateMixin {
         ),
       ),
     );
-    final entrance = _entrance;
-    if (entrance != null) {
-      final curve = CurvedAnimation(
-        parent: entrance,
-        curve: FrostyMotion.standard,
-      );
+    final curve = _curve;
+    if (curve != null) {
       bubble = SizeTransition(
         sizeFactor: curve,
         axisAlignment: -1,

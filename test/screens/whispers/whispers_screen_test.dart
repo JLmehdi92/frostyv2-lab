@@ -216,6 +216,102 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets(
+    'a swipe from the left edge closes the conversation',
+    (tester) async {
+      init();
+      receive('hey');
+      await tester.pump();
+      await pumpScreen(tester, WhispersScreen(store: store));
+      await tester.tap(find.text('Friend'));
+      await tester.pumpAndSettle();
+      expect(store.openUserId, '8');
+
+      // A short, slow drag follows the finger, then springs back.
+      final gesture = await tester.startGesture(const Offset(4, 420));
+      await gesture.moveBy(const Offset(20, 0));
+      await gesture.moveBy(const Offset(60, 0));
+      await tester.pump();
+      final layer = find.ancestor(
+        of: find.byType(WhisperConversation),
+        matching: find.byType(FractionalTranslation),
+      );
+      final dragged = tester
+          .widget<FractionalTranslation>(layer.first)
+          .translation
+          .dx;
+      expect(dragged, closeTo(80 / 390, 0.02));
+      await tester.pump(const Duration(seconds: 1));
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(find.byType(WhisperConversation), findsOneWidget);
+      expect(
+        tester.widget<FractionalTranslation>(layer.first).translation.dx,
+        0,
+      );
+      expect(store.openUserId, '8');
+
+      // Past the middle: it closes.
+      await tester.timedDragFrom(
+        const Offset(4, 420),
+        const Offset(260, 0),
+        const Duration(seconds: 1),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(WhisperConversation), findsNothing);
+      expect(store.openUserId, isNull);
+
+      // A quick flick closes it too.
+      await tester.tap(find.text('Friend'));
+      await tester.pumpAndSettle();
+      await tester.flingFrom(const Offset(4, 420), const Offset(90, 0), 1500);
+      await tester.pumpAndSettle();
+      expect(find.byType(WhisperConversation), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant.mobile(),
+  );
+
+  testWidgets('closed on a phone, not reopened when the window becomes a '
+      'tablet', (tester) async {
+    init();
+    receive('hey');
+    await tester.pump();
+    await pumpScreen(tester, WhispersScreen(store: store));
+    await tester.tap(find.text('Friend'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+    receive('later', id: 'w2');
+    await settle(tester);
+    expect(store.unreadCount, 1);
+
+    tester.view.physicalSize = _tablet;
+    await tester.pumpAndSettle();
+    expect(find.byType(WhisperConversation), findsNothing);
+    expect(store.openUserId, isNull);
+    expect(store.unreadCount, 1);
+    expect(find.text('Choose a conversation'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('an unread count grows with the text size', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MediaQuery(
+          data: MediaQueryData(textScaler: TextScaler.linear(2)),
+          child: Center(child: WhisperCountPill(count: 12)),
+        ),
+      ),
+    );
+    final pill = tester.getSize(find.byType(WhisperCountPill));
+    final digits = tester.getSize(find.text('12'));
+    expect(pill.height, greaterThanOrEqualTo(digits.height));
+    expect(pill.width, greaterThanOrEqualTo(digits.width));
+    expect(pill.height, 40);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('opening a conversation reads it; sending adds a bubble', (
     tester,
   ) async {

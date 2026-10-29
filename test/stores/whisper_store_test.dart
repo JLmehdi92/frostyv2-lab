@@ -60,6 +60,13 @@ void main() {
     expect(whisperPreview('  tab\there  '), 'tab here');
   });
 
+  test('whisperPreview flattens Unicode line breaks and drops invisible '
+      'characters', () {
+    expect(whisperPreview('hi\u2028Staff\u2029: x'), 'hi Staff : x');
+    expect(whisperPreview('a\u061Cb'), 'a b');
+    expect(whisperPreview('St\u200Ba\u200Cf\u200Df\u2060\uFEFF'), 'Staff');
+  });
+
   group('WhisperStore', () {
     late MockTwitchApi api;
     late Observable<String?> user;

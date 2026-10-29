@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -99,6 +102,15 @@ class _WhispersScreenState extends State<WhispersScreen>
   /// window crosses the tablet size.
   final _keys = <String, GlobalKey>{};
 
+  /// The tablet opens the most recent conversation by itself (the board),
+  /// until the viewer closes one: then the pane waits for a choice, so a
+  /// conversation is never read without being opened.
+  var _autoOpen = true;
+
+  /// The conversation follows a finger dragging it from the left edge:
+  /// the slide is linear, under the finger, until it settles.
+  var _dragging = false;
+
   @override
   void initState() {
     super.initState();
@@ -116,6 +128,8 @@ class _WhispersScreenState extends State<WhispersScreen>
       setState(() {
         _selected = null;
         _open = false;
+        _autoOpen = true;
+        _dragging = false;
       });
       _slide.value = 0;
     });
@@ -162,8 +176,63 @@ class _WhispersScreenState extends State<WhispersScreen>
       context,
       const Duration(milliseconds: 340),
     );
-    setState(() => _open = false);
+    setState(() {
+      _open = false;
+      _autoOpen = false;
+    });
     await _slide.reverse();
+    _closed();
+  }
+
+  /// The conversation slid away: it is no longer chosen (a window that
+  /// becomes a tablet does not open it again).
+  void _closed() {
+    if (!mounted || _open) return;
+    setState(() {
+      _selected = null;
+      _dragging = false;
+    });
+  }
+
+  // A swipe from the left edge closes the conversation, following the
+  // finger (the page's own back gesture would leave the whispers).
+
+  void _dragStart(DragStartDetails details) {
+    if (!_open) return;
+    _slide.stop();
+    setState(() => _dragging = true);
+  }
+
+  void _dragUpdate(DragUpdateDetails details) {
+    if (!_dragging) return;
+    final width = MediaQuery.sizeOf(context).width;
+    _slide.value -= (details.primaryDelta ?? 0) / width;
+  }
+
+  Future<void> _dragEnd(double velocity) async {
+    if (!_dragging) return;
+    // A flick decides; otherwise where the finger let go.
+    final close = velocity > 700 || (velocity > -700 && _slide.value < 0.5);
+    final value = _slide.value;
+    if (close) {
+      setState(() {
+        _open = false;
+        _autoOpen = false;
+      });
+      await _slide.animateTo(
+        0,
+        duration: Duration(milliseconds: (340 * value).round()),
+        curve: FrostyMotion.standard,
+      );
+      _closed();
+    } else {
+      await _slide.animateTo(
+        1,
+        duration: Duration(milliseconds: (340 * (1 - value)).round()),
+        curve: FrostyMotion.standard,
+      );
+      if (mounted) setState(() => _dragging = false);
+    }
   }
 
   GlobalKey _keyOf(WhisperTarget target) =>
@@ -220,7 +289,9 @@ class _WhispersScreenState extends State<WhispersScreen>
     return AnimatedBuilder(
       animation: _slide,
       builder: (context, _) {
-        final t = FrostyMotion.standard.transform(_slide.value);
+        final t = _dragging
+            ? _slide.value
+            : FrostyMotion.standard.transform(_slide.value);
         final showList =
             (!widget.conversationOnly || selected == null) && _slide.value < 1;
         final showConversation =
@@ -270,6 +341,23 @@ class _WhispersScreenState extends State<WhispersScreen>
                   ),
                 ),
               ),
+            if (showConversation && !widget.conversationOnly)
+              Positioned(
+                key: const ValueKey('whisper-edge-swipe'),
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: 20 + MediaQuery.paddingOf(context).left,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  dragStartBehavior: DragStartBehavior.down,
+                  onHorizontalDragStart: _dragStart,
+                  onHorizontalDragUpdate: _dragUpdate,
+                  onHorizontalDragEnd: (details) =>
+                      unawaited(_dragEnd(details.velocity.pixelsPerSecond.dx)),
+                  onHorizontalDragCancel: () => unawaited(_dragEnd(0)),
+                ),
+              ),
           ],
         );
       },
@@ -284,7 +372,7 @@ class _WhispersScreenState extends State<WhispersScreen>
     final threads = widget.store.threads;
     // The first conversation on screen when none was chosen; kept, so a
     // whisper arriving elsewhere does not switch the pane.
-    if (_selected == null && threads.isNotEmpty) {
+    if (_selected == null && threads.isNotEmpty && _autoOpen) {
       _selected = WhisperTarget.of(threads.first);
     }
     final selected = _selected;
@@ -381,9 +469,14 @@ class _WhispersScreenState extends State<WhispersScreen>
                 removeBottom: true,
                 removeLeft: true,
                 removeRight: true,
-                child: selected == null
+                child: selected != null
+                    ? _conversation(selected, pane: true)
+                    : threads.isEmpty
                     ? const _NoWhispers()
-                    : _conversation(selected, pane: true),
+                    : const FeedStatusView.empty(
+                        message: 'Choose a conversation',
+                        glyph: StateGlyphKind.whisper,
+                      ),
               ),
             ),
           ),

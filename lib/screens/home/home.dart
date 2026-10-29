@@ -34,6 +34,7 @@ import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/launch/launch_intro.dart';
 import 'package:frosty/widgets/onset_update_prompt.dart';
 import 'package:frosty/widgets/profile_picture.dart';
+import 'package:mobx/mobx.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -162,6 +163,7 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
   void initState() {
     super.initState();
     _whispers = _whisperStore.incoming.listen(_onWhisper);
+    _disposeAccount = reaction((_) => _whisperStore.me, _onAccount);
     OnsetShell.routeObserver.addListener(_onRoutes);
     _lifecycle = AppLifecycleListener(onResume: _checkPip);
   }
@@ -233,21 +235,41 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
   void _onWhisper(IncomingWhisper whisper) {
     if (!mounted || _whisperStore.openUserId == whisper.fromUserId) return;
     // One notice at a time: a burst of whispers must not queue for long.
-    ScaffoldMessenger.of(context)
-      ..clearSnackBars()
-      ..showSnackBar(
-        whisperNotice(
+    final messenger = ScaffoldMessenger.of(context)..clearSnackBars();
+    final notice = messenger.showSnackBar(
+      whisperNotice(
+        context,
+        whisper,
+        store: _whisperStore,
+        onOpen: () => WhisperConversation.open(
           context,
-          whisper,
-          onOpen: () => WhisperConversation.open(
-            context,
-            store: _whisperStore,
-            userId: whisper.fromUserId,
-            login: whisper.fromLogin,
-            displayName: whisper.fromName,
-          ),
+          store: _whisperStore,
+          userId: whisper.fromUserId,
+          login: whisper.fromLogin,
+          displayName: whisper.fromName,
         ),
-      );
+      ),
+    );
+    _whisperNotice = notice;
+    // Shown first (the others were cleared): it is the current one until
+    // it closes.
+    unawaited(
+      notice.closed.then((_) {
+        if (identical(_whisperNotice, notice)) _whisperNotice = null;
+      }),
+    );
+  }
+
+  /// The whisper notice on screen, if any.
+  ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? _whisperNotice;
+
+  late final ReactionDisposer _disposeAccount;
+
+  /// Another account (or none): the previous one's notice goes.
+  void _onAccount(String? _) {
+    final notice = _whisperNotice;
+    _whisperNotice = null;
+    notice?.close();
   }
 
   /// Opens a channel from Activity.
@@ -567,6 +589,7 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     _lifecycle.dispose();
     _miniPlayer.setShellChrome(null);
     _whispers?.cancel();
+    _disposeAccount();
     _search?.dispose();
     _homeStore.dispose();
     _liveFeed?.dispose();

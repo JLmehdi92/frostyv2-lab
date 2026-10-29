@@ -1,9 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/screens/whispers/whisper_notice.dart';
+import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:frosty/stores/whisper_store.dart';
+import 'package:mobx/mobx.dart' show Observable, runInAction;
+import 'package:mocktail/mocktail.dart';
+
+class MockTwitchApi extends Mock implements TwitchApi {}
 
 void main() {
+  late Observable<String?> me;
+  late WhisperStore store;
+
+  setUp(() {
+    me = Observable<String?>('7');
+    store = WhisperStore(
+      twitchApi: MockTwitchApi(),
+      currentUserId: () => me.value,
+      listen: (topic) =>
+          EventSubHandle.forTesting(topic, const Stream.empty(), () {}),
+    );
+  });
+
+  tearDown(() => store.dispose());
+
   final whisper = whisperFromEvent({
     'from_user_id': '8',
     'from_user_login': 'friend',
@@ -22,9 +43,9 @@ void main() {
         home: Scaffold(
           body: Builder(
             builder: (context) => TextButton(
-              onPressed: () => ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(whisperNotice(context, whisper, onOpen: onOpen)),
+              onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                whisperNotice(context, whisper, store: store, onOpen: onOpen),
+              ),
               child: const Text('go'),
             ),
           ),
@@ -60,5 +81,16 @@ void main() {
     );
     expect(tester.getSize(card.first).width, 480);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets("another account: Open does not open the previous one's", (
+    tester,
+  ) async {
+    var opened = 0;
+    await show(tester, const Size(390, 844), () => opened++);
+    runInAction(() => me.value = '9');
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+    expect(opened, 0);
   });
 }

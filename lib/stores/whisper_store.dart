@@ -14,13 +14,19 @@ final _numericId = RegExp(r'^[0-9]{1,20}$');
 final _login = RegExp(r'^[a-zA-Z0-9_]{1,25}$');
 
 final _unsafeForPreview = RegExp(
-  '[\u0000-\u001f\u007f-\u009f\u200e\u200f\u202a-\u202e\u2066-\u2069]',
+  '[\u0000-\u001f\u007f-\u009f\u061c\u200e\u200f\u2028\u2029'
+  '\u202a-\u202e\u2066-\u2069]',
 );
 
-/// [text] on one line for a preview or a notice: line breaks, control and
-/// direction characters become spaces, so a whisper cannot fake a second
-/// line or turn text around.
+/// Characters that take no room: dropped, so a name cannot hide a
+/// difference from another one.
+final _invisibleForPreview = RegExp('[\u200b-\u200d\u2060\ufeff]');
+
+/// [text] on one line for a preview or a notice: line breaks (Unicode's
+/// too), control and direction characters become spaces and invisible
+/// ones go, so a whisper cannot fake a second line or turn text around.
 String whisperPreview(String text) => text
+    .replaceAll(_invisibleForPreview, '')
     .replaceAll(_unsafeForPreview, ' ')
     .replaceAll(RegExp(' {2,}'), ' ')
     .trim();

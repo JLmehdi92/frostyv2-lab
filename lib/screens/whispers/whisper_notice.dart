@@ -11,11 +11,17 @@ import 'package:frosty/widgets/state_glyph.dart';
 /// whisper mark, their name and the whisper on two lines at most, and
 /// "Open". It leaves by itself, like any snack bar (not while accessible
 /// navigation is on: "Open" is its action).
+///
+/// [store]'s account when it shows is the one "Open" is for: after a
+/// switch to another account (the notice can outlive it while accessible
+/// navigation keeps it up), "Open" does nothing.
 SnackBar whisperNotice(
   BuildContext context,
   IncomingWhisper whisper, {
+  required WhisperStore store,
   required VoidCallback onOpen,
 }) {
+  final me = store.me;
   final colors = WhisperColors.of(context);
   final large = context.isLargeScreen;
   final accent = context.frostyColors.live;
@@ -32,7 +38,13 @@ SnackBar whisperNotice(
     margin: large ? null : const EdgeInsets.fromLTRB(10, 0, 10, 8),
     padding: EdgeInsets.fromLTRB(large ? 14 : 12, 10, 8, 10),
     // An action keeps the notice up while accessible navigation is on.
-    action: SnackBarAction(label: 'Open', textColor: accent, onPressed: onOpen),
+    action: SnackBarAction(
+      label: 'Open',
+      textColor: accent,
+      onPressed: () {
+        if (store.me == me) onOpen();
+      },
+    ),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(large ? 18 : 16),
       side: BorderSide(

@@ -128,17 +128,19 @@ class WhisperCountPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = context.frostyColors.live;
+    // The pill grows with the text size, like the digits in it.
+    final height = MediaQuery.textScalerOf(context).scale(size);
     return Semantics(
       label: '$count unread',
       excludeSemantics: true,
       child: Container(
-        constraints: BoxConstraints(minWidth: size),
-        height: size,
+        constraints: BoxConstraints(minWidth: height),
+        height: height,
         padding: EdgeInsets.symmetric(horizontal: size > 18 ? 6 : 5),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: accent,
-          borderRadius: BorderRadius.circular(size / 2),
+          borderRadius: BorderRadius.circular(height / 2),
         ),
         child: Text(
           '$count',

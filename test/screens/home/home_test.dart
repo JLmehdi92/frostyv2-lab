@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -939,6 +941,40 @@ void main() {
   });
 
   group('logged in', () {
+    testWidgets('a whisper notice goes with its account; Open never opens '
+        "the previous account's", (tester) async {
+      whispers.dispose();
+      final me = Observable<String?>('7');
+      final events = StreamController<EventSubTopicEvent>.broadcast();
+      addTearDown(events.close);
+      whispers = WhisperStore(
+        twitchApi: api,
+        currentUserId: () => me.value,
+        listen: (topic) =>
+            EventSubHandle.forTesting(topic, events.stream, () {}),
+      );
+      await pump(tester, auth: FakeAuthStore(loggedIn: true));
+      events.add(
+        const EventSubData({
+          'from_user_id': '8',
+          'from_user_login': 'friend',
+          'from_user_name': 'Friend',
+          'to_user_id': '7',
+          'whisper_id': 'w1',
+          'whisper': {'text': 'hey'},
+        }),
+      );
+      await tester.pump();
+      await tester.pumpAndSettle();
+      expect(find.text('Open'), findsOneWidget);
+
+      runInAction(() => me.value = '9');
+      await tester.pumpAndSettle();
+      expect(find.text('Open'), findsNothing);
+      expect(tester.takeException(), isNull);
+      await close(tester);
+    });
+
     testWidgets('Activity: tabs with counts on a phone, two columns on a '
         'tablet', (tester) async {
       await activity.addAll([
