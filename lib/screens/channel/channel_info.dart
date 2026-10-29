@@ -66,157 +66,201 @@ class ChannelInfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
-    return Observer(
-      builder: (context) {
-        final stream = player.streamInfo;
-        final offline = player.offlineChannelInfo;
-        final live = stream != null;
-        final name = live
-            ? getReadableName(stream.userName, stream.userLogin)
-            : getReadableName(
-                offline?.broadcasterName.isNotEmpty == true
-                    ? offline!.broadcasterName
-                    : displayName,
-                login,
-              );
-        final category = live ? stream.gameName : offline?.gameName ?? '';
-        final categoryId = live ? stream.gameId : offline?.gameId ?? '';
+    // On a phone, while the keyboard is up, the chat's input, a reply and
+    // the autocomplete need the room.
+    return _HiddenWhileTyping(
+      enabled: !large,
+      child: Observer(
+        builder: (context) {
+          final stream = player.streamInfo;
+          final offline = player.offlineChannelInfo;
+          final live = stream != null;
+          final name = live
+              ? getReadableName(stream.userName, stream.userLogin)
+              : getReadableName(
+                  offline?.broadcasterName.isNotEmpty == true
+                      ? offline!.broadcasterName
+                      : displayName,
+                  login,
+                );
+          final category = live ? stream.gameName : offline?.gameName ?? '';
+          final categoryId = live ? stream.gameId : offline?.gameId ?? '';
 
-        final meta = TextStyle(
-          fontSize: large ? 14 : 12,
-          height: 1.35,
-          color: large ? colors.body : colors.secondary,
-        );
-        // The category opens its streams, on a phone and a tablet alike.
-        Widget categoryLink(String text) => Semantics(
-          link: true,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => CategoryStreams.open(context, categoryId),
-            child: Text(
-              text,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: meta,
+          final meta = TextStyle(
+            fontSize: large ? 14 : 12,
+            height: 1.35,
+            color: large ? colors.body : colors.secondary,
+          );
+          // The category opens its streams, on a phone and a tablet alike.
+          Widget categoryLink(String text) => Semantics(
+            link: true,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => CategoryStreams.open(context, categoryId),
+              child: Text(
+                text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: meta,
+              ),
             ),
-          ),
-        );
-        Widget metaLine;
-        if (large) {
-          final title = live ? stream.title.trim() : 'Offline';
-          metaLine = Row(
-            children: [
-              Flexible(
-                child: Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: meta,
+          );
+          Widget metaLine;
+          if (large) {
+            final title = live ? stream.title.trim() : 'Offline';
+            metaLine = Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: meta,
+                  ),
+                ),
+                if (category.isNotEmpty) ...[
+                  Text(' — ', style: meta),
+                  Flexible(child: categoryLink(category)),
+                ],
+              ],
+            );
+          } else {
+            metaLine = Row(
+              children: [
+                if (category.isNotEmpty)
+                  Flexible(child: categoryLink(category)),
+                Flexible(
+                  child: live
+                      ? _LiveFacts(
+                          prefix: category.isEmpty ? '' : ' · ',
+                          viewers: stream.viewerCount,
+                          startedAt: stream.startedAt,
+                          style: meta,
+                        )
+                      : Text(
+                          category.isEmpty ? 'Offline' : ' · Offline',
+                          maxLines: 1,
+                          style: meta,
+                        ),
+                ),
+              ],
+            );
+          }
+
+          final avatar = large ? 48.0 : 40.0;
+          final canAct = _canAct(viewerLogin(), login);
+          return Container(
+            padding: large
+                ? const EdgeInsets.fromLTRB(24, 4, 24, 16)
+                : const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: colors.hairline,
+                  width: FrostyTokens.hairlineWidth,
                 ),
               ),
-              if (category.isNotEmpty) ...[
-                Text(' — ', style: meta),
-                Flexible(child: categoryLink(category)),
-              ],
-            ],
-          );
-        } else {
-          metaLine = Row(
-            children: [
-              if (category.isNotEmpty) Flexible(child: categoryLink(category)),
-              Flexible(
-                child: live
-                    ? _LiveFacts(
-                        prefix: category.isEmpty ? '' : ' · ',
-                        viewers: stream.viewerCount,
-                        startedAt: stream.startedAt,
-                        style: meta,
-                      )
-                    : Text(
-                        category.isEmpty ? 'Offline' : ' · Offline',
-                        maxLines: 1,
-                        style: meta,
-                      ),
-              ),
-            ],
-          );
-        }
-
-        final avatar = large ? 48.0 : 40.0;
-        final canAct = _canAct(viewerLogin(), login);
-        return Container(
-          padding: large
-              ? const EdgeInsets.fromLTRB(24, 4, 24, 16)
-              : const EdgeInsets.fromLTRB(16, 0, 16, 12),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: colors.hairline,
-                width: FrostyTokens.hairlineWidth,
-              ),
             ),
-          ),
-          child: Row(
-            spacing: large ? 14 : 10,
-            children: [
-              Expanded(
-                child: Semantics(
-                  button: true,
-                  label: 'Channel profile',
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: onOpenProfile,
-                    child: Row(
-                      spacing: large ? 14 : 10,
-                      children: [
-                        _RingedPicture(
-                          login: live ? stream.userLogin : login,
-                          size: avatar,
-                          live: live,
-                          ring: large ? 2 : 1.5,
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            spacing: large ? 3 : 1,
-                            children: [
-                              Text(
-                                name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: large ? 18 : 15,
-                                  fontWeight: large
-                                      ? FontWeight.w800
-                                      : FontWeight.w700,
-                                  letterSpacing: large ? -0.36 : 0,
-                                  height: 1.25,
-                                  color: colors.text,
-                                ),
-                              ),
-                              metaLine,
-                            ],
+            child: Row(
+              spacing: large ? 14 : 10,
+              children: [
+                Expanded(
+                  child: Semantics(
+                    button: true,
+                    label: 'Channel profile',
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: onOpenProfile,
+                      child: Row(
+                        spacing: large ? 14 : 10,
+                        children: [
+                          _RingedPicture(
+                            login: live ? stream.userLogin : login,
+                            size: avatar,
+                            live: live,
+                            ring: large ? 2 : 1.5,
                           ),
-                        ),
-                      ],
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              spacing: large ? 3 : 1,
+                              children: [
+                                Text(
+                                  name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: large ? 18 : 15,
+                                    fontWeight: large
+                                        ? FontWeight.w800
+                                        : FontWeight.w700,
+                                    letterSpacing: large ? -0.36 : 0,
+                                    height: 1.25,
+                                    color: colors.text,
+                                  ),
+                                ),
+                                metaLine,
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              if (canAct)
-                _FollowButton(
-                  info: info,
-                  login: login,
-                  name: name,
-                  height: large ? 40 : 36,
-                ),
-              if (large && canAct) _SubscribeButton(login: login, name: name),
-            ],
-          ),
-        );
-      },
+                if (canAct)
+                  _FollowButton(
+                    info: info,
+                    login: login,
+                    name: name,
+                    height: large ? 40 : 36,
+                  ),
+                if (large && canAct) _SubscribeButton(login: login, name: name),
+              ],
+            ),
+          );
+        },
+      ),
     );
+  }
+}
+
+/// Hides [child] while the keyboard is up (when [enabled]). Asked of the
+/// window: the channel's Scaffold takes the inset out of its body.
+class _HiddenWhileTyping extends StatefulWidget {
+  const _HiddenWhileTyping({required this.enabled, required this.child});
+
+  final bool enabled;
+  final Widget child;
+
+  @override
+  State<_HiddenWhileTyping> createState() => _HiddenWhileTypingState();
+}
+
+class _HiddenWhileTypingState extends State<_HiddenWhileTyping>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeMetrics() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final typing = View.of(context).viewInsets.bottom > 0;
+    return widget.enabled && typing ? const SizedBox.shrink() : widget.child;
   }
 }
 

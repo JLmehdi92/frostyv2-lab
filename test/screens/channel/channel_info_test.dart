@@ -158,6 +158,44 @@ void main() {
       await done(tester);
     });
 
+    testWidgets('steps aside while the keyboard is up on a phone', (
+      tester,
+    ) async {
+      // A small phone, the keyboard taking 200 dp: the portrait column of
+      // the channel screen (video, handle, this row, chat).
+      tester.view.viewInsets = const FakeViewPadding(bottom: 200);
+      addTearDown(tester.view.resetViewInsets);
+      await pump(
+        tester,
+        Column(
+          children: [
+            const SizedBox(height: 220 + 14),
+            ChannelInfoRow(
+              player: FakePlayer(stream: fakeStream()),
+              login: 'streamer',
+              displayName: 'Streamer',
+              info: info,
+              viewerLogin: () => 'viewer',
+              onOpenProfile: () {},
+            ),
+            const Expanded(child: SizedBox.expand(key: ValueKey('chat'))),
+          ],
+        ),
+        screen: const Size(390, 600),
+      );
+      expect(find.text('Streamer'), findsNothing);
+      // The input (68), a reply (41) and the autocomplete (51) fit.
+      expect(
+        tester.getSize(find.byKey(const ValueKey('chat'))).height,
+        greaterThanOrEqualTo(68 + 41 + 51),
+      );
+
+      tester.view.resetViewInsets();
+      await tester.pump();
+      expect(find.text('Streamer'), findsOneWidget);
+      await done(tester);
+    });
+
     testWidgets('offline, it says so', (tester) async {
       await pump(tester, row(FakePlayer(offline: fakeOfflineChannel)));
       expect(tester.takeException(), isNull);
