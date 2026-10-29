@@ -276,6 +276,8 @@ class TwitchApi extends BaseApiClient {
   /// checks its new token before it becomes the session), quietly.
   ///
   /// [clientId]: the app [token] was issued to, when it is not this one.
+  /// A named token always goes with its own app's Client-Id, never the
+  /// session's (which may be another app's).
   Future<UserTwitch> getUserInfo({String? token, String? clientId}) async {
     final data = await get<JsonMap>(
       '/users',
@@ -283,9 +285,14 @@ class TwitchApi extends BaseApiClient {
           ? null
           : {
               'Authorization': 'Bearer $token',
-              'Client-Id': ?clientId,
+              'Client-Id': clientId ?? _appClientId,
             },
-      extra: token == null ? null : {UnauthorizedInterceptor.quiet: true},
+      extra: token == null
+          ? null
+          : {
+              UnauthorizedInterceptor.quiet: true,
+              TwitchAuthInterceptor.noSessionHeaders: true,
+            },
     );
 
     final userData = data['data'] as JsonList;
