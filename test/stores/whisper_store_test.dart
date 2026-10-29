@@ -85,6 +85,13 @@ void main() {
     expect(whisperPreview('Ivan\u2060\u200C\u043E\u0432'), 'Ivan\u043E\u0432');
     expect(whisperPreview('m\u200B\u200Cod'), 'mod');
     expect(whisperPreview('m\u200C\u200Dod'), 'mod');
+    // A run of joiners goes as one.
+    expect(whisperPreview('Ivan\u200C\u200C\u043E\u0432'), 'Ivan\u043E\u0432');
+    expect(
+      whisperPreview('Ivan\u200D\u200C\u200D\u043E\u0432'),
+      'Ivan\u043E\u0432',
+    );
+    expect(whisperPreview('\u043E\u0432\u200D\u200Cad'), '\u043E\u0432ad');
     expect(whisperPreview('ad\u200Cm\uFEFF\u200Din'), 'admin');
     // Beside an emoji or another script it stays.
     const flag = '\u{1F3F3}\uFE0F\u200D\u{1F308}';

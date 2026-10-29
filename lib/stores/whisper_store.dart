@@ -25,12 +25,13 @@ final _invisibleForPreview = RegExp('[\u200b\u2060\ufeff]');
 /// The joiners (U+200C, U+200D) where they mean nothing: beside a Latin
 /// letter, digit or sign, or at either end, they only hide a difference
 /// ("m\u200Cod"), and go. Between emoji or in scripts such as Persian or
-/// the Indic ones they stay. Applied once the other invisibles are gone,
-/// so none of them can shield a joiner.
+/// the Indic ones they stay. A run of joiners is judged as one, and the
+/// rule applies once the other invisibles are gone, so neither another
+/// joiner nor another invisible can shield one.
 final _strayJoiner = RegExp(
-  '(?<=[\u0000-\u024f])[\u200c\u200d]'
-  '|[\u200c\u200d](?=[\u0000-\u024f]|\$)'
-  '|^[\u200c\u200d]',
+  '(?<=[\u0000-\u024f])[\u200c\u200d]+'
+  '|[\u200c\u200d]+(?=[\u0000-\u024f]|\$)'
+  '|^[\u200c\u200d]+',
 );
 
 /// [text] on one line for a preview or a notice: line breaks (Unicode's
