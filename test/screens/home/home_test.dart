@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -1464,15 +1465,57 @@ void main() {
     await close(tester);
   });
 
-  testWidgets('after an update, the bundled (empty) notes open nothing', (
-    tester,
-  ) async {
-    SharedPreferences.setMockInitialValues({'last_shown_version': '0.9.0'});
+  testWidgets('a first launch with unreadable notes still remembers the '
+      'version', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    ReleaseNotes.debugSource = () async => throw StateError('no asset');
+    addTearDown(() => ReleaseNotes.debugSource = null);
     await pump(tester);
     for (var i = 0; i < 10; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
     expect(find.byType(ReleaseNotes), findsNothing);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('last_shown_version'), '1.0.0');
+    await close(tester);
+  });
+
+  /// Serves the real bundled notes file (its content; release_notes_test
+  /// proves it loads through the asset bundle). A real asset read does not
+  /// finish reliably under the fake clock of a widget test.
+  void bundledNotes() {
+    final bundled = File('assets/release-notes.md').readAsStringSync();
+    ReleaseNotes.debugSource = () async => bundled;
+    addTearDown(() => ReleaseNotes.debugSource = null);
+  }
+
+  testWidgets('a first launch with the bundled notes remembers the version', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    bundledNotes();
+    await pump(tester);
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byType(ReleaseNotes), findsNothing);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('last_shown_version'), '1.0.0');
+    await close(tester);
+  });
+
+  testWidgets('after an update, the bundled (empty) notes open nothing', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({'last_shown_version': '0.9.0'});
+    bundledNotes();
+    await pump(tester);
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byType(ReleaseNotes), findsNothing);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('last_shown_version'), '1.0.0');
     await close(tester);
   });
 

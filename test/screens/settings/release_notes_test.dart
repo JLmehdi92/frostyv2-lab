@@ -1,9 +1,13 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/screens/settings/widgets/release_notes.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   test('the release notes read as versions, sections and points', () {
     final blocks = parseReleaseNotes('''
 ## v5.0.5
@@ -156,5 +160,40 @@ A big update.
   test('the bundled release notes have no entries yet', () {
     final bundled = File('assets/release-notes.md').readAsStringSync();
     expect(parseReleaseNotes(bundled).whereType<ReleaseVersion>(), isEmpty);
+  });
+
+  // On a device, rootBundle refuses a 0-byte asset ("The asset does not
+  // exist or has empty data"): the bundled file must never be empty.
+  test('the bundled release notes load through the asset bundle', () async {
+    final data = await rootBundle.load('assets/release-notes.md');
+    expect(data.lengthInBytes, greaterThan(0));
+    final text = await rootBundle.loadString('assets/release-notes.md');
+    expect(parseReleaseNotes(text), isEmpty);
+    expect(await ReleaseNotes.read(), text);
+    expect(parseReleaseNotes(await ReleaseNotes.load()), isEmpty);
+  });
+
+  test('an HTML comment line is not a block', () {
+    expect(parseReleaseNotes('<!-- a note for writers -->\n'), isEmpty);
+    expect(
+      parseReleaseNotes('<!-- note -->\n## v1.0.0\n\n- First.\n'),
+      hasLength(2),
+    );
+  });
+
+  group('unreadable notes', () {
+    tearDown(() => ReleaseNotes.debugSource = null);
+
+    test('read is null and load is empty, never a throw', () async {
+      ReleaseNotes.debugSource = () async => throw FlutterError('no asset');
+      expect(await ReleaseNotes.read(), isNull);
+      expect(await ReleaseNotes.load(), '');
+    });
+
+    test('a synchronous throw too', () async {
+      ReleaseNotes.debugSource = () => throw StateError('no asset');
+      expect(await ReleaseNotes.read(), isNull);
+      expect(await ReleaseNotes.load(), '');
+    });
   });
 }

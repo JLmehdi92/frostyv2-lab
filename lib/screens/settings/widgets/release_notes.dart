@@ -15,9 +15,21 @@ class ReleaseNotes extends StatefulWidget {
   /// Replaces the bundled notes in tests.
   static Future<String> Function()? debugSource;
 
-  /// The release notes' Markdown (assets/release-notes.md).
-  static Future<String> load() =>
-      (debugSource ?? () => rootBundle.loadString('assets/release-notes.md'))();
+  /// The release notes' Markdown (assets/release-notes.md), or null when it
+  /// cannot be read. Never throws.
+  static Future<String?> read() async {
+    try {
+      return await (debugSource ??
+          () => rootBundle.loadString('assets/release-notes.md'))();
+    } catch (e) {
+      debugPrint('Release notes unreadable: ${e.runtimeType}');
+      return null;
+    }
+  }
+
+  /// The release notes' Markdown; unreadable notes read as none (no
+  /// entries). Never throws.
+  static Future<String> load() async => await read() ?? '';
 
   const ReleaseNotes({super.key});
 
@@ -36,10 +48,15 @@ class _ReleaseNotesState extends State<ReleaseNotes> {
   void initState() {
     super.initState();
 
-    ReleaseNotes.load().then((changelog) {
-      if (!mounted) return;
-      setState(() => _blocks = parseReleaseNotes(changelog));
-    });
+    ReleaseNotes.load()
+        .then((changelog) {
+          if (!mounted) return;
+          setState(() => _blocks = parseReleaseNotes(changelog));
+        })
+        // Unreadable: the page stays on its empty state.
+        .catchError((Object e) {
+          debugPrint('Release notes page: ${e.runtimeType}');
+        });
   }
 
   @override
@@ -337,7 +354,11 @@ List<ReleaseNotesBlock> parseReleaseNotes(String markdown) {
   for (var i = 0; i < lines.length; i++) {
     final raw = lines[i];
     final line = raw.trim();
-    if (line.isEmpty) continue;
+    // Blank lines, and one-line HTML comments (notes for whoever writes the
+    // file, never shown).
+    if (line.isEmpty || (line.startsWith('<!--') && line.endsWith('-->'))) {
+      continue;
+    }
     final indented = raw.startsWith(' ') || raw.startsWith('\t');
     final bullet = line.startsWith('- ') || line.startsWith('* ');
     final last = blocks.isEmpty ? null : blocks.last;

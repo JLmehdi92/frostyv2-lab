@@ -124,6 +124,26 @@ January 9, 2026
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('the release notes page when the notes cannot be read', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    ReleaseNotes.debugSource = () async => throw FlutterError('no asset');
+    addTearDown(() => ReleaseNotes.debugSource = null);
+    await tester.pumpWidget(
+      Provider<SettingsStore>.value(
+        value: SettingsStore.fromJson({}),
+        child: const MaterialApp(home: ReleaseNotes()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('Release notes'), findsOneWidget);
+    expect(find.text("WHAT'S NEW"), findsOneWidget);
+  });
+
   testWidgets('the release notes page with no entries yet', (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;

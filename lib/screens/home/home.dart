@@ -153,12 +153,15 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     final currentVersion = packageInfo.version;
     final storedVersion = prefs.getString('last_shown_version');
 
-    final String notes;
-    try {
-      notes = await ReleaseNotes.load();
-    } catch (e) {
-      // Unread: decide nothing, and keep the version for the next launch.
-      debugPrint('Release notes unavailable: $e');
+    final notes = await ReleaseNotes.read();
+    if (notes == null) {
+      // Unreadable. A first launch never shows notes anyway: remember its
+      // version, or every later update would look like a first launch. After
+      // an update, decide nothing: the old version stays, the next launch
+      // tries again.
+      if (storedVersion == null) {
+        await prefs.setString('last_shown_version', currentVersion);
+      }
       return;
     }
 
