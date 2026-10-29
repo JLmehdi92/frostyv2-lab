@@ -55,22 +55,16 @@ Future<T?> showModalBottomSheetWithProperFocus<T>({
     final navigator = Navigator.of(context, rootNavigator: useRootNavigator);
     final localizations = MaterialLocalizations.of(context);
     final theme = Theme.of(context);
-    final room = math.max(
-      0.0,
-      MediaQuery.sizeOf(context).height - videoBottom - SheetsUnderVideo.gap,
-    );
-    final base =
-        constraints ??
-        theme.bottomSheetTheme.constraints ??
-        // Material 3's own default width limit.
-        const BoxConstraints(maxWidth: 640);
     shown = navigator.push(
       _UnderVideoSheetRoute<T>(
         videoBottom: videoBottom,
-        // A sheet opened from this one starts under the video too.
         builder: (context) => SheetsUnderVideo(
+          // A sheet opened from this one starts under the video too.
           top: videoBottom,
-          child: Builder(builder: builder),
+          child: _UnderVideo(
+            videoBottom: videoBottom,
+            child: Builder(builder: builder),
+          ),
         ),
         capturedThemes: InheritedTheme.capture(
           from: context,
@@ -85,7 +79,7 @@ Future<T?> showModalBottomSheetWithProperFocus<T>({
         elevation: elevation,
         shape: shape,
         clipBehavior: clipBehavior,
-        constraints: base.copyWith(maxHeight: math.min(base.maxHeight, room)),
+        constraints: constraints,
         isDismissible: isDismissible,
         modalBarrierColor:
             barrierColor ?? theme.bottomSheetTheme.modalBarrierColor,
@@ -124,6 +118,30 @@ class SheetsUnderVideo extends InheritedWidget {
 
   @override
   bool updateShouldNotify(SheetsUnderVideo oldWidget) => oldWidget.top != top;
+}
+
+/// Keeps a sheet's top edge [SheetsUnderVideo.gap] under the video. While
+/// the keyboard is up the sheet may grow by its height: a sheet that makes
+/// room for the keyboard keeps the space it had (the video is then partly
+/// covered while typing, as every sheet did before).
+class _UnderVideo extends StatelessWidget {
+  const _UnderVideo({required this.videoBottom, required this.child});
+
+  final double videoBottom;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final room =
+        MediaQuery.sizeOf(context).height -
+        videoBottom -
+        SheetsUnderVideo.gap +
+        MediaQuery.viewInsetsOf(context).bottom;
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: math.max(0.0, room)),
+      child: child,
+    );
+  }
 }
 
 /// A modal bottom sheet whose scrim stops at the video: the picture stays

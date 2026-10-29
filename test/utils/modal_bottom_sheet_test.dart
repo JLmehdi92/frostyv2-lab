@@ -91,6 +91,32 @@ void main() {
     expect(sheets.top, closeTo(videoBottom + SheetsUnderVideo.gap, 0.5));
   });
 
+  testWidgets('with the keyboard up, a sheet keeps room above it', (
+    tester,
+  ) async {
+    final context = await pump(tester, top: videoBottom);
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    addTearDown(tester.view.resetViewInsets);
+    showModalBottomSheetWithProperFocus<void>(
+      context: context,
+      isScrollControlled: true,
+      // Like the points sheet: it pads itself above the keyboard.
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: tall(context),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    final sheet = tester.getRect(find.byType(BottomSheet));
+    // It may grow by the keyboard's height (here up to the top of the
+    // screen), so the rows above the keyboard keep their room.
+    expect(sheet.top, 0);
+    expect(sheet.height - 300, greaterThan(500));
+  });
+
   testWidgets('without a video sheets open as before', (tester) async {
     final context = await pump(tester);
     showModalBottomSheetWithProperFocus<void>(
