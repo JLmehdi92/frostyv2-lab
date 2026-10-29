@@ -62,9 +62,17 @@ void main() {
   });
 
   testWidgets('other engines only say what it measures', (tester) async {
-    await pump(tester, FakePlayer());
+    final player = FakePlayer();
+    await pump(tester, player);
     expect(find.byTooltip(LatencyPill.tooltipOther), findsOneWidget);
+    expect(find.text(LatencyPill.tooltipOther), findsNothing);
+
+    // A tap explains it (no stats to open on this engine)…
     await tester.tap(find.text('2.1s'));
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(find.text(LatencyPill.tooltipOther), findsOneWidget);
+    // …and asks nothing of the player.
+    expect(player.calls, isEmpty);
+    await tester.pumpAndSettle(const Duration(seconds: 2));
   });
 }
