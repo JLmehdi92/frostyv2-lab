@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/cache_manager.dart';
+import 'package:onset/constants.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/release_notes.dart';
 import 'package:onset/screens/settings/widgets/settings_glyph.dart';
@@ -20,22 +21,35 @@ import 'package:provider/provider.dart';
 class OtherSettings extends StatelessWidget {
   final SettingsStore settingsStore;
 
-  const OtherSettings({super.key, required this.settingsStore});
+  /// ONSET's source code (About › "Source code"); empty hides the row.
+  final String sourceUrl;
+
+  const OtherSettings({
+    super.key,
+    required this.settingsStore,
+    this.sourceUrl = onsetRepoUrl,
+  });
 
   @override
   Widget build(BuildContext context) => SettingsGroupsView(
     footer: SettingsPaneScope.maybeOf(context) == null
-        ? SettingsFooter(external: () => settingsStore.launchUrlExternal)
+        ? const SettingsFooter()
         : null,
-    children: otherSettingsGroups(context, settingsStore),
+    children: otherSettingsGroups(
+      context,
+      settingsStore,
+      sourceUrl: sourceUrl,
+    ),
   );
 }
 
-/// The groups of [OtherSettings].
+/// The groups of [OtherSettings]. About holds ONSET's own source code link,
+/// and goes when there is none ([sourceUrl] empty).
 List<Widget> otherSettingsGroups(
   BuildContext context,
-  SettingsStore settingsStore,
-) {
+  SettingsStore settingsStore, {
+  String sourceUrl = onsetRepoUrl,
+}) {
   final updater = context.read<OnsetUpdater?>();
   final updates = updater != null && updater.enabled;
   return [
@@ -97,29 +111,21 @@ List<Widget> otherSettingsGroups(
         ),
       ],
     ),
-    SettingsGroup(
-      title: 'About',
-      children: [
-        SettingsRow(
-          glyph: SettingsGlyphKind.heart,
-          title: 'Support Frosty',
-          end: SettingsRowEnd.external,
-          onTap: () => launchSettingsLink(
-            'https://www.buymeacoffee.com/tommychow',
-            external: settingsStore.launchUrlExternal,
+    if (sourceUrl.isNotEmpty)
+      SettingsGroup(
+        title: 'About',
+        children: [
+          SettingsRow(
+            glyph: SettingsGlyphKind.code,
+            title: 'Source code',
+            end: SettingsRowEnd.external,
+            onTap: () => launchSettingsLink(
+              sourceUrl,
+              external: settingsStore.launchUrlExternal,
+            ),
           ),
-        ),
-        SettingsRow(
-          glyph: SettingsGlyphKind.code,
-          title: 'View source on GitHub',
-          end: SettingsRowEnd.external,
-          onTap: () => launchSettingsLink(
-            'https://github.com/tommyxchow/frosty',
-            external: settingsStore.launchUrlExternal,
-          ),
-        ),
-      ],
-    ),
+        ],
+      ),
   ];
 }
 

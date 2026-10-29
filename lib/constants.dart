@@ -14,6 +14,10 @@ const updateToken = String.fromEnvironment('UPDATE_TOKEN');
 /// The `owner/name` repository whose releases carry ONSET updates.
 const updateRepo = String.fromEnvironment('UPDATE_REPO');
 
+/// ONSET's public source code, linked from Settings › About ("Source code").
+/// Empty hides the row.
+const onsetRepoUrl = 'https://github.com/JLmehdi92/onset';
+
 /// BTTV emotes with zero width to allow for overlaying other emotes.
 const zeroWidthEmotes = [
   'SoSnowy',

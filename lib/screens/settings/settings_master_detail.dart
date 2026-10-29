@@ -198,7 +198,7 @@ class _Aside extends StatelessWidget {
                   _LogoutRow(authStore: authStore),
                 ],
                 const SizedBox(height: 18),
-                SettingsFooter(external: () => settingsStore.launchUrlExternal),
+                const SettingsFooter(),
               ],
             );
           },

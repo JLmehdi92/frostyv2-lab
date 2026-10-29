@@ -19,7 +19,6 @@ enum SettingsGlyphKind {
   notes,
   cache,
   reset,
-  heart,
   code,
   filter,
   mute,
@@ -76,9 +75,6 @@ const Map<SettingsGlyphKind, List<String>> _shapes = {
   SettingsGlyphKind.notes: ['M6 3h8l4 4v14H6z', 'M14 3v4h4M9 12h6M9 16h6'],
   SettingsGlyphKind.cache: ['r:3,4,18,16,2', 'c:9,10,2', 'M21 16l-5-5-9 9'],
   SettingsGlyphKind.reset: ['M3 12a9 9 0 1 0 3-6.7L3 8', 'M3 3v5h5'],
-  SettingsGlyphKind.heart: [
-    'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',
-  ],
   SettingsGlyphKind.code: ['M8 8l-4 4 4 4M16 8l4 4-4 4M14 5l-4 14'],
   SettingsGlyphKind.filter: ['M4 5h16l-6 7v6l-4 2v-8z'],
   SettingsGlyphKind.mute: ['M4 5h16v11H9l-5 4z', 'M9 9l6 4M15 9l-6 4'],

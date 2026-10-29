@@ -562,13 +562,10 @@ class SettingsBackButton extends StatelessWidget {
   );
 }
 
-/// "Made by Tommy Chow" and the version, each a link (the end of the
-/// settings, the bottom of the tablet's side column).
+/// "ONSET v1.0.0 (1)": the version, at the end of the settings and the
+/// bottom of the tablet's side column.
 class SettingsFooter extends StatefulWidget {
-  const SettingsFooter({super.key, required this.external});
-
-  /// "Open links in external browser", read when a link is tapped.
-  final bool Function() external;
+  const SettingsFooter({super.key});
 
   @override
   State<SettingsFooter> createState() => _SettingsFooterState();
@@ -579,7 +576,6 @@ class _SettingsFooterState extends State<SettingsFooter> {
 
   @override
   Widget build(BuildContext context) {
-    final external = widget.external;
     final colors = SettingsColors.of(context);
     final style = OnsetType.tabular(
       TextStyle(
@@ -594,51 +590,10 @@ class _SettingsFooterState extends State<SettingsFooter> {
         final info = snapshot.data;
         return Padding(
           padding: const EdgeInsets.only(top: 6, bottom: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 4,
-            children: [
-              Text.rich(
-                TextSpan(
-                  style: style,
-                  children: [
-                    const TextSpan(text: 'Made by '),
-                    WidgetSpan(
-                      alignment: PlaceholderAlignment.baseline,
-                      baseline: TextBaseline.alphabetic,
-                      child: Semantics(
-                        link: true,
-                        child: GestureDetector(
-                          onTap: () => launchSettingsLink(
-                            'https://tommychow.com',
-                            external: external(),
-                          ),
-                          child: Text(
-                            'Tommy Chow',
-                            style: style.copyWith(color: colors.secondary),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (info != null)
-                Semantics(
-                  link: true,
-                  child: GestureDetector(
-                    onTap: () => launchSettingsLink(
-                      'https://github.com/tommyxchow/frosty/releases/tag/'
-                      'v${info.version}',
-                      external: external(),
-                    ),
-                    child: Text(
-                      'v${info.version} (${info.buildNumber})',
-                      style: style,
-                    ),
-                  ),
-                ),
-            ],
+          child: Text(
+            info == null ? '' : 'ONSET v${info.version} (${info.buildNumber})',
+            textAlign: TextAlign.center,
+            style: style,
           ),
         );
       },

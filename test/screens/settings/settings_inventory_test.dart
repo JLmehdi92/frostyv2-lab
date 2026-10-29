@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/constants.dart';
 import 'package:onset/screens/channel/video/captions.dart';
 import 'package:onset/screens/settings/account/account_settings.dart';
 import 'package:onset/screens/settings/chat_settings.dart';
@@ -345,8 +346,11 @@ void main() {
     expect(find.text('Release notes'), findsOneWidget);
     expect(find.text('Clear image cache'), findsOneWidget);
     expect(find.text('Share crash logs and analytics'), findsOneWidget);
-    expect(find.text('Support Frosty'), findsOneWidget);
-    expect(find.text('View source on GitHub'), findsOneWidget);
+    // About: ONSET's own source code only, no third-party links.
+    expect(find.text('Source code'), findsOneWidget);
+    expect(find.textContaining('Support'), findsNothing);
+    expect(find.text('View source on GitHub'), findsNothing);
+    expect(find.textContaining('Made by'), findsNothing);
 
     // Without a Firebase config (as in this test build) the switch still
     // keeps the choice, and turning collection on or off does not throw.
@@ -373,6 +377,24 @@ void main() {
     await tester.pumpAndSettle();
     expect(settings.showVideo, isTrue);
     expect(find.text('All settings reset'), findsOneWidget);
+  });
+
+  testWidgets('Other: no source code row without a repository', (
+    tester,
+  ) async {
+    await pumpSettings(
+      tester,
+      OtherSettings(settingsStore: settings, sourceUrl: ''),
+      settings: settings,
+      auth: auth,
+    );
+    expect(find.text('Share crash logs and analytics'), findsOneWidget);
+    expect(find.text('Source code'), findsNothing);
+    expect(find.text('About'), findsNothing);
+  });
+
+  test('the source code link is ONSET\'s repository', () {
+    expect(onsetRepoUrl, 'https://github.com/JLmehdi92/onset');
   });
 
   testWidgets('Account: the twitch.tv pages and log out leaving the page', (
@@ -430,7 +452,7 @@ void main() {
       expect(find.text(section), findsOneWidget);
     }
     await tester.scrollUntilVisible(
-      find.text('v5.0.5 (68)'),
+      find.text('ONSET v5.0.5 (68)'),
       200,
       scrollable: find.byType(Scrollable).first,
     );

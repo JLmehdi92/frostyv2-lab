@@ -98,7 +98,7 @@ class SettingsHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SettingsGroupsView(
-      footer: SettingsFooter(external: () => settingsStore.launchUrlExternal),
+      footer: const SettingsFooter(),
       children: [
         SettingsAccountCard(authStore: authStore),
         SettingsGroup(
