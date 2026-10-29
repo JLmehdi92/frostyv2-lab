@@ -382,8 +382,8 @@ List<ReleaseNotesBlock> parseReleaseNotes(String markdown) {
 
 /// Whether the release notes open by themselves at launch: only after an
 /// update to a new major.minor version (never on a first launch, when
-/// [lastShown] is null), and only when [notes] have an entry for [current]
-/// ("## v1.1.0" or "## 1.1.0").
+/// [lastShown] is null), and only when [notes] have an entry for that
+/// version ("## v1.1.0", "## 1.1.2": any entry of [current]'s major.minor).
 bool shouldShowReleaseNotes({
   required String? lastShown,
   required String current,
@@ -391,8 +391,10 @@ bool shouldShowReleaseNotes({
 }) {
   if (lastShown == null) return false;
   String majorMinor(String version) => version.split('.').take(2).join('.');
-  if (majorMinor(lastShown) == majorMinor(current)) return false;
+  final target = majorMinor(current);
+  if (majorMinor(lastShown) == target) return false;
   return parseReleaseNotes(notes).whereType<ReleaseVersion>().any(
-    (entry) => entry.version.replaceFirst(RegExp('^v'), '') == current,
+    (entry) =>
+        majorMinor(entry.version.replaceFirst(RegExp('^v'), '')) == target,
   );
 }

@@ -122,6 +122,25 @@ A big update.
       );
     });
 
+    test('an entry of the same major.minor counts (an update to a patch)', () {
+      expect(
+        shouldShowReleaseNotes(
+          lastShown: '1.0.0',
+          current: '1.1.1',
+          notes: notes,
+        ),
+        isTrue,
+      );
+      expect(
+        shouldShowReleaseNotes(
+          lastShown: '1.0.0',
+          current: '1.10.0',
+          notes: notes,
+        ),
+        isFalse,
+      );
+    });
+
     test('an entry may be written with or without the v', () {
       expect(
         shouldShowReleaseNotes(

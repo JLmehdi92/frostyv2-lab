@@ -1449,6 +1449,21 @@ void main() {
     await close(tester);
   });
 
+  testWidgets('release notes that cannot be read keep the version for the '
+      'next launch', (tester) async {
+    SharedPreferences.setMockInitialValues({'last_shown_version': '0.9.0'});
+    ReleaseNotes.debugSource = () async => throw StateError('no asset');
+    addTearDown(() => ReleaseNotes.debugSource = null);
+    await pump(tester);
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byType(ReleaseNotes), findsNothing);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('last_shown_version'), '0.9.0');
+    await close(tester);
+  });
+
   testWidgets('after an update, the bundled (empty) notes open nothing', (
     tester,
   ) async {
