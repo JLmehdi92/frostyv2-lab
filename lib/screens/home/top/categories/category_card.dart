@@ -34,8 +34,7 @@ String categoryMonogram(String name) {
       .toList();
   if (words.isEmpty) return '';
   if (words.length == 1) {
-    final word = words.single;
-    return word.substring(0, word.length < 3 ? word.length : 3).toUpperCase();
+    return words.single.characters.take(3).toString().toUpperCase();
   }
   return words
       .take(4)
@@ -197,6 +196,7 @@ class CategoryTile extends StatelessWidget {
       button: true,
       selected: selected,
       label: category.name,
+      onTap: onTap,
       excludeSemantics: true,
       child: PressScale(
         child: GestureDetector(

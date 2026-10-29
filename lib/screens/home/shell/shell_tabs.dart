@@ -43,6 +43,11 @@ class ShellTabs extends StatelessWidget {
     color: active ? activeColor : idleColor,
   );
 
+  void _select(int i) {
+    if (i != index) Haptics.selection();
+    onSelect(i);
+  }
+
   @override
   Widget build(BuildContext context) {
     final scaler = MediaQuery.textScalerOf(context);
@@ -95,13 +100,13 @@ class ShellTabs extends StatelessWidget {
                       selected: i == index,
                       inMutuallyExclusiveGroup: true,
                       label: labels[i],
+                      // The text's own semantics are excluded, the tap with
+                      // them: a screen reader taps through this one.
+                      onTap: () => _select(i),
                       excludeSemantics: true,
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
-                        onTap: () {
-                          if (i != index) Haptics.selection();
-                          onSelect(i);
-                        },
+                        onTap: () => _select(i),
                         child: SizedBox(
                           height: height,
                           width: widths[i],

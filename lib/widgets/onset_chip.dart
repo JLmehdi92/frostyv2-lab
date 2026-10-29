@@ -37,22 +37,28 @@ class OnsetChip extends StatelessWidget {
     final colors = FeedColors.of(context);
     final accent = context.frostyColors.live;
     final duration = motionDuration(context, const Duration(milliseconds: 200));
+    void select() {
+      if (!selected) Haptics.selection();
+      onSelected();
+    }
+
     return Semantics(
       button: true,
       selected: selected,
       inMutuallyExclusiveGroup: true,
       label: label,
+      // The pill's own tap is excluded with its text: a screen reader
+      // taps through this one.
+      onTap: select,
       excludeSemantics: true,
       child: PressScale(
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () {
-            if (!selected) Haptics.selection();
-            onSelected();
-          },
+          onTap: select,
           child: SizedBox(
             height: 44,
             child: Center(
+              widthFactor: 1,
               child: AnimatedContainer(
                 duration: duration,
                 curve: FrostyMotion.standard,
