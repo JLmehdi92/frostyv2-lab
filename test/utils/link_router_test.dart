@@ -83,6 +83,30 @@ void main() {
     expect(launched, hasLength(1));
   });
 
+  test('only web links are launched; other schemes are refused', () async {
+    for (final link in [
+      'javascript:alert(1)',
+      'intent://scan/#Intent;scheme=zxing;end',
+      'file:///sdcard/secret.txt',
+      'tel:+15555550100',
+      'market://details?id=x',
+      'content://contacts/people/1',
+      'example.com',
+      '://broken',
+    ]) {
+      await LinkRouter.open(link, launchExternal: true);
+    }
+    expect(launched, isEmpty);
+    expect(handled, isEmpty);
+
+    await LinkRouter.open('http://example.com/a', launchExternal: true);
+    await LinkRouter.open('HTTPS://example.com/b', launchExternal: false);
+    expect(launched.map((l) => l.$1.toString()), [
+      'http://example.com/a',
+      'https://example.com/b',
+    ]);
+  });
+
   test('other links keep the browser preference', () async {
     await LinkRouter.open('https://example.com/a', launchExternal: true);
     await LinkRouter.open('https://example.com/b', launchExternal: false);

@@ -5,8 +5,10 @@ import 'package:url_launcher/url_launcher.dart';
 typedef UrlLauncher = Future<bool> Function(Uri url, {LaunchMode mode});
 
 /// Opens links tapped in the app. Twitch videos and clips open in-app (never
-/// in a browser, see [TwitchLink.opensInApp]); everything else is launched
-/// as before.
+/// in a browser, see [TwitchLink.opensInApp]); other web links (http and
+/// https) are launched as before. Any other scheme (`intent:`, `file:`,
+/// `javascript:`, an app's own scheme…) is refused without a word: a link
+/// in chat or on a channel's panels must not reach into the device.
 abstract final class LinkRouter {
   /// Set by the app once its navigator exists; returns whether it handled
   /// the link.
@@ -21,8 +23,12 @@ abstract final class LinkRouter {
     if (link.opensInApp && handler != null && await handler(link)) {
       return;
     }
+    final uri = Uri.tryParse(text);
+    if (uri == null || !(uri.isScheme('http') || uri.isScheme('https'))) {
+      return;
+    }
     await launcher(
-      Uri.parse(text),
+      uri,
       mode: launchExternal
           ? LaunchMode.externalApplication
           : LaunchMode.inAppBrowserView,
