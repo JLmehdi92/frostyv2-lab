@@ -328,8 +328,7 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
     super.initState();
     _auth = context.read<AuthStore>();
     _controller = _auth.createAuthWebViewController(
-      routeAfter: widget.routeAfter,
-      onSignedIn: widget.onSignedIn,
+      onSignedIn: _finish,
       onTokenCaptured: _onTokenCaptured,
       onNotSignedIn: _onNotSignedIn,
       onPage: _onPage,
@@ -370,9 +369,15 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
       _loginFailed = false;
     });
     login.whenComplete(() {
-      // Signed in: the page goes once Twitch is done. Refused: the page
-      // shows again at once, with what happened.
-      if (!mounted || !_signingIn || _auth.isLoggedIn) return;
+      // Signed in: the page goes (if Twitch's own sign-in did not close it
+      // already). Refused: the page shows again at once, with what
+      // happened.
+      if (!mounted) return;
+      if (_auth.isLoggedIn) {
+        _finish();
+        return;
+      }
+      if (!_signingIn) return;
       _signingLimit?.cancel();
       setState(() {
         _signingIn = false;
@@ -381,8 +386,39 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
     }).ignore();
   }
 
+  /// Whether the page has been closed (or the onboarding moved on) once.
+  bool _finished = false;
+
+  /// The login is done: the onboarding moves on ([TwitchLoginPanel
+  /// .onSignedIn]), or this page closes (or makes way for [TwitchLoginPanel
+  /// .routeAfter]). Once, and only this page's own route: one already
+  /// closed (Back, its exit still running) takes nothing else with it.
+  void _finish() {
+    if (_finished || !mounted) return;
+    _finished = true;
+    _signingLimit?.cancel();
+    final onSignedIn = widget.onSignedIn;
+    if (onSignedIn != null) {
+      onSignedIn();
+      return;
+    }
+    final route = ModalRoute.of(context);
+    if (route == null || !route.isActive) return;
+    final navigator = Navigator.of(context);
+    final routeAfter = widget.routeAfter;
+    if (!route.isCurrent) {
+      navigator.removeRoute(route);
+    } else if (routeAfter != null) {
+      navigator.pushReplacement(
+        MaterialPageRoute<void>(builder: (context) => routeAfter),
+      );
+    } else {
+      navigator.pop();
+    }
+  }
+
   /// Twitch signed the page in without handing this login a token (the
-  /// user said no): the page stays, with what happened.
+  /// user said no): nothing was taken; the page says so while it stays.
   void _onNotSignedIn() {
     if (!mounted) return;
     _signingLimit?.cancel();
@@ -417,7 +453,11 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
     unawaited(
       _auth.retryLogin(_controller).catchError((Object e) {
         debugPrint('Login page reload failed: ${e.runtimeType}');
-        if (mounted) setState(() => _failed = true);
+        if (!mounted) return;
+        setState(() {
+          _failed = true;
+          _failedPage = _pageOf(_page);
+        });
       }),
     );
   }
@@ -458,7 +498,7 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
       child: Column(
         children: [
           _HostStrip(page: _page),
-          if (_loginFailed) const _LoginFailedLine(),
+          if (_loginFailed) _LoginFailedLine(onRetry: _retry),
           Expanded(
             child: Stack(
               fit: StackFit.expand,
@@ -549,7 +589,9 @@ class _HostStrip extends StatelessWidget {
 /// The line under the address when Twitch handed a token back that did not
 /// sign the user in.
 class _LoginFailedLine extends StatelessWidget {
-  const _LoginFailedLine();
+  const _LoginFailedLine({required this.onRetry});
+
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -557,12 +599,25 @@ class _LoginFailedLine extends StatelessWidget {
       liveRegion: true,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.fromLTRB(16, 2, 8, 2),
         color: FrostyTokens.danger.withValues(alpha: 0.12),
-        child: const Text(
-          'Twitch did not sign you in. Try again.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13, color: OnboardingColors.text),
+        child: Row(
+          children: [
+            const Expanded(
+              child: Text(
+                'Twitch did not sign you in. Try again.',
+                style: TextStyle(fontSize: 13, color: OnboardingColors.text),
+              ),
+            ),
+            TextButton(
+              onPressed: onRetry,
+              style: TextButton.styleFrom(
+                foregroundColor: OnboardingColors.text,
+                minimumSize: const Size(44, 44),
+              ),
+              child: const Text('Try again'),
+            ),
+          ],
         ),
       ),
     );

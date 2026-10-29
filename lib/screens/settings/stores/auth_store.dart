@@ -353,10 +353,11 @@ abstract class AuthBase with Store {
   /// the WebView in, instead of the page being popped (the onboarding moves
   /// on to its next step itself).
   ///
-  /// [attempt] is the page's own login: only its token is taken, and
-  /// Twitch's sign-in counts only once that token came back; otherwise the
-  /// page stays (nothing is popped, no next step) and [onNotSignedIn] is
-  /// told. Without one, any open login's state is accepted.
+  /// [attempt] is the page's own login: only its token is taken. When Twitch
+  /// signs the page in without that token having come back (the user said
+  /// no), [onNotSignedIn] is told first; the page then moves on as before
+  /// ([onSignedIn], or the pop), without any token. Without an attempt, any
+  /// open login's state is accepted.
   FutureOr<NavigationDecision> handleNavigation({
     required NavigationRequest request,
     Widget? routeAfter,
@@ -389,12 +390,10 @@ abstract class AuthBase with Store {
 
       final signedIn =
           attempt?.captured ?? _openLogins.any((open) => open.captured);
-      if (!signedIn) {
-        // Twitch signed the page in, but no token of this login came back
-        // (the user said no, or another page's login was the one asked):
-        // nothing is logged in, so nothing moves on.
-        onNotSignedIn?.call();
-      } else if (onSignedIn != null) {
+      // Without this page's token (the user said no), nothing is logged in:
+      // the page is told, and moves on as it always did (nothing is taken).
+      if (!signedIn) onNotSignedIn?.call();
+      if (onSignedIn != null) {
         onSignedIn();
       } else if (routeAfter != null) {
         navigatorKey.currentState?.pop();
@@ -425,7 +424,9 @@ abstract class AuthBase with Store {
 
   /// Closes [attempt]: its state is no longer accepted.
   void endLogin(LoginAttempt attempt) {
-    attempt._state = null;
+    attempt
+      .._state = null
+      .._captured = false;
     _openLogins.remove(attempt);
   }
 

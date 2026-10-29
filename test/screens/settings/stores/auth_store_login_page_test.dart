@@ -236,20 +236,32 @@ void main() {
       expect(notSignedIn, 0);
     });
 
-    test('twitch.tv without a token for this page: not signed in, and said '
-        'so (no Setup, no pop)', () {
+    test('twitch.tv without a token for this page (the user said no): the '
+        'page still moves on as before, told that nothing was taken', () {
       final attempt = store.beginLogin();
       store.authorizationUri(attempt);
-      var signedIn = 0;
-      var notSignedIn = 0;
+      final order = <String>[];
       store.handleNavigation(
         request: request('https://www.twitch.tv/?no-reload=true'),
         attempt: attempt,
-        onSignedIn: () => signedIn++,
-        onNotSignedIn: () => notSignedIn++,
+        onSignedIn: () => order.add('moved on'),
+        onNotSignedIn: () => order.add('nothing taken'),
       );
-      expect(signedIn, 0);
-      expect(notSignedIn, 1);
+      expect(order, ['nothing taken', 'moved on']);
+      expect(attempt.captured, isFalse);
+      verifyNever(() => api.validateToken(token: any(named: 'token')));
+    });
+
+    test('a closed page forgets its token: a late sign-in does not count', () {
+      final attempt = store.beginLogin();
+      final state = stateOf(store.authorizationUri(attempt));
+      store.handleNavigation(
+        request: request(redirect('abc', state: state)),
+        attempt: attempt,
+      );
+      expect(attempt.captured, isTrue);
+      store.endLogin(attempt);
+      expect(attempt.captured, isFalse);
     });
 
     test('opens the implicit grant with every scope, always confirmed, '

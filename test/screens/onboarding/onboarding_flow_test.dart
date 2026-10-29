@@ -360,6 +360,21 @@ void main() {
       );
     });
 
+    testWidgets('Twitch done without a token (the user said no): on to '
+        'Setup, not logged in', (tester) async {
+      await pump(tester);
+      await settle(tester);
+      await tapText(tester, 'Next');
+      await tapText(tester, 'Connect with Twitch');
+      signIn!();
+      await settle(tester);
+      expect(find.text('Setup'), findsOneWidget);
+      expect(
+        find.text('Not logged in · you can log in later from Profile'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('skipped: Setup says how to log in later', (tester) async {
       await pump(tester);
       await toSetup(tester);

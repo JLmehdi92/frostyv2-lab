@@ -130,20 +130,54 @@ void main() {
     });
   }
 
-  testWidgets('the login itself is the auth store\'s: it pops on success', (
+  testWidgets('signed in on twitch.tv: the login page closes itself', (
     tester,
   ) async {
     await open(tester);
-    // No onboarding callback: the store pops the page, as it always did.
-    expect(onSignedIn, isNull);
-    verify(
-      () => auth.createAuthWebViewController(
-        onTokenCaptured: any(named: 'onTokenCaptured'),
-        onNotSignedIn: any(named: 'onNotSignedIn'),
-        onPage: any(named: 'onPage'),
-        onError: any(named: 'onError'),
-      ),
-    ).called(1);
+    onSignedIn!();
+    await tester.pumpAndSettle();
+    expect(find.text('open'), findsOneWidget);
+    expect(find.text('Connect with Twitch'), findsNothing);
+  });
+
+  testWidgets('the user said no (no token): the page still closes, as '
+      'before', (tester) async {
+    await open(tester);
+    onNotSignedIn!();
+    onSignedIn!();
+    await tester.pumpAndSettle();
+    expect(find.text('open'), findsOneWidget);
+    verifyNever(() => auth.retryLogin(any()));
+  });
+
+  testWidgets('the login going through closes the page even if Twitch '
+      'signed it in first, and only once', (tester) async {
+    await open(tester);
+    // Twitch's own sign-in never reached the page (it came before the
+    // token): the login going through closes it.
+    when(() => auth.isLoggedIn).thenReturn(true);
+    final login = Completer<void>();
+    onTokenCaptured!(login.future);
+    await tester.pump();
+    login.complete();
+    await tester.pumpAndSettle();
+    expect(find.text('open'), findsOneWidget);
+    expect(find.text('Connect with Twitch'), findsNothing);
+    // A late sign-in does not close the page under it.
+    onSignedIn!();
+    await tester.pumpAndSettle();
+    expect(find.text('open'), findsOneWidget);
+  });
+
+  testWidgets('closed with Back while Twitch was signing in: only the login '
+      'page goes, never the one under it', (tester) async {
+    await open(tester);
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pump(const Duration(milliseconds: 50));
+    // The exit animation still runs: the page is mounted but closed.
+    onSignedIn!();
+    await tester.pumpAndSettle();
+    expect(find.text('open'), findsOneWidget);
   });
 
   testWidgets('a rebuild never reloads the page', (tester) async {
@@ -248,13 +282,43 @@ void main() {
     expect(find.text('Twitch did not sign you in. Try again.'), findsOneWidget);
   });
 
-  testWidgets('Twitch signing the page in without its token: the page '
-      'stays and says so', (tester) async {
+  testWidgets('a login that fails: the line offers Try again', (tester) async {
     await open(tester);
-    onNotSignedIn!();
+    onTokenCaptured!(Future.value());
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Twitch did not sign you in. Try again.'), findsOneWidget);
-    expect(find.text('Connect with Twitch'), findsOneWidget);
+    await tester.tap(find.widgetWithText(TextButton, 'Try again'));
+    await tester.pump();
+    verify(() => auth.retryLogin(controller)).called(1);
+    expect(find.text('Twitch did not sign you in. Try again.'), findsNothing);
+  });
+
+  testWidgets('a reload that fails: the card stays until another page', (
+    tester,
+  ) async {
+    await open(tester);
+    onPage!(Uri.parse('https://id.twitch.tv/oauth2/authorize?x=1'));
+    onError!(
+      const WebResourceError(
+        errorCode: -2,
+        description: 'offline',
+        isForMainFrame: true,
+        url: 'https://id.twitch.tv/earlier',
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    when(
+      () => auth.retryLogin(any()),
+    ).thenAnswer((_) => Future.error(Exception('no network')));
+    await tester.tap(find.text('Try again'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Twitch could not be reached'), findsOneWidget);
+    // The page it was on is not "another page".
+    onPage!(Uri.parse('https://id.twitch.tv/oauth2/authorize?x=1'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Twitch could not be reached'), findsOneWidget);
   });
 
   testWidgets('closing the page closes its login', (tester) async {
