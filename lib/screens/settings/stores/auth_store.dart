@@ -932,10 +932,20 @@ abstract class AuthBase with Store {
 
         final switching = previousId != null && details.id != previousId;
 
-        // On disk first.
+        // On disk first: the token's app before the token, so that a token
+        // never sits beside another token's app (a refusal fails the login
+        // with nothing changed).
         final savedBefore = await _storage.read(key: _userTokenKey);
-        await _storage.write(key: _userTokenKey, value: token);
-        await _saveTokenClientId(foreignClient);
+        final savedClientBefore = await _storage.read(
+          key: _userTokenClientIdKey,
+        );
+        await _writeTokenClientId(foreignClient);
+        try {
+          await _storage.write(key: _userTokenKey, value: token);
+        } catch (_) {
+          await _restoreTokenClientId(savedClientBefore);
+          rethrow;
+        }
         if (switching) {
           // Another account: the stored web token is the previous one's (its
           // playback, watch positions and shelf would be theirs). It goes.
@@ -943,8 +953,7 @@ abstract class AuthBase with Store {
             await _storage.delete(key: _twitchWebTokenKey);
           } catch (_) {
             await _restoreSavedToken(savedBefore);
-            // The session in memory is still the previous one: its app.
-            await _saveTokenClientId(_tokenClientId);
+            await _restoreTokenClientId(savedClientBefore);
             rethrow;
           }
         }
@@ -1229,13 +1238,28 @@ abstract class AuthBase with Store {
   /// the revoke use this app's client id.
   Future<void> _saveTokenClientId(String? clientId) async {
     try {
-      if (clientId == null) {
-        await _storage.delete(key: _userTokenClientIdKey);
-      } else {
-        await _storage.write(key: _userTokenClientIdKey, value: clientId);
-      }
+      await _writeTokenClientId(clientId);
     } catch (e) {
       debugPrint('Saving the token app failed: ${e.runtimeType}');
+    }
+  }
+
+  /// Stores the user token's app ([clientId], null for this app's); throws
+  /// when the keystore refuses.
+  Future<void> _writeTokenClientId(String? clientId) async {
+    if (clientId == null) {
+      await _storage.delete(key: _userTokenClientIdKey);
+    } else {
+      await _storage.write(key: _userTokenClientIdKey, value: clientId);
+    }
+  }
+
+  /// Puts the stored token's app back as it was before a login wrote it.
+  Future<void> _restoreTokenClientId(String? saved) async {
+    try {
+      await _writeTokenClientId(saved);
+    } catch (e) {
+      debugPrint('Restoring the token app failed: ${e.runtimeType}');
     }
   }
 
