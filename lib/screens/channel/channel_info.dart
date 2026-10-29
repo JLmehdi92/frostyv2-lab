@@ -15,7 +15,9 @@ import 'package:frosty/theme.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/utils/twitch_links.dart';
+import 'package:frosty/widgets/motion/motion.dart';
 import 'package:frosty/widgets/motion/press_scale.dart';
+import 'package:frosty/widgets/motion/reduce_motion.dart';
 import 'package:frosty/widgets/profile_picture.dart';
 import 'package:frosty/widgets/twitch_web_page.dart';
 import 'package:intl/intl.dart';
@@ -226,8 +228,11 @@ class ChannelInfoRow extends StatelessWidget {
   }
 }
 
-/// Hides [child] while the keyboard is up (when [enabled]). Asked of the
-/// window: the channel's Scaffold takes the inset out of its body.
+/// Folds [child] away while the keyboard is up (when [enabled]), and back
+/// when it goes: the height and the opacity follow the motion kit (a short
+/// cross-fade under reduce motion). Asked of the window (the channel's
+/// Scaffold takes the inset out of its body), rebuilt only when the
+/// keyboard comes or goes, not at each of its frames.
 class _HiddenWhileTyping extends StatefulWidget {
   const _HiddenWhileTyping({required this.enabled, required this.child});
 
@@ -240,6 +245,13 @@ class _HiddenWhileTyping extends StatefulWidget {
 
 class _HiddenWhileTypingState extends State<_HiddenWhileTyping>
     with WidgetsBindingObserver {
+  var _typing = false;
+
+  bool _readTyping() {
+    final view = View.maybeOf(context);
+    return view != null && view.viewInsets.bottom > 0;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -247,8 +259,16 @@ class _HiddenWhileTypingState extends State<_HiddenWhileTyping>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _typing = _readTyping();
+  }
+
+  @override
   void didChangeMetrics() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    final typing = _readTyping();
+    if (typing != _typing) setState(() => _typing = typing);
   }
 
   @override
@@ -259,8 +279,31 @@ class _HiddenWhileTypingState extends State<_HiddenWhileTyping>
 
   @override
   Widget build(BuildContext context) {
-    final typing = View.of(context).viewInsets.bottom > 0;
-    return widget.enabled && typing ? const SizedBox.shrink() : widget.child;
+    final hidden = widget.enabled && _typing;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(end: hidden ? 0 : 1),
+      duration: motionDuration(
+        context,
+        hidden ? FrostyMotion.exit : FrostyMotion.enter,
+      ),
+      curve: hidden
+          ? FrostyMotion.emphasizedAccelerate
+          : FrostyMotion.emphasizedDecelerate,
+      child: widget.child,
+      builder: (context, shown, child) => IgnorePointer(
+        ignoring: hidden,
+        child: ExcludeSemantics(
+          excluding: hidden,
+          child: ClipRect(
+            child: Align(
+              alignment: Alignment.topCenter,
+              heightFactor: shown,
+              child: Opacity(opacity: shown, child: child),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

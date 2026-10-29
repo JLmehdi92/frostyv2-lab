@@ -7,6 +7,7 @@ import 'package:frosty/screens/channel/channel_info.dart';
 import 'package:frosty/screens/channel/stores/channel_info_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/theme.dart';
+import 'package:frosty/widgets/motion/motion.dart';
 import 'package:mobx/mobx.dart' show Observable, runInAction;
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
@@ -163,8 +164,6 @@ void main() {
     ) async {
       // A small phone, the keyboard taking 200 dp: the portrait column of
       // the channel screen (video, handle, this row, chat).
-      tester.view.viewInsets = const FakeViewPadding(bottom: 200);
-      addTearDown(tester.view.resetViewInsets);
       await pump(
         tester,
         Column(
@@ -183,7 +182,18 @@ void main() {
         ),
         screen: const Size(390, 600),
       );
-      expect(find.text('Streamer'), findsNothing);
+      addTearDown(tester.view.resetViewInsets);
+      expect(find.text('Streamer'), findsOneWidget);
+      tester.view.viewInsets = const FakeViewPadding(bottom: 200);
+      await tester.pump();
+
+      Size row() => tester.getSize(find.byType(ChannelInfoRow));
+      // It folds away, not in a jump.
+      await tester.pump(FrostyMotion.exit ~/ 2);
+      expect(row().height, inExclusiveRange(1, 59));
+      await tester.pumpAndSettle();
+      expect(row().height, 0);
+      expect(find.bySemanticsLabel('Channel profile'), findsNothing);
       // The input (68), a reply (41) and the autocomplete (51) fit.
       expect(
         tester.getSize(find.byKey(const ValueKey('chat'))).height,
@@ -191,8 +201,33 @@ void main() {
       );
 
       tester.view.resetViewInsets();
+      await tester.pumpAndSettle();
+      expect(row().height, greaterThan(40));
+
+      // Reduce motion: a short cross-fade.
+      await pump(
+        tester,
+        MediaQuery(
+          data: const MediaQueryData(disableAnimations: true),
+          child: Column(
+            children: [
+              ChannelInfoRow(
+                player: FakePlayer(stream: fakeStream()),
+                login: 'streamer',
+                displayName: 'Streamer',
+                info: info,
+                viewerLogin: () => 'viewer',
+                onOpenProfile: () {},
+              ),
+            ],
+          ),
+        ),
+        screen: const Size(390, 600),
+      );
+      tester.view.viewInsets = const FakeViewPadding(bottom: 200);
       await tester.pump();
-      expect(find.text('Streamer'), findsOneWidget);
+      await tester.pump(FrostyMotion.reducedFade);
+      expect(row().height, 0);
       await done(tester);
     });
 
