@@ -141,4 +141,21 @@ void main() {
     expect(count('Positioned.fill(child:statsLayer)'), 1);
     expect(count('children:[chrome,statsLayer,]'), 2);
   });
+
+  test("a tablet's panels know where the video is", () {
+    // The picture itself, in every layout and in PiP, reports its place.
+    expect(
+      code,
+      contains('finalplayer=PanelAvoidTarget(holder:_panelAvoid,child:'),
+    );
+    // Over every layout, so the user card, the points and the emote menu
+    // keep it clear.
+    expect(
+      code,
+      contains(
+        'Positioned.fill(child:PanelAvoidScope(holder:_panelAvoid,'
+        'child:videoChat),)',
+      ),
+    );
+  });
 }

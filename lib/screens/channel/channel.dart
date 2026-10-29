@@ -56,6 +56,7 @@ import 'package:frosty/widgets/blurred_container.dart';
 import 'package:frosty/widgets/celebration_overlay.dart';
 import 'package:frosty/widgets/draggable_divider.dart';
 import 'package:frosty/widgets/frosty_notification.dart';
+import 'package:frosty/widgets/sheet/onset_panel.dart';
 import 'package:mobx/mobx.dart';
 import 'package:provider/provider.dart';
 import 'package:simple_pip_mode/actions/pip_actions_layout.dart';
@@ -138,6 +139,10 @@ class _VideoChatState extends State<VideoChat>
   /// state (the labels, an acceptance) from one layout to the next, so
   /// turning the phone never uncovers the stream nor asks Twitch again.
   final _contentGateKey = GlobalKey();
+
+  /// Where the video is, so a tablet's anchored panels (user card, points,
+  /// emote menu) keep it clear (board ChaineOutilsTablette).
+  final _panelAvoid = PanelAvoidHolder();
 
   /// The portrait video size while its handle is dragged; saved to the
   /// settings once, when the drag ends.
@@ -918,14 +923,17 @@ class _VideoChatState extends State<VideoChat>
     final store = _videoStore;
     // Its own layer: nothing drawn over it (controls, chat, the latency
     // pill) makes the picture repaint.
-    final player = RepaintBoundary(
-      child: GestureDetector(
-        onLongPress: _videoStore.handleToggleOverlay,
-        child: store is IvsVideoStore
-            ? IvsTextureVideo(key: _videoKey, videoStore: store)
-            : store is NativeVideoStore
-            ? NativeVideo(key: _videoKey, videoStore: store)
-            : Video(key: _videoKey, videoStore: store as VideoStore),
+    final player = PanelAvoidTarget(
+      holder: _panelAvoid,
+      child: RepaintBoundary(
+        child: GestureDetector(
+          onLongPress: _videoStore.handleToggleOverlay,
+          child: store is IvsVideoStore
+              ? IvsTextureVideo(key: _videoKey, videoStore: store)
+              : store is NativeVideoStore
+              ? NativeVideo(key: _videoKey, videoStore: store)
+              : Video(key: _videoKey, videoStore: store as VideoStore),
+        ),
       ),
     );
 
@@ -1570,7 +1578,9 @@ class _VideoChatState extends State<VideoChat>
       value: _eventsStore,
       child: Stack(
         children: [
-          Positioned.fill(child: videoChat),
+          Positioned.fill(
+            child: PanelAvoidScope(holder: _panelAvoid, child: videoChat),
+          ),
           Positioned.fill(child: CelebrationOverlay(store: _eventsStore)),
         ],
       ),
