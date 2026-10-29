@@ -8,6 +8,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/apis/twitch_chat_rules_service.dart';
 import 'package:frosty/apis/twitch_watch_streak_service.dart';
 import 'package:frosty/models/community_highlights.dart';
+import 'package:frosty/models/raid_arrival.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/channel/celebrations/subtle_celebrations.dart';
@@ -21,8 +22,10 @@ import 'package:frosty/screens/channel/chat/widgets/chat_bottom_bar.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_tabs.dart';
 import 'package:frosty/screens/channel/chat/widgets/overlay_chat_scope.dart';
 import 'package:frosty/screens/channel/community_highlights/gift_bomb_feed.dart';
+import 'package:frosty/screens/channel/community_highlights/raid_departure.dart';
 import 'package:frosty/screens/channel/community_highlights/stores/community_highlights_store.dart';
 import 'package:frosty/screens/channel/community_highlights/widgets/pinned_chat_text.dart';
+import 'package:frosty/screens/channel/community_highlights/widgets/raid_heading_overlay.dart';
 import 'package:frosty/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:frosty/screens/channel/portrait_split.dart';
 import 'package:frosty/screens/channel/stores/channel_events_store.dart';
@@ -58,6 +61,7 @@ import 'package:frosty/widgets/blurred_container.dart';
 import 'package:frosty/widgets/celebration_overlay.dart';
 import 'package:frosty/widgets/draggable_divider.dart';
 import 'package:frosty/widgets/frosty_notification.dart';
+import 'package:frosty/widgets/motion/reduce_motion.dart';
 import 'package:frosty/widgets/sheet/onset_panel.dart';
 import 'package:mobx/mobx.dart';
 import 'package:provider/provider.dart';
@@ -73,11 +77,16 @@ class VideoChat extends StatefulWidget {
   final String userName;
   final String userLogin;
 
+  /// The raid the viewer followed here, if they did: the "Heading to"
+  /// overlay fades out, the chat welcomes them and the raid is pinned.
+  final RaidArrival? raidArrival;
+
   const VideoChat({
     super.key,
     required this.userId,
     required this.userName,
     required this.userLogin,
+    this.raidArrival,
   });
 
   @override
@@ -285,6 +294,7 @@ class _VideoChatState extends State<VideoChat>
       _highlightsStore = CommunityHighlightsStore(
         channelId: widget.userId,
         channelLogin: widget.userLogin,
+        channelName: widget.userName,
         service: context.twitchCommunityHighlightsService,
         realtime: context.realtimeClient,
         expandNew:
@@ -315,24 +325,78 @@ class _VideoChatState extends State<VideoChat>
   /// The raid left while this channel was on screen: go along with it, as
   /// Twitch does (not from behind a VOD, the mini player or PiP).
   void _goAlongWithRaid(OutgoingRaid raid) {
-    if (!mounted || _videoStore.isInPipMode) return;
-    final route = ModalRoute.of(context);
-    if (route == null || !route.isActive) return;
-    if (!route.isCurrent) {
-      // This screen's own sheets and dialogs (the raid's details) close;
-      // a page on top (a VOD, settings) keeps the viewer where they are.
-      Navigator.of(context).popUntil((r) => r == route || r is! PopupRoute);
-      if (!route.isCurrent) return;
-    }
-    _watchRaid(raid);
+    if (!_canLeaveWithRaid()) return;
+    _departToRaid(raid);
   }
 
-  /// "Watch" on an outgoing raid: the target replaces this channel.
-  void _watchRaid(OutgoingRaid raid) => _replaceWith(
+  /// Whether this screen may leave for a raid's target now: on screen, not
+  /// in PiP, and on top. Its own sheets and dialogs (the raid's details)
+  /// close; a page on top (a VOD, settings) keeps the viewer where they are.
+  bool _canLeaveWithRaid() {
+    if (!mounted || _videoStore.isInPipMode) return false;
+    final route = ModalRoute.of(context);
+    if (route == null || !route.isActive) return false;
+    if (!route.isCurrent) {
+      Navigator.of(context).popUntil((r) => r == route || r is! PopupRoute);
+    }
+    return route.isCurrent;
+  }
+
+  /// Leaving with a raid: the "Heading to" overlay plays, then the switch.
+  late final RaidDeparture _departure = RaidDeparture(
+    canLeave: _canLeaveWithRaid,
+    onSwitch: (raid, arrival) => _watchRaid(raid, arrival: arrival),
+    onChanged: () {
+      if (!mounted) return;
+      if (_departure.current == null) _highlightsStore?.markDeparting(null);
+      setState(() {});
+    },
+  );
+
+  /// The raid that brought the viewer here, while its overlay fades out.
+  late RaidArrival? _arrival = widget.raidArrival;
+
+  /// "Go now" or "Watch" on an outgoing raid, or the raid leaving: the
+  /// target's picture is hit on the card, "Heading to Y" plays over the
+  /// video, then the target replaces this channel. Nothing changes on the
+  /// video path meanwhile; the checks run again at the switch, so PiP or a
+  /// page opened in between keeps the viewer here.
+  void _departToRaid(OutgoingRaid raid) {
+    if (!mounted) return;
+    final started = _departure.start(
+      raid,
+      fromName: widget.userName,
+      fromLogin: widget.userLogin,
+      delay: reduceMotionOf(context)
+          ? kRaidDepartureDelayReduced
+          : kRaidDepartureDelay,
+      now: DateTime.now(),
+    );
+    if (started) _highlightsStore?.markDeparting(raid);
+  }
+
+  /// The target replaces this channel.
+  void _watchRaid(OutgoingRaid raid, {RaidArrival? arrival}) => _replaceWith(
     userId: raid.targetId,
     userName: raid.targetDisplayName,
     userLogin: raid.targetLogin,
+    raidArrival: arrival,
   );
+
+  /// The overlay of the raid that brought the viewer here has faded: the
+  /// raid is pinned in the new chat like an incoming one.
+  void _onArrived() {
+    final arrival = _arrival;
+    if (!mounted || arrival == null) return;
+    setState(() => _arrival = null);
+    _highlightsStore?.showIncomingRaid(
+      IncomingRaid(
+        raiderName: arrival.fromName,
+        raiderLogin: arrival.fromLogin,
+        viewers: arrival.viewers,
+      ),
+    );
+  }
 
   /// A channel from "Also live from your follows" replaces this one, as a
   /// raid's target does (one player at a time).
@@ -346,6 +410,7 @@ class _VideoChatState extends State<VideoChat>
     required String userId,
     required String userName,
     required String userLogin,
+    RaidArrival? raidArrival,
   }) {
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
@@ -355,6 +420,7 @@ class _VideoChatState extends State<VideoChat>
           userId: userId,
           userName: userName,
           userLogin: userLogin,
+          raidArrival: raidArrival,
         ),
       ),
     );
@@ -619,6 +685,13 @@ class _VideoChatState extends State<VideoChat>
       clear: _eventsStore.clearCelebration,
     );
     _syncHighlightsStore();
+    if (widget.raidArrival case final arrival?) {
+      _primaryChatStore?.addArrivalNotice(arrival);
+      // Chat only: no video for the overlay to fade from.
+      if (!settings.showVideo) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _onArrived());
+      }
+    }
     _highlightsSettingReaction = reaction(
       (_) => settings.showCommunityHighlights,
       (_) {
@@ -1102,10 +1175,29 @@ class _VideoChatState extends State<VideoChat>
                 hypeTrain: _hypeTrainStore,
                 highlights: _highlightsStore,
                 settingsStore: settingsStore,
-                onWatchRaid: _watchRaid,
+                onWatchRaid: _departToRaid,
                 pinnedMessage: _pinnedMessage,
               ),
               Positioned.fill(child: statsLayer),
+              // Over the picture only, under the content warning: it
+              // hides nothing the warning covers and never plays a stream.
+              if (_departure.current case final departure?)
+                Positioned.fill(
+                  child: RaidHeadingOverlay(
+                    key: const ValueKey('raid-leaving'),
+                    arrival: departure,
+                    leaving: true,
+                  ),
+                )
+              else if (_arrival case final arrival?)
+                Positioned.fill(
+                  child: RaidHeadingOverlay(
+                    key: const ValueKey('raid-arriving'),
+                    arrival: arrival,
+                    leaving: false,
+                    onDone: _onArrived,
+                  ),
+                ),
             ],
           );
         },
@@ -1132,7 +1224,7 @@ class _VideoChatState extends State<VideoChat>
             ChannelChatTopOverlay(
               hypeTrain: _hypeTrainStore,
               highlights: _highlightsStore,
-              onWatchRaid: _watchRaid,
+              onWatchRaid: _departToRaid,
               pinnedMessage: _pinnedMessage,
               settingsStore: settingsStore,
               chatTabsStore: _chatTabsStore,
@@ -1367,7 +1459,7 @@ class _VideoChatState extends State<VideoChat>
                                       hypeTrain: _hypeTrainStore,
                                       highlights: _highlightsStore,
                                       settingsStore: settingsStore,
-                                      onWatchRaid: _watchRaid,
+                                      onWatchRaid: _departToRaid,
                                       pinnedMessage: _pinnedMessage,
                                     ),
                                   ],
@@ -1655,6 +1747,7 @@ class _VideoChatState extends State<VideoChat>
     _incomingRaidFeed?.call();
     _highlightsStore?.dispose();
     _subtleCelebrations?.call();
+    _departure.dispose();
     // Always disposed, even on hand-off to the mini window: the mini player
     // shows no hype train or celebration, and leaving the socket open would
     // keep a channel's events flowing after leaving it.

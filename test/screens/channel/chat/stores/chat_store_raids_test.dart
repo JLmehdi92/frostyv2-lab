@@ -1,6 +1,7 @@
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/models/irc.dart';
+import 'package:frosty/models/raid_arrival.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 
@@ -74,6 +75,37 @@ void main() {
       store.dispose();
       store.addLocalNotice('late');
       expect(lines(store).where((m) => m.message == 'late'), isEmpty);
+      async.elapse(const Duration(seconds: 30));
+    });
+  });
+
+  test('the raid welcome shows right after joining, once', () {
+    fakeAsync((async) {
+      final store = create();
+      async.flushMicrotasks();
+      final arrival = RaidArrival(
+        fromName: 'Nisqyy',
+        targetName: 'Channel',
+        viewers: 3,
+        at: DateTime.utc(2026, 10, 28),
+      );
+      store.addArrivalNotice(arrival);
+      expect(lines(store).where((m) => m.raidArrival != null), isEmpty);
+
+      sockets.single.receive(':tmi.twitch.tv 001 justinfan :Welcome, GLHF!');
+      async.flushMicrotasks();
+      final all = lines(store).toList();
+      final welcome = all.indexWhere(
+        (m) => m.message?.startsWith('Welcome to') ?? false,
+      );
+      expect(welcome, isNot(-1));
+      expect(all[welcome + 1].raidArrival, same(arrival));
+
+      // Joined: a later one shows at once.
+      store.addArrivalNotice(arrival);
+      expect(lines(store).where((m) => m.raidArrival != null), hasLength(2));
+
+      store.dispose();
       async.elapse(const Duration(seconds: 30));
     });
   });

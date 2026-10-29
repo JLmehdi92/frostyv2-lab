@@ -15,6 +15,7 @@ import 'package:frosty/screens/channel/chat/widgets/chat_link_card.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_user_modal.dart';
 import 'package:frosty/screens/channel/chat/widgets/filtered_message_sheet.dart';
 import 'package:frosty/screens/channel/chat/widgets/overlay_chat_scope.dart';
+import 'package:frosty/screens/channel/chat/widgets/raid_welcome_card.dart';
 import 'package:frosty/screens/channel/chat/widgets/reply_thread.dart';
 import 'package:frosty/screens/channel/chat/widgets/user_notice_row.dart';
 import 'package:frosty/theme.dart';
@@ -564,7 +565,11 @@ class ChatMessage extends StatelessWidget {
           case Command.notice:
             // Les notices portent des comptes a rebours : chasse fixe.
             final noticeStyle = context.frostyText.metadata;
-            if (ircMessage.actionCallback != null &&
+            if (ircMessage.raidArrival case final arrival?) {
+              // The welcome of a raid the viewer followed: its own card.
+              isNoticeRow = true;
+              renderMessage = RaidWelcomeCard(arrival: arrival);
+            } else if (ircMessage.actionCallback != null &&
                 ircMessage.actionLabel != null) {
               renderMessage = Text.rich(
                 TextSpan(

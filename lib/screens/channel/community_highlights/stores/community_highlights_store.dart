@@ -167,9 +167,10 @@ abstract class CommunityHighlightsStoreBase with Store {
     return raid != null && raid.raid.id == _departingFor;
   }
 
-  /// The viewer is on their way to [raid]'s target.
+  /// The viewer is on their way to [raid]'s target (null: they stayed
+  /// after all).
   @action
-  void markDeparting(OutgoingRaid raid) => _departingFor = raid.id;
+  void markDeparting(OutgoingRaid? raid) => _departingFor = raid?.id;
 
   /// Stays on this channel when the current raid leaves.
   @action

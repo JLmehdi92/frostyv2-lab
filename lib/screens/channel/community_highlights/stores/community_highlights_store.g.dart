@@ -224,7 +224,7 @@ mixin _$CommunityHighlightsStore on CommunityHighlightsStoreBase, Store {
   );
 
   @override
-  void markDeparting(OutgoingRaid raid) {
+  void markDeparting(OutgoingRaid? raid) {
     final _$actionInfo = _$CommunityHighlightsStoreBaseActionController
         .startAction(name: 'CommunityHighlightsStoreBase.markDeparting');
     try {

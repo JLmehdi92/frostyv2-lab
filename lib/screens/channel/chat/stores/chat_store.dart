@@ -11,6 +11,7 @@ import 'package:frosty/models/badges.dart';
 import 'package:frosty/models/emotes.dart';
 import 'package:frosty/models/events.dart';
 import 'package:frosty/models/irc.dart';
+import 'package:frosty/models/raid_arrival.dart';
 import 'package:frosty/screens/channel/chat/chat_commands.dart';
 import 'package:frosty/screens/channel/chat/chat_delay_queue.dart';
 import 'package:frosty/screens/channel/chat/chat_restrictions.dart';
@@ -237,6 +238,21 @@ abstract class ChatStoreBase with Store {
   /// live, from this channel), set as its header reaches the chat.
   @readonly
   GiftBomb? _latestGiftBomb;
+
+  /// The welcome of a raid the viewer followed here, waiting for the chat
+  /// to be joined (it shows right after "Welcome to X's chat!").
+  RaidArrival? _pendingArrival;
+
+  /// Says "You followed X's raid" in this chat: now if it is joined, else
+  /// as soon as it is.
+  void addArrivalNotice(RaidArrival arrival) {
+    if (_shouldDisconnect) return;
+    if (_messageBufferTimer == null) {
+      _pendingArrival = arrival;
+      return;
+    }
+    runInAction(() => messageBuffer.add(IRCMessage.raidWelcome(arrival)));
+  }
 
   /// Adds a line of ONSET's own to this chat (a celebration said quietly),
   /// after what already waits to show.
@@ -1048,6 +1064,10 @@ abstract class ChatStoreBase with Store {
                 "Welcome to ${getReadableName(displayName, channelName)}'s chat!",
           ),
         );
+        if (_pendingArrival case final arrival?) {
+          _pendingArrival = null;
+          messageBuffer.add(IRCMessage.raidWelcome(arrival));
+        }
 
         // Activate the message buffer.
         // Cancel any existing timer before creating a new one to prevent duplicates on reconnect.

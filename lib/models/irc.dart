@@ -10,6 +10,7 @@ import 'package:frosty/models/badges.dart';
 import 'package:frosty/models/chat_gif.dart';
 import 'package:frosty/models/cheermote.dart';
 import 'package:frosty/models/emotes.dart';
+import 'package:frosty/models/raid_arrival.dart';
 import 'package:frosty/models/user.dart';
 import 'package:frosty/models/user_notice.dart';
 import 'package:frosty/models/user_notice_text.dart';
@@ -52,6 +53,10 @@ class IRCMessage {
   bool? mention;
   final VoidCallback? actionCallback;
   final String? actionLabel;
+
+  /// The welcome card of a raid the viewer followed here (a line of
+  /// ONSET's own, never from Twitch).
+  final RaidArrival? raidArrival;
 
   /// The message cut around its GIFs (`gifs` tag), or empty when it has
   /// none. The cut is made on the text as sent, so [message] and [split]
@@ -206,6 +211,7 @@ class IRCMessage {
     this.actionLabel,
     this.gifParts = const [],
     this.textAsSent,
+    this.raidArrival,
   });
 
   /// Applies the given CLEARCHAT message to the provided messages and buffer.
@@ -1612,6 +1618,15 @@ class IRCMessage {
       textAsSent: textAsSent,
     );
   }
+
+  /// "You followed X's raid", at the top of the new chat.
+  factory IRCMessage.raidWelcome(RaidArrival arrival) => IRCMessage(
+    raw: '',
+    tags: {'tmi-sent-ts': '${arrival.at.millisecondsSinceEpoch}'},
+    command: Command.notice,
+    message: "You followed ${arrival.fromName}'s raid",
+    raidArrival: arrival,
+  );
 
   factory IRCMessage.createNotice({
     required String message,
