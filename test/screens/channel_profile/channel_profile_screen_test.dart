@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
@@ -384,6 +385,56 @@ void main() {
       }
     });
 
+    testWidgets('a landscape phone keeps everything clear of the cutout', (
+      tester,
+    ) async {
+      tester.view.padding = const FakeViewPadding(left: 48, right: 24);
+      addTearDown(tester.view.resetPadding);
+      answerProfile();
+      await pump(tester, size: const Size(800, 360));
+      expect(tester.takeException(), isNull);
+
+      expect(tester.getRect(find.byTooltip('Back')).left, greaterThan(48));
+      expect(tester.getRect(find.byTooltip('More')).right, lessThan(800 - 24));
+      expect(tester.getRect(find.byType(ProfileAvatar)).left, greaterThan(48));
+      expect(
+        tester.getRect(find.text('Watch')).left,
+        greaterThanOrEqualTo(48 + 16),
+      );
+      await tapTab(tester, ProfileTab.about);
+      expect(
+        tester.getTopLeft(find.text('About xQc')).dx,
+        greaterThanOrEqualTo(48 + 16),
+      );
+    });
+
+    testWidgets('large text keeps each action on one line', (tester) async {
+      answerProfile();
+      when(
+        () => helix.isFollowing(
+          userId: any(named: 'userId'),
+          broadcasterId: any(named: 'broadcasterId'),
+        ),
+      ).thenAnswer((_) async => false);
+      await pump(
+        tester,
+        size: const Size(360, 740),
+        textScale: 1.3,
+        auth: signedIn('viewer'),
+      );
+      expect(tester.takeException(), isNull);
+      for (final label in ['Watch', 'Follow', 'Subscribe']) {
+        final text = tester.renderObject<RenderParagraph>(find.text(label));
+        expect(text.didExceedMaxLines, isFalse, reason: label);
+        // One line of 14 sp at 1.3, scaled down rather than wrapped.
+        expect(
+          tester.getSize(find.text(label)).height,
+          lessThan(14 * 1.3 * 2),
+          reason: label,
+        );
+      }
+    });
+
     testWidgets('fits a small phone, a landscape phone and large text', (
       tester,
     ) async {
@@ -466,6 +517,13 @@ void main() {
     testWidgets('neither on the viewer\'s own channel', (tester) async {
       answerProfile();
       await pump(tester, auth: signedIn('xqc', id: '71092938'));
+      // Nothing asked either.
+      verifyNever(
+        () => helix.isFollowing(
+          userId: any(named: 'userId'),
+          broadcasterId: any(named: 'broadcasterId'),
+        ),
+      );
       expect(find.text('Following'), findsNothing);
       expect(find.text('Follow'), findsNothing);
       expect(find.text('Subscribe'), findsNothing);

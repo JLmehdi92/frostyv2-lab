@@ -182,13 +182,12 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
           ScheduleReminders.shared?.sync(widget.login, schedule.segments),
         );
       }),
-      // The follow is asked once the channel's id is known.
+      // The follow is asked once the channel's id is known, again when the
+      // viewer changes, never on the viewer's own channel.
       autorun((_) {
         final id = _store.userId ?? widget.userId;
-        if (id != null) _followChannel(id);
+        if (id != null) _syncFollow(id, _viewerOf(auth));
       }),
-      if (auth != null)
-        reaction((_) => _viewerOf(auth)?.id, (_) => _follow?.viewerChanged()),
     ];
     _tabs.addListener(_onTab);
     _started = true;
@@ -197,18 +196,38 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
   /// Past [initState]: a change to what the page shows needs a build.
   var _started = false;
 
-  void _followChannel(String id) {
-    if (_follow?.channelId == id) return;
-    final auth = _auth;
+  /// The viewer [_follow] was last asked for.
+  String? _followViewer;
+
+  void _syncFollow(String id, UserTwitch? viewer) {
     final previous = _follow;
-    final follow = ChannelInfoStore(
+    if (viewer != null &&
+        viewer.login.toLowerCase() == widget.login.toLowerCase()) {
+      // Their own channel: nothing to follow, nothing to ask.
+      _follow = null;
+      _followViewer = viewer.id;
+      if (previous != null) {
+        previous.dispose();
+        if (_started) setState(() {});
+      }
+      return;
+    }
+    if (previous != null && previous.channelId == id) {
+      if (_followViewer != viewer?.id) {
+        _followViewer = viewer?.id;
+        previous.viewerChanged();
+      }
+      return;
+    }
+    final auth = _auth;
+    _followViewer = viewer?.id;
+    _follow = ChannelInfoStore(
       channelId: id,
       api: context.twitchApi,
       viewerId: () => _viewerOf(auth)?.id,
       // No player here to give the network to first.
       startDelay: Duration.zero,
     )..start();
-    _follow = follow;
     previous?.dispose();
     // Known at the opening, the first build shows it; known later, it
     // needs one.
@@ -394,7 +413,12 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
           ...leading,
           SliverPadding(
             padding: nested
-                ? EdgeInsets.fromLTRB(16, 14, 16, bottom)
+                ? EdgeInsets.fromLTRB(
+                    16 + MediaQuery.paddingOf(context).left,
+                    14,
+                    16 + MediaQuery.paddingOf(context).right,
+                    bottom,
+                  )
                 : EdgeInsets.fromLTRB(0, 20, 0, bottom),
             sliver: SliverToBoxAdapter(child: child),
           ),

@@ -309,9 +309,7 @@ class _WatchButton extends StatelessWidget {
                     color: FrostyTokens.backgroundDark,
                     size: 16,
                   ),
-                Flexible(
-                  child: Text(label, maxLines: 1, overflow: TextOverflow.fade),
-                ),
+                Flexible(child: OneLineLabel(label)),
               ],
             ),
           )
@@ -329,7 +327,7 @@ class _WatchButton extends StatelessWidget {
               shape: const StadiumBorder(),
               textStyle: style.copyWith(fontWeight: FontWeight.w600),
             ),
-            child: Text(label, maxLines: 1, overflow: TextOverflow.fade),
+            child: OneLineLabel(label),
           );
     return PressScale(
       child: Listener(
@@ -376,8 +374,10 @@ class ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final profile = this.profile;
     final showCard = profile != null && !ProfileStreamFacts(profile).isEmpty;
+    // Clear of a landscape phone's cutout.
+    final sides = MediaQuery.paddingOf(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+      padding: EdgeInsets.fromLTRB(16 + sides.left, 0, 16 + sides.right, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: 14,
@@ -483,6 +483,7 @@ class ProfilePhoneHeader extends SliverPersistentHeaderDelegate {
     final colors = FeedColors.of(context);
     final titleOpacity = ((t - 0.7) / 0.3).clamp(0.0, 1.0);
     final bar = topPadding + barHeight;
+    final sides = MediaQuery.paddingOf(context);
     return AnnotatedRegion(
       value: profileOverlayStyle(context, collapsed: t > 0.6),
       child: Stack(
@@ -522,8 +523,8 @@ class ProfilePhoneHeader extends SliverPersistentHeaderDelegate {
             ),
           ),
           Positioned(
-            left: 8,
-            right: 8,
+            left: 8 + sides.left,
+            right: 8 + sides.right,
             top: topPadding + 6,
             height: 44,
             child: Row(
