@@ -47,6 +47,21 @@ void main() {
   ChannelInfoStore store({String? viewer = '7'}) =>
       ChannelInfoStore(channelId: '42', api: api, viewerId: () => viewer);
 
+  test('a screen without a player asks at once (the channel profile)', () {
+    fakeAsync((async) {
+      final info = ChannelInfoStore(
+        channelId: '42',
+        api: api,
+        viewerId: () => '7',
+        startDelay: Duration.zero,
+      )..start();
+      async.flushTimers();
+      verify(() => api.isFollowing(userId: '7', broadcasterId: '42')).called(1);
+      expect(info.following.value, isTrue);
+      info.dispose();
+    });
+  });
+
   test('asks nothing until the player has had its head start', () {
     fakeAsync((async) {
       final info = store()..start();

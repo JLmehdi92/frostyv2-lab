@@ -17,6 +17,7 @@ class ChannelInfoStore {
     required this.channelId,
     required TwitchApi api,
     required String? Function() viewerId,
+    this.startDelay = headStart,
   }) : _api = api,
        _viewerId = viewerId;
 
@@ -25,6 +26,10 @@ class ChannelInfoStore {
 
   /// The most "also live" channels kept.
   static const alsoLiveLimit = 6;
+
+  /// How long [start] waits: [headStart] beside a player, nothing on a
+  /// screen without one (the channel profile).
+  final Duration startDelay;
 
   final String channelId;
   final TwitchApi _api;
@@ -46,7 +51,7 @@ class ChannelInfoStore {
   var _disposed = false;
 
   void start() {
-    _timer ??= Timer(headStart, () {
+    _timer ??= Timer(startDelay, () {
       _ready = true;
       refresh();
     });

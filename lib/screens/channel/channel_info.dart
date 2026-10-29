@@ -212,13 +212,13 @@ class ChannelInfoRow extends StatelessWidget {
                   ),
                 ),
                 if (canAct)
-                  _FollowButton(
+                  FollowButton(
                     info: info,
                     login: login,
                     name: name,
                     height: large ? 40 : 36,
                   ),
-                if (large && canAct) _SubscribeButton(login: login, name: name),
+                if (large && canAct) SubscribeButton(login: login, name: name),
               ],
             ),
           );
@@ -417,18 +417,21 @@ class _RingedPicture extends StatelessWidget {
 /// "Follow" (signal) or "Following" (raised): the channel on twitch.tv,
 /// since the app has no follow of its own; the state is read again when
 /// the viewer comes back.
-class _FollowButton extends StatelessWidget {
-  const _FollowButton({
+class FollowButton extends StatelessWidget {
+  const FollowButton({
+    super.key,
     required this.info,
     required this.login,
     required this.name,
     required this.height,
+    this.fontSize = 13,
   });
 
   final ChannelInfoStore info;
   final String login;
   final String name;
   final double height;
+  final double fontSize;
 
   Future<void> _open(BuildContext context) async {
     await TwitchWebPage.open(
@@ -453,7 +456,7 @@ class _FollowButton extends StatelessWidget {
         final follows = following ?? false;
         final style = TextStyle(
           fontFamily: FrostyTokens.bodyFamily,
-          fontSize: 13,
+          fontSize: fontSize,
           fontWeight: follows ? FontWeight.w600 : FontWeight.w700,
         );
         return Tooltip(
@@ -503,11 +506,19 @@ class _FollowButton extends StatelessWidget {
 
 /// "Subscribe", in the community green: the channel's subscription page on
 /// twitch.tv (purchases happen there).
-class _SubscribeButton extends StatelessWidget {
-  const _SubscribeButton({required this.login, required this.name});
+class SubscribeButton extends StatelessWidget {
+  const SubscribeButton({
+    super.key,
+    required this.login,
+    required this.name,
+    this.height = 40,
+    this.fontSize = 13,
+  });
 
   final String login;
   final String name;
+  final double height;
+  final double fontSize;
 
   @override
   Widget build(BuildContext context) {
@@ -525,16 +536,16 @@ class _SubscribeButton extends StatelessWidget {
                 ? FrostyTokens.hypeText
                 : FrostyColors.light.subNoticeText,
             backgroundColor: FrostyTokens.hype.withValues(alpha: 0.12),
-            minimumSize: const Size(0, 40),
+            minimumSize: Size(0, height),
             padding: const EdgeInsets.symmetric(horizontal: 18),
             side: const BorderSide(
               color: FrostyTokens.hype,
               width: FrostyTokens.hairlineWidth,
             ),
             shape: const StadiumBorder(),
-            textStyle: const TextStyle(
+            textStyle: TextStyle(
               fontFamily: FrostyTokens.bodyFamily,
-              fontSize: 13,
+              fontSize: fontSize,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -654,13 +665,13 @@ class _TabletChannelPanelState extends State<TabletChannelPanel> {
                     ),
                   ),
                   if (canAct) ...[
-                    _FollowButton(
+                    FollowButton(
                       info: widget.info,
                       login: widget.login,
                       name: name,
                       height: 40,
                     ),
-                    _SubscribeButton(login: widget.login, name: name),
+                    SubscribeButton(login: widget.login, name: name),
                   ],
                 ],
               );

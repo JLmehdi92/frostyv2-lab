@@ -123,8 +123,14 @@ void enlargeThumbnail(BuildContext context, StreamTwitch stream) {
 /// The finger is down on [stream]: its token is asked for while the page
 /// opens.
 void preloadStream(BuildContext context, StreamTwitch stream) =>
+    preloadChannel(context, stream.userLogin);
+
+/// The finger is down on something that opens [login]'s live channel (a
+/// stream card, a profile's live card): its token is asked for while the
+/// page opens.
+void preloadChannel(BuildContext context, String login) =>
     PlaybackPreloader.instance.preload(
-      login: stream.userLogin,
+      login: login,
       engine: context.read<SettingsStore>().playerEngine,
       authToken: context.read<AuthStore?>()?.twitchWebToken,
     );
