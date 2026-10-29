@@ -5,18 +5,29 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/activity/stores/activity_store.dart';
 import 'package:frosty/screens/home/home_store.dart';
 import 'package:frosty/screens/vod/vod_time.dart';
+import 'package:frosty/screens/whispers/whisper_kit.dart';
 import 'package:frosty/screens/whispers/whispers_screen.dart';
 import 'package:frosty/services/notifications/activity_log.dart';
 import 'package:frosty/stores/whisper_store.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
+import 'package:frosty/widgets/motion/haptics.dart';
+import 'package:frosty/widgets/motion/motion.dart';
+import 'package:frosty/widgets/motion/press_scale.dart';
+import 'package:frosty/widgets/motion/reduce_motion.dart';
 import 'package:frosty/widgets/profile_picture.dart';
-import 'package:frosty/widgets/readable_width.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:frosty/widgets/sheet/sheet_glyph.dart';
+import 'package:frosty/widgets/state_glyph.dart';
+import 'package:frosty/widgets/state_views.dart';
 import 'package:mobx/mobx.dart';
 
-/// Twitch's Activity: the notifications (here, those ONSET posted on this
-/// device: go-live, mentions, reminders) and, when logged in, the
-/// whispers. A section of the navigation shell, whose header holds the
-/// tabs ([activityTabLabel]); this is the page under it.
+/// Twitch's Activity (boards Activite and ActiviteTablette): the
+/// notifications (here, those ONSET posted on this device: go-live,
+/// mentions, reminders) and, when logged in, the whispers. A section of
+/// the navigation shell; on a phone its header holds the tabs
+/// ([activityTabBadge]), on a tablet the whispers are a column beside the
+/// notifications.
 class ActivityScreen extends StatefulWidget {
   const ActivityScreen({
     super.key,
@@ -36,7 +47,7 @@ class ActivityScreen extends StatefulWidget {
   /// Opens a channel by login.
   final void Function(String login) onOpenChannel;
 
-  /// The tab on screen (Whispers only with [whispers]).
+  /// The tab on screen on a phone (Whispers only with [whispers]).
   final ActivityTab tab;
 
   /// Whether Activity is the section on screen and nothing covers it:
@@ -50,18 +61,15 @@ class ActivityScreen extends StatefulWidget {
   State<ActivityScreen> createState() => _ActivityScreenState();
 }
 
-/// [tab]'s name in the header, with its unread count.
-String activityTabLabel(
+/// The count after [tab]'s name in the header: its unread.
+int activityTabBadge(
   ActivityTab tab, {
   required ActivityStore store,
   WhisperStore? whispers,
-}) {
-  final count = switch (tab) {
-    ActivityTab.notifications => store.unreadCount,
-    ActivityTab.whispers => whispers?.unreadCount ?? 0,
-  };
-  return count > 0 ? '${tab.label} ($count)' : tab.label;
-}
+}) => switch (tab) {
+  ActivityTab.notifications => store.unreadCount,
+  ActivityTab.whispers => whispers?.unreadCount ?? 0,
+};
 
 class _ActivityScreenState extends State<ActivityScreen> {
   ReactionDisposer? _disposeSeen;
@@ -110,43 +118,203 @@ class _ActivityScreenState extends State<ActivityScreen> {
   @override
   Widget build(BuildContext context) {
     final whispers = widget.whispers;
-    if (whispers != null && widget.tab == ActivityTab.whispers) {
-      // The conversations do not scroll under the header.
-      final padding = MediaQuery.paddingOf(context);
-      return Padding(
-        padding: EdgeInsets.only(top: padding.top),
-        child: MediaQuery.removePadding(
-          context: context,
-          removeTop: true,
-          child: WhispersList(store: whispers),
-        ),
-      );
-    }
-    return _NotificationsList(
+    final notifications = _NotificationsList(
       store: widget.store,
       onOpenChannel: widget.onOpenChannel,
       now: widget.now,
+      tablet: context.isLargeScreen,
+    );
+    if (context.isLargeScreen) {
+      return _TabletActivity(
+        notifications: notifications,
+        store: widget.store,
+        whispers: whispers,
+      );
+    }
+    if (whispers != null && widget.tab == ActivityTab.whispers) {
+      return WhispersList(store: whispers);
+    }
+    return notifications;
+  }
+}
+
+/// The colours of Activity, dark from the boards and their light
+/// counterparts.
+@immutable
+class _ActivityColors {
+  const _ActivityColors({
+    required this.ground,
+    required this.card,
+    required this.cardRing,
+    required this.raised,
+    required this.ring,
+    required this.text,
+    required this.body,
+    required this.secondary,
+    required this.tertiary,
+    required this.menu,
+  });
+
+  final Color ground;
+  final Color card;
+  final Color cardRing;
+  final Color raised;
+  final Color ring;
+  final Color text;
+  final Color body;
+  final Color secondary;
+  final Color tertiary;
+  final Color menu;
+
+  factory _ActivityColors.of(BuildContext context) {
+    final ground = Theme.of(context).scaffoldBackgroundColor;
+    if (Theme.of(context).brightness == Brightness.dark) {
+      return _ActivityColors(
+        ground: ground,
+        card: FrostyTokens.surfaceDark,
+        cardRing: FrostyTokens.hairlineDark,
+        raised: FrostyTokens.raisedDark,
+        ring: FrostyTokens.hairlineStrongDark,
+        text: FrostyTokens.textPrimaryDark,
+        body: FrostyTokens.textBodyDark,
+        secondary: FrostyTokens.textSecondaryDark,
+        tertiary: FrostyTokens.textTertiaryDark,
+        menu: FrostyTokens.raisedDark,
+      );
+    }
+    return _ActivityColors(
+      ground: ground,
+      card: FrostyTokens.surfaceLight,
+      cardRing: FrostyTokens.hairlineLight,
+      raised: const Color(0xFFF0F0F0),
+      ring: const Color(0x1F000000),
+      text: const Color(0xFF0A0A0A),
+      body: const Color(0xFF3A3A3A),
+      secondary: const Color(0xFF6B6B6B),
+      tertiary: const Color(0xFF6B6B6B),
+      menu: FrostyTokens.surfaceLight,
     );
   }
 }
 
-class _NotificationsList extends StatelessWidget {
+/// The notifications: "Most Recent" (the last day) then "Earlier", like
+/// Twitch's; rows on a phone, cards on a tablet.
+class _NotificationsList extends StatefulWidget {
   const _NotificationsList({
     required this.store,
     required this.onOpenChannel,
     required this.now,
+    required this.tablet,
   });
 
   final ActivityStore store;
   final void Function(String login) onOpenChannel;
   final DateTime Function() now;
+  final bool tablet;
+
+  @override
+  State<_NotificationsList> createState() => _NotificationsListState();
+}
+
+class _NotificationsListState extends State<_NotificationsList> {
+  /// Rows folding away before they are removed.
+  final _removing = <String>{};
+
+  void _open(ActivityEntry entry) {
+    unawaited(widget.store.markRead(entry.id));
+    final login = entry.login;
+    if (login != null) widget.onOpenChannel(login);
+  }
+
+  /// "Remove notification": the row folds (300 ms), then goes.
+  void _remove(ActivityEntry entry) {
+    if (reduceMotionOf(context)) {
+      unawaited(widget.store.remove(entry.id));
+      return;
+    }
+    setState(() => _removing.add(entry.id));
+  }
+
+  /// Folded: removed from the list (still there if storage refused).
+  Future<void> _folded(String id) async {
+    await widget.store.remove(id);
+    if (mounted) setState(() => _removing.remove(id));
+  }
+
+  Future<void> _menu(BuildContext rowContext, ActivityEntry entry) async {
+    Haptics.selection();
+    final bool? remove;
+    if (widget.tablet) {
+      remove = await _showPopover(rowContext, entry);
+    } else {
+      remove = await showOnsetSheet<bool>(
+        context: rowContext,
+        builder: (context) => _RemoveSheet(entry: entry),
+      );
+    }
+    if (remove == true && mounted) _remove(entry);
+  }
+
+  /// The tablet's menu, at the row's top right (board ActiviteTablette).
+  Future<bool?> _showPopover(BuildContext rowContext, ActivityEntry entry) {
+    final colors = _ActivityColors.of(context);
+    final box = rowContext.findRenderObject()! as RenderBox;
+    final overlay =
+        Navigator.of(rowContext).overlay!.context.findRenderObject()!
+            as RenderBox;
+    final topRight = box.localToGlobal(
+      Offset(box.size.width - 18, 46),
+      ancestor: overlay,
+    );
+    return showMenu<bool>(
+      context: rowContext,
+      position: RelativeRect.fromLTRB(
+        topRight.dx - 230,
+        topRight.dy,
+        overlay.size.width - topRight.dx,
+        overlay.size.height - topRight.dy,
+      ),
+      color: colors.menu,
+      elevation: 12,
+      constraints: const BoxConstraints(minWidth: 230),
+      menuPadding: const EdgeInsets.all(6),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: colors.ring, width: FrostyTokens.hairlineWidth),
+      ),
+      items: [
+        PopupMenuItem<bool>(
+          value: true,
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Row(
+            children: [
+              StateGlyph(StateGlyphKind.trash, color: colors.text, size: 18),
+              const SizedBox(width: 10),
+              Text(
+                'Remove notification',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: colors.text,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final tablet = widget.tablet;
+    final colors = _ActivityColors.of(context);
     return Observer(
       builder: (context) {
+        final store = widget.store;
         final entries = store.entries;
-        final at = now();
+        final at = widget.now();
         // Twitch splits at a day: "Most Recent", then "Earlier".
         final recent = [
           for (final e in entries)
@@ -156,81 +324,114 @@ class _NotificationsList extends StatelessWidget {
           for (final e in entries)
             if (at.difference(e.at) > const Duration(days: 1)) e,
         ];
-        final unread = store.unreadCount > 0;
+        final unread = store.unreadCount;
 
-        Widget header(String title, {required bool markAll}) => Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 8, 4),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: context.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              if (markAll)
-                TextButton(
-                  onPressed: () => unawaited(store.markAllRead()),
-                  child: const Text('Mark all as read'),
-                ),
-            ],
+        Widget row(ActivityEntry entry) => _Folding(
+          key: ValueKey(entry.id),
+          folding: _removing.contains(entry.id),
+          onFolded: () => unawaited(_folded(entry.id)),
+          child: Builder(
+            builder: (rowContext) => _EntryRow(
+              entry: entry,
+              now: at,
+              tablet: tablet,
+              colors: colors,
+              onTap: () => _open(entry),
+              onMenu: () => unawaited(_menu(rowContext, entry)),
+            ),
           ),
         );
 
-        Widget tile(ActivityEntry entry) => _EntryTile(
-          entry: entry,
-          now: at,
-          onTap: () {
-            unawaited(store.markRead(entry.id));
-            final login = entry.login;
-            if (login != null) onOpenChannel(login);
-          },
-          onRemove: () => unawaited(store.remove(entry.id)),
-        );
-
-        final Widget content;
+        final padding = MediaQuery.paddingOf(context);
         if (entries.isEmpty) {
-          content = ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            children: const [_UpToDate()],
-          );
-        } else {
-          final firstGroup = recent.isNotEmpty ? recent : earlier;
-          final secondGroup = recent.isNotEmpty
-              ? earlier
-              : const <ActivityEntry>[];
-          content = ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            children: [
-              header('Most Recent', markAll: unread),
-              ...firstGroup.map(tile),
-              if (secondGroup.isNotEmpty) ...[
-                header('Earlier', markAll: false),
-                ...secondGroup.map(tile),
-              ],
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  'Notifications ONSET posted on this device.',
-                  textAlign: TextAlign.center,
-                  style: context.textTheme.bodySmall?.copyWith(
-                    color: context.colorScheme.onSurfaceVariant,
-                  ),
-                ),
+          return RefreshIndicator.adaptive(
+            edgeOffset: padding.top,
+            onRefresh: store.refresh,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.only(
+                top: padding.top + (tablet ? 72 : 96) - 24,
+                bottom: padding.bottom,
               ),
-            ],
+              children: const [
+                FeedStatusView.empty(
+                  message: "Hooray! You're up to date",
+                  detail:
+                      'Check back soon for alerts about you and the '
+                      'broadcasters you follow.',
+                  glyph: StateGlyphKind.bell,
+                ),
+              ],
+            ),
           );
         }
-        return Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: kReadableMaxWidth),
-            child: RefreshIndicator.adaptive(
-              edgeOffset: MediaQuery.paddingOf(context).top,
-              onRefresh: store.refresh,
-              child: content,
+
+        final first = recent.isNotEmpty ? recent : earlier;
+        final second = recent.isNotEmpty ? earlier : const <ActivityEntry>[];
+        final List<Widget> children;
+        if (tablet) {
+          Widget card(String title, List<ActivityEntry> list) => Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              decoration: BoxDecoration(
+                color: colors.card,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: colors.cardRing,
+                  width: FrostyTokens.hairlineWidth,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _SectionTitle(title: title, tablet: true, colors: colors),
+                  ...list.map(row),
+                ],
+              ),
             ),
+          );
+          children = [
+            card('Most Recent', first),
+            if (second.isNotEmpty) card('Earlier', second),
+          ];
+        } else {
+          children = [
+            _SectionTitle(
+              title: 'Most Recent',
+              tablet: false,
+              colors: colors,
+              onMarkAll: unread > 0
+                  ? () => unawaited(store.markAllRead())
+                  : null,
+            ),
+            ...first.map(row),
+            if (second.isNotEmpty) ...[
+              _SectionTitle(title: 'Earlier', tablet: false, colors: colors),
+              ...second.map(row),
+            ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
+              child: Text(
+                'Notifications ONSET posted on this device.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: colors.tertiary),
+              ),
+            ),
+          ];
+        }
+        return RefreshIndicator.adaptive(
+          edgeOffset: padding.top,
+          onRefresh: store.refresh,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.only(
+              top: padding.top,
+              bottom: padding.bottom + (tablet ? 28 : 0),
+              left: tablet ? 0 : padding.left,
+              right: tablet ? 0 : padding.right,
+            ),
+            children: children,
           ),
         );
       },
@@ -238,32 +439,349 @@ class _NotificationsList extends StatelessWidget {
   }
 }
 
-/// Twitch's empty state.
-class _UpToDate extends StatelessWidget {
-  const _UpToDate();
+/// "Most Recent" / "Earlier", with "Mark all as read" on the phone's
+/// first.
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({
+    required this.title,
+    required this.tablet,
+    required this.colors,
+    this.onMarkAll,
+  });
+
+  final String title;
+  final bool tablet;
+  final _ActivityColors colors;
+  final VoidCallback? onMarkAll;
 
   @override
   Widget build(BuildContext context) {
-    final muted = context.colorScheme.onSurfaceVariant;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 96, 32, 32),
-      child: Column(
+    final onMarkAll = this.onMarkAll;
+    return Container(
+      constraints: const BoxConstraints(minHeight: 44),
+      padding: tablet
+          ? const EdgeInsets.fromLTRB(18, 6, 14, 6)
+          : const EdgeInsets.fromLTRB(16, 14, 8, 4),
+      child: Row(
         children: [
-          Icon(Icons.notifications_none_rounded, size: 48, color: muted),
-          const SizedBox(height: 16),
-          Text(
-            "Hooray! You're up to date",
-            textAlign: TextAlign.center,
-            style: context.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
+          Expanded(
+            child: Semantics(
+              header: true,
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: tablet ? 16 : 15,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.015 * 15,
+                  color: colors.text,
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Check back soon for alerts about you and the broadcasters you '
-            'follow.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: muted),
+          if (onMarkAll != null)
+            TextButton.icon(
+              onPressed: onMarkAll,
+              style: TextButton.styleFrom(
+                foregroundColor: colors.body,
+                minimumSize: const Size(0, 36),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                shape: const StadiumBorder(),
+                textStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              icon: StateGlyph(
+                StateGlyphKind.checkAll,
+                color: colors.body,
+                size: 16,
+                strokeWidth: 2,
+              ),
+              label: const Text('Mark all as read'),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A row folding away (300 ms) before [onFolded] removes it.
+class _Folding extends StatefulWidget {
+  const _Folding({
+    super.key,
+    required this.folding,
+    required this.onFolded,
+    required this.child,
+  });
+
+  final bool folding;
+  final VoidCallback onFolded;
+  final Widget child;
+
+  @override
+  State<_Folding> createState() => _FoldingState();
+}
+
+class _FoldingState extends State<_Folding>
+    with SingleTickerProviderStateMixin {
+  late final _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 300),
+    value: 1,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.folding) _fold();
+  }
+
+  @override
+  void didUpdateWidget(_Folding oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.folding && !oldWidget.folding) {
+      _fold();
+    } else if (!widget.folding && oldWidget.folding) {
+      // Still there (storage refused the removal): back as it was.
+      _controller.value = 1;
+    }
+  }
+
+  void _fold() => unawaited(
+    _controller.reverse().then((_) {
+      if (mounted && widget.folding) widget.onFolded();
+    }),
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = CurvedAnimation(
+      parent: _controller,
+      curve: FrostyMotion.standard,
+    );
+    return SizeTransition(
+      sizeFactor: size,
+      axisAlignment: -1,
+      child: FadeTransition(
+        opacity: CurvedAnimation(
+          parent: _controller,
+          curve: const Interval(1 / 3, 1),
+        ),
+        child: widget.child,
+      ),
+    );
+  }
+}
+
+/// A notification: the channel's picture with the unread dot and the
+/// kind's mark, bold while unread, then when and its category, like
+/// Twitch's. A long press offers to remove it.
+class _EntryRow extends StatelessWidget {
+  const _EntryRow({
+    required this.entry,
+    required this.now,
+    required this.tablet,
+    required this.colors,
+    required this.onTap,
+    required this.onMenu,
+  });
+
+  final ActivityEntry entry;
+  final DateTime now;
+  final bool tablet;
+  final _ActivityColors colors;
+  final VoidCallback onTap;
+  final VoidCallback onMenu;
+
+  @override
+  Widget build(BuildContext context) {
+    final unread = !entry.read;
+    final when = formatTimeAgo(entry.at, now: now);
+    final rim = tablet ? colors.card : colors.ground;
+    return Semantics(
+      button: true,
+      onLongPressHint: 'Options',
+      child: PressScale(
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: onTap,
+            onLongPress: onMenu,
+            splashFactory: NoSplash.splashFactory,
+            child: Padding(
+              padding: tablet
+                  ? const EdgeInsets.symmetric(horizontal: 18, vertical: 14)
+                  : const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _EntryAvatar(
+                    entry: entry,
+                    size: tablet ? 48 : 44,
+                    badge: tablet ? 22 : 20,
+                    rim: rim,
+                    colors: colors,
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 1),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 3,
+                        children: [
+                          Text(
+                            entry.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: tablet ? 15 : 14,
+                              height: 1.35,
+                              letterSpacing: -0.07,
+                              fontWeight: unread
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              color: unread ? colors.text : colors.secondary,
+                            ),
+                          ),
+                          if (entry.body.isNotEmpty)
+                            Text(
+                              entry.body,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: tablet ? 14 : 13,
+                                height: 1.4,
+                                color: unread ? colors.body : colors.tertiary,
+                              ),
+                            ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 1),
+                            child: Text(
+                              '$when • ${entry.kind.label}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: colors.tertiary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (tablet) ...[
+                    const SizedBox(width: 8),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 14),
+                      child: StateGlyph(
+                        StateGlyphKind.chevronRight,
+                        color: colors.tertiary,
+                        size: 18,
+                        strokeWidth: 2,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The channel's picture (or the kind's mark without a channel), the
+/// unread dot at its top left, the kind's mark at its bottom right.
+class _EntryAvatar extends StatelessWidget {
+  const _EntryAvatar({
+    required this.entry,
+    required this.size,
+    required this.badge,
+    required this.rim,
+    required this.colors,
+  });
+
+  final ActivityEntry entry;
+  final double size;
+  final double badge;
+
+  /// The ground the dots are cut out of.
+  final Color rim;
+  final _ActivityColors colors;
+
+  StateGlyphKind get _glyph => switch (entry.kind) {
+    ActivityKind.live => StateGlyphKind.live,
+    ActivityKind.mention => StateGlyphKind.mention,
+    ActivityKind.reminder => StateGlyphKind.calendar,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = context.frostyColors.live;
+    final login = entry.login;
+    final kindColor = entry.kind == ActivityKind.live ? accent : colors.body;
+    final picture = login != null
+        ? ProfilePicture(userLogin: login, radius: size / 2)
+        : Container(
+            width: size,
+            height: size,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: colors.raised,
+              shape: BoxShape.circle,
+            ),
+            child: StateGlyph(_glyph, color: kindColor, size: size * 0.45),
+          );
+    return SizedBox.square(
+      dimension: size,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          ExcludeSemantics(child: picture),
+          if (!entry.read)
+            Positioned(
+              left: -2,
+              top: -2,
+              child: Semantics(
+                label: 'Unread',
+                child: Container(
+                  key: const ValueKey('activity-unread-dot'),
+                  width: 13,
+                  height: 13,
+                  decoration: BoxDecoration(
+                    color: accent,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: rim, width: 2.5),
+                  ),
+                ),
+              ),
+            ),
+          Positioned(
+            right: -4,
+            bottom: -4,
+            child: Container(
+              width: badge,
+              height: badge,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: colors.raised,
+                shape: BoxShape.circle,
+                border: Border.all(color: rim, width: 2),
+              ),
+              child: StateGlyph(
+                _glyph,
+                color: kindColor,
+                size: badge / 2,
+                strokeWidth: 2.2,
+              ),
+            ),
           ),
         ],
       ),
@@ -271,79 +789,352 @@ class _UpToDate extends StatelessWidget {
   }
 }
 
-/// A notification: the channel's picture with an unread dot, bold while
-/// unread, then when and its category, like Twitch's.
-class _EntryTile extends StatelessWidget {
-  const _EntryTile({
-    required this.entry,
-    required this.now,
-    required this.onTap,
-    required this.onRemove,
-  });
+/// The phone's options (board Activite): the notification, then "Remove
+/// notification".
+class _RemoveSheet extends StatelessWidget {
+  const _RemoveSheet({required this.entry});
 
   final ActivityEntry entry;
-  final DateTime now;
-  final VoidCallback onTap;
-  final VoidCallback onRemove;
-
-  Future<void> _menu(BuildContext context) async {
-    final remove = await showModalBottomSheet<bool>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: ListTile(
-          leading: const Icon(Icons.delete_outline_rounded),
-          title: const Text('Remove notification'),
-          onTap: () => Navigator.pop(context, true),
-        ),
-      ),
-    );
-    if (remove == true) onRemove();
-  }
 
   @override
   Widget build(BuildContext context) {
+    final colors = SheetColors.of(context);
     final login = entry.login;
-    final muted = context.colorScheme.onSurfaceVariant;
-    final unread = !entry.read;
-    final avatar = login != null
-        ? ProfilePicture(userLogin: login)
-        : CircleAvatar(
-            child: Icon(switch (entry.kind) {
-              ActivityKind.live => Icons.sensors_rounded,
-              ActivityKind.mention => Icons.alternate_email_rounded,
-              ActivityKind.reminder => Icons.event_rounded,
-            }),
-          );
-    final when = formatTimeAgo(entry.at, now: now);
-    return ListTile(
-      leading: Badge(
-        isLabelVisible: unread,
-        smallSize: 10,
-        backgroundColor: context.frostyColors.live,
-        alignment: AlignmentDirectional.topStart,
-        child: avatar,
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 0, 8, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: colors.hairline,
+                    width: FrostyTokens.hairlineWidth,
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  if (login != null) ...[
+                    ExcludeSemantics(
+                      child: ProfilePicture(userLogin: login, radius: 14),
+                    ),
+                    const SizedBox(width: 10),
+                  ],
+                  Expanded(
+                    child: Text(
+                      entry.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 13, color: colors.secondary),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            SheetRow(
+              glyph: SheetGlyphKind.trash,
+              label: 'Remove notification',
+              onTap: () => Navigator.pop(context, true),
+            ),
+          ],
+        ),
       ),
-      title: Text(
-        entry.title,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: unread
-            ? const TextStyle(fontWeight: FontWeight.w700)
-            : TextStyle(color: muted),
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (entry.body.isNotEmpty)
-            Text(entry.body, maxLines: 2, overflow: TextOverflow.ellipsis),
-          Text(
-            '$when • ${entry.kind.label}',
-            style: context.textTheme.bodySmall?.copyWith(color: muted),
+    );
+  }
+}
+
+/// Activity on a tablet (board ActiviteTablette): the notifications, and
+/// beside them the whispers when logged in.
+class _TabletActivity extends StatelessWidget {
+  const _TabletActivity({
+    required this.notifications,
+    required this.store,
+    required this.whispers,
+  });
+
+  final Widget notifications;
+  final ActivityStore store;
+  final WhisperStore? whispers;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = _ActivityColors.of(context);
+    final padding = MediaQuery.paddingOf(context);
+    final width = MediaQuery.sizeOf(context).width;
+    final whispers = this.whispers;
+    final column = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 4, 4, 14),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 4,
+                  children: [
+                    Semantics(
+                      header: true,
+                      child: Text(
+                        'Activity',
+                        style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.9,
+                          color: colors.text,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      'Notifications ONSET posted on this device.',
+                      style: TextStyle(fontSize: 13, color: colors.tertiary),
+                    ),
+                  ],
+                ),
+              ),
+              Observer(
+                builder: (context) {
+                  final unread = store.unreadCount;
+                  if (unread == 0) return const SizedBox.shrink();
+                  return _MarkAllPill(
+                    count: unread,
+                    colors: colors,
+                    onPressed: () => unawaited(store.markAllRead()),
+                  );
+                },
+              ),
+            ],
           ),
-        ],
+        ),
+        Expanded(
+          child: MediaQuery.removePadding(
+            context: context,
+            removeTop: true,
+            child: notifications,
+          ),
+        ),
+      ],
+    );
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        FrostySpacing.gutterTablet + padding.left,
+        12,
+        FrostySpacing.gutterTablet + padding.right,
+        0,
       ),
-      onTap: onTap,
-      onLongPress: () => unawaited(_menu(context)),
+      child: whispers == null
+          ? Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 860),
+                child: column,
+              ),
+            )
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: column),
+                const SizedBox(width: 24),
+                SizedBox(
+                  width: width >= 1100 ? 392 : 320,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      top: 70,
+                      bottom: 28 + padding.bottom,
+                    ),
+                    child: _WhispersColumn(store: whispers, colors: colors),
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+/// "Mark all as read" on a tablet: a raised pill with the unread count.
+class _MarkAllPill extends StatelessWidget {
+  const _MarkAllPill({
+    required this.count,
+    required this.colors,
+    required this.onPressed,
+  });
+
+  final int count;
+  final _ActivityColors colors;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return PressScale(
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(0, 40),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          backgroundColor: colors.raised,
+          foregroundColor: colors.text,
+          side: BorderSide(
+            color: colors.ring,
+            width: FrostyTokens.hairlineWidth,
+          ),
+          shape: const StadiumBorder(),
+          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 8,
+          children: [
+            StateGlyph(
+              StateGlyphKind.checkAll,
+              color: colors.text,
+              size: 17,
+              strokeWidth: 2,
+            ),
+            const Text('Mark all as read'),
+            WhisperCountPill(count: count),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The whispers beside the notifications (board ActiviteTablette): the
+/// conversations, "See all" opening the whispers.
+class _WhispersColumn extends StatelessWidget {
+  const _WhispersColumn({required this.store, required this.colors});
+
+  final WhisperStore store;
+  final _ActivityColors colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: colors.cardRing,
+          width: FrostyTokens.hairlineWidth,
+        ),
+      ),
+      child: Observer(
+        builder: (context) {
+          final threads = store.threads;
+          final unread = store.unreadCount;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 16, 12, 8),
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Semantics(
+                        header: true,
+                        child: Text(
+                          'Whispers',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.25,
+                            color: colors.text,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (unread > 0) ...[
+                      const SizedBox(width: 8),
+                      WhisperCountPill(count: unread, size: 18),
+                    ],
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () => WhispersScreen.open(context, store),
+                      style: TextButton.styleFrom(
+                        foregroundColor: colors.body,
+                        minimumSize: const Size(0, 36),
+                        padding: const EdgeInsets.only(left: 12, right: 8),
+                        shape: const StadiumBorder(),
+                        textStyle: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: 4,
+                        children: [
+                          const Text('See all'),
+                          StateGlyph(
+                            StateGlyphKind.chevronRight,
+                            color: colors.body,
+                            size: 16,
+                            strokeWidth: 2,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              WhisperStatusNote(
+                store: store,
+                margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+              ),
+              Expanded(
+                child: threads.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
+                        child: Text(
+                          'No whispers yet. Whispers you get while the app '
+                          'is open show up here.',
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.45,
+                            color: colors.secondary,
+                          ),
+                        ),
+                      )
+                    : MediaQuery.removePadding(
+                        context: context,
+                        removeTop: true,
+                        removeBottom: true,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(6, 0, 6, 8),
+                          itemCount: threads.length,
+                          itemBuilder: (context, index) {
+                            final thread = threads[index];
+                            return WhisperThreadRow(
+                              key: ValueKey(thread.userId),
+                              thread: thread,
+                              compact: true,
+                              rounded: true,
+                              onTap: () => WhispersScreen.open(
+                                context,
+                                store,
+                                select: WhisperTarget.of(thread),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

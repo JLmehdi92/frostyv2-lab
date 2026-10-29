@@ -25,6 +25,7 @@ import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/settings/widgets/release_notes.dart';
 import 'package:frosty/screens/whispers/whisper_conversation.dart';
+import 'package:frosty/screens/whispers/whisper_notice.dart';
 import 'package:frosty/screens/whispers/whispers_screen.dart';
 import 'package:frosty/stores/mini_player_store.dart';
 import 'package:frosty/stores/whisper_store.dart';
@@ -235,29 +236,15 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     ScaffoldMessenger.of(context)
       ..clearSnackBars()
       ..showSnackBar(
-        SnackBar(
-          content: Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(
-                  text: '${whisperPreview(whisper.fromName)} ',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                TextSpan(text: whisperPreview(whisper.whisper.text)),
-              ],
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          action: SnackBarAction(
-            label: 'Open',
-            onPressed: () => WhisperConversation.open(
-              context,
-              store: _whisperStore,
-              userId: whisper.fromUserId,
-              login: whisper.fromLogin,
-              displayName: whisper.fromName,
-            ),
+        whisperNotice(
+          context,
+          whisper,
+          onOpen: () => WhisperConversation.open(
+            context,
+            store: _whisperStore,
+            userId: whisper.fromUserId,
+            login: whisper.fromLogin,
+            displayName: whisper.fromName,
           ),
         ),
       );
@@ -333,21 +320,25 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
         );
       case ShellSection.activity:
         final tabs = _homeStore.activityTabs;
+        // On a tablet the whispers are a column beside the notifications:
+        // no tabs.
+        final tabbed = tabs.length > 1 && !context.isLargeScreen;
         return ShellHeader(
           title: 'Activity',
           showMark: false,
           largeTitle: true,
           showWhispers: false,
-          tabs: tabs.length < 2
-              ? const []
-              : [
+          tabs: tabbed ? [for (final tab in tabs) tab.label] : const [],
+          tabBadges: tabbed
+              ? [
                   for (final tab in tabs)
-                    activityTabLabel(
+                    activityTabBadge(
                       tab,
                       store: _activityStore,
                       whispers: _whisperStore,
                     ),
-                ],
+                ]
+              : null,
           tabIndex: tabs.indexOf(_homeStore.activityTab),
           onTab: (i) => _homeStore.selectActivityTab(tabs[i]),
         );

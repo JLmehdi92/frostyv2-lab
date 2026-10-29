@@ -1,18 +1,27 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/screens/activity/activity_screen.dart';
 import 'package:frosty/screens/activity/stores/activity_store.dart';
 import 'package:frosty/screens/home/home_store.dart';
+import 'package:frosty/screens/whispers/whisper_conversation.dart';
+import 'package:frosty/screens/whispers/whispers_screen.dart';
 import 'package:frosty/services/notifications/activity_log.dart';
 import 'package:frosty/services/realtime/twitch_eventsub_client.dart';
 import 'package:frosty/stores/whisper_store.dart';
+import 'package:frosty/theme.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 
 final _now = DateTime.utc(2026, 10, 20, 12);
+
+const _phone = Size(390, 844);
+const _tablet = Size(1280, 854);
+const _tabletPortrait = Size(854, 1280);
 
 ActivityEntry _entry(
   String id, {
@@ -45,9 +54,25 @@ void main() {
     WhisperStore? whispers,
     ActivityTab tab = ActivityTab.notifications,
     bool active = true,
+    Size size = _phone,
+    ThemeMode theme = ThemeMode.dark,
+    bool reduceMotion = false,
   }) async {
+    tester.view.physicalSize = size;
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final themes = FrostyThemes(colorSchemeSeed: FrostyTokens.accent);
     await tester.pumpWidget(
       MaterialApp(
+        theme: themes.light,
+        darkTheme: themes.dark,
+        themeMode: theme,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(disableAnimations: reduceMotion),
+          child: child!,
+        ),
         home: Scaffold(
           body: ActivityScreen(
             store: store,
@@ -63,6 +88,25 @@ void main() {
     await tester.pump();
     await tester.pump();
   }
+
+  WhisperStore whisperStore(Stream<EventSubTopicEvent> events) {
+    final whispers = WhisperStore(
+      twitchApi: MockTwitchApi(),
+      currentUserId: () => '7',
+      listen: (topic) => EventSubHandle.forTesting(topic, events, () {}),
+    );
+    addTearDown(whispers.dispose);
+    return whispers;
+  }
+
+  EventSubData whisper(String text, {String id = 'w1'}) => EventSubData({
+    'from_user_id': '8',
+    'from_user_login': 'friend',
+    'from_user_name': 'Friend',
+    'to_user_id': '7',
+    'whisper_id': id,
+    'whisper': {'text': text},
+  });
 
   testWidgets("empty: Twitch's up-to-date message", (tester) async {
     await pump(tester);
@@ -164,18 +208,18 @@ void main() {
       _entry('a', ago: const Duration(minutes: 5)),
       _entry('b', ago: const Duration(minutes: 6)),
     ]);
-    // The tabs are in the shell's header.
+    // The tabs are in the shell's header, with their unread counts.
     expect(
-      activityTabLabel(
+      activityTabBadge(
         ActivityTab.notifications,
         store: store,
         whispers: whispers,
       ),
-      'Notifications (2)',
+      2,
     );
     expect(
-      activityTabLabel(ActivityTab.whispers, store: store, whispers: whispers),
-      'Whispers',
+      activityTabBadge(ActivityTab.whispers, store: store, whispers: whispers),
+      0,
     );
     await pump(tester, whispers: whispers);
     expect(find.text('Title a'), findsOneWidget);
@@ -255,4 +299,153 @@ void main() {
     await tester.pump();
     expect(store.newCount, 0);
   });
+
+  testWidgets('a long press with reduce motion removes it at once', (
+    tester,
+  ) async {
+    await store.addAll([_entry('a', ago: const Duration(minutes: 5))]);
+    await pump(tester, reduceMotion: true);
+    await tester.longPress(find.text('Title a'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove notification'));
+    await tester.pump();
+    await tester.pump();
+    expect(store.entries, isEmpty);
+    await tester.pumpAndSettle();
+    expect(find.text('Title a'), findsNothing);
+  });
+
+  testWidgets('unread: the signal dot; read: none', (tester) async {
+    await store.addAll([
+      _entry('a', ago: const Duration(minutes: 5)),
+      _entry('b', ago: const Duration(minutes: 6), read: true),
+    ]);
+    await pump(tester);
+    expect(find.byKey(const ValueKey('activity-unread-dot')), findsOneWidget);
+  });
+
+  testWidgets('phone: a whisper opens its conversation alone', (tester) async {
+    final events = StreamController<EventSubTopicEvent>.broadcast();
+    addTearDown(events.close);
+    final whispers = whisperStore(events.stream);
+    events.add(whisper('hey'));
+    await tester.pump();
+    await pump(tester, whispers: whispers, tab: ActivityTab.whispers);
+    expect(find.text('Friend'), findsOneWidget);
+    await tester.tap(find.text('Friend'));
+    await tester.pumpAndSettle();
+    expect(find.byType(WhisperConversation), findsOneWidget);
+    expect(find.byType(WhispersList), findsNothing);
+    expect(whispers.unreadCount, 0);
+  });
+
+  group('tablet', () {
+    testWidgets('notifications beside the whispers, no tabs', (tester) async {
+      final events = StreamController<EventSubTopicEvent>.broadcast();
+      addTearDown(events.close);
+      final whispers = whisperStore(events.stream);
+      events.add(whisper('hey'));
+      await tester.pump();
+      await store.addAll([
+        _entry('a', ago: const Duration(hours: 1)),
+        _entry('b', ago: const Duration(days: 3), read: true),
+      ]);
+      // Whatever the phone's tab, both are on screen.
+      await pump(
+        tester,
+        whispers: whispers,
+        tab: ActivityTab.whispers,
+        size: _tablet,
+      );
+      expect(find.text('Activity'), findsOneWidget);
+      expect(find.text('Most Recent'), findsOneWidget);
+      expect(find.text('Earlier'), findsOneWidget);
+      expect(find.text('Title a'), findsOneWidget);
+      expect(find.text('Whispers'), findsOneWidget);
+      expect(find.text('Friend'), findsOneWidget);
+      expect(find.text('See all'), findsOneWidget);
+
+      // Mark all as read, with the count.
+      expect(find.text('Mark all as read'), findsOneWidget);
+      await tester.tap(find.text('Mark all as read'));
+      await tester.pump();
+      await tester.pump();
+      expect(store.unreadCount, 0);
+      expect(find.text('Mark all as read'), findsNothing);
+
+      // A whisper opens the whispers on its conversation.
+      await tester.tap(find.text('Friend'));
+      await tester.pumpAndSettle();
+      expect(find.byType(WhispersScreen), findsOneWidget);
+      expect(whispers.openUserId, '8');
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      // See all opens them too.
+      await tester.tap(find.text('See all'));
+      await tester.pumpAndSettle();
+      expect(find.byType(WhispersScreen), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a long press offers removal in a menu', (tester) async {
+      await store.addAll([_entry('a', ago: const Duration(minutes: 5))]);
+      await pump(tester, size: _tablet);
+      await tester.longPress(find.text('Title a'));
+      await tester.pumpAndSettle();
+      expect(find.byType(PopupMenuItem<bool>), findsOneWidget);
+      await tester.tap(find.text('Remove notification'));
+      await tester.pumpAndSettle();
+      expect(find.text('Title a'), findsNothing);
+      expect(store.entries, isEmpty);
+    });
+
+    testWidgets('logged out: the notifications alone', (tester) async {
+      await store.addAll([_entry('a', ago: const Duration(minutes: 5))]);
+      await pump(tester, size: _tablet);
+      expect(find.text('Title a'), findsOneWidget);
+      expect(find.text('See all'), findsNothing);
+    });
+
+    testWidgets("empty: Twitch's up-to-date message", (tester) async {
+      await pump(tester, size: _tabletPortrait);
+      expect(find.text("Hooray! You're up to date"), findsOneWidget);
+    });
+  });
+
+  for (final theme in [ThemeMode.dark, ThemeMode.light]) {
+    for (final size in [_phone, _tablet, _tabletPortrait]) {
+      testWidgets('lays out at ${size.width}x${size.height} (${theme.name})', (
+        tester,
+      ) async {
+        final events = StreamController<EventSubTopicEvent>.broadcast();
+        addTearDown(events.close);
+        final whispers = whisperStore(events.stream);
+        events.add(whisper('a whisper ' * 20));
+        await tester.pump();
+        await store.addAll([
+          for (var i = 0; i < 12; i++)
+            _entry(
+              '$i',
+              ago: Duration(hours: i * 5),
+              kind: ActivityKind.values[i % 3],
+              login: i.isEven ? 'streamer' : null,
+              read: i > 3,
+            ),
+        ]);
+        await pump(tester, whispers: whispers, size: size, theme: theme);
+        expect(tester.takeException(), isNull);
+        if (size == _phone) {
+          await pump(
+            tester,
+            whispers: whispers,
+            tab: ActivityTab.whispers,
+            size: size,
+            theme: theme,
+          );
+          expect(tester.takeException(), isNull);
+        }
+      });
+    }
+  }
 }

@@ -939,6 +939,39 @@ void main() {
   });
 
   group('logged in', () {
+    testWidgets('Activity: tabs with counts on a phone, two columns on a '
+        'tablet', (tester) async {
+      await activity.addAll([
+        ActivityEntry(
+          id: 'n1',
+          kind: ActivityKind.live,
+          title: 'streamer is live',
+          body: '',
+          at: DateTime.now(),
+        ),
+      ]);
+      await pump(tester, auth: FakeAuthStore(loggedIn: true));
+      await tester.tap(nav('activity'));
+      await tester.pumpAndSettle();
+      expect(find.text('Notifications'), findsOneWidget);
+      expect(find.text('Whispers'), findsOneWidget);
+      expect(find.byKey(const ValueKey('tab-count')), findsOneWidget);
+      expect(find.text('See all'), findsNothing);
+
+      // The same Activity on a tablet: no tabs, the whispers beside.
+      tester.view.physicalSize = const Size(1280, 854);
+      await tester.pumpAndSettle();
+      expect(find.text('Notifications'), findsNothing);
+      expect(find.byKey(const ValueKey('tab-count')), findsNothing);
+      expect(find.text('See all'), findsOneWidget);
+      expect(find.text('streamer is live'), findsOneWidget);
+      await tester.tap(find.text('See all'));
+      await tester.pumpAndSettle();
+      expect(find.byType(WhispersScreen), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await close(tester);
+    });
+
     testWidgets('Following first; whispers in the header and in Activity', (
       tester,
     ) async {

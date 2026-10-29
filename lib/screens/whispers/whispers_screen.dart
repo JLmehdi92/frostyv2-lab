@@ -1,164 +1,597 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:frosty/screens/settings/account/account_settings.dart';
 import 'package:frosty/screens/whispers/whisper_conversation.dart';
+import 'package:frosty/screens/whispers/whisper_kit.dart';
 import 'package:frosty/stores/whisper_store.dart';
-import 'package:frosty/widgets/alert_message.dart';
-import 'package:frosty/widgets/frosty_app_bar.dart';
-import 'package:frosty/widgets/profile_picture.dart';
-import 'package:frosty/widgets/readable_width.dart';
-import 'package:intl/intl.dart';
+import 'package:frosty/theme.dart';
+import 'package:frosty/utils/context_extensions.dart';
+import 'package:frosty/widgets/motion/motion.dart';
+import 'package:frosty/widgets/motion/reduce_motion.dart';
+import 'package:frosty/widgets/state_glyph.dart';
+import 'package:frosty/widgets/state_views.dart';
+import 'package:mobx/mobx.dart';
 
-/// What to tell about [status] above the conversations, or null.
-String? whisperStatusHint(WhisperStatus status) => switch (status) {
-  WhisperStatus.refused =>
-    'Twitch refused to send your whispers to this app. Log out and log in '
-        'again to allow them.',
-  WhisperStatus.interrupted => 'Reconnecting… whispers will arrive again soon.',
-  WhisperStatus.unavailable =>
-    "Twitch isn't sending whispers to this app right now. It tries again "
-        'when you come back to the app.',
-  WhisperStatus.off => 'Log in to get whispers.',
-  WhisperStatus.connecting || WhisperStatus.listening => null,
-};
+export 'package:frosty/screens/whispers/whisper_kit.dart'
+    show whisperStatusHint;
 
-/// The viewer's whisper conversations, most recent first.
-class WhispersScreen extends StatelessWidget {
-  const WhispersScreen({super.key, required this.store});
+/// Someone to whisper with.
+@immutable
+class WhisperTarget {
+  const WhisperTarget({
+    required this.userId,
+    required this.login,
+    required this.displayName,
+  });
+
+  WhisperTarget.of(WhisperThread thread)
+    : userId = thread.userId,
+      login = thread.login,
+      displayName = thread.displayName;
+
+  final String userId;
+  final String login;
+  final String displayName;
+
+  @override
+  bool operator ==(Object other) =>
+      other is WhisperTarget && other.userId == userId;
+
+  @override
+  int get hashCode => userId.hashCode;
+}
+
+/// The viewer's whispers (boards Messages and MessagesTablette): on a
+/// phone the conversations, a conversation sliding over them; on a tablet
+/// the conversations beside the one on screen.
+///
+/// One structure for both: the conversation on screen (and its draft)
+/// survives the window crossing the tablet size.
+class WhispersScreen extends StatefulWidget {
+  const WhispersScreen({
+    super.key,
+    required this.store,
+    this.initial,
+    this.conversationOnly = false,
+  });
 
   final WhisperStore store;
 
+  /// The conversation open at first.
+  final WhisperTarget? initial;
+
+  /// Opened for [initial] alone (from a chat, a notice): on a phone, back
+  /// leaves the page instead of showing the conversations.
+  final bool conversationOnly;
+
   static const routeName = '/whispers';
 
-  static Future<void> open(BuildContext context, WhisperStore store) =>
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          settings: const RouteSettings(name: routeName),
-          builder: (context) => WhispersScreen(store: store),
-        ),
+  /// Opens the whispers, on [select]'s conversation when given.
+  static Future<void> open(
+    BuildContext context,
+    WhisperStore store, {
+    WhisperTarget? select,
+  }) => Navigator.push(
+    context,
+    MaterialPageRoute(
+      settings: const RouteSettings(name: routeName),
+      builder: (context) => WhispersScreen(store: store, initial: select),
+    ),
+  );
+
+  @override
+  State<WhispersScreen> createState() => _WhispersScreenState();
+}
+
+class _WhispersScreenState extends State<WhispersScreen>
+    with SingleTickerProviderStateMixin {
+  /// The conversation chosen (on a tablet, the first one when none was).
+  WhisperTarget? _selected;
+
+  /// A conversation is open over the phone's list.
+  var _open = false;
+
+  /// The phone's slide: 0 the list, 1 the conversation over it.
+  late final AnimationController _slide;
+
+  /// The conversations' keys: a conversation keeps its state when the
+  /// window crosses the tablet size.
+  final _keys = <String, GlobalKey>{};
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = widget.initial;
+    _open = widget.initial != null;
+    _slide = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 340),
+      value: _open ? 1 : 0,
+    );
+    // Another account (or none): the conversation on screen was the
+    // previous one's, it closes.
+    _disposeAccount = reaction((_) => widget.store.me, (_) {
+      if (!mounted) return;
+      setState(() {
+        _selected = null;
+        _open = false;
+      });
+      _slide.value = 0;
+    });
+  }
+
+  late final ReactionDisposer _disposeAccount;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Chosen on a tablet, then the window became a phone: the
+    // conversation is over the list at once.
+    if (!context.isLargeScreen && _open && !_slide.isAnimating) {
+      _slide.value = 1;
+    }
+  }
+
+  @override
+  void dispose() {
+    _disposeAccount();
+    _slide.dispose();
+    super.dispose();
+  }
+
+  void _select(WhisperTarget target) {
+    _slide.duration = motionDuration(
+      context,
+      const Duration(milliseconds: 340),
+    );
+    setState(() {
+      _selected = target;
+      _open = true;
+    });
+    if (!context.isLargeScreen) _slide.forward();
+  }
+
+  /// The phone's back: the conversation slides away, then is closed.
+  Future<void> _back() async {
+    if (widget.conversationOnly) {
+      await Navigator.maybePop(context);
+      return;
+    }
+    _slide.duration = motionDuration(
+      context,
+      const Duration(milliseconds: 340),
+    );
+    setState(() => _open = false);
+    await _slide.reverse();
+  }
+
+  GlobalKey _keyOf(WhisperTarget target) =>
+      _keys.putIfAbsent(target.userId, GlobalKey.new);
+
+  Widget _conversation(WhisperTarget target, {required bool pane}) =>
+      WhisperConversation(
+        key: _keyOf(target),
+        store: widget.store,
+        userId: target.userId,
+        login: target.login,
+        displayName: target.displayName,
+        pane: pane,
+        onBack: _back,
       );
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const FrostyAppBar(title: Text('Whispers')),
-      body: WhispersList(store: store),
+    final theme = Theme.of(context);
+    final large = context.isLargeScreen;
+    final bars =
+        theme.appBarTheme.systemOverlayStyle ??
+        (theme.brightness == Brightness.dark
+            ? SystemUiOverlayStyle.light
+            : SystemUiOverlayStyle.dark);
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: bars,
+      child: PopScope(
+        // On a phone, back closes the conversation first.
+        canPop: large || !_open || widget.conversationOnly,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) _back();
+        },
+        child: Scaffold(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          body: Observer(
+            builder: (context) {
+              if (widget.store.status == WhisperStatus.off) {
+                return _LoggedOut(onBack: () => Navigator.maybePop(context));
+              }
+              return large ? _tablet(context) : _phone(context);
+            },
+          ),
+        ),
+      ),
     );
   }
-}
 
-/// The conversations list, also the Whispers tab of Activity.
-class WhispersList extends StatelessWidget {
-  const WhispersList({super.key, required this.store});
-
-  final WhisperStore store;
-
-  @override
-  Widget build(BuildContext context) {
-    return Observer(
-      builder: (context) {
-        final hint = whisperStatusHint(store.status);
-        final threads = store.threads;
-        return Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: kReadableMaxWidth),
-            child: Column(
-              children: [
-                if (hint != null)
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: AlertMessage(message: hint, centered: false),
+  Widget _phone(BuildContext context) {
+    final selected = _selected;
+    final ground = Theme.of(context).scaffoldBackgroundColor;
+    final colors = WhisperColors.of(context);
+    final reduce = reduceMotionOf(context);
+    return AnimatedBuilder(
+      animation: _slide,
+      builder: (context, _) {
+        final t = FrostyMotion.standard.transform(_slide.value);
+        final showList =
+            (!widget.conversationOnly || selected == null) && _slide.value < 1;
+        final showConversation =
+            selected != null && (_open || _slide.value > 0);
+        return Stack(
+          children: [
+            if (showList)
+              Positioned.fill(
+                child: IgnorePointer(
+                  ignoring: _open,
+                  child: Transform.translate(
+                    offset: Offset(
+                      reduce ? 0 : -0.28 * MediaQuery.sizeOf(context).width * t,
+                      0,
+                    ),
+                    child: Opacity(
+                      opacity: reduce ? 1 - t : 1 - 0.6 * t,
+                      child: ColoredBox(
+                        color: ground,
+                        child: _ListPage(store: widget.store, onOpen: _select),
+                      ),
+                    ),
                   ),
-                Expanded(
-                  child: threads.isEmpty
-                      ? const AlertMessage(
-                          message:
-                              'No whispers yet. Whispers you get while '
-                              'the app is open show up here.',
-                          vertical: true,
-                        )
-                      : ListView.builder(
-                          itemCount: threads.length,
-                          itemBuilder: (context, index) =>
-                              _ThreadTile(store: store, thread: threads[index]),
-                        ),
                 ),
-              ],
-            ),
-          ),
+              ),
+            if (showConversation)
+              Positioned.fill(
+                child: FractionalTranslation(
+                  translation: Offset(reduce ? 0 : 1 - t, 0),
+                  child: Opacity(
+                    opacity: reduce ? t : 1,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: ground,
+                        boxShadow: _slide.value < 1 && !reduce
+                            ? [
+                                BoxShadow(
+                                  color: colors.shadow,
+                                  offset: const Offset(-18, 0),
+                                  blurRadius: 40,
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: _conversation(selected, pane: false),
+                    ),
+                  ),
+                ),
+              ),
+          ],
         );
       },
     );
   }
-}
 
-class _ThreadTile extends StatelessWidget {
-  const _ThreadTile({required this.store, required this.thread});
-
-  final WhisperStore store;
-  final WhisperThread thread;
-
-  @override
-  Widget build(BuildContext context) {
-    return Observer(
-      builder: (context) {
-        final theme = Theme.of(context);
-        final last = thread.whispers.lastOrNull;
-        final unread = thread.unread;
-        return ListTile(
-          leading: ProfilePicture(userLogin: thread.login),
-          title: Text(
-            thread.displayName,
-            overflow: TextOverflow.ellipsis,
-            style: unread > 0
-                ? const TextStyle(fontWeight: FontWeight.bold)
-                : null,
-          ),
-          // Yours carry an icon, not a "You:" a whisper could fake.
-          subtitle: last == null
-              ? null
-              : Row(
-                  children: [
-                    if (last.mine) ...[
-                      Icon(
-                        Icons.reply_rounded,
-                        size: 16,
-                        semanticLabel: 'You',
-                        color: theme.colorScheme.onSurfaceVariant,
+  Widget _tablet(BuildContext context) {
+    final colors = WhisperColors.of(context);
+    final padding = MediaQuery.paddingOf(context);
+    final width = MediaQuery.sizeOf(context).width;
+    final listWidth = width >= 1000 ? 372.0 : 320.0;
+    final threads = widget.store.threads;
+    // The first conversation on screen when none was chosen; kept, so a
+    // whisper arriving elsewhere does not switch the pane.
+    if (_selected == null && threads.isNotEmpty) {
+      _selected = WhisperTarget.of(threads.first);
+    }
+    final selected = _selected;
+    final unread = widget.store.unreadCount;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        FrostySpacing.gutterTablet + padding.left,
+        padding.top + 12,
+        FrostySpacing.gutterTablet + padding.right,
+        FrostySpacing.gutterTablet + padding.bottom,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: listWidth,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    children: [
+                      WhisperBackButton(
+                        color: colors.text,
+                        onPressed: () => Navigator.maybePop(context),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Semantics(
+                          header: true,
+                          child: Text(
+                            'Whispers',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.78,
+                              color: colors.text,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Text(
+                        unread > 0 ? '$unread unread' : 'All read',
+                        style: FrostyType.tabular(
+                          TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: colors.secondary,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 4),
                     ],
-                    Expanded(
-                      child: Text(
-                        whisperPreview(last.text),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Expanded(
+                  child: MediaQuery.removePadding(
+                    context: context,
+                    removeTop: true,
+                    removeBottom: true,
+                    removeLeft: true,
+                    removeRight: true,
+                    child: WhispersList(
+                      store: widget.store,
+                      onOpen: _select,
+                      selectedUserId: selected?.userId,
+                      rounded: true,
+                      showEmpty: false,
+                      noteMargin: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: colors.pane,
+                borderRadius: BorderRadius.circular(FrostyTokens.radiusLarge),
+                border: Border.all(
+                  color: colors.paneRing,
+                  width: FrostyTokens.hairlineWidth,
+                ),
+              ),
+              child: MediaQuery.removePadding(
+                context: context,
+                removeTop: true,
+                removeBottom: true,
+                removeLeft: true,
+                removeRight: true,
+                child: selected == null
+                    ? const _NoWhispers()
+                    : _conversation(selected, pane: true),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The phone's list page: back and "Whispers" (20/700), then the
+/// conversations.
+class _ListPage extends StatelessWidget {
+  const _ListPage({required this.store, required this.onOpen});
+
+  final WhisperStore store;
+  final ValueChanged<WhisperTarget> onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = WhisperColors.of(context);
+    final padding = MediaQuery.paddingOf(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: EdgeInsets.only(
+            top: padding.top,
+            left: 4 + padding.left,
+            right: 8 + padding.right,
+          ),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: colors.hairline,
+                width: FrostyTokens.hairlineWidth,
+              ),
+            ),
+          ),
+          child: SizedBox(
+            height: 56,
+            child: Row(
+              children: [
+                WhisperBackButton(
+                  color: colors.text,
+                  onPressed: () => Navigator.maybePop(context),
+                ),
+                const SizedBox(width: 2),
+                Expanded(
+                  child: Semantics(
+                    header: true,
+                    child: Text(
+                      'Whispers',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.4,
+                        color: colors.text,
                       ),
                     ),
-                  ],
+                  ),
                 ),
-          trailing: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              if (last != null)
-                Text(
-                  DateFormat.jm().format(last.sentAt.toLocal()),
-                  style: theme.textTheme.bodySmall,
-                ),
-              if (unread > 0) ...[
-                const SizedBox(height: 4),
-                Badge(label: Text('$unread')),
               ],
+            ),
+          ),
+        ),
+        Expanded(
+          child: MediaQuery.removePadding(
+            context: context,
+            removeTop: true,
+            child: WhispersList(store: store, onOpen: onOpen),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// No conversation yet: the tablet's pane, and the list on a phone.
+class _NoWhispers extends StatelessWidget {
+  const _NoWhispers();
+
+  @override
+  Widget build(BuildContext context) {
+    return const FeedStatusView.empty(
+      message: 'No whispers yet',
+      detail: 'Whispers you get while the app is open show up here.',
+      glyph: StateGlyphKind.whisper,
+    );
+  }
+}
+
+/// Logged out (Etats 05): back, and the invitation to connect.
+class _LoggedOut extends StatelessWidget {
+  const _LoggedOut({required this.onBack});
+
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = WhisperColors.of(context);
+    return SafeArea(
+      child: Stack(
+        children: [
+          Center(
+            child: SingleChildScrollView(
+              child: FeedStatusView.signIn(
+                message: whisperStatusHint(WhisperStatus.off)!,
+                onConnect: () => openLogin(context),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 4,
+            top: 6,
+            child: WhisperBackButton(color: colors.text, onPressed: onBack),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The conversations, most recent first (the phone's whispers, Activity's
+/// Whispers tab, the tablet's list), with why whispers may not arrive
+/// above them.
+class WhispersList extends StatelessWidget {
+  const WhispersList({
+    super.key,
+    required this.store,
+    this.onOpen,
+    this.selectedUserId,
+    this.rounded = false,
+    this.showEmpty = true,
+    this.noteMargin = const EdgeInsets.fromLTRB(16, 8, 16, 8),
+  });
+
+  final WhisperStore store;
+
+  /// Opens a conversation; alone on its page when null (Activity's tab).
+  final ValueChanged<WhisperTarget>? onOpen;
+
+  /// The conversation on screen beside the list (tablet).
+  final String? selectedUserId;
+  final bool rounded;
+
+  /// No conversation: the empty state (the tablet shows it in its pane).
+  final bool showEmpty;
+  final EdgeInsetsGeometry noteMargin;
+
+  void _open(BuildContext context, WhisperThread thread) {
+    final onOpen = this.onOpen;
+    if (onOpen != null) {
+      onOpen(WhisperTarget.of(thread));
+      return;
+    }
+    WhisperConversation.open(
+      context,
+      store: store,
+      userId: thread.userId,
+      login: thread.login,
+      displayName: thread.displayName,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final padding = MediaQuery.paddingOf(context);
+    return Observer(
+      builder: (context) {
+        final threads = store.threads;
+        final note = WhisperStatusNote(store: store, margin: noteMargin);
+        if (threads.isEmpty) {
+          return ListView(
+            padding: EdgeInsets.only(top: padding.top, bottom: padding.bottom),
+            children: [
+              note,
+              if (showEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(top: 72),
+                  child: _NoWhispers(),
+                ),
             ],
+          );
+        }
+        return ListView.builder(
+          padding: EdgeInsets.only(
+            top: padding.top + (rounded ? 0 : 6),
+            bottom: padding.bottom + 24,
+            left: padding.left,
+            right: padding.right,
           ),
-          onTap: () => WhisperConversation.open(
-            context,
-            store: store,
-            userId: thread.userId,
-            login: thread.login,
-            displayName: thread.displayName,
-          ),
+          itemCount: threads.length + 1,
+          itemBuilder: (context, index) {
+            if (index == 0) return note;
+            final thread = threads[index - 1];
+            return Padding(
+              padding: EdgeInsets.only(bottom: rounded ? 2 : 0),
+              child: WhisperThreadRow(
+                key: ValueKey(thread.userId),
+                thread: thread,
+                selected: thread.userId == selectedUserId,
+                rounded: rounded,
+                onTap: () => _open(context, thread),
+              ),
+            );
+          },
         );
       },
     );
