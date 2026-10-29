@@ -537,6 +537,7 @@ class _ChatDetailsState extends State<ChatDetails> {
         unawaited(widget.chatStore.chatRules?.accept());
         _show(ChatDetailsView.menu);
       },
+      onBack: () => _show(ChatDetailsView.menu),
     );
   }
 

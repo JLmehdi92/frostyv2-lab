@@ -15,10 +15,14 @@ class ChatRulesSheet extends StatelessWidget {
     super.key,
     required this.rules,
     required this.onAccept,
+    this.onBack,
   });
 
   final ChatRules rules;
   final VoidCallback onAccept;
+
+  /// Inside the chat menu: a back header like its other views.
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +36,8 @@ class ChatRulesSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (onBack case final back?)
+            SheetBackHeader(title: 'Chat rules', onBack: back),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: Row(

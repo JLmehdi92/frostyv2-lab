@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/apis/twitch_chat_rules_service.dart';
+import 'package:frosty/models/chat_rules.dart';
 import 'package:frosty/models/irc.dart';
 import 'package:frosty/models/user.dart';
 import 'package:frosty/screens/channel/chat/details/chat_details.dart';
 import 'package:frosty/screens/channel/chat/details/chat_details_store.dart';
+import 'package:frosty/screens/channel/chat/stores/chat_rules_store.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/settings/stores/user_store.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/widgets/sheet/onset_sheet.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../helpers/chat_message_harness.dart';
 
@@ -19,6 +23,8 @@ class MockAuthStore extends Mock implements AuthStore {}
 class MockUserStore extends Mock implements UserStore {}
 
 class MockTwitchApi extends Mock implements TwitchApi {}
+
+class MockChatRulesService extends Mock implements TwitchChatRulesService {}
 
 void main() {
   late MockChatStore store;
@@ -290,6 +296,38 @@ void main() {
       find.widgetWithText(FilledButton, 'Save'),
     );
     expect(save.onPressed, isNotNull);
+  });
+
+  testWidgets('the rules open in place, with a way back like the others', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final service = MockChatRulesService();
+    when(() => service.getRules(any())).thenAnswer(
+      (_) async => const ChatRules(
+        channelId: '12345',
+        channelName: 'channel',
+        rules: ['Be kind'],
+      ),
+    );
+    final rules = ChatRulesStore(
+      service: service,
+      channelId: '12345',
+      viewerId: () => '1',
+    );
+    addTearDown(rules.dispose);
+    await tester.runAsync(rules.load);
+    when(() => store.chatRules).thenReturn(rules);
+    await open(tester);
+    await scrollTo(tester, 'Chat rules');
+    await tester.tap(find.text('Chat rules'));
+    await tester.pumpAndSettle();
+    expect(find.text('Be kind'), findsOneWidget);
+    expect(find.widgetWithText(SheetBackHeader, 'Chat rules'), findsOneWidget);
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+    expect(find.text('Be kind'), findsNothing);
+    expect(find.text('Chat rules'), findsOneWidget);
   });
 
   testWidgets('add chat runs the callback', (tester) async {
