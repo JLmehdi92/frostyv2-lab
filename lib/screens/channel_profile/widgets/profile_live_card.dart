@@ -100,30 +100,29 @@ class ProfileLiveCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final facts = ProfileStreamFacts(profile);
     final live = facts.live;
-    Widget card(BuildContext context) =>
-        large ? _large(context, facts) : _row(context, facts);
-    // The uptime moves once a minute.
-    final child = live?.startedAt == null
-        ? Builder(builder: card)
-        : _MinuteClock(builder: card);
-    final label = [
-      if (live == null) 'Offline' else if (live.isRerun) 'Rerun' else 'Live',
-      ?facts.title,
-      facts.details(DateTime.now(), withCategory: true),
-    ].join(', ');
-    return Semantics(
+    // Read with the text, so both follow the clock.
+    Widget card(BuildContext context) => Semantics(
       button: true,
-      label: label,
+      label: [
+        if (live == null) 'Offline' else if (live.isRerun) 'Rerun' else 'Live',
+        ?facts.title,
+        facts.details(DateTime.now(), withCategory: true),
+      ].join(', '),
+      onTap: onOpen,
       excludeSemantics: true,
-      child: PressScale(
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTapDown: live == null || onPreload == null
-              ? null
-              : (_) => onPreload!(),
-          onTap: onOpen,
-          child: child,
-        ),
+      child: large ? _large(context, facts) : _row(context, facts),
+    );
+    return PressScale(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: live == null || onPreload == null
+            ? null
+            : (_) => onPreload!(),
+        onTap: onOpen,
+        // The uptime moves once a minute.
+        child: live?.startedAt == null
+            ? Builder(builder: card)
+            : _MinuteClock(builder: card),
       ),
     );
   }

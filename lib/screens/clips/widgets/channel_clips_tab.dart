@@ -19,7 +19,12 @@ class ChannelClipsTab extends StatefulWidget {
     this.nested = false,
     this.showChannel = false,
     this.leadingSlivers = const [],
+    this.refreshEdgeOffset = 0,
   });
+
+  /// Where the pull-to-refresh spinner starts: under a [NestedScrollView]'s
+  /// pinned headers.
+  final double refreshEdgeOffset;
 
   /// Slivers before the list, in every state: a [NestedScrollView]'s
   /// overlap injectors.
@@ -82,6 +87,7 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
         if (clips.isEmpty) {
           final error = store.error;
           return RefreshIndicator.adaptive(
+            edgeOffset: widget.refreshEdgeOffset,
             onRefresh: store.refresh,
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -137,6 +143,7 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
         );
         if (nested) {
           return RefreshIndicator.adaptive(
+            edgeOffset: widget.refreshEdgeOffset,
             onRefresh: store.refresh,
             child: list,
           );
@@ -145,6 +152,7 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
           alignment: AlignmentDirectional.bottomCenter,
           children: [
             RefreshIndicator.adaptive(
+              edgeOffset: widget.refreshEdgeOffset,
               onRefresh: store.refresh,
               child: FrostyScrollbar(
                 controller: store.scrollController,

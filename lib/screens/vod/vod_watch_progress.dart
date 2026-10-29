@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/widgets.dart';
 import 'package:frosty/models/vod.dart';
 import 'package:frosty/screens/channel/video/live_progress.dart';
 import 'package:frosty/screens/vod/vod_resume.dart';
@@ -50,5 +53,35 @@ class VodWatchProgress {
     final entry = live[broadcastId];
     if (entry == null) return null;
     return (entry.offsetSec / vod.lengthSeconds).clamp(0.0, 1.0);
+  }
+}
+
+/// Keeps [watchProgress] for a list of videos: read when the list shows and
+/// again when a save lands (the closing save of a player screen finishes
+/// after its route has popped).
+mixin VodWatchProgressMixin<T extends StatefulWidget> on State<T> {
+  VodWatchProgress watchProgress = VodWatchProgress.none;
+
+  /// Whose positions are read (null: signed out).
+  String? get watchProgressViewer;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadWatchProgress());
+    VodResumeRepository.changes.addListener(_onWatchProgressSaved);
+  }
+
+  void _onWatchProgressSaved() => unawaited(_loadWatchProgress());
+
+  Future<void> _loadWatchProgress() async {
+    final progress = await VodWatchProgress.load(viewer: watchProgressViewer);
+    if (mounted) setState(() => watchProgress = progress);
+  }
+
+  @override
+  void dispose() {
+    VodResumeRepository.changes.removeListener(_onWatchProgressSaved);
+    super.dispose();
   }
 }

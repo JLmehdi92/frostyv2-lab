@@ -170,7 +170,6 @@ class LiveStatus {
     required this.isRerun,
     required this.viewers,
     this.startedAt,
-    this.gameId,
     this.gameName,
   });
 
@@ -181,22 +180,16 @@ class LiveStatus {
   final DateTime? startedAt;
 
   /// The category it plays.
-  final String? gameId;
   final String? gameName;
 
   static LiveStatus? fromGql(Object? node) {
     final map = chMap(node);
     if (chString(map?['id'], max: 32) == null) return null;
-    final game = chMap(map!['game']);
-    final gameId = _exact(game?['id'], 20);
     return LiveStatus(
-      isRerun: map['type'] == 'rerun',
+      isRerun: map!['type'] == 'rerun',
       viewers: (chInt(map['viewersCount']) ?? 0).clamp(0, 1 << 31),
       startedAt: chDate(map['createdAt']),
-      gameId: gameId != null && RegExp(r'^[0-9]+$').hasMatch(gameId)
-          ? gameId
-          : null,
-      gameName: chString(game?['displayName'], max: 100),
+      gameName: chString(chMap(map['game'])?['displayName'], max: 100),
     );
   }
 }

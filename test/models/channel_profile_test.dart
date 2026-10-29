@@ -122,7 +122,6 @@ void main() {
         },
       })!;
       expect(profile.live?.startedAt, DateTime.utc(2026, 10, 28, 21, 47, 6));
-      expect(profile.live?.gameId, '32982');
       expect(profile.live?.gameName, 'Grand Theft Auto V');
 
       // Odd values are dropped, the stream still reads.
@@ -132,12 +131,11 @@ void main() {
         'stream': {
           'id': '9',
           'createdAt': 'soon',
-          'game': {'id': '12a', 'displayName': 3},
+          'game': {'displayName': 3},
         },
       })!;
       expect(odd.live, isNotNull);
       expect(odd.live?.startedAt, isNull);
-      expect(odd.live?.gameId, isNull);
       expect(odd.live?.gameName, isNull);
     });
 

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/vod/stores/channel_videos_store.dart';
-import 'package:frosty/screens/vod/vod_resume.dart';
 import 'package:frosty/screens/vod/vod_screen.dart';
 import 'package:frosty/screens/vod/vod_watch_progress.dart';
 import 'package:frosty/screens/vod/widgets/vod_card.dart';
@@ -24,7 +23,12 @@ class ChannelVideosTab extends StatefulWidget {
     this.nested = false,
     this.showChannel = false,
     this.leadingSlivers = const [],
+    this.refreshEdgeOffset = 0,
   });
+
+  /// Where the pull-to-refresh spinner starts: under a [NestedScrollView]'s
+  /// pinned headers.
+  final double refreshEdgeOffset;
 
   /// Slivers before the list, in every state (loading, empty, error): a
   /// [NestedScrollView]'s overlap injectors, the profile's video types.
@@ -46,41 +50,21 @@ class ChannelVideosTab extends StatefulWidget {
 }
 
 class _ChannelVideosTabState extends State<ChannelVideosTab>
-    with AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin, VodWatchProgressMixin {
   // Nested lists share one controller: a kept-alive hidden list would
   // scroll along with the shown one.
   @override
   bool get wantKeepAlive => !widget.nested;
 
-  /// Saved watch positions and live progress, refreshed when coming back
-  /// from a video.
-  var _progress = VodWatchProgress.none;
+  /// The logged-in viewer's own positions only.
+  @override
+  String? get watchProgressViewer => widget.store.vodService.viewerId?.call();
 
   @override
   void initState() {
     super.initState();
     // Each tab loads the first time it is shown.
     if (!widget.store.loaded) widget.store.load();
-    unawaited(_loadResume());
-    // Refreshed when a save lands (the closing save of a player screen
-    // finishes after its route has popped).
-    VodResumeRepository.changes.addListener(_onResumeChanged);
-  }
-
-  void _onResumeChanged() => unawaited(_loadResume());
-
-  Future<void> _loadResume() async {
-    // The logged-in viewer's own positions only.
-    final viewer = widget.store.vodService.viewerId?.call();
-    final progress = await VodWatchProgress.load(viewer: viewer);
-    if (!mounted) return;
-    setState(() => _progress = progress);
-  }
-
-  @override
-  void dispose() {
-    VodResumeRepository.changes.removeListener(_onResumeChanged);
-    super.dispose();
   }
 
   @override
@@ -105,6 +89,7 @@ class _ChannelVideosTabState extends State<ChannelVideosTab>
         if (videos.isEmpty) {
           final error = store.error;
           return RefreshIndicator.adaptive(
+            edgeOffset: widget.refreshEdgeOffset,
             onRefresh: store.refresh,
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -137,7 +122,7 @@ class _ChannelVideosTabState extends State<ChannelVideosTab>
               itemCount: videos.length,
               itemBuilder: (context, index) {
                 final vod = videos[index];
-                final progress = _progress.of(vod);
+                final progress = watchProgress.of(vod);
                 return VodCard(
                   vod: vod,
                   showChannel: widget.showChannel,
@@ -173,6 +158,7 @@ class _ChannelVideosTabState extends State<ChannelVideosTab>
         );
         if (widget.nested) {
           return RefreshIndicator.adaptive(
+            edgeOffset: widget.refreshEdgeOffset,
             onRefresh: store.refresh,
             child: list,
           );
@@ -181,6 +167,7 @@ class _ChannelVideosTabState extends State<ChannelVideosTab>
           alignment: AlignmentDirectional.bottomCenter,
           children: [
             RefreshIndicator.adaptive(
+              edgeOffset: widget.refreshEdgeOffset,
               onRefresh: store.refresh,
               child: FrostyScrollbar(
                 controller: store.scrollController,

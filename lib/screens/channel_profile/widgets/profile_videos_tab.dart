@@ -22,6 +22,7 @@ class ProfileVideosTab extends StatelessWidget {
     required this.storeFor,
     this.nested = false,
     this.leadingSlivers = const [],
+    this.refreshEdgeOffset = 0,
   });
 
   final VodType type;
@@ -31,6 +32,7 @@ class ProfileVideosTab extends StatelessWidget {
   final ChannelVideosStore Function(VodType type) storeFor;
   final bool nested;
   final List<Widget> leadingSlivers;
+  final double refreshEdgeOffset;
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +44,7 @@ class ProfileVideosTab extends StatelessWidget {
       store: storeFor(type),
       emptyMessage: empty,
       nested: nested,
+      refreshEdgeOffset: refreshEdgeOffset,
       leadingSlivers: [
         ...leadingSlivers,
         SliverToBoxAdapter(

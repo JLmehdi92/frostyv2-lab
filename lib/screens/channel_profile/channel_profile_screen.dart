@@ -11,6 +11,7 @@ import 'package:frosty/screens/channel_profile/stores/channel_profile_store.dart
 import 'package:frosty/screens/channel_profile/widgets/profile_about_tab.dart';
 import 'package:frosty/screens/channel_profile/widgets/profile_header.dart';
 import 'package:frosty/screens/channel_profile/widgets/profile_home_tab.dart';
+import 'package:frosty/screens/channel_profile/widgets/profile_live_card.dart';
 import 'package:frosty/screens/channel_profile/widgets/profile_parts.dart';
 import 'package:frosty/screens/channel_profile/widgets/profile_schedule_tab.dart';
 import 'package:frosty/screens/channel_profile/widgets/profile_videos_tab.dart';
@@ -190,7 +191,11 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
         reaction((_) => _viewerOf(auth)?.id, (_) => _follow?.viewerChanged()),
     ];
     _tabs.addListener(_onTab);
+    _started = true;
   }
+
+  /// Past [initState]: a change to what the page shows needs a build.
+  var _started = false;
 
   void _followChannel(String id) {
     if (_follow?.channelId == id) return;
@@ -203,14 +208,11 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
       // No player here to give the network to first.
       startDelay: Duration.zero,
     )..start();
-    // Built in the autorun's own frame when it fires during the first
-    // build; a later id rebuilds.
-    if (previous == null) {
-      _follow = follow;
-    } else {
-      setState(() => _follow = follow);
-      previous.dispose();
-    }
+    _follow = follow;
+    previous?.dispose();
+    // Known at the opening, the first build shows it; known later, it
+    // needs one.
+    if (_started) setState(() {});
   }
 
   void _onTab() {
@@ -450,6 +452,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
           storeFor: _videosOf,
           nested: nested,
           leadingSlivers: leading,
+          refreshEdgeOffset: edgeOffset,
         ),
       ),
       KeyedSubtree(
@@ -458,6 +461,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
           store: _clips,
           nested: nested,
           leadingSlivers: leading,
+          refreshEdgeOffset: edgeOffset,
         ),
       ),
       _scrollTab(
@@ -526,7 +530,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
     final guess =
         58.0 +
         58 +
-        (profile != null && profile.live != null ? 97 : 0) +
+        (profile != null && !ProfileStreamFacts(profile).isEmpty ? 97 : 0) +
         (media.textScaler.scale(24) - 24);
     return NestedScrollView(
       headerSliverBuilder: (context, _) => [

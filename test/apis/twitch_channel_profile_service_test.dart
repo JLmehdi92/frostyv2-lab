@@ -55,7 +55,7 @@ void main() {
     expect(
       data['query'],
       contains(
-        'stream { id type viewersCount createdAt game { id displayName } }',
+        'stream { id type viewersCount createdAt game { displayName } }',
       ),
     );
   });

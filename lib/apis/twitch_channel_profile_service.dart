@@ -31,7 +31,7 @@ class TwitchChannelProfileService extends BaseApiClient {
       'panels { id type ... on DefaultPanel { title imageURL linkURL '
       'description altText } } '
       'lastBroadcast { id title startedAt game { id displayName } } '
-      'stream { id type viewersCount createdAt game { id displayName } } } }';
+      'stream { id type viewersCount createdAt game { displayName } } } }';
 
   // `segments` takes no `first`: it answers this week and the next.
   static const _scheduleQuery =

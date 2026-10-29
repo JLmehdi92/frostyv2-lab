@@ -508,14 +508,16 @@ class ProfilePhoneHeader extends SliverPersistentHeaderDelegate {
               child: content,
             ),
           ),
+          // The bar takes its taps: what slid under it is out of reach.
           Positioned(
             left: 0,
             right: 0,
             top: 0,
             height: bar,
-            child: IgnorePointer(
+            child: AbsorbPointer(
               child: DecoratedBox(
                 decoration: BoxDecoration(color: ground.withValues(alpha: t)),
+                child: const SizedBox.expand(),
               ),
             ),
           ),

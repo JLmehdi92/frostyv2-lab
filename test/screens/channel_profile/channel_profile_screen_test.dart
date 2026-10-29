@@ -336,6 +336,54 @@ void main() {
       expect(find.byType(ChannelProfileScreen), findsNothing);
     });
 
+    testWidgets('the folded bar keeps its taps from what slid under it', (
+      tester,
+    ) async {
+      answerProfile();
+      await pump(tester);
+      await tester.drag(find.byType(NestedScrollView), const Offset(0, -700));
+      await settle(tester);
+      final header = <RenderObject>{
+        for (final element
+            in find
+                .descendant(
+                  of: find.byType(ProfileHeader),
+                  matching: find.byWidgetPredicate((_) => true),
+                )
+                .evaluate())
+          ?element.renderObject,
+      };
+      for (final x in [120.0, 195.0, 260.0]) {
+        final hits = tester.hitTestOnBinding(Offset(x, 28));
+        expect(
+          hits.path.where((entry) => header.contains(entry.target)),
+          isEmpty,
+          reason: 'x $x',
+        );
+      }
+    });
+
+    testWidgets('every tab pulls to refresh under the pinned header', (
+      tester,
+    ) async {
+      answerProfile();
+      await pump(tester);
+      for (final tab in ProfileTab.values) {
+        await tapTab(tester, tab);
+        final indicators = tester.widgetList<RefreshIndicator>(
+          find.byType(RefreshIndicator),
+        );
+        expect(indicators, isNotEmpty, reason: tab.label);
+        for (final indicator in indicators) {
+          expect(
+            indicator.edgeOffset,
+            greaterThanOrEqualTo(ProfilePhoneHeader.barHeight + 40),
+            reason: tab.label,
+          );
+        }
+      }
+    });
+
     testWidgets('fits a small phone, a landscape phone and large text', (
       tester,
     ) async {

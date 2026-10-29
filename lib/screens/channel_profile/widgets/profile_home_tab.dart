@@ -13,10 +13,10 @@ import 'package:frosty/screens/clips/clip_screen.dart';
 import 'package:frosty/screens/clips/stores/channel_clips_store.dart';
 import 'package:frosty/screens/home/stream_list/stream_card_parts.dart';
 import 'package:frosty/screens/vod/stores/channel_videos_store.dart';
-import 'package:frosty/screens/vod/vod_resume.dart';
 import 'package:frosty/screens/vod/vod_screen.dart';
 import 'package:frosty/screens/vod/vod_time.dart';
 import 'package:frosty/screens/vod/vod_watch_progress.dart';
+import 'package:frosty/screens/vod/widgets/vod_card.dart';
 import 'package:frosty/services/notifications/schedule_reminders.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
@@ -87,32 +87,16 @@ class ProfileHomeContent extends StatefulWidget {
   State<ProfileHomeContent> createState() => _ProfileHomeContentState();
 }
 
-class _ProfileHomeContentState extends State<ProfileHomeContent> {
-  /// The viewer's progress in the listed videos, refreshed when coming back
-  /// from one.
-  var _progress = VodWatchProgress.none;
+class _ProfileHomeContentState extends State<ProfileHomeContent>
+    with VodWatchProgressMixin {
+  @override
+  String? get watchProgressViewer => widget.videos.vodService.viewerId?.call();
 
   @override
   void initState() {
     super.initState();
     if (!widget.videos.loaded) unawaited(widget.videos.load());
     if (!widget.clips.loaded) unawaited(widget.clips.load());
-    unawaited(_loadProgress());
-    VodResumeRepository.changes.addListener(_onResumeChanged);
-  }
-
-  @override
-  void dispose() {
-    VodResumeRepository.changes.removeListener(_onResumeChanged);
-    super.dispose();
-  }
-
-  void _onResumeChanged() => unawaited(_loadProgress());
-
-  Future<void> _loadProgress() async {
-    final viewer = widget.videos.vodService.viewerId?.call();
-    final progress = await VodWatchProgress.load(viewer: viewer);
-    if (mounted) setState(() => _progress = progress);
   }
 
   @override
@@ -245,7 +229,7 @@ class _ProfileHomeContentState extends State<ProfileHomeContent> {
                               for (final vod in videos)
                                 ProfileVideoTile(
                                   vod: vod,
-                                  progress: _progress.of(vod),
+                                  progress: watchProgress.of(vod),
                                   large: large,
                                 ),
                             ],
@@ -520,15 +504,6 @@ class ProfileVideoTile extends StatelessWidget {
   final VodProgress progress;
   final bool large;
 
-  /// Twitch serves a "processing" image for videos still being encoded.
-  String? get _thumbnail {
-    final url = vod.previewThumbnailUrl;
-    if (url == null || url.isEmpty || url.contains('404_processing')) {
-      return null;
-    }
-    return url;
-  }
-
   @override
   Widget build(BuildContext context) {
     final title = vod.title.trim().isEmpty ? 'Untitled' : vod.title.trim();
@@ -550,7 +525,7 @@ class ProfileVideoTile extends StatelessWidget {
             spacing: large ? 8 : 6,
             children: [
               _TilePicture(
-                imageUrl: _thumbnail,
+                imageUrl: vodThumbnailUrl(vod),
                 fallback: SheetGlyphKind.videos,
                 length: formatVodTime(vod.duration),
                 large: large,

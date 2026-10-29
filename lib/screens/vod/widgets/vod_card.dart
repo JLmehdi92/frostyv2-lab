@@ -5,6 +5,16 @@ import 'package:frosty/screens/vod/vod_time.dart';
 import 'package:frosty/screens/vod/widgets/video_card_layout.dart';
 import 'package:intl/intl.dart';
 
+/// [vod]'s picture, or null while Twitch still serves its "processing"
+/// image (a video being encoded).
+String? vodThumbnailUrl(Vod vod) {
+  final url = vod.previewThumbnailUrl;
+  if (url == null || url.isEmpty || url.contains('404_processing')) {
+    return null;
+  }
+  return url;
+}
+
 /// A past broadcast, highlight or upload in a list, laid out like the live
 /// stream cards: thumbnail with its length, then title and details.
 class VodCard extends StatelessWidget {
@@ -31,15 +41,6 @@ class VodCard extends StatelessWidget {
   /// Defaults to opening the VOD in-app.
   final VoidCallback? onTap;
 
-  /// Twitch serves a "processing" image for videos still being encoded.
-  String? get _thumbnailUrl {
-    final url = vod.previewThumbnailUrl;
-    if (url == null || url.isEmpty || url.contains('404_processing')) {
-      return null;
-    }
-    return url;
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -51,7 +52,7 @@ class VodCard extends StatelessWidget {
     ].join(' · ');
 
     return VideoCardLayout(
-      thumbnailUrl: _thumbnailUrl,
+      thumbnailUrl: vodThumbnailUrl(vod),
       fallbackIcon: Icons.video_library_outlined,
       lengthLabel: formatVodTime(vod.duration),
       topChips: [
