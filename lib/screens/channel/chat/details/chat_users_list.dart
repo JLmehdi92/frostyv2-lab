@@ -79,87 +79,94 @@ class _ChattersListState extends State<ChattersList> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
-            child: Observer(
-              builder: (context) {
-                final focused = store.textFieldFocusNode.hasFocus;
-                final showClear = focused || store.filterText.isNotEmpty;
-                return AnimatedContainer(
-                  duration: motionDuration(
-                    context,
-                    const Duration(milliseconds: 160),
-                  ),
-                  height: 44,
-                  padding: const EdgeInsetsDirectional.only(start: 12, end: 4),
-                  decoration: BoxDecoration(
-                    color: colors.raised,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: focused
-                          ? accent.withValues(alpha: 0.55)
-                          : colors.ring,
-                      width: focused ? 1 : FrostyTokens.hairlineWidth,
+            // Focus is not observable: the ring and Cancel follow the node.
+            child: ListenableBuilder(
+              listenable: store.textFieldFocusNode,
+              builder: (context, _) => Observer(
+                builder: (context) {
+                  final focused = store.textFieldFocusNode.hasFocus;
+                  final showClear = focused || store.filterText.isNotEmpty;
+                  return AnimatedContainer(
+                    duration: motionDuration(
+                      context,
+                      const Duration(milliseconds: 160),
                     ),
-                  ),
-                  child: Row(
-                    spacing: 10,
-                    children: [
-                      SheetGlyph(
-                        SheetGlyphKind.filter,
-                        size: 18,
-                        color: colors.secondary,
+                    height: 44,
+                    padding: const EdgeInsetsDirectional.only(
+                      start: 12,
+                      end: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.raised,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: focused
+                            ? accent.withValues(alpha: 0.55)
+                            : colors.ring,
+                        width: focused ? 1 : FrostyTokens.hairlineWidth,
                       ),
-                      Expanded(
-                        child: TextField(
-                          controller: store.textController,
-                          focusNode: store.textFieldFocusNode,
-                          autocorrect: false,
-                          cursorColor: accent,
-                          style: SheetText.row.copyWith(
-                            fontWeight: FontWeight.w400,
-                            color: colors.text,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: 'Filter chatters',
-                            hintStyle: SheetText.row.copyWith(
+                    ),
+                    child: Row(
+                      spacing: 10,
+                      children: [
+                        SheetGlyph(
+                          SheetGlyphKind.filter,
+                          size: 18,
+                          color: colors.secondary,
+                        ),
+                        Expanded(
+                          child: TextField(
+                            controller: store.textController,
+                            focusNode: store.textFieldFocusNode,
+                            autocorrect: false,
+                            cursorColor: accent,
+                            style: SheetText.row.copyWith(
                               fontWeight: FontWeight.w400,
-                              color: colors.tertiary,
+                              color: colors.text,
                             ),
-                            filled: false,
-                            isDense: true,
-                            contentPadding: EdgeInsets.zero,
-                            border: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            focusedBorder: InputBorder.none,
+                            decoration: InputDecoration(
+                              hintText: 'Filter chatters',
+                              hintStyle: SheetText.row.copyWith(
+                                fontWeight: FontWeight.w400,
+                                color: colors.tertiary,
+                              ),
+                              filled: false,
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                            ),
                           ),
                         ),
-                      ),
-                      if (showClear)
-                        IconButton(
-                          tooltip: store.filterText.isEmpty
-                              ? 'Cancel'
-                              : 'Clear',
-                          style: IconButton.styleFrom(
-                            fixedSize: const Size(40, 40),
-                            minimumSize: const Size(40, 40),
-                            padding: EdgeInsets.zero,
+                        if (showClear)
+                          IconButton(
+                            tooltip: store.filterText.isEmpty
+                                ? 'Cancel'
+                                : 'Clear',
+                            style: IconButton.styleFrom(
+                              fixedSize: const Size(40, 40),
+                              minimumSize: const Size(40, 40),
+                              padding: EdgeInsets.zero,
+                            ),
+                            onPressed: () {
+                              if (store.filterText.isEmpty) {
+                                store.textFieldFocusNode.unfocus();
+                              }
+                              store.textController.clear();
+                            },
+                            icon: SheetGlyph(
+                              SheetGlyphKind.close,
+                              size: 18,
+                              strokeWidth: 2,
+                              color: colors.secondary,
+                            ),
                           ),
-                          onPressed: () {
-                            if (store.filterText.isEmpty) {
-                              store.textFieldFocusNode.unfocus();
-                            }
-                            store.textController.clear();
-                          },
-                          icon: SheetGlyph(
-                            SheetGlyphKind.close,
-                            size: 18,
-                            strokeWidth: 2,
-                            color: colors.secondary,
-                          ),
-                        ),
-                    ],
-                  ),
-                );
-              },
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ),
           Expanded(
