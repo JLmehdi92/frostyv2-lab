@@ -273,6 +273,21 @@ class _ChatSettingsState extends State<ChatSettings> {
             value: settingsStore.showCelebrations,
             onChanged: (newValue) => settingsStore.showCelebrations = newValue,
           ),
+          if (settingsStore.showCelebrations)
+            SettingsListSelect(
+              title: 'Celebrations on video',
+              subtitle:
+                  'Full plays the animation over the video. Subtle keeps the '
+                  'video clear and says it with a line in chat.',
+              selectedOption: settingsStore.celebrationsOnVideo.label,
+              options: [
+                for (final option in CelebrationsOnVideo.values) option.label,
+              ],
+              onChanged: (label) => settingsStore.celebrationsOnVideo =
+                  CelebrationsOnVideo.values.firstWhere(
+                    (option) => option.label == label,
+                  ),
+            ),
           const SectionHeader('Layout'),
           SettingsListSwitch(
             title: 'Move emote menu button left',

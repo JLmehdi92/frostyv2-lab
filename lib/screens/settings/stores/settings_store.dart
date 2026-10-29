@@ -302,6 +302,7 @@ abstract class _SettingsStoreBase with Store {
   static const defaultShowHypeTrain = true;
   static const defaultShowCommunityHighlights = true;
   static const defaultShowCelebrations = true;
+  static const defaultCelebrationsOnVideo = CelebrationsOnVideo.full;
 
   // Layout defaults
   static const defaultEmoteMenuButtonOnLeft = false;
@@ -475,6 +476,16 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var showCelebrations = defaultShowCelebrations;
 
+  /// How a celebration shows while [showCelebrations] is on: over the video
+  /// (today's behaviour), or as a compact line in chat. An unknown stored
+  /// value reads as the default.
+  @JsonKey(
+    defaultValue: defaultCelebrationsOnVideo,
+    unknownEnumValue: CelebrationsOnVideo.full,
+  )
+  @observable
+  var celebrationsOnVideo = defaultCelebrationsOnVideo;
+
   // Layout options
   @JsonKey(defaultValue: defaultEmoteMenuButtonOnLeft)
   @observable
@@ -606,6 +617,7 @@ abstract class _SettingsStoreBase with Store {
     showHypeTrain = defaultShowHypeTrain;
     showCommunityHighlights = defaultShowCommunityHighlights;
     showCelebrations = defaultShowCelebrations;
+    celebrationsOnVideo = defaultCelebrationsOnVideo;
 
     emoteMenuButtonOnLeft = defaultEmoteMenuButtonOnLeft;
 
@@ -770,6 +782,19 @@ enum VodAutoplay {
   never('Never');
 
   const VodAutoplay(this.label);
+
+  final String label;
+}
+
+/// How a celebration Twitch fires shows ("Celebrations on video").
+enum CelebrationsOnVideo {
+  /// The animation plays over the channel.
+  full('Full'),
+
+  /// Nothing covers the video: a compact line in chat says it instead.
+  subtle('Subtle');
+
+  const CelebrationsOnVideo(this.label);
 
   final String label;
 }

@@ -124,6 +124,13 @@ SettingsStore _$SettingsStoreFromJson(
   ..showHypeTrain = json['showHypeTrain'] as bool? ?? true
   ..showCommunityHighlights = json['showCommunityHighlights'] as bool? ?? true
   ..showCelebrations = json['showCelebrations'] as bool? ?? true
+  ..celebrationsOnVideo =
+      $enumDecodeNullable(
+        _$CelebrationsOnVideoEnumMap,
+        json['celebrationsOnVideo'],
+        unknownValue: CelebrationsOnVideo.full,
+      ) ??
+      CelebrationsOnVideo.full
   ..emoteMenuButtonOnLeft = json['emoteMenuButtonOnLeft'] as bool? ?? false
   ..landscapeChatLeftSide = json['landscapeChatLeftSide'] as bool? ?? false
   ..landscapeForceVerticalChat =
@@ -226,6 +233,8 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'showHypeTrain': instance.showHypeTrain,
   'showCommunityHighlights': instance.showCommunityHighlights,
   'showCelebrations': instance.showCelebrations,
+  'celebrationsOnVideo':
+      _$CelebrationsOnVideoEnumMap[instance.celebrationsOnVideo]!,
   'emoteMenuButtonOnLeft': instance.emoteMenuButtonOnLeft,
   'landscapeChatLeftSide': instance.landscapeChatLeftSide,
   'landscapeForceVerticalChat': instance.landscapeForceVerticalChat,
@@ -315,6 +324,11 @@ const _$TimestampTypeEnumMap = {
   TimestampType.disabled: 'disabled',
   TimestampType.twelve: 'twelve',
   TimestampType.twentyFour: 'twentyFour',
+};
+
+const _$CelebrationsOnVideoEnumMap = {
+  CelebrationsOnVideo.full: 'full',
+  CelebrationsOnVideo.subtle: 'subtle',
 };
 
 const _$LandscapeCutoutTypeEnumMap = {
@@ -1264,6 +1278,24 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
     });
   }
 
+  late final _$celebrationsOnVideoAtom = Atom(
+    name: '_SettingsStoreBase.celebrationsOnVideo',
+    context: context,
+  );
+
+  @override
+  CelebrationsOnVideo get celebrationsOnVideo {
+    _$celebrationsOnVideoAtom.reportRead();
+    return super.celebrationsOnVideo;
+  }
+
+  @override
+  set celebrationsOnVideo(CelebrationsOnVideo value) {
+    _$celebrationsOnVideoAtom.reportWrite(value, super.celebrationsOnVideo, () {
+      super.celebrationsOnVideo = value;
+    });
+  }
+
   late final _$emoteMenuButtonOnLeftAtom = Atom(
     name: '_SettingsStoreBase.emoteMenuButtonOnLeft',
     context: context,
@@ -1930,6 +1962,7 @@ collapseGiftBombs: ${collapseGiftBombs},
 showHypeTrain: ${showHypeTrain},
 showCommunityHighlights: ${showCommunityHighlights},
 showCelebrations: ${showCelebrations},
+celebrationsOnVideo: ${celebrationsOnVideo},
 emoteMenuButtonOnLeft: ${emoteMenuButtonOnLeft},
 landscapeChatLeftSide: ${landscapeChatLeftSide},
 landscapeForceVerticalChat: ${landscapeForceVerticalChat},
