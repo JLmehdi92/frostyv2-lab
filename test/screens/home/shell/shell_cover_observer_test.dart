@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/screens/home/shell/onset_shell.dart';
@@ -109,5 +111,19 @@ void main() {
     navigator.currentState!.pushReplacement(page('new home'));
     await tester.pumpAndSettle();
     expect(observer.covers(before), isFalse);
+  });
+
+  testWidgets('the routes above a route, in order', (tester) async {
+    await pump(tester);
+    final first = page('first');
+    final second = page('second');
+    unawaited(navigator.currentState!.push(first));
+    unawaited(navigator.currentState!.push(second));
+    await tester.pumpAndSettle();
+
+    expect(observer.above(shell), [first, second]);
+    expect(observer.above(first), [second]);
+    expect(observer.above(second), isEmpty);
+    expect(observer.above(page('unknown')), isEmpty);
   });
 }

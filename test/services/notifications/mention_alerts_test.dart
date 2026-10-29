@@ -1,5 +1,19 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/models/irc.dart';
+import 'package:frosty/screens/channel/channel.dart';
+import 'package:frosty/screens/channel_profile/channel_profile_screen.dart';
+import 'package:frosty/screens/clips/clip_screen.dart';
+import 'package:frosty/screens/home/continue_watching/continue_watching.dart';
+import 'package:frosty/screens/home/followed_videos/followed_videos_screen.dart';
+import 'package:frosty/screens/home/search/search.dart';
+import 'package:frosty/screens/home/top/categories/category_streams.dart';
+import 'package:frosty/screens/home/top/tags/tag_streams.dart';
+import 'package:frosty/screens/settings/settings.dart';
+import 'package:frosty/screens/settings/widgets/release_notes.dart';
+import 'package:frosty/screens/vod/channel_videos.dart';
+import 'package:frosty/screens/vod/vod_screen.dart';
+import 'package:frosty/screens/whispers/whisper_conversation.dart';
+import 'package:frosty/screens/whispers/whispers_screen.dart';
 import 'package:frosty/services/notifications/activity_log.dart';
 import 'package:frosty/services/notifications/mention_alerts.dart';
 
@@ -101,14 +115,19 @@ void main() {
     // was only in the background): it comes back to the front, no second
     // channel.
     expect(
-      mentionTapFor('streamer', open: true, shown: true),
+      mentionTapFor('streamer', open: true, shown: true, closable: false),
       MentionTap.bringToFront,
     );
-    // Open under other pages (a channel, a profile opened from it): back
+    // Open under pages that may close (a profile, search, settings): back
     // to it.
     expect(
-      mentionTapFor('streamer', open: true, shown: false),
+      mentionTapFor('streamer', open: true, shown: false, closable: true),
       MentionTap.backToChannel,
+    );
+    // Under a player or a conversation: nothing closes, a notice says it.
+    expect(
+      mentionTapFor('streamer', open: true, shown: false, closable: false),
+      MentionTap.notice,
     );
     // Its channel in the mini player: restored.
     expect(
@@ -116,15 +135,56 @@ void main() {
         'Streamer',
         open: false,
         shown: false,
+        closable: true,
         miniLogin: 'streamer',
       ),
       MentionTap.restoreMini,
     );
     // Closed meanwhile (or the app was killed): opened.
     expect(
-      mentionTapFor('streamer', open: false, shown: false, miniLogin: 'x'),
+      mentionTapFor(
+        'streamer',
+        open: false,
+        shown: false,
+        closable: true,
+        miniLogin: 'x',
+      ),
       MentionTap.openChannel,
     );
+  });
+
+  test('pages a mention may close: settings, search, profiles and lists '
+      'only', () {
+    expect(
+      mentionMayClose([ChannelProfileScreen.routeName, SearchScreen.routeName]),
+      isTrue,
+    );
+    expect(mentionMayClose(const []), isTrue);
+    expect(
+      mentionClosablePages,
+      containsAll([
+        Settings.routeName,
+        ReleaseNotes.routeName,
+        ChannelProfileScreen.routeName,
+        ChannelVideosScreen.routeName,
+        CategoryStreams.routeName,
+        TagStreams.routeName,
+        SearchScreen.routeName,
+        FollowedVideosScreen.routeName,
+        ContinueWatchingScreen.routeName,
+      ]),
+    );
+    for (final kept in [
+      VideoChat.routeName,
+      VodScreen.routeName,
+      ClipScreen.routeName,
+      WhisperConversation.routeName,
+      WhispersScreen.routeName,
+      // A dialog, a sheet or a page without a name: not known, kept.
+      null,
+    ]) {
+      expect(mentionMayClose(['Settings', kept]), isFalse, reason: '$kept');
+    }
   });
 
   test('its Activity entry names the message', () {

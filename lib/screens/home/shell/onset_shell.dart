@@ -587,6 +587,12 @@ class OnsetShell extends StatelessWidget {
 class ShellCoverObserver extends NavigatorObserver with ChangeNotifier {
   final _routes = <Route<dynamic>>[];
 
+  /// The routes above [route], lowest first (none when it is not known).
+  List<Route<dynamic>> above(Route<dynamic> route) {
+    final index = _routes.indexOf(route);
+    return index < 0 ? const [] : List.unmodifiable(_routes.skip(index + 1));
+  }
+
   /// Whether a page sits above [route].
   bool covers(Route<dynamic> route) {
     final index = _routes.indexOf(route);

@@ -433,22 +433,36 @@ class _MyAppState extends State<MyApp> {
 
   /// A tapped mention notice: its chat back on screen. The channel is
   /// usually still open (the app was only in the background) and simply
-  /// comes back (pages opened over it close); in the mini player it is
-  /// restored; closed, it opens.
+  /// comes back; under pages that may close (a profile, search, settings)
+  /// those close; under a player or a conversation nothing closes and a
+  /// notice says where the mention is; in the mini player it is restored;
+  /// closed, it opens.
   void _openMention(String login) {
     if (!mounted) return;
     final mini = context.read<MiniPlayerStore>();
     final route = VideoChat.routeOf(login);
+    final above = route == null
+        ? const <Route<dynamic>>[]
+        : OnsetShell.routeObserver.above(route);
     switch (mentionTapFor(
       login,
       open: route != null,
       shown: route?.isCurrent ?? false,
+      closable: mentionMayClose([for (final page in above) page.settings.name]),
       miniLogin: mini.userLogin,
     )) {
       case MentionTap.bringToFront:
         return;
       case MentionTap.backToChannel:
         navigatorKey.currentState?.popUntil((page) => page == route);
+      case MentionTap.notice:
+        final navigatorContext = navigatorKey.currentContext;
+        if (navigatorContext == null) return;
+        ScaffoldMessenger.maybeOf(navigatorContext)
+          ?..clearSnackBars()
+          ..showSnackBar(
+            SnackBar(content: Text("You were mentioned in $login's chat")),
+          );
       case MentionTap.restoreMini:
         GlobalMiniPlayer.restore(mini);
       case MentionTap.openChannel:

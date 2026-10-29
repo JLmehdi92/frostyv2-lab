@@ -97,8 +97,12 @@ enum MentionTap {
   /// the app comes back to the front, nothing more.
   bringToFront,
 
-  /// The channel is open under other pages: back to it.
+  /// The channel is open under pages that may close: back to it.
   backToChannel,
+
+  /// The channel is open under a player or a conversation: nothing closes,
+  /// an in-app notice says where the mention is.
+  notice,
 
   /// The channel is in the mini player: it is restored.
   restoreMini,
@@ -108,20 +112,46 @@ enum MentionTap {
 }
 
 /// What a tapped mention notice for [login]'s chat does: whether its
-/// channel is [open], and [shown] (its page on top), and the channel in the
-/// mini player ([miniLogin]).
+/// channel is [open], and [shown] (its page on top), whether the pages
+/// above it may close ([closable], see [mentionMayClose]), and the channel
+/// in the mini player ([miniLogin]).
 MentionTap mentionTapFor(
   String login, {
   required bool open,
   required bool shown,
+  required bool closable,
   String? miniLogin,
 }) {
-  if (open) return shown ? MentionTap.bringToFront : MentionTap.backToChannel;
+  if (open) {
+    if (shown) return MentionTap.bringToFront;
+    return closable ? MentionTap.backToChannel : MentionTap.notice;
+  }
   if (miniLogin?.toLowerCase() == login.toLowerCase()) {
     return MentionTap.restoreMini;
   }
   return MentionTap.openChannel;
 }
+
+/// The pages a mention may close to bring its channel back, by their
+/// route names: settings, search, profiles and lists, which neither play
+/// nor hold a conversation. Any other page (a channel, a VOD, a clip,
+/// whispers, a dialog or a sheet, an unnamed page) is never closed.
+const mentionClosablePages = {
+  'Settings',
+  'ReleaseNotes',
+  'ChannelProfile',
+  'ChannelVideos',
+  'CategoryStreams',
+  'TagStreams',
+  '/search',
+  '/followed-videos',
+  '/continue-watching',
+};
+
+/// Whether the pages named [namesAbove] (the routes above a channel) may
+/// close for a mention: every one is in [mentionClosablePages].
+bool mentionMayClose(Iterable<String?> namesAbove) =>
+    namesAbove.every(mentionClosablePages.contains);
 
 /// The Activity entry of a mention notice posted [at].
 ActivityEntry mentionEntry(MentionNotice notice, DateTime at) => ActivityEntry(
