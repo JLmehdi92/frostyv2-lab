@@ -291,8 +291,8 @@ class TwitchLoginPanel extends StatefulWidget {
   final Widget? routeAfter;
   final VoidCallback? onSignedIn;
 
-  /// Given the login in flight once Twitch handed a token back.
-  final ValueChanged<Future<void>>? onTokenCaptured;
+  /// Given the login's own outcome once Twitch handed a token back.
+  final ValueChanged<Future<bool>>? onTokenCaptured;
 
   /// Draws the page in place of the WebView (tests have no WebView).
   @visibleForTesting
@@ -328,7 +328,7 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
     super.initState();
     _auth = context.read<AuthStore>();
     _controller = _auth.createAuthWebViewController(
-      onSignedIn: _finish,
+      onSignedIn: _onTwitchSignedIn,
       onTokenCaptured: _onTokenCaptured,
       onNotSignedIn: _onNotSignedIn,
       onPage: _onPage,
@@ -356,34 +356,87 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
     });
   }
 
-  void _onTokenCaptured(Future<void> login) {
+  /// This page's login, once Twitch handed its token back, and its own
+  /// outcome (null while in flight).
+  Future<bool>? _login;
+  bool? _loginWorked;
+
+  /// Twitch's redirect to twitch.tv came (the store harvests the 2K cookie
+  /// there): the page may close once its login is known.
+  bool _twitchDone = false;
+
+  /// The 20 s of "Signing you in…" are over.
+  bool _signingLimitPassed = false;
+
+  void _onTokenCaptured(Future<bool> login) {
     widget.onTokenCaptured?.call(login);
     if (!mounted) return;
+    _login = login;
+    _loginWorked = null;
+    _signingLimitPassed = false;
     _signingLimit?.cancel();
-    _signingLimit = Timer(TwitchLoginPanel.signingInLimit, () {
-      if (mounted) setState(() => _signingIn = false);
-    });
+    _signingLimit = Timer(TwitchLoginPanel.signingInLimit, _onSigningLimit);
     setState(() {
       _signingIn = true;
       _failed = false;
       _loginFailed = false;
     });
-    login.whenComplete(() {
-      // Signed in: the page goes (if Twitch's own sign-in did not close it
-      // already). Refused: the page shows again at once, with what
-      // happened.
-      if (!mounted) return;
-      if (_auth.isLoggedIn) {
-        _finish();
+    login.catchError((Object _) => false).then((worked) {
+      if (!mounted || !identical(login, _login)) return;
+      _loginWorked = worked;
+      if (!worked) {
+        // Refused (also when another account is logged in already): the
+        // page shows again at once, with what happened.
+        _signingLimit?.cancel();
+        setState(() {
+          _signingIn = false;
+          _loginFailed = true;
+        });
+      } else if (_signingLimitPassed) {
+        _closeAfterHarvest();
         return;
       }
-      if (!_signingIn) return;
-      _signingLimit?.cancel();
-      setState(() {
-        _signingIn = false;
-        _loginFailed = true;
-      });
+      // Signed in: the page waits for Twitch's redirect (the cookie
+      // harvest happens there), unless it already came.
+      if (_twitchDone) _afterTwitch();
     }).ignore();
+  }
+
+  /// Twitch's redirect to twitch.tv: the end of the page's journey.
+  void _onTwitchSignedIn() {
+    _twitchDone = true;
+    _afterTwitch();
+  }
+
+  void _afterTwitch() {
+    if (!mounted) return;
+    // A login still in flight: closing now would leave nothing to show if it
+    // fails. Once it is known, this runs again.
+    if (_login != null && _loginWorked == null) return;
+    // A login that failed: the page stays with the failure and Try again
+    // (the onboarding moves on regardless: its Setup says it failed).
+    if (_loginWorked == false && widget.onSignedIn == null) return;
+    _finish();
+  }
+
+  /// No redirect after 20 s: a login that went through closes the page,
+  /// after one attempt at the cookie harvest; otherwise the page shows again.
+  void _onSigningLimit() {
+    if (!mounted) return;
+    _signingLimitPassed = true;
+    if (_loginWorked == true) {
+      _closeAfterHarvest();
+      return;
+    }
+    setState(() => _signingIn = false);
+  }
+
+  void _closeAfterHarvest() {
+    _auth
+        .harvestTwitchWebToken()
+        .catchError((Object _) => false)
+        .whenComplete(_finish)
+        .ignore();
   }
 
   /// Whether the page has been closed (or the onboarding moved on) once.
@@ -445,6 +498,9 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
   }
 
   void _retry() {
+    _login = null;
+    _loginWorked = null;
+    _twitchDone = false;
     setState(() {
       _failed = false;
       _loginFailed = false;

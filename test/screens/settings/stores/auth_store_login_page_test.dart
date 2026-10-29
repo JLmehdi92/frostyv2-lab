@@ -52,16 +52,15 @@ void main() {
     test('the redirect with the token and its state logs in, and says so '
         'without the token', () async {
       final state = stateOf(store.startAuthorization());
-      final logins = <Future<void>>[];
+      final logins = <Future<bool>>[];
       final decision = store.handleNavigation(
         request: request(redirect('abc', state: state)),
         onTokenCaptured: logins.add,
       );
       expect(decision, NavigationDecision.navigate);
       expect(logins, hasLength(1));
-      // What it is given is the login itself: once it ends, the store says
-      // whether it worked.
-      await logins.single;
+      // What it is given is this login's own outcome.
+      expect(await logins.single, isTrue);
       verify(() => api.validateToken(token: 'abc')).called(1);
       expect(store.isLoggedIn, isTrue);
     });
@@ -73,15 +72,45 @@ void main() {
           () => api.validateToken(token: any(named: 'token')),
         ).thenAnswer((_) async => false);
         final state = stateOf(store.startAuthorization());
-        final logins = <Future<void>>[];
+        final logins = <Future<bool>>[];
         store.handleNavigation(
           request: request(redirect('old', state: state)),
           onTokenCaptured: logins.add,
         );
-        await logins.single;
+        expect(await logins.single, isFalse);
         expect(store.isLoggedIn, isFalse);
       },
     );
+
+    for (final (name, refuse) in [
+      ('refused', () async => false),
+      ('unverifiable', () async => throw Exception('network')),
+    ]) {
+      test('already logged in, a new login whose token is $name: its outcome '
+          'is a failure although someone is logged in', () async {
+        final logins = <Future<bool>>[];
+        store.handleNavigation(
+          request: request(
+            redirect('first', state: stateOf(store.startAuthorization())),
+          ),
+          onTokenCaptured: logins.add,
+        );
+        expect(await logins.single, isTrue);
+        expect(store.isLoggedIn, isTrue);
+
+        when(
+          () => api.validateToken(token: 'second'),
+        ).thenAnswer((_) => refuse());
+        logins.clear();
+        store.handleNavigation(
+          request: request(
+            redirect('second', state: stateOf(store.startAuthorization())),
+          ),
+          onTokenCaptured: logins.add,
+        );
+        expect(await logins.single, isFalse);
+      });
+    }
 
     test('a redirect without a token (the user said no) logs nobody in', () {
       final state = stateOf(store.startAuthorization());

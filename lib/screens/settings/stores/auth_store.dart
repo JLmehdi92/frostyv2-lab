@@ -346,9 +346,10 @@ abstract class AuthBase with Store {
 
   /// Navigation handler for the login webview. Fires on every navigation request (whenever the URL changes).
   ///
-  /// [onTokenCaptured] is given the login in flight when the redirect
-  /// carried a token (the page can say "Signing you in…" until it ends, then
-  /// read [isLoggedIn]); it is never given the token. [onSignedIn], when
+  /// [onTokenCaptured] is given the outcome of the login in flight when the
+  /// redirect carried a token (the page can say "Signing you in…" until it
+  /// ends): true only when that token itself signed in, never merely because
+  /// someone is logged in already; it is never given the token. [onSignedIn], when
   /// given, is called once Twitch has signed
   /// the WebView in, instead of the page being popped (the onboarding moves
   /// on to its next step itself).
@@ -361,7 +362,7 @@ abstract class AuthBase with Store {
   FutureOr<NavigationDecision> handleNavigation({
     required NavigationRequest request,
     Widget? routeAfter,
-    ValueChanged<Future<void>>? onTokenCaptured,
+    ValueChanged<Future<bool>>? onTokenCaptured,
     VoidCallback? onSignedIn,
     VoidCallback? onNotSignedIn,
     LoginAttempt? attempt,
@@ -372,8 +373,7 @@ abstract class AuthBase with Store {
     // which would sign the user into their account) is never taken.
     final token = _redirectToken(request, attempt);
     if (token != null) {
-      final signingIn = login(token: token);
-      onTokenCaptured?.call(signingIn);
+      onTokenCaptured?.call(_loginWith(token));
     }
 
     // Check if the the URL has been redirected to "https://www.twitch.tv/?no-reload=true".
@@ -408,6 +408,18 @@ abstract class AuthBase with Store {
 
     // Always allow navigation to the next URL.
     return NavigationDecision.navigate;
+  }
+
+  /// The token the last successful [login] signed in with (in memory only),
+  /// so a login page can tell its own outcome from someone being logged in
+  /// already.
+  String? _signedInWith;
+
+  /// [login] with [token], then whether that login itself went through
+  /// (not merely whether someone is logged in).
+  Future<bool> _loginWith(String token) async {
+    await login(token: token);
+    return _isLoggedIn && _token == token && _signedInWith == token;
   }
 
   /// The login pages open now, each with the state its redirect must bring
@@ -533,7 +545,7 @@ abstract class AuthBase with Store {
   /// which carries the token); [onError] each resource that failed to load.
   WebViewController createAuthWebViewController({
     Widget? routeAfter,
-    ValueChanged<Future<void>>? onTokenCaptured,
+    ValueChanged<Future<bool>>? onTokenCaptured,
     VoidCallback? onSignedIn,
     VoidCallback? onNotSignedIn,
     ValueChanged<Uri>? onPage,
@@ -694,6 +706,7 @@ abstract class AuthBase with Store {
         } on ApiException catch (e) {
           debugPrint('Token validation failed: $e');
           _isLoggedIn = false;
+          _signedInWith = null;
           _startReconnectLoop();
           return;
         }
@@ -764,6 +777,7 @@ abstract class AuthBase with Store {
       // Set the login status to logged in.
       if (user.details != null) {
         _isLoggedIn = true;
+        _signedInWith = token;
         await _rememberUser(user.details!.id);
         FirebaseCrashlytics.instance.setCustomKey('is_logged_in', true);
         FirebaseCrashlytics.instance.setUserIdentifier(user.details!.id);
@@ -808,6 +822,7 @@ abstract class AuthBase with Store {
 
       // Set the login status to logged out.
       _isLoggedIn = false;
+      _signedInWith = null;
       FirebaseCrashlytics.instance.setCustomKey('is_logged_in', false);
       FirebaseCrashlytics.instance.setUserIdentifier('');
 

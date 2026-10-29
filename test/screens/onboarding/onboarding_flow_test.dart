@@ -54,7 +54,7 @@ void main() {
   late List<bool> crashChoices;
   late List<List<String>> orientations;
   VoidCallback? signIn;
-  ValueChanged<Future<void>>? tokenBack;
+  ValueChanged<Future<bool>>? tokenBack;
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
@@ -308,7 +308,7 @@ void main() {
       await settle(tester);
       await tapText(tester, 'Next');
       await tapText(tester, 'Connect with Twitch');
-      final login = Completer<void>();
+      final login = Completer<bool>();
       tokenBack!(login.future);
       await tester.pump();
       signIn!();
@@ -317,7 +317,7 @@ void main() {
       expect(find.text('Signing you in…'), findsOneWidget);
 
       auth.setLoggedIn(true);
-      login.complete();
+      login.complete(true);
       await tester.pump();
       expect(find.text('Signing you in…'), findsNothing);
       expect(find.textContaining('Logged in as'), findsOneWidget);
@@ -329,11 +329,14 @@ void main() {
       await settle(tester);
       await tapText(tester, 'Next');
       await tapText(tester, 'Connect with Twitch');
-      final login = Completer<void>();
+      // Someone was logged in before: the failure is this login's own.
+      auth.setLoggedIn(true);
+      final login = Completer<bool>();
       tokenBack!(login.future);
       signIn!();
       await settle(tester);
-      login.complete();
+      login.complete(false);
+      await tester.pump();
       await tester.pump();
       expect(
         find.text(

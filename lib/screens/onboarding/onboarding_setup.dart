@@ -269,7 +269,11 @@ class _AccountPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Observer(
       builder: (context) {
-        final details = auth.isLoggedIn ? auth.user.details : null;
+        // This login failing is said even when an account was logged in
+        // already.
+        final details = auth.isLoggedIn && login != OnboardingLogin.failed
+            ? auth.user.details
+            : null;
         final Widget leading;
         final List<Widget> content;
         if (details != null) {

@@ -36,7 +36,7 @@ typedef LoginPanelBuilder =
     Widget Function(
       BuildContext context,
       VoidCallback onSignedIn,
-      ValueChanged<Future<void>> onTokenCaptured,
+      ValueChanged<Future<bool>> onTokenCaptured,
     );
 
 /// The onboarding's steps. The Twitch page belongs to Log in (the progress
@@ -322,15 +322,13 @@ class _OnboardingFlowState extends State<OnboardingFlow>
 
   /// Twitch handed a token back: Setup says "Signing you in…" until the
   /// login ends, then who is logged in, or that it failed.
-  void _onTokenCaptured(Future<void> login) {
+  void _onTokenCaptured(Future<bool> login) {
     if (!mounted) return;
     setState(() => _login = OnboardingLogin.pending);
-    login.whenComplete(() {
+    login.catchError((Object _) => false).then((worked) {
       if (!mounted || _login != OnboardingLogin.pending) return;
       setState(
-        () => _login = _auth.isLoggedIn
-            ? OnboardingLogin.none
-            : OnboardingLogin.failed,
+        () => _login = worked ? OnboardingLogin.none : OnboardingLogin.failed,
       );
     }).ignore();
   }

@@ -18,7 +18,7 @@ void main() {
   late MockWebViewController controller;
   ValueChanged<Uri>? onPage;
   ValueChanged<WebResourceError>? onError;
-  ValueChanged<Future<void>>? onTokenCaptured;
+  ValueChanged<Future<bool>>? onTokenCaptured;
   VoidCallback? onSignedIn;
   VoidCallback? onNotSignedIn;
 
@@ -38,6 +38,7 @@ void main() {
     when(() => auth.retryLogin(any())).thenAnswer((_) async {});
     when(() => auth.closeLogin(any())).thenReturn(null);
     when(() => auth.isLoggedIn).thenReturn(false);
+    when(() => auth.harvestTwitchWebToken()).thenAnswer((_) async => true);
     when(
       () => auth.createAuthWebViewController(
         routeAfter: any(named: 'routeAfter'),
@@ -54,7 +55,7 @@ void main() {
               as ValueChanged<WebResourceError>?;
       onTokenCaptured =
           invocation.namedArguments[#onTokenCaptured]
-              as ValueChanged<Future<void>>?;
+              as ValueChanged<Future<bool>>?;
       onSignedIn = invocation.namedArguments[#onSignedIn] as VoidCallback?;
       onNotSignedIn =
           invocation.namedArguments[#onNotSignedIn] as VoidCallback?;
@@ -150,23 +151,70 @@ void main() {
     verifyNever(() => auth.retryLogin(any()));
   });
 
-  testWidgets('the login going through closes the page even if Twitch '
-      'signed it in first, and only once', (tester) async {
+  testWidgets('a login that goes through does not close the page: Twitch\'s '
+      'redirect does, after its cookie harvest', (tester) async {
     await open(tester);
-    // Twitch's own sign-in never reached the page (it came before the
-    // token): the login going through closes it.
-    when(() => auth.isLoggedIn).thenReturn(true);
-    final login = Completer<void>();
-    onTokenCaptured!(login.future);
+    onTokenCaptured!(Future.value(true));
     await tester.pump();
-    login.complete();
-    await tester.pumpAndSettle();
-    expect(find.text('open'), findsOneWidget);
-    expect(find.text('Connect with Twitch'), findsNothing);
-    // A late sign-in does not close the page under it.
+    await tester.pump(const Duration(seconds: 1));
+    // Still open: the WebView must reach twitch.tv for the 2K cookie.
+    expect(find.text('Connect with Twitch'), findsOneWidget);
+    expect(find.text('Signing you in…'), findsOneWidget);
     onSignedIn!();
     await tester.pumpAndSettle();
     expect(find.text('open'), findsOneWidget);
+    expect(find.text('Connect with Twitch'), findsNothing);
+  });
+
+  testWidgets('Twitch\'s redirect while the login is in flight: it waits '
+      'for it, then closes once', (tester) async {
+    await open(tester);
+    final login = Completer<bool>();
+    onTokenCaptured!(login.future);
+    await tester.pump();
+    onSignedIn!();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('Connect with Twitch'), findsOneWidget);
+    login.complete(true);
+    await tester.pumpAndSettle();
+    expect(find.text('open'), findsOneWidget);
+    expect(find.text('Connect with Twitch'), findsNothing);
+    // A late redirect does not close the page under it.
+    onSignedIn!();
+    await tester.pumpAndSettle();
+    expect(find.text('open'), findsOneWidget);
+  });
+
+  testWidgets('no redirect after a login that went through: after 20 s the '
+      'cookie harvest is tried, then the page closes', (tester) async {
+    await open(tester);
+    onTokenCaptured!(Future.value(true));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 19));
+    expect(find.text('Connect with Twitch'), findsOneWidget);
+    verifyNever(() => auth.harvestTwitchWebToken());
+    await tester.pump(const Duration(seconds: 2));
+    verify(() => auth.harvestTwitchWebToken()).called(1);
+    await tester.pumpAndSettle();
+    expect(find.text('open'), findsOneWidget);
+  });
+
+  testWidgets('already logged in, a new login that fails: the failure shows '
+      '(the old account is not taken for success), the page stays', (
+    tester,
+  ) async {
+    await open(tester);
+    when(() => auth.isLoggedIn).thenReturn(true);
+    onTokenCaptured!(Future.value(false));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Twitch did not sign you in. Try again.'), findsOneWidget);
+    // Twitch's redirect still comes: the page stays with Try again.
+    onSignedIn!();
+    await tester.pumpAndSettle();
+    expect(find.text('Connect with Twitch'), findsOneWidget);
+    expect(find.widgetWithText(TextButton, 'Try again'), findsOneWidget);
   });
 
   testWidgets('closed with Back while Twitch was signing in: only the login '
@@ -211,7 +259,7 @@ void main() {
     tester,
   ) async {
     await open(tester);
-    onTokenCaptured!(Completer<void>().future);
+    onTokenCaptured!(Completer<bool>().future);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Signing you in…'), findsOneWidget);
@@ -258,8 +306,7 @@ void main() {
   testWidgets('a login that succeeds keeps "Signing you in…" until the '
       'page goes', (tester) async {
     await open(tester);
-    when(() => auth.isLoggedIn).thenReturn(true);
-    onTokenCaptured!(Future.value());
+    onTokenCaptured!(Future.value(true));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Signing you in…'), findsOneWidget);
@@ -270,12 +317,12 @@ void main() {
     tester,
   ) async {
     await open(tester);
-    final login = Completer<void>();
+    final login = Completer<bool>();
     onTokenCaptured!(login.future);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Signing you in…'), findsOneWidget);
-    login.complete();
+    login.complete(false);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Signing you in…'), findsNothing);
@@ -284,7 +331,7 @@ void main() {
 
   testWidgets('a login that fails: the line offers Try again', (tester) async {
     await open(tester);
-    onTokenCaptured!(Future.value());
+    onTokenCaptured!(Future.value(false));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Twitch did not sign you in. Try again.'), findsOneWidget);
