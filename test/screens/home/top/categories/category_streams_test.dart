@@ -90,6 +90,7 @@ void main() {
           CategoryTwitch('', '1', 'Grand Theft Auto IV'),
           _gta,
           CategoryTwitch('', '509658', 'Just Chatting'),
+          CategoryTwitch('', '7', 'Ratchet & Clank'),
         ], null),
       );
     });
@@ -110,6 +111,16 @@ void main() {
         ),
         '509658',
       );
+    });
+
+    test('"&" written either way', () async {
+      for (final slug in ['ratchet-and-clank', 'ratchet-clank']) {
+        expect(
+          await CategoryStreams.idOf(api, CategoryLink(slug: slug)),
+          '7',
+          reason: slug,
+        );
+      }
     });
 
     test('none that matches: null (the link opens on twitch.tv)', () async {

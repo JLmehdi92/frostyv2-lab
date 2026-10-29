@@ -339,14 +339,24 @@ final class OtherLink extends TwitchLink {
 /// ("Tom Clancy's Rainbow Six Siege" → `tom-clancys-rainbow-six-siege`).
 String twitchCategorySlug(String name) {
   const accents = {
-    'a': 'àáâãäåā',
-    'c': 'çć',
-    'e': 'èéêëē',
-    'i': 'ìíîïī',
-    'n': 'ñń',
+    'a': 'àáâãäåāăą',
+    'c': 'çćčĉ',
+    'd': 'ďđ',
+    'e': 'èéêëēėęě',
+    'g': 'ğ',
+    'i': 'ìíîïīı',
+    'l': 'łľ',
+    'n': 'ñńň',
     'o': 'òóôõöøō',
-    'u': 'ùúûüū',
+    'r': 'ř',
+    's': 'śšş',
+    't': 'ťţ',
+    'u': 'ùúûüūů',
     'y': 'ýÿ',
+    'z': 'źžż',
+    'ss': 'ß',
+    'ae': 'æ',
+    'oe': 'œ',
   };
   final buffer = StringBuffer();
   for (final char in name.toLowerCase().split('')) {

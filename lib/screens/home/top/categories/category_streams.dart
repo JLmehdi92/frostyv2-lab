@@ -49,8 +49,11 @@ class CategoryStreams extends StatelessWidget {
       query: slug?.replaceAll('-', ' ') ?? link.name!,
     );
     for (final category in found.data) {
+      // twitch.tv writes "&" either way ("…-and-…" or dropped).
       final matches = slug != null
-          ? twitchCategorySlug(category.name) == slug
+          ? twitchCategorySlug(category.name) == slug ||
+                twitchCategorySlug(category.name.replaceAll('&', ' and ')) ==
+                    slug
           : category.name.toLowerCase() == name;
       if (matches) return category.id;
     }

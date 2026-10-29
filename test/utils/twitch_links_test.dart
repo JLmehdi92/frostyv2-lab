@@ -257,6 +257,8 @@ void main() {
         'pokemon-legends-arceus',
       );
       expect(twitchCategorySlug('  Art  '), 'art');
+      expect(twitchCategorySlug('Straße Œuvre Łódź'), 'strasse-oeuvre-lodz');
+      expect(twitchCategorySlug('Ratchet & Clank'), 'ratchet-clank');
     });
   });
 
