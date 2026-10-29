@@ -130,8 +130,17 @@ class _UnderVideo extends StatelessWidget {
   final double videoBottom;
   final Widget child;
 
+  /// Whether [videoBottom] still describes the screen: a portrait one, the
+  /// video not past 60 % of its height. Read live, so a sheet open when the
+  /// phone turns stops keeping room for a video that moved.
+  static bool applies(BuildContext context, double videoBottom) {
+    final size = MediaQuery.sizeOf(context);
+    return size.height > size.width && videoBottom <= size.height * 0.6;
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!applies(context, videoBottom)) return child;
     final room =
         MediaQuery.sizeOf(context).height -
         videoBottom -
@@ -172,23 +181,26 @@ class _UnderVideoSheetRoute<T> extends ModalBottomSheetRoute<T> {
   @override
   Widget buildModalBarrier() {
     final scrim = super.buildModalBarrier();
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: ModalBarrier(
-            dismissible: barrierDismissible,
-            // The scrim below is the one screen readers are told about.
-            barrierSemanticsDismissible: false,
+    return Builder(
+      builder: (context) => Stack(
+        children: [
+          Positioned.fill(
+            child: ModalBarrier(
+              dismissible: barrierDismissible,
+              // The scrim below is the one screen readers are told about.
+              barrierSemanticsDismissible: false,
+            ),
           ),
-        ),
-        Positioned(
-          top: videoBottom,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: scrim,
-        ),
-      ],
+          Positioned(
+            // The whole screen once the video's edge no longer holds.
+            top: _UnderVideo.applies(context, videoBottom) ? videoBottom : 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: scrim,
+          ),
+        ],
+      ),
     );
   }
 }

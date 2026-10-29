@@ -117,6 +117,38 @@ void main() {
     expect(sheet.height - 300, greaterThan(500));
   });
 
+  testWidgets('turned to landscape, the sheet forgets the portrait video', (
+    tester,
+  ) async {
+    final context = await pump(tester, top: videoBottom);
+    showModalBottomSheetWithProperFocus<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: tall,
+    );
+    await tester.pumpAndSettle();
+    expect(scrimRect(tester).top, videoBottom);
+
+    // The phone turns: the portrait video's edge means nothing any more.
+    tester.view.physicalSize = const Size(844, 390);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(scrimRect(tester).top, 0);
+    expect(tester.getRect(find.byType(BottomSheet)).top, lessThan(100));
+  });
+
+  testWidgets('an edge past 60 % of the height is not used', (tester) async {
+    final context = await pump(tester, top: 600);
+    showModalBottomSheetWithProperFocus<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: tall,
+    );
+    await tester.pumpAndSettle();
+    expect(scrimRect(tester).top, 0);
+    expect(tester.getRect(find.byType(BottomSheet)).top, lessThan(600));
+  });
+
   testWidgets('without a video sheets open as before', (tester) async {
     final context = await pump(tester);
     showModalBottomSheetWithProperFocus<void>(
