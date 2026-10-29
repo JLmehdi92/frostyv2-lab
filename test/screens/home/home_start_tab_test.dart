@@ -53,7 +53,8 @@ void main() {
       store.dispose();
     });
 
-    test('logging in or out resets the tabs, not the section on screen', () {
+    test('logging in or out only drops the tabs that need an account, '
+        'never the section on screen', () {
       final auth = FakeAuthStore(true);
       final store = HomeStore(authStore: auth);
       store
@@ -62,14 +63,32 @@ void main() {
         ..selectSection(ShellSection.profile);
 
       auth.setLoggedIn(false);
-      // Logging out from Profile keeps Profile.
+      // Logging out from Profile keeps Profile; Following and Whispers go.
       expect(store.section, ShellSection.profile);
       expect(store.feed, HomeFeed.live);
       expect(store.activityTab, ActivityTab.notifications);
 
+      // Logging in: the tabs on screen are still there, they stay.
       auth.setLoggedIn(true);
       expect(store.section, ShellSection.profile);
-      expect(store.feed, HomeFeed.following);
+      expect(store.feed, HomeFeed.live);
+      expect(store.activityTab, ActivityTab.notifications);
+      store.dispose();
+    });
+
+    test('a session restored behind the viewer (an offline launch back '
+        'online) leaves Live and Clips where they are', () {
+      final auth = FakeAuthStore(false);
+      final store = HomeStore(authStore: auth)..selectFeed(HomeFeed.clips);
+      auth.setLoggedIn(true);
+      expect(store.section, ShellSection.home);
+      expect(store.feed, HomeFeed.clips);
+
+      store.selectFeed(HomeFeed.live);
+      auth
+        ..setLoggedIn(false)
+        ..setLoggedIn(true);
+      expect(store.feed, HomeFeed.live);
       store.dispose();
     });
 

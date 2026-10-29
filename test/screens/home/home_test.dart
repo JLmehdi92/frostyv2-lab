@@ -1283,12 +1283,17 @@ void main() {
       expect(find.text('Following'), findsNothing);
       expect(find.text('No top streams'), findsOneWidget);
 
-      // Logging in again: Home back on Following.
+      // Logging in again: Following and the whispers are back; the tab on
+      // screen stays (a session restored behind the viewer must not move
+      // them).
       auth.setLoggedIn(true);
       await tester.pumpAndSettle();
       expect(find.text('Following'), findsOneWidget);
-      expect(find.text('No followed streams'), findsOneWidget);
+      expect(find.text('No top streams'), findsOneWidget);
       expect(find.byTooltip('Whispers'), findsOneWidget);
+      await tester.tap(find.text('Following'));
+      await tester.pumpAndSettle();
+      expect(find.text('No followed streams'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await close(tester);
     });
