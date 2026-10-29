@@ -2,97 +2,133 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/models/chat_rules.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_rules_store.dart';
-import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/frosty_cached_network_image.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 import 'package:mobx/mobx.dart';
 
 /// The official app's "Chat Rules" sheet: the channel's picture and name
-/// over the title, the rules as plain lines, and "OK, Got it!".
+/// over the title, the rules as a numbered list, and "OK, Got it!" (board
+/// ChaineDetailsTchat's rules view, also shown inside the chat menu).
 class ChatRulesSheet extends StatelessWidget {
-  const ChatRulesSheet({super.key, required this.rules, required this.onAccept});
+  const ChatRulesSheet({
+    super.key,
+    required this.rules,
+    required this.onAccept,
+  });
 
   final ChatRules rules;
   final VoidCallback onAccept;
 
   @override
   Widget build(BuildContext context) {
+    final colors = SheetColors.of(context);
     final avatar = rules.iconUrl;
-    return SafeArea(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * 0.8,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  ClipOval(
-                    child: SizedBox.square(
-                      dimension: 40,
-                      child: avatar == null
-                          ? ColoredBox(
-                              color: context.frostyColors.hairline,
-                              child: const Icon(Icons.person_rounded),
-                            )
-                          : FrostyCachedNetworkImage(
-                              imageUrl: avatar,
-                              width: 40,
-                              height: 40,
-                              fit: BoxFit.cover,
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.8,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Row(
+              spacing: 10,
+              children: [
+                ClipOval(
+                  child: SizedBox.square(
+                    dimension: 40,
+                    child: avatar == null
+                        ? ColoredBox(
+                            color: colors.raised,
+                            child: Center(
+                              child: SheetGlyph(
+                                SheetGlyphKind.profile,
+                                color: colors.secondary,
+                              ),
                             ),
-                    ),
+                          )
+                        : FrostyCachedNetworkImage(
+                            imageUrl: avatar,
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                          ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 1,
+                    children: [
+                      if (rules.channelName.isNotEmpty)
+                        Text(
+                          rules.channelName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: SheetText.rowDetail.copyWith(
+                            color: colors.secondary,
+                          ),
+                        ),
+                      Semantics(
+                        header: true,
+                        child: Text(
+                          'Chat Rules',
+                          style: SheetText.subtitle.copyWith(
+                            color: colors.text,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Flexible(
+            child: ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+              children: [
+                for (final (index, rule) in rules.rules.indexed)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (rules.channelName.isNotEmpty)
-                          Text(
-                            rules.channelName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: context.textTheme.bodySmall?.copyWith(
-                              color: context.frostyColors.metadata,
+                        SizedBox(
+                          width: 20,
+                          child: Text(
+                            '${index + 1}.',
+                            style: SheetText.tabular(
+                              SheetText.body.copyWith(color: colors.body),
                             ),
                           ),
-                        Text(
-                          'Chat Rules',
-                          style: context.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
+                        ),
+                        Expanded(
+                          child: Text(
+                            rule,
+                            style: SheetText.body.copyWith(color: colors.body),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Flexible(
-                child: ListView(
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.only(top: 8),
-                  children: [
-                    for (final rule in rules.rules)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Text(rule),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: onAccept,
-                child: const Text('OK, Got it!'),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 18),
+            child: SheetButton(
+              label: 'OK, Got it!',
+              large: true,
+              expand: true,
+              onPressed: onAccept,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -145,9 +181,8 @@ class _ChatRulesPromptState extends State<ChatRulesPrompt> {
     final rules = store.rules;
     if (_showing || rules == null || !mounted) return;
     _showing = true;
-    final accepted = await showModalBottomSheet<bool>(
+    final accepted = await showOnsetSheet<bool>(
       context: context,
-      isScrollControlled: true,
       builder: (context) => ChatRulesSheet(
         rules: rules,
         onAccept: () => Navigator.of(context).pop(true),
@@ -174,11 +209,13 @@ class _ChatRulesPromptState extends State<ChatRulesPrompt> {
 
 /// "Chat rules" in the chat menu, to read the rules again at any time (an
 /// ONSET addition: Twitch only shows them before the first message).
-/// Nothing when the channel has none.
+/// Nothing when the channel has none. [onOpen] shows them in place (the
+/// chat menu's own view); without it they open in a sheet.
 class ChatRulesTile extends StatelessWidget {
-  const ChatRulesTile({super.key, required this.rules});
+  const ChatRulesTile({super.key, required this.rules, this.onOpen});
 
   final ChatRulesStore? rules;
+  final ValueChanged<ChatRules>? onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -188,14 +225,17 @@ class ChatRulesTile extends StatelessWidget {
       builder: (context) {
         final read = store.rules;
         if (read == null || !read.hasRules) return const SizedBox.shrink();
-        return ListTile(
-          leading: const Icon(Icons.gavel_rounded),
-          title: const Text('Chat rules'),
-          trailing: const Icon(Icons.chevron_right),
+        return SheetRow(
+          glyph: SheetGlyphKind.rules,
+          label: 'Chat rules',
+          end: SheetRowEnd.chevron,
           onTap: () async {
-            final accepted = await showModalBottomSheet<bool>(
+            if (onOpen case final open?) {
+              open(read);
+              return;
+            }
+            final accepted = await showOnsetSheet<bool>(
               context: context,
-              isScrollControlled: true,
               builder: (context) => ChatRulesSheet(
                 rules: read,
                 onAccept: () => Navigator.of(context).pop(true),

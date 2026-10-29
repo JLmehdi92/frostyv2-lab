@@ -339,16 +339,10 @@ class _VideoChatState extends State<VideoChat>
 
   /// The chat's details from the header of a tablet's side chat.
   void _openChatDetails() {
-    final chatStore = _chatStore;
-    showModalBottomSheetWithProperFocus(
-      isScrollControlled: true,
-      context: context,
-      builder: (_) => ChatDetails(
-        chatDetailsStore: chatStore.chatDetailsStore,
-        chatStore: chatStore,
-        userLogin: chatStore.channelName,
-        onAddChat: () => addChatTab(context, _chatTabsStore),
-      ),
+    showChatDetails(
+      context,
+      chatStore: _chatStore,
+      onAddChat: () => addChatTab(context, _chatTabsStore),
     );
   }
 

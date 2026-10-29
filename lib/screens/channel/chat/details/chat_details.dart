@@ -1,10 +1,11 @@
-
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/constants.dart';
 import 'package:frosty/main.dart';
+import 'package:frosty/models/chat_rules.dart';
 import 'package:frosty/models/irc.dart';
 import 'package:frosty/screens/channel/chat/details/chat_details_store.dart';
 import 'package:frosty/screens/channel/chat/details/chat_mode_controls.dart';
@@ -13,15 +14,36 @@ import 'package:frosty/screens/channel/chat/details/chat_users_list.dart';
 import 'package:frosty/screens/channel/chat/stores/chat_store.dart';
 import 'package:frosty/screens/channel/chat/widgets/chat_rules_sheet.dart';
 import 'package:frosty/screens/settings/settings.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/utils.dart';
-import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/utils/twitch_links.dart';
-import 'package:frosty/widgets/animated_scroll_border.dart';
 import 'package:frosty/widgets/frosty_scrollbar.dart';
-import 'package:frosty/widgets/section_header.dart';
+import 'package:frosty/widgets/motion/motion.dart';
+import 'package:frosty/widgets/motion/reduce_motion.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 import 'package:frosty/widgets/twitch_web_page.dart';
 import 'package:intl/intl.dart';
+
+/// Opens the chat's details ("⋯" beside the points, or a tablet's chat
+/// header): board ChaineDetailsTchat.
+Future<void> showChatDetails(
+  BuildContext context, {
+  required ChatStore chatStore,
+  required VoidCallback onAddChat,
+}) => showOnsetSheet<void>(
+  context: context,
+  builder: (_) => ChatDetails(
+    chatDetailsStore: chatStore.chatDetailsStore,
+    chatStore: chatStore,
+    userLogin: chatStore.channelName,
+    onAddChat: onAddChat,
+  ),
+);
+
+/// The views of the chat's details: the menu, and what opens in place of
+/// it (a back chevron returns to the menu).
+enum ChatDetailsView { menu, sleep, color, rules }
 
 class ChatDetails extends StatefulWidget {
   final ChatDetailsStore chatDetailsStore;
@@ -40,6 +62,29 @@ class ChatDetails extends StatefulWidget {
     required this.onAddChat,
   });
 
+  /// The board's tallest sheet.
+  static const maxHeight = 600.0;
+
+  /// The sleep timer's lengths.
+  static const sleepDurations = [
+    Duration(minutes: 5),
+    Duration(minutes: 10),
+    Duration(minutes: 15),
+    Duration(minutes: 30),
+    Duration(hours: 1),
+    Duration(hours: 2),
+    Duration(hours: 3),
+    Duration(hours: 4),
+    Duration(hours: 5),
+    Duration(hours: 6),
+    Duration(hours: 7),
+    Duration(hours: 8),
+    Duration(hours: 9),
+    Duration(hours: 10),
+    Duration(hours: 11),
+    Duration(hours: 12),
+  ];
+
   @override
   State<ChatDetails> createState() => _ChatDetailsState();
 }
@@ -47,8 +92,19 @@ class ChatDetails extends StatefulWidget {
 class _ChatDetailsState extends State<ChatDetails> {
   late final _scrollController = ScrollController();
 
+  var _view = ChatDetailsView.menu;
+
   bool _isRefreshingAssets = false;
   bool _showRefreshSuccess = false;
+  Timer? _refreshSuccessTimer;
+
+  /// The rules shown in the rules view.
+  ChatRules? _rules;
+
+  /// The colour picked in the colour view, and whether it is being saved.
+  String? _pickedColor;
+  bool _loadingColor = false;
+  bool _savingColor = false;
 
   String formatDuration(Duration duration) {
     if (duration.inMinutes < 60) {
@@ -72,88 +128,9 @@ class _ChatDetailsState extends State<ChatDetails> {
     }
   }
 
-  Future<void> _showSleepTimer(BuildContext context) {
-    const durations = [
-      Duration(minutes: 5),
-      Duration(minutes: 10),
-      Duration(minutes: 15),
-      Duration(minutes: 30),
-      Duration(hours: 1),
-      Duration(hours: 2),
-      Duration(hours: 3),
-      Duration(hours: 4),
-      Duration(hours: 5),
-      Duration(hours: 6),
-      Duration(hours: 7),
-      Duration(hours: 8),
-      Duration(hours: 9),
-      Duration(hours: 10),
-      Duration(hours: 11),
-      Duration(hours: 12),
-    ];
-
-    return showModalBottomSheetWithProperFocus(
-      context: context,
-      builder: (context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SectionHeader(
-            'Sleep timer',
-            padding: EdgeInsets.fromLTRB(16, 0, 16, 4),
-            isFirst: true,
-          ),
-          AnimatedScrollBorder(scrollController: _scrollController),
-          Expanded(
-            child: ListView(
-              controller: _scrollController,
-              children: [
-                if (widget.chatStore.sleepTimer?.isActive == true)
-                  Observer(
-                    builder: (context) {
-                      return ListTile(
-                        leading: const Icon(Icons.close_rounded),
-                        title: Text.rich(
-                          TextSpan(
-                            text: 'Cancel   ',
-                            children: [
-                              TextSpan(
-                                text: formatTimeLeft(
-                                  widget.chatStore.timeRemaining,
-                                ),
-                                style: context.frostyText.metadata,
-                              ),
-                            ],
-                          ),
-                        ),
-                        onTap: () {
-                          widget.chatStore.cancelSleepTimer();
-
-                          Navigator.of(context).pop();
-                        },
-                      );
-                    },
-                  ),
-                ...durations.map(
-                  (duration) => ListTile(
-                    leading: const Icon(Icons.hourglass_top_rounded),
-                    title: Text(formatDuration(duration)),
-                    onTap: () {
-                      widget.chatStore.updateSleepTimer(
-                        duration: duration,
-                        onTimerFinished: () => navigatorKey.currentState
-                            ?.popUntil((route) => route.isFirst),
-                      );
-
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+  void _show(ChatDetailsView view) {
+    if (!mounted) return;
+    setState(() => _view = view);
   }
 
   /// Converts a hex color string to a color name if it matches one of our predefined chat colors.
@@ -182,22 +159,17 @@ class _ChatDetailsState extends State<ChatDetails> {
     return null;
   }
 
-  Future<void> _showChatColorPicker(BuildContext context) async {
+  /// The colour view, once the viewer's current colour is read.
+  Future<void> _openColorPicker() async {
+    if (_loadingColor) return;
+    setState(() => _loadingColor = true);
     final selectedColor = await _getCurrentUserColor();
-    if (!context.mounted) return;
-
-    showModalBottomSheetWithProperFocus(
-      context: context,
-      builder: (context) => SizedBox(
-        height: MediaQuery.of(context).size.height * 0.5,
-        child: _ChatColorPickerModal(
-          initialColor: selectedColor,
-          scrollController: _scrollController,
-          onColorSelected: _handleColorUpdate,
-          chatStore: widget.chatStore,
-        ),
-      ),
-    );
+    if (!mounted) return;
+    setState(() {
+      _loadingColor = false;
+      _pickedColor = selectedColor;
+      _view = ChatDetailsView.color;
+    });
   }
 
   Future<String?> _getCurrentUserColor() async {
@@ -215,22 +187,26 @@ class _ChatDetailsState extends State<ChatDetails> {
     return null;
   }
 
-  Future<void> _handleColorUpdate(BuildContext context, String color) async {
+  Future<void> _saveColor(String color) async {
+    setState(() => _savingColor = true);
     final success = await widget.chatStore.twitchApi.updateUserChatColor(
       userId: widget.chatStore.auth.user.details!.id,
       color: color,
     );
 
-    if (!context.mounted) return;
-    Navigator.of(context).pop();
+    if (!mounted) return;
+    setState(() {
+      _savingColor = false;
+      _view = ChatDetailsView.menu;
+    });
 
     final message = success
         ? 'Chat color updated successfully!'
         : 'Failed to update chat color. Please try again.';
-    _showMessage(context, message);
+    _showMessage(message);
   }
 
-  void _showMessage(BuildContext context, String message) {
+  void _showMessage(String message) {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
@@ -243,25 +219,6 @@ class _ChatDetailsState extends State<ChatDetails> {
         roomState.emoteOnly != '0' ||
         roomState.slowMode != '0' ||
         roomState.r9k != '0';
-  }
-
-  Widget _buildRefreshTrailingWidget() {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 200),
-      child: _isRefreshingAssets
-          ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator.adaptive(strokeWidth: 2),
-            )
-          : _showRefreshSuccess
-          ? Icon(
-              Icons.check_rounded,
-              color: context.frostyColors.live,
-              key: const ValueKey('success'),
-            )
-          : const SizedBox.shrink(),
-    );
   }
 
   Future<void> _handleRefreshAssets() async {
@@ -277,7 +234,8 @@ class _ChatDetailsState extends State<ChatDetails> {
         });
 
         // Hide success after 2 seconds
-        Timer(const Duration(seconds: 2), () {
+        _refreshSuccessTimer?.cancel();
+        _refreshSuccessTimer = Timer(const Duration(seconds: 2), () {
           if (mounted) {
             setState(() => _showRefreshSuccess = false);
           }
@@ -290,74 +248,97 @@ class _ChatDetailsState extends State<ChatDetails> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _refreshTrailing(BuildContext context) {
+    final accent = SheetColors.accentOf(context);
+    return AnimatedSwitcher(
+      duration: motionDuration(context, const Duration(milliseconds: 200)),
+      child: _isRefreshingAssets
+          ? SizedBox(
+              key: const ValueKey('busy'),
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: accent,
+                backgroundColor: SheetColors.of(context).ring,
+              ),
+            )
+          : _showRefreshSuccess
+          ? SheetGlyph(
+              SheetGlyphKind.check,
+              key: const ValueKey('success'),
+              strokeWidth: 2.4,
+              color: accent,
+            )
+          : const SizedBox.shrink(),
+    );
+  }
+
+  Widget _menu(BuildContext context) {
+    final store = widget.chatStore;
+    final loggedIn = store.auth.isLoggedIn;
     return Observer(
       builder: (context) {
-        final hasActiveModes = _hasActiveModes();
-
         final children = [
-          if (hasActiveModes)
-            ListTile(
-              title: SizedBox(
-                height: 48,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    Observer(
-                      builder: (context) => ChatModes(
-                        roomState: widget.chatDetailsStore.roomState,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+          if (_hasActiveModes())
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+              child: ChatModes(roomState: widget.chatDetailsStore.roomState),
             ),
           Observer(
             builder: (context) {
-              final showVideo = widget.chatStore.settings.showVideo;
-              final label = showVideo ? 'Chat only' : 'Show video';
-              return ListTile(
-                leading: Icon(
-                  showVideo ? Icons.chat_rounded : Icons.tv_rounded,
-                ),
-                title: Text(label),
+              final showVideo = store.settings.showVideo;
+              return SheetRow(
+                glyph: showVideo
+                    ? SheetGlyphKind.whisper
+                    : SheetGlyphKind.monitor,
+                label: showVideo ? 'Chat only' : 'Show video',
                 onTap: () {
-                  widget.chatStore.settings.showVideo = !showVideo;
+                  store.settings.showVideo = !showVideo;
                   Navigator.of(context).pop();
                 },
               );
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.sync_rounded),
-            title: const Text('Refresh emotes and badges'),
-            trailing: _buildRefreshTrailingWidget(),
-            enabled: !_isRefreshingAssets,
+          SheetRow(
+            glyph: SheetGlyphKind.refresh,
+            label: 'Refresh emotes and badges',
+            trailing: _refreshTrailing(context),
             onTap: _isRefreshingAssets ? null : _handleRefreshAssets,
           ),
-          ListTile(
-            leading: const Icon(Icons.wifi_off_rounded),
-            title: const Text('Reconnect'),
+          SheetRow(
+            glyph: SheetGlyphKind.plug,
+            label: 'Reconnect',
             onTap: () {
               Navigator.of(context).pop();
-              widget.chatStore.updateNotification('Reconnecting to chat...');
-              widget.chatStore.connectToChat();
+              store.updateNotification('Reconnecting to chat...');
+              store.connectToChat();
             },
           ),
-          if (widget.chatStore.auth.isLoggedIn)
-            ListTile(
-              leading: const Icon(Icons.palette_rounded),
-              title: const Text('Username color'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _showChatColorPicker(context),
+          if (loggedIn)
+            SheetRow(
+              glyph: SheetGlyphKind.palette,
+              label: 'Username color',
+              end: SheetRowEnd.chevron,
+              trailing: _loadingColor
+                  ? SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: SheetColors.accentOf(context),
+                      ),
+                    )
+                  : null,
+              onTap: _openColorPicker,
             ),
-          if (widget.chatStore.auth.isLoggedIn)
-            ListTile(
-              leading: const Icon(Icons.toll_rounded),
-              title: const Text('Channel points, polls and predictions'),
-              subtitle: const Text('Opens the chat on twitch.tv'),
-              trailing: const Icon(Icons.open_in_new_rounded),
+          if (loggedIn)
+            SheetRow(
+              glyph: SheetGlyphKind.coin,
+              label: 'Channel points, polls and predictions',
+              detail: 'Opens the chat on twitch.tv',
+              end: SheetRowEnd.external,
               onTap: () {
                 Navigator.of(context).pop();
                 TwitchWebPage.open(
@@ -372,194 +353,393 @@ class _ChatDetailsState extends State<ChatDetails> {
             ),
           // Twitch's Subscribe and Gift a Sub: purchases happen on the
           // channel's twitch.tv subscription page.
-          if (widget.chatStore.auth.isLoggedIn &&
-              widget.chatStore.auth.user.details?.login.toLowerCase() !=
+          if (loggedIn &&
+              store.auth.user.details?.login.toLowerCase() !=
                   widget.userLogin.toLowerCase())
             if (twitchSubscribeUrl(widget.userLogin) case final url?) ...[
-              ListTile(
-                leading: const Icon(Icons.star_border_rounded),
-                title: const Text('Subscribe'),
-                subtitle: const Text('Opens twitch.tv'),
-                trailing: const Icon(Icons.open_in_new_rounded),
+              SheetRow(
+                glyph: SheetGlyphKind.star,
+                label: 'Subscribe',
+                detail: 'Opens twitch.tv',
+                end: SheetRowEnd.external,
                 onTap: () {
                   Navigator.of(context).pop();
                   TwitchWebPage.open(context, title: 'Subscribe', url: url);
                 },
               ),
-              ListTile(
-                leading: const Icon(Icons.card_giftcard_rounded),
-                title: const Text('Gift a Sub'),
-                subtitle: const Text('Opens twitch.tv'),
-                trailing: const Icon(Icons.open_in_new_rounded),
+              SheetRow(
+                glyph: SheetGlyphKind.gift,
+                label: 'Gift a Sub',
+                detail: 'Opens twitch.tv',
+                end: SheetRowEnd.external,
                 onTap: () {
                   Navigator.of(context).pop();
                   TwitchWebPage.open(context, title: 'Gift a Sub', url: url);
                 },
               ),
             ],
-          if (widget.chatStore.canModerate)
-            ListTile(
-              leading: const Icon(Icons.shield_outlined),
-              title: const Text('Chat modes'),
-              subtitle: const Text('Slow, followers-only, clear chat…'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => showModalBottomSheetWithProperFocus(
-                isScrollControlled: true,
+          if (store.canModerate)
+            SheetRow(
+              glyph: SheetGlyphKind.shield,
+              label: 'Chat modes',
+              detail: 'Slow, followers-only, clear chat…',
+              end: SheetRowEnd.chevron,
+              onTap: () => showOnsetSheet<void>(
                 context: context,
                 builder: (context) => Observer(
                   builder: (context) => ChatModeControls(
                     roomState: widget.chatDetailsStore.roomState,
-                    onModerate: widget.chatStore.moderate,
+                    onModerate: store.moderate,
                   ),
                 ),
               ),
             ),
-          ChatRulesTile(rules: widget.chatStore.chatRules),
-          ListTile(
-            leading: const Icon(Icons.people_rounded),
-            title: const Text('Chatters'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => showModalBottomSheetWithProperFocus(
-              isScrollControlled: true,
+          ChatRulesTile(
+            rules: store.chatRules,
+            onOpen: (rules) {
+              _rules = rules;
+              _show(ChatDetailsView.rules);
+            },
+          ),
+          SheetRow(
+            glyph: SheetGlyphKind.people,
+            label: 'Chatters',
+            end: SheetRowEnd.chevron,
+            onTap: () => showOnsetSheet<void>(
               context: context,
               builder: (context) => GestureDetector(
                 onTap: FocusScope.of(context).unfocus,
                 child: ChattersList(
                   chatDetailsStore: widget.chatDetailsStore,
-                  chatStore: widget.chatStore,
+                  chatStore: store,
                   userLogin: widget.userLogin,
                 ),
               ),
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.add_comment_rounded),
-            title: const Text('Add chat'),
-            trailing: const Icon(Icons.chevron_right),
+          SheetRow(
+            glyph: SheetGlyphKind.addChat,
+            label: 'Add chat',
+            end: SheetRowEnd.chevron,
             onTap: widget.onAddChat,
           ),
           Observer(
             builder: (context) {
-              final hasTimer = widget.chatStore.timeRemaining.inSeconds > 0;
-              final label = hasTimer
-                  ? formatTimeLeft(widget.chatStore.timeRemaining)
-                  : 'Sleep timer';
-              return ListTile(
-                leading: Icon(
-                  hasTimer ? Icons.timer_rounded : Icons.timer_rounded,
-                  color: hasTimer
-                      ? context.frostyColors.live
-                      : null,
-                ),
-                title: Text(
-                  label,
-                  style: hasTimer
-                      ? context.frostyText.metadata.copyWith(
-                          color: context.frostyColors.live,
-                        )
-                      : null,
-                ),
-                trailing: hasTimer
-                    ? Icon(
-                        Icons.chevron_right,
-                        color: context.frostyColors.live,
-                      )
-                    : const Icon(Icons.chevron_right),
-                onTap: () => _showSleepTimer(context),
+              final hasTimer = store.timeRemaining.inSeconds > 0;
+              final accent = SheetColors.accentOf(context);
+              return SheetRow(
+                glyph: SheetGlyphKind.timer,
+                label: hasTimer
+                    ? formatTimeLeft(store.timeRemaining)
+                    : 'Sleep timer',
+                color: hasTimer ? accent : null,
+                end: SheetRowEnd.chevron,
+                onTap: () => _show(ChatDetailsView.sleep),
               );
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.settings_rounded),
-            title: const Text('Settings'),
-            trailing: const Icon(Icons.chevron_right),
+          SheetRow(
+            glyph: SheetGlyphKind.settings,
+            label: 'Settings',
+            end: SheetRowEnd.chevron,
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
                 settings: const RouteSettings(name: Settings.routeName),
-                builder: (context) =>
-                    Settings(settingsStore: widget.chatStore.settings),
+                builder: (context) => Settings(settingsStore: store.settings),
               ),
             ),
           ),
         ];
 
-        return ListView(shrinkWrap: true, primary: false, children: children);
+        return ListView(
+          key: const ValueKey(ChatDetailsView.menu),
+          shrinkWrap: true,
+          primary: false,
+          padding: const EdgeInsets.only(bottom: 14),
+          children: children,
+        );
       },
+    );
+  }
+
+  Widget _sleep(BuildContext context) {
+    final store = widget.chatStore;
+    final accent = SheetColors.accentOf(context);
+    return ListView(
+      key: const ValueKey(ChatDetailsView.sleep),
+      shrinkWrap: true,
+      primary: false,
+      padding: const EdgeInsets.only(bottom: 14),
+      children: [
+        SheetBackHeader(
+          title: 'Sleep timer',
+          onBack: () => _show(ChatDetailsView.menu),
+        ),
+        if (store.sleepTimer?.isActive == true)
+          Observer(
+            builder: (context) => SheetRow(
+              glyph: SheetGlyphKind.close,
+              label: 'Cancel',
+              trailing: Text(
+                formatTimeLeft(store.timeRemaining),
+                style: SheetText.tabular(
+                  TextStyle(
+                    fontFamily: FrostyTokens.bodyFamily,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: accent,
+                  ),
+                ),
+              ),
+              onTap: () {
+                store.cancelSleepTimer();
+                _show(ChatDetailsView.menu);
+              },
+            ),
+          ),
+        for (final duration in ChatDetails.sleepDurations)
+          SheetRow(
+            glyph: SheetGlyphKind.hourglass,
+            label: formatDuration(duration),
+            minHeight: 48,
+            onTap: () {
+              store.updateSleepTimer(
+                duration: duration,
+                onTimerFinished: () => navigatorKey.currentState?.popUntil(
+                  (route) => route.isFirst,
+                ),
+              );
+              _show(ChatDetailsView.menu);
+            },
+          ),
+      ],
+    );
+  }
+
+  Widget _rulesView(BuildContext context) {
+    final rules = _rules;
+    if (rules == null) return const SizedBox.shrink();
+    return ChatRulesSheet(
+      key: const ValueKey(ChatDetailsView.rules),
+      rules: rules,
+      onAccept: () {
+        unawaited(widget.chatStore.chatRules?.accept());
+        _show(ChatDetailsView.menu);
+      },
+    );
+  }
+
+  Widget _colorView(BuildContext context) {
+    final colors = SheetColors.of(context);
+    final picked = _pickedColor;
+    return SizedBox(
+      key: const ValueKey(ChatDetailsView.color),
+      height: ChatDetails.maxHeight,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SheetBackHeader(
+            title: 'Username color',
+            onBack: () => _show(ChatDetailsView.menu),
+          ),
+          if (picked != null)
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: colors.well,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: colors.hairline,
+                  width: FrostyTokens.hairlineWidth,
+                ),
+              ),
+              child: _ColorPreview(chatStore: widget.chatStore, color: picked),
+            ),
+          Expanded(
+            child: FrostyScrollbar(
+              controller: _scrollController,
+              child: ListView(
+                controller: _scrollController,
+                padding: EdgeInsets.zero,
+                children: [
+                  for (final name in chatColorNames)
+                    _ColorRow(
+                      name: name,
+                      selected: picked == name,
+                      onTap: () => setState(() => _pickedColor = name),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(
+                  color: colors.hairline,
+                  width: FrostyTokens.hairlineWidth,
+                ),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+              child: Row(
+                spacing: 10,
+                children: [
+                  Expanded(
+                    child: SheetButton(
+                      label: 'Cancel',
+                      tone: SheetButtonTone.text,
+                      expand: true,
+                      onPressed: () => _show(ChatDetailsView.menu),
+                    ),
+                  ),
+                  Expanded(
+                    child: SheetButton(
+                      label: 'Save',
+                      expand: true,
+                      onPressed: picked == null || _savingColor
+                          ? null
+                          : () => _saveColor(picked),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reduce = reduceMotionOf(context);
+    final view = switch (_view) {
+      ChatDetailsView.menu => _menu(context),
+      ChatDetailsView.sleep => _sleep(context),
+      ChatDetailsView.color => _colorView(context),
+      ChatDetailsView.rules => _rulesView(context),
+    };
+    // A sub-view goes back to the menu first, like the sheets it replaces
+    // (the back button and the scrim close one level).
+    return PopScope(
+      canPop: _view == ChatDetailsView.menu,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _show(ChatDetailsView.menu);
+      },
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: ChatDetails.maxHeight),
+        child: AnimatedSize(
+          duration: motionDuration(context, const Duration(milliseconds: 260)),
+          curve: FrostyMotion.standard,
+          alignment: Alignment.topCenter,
+          child: AnimatedSwitcher(
+            duration: motionDuration(
+              context,
+              const Duration(milliseconds: 240),
+            ),
+            switchInCurve: FrostyMotion.emphasizedDecelerate,
+            switchOutCurve: FrostyMotion.emphasizedAccelerate,
+            layoutBuilder: (current, previous) => Stack(
+              alignment: Alignment.topCenter,
+              children: [...previous, ?current],
+            ),
+            transitionBuilder: (child, animation) {
+              final fade = FadeTransition(opacity: animation, child: child);
+              if (reduce) return fade;
+              // Sub-views come in from the side they go back to.
+              final menu = child.key == const ValueKey(ChatDetailsView.menu);
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: Offset(menu ? -0.06 : 0.06, 0),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: fade,
+              );
+            },
+            child: view,
+          ),
+        ),
+      ),
     );
   }
 
   @override
   void dispose() {
+    _refreshSuccessTimer?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
 }
 
-class _ChatColorPickerModal extends StatefulWidget {
-  const _ChatColorPickerModal({
-    required this.initialColor,
-    required this.scrollController,
-    required this.onColorSelected,
-    required this.chatStore,
+/// One of Twitch's name colours.
+class _ColorRow extends StatelessWidget {
+  const _ColorRow({
+    required this.name,
+    required this.selected,
+    required this.onTap,
   });
 
-  final String? initialColor;
-  final ScrollController scrollController;
-  final Future<void> Function(BuildContext context, String color)
-  onColorSelected;
-  final ChatStore chatStore;
-
-  @override
-  State<_ChatColorPickerModal> createState() => _ChatColorPickerModalState();
-}
-
-class _ChatColorPickerModalState extends State<_ChatColorPickerModal> {
-  String? selectedColor;
-
-  @override
-  void initState() {
-    super.initState();
-    selectedColor = widget.initialColor;
-  }
+  final String name;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildHeader(),
-        _buildPreview(),
-        AnimatedScrollBorder(scrollController: widget.scrollController),
-        _buildColorList(),
-        _buildBottomBar(),
-      ],
+    final displayName = name
+        .replaceAll('_', ' ')
+        .split(' ')
+        .map((word) => word[0].toUpperCase() + word.substring(1))
+        .join(' ');
+    // Apply the same color adjustment for consistent preview
+    final color = adjustChatNameColor(context, chatColorValues[name]!);
+    return Semantics(
+      selected: selected,
+      inMutuallyExclusiveGroup: true,
+      child: SheetRow(
+        label: displayName,
+        minHeight: 48,
+        leading: Container(
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        trailing: AnimatedOpacity(
+          opacity: selected ? 1 : 0,
+          duration: motionDuration(context, const Duration(milliseconds: 160)),
+          child: SheetGlyph(
+            SheetGlyphKind.check,
+            strokeWidth: 2.4,
+            color: SheetColors.accentOf(context),
+          ),
+        ),
+        onTap: onTap,
+      ),
     );
   }
+}
 
-  Widget _buildHeader() {
-    return const SectionHeader('Username color', isFirst: true);
-  }
+/// "How it will look in chat": the viewer's own message, with their badges,
+/// in [color].
+class _ColorPreview extends StatelessWidget {
+  const _ColorPreview({required this.chatStore, required this.color});
 
-  Widget _buildPreview() {
-    if (selectedColor == null) return const SizedBox.shrink();
+  final ChatStore chatStore;
+  final String color;
 
-    // Create a realistic preview using the current user's chat state and badges
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      child: _buildRealisticChatPreview(),
-    );
-  }
-
-  Widget _buildRealisticChatPreview() {
-    final userDetails = widget.chatStore.auth.user.details!;
-    final userState = widget.chatStore.userState;
+  @override
+  Widget build(BuildContext context) {
+    final userDetails = chatStore.auth.user.details!;
+    final userState = chatStore.userState;
 
     // Create a mock IRC message with the user's current state
     final mockTags = <String, String>{
       'display-name': userDetails.displayName,
       'color':
-          '#${chatColorValues[selectedColor!]!.toARGB32().toRadixString(16).substring(2)}',
+          '#${chatColorValues[color]!.toARGB32().toRadixString(16).substring(2)}',
       'user-id': userDetails.id,
       'mod': userState.mod ? '1' : '0',
       'subscriber': userState.subscriber ? '1' : '0',
@@ -593,90 +773,14 @@ class _ChatColorPickerModalState extends State<_ChatColorPickerModal> {
       TextSpan(
         children: mockMessage.generateSpan(
           context,
-          assetsStore: widget.chatStore.assetsStore,
-          emoteScale: widget.chatStore.settings.emoteScale,
-          badgeScale: widget.chatStore.settings.badgeScale,
-          animateEmotes: widget.chatStore.settings.animateEmotes,
+          assetsStore: chatStore.assetsStore,
+          emoteScale: chatStore.settings.emoteScale,
+          badgeScale: chatStore.settings.badgeScale,
+          animateEmotes: chatStore.settings.animateEmotes,
           launchExternal: false, // Disable launching for preview
           style: DefaultTextStyle.of(context).style,
         ),
       ),
-    );
-  }
-
-  Widget _buildColorList() {
-    return Expanded(
-      child: FrostyScrollbar(
-        controller: widget.scrollController,
-        child: ListView(
-          padding: EdgeInsets.zero,
-          controller: widget.scrollController,
-          children: chatColorNames
-              .map((colorName) => _buildColorTile(colorName))
-              .toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildColorTile(String colorName) {
-    final isSelected = selectedColor == colorName;
-    final displayName = colorName
-        .replaceAll('_', ' ')
-        .split(' ')
-        .map((word) => word[0].toUpperCase() + word.substring(1))
-        .join(' ');
-
-    // Apply the same color adjustment for consistent preview
-    final rawColor = chatColorValues[colorName]!;
-    final adjustedColor = adjustChatNameColor(context, rawColor);
-
-    return ListTile(
-      leading: Container(
-        width: 24,
-        height: 24,
-        decoration: BoxDecoration(color: adjustedColor, shape: BoxShape.circle),
-      ),
-      title: Text(displayName),
-      trailing: isSelected
-          ? Icon(Icons.check, color: context.frostyColors.live)
-          : null,
-      onTap: () => setState(() => selectedColor = colorName),
-    );
-  }
-
-  Widget _buildBottomBar() {
-    return Column(
-      children: [
-        AnimatedScrollBorder(
-          scrollController: widget.scrollController,
-          position: ScrollBorderPosition.bottom,
-        ),
-        SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Cancel'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: selectedColor == null
-                        ? null
-                        : () => widget.onColorSelected(context, selectedColor!),
-                    child: const Text('Save'),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

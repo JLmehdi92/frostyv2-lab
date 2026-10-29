@@ -20,11 +20,11 @@ import 'package:frosty/screens/vod/channel_videos.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils.dart';
 import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/motion/rolling_number.dart';
 import 'package:frosty/widgets/motion/signal_ping.dart';
 import 'package:frosty/widgets/profile_picture.dart';
-import 'package:frosty/widgets/section_header.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
+import 'package:frosty/widgets/sheet/sheet_glyph.dart';
 import 'package:frosty/widgets/uptime.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -544,8 +544,7 @@ class VideoOverlay extends StatelessWidget {
   }
 
   void _openChatters(BuildContext context, String userLogin) =>
-      showModalBottomSheetWithProperFocus(
-        isScrollControlled: true,
+      showOnsetSheet<void>(
         context: context,
         builder: (context) => GestureDetector(
           onTap: FocusScope.of(context).unfocus,
@@ -557,99 +556,122 @@ class VideoOverlay extends StatelessWidget {
         ),
       );
 
+  /// Quality, volume, captions and the measurement (board ChaineLecteur's
+  /// sheet, in the frame of the channel sheets).
   void _openSettings(BuildContext context) {
     videoStore.updateStreamQualities();
-    showModalBottomSheetWithProperFocus(
+    showOnsetSheet<void>(
       context: context,
-      builder: (context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SectionHeader(
-            'Stream quality',
-            padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
-            isFirst: true,
-          ),
-          // One scrollable list holds the qualities and the IVS
-          // measurement entries so the sheet never overflows in landscape.
-          Flexible(
-            child: Observer(
-              builder: (context) => ListView(
-                shrinkWrap: true,
-                primary: false,
-                children: [
-                  ...videoStore.availableStreamQualities.map(
-                    (quality) => ListTile(
-                      trailing: videoStore.streamQuality == quality
-                          ? Icon(
-                              Icons.check_rounded,
-                              // A selected check is one of the four
-                              // states the accent is reserved for.
-                              color: context.frostyColors.live,
-                            )
-                          : null,
-                      title: Text(
-                        qualityLabel(quality),
-                        style: context.frostyText.metadata,
+      isScrollControlled: false,
+      builder: (context) {
+        final accent = SheetColors.accentOf(context);
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SheetSectionLabel(
+              'Stream quality',
+              padding: EdgeInsets.fromLTRB(16, 6, 16, 4),
+            ),
+            // One scrollable list holds the qualities and the IVS
+            // measurement entries so the sheet never overflows in landscape.
+            Flexible(
+              child: Observer(
+                builder: (context) => ListView(
+                  shrinkWrap: true,
+                  primary: false,
+                  padding: const EdgeInsets.only(bottom: 18),
+                  children: [
+                    ...videoStore.availableStreamQualities.map((quality) {
+                      final selected = videoStore.streamQuality == quality;
+                      return Semantics(
+                        selected: selected,
+                        inMutuallyExclusiveGroup: true,
+                        child: SheetRow(
+                          label: qualityLabel(quality),
+                          minHeight: 46,
+                          trailing: AnimatedOpacity(
+                            opacity: selected ? 1 : 0,
+                            duration: const Duration(milliseconds: 160),
+                            // A selected check is one of the four states
+                            // the accent is reserved for.
+                            child: SheetGlyph(
+                              SheetGlyphKind.check,
+                              strokeWidth: 2.4,
+                              color: accent,
+                            ),
+                          ),
+                          onTap: () {
+                            videoStore.setStreamQuality(quality);
+                            SharedPreferences.getInstance().then(
+                              (prefs) => prefs.setString(
+                                'last_stream_quality',
+                                quality,
+                              ),
+                            );
+                            Navigator.pop(context);
+                          },
+                        ),
+                      );
+                    }),
+                    if (videoStore case final IvsVideoStore ivs) ...[
+                      const SheetSectionLabel(
+                        'Volume',
+                        padding: EdgeInsets.fromLTRB(16, 14, 16, 4),
                       ),
-                      onTap: () {
-                        videoStore.setStreamQuality(quality);
-                        SharedPreferences.getInstance().then(
-                          (prefs) =>
-                              prefs.setString('last_stream_quality', quality),
-                        );
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ),
-                  if (videoStore case final IvsVideoStore ivs) ...[
-                    const SectionHeader(
-                      'Volume',
-                      padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    ),
-                    // Own Observer so dragging the slider does not rebuild
-                    // the whole quality list.
-                    Observer(
-                      builder: (context) => VolumeRow(
-                        muted: ivs.muted,
-                        volume: ivs.volume,
-                        onToggleMute: ivs.toggleMute,
-                        onVolumeChanged: ivs.setVolume,
+                      // Own Observer so dragging the slider does not rebuild
+                      // the whole quality list.
+                      Observer(
+                        builder: (context) => VolumeRow(
+                          muted: ivs.muted,
+                          volume: ivs.volume,
+                          onToggleMute: ivs.toggleMute,
+                          onVolumeChanged: ivs.setVolume,
+                        ),
                       ),
-                    ),
-                    CaptionMenu(captions: ivs.captions),
-                    const SectionHeader(
-                      'Measurement',
-                      padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    ),
-                    ListTile(
-                      title: const Text('Video stats'),
-                      subtitle: const Text(
-                        'Latency, buffer, bitrate and frames over the video',
+                      CaptionMenu(captions: ivs.captions),
+                      const SheetSectionLabel(
+                        'Measurement',
+                        padding: EdgeInsets.fromLTRB(16, 14, 16, 4),
                       ),
-                      trailing: ivs.statsVisible
-                          ? const Icon(Icons.check_rounded)
-                          : null,
-                      onTap: () {
-                        ivs.toggleStats();
-                        Navigator.pop(context);
-                      },
-                    ),
-                    ListTile(
-                      title: const Text('Reset stats'),
-                      subtitle: const Text('Start a new latency measurement'),
-                      onTap: () {
-                        ivs.resetStats();
-                        Navigator.pop(context);
-                      },
-                    ),
+                      Semantics(
+                        toggled: ivs.statsVisible,
+                        child: SheetRow(
+                          glyph: SheetGlyphKind.poll,
+                          label: 'Video stats',
+                          detail:
+                              'Latency, buffer, bitrate and frames over the '
+                              'video',
+                          trailing: ivs.statsVisible
+                              ? SheetGlyph(
+                                  SheetGlyphKind.check,
+                                  strokeWidth: 2.4,
+                                  color: accent,
+                                )
+                              : null,
+                          onTap: () {
+                            ivs.toggleStats();
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ),
+                      SheetRow(
+                        glyph: SheetGlyphKind.refresh,
+                        label: 'Reset stats',
+                        detail: 'Start a new latency measurement',
+                        onTap: () {
+                          ivs.resetStats();
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      },
     );
   }
 }

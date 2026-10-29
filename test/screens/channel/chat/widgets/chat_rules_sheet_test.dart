@@ -167,5 +167,27 @@ void main() {
       await tester.pumpWidget(_app(const ChatRulesTile(rules: null)));
       expect(find.text('Chat rules'), findsNothing);
     });
+
+    testWidgets('in the chat menu, the rules open in place', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final service = _MockService();
+      when(() => service.getRules(any())).thenAnswer((_) async => _rules);
+      final store = ChatRulesStore(
+        service: service,
+        channelId: '71092938',
+        viewerId: () => '999',
+      );
+      addTearDown(store.dispose);
+      await tester.runAsync(store.load);
+
+      ChatRules? opened;
+      await tester.pumpWidget(
+        _app(ChatRulesTile(rules: store, onOpen: (rules) => opened = rules)),
+      );
+      await tester.tap(find.text('Chat rules'));
+      await tester.pumpAndSettle();
+      expect(opened, _rules);
+      expect(find.byType(BottomSheet), findsNothing);
+    });
   });
 }

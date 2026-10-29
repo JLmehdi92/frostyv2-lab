@@ -11,7 +11,6 @@ import 'package:frosty/screens/channel/chat/widgets/chat_restriction_bar.dart';
 import 'package:frosty/screens/channel/video/player_glyph.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
-import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/blurred_container.dart';
 import 'package:frosty/widgets/channel_points_button.dart';
 import 'package:frosty/widgets/chat_input/emote_text_span_builder.dart';
@@ -494,15 +493,10 @@ class ChatBottomBar extends StatelessWidget {
                       TextFieldTapRegion(
                         child: ChatMoreButton(
                           large: large,
-                          onPressed: () => showModalBottomSheetWithProperFocus(
-                            isScrollControlled: true,
-                            context: context,
-                            builder: (_) => ChatDetails(
-                              chatDetailsStore: chatStore.chatDetailsStore,
-                              chatStore: chatStore,
-                              userLogin: chatStore.channelName,
-                              onAddChat: onAddChat,
-                            ),
+                          onPressed: () => showChatDetails(
+                            context,
+                            chatStore: chatStore,
+                            onAddChat: onAddChat,
                           ),
                         ),
                       ),
