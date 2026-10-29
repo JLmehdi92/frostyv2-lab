@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_clip_service.dart';
@@ -177,5 +179,71 @@ void main() {
     await tester.drag(view, const Offset(0, -300));
     await tester.pump();
     expect(find.text('7 days'), findsNothing);
+  });
+
+  testWidgets('a new period keeps the chips where they were and starts the '
+      'clips from the top; a refresh moves nothing', (tester) async {
+    when(
+      () => service.getChannelClips(
+        login: any(named: 'login'),
+        period: any(named: 'period'),
+        sort: any(named: 'sort'),
+      ),
+    ).thenAnswer(
+      (_) async => ClipPage(items: List.filled(12, clip), hasMore: false),
+    );
+    tester.view
+      ..physicalSize = const Size(390, 844)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: ChannelClipsTab(store: store, nested: true)),
+      ),
+    );
+    await tester.pump();
+
+    ScrollPosition chips() => Scrollable.of(
+      tester.element(find.text('7 days')),
+      axis: Axis.horizontal,
+    ).position;
+    ScrollPosition list() =>
+        Scrollable.of(tester.element(find.byType(ClipCard).first)).position;
+
+    // The chips scrolled sideways, then another period picked there,
+    // which loads.
+    final month = Completer<ClipPage>();
+    when(
+      () => service.getChannelClips(
+        login: any(named: 'login'),
+        period: ClipPeriod.lastMonth,
+        sort: any(named: 'sort'),
+      ),
+    ).thenAnswer((_) => month.future);
+    chips().jumpTo(60);
+    await tester.pump();
+    await tester.tap(find.text('30 days'));
+    await tester.pump();
+    expect(find.byType(ClipCard), findsNothing);
+    expect(chips().pixels, 60);
+    month.complete(ClipPage(items: List.filled(12, clip), hasMore: false));
+    await tester.pump();
+    await tester.pump();
+    expect(chips().pixels, 60);
+    expect(store.period, ClipPeriod.lastMonth);
+
+    // A refresh leaves the list where it is.
+    list().jumpTo(400);
+    await tester.pump();
+    await store.refresh();
+    await tester.pump();
+    await tester.pump();
+    expect(list().pixels, 400);
+
+    // Another period starts it from the top.
+    await store.select(period: ClipPeriod.allTime);
+    await tester.pump();
+    await tester.pump();
+    expect(list().pixels, 0);
   });
 }
