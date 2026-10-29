@@ -100,3 +100,10 @@ res_*.png
 chat_*.png
 cp_*.png
 pp_*.png
+
+# Firebase is optional and per builder: never commit a project config.
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+ios/firebase_app_id_file.json
+lib/firebase_options.dart
+firebase.json

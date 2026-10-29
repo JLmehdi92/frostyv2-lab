@@ -1,7 +1,7 @@
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/services/notifications/activity_log.dart';
+import 'package:onset/services/telemetry.dart';
 
 part 'activity_store.g.dart';
 
@@ -59,15 +59,7 @@ abstract class ActivityStoreBase with Store {
       _show(log.entries);
     } catch (e, stack) {
       debugPrint('Activity list unavailable: $e');
-      try {
-        FirebaseCrashlytics.instance.recordError(
-          e,
-          stack,
-          reason: 'activity list',
-        );
-      } catch (_) {
-        // Firebase may not be initialized (e.g., in tests).
-      }
+      Telemetry.recordError(e, stack, reason: 'activity list');
     }
   }
 

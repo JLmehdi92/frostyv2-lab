@@ -3,12 +3,23 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
-    id("com.google.gms.google-services")
-    id("com.google.firebase.firebase-perf")
-    id("com.google.firebase.crashlytics")
+    // Firebase is optional: these are only put on the classpath here, and
+    // applied below when the build has a google-services.json.
+    id("com.google.gms.google-services") apply false
+    id("com.google.firebase.firebase-perf") apply false
+    id("com.google.firebase.crashlytics") apply false
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+// The repository carries no Firebase config (see README): a build without
+// android/app/google-services.json has no Firebase, and the Dart side does
+// not start it either unless the FIREBASE_* --dart-defines are given.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+    apply(plugin = "com.google.firebase.firebase-perf")
+    apply(plugin = "com.google.firebase.crashlytics")
 }
 
 val keystoreProperties = Properties()

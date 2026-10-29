@@ -2,17 +2,15 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/constants.dart';
-import 'package:onset/firebase_options.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/services/go_live/go_live.dart';
 import 'package:onset/services/notifications/activity_log.dart';
+import 'package:onset/services/telemetry.dart';
 import 'package:workmanager/workmanager.dart';
 
 const _task = 'onset.goLive';
@@ -35,25 +33,12 @@ final _login = RegExp(r'^[a-zA-Z0-9_]{1,25}$');
 void goLiveCallbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     if (task != _task) return true;
-    var crashlytics = false;
-    try {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-      crashlytics = true;
-    } catch (_) {
-      // Reporting is a bonus: the check runs without it.
-    }
+    // Reporting is a bonus: the check runs without it (and without Firebase
+    // in a build that has no config).
+    await Telemetry.initialize(reportUncaught: false);
     void report(Object error, StackTrace stack) {
       debugPrint('Go-live check failed: $error');
-      if (!crashlytics) return;
-      try {
-        FirebaseCrashlytics.instance.recordError(
-          error,
-          stack,
-          reason: 'go-live background check',
-        );
-      } catch (_) {}
+      Telemetry.recordError(error, stack, reason: 'go-live background check');
     }
 
     try {

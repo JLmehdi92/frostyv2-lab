@@ -4,7 +4,6 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:clock/clock.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:mobx/mobx.dart';
@@ -13,6 +12,7 @@ import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/main.dart';
 import 'package:onset/screens/settings/stores/user_store.dart';
+import 'package:onset/services/telemetry.dart';
 import 'package:onset/services/twitch_web_token_service.dart';
 import 'package:onset/widgets/onset_alert_dialog.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -861,7 +861,7 @@ abstract class AuthBase with Store {
         }
       }
 
-      FirebaseCrashlytics.instance.setCustomKey('is_logged_in', _isLoggedIn);
+      Telemetry.setCustomKey('is_logged_in', _isLoggedIn);
       _error = null;
     } catch (e) {
       debugPrint(e.toString());
@@ -974,12 +974,8 @@ abstract class AuthBase with Store {
         _isLoggedIn = true;
         _signedInWith = token;
         _error = null;
-        try {
-          FirebaseCrashlytics.instance.setCustomKey('is_logged_in', true);
-          FirebaseCrashlytics.instance.setUserIdentifier(details.id);
-        } catch (e) {
-          debugPrint('Crash reporting unavailable: ${e.runtimeType}');
-        }
+        Telemetry.setCustomKey('is_logged_in', true);
+        Telemetry.setUserIdentifier(details.id);
         _stopReconnectLoop();
         if (switching && _isAndroid) unawaited(harvestTwitchWebToken());
         if (check.isForeign) await _noticeForeignToken(details.id);
@@ -1052,8 +1048,8 @@ abstract class AuthBase with Store {
       // Set the login status to logged out.
       _isLoggedIn = false;
       _signedInWith = null;
-      FirebaseCrashlytics.instance.setCustomKey('is_logged_in', false);
-      FirebaseCrashlytics.instance.setUserIdentifier('');
+      Telemetry.setCustomKey('is_logged_in', false);
+      Telemetry.setUserIdentifier('');
 
       debugPrint('Successfully logged out');
     } catch (e) {
@@ -1156,7 +1152,7 @@ abstract class AuthBase with Store {
         _reconnectAttempts++;
         final stored = await _storage.read(key: _userTokenKey);
         if (_reconnectAttempts > _maxReconnectAttempts) {
-          FirebaseCrashlytics.instance.log(
+          Telemetry.log(
             'Auth reconnection exhausted after $_maxReconnectAttempts attempts',
           );
           await _logoutFromReconnect(generation, epoch, stored);

@@ -1,4 +1,3 @@
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/bttv_api.dart';
@@ -7,6 +6,7 @@ import 'package:onset/apis/seventv_api.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/models/badges.dart';
 import 'package:onset/models/emotes.dart';
+import 'package:onset/services/telemetry.dart';
 
 part 'global_assets_store.g.dart';
 
@@ -169,11 +169,7 @@ abstract class GlobalAssetsStoreBase with Store {
   }) async {
     void onAssetError(dynamic error, StackTrace stack) {
       debugPrint('GlobalAssetsStore error: $error');
-      FirebaseCrashlytics.instance.recordError(
-        error,
-        stack,
-        reason: 'Global asset fetch failed',
-      );
+      Telemetry.recordError(error, stack, reason: 'Global asset fetch failed');
     }
 
     await Future.wait([

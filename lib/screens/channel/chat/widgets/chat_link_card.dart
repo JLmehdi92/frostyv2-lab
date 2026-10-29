@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:clock/clock.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:onset/apis/base_api_client.dart';
@@ -9,6 +8,7 @@ import 'package:onset/apis/twitch_clip_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/screens/vod/vod_time.dart';
+import 'package:onset/services/telemetry.dart';
 import 'package:onset/utils/link_router.dart';
 import 'package:onset/utils/twitch_links.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
@@ -154,15 +154,7 @@ abstract final class ChatLinkPreviews {
       debugPrint('Chat link preview failed: $e');
       // An API refusal is expected now and then; anything else is a bug.
       if (e is! ApiException) {
-        try {
-          FirebaseCrashlytics.instance.recordError(
-            e,
-            stack,
-            reason: 'chat link preview',
-          );
-        } catch (_) {
-          // Firebase may not be initialized (e.g., in tests).
-        }
+        Telemetry.recordError(e, stack, reason: 'chat link preview');
       }
     }
     // A gone, failed or thumbnail-less answer may change soon (a new clip).

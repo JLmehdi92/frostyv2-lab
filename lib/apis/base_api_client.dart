@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:onset/services/telemetry.dart';
 
 /// Common type aliases to reduce repetition
 typedef JsonMap = Map<String, dynamic>;
@@ -210,19 +210,15 @@ abstract class BaseApiClient {
     if (exception is ServerException ||
         error.type == DioExceptionType.unknown ||
         error.type == DioExceptionType.badCertificate) {
-      try {
-        FirebaseCrashlytics.instance.recordError(
-          exception,
-          error.stackTrace,
-          // No query: it can name people (whisper partners, chatters).
-          reason:
-              '${error.requestOptions.method} '
-              '${error.requestOptions.uri.origin}'
-              '${error.requestOptions.uri.path}',
-        );
-      } catch (_) {
-        // Firebase may not be initialized (e.g., in tests).
-      }
+      Telemetry.recordError(
+        exception,
+        error.stackTrace,
+        // No query: it can name people (whisper partners, chatters).
+        reason:
+            '${error.requestOptions.method} '
+            '${error.requestOptions.uri.origin}'
+            '${error.requestOptions.uri.path}',
+      );
     }
 
     return exception;

@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:clock/clock.dart';
 import 'package:dio/dio.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:mobx/mobx.dart';
@@ -28,6 +27,7 @@ import 'package:onset/services/audio_focus.dart';
 import 'package:onset/services/background_audio.dart';
 import 'package:onset/services/playback_token_cache.dart';
 import 'package:onset/services/realtime/twitch_eventsub_client.dart';
+import 'package:onset/services/telemetry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_pip_mode/simple_pip.dart';
 
@@ -495,15 +495,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   /// A failure that is not an API answer: a bug, or Twitch changed.
   static void _reportUnexpected(Object error, StackTrace stack, String what) {
     debugPrint('IvsVideoStore $what: $error');
-    try {
-      FirebaseCrashlytics.instance.recordError(
-        error,
-        stack,
-        reason: 'ivs $what',
-      );
-    } catch (_) {
-      // Firebase may not be initialized (e.g., in tests).
-    }
+    Telemetry.recordError(error, stack, reason: 'ivs $what');
   }
 
   /// Restarts an offline player when the channel turns out to be live.

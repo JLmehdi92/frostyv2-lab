@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Firebase is optional (see README): a build that starts it from the
+         FIREBASE_* dart-defines without a google-services.json has no
+         Crashlytics Gradle plugin, so no build ID. Without this, Crashlytics
+         would refuse to start for the missing ID. -->
+    <bool name="com.crashlytics.RequireBuildId">false</bool>
+</resources>

@@ -1,8 +1,8 @@
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
 import 'package:onset/services/go_live/go_live.dart';
 import 'package:onset/services/go_live/go_live_worker.dart';
+import 'package:onset/services/telemetry.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
@@ -69,15 +69,7 @@ class _GoLiveSettingState extends State<GoLiveSetting> {
 
   static void _report(Object error, StackTrace stack) {
     debugPrint('Go-live setting failed: $error');
-    try {
-      FirebaseCrashlytics.instance.recordError(
-        error,
-        stack,
-        reason: 'go-live setting',
-      );
-    } catch (_) {
-      // Firebase may not be initialized (e.g., in tests).
-    }
+    Telemetry.recordError(error, stack, reason: 'go-live setting');
   }
 
   Future<void> _set(bool on) async {

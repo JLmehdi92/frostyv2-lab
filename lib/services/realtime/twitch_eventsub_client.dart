@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/services/realtime/eventsub_protocol.dart';
 import 'package:onset/services/realtime/realtime_socket.dart';
+import 'package:onset/services/telemetry.dart';
 
 /// One EventSub subscription type for one condition, e.g. the whispers of
 /// a user: `EventSubTopic('user.whisper.message', '1', {'user_id': id})`.
@@ -593,15 +593,7 @@ class TwitchEventSubClient {
 
   /// An unexpected failure (a bug, or Twitch changed something).
   void _report(Object error, StackTrace? stack, String what) {
-    try {
-      FirebaseCrashlytics.instance.recordError(
-        error,
-        stack,
-        reason: 'eventsub $what',
-      );
-    } catch (_) {
-      // Firebase may not be initialized (e.g., in tests).
-    }
+    Telemetry.recordError(error, stack, reason: 'eventsub $what');
   }
 
   void _log(String message) {

@@ -1,9 +1,9 @@
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/screens/channel/chat/chat_commands.dart';
 import 'package:onset/screens/channel/chat/moderation_notice.dart';
+import 'package:onset/services/telemetry.dart';
 
 /// What a moderation action ended with: whether it worked, and the line to
 /// show either way.
@@ -44,15 +44,11 @@ class ChatModeration {
       // A refusal or a network error is expected now and then; anything
       // else is a bug (or Twitch changed something).
       if (error is! ApiException) {
-        try {
-          FirebaseCrashlytics.instance.recordError(
-            error,
-            stack,
-            reason: 'moderation ${command.runtimeType}',
-          );
-        } catch (_) {
-          // Firebase may not be initialized (e.g., in tests).
-        }
+        Telemetry.recordError(
+          error,
+          stack,
+          reason: 'moderation ${command.runtimeType}',
+        );
       }
       return (ok: false, message: moderationFailure(error, _verb(command)));
     }

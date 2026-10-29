@@ -1,9 +1,6 @@
 import 'dart:async';
 import 'dart:ui' show lerpDouble;
 
-import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,6 +16,7 @@ import 'package:onset/screens/onboarding/onboarding_setup.dart';
 import 'package:onset/screens/onboarding/onboarding_welcome.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/services/telemetry.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/launch/launch_intro.dart';
@@ -74,12 +72,9 @@ bool firebaseCollectionFor(bool shared) => shared && !kDebugMode;
 
 /// Turns the Firebase collection on or off, as the setting says (see
 /// [firebaseCollectionFor]).
-void setFirebaseCollection(bool shared) {
-  final enabled = firebaseCollectionFor(shared);
-  FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(enabled);
-  FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(enabled);
-  FirebasePerformance.instance.setPerformanceCollectionEnabled(enabled);
-}
+/// Nothing without Firebase (see [Telemetry]).
+void setFirebaseCollection(bool shared) =>
+    Telemetry.setCollectionEnabled(firebaseCollectionFor(shared));
 
 /// The first launch (boards Onboarding, OnboardingTablette, OnboardingEtapes):
 /// Intro, Log in (with the Twitch page), Setup, Welcome, then the app.

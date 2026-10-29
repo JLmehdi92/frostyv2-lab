@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/base_api_client.dart';
@@ -17,6 +16,7 @@ import 'package:onset/models/hype_train.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/services/telemetry.dart';
 import 'package:onset/utils/stream_languages.dart';
 
 part 'stream_list_store.g.dart';
@@ -414,11 +414,7 @@ abstract class ListStoreBase with Store {
                 '${StreamSort.viewersHigh.label} still works.';
       debugPrint('Streams DirectoryApiException: $e');
       // Seen in release too: Twitch probably changed the query.
-      try {
-        FirebaseCrashlytics.instance.log('directory streams failed: $e');
-      } catch (_) {
-        // Firebase may not be initialized (e.g., in tests).
-      }
+      Telemetry.log('directory streams failed: $e');
     } on ApiException catch (e) {
       if (generation != _streamsGeneration) return;
       _error = e.message;

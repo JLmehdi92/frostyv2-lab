@@ -4,10 +4,6 @@ import 'dart:convert';
 import 'package:advanced_in_app_review/advanced_in_app_review.dart';
 import 'package:app_links/app_links.dart';
 import 'package:dio/dio.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -31,7 +27,6 @@ import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
 import 'package:onset/apis/unauthorized_interceptor.dart';
 import 'package:onset/cache_manager.dart';
-import 'package:onset/firebase_options.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/activity/stores/activity_store.dart';
@@ -57,6 +52,7 @@ import 'package:onset/services/notifications/schedule_reminders.dart';
 import 'package:onset/services/onset_updater.dart';
 import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 import 'package:onset/services/realtime/twitch_realtime_client.dart';
+import 'package:onset/services/telemetry.dart';
 import 'package:onset/stores/global_assets_store.dart';
 import 'package:onset/stores/mini_player_store.dart';
 import 'package:onset/stores/whisper_store.dart';
@@ -84,16 +80,9 @@ void main() async {
 
   CustomCacheManager.removeOrphanedCacheFiles();
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
-  // Pass all uncaught "fatal" errors from the framework to Crashlytics
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-
-  // Pass all uncaught asynchronous errors that aren't handled by the Flutter framework to Crashlytics
-  PlatformDispatcher.instance.onError = (error, stack) {
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-    return true;
-  };
+  // Firebase only when the build carries its config (see Telemetry); it
+  // then reports uncaught framework and platform errors as fatal.
+  await Telemetry.initialize();
 
   final prefs = await SharedPreferences.getInstance();
 
@@ -126,16 +115,9 @@ void main() async {
 
   // Disable Firebase collection in debug builds to avoid polluting production data.
   // In release builds, respect the user's preference.
-  if (kDebugMode) {
-    FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(false);
-    FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(false);
-    FirebasePerformance.instance.setPerformanceCollectionEnabled(false);
-  } else {
-    final shareEnabled = settingsStore.shareCrashLogsAndAnalytics;
-    FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(shareEnabled);
-    FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(shareEnabled);
-    FirebasePerformance.instance.setPerformanceCollectionEnabled(shareEnabled);
-  }
+  Telemetry.setCollectionEnabled(
+    !kDebugMode && settingsStore.shareCrashLogsAndAnalytics,
+  );
 
   // Create a MobX reaction that will save the settings on disk every time they are changed.
   autorun((_) => prefs.setString('settings', jsonEncode(settingsStore)));
@@ -308,12 +290,9 @@ void main() async {
     credentials: () => authStore.token,
   );
 
-  FirebaseCrashlytics.instance.setCustomKey(
-    'is_logged_in',
-    authStore.isLoggedIn,
-  );
+  Telemetry.setCustomKey('is_logged_in', authStore.isLoggedIn);
   if (authStore.isLoggedIn && authStore.user.details != null) {
-    FirebaseCrashlytics.instance.setUserIdentifier(authStore.user.details!.id);
+    Telemetry.setUserIdentifier(authStore.user.details!.id);
   }
 
   runApp(
@@ -421,13 +400,7 @@ class _MyAppState extends State<MyApp> {
       if (prefs.enabled) await GoLiveScheduler.start();
     } catch (e, stack) {
       debugPrint('Go-live notices unavailable: $e');
-      try {
-        FirebaseCrashlytics.instance.recordError(
-          e,
-          stack,
-          reason: 'go-live init',
-        );
-      } catch (_) {}
+      Telemetry.recordError(e, stack, reason: 'go-live init');
     }
   }
 
@@ -587,7 +560,7 @@ class _MyAppState extends State<MyApp> {
               ? ThemeMode.light
               : ThemeMode.dark,
           navigatorObservers: [
-            FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+            ...Telemetry.navigatorObservers(),
             // Any page opening ends the launch intro.
             LaunchIntro.navigatorObserver,
             OnsetShell.routeObserver,

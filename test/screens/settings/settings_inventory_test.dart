@@ -348,6 +348,18 @@ void main() {
     expect(find.text('Support Frosty'), findsOneWidget);
     expect(find.text('View source on GitHub'), findsOneWidget);
 
+    // Without a Firebase config (as in this test build) the switch still
+    // keeps the choice, and turning collection on or off does not throw.
+    final shared = settings.shareCrashLogsAndAnalytics;
+    await tapVisible(tester, find.text('Share crash logs and analytics'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(settings.shareCrashLogsAndAnalytics, !shared);
+    await tapVisible(tester, find.text('Share crash logs and analytics'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(settings.shareCrashLogsAndAnalytics, shared);
+
     await tester.tap(find.text('Reset settings'));
     await tester.pumpAndSettle();
     expect(find.text('Reset all settings'), findsOneWidget);

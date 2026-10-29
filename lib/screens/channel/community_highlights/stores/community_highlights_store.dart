@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:clock/clock.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/base_api_client.dart' as api;
@@ -15,6 +14,7 @@ import 'package:onset/screens/channel/community_highlights/highlight_stack.dart'
 import 'package:onset/screens/channel/community_highlights/highlight_timings.dart';
 import 'package:onset/screens/channel/hype_train/hype_train_clock.dart';
 import 'package:onset/services/realtime/twitch_realtime_client.dart';
+import 'package:onset/services/telemetry.dart';
 
 part 'community_highlights_store.g.dart';
 
@@ -556,13 +556,9 @@ abstract class CommunityHighlightsStoreBase with Store {
           _gqlOff.add(topic);
           _updatePolling();
           // Seen in release too: Twitch probably changed the query.
-          try {
-            FirebaseCrashlytics.instance.log(
-              'community highlights: ${topic.prefix} snapshot off: $e',
-            );
-          } catch (_) {
-            // Firebase may not be initialized (e.g., in tests).
-          }
+          Telemetry.log(
+            'community highlights: ${topic.prefix} snapshot off: $e',
+          );
         }
       } finally {
         _inFlight.remove(topic);

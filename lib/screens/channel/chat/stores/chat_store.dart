@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobx/mobx.dart';
@@ -30,6 +29,7 @@ import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/services/notifications/mention_alerts.dart';
 import 'package:onset/services/realtime/twitch_eventsub_client.dart';
+import 'package:onset/services/telemetry.dart';
 import 'package:onset/stores/whisper_store.dart';
 import 'package:onset/utils.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -217,15 +217,6 @@ abstract class ChatStoreBase with Store {
 
   /// Opens the chat (IRC) and 7TV event sockets.
   final WebSocketChannel Function(Uri uri) _connectSocket;
-
-  /// Crashlytics, when Firebase is up (it is not in tests).
-  static void _crashlytics(void Function(FirebaseCrashlytics c) use) {
-    try {
-      use(FirebaseCrashlytics.instance);
-    } catch (e) {
-      debugPrint('Crashlytics unavailable: $e');
-    }
-  }
 
   /// Pending delayed IRC payloads waiting to be rendered.
   final _pendingChatCallbacks = ChatDelayQueue();
@@ -493,11 +484,7 @@ abstract class ChatStoreBase with Store {
         } on ApiException catch (e) {
           if (!_shouldDisconnect) say("Couldn't whisper: ${e.message}");
         } catch (e, stack) {
-          try {
-            FirebaseCrashlytics.instance.recordError(e, stack, reason: '/w');
-          } catch (_) {
-            // Firebase may not be initialized (e.g., in tests).
-          }
+          Telemetry.recordError(e, stack, reason: '/w');
           if (!_shouldDisconnect) say("Couldn't whisper.");
         }
       case ColorCommand(:final color):
@@ -1257,7 +1244,7 @@ abstract class ChatStoreBase with Store {
       },
       onError: (error) {
         debugPrint('7TV events error: ${error.toString()}');
-        FirebaseCrashlytics.instance.recordError(
+        Telemetry.recordError(
           error,
           StackTrace.current,
           reason: '7TV WebSocket error, channel=$channelName',
@@ -1272,7 +1259,7 @@ abstract class ChatStoreBase with Store {
 
   @action
   Future<void> connectToChat({bool isReconnect = false}) async {
-    _crashlytics((c) => c.setCustomKey('channel', channelName));
+    Telemetry.setCustomKey('channel', channelName);
 
     // Fetch assets first so they're available for all messages
     getAssets().catchError(
@@ -1315,7 +1302,7 @@ abstract class ChatStoreBase with Store {
       },
       onError: (error) {
         debugPrint('Chat error: ${error.toString()}');
-        FirebaseCrashlytics.instance.recordError(
+        Telemetry.recordError(
           error,
           StackTrace.current,
           reason: 'IRC WebSocket error, channel=$channelName',
@@ -1335,7 +1322,7 @@ abstract class ChatStoreBase with Store {
         }
 
         if (_retries >= _maxRetries) {
-          FirebaseCrashlytics.instance.log(
+          Telemetry.log(
             'WebSocket reconnection failed after $_maxRetries attempts, channel=$channelName',
           );
           // Remove the reconnect message before showing final disconnect notice
@@ -1363,10 +1350,8 @@ abstract class ChatStoreBase with Store {
 
         // Increment the retry count.
         _retries++;
-        _crashlytics(
-          (c) => c.log(
-            'WebSocket reconnecting: attempt $_retries/$_maxRetries, channel=$channelName',
-          ),
+        Telemetry.log(
+          'WebSocket reconnecting: attempt $_retries/$_maxRetries, channel=$channelName',
         );
 
         // Start exponential backoff only after first failed attempt (capped at 8s).

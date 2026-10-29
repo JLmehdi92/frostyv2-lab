@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:clock/clock.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/services/realtime/twitch_eventsub_client.dart';
+import 'package:onset/services/telemetry.dart';
 
 part 'whisper_store.g.dart';
 
@@ -395,15 +395,7 @@ abstract class WhisperStoreBase with Store {
       return "Couldn't whisper: ${e.message}";
     } catch (e, stack) {
       // A bug, or Twitch changed something (never the whisper's text).
-      try {
-        FirebaseCrashlytics.instance.recordError(
-          e,
-          stack,
-          reason: 'whisper send',
-        );
-      } catch (_) {
-        // Firebase may not be initialized (e.g., in tests).
-      }
+      Telemetry.recordError(e, stack, reason: 'whisper send');
       return "Couldn't whisper (unexpected error).";
     }
     // The account changed meanwhile: not this conversation any more.

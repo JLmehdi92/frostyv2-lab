@@ -1,6 +1,3 @@
-import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -13,6 +10,7 @@ import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
 import 'package:onset/screens/settings/widgets/settings_page.dart';
 import 'package:onset/screens/settings/widgets/update_check_tile.dart';
 import 'package:onset/services/onset_updater.dart';
+import 'package:onset/services/telemetry.dart';
 import 'package:onset/widgets/alert_message.dart';
 import 'package:provider/provider.dart';
 
@@ -92,16 +90,8 @@ List<Widget> otherSettingsGroups(
             value: settingsStore.shareCrashLogsAndAnalytics,
             onChanged: (newValue) {
               settingsStore.shareCrashLogsAndAnalytics = newValue;
-
-              FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(
-                newValue,
-              );
-              FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(
-                newValue,
-              );
-              FirebasePerformance.instance.setPerformanceCollectionEnabled(
-                newValue,
-              );
+              // Nothing more in a build without Firebase.
+              Telemetry.setCollectionEnabled(newValue);
             },
           ),
         ),
