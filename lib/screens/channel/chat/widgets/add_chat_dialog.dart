@@ -4,12 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/models/channel.dart';
 import 'package:frosty/utils.dart';
-import 'package:frosty/utils/modal_bottom_sheet.dart';
 import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/animated_scroll_border.dart';
 import 'package:frosty/widgets/live_indicator.dart';
 import 'package:frosty/widgets/profile_picture.dart';
-import 'package:frosty/widgets/section_header.dart';
+import 'package:frosty/widgets/sheet/onset_sheet.dart';
 import 'package:frosty/widgets/skeleton_loader.dart';
 import 'package:frosty/widgets/uptime.dart';
 
@@ -37,9 +36,8 @@ class AddChatSheet extends StatefulWidget {
     BuildContext context,
     TwitchApi twitchApi,
   ) {
-    return showModalBottomSheetWithProperFocus<AddChatResult>(
+    return showOnsetSheet<AddChatResult>(
       context: context,
-      isScrollControlled: true,
       builder: (context) => AddChatSheet(twitchApi: twitchApi),
     );
   }
@@ -134,7 +132,18 @@ class _AddChatSheetState extends State<AddChatSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SectionHeader('Add Chat', isFirst: true),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+              child: Semantics(
+                header: true,
+                child: Text(
+                  'Add Chat',
+                  style: SheetText.title.copyWith(
+                    color: SheetColors.of(context).text,
+                  ),
+                ),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
               child: TextField(
