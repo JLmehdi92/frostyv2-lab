@@ -285,7 +285,143 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('Clip a'), findsOneWidget);
+    // The default 800 × 600 window is a tablet: the stage and the queue.
+    expect(find.text('Clip a'), findsWidgets);
     await close(tester);
+  });
+
+  group('board Clips', () {
+    testWidgets('the next clip waits under the details; a tap goes there', (
+      tester,
+    ) async {
+      await pump(tester, first: ClipFeedPage(items: [clip('a'), clip('b')]));
+      tester.view.physicalSize = const Size(390, 844);
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('NEXT'), findsOneWidget);
+      expect(find.text('Streamer · Clip b'), findsOneWidget);
+      expect(find.text('You can swipe to the next clip'), findsOneWidget);
+      expect(find.text('Open clip'), findsOneWidget);
+
+      await tester.tap(find.text('Streamer · Clip b'));
+      await tester.pumpAndSettle();
+      expect(players['b']!.calls, containsAllInOrder(['focused true', 'play']));
+      await close(tester);
+    });
+
+    testWidgets('the hint stands still under reduce motion', (tester) async {
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: true);
+      addTearDown(
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+      );
+      await pump(tester, first: ClipFeedPage(items: [clip('a'), clip('b')]));
+
+      expect(find.text('You can swipe to the next clip'), findsOneWidget);
+      // Nothing left animating: the page settles.
+      await tester.pumpAndSettle();
+      await close(tester);
+    });
+  });
+
+  group('board ClipsTablette', () {
+    Future<void> pumpAt(
+      WidgetTester tester,
+      Size size, {
+      required ClipFeedPage first,
+    }) async {
+      await pump(tester, first: first);
+      tester.view.physicalSize = size;
+      await tester.pump();
+      await tester.pump();
+    }
+
+    for (final size in const [Size(1280, 854), Size(854, 1280)]) {
+      testWidgets('the stage and the queue fit ${size.width.toInt()} wide', (
+        tester,
+      ) async {
+        await pumpAt(
+          tester,
+          size,
+          first: ClipFeedPage(
+            items: [for (final s in 'abcdef'.split('')) clip(s)],
+          ),
+        );
+
+        expect(tester.takeException(), isNull);
+        expect(find.text('UP NEXT IN CLIPS'), findsOneWidget);
+        expect(find.text('Swipe the video or pick one'), findsOneWidget);
+        expect(find.text('Open clip'), findsOneWidget);
+        expect(find.byType(PageView), findsNothing);
+        await close(tester);
+      });
+    }
+
+    testWidgets('a tap in the queue plays that clip', (tester) async {
+      await pumpAt(
+        tester,
+        const Size(1280, 854),
+        first: ClipFeedPage(items: [for (final s in 'abcd'.split('')) clip(s)]),
+      );
+      expect(built.first, ('a', true));
+
+      await tester.tap(find.text('Clip c').last);
+      await tester.pumpAndSettle();
+
+      expect(
+        players['a']!.calls,
+        containsAllInOrder(['focused false', 'pause']),
+      );
+      expect(built, contains(('c', true)), reason: 'the picked clip plays');
+      expect(built.last, ('d', false), reason: 'the one after is preloaded');
+      expect(players.containsKey('b'), isTrue);
+      expect(players['b']!.calls, contains('dispose'));
+      await close(tester);
+    });
+
+    testWidgets('a swipe on the stage goes to the next clip', (tester) async {
+      await pumpAt(
+        tester,
+        const Size(1280, 854),
+        first: ClipFeedPage(items: [clip('a'), clip('b')]),
+      );
+
+      await tester.fling(
+        find.bySemanticsLabel(RegExp('Clip player')),
+        const Offset(0, -300),
+        1500,
+      );
+      await tester.pumpAndSettle();
+
+      expect(players['b']!.calls, containsAllInOrder(['focused true', 'play']));
+      await close(tester);
+    });
+
+    testWidgets('the clip shown survives a phone ↔ tablet change', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        first: ClipFeedPage(items: [clip('a'), clip('b'), clip('c')]),
+      );
+      await swipeUp(tester);
+      expect(players['b']!.calls, contains('play'));
+      final playsBefore = players['b']!.calls.where((c) => c == 'play').length;
+
+      tester.view.physicalSize = const Size(1280, 854);
+      await tester.pumpAndSettle();
+      expect(find.text('Clip b'), findsWidgets);
+
+      tester.view.physicalSize = const Size(400, 800);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      // Back on the phone, its pages open at the same clip and do not
+      // pause or restart it.
+      expect(find.text('Clip b'), findsOneWidget);
+      expect(players['b']!.calls.where((c) => c == 'play').length, playsBefore);
+      expect(players['b']!.calls.last, isNot('pause'));
+      await close(tester);
+    });
   });
 }
