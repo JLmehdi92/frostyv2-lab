@@ -43,7 +43,8 @@ class SearchResultsChannels extends StatefulWidget {
   /// Channels side by side (the tablet's Channels tab).
   final int columns;
 
-  /// The sides of the rows (a phone's gutter; none in a tablet column).
+  /// The sides of the rows (a phone's gutter, plus the window's side
+  /// insets; none in a tablet column, which is inset already).
   final double gutter;
 
   final GoToStyle goTo;
@@ -142,7 +143,15 @@ class _SearchResultsChannelsState extends State<SearchResultsChannels> {
     );
   }
 
-  EdgeInsets get _sides => EdgeInsets.symmetric(horizontal: widget.gutter);
+  EdgeInsets get _sides {
+    final gutter = widget.gutter;
+    if (gutter == 0) return EdgeInsets.zero;
+    final window = MediaQuery.paddingOf(context);
+    return EdgeInsets.only(
+      left: gutter + window.left,
+      right: gutter + window.right,
+    );
+  }
 
   Widget _skeleton() => Column(
     children: [

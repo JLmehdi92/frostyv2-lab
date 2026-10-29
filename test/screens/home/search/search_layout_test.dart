@@ -265,4 +265,31 @@ void main() {
     await settle(tester);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('results keep clear of a side cutout', (tester) async {
+    tester.view.padding = const FakeViewPadding(left: 48);
+    addTearDown(tester.view.resetPadding);
+    await pump(tester, size: const Size(844, 390));
+    await search(tester, 'chess');
+    expect(
+      tester.getTopLeft(find.byType(FeaturedChannelCard)).dx,
+      greaterThanOrEqualTo(48 + 16),
+    );
+    expect(
+      tester.getTopLeft(find.byType(SearchAvatar).at(1)).dx,
+      greaterThanOrEqualTo(48 + 16),
+    );
+    expect(
+      tester.getTopLeft(find.text('Channels').first).dx,
+      greaterThanOrEqualTo(48 + 16),
+    );
+
+    tester.view.physicalSize = const Size(1280, 854);
+    await settle(tester);
+    expect(
+      tester.getTopLeft(find.byType(FeaturedChannelCard)).dx,
+      greaterThanOrEqualTo(48 + 28),
+    );
+    expect(tester.takeException(), isNull);
+  });
 }

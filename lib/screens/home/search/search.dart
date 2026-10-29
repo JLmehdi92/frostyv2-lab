@@ -458,10 +458,10 @@ class _SearchState extends State<Search> {
     final colors = FeedColors.of(context);
     return [
       SliverPadding(
-        padding: const EdgeInsets.fromLTRB(
-          FrostySpacing.gutterTablet,
+        padding: EdgeInsets.fromLTRB(
+          FrostySpacing.gutterTablet + MediaQuery.paddingOf(context).left,
           28,
-          FrostySpacing.gutterTablet,
+          FrostySpacing.gutterTablet + MediaQuery.paddingOf(context).right,
           0,
         ),
         sliver: SliverToBoxAdapter(
@@ -479,7 +479,13 @@ class _SearchState extends State<Search> {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
-                  child: list,
+                  // The card is inset already: its rows are not again.
+                  child: MediaQuery.removePadding(
+                    context: context,
+                    removeLeft: true,
+                    removeRight: true,
+                    child: list,
+                  ),
                 ),
               ),
             ),
@@ -495,10 +501,22 @@ class _SearchState extends State<Search> {
     _SearchTab tab, {
     required double gutter,
     double top = 16,
-  }) => Padding(
-    padding: EdgeInsets.fromLTRB(gutter, top, math.max(0, gutter - 4), 8),
-    child: _SectionTitle(title: title, onSeeAll: () => _selectTab(tab)),
-  );
+  }) {
+    // A phone's titles keep clear of the window's side insets; a tablet's
+    // column is inset already.
+    final window = gutter == 0
+        ? EdgeInsets.zero
+        : MediaQuery.paddingOf(context);
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        gutter + window.left,
+        top,
+        math.max(0, gutter - 4) + window.right,
+        8,
+      ),
+      child: _SectionTitle(title: title, onSeeAll: () => _selectTab(tab)),
+    );
+  }
 
   List<Widget> _phoneResults(BuildContext context) {
     final query = _searchStore.searchText;
@@ -549,9 +567,23 @@ class _SearchState extends State<Search> {
     final query = _searchStore.searchText;
     final media = MediaQuery.of(context);
     final width = media.size.width - media.padding.horizontal - 2 * gutter;
-    Widget padded(Widget sliver, {double top = 20}) => SliverPadding(
-      padding: EdgeInsets.fromLTRB(gutter, top, gutter, 0),
-      sliver: sliver,
+    // The page's gutter and the window's side insets around the results,
+    // which then pad themselves with none.
+    Widget padded(Widget child, {double top = 20}) => SliverPadding(
+      padding: EdgeInsets.fromLTRB(
+        gutter + media.padding.left,
+        top,
+        gutter + media.padding.right,
+        0,
+      ),
+      sliver: SliverToBoxAdapter(
+        child: MediaQuery.removePadding(
+          context: context,
+          removeLeft: true,
+          removeRight: true,
+          child: child,
+        ),
+      ),
     );
     switch (_tab) {
       case _SearchTab.top:
@@ -622,32 +654,28 @@ class _SearchState extends State<Search> {
                   videos,
                 ],
               );
-        return [padded(SliverToBoxAdapter(child: top))];
+        return [padded(top)];
       case _SearchTab.channels:
         return [
           padded(
-            SliverToBoxAdapter(
-              child: SearchResultsChannels(
-                searchStore: _searchStore,
-                query: query,
-                large: true,
-                gutter: 0,
-                columns: math.max(1, math.min(3, (width + 24) ~/ (320 + 24))),
-                goTo: GoToStyle.pill,
-              ),
+            SearchResultsChannels(
+              searchStore: _searchStore,
+              query: query,
+              large: true,
+              gutter: 0,
+              columns: math.max(1, math.min(3, (width + 24) ~/ (320 + 24))),
+              goTo: GoToStyle.pill,
             ),
           ),
         ];
       case _SearchTab.categories:
         return [
           padded(
-            SliverToBoxAdapter(
-              child: SearchResultsCategories(
-                searchStore: _searchStore,
-                columns: math.max(3, math.min(8, (width + 18) ~/ (170 + 18))),
-                gap: 18,
-                rowGap: 22,
-              ),
+            SearchResultsCategories(
+              searchStore: _searchStore,
+              columns: math.max(3, math.min(8, (width + 18) ~/ (170 + 18))),
+              gap: 18,
+              rowGap: 22,
             ),
           ),
         ];
@@ -703,6 +731,7 @@ class _SearchField extends StatelessWidget {
                 child: Semantics(
                   button: true,
                   label: label,
+                  onTap: onClear,
                   excludeSemantics: true,
                   child: PressScale(
                     child: Material(
