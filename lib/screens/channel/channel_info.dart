@@ -396,8 +396,13 @@ class _FollowButton extends StatelessWidget {
     info.refresh();
   }
 
+  /// A login twitch.tv takes (the check of [twitchSubscribeUrl]): anything
+  /// else is never put in a URL.
+  static final _login = RegExp(r'^[a-z0-9_]{1,25}$');
+
   @override
   Widget build(BuildContext context) {
+    if (!_login.hasMatch(login.toLowerCase())) return const SizedBox.shrink();
     final colors = FeedColors.of(context);
     return ValueListenableBuilder<bool?>(
       valueListenable: info.following,

@@ -196,6 +196,30 @@ void main() {
       await done(tester);
     });
 
+    testWidgets('no Follow for a login twitch.tv would not take', (
+      tester,
+    ) async {
+      for (final login in ['a/b', 'evil.com', 'a' * 26, '']) {
+        await pump(
+          tester,
+          Column(
+            children: [
+              ChannelInfoRow(
+                player: FakePlayer(stream: fakeStream()),
+                login: login,
+                displayName: 'Streamer',
+                info: info,
+                viewerLogin: () => 'viewer',
+                onOpenProfile: () {},
+              ),
+            ],
+          ),
+        );
+        expect(find.text('Follow'), findsNothing, reason: login);
+      }
+      await done(tester);
+    });
+
     testWidgets('offline, it says so', (tester) async {
       await pump(tester, row(FakePlayer(offline: fakeOfflineChannel)));
       expect(tester.takeException(), isNull);
