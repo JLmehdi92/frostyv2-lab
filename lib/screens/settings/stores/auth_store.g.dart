@@ -35,6 +35,26 @@ mixin _$AuthStore on AuthBase, Store {
     });
   }
 
+  late final _$_tokenClientIdAtom = Atom(
+    name: 'AuthBase._tokenClientId',
+    context: context,
+  );
+
+  String? get tokenClientId {
+    _$_tokenClientIdAtom.reportRead();
+    return super._tokenClientId;
+  }
+
+  @override
+  String? get _tokenClientId => tokenClientId;
+
+  @override
+  set _tokenClientId(String? value) {
+    _$_tokenClientIdAtom.reportWrite(value, super._tokenClientId, () {
+      super._tokenClientId = value;
+    });
+  }
+
   late final _$_isLoggedInAtom = Atom(
     name: 'AuthBase._isLoggedIn',
     context: context,

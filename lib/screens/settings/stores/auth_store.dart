@@ -102,6 +102,12 @@ abstract class AuthBase with Store {
   @readonly
   String? _token;
 
+  /// The app [_token] was issued to when it is not this one (a token the
+  /// viewer brought from another tool): Helix only takes a token with its
+  /// own app's Client-Id. Null for this app's tokens.
+  @readonly
+  String? _tokenClientId;
+
   /// Whether the user is logged in or not.
   @readonly
   var _isLoggedIn = false;
@@ -395,7 +401,7 @@ abstract class AuthBase with Store {
   @computed
   Map<String, String> get headersTwitch => {
     'Authorization': 'Bearer $_token',
-    'Client-Id': clientId,
+    'Client-Id': _tokenClientId ?? clientId,
   };
 
   /// Error flag that will be non-null and contain an error message if login failed.
@@ -814,7 +820,8 @@ abstract class AuthBase with Store {
         final TokenCheck check;
         try {
           check = await twitchApi.checkToken(token: _token!);
-          _tokenIsValid = check != TokenCheck.invalid;
+          _tokenIsValid = !check.isInvalid;
+          _tokenClientId = check.clientId;
         } on ApiException catch (e) {
           debugPrint('Token validation failed: $e');
           _isLoggedIn = false;
@@ -833,9 +840,7 @@ abstract class AuthBase with Store {
           _isLoggedIn = true;
           _stopReconnectLoop();
           await _rememberUser(user.details!.id);
-          if (check == TokenCheck.foreign) {
-            await _noticeForeignToken(user.details!.id);
-          }
+          if (check.isForeign) await _noticeForeignToken(user.details!.id);
 
           // Keep the 2K credential fresh on every launch, but only once we
           // know there is a session to refresh — running this while logged out
@@ -899,14 +904,17 @@ abstract class AuthBase with Store {
       final TokenCheck check;
       if (acceptAnyApp) {
         check = await twitchApi.checkToken(token: token);
-        if (check == TokenCheck.invalid) return;
+        if (check.isInvalid) return;
       } else {
         if (!await twitchApi.validateToken(token: token)) return;
         check = TokenCheck.valid;
       }
 
-      // The token's user, read with that token.
-      final details = await twitchApi.getUserInfo(token: token);
+      // The token's user, read with that token (and its app's Client-Id).
+      final foreignClient = check.clientId;
+      final details = foreignClient == null
+          ? await twitchApi.getUserInfo(token: token)
+          : await twitchApi.getUserInfo(token: token, clientId: foreignClient);
 
       await _exclusive(() async {
         // A later login or a logout came meanwhile: it wins.
@@ -938,6 +946,7 @@ abstract class AuthBase with Store {
           _twitchWebToken = null;
         }
         _token = token;
+        _tokenClientId = foreignClient;
         _tokenIsValid = true;
         await user.init(details: details);
         _isLoggedIn = true;
@@ -951,9 +960,7 @@ abstract class AuthBase with Store {
         }
         _stopReconnectLoop();
         if (switching && _isAndroid) unawaited(harvestTwitchWebToken());
-        if (check == TokenCheck.foreign) {
-          await _noticeForeignToken(details.id);
-        }
+        if (check.isForeign) await _noticeForeignToken(details.id);
       });
     } catch (e) {
       debugPrint('Login failed: ${e.runtimeType}');
@@ -999,6 +1006,7 @@ abstract class AuthBase with Store {
       await _storage.delete(key: _userTokenKey);
       await _storage.delete(key: _userIdKey);
       _token = null;
+      _tokenClientId = null;
 
       // Clear the user info.
       user.dispose();
@@ -1132,7 +1140,7 @@ abstract class AuthBase with Store {
 
         // Any token Twitch accepts, as at launch.
         final check = await twitchApi.checkToken(token: stored);
-        if (check == TokenCheck.invalid) {
+        if (check.isInvalid) {
           await _logoutFromReconnect(generation, epoch, stored);
           return;
         }
@@ -1146,15 +1154,14 @@ abstract class AuthBase with Store {
             return;
           }
           _token = stored;
+          _tokenClientId = check.clientId;
           await user.init();
           if (user.details != null) {
             _isLoggedIn = true;
             _error = null;
             _stopReconnectLoop();
             await _rememberUser(user.details!.id);
-            if (check == TokenCheck.foreign) {
-              await _noticeForeignToken(user.details!.id);
-            }
+            if (check.isForeign) await _noticeForeignToken(user.details!.id);
           }
         });
       } on ApiException catch (_) {

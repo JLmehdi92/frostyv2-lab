@@ -32,7 +32,7 @@ void main() {
     );
     when(() => api.checkToken(token: any(named: 'token'))).thenAnswer(
       (invocation) async => invocation.namedArguments[#token] == 'foreign'
-          ? TokenCheck.foreign
+          ? const TokenCheck.foreign('other_app')
           : TokenCheck.valid,
     );
     when(
@@ -40,6 +40,12 @@ void main() {
     ).thenAnswer((_) async => const UserTwitch('1', 'viewer', 'Viewer', ''));
     when(
       () => api.getUserInfo(),
+    ).thenAnswer((_) async => const UserTwitch('1', 'viewer', 'Viewer', ''));
+    when(
+      () => api.getUserInfo(
+        token: any(named: 'token'),
+        clientId: any(named: 'clientId'),
+      ),
     ).thenAnswer((_) async => const UserTwitch('1', 'viewer', 'Viewer', ''));
     when(
       () => api.getUserBlockedList(id: any(named: 'id')),
@@ -66,6 +72,8 @@ void main() {
 
     expect(store.isLoggedIn, isTrue);
     expect(store.tokenNotice, AuthBase.foreignTokenNotice);
+    // Helix takes the token with its own app's Client-Id.
+    expect(store.headersTwitch['Client-Id'], 'other_app');
     expect(
       await const FlutterSecureStorage().read(key: 'user_token'),
       'foreign',
@@ -89,6 +97,7 @@ void main() {
     await store.init();
     expect(store.isLoggedIn, isTrue);
     expect(store.tokenNotice, isNull);
+    expect(store.headersTwitch['Client-Id'], isNot('other_app'));
   });
 
   test('a pasted token of another app logs in, with the notice', () async {
@@ -99,10 +108,19 @@ void main() {
 
     expect(store.isLoggedIn, isTrue);
     expect(store.tokenNotice, AuthBase.foreignTokenNotice);
+    // Its user was read, and Helix is then asked, with its app's Client-Id.
+    verify(
+      () => api.getUserInfo(token: 'foreign', clientId: 'other_app'),
+    ).called(1);
+    expect(store.headersTwitch['Client-Id'], 'other_app');
     expect(
       await const FlutterSecureStorage().read(key: 'user_token'),
       'foreign',
     );
+
+    // Logging out: the app's own Client-Id again.
+    await store.logout();
+    expect(store.headersTwitch['Client-Id'], isNot('other_app'));
   });
 
   test("the login page still refuses another app's token", () async {

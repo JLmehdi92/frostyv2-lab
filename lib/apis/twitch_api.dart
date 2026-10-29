@@ -68,17 +68,45 @@ class CreatedClip {
   final String? thumbnailUrl;
 }
 
-/// What Twitch says of a token ([TwitchApi.checkToken]).
-enum TokenCheck {
-  /// Valid, issued to this app.
-  valid,
+/// What Twitch says of a token ([TwitchApi.checkToken]): valid and issued to
+/// this app, valid but issued to another app ([clientId], that app's), or
+/// refused (expired, revoked).
+@immutable
+class TokenCheck {
+  const TokenCheck._(this._kind, [this.clientId]);
 
-  /// Valid, but issued to another app.
-  foreign,
+  /// Valid, issued to this app.
+  static const valid = TokenCheck._(_TokenKind.valid);
 
   /// Refused: expired or revoked.
-  invalid,
+  static const invalid = TokenCheck._(_TokenKind.invalid);
+
+  /// Valid, but issued to the app [clientId] (null when Twitch did not say).
+  const TokenCheck.foreign([String? clientId])
+    : this._(_TokenKind.foreign, clientId);
+
+  final _TokenKind _kind;
+
+  /// The app a foreign token was issued to: Helix only takes the token with
+  /// that app's Client-Id.
+  final String? clientId;
+
+  bool get isValid => _kind == _TokenKind.valid;
+  bool get isForeign => _kind == _TokenKind.foreign;
+  bool get isInvalid => _kind == _TokenKind.invalid;
+
+  @override
+  bool operator ==(Object other) =>
+      other is TokenCheck && other._kind == _kind && other.clientId == clientId;
+
+  @override
+  int get hashCode => Object.hash(_kind, clientId);
+
+  @override
+  String toString() => 'TokenCheck.${_kind.name}';
 }
+
+enum _TokenKind { valid, foreign, invalid }
 
 /// The Twitch service for making API calls.
 class TwitchApi extends BaseApiClient {
@@ -95,6 +123,9 @@ class TwitchApi extends BaseApiClient {
       super(dio, _helixBaseUrl);
 
   final String _appClientId;
+
+  /// What a Twitch client id looks like (it is sent back as a header).
+  static final _clientIdPattern = RegExp(r'^[A-Za-z0-9_-]{1,64}$');
 
   /// Returns a list of all Twitch global emotes.
   Future<List<Emote>> getEmotesGlobal() async {
@@ -243,10 +274,17 @@ class TwitchApi extends BaseApiClient {
   ///
   /// [token]: the user of that token instead of the session's (a login page
   /// checks its new token before it becomes the session), quietly.
-  Future<UserTwitch> getUserInfo({String? token}) async {
+  ///
+  /// [clientId]: the app [token] was issued to, when it is not this one.
+  Future<UserTwitch> getUserInfo({String? token, String? clientId}) async {
     final data = await get<JsonMap>(
       '/users',
-      headers: token == null ? null : {'Authorization': 'Bearer $token'},
+      headers: token == null
+          ? null
+          : {
+              'Authorization': 'Bearer $token',
+              'Client-Id': ?clientId,
+            },
       extra: token == null ? null : {UnauthorizedInterceptor.quiet: true},
     );
 
@@ -286,10 +324,8 @@ class TwitchApi extends BaseApiClient {
   /// someone else's account.
   Future<bool> validateToken({required String token}) async {
     final check = await checkToken(token: token);
-    if (check == TokenCheck.foreign) {
-      debugPrint('Token validation: issued to another app.');
-    }
-    return check == TokenCheck.valid;
+    if (check.isForeign) debugPrint('Token validation: issued to another app.');
+    return check.isValid;
   }
 
   /// What Twitch says of [token]: valid and issued to this app, valid but
@@ -301,11 +337,19 @@ class TwitchApi extends BaseApiClient {
       final data = await get<JsonMap>(
         '$_oauthBaseUrl/validate',
         headers: {'Authorization': 'Bearer $token'},
+        // The token alone: the session's Client-Id beside another app's
+        // token is not what Twitch is asked about.
+        extra: {TwitchAuthInterceptor.noSessionHeaders: true},
       );
       final issuedTo = data['client_id'];
-      return issuedTo is String && issuedTo == _appClientId
-          ? TokenCheck.valid
-          : TokenCheck.foreign;
+      if (issuedTo is String && issuedTo == _appClientId) {
+        return TokenCheck.valid;
+      }
+      return TokenCheck.foreign(
+        issuedTo is String && _clientIdPattern.hasMatch(issuedTo)
+            ? issuedTo
+            : null,
+      );
     } on UnauthorizedException {
       // 401 -> token is invalid/expired (propagated from interceptor for validate requests)
       return TokenCheck.invalid;

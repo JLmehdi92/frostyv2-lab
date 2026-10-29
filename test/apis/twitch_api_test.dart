@@ -426,7 +426,10 @@ void main() {
             'client_id': 'someone_elses_app',
           }),
         );
-        expect(await api.checkToken(token: 'theirs'), TokenCheck.foreign);
+        expect(
+          await api.checkToken(token: 'theirs'),
+          const TokenCheck.foreign('someone_elses_app'),
+        );
         // The strict check (the login page's) still refuses it.
         expect(await api.validateToken(token: 'theirs'), isFalse);
       },
