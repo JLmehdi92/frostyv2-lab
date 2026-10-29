@@ -118,6 +118,12 @@ abstract class AuthBase with Store {
   /// can tell its result belongs to a session that no longer exists.
   var _authEpoch = 0;
 
+  /// Bumped when a logout starts and again when it ends: a harvest checks
+  /// it around its write, so nothing it read while the session was ending
+  /// stays stored after. Logins never look at it (one may start during a
+  /// slow logout and must still commit after it).
+  var _webSessionEpoch = 0;
+
   /// Whether the cookie jar can be read at all — only Android has the native
   /// channel. Off Android a jar miss says nothing about a token the user
   /// pasted by hand, so it must never mark the session expired.
@@ -140,6 +146,7 @@ abstract class AuthBase with Store {
   @action
   Future<bool> harvestTwitchWebToken() async {
     final epoch = _authEpoch;
+    final webEpoch = _webSessionEpoch;
     final harvested = await _webTokenService.readAuthToken();
 
     // Signed out while reading: the jar it read belonged to the session that
@@ -162,13 +169,16 @@ abstract class AuthBase with Store {
     // The jar is shared by every login page: it may hold the cookie of an
     // account that is not the session's (a login that failed after Twitch
     // signed its page in). Only a cookie of the logged-in account is kept.
-    if (!await _isSessionAccounts(harvested, epoch)) return false;
+    if (!await _isSessionAccounts(harvested, epoch) ||
+        webEpoch != _webSessionEpoch) {
+      return false;
+    }
 
     _webSessionExpired = false;
     await setTwitchWebToken(harvested);
     // A logout (or a switch) came during the write: what was just written
     // belongs to a session that is gone.
-    if (epoch != _authEpoch) {
+    if (epoch != _authEpoch || webEpoch != _webSessionEpoch) {
       if (_twitchWebToken == harvested) _twitchWebToken = null;
       try {
         await _storage.delete(key: _twitchWebTokenKey);
@@ -919,6 +929,7 @@ abstract class AuthBase with Store {
     // flight must not store the session being ended, and the twitch.tv
     // session must go even if reading the user token below fails.
     _authEpoch++;
+    _webSessionEpoch++;
     _stopReconnectLoop();
     await _exclusive(_endSession);
   }
@@ -960,7 +971,7 @@ abstract class AuthBase with Store {
     } finally {
       // Again at the end: a harvest that read the jar while the session was
       // ending must not store it now that it is gone.
-      _authEpoch++;
+      _webSessionEpoch++;
     }
   }
 
@@ -993,20 +1004,23 @@ abstract class AuthBase with Store {
 
   /// Clears the jar after a login page's login failed, only when its
   /// twitch.tv session is another account's than the session's: never the
-  /// session account's own (a failed re-login for a new scope), never while
+  /// session account's own (a failed re-login for a new scope), never when
+  /// nobody is logged in, never while
   /// a newer login runs (it may be that cookie's), never when Twitch cannot
   /// tell whose it is (the harvest check keeps it out of the session anyway).
   /// The WebView API can only clear every cookie, so the condition is
   /// strict.
   Future<void> _clearJarIfForeign() async {
     try {
-      if (_loginsInFlight > 0) return;
+      // Logged out, there is nothing to protect, and the jar may hold the
+      // user's fresh twitch.tv sign-in.
+      if (_loginsInFlight > 0 || !_isLoggedIn || user.details == null) return;
       final cookie = await _webTokenService.readAuthToken();
       if (cookie == null) return;
       final owner = await twitchApi.tokenUserId(cookie);
       if (owner == null || _loginsInFlight > 0) return;
       final account = _isLoggedIn ? user.details?.id : null;
-      if (owner == account) return;
+      if (account == null || owner == account) return;
       await _clearJar();
     } catch (e) {
       debugPrint('Checking the login page cookie failed: ${e.runtimeType}');
@@ -1119,6 +1133,7 @@ abstract class AuthBase with Store {
       return;
     }
     _authEpoch++;
+    _webSessionEpoch++;
     _stopReconnectLoop();
     await _endSession();
   });

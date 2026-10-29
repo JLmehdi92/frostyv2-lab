@@ -284,6 +284,38 @@ void main() {
       },
     );
 
+    test('logged out, a failed login never clears the jar (nothing to '
+        'protect; it may hold a fresh twitch.tv sign-in)', () async {
+      final store = build();
+      when(
+        () => api.getUserInfo(token: 'user_2'),
+      ).thenThrow(Exception('offline'));
+      jar = 'web_of_viewer_2';
+      await failedLoginPage(store);
+      verifyNever(() => cookies.clearCookies());
+      expect(store.twitchWebToken, isNull);
+    });
+
+    test('a harvest that starts during a slow logout stores nothing', () async {
+      final store = await withStoredToken('web_of_viewer_1');
+      final clearing = Completer<void>();
+      when(() => cookies.clearCookies()).thenAnswer((_) => clearing.future);
+      final owner = Completer<String?>();
+      when(() => api.tokenUserId(any())).thenAnswer((_) => owner.future);
+      jar = 'fresh_web_token';
+      final logout = store.logout();
+      await pumpEventQueue();
+      final harvest = store.harvestTwitchWebToken();
+      await pumpEventQueue();
+      clearing.complete();
+      await logout;
+      owner.complete('1');
+      await harvest;
+      await pumpEventQueue();
+      expect(store.twitchWebToken, isNull);
+      expect(await _storage.read(key: 'twitch_web_token'), isNull);
+    });
+
     test('a jar whose owner Twitch cannot tell is kept', () async {
       final store = await withStoredToken('web_of_viewer_1');
       when(
@@ -346,6 +378,30 @@ void main() {
       expect(store.headersTwitch['Authorization'], 'Bearer the_default_token');
       expect(await _storage.read(key: 'user_token'), isNull);
     });
+
+    test(
+      'a login started during a slow logout still commits after it',
+      () async {
+        final store = await withStoredToken('web_of_viewer_1');
+        final clearing = Completer<void>();
+        when(() => cookies.clearCookies()).thenAnswer((_) => clearing.future);
+        when(
+          () => api.getUserInfo(token: 'user_2'),
+        ).thenAnswer((_) async => const UserTwitch('2', 'other', 'Other', ''));
+        final logout = store.logout();
+        await pumpEventQueue();
+        final login = store.login(token: 'user_2');
+        await pumpEventQueue();
+        clearing.complete();
+        await logout;
+        await login;
+
+        expect(store.isLoggedIn, isTrue);
+        expect(store.headersTwitch['Authorization'], 'Bearer user_2');
+        expect(store.user.details?.id, '2');
+        expect(await _storage.read(key: 'user_token'), 'user_2');
+      },
+    );
 
     test('two logins at once: the newest wins, the older one finishing '
         'touches nothing', () async {
