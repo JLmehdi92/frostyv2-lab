@@ -4,6 +4,7 @@ import 'dart:ui' show lerpDouble;
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_performance/firebase_performance.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -66,8 +67,15 @@ enum OnboardingStep {
   };
 }
 
-/// Turns the Firebase collection on or off, as the setting says.
-void setFirebaseCollection(bool enabled) {
+/// Whether Firebase collects, for the "Share crash logs and analytics"
+/// setting [shared]: never in a debug build (as `main.dart` sets it), so
+/// development never pollutes the data.
+bool firebaseCollectionFor(bool shared) => shared && !kDebugMode;
+
+/// Turns the Firebase collection on or off, as the setting says (see
+/// [firebaseCollectionFor]).
+void setFirebaseCollection(bool shared) {
+  final enabled = firebaseCollectionFor(shared);
   FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(enabled);
   FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(enabled);
   FirebasePerformance.instance.setPerformanceCollectionEnabled(enabled);
@@ -195,15 +203,46 @@ class _OnboardingFlowState extends State<OnboardingFlow>
     final phone = !isLargeScreenSize(MediaQuery.sizeOf(context));
     if (phone != _phone) {
       _phone = phone;
-      SystemChrome.setPreferredOrientations(
-        phone
-            ? const [
-                DeviceOrientation.portraitUp,
-                DeviceOrientation.portraitDown,
-              ]
-            : const [],
-      );
+      _holdOrientation();
     }
+    final covered = ModalRoute.of(context)?.secondaryAnimation;
+    if (covered != _covered) {
+      _covered?.removeStatusListener(_onCovered);
+      _covered = covered?..addStatusListener(_onCovered);
+    }
+  }
+
+  /// What the page above the onboarding does (a deep-linked channel), seen
+  /// from below: its animation over this route.
+  Animation<double>? _covered;
+
+  /// A page over the onboarding (a deep-linked player) may have turned the
+  /// orientation free when it closed: once the onboarding shows again, a
+  /// phone is held in portrait again. After the next frames, because that
+  /// page lets the orientation go when it is disposed, which comes after
+  /// its closing animation.
+  void _onCovered(AnimationStatus status) {
+    if (status != AnimationStatus.dismissed) return;
+    WidgetsBinding.instance
+      ..addPostFrameCallback((_) {
+        WidgetsBinding.instance
+          ..addPostFrameCallback((_) {
+            if (mounted && ModalRoute.of(context)?.isCurrent == true) {
+              _holdOrientation();
+            }
+          })
+          ..ensureVisualUpdate();
+      })
+      ..ensureVisualUpdate();
+  }
+
+  /// A phone is held in portrait, a tablet turns freely.
+  void _holdOrientation() {
+    SystemChrome.setPreferredOrientations(
+      _phone ?? true
+          ? const [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]
+          : const [],
+    );
   }
 
   void _onIntro() {
@@ -238,7 +277,8 @@ class _OnboardingFlowState extends State<OnboardingFlow>
     try {
       final load =
           widget.loadLiveStreams ??
-          () async => (await context.read<TwitchApi>().getTopStreams()).data;
+          () async =>
+              (await context.read<TwitchApi>().getTopStreams(quiet: true)).data;
       final streams = await load();
       if (!mounted || streams.isEmpty) return;
       setState(() => _streams = streams.take(24).toList());
@@ -251,6 +291,7 @@ class _OnboardingFlowState extends State<OnboardingFlow>
   @override
   void dispose() {
     LaunchIntro.running.removeListener(_onIntro);
+    _covered?.removeStatusListener(_onCovered);
     _switch.dispose();
     _hand.dispose();
     SystemChrome.setPreferredOrientations(const []);
@@ -312,6 +353,9 @@ class _OnboardingFlowState extends State<OnboardingFlow>
     // for it) in case that write failed.
     unawaited(_markFirstRunDone());
 
+    // The onboarding's own route is swapped for the app, in place: a page
+    // opened over it meanwhile (a link) stays on top.
+    final route = ModalRoute.of(context);
     final played = LaunchIntro.land(
       from: Rect.fromCenter(
         center: geometry.tileCenter,
@@ -319,14 +363,18 @@ class _OnboardingFlowState extends State<OnboardingFlow>
         height: OnsetMark.designSize,
       ),
       appear: !geometry.tablet,
-      onCovered: () => navigator.pushAndRemoveUntil(
-        PageRouteBuilder<void>(
+      onCovered: () {
+        final next = PageRouteBuilder<void>(
           transitionDuration: Duration.zero,
           reverseTransitionDuration: Duration.zero,
           pageBuilder: (context, _, _) => home(context),
-        ),
-        (_) => false,
-      ),
+        );
+        if (route != null && route.isActive) {
+          navigator.replace(oldRoute: route, newRoute: next);
+        } else {
+          navigator.pushAndRemoveUntil(next, (_) => false);
+        }
+      },
     );
     if (played) return;
     final fade = motionDuration(context, const Duration(milliseconds: 280));

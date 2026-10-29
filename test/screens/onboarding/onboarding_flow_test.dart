@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/models/stream.dart';
 import 'package:frosty/models/user.dart';
 import 'package:frosty/screens/onboarding/onboarding_flow.dart';
@@ -20,6 +21,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MockUserStore extends Mock implements UserStore {}
+
+class MockTwitchApi extends Mock implements TwitchApi {}
 
 class FakeAuthStore extends Mock implements AuthStore {
   FakeAuthStore({bool loggedIn = false}) : _loggedIn = Observable(loggedIn) {
@@ -99,6 +102,7 @@ void main() {
     bool intro = false,
     bool holdOnName = false,
     bool reduceMotion = false,
+    GlobalKey<NavigatorState>? navigatorKey,
   }) async {
     tester.view
       ..physicalSize = size
@@ -131,6 +135,7 @@ void main() {
           Provider<SettingsStore>.value(value: settings),
         ],
         child: MaterialApp(
+          navigatorKey: navigatorKey,
           navigatorObservers: [LaunchIntro.navigatorObserver],
           builder: (context, child) =>
               LaunchIntro(play: intro, holdOnName: holdOnName, child: child!),
@@ -431,6 +436,41 @@ void main() {
       });
     }
 
+    test('a debug build never collects, whatever the switch says', () {
+      // Tests run in debug mode.
+      expect(firebaseCollectionFor(true), isFalse);
+      expect(firebaseCollectionFor(false), isFalse);
+    });
+
+    testWidgets('the live pictures are asked quietly (no "Session expired" '
+        'over the onboarding)', (tester) async {
+      final api = MockTwitchApi();
+      when(
+        () => api.getTopStreams(quiet: any(named: 'quiet')),
+      ).thenAnswer((_) async => const StreamsTwitch([], {}));
+      tester.view
+        ..physicalSize = _phone
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<AuthStore>.value(value: auth),
+            Provider<SettingsStore>.value(value: settings),
+            Provider<TwitchApi>.value(value: api),
+          ],
+          child: MaterialApp(
+            home: OnboardingFlow(
+              loginPanelBuilder: (_, _, _) => const SizedBox(),
+              onShareCrashLogsChanged: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      verify(() => api.getTopStreams(quiet: true)).called(1);
+    });
+
     testWidgets('history and crash reports switch', (tester) async {
       await pump(tester);
       await toSetup(tester);
@@ -481,6 +521,31 @@ void main() {
       expect(find.byType(OnboardingFlow), findsNothing);
     });
 
+    testWidgets('a link opening during the landing stays on top of the app', (
+      tester,
+    ) async {
+      final navigator = GlobalKey<NavigatorState>();
+      await pump(tester, navigatorKey: navigator);
+      await toSetup(tester);
+      await tapText(tester, 'Next');
+      await tester.tap(find.text('Let’s go!'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 60));
+      navigator.currentState!.push(
+        MaterialPageRoute<void>(
+          builder: (_) => const Scaffold(body: Text('link')),
+        ),
+      );
+      await tester.pump();
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.text('link'), findsOneWidget);
+      expect(find.byType(OnboardingFlow), findsNothing);
+      navigator.currentState!.pop();
+      await tester.pumpAndSettle();
+      expect(find.text('home'), findsOneWidget);
+    });
+
     testWidgets('reduce motion: no flight, a short fade to the app', (
       tester,
     ) async {
@@ -508,6 +573,27 @@ void main() {
       await pump(tester, size: _tablet);
       expect(orientations.isEmpty || orientations.last.isEmpty, isTrue);
     });
+  });
+
+  testWidgets('a deep-linked page that frees the orientation as it closes: '
+      'back on the onboarding, a phone is held in portrait again', (
+    tester,
+  ) async {
+    final navigator = GlobalKey<NavigatorState>();
+    await pump(tester, navigatorKey: navigator);
+    await settle(tester);
+    navigator.currentState!.push(
+      MaterialPageRoute<void>(builder: (_) => const _FreesOrientation()),
+    );
+    await settle(tester);
+    navigator.currentState!.pop();
+    await settle(tester);
+    expect(orientations.last, [
+      'DeviceOrientation.portraitUp',
+      'DeviceOrientation.portraitDown',
+    ]);
+    // It was freed on the way (the page's own reset), then held again.
+    expect(orientations.where((o) => o.isEmpty), isNotEmpty);
   });
 
   group('after the launch intro', () {
@@ -575,4 +661,23 @@ void main() {
 
 extension<T> on T {
   R let<R>(R Function(T) f) => f(this);
+}
+
+/// Lets the orientation go when it is disposed, as the channel screen does.
+class _FreesOrientation extends StatefulWidget {
+  const _FreesOrientation();
+
+  @override
+  State<_FreesOrientation> createState() => _FreesOrientationState();
+}
+
+class _FreesOrientationState extends State<_FreesOrientation> {
+  @override
+  void dispose() {
+    SystemChrome.setPreferredOrientations([]);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => const Scaffold(body: Text('player'));
 }
