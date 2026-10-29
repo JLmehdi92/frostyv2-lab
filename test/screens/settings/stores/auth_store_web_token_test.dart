@@ -169,7 +169,9 @@ void main() {
       expect(await _storage.read(key: 'twitch_web_token'), 'web_of_viewer_1');
       expect(store.user.details?.id, '1');
       expect(store.isLoggedIn, isTrue);
-      verifyNever(() => cookies.readAuthToken());
+      // B's cookie was only read to see whose it is (and dropped: it is not
+      // A's), never kept.
+      verify(() => cookies.clearCookies()).called(1);
     });
 
     test(
@@ -187,7 +189,7 @@ void main() {
         expect(store.headersTwitch['Authorization'], 'Bearer user');
         expect(await _storage.read(key: 'user_token'), 'user');
         expect(store.twitchWebToken, 'web_of_viewer_1');
-        verifyNever(() => cookies.readAuthToken());
+        expect(await _storage.read(key: 'twitch_web_token'), 'web_of_viewer_1');
       },
     );
 
@@ -267,6 +269,49 @@ void main() {
       verify(() => cookies.clearCookies()).called(1);
     });
 
+    test(
+      "the jar still holding the session account's own cookie is kept",
+      () async {
+        final store = await withStoredToken('web_of_viewer_1');
+        when(
+          () => api.getUserInfo(token: 'user_2'),
+        ).thenThrow(Exception('offline'));
+        // A re-login as A that failed: the jar is still A's.
+        jar = 'web_of_viewer_1';
+        clearInteractions(cookies);
+        await failedLoginPage(store);
+        verifyNever(() => cookies.clearCookies());
+      },
+    );
+
+    test('a jar whose owner Twitch cannot tell is kept', () async {
+      final store = await withStoredToken('web_of_viewer_1');
+      when(
+        () => api.getUserInfo(token: 'user_2'),
+      ).thenThrow(Exception('offline'));
+      jar = 'web_of_viewer_2';
+      when(() => api.tokenUserId(any())).thenThrow(Exception('offline'));
+      clearInteractions(cookies);
+      await failedLoginPage(store);
+      verifyNever(() => cookies.clearCookies());
+    });
+
+    test('a harvest that a logout overtakes stores nothing', () async {
+      final store = await withStoredToken('web_of_viewer_1');
+      await store.setTwitchWebToken(null);
+      jar = 'fresh_web_token';
+      final owner = Completer<String?>();
+      when(() => api.tokenUserId(any())).thenAnswer((_) => owner.future);
+      final harvest = store.harvestTwitchWebToken();
+      await pumpEventQueue();
+      await store.logout();
+      owner.complete('1');
+      await harvest;
+      await pumpEventQueue();
+      expect(store.twitchWebToken, isNull);
+      expect(await _storage.read(key: 'twitch_web_token'), isNull);
+    });
+
     test('a jar token that cannot be checked is not stored', () async {
       final store = await withStoredToken('web_of_viewer_1');
       jar = 'fresh_web_token';
@@ -325,6 +370,51 @@ void main() {
       expect(store.headersTwitch['Authorization'], 'Bearer user_3');
       expect(store.user.details?.id, '3');
       expect(await _storage.read(key: 'user_token'), 'user_3');
+    });
+
+    test('a reconnect tick from before a login never logs the new session '
+        'out', () {
+      fakeAsync((async) {
+        FlutterSecureStorage.setMockInitialValues({
+          'default_token': 'the_default_token',
+          'user_token': 'user',
+        });
+        when(
+          () => api.validateToken(token: 'user'),
+        ).thenThrow(const NetworkException('offline'));
+        final store = build();
+        store.init();
+        async.flushMicrotasks();
+
+        // The next tick checks the old token: Twitch answers late.
+        final verdict = Completer<bool>();
+        when(
+          () => api.validateToken(token: 'user'),
+        ).thenAnswer((_) => verdict.future);
+        async.elapse(const Duration(seconds: 10));
+        async.flushMicrotasks();
+
+        // Meanwhile a login commits.
+        when(
+          () => api.getUserInfo(token: 'user_2'),
+        ).thenAnswer((_) async => const UserTwitch('2', 'other', 'Other', ''));
+        store.login(token: 'user_2');
+        async.flushMicrotasks();
+        expect(store.headersTwitch['Authorization'], 'Bearer user_2');
+
+        // The old token turns out dead: that says nothing of the new one.
+        verdict.complete(false);
+        async.flushMicrotasks();
+        async.elapse(const Duration(seconds: 1));
+
+        expect(store.isLoggedIn, isTrue);
+        expect(store.headersTwitch['Authorization'], 'Bearer user_2');
+        verifyNever(() => api.revokeToken(token: 'user_2'));
+        String? saved;
+        _storage.read(key: 'user_token').then((value) => saved = value);
+        async.flushMicrotasks();
+        expect(saved, 'user_2');
+      });
     });
 
     test('the reconnect loop waits while a login is in flight', () {

@@ -22,9 +22,7 @@ void main() {
 
   group('TwitchAuthInterceptor', () {
     test('adds headers for Twitch Helix API requests', () {
-      final options = RequestOptions(
-        path: 'https://api.twitch.tv/helix/users',
-      );
+      final options = RequestOptions(path: 'https://api.twitch.tv/helix/users');
 
       final handler = RequestInterceptorHandler();
 
@@ -58,6 +56,20 @@ void main() {
 
       expect(options.headers['Authorization'], 'Bearer other_token');
       expect(options.headers['Client-Id'], 'test_client_id');
+    });
+
+    test('a request asking for none gets none (a twitch.tv web token is '
+        "another app's: the app's Client-Id must not ride along)", () {
+      final options = RequestOptions(
+        path: 'https://id.twitch.tv/oauth2/validate',
+        headers: {'Authorization': 'OAuth web_token'},
+        extra: {TwitchAuthInterceptor.noSessionHeaders: true},
+      );
+
+      interceptor.onRequest(options, RequestInterceptorHandler());
+
+      expect(options.headers['Authorization'], 'OAuth web_token');
+      expect(options.headers.containsKey('Client-Id'), isFalse);
     });
 
     test('does not add headers for BTTV API requests', () {
@@ -95,9 +107,7 @@ void main() {
     });
 
     test('does not add headers for other URLs', () {
-      final options = RequestOptions(
-        path: 'https://example.com/api/data',
-      );
+      final options = RequestOptions(path: 'https://example.com/api/data');
 
       final handler = RequestInterceptorHandler();
       interceptor.onRequest(options, handler);

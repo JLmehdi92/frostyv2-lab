@@ -166,6 +166,17 @@ abstract class AuthBase with Store {
 
     _webSessionExpired = false;
     await setTwitchWebToken(harvested);
+    // A logout (or a switch) came during the write: what was just written
+    // belongs to a session that is gone.
+    if (epoch != _authEpoch) {
+      if (_twitchWebToken == harvested) _twitchWebToken = null;
+      try {
+        await _storage.delete(key: _twitchWebTokenKey);
+      } catch (e) {
+        debugPrint('Dropping a stale web token failed: ${e.runtimeType}');
+      }
+      return false;
+    }
     debugPrint('Harvested a fresh twitch.tv web token from the cookie jar.');
     return true;
   }
@@ -430,9 +441,9 @@ abstract class AuthBase with Store {
           outcome
               .then((worked) async {
                 if (worked) return harvestTwitchWebToken();
-                // The page signed the shared jar in as an account that is
-                // not the session's: its twitch.tv session goes.
-                await _clearJar();
+                // The page may have signed the shared jar in as an account
+                // that is not the session's: then its twitch.tv session goes.
+                await _clearJarIfForeign();
                 return false;
               })
               .catchError((Object _) => false),
@@ -946,6 +957,10 @@ abstract class AuthBase with Store {
       debugPrint('Successfully logged out');
     } catch (e) {
       debugPrint(e.toString());
+    } finally {
+      // Again at the end: a harvest that read the jar while the session was
+      // ending must not store it now that it is gone.
+      _authEpoch++;
     }
   }
 
@@ -973,6 +988,28 @@ abstract class AuthBase with Store {
       await _storage.delete(key: _twitchWebTokenKey);
     } catch (e) {
       debugPrint('Forgetting the web token failed: ${e.runtimeType}');
+    }
+  }
+
+  /// Clears the jar after a login page's login failed, only when its
+  /// twitch.tv session is another account's than the session's: never the
+  /// session account's own (a failed re-login for a new scope), never while
+  /// a newer login runs (it may be that cookie's), never when Twitch cannot
+  /// tell whose it is (the harvest check keeps it out of the session anyway).
+  /// The WebView API can only clear every cookie, so the condition is
+  /// strict.
+  Future<void> _clearJarIfForeign() async {
+    try {
+      if (_loginsInFlight > 0) return;
+      final cookie = await _webTokenService.readAuthToken();
+      if (cookie == null) return;
+      final owner = await twitchApi.tokenUserId(cookie);
+      if (owner == null || _loginsInFlight > 0) return;
+      final account = _isLoggedIn ? user.details?.id : null;
+      if (owner == account) return;
+      await _clearJar();
+    } catch (e) {
+      debugPrint('Checking the login page cookie failed: ${e.runtimeType}');
     }
   }
 
@@ -1012,15 +1049,15 @@ abstract class AuthBase with Store {
       final epoch = _authEpoch;
       try {
         _reconnectAttempts++;
+        final stored = await _storage.read(key: _userTokenKey);
         if (_reconnectAttempts > _maxReconnectAttempts) {
           FirebaseCrashlytics.instance.log(
             'Auth reconnection exhausted after $_maxReconnectAttempts attempts',
           );
-          await logout();
+          await _logoutFromReconnect(generation, epoch, stored);
           return;
         }
 
-        final stored = await _storage.read(key: _userTokenKey);
         if (stored == null) {
           _stopReconnectLoop();
           return;
@@ -1028,7 +1065,7 @@ abstract class AuthBase with Store {
 
         final isValid = await twitchApi.validateToken(token: stored);
         if (!isValid) {
-          await logout();
+          await _logoutFromReconnect(generation, epoch, stored);
           return;
         }
 
@@ -1056,6 +1093,35 @@ abstract class AuthBase with Store {
       }
     });
   }
+
+  /// The reconnect loop gives up on [checked] (the token it read, at
+  /// [generation] / [epoch]): a logout, one session change at a time, and
+  /// only if nothing changed since — no login started or committed, no
+  /// logout, the saved token still the one it checked. Otherwise the session
+  /// was decided by someone else, and this verdict on an old token says
+  /// nothing about it.
+  @action
+  Future<void> _logoutFromReconnect(
+    int generation,
+    int epoch,
+    String? checked,
+  ) => _exclusive(() async {
+    if (generation != _loginGeneration ||
+        epoch != _authEpoch ||
+        _loginsInFlight > 0) {
+      return;
+    }
+    final saved = await _storage.read(key: _userTokenKey);
+    if (saved != checked ||
+        generation != _loginGeneration ||
+        epoch != _authEpoch ||
+        _loginsInFlight > 0) {
+      return;
+    }
+    _authEpoch++;
+    _stopReconnectLoop();
+    await _endSession();
+  });
 
   /// Keeps [id] as the account last logged in. Best effort: a keystore that
   /// refuses it never changes a login or a launch (the next one tries

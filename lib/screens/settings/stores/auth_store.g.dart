@@ -175,6 +175,27 @@ mixin _$AuthStore on AuthBase, Store {
     return _$logoutAsyncAction.run(() => super.logout());
   }
 
+  late final _$AuthBaseActionController = ActionController(
+    name: 'AuthBase',
+    context: context,
+  );
+
+  @override
+  Future<void> _logoutFromReconnect(
+    int generation,
+    int epoch,
+    String? checked,
+  ) {
+    final _$actionInfo = _$AuthBaseActionController.startAction(
+      name: 'AuthBase._logoutFromReconnect',
+    );
+    try {
+      return super._logoutFromReconnect(generation, epoch, checked);
+    } finally {
+      _$AuthBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
   @override
   String toString() {
     return '''

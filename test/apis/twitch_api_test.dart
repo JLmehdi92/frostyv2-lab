@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/base_api_client.dart';
 import 'package:frosty/apis/twitch_api.dart';
+import 'package:frosty/apis/twitch_auth_interceptor.dart';
 import 'package:frosty/apis/unauthorized_interceptor.dart';
 import 'package:frosty/models/emotes.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
@@ -292,23 +293,52 @@ void main() {
       expect(sent.single.extra[UnauthorizedInterceptor.quiet], isTrue);
     });
 
-    test('tokenUserId: whose a token is (any app), null when refused', () async {
-      dioAdapter.onGet(
-        'https://id.twitch.tv/oauth2/validate',
-        (server) => server.reply(200, {
-          ...twitchValidateTokenResponse,
-          'client_id': 'the_web_client',
-          'user_id': '777',
-        }),
-      );
-      expect(await api.tokenUserId('web_token'), '777');
+    test(
+      'tokenUserId sends the token alone (no Client-Id of this app)',
+      () async {
+        final sent = <RequestOptions>[];
+        dio.interceptors.add(
+          InterceptorsWrapper(
+            onRequest: (options, handler) {
+              sent.add(options);
+              handler.next(options);
+            },
+          ),
+        );
+        dioAdapter.onGet(
+          'https://id.twitch.tv/oauth2/validate',
+          (server) => server.reply(200, {'user_id': '777'}),
+        );
+        await api.tokenUserId('web_token');
+        expect(sent.single.headers['Authorization'], 'OAuth web_token');
+        expect(sent.single.headers.containsKey('Client-Id'), isFalse);
+        expect(
+          sent.single.extra[TwitchAuthInterceptor.noSessionHeaders],
+          isTrue,
+        );
+      },
+    );
 
-      dioAdapter.onGet(
-        'https://id.twitch.tv/oauth2/validate',
-        (server) => server.reply(401, {'message': 'invalid access token'}),
-      );
-      expect(await api.tokenUserId('dead_token'), isNull);
-    });
+    test(
+      'tokenUserId: whose a token is (any app), null when refused',
+      () async {
+        dioAdapter.onGet(
+          'https://id.twitch.tv/oauth2/validate',
+          (server) => server.reply(200, {
+            ...twitchValidateTokenResponse,
+            'client_id': 'the_web_client',
+            'user_id': '777',
+          }),
+        );
+        expect(await api.tokenUserId('web_token'), '777');
+
+        dioAdapter.onGet(
+          'https://id.twitch.tv/oauth2/validate',
+          (server) => server.reply(401, {'message': 'invalid access token'}),
+        );
+        expect(await api.tokenUserId('dead_token'), isNull);
+      },
+    );
   });
 
   group('validateToken', () {

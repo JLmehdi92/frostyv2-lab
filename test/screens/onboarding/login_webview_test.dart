@@ -200,6 +200,22 @@ void main() {
     expect(find.text('open'), findsOneWidget);
   });
 
+  testWidgets('a cookie harvest that never answers: the page still closes '
+      '5 s after the limit', (tester) async {
+    await open(tester);
+    when(
+      () => auth.harvestTwitchWebToken(),
+    ).thenAnswer((_) => Completer<bool>().future);
+    onTokenCaptured!(Future.value(true));
+    await tester.pump();
+    await tester.pump(TwitchLoginPanel.signingInLimit);
+    await tester.pump(const Duration(seconds: 4));
+    expect(find.text('Connect with Twitch'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+    expect(find.text('open'), findsOneWidget);
+  });
+
   testWidgets('already logged in, a new login that fails: the failure shows '
       '(the old account is not taken for success), the page stays', (
     tester,

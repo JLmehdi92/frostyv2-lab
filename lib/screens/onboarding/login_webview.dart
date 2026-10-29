@@ -431,9 +431,13 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
     setState(() => _signingIn = false);
   }
 
+  /// Closes the page after one attempt at the cookie harvest, waiting 5 s
+  /// at most for it (it may finish later; its write still goes through the
+  /// store's account check).
   void _closeAfterHarvest() {
     _auth
         .harvestTwitchWebToken()
+        .timeout(const Duration(seconds: 5), onTimeout: () => false)
         .catchError((Object _) => false)
         .whenComplete(_finish)
         .ignore();

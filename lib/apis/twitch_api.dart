@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:frosty/apis/base_api_client.dart';
+import 'package:frosty/apis/twitch_auth_interceptor.dart';
 import 'package:frosty/apis/unauthorized_interceptor.dart';
 import 'package:frosty/constants.dart';
 import 'package:frosty/models/badges.dart';
@@ -300,6 +301,9 @@ class TwitchApi extends BaseApiClient {
       final data = await get<JsonMap>(
         '$_oauthBaseUrl/validate',
         headers: {'Authorization': 'OAuth $token'},
+        // The token alone: this app's Client-Id beside another app's token
+        // could make Twitch refuse the user's own cookie.
+        extra: {TwitchAuthInterceptor.noSessionHeaders: true},
       );
       final id = data['user_id'];
       return id is String && id.isNotEmpty ? id : null;

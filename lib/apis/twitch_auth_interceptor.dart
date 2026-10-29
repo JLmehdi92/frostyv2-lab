@@ -8,10 +8,15 @@ class TwitchAuthInterceptor extends Interceptor {
 
   const TwitchAuthInterceptor(this._authStore);
 
+  /// A request's `extra` flag: add none of the session's headers (a token
+  /// of another app, checked with its own `Authorization` alone).
+  static const noSessionHeaders = 'twitch_auth_no_session_headers';
+
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     // Check if this is a Twitch API request that needs authentication
-    if (_shouldAddTwitchHeaders(options.uri)) {
+    if (options.extra[noSessionHeaders] != true &&
+        _shouldAddTwitchHeaders(options.uri)) {
       // Add Twitch auth headers automatically, never over a token the
       // request names itself: validating a login page's token (or reading
       // its user) must use that token, not the session's.
