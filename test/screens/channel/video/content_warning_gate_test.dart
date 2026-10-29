@@ -233,4 +233,85 @@ void main() {
       expect(rect.bottom, lessThanOrEqualTo(220), reason: button);
     }
   });
+
+  group('one keyed gate across the channel layouts', () {
+    final gateKey = GlobalKey();
+
+    /// The channel screen's portrait layout (the gate around the video) or
+    /// its full-screen one (the gate around the video and its overlays).
+    Widget layout({required bool fullScreen}) => MultiProvider(
+      providers: [
+        Provider<TwitchApi>.value(value: api),
+        Provider<SettingsStore>.value(value: settings),
+      ],
+      child: MaterialApp(
+        home: Scaffold(
+          body: fullScreen
+              ? ContentWarningGate(
+                  key: gateKey,
+                  userId: '1',
+                  displayName: 'Streamer',
+                  onActiveChanged: active.add,
+                  child: const Stack(
+                    children: [Text('VIDEO'), Text('CHAT OVERLAY')],
+                  ),
+                )
+              : Column(
+                  children: [
+                    SizedBox(
+                      height: 220,
+                      child: ContentWarningGate(
+                        key: gateKey,
+                        userId: '1',
+                        displayName: 'Streamer',
+                        onActiveChanged: active.add,
+                        child: const Text('VIDEO'),
+                      ),
+                    ),
+                    const Expanded(child: Text('CHAT')),
+                  ],
+                ),
+        ),
+      ),
+    );
+
+    testWidgets('opened in full screen: covered, the player stays paused', (
+      tester,
+    ) async {
+      when(
+        () => api.getChannel(userId: '1'),
+      ).thenAnswer((_) async => _channel(['Gambling']));
+      await tester.pumpWidget(layout(fullScreen: true));
+      await tester.pump();
+      expect(find.text('Start watching'), findsOneWidget);
+      expect(active, [true]);
+    });
+
+    testWidgets('portrait to full screen keeps the cover, asks once', (
+      tester,
+    ) async {
+      when(
+        () => api.getChannel(userId: '1'),
+      ).thenAnswer((_) async => _channel(['Gambling']));
+      await tester.pumpWidget(layout(fullScreen: false));
+      await tester.pump();
+      expect(find.text('Start watching'), findsOneWidget);
+
+      await tester.pumpWidget(layout(fullScreen: true));
+      await tester.pump();
+      expect(find.text('Start watching'), findsOneWidget);
+      // Neither fetched again nor resumed by the move.
+      verify(() => api.getChannel(userId: '1')).called(1);
+      expect(active, [true]);
+
+      // Accepted in full screen, it stays accepted back in portrait.
+      await tester.tap(find.text('Start watching'));
+      await tester.pump();
+      await tester.pumpWidget(layout(fullScreen: false));
+      await tester.pump();
+      expect(find.text('Start watching'), findsNothing);
+      expect(active, [true, false]);
+      verifyNoMoreInteractions(api);
+    });
+  });
 }

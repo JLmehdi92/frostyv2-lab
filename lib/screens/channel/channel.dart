@@ -133,6 +133,15 @@ class _VideoChatState extends State<VideoChat>
   /// it resumes only what the gate paused.
   bool _pausedForContentGate = false;
 
+  /// True while the mature-content warning covers the stream.
+  bool _contentGateUp = false;
+
+  /// The one content warning of the screen: every layout (portrait, side
+  /// chat, full screen) draws the video inside it, and the key carries its
+  /// state (the labels, an acceptance) from one layout to the next, so
+  /// turning the phone never uncovers the stream nor asks Twitch again.
+  final _contentGateKey = GlobalKey();
+
   /// The portrait video size while its handle is dragged; saved to the
   /// settings once, when the drag ends.
   final _portraitDragScale = ValueNotifier<double?>(null);
@@ -523,7 +532,8 @@ class _VideoChatState extends State<VideoChat>
       final notice = store is IvsVideoStore ? store.refusalNotice : null;
       setState(() {
         store.dispose();
-        _videoStore = _buildPlayerController(forceWeb: true);
+        _videoStore = _buildPlayerController(forceWeb: true)
+          ..setContentGated(_contentGateUp);
         _liveProgress.attach(_videoStore);
       });
       if (notice != null) {
@@ -658,6 +668,10 @@ class _VideoChatState extends State<VideoChat>
   /// (the cover hides the picture but the audio would keep playing), and
   /// resumes it on accept if the gate was what paused it.
   void _onContentGate(bool active) {
+    _contentGateUp = active;
+    // First: no picture-in-picture, no automatic start while it is up, and
+    // the store is free to play again before the resume below.
+    _videoStore.setContentGated(active);
     if (active) {
       if (!_videoStore.paused) {
         _pausedForContentGate = true;
@@ -748,6 +762,8 @@ class _VideoChatState extends State<VideoChat>
   /// Minimizes the current channel into the floating in-app mini player and
   /// leaves the channel screen so the user can keep browsing/switching streams.
   void _minimizeToMiniPlayer() {
+    // A covered stream stays here until its warning is accepted.
+    if (_contentGateUp) return;
     final store = _videoStore;
     // Only the IVS (texture) engine can hand its live player to the mini.
     if (store is! IvsVideoStore) {
@@ -1010,11 +1026,36 @@ class _VideoChatState extends State<VideoChat>
       ],
     );
 
-    final video = ContentWarningGate(
+    // The IVS video stats, over the video under the controls' top row, in
+    // every layout (the pill toggles them).
+    final statsLayer = Observer(
+      builder: (context) {
+        if (_videoStore case final IvsVideoStore ivs
+            when ivs.statsVisible && !ivs.isInPipMode) {
+          return IgnorePointer(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(8, metrics.top + 44, 8, 8),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: IvsStatsPanel(store: ivs),
+              ),
+            ),
+          );
+        }
+        return const SizedBox.shrink();
+      },
+    );
+
+    Widget gated(Widget child) => ContentWarningGate(
+      key: _contentGateKey,
       userId: widget.userId,
       displayName: widget.userName,
       onActiveChanged: _onContentGate,
-      child: Observer(
+      child: child,
+    );
+
+    final video = gated(
+      Observer(
         builder: (context) {
           return Stack(
             children: [
@@ -1029,21 +1070,7 @@ class _VideoChatState extends State<VideoChat>
                 onWatchRaid: _watchRaid,
                 pinnedMessage: _pinnedMessage,
               ),
-              if (_videoStore case final IvsVideoStore ivs
-                  when ivs.statsVisible && !ivs.isInPipMode)
-                Positioned.fill(
-                  left: 8,
-                  // Under the controls' top row.
-                  top: metrics.top + 44,
-                  right: 8,
-                  bottom: 8,
-                  child: IgnorePointer(
-                    child: Align(
-                      alignment: Alignment.topLeft,
-                      child: IvsStatsPanel(store: ivs),
-                    ),
-                  ),
-                ),
+              Positioned.fill(child: statsLayer),
             ],
           );
         },
@@ -1201,95 +1228,116 @@ class _VideoChatState extends State<VideoChat>
                       : context.scaffoldColor,
                   child: settingsStore.showVideo
                       ? settingsStore.fullScreen
-                            ? Stack(
-                                children: [
-                                  _buildPipGestureWrapper(child: player),
-                                  if (settingsStore.showOverlay)
-                                    LayoutBuilder(
-                                      builder: (context, constraints) {
-                                        final totalWidth = constraints.maxWidth;
-                                        final chatWidth = _chatStore.expandChat
-                                            ? 0.5
-                                            : settingsStore.chatWidth;
+                            // Under the content warning like every layout:
+                            // full screen is a saved choice, a channel can
+                            // open straight into it.
+                            ? gated(
+                                Stack(
+                                  children: [
+                                    _buildPipGestureWrapper(child: player),
+                                    if (settingsStore.showOverlay)
+                                      LayoutBuilder(
+                                        builder: (context, constraints) {
+                                          final totalWidth = constraints.maxWidth;
+                                          final chatWidth = _chatStore.expandChat
+                                              ? 0.5
+                                              : settingsStore.chatWidth;
 
-                                        final draggableDivider = Observer(
-                                          builder: (_) => DraggableDivider(
-                                            currentWidth: chatWidth,
-                                            maxWidth: 0.6,
-                                            isResizableOnLeft: settingsStore
-                                                .landscapeChatLeftSide,
-                                            showHandle:
-                                                _videoStore.overlayVisible &&
-                                                settingsStore
-                                                    .fullScreenChatOverlay,
-                                            onDragStart: () {
-                                              setState(() {
-                                                _isDividerDragging = true;
-                                              });
-                                            },
-                                            onDrag: (newWidth) {
-                                              if (!_chatStore.expandChat) {
-                                                settingsStore.chatWidth =
-                                                    newWidth;
-                                              }
-                                            },
-                                            onDragEnd: () {
-                                              setState(() {
-                                                _isDividerDragging = false;
-                                              });
-                                            },
-                                          ),
-                                        );
-
-                                        return Stack(
-                                          children: [
-                                            Row(
-                                              children:
+                                          final draggableDivider = Observer(
+                                            builder: (_) => DraggableDivider(
+                                              currentWidth: chatWidth,
+                                              maxWidth: 0.6,
+                                              isResizableOnLeft: settingsStore
+                                                  .landscapeChatLeftSide,
+                                              showHandle:
+                                                  _videoStore.overlayVisible &&
                                                   settingsStore
-                                                      .landscapeChatLeftSide
-                                                  ? [
-                                                      overlayChat,
-                                                      Expanded(child: chrome),
-                                                    ]
-                                                  : [
-                                                      Expanded(child: chrome),
-                                                      overlayChat,
-                                                    ],
+                                                      .fullScreenChatOverlay,
+                                              onDragStart: () {
+                                                setState(() {
+                                                  _isDividerDragging = true;
+                                                });
+                                              },
+                                              onDrag: (newWidth) {
+                                                if (!_chatStore.expandChat) {
+                                                  settingsStore.chatWidth =
+                                                      newWidth;
+                                                }
+                                              },
+                                              onDragEnd: () {
+                                                setState(() {
+                                                  _isDividerDragging = false;
+                                                });
+                                              },
                                             ),
-                                            if (settingsStore
-                                                .fullScreenChatOverlay)
-                                              Positioned(
-                                                top: 0,
-                                                bottom: 0,
-                                                left:
+                                          );
+
+                                          return Stack(
+                                            children: [
+                                              Row(
+                                                children:
                                                     settingsStore
                                                         .landscapeChatLeftSide
-                                                    ? (totalWidth * chatWidth) -
-                                                          12
-                                                    : null,
-                                                right:
-                                                    !settingsStore
-                                                        .landscapeChatLeftSide
-                                                    ? (totalWidth * chatWidth) -
-                                                          12
-                                                    : null,
-                                                child: draggableDivider,
+                                                    ? [
+                                                        overlayChat,
+                                                        Expanded(
+                                                          child: Stack(
+                                                            fit: StackFit.expand,
+                                                            children: [
+                                                              chrome,
+                                                              statsLayer,
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ]
+                                                    : [
+                                                        Expanded(
+                                                          child: Stack(
+                                                            fit: StackFit.expand,
+                                                            children: [
+                                                              chrome,
+                                                              statsLayer,
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        overlayChat,
+                                                      ],
                                               ),
-                                          ],
-                                        );
-                                      },
+                                              if (settingsStore
+                                                  .fullScreenChatOverlay)
+                                                Positioned(
+                                                  top: 0,
+                                                  bottom: 0,
+                                                  left:
+                                                      settingsStore
+                                                          .landscapeChatLeftSide
+                                                      ? (totalWidth * chatWidth) -
+                                                            12
+                                                      : null,
+                                                  right:
+                                                      !settingsStore
+                                                          .landscapeChatLeftSide
+                                                      ? (totalWidth * chatWidth) -
+                                                            12
+                                                      : null,
+                                                  child: draggableDivider,
+                                                ),
+                                            ],
+                                          );
+                                        },
+                                      ),
+                                    // Hidden chat: the hype train and the
+                                    // highlights as pills.
+                                    ChannelVideoTopOverlay(
+                                      hypeTrain: _hypeTrainStore,
+                                      highlights: _highlightsStore,
+                                      settingsStore: settingsStore,
+                                      onWatchRaid: _watchRaid,
+                                      pinnedMessage: _pinnedMessage,
                                     ),
-                                  // Hidden chat: the hype train and the
-                                  // highlights as pills.
-                                  ChannelVideoTopOverlay(
-                                    hypeTrain: _hypeTrainStore,
-                                    highlights: _highlightsStore,
-                                    settingsStore: settingsStore,
-                                    onWatchRaid: _watchRaid,
-                                    pinnedMessage: _pinnedMessage,
-                                  ),
-                                ],
-                              )
+                                  ],
+                                ),
+                            )
                             : SafeArea(
                                 bottom: false,
                                 left:
@@ -1533,7 +1581,8 @@ class _VideoChatState extends State<VideoChat>
       return PipWidget(
         key: _pipKey,
         pipLayout: PipActionsLayout.mediaOnlyPause,
-        onPipAction: (_) => _videoStore.handlePausePlay(),
+        // Nothing plays from the PiP window behind the content warning.
+        onPipAction: (_) => pipPlayPause(_videoStore),
         onPipEntered: () {
           final store = _videoStore;
           if (store is IvsVideoStore) store.onPipEntered();
