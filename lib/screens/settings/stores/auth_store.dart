@@ -329,9 +329,17 @@ abstract class AuthBase with Store {
   String? _error;
 
   /// Navigation handler for the login webview. Fires on every navigation request (whenever the URL changes).
+  ///
+  /// [onTokenCaptured] is told when the redirect carried a token (the login
+  /// is under way: the page can say "Signing you in…"); it is never given
+  /// the token. [onSignedIn], when given, is called once Twitch has signed
+  /// the WebView in, instead of the page being popped (the onboarding moves
+  /// on to its next step itself).
   FutureOr<NavigationDecision> handleNavigation({
     required NavigationRequest request,
     Widget? routeAfter,
+    VoidCallback? onTokenCaptured,
+    VoidCallback? onSignedIn,
   }) {
     // Check if the URL is the redirect URI.
     if (request.url.startsWith('https://twitch.tv/login')) {
@@ -340,7 +348,10 @@ abstract class AuthBase with Store {
       final token = uri.queryParameters['access_token'];
 
       // Login with the provided token.
-      if (token != null) login(token: token);
+      if (token != null) {
+        login(token: token);
+        onTokenCaptured?.call();
+      }
     }
 
     // Check if the the URL has been redirected to "https://www.twitch.tv/?no-reload=true".
@@ -354,7 +365,9 @@ abstract class AuthBase with Store {
       // Deliberately not awaited — navigation must not wait on a cookie read.
       unawaited(harvestTwitchWebToken());
 
-      if (routeAfter != null) {
+      if (onSignedIn != null) {
+        onSignedIn();
+      } else if (routeAfter != null) {
         navigatorKey.currentState?.pop();
         navigatorKey.currentState?.push(
           MaterialPageRoute(builder: (context) => routeAfter),
@@ -369,7 +382,33 @@ abstract class AuthBase with Store {
     return NavigationDecision.navigate;
   }
 
-  WebViewController createAuthWebViewController({Widget? routeAfter}) {
+  /// The Twitch authorization page the login WebView opens (and opens again
+  /// to retry): the implicit grant with this app's scopes, always asking
+  /// the user to confirm them (`force_verify`).
+  Uri get authorizeUri => Uri(
+    scheme: 'https',
+    host: 'id.twitch.tv',
+    path: '/oauth2/authorize',
+    queryParameters: {
+      'client_id': clientId,
+      'redirect_uri': 'https://twitch.tv/login',
+      'response_type': 'token',
+      'scope': loginScopes,
+      'force_verify': 'true',
+    },
+  );
+
+  /// The login WebView's controller. [onTokenCaptured] and [onSignedIn] are
+  /// passed to [handleNavigation]; [onPage] is told each page the WebView
+  /// moves to (the login page shows its host, never the rest of the URL,
+  /// which carries the token); [onError] each resource that failed to load.
+  WebViewController createAuthWebViewController({
+    Widget? routeAfter,
+    VoidCallback? onTokenCaptured,
+    VoidCallback? onSignedIn,
+    ValueChanged<Uri>? onPage,
+    ValueChanged<WebResourceError>? onError,
+  }) {
     final webViewController = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       // Use platform-specific user agents to allow Google OAuth sign-in.
@@ -381,13 +420,25 @@ abstract class AuthBase with Store {
             : 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Mobile Safari/537.36',
       );
 
+    void page(String? url) {
+      final uri = url == null ? null : Uri.tryParse(url);
+      if (uri != null && onPage != null) onPage(uri);
+    }
+
     return webViewController
       ..setNavigationDelegate(
         NavigationDelegate(
-          onNavigationRequest: (request) =>
-              handleNavigation(request: request, routeAfter: routeAfter),
+          onNavigationRequest: (request) => handleNavigation(
+            request: request,
+            routeAfter: routeAfter,
+            onTokenCaptured: onTokenCaptured,
+            onSignedIn: onSignedIn,
+          ),
+          onPageStarted: page,
+          onUrlChange: (change) => page(change.url),
           onWebResourceError: (error) {
             debugPrint('Auth WebView error: ${error.description}');
+            onError?.call(error);
           },
           onPageFinished: (_) async {
             try {
@@ -423,20 +474,7 @@ abstract class AuthBase with Store {
           },
         ),
       )
-      ..loadRequest(
-        Uri(
-          scheme: 'https',
-          host: 'id.twitch.tv',
-          path: '/oauth2/authorize',
-          queryParameters: {
-            'client_id': clientId,
-            'redirect_uri': 'https://twitch.tv/login',
-            'response_type': 'token',
-            'scope': loginScopes,
-            'force_verify': 'true',
-          },
-        ),
-      );
+      ..loadRequest(authorizeUri);
   }
 
   /// Shows a dialog verifying that the user is sure they want to block/unblock the target user.
