@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/apis/twitch_api.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
+import 'package:frosty/screens/settings/widgets/settings_kit.dart';
 import 'package:frosty/screens/settings/widgets/settings_twitch_web_token.dart';
 import 'package:frosty/services/twitch_web_token_service.dart';
 import 'package:mocktail/mocktail.dart';
@@ -26,7 +27,7 @@ void main() {
   );
 
   Future<void> open(WidgetTester tester) async {
-    await tester.tap(find.byType(ListTile));
+    await tester.tap(find.byType(SettingsTwitchWebToken));
     await tester.pumpAndSettle();
   }
 
@@ -88,12 +89,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(auth.twitchWebToken, isNull);
-    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(SettingsDialog), findsNothing);
   });
 
   testWidgets('the tile says whether a token is set', (tester) async {
     await pump(tester);
-    expect(find.textContaining('Not set'), findsOneWidget);
+    expect(
+      find.text('Not set — log in to pick it up automatically'),
+      findsOneWidget,
+    );
 
     await auth.setTwitchWebToken(_secret);
     await tester.pump();

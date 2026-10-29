@@ -33,6 +33,8 @@ void main() {
       greaterThan(tester.getTopLeft(find.text('Show notices')).dy),
     );
 
+    await tester.ensureVisible(title);
+    await tester.pumpAndSettle();
     await tester.tap(title);
     await tester.pump();
 

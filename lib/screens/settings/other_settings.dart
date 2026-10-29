@@ -7,111 +7,91 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/cache_manager.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/settings/widgets/release_notes.dart';
+import 'package:frosty/screens/settings/widgets/settings_glyph.dart';
+import 'package:frosty/screens/settings/widgets/settings_kit.dart';
 import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
+import 'package:frosty/screens/settings/widgets/settings_page.dart';
 import 'package:frosty/screens/settings/widgets/update_check_tile.dart';
 import 'package:frosty/services/onset_updater.dart';
 import 'package:frosty/widgets/alert_message.dart';
-import 'package:frosty/widgets/frosty_dialog.dart';
 import 'package:provider/provider.dart';
 
-class OtherSettings extends StatefulWidget {
+/// Settings › Other (boards Parametres, MiseAJour): updates and release
+/// notes, storage and reset, privacy, about. On a phone these groups end
+/// the settings' first page.
+class OtherSettings extends StatelessWidget {
   final SettingsStore settingsStore;
 
   const OtherSettings({super.key, required this.settingsStore});
 
   @override
-  State<OtherSettings> createState() => _OtherSettingsState();
+  Widget build(BuildContext context) => SettingsGroupsView(
+    footer: SettingsPaneScope.maybeOf(context) == null
+        ? SettingsFooter(external: () => settingsStore.launchUrlExternal)
+        : null,
+    children: otherSettingsGroups(context, settingsStore),
+  );
 }
 
-class _OtherSettingsState extends State<OtherSettings> {
-  Future<void> _showConfirmDialog(BuildContext context) {
-    return showDialog(
-      context: context,
-      builder: (context) => FrostyDialog(
-        title: 'Reset all settings',
-        message: 'Are you sure you want to reset all settings?',
-        actions: [
-          TextButton(
-            onPressed: Navigator.of(context).pop,
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              HapticFeedback.heavyImpact();
-
-              widget.settingsStore.resetAllSettings();
-
-              Navigator.pop(context);
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: AlertMessage(
-                    message: 'All settings reset',
-                    centered: false,
-                  ),
-                ),
-              );
-            },
-            child: const Text('Reset'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final updater = context.read<OnsetUpdater?>();
-
-    return Column(
+/// The groups of [OtherSettings].
+List<Widget> otherSettingsGroups(
+  BuildContext context,
+  SettingsStore settingsStore,
+) {
+  final updater = context.read<OnsetUpdater?>();
+  final updates = updater != null && updater.enabled;
+  return [
+    SettingsGroup(
+      title: 'Updates',
       children: [
-        if (updater != null && updater.enabled)
-          UpdateCheckTile(updater: updater),
-        ListTile(
-          leading: const Icon(Icons.notes_rounded),
-          title: const Text('Release notes'),
-          onTap: () => Navigator.of(
-            context,
-          ).push(MaterialPageRoute(
-            settings: const RouteSettings(name: ReleaseNotes.routeName),
-            builder: (context) => const ReleaseNotes(),
-          )),
+        if (updates) UpdateCheckTile(updater: updater),
+        SettingsRow(
+          glyph: SettingsGlyphKind.notes,
+          title: 'Release notes',
+          end: SettingsRowEnd.chevron,
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              settings: const RouteSettings(name: ReleaseNotes.routeName),
+              builder: (context) => const ReleaseNotes(),
+            ),
+          ),
         ),
-        ListTile(
-          leading: const Icon(Icons.delete_outline_rounded),
-          title: const Text('Clear image cache'),
-          onTap: () async {
-            HapticFeedback.lightImpact();
-
-            await CustomCacheManager.instance.emptyCache();
-            await CustomCacheManager.removeOrphanedCacheFiles();
-
-            if (!context.mounted) return;
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: AlertMessage(
-                  message: 'Image cache cleared',
-                  centered: false,
-                ),
-              ),
-            );
-          },
+        if (updates)
+          const SettingsNote(
+            'ONSET looks for a newer build when it starts and when it comes '
+            'back to the foreground. Release notes open by themselves after '
+            'an update to a new version.',
+          ),
+      ],
+    ),
+    SettingsGroup(
+      title: 'Storage and reset',
+      children: [
+        SettingsRow(
+          glyph: SettingsGlyphKind.cache,
+          title: 'Clear image cache',
+          onTap: () => clearImageCache(context),
         ),
-        ListTile(
-          leading: const Icon(Icons.restore_rounded),
-          title: const Text('Reset settings'),
-          onTap: () => _showConfirmDialog(context),
+        SettingsRow(
+          glyph: SettingsGlyphKind.reset,
+          title: 'Reset settings',
+          onTap: () => confirmResetSettings(context, settingsStore),
         ),
+      ],
+    ),
+    SettingsGroup(
+      title: 'Privacy',
+      children: [
         Observer(
           builder: (_) => SettingsListSwitch(
             title: 'Share crash logs and analytics',
             subtitle: const Text(
-              'Help improve ONSET by sending anonymous crash logs and analytics through Firebase.',
+              'Help improve ONSET by sending anonymous crash logs and '
+              'analytics through Firebase.',
             ),
-            value: widget.settingsStore.shareCrashLogsAndAnalytics,
+            value: settingsStore.shareCrashLogsAndAnalytics,
             onChanged: (newValue) {
-              widget.settingsStore.shareCrashLogsAndAnalytics = newValue;
+              settingsStore.shareCrashLogsAndAnalytics = newValue;
 
               FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(
                 newValue,
@@ -126,6 +106,68 @@ class _OtherSettingsState extends State<OtherSettings> {
           ),
         ),
       ],
-    );
-  }
+    ),
+    SettingsGroup(
+      title: 'About',
+      children: [
+        SettingsRow(
+          glyph: SettingsGlyphKind.heart,
+          title: 'Support Frosty',
+          end: SettingsRowEnd.external,
+          onTap: () => launchSettingsLink(
+            'https://www.buymeacoffee.com/tommychow',
+            external: settingsStore.launchUrlExternal,
+          ),
+        ),
+        SettingsRow(
+          glyph: SettingsGlyphKind.code,
+          title: 'View source on GitHub',
+          end: SettingsRowEnd.external,
+          onTap: () => launchSettingsLink(
+            'https://github.com/tommyxchow/frosty',
+            external: settingsStore.launchUrlExternal,
+          ),
+        ),
+      ],
+    ),
+  ];
+}
+
+/// "Clear image cache": empties it, then says so.
+Future<void> clearImageCache(BuildContext context) async {
+  HapticFeedback.lightImpact();
+
+  await CustomCacheManager.instance.emptyCache();
+  await CustomCacheManager.removeOrphanedCacheFiles();
+
+  if (!context.mounted) return;
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: AlertMessage(message: 'Image cache cleared', centered: false),
+    ),
+  );
+}
+
+/// "Reset settings": asks first, then puts every setting back to its
+/// default and says so.
+Future<void> confirmResetSettings(
+  BuildContext context,
+  SettingsStore settingsStore,
+) async {
+  final confirmed = await confirmSettingsAction(
+    context,
+    title: 'Reset all settings',
+    message: 'Are you sure you want to reset all settings?',
+    confirm: 'Reset',
+  );
+  if (!confirmed) return;
+  HapticFeedback.heavyImpact();
+  settingsStore.resetAllSettings();
+  if (!context.mounted) return;
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: AlertMessage(message: 'All settings reset', centered: false),
+    ),
+  );
 }

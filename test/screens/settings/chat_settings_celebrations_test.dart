@@ -47,6 +47,8 @@ void main() {
       greaterThan(tester.getTopLeft(find.text('Show celebrations')).dy),
     );
 
+    await tester.ensureVisible(find.text('Subtle'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Subtle'));
     await tester.pumpAndSettle();
     expect(store.celebrationsOnVideo, CelebrationsOnVideo.subtle);

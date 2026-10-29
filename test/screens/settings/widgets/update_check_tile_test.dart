@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/models/onset_release.dart';
 import 'package:frosty/screens/settings/other_settings.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/settings/widgets/settings_kit.dart';
 import 'package:frosty/screens/settings/widgets/update_check_tile.dart';
 import 'package:frosty/services/onset_updater.dart';
 import 'package:mocktail/mocktail.dart';
@@ -33,14 +34,9 @@ void main() {
     return tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: SingleChildScrollView(
-            child: provided == null
-                ? settings
-                : Provider<OnsetUpdater>.value(
-                    value: provided,
-                    child: settings,
-                  ),
-          ),
+          body: provided == null
+              ? settings
+              : Provider<OnsetUpdater>.value(value: provided, child: settings),
         ),
       ),
     );
@@ -108,10 +104,10 @@ void main() {
 
     expect(find.text("Couldn't check for updates"), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsNothing);
-    final tile = tester.widget<ListTile>(
+    final tile = tester.widget<SettingsRow>(
       find.ancestor(
         of: find.text('Check for updates'),
-        matching: find.byType(ListTile),
+        matching: find.byType(SettingsRow),
       ),
     );
     expect(tile.onTap, isNotNull);

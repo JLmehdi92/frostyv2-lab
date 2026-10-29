@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:frosty/screens/settings/widgets/settings_glyph.dart';
+import 'package:frosty/screens/settings/widgets/settings_kit.dart';
 import 'package:frosty/services/onset_updater.dart';
+import 'package:frosty/theme.dart';
 import 'package:frosty/widgets/alert_message.dart';
 import 'package:frosty/widgets/onset_update_prompt.dart';
 
@@ -50,18 +53,26 @@ class _UpdateCheckTileState extends State<UpdateCheckTile> {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: const Icon(Icons.system_update_rounded),
-      title: const Text('Check for updates'),
+    final colors = SettingsColors.of(context);
+    return SettingsRow(
+      glyph: SettingsGlyphKind.update,
+      title: 'Check for updates',
       subtitle: FutureBuilder<int>(
         future: _currentBuild,
-        builder: (context, snapshot) =>
-            Text(snapshot.hasData ? 'Build ${snapshot.data}' : ''),
+        builder: (context, snapshot) => Text(
+          snapshot.hasData ? 'Build ${snapshot.data}' : '',
+          style: FrostyType.tabular(const TextStyle()),
+        ),
       ),
       trailing: _checking
-          ? const SizedBox.square(
-              dimension: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
+          ? SizedBox.square(
+              dimension: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: SettingsColors.accentOf(context),
+                backgroundColor: colors.buttonRing,
+                semanticsLabel: 'Checking',
+              ),
             )
           : null,
       onTap: _checking ? null : _check,

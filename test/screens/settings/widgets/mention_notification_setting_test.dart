@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/settings/widgets/go_live_setting.dart';
 import 'package:frosty/screens/settings/widgets/mention_notification_setting.dart';
+import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
 
 class FakePlatform extends GoLivePlatform {
   FakePlatform({this.granted = true, this.isAllowed = true});
@@ -43,7 +44,7 @@ void main() {
   }
 
   bool switchValue(WidgetTester tester) =>
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value;
+      tester.widget<SettingsListSwitch>(find.byType(SettingsListSwitch)).value;
 
   testWidgets('on by default, says when it notifies', (tester) async {
     final store = SettingsStore.fromJson({});
@@ -57,12 +58,12 @@ void main() {
     final store = SettingsStore.fromJson({});
     final platform = FakePlatform();
     await pump(tester, store, platform: platform);
-    await tester.tap(find.byType(SwitchListTile));
+    await tester.tap(find.byType(SettingsListSwitch));
     await tester.pumpAndSettle();
     expect(store.mentionNotifications, isFalse);
     expect(platform.asked, 0);
 
-    await tester.tap(find.byType(SwitchListTile));
+    await tester.tap(find.byType(SettingsListSwitch));
     await tester.pumpAndSettle();
     expect(store.mentionNotifications, isTrue);
     expect(platform.asked, 1);
@@ -71,7 +72,7 @@ void main() {
   testWidgets('a refused right says where to allow it', (tester) async {
     final store = SettingsStore.fromJson({})..mentionNotifications = false;
     await pump(tester, store, platform: FakePlatform(granted: false));
-    await tester.tap(find.byType(SwitchListTile));
+    await tester.tap(find.byType(SettingsListSwitch));
     await tester.pumpAndSettle();
     expect(store.mentionNotifications, isFalse);
     expect(find.textContaining('system settings'), findsOneWidget);
@@ -95,7 +96,9 @@ void main() {
     expect(switchValue(tester), isFalse);
     expect(find.textContaining('Log in'), findsOneWidget);
     expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).onChanged,
+      tester
+          .widget<SettingsListSwitch>(find.byType(SettingsListSwitch))
+          .onChanged,
       isNull,
     );
   });

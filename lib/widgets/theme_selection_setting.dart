@@ -12,6 +12,7 @@ class ThemeSelectionSetting extends StatelessWidget {
   Widget build(BuildContext context) {
     return Observer(
       builder: (context) => SettingsListSelect(
+        groupLabel: 'Theme',
         selectedOption: themeNames[settingsStore.themeType.index],
         options: themeNames,
         onChanged: (newTheme) => settingsStore.themeType =

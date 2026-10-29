@@ -27,6 +27,8 @@ void main() {
       expect(find.text(option.label), findsOneWidget);
     }
 
+    await tester.ensureVisible(find.text('Never'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Wi-Fi Only'));
     await tester.pumpAndSettle();
     expect(store.vodAutoplay, VodAutoplay.wifiOnly);

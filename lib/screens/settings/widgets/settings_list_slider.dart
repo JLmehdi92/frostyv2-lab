@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:frosty/utils/context_extensions.dart';
+import 'package:frosty/screens/settings/widgets/settings_kit.dart';
+import 'package:frosty/theme.dart';
 
-/// A custom-styled adaptive [Slider].
+/// A setting picked on a scale: its title and value, then the boards'
+/// slider (a 4 dp track filled in the signal colour, a 20 dp thumb).
 class SettingsListSlider extends StatefulWidget {
   final String title;
   final String trailing;
@@ -49,29 +51,80 @@ class _SettingsListSliderState extends State<SettingsListSlider> {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Row(
-        children: [
-          Text(widget.title),
-          const Spacer(),
-          Text(widget.trailing, style: context.frostyText.metadata),
-        ],
-      ),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(bottom: 8),
+    final colors = SettingsColors.of(context);
+    final accent = SettingsColors.accentOf(context);
+    final subtitle = widget.subtitle;
+    return Opacity(
+      opacity: widget.onChanged == null ? 0.42 : 1,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 6,
           children: [
-            Slider.adaptive(
-              value: widget.value,
-              min: widget.min,
-              max: widget.max,
-              divisions: widget.divisions,
-              onChanged:
-                  widget.onChanged != null ? _handleChanged : null,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              spacing: 12,
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.title,
+                    style: SettingsText.row.copyWith(color: colors.text),
+                  ),
+                ),
+                Text(
+                  widget.trailing,
+                  style: FrostyType.tabular(
+                    TextStyle(
+                      fontFamily: FrostyTokens.bodyFamily,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: colors.body,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            if (widget.subtitle != null) Text(widget.subtitle!),
+            SizedBox(
+              height: 32,
+              child: SliderTheme(
+                data: SliderThemeData(
+                  trackHeight: 4,
+                  activeTrackColor: accent,
+                  inactiveTrackColor: colors.sliderTrack,
+                  disabledActiveTrackColor: accent,
+                  disabledInactiveTrackColor: colors.sliderTrack,
+                  thumbColor: colors.thumb,
+                  disabledThumbColor: colors.thumb,
+                  overlayColor: accent.withValues(alpha: 0.12),
+                  overlayShape: const RoundSliderOverlayShape(
+                    overlayRadius: 18,
+                  ),
+                  thumbShape: const RoundSliderThumbShape(
+                    elevation: 2,
+                    pressedElevation: 3,
+                  ),
+                  trackShape: const RoundedRectSliderTrackShape(),
+                  tickMarkShape: SliderTickMarkShape.noTickMark,
+                  showValueIndicator: ShowValueIndicator.never,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                ),
+                child: Slider(
+                  value: widget.value.clamp(widget.min, widget.max),
+                  min: widget.min,
+                  max: widget.max,
+                  divisions: widget.divisions,
+                  onChanged: widget.onChanged != null ? _handleChanged : null,
+                ),
+              ),
+            ),
+            if (subtitle != null)
+              Text(
+                subtitle,
+                style: SettingsText.detail.copyWith(color: colors.secondary),
+              ),
           ],
         ),
       ),

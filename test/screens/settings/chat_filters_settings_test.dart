@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/screens/settings/chat_settings.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/settings/widgets/chat_filters_setting.dart';
+import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
 
 void main() {
   testWidgets("Twitch's chat filters, under Edit Chat Filters in Chat", (
@@ -44,8 +45,11 @@ void main() {
       'Harassment',
       'Profanity',
     ]) {
-      final tile = tester.widget<SwitchListTile>(
-        find.ancestor(of: find.text(title), matching: find.byType(SwitchListTile)),
+      final tile = tester.widget<SettingsListSwitch>(
+        find.ancestor(
+          of: find.text(title),
+          matching: find.byType(SettingsListSwitch),
+        ),
       );
       expect(tile.onChanged, isNull, reason: '$title is off with the master');
     }

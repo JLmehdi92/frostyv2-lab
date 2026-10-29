@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/screens/settings/widgets/go_live_setting.dart';
+import 'package:frosty/screens/settings/widgets/settings_list_switch.dart';
 import 'package:frosty/services/go_live/go_live.dart';
 import 'package:frosty/widgets/sheet/onset_sheet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -48,7 +49,7 @@ void main() {
   }
 
   bool switchValue(WidgetTester tester) =>
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value;
+      tester.widget<SettingsListSwitch>(find.byType(SettingsListSwitch)).value;
 
   testWidgets('says how often channels are checked', (tester) async {
     final prefs = await GoLivePrefs.load();
@@ -66,7 +67,7 @@ void main() {
     await pump(tester, GoLiveSetting(userId: '7', platform: platform));
     expect(switchValue(tester), isFalse);
 
-    await tester.tap(find.byType(SwitchListTile));
+    await tester.tap(find.byType(SettingsListSwitch));
     await tester.pumpAndSettle();
 
     expect(platform.calls, ['permission', 'start']);
@@ -75,7 +76,7 @@ void main() {
     expect(prefs.enabled, isTrue);
     expect(prefs.userId, '7');
 
-    await tester.tap(find.byType(SwitchListTile));
+    await tester.tap(find.byType(SettingsListSwitch));
     await tester.pumpAndSettle();
     expect(platform.calls.last, 'stop');
     expect((await GoLivePrefs.load()).enabled, isFalse);
@@ -85,7 +86,7 @@ void main() {
     final platform = FakePlatform(granted: false);
     await pump(tester, GoLiveSetting(userId: '7', platform: platform));
 
-    await tester.tap(find.byType(SwitchListTile));
+    await tester.tap(find.byType(SettingsListSwitch));
     await tester.pumpAndSettle();
 
     expect(platform.calls, ['permission']);
@@ -97,7 +98,7 @@ void main() {
     final platform = FakePlatform(startFails: true);
     await pump(tester, GoLiveSetting(userId: '7', platform: platform));
 
-    await tester.tap(find.byType(SwitchListTile));
+    await tester.tap(find.byType(SettingsListSwitch));
     await tester.pumpAndSettle();
 
     expect(switchValue(tester), isFalse);
@@ -123,7 +124,9 @@ void main() {
   testWidgets('logged out or not Android: cannot be turned on', (tester) async {
     await pump(tester, GoLiveSetting(userId: null, platform: FakePlatform()));
     expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).onChanged,
+      tester
+          .widget<SettingsListSwitch>(find.byType(SettingsListSwitch))
+          .onChanged,
       isNull,
     );
     expect(find.textContaining('Log in'), findsOneWidget);

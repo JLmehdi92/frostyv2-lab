@@ -36,11 +36,15 @@ void main() {
       greaterThan(tester.getTopLeft(animated).dy),
     );
 
+    await tester.ensureVisible(animated);
+    await tester.pumpAndSettle();
     await tester.tap(animated);
     await tester.pump();
     expect(store.animateGifs, isFalse);
     expect(store.showGifs, isTrue);
 
+    await tester.ensureVisible(show);
+    await tester.pumpAndSettle();
     await tester.tap(show);
     await tester.pump();
     expect(store.showGifs, isFalse);

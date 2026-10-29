@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:frosty/screens/onboarding/onboarding_parts.dart';
 import 'package:frosty/theme.dart';
+import 'package:frosty/widgets/accent_picker_controls.dart';
 import 'package:frosty/widgets/motion/haptics.dart';
 
 /// The accent colour picker of Setup (boards Onboarding: a sheet;
@@ -122,9 +123,6 @@ class _AccentPickerState extends State<_AccentPicker> {
   late HSVColor _hsv = HSVColor.fromColor(widget.initial);
   final _random = Random();
 
-  /// The hues the slider's eight segments name for a screen reader.
-  static const _namedHues = [22, 67, 112, 157, 202, 247, 292, 337];
-
   Color get _color => _hsv.toColor();
 
   void _set(HSVColor hsv) {
@@ -189,8 +187,8 @@ class _AccentPickerState extends State<_AccentPicker> {
               ),
             ],
           ),
-          _SaturationValue(hsv: _hsv, onChanged: _set),
-          _HueSlider(hue: _hsv.hue, namedHues: _namedHues, onChanged: _setHue),
+          AccentSaturationValue(hsv: _hsv, onChanged: _set),
+          AccentHueSlider(hue: _hsv.hue, onChanged: _setHue),
           Semantics(
             button: true,
             child: Material(
@@ -254,188 +252,6 @@ class _AccentPickerState extends State<_AccentPicker> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// The colour square: saturation across, brightness down, for the hue.
-class _SaturationValue extends StatelessWidget {
-  const _SaturationValue({required this.hsv, required this.onChanged});
-
-  final HSVColor hsv;
-  final ValueChanged<HSVColor> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        const height = 168.0;
-        void pick(Offset position) => onChanged(
-          hsv
-              .withSaturation((position.dx / width).clamp(0.0, 1.0))
-              .withValue(1 - (position.dy / height).clamp(0.0, 1.0)),
-        );
-        return Semantics(
-          label: 'Saturation and brightness',
-          value:
-              '${(hsv.saturation * 100).round()} %, '
-              '${(hsv.value * 100).round()} %',
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onPanDown: (details) => pick(details.localPosition),
-            onPanUpdate: (details) => pick(details.localPosition),
-            child: SizedBox(
-              height: height,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.white,
-                            HSVColor.fromAHSV(1, hsv.hue, 1, 1).toColor(),
-                          ],
-                        ),
-                      ),
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          gradient: const LinearGradient(
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                            colors: [Colors.black, Color(0x00000000)],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    left: hsv.saturation * width - 10,
-                    top: (1 - hsv.value) * height - 10,
-                    child: _Thumb(color: hsv.toColor()),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-/// The hue slider: a 12 dp rainbow track in a 44 dp target.
-class _HueSlider extends StatelessWidget {
-  const _HueSlider({
-    required this.hue,
-    required this.namedHues,
-    required this.onChanged,
-  });
-
-  final double hue;
-  final List<int> namedHues;
-  final ValueChanged<double> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        void pick(Offset position) =>
-            onChanged((position.dx / width).clamp(0.0, 1.0) * 360);
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTapUp: (details) => pick(details.localPosition),
-          onHorizontalDragStart: (details) => pick(details.localPosition),
-          onHorizontalDragUpdate: (details) => pick(details.localPosition),
-          child: SizedBox(
-            height: 44,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 16,
-                  height: 12,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(6),
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFFFF0000),
-                          Color(0xFFFFFF00),
-                          Color(0xFF00FF00),
-                          Color(0xFF00FFFF),
-                          Color(0xFF0000FF),
-                          Color(0xFFFF00FF),
-                          Color(0xFFFF0000),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: hue / 360 * width - 10,
-                  top: 12,
-                  child: _Thumb(
-                    color: HSVColor.fromAHSV(1, hue, 1, 1).toColor(),
-                  ),
-                ),
-                // Eight named hues for a screen reader (a tap lands on the
-                // same hue through the slider itself).
-                Positioned.fill(
-                  child: Row(
-                    children: [
-                      for (final named in namedHues)
-                        Expanded(
-                          child: Semantics(
-                            button: true,
-                            label: 'Hue $named degrees',
-                            onTap: () => onChanged(named.toDouble()),
-                            child: const SizedBox.expand(),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _Thumb extends StatelessWidget {
-  const _Thumb({required this.color});
-
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: Container(
-        width: 20,
-        height: 20,
-        decoration: BoxDecoration(
-          color: color,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 2.5),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x80000000),
-              blurRadius: 4,
-              offset: Offset(0, 1),
-            ),
-          ],
-        ),
       ),
     );
   }

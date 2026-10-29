@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
+import 'package:frosty/screens/settings/widgets/settings_kit.dart';
+import 'package:frosty/screens/settings/widgets/settings_page.dart';
 import 'package:frosty/utils/content_labels.dart';
-import 'package:frosty/utils/modal_bottom_sheet.dart';
 
 /// Picks the content classification labels whose streams are left out of
 /// Top, category and tag lists.
@@ -16,18 +17,18 @@ class HiddenContentLabelsSetting extends StatelessWidget {
     return Observer(
       builder: (context) {
         final hidden = settingsStore.hiddenContentLabels;
-        return ListTile(
-          title: const Text('Hide labeled streams'),
-          subtitle: Text(switch (hidden.length) {
+        return SettingsRow(
+          title: 'Hide labeled streams',
+          value: switch (hidden.length) {
             0 => 'None',
             1 => contentLabelName(hidden.single),
             final count => '$count labels',
-          }),
-          trailing: const Icon(Icons.chevron_right_rounded),
-          onTap: () => showModalBottomSheetWithProperFocus(
+          },
+          end: SettingsRowEnd.chevron,
+          onTap: () => showSettingsSheet<void>(
             context: context,
-            isScrollControlled: true,
-            builder: (context) => _LabelsSheet(settingsStore: settingsStore),
+            title: 'Hide labeled streams',
+            builder: (context) => _LabelsList(settingsStore: settingsStore),
           ),
         );
       },
@@ -35,8 +36,8 @@ class HiddenContentLabelsSetting extends StatelessWidget {
   }
 }
 
-class _LabelsSheet extends StatelessWidget {
-  const _LabelsSheet({required this.settingsStore});
+class _LabelsList extends StatelessWidget {
+  const _LabelsList({required this.settingsStore});
 
   final SettingsStore settingsStore;
 
@@ -49,30 +50,31 @@ class _LabelsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * 0.7,
-        ),
-        child: Observer(
-          builder: (context) => ListView(
-            shrinkWrap: true,
-            children: [
-              const ListTile(
-                title: Text(
-                  'Streams with these labels are left out of Top, '
-                  'categories and tags. Followed channels always show.',
-                ),
+    final colors = SettingsColors.of(context);
+    return Observer(
+      builder: (context) => ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 4, 8, 12),
+            child: Text(
+              'Streams with these labels are left out of Top, '
+              'categories and tags. Followed channels always show.',
+              style: SettingsText.body.copyWith(
+                fontSize: 13,
+                height: 1.5,
+                color: colors.secondary,
               ),
-              for (final id in knownContentLabels)
-                CheckboxListTile(
-                  title: Text(contentLabelName(id)),
-                  value: settingsStore.hiddenContentLabels.contains(id),
-                  onChanged: (hide) => _toggle(id, hide ?? false),
-                ),
-            ],
+            ),
           ),
-        ),
+          for (final id in knownContentLabels)
+            SettingsCheckRow(
+              label: contentLabelName(id),
+              value: settingsStore.hiddenContentLabels.contains(id),
+              onChanged: (hide) => _toggle(id, hide),
+            ),
+        ],
       ),
     );
   }

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
-import 'package:frosty/utils/modal_bottom_sheet.dart';
+import 'package:frosty/screens/settings/widgets/settings_kit.dart';
+import 'package:frosty/screens/settings/widgets/settings_page.dart';
 import 'package:frosty/utils/stream_languages.dart';
 
 /// Picks the language Top and category lists are filtered by.
@@ -16,14 +17,14 @@ class StreamLanguageSetting extends StatelessWidget {
       builder: (context) {
         final selected = streamLanguageOrAll(settingsStore.streamLanguage);
 
-        return ListTile(
-          title: const Text('Stream language'),
-          subtitle: Text(kStreamLanguages[selected]!),
-          trailing: const Icon(Icons.chevron_right_rounded),
-          onTap: () => showModalBottomSheetWithProperFocus(
+        return SettingsRow(
+          title: 'Stream language',
+          value: kStreamLanguages[selected]!,
+          end: SettingsRowEnd.chevron,
+          onTap: () => showSettingsSheet<void>(
             context: context,
-            isScrollControlled: true,
-            builder: (context) => _LanguageSheet(
+            title: 'Stream language',
+            builder: (context) => _LanguageList(
               selected: selected,
               onSelected: (code) {
                 settingsStore.streamLanguage = code;
@@ -37,34 +38,30 @@ class StreamLanguageSetting extends StatelessWidget {
   }
 }
 
-class _LanguageSheet extends StatelessWidget {
-  const _LanguageSheet({required this.selected, required this.onSelected});
+class _LanguageList extends StatelessWidget {
+  const _LanguageList({required this.selected, required this.onSelected});
 
   final String selected;
   final ValueChanged<String> onSelected;
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * 0.7,
-        ),
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            for (final MapEntry(key: code, value: name)
-                in kStreamLanguages.entries)
-              ListTile(
-                title: Text(name),
-                selected: code == selected,
-                trailing: code == selected
-                    ? const Icon(Icons.check_rounded)
-                    : null,
-                onTap: () => onSelected(code),
-              ),
-          ],
-        ),
+    return Semantics(
+      label: 'Stream language',
+      container: true,
+      explicitChildNodes: true,
+      child: ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.fromLTRB(12, 4, 12, 20),
+        children: [
+          for (final MapEntry(key: code, value: name)
+              in kStreamLanguages.entries)
+            SettingsChoiceRow(
+              label: name,
+              selected: code == selected,
+              onTap: () => onSelected(code),
+            ),
+        ],
       ),
     );
   }

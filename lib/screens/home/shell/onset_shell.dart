@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:frosty/screens/home/home_store.dart';
 import 'package:frosty/screens/home/shell/shell_glyph.dart';
 import 'package:frosty/screens/home/shell/shell_tabs.dart';
+import 'package:frosty/screens/settings/widgets/settings_glyph.dart';
 import 'package:frosty/theme.dart';
 import 'package:frosty/utils/context_extensions.dart';
 import 'package:frosty/widgets/launch/onset_mark.dart';
@@ -47,6 +48,9 @@ class ShellHeader {
   /// At the end of the tablet's tab row (the Live feed's category chips).
   final Widget? tabsTrailing;
 
+  /// The phone's settings button (Profile's board Moi); none when null.
+  final VoidCallback? onSettings;
+
   const ShellHeader({
     this.title = 'ONSET',
     this.showMark = true,
@@ -59,6 +63,7 @@ class ShellHeader {
     this.onTab,
     this.overVideo = false,
     this.tabsTrailing,
+    this.onSettings,
   });
 }
 
@@ -802,6 +807,17 @@ class _PhoneHeader extends StatelessWidget {
                   ),
                 if (header.showWhispers && whispers != null)
                   _WhispersButton(whispers: whispers, palette: palette),
+                if (header.onSettings case final onSettings?)
+                  _HeaderButton(
+                    tooltip: 'Settings',
+                    onPressed: onSettings,
+                    child: SettingsGlyph(
+                      SettingsGlyphKind.general,
+                      size: 21,
+                      strokeWidth: 1.8,
+                      color: palette.text,
+                    ),
+                  ),
               ],
             ),
           ),

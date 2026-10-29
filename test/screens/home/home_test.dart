@@ -22,7 +22,10 @@ import 'package:frosty/screens/home/live_feed/live_feed.dart';
 import 'package:frosty/screens/home/search/search.dart';
 import 'package:frosty/screens/home/shell/onset_shell.dart';
 import 'package:frosty/screens/home/top/categories/categories.dart';
+import 'package:frosty/screens/settings/general_settings.dart';
+import 'package:frosty/screens/settings/profile_tab.dart';
 import 'package:frosty/screens/settings/settings.dart';
+import 'package:frosty/screens/settings/settings_master_detail.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/settings/stores/user_store.dart';
@@ -224,10 +227,42 @@ void main() {
 
     await tester.tap(nav('profile'));
     await tester.pumpAndSettle();
-    // Settings inside the shell: no app bar of its own.
-    expect(find.byType(Settings), findsOneWidget);
+    // Profile inside the shell (board MoiDeconnecte): no back button of its
+    // own, the login card, the settings' sections, the header's settings.
+    expect(find.byType(ProfileTab), findsOneWidget);
     expect(find.byTooltip('Back'), findsNothing);
-    expect(find.byTooltip('View source on GitHub'), findsOneWidget);
+    expect(find.text('Connect with Twitch'), findsOneWidget);
+    expect(find.text('Notifications'), findsOneWidget);
+    expect(find.byTooltip('Settings'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await close(tester);
+  });
+
+  testWidgets('Profile: the header opens the settings; on a tablet the '
+      'settings are the page itself', (tester) async {
+    await pump(tester, auth: FakeAuthStore(loggedIn: true));
+    await tester.tap(nav('profile'));
+    await tester.pumpAndSettle();
+    expect(find.text('Viewer'), findsOneWidget);
+    await tester.tap(find.byTooltip('Settings'));
+    await tester.pumpAndSettle();
+    expect(find.byType(Settings), findsOneWidget);
+    expect(find.text('Blocked users, twitch.tv, log out'), findsOneWidget);
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+    expect(find.byType(Settings), findsNothing);
+    await close(tester);
+
+    await pump(
+      tester,
+      size: const Size(1280, 854),
+      auth: FakeAuthStore(loggedIn: true),
+    );
+    await tester.tap(nav('profile'));
+    await tester.pumpAndSettle();
+    expect(find.byType(SettingsMasterDetail), findsOneWidget);
+    expect(find.byTooltip('Settings'), findsNothing);
+    expect(find.byType(GeneralSettings), findsOneWidget);
     expect(tester.takeException(), isNull);
     await close(tester);
   });
@@ -350,7 +385,7 @@ void main() {
     expect(await tester.binding.handlePopRoute(), isTrue);
     await tester.pumpAndSettle();
     expect(find.text('No top streams'), findsOneWidget);
-    expect(find.byType(Settings), findsNothing);
+    expect(find.byType(ProfileTab), findsNothing);
 
     // Then the app may close: nothing handles back any more.
     expect(await tester.binding.handlePopRoute(), isFalse);

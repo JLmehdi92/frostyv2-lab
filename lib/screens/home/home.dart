@@ -19,6 +19,7 @@ import 'package:frosty/screens/home/shell/shell_pages.dart';
 import 'package:frosty/screens/home/stream_list/stream_list_store.dart';
 import 'package:frosty/screens/home/stream_list/streams_list.dart';
 import 'package:frosty/screens/home/top/categories/categories.dart';
+import 'package:frosty/screens/settings/profile_tab.dart';
 import 'package:frosty/screens/settings/settings.dart';
 import 'package:frosty/screens/settings/stores/auth_store.dart';
 import 'package:frosty/screens/settings/stores/settings_store.dart';
@@ -347,7 +348,10 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
           onTab: (i) => _homeStore.selectActivityTab(tabs[i]),
         );
       case ShellSection.profile:
-        return ShellHeader(showWhispers: loggedIn);
+        return ShellHeader(
+          showWhispers: loggedIn,
+          onSettings: () => Settings.open(context),
+        );
     }
   }
 
@@ -447,7 +451,7 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
             active: active,
             onOpenChannel: _openChannel,
           ),
-          _ => Settings(settingsStore: _settingsStore, embedded: true),
+          _ => ProfileTab(settingsStore: _settingsStore, authStore: _authStore),
         },
       ),
     );

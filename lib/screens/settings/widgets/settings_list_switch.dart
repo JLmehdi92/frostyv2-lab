@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:frosty/screens/settings/widgets/settings_kit.dart';
 
-/// A custom-styled adaptive [SwitchListTile].
+/// A setting turned on or off: its title (and explanation) and the boards'
+/// switch; the whole row toggles it. Without [onChanged] it is dimmed and
+/// does nothing.
 class SettingsListSwitch extends StatelessWidget {
   final String title;
   final Widget? subtitle;
@@ -18,16 +21,24 @@ class SettingsListSwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SwitchListTile.adaptive(
-      title: Text(title),
-      subtitle: subtitle,
-      value: value,
-      onChanged: onChanged != null
-          ? (newValue) {
-              HapticFeedback.selectionClick();
-              onChanged!(newValue);
-            }
-          : null,
+    final onChanged = this.onChanged;
+    void toggle() {
+      HapticFeedback.selectionClick();
+      onChanged!(!value);
+    }
+
+    return MergeSemantics(
+      child: Semantics(
+        toggled: value,
+        enabled: onChanged != null,
+        child: SettingsRow(
+          title: title,
+          subtitle: subtitle,
+          enabled: onChanged != null,
+          onTap: onChanged == null ? null : toggle,
+          trailing: SettingsSwitch(value: value),
+        ),
+      ),
     );
   }
 }
