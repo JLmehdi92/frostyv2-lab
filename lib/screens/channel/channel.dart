@@ -89,6 +89,12 @@ class VideoChat extends StatefulWidget {
     this.raidArrival,
   });
 
+  /// The logins of the channels open (their pages built), lower case.
+  static Set<String> get openLogins => {
+    for (final state in _VideoChatState._alive)
+      state.widget.userLogin.toLowerCase(),
+  };
+
   @override
   State<VideoChat> createState() => _VideoChatState();
 }

@@ -91,6 +91,32 @@ String _oneLine(String text, {int max = kMentionMaxLength}) {
   return line.length <= max ? line : '${line.substring(0, max)}…';
 }
 
+/// What a tapped mention notice does.
+enum MentionTap {
+  /// The channel is open (the app was in the background): the app comes
+  /// back to the front, nothing more.
+  bringToFront,
+
+  /// The channel is in the mini player: it is restored.
+  restoreMini,
+
+  /// The channel is not open (closed meanwhile, the app killed): it opens.
+  openChannel,
+}
+
+/// What a tapped mention notice for [login]'s chat does, given the logins
+/// of the [openChannels] and the channel in the mini player ([miniLogin]).
+MentionTap mentionTapFor(
+  String login, {
+  required Set<String> openChannels,
+  String? miniLogin,
+}) {
+  final channel = login.toLowerCase();
+  if (openChannels.contains(channel)) return MentionTap.bringToFront;
+  if (miniLogin?.toLowerCase() == channel) return MentionTap.restoreMini;
+  return MentionTap.openChannel;
+}
+
 /// The Activity entry of a mention notice posted [at].
 ActivityEntry mentionEntry(MentionNotice notice, DateTime at) => ActivityEntry(
   id: 'mention:${notice.channelId}:${notice.messageId}',
@@ -205,8 +231,8 @@ abstract final class MentionNotifications {
     title: notice.title,
     body: notice.body,
     notificationDetails: _details,
-    // Not a bare login: tapping only brings the app (and its chat) back
-    // to the front.
+    // Not a bare login (not a go-live notice): tapping brings the chat
+    // back, opening its channel only when it is not open (mentionTapFor).
     payload: 'mention:${notice.channelLogin}',
   );
 }

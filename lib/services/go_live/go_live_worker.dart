@@ -144,8 +144,12 @@ abstract final class GoLiveNotifications {
   /// Done once [init] has set the plugin up: nothing shows before.
   static Future<void> get ready => _ready.future;
 
-  /// [onOpen] gets the login of a tapped notice while the app runs.
-  static Future<void> init({void Function(String login)? onOpen}) async {
+  /// [onOpen] gets the login of a tapped go-live notice while the app runs,
+  /// [onMention] the channel's login of a tapped mention notice.
+  static Future<void> init({
+    void Function(String login)? onOpen,
+    void Function(String login)? onMention,
+  }) async {
     await _plugin.initialize(
       settings: const InitializationSettings(
         android: AndroidInitializationSettings('ic_stat_go_live'),
@@ -158,6 +162,8 @@ abstract final class GoLiveNotifications {
       onDidReceiveNotificationResponse: (response) {
         final login = loginOf(response.payload);
         if (login != null) onOpen?.call(login);
+        final mention = mentionLoginOf(response.payload);
+        if (mention != null) onMention?.call(mention);
       },
     );
     if (!_ready.isCompleted) _ready.complete();
@@ -168,11 +174,26 @@ abstract final class GoLiveNotifications {
   static String? loginOf(String? payload) =>
       payload != null && _login.hasMatch(payload) ? payload : null;
 
-  /// The login of the notice the app was opened from, if any.
-  static Future<String?> launchLogin() async {
+  /// The channel login a mention notice carries (`mention:<login>`), or
+  /// null when it is not one.
+  @visibleForTesting
+  static String? mentionLoginOf(String? payload) {
+    const prefix = 'mention:';
+    if (payload == null || !payload.startsWith(prefix)) return null;
+    return loginOf(payload.substring(prefix.length));
+  }
+
+  /// The notice the app was opened from, if any: its channel's login, and
+  /// whether it is a mention.
+  static Future<({String login, bool mention})?> launchNotice() async {
     final details = await _plugin.getNotificationAppLaunchDetails();
     if (details?.didNotificationLaunchApp != true) return null;
-    return loginOf(details?.notificationResponse?.payload);
+    final payload = details?.notificationResponse?.payload;
+    final login = loginOf(payload);
+    if (login != null) return (login: login, mention: false);
+    final mention = mentionLoginOf(payload);
+    if (mention != null) return (login: mention, mention: true);
+    return null;
   }
 
   /// Asks for the right to notify (Android 13+, iOS); true when granted.

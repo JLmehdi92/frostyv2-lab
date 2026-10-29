@@ -96,6 +96,29 @@ void main() {
     expect(notice.title, '$persian mentioned you in Streamer');
   });
 
+  test('a tapped notice: its channel, unless it is already open', () {
+    // The chat that heard the mention is usually still open (the app was
+    // only in the background): it comes back to the front, no second one.
+    expect(
+      mentionTapFor('streamer', openChannels: const {'streamer'}),
+      MentionTap.bringToFront,
+    );
+    expect(
+      mentionTapFor('Streamer', openChannels: const {'streamer'}),
+      MentionTap.bringToFront,
+    );
+    // Its channel in the mini player: restored.
+    expect(
+      mentionTapFor('streamer', openChannels: const {}, miniLogin: 'streamer'),
+      MentionTap.restoreMini,
+    );
+    // Closed meanwhile (or the app was killed): opened.
+    expect(
+      mentionTapFor('streamer', openChannels: const {'other'}, miniLogin: 'x'),
+      MentionTap.openChannel,
+    );
+  });
+
   test('its Activity entry names the message', () {
     final entry = mentionEntry((
       messageId: 'm1',

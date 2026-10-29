@@ -402,11 +402,18 @@ class _MyAppState extends State<MyApp> {
     void openChannel(String login) =>
         handleDeepLink(Uri.https('www.twitch.tv', '/$login'));
     try {
-      await GoLiveNotifications.init(onOpen: openChannel);
-      final login = await GoLiveNotifications.launchLogin();
-      if (login != null) {
+      await GoLiveNotifications.init(
+        onOpen: openChannel,
+        onMention: _openMention,
+      );
+      final notice = await GoLiveNotifications.launchNotice();
+      if (notice != null) {
         await WidgetsBinding.instance.endOfFrame;
-        openChannel(login);
+        if (notice.mention) {
+          _openMention(notice.login);
+        } else {
+          openChannel(notice.login);
+        }
       }
       // Registered again at each launch: Android drops it after a force
       // stop, and an update may move the background entry point.
@@ -421,6 +428,37 @@ class _MyAppState extends State<MyApp> {
           reason: 'go-live init',
         );
       } catch (_) {}
+    }
+  }
+
+  /// A tapped mention notice: its chat back on screen. The channel is
+  /// usually still open (the app was only in the background) and simply
+  /// comes back; in the mini player it is restored; closed, it opens.
+  void _openMention(String login) {
+    if (!mounted) return;
+    final mini = context.read<MiniPlayerStore>();
+    switch (mentionTapFor(
+      login,
+      openChannels: VideoChat.openLogins,
+      miniLogin: mini.userLogin,
+    )) {
+      case MentionTap.bringToFront:
+        return;
+      case MentionTap.restoreMini:
+        final userId = mini.userId;
+        final name = mini.displayName;
+        final miniLogin = mini.userLogin;
+        if (userId == null || name == null || miniLogin == null) return;
+        // The channel adopts the mini window's player back (no reload).
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(
+            settings: const RouteSettings(name: VideoChat.routeName),
+            builder: (_) =>
+                VideoChat(userId: userId, userName: name, userLogin: miniLogin),
+          ),
+        );
+      case MentionTap.openChannel:
+        unawaited(handleDeepLink(Uri.https('www.twitch.tv', '/$login')));
     }
   }
 
