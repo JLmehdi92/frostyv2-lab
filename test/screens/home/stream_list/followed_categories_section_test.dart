@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/models/followed_category.dart';
 import 'package:frosty/screens/home/stream_list/followed_categories_section.dart';
 import 'package:frosty/theme.dart';
+import 'package:frosty/widgets/frosty_cached_network_image.dart';
 
 Widget _host(List<FollowedCategory> categories) => MaterialApp(
   theme: ThemeData(extensions: const [FrostyColors.light]),
@@ -36,6 +37,37 @@ void main() {
     expect(find.text('412K viewers'), findsOneWidget);
     expect(find.text('Chess'), findsOneWidget);
     expect(find.text('1 viewer'), findsOneWidget);
+  });
+
+  testWidgets('box art is decoded at the size it is drawn', (tester) async {
+    tester.view
+      ..devicePixelRatio = 3
+      ..physicalSize = const Size(1170, 2532);
+    addTearDown(tester.view.reset);
+    const category = FollowedCategory(
+      id: '1',
+      name: 'Chess',
+      boxArtUrl: 'https://static-cdn.jtvnw.net/ttv-boxart/chess.jpg',
+      viewers: 3,
+    );
+    int? decodedWidth() => tester
+        .widget<FrostyCachedNetworkImage>(find.byType(FrostyCachedNetworkImage))
+        .memCacheWidth;
+
+    // The phone's 104 dp tile.
+    await tester.pumpWidget(_host(const [category]));
+    expect(decodedWidth(), 312);
+
+    // The tablet's 18 dp chip.
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(extensions: const [FrostyColors.light]),
+        home: const Scaffold(
+          body: FollowedCategoryChips(categories: [category]),
+        ),
+      ),
+    );
+    expect(decodedWidth(), 54);
   });
 
   testWidgets('no followed categories, no section', (tester) async {

@@ -5,6 +5,7 @@ import 'package:frosty/screens/channel_profile/widgets/profile_header.dart';
 import 'package:frosty/screens/channel_profile/widgets/profile_live_card.dart';
 import 'package:frosty/screens/channel_profile/widgets/profile_parts.dart';
 import 'package:frosty/theme.dart';
+import 'package:frosty/widgets/frosty_cached_network_image.dart';
 
 const _offline = ChannelProfile(
   id: '42',
@@ -75,6 +76,45 @@ void main() {
       ),
     ),
   );
+
+  testWidgets('the banner is decoded for the box it covers, not larger', (
+    tester,
+  ) async {
+    tester.view
+      ..devicePixelRatio = 2
+      ..physicalSize = const Size(780, 1688);
+    addTearDown(tester.view.reset);
+    const profile = ChannelProfile(
+      id: '42',
+      login: 'streamer',
+      displayName: 'Streamer',
+      bannerUrl: 'https://static-cdn.jtvnw.net/banner.png',
+    );
+    Future<int?> decodedWidth(Size box) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Center(
+            child: SizedBox.fromSize(
+              size: box,
+              child: const ProfileBanner(profile: profile),
+            ),
+          ),
+        ),
+      );
+      return tester
+          .widget<FrostyCachedNetworkImage>(
+            find.byType(FrostyCachedNetworkImage),
+          )
+          .memCacheWidth;
+    }
+
+    // A phone's banner (taller than a 2.5:1 banner): wide enough for its
+    // height once covered.
+    expect(await decodedWidth(const Size(390, 168)), 840);
+    // A tablet's (wider): its own width.
+    tester.view.physicalSize = const Size(2560, 1708);
+    expect(await decodedWidth(const Size(1280, 230)), 2560);
+  });
 
   testWidgets('offline: followers and the role, then Chat', (tester) async {
     for (final dark in [true, false]) {

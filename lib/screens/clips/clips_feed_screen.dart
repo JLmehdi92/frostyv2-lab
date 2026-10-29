@@ -1192,6 +1192,9 @@ class _NextCard extends StatelessWidget {
                         : FrostyCachedNetworkImage(
                             imageUrl: thumbnail,
                             fit: BoxFit.cover,
+                            memCacheWidth:
+                                (78 * MediaQuery.devicePixelRatioOf(context))
+                                    .round(),
                           ),
                   ),
                 ),
@@ -1651,6 +1654,9 @@ class _QueueItem extends StatelessWidget {
                             child: FrostyCachedNetworkImage(
                               imageUrl: thumbnail,
                               fit: BoxFit.cover,
+                              memCacheWidth:
+                                  (136 * MediaQuery.devicePixelRatioOf(context))
+                                      .round(),
                             ),
                           ),
                         Positioned(

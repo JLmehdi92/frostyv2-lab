@@ -10,6 +10,7 @@ import 'package:frosty/screens/settings/stores/settings_store.dart';
 import 'package:frosty/screens/vod/vod_player_controller.dart';
 import 'package:frosty/services/playback_focus.dart';
 import 'package:frosty/stores/mini_player_store.dart';
+import 'package:frosty/widgets/frosty_cached_network_image.dart';
 import 'package:frosty/widgets/skeleton_loader.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
@@ -34,9 +35,10 @@ class FakeSurfaceController extends FakeVodController
       SizedBox.expand(key: ValueKey('video-$slug'));
 }
 
-Clip clip(String slug) => Clip(
+Clip clip(String slug, {String? thumbnail}) => Clip(
   id: slug,
   slug: slug,
+  thumbnailUrl: thumbnail,
   title: 'Clip $slug',
   viewCount: 1234,
   createdAt: DateTime.utc(2026, 10, 2),
@@ -403,6 +405,41 @@ void main() {
       await tester.pump();
       await close(tester);
     });
+  });
+
+  testWidgets('small pictures are decoded at the size they are drawn', (
+    tester,
+  ) async {
+    String thumb(String slug) => 'https://clips-media.example/$slug.jpg';
+    int? decodedWidth(String slug) => tester
+        .widgetList<FrostyCachedNetworkImage>(
+          find.byType(FrostyCachedNetworkImage),
+        )
+        .where((image) => image.imageUrl == thumb(slug))
+        .map((image) => image.memCacheWidth)
+        .firstWhere((width) => width != 24 && width != null, orElse: () => -1);
+    await pump(
+      tester,
+      first: ClipFeedPage(
+        items: [for (final s in 'abcd'.split('')) clip(s, thumbnail: thumb(s))],
+      ),
+    );
+    // A phone (390 × 844) at 2×: the next clip's 78 dp picture.
+    tester.view
+      ..devicePixelRatio = 2
+      ..physicalSize = const Size(780, 1688);
+    await tester.pump();
+    expect(find.text('NEXT'), findsOneWidget);
+    expect(decodedWidth('b'), 156);
+
+    // A tablet at 2×: the queue's 136 dp pictures.
+    tester.view.physicalSize = const Size(2560, 1708);
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('UP NEXT IN CLIPS'), findsOneWidget);
+    expect(decodedWidth('c'), 272);
+    expect(tester.takeException(), isNull);
+    await close(tester);
   });
 
   group('board ClipsTablette', () {

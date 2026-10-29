@@ -108,6 +108,9 @@ class _FollowedCategoryTile extends StatelessWidget {
                       : FrostyCachedNetworkImage(
                           imageUrl: category.boxArtUrl,
                           fit: BoxFit.cover,
+                          memCacheWidth:
+                              (width * MediaQuery.devicePixelRatioOf(context))
+                                  .round(),
                           placeholder: (context, url) =>
                               const SkeletonLoader(borderRadius: radius),
                         ),
@@ -192,6 +195,12 @@ class FollowedCategoryChips extends StatelessWidget {
                                 : FrostyCachedNetworkImage(
                                     imageUrl: category.boxArtUrl,
                                     fit: BoxFit.cover,
+                                    memCacheWidth:
+                                        (18 *
+                                                MediaQuery.devicePixelRatioOf(
+                                                  context,
+                                                ))
+                                            .round(),
                                   ),
                           ),
                         ),

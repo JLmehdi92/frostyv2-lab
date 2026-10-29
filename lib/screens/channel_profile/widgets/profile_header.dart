@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:frosty/models/channel_profile.dart';
@@ -34,13 +36,21 @@ class ProfileBanner extends StatelessWidget {
     final accent = profile?.accentColor;
     final Widget picture;
     if (url != null) {
+      final ratio = MediaQuery.devicePixelRatioOf(context);
       picture = Opacity(
         opacity: large ? 0.6 : 0.7,
-        child: FrostyCachedNetworkImage(
-          imageUrl: url,
-          fit: BoxFit.cover,
-          width: double.infinity,
-          height: double.infinity,
+        // Decoded wide enough to cover the box (a banner is 2.5:1), never
+        // larger: the box keeps its size while the header folds.
+        child: LayoutBuilder(
+          builder: (context, box) => FrostyCachedNetworkImage(
+            imageUrl: url,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+            memCacheWidth: box.hasBoundedWidth && box.hasBoundedHeight
+                ? (math.max(box.maxWidth, box.maxHeight * 2.5) * ratio).round()
+                : null,
+          ),
         ),
       );
     } else {
