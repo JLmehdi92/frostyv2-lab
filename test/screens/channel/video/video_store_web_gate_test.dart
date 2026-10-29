@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frosty/screens/channel/video/video_store.dart';
 import 'package:frosty/screens/channel/video/web_content_gate.dart';
@@ -40,8 +42,15 @@ void main() {
       expect(script, contains('window._frostyHold = true'));
       expect(script, contains('v.pause()'));
       expect(script, contains("addEventListener('play'"));
-      // The video may not exist yet: it waits for it.
-      expect(script, contains('setInterval'));
+      // Every video of the page, including one that appears or replaces
+      // the first later: watched until released, never given up on a timer.
+      expect(script, contains("getElementsByTagName('video')"));
+      expect(script, contains('new MutationObserver('));
+      expect(script, contains('subtree: true'));
+      expect(script, isNot(contains('setTimeout')));
+      expect(script, isNot(contains('setInterval')));
+      // Installed once per page.
+      expect(script, contains('if (!window._frostyHoldObserver)'));
       // Only the video: Twitch's own warning is the viewer's to accept.
       expect(script, isNot(contains('.click()')));
       expect(script, isNot(contains('.play()')));
@@ -50,9 +59,21 @@ void main() {
     test('lets it play again only if the hold stopped it', () {
       const script = VideoStoreBase.releaseScript;
       expect(script, contains('window._frostyHold = false'));
+      // Stops watching the page.
+      expect(script, contains('window._frostyHoldObserver.disconnect()'));
+      expect(script, contains('window._frostyHoldObserver = null'));
       expect(script, contains('if (window._frostyHeld)'));
       expect(script, contains('.play()'));
       expect(script, isNot(contains('.click()')));
+    });
+
+    test('held again on every page the web view loads', () {
+      final code = File(
+        'lib/screens/channel/video/video_store.dart',
+      ).readAsStringSync().replaceAll(RegExp(r'\s+'), '');
+      expect(code, contains('everyPage:_holdIfCovered,'));
+      expect(code, contains('onPageStarted:_pageInit.onPageStarted,'));
+      expect(code, contains('onPageFinished:_pageInit.onPageFinished,'));
     });
   });
 }

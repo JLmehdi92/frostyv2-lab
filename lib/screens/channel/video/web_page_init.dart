@@ -10,6 +10,7 @@ class WebPageInit {
     required this.isPlayerPage,
     required this.ensureLowLatency,
     required this.init,
+    this.everyPage,
   });
 
   /// Whether a finished URL is the live player page.
@@ -21,12 +22,20 @@ class WebPageInit {
   /// Sets the loaded player page up.
   final Future<void> Function() init;
 
+  /// Runs on every page start and finish, whatever the page and whether or
+  /// not it is set up (a reload the page does on its own included), before
+  /// the setup: what each new document must be told again at once.
+  final void Function()? everyPage;
+
   /// Set again by a refresh, which loads the page anew.
   var needsInit = true;
 
   var _lowLatencyChecked = false;
 
+  void onPageStarted(String url) => everyPage?.call();
+
   Future<void> onPageFinished(String url) async {
+    everyPage?.call();
     if (!isPlayerPage(url) || !needsInit) return;
     needsInit = false;
     if (!_lowLatencyChecked) {

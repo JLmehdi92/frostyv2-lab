@@ -54,6 +54,9 @@ abstract class VideoStoreBase with Store implements WebPagePlayer {
       await initVideo();
       _acceptContentWarning();
     },
+    // A new document knows nothing of the hold: told again as early as the
+    // web view lets us, before the setup's autoplay.
+    everyPage: _holdIfCovered,
   );
 
   /// The video web view params used for enabling auto play.
@@ -146,7 +149,10 @@ abstract class VideoStoreBase with Store implements WebPagePlayer {
           },
         )
         ..setNavigationDelegate(
-          NavigationDelegate(onPageFinished: _pageInit.onPageFinished),
+          NavigationDelegate(
+            onPageStarted: _pageInit.onPageStarted,
+            onPageFinished: _pageInit.onPageFinished,
+          ),
         );
 
   /// The timer that handles hiding the overlay automatically
@@ -195,6 +201,10 @@ abstract class VideoStoreBase with Store implements WebPagePlayer {
     }
   }
 
+  void _holdIfCovered() {
+    if (_coverGate.value == ContentGate.covering) _runPageScript(holdScript);
+  }
+
   void _runPageScript(String script) {
     try {
       unawaited(
@@ -207,15 +217,15 @@ abstract class VideoStoreBase with Store implements WebPagePlayer {
     }
   }
 
-  /// Holds the page's video paused while our warning covers it: pauses it
-  /// now (or as soon as it exists) and again whenever it starts. Only the
-  /// video element: Twitch's own warning is left alone.
+  /// Holds the page's videos paused while our warning covers them: pauses
+  /// them now and again whenever one starts, and watches the page until
+  /// released for a video that appears or replaces the first (the player
+  /// swaps its element). Only the videos: Twitch's own warning is left
+  /// alone.
   @visibleForTesting
   static const holdScript = '''(function () {
   window._frostyHold = true;
-  const find = () => window._videoEl || document.getElementsByTagName('video')[0];
   const hold = (v) => {
-    if (!v) return false;
     if (!v._frostyHoldBound) {
       v._frostyHoldBound = true;
       v.addEventListener('play', () => {
@@ -223,20 +233,27 @@ abstract class VideoStoreBase with Store implements WebPagePlayer {
       });
     }
     if (!v.paused) { window._frostyHeld = true; v.pause(); }
-    return true;
   };
-  if (!hold(find())) {
-    const t = setInterval(() => {
-      if (!window._frostyHold || hold(find())) clearInterval(t);
-    }, 250);
-    setTimeout(() => clearInterval(t), 30000);
+  const holdAll = () => {
+    if (!window._frostyHold) return;
+    for (const v of document.getElementsByTagName('video')) hold(v);
+  };
+  holdAll();
+  if (!window._frostyHoldObserver) {
+    window._frostyHoldObserver = new MutationObserver(holdAll);
+    window._frostyHoldObserver.observe(document, { childList: true, subtree: true });
   }
 })();''';
 
-  /// Lets the page's video go: it plays again if the hold stopped it.
+  /// Lets the page's video go: stops watching the page, and plays it again
+  /// if the hold stopped it.
   @visibleForTesting
   static const releaseScript = '''(function () {
   window._frostyHold = false;
+  if (window._frostyHoldObserver) {
+    window._frostyHoldObserver.disconnect();
+    window._frostyHoldObserver = null;
+  }
   if (window._frostyHeld) {
     window._frostyHeld = false;
     const v = window._videoEl || document.getElementsByTagName('video')[0];
@@ -990,10 +1007,6 @@ $kTwitchWebGateShownJs
             }
           });
         ''');
-        // A new page knows nothing of the hold: set it again.
-        if (_coverGate.value == ContentGate.covering) {
-          _runPageScript(holdScript);
-        }
         if (settingsStore.showOverlay) {
           await _hideDefaultOverlay();
           // Start latency tracking if either:

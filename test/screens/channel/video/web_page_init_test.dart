@@ -92,4 +92,40 @@ void main() {
 
     expect((checks, inits), (0, 0));
   });
+
+  test('every page start and finish runs the per-page hook first', () async {
+    final events = <String>[];
+    pageInit = WebPageInit(
+      isPlayerPage: (url) => url == player,
+      ensureLowLatency: () async {
+        events.add('check');
+        // Saved off: the page reloads itself.
+        return events.where((e) => e == 'check').length == 1;
+      },
+      init: () async => events.add('init'),
+      everyPage: () => events.add('page'),
+    );
+
+    pageInit.onPageStarted(player);
+    await pageInit.onPageFinished(player);
+    // The low-latency reload: not marked as needing a setup by anyone.
+    pageInit.onPageStarted(player);
+    await pageInit.onPageFinished(player);
+    // A reload the page does on its own, after the setup.
+    pageInit.onPageStarted(player);
+    await pageInit.onPageFinished(player);
+    pageInit.onPageStarted('about:blank');
+
+    expect(events, [
+      'page',
+      'page',
+      'check',
+      'page',
+      'page',
+      'init',
+      'page',
+      'page',
+      'page',
+    ]);
+  });
 }
