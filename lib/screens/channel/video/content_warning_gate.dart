@@ -133,16 +133,6 @@ class _ContentWarningGateState extends State<ContentWarningGate> {
   }
 
   @override
-  void dispose() {
-    // Gone for good (not moved to another layout: a GlobalKey move keeps
-    // this state): nothing covers the stream any more. Told once the tree
-    // is settled.
-    final report = widget.onStateChanged;
-    scheduleMicrotask(() => report(ContentGate.clear));
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final showWarning = _resolved && _labels.isNotEmpty;
     return Stack(

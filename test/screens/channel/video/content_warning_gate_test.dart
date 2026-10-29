@@ -136,7 +136,7 @@ void main() {
     expect(states, [ContentGate.pending, ContentGate.covering]);
   });
 
-  testWidgets('gone for good (chat only), it lets the player go', (
+  testWidgets('gone (chat only), it says nothing: chat only is not consent', (
     tester,
   ) async {
     when(
@@ -148,11 +148,8 @@ void main() {
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
-    expect(states, [
-      ContentGate.pending,
-      ContentGate.covering,
-      ContentGate.clear,
-    ]);
+    await tester.pump();
+    expect(states, [ContentGate.pending, ContentGate.covering]);
   });
 
   group('ContentWarningCover', () {
@@ -375,7 +372,9 @@ void main() {
               ? ContentWarningGate(
                   userId: '1',
                   displayName: 'Streamer',
-                  onStateChanged: player.setContentGate,
+                  onStateChanged: (gate) => player.setContentGate(
+                    followContentGate(player.contentGate, gate),
+                  ),
                   child: const Text('VIDEO'),
                 )
               : const Text('CHAT ONLY'),
@@ -403,9 +402,13 @@ void main() {
         await tester.pump();
         expect(player.contentGate, ContentGate.covering);
 
+        // Chat only is not consent: still held, still kept on the screen.
         await tester.pumpWidget(screen(player, video: false));
         await tester.pump();
-        expect(player.contentGate, ContentGate.clear);
+        await tester.pump();
+        expect(player.contentGate, ContentGate.covering);
+        pipPlayPause(player);
+        expect(player.calls, isNot(contains('pausePlay')));
 
         reopen();
         await tester.pumpWidget(screen(player, video: true));
@@ -417,5 +420,33 @@ void main() {
         expect(player.calls, contains('pausePlay'));
       });
     }
+
+    testWidgets('covered, chat only, video again: held while it reads again', (
+      tester,
+    ) async {
+      when(
+        () => api.getChannel(userId: '1'),
+      ).thenAnswer((_) async => _channel(['Gambling']));
+      final player = FakePlayer();
+      await tester.pumpWidget(screen(player, video: true));
+      await tester.pump();
+      await tester.pumpWidget(screen(player, video: false));
+      await tester.pump();
+
+      final labels = Completer<Channel>();
+      when(() => api.getChannel(userId: '1')).thenAnswer((_) => labels.future);
+      player.calls.clear();
+      await tester.pumpWidget(screen(player, video: true));
+      await tester.pump();
+      await tester.pump();
+      expect(player.contentGate, ContentGate.covering);
+      expect(player.calls, isNot(contains('gate pending')));
+
+      labels.complete(_channel(['Gambling']));
+      await tester.pump();
+      await tester.pump();
+      expect(player.contentGate, ContentGate.covering);
+      expect(find.text('Start watching'), findsOneWidget);
+    });
   });
 }

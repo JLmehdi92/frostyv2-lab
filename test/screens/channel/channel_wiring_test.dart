@@ -117,7 +117,15 @@ void main() {
   });
 
   test('the player, PiP and the mini player follow the warning', () {
-    expect(code, contains('_videoStore.setContentGate(gate);'));
+    // A warning built again (chat only, then the video back) does not let
+    // a covered stream go while it reads its labels again.
+    expect(
+      code,
+      contains(
+        '_contentGate=followContentGate(_contentGate,gate);'
+        '_videoStore.setContentGate(_contentGate);',
+      ),
+    );
     expect(code, contains('onPipAction:(_)=>pipPlayPause(_videoStore),'));
     expect(
       code,

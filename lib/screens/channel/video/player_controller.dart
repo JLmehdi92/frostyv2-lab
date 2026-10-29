@@ -71,3 +71,11 @@ void pipPlayPause(PlayerController player) {
   if (!player.contentGate.allowsLeaving) return;
   player.handlePausePlay();
 }
+
+/// Where the player stands once a warning reports [reported]. A warning
+/// built again (chat only, then the video back) reads its labels again
+/// (pending): a stream it covered stays held until it says otherwise.
+ContentGate followContentGate(ContentGate current, ContentGate reported) =>
+    current == ContentGate.covering && reported == ContentGate.pending
+    ? ContentGate.covering
+    : reported;

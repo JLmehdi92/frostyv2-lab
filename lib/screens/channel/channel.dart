@@ -674,10 +674,13 @@ class _VideoChatState extends State<VideoChat>
   /// The player follows the mature-content warning: held paused while it
   /// covers the video (the cover hides the picture but the audio would go
   /// on), free again when it is clear, and kept on the screen until then.
+  /// Chat only is not consent: the warning leaves with the video and says
+  /// nothing, and the one built when the video comes back keeps a covered
+  /// stream held while it reads the labels again.
   void _onContentGate(ContentGate gate) {
     if (!mounted) return;
-    _contentGate = gate;
-    _videoStore.setContentGate(gate);
+    _contentGate = followContentGate(_contentGate, gate);
+    _videoStore.setContentGate(_contentGate);
   }
 
   /// "Start watching": Twitch's own warning in the web player may go too.
