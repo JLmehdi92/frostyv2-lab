@@ -938,41 +938,48 @@ class OnsetDialog extends StatelessWidget {
         borderRadius: BorderRadius.circular(kSheetRadius),
         side: BorderSide(color: colors.ring, width: FrostyTokens.hairlineWidth),
       ),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 326),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: 12,
-            children: [
-              if (leading case final leading?)
-                Row(
-                  spacing: 12,
-                  children: [
-                    leading,
-                    Expanded(child: titleText),
-                  ],
-                )
-              else
-                titleText,
-              if (message case final message?)
-                Text(
-                  message,
-                  style: SheetText.body.copyWith(color: colors.body),
+      // As AlertDialog does: the title names the dialog when it opens.
+      child: Semantics(
+        scopesRoute: true,
+        namesRoute: true,
+        explicitChildNodes: true,
+        label: title,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 326),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: 12,
+              children: [
+                if (leading case final leading?)
+                  Row(
+                    spacing: 12,
+                    children: [
+                      leading,
+                      Expanded(child: titleText),
+                    ],
+                  )
+                else
+                  titleText,
+                if (message case final message?)
+                  Text(
+                    message,
+                    style: SheetText.body.copyWith(color: colors.body),
+                  ),
+                ?content,
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Wrap(
+                    alignment: WrapAlignment.end,
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: actions,
+                  ),
                 ),
-              ?content,
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Wrap(
-                  alignment: WrapAlignment.end,
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: actions,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -1074,7 +1081,9 @@ class SheetTextField extends StatelessWidget {
             child: ListenableBuilder(
               listenable: controller,
               builder: (context, _) => Text(
-                '${controller.text.length} / $maxLength',
+                // Characters, as the length limit counts them: an emoji
+                // is one, not two UTF-16 units.
+                '${controller.text.characters.length} / $maxLength',
                 style: SheetText.tabular(
                   TextStyle(
                     fontFamily: FrostyTokens.bodyFamily,

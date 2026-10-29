@@ -309,6 +309,62 @@ void main() {
     expect(find.byType(Dialog), findsNothing);
   });
 
+  testWidgets('the dialog names its route for screen readers', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (context) => const OnsetDialog(
+                  title: 'Clear chat?',
+                  message: 'Every message is deleted for everyone.',
+                  actions: [],
+                ),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    final route = find.byWidgetPredicate(
+      (widget) => widget is Semantics && widget.properties.namesRoute == true,
+    );
+    expect(
+      tester.getSemantics(route),
+      containsSemantics(
+        label: 'Clear chat?',
+        namesRoute: true,
+        scopesRoute: true,
+      ),
+    );
+    semantics.dispose();
+  });
+
+  testWidgets('the counter counts characters, as the limit does', (
+    tester,
+  ) async {
+    final controller = TextEditingController(text: '😀' * 300);
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SheetTextField(
+            controller: controller,
+            maxLength: 500,
+            counter: true,
+          ),
+        ),
+      ),
+    );
+    expect(find.text('300 / 500'), findsOneWidget);
+  });
+
   testWidgets('a choice pill says when it is selected', (tester) async {
     final semantics = tester.ensureSemantics();
     var picked = false;
