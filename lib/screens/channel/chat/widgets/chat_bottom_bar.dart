@@ -727,6 +727,13 @@ class _GrowInState extends State<_GrowIn> with SingleTickerProviderStateMixin {
     duration: const Duration(milliseconds: 260),
   );
 
+  // Built once: one per build would leave a status listener on the
+  // controller at every keystroke.
+  late final _curved = CurvedAnimation(
+    parent: _controller,
+    curve: FrostyMotion.standard,
+  );
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -741,21 +748,18 @@ class _GrowInState extends State<_GrowIn> with SingleTickerProviderStateMixin {
 
   @override
   void dispose() {
+    _curved.dispose();
     _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final curved = CurvedAnimation(
-      parent: _controller,
-      curve: FrostyMotion.standard,
-    );
     if (reduceMotionOf(context)) {
-      return FadeTransition(opacity: curved, child: widget.child);
+      return FadeTransition(opacity: _curved, child: widget.child);
     }
     return SizeTransition(
-      sizeFactor: curved,
+      sizeFactor: _curved,
       axisAlignment: 1,
       child: widget.child,
     );

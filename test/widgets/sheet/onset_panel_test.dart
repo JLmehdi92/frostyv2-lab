@@ -4,6 +4,8 @@ import 'package:frosty/theme.dart';
 import 'package:frosty/widgets/sheet/onset_panel.dart';
 import 'package:frosty/widgets/sheet/onset_sheet.dart';
 
+import '../../helpers/live_curves.dart';
+
 void main() {
   // The board ChaineOutilsTablette: 1280 × 854, the video 880 × 495 at the
   // top left, the chat column from 880.
@@ -252,6 +254,29 @@ void main() {
       tester.view.physicalSize = const Size(854, 1280);
       await tester.pumpAndSettle();
       expect(find.text('in a panel'), findsNothing);
+    });
+
+    testWidgets('a panel rebuilt by the keyboard keeps its curves', (
+      tester,
+    ) async {
+      final curves = LiveCurves.track();
+      final context = await pump(tester, const Size(1280, 854));
+      showSheetOrPanel<void>(
+        context: context,
+        builder: content,
+        size: const Size(384, 300),
+        sides: const [PanelSide.above],
+        anchor: const Rect.fromLTWH(1186, 794, 80, 44),
+        region: const Rect.fromLTWH(880, 0, 400, 854),
+      );
+      await tester.pumpAndSettle();
+      final settled = curves.count;
+      addTearDown(tester.view.resetViewInsets);
+      for (var i = 1; i <= 10; i++) {
+        tester.view.viewInsets = FakeViewPadding(bottom: 30.0 * i);
+        await tester.pump();
+      }
+      expect(curves.count, settled);
     });
 
     testWidgets('a sheet in the panel tone reports that ground', (

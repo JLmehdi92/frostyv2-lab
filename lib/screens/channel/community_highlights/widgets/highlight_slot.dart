@@ -272,6 +272,12 @@ class _HighlightNewPillState extends State<HighlightNewPill>
     duration: const Duration(milliseconds: 220),
   );
 
+  // Built once, disposed with the pill: not a new listener per build.
+  late final _curved = CurvedAnimation(
+    parent: _pop,
+    curve: FrostyMotion.standard,
+  );
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -286,6 +292,7 @@ class _HighlightNewPillState extends State<HighlightNewPill>
 
   @override
   void dispose() {
+    _curved.dispose();
     _pop.dispose();
     super.dispose();
   }
@@ -294,7 +301,7 @@ class _HighlightNewPillState extends State<HighlightNewPill>
   Widget build(BuildContext context) {
     final accent = SheetColors.accentOf(context);
     final onAccent = SheetColors.onAccentOf(context);
-    final curved = CurvedAnimation(parent: _pop, curve: FrostyMotion.standard);
+    final curved = _curved;
     final label = 'New ${highlightLabel(widget.kind).toLowerCase()}';
     Widget pill = Semantics(
       button: true,

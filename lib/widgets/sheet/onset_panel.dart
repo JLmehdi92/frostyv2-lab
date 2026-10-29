@@ -414,6 +414,14 @@ class _PanelRoute<T> extends PopupRoute<T> {
 
   bool _closing = false;
 
+  CurvedAnimation? _fade;
+
+  @override
+  void dispose() {
+    _fade?.dispose();
+    super.dispose();
+  }
+
   void _closeStale() {
     if (_closing) return;
     _closing = true;
@@ -489,7 +497,9 @@ class _PanelRoute<T> extends PopupRoute<T> {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    final fade = CurvedAnimation(
+    // One curve for the route's life (it holds the direction it started
+    // in), not a new listener on the route animation per rebuild.
+    final fade = _fade ??= CurvedAnimation(
       parent: animation,
       curve: FrostyMotion.standard,
       reverseCurve: FrostyMotion.emphasizedAccelerate,

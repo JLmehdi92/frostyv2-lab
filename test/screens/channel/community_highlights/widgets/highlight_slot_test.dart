@@ -9,6 +9,7 @@ import 'package:frosty/screens/channel/community_highlights/widgets/highlight_sl
 import 'package:mocktail/mocktail.dart';
 
 import '../../../../helpers/community_highlights_harness.dart';
+import '../../../../helpers/live_curves.dart';
 
 void main() {
   late Harness h;
@@ -267,5 +268,25 @@ void main() {
     // It leaves the store at its end.
     await tester.pump(const Duration(seconds: 10));
     expect(h.store.giftBomb, isNull);
+  });
+
+  testWidgets('the New pill keeps one curve however often it rebuilds', (
+    tester,
+  ) async {
+    final curves = LiveCurves.track();
+    Widget pill() => MaterialApp(
+      home: Center(
+        child: HighlightNewPill(kind: HighlightKind.pinned, onPressed: () {}),
+      ),
+    );
+    await tester.pumpWidget(pill());
+    await tester.pumpAndSettle();
+    final settled = curves.count;
+    for (var i = 0; i < 20; i++) {
+      await tester.pumpWidget(pill());
+    }
+    expect(curves.count, settled);
+    await tester.pumpWidget(const SizedBox());
+    expect(curves.count, 0);
   });
 }

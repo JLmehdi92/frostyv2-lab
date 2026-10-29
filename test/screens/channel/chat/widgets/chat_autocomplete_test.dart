@@ -9,6 +9,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../helpers/chat_message_harness.dart';
+import '../../../../helpers/live_curves.dart';
 
 class MockAuthStore extends Mock implements AuthStore {}
 
@@ -144,6 +145,22 @@ void main() {
     await pump(tester);
     expect(find.text('Emote0'), findsOneWidget);
     expect(find.text('Emote399'), findsNothing);
+  });
+
+  testWidgets('typing over a suggestion row adds no animation listeners', (
+    tester,
+  ) async {
+    final curves = LiveCurves.track();
+    when(() => chat.showEmoteAutocomplete).thenReturn(true);
+    when(() => chat.matchingEmotes).thenReturn(const [_kappa]);
+    await pump(tester);
+    final settled = curves.count;
+    // Every keystroke rebuilds the bar (and the row's grow-in).
+    for (var i = 0; i < 20; i++) {
+      text.text = 'Ka${'p' * i}';
+      await pump(tester);
+    }
+    expect(curves.count, settled);
   });
 
   testWidgets('a command fills the input with itself', (tester) async {
