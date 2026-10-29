@@ -157,7 +157,8 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
   @override
   void initState() {
     super.initState();
-    // A kept list gone stale starts over with fresh clips, from the first.
+    // A kept list left long ago starts over with fresh clips, from the
+    // first.
     if (_store.stale) _store.clear();
     // One player at a time: the mini player closes and a stream or VOD
     // beneath pauses until the feed closes.
@@ -947,6 +948,8 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
 
   @override
   void dispose() {
+    // Left: a kept list ages from now, never while it is watched.
+    _store.left();
     try {
       if (_inPip) widget.onPipChanged?.call(false);
       _disposeClipsReaction?.call();

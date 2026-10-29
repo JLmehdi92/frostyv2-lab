@@ -426,9 +426,8 @@ void main() {
       await close(tester);
     });
 
-    testWidgets('a kept list ten minutes old starts over from fresh clips', (
-      tester,
-    ) async {
+    testWidgets('watched a quarter of an hour, left for two seconds: the '
+        'same clip; left ten minutes: fresh clips', (tester) async {
       var now = DateTime.utc(2026, 10, 29, 12);
       final store = ClipsFeedStore(clipService: service, now: () => now);
       await pump(
@@ -437,6 +436,18 @@ void main() {
         store: store,
       );
       await swipeUp(tester);
+      now = now.add(const Duration(minutes: 15));
+      await close(tester);
+      now = now.add(const Duration(seconds: 2));
+      built.clear();
+
+      await pump(
+        tester,
+        first: ClipFeedPage(items: [clip('x'), clip('y')]),
+        store: store,
+      );
+      expect(find.text('Clip b'), findsOneWidget);
+      expect(built, [('b', true), ('c', false)]);
       await close(tester);
       built.clear();
 

@@ -19,18 +19,21 @@ abstract class ClipsFeedStoreBase with Store {
 
   final DateTime Function() _now;
 
-  /// How old a list may get before the feed starts over with fresh clips
-  /// when it is opened again (Twitch's top clips move, and an ended feed
-  /// would otherwise stay ended).
+  /// How long the feed may stay left before it starts over with fresh
+  /// clips when it is opened again (Twitch's top clips move, and an ended
+  /// feed would otherwise stay ended). Watching it never ages it.
   static const staleAfter = Duration(minutes: 10);
 
-  /// When the first page was last loaded.
-  DateTime? _loadedAt;
+  /// When the feed was last left (null: loaded since, or on screen).
+  DateTime? _leftAt;
 
-  /// Whether the list was loaded more than [staleAfter] ago.
+  /// The feed was left (its page let go): staleness counts from now.
+  void left() => _leftAt = _now();
+
+  /// Whether the feed was left more than [staleAfter] ago.
   bool get stale {
-    final loadedAt = _loadedAt;
-    return loadedAt != null && _now().difference(loadedAt) >= staleAfter;
+    final leftAt = _leftAt;
+    return leftAt != null && _now().difference(leftAt) >= staleAfter;
   }
 
   final TwitchClipService clipService;
@@ -77,7 +80,7 @@ abstract class ClipsFeedStoreBase with Store {
     _cursor = null;
     _hasMore = false;
     _endedOnError = false;
-    _loadedAt = null;
+    _leftAt = null;
   }
 
   /// Loads the first page (again, after a failure).
@@ -92,7 +95,7 @@ abstract class ClipsFeedStoreBase with Store {
         _clips = ObservableList<Clip>();
         position = 0;
         _endedOnError = false;
-        _loadedAt = _now();
+        _leftAt = null;
         _add(page);
       });
     } catch (e) {

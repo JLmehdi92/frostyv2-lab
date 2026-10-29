@@ -116,25 +116,34 @@ void main() {
     ).called(1);
   });
 
-  test('a list ten minutes old is stale', () async {
-    var now = DateTime.utc(2026, 10, 29, 12);
-    when(
-      () => service.getTopClips(language: ''),
-    ).thenAnswer((_) async => ClipFeedPage(items: [clip('a')]));
-    final store = ClipsFeedStore(clipService: service, now: () => now);
-    expect(store.stale, isFalse, reason: 'nothing loaded yet');
+  test(
+    'a list left ten minutes ago is stale, however long it was watched',
+    () async {
+      var now = DateTime.utc(2026, 10, 29, 12);
+      when(
+        () => service.getTopClips(language: ''),
+      ).thenAnswer((_) async => ClipFeedPage(items: [clip('a')]));
+      final store = ClipsFeedStore(clipService: service, now: () => now);
+      expect(store.stale, isFalse, reason: 'nothing loaded yet');
 
-    await store.load();
-    expect(store.stale, isFalse);
-    now = now.add(ClipsFeedStoreBase.staleAfter);
-    expect(store.stale, isTrue);
+      await store.load();
+      // Watched for a quarter of an hour: still the viewer's list.
+      now = now.add(const Duration(minutes: 15));
+      expect(store.stale, isFalse);
+      store.left();
+      now = now.add(const Duration(seconds: 2));
+      expect(store.stale, isFalse);
+      now = now.add(ClipsFeedStoreBase.staleAfter);
+      expect(store.stale, isTrue);
 
-    store
-      ..position = 1
-      ..clear();
-    expect(store.clips, isEmpty);
-    expect(store.position, 0);
-  });
+      store
+        ..position = 1
+        ..clear();
+      expect(store.clips, isEmpty);
+      expect(store.position, 0);
+      expect(store.stale, isFalse);
+    },
+  );
 
   test(
     'a page that fails ends the feed on an error; Try again loads it',
