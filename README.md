@@ -1,9 +1,6 @@
 <div align="center">
 
-<picture>
-  <source media="(prefers-reduced-motion: reduce)" srcset=".github/assets/onset-logo.png">
-  <img src=".github/assets/onset-logo.svg" width="160" alt="ONSET logo: a black italic ON with three rays above it and a dot below it, on a lime halftone tile">
-</picture>
+<img src=".github/assets/onset-logo.gif" width="160" alt="ONSET logo: a black italic ON with three rays above it and a dot below it, on a lime halftone tile">
 
 <h1>ONSET</h1>
 
@@ -216,7 +213,8 @@ dart run build_runner build --delete-conflicting-outputs   # after changing a st
   `main`.
 - README media live in `.github/assets/`. `python3 tool/readme_logo.py`
   rebuilds the animated logo from the app icon
-  (`assets/icons/icon_onset.png`), and
+  (`assets/icons/icon_onset.png`): the SVG source and the GIF the README
+  shows (rendered with Playwright Chromium and ffmpeg), and
   `python3 tool/readme_shots/render.py` renders the screenshots.
 
 ## Contributing
