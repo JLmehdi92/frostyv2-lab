@@ -112,4 +112,21 @@ void main() {
       );
     });
   });
+
+  group('isQualityDownSwitch', () {
+    test('lower resolution or frame rate is down', () {
+      expect(isQualityDownSwitch('1080p60', '720p60'), isTrue);
+      expect(isQualityDownSwitch('1080p60', '1080p30'), isTrue);
+      expect(isQualityDownSwitch('720p60', 'audio_only'), isTrue);
+      expect(isQualityDownSwitch('1440p60 HEVC', '1080p60'), isTrue);
+    });
+
+    test('up, the same or unknown is not', () {
+      expect(isQualityDownSwitch('480p', '720p60'), isFalse);
+      expect(isQualityDownSwitch('720p60', '720p60'), isFalse);
+      expect(isQualityDownSwitch('720p30', '720p60'), isFalse);
+      expect(isQualityDownSwitch('source', '720p60'), isFalse);
+      expect(isQualityDownSwitch('720p60', 'chunked'), isFalse);
+    });
+  });
 }

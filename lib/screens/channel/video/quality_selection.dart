@@ -41,3 +41,21 @@ String? pickInitialQuality({
   }
   return null;
 }
+
+/// Whether going from quality [from] to [to] lowers the resolution, or the
+/// frame rate at the same resolution (audio only is the lowest). False when
+/// either name is not a rendition (`source`, `chunked`...): unknown is never
+/// taken for a down-switch.
+bool isQualityDownSwitch(String from, String to) {
+  final a = _qualityRank(from);
+  final b = _qualityRank(to);
+  if (a == null || b == null) return false;
+  return b.$1 < a.$1 || (b.$1 == a.$1 && b.$2 < a.$2);
+}
+
+(int, int)? _qualityRank(String name) {
+  if (normalizeQualityName(name) == kAudioOnlyQuality) return (0, 0);
+  final match = RegExp(r'(\d+)p(\d+)?').firstMatch(name);
+  if (match == null) return null;
+  return (int.parse(match.group(1)!), int.parse(match.group(2) ?? '30'));
+}
