@@ -45,9 +45,6 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Folder containing random testing files
-random/
-
 # fastlane specific
 **/fastlane/report.xml
 
@@ -68,38 +65,14 @@ random/
 .env
 
 # ai
-.claude/settings.local.jsontablet_shot*.png
-t_*.png
-tablet_*.png
-.claude/
-dt_*.png
-fs_*.png
-ivs_*.png
-pip_*.png
-tex_*.png
-mini_*.png
-r1_*.png
-r2_*.png
-smooth_*.png
-align_*.png
-*_s.png
-*_small.png
-h_*.png
-i2*.png
-i3*.png
-s1*.png
-s2*.png
+.claude/settings.local.json
+
+# release signing
 android/key.properties
-codec_*.png
-ff_*.png
-fit_*.png
-prof_*.png
-q_*.png
-rel_*.png
-res_*.png
-chat_*.png
-cp_*.png
-pp_*.png
+
+# local scratch (screenshots, notes)
+/scratch/
+/*.png
 
 # Firebase is optional and per builder: never commit a project config.
 android/app/google-services.json
