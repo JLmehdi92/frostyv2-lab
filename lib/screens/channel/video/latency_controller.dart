@@ -1,4 +1,5 @@
 import 'package:clock/clock.dart';
+import 'package:onset/screens/channel/video/latency_stats.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 
 /// What the auto latency controller is doing, as shown in the stats panel.
@@ -417,4 +418,34 @@ class LatencyController {
     final sorted = [...window]..sort();
     return sorted[sorted.length ~/ 2];
   }
+}
+
+/// One line for the stats panel: what auto latency does and what it aims at.
+String describeAutoLatency(AutoLatencyStatus? status) {
+  if (status == null) return 'off';
+  final target = switch (status.targetMs) {
+    final ms? => ' · target ${formatLatency(ms)}',
+    null => '',
+  };
+  return switch (status.phase) {
+    AutoLatencyPhase.off => 'off',
+    AutoLatencyPhase.stopped => 'stopped: ${status.reason ?? 'gave up'}',
+    AutoLatencyPhase.held => 'held: ${status.reason ?? 'held'}$target',
+    AutoLatencyPhase.settling =>
+      'waiting for calm${switch (status.calmLeftSeconds) {
+        final s? => ' ${s}s',
+        null => '',
+      }}$target',
+    AutoLatencyPhase.steady => 'at target$target',
+    AutoLatencyPhase.catchingUp =>
+      'catching up ${status.rate.toStringAsFixed(2)}x$target',
+  };
+}
+
+/// The stats panel line of an active Ultra fallback, or null.
+String? describeBufferFallback(DateTime? until) {
+  if (until == null) return null;
+  String two(int v) => v.toString().padLeft(2, '0');
+  return 'Standard until ${two(until.hour)}:${two(until.minute)} '
+      '(Ultra stalled)';
 }

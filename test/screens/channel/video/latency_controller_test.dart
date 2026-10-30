@@ -374,4 +374,83 @@ void main() {
     expect(a, b);
     expect(a.hashCode, b.hashCode);
   });
+
+  group('describeAutoLatency', () {
+    test('off', () {
+      expect(describeAutoLatency(null), 'off');
+      expect(
+        describeAutoLatency(
+          const AutoLatencyStatus(phase: AutoLatencyPhase.off, rate: 1.0),
+        ),
+        'off',
+      );
+    });
+
+    test('catching up shows the rate and the target', () {
+      expect(
+        describeAutoLatency(
+          const AutoLatencyStatus(
+            phase: AutoLatencyPhase.catchingUp,
+            rate: 1.05,
+            targetMs: 1300,
+          ),
+        ),
+        'catching up 1.05x · target 1.3s',
+      );
+    });
+
+    test('steady, settling, held and stopped', () {
+      expect(
+        describeAutoLatency(
+          const AutoLatencyStatus(
+            phase: AutoLatencyPhase.steady,
+            rate: 1.0,
+            targetMs: 1300,
+          ),
+        ),
+        'at target · target 1.3s',
+      );
+      expect(
+        describeAutoLatency(
+          const AutoLatencyStatus(
+            phase: AutoLatencyPhase.settling,
+            rate: 1.0,
+            targetMs: 1800,
+            calmLeftSeconds: 12,
+          ),
+        ),
+        'waiting for calm 12s · target 1.8s',
+      );
+      expect(
+        describeAutoLatency(
+          const AutoLatencyStatus(
+            phase: AutoLatencyPhase.held,
+            rate: 1.0,
+            targetMs: 1300,
+            reason: 'paused',
+          ),
+        ),
+        'held: paused · target 1.3s',
+      );
+      expect(
+        describeAutoLatency(
+          const AutoLatencyStatus(
+            phase: AutoLatencyPhase.stopped,
+            rate: 1.0,
+            targetMs: 2800,
+            reason: 'stalls after catching up',
+          ),
+        ),
+        'stopped: stalls after catching up',
+      );
+    });
+  });
+
+  test('describeBufferFallback says until when', () {
+    expect(describeBufferFallback(null), isNull);
+    expect(
+      describeBufferFallback(DateTime(2026, 10, 30, 9, 5)),
+      'Standard until 09:05 (Ultra stalled)',
+    );
+  });
 }

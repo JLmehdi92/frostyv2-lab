@@ -57,13 +57,26 @@ class VideoSettings extends StatelessWidget {
                         : PlayerEngine.twitchWeb,
                   ),
                   if (ivs) ...[
+                    SettingsListSwitch(
+                      title: 'Auto latency',
+                      subtitle: const Text(
+                        'Keeps the stream close to live by playing very '
+                        'slightly faster when it drifts behind. Never reloads '
+                        'the player. If Ultra keeps stalling, the next streams '
+                        'use Standard for a while. Applies the next time a '
+                        'stream is opened.',
+                      ),
+                      value: settingsStore.autoLatency,
+                      onChanged: (enabled) =>
+                          settingsStore.autoLatency = enabled,
+                    ),
                     SettingsListSelect(
                       title: 'Live catch-up',
                       subtitle:
                           'Speed up plays slightly faster until it is back at '
-                          'live, like the official app. Jump to live skips '
-                          'ahead after a stall. Applies the next time a '
-                          'stream is opened.',
+                          'live, like the official app (Auto latency does it '
+                          'when on). Jump to live skips ahead after a stall. '
+                          'Applies the next time a stream is opened.',
                       selectedOption:
                           liveCatchUpModeNames[settingsStore
                               .liveCatchUpMode
@@ -77,10 +90,9 @@ class VideoSettings extends StatelessWidget {
                     SettingsListSelect(
                       title: 'Buffer profile',
                       subtitle:
-                          'Ultra (experimental) keeps an even smaller buffer '
-                          'for lower latency but may rebuffer more on weak '
-                          'connections. Applies the next time a stream is '
-                          'opened.',
+                          'Ultra keeps an even smaller buffer for lower '
+                          'latency but may rebuffer more on weak connections. '
+                          'Applies the next time a stream is opened.',
                       selectedOption:
                           bufferProfileNames[settingsStore.bufferProfile.index],
                       options: bufferProfileNames,

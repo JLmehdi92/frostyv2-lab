@@ -28,6 +28,8 @@ final SwitchRows _general = {
 };
 
 final SwitchRows _video = {
+  // Shown with the IVS engine only: checked before it is switched off.
+  'Auto latency': (s) => s.autoLatency,
   'Low-latency player (Twitch IVS)': (s) => s.playerEngine == PlayerEngine.ivs,
   'Enable video': (s) => s.showVideo,
   'Default to highest quality': (s) => s.defaultToHighestQuality,
@@ -196,6 +198,7 @@ void main() {
     expect(settings.playerEngine, PlayerEngine.twitchWeb);
     expect(find.text('Live catch-up'), findsNothing);
     expect(find.text('Buffer profile'), findsNothing);
+    expect(find.text('Auto latency'), findsNothing);
     expect(find.text('Twitch web token (2K)'), findsNothing);
 
     await tapVisible(tester, find.text('Large'));

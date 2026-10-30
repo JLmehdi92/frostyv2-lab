@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/screens/channel/video/latency_controller.dart';
 import 'package:onset/screens/channel/video/latency_stats.dart';
 import 'package:onset/screens/channel/video/overlay_common.dart';
 import 'package:onset/screens/channel/video/stores/ivs_video_store.dart';
@@ -7,7 +8,8 @@ import 'package:onset/theme.dart';
 
 /// Compact technical overlay for measuring the IVS player on a real device:
 /// live latency with its rolling median / p90 / max, buffer, bitrate, frames,
-/// quality, low-latency state, playback speed, startup time and rebuffers.
+/// quality, low-latency state, playback speed, what auto latency does (and
+/// an active Ultra fallback), startup time and rebuffers.
 ///
 /// Shown above the video (outside the auto-hiding overlay) while
 /// [IvsVideoStore.statsVisible] is true.
@@ -98,6 +100,10 @@ class IvsStatsPanel extends StatelessWidget {
                   },
                 ),
                 ('Mode', store.playerConfig.label),
+                ('Auto latency', describeAutoLatency(store.autoLatencyStatus)),
+                if (describeBufferFallback(store.bufferFallbackUntil)
+                    case final fallback?)
+                  ('Next streams', fallback),
                 ('Startup', ms(store.startupMs)),
                 ('Rebuffers', '${store.rebufferCount}'),
                 ('Jumps to live', '${store.liveJumps}'),
