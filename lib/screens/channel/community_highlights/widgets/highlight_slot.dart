@@ -4,6 +4,7 @@ import 'package:mobx/mobx.dart';
 import 'package:onset/models/community_highlights.dart';
 import 'package:onset/screens/channel/community_highlights/highlight_stack.dart';
 import 'package:onset/screens/channel/community_highlights/stores/community_highlights_store.dart';
+import 'package:onset/screens/channel/community_highlights/widgets/gift_bomb_pin.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/highlight_cards.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/incoming_raid_pin.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/raid_card.dart';
@@ -102,7 +103,12 @@ Widget buildHighlightCard(
         null => const SizedBox.shrink(),
       },
       HighlightKind.giftBomb => switch (store.giftBomb) {
-        final banner? => GiftBombCard(banner: banner, card: cardFor(context)),
+        final banner? => GiftBombPin(
+          banner: banner,
+          now: store.serverNow,
+          onDismiss: dismissible ? store.dismissCurrent : null,
+          compact: compact,
+        ),
         null => const SizedBox.shrink(),
       },
       HighlightKind.incomingRaid => switch (store.incomingRaid) {

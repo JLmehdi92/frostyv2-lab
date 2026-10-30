@@ -7,6 +7,7 @@ import 'package:onset/models/community_highlights.dart';
 import 'package:onset/screens/channel/chat/gift_bomb_tracker.dart';
 import 'package:onset/screens/channel/chat/incoming_raid.dart';
 import 'package:onset/screens/channel/community_highlights/highlight_stack.dart';
+import 'package:onset/screens/channel/community_highlights/widgets/gift_bomb_pin.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/highlight_slot.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/incoming_raid_pin.dart';
 
@@ -284,21 +285,55 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(
-      find.textContaining('BigGifter is gifting 5', findRichText: true),
-      findsOneWidget,
-    );
+    expect(find.byType(GiftBombPin), findsOneWidget);
+    expect(find.text('BigGifter'), findsOneWidget);
+    expect(find.text(' is gifting 5 subs'), findsOneWidget);
     expect(highlightLabel(HighlightKind.giftBomb), 'Gift Subs');
     expect(highlightIcon(HighlightKind.giftBomb), Icons.card_giftcard_rounded);
 
-    await tester.tap(find.byIcon(Icons.close_rounded));
-    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Hide'));
+    await tester.pump();
+    // It folds away first (280 ms), then leaves the stack.
+    expect(h.store.visible, isTrue);
+    await tester.pump(const Duration(milliseconds: 300));
     expect(h.store.giftBomb, isNotNull);
     expect(h.store.visible, isFalse);
 
     // It leaves the store at its end.
     await tester.pump(const Duration(seconds: 10));
     expect(h.store.giftBomb, isNull);
+  });
+
+  testWidgets('a gift bomb follows its gifts and goes one line when '
+      'compact', (tester) async {
+    await start(tester);
+    await pump(tester, slot(compact: true));
+
+    final live = ValueNotifier(
+      const GiftBomb(
+        key: 'bomb',
+        gifterName: 'BigGifter',
+        isAnonymous: false,
+        count: 5,
+      ),
+    );
+    addTearDown(live.dispose);
+    h.store.showGiftBomb(live.value, live: live);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('×5'), findsOneWidget);
+    live.value = live.value.withGift('a').withGift('b').withGift('c');
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+    final ring = tester.widget<CustomPaint>(
+      find.descendant(
+        of: find.byKey(GiftBombPin.ringKey),
+        matching: find.byType(CustomPaint),
+      ),
+    );
+    expect((ring.painter! as GiftBombRingPainter).fraction, closeTo(0.6, 1e-9));
+    await tester.pump(const Duration(seconds: 10));
   });
 
   testWidgets('the New pill keeps one curve however often it rebuilds', (

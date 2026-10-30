@@ -320,7 +320,10 @@ class _VideoChatState extends State<VideoChat>
       );
       _giftBombFeed = feedGiftBombs(
         latest: () => _primaryChatStore?.latestGiftBomb,
-        show: (bomb) => _highlightsStore?.showGiftBomb(bomb),
+        show: (bomb) => _highlightsStore?.showGiftBomb(
+          bomb,
+          live: _primaryChatStore?.watchGiftBomb(bomb.key),
+        ),
       );
       _raidCancelFeed = reaction(
         (_) => _highlightsStore?.raid?.cancelled ?? false,

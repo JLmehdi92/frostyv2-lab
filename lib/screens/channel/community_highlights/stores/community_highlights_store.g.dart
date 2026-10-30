@@ -279,11 +279,11 @@ mixin _$CommunityHighlightsStore on CommunityHighlightsStoreBase, Store {
   }
 
   @override
-  void showGiftBomb(GiftBomb bomb) {
+  void showGiftBomb(GiftBomb bomb, {ValueListenable<GiftBomb>? live}) {
     final _$actionInfo = _$CommunityHighlightsStoreBaseActionController
         .startAction(name: 'CommunityHighlightsStoreBase.showGiftBomb');
     try {
-      return super.showGiftBomb(bomb);
+      return super.showGiftBomb(bomb, live: live);
     } finally {
       _$CommunityHighlightsStoreBaseActionController.endAction(_$actionInfo);
     }

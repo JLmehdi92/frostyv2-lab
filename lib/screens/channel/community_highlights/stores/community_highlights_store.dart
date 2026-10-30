@@ -215,9 +215,9 @@ abstract class CommunityHighlightsStoreBase with Store {
 
   /// Pins [bomb]'s banner from now for as long as Twitch would (see
   /// [bannerDuration]); a bomb too small for one is ignored. A newer bomb
-  /// replaces the one up.
+  /// replaces the one up. [live] follows its gifts as they arrive.
   @action
-  void showGiftBomb(GiftBomb bomb) {
+  void showGiftBomb(GiftBomb bomb, {ValueListenable<GiftBomb>? live}) {
     final duration = bannerDuration(bomb.count);
     if (_disposed || duration == null) return;
     final startedAt = serverNow();
@@ -225,6 +225,7 @@ abstract class CommunityHighlightsStoreBase with Store {
       bomb: bomb,
       startedAt: startedAt,
       endsAt: startedAt.add(duration),
+      live: live,
     );
     _changed(urgent: true);
   }
