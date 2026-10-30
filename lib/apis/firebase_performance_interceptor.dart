@@ -2,6 +2,11 @@ import 'package:dio/dio.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:onset/services/telemetry.dart';
 
+/// The address [request] is traced under: its service only. Its path can
+/// name a channel (recent messages, usher) or carry a user id (7TV, BTTV,
+/// FFZ), its query can name anyone (whisper partners, chatters).
+String traceUrlFor(RequestOptions request) => request.uri.origin;
+
 /// Dio interceptor that traces HTTP requests as Firebase Performance metrics
 /// (nothing at all when the build has no Firebase, see [Telemetry]).
 class FirebasePerformanceInterceptor extends Interceptor {
@@ -10,8 +15,7 @@ class FirebasePerformanceInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     final metric = Telemetry.newHttpMetric(
-      // No query: it can name people (whisper partners, chatters).
-      '${options.uri.origin}${options.uri.path}',
+      traceUrlFor(options),
       options.method,
     );
     if (metric != null) {

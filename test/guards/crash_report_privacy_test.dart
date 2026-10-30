@@ -2,9 +2,10 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-/// Crash reports must not identify the viewer: no user id, and no custom
-/// key, log line or error reason built from a login, a channel, a user id,
-/// a token, a message or an address (which can carry any of them).
+/// Crash reports and performance traces must not identify the viewer: no
+/// user id, and no custom key, log line, error reason or traced address
+/// built from a login, a channel, a user id, a token, a message or an
+/// address (whose path or query can carry any of them).
 ///
 /// Every call in `lib/` is inspected, commented code left out.
 void main() {
@@ -19,6 +20,8 @@ void main() {
         r"Telemetry.recordError(e, null, reason: 'IRC, channel=$channelName');",
         r"Telemetry.recordError(e, null, reason: 'GET ${uri.path}');",
         r"FirebaseCrashlytics.instance.log('direct');",
+        r"Telemetry.newHttpMetric('${o.uri.origin}${o.uri.path}', m);",
+        r'Telemetry.newHttpMetric(options.uri.toString(), options.method);',
       ];
       for (final line in planted) {
         expect(
@@ -83,6 +86,7 @@ void fine(String channelName, Object e) {
     expect(counts['recordError'], greaterThanOrEqualTo(15));
     expect(counts['log'], greaterThanOrEqualTo(4));
     expect(counts['setCustomKey'], greaterThanOrEqualTo(1));
+    expect(counts['newHttpMetric'], 1);
     expect(violations, isEmpty, reason: violations.join('\n'));
   });
 }
@@ -93,6 +97,10 @@ final _identifying = RegExp(
   'broadcaster|chatter|whisper|target',
   caseSensitive: false,
 );
+
+/// Helpers whose own tests prove they keep only the service of an address
+/// (base_api_client_test, telemetry_test).
+const _vetted = {'crashReasonFor', 'traceUrlFor'};
 
 final _identifier = RegExp(r'[A-Za-z_$][A-Za-z0-9_$]*');
 
@@ -133,7 +141,7 @@ List<String> violationsIn(String source, String path) {
         if (key != null && _identifying.hasMatch(key)) {
           found.add('$path: custom key "$key"');
         }
-      case 'log':
+      case 'log' || 'newHttpMetric':
         checked = args;
       case 'recordError':
         final reason = RegExp(r'\breason\s*:').firstMatch(masked);
@@ -144,7 +152,7 @@ List<String> violationsIn(String source, String path) {
     if (checked == null) continue;
     for (final name in _identifier.allMatches(maskStrings(checked))) {
       final word = name[0]!;
-      if (word == 'reason') continue;
+      if (word == 'reason' || _vetted.contains(word)) continue;
       if (_identifying.hasMatch(word)) {
         found.add('$path: Telemetry.${call.method} carries "$word"');
       }
@@ -161,7 +169,8 @@ List<TelemetryCall> telemetryCallsIn(String code) {
   final masked = maskStrings(code);
   final calls = <TelemetryCall>[];
   for (final match in RegExp(
-    r'\bTelemetry\.(setUserIdentifier|setCustomKey|log|recordError)\s*\(',
+    r'\bTelemetry\.'
+    r'(setUserIdentifier|setCustomKey|log|recordError|newHttpMetric)\s*\(',
   ).allMatches(masked)) {
     var depth = 1;
     var i = match.end;

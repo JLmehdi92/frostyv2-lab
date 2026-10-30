@@ -141,6 +141,24 @@ void main() {
       expect(() => setFirebaseCollection(false), returnsNormally);
     });
 
+    test('a request is traced by its service only', () {
+      // A path can name a channel (recent messages, usher) or carry a user
+      // id (7TV, BTTV, FFZ); a query can name anyone.
+      for (final (url, traced) in [
+        (
+          'https://recent-messages.robotty.de/api/v2/recent-messages/somelogin',
+          'https://recent-messages.robotty.de',
+        ),
+        ('https://7tv.io/v3/users/twitch/12345', 'https://7tv.io'),
+        (
+          'https://api.twitch.tv/helix/users?login=somelogin',
+          'https://api.twitch.tv',
+        ),
+      ]) {
+        expect(traceUrlFor(RequestOptions(path: url)), traced);
+      }
+    });
+
     test('requests still go through the performance interceptor', () async {
       final dio = Dio()..interceptors.add(FirebasePerformanceInterceptor());
       final adapter = DioAdapter(dio: dio);
