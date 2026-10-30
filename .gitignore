@@ -66,6 +66,7 @@ app.*.map.json
 
 # ai
 .claude/settings.local.json
+.claude/worktrees/
 
 # release signing
 android/key.properties

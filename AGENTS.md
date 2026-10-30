@@ -22,7 +22,7 @@ dart run build_runner build --delete-conflicting-outputs             # Same, but
 - `lib/main.dart`, `lib/theme.dart`, `lib/constants.dart` — Entry point, theme and build-time constants
 - `lib/apis/` — API services (all extend `BaseApiClient`)
 - `lib/models/` — Data models (`@JsonSerializable` with `.g.dart` codegen)
-- `lib/screens/{feature}/` — Feature screens with co-located `stores/` and `widgets/` subdirectories (widgets used by one feature live there)
+- `lib/screens/{feature}/` — Feature screens with co-located `stores/` and `widgets/` subdirectories (code used by one feature lives in that feature's folder, usually `widgets/`)
 - `lib/stores/` — Global stores only (e.g., `global_assets_store.dart`)
 - `lib/services/` — App-level services (e.g., `cache_manager.dart`)
 - `lib/widgets/` — Widgets shared by several features

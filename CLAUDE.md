@@ -20,7 +20,7 @@
 
 ```bash
 flutter pub get
-flutter run --dart-define=CLIENT_ID=ID --dart-define=SECRET=SECRET   # NOTE: env names are UPPERCASE (constants.dart uses String.fromEnvironment('CLIENT_ID'/'SECRET')); AGENTS.md's lowercase clientId/secret is wrong
+flutter run --dart-define=CLIENT_ID=ID --dart-define=SECRET=SECRET   # NOTE: env names are UPPERCASE (constants.dart uses String.fromEnvironment('CLIENT_ID'/'SECRET'))
 flutter analyze            # run after every change — must be clean
 flutter test
 dart run build_runner build --delete-conflicting-outputs   # after MobX/JSON model changes

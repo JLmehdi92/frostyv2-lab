@@ -48,8 +48,6 @@ class ExpandableSectionHeader extends StatelessWidget {
                 Expanded(
                   child: Text(
                     text.toUpperCase(),
-                    // Meme style que SectionHeader : les deux s'empilent dans
-                    // la liste Following, ils doivent parler d'une seule voix.
                     style: context.onsetText.label.copyWith(fontSize: fontSize),
                   ),
                 ),
