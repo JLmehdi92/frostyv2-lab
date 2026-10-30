@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/models/irc.dart';
 import 'package:onset/utils/irc_privmsg_builder.dart';
 
 void main() {
@@ -48,5 +49,133 @@ void main() {
     expect(message.tags.containsKey('badges'), isFalse);
     expect(message.tags.containsKey('emotes'), isFalse);
     expect(message.tags['id'], 'idx');
+  });
+
+  IRCMessage build({
+    List<({String text, String? emoteId})> fragments = const [
+      (text: 'hi', emoteId: null),
+    ],
+    Map<String, String> extraTags = const {},
+    Map<int, ({String id, String url})> gifs = const {},
+  }) => buildPrivmsgIrcMessage(
+    fragments: fragments,
+    login: 'viewer',
+    displayName: 'Viewer',
+    id: 'm-1',
+    channelId: '1',
+    channelLogin: 'chan',
+    sentAt: DateTime.utc(2026),
+    extraTags: extraTags,
+    gifs: gifs,
+  );
+
+  test('extra tags: only the allowlisted ones, escaped', () {
+    final message = build(
+      extraTags: {
+        'historical': '1',
+        'bits': '100',
+        'source-room-id': '42',
+        'reply-parent-msg-id': 'parent-1',
+        'reply-parent-msg-body': 'hello there; mod=1',
+        'reply-parent-display-name': 'Parent',
+        'reply-parent-user-login': 'parent',
+        'reply-parent-user-id': '7',
+        'reply-thread-parent-msg-id': 'root-1',
+        'reply-thread-parent-user-login': 'root',
+        'reply-thread-parent-display-name': 'Root',
+        // Not allowed: these would change who sent it or what it is.
+        'id': 'forged',
+        'display-name': 'Forged',
+        'badges': 'broadcaster/1',
+        'mod': '1',
+        'msg-id': 'highlighted-message',
+        'first-msg': '1',
+      },
+    );
+
+    expect(message.tags['historical'], '1');
+    expect(message.tags['bits'], '100');
+    expect(message.tags['source-room-id'], '42');
+    expect(message.tags['reply-parent-msg-id'], 'parent-1');
+    // Spaces kept, the tag separators dropped: nothing leaks into a tag.
+    expect(message.tags['reply-parent-msg-body'], 'hello there mod1');
+    expect(message.tags['reply-parent-display-name'], 'Parent');
+    expect(message.tags['reply-thread-parent-msg-id'], 'root-1');
+    expect(message.tags['id'], 'm-1');
+    expect(message.tags['display-name'], 'Viewer');
+    expect(message.tags.containsKey('badges'), isFalse);
+    expect(message.tags.containsKey('mod'), isFalse);
+    expect(message.tags.containsKey('msg-id'), isFalse);
+    expect(message.tags.containsKey('first-msg'), isFalse);
+    expect(message.message, 'hi');
+  });
+
+  test('a GIF fragment becomes a gifs tag, counted in characters', () {
+    final message = build(
+      fragments: const [
+        (text: '\u{1F600} ', emoteId: null),
+        (text: 'Party Parrot', emoteId: null),
+      ],
+      gifs: {
+        1: (id: 'g1', url: 'https://media.giphy.com/media/g1/giphy.gif?a=b;c'),
+      },
+    );
+
+    expect(message.gifParts, hasLength(2));
+    final gif = message.gifParts.last.gif!;
+    expect(gif.start, 2);
+    expect(gif.end, 13);
+    expect(gif.id, 'g1');
+    // The url survives the tag as sent, `;` and `=` included.
+    expect(gif.url, 'https://media.giphy.com/media/g1/giphy.gif?a=b;c');
+    expect(gif.isLoadable, isTrue);
+    expect(message.gifParts.last.text, 'Party Parrot');
+  });
+
+  test('a GIF from a host off the allowlist stays its title', () {
+    final message = build(
+      fragments: const [(text: 'Party Parrot', emoteId: null)],
+      gifs: {0: (id: 'g1', url: 'https://evil.example/x.gif')},
+    );
+
+    expect(message.gifParts, isEmpty);
+    expect(message.tags.containsKey('gifs'), isFalse);
+    expect(message.message, 'Party Parrot');
+  });
+
+  test('a GIF entry that could break the tag is dropped', () {
+    for (final gif in [
+      (id: 'a|b', url: 'https://media.giphy.com/a.gif'),
+      (id: 'a,b', url: 'https://media.giphy.com/a.gif'),
+      (id: 'g', url: 'https://media.giphy.com/a b.gif'),
+      (id: 'g', url: 'https://media.giphy.com/a,|b.gif'),
+      (id: 'g', url: 'http://media.giphy.com/a.gif'),
+    ]) {
+      final message = build(
+        fragments: const [(text: 'gif', emoteId: null)],
+        gifs: {0: gif},
+      );
+      expect(message.tags.containsKey('gifs'), isFalse, reason: '$gif');
+      expect(message.message, 'gif');
+    }
+  });
+
+  test('control characters cannot make a /me line or a second line', () {
+    final message = build(
+      fragments: const [
+        (text: '\x01ACTION waves\x01', emoteId: null),
+        (
+          text: '\r\n@badges=broadcaster/1 :x!x@x PRIVMSG #chan :pwn',
+          emoteId: null,
+        ),
+      ],
+    );
+
+    expect(message.action, isFalse);
+    expect(message.command, Command.privateMessage);
+    expect(message.message, isNot(contains('\x01')));
+    expect(message.message, startsWith('ACTION waves'));
+    expect(message.tags.containsKey('badges'), isFalse);
+    expect(message.user, 'viewer');
   });
 }
