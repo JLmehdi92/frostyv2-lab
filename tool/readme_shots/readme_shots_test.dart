@@ -740,8 +740,37 @@ Future<void> _settle(
   }
 }
 
+/// The [Image]s on screen still waiting for their first frame.
+List<Image> _undecoded(WidgetTester tester) => [
+  for (final element in find.byType(Image).evaluate())
+    if (find
+        .descendant(
+          of: find.byWidget(element.widget),
+          matching: find.byType(RawImage),
+        )
+        .evaluate()
+        .any((raw) => (raw.widget as RawImage).image == null))
+      element.widget as Image,
+];
+
+/// Waits until every image on screen has a frame. An asset is read from
+/// disk and decoded by the engine, real work that the test's fake clock
+/// does not wait for: give it real time, then let the fake clock deliver
+/// the result, until nothing is left (or a few seconds have passed).
+Future<void> _decodeImages(WidgetTester tester) async {
+  for (var i = 0; i < 50 && _undecoded(tester).isNotEmpty; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pump();
+  }
+  final left = _undecoded(tester);
+  expect(left, isEmpty, reason: 'images never decoded: $left');
+}
+
 /// Writes what is on screen to `<_outDir>/<name>.png`.
 Future<void> _shoot(WidgetTester tester, String name) async {
+  await _decodeImages(tester);
   _usePlatformFont(tester);
   await tester.pump();
   final boundary =
