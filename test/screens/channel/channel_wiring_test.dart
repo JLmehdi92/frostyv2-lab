@@ -158,4 +158,31 @@ void main() {
       ),
     );
   });
+
+  test("the double tap's side column is full screen beside the chat", () {
+    // The double tap (and its screen-reader action) goes through the cycle,
+    // which knows which side column it opened.
+    expect(
+      code,
+      contains(
+        'void_cycleLandscapeChatMode(){HapticFeedback.lightImpact();'
+        '_chatCycle.next();}',
+      ),
+    );
+    expect(count('_cycleLandscapeChatMode'), 3);
+    // Read where the layout's Observer tracks it.
+    expect(code, contains('finalplainSide=_chatCycle.plainSide;'));
+    // A tablet's video column drops its info area there, on either side of
+    // the chat, and keeps the same player (the column is the same widget).
+    expect(count('_buildTabletVideoColumn(video,infoArea:!plainSide,)'), 2);
+    expect(count('_buildTabletVideoColumn('), 3);
+    // The tablet's chat column is the same in both.
+    expect(
+      code,
+      contains('child:tablet?_buildTabletChat(chat,settingsStore,):chat,'),
+    );
+    // Portrait ends it; leaving the screen stops it.
+    expect(code, contains('if(context.isPortrait)_chatCycle.reset();'));
+    expect(code, contains('_chatCycle.dispose();'));
+  });
 }

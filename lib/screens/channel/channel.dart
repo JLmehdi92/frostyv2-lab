@@ -27,6 +27,7 @@ import 'package:onset/screens/channel/community_highlights/stores/community_high
 import 'package:onset/screens/channel/community_highlights/widgets/pinned_chat_text.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/raid_heading_overlay.dart';
 import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
+import 'package:onset/screens/channel/landscape_chat_cycle.dart';
 import 'package:onset/screens/channel/portrait_split.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/screens/channel/stores/channel_info_store.dart';
@@ -152,6 +153,11 @@ class _VideoChatState extends State<VideoChat>
   /// Two fingers on the landscape video: the swipe to picture-in-picture
   /// and the tap stand down (see [PinchToFill]).
   final _pinching = ValueNotifier(false);
+
+  /// What the double tap on the landscape video shows next, and whether
+  /// the side column on screen is the one it opened (full screen beside
+  /// the chat: no info area under a tablet's video).
+  late final _chatCycle = LandscapeChatCycle(_chatTabsStore.settingsStore);
 
   /// Where the mature-content warning stands. Pending until it has read
   /// the labels: the stream plays, but it may not leave the screen yet.
@@ -481,7 +487,7 @@ class _VideoChatState extends State<VideoChat>
 
   /// A tablet beside its chat (board Tablette): the video first, the
   /// channel's info area under it while there is room for it.
-  Widget _buildTabletVideoColumn(Widget video) {
+  Widget _buildTabletVideoColumn(Widget video, {required bool infoArea}) {
     return Observer(
       // Only the IVS engine has a fill toggle to read.
       warnWhenNoObservables: false,
@@ -492,6 +498,7 @@ class _VideoChatState extends State<VideoChat>
           final IvsVideoStore ivs => ivs.fillScreen,
           _ => false,
         },
+        infoArea: infoArea,
         video: _buildPipGestureWrapper(child: video),
         info: TabletChannelPanel(
           player: _videoStore,
@@ -1020,19 +1027,15 @@ class _VideoChatState extends State<VideoChat>
   /// Cycles the landscape chat display the way the Twitch app does on a
   /// double-tap of the video: chat overlay → side column → hidden → overlay.
   void _cycleLandscapeChatMode() {
-    final settingsStore = _chatTabsStore.settingsStore;
     HapticFeedback.lightImpact();
-    if (!settingsStore.fullScreen) {
-      // Column → Hidden
-      settingsStore.fullScreen = true;
-      settingsStore.fullScreenChatOverlay = false;
-    } else if (settingsStore.fullScreenChatOverlay) {
-      // Overlay → Column
-      settingsStore.fullScreen = false;
-    } else {
-      // Hidden → Overlay
-      settingsStore.fullScreenChatOverlay = true;
-    }
+    _chatCycle.next();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Portrait has one layout: the double tap's side column ends there.
+    if (context.isPortrait) _chatCycle.reset();
   }
 
   @override
@@ -1331,6 +1334,9 @@ class _VideoChatState extends State<VideoChat>
             builder: (context) {
               if (context.isLandscape &&
                   !settingsStore.landscapeForceVerticalChat) {
+                // Read here, not in the LayoutBuilder below: the Observer
+                // only tracks what its own build reads.
+                final plainSide = _chatCycle.plainSide;
                 final landscapeChat = AnimatedContainer(
                   curve: Curves.ease,
                   duration: _isDividerDragging
@@ -1567,6 +1573,8 @@ class _VideoChatState extends State<VideoChat>
                                                     child: tablet
                                                         ? _buildTabletVideoColumn(
                                                             video,
+                                                            infoArea:
+                                                                !plainSide,
                                                           )
                                                         : _buildPipGestureWrapper(
                                                             child: video,
@@ -1578,6 +1586,8 @@ class _VideoChatState extends State<VideoChat>
                                                     child: tablet
                                                         ? _buildTabletVideoColumn(
                                                             video,
+                                                            infoArea:
+                                                                !plainSide,
                                                           )
                                                         : _buildPipGestureWrapper(
                                                             child: video,
@@ -1785,6 +1795,7 @@ class _VideoChatState extends State<VideoChat>
 
     _animationController.dispose();
     _pinching.dispose();
+    _chatCycle.dispose();
     _portraitDragScale.dispose();
 
     SystemChrome.setEnabledSystemUIMode(

@@ -43,6 +43,7 @@ void main() {
     required Size screen,
     required double chatWidth,
     bool fill = false,
+    bool infoArea = true,
   }) async {
     tester.view.physicalSize = screen;
     tester.view.devicePixelRatio = 1;
@@ -55,6 +56,7 @@ void main() {
               Expanded(
                 child: TabletVideoColumn(
                   fill: fill,
+                  infoArea: infoArea,
                   video: const _PlayerProbe(key: playerKey),
                   info: const SizedBox.expand(key: infoKey),
                 ),
@@ -93,6 +95,44 @@ void main() {
       expect(playerSize(tester), const Size(960, 800));
       expect(find.byKey(infoKey), findsNothing);
       expect(find.text('info below: false'), findsOneWidget);
+    });
+  });
+
+  group('without its info area (full screen beside the chat)', () {
+    testWidgets('the video takes the whole column, room or not', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        screen: const Size(1280, 800),
+        chatWidth: 0.25,
+        infoArea: false,
+      );
+      expect(playerSize(tester), const Size(960, 800));
+      expect(find.byKey(infoKey), findsNothing);
+      // The controls carry the title, as when there is no room.
+      expect(find.text('info below: false'), findsOneWidget);
+    });
+
+    testWidgets('it comes and goes without rebuilding the player', (
+      tester,
+    ) async {
+      await pump(tester, screen: const Size(1280, 800), chatWidth: 0.25);
+      expect(find.byKey(infoKey), findsOneWidget);
+
+      await pump(
+        tester,
+        screen: const Size(1280, 800),
+        chatWidth: 0.25,
+        infoArea: false,
+      );
+      expect(playerSize(tester), const Size(960, 800));
+      expect(find.byKey(infoKey), findsNothing);
+
+      await pump(tester, screen: const Size(1280, 800), chatWidth: 0.25);
+      expect(playerSize(tester), const Size(960, 540));
+      expect(find.byKey(infoKey), findsOneWidget);
+      expect(_PlayerProbe.created, 1);
     });
   });
 

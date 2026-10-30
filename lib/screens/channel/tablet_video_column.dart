@@ -15,6 +15,7 @@ class TabletVideoColumn extends StatelessWidget {
     required this.video,
     required this.info,
     this.fill = false,
+    this.infoArea = true,
   });
 
   /// Below the video, the channel's info area needs at least this much room.
@@ -30,6 +31,10 @@ class TabletVideoColumn extends StatelessWidget {
   /// the video then takes the whole column.
   final bool fill;
 
+  /// Whether the info area may stand under the video at all. Without it
+  /// the video takes the whole column, as when there is no room for it.
+  final bool infoArea;
+
   /// Whether a column of [size] shows the info area under the video.
   static bool showsInfo(Size size, {bool fill = false}) =>
       !fill && size.height - size.width * 9 / 16 >= minInfoHeight;
@@ -39,7 +44,7 @@ class TabletVideoColumn extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = constraints.biggest;
-        final infoShown = showsInfo(size, fill: fill);
+        final infoShown = infoArea && showsInfo(size, fill: fill);
         return Column(
           children: [
             SizedBox(
