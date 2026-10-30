@@ -84,11 +84,29 @@ FirebaseOptions? firebaseOptionsFrom(
 /// [FirebaseConfig]. Until [initialize] succeeds (a build without the
 /// config, the tests, a background isolate that never asked) every call
 /// here does nothing, so callers never guard or catch around it.
+///
+/// Collection is opt-in: until [setCollectionEnabled] turns it on in this
+/// isolate, nothing is handed to Crashlytics or Performance (Crashlytics
+/// would otherwise keep reports on the device and send them on opt-in).
 abstract final class Telemetry {
   static bool _enabled = false;
+  static bool _consented = false;
 
   /// Whether Firebase is up in this isolate.
   static bool get enabled => _enabled;
+
+  /// Whether reports and traces go to Firebase: it is up and the viewer
+  /// opted in ([setCollectionEnabled]).
+  static bool get collecting => _enabled && _consented;
+
+  /// Back to a fresh isolate's state, as if Firebase had started when
+  /// [firebaseUp] (no real app behind it: every call that reaches Firebase
+  /// fails and is printed).
+  @visibleForTesting
+  static void debugReset({bool firebaseUp = false}) {
+    _enabled = firebaseUp;
+    _consented = false;
+  }
 
   /// Starts Firebase when this build has a config. With [reportUncaught],
   /// uncaught framework and platform errors go to Crashlytics as fatal (the
@@ -122,6 +140,16 @@ abstract final class Telemetry {
   /// only printed (never an uncaught error that would be reported again).
   static void _guard(Object? Function() use) {
     if (!_enabled) return;
+    _call(use);
+  }
+
+  /// [_guard], only once the viewer opted in.
+  static void _guardCollecting(Object? Function() use) {
+    if (!collecting) return;
+    _call(use);
+  }
+
+  static void _call(Object? Function() use) {
     try {
       final result = use();
       if (result is Future<Object?>) {
@@ -142,7 +170,7 @@ abstract final class Telemetry {
     StackTrace? stack, {
     String? reason,
     bool fatal = false,
-  }) => _guard(
+  }) => _guardCollecting(
     () => FirebaseCrashlytics.instance.recordError(
       error,
       stack,
@@ -151,21 +179,33 @@ abstract final class Telemetry {
     ),
   );
 
-  static void recordFlutterFatalError(FlutterErrorDetails details) => _guard(
-    () => FirebaseCrashlytics.instance.recordFlutterFatalError(details),
-  );
+  /// The handler of uncaught framework errors: reported once the viewer
+  /// opted in (Crashlytics then shows it too), else only shown, as Flutter
+  /// does without a handler.
+  static void recordFlutterFatalError(FlutterErrorDetails details) {
+    if (!collecting) {
+      FlutterError.presentError(details);
+      return;
+    }
+    _call(() => FirebaseCrashlytics.instance.recordFlutterFatalError(details));
+  }
 
   static void log(String message) =>
-      _guard(() => FirebaseCrashlytics.instance.log(message));
+      _guardCollecting(() => FirebaseCrashlytics.instance.log(message));
 
-  static void setCustomKey(String key, Object value) =>
-      _guard(() => FirebaseCrashlytics.instance.setCustomKey(key, value));
+  static void setCustomKey(String key, Object value) => _guardCollecting(
+    () => FirebaseCrashlytics.instance.setCustomKey(key, value),
+  );
 
-  static void setUserIdentifier(String identifier) =>
-      _guard(() => FirebaseCrashlytics.instance.setUserIdentifier(identifier));
+  static void setUserIdentifier(String identifier) => _guardCollecting(
+    () => FirebaseCrashlytics.instance.setUserIdentifier(identifier),
+  );
 
-  /// Turns crash reports, analytics and performance traces on or off.
+  /// Turns crash reports, analytics and performance traces on or off. Off,
+  /// the crash reports Crashlytics kept on the device are deleted unsent.
   static void setCollectionEnabled(bool enabled) {
+    if (!_enabled) return;
+    _consented = enabled;
     _guard(
       () =>
           FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(enabled),
@@ -177,11 +217,14 @@ abstract final class Telemetry {
       () =>
           FirebasePerformance.instance.setPerformanceCollectionEnabled(enabled),
     );
+    if (!enabled) {
+      _guard(() => FirebaseCrashlytics.instance.deleteUnsentReports());
+    }
   }
 
   /// A started-to-be trace of a request to [url], or null without Firebase.
   static HttpMetric? newHttpMetric(String url, String method) {
-    if (!_enabled) return null;
+    if (!collecting) return null;
     try {
       return FirebasePerformance.instance.newHttpMetric(
         url,

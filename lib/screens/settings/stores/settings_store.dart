@@ -670,7 +670,11 @@ abstract class _SettingsStoreBase with Store {
   }
 
   // * Other settings
-  static const defaultShareCrashLogsAndAnalytics = true;
+
+  /// Off until the viewer opts in. Every launch saves the whole store, so an
+  /// install that already ran keeps the value it saved: only installs that
+  /// never saved one, and a settings reset, get this default.
+  static const defaultShareCrashLogsAndAnalytics = false;
 
   @JsonKey(defaultValue: defaultShareCrashLogsAndAnalytics)
   @observable

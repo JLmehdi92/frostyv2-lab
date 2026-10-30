@@ -172,7 +172,7 @@ SettingsStore _$SettingsStoreFromJson(
   ..chatFilterHarassment = json['chatFilterHarassment'] as bool? ?? true
   ..chatFilterProfanity = json['chatFilterProfanity'] as bool? ?? true
   ..shareCrashLogsAndAnalytics =
-      json['shareCrashLogsAndAnalytics'] as bool? ?? true
+      json['shareCrashLogsAndAnalytics'] as bool? ?? false
   ..fullScreen = json['fullScreen'] as bool? ?? false
   ..fullScreenChatOverlay = json['fullScreenChatOverlay'] as bool? ?? false
   ..pinnedChannelIds =

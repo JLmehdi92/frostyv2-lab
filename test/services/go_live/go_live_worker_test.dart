@@ -33,4 +33,16 @@ void main() {
     // This app's token (nothing stored): this app's client id.
     expect(goLiveHeaders('tok')['Client-Id'], clientId);
   });
+
+  test('the background check reports only what the app was allowed to', () {
+    // Its own isolate: it reads the "Share crash logs and analytics"
+    // setting the app saved, off when there is none or it does not read.
+    expect(sharesCrashLogsIn(null), isFalse);
+    expect(sharesCrashLogsIn('{}'), isFalse);
+    expect(sharesCrashLogsIn('not json'), isFalse);
+    expect(sharesCrashLogsIn('[]'), isFalse);
+    expect(sharesCrashLogsIn('{"shareCrashLogsAndAnalytics":"yes"}'), isFalse);
+    expect(sharesCrashLogsIn('{"shareCrashLogsAndAnalytics":false}'), isFalse);
+    expect(sharesCrashLogsIn('{"shareCrashLogsAndAnalytics":true}'), isTrue);
+  });
 }

@@ -48,6 +48,30 @@ void main() {
       );
     });
 
+    test('crash logs and analytics are off until the viewer opts in', () {
+      expect(SettingsStore().shareCrashLogsAndAnalytics, isFalse);
+      expect(SettingsStore.fromJson({}).shareCrashLogsAndAnalytics, isFalse);
+    });
+
+    test('a saved crash logs and analytics choice is kept', () {
+      // Every launch saves the whole store, so an install that already ran
+      // has the value it saved (picked, or the old default it kept): only an
+      // install that never saved one, and a reset, get the new default.
+      final shared = SettingsStore.fromJson({
+        'shareCrashLogsAndAnalytics': true,
+      });
+      final notShared = SettingsStore.fromJson({
+        'shareCrashLogsAndAnalytics': false,
+      });
+
+      expect(shared.shareCrashLogsAndAnalytics, isTrue);
+      expect(notShared.shareCrashLogsAndAnalytics, isFalse);
+      expect(
+        SettingsStore.fromJson(shared.toJson()).shareCrashLogsAndAnalytics,
+        isTrue,
+      );
+    });
+
     test('auto latency is on for settings saved before it existed', () {
       final store = SettingsStore.fromJson({
         'bufferProfile': 'standard',
@@ -155,7 +179,7 @@ void main() {
       expect(store.secondaryTabs, isEmpty);
       expect(store.mutedWords, isEmpty);
       expect(store.matchWholeWord, isTrue);
-      expect(store.shareCrashLogsAndAnalytics, isTrue);
+      expect(store.shareCrashLogsAndAnalytics, isFalse);
       expect(store.fullScreen, isFalse);
       expect(store.fullScreenChatOverlay, isFalse);
       expect(store.pinnedChannelIds, isEmpty);
@@ -540,11 +564,11 @@ void main() {
     test('resetOtherSettings restores other defaults', () {
       final store = SettingsStore.fromJson({});
 
-      store.shareCrashLogsAndAnalytics = false;
+      store.shareCrashLogsAndAnalytics = true;
 
       store.resetOtherSettings();
 
-      expect(store.shareCrashLogsAndAnalytics, isTrue);
+      expect(store.shareCrashLogsAndAnalytics, isFalse);
     });
 
     test('resetGlobalConfigs restores global config defaults', () {
@@ -568,7 +592,7 @@ void main() {
       store.themeType = ThemeType.light;
       store.showVideo = false;
       store.fontSize = 20.0;
-      store.shareCrashLogsAndAnalytics = false;
+      store.shareCrashLogsAndAnalytics = true;
       store.fullScreen = true;
 
       store.resetAllSettings();
@@ -576,7 +600,7 @@ void main() {
       expect(store.themeType, ThemeType.system);
       expect(store.showVideo, isTrue);
       expect(store.fontSize, 12.0);
-      expect(store.shareCrashLogsAndAnalytics, isTrue);
+      expect(store.shareCrashLogsAndAnalytics, isFalse);
       expect(store.fullScreen, isFalse);
     });
 

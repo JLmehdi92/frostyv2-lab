@@ -129,6 +129,14 @@ void main() {
       expect(Telemetry.navigatorObservers(), isEmpty);
     });
 
+    test('nothing is collected by default, nor after an opt-in', () {
+      expect(Telemetry.collecting, isFalse);
+      Telemetry.setCollectionEnabled(true);
+      expect(Telemetry.collecting, isFalse);
+      Telemetry.setCollectionEnabled(false);
+      expect(Telemetry.collecting, isFalse);
+    });
+
     test('the onboarding privacy choice does not throw', () {
       expect(() => setFirebaseCollection(true), returnsNormally);
       expect(() => setFirebaseCollection(false), returnsNormally);
@@ -160,6 +168,67 @@ void main() {
           ),
         ),
       );
+    });
+  });
+
+  group('before the viewer opts in', () {
+    // Firebase "up" without a real app behind it: any call that reaches it
+    // fails and is printed, so a print means the call went through.
+    late List<String> printed;
+    late DebugPrintCallback savedPrint;
+
+    setUp(() {
+      printed = [];
+      savedPrint = debugPrint;
+      debugPrint = (message, {wrapWidth}) => printed.add(message ?? '');
+      Telemetry.debugReset(firebaseUp: true);
+    });
+
+    tearDown(() {
+      debugPrint = savedPrint;
+      Telemetry.debugReset();
+    });
+
+    void report() {
+      Telemetry.recordError(StateError('x'), StackTrace.current);
+      Telemetry.log('message');
+      Telemetry.setCustomKey('key', true);
+      expect(Telemetry.newHttpMetric('https://example.com/a', 'GET'), isNull);
+    }
+
+    test('Crashlytics and Performance get nothing', () {
+      expect(Telemetry.enabled, isTrue);
+      expect(Telemetry.collecting, isFalse);
+      report();
+      expect(printed, isEmpty);
+    });
+
+    test('they get reports once the viewer opts in, and none after', () {
+      Telemetry.setCollectionEnabled(true);
+      expect(Telemetry.collecting, isTrue);
+      printed.clear();
+      report();
+      // Each of the four calls reached Firebase.
+      expect(printed, hasLength(4));
+
+      Telemetry.setCollectionEnabled(false);
+      expect(Telemetry.collecting, isFalse);
+      printed.clear();
+      report();
+      expect(printed, isEmpty);
+    });
+
+    test('an uncaught framework error is still shown, not reported', () {
+      final shown = <FlutterErrorDetails>[];
+      final savedPresent = FlutterError.presentError;
+      FlutterError.presentError = shown.add;
+      addTearDown(() => FlutterError.presentError = savedPresent);
+
+      final details = FlutterErrorDetails(exception: StateError('x'));
+      Telemetry.recordFlutterFatalError(details);
+
+      expect(shown, [same(details)]);
+      expect(printed, isEmpty);
     });
   });
 

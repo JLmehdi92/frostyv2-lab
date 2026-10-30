@@ -438,7 +438,7 @@ void main() {
       expect(settings.themeType, ThemeType.system);
       expect(settings.accentColor, 0xffc8ff3d);
       expect(settings.showRecentMessages, isFalse);
-      expect(settings.shareCrashLogsAndAnalytics, isTrue);
+      expect(settings.shareCrashLogsAndAnalytics, isFalse);
       expect(find.text('Follows your device'), findsOneWidget);
       expect(find.text('#C8FF3D'), findsOneWidget);
     });
@@ -544,8 +544,8 @@ void main() {
       await tester.pump();
       await tester.tap(find.byType(OnboardingSwitch).at(1));
       await tester.pump();
-      expect(settings.shareCrashLogsAndAnalytics, isFalse);
-      expect(crashChoices, [false]);
+      expect(settings.shareCrashLogsAndAnalytics, isTrue);
+      expect(crashChoices, [true]);
     });
   });
 

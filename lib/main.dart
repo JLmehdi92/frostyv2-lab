@@ -90,7 +90,8 @@ void main() async {
   CustomCacheManager.removeOrphanedCacheFiles();
 
   // Firebase only when the build carries its config (see Telemetry); it
-  // then reports uncaught framework and platform errors as fatal.
+  // then reports uncaught framework and platform errors as fatal, once the
+  // setting below lets it collect (nothing is handed to it before).
   await Telemetry.initialize();
 
   final prefs = await SharedPreferences.getInstance();

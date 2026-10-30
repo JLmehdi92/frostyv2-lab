@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -11,6 +12,7 @@ import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/services/go_live/go_live.dart';
 import 'package:onset/services/notifications/activity_log.dart';
 import 'package:onset/services/telemetry.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
 const _task = 'onset.goLive';
@@ -28,14 +30,46 @@ const kGoLiveInterval = Duration(minutes: 15);
 
 final _login = RegExp(r'^[a-zA-Z0-9_]{1,25}$');
 
+/// The "Share crash logs and analytics" setting in [saved], the settings
+/// JSON the app keeps (`main.dart`): the default (off) without one, or when
+/// it does not read.
+bool sharesCrashLogsIn(String? saved) {
+  // The setting's default: off until the viewer opts in.
+  const fallback = false;
+  if (saved == null) return fallback;
+  try {
+    final settings = jsonDecode(saved);
+    final value = settings is Map
+        ? settings['shareCrashLogsAndAnalytics']
+        : null;
+    return value is bool ? value : fallback;
+  } on FormatException {
+    return fallback;
+  }
+}
+
+/// Starts Firebase for the background check, collecting only when the app
+/// was allowed to (never in a debug build, as `main.dart`).
+Future<void> _initTelemetry() async {
+  if (!await Telemetry.initialize(reportUncaught: false)) return;
+  var shared = false;
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    shared = sharesCrashLogsIn(prefs.getString('settings'));
+  } catch (e) {
+    debugPrint('Go-live check: settings unreadable: $e');
+  }
+  Telemetry.setCollectionEnabled(!kDebugMode && shared);
+}
+
 /// The background entry point (its own isolate).
 @pragma('vm:entry-point')
 void goLiveCallbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     if (task != _task) return true;
     // Reporting is a bonus: the check runs without it (and without Firebase
-    // in a build that has no config).
-    await Telemetry.initialize(reportUncaught: false);
+    // in a build that has no config, or without the viewer's consent).
+    await _initTelemetry();
     void report(Object error, StackTrace stack) {
       debugPrint('Go-live check failed: $error');
       Telemetry.recordError(error, stack, reason: 'go-live background check');
