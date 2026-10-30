@@ -224,6 +224,18 @@ void main() {
       expect(controller.status.targetMs, 1300);
     });
 
+    test('a stall after the viewer paused a catch-up is not its fault', () {
+      feed(2200, 8);
+      expect(controller.rate, LatencyController.catchUpRate);
+
+      // Resuming a pause often rebuffers: that is the pause, not the rate.
+      controller.hold('paused');
+      feed(2200, 2);
+      controller.onStall();
+
+      expect(controller.status.targetMs, 1300);
+    });
+
     test('a quality change during a catch-up stops it', () {
       feed(2200, 8);
       expect(controller.rate, LatencyController.catchUpRate);

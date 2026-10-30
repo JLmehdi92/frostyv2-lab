@@ -277,11 +277,14 @@ class LatencyController {
     _holdFor('ad');
   }
 
-  /// Something is about to make correcting wrong (pause, picture-in-picture,
-  /// mini player): back to 1.0x now, without waiting for the next tick.
+  /// The viewer is about to make correcting wrong (pause, picture-in-picture,
+  /// mini player): back to 1.0x now, without waiting for the next tick. The
+  /// catch-up it ends was ended by the viewer: a stall after it (a resume
+  /// often rebuffers) is not a strike.
   void hold(String reason) {
     if (!_active) return;
     _holdFor(reason);
+    _lastCatchUpEnd = null;
   }
 
   /// The native player refused the rate: stop for the stream.
