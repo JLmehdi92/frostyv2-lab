@@ -2,9 +2,10 @@
 
 À chaque push sur `main`, GitHub Actions (workflow **ONSET update**,
 `.github/workflows/onset-update.yml`) construit un APK arm64 signé et le publie
-comme release `build-N` du dépôt (N = 2000 + numéro d'exécution du workflow :
-les builds ONSET publiés avant ce dépôt allaient jusqu'aux 1000 et quelques,
-et Android n'installe une mise à jour que si son numéro est plus grand).
+comme release `build-N` du dépôt (N = 2000 + numéro d'exécution du workflow,
+donc à partir de 2001, pour que les builds restent au-dessus de la série 10xx
+précédente : Android n'installe une mise à jour que si son numéro est plus
+grand).
 L'appli installée vérifie la dernière release au démarrage et au retour au
 premier plan (au plus toutes les 6 h tant qu'elle est à jour), affiche
 « Update available », télécharge l'APK, vérifie son SHA-256 et le confie à
@@ -45,9 +46,15 @@ répond 404) : l'appli considère alors qu'il n'y a pas de mise à jour.
 Android n'accepte une mise à jour que si elle est signée avec **la même clé**
 que l'appli installée.
 
-**Recommandé : une clé dédiée, avec des mots de passe forts.** Coût : une seule
-désinstallation de l'appli actuelle (signée avec la clé de debug du PC), donc
-une reconnexion à Twitch et des réglages à refaire, une fois.
+> **Un build ONSET signé par un workflow précédent est déjà installé ?**
+> Reprenez **le même fichier `.jks`, les mêmes mots de passe et le même
+> alias** dans les secrets `ANDROID_*` (étape 3), ne créez pas de nouvelle
+> clé, et sautez la désinstallation de l'étape 4.3. Avec une autre clé,
+> l'APK de la série 2000 ne s'installera pas par-dessus.
+
+**Sinon : une clé dédiée, avec des mots de passe forts.** Si une appli ONSET
+signée avec une autre clé est installée, il faudra la désinstaller une fois
+(étape 4.3), donc se reconnecter à Twitch et refaire ses réglages.
 
 ```powershell
 keytool -genkeypair -v -keystore onset-release.jks -keyalg RSA -keysize 4096 -validity 10000 -alias onset
@@ -60,7 +67,8 @@ par-dessus l'appli. Ne le commitez jamais (le dépôt ignore `*.jks`).
 
 *Alternative* : réutiliser la clé de debug du PC
 (`%USERPROFILE%\.android\debug.keystore`, mots de passe `android`, alias
-`androiddebugkey`). Plus de désinstallation, mais ce fichier devient alors une
+`androiddebugkey`), utile seulement si l'appli installée a été construite
+sur ce même PC : pas de désinstallation, mais ce fichier devient alors une
 clé de **production** : son mot de passe est public, quiconque le copie peut
 signer une « mise à jour » acceptée par vos appareils, et il faut le
 sauvegarder comme la clé dédiée (le perdre ou le régénérer coupe les mises à
@@ -89,6 +97,10 @@ secret `UPDATE_TOKEN`.
 
 `JLmehdi92/onset` → **Settings** → **Secrets and variables** →
 **Actions** → **New repository secret**, pour chacun :
+
+Si un build ONSET signé par un workflow précédent est déjà installé, les
+quatre secrets `ANDROID_*` doivent reprendre **le même** keystore, les mêmes
+mots de passe et le même alias que ce workflow (étape 1).
 
 | Secret | Valeur |
 |---|---|
@@ -148,7 +160,9 @@ build verbeux affiche ses `--dart-define`, donc les secrets, dans les journaux.
 1. Onglet **Actions** → **ONSET update** → **Run workflow** (branche `main` ; sur
    une autre branche, rien n'est publié).
 2. Une fois terminé, la release **ONSET build N** apparaît dans **Releases**.
-3. Avec une clé dédiée : désinstallez l'appli actuelle.
+3. Si une appli ONSET signée avec **une autre clé** est installée,
+   désinstallez-la. Si elle est signée avec la même clé (étape 1), ne
+   désinstallez rien : le nouvel APK s'installe par-dessus.
 4. Installez ce premier APK à la main, une seule fois (l'appli actuelle ne peut
    pas le trouver seule) : sur l'appareil, ouvrez la page de la release dans le
    navigateur (**connecté à GitHub** si le dépôt est privé), téléchargez
@@ -245,10 +259,8 @@ dans un fichier, un site, une discussion ou un message, et ne l'envoyez
 n'en a besoin.
 
 Le guide détaillé, écran par écran, est en anglais :
-[`tool/token_proxy/README.md`](../tool/token_proxy/README.md). Ses étapes 1 à
-8 portent les mêmes numéros que les points ci-dessous, et le point 9 est son
-étape 10 ; ses étapes 9, 11 et 12 ne servent qu'à qui remplace une ancienne
-application de connexion. Dans l'ordre :
+[`tool/token_proxy/README.md`](../tool/token_proxy/README.md) ; ses étapes
+portent les mêmes numéros que les points ci-dessous. Dans l'ordre :
 
 1. **Créer le compte Twitch ONSET et activer la double authentification** :
    déconnecté de Twitch (ou en navigation privée), créez un nouveau compte

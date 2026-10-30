@@ -114,7 +114,7 @@ void main() {
 
     test('a build of the 2000 series is offered over the 1000s', () async {
       // The update workflow numbers builds 2000 + its run number, above
-      // every build of the 1000 series published before.
+      // the earlier 10xx series.
       latestIs(_release(2001));
 
       final result = await updater(currentBuild: 1031).check();
