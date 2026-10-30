@@ -9,7 +9,7 @@ A native low-latency player and a full-featured chat.</p>
 
 <p>
   <img alt="Flutter 3.38.4" src="https://img.shields.io/badge/Flutter-3.38.4-C8FF3D?style=flat-square&labelColor=0A0A0A&logo=flutter&logoColor=white">
-  <img alt="Platform: Android 6.0+" src="https://img.shields.io/badge/Android-6.0%2B-C8FF3D?style=flat-square&labelColor=0A0A0A&logo=android&logoColor=white">
+  <img alt="Platform: Android 7.0+" src="https://img.shields.io/badge/Android-7.0%2B-C8FF3D?style=flat-square&labelColor=0A0A0A&logo=android&logoColor=white">
   <a href="LICENSE"><img alt="License: AGPL-3.0-or-later" src="https://img.shields.io/badge/License-AGPL--3.0--or--later-C8FF3D?style=flat-square&labelColor=0A0A0A"></a>
 </p>
 
@@ -27,16 +27,15 @@ A native low-latency player and a full-featured chat.</p>
 
 1. **Download** `onset-arm64.apk` from the
    [latest release](../../releases/latest) (under *Assets*). It is for 64-bit
-   Android phones and tablets running Android 6.0 or later.
+   Android phones and tablets running Android 7.0 or later.
 2. **Open the file.** If Android asks, allow installing apps from this
    source (your browser or file manager), then tap **Install**.
-3. **Open ONSET** and tap **Connect with Twitch** to log in with your Twitch
-   account. You can also tap **Skip** and log in later from the Profile tab.
+3. **Open ONSET**, tap **Next**, then **Connect with Twitch** to log in with
+   your Twitch account. You can also tap **Skip** and log in later from
+   Profile.
 
-Updates then arrive inside the app: ONSET checks this project's GitHub
-releases when it starts and when it comes back to the foreground, shows
-**Update available** when there is a newer build, and verifies the download's
-SHA-256 before handing it to Android's installer.
+Updates then arrive inside the app (see
+[How do updates work?](#faq) in the FAQ).
 
 No Twitch developer account, Firebase project or build tools are needed to
 use the app.
@@ -148,11 +147,12 @@ APKs taken from this repository's releases.
 **How do updates work?**
 ONSET looks for a newer build when it starts and when it comes back to the
 foreground (at most every 6 hours once it is up to date). When one exists it
-shows **Update available**: **Update** downloads it, checks its SHA-256 and
-opens Android's installer, which asks you to confirm; **Later** hides that
-build for 24 hours. The first time, Android asks you to let ONSET install
-apps. A download that does not match its checksum is deleted and never
-installed. You can also check by hand with **Check for updates** in the
+shows **Update available**. The first time you tap **Update**, ONSET asks
+to be allowed to install apps: tap **Open settings**, turn on *Allow from this
+source*, and come back. ONSET then downloads the update, checks its SHA-256
+and opens Android's installer, which asks you to confirm. **Later** hides
+that build for 24 hours. A download that does not match its checksum is
+deleted and never installed. You can also check by hand with **Check for updates** in the
 Updates section of Settings.
 
 **Why isn't it on the Play Store?**
@@ -160,8 +160,8 @@ ONSET is an independent open-source client. It is distributed through this
 repository's GitHub releases.
 
 **Is there an iPhone version?**
-Not yet. An iOS version is planned and will be offered as a direct download
-once it is ready.
+Not yet. An iOS version is planned; how it will be distributed is not
+decided yet.
 
 **Found a bug or have an idea?**
 [Open an issue](../../issues/new/choose) and pick *Bug report* or *Feature
@@ -203,7 +203,7 @@ sponsored by Twitch.
    A release build without `android/key.properties` is signed with the debug
    key.
 
-The native player is Android-only (6.0 and later), drawn into a Flutter
+The native player is Android-only (7.0 and later), drawn into a Flutter
 texture. The Dart code stays iOS-compatible, and iOS plays through the web
 player.
 

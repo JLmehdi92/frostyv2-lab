@@ -49,7 +49,7 @@ android {
         // relative manifest names (.MainActivity, .BackgroundAudioService)
         // resolve against the namespace.
         applicationId = "app.onset"
-        minSdk = maxOf(flutter.minSdkVersion, 23) // Amazon IVS player requires Android 6.0+
+        minSdk = maxOf(flutter.minSdkVersion, 23) // IVS needs 6.0+; Flutter 3.38 already requires 7.0 (24)
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
