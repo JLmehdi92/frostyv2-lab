@@ -513,6 +513,7 @@ class _VodOverlayState extends State<VodOverlay> {
             child: Semantics(
               button: true,
               label: 'Open ${media.ownerDisplayName}',
+              onTap: () => _openChannel(context),
               excludeSemantics: true,
               child: GestureDetector(
                 onTap: () => _openChannel(context),

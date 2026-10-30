@@ -117,6 +117,7 @@ class ClipInfoPanel extends StatelessWidget {
                 label: curator == null
                     ? 'Open $channel'
                     : 'Open $channel, clipped by $curator',
+                onTap: () => _openChannel(context),
                 excludeSemantics: true,
                 child: PressScale(
                   child: GestureDetector(

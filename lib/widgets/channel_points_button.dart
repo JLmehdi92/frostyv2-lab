@@ -125,9 +125,7 @@ class ChannelPointsButton extends StatelessWidget {
         final colors = context.onsetColors;
         final prediction = points.activePrediction;
 
-        final balance = points.balance == null
-            ? '—'
-            : compact(points.balance!);
+        final balance = points.balance == null ? '—' : compact(points.balance!);
         final height = large ? 48.0 : 44.0;
         final shape = StadiumBorder(
           side: BorderSide(
@@ -136,6 +134,24 @@ class ChannelPointsButton extends StatelessWidget {
           ),
         );
 
+        void openPoints() {
+          // Fresh, like Twitch's panel (at most once a minute).
+          unawaited(store.refreshWatchStreak());
+          // A sheet on a phone; on a tablet a panel above the pill
+          // (board ChaineOutilsTablette).
+          showSheetOrPanel<void>(
+            context: context,
+            size: ChannelPointsSheet.panelSize,
+            sides: const [PanelSide.above, PanelSide.below],
+            anchor: globalRectOf(context),
+            region: PanelRegion.of(context),
+            // The store goes with it: the sheet is where points are spent,
+            // and it stays live so a redeem's new balance lands without
+            // reopening the panel.
+            builder: (_) => ChannelPointsSheet(points: points, store: store),
+          );
+        }
+
         // A pill beside the message box (boards Chaine, TablettePortrait).
         final button = Tooltip(
           message: points.pointsName ?? 'Channel points',
@@ -143,6 +159,7 @@ class ChannelPointsButton extends StatelessWidget {
           child: Semantics(
             button: true,
             label: '${points.pointsName ?? 'Channel points'}, $balance',
+            onTap: openPoints,
             excludeSemantics: true,
             child: Material(
               color: context.theme.inputDecorationTheme.fillColor,
@@ -150,24 +167,7 @@ class ChannelPointsButton extends StatelessWidget {
               clipBehavior: Clip.antiAlias,
               child: InkWell(
                 customBorder: shape,
-                onTap: () {
-                  // Fresh, like Twitch's panel (at most once a minute).
-                  unawaited(store.refreshWatchStreak());
-                  // A sheet on a phone; on a tablet a panel above the pill
-                  // (board ChaineOutilsTablette).
-                  showSheetOrPanel<void>(
-                    context: context,
-                    size: ChannelPointsSheet.panelSize,
-                    sides: const [PanelSide.above, PanelSide.below],
-                    anchor: globalRectOf(context),
-                    region: PanelRegion.of(context),
-                    // The store goes with it: the sheet is where points are
-                    // spent, and it stays live so a redeem's new balance lands
-                    // without reopening the panel.
-                    builder: (_) =>
-                        ChannelPointsSheet(points: points, store: store),
-                  );
-                },
+                onTap: openPoints,
                 child: Container(
                   height: height,
                   padding: EdgeInsets.symmetric(horizontal: large ? 14 : 12),

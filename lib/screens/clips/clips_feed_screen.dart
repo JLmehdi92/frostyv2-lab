@@ -1237,6 +1237,7 @@ class _NextCard extends StatelessWidget {
     return Semantics(
       button: true,
       label: 'Next clip, ${_channelOf(clip)}, $title',
+      onTap: onTap,
       excludeSemantics: true,
       child: PressScale(
         child: GestureDetector(
@@ -1701,6 +1702,7 @@ class _QueueItem extends StatelessWidget {
       button: true,
       selected: current,
       label: '$title, ${_channelOf(clip)}, ${_views(clip)}',
+      onTap: onTap,
       excludeSemantics: true,
       child: PressScale(
         child: GestureDetector(

@@ -85,6 +85,7 @@ class VideoActionPill extends StatelessWidget {
       button: true,
       selected: selected,
       label: semanticsLabel ?? label,
+      onTap: onTap,
       excludeSemantics: true,
       child: PressScale(
         enabled: onTap != null,
@@ -163,20 +164,22 @@ class VideoCategoryChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
+    void openCategory() => Navigator.push(
+      context,
+      MaterialPageRoute(
+        settings: const RouteSettings(name: CategoryStreams.routeName),
+        builder: (context) => CategoryStreams(categoryId: gameId),
+      ),
+    );
     return Semantics(
       button: true,
       label: name,
+      onTap: openCategory,
       excludeSemantics: true,
       child: PressScale(
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              settings: const RouteSettings(name: CategoryStreams.routeName),
-              builder: (context) => CategoryStreams(categoryId: gameId),
-            ),
-          ),
+          onTap: openCategory,
           child: SizedBox(
             height: 44,
             child: Center(

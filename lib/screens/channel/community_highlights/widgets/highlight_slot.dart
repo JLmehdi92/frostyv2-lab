@@ -326,6 +326,7 @@ class _HighlightNewPillState extends State<HighlightNewPill>
     Widget pill = Semantics(
       button: true,
       label: label,
+      onTap: widget.onPressed,
       excludeSemantics: true,
       child: Material(
         color: accent,

@@ -626,6 +626,7 @@ class _EditRow extends StatelessWidget {
     return Semantics(
       button: true,
       label: 'Edit, Title and moment, in the twitch.tv clip editor',
+      onTap: onTap,
       excludeSemantics: true,
       child: PressScale(
         child: Material(

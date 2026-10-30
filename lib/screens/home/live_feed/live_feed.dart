@@ -1008,6 +1008,7 @@ class _WarningPill extends StatelessWidget {
     return Semantics(
       button: true,
       label: 'Content warning. Play preview',
+      onTap: onPressed,
       excludeSemantics: true,
       child: PressScale(
         child: GestureDetector(
@@ -1070,6 +1071,7 @@ class _RoundAction extends StatelessWidget {
       child: Semantics(
         button: true,
         label: label,
+        onTap: onPressed,
         excludeSemantics: true,
         child: PressScale(
           child: Material(
@@ -1374,6 +1376,8 @@ class _PhonePage extends StatelessWidget {
               child: Semantics(
                 label: '$name live preview. Opens the channel',
                 button: true,
+                onTap: onOpen,
+                onLongPress: onEnlarge,
                 onLongPressHint: showThumbnail ? 'enlarge' : 'Channel actions',
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
@@ -1661,6 +1665,8 @@ class _TabletPage extends StatelessWidget {
             child: Semantics(
               label: '$name live preview. Opens the channel',
               button: true,
+              onTap: onOpen,
+              onLongPress: onEnlarge,
               onLongPressHint: showThumbnail ? 'enlarge' : 'Channel actions',
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,

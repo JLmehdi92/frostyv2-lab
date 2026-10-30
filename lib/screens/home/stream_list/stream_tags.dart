@@ -95,6 +95,7 @@ class StreamTags extends StatelessWidget {
           : Semantics(
               button: true,
               label: 'Tag $tag',
+              onTap: () => open(tag),
               excludeSemantics: true,
               child: InkWell(
                 borderRadius: radius,

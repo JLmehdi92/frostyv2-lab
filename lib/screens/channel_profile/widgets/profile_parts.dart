@@ -50,6 +50,7 @@ class ProfileRoundButton extends StatelessWidget {
       child: Semantics(
         button: true,
         label: tooltip,
+        onTap: onPressed,
         excludeSemantics: true,
         child: PressScale(
           child: Material(

@@ -710,6 +710,7 @@ class _AccentRow extends StatelessWidget {
     return Semantics(
       button: true,
       label: 'Accent color, $hex',
+      onTap: onTap,
       excludeSemantics: true,
       child: InkWell(
         onTap: onTap,

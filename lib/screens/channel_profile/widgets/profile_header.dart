@@ -724,6 +724,7 @@ class ProfileSocialPill extends StatelessWidget {
         link: true,
         button: true,
         label: social.title,
+        onTap: () => onOpenLink(social.url),
         excludeSemantics: true,
         child: PressScale(
           child: GestureDetector(

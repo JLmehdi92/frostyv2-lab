@@ -786,6 +786,8 @@ class _AutocompleteChip extends StatelessWidget {
     return Semantics(
       button: true,
       label: label,
+      onTap: onTap,
+      onLongPress: onLongPress,
       excludeSemantics: true,
       child: Material(
         color: colors.raised,
@@ -849,6 +851,7 @@ class _CommandTile extends StatelessWidget {
     return Semantics(
       button: true,
       label: '/$name, $detail',
+      onTap: onTap,
       excludeSemantics: true,
       child: Material(
         color: colors.raised,

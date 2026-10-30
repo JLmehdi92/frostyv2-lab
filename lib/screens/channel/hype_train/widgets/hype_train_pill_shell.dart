@@ -43,6 +43,7 @@ class HtPillShell extends StatelessWidget {
     return Semantics(
       container: true,
       button: true,
+      onTap: onTap,
       label: label,
       hint: hint,
       child: ExcludeSemantics(

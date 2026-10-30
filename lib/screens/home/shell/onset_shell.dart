@@ -968,6 +968,7 @@ class _WhispersButton extends StatelessWidget {
       child: Semantics(
         button: true,
         label: whispers.tooltip,
+        onTap: whispers.onOpen,
         excludeSemantics: true,
         child: PressScale(
           child: GestureDetector(
@@ -1019,6 +1020,7 @@ class _SearchField extends StatelessWidget {
       button: true,
       label: 'Search',
       hint: label,
+      onTap: onTap,
       excludeSemantics: true,
       child: PressScale(
         child: GestureDetector(
@@ -1246,6 +1248,7 @@ class _NavItem extends StatelessWidget {
         selected: active,
         inMutuallyExclusiveGroup: true,
         label: _sectionLabel(section, badge),
+        onTap: onTap,
         excludeSemantics: true,
         child: Tooltip(
           message: _sectionLabel(section, badge),
@@ -1406,6 +1409,7 @@ class _ProfileButton extends StatelessWidget {
       button: true,
       selected: active,
       label: 'Profile',
+      onTap: onTap,
       excludeSemantics: true,
       child: Tooltip(
         message: 'Profile',
@@ -1492,6 +1496,7 @@ class _PillNav extends StatelessWidget {
       selected: active,
       inMutuallyExclusiveGroup: true,
       label: _sectionLabel(target, badge),
+      onTap: () => onSelect(target),
       excludeSemantics: true,
       child: PressScale(
         child: GestureDetector(

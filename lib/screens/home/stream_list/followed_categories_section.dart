@@ -162,6 +162,7 @@ class FollowedCategoryChips extends StatelessWidget {
             label:
                 '${category.title}, '
                 '${NumberFormat.compact().format(category.viewers)} viewers',
+            onTap: () => _openCategory(context, category),
             excludeSemantics: true,
             child: PressScale(
               child: Material(

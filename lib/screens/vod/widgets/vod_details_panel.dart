@@ -103,6 +103,12 @@ class _ChannelCard extends StatelessWidget {
     final name = vod.ownerDisplayName.isNotEmpty
         ? vod.ownerDisplayName
         : vod.ownerLogin;
+    void openChannel() => ChannelProfileScreen.open(
+      context,
+      login: vod.ownerLogin,
+      userId: vod.ownerId.isEmpty ? null : vod.ownerId,
+      displayName: name,
+    );
     return Container(
       padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 12, 12),
       decoration: BoxDecoration(
@@ -133,6 +139,7 @@ class _ChannelCard extends StatelessWidget {
           Semantics(
             button: true,
             label: 'Open channel',
+            onTap: openChannel,
             excludeSemantics: true,
             child: PressScale(
               child: Material(
@@ -145,12 +152,7 @@ class _ChannelCard extends StatelessWidget {
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
-                  onTap: () => ChannelProfileScreen.open(
-                    context,
-                    login: vod.ownerLogin,
-                    userId: vod.ownerId.isEmpty ? null : vod.ownerId,
-                    displayName: name,
-                  ),
+                  onTap: openChannel,
                   child: Container(
                     height: 40,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
