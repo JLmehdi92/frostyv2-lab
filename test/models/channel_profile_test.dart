@@ -201,7 +201,7 @@ void main() {
 
   group('schedule', () {
     Object? schedule() =>
-        (_user(gqlChannelScheduleLirik)! as Map)['channel']['schedule'];
+        (_user(gqlChannelScheduleStreamer)! as Map)['channel']['schedule'];
 
     test('the captured schedule, sorted, with the next start', () {
       final parsed = ChannelSchedule.fromGql(schedule());

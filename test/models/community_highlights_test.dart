@@ -247,8 +247,8 @@ void main() {
               as RaidEvent;
       expect(update.kind, RaidEventKind.update);
       final raid = update.raid;
-      expect(raid.targetLogin, 'bokado');
-      expect(raid.targetDisplayName, 'Bokado');
+      expect(raid.targetLogin, 'raidtarget1');
+      expect(raid.targetDisplayName, 'RaidTarget1');
       expect(raid.targetId, '38581005');
       expect(raid.sourceId, '136558367');
       expect(raid.viewerCount, 1);

@@ -16,8 +16,8 @@ const clipNode = {
   'language': 'EN',
   'curator': {
     'id': '768198835',
-    'login': 'puertoricanporo',
-    'displayName': 'puertoricanporo',
+    'login': 'clipper_1',
+    'displayName': 'clipper_1',
   },
   'broadcaster': {'id': '71092938', 'login': 'xqc', 'displayName': 'xQc'},
   'game': {'id': '509658', 'name': 'Just Chatting'},

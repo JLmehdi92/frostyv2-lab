@@ -66,8 +66,8 @@ void main() {
   });
 
   test('the schedule, and none when the channel has none', () async {
-    reply(gqlChannelScheduleLirik);
-    expect((await service.getSchedule('lirik')).segments, hasLength(6));
+    reply(gqlChannelScheduleStreamer);
+    expect((await service.getSchedule('streamer')).segments, hasLength(6));
 
     reply({
       'data': {

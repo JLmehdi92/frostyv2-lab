@@ -54,8 +54,8 @@ void main() {
       expect(page.data, hasLength(2));
       final first = page.data.first;
       expect(first.userId, '1216145641');
-      expect(first.userLogin, 'poppy_station');
-      expect(first.userName, 'Poppy_Station');
+      expect(first.userLogin, 'streamer_1');
+      expect(first.userName, 'Streamer_1');
       expect(first.gameId, '509658');
       expect(first.gameName, 'Just Chatting');
       expect(first.viewerCount, 0);
@@ -65,7 +65,7 @@ void main() {
       expect(
         first.thumbnailUrl,
         'https://static-cdn.jtvnw.net/previews-ttv/'
-        'live_user_poppy_station-{width}x{height}.jpg',
+        'live_user_streamer_1-{width}x{height}.jpg',
       );
 
       final request = requests.single;

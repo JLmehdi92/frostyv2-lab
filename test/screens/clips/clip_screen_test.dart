@@ -161,7 +161,7 @@ void main() {
     await pump(tester, known: clip);
 
     expect(find.text('breakup advice'), findsWidgets);
-    expect(find.text('Clipped by puertoricanporo'), findsOneWidget);
+    expect(find.text('Clipped by clipper_1'), findsOneWidget);
     expect(find.text('Watch full video'), findsOneWidget);
     expect(find.text('Copy link'), findsOneWidget);
     verifyNever(() => service.getClip(any()));
@@ -332,7 +332,7 @@ void main() {
     await tester.tap(find.byIcon(Icons.refresh_rounded));
     await tester.pump();
     await tester.pump();
-    expect(find.text('Clipped by puertoricanporo'), findsOneWidget);
+    expect(find.text('Clipped by clipper_1'), findsOneWidget);
     await close(tester);
   });
 
@@ -370,7 +370,7 @@ void main() {
     await tester.tap(find.text('breakup advice'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Clipped by puertoricanporo'), findsOneWidget);
+    expect(find.text('Clipped by clipper_1'), findsOneWidget);
     expect(calls, isNot(contains('SystemChrome.setPreferredOrientations')));
     expect(PlaybackFocus.shared.top, isNotNull);
     await close(tester);

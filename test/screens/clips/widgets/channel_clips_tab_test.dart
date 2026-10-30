@@ -61,7 +61,7 @@ void main() {
     expect(find.text('breakup advice'), findsOneWidget);
     expect(find.textContaining(RegExp(r'^16(\.3)?K views$')), findsOneWidget);
     expect(find.text('1:00'), findsOneWidget);
-    expect(find.textContaining('Clipped by puertoricanporo'), findsOneWidget);
+    expect(find.textContaining('Clipped by clipper_1'), findsOneWidget);
     expect(find.text('Showing the top 2 clips'), findsOneWidget);
   });
 

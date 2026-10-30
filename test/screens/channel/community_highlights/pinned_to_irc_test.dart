@@ -69,7 +69,7 @@ void main() {
     final message = pinnedToIrcMessage(
       PinnedChatMessage.fromGql(edge['node'])!,
       channelId: '145972905',
-      channelLogin: 'sondergaardlol',
+      channelLogin: 'channel_a',
     );
     expect(message.user, 'nightbot');
     expect(message.message, contains('boozt.com'));

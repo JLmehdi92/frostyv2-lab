@@ -18,8 +18,8 @@ void main() {
       expect(clip.broadcasterId, '71092938');
       expect(clip.broadcasterLogin, 'xqc');
       expect(clip.broadcasterDisplayName, 'xQc');
-      expect(clip.curatorLogin, 'puertoricanporo');
-      expect(clip.curatorDisplayName, 'puertoricanporo');
+      expect(clip.curatorLogin, 'clipper_1');
+      expect(clip.curatorDisplayName, 'clipper_1');
       expect(clip.gameId, '509658');
       expect(clip.gameName, 'Just Chatting');
       expect(clip.vodId, '2897283075');
