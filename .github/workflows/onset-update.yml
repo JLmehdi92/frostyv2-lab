@@ -1,6 +1,11 @@
 # Builds a signed arm64 APK on every push to main and publishes it as a
 # "build-N" release, which installed ONSET apps offer as an update.
-# One-time setup (secrets, keystore, token): docs/MISES_A_JOUR.md.
+# One-time setup (secrets, keystore, token, token proxy):
+# docs/MISES_A_JOUR.md.
+#
+# The Twitch client secret is not here: it lives in the token proxy
+# (tool/token_proxy/), and the APK only gets the proxy's public URL, from the
+# repository variable TOKEN_PROXY_URL.
 #
 # Two jobs: `build` holds the secrets with read-only repository access and
 # no third-party action beyond GitHub's own, pinned to commits; `publish` can
@@ -66,11 +71,17 @@ jobs:
 
       # Names the missing secrets only, never a value. UPDATE_TOKEN is needed
       # (and read) only when the repository is private.
+      #
+      # TOKEN_PROXY_URL is required too: without it every installed app
+      # would update to a build where logged-out viewers get no Twitch
+      # emotes, badges, browsing or search, with nothing in the log saying
+      # why. It is a variable, not a secret (the APK carries it anyway), and
+      # must be https (the app refuses anything else).
       - name: Check the secrets
         env:
           REPO_PRIVATE: ${{ steps.visibility.outputs.private }}
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
-          SECRET: ${{ secrets.SECRET }}
+          TOKEN_PROXY_URL: ${{ vars.TOKEN_PROXY_URL }}
           UPDATE_TOKEN: ${{ steps.visibility.outputs.private == 'true' && secrets.UPDATE_TOKEN || '' }}
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -78,7 +89,7 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           missing=""
-          for name in CLIENT_ID SECRET ANDROID_KEYSTORE_BASE64 \
+          for name in CLIENT_ID ANDROID_KEYSTORE_BASE64 \
             ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
             if [ -z "${!name}" ]; then
               missing="$missing $name"
@@ -93,6 +104,13 @@ jobs:
             echo "::error::Missing repository secrets:$missing (see docs/MISES_A_JOUR.md)"
             exit 1
           fi
+          case "$TOKEN_PROXY_URL" in
+            https://?*) ;;
+            *)
+              echo "::error::The repository variable TOKEN_PROXY_URL is missing or does not start with https:// (see docs/MISES_A_JOUR.md)"
+              exit 1
+              ;;
+          esac
 
       # Actions are pinned to commits (tags can be moved). Secrets are passed
       # to the run steps that need them, but every step of this job shares the
@@ -139,7 +157,7 @@ jobs:
         id: build
         env:
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
-          SECRET: ${{ secrets.SECRET }}
+          TOKEN_PROXY_URL: ${{ vars.TOKEN_PROXY_URL }}
           # Empty when the repository is public: never in a public APK.
           UPDATE_TOKEN: ${{ steps.visibility.outputs.private == 'true' && secrets.UPDATE_TOKEN || '' }}
           UPDATE_REPO: ${{ github.repository }}
@@ -158,7 +176,7 @@ jobs:
             --target-platform android-arm64 \
             --build-number="$BUILD" \
             --dart-define=CLIENT_ID="$CLIENT_ID" \
-            --dart-define=SECRET="$SECRET" \
+            --dart-define=TOKEN_PROXY_URL="$TOKEN_PROXY_URL" \
             --dart-define=UPDATE_TOKEN="$UPDATE_TOKEN" \
             --dart-define=UPDATE_REPO="$UPDATE_REPO" \
             --dart-define=FIREBASE_API_KEY="$FIREBASE_API_KEY" \

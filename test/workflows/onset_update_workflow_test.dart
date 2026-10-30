@@ -89,6 +89,49 @@ void main() {
     expect(RegExp(r'set -x').hasMatch(workflow), isFalse);
   });
 
+  test('the Twitch client secret is neither required nor passed', () {
+    // It lives in the token proxy (tool/token_proxy/), never in an APK.
+    expect(workflow, isNot(contains('secrets.SECRET')));
+    expect(workflow, isNot(contains('--dart-define=SECRET')));
+    expect(
+      RegExp(
+        r'for name in [^;]*\bSECRET\b',
+      ).hasMatch(step('Check the secrets')),
+      isFalse,
+    );
+  });
+
+  test('the token proxy URL comes from a repository variable', () {
+    const fromVariable = r'TOKEN_PROXY_URL: ${{ vars.TOKEN_PROXY_URL }}';
+
+    expect(workflow, isNot(contains('secrets.TOKEN_PROXY_URL')));
+    expect(step('Check the secrets'), contains(fromVariable));
+    expect(step('Build the APK'), contains(fromVariable));
+    expect(
+      step('Build the APK'),
+      contains(r'--dart-define=TOKEN_PROXY_URL="$TOKEN_PROXY_URL"'),
+    );
+  });
+
+  test('a build without an https token proxy URL fails, saying why', () {
+    final check = step('Check the secrets');
+
+    expect(check, contains(r'case "$TOKEN_PROXY_URL" in'));
+    expect(check, contains('https://?*)'));
+    expect(
+      check,
+      contains(
+        '::error::The repository variable TOKEN_PROXY_URL is missing or '
+        'does not start with https://',
+      ),
+    );
+    // The check fails the job: its error path ends in exit 1.
+    final variableCheck = check.substring(
+      check.indexOf(r'case "$TOKEN_PROXY_URL" in'),
+    );
+    expect(variableCheck, contains('exit 1'));
+  });
+
   test('the public build log says why there is no token', () {
     expect(
       step('Check the repository visibility'),
