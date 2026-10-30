@@ -24,13 +24,12 @@ as transparency (a bitmap drawable cannot be clipped in XML):
     android/app/src/main/res/drawable-{m,h,xh,xxh,xxx}dpi/launch_tile.png
 
 The splash's pixels are the very pixels of the Flutter 72 dp variant of the
-same ratio (only the corners differ). Android picks its bucket as
-imageFor picks its variant, the smallest at least as dense, so the first
+same ratio (only the corners differ), so at 1, 1.5, 2, 3 and 4 the first
 Flutter frame of the launch intro, which draws that variant clipped to the
-same corners, starts from the very bitmap the splash drew: pixel for pixel
-at 1, 1.5, 2, 3 and 4; at a ratio in between (2.625, 3.5...) both scale
-that same bitmap down, each with its own filter, so they agree up to
-resampling.
+same corners, starts from the very bitmap the splash drew, pixel for pixel.
+Between buckets imageFor takes the smallest variant at least as dense,
+while Android sometimes takes the lower bucket and scales it up (e.g.
+xhdpi at 2.25), so there the two agree only up to resampling.
 
 Each size is resampled straight from the 1024 px source with a Lanczos
 filter in linear light (sRGB decoded first, re-encoded after), so the

@@ -14,10 +14,9 @@ import 'package:onset/theme.dart';
 /// 72 dp, each with its 1.5x–4.0x variants), written by
 /// `tool/onset_logo_assets.py`. The Android splash draws the 72 dp family's
 /// pixels with the same 20 dp corners (`res/drawable-*dpi/launch_tile.png`,
-/// checked by a test), and [imageFor] picks the bitmap Android picks: the
-/// native splash hands over to the Flutter intro pixel for pixel at
-/// Android's densities (1, 1.5, 2, 3, 4), and up to resampling between
-/// them.
+/// checked by a test): at Android's densities (1, 1.5, 2, 3, 4) the native
+/// splash hands over to the Flutter intro pixel for pixel; between them the
+/// two may start from different bitmaps and agree only up to resampling.
 abstract final class OnsetMark {
   /// Side of the launch boards' tile, the size the intro draws it at.
   static const designSize = 72.0;
@@ -42,10 +41,11 @@ abstract final class OnsetMark {
   ///
   /// Chosen here rather than by [AssetImage], which takes the nearest
   /// variant above a 2.0 ratio: on a 2.5 or 3.5 screen it would pick 2.0x
-  /// or 3.0x and upscale it, soft. Never upscaling is also how Android
-  /// picks the splash's density bucket (1, 1.5, 2, 3, 4), so the 72 dp tile
-  /// starts from the very bitmap the splash drew from: the same pixels at
-  /// those ratios, each scaling that same bitmap down in between.
+  /// or 3.0x and upscale it, soft. At Android's density buckets (1, 1.5, 2,
+  /// 3, 4) this is the very bitmap the splash drew. Between buckets Android
+  /// sometimes takes the lower one and scales it up (e.g. xhdpi at 2.25)
+  /// where this takes the higher one, so the two then agree only up to
+  /// resampling.
   static ExactAssetImage imageFor(
     double size, {
     required double devicePixelRatio,
