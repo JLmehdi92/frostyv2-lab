@@ -89,6 +89,31 @@ void main() {
     expect(RegExp(r'set -x').hasMatch(workflow), isFalse);
   });
 
+  test('the public build log says why there is no token', () {
+    expect(
+      step('Check the repository visibility'),
+      contains(
+        'The build carries no update token (event or repository is public).',
+      ),
+    );
+  });
+
+  test('the publish guard fails closed and deletes a refused artifact', () {
+    final recheck = step('Check the repository is still private');
+
+    // Anything but an explicit "false" counts as a build with the token.
+    expect(
+      recheck,
+      contains(r'if [ "$TOKEN_BUILD" != false ] && [ "$live" != true ]; then'),
+    );
+    expect(recheck, contains(r'actions/runs/$GITHUB_RUN_ID/artifacts'));
+    expect(recheck, contains('select(.name == "onset-update")'));
+    expect(recheck, contains('gh api -X DELETE'));
+    final publish = workflow.substring(workflow.indexOf('\n  publish:'));
+    expect(publish, contains('      actions: write\n'));
+    expect(publish, isNot(contains('secrets.')));
+  });
+
   test('publishing refuses a token build once the repository is public', () {
     expect(
       workflow,

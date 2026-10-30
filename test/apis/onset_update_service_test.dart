@@ -256,9 +256,25 @@ void main() {
       expect(await service(adapter).latest(), isNull);
     });
 
+    for (final status in [403, 429]) {
+      test('a $status is the anonymous rate limit', () async {
+        final adapter = _Adapter((_) => _json({'message': 'limit'}, status));
+
+        await expectLater(
+          anonymous(adapter).latest(),
+          throwsA(isA<UpdateRateLimitedException>()),
+        );
+      });
+
+      test('with a token, a $status still reads as no release', () async {
+        final adapter = _Adapter((_) => _json({'message': 'x'}, status));
+
+        expect(await service(adapter).latest(), isNull);
+      });
+    }
+
     test('other failures read as no release', () async {
       for (final failing in [
-        _Adapter((_) => _json({'message': 'rate limited'}, 403)),
         _Adapter((_) => _json({'message': 'x'}, 500)),
         _Adapter(
           (options) => throw DioException.connectionError(
@@ -307,6 +323,15 @@ void main() {
       await expectLater(
         anonymous(serving(hash: 'nope')).download(_release),
         throwsA(isA<UpdateIntegrityException>()),
+      );
+    });
+
+    test('still refuses a redirect to another host', () async {
+      await expectLater(
+        anonymous(
+          serving(location: 'https://evil.example/apk'),
+        ).download(_release),
+        throwsA(isA<UpdateDownloadException>()),
       );
     });
 
@@ -432,6 +457,40 @@ void main() {
         service(adapter).download(_release),
         throwsA(isA<UpdateDownloadException>()),
       );
+    });
+
+    test('follows a redirect to each GitHub download host', () async {
+      for (final host in [
+        'api.github.com',
+        'github.com',
+        'objects.githubusercontent.com',
+        'release-assets.githubusercontent.com',
+      ]) {
+        final file = await service(
+          serving(location: 'https://$host/apk?sig=abc'),
+        ).download(_release);
+        expect(file.readAsBytesSync(), _apk);
+      }
+    });
+
+    test('refuses a redirect to any other host', () async {
+      for (final location in [
+        'https://evil.example/apk',
+        'https://githubusercontent.com/apk',
+        'https://evil.objects.githubusercontent.com/apk',
+        'https://objects.githubusercontent.com.evil.example/apk',
+        'https://objects.githubusercontent.com:8443/apk',
+      ]) {
+        final adapter = serving(location: location);
+        await expectLater(
+          service(adapter).download(_release),
+          throwsA(isA<UpdateDownloadException>()),
+        );
+        expect(
+          adapter.requests.where((r) => r.uri.toString() == location),
+          isEmpty,
+        );
+      }
     });
 
     test('refuses a redirect that is not https', () async {

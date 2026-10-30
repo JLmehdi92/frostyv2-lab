@@ -171,6 +171,24 @@ void main() {
       verify(() => service.latest()).called(2);
     });
 
+    test('a rate-limited tokenless build fails and waits six hours before '
+        'asking again by itself', () async {
+      when(
+        () => service.latest(),
+      ).thenThrow(const UpdateRateLimitedException());
+      final subject = updater(token: '');
+
+      expect(await subject.check(), isA<UpdateCheckFailed>());
+      now = now.add(const Duration(hours: 5, minutes: 59));
+      expect(await subject.check(), isA<UpdateCheckSkipped>());
+      expect(await subject.check(force: true), isA<UpdateCheckFailed>());
+      verify(() => service.latest()).called(2);
+
+      now = now.add(const Duration(hours: 6));
+      latestIs(_release(1023));
+      expect(await subject.check(), isA<UpdateAvailable>());
+    });
+
     test('a failed check is retried at the next chance', () async {
       latestIs(null);
       await updater().check();

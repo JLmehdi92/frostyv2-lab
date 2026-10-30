@@ -14,6 +14,15 @@ pour les builds locaux).
 
 ## 0. Dépôt public ou privé
 
+> **Avant de rendre le dépôt public, révoquez `UPDATE_TOKEN`** (étape 2 →
+> **Delete**). Tout ce qui a été fait en privé devient public avec le dépôt :
+> les releases `build-*` (leurs APK contiennent le jeton), mais aussi les
+> **artefacts** des exécutions récentes (l'APK reste un jour dans l'exécution
+> qui l'a construit), et un build en cours au moment du changement. Un jeton
+> révoqué ne vaut plus rien, quel que soit l'endroit où on le retrouve.
+> Conséquence : l'appli installée depuis un build privé ne trouve plus de mise
+> à jour seule ; installez à la main le premier build public (étape 4).
+
 Le workflow lit la visibilité du dépôt **à chaque build**, deux fois : dans
 l'événement qui l'a lancé (`github.event.repository.private`) et en demandant
 le dépôt tel qu'il est maintenant. Le jeton n'est utilisé que si les deux
@@ -30,6 +39,9 @@ téléchargeables par tout le monde, et un jeton se lit dans un APK.
 - Sans jeton, l'appli interroge l'API GitHub anonymement (aucun en-tête
   `Authorization`). La limite anonyme est de 60 requêtes par heure et par
   adresse IP ; l'appli demande au plus une fois toutes les 6 h, c'est large.
+  Si GitHub refuse quand même (403 ou 429, limite atteinte), l'appli attend
+  aussi 6 h avant de redemander d'elle-même (**Check for updates** reste
+  possible à tout moment).
   Le téléchargement suit le même chemin qu'avant (lien de l'API, puis lien
   signé de GitHub en `https`), et le SHA-256 est toujours vérifié avant
   l'installation.
@@ -37,15 +49,15 @@ téléchargeables par tout le monde, et un jeton se lit dans un APK.
   (GitHub répond 404) : l'appli considère qu'il n'y a pas de mise à jour, sans
   message d'erreur, et ne redemande qu'au bout de 6 h. Il faudra installer à
   la main le premier build fait en privé (étape 4).
-- Le dépôt passe en public **pendant** un build qui a pris le jeton : la
-  publication est refusée (« The repository is no longer private ») ;
-  relancez le workflow, le nouveau build n'aura pas de jeton. L'APK de ce
-  build reste au plus un jour dans les artefacts de l'exécution : évitez de
-  changer la visibilité pendant qu'un build tourne.
-- **Avant de rendre le dépôt public**, supprimez toutes les releases `build-*`
-  faites en privé (**Releases** → chaque release → **Delete**) : elles
-  contiennent le jeton, et elles deviendraient publiques avec le dépôt. Puis
-  révoquez le jeton (étape 2), devenu inutile.
+- Le dépôt passe en public **pendant** un build qui a pris le jeton (ou dont
+  on ne sait pas s'il l'a pris) : la publication est refusée (« The
+  repository is not private ») et l'artefact de l'exécution, qui contient
+  l'APK, est supprimé ; relancez le workflow, le nouveau build n'aura pas de
+  jeton. Le jeton, révoqué avant le changement (encadré ci-dessus), ne
+  servirait de toute façon plus à rien.
+- Supprimez aussi les releases `build-*` faites en privé (**Releases** →
+  chaque release → **Delete**) : même avec un jeton révoqué, elles
+  contiennent `CLIENT_ID` et `SECRET` de Twitch (point suivant).
 - `CLIENT_ID` et `SECRET` de Twitch restent dans **tous** les APK, publics
   compris : quiconque télécharge une release publique peut les en extraire.
   Tenez-les pour publiés dès le premier build public, et régénérez le secret
@@ -229,14 +241,15 @@ Dans cet ordre :
    puis mettez à jour le secret `SECRET` du dépôt (l'ancien a pu sortir dans un
    APK public).
 2. **Jeton GitHub** : révoquez `UPDATE_TOKEN` (Developer settings → Personal
-   access tokens → le jeton → **Delete**) et supprimez le secret du dépôt. Ne
-   le recréez (étape 2, limité au seul dépôt de build) que si les builds
-   repartent d'un dépôt **privé** : un dépôt public n'en a pas besoin.
+   access tokens → le jeton → **Delete**) **avant** de rendre un dépôt public
+   (étape 0), et supprimez le secret du dépôt. Ne le recréez (étape 2, limité
+   au seul dépôt de build) que si les builds repartent d'un dépôt **privé** :
+   un dépôt public n'en a pas besoin.
 3. Vérifiez qu'aucune release faite en privé n'est restée dans un dépôt
    public (étape 0).
 4. **Lancez le build** : **Actions** → **ONSET update** → **Run workflow** sur
-   `main`. Dans un dépôt public, le journal affiche « Public repository: the
-   build carries no update token. »
+   `main`. Dans un dépôt public, le journal affiche « The build carries no
+   update token (event or repository is public). »
 5. **Désinstallez l'ancienne appli** `com.tommychow.frosty.onset` (réglages
    Android → Applications). Ses données (connexion Twitch, réglages) ne
    passent pas à la nouvelle : un autre identifiant d'appli est une autre

@@ -107,6 +107,11 @@ class OnsetUpdater {
       // spend the anonymous rate limit.
       await prefs.setInt(_lastCheckKey, now.millisecondsSinceEpoch);
       return const UpToDate();
+    } on UpdateRateLimitedException {
+      // GitHub's anonymous limit is per address: retrying at every resume
+      // would only keep it spent. Wait the usual interval instead.
+      await prefs.setInt(_lastCheckKey, now.millisecondsSinceEpoch);
+      return const UpdateCheckFailed();
     }
     if (release == null) return const UpdateCheckFailed();
 

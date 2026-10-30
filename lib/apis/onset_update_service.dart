@@ -32,6 +32,11 @@ class UpdateNotVisibleException implements Exception {
   const UpdateNotVisibleException();
 }
 
+/// GitHub refused an anonymous request for its rate limit (403 or 429).
+class UpdateRateLimitedException implements Exception {
+  const UpdateRateLimitedException();
+}
+
 /// Reads ONSET builds from the GitHub releases of the update repository.
 ///
 /// It gets its own [Dio], never the app's: the Twitch interceptors must not
@@ -47,6 +52,14 @@ class OnsetUpdateService extends BaseApiClient {
   static const _apiOrigin = 'https://api.github.com';
   static final _repoPattern = RegExp(r'^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$');
   static final _hashPattern = RegExp(r'^[0-9a-f]{64}$');
+
+  /// The only hosts an asset redirect may lead to, matched exactly.
+  static const _downloadHosts = {
+    'api.github.com',
+    'github.com',
+    'objects.githubusercontent.com',
+    'release-assets.githubusercontent.com',
+  };
 
   final String _token;
   final String _repo;
@@ -100,8 +113,9 @@ class OnsetUpdateService extends BaseApiClient {
 
   /// The latest ONSET build, or null when there is none or it cannot be read.
   ///
-  /// Throws [UpdateNotVisibleException] when this build has no token and
-  /// GitHub answers 404: the repository is private (or has no release yet).
+  /// Without a token, throws [UpdateNotVisibleException] when GitHub answers
+  /// 404 (the repository is private, or has no release yet) and
+  /// [UpdateRateLimitedException] on 403 or 429 (the anonymous rate limit).
   Future<OnsetRelease?> latest() async {
     if (!_validRepo) return null;
     try {
@@ -113,6 +127,9 @@ class OnsetUpdateService extends BaseApiClient {
     } on ApiException catch (e) {
       if (_anonymous && e.statusCode == 404) {
         throw const UpdateNotVisibleException();
+      }
+      if (_anonymous && (e.statusCode == 403 || e.statusCode == 429)) {
+        throw const UpdateRateLimitedException();
       }
       // The message and status only: never the request, which holds the token.
       debugPrint('Update check failed: ${e.statusCode ?? e.message}');
@@ -224,7 +241,8 @@ class OnsetUpdateService extends BaseApiClient {
   }
 
   /// Opens a release asset's bytes. GitHub answers with a redirect to a signed
-  /// URL; it is followed by hand so that the token stays on api.github.com.
+  /// URL; it is followed by hand so that the token stays on api.github.com,
+  /// and only to an https URL on one of [_downloadHosts].
   Future<ResponseBody> _openAsset(int id, {CancelToken? cancelToken}) async {
     final first = await _http.get<ResponseBody>(
       _assetUrl(id),
@@ -245,7 +263,11 @@ class OnsetUpdateService extends BaseApiClient {
     final target = location == null
         ? null
         : first.requestOptions.uri.resolve(location);
-    if (target == null || target.scheme != 'https' || target.host.isEmpty) {
+    if (target == null ||
+        target.scheme != 'https' ||
+        target.port != 443 ||
+        target.userInfo.isNotEmpty ||
+        !_downloadHosts.contains(target.host)) {
       throw const UpdateDownloadException();
     }
 

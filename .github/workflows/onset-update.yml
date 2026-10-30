@@ -61,7 +61,7 @@ jobs:
           if [ "$private" = true ]; then
             echo "Private repository: the build carries the update token."
           else
-            echo "Public repository: the build carries no update token."
+            echo "The build carries no update token (event or repository is public)."
           fi
 
       # Names the missing secrets only, never a value. UPDATE_TOKEN is needed
@@ -191,17 +191,25 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      # Only to delete the APK artifact of a refused build.
+      actions: write
     steps:
       # The repository may have been made public while the APK was built:
-      # a build that carries the token is then never published.
+      # a build that carries the token (or that does not say it has none) is
+      # then never published, and its artifact is deleted.
       - name: Check the repository is still private
         env:
           GH_TOKEN: ${{ github.token }}
           TOKEN_BUILD: ${{ needs.build.outputs.token }}
         run: |
           live="$(gh api "repos/$GITHUB_REPOSITORY" --jq .private)"
-          if [ "$TOKEN_BUILD" = true ] && [ "$live" != true ]; then
-            echo "::error::The repository is no longer private: this build carries the update token and is not published. Run the workflow again."
+          if [ "$TOKEN_BUILD" != false ] && [ "$live" != true ]; then
+            ids="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" \
+              --jq '.artifacts[] | select(.name == "onset-update") | .id')"
+            for id in $ids; do
+              gh api -X DELETE "repos/$GITHUB_REPOSITORY/actions/artifacts/$id"
+            done
+            echo "::error::The repository is not private: this build may carry the update token, so it is not published and its artifact is deleted. Run the workflow again."
             exit 1
           fi
 
