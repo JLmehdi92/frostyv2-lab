@@ -5,7 +5,7 @@
 <h1>ONSET</h1>
 
 <p><strong>A Twitch client for Android, close to the live edge.</strong><br>
-An Android Twitch client built with Flutter: a native low-latency player and a full-featured chat.</p>
+A native low-latency player and a full-featured chat.</p>
 
 <p>
   <img alt="Flutter 3.38.4" src="https://img.shields.io/badge/Flutter-3.38.4-C8FF3D?style=flat-square&labelColor=0A0A0A&logo=flutter&logoColor=white">
@@ -162,6 +162,11 @@ repository's GitHub releases.
 **Is there an iPhone version?**
 Not yet. An iOS version is planned and will be offered as a direct download
 once it is ready.
+
+**Found a bug or have an idea?**
+[Open an issue](../../issues/new/choose) and pick *Bug report* or *Feature
+request*. For a bug, say which device and Android version you use and what
+you did just before it happened.
 
 **Is ONSET affiliated with Twitch?**
 No. It is an independent project, not affiliated with, endorsed by or
