@@ -399,9 +399,7 @@ class StreakPill extends StatelessWidget {
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 height: 1,
-                color: dark
-                    ? OnsetTokens.hypeText
-                    : OnsetColors.light.subNoticeText,
+                color: dark ? OnsetTokens.hypeText : OnsetTokens.hypeTextLight,
               ),
             ),
           ),

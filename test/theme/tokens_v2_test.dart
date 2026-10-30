@@ -39,6 +39,8 @@ void main() {
       expect(OnsetTokens.accentTint, const Color(0x1AC8FF3D));
       expect(OnsetTokens.hype, const Color(0xFF12A87A));
       expect(OnsetTokens.hypeText, const Color(0xFF3DDBA6));
+      // The light theme's hype green text (sub notices moved to lime).
+      expect(OnsetTokens.hypeTextLight, const Color(0xFF0A7957));
       expect(OnsetTokens.danger, const Color(0xFFFF5A5F));
     });
 

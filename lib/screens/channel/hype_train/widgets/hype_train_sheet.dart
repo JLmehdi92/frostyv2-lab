@@ -9,7 +9,6 @@ import 'package:onset/screens/channel/hype_train/widgets/hype_train_copy.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_palette.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 
 /// Twitch's guide to hype trains.
@@ -267,9 +266,7 @@ class _Header extends StatelessWidget {
         child: Text(
           title.toUpperCase(),
           style: style.copyWith(
-            color: dark
-                ? OnsetTokens.hypeText
-                : context.onsetColors.subNoticeText,
+            color: dark ? OnsetTokens.hypeText : OnsetTokens.hypeTextLight,
           ),
         ),
       ),

@@ -102,6 +102,11 @@ class OnsetTokens {
   /// Green text on a [hype]-tinted fill (the "Subscribe" button).
   static const hypeText = Color(0xFF3DDBA6);
 
+  /// [hypeText] for the light theme: the hype green darkened to 4.5:1 on a
+  /// light [hype] tint (Subscribe, the watch streak, the hype train sheet).
+  /// Sub and gift notices use their own lime (`OnsetColors.subNoticeText`).
+  static const hypeTextLight = Color(0xFF0A7957);
+
   /// Destructive actions only.
   static const danger = Color(0xFFFF5A5F);
 

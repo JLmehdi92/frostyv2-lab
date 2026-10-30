@@ -519,7 +519,7 @@ class SubscribersOnlyLabel extends StatelessWidget {
       height: 1.3,
       color: Theme.of(context).brightness == Brightness.dark
           ? OnsetTokens.hypeText
-          : OnsetColors.light.subNoticeText,
+          : OnsetTokens.hypeTextLight,
     ),
   );
 }

@@ -6,6 +6,7 @@ import 'package:onset/models/hype_train.dart';
 import 'package:onset/models/hype_train_event.dart';
 import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_sheet.dart';
+import 'package:onset/theme.dart';
 
 import '../hype_train_test_data.dart';
 import 'hype_train_widget_harness.dart';
@@ -274,7 +275,8 @@ void main() {
         expect(style?.fontSize, 11);
         expect(style?.fontWeight, FontWeight.w700);
         expect(style?.letterSpacing, greaterThan(1));
-        expect(style?.color?.g, greaterThan(style?.color?.r ?? 1));
+        // The light theme's hype green, not the lime of the sub rows.
+        expect(style?.color, OnsetTokens.hypeTextLight);
       }
       expect(find.text('Current Hype Train top supporters.'), findsOneWidget);
       await h.close(tester);

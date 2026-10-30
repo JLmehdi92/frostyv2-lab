@@ -7,7 +7,6 @@ import 'package:onset/models/community_points.dart';
 import 'package:onset/models/watch_streak.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
@@ -356,9 +355,7 @@ class WatchStreakCard extends StatelessWidget {
     final showProgress =
         next != null && streak.state != WatchStreakState.suspended;
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final green = dark
-        ? OnsetTokens.hypeText
-        : context.onsetColors.subNoticeText;
+    final green = dark ? OnsetTokens.hypeText : OnsetTokens.hypeTextLight;
 
     // Board ChainePoints: a #1A1A1A card, the green flame, the community
     // green bar towards the next milestone.
