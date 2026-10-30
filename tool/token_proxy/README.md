@@ -288,10 +288,14 @@ the script revokes before it ends. Nothing is saved or sent anywhere else.
   rule** on the Worker's route blocks floods before they reach the Worker and
   before they count as requests.
 - **KV writes.** The free plan allows 1,000 KV writes a day. The Worker
-  writes only when it mints a token (two writes: the token and the time of
-  the mint): once every seven weeks or so, plus once per revoked token, at
-  most once a minute. Checking the token never writes, however many copies
-  of the Worker run.
+  writes only when it tries to mint a token: one write per attempt, plus one
+  for the token when it works. That is once every seven weeks or so, plus
+  once per revoked token, at most once a minute. If minting keeps failing
+  (for example the "ONSET public" secret was replaced at Twitch but not
+  here), the attempts back off to 1, 2, 4, 8, then every 15 minutes: about
+  100 writes a day while it lasts, and the first success resets it.
+  Checking the token never writes, however many copies of the Worker run,
+  and requests arriving at the same moment share one check and one mint.
 - **If the Worker is down**, the app still starts, logging in still works, and
   logged-out features that need the token fail quietly (no login pop-ups).
   The app asks again at most once a minute, when a request is refused.

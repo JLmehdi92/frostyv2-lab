@@ -15,8 +15,9 @@
 //   TWITCH_CLIENT_SECRET  secret   the SECOND application's client secret
 //   TOKEN_CACHE           KV namespace binding (required): one token shared
 //                         by all of Cloudflare's machines, and when one was
-//                         last minted. Written only when a token is minted:
-//                         two writes per mint, a few a day at most
+//                         last minted. Written only when a mint is tried:
+//                         one write per attempt (backing off to every 15
+//                         minutes while Twitch refuses), one per token
 //   RATE_LIMITER          optional rate limiting binding (wrangler.toml);
 //                         without it a best-effort counter per isolate is used
 //
@@ -52,10 +53,17 @@ const VALIDATE_EVERY_MS = 10 * 60 * 1000;
 // as it is and asked again this much later.
 const VALIDATE_RETRY_MS = 60 * 1000;
 
-// At most one mint a minute for the whole world (a KV mark), and a failure
-// is remembered this long in each isolate before Twitch is tried again.
+// At most one mint a minute for the whole world (a KV mark). Mints that keep
+// failing (a secret replaced at Twitch but not here) back off: 1, 2, 4, 8,
+// then every 15 minutes, so they cost about 100 KV writes a day, not 1,440.
+// A successful mint resets it. A failure is also remembered this long in
+// each isolate before Twitch is tried again.
 const MINT_EVERY_MS = 60 * 1000;
+const MINT_BACKOFF_MAX_MS = 15 * 60 * 1000;
 const FAILURE_BACKOFF_MS = 30 * 1000;
+
+// The mark outlives the longest wait, so the failure count is not lost.
+const KV_MINT_TTL_S = 24 * 60 * 60;
 
 // Twitch's answer gets this long, body included, after which the proxy
 // gives up (502).
@@ -83,6 +91,10 @@ let memoryToken = null;
 
 // Until when this isolate does not try to mint again after a failure.
 let failedUntil = 0;
+
+// The check (and, if needed, mint) this isolate is doing right now: requests
+// that arrive meanwhile wait for it instead of checking and minting again.
+let refreshing = null;
 
 // Tokens this isolate found dead: never served again, even if KV still
 // holds one until the next mint overwrites it.
@@ -311,24 +323,47 @@ async function askTwitch(env, key) {
   return { token, expiresAt: now + expiresIn * 1000, validatedAt: now, key };
 }
 
+// How long after a mint attempt the next may start, [failures] attempts in
+// a row having failed (0: the last one worked).
+function mintWait(failures) {
+  if (failures <= 1) return MINT_EVERY_MS;
+  return Math.min(MINT_EVERY_MS * 2 ** (failures - 1), MINT_BACKOFF_MAX_MS);
+}
+
+async function writeMintMark(env, at, failures) {
+  try {
+    await env.TOKEN_CACHE.put(KV_MINT_KEY, JSON.stringify({ at, failures }), {
+      expirationTtl: KV_MINT_TTL_S,
+    });
+  } catch {
+    // Without the mark, the isolate's own backoff still applies.
+  }
+}
+
 async function mint(env, key, now) {
   const mark = now < failedUntil ? null : await readKv(env, KV_MINT_KEY);
+  let failures =
+    mark && Number.isInteger(mark.failures) && mark.failures > 0 ? mark.failures : 0;
+  if (failures > 0) {
+    // The attempt the mark counts as failed may have worked: the token it
+    // minted is in KV, minted after the mark (no extra write to reset it).
+    const latest = await readKv(env, KV_KEY);
+    if (latest && typeof latest.validatedAt === 'number' && latest.validatedAt >= mark.at) {
+      failures = 0;
+    }
+  }
   if (
     now < failedUntil ||
-    (mark && typeof mark.at === 'number' && now - mark.at < MINT_EVERY_MS)
+    (mark && typeof mark.at === 'number' && now - mark.at < mintWait(failures))
   ) {
     // Not this isolate's turn: another may just have minted one.
     const other = await storedToken(env, key, now);
     if (other) memoryToken = other;
     return other;
   }
-  try {
-    await env.TOKEN_CACHE.put(KV_MINT_KEY, JSON.stringify({ at: now }), {
-      expirationTtl: KV_MIN_TTL_S,
-    });
-  } catch {
-    // Without the mark, the isolate's own backoff still applies.
-  }
+  // Claimed as if it fails: one write per attempt. A success is told by the
+  // token it writes (see above).
+  await writeMintMark(env, now, failures + 1);
 
   const fresh = await askTwitch(env, key);
   if (!usable(fresh, Date.now(), key)) {
@@ -352,6 +387,23 @@ async function currentToken(env, now) {
   }
 
   const key = await credentialsKey(env);
+  if (
+    usable(memoryToken, now, key) &&
+    now - memoryToken.validatedAt < VALIDATE_EVERY_MS
+  ) {
+    return memoryToken;
+  }
+  // One check-and-mint at a time in this isolate; cleared whatever happens,
+  // so a failure never wedges it.
+  if (!refreshing) {
+    refreshing = refresh(env, key, now).finally(() => {
+      refreshing = null;
+    });
+  }
+  return refreshing;
+}
+
+async function refresh(env, key, now) {
   let entry = usable(memoryToken, now, key) ? memoryToken : null;
   if (!entry) entry = await storedToken(env, key, now);
 

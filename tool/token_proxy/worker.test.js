@@ -83,7 +83,7 @@ beforeEach(() => {
   mintAnswer = tokenAnswer(TOKEN);
   validateAnswer = validAnswer();
   globalThis.fetch = async (url, init) => {
-    calls.push({ url: String(url), init });
+    calls.push({ url: String(url), init, at: now });
     if (String(url).endsWith('/oauth2/validate')) return validateAnswer(init);
     return mintAnswer(init);
   };
@@ -114,6 +114,10 @@ const get = (path = '/app-token', { method = 'GET', ip = '203.0.113.7' } = {}) =
   });
 
 const tokenOf = async (response) => (await response.json()).access_token;
+
+// Lets every request in flight run as far as it can (the clock is mocked,
+// timers are real).
+const settle = () => new Promise((resolve) => setTimeout(resolve, 20));
 
 test('GET /app-token hands out a token from Twitch, with its app', async () => {
   const worker = await loadWorker();
@@ -355,6 +359,113 @@ test('an isolate remembers a failed mint for 30 s, even without the KV mark', as
   kv.store.delete('twitch_app_token_mint');
   assert.equal(await tokenOf(await worker.fetch(get(), env())), TOKEN);
   assert.equal(mints().length, 2);
+});
+
+test('mints that keep failing back off to every 15 minutes: few KV writes', async () => {
+  // A secret replaced in the Twitch console but not in the Worker.
+  mintAnswer = () => new Response(JSON.stringify({ status: 403 }), { status: 403 });
+  const worker = await loadWorker();
+  // One logged-out device retrying every minute, for 6 hours.
+  for (let minute = 0; minute < 6 * 60; minute++) {
+    const response = await worker.fetch(get('/app-token', { ip: `198.51.100.${minute % 200}` }), env());
+    assert.equal(response.status, 502);
+    now += MINUTE;
+  }
+  const markWrites = kv.puts.filter((key) => key === 'twitch_app_token_mint').length;
+  // 1, 2, 4, 8 minutes, then every 15: about 27 in 6 hours (about 100 a
+  // day), where one a minute would be 360 (1,440 a day).
+  assert.ok(markWrites <= 30, `${markWrites} mark writes`);
+  assert.equal(mints().length, markWrites);
+  // Never more than 15 minutes apart once backed off.
+  const times = mints().map((call) => call.at);
+  const gaps = times.slice(1).map((t, i) => t - times[i]);
+  assert.ok(Math.max(...gaps) <= 15 * MINUTE, `gaps ${gaps}`);
+
+  // Fixed: the next attempt works, and resets the backoff.
+  mintAnswer = tokenAnswer(TOKEN);
+  for (let i = 0; i < 16; i++) {
+    now += MINUTE;
+    const response = await worker.fetch(get('/app-token', { ip: `192.0.2.${i}` }), env());
+    if (response.status === 200) break;
+  }
+  assert.equal(JSON.parse(kv.store.get('twitch_app_token').value).token, TOKEN);
+  // Revoked later: a new mint is allowed after one minute again, not 15.
+  now += 11 * MINUTE;
+  validateAnswer = validFor(TOKEN_2);
+  mintAnswer = tokenAnswer(TOKEN_2);
+  const before = mints().length;
+  await worker.fetch(get('/app-token', { ip: '192.0.2.200' }), env());
+  assert.equal(mints().length, before + 1);
+});
+
+test('concurrent requests in one isolate check and mint once', async () => {
+  const worker = await loadWorker();
+  let release;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  // Twitch answers slowly, so the requests overlap.
+  const slow = (answer) => async (init) => {
+    await gate;
+    return answer(init);
+  };
+  mintAnswer = slow(tokenAnswer(TOKEN));
+  const first = Array.from({ length: 5 }, (_, i) =>
+    worker.fetch(get('/app-token', { ip: `198.51.100.${i}` }), env()),
+  );
+  await settle();
+  release();
+  for (const response of await Promise.all(first)) {
+    assert.equal(await tokenOf(response), TOKEN);
+  }
+  assert.equal(mints().length, 1);
+
+  // Revoked: five requests at once check it once and mint once.
+  now += 11 * MINUTE;
+  let release2;
+  const gate2 = new Promise((resolve) => {
+    release2 = resolve;
+  });
+  validateAnswer = async (init) => {
+    await gate2;
+    return validFor(TOKEN_2)(init);
+  };
+  mintAnswer = tokenAnswer(TOKEN_2);
+  const second = Array.from({ length: 5 }, (_, i) =>
+    worker.fetch(get('/app-token', { ip: `203.0.113.${i}` }), env()),
+  );
+  await settle();
+  release2();
+  for (const response of await Promise.all(second)) {
+    assert.equal(await tokenOf(response), TOKEN_2);
+  }
+  assert.equal(validations().length, 1);
+  assert.equal(mints().length, 2);
+  assert.equal(kv.puts.filter((key) => key === 'twitch_app_token').length, 2);
+});
+
+test('a failure shared by concurrent requests does not wedge the isolate', async () => {
+  const worker = await loadWorker();
+  let release;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  mintAnswer = async () => {
+    await gate;
+    throw new TypeError('network down');
+  };
+  const pending = Array.from({ length: 3 }, (_, i) =>
+    worker.fetch(get('/app-token', { ip: `198.51.100.${i}` }), env()),
+  );
+  await settle();
+  release();
+  const all = await Promise.all(pending);
+  assert.deepEqual(all.map((r) => r.status), [502, 502, 502]);
+  assert.equal(mints().length, 1);
+
+  now += 2 * MINUTE;
+  mintAnswer = tokenAnswer(TOKEN);
+  assert.equal(await tokenOf(await worker.fetch(get(), env())), TOKEN);
 });
 
 test('a revoked token cannot make the Worker mint more than once a minute', async () => {
