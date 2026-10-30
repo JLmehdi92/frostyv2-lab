@@ -70,19 +70,26 @@ abstract class BaseApiClient {
   /// Generic GET request with common error handling
   ///
   /// [extra] reaches the interceptors (see `UnauthorizedInterceptor.quiet`).
+  ///
+  /// [followRedirects] false: a redirect fails instead of being followed.
   Future<T> get<T>(
     String endpoint, {
     QueryParams? queryParameters,
     ApiHeaders? headers,
     CancelToken? cancelToken,
     Map<String, Object?>? extra,
+    bool? followRedirects,
   }) async {
     try {
       final url = _buildUrl(endpoint);
       final response = await _dio.get(
         url,
         queryParameters: queryParameters,
-        options: Options(headers: headers, extra: extra),
+        options: Options(
+          headers: headers,
+          extra: extra,
+          followRedirects: followRedirects,
+        ),
         cancelToken: cancelToken,
       );
       return response.data as T;

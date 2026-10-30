@@ -13,6 +13,7 @@ void main() {
   const proxy = 'https://onset-token.example.workers.dev';
   const endpoint = '$proxy/app-token';
   const token = 'abcdefghijklmnopqrstuvwxyz0123';
+  const publicApp = 'publicappclientid0123456789ab';
 
   late Dio dio;
   late DioAdapter adapter;
@@ -38,11 +39,16 @@ void main() {
   test('reads the token the proxy hands out', () async {
     adapter.onGet(
       endpoint,
-      (server) =>
-          server.reply(200, {'access_token': token, 'expires_in': 5011271}),
+      (server) => server.reply(200, {
+        'access_token': token,
+        'expires_in': 5011271,
+        'client_id': publicApp,
+      }),
     );
 
-    expect(await api().getDefaultToken(), token);
+    final appToken = await api().getDefaultToken();
+    expect(appToken.token, token);
+    expect(appToken.clientId, publicApp);
     expect(sent.single.uri.toString(), endpoint);
     expect(sent.single.method, 'GET');
   });
@@ -50,17 +56,48 @@ void main() {
   test('a trailing slash on the proxy URL changes nothing', () async {
     adapter.onGet(
       endpoint,
-      (server) => server.reply(200, {'access_token': token}),
+      (server) =>
+          server.reply(200, {'access_token': token, 'client_id': publicApp}),
     );
 
-    expect(await api('$proxy/').getDefaultToken(), token);
+    expect((await api('$proxy/').getDefaultToken()).token, token);
     expect(sent.single.uri.toString(), endpoint);
+  });
+
+  test('a proxy URL with a port and a path is used as is', () async {
+    adapter.onGet(
+      'https://onset-token.example.dev:8443/base/app-token',
+      (server) =>
+          server.reply(200, {'access_token': token, 'client_id': publicApp}),
+    );
+
+    final appToken = await api(
+      'https://onset-token.example.dev:8443/base',
+    ).getDefaultToken();
+    expect(appToken.token, token);
+  });
+
+  test('a redirect from the proxy is not followed', () async {
+    adapter.onGet(
+      endpoint,
+      (server) => server.reply(
+        302,
+        null,
+        headers: {
+          'location': ['https://elsewhere.example/app-token'],
+        },
+      ),
+    );
+
+    await expectLater(api().getDefaultToken(), throwsA(isA<ApiException>()));
+    expect(sent.single.followRedirects, isFalse);
   });
 
   test('the request is quiet and carries no session header', () async {
     adapter.onGet(
       endpoint,
-      (server) => server.reply(200, {'access_token': token}),
+      (server) =>
+          server.reply(200, {'access_token': token, 'client_id': publicApp}),
     );
 
     await api().getDefaultToken();
@@ -77,7 +114,8 @@ void main() {
   test('no request ever names a client secret', () async {
     adapter.onGet(
       endpoint,
-      (server) => server.reply(200, {'access_token': token}),
+      (server) =>
+          server.reply(200, {'access_token': token, 'client_id': publicApp}),
     );
 
     await api().getDefaultToken();
@@ -111,6 +149,11 @@ void main() {
       'https://user:pass@onset-token.example.workers.dev',
       'https://onset-token.example.workers.dev?next=1',
       'ftp://onset-token.example.workers.dev',
+      'https://onset-token.example.workers.dev#x',
+      'https://onset-token.example.workers.dev/a b',
+      'https://onset-token.example.workers.dev/%2e%2e',
+      'https://onset_token.example.workers.dev',
+      ' https://onset-token.example.workers.dev',
     ]) {
       test('"$url"', () async {
         await expectLater(
@@ -130,6 +173,19 @@ void main() {
       ('a header injection', <String, Object?>{'access_token': 'abc\r\nX: 1'}),
       ('spaces', <String, Object?>{'access_token': 'abc def ghi jkl'}),
       ('an error object', <String, Object?>{'error': 'unavailable'}),
+      ('no client id', <String, Object?>{'access_token': token}),
+      (
+        'a client id with spaces',
+        <String, Object?>{'access_token': token, 'client_id': 'a b'},
+      ),
+      (
+        'a client id that is a number',
+        <String, Object?>{'access_token': token, 'client_id': 42},
+      ),
+      (
+        'an empty client id',
+        <String, Object?>{'access_token': token, 'client_id': ''},
+      ),
     ]) {
       test(name, () async {
         adapter.onGet(endpoint, (server) => server.reply(200, body));
@@ -154,7 +210,7 @@ void main() {
       adapter.onGet(
         endpoint,
         (server) => server.reply(200, [
-          {'access_token': token},
+          {'access_token': token, 'client_id': publicApp},
         ]),
       );
 
@@ -178,6 +234,7 @@ void main() {
       endpoint,
       (server) => server.reply(200, {
         'access_token': token,
+        'client_id': publicApp,
       }, delay: const Duration(seconds: 5)),
     );
 

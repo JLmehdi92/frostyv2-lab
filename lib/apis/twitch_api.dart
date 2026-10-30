@@ -71,6 +71,21 @@ class CreatedClip {
   final String? thumbnailUrl;
 }
 
+/// A logged-out viewer's app access token from the token proxy
+/// ([TwitchApi.getDefaultToken]), and the client id of the Twitch
+/// application it was issued to (not the login app's: no user ever
+/// authorizes that one, so its tokens can reach nobody's data).
+@immutable
+class AppToken {
+  const AppToken({required this.token, required this.clientId});
+
+  final String token;
+  final String clientId;
+
+  @override
+  String toString() => 'AppToken($clientId)';
+}
+
 /// What Twitch says of a token ([TwitchApi.checkToken]): valid and issued to
 /// this app, valid but issued to another app ([clientId], that app's), or
 /// refused (expired, revoked).
@@ -140,6 +155,15 @@ class TwitchApi extends BaseApiClient {
   /// What a token handed out by the proxy may look like (Twitch's are 30
   /// lowercase letters and digits): nothing else goes into a header.
   static final _appTokenPattern = RegExp(r'^[A-Za-z0-9]{16,128}$');
+
+  /// The token proxy URLs the app accepts: `https://`, a host, an optional
+  /// port and a plain path, nothing else (no credentials, query, fragment or
+  /// escapes). The update workflow checks `TOKEN_PROXY_URL` with this same
+  /// pattern, so CI never ships a URL the app would refuse.
+  static const tokenProxyUrlPattern =
+      r'^https://[A-Za-z0-9.-]+(:[0-9]+)?(/[A-Za-z0-9._~/-]*)?$';
+
+  static final _tokenProxyUrlRegExp = RegExp(tokenProxyUrlPattern);
 
   /// What a Twitch client id looks like (it is sent back as a header).
   static final _clientIdPattern = RegExp(r'^[A-Za-z0-9_-]{1,64}$');
@@ -318,13 +342,15 @@ class TwitchApi extends BaseApiClient {
 
   /// An app access token for a logged-out viewer, from ONSET's token proxy
   /// (`GET <proxy>/app-token`, see tool/token_proxy/): the proxy holds the
-  /// Twitch client secret, the app never sees it.
+  /// client secret of a second Twitch application, the app never sees it.
+  /// The token is that application's: [AppToken.clientId] goes with it.
   ///
-  /// Throws an [ApiException] when the build has no usable proxy URL (empty,
-  /// or not a plain `https://` origin and path), when the proxy does not
-  /// answer within [timeout] ([TimeoutException]) or answers with an error,
-  /// and when its answer is not a token. Never asks the viewer to log in.
-  Future<String> getDefaultToken({Duration timeout = appTokenTimeout}) async {
+  /// Throws an [ApiException] when the build has no usable proxy URL (see
+  /// [tokenProxyUrlPattern]), when the proxy does not answer within
+  /// [timeout] ([TimeoutException]), answers with an error or a redirect
+  /// (never followed), and when its answer is not a token and a client id.
+  /// Never asks the viewer to log in.
+  Future<AppToken> getDefaultToken({Duration timeout = appTokenTimeout}) async {
     final endpoint = _appTokenEndpoint(_tokenProxyUrl);
     if (endpoint == null) {
       throw const ApiException('No token proxy in this build');
@@ -343,6 +369,9 @@ class TwitchApi extends BaseApiClient {
       data = await get<Object?>(
         endpoint.toString(),
         cancelToken: cancel,
+        // The proxy answers itself: a redirect would send the request
+        // somewhere the build never named.
+        followRedirects: false,
         extra: {
           // Not a Twitch session: a failure here is never a login prompt,
           // and the proxy gets none of the session's headers.
@@ -358,24 +387,22 @@ class TwitchApi extends BaseApiClient {
     }
 
     final token = data is Map ? data['access_token'] : null;
-    if (token is! String || !_appTokenPattern.hasMatch(token)) {
+    final appClient = data is Map ? data['client_id'] : null;
+    if (token is! String ||
+        !_appTokenPattern.hasMatch(token) ||
+        appClient is! String ||
+        !_clientIdPattern.hasMatch(appClient)) {
       throw const ApiException('The token proxy sent no token');
     }
-    return token;
+    return AppToken(token: token, clientId: appClient);
   }
 
-  /// `<proxy>/app-token`, or null when [proxy] is not an `https://` URL with
-  /// a host and nothing but a path (no credentials, query or fragment).
+  /// `<proxy>/app-token`, or null when [proxy] does not match
+  /// [tokenProxyUrlPattern].
   static Uri? _appTokenEndpoint(String proxy) {
-    final base = Uri.tryParse(proxy.trim());
-    if (base == null ||
-        base.scheme != 'https' ||
-        base.host.isEmpty ||
-        base.userInfo.isNotEmpty ||
-        base.hasQuery ||
-        base.hasFragment) {
-      return null;
-    }
+    if (!_tokenProxyUrlRegExp.hasMatch(proxy)) return null;
+    final base = Uri.tryParse(proxy);
+    if (base == null || base.host.isEmpty) return null;
     final path = base.path.endsWith('/')
         ? base.path.substring(0, base.path.length - 1)
         : base.path;

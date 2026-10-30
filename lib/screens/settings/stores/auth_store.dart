@@ -45,6 +45,10 @@ abstract class AuthBase with Store {
   /// The shared_preferences key for the default token.
   static const _defaultTokenKey = 'default_token';
 
+  /// The app the default token was issued to, when it is not this one (the
+  /// token proxy's own Twitch application): it goes out as the Client-Id.
+  static const _defaultTokenClientIdKey = 'default_token_client_id';
+
   /// The shared_preferences key for the user token.
   static const _userTokenKey = 'user_token';
 
@@ -411,7 +415,10 @@ abstract class AuthBase with Store {
   /// No `Authorization` without a token (logged out while the token proxy
   /// could not give one): Twitch answers 401 either way, and a literal
   /// `Bearer null` is not sent.
-  @computed
+  ///
+  /// A plain getter, not `@computed`: MobX prints every computed in the
+  /// store's `toString`, and this one holds the token. It still reads the
+  /// observable token and client id, so observers follow them.
   Map<String, String> get headersTwitch => {
     if (_token != null) 'Authorization': 'Bearer $_token',
     'Client-Id': _tokenClientId ?? clientId,
@@ -818,13 +825,7 @@ abstract class AuthBase with Store {
       // If the token does not exist, get the default token.
       // Otherwise, log in.
       if (_token == null) {
-        // Retrieve the currently stored default token if it exists.
-        _token = await _storage.read(key: _defaultTokenKey);
-        // If the token does not exist or is invalid, get a new token from the
-        // token proxy and store it (none when the proxy cannot give one).
-        if (_token == null || !await twitchApi.validateToken(token: _token!)) {
-          _token = await _fetchAppToken();
-        }
+        await _useAppToken();
       } else {
         // Validate the existing token. If it fails, start reconnect loop.
         // Any token Twitch accepts stays signed in, as it always did: one of
@@ -873,61 +874,162 @@ abstract class AuthBase with Store {
     }
   }
 
-  /// How often a logged-out viewer without an app token asks the token proxy
-  /// for one again ([retryAppToken]).
+  /// How often a logged-out viewer's app token is looked at again after a
+  /// Helix 401 ([retryAppToken]).
   static const appTokenRetryInterval = Duration(minutes: 1);
 
-  /// When the token proxy was last asked for an app token.
+  /// When the app token was last asked for or checked after a 401.
   DateTime? _appTokenAskedAt;
 
-  /// A new app token from the token proxy, stored for the next launches; null
-  /// when there is none to be had (no proxy in this build, the proxy or the
-  /// network down, an answer that is not a token). The app then runs without
-  /// one: the logged-out features that need Helix fail quietly, everything
-  /// else works, logging in included, so this is not an [error].
-  Future<String?> _fetchAppToken() async {
-    _appTokenAskedAt = clock.now();
-    final String token;
+  /// The app token in use while logged out, so a session can tell it from a
+  /// user's ([isAnonymous]).
+  String? _appToken;
+
+  /// Whether this is a logged-out viewer's session: no user token, only the
+  /// app token, or none. False while a user's session reconnects.
+  bool get isAnonymous =>
+      !_isLoggedIn && (_token == null || _token == _appToken);
+
+  /// Puts a logged-out session's app token in place (launch, logout): the
+  /// stored one when Twitch still takes it, else a new one from the token
+  /// proxy, else none. Throws an [ApiException] when Twitch cannot say
+  /// whether the stored one is still good; it is then kept.
+  Future<void> _useAppToken() async {
+    final stored = await _storage.read(key: _defaultTokenKey);
+    String? storedClient;
     try {
-      token = await twitchApi.getDefaultToken();
+      storedClient = await _storage.read(key: _defaultTokenClientIdKey);
+    } catch (e) {
+      debugPrint('Reading the app token app failed: ${e.runtimeType}');
+    }
+    _token = stored;
+    _tokenClientId = storedClient;
+    _appToken = stored;
+    if (stored != null && await _appTokenIsGood(stored, storedClient)) return;
+
+    final fresh = await _fetchAppToken();
+    _token = fresh?.token;
+    _tokenClientId = fresh?.clientId;
+    _appToken = fresh?.token;
+  }
+
+  /// Whether Twitch still takes the app [token], issued to [client] (null:
+  /// this app, for a token stored by an older version). Network failures
+  /// throw.
+  Future<bool> _appTokenIsGood(String token, String? client) async {
+    if (client == null) return twitchApi.validateToken(token: token);
+    final check = await twitchApi.checkToken(token: token);
+    return check.isForeign && check.clientId == client;
+  }
+
+  /// A new app token from the token proxy, checked with Twitch and stored
+  /// with its app ([clientId] null when it is this app's) for the next
+  /// launches; null when there is none to be had (no proxy in this build,
+  /// the proxy or the network down, a token Twitch refuses or that is not
+  /// the app the proxy named). The app then runs without one: the
+  /// logged-out features that need Helix fail quietly, everything else
+  /// works, logging in included, so this is not an [error].
+  Future<({String token, String? clientId})?> _fetchAppToken() async {
+    _appTokenAskedAt = clock.now();
+    final AppToken fresh;
+    final TokenCheck check;
+    try {
+      fresh = await twitchApi.getDefaultToken();
+      check = await twitchApi.checkToken(token: fresh.token);
     } on ApiException catch (e) {
       debugPrint('No app token: $e');
       return null;
     }
+    final String? client;
+    if (check.isValid) {
+      client = null;
+    } else if (check.isForeign && check.clientId == fresh.clientId) {
+      client = fresh.clientId;
+    } else {
+      debugPrint('No app token: Twitch refuses the one the proxy sent.');
+      return null;
+    }
     try {
-      await _storage.write(key: _defaultTokenKey, value: token);
+      await _storage.write(key: _defaultTokenKey, value: fresh.token);
+      if (client == null) {
+        await _storage.delete(key: _defaultTokenClientIdKey);
+      } else {
+        await _storage.write(key: _defaultTokenClientIdKey, value: client);
+      }
     } catch (e) {
       debugPrint('Saving the app token failed: ${e.runtimeType}');
     }
-    return token;
+    return (token: fresh.token, clientId: client);
   }
 
-  /// Asks the token proxy again for an app token when the viewer is logged
-  /// out and has none (the proxy or the network was down at launch or
-  /// logout), at most once per [appTokenRetryInterval]. Called on a Helix
-  /// 401 that no login dialog should answer (`UnauthorizedInterceptor`).
-  Future<void> retryAppToken() async {
-    if (_isLoggedIn || _token != null) return;
+  /// A logged-out viewer's Helix call was refused (401), [refused] being
+  /// the `Authorization` it was sent with (`UnauthorizedInterceptor`, which
+  /// shows a logged-out viewer no login dialog). At most once per
+  /// [appTokenRetryInterval]:
+  ///
+  /// - without an app token (the proxy or the network was down), the proxy
+  ///   is asked again;
+  /// - with one, Twitch is asked whether it still takes it. If not (it
+  ///   expired, or someone revoked the shared token), it is dropped and a
+  ///   new one asked for; if so, that call needed a login, not a token, and
+  ///   the token stays.
+  ///
+  /// Nothing changes once a login or a logout decided the session.
+  Future<void> retryAppToken({String? refused}) async {
+    if (!isAnonymous) return;
     final asked = _appTokenAskedAt;
     if (asked != null &&
         clock.now().difference(asked) < appTokenRetryInterval) {
       return;
     }
+    _appTokenAskedAt = clock.now();
     final epoch = _authEpoch;
     final generation = _loginGeneration;
-    final token = await _fetchAppToken();
-    if (token == null) return;
-    // Only into the logged-out session it was asked for: a login or a
-    // logout since decided the session.
-    await _exclusive(() async {
-      if (_isLoggedIn ||
-          _token != null ||
-          epoch != _authEpoch ||
-          generation != _loginGeneration ||
-          _loginsInFlight > 0) {
+    bool undecided() =>
+        !_isLoggedIn &&
+        epoch == _authEpoch &&
+        generation == _loginGeneration &&
+        _loginsInFlight == 0;
+
+    final current = _token;
+    if (current != null) {
+      // Only a refusal of the token in use says anything about it.
+      if (refused != 'Bearer $current') return;
+      try {
+        if (await _appTokenIsGood(current, _tokenClientId)) return;
+      } on ApiException catch (e) {
+        debugPrint('The app token could not be checked: $e');
         return;
       }
-      runInAction(() => _token = token);
+      var dropped = false;
+      await _exclusive(() async {
+        if (!undecided() || _token != current) return;
+        runInAction(() {
+          _token = null;
+          _tokenClientId = null;
+        });
+        _appToken = null;
+        dropped = true;
+        try {
+          await _storage.delete(key: _defaultTokenKey);
+          await _storage.delete(key: _defaultTokenClientIdKey);
+        } catch (e) {
+          debugPrint('Forgetting the app token failed: ${e.runtimeType}');
+        }
+      });
+      if (!dropped) return;
+    }
+
+    final fresh = await _fetchAppToken();
+    if (fresh == null) return;
+    // Only into the logged-out session it was asked for.
+    await _exclusive(() async {
+      if (!undecided() || _token != null) return;
+      runInAction(() {
+        _token = fresh.token;
+        _tokenClientId = fresh.clientId;
+      });
+      _appToken = fresh.token;
     });
   }
 
@@ -1097,14 +1199,13 @@ abstract class AuthBase with Store {
       // Clear the user info.
       user.dispose();
 
-      // If the default token already exists, set it.
-      _token = await _storage.read(key: _defaultTokenKey);
-
-      // If the default token does not already exist or it's invalid, get a
-      // new one from the token proxy and store it (none when the proxy
-      // cannot give one: the logout goes on).
-      if (_token == null || !await twitchApi.validateToken(token: _token!)) {
-        _token = await _fetchAppToken();
+      // The logged-out session's app token. Offline, Twitch cannot say
+      // whether the stored one is still good: it is kept, and the logout
+      // goes on (it used to stop here, logged in without a user).
+      try {
+        await _useAppToken();
+      } on ApiException catch (e) {
+        debugPrint('The app token could not be checked: $e');
       }
 
       // Set the login status to logged out.

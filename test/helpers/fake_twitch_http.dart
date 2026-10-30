@@ -16,6 +16,13 @@ class FakeTwitchHttp implements HttpClientAdapter {
   /// Every request, in order.
   final requests = <RequestOptions>[];
 
+  /// What ONSET's token proxy answers (any host but Twitch's), when set:
+  /// its status and JSON body, after [proxyDelay].
+  ({int status, Object body})? proxy;
+
+  /// How long the token proxy takes to answer.
+  Duration proxyDelay = Duration.zero;
+
   static String? _header(RequestOptions options, String name) {
     for (final MapEntry(:key, :value) in options.headers.entries) {
       if (key.toLowerCase() == name.toLowerCase()) return value?.toString();
@@ -39,6 +46,12 @@ class FakeTwitchHttp implements HttpClientAdapter {
   ) async {
     requests.add(options);
     final uri = options.uri;
+    if (uri.host != 'id.twitch.tv' && uri.host != 'api.twitch.tv') {
+      final answer = proxy;
+      if (answer == null) return _json({'message': 'not found'}, 404);
+      await Future<void>.delayed(proxyDelay);
+      return _json(answer.body, answer.status);
+    }
     final bearer = _header(options, 'Authorization')?.split(' ').last;
     final token = tokens[bearer];
     if (uri.path == '/oauth2/validate') {
@@ -72,6 +85,13 @@ class FakeTwitchHttp implements HttpClientAdapter {
       }
       if (uri.path == '/helix/users/blocks') {
         return _json({'data': [], 'pagination': {}}, 200);
+      }
+      if (uri.path == '/helix/chat/emotes/global') {
+        return _json({'data': [], 'template': ''}, 200);
+      }
+      // Needs a user token with a scope: refused whatever the token.
+      if (uri.path == '/helix/whispers') {
+        return _json({'message': 'Missing scope: user:manage:whispers'}, 401);
       }
     }
     return _json({'message': 'not found'}, 404);

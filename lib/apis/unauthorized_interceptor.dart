@@ -32,12 +32,18 @@ class UnauthorizedInterceptor extends Interceptor {
         return;
       }
 
-      // Logged out without an app token (the token proxy or the network was
-      // down): what failed needs that token, not a login, so no dialog —
-      // which would otherwise come back on every Helix call. The token is
-      // asked for again instead (at most once a minute).
-      if (!_authStore.isLoggedIn && _authStore.token == null) {
-        unawaited(_authStore.retryAppToken());
+      // A logged-out viewer is never asked to log in by a 401: the app token
+      // is missing, expired or revoked (a dialog would come back on every
+      // Helix call), or the call needed an account, which the viewer chose
+      // not to use. The app token is looked at again instead (at most once
+      // a minute). A user's session, even reconnecting, still gets the
+      // dialog.
+      if (_authStore.isAnonymous) {
+        unawaited(
+          _authStore.retryAppToken(
+            refused: _header(err.requestOptions, 'Authorization'),
+          ),
+        );
         handler.next(err);
         return;
       }
@@ -50,6 +56,13 @@ class UnauthorizedInterceptor extends Interceptor {
 
     // For non-401 errors, continue with normal error handling
     handler.next(err);
+  }
+
+  static String? _header(RequestOptions request, String name) {
+    for (final MapEntry(:key, :value) in request.headers.entries) {
+      if (key.toLowerCase() == name.toLowerCase()) return value?.toString();
+    }
+    return null;
   }
 
   void _showLoginDialog() {
