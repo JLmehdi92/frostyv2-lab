@@ -492,6 +492,64 @@ test('a token in its last 7 days is still served while a new one cannot be minte
   assert.equal(mints().length, 2);
 });
 
+test('a token in its last 7 days is replaced once, not once per isolate', async () => {
+  const first = await loadWorker();
+  const second = await loadWorker();
+  await first.fetch(get(), env());
+  await second.fetch(get(), env());
+  assert.equal(mints().length, 1);
+
+  // Six days left: the first isolate mints the next token.
+  now += LIFETIME_S * 1000 - 6 * DAY;
+  mintAnswer = tokenAnswer(TOKEN_2);
+  assert.equal(await tokenOf(await first.fetch(get(), env())), TOKEN_2);
+  assert.equal(mints().length, 2);
+
+  // Well after the one-minute hold, the second isolate, still holding the
+  // old token, takes the new one from KV instead of minting its own.
+  now += 2 * MINUTE;
+  assert.equal(await tokenOf(await second.fetch(get(), env())), TOKEN_2);
+  assert.equal(mints().length, 2);
+});
+
+test('an abandoned refresh that ends late does not bring back a dead token', async () => {
+  const worker = await loadWorker();
+  await worker.fetch(get(), env());
+  now += 11 * MINUTE;
+
+  // The first check hangs; the next one finds the token revoked.
+  let releaseFirst;
+  let validates = 0;
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url: String(url), init, at: now });
+    if (String(url).endsWith('/oauth2/validate')) {
+      validates += 1;
+      if (validates === 1) {
+        return new Promise((resolve) => {
+          releaseFirst = () => resolve(validAnswer()());
+        });
+      }
+      return validFor()(init);
+    }
+    return mintAnswer(init);
+  };
+  mintAnswer = tokenAnswer(TOKEN_2);
+  const stuck = worker.fetch(get(), env());
+  await new Promise((resolve) => setImmediate(resolve));
+
+  // 16 s later the stuck refresh is abandoned: a new one finds the token
+  // dead and mints another.
+  now += 16 * 1000;
+  assert.equal(await tokenOf(await worker.fetch(get('/app-token', { ip: '192.0.2.9' }), env())), TOKEN_2);
+
+  // The old check finally answers "good": the dead token stays dead.
+  releaseFirst();
+  const late = await stuck;
+  if (late.status === 200) assert.equal(await tokenOf(late), TOKEN_2);
+  assert.equal(await tokenOf(await worker.fetch(get('/app-token', { ip: '192.0.2.10' }), env())), TOKEN_2);
+  assert.equal(mints().length, 2);
+});
+
 test('a token in its last 7 days that Twitch refuses is not served', async () => {
   const worker = await loadWorker();
   await worker.fetch(get(), env());

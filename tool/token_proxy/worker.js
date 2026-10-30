@@ -384,6 +384,14 @@ async function mint(env, key, now) {
     if (other) memoryToken = other;
     return other;
   }
+  // An isolate holding an old or dead token never read KV: another may
+  // have minted the next one already. One read, rather than a token per
+  // isolate.
+  const minted = await storedToken(env, key, now);
+  if (minted) {
+    memoryToken = minted;
+    return minted;
+  }
   // Claimed as if it fails: one write per attempt. A success is told by the
   // token it writes (see above).
   await writeMintMark(env, now, failures + 1, key);
@@ -412,7 +420,8 @@ async function currentToken(env, now, ctx) {
   const key = await credentialsKey(env);
   if (
     usable(memoryToken, now, key) &&
-    now - memoryToken.validatedAt < VALIDATE_EVERY_MS
+    now - memoryToken.validatedAt < VALIDATE_EVERY_MS &&
+    !deadTokens.has(memoryToken.token)
   ) {
     return memoryToken;
   }
@@ -472,6 +481,9 @@ async function refresh(env, key, now) {
       entry = null;
     }
   }
+  // A refresh abandoned while it waited on Twitch can end after a newer one
+  // found this token dead: it must not bring it back.
+  if (entry && deadTokens.has(entry.token)) entry = null;
   if (entry) memoryToken = entry;
   if (entry && usable(entry, now, key)) return entry;
 
