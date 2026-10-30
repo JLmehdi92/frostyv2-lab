@@ -1,17 +1,16 @@
 // Lists, and on confirmation deletes, the EventSub webhook subscriptions and
 // conduits of ONSET's LOGIN Twitch application.
 //
-// Why: while the login application's client secret was inside the APK,
-// anyone who had it could mint app tokens of that application and create
-// webhook subscriptions or conduits for the users who logged in to ONSET
-// (for example to receive their whispers). Replacing the secret stops new
-// ones; it does not delete those already created. ONSET itself only uses
-// websocket subscriptions, which this script never sees: everything it
-// lists was made by someone else.
+// Why: anyone holding a client secret of the login application can mint app
+// tokens of that application and create webhook subscriptions or conduits
+// for the users who logged in with it (for example to receive their
+// whispers). Replacing the secret stops new ones; it does not delete those
+// already created. ONSET itself only uses websocket subscriptions, which
+// this script never sees: everything it lists was made by someone else.
 //
-// Optional: deleting the old login application in the Twitch console (the
-// plan in README.md) deletes its subscriptions too. This is for a login
-// application that is kept after its secret leaked.
+// Optional: only needed if a client secret of the login application may
+// have been exposed (see README.md, "cleaning up EventSub subscriptions of
+// the login application").
 //
 // Run it on your own computer (Node 18 or newer, nothing to install):
 //

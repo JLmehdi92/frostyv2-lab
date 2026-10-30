@@ -7,7 +7,7 @@ ONSET needs a Twitch "app access token" so that people who are **not logged
 in** still get Twitch emotes and badges in chat, the Browse and Search tabs,
 categories, and channel info in the players. Getting that token needs a
 Twitch client secret, and anything inside an APK can be read back out of it.
-So the token now comes from this Worker, which runs in your Cloudflare
+So the token comes from this Worker, which runs in your Cloudflare
 account; the app only knows the Worker's address.
 
 The token is minted for a **second Twitch application**, "ONSET public", that
@@ -33,22 +33,17 @@ nobody's private data.
   logged.
 
 Logged-in users never use this Worker: they have their own token, from the
-login application ("ONSET"), exactly as before.
+login application ("ONSET").
 
 ## The plan, in short
 
-ONSET gets its **own Twitch account**, used only for development, with two
+ONSET has its **own Twitch account**, used only for development, with two
 applications:
 
 | Application | Used for | Client secret |
 |---|---|---|
 | **ONSET** | logging in to ONSET. Its Client ID goes into the app (GitHub secret `CLIENT_ID`) | **none, ever**: logging in does not need one |
 | **ONSET public** | the logged-out token, minted by this Worker | in the Worker only |
-
-The old login application, on your personal Twitch account, is then
-**deleted**. Its secret leaked inside old APKs; deleting the application
-kills that secret, every token made with it, and every EventSub subscription
-anyone created with it.
 
 **The one rule for secrets:** the only place a client secret is ever pasted
 is Cloudflare's secret fields (step 4). Never put one in GitHub, in the app,
@@ -170,27 +165,19 @@ For a build on your own computer, put the same address in `.env`
 (`TOKEN_PROXY_URL=https://...`) or pass
 `--dart-define=TOKEN_PROXY_URL=https://...`.
 
-## Step 7. Give the build the new ONSET Client ID
+## Step 7. Give the build the ONSET Client ID
 
-Same page, the **Secrets** tab → `CLIENT_ID` → edit (pencil) → paste the
-Client ID of **ONSET** (step 2, not ONSET public) → **Update secret**. A
-client ID is not secret, but this one stays a repository secret as before.
+Same page, the **Secrets** tab → **New repository secret** (or edit the
+existing `CLIENT_ID`) → **Name:** `CLIENT_ID`, **Value:** the Client ID of
+**ONSET** (step 2, not ONSET public). A client ID is not secret, but the
+workflow reads it as a repository secret.
 
 ## Step 8. Build and install
 
 **Actions** → **ONSET update** → **Run workflow** on `main`, then install the
 update when the app offers it (or by hand from the release page).
 
-## Step 9. Log in again, once
-
-The login application changed, so Twitch refuses logins made with the old
-one once it is deleted (step 11); until then they keep working but the app
-shows "This token was created for another app". Every user logs in again
-once: **Settings** → log out if needed → **Connect with Twitch**. A user who
-has not done it by step 11 is logged out cleanly at their next launch after
-it, and sees "Your Twitch session has ended. Log in again from Settings."
-
-## Step 10. Test logged out
+## Step 9. Test logged out
 
 Log out (or use a device that never logged in). Open **Browse**, a category,
 **Search**, then a channel's chat: Twitch emotes and badges must show, and no
@@ -201,39 +188,24 @@ login application "ONSET" (a Worker set up with ONSET's credentials would
 expose users' private events), so a mix-up there looks like logged-out
 features not working.
 
-## Step 11. Delete the old login application
+## Optional: rotating a client secret
 
-Log in to Twitch with your **personal** account (the one that held the old
-application), open <https://dev.twitch.tv/console/apps>, then the old ONSET
-application → **Manage** → **Delete** (at the bottom), and confirm.
+Replace the **ONSET public** secret if you think it was exposed, or simply
+from time to time: Twitch console (ONSET account) → **ONSET public** →
+**Manage** → **New Secret**, then Cloudflare → the Worker → **Settings** →
+**Variables and Secrets** → edit `TWITCH_CLIENT_SECRET` → paste the new one
+→ Deploy. Nothing to rebuild: the app never has the secret. The Worker
+notices the secret changed and mints a new token with it instead of serving
+the cached one; an app whose stored token Twitch no longer accepts gets the
+new one on its next launch, or within a minute of its next refused request.
 
-This is the step that closes the old leak: old APKs (releases, artifacts,
-phones where the app is installed) still contain the old secret, and they
-cannot be recalled. Deleting the application makes that secret, its tokens
-and its EventSub subscriptions worthless.
+The login application, **ONSET**, needs no secret. If one was ever created
+for it and may have been exposed, click **New Secret** for it too (the new
+one is never needed afterwards), then consider the cleanup below.
 
-## Step 12. Delete the old GitHub secret
+## Optional: cleaning up EventSub subscriptions of the login application
 
-GitHub → the repository → **Settings** → **Secrets and variables** →
-**Actions** → `SECRET` → **Remove**. The build no longer reads it.
-
-## Changing the "ONSET public" secret later
-
-Twitch console (ONSET account) → **ONSET public** → **Manage** →
-**New Secret**, then Cloudflare → the Worker → **Settings** → **Variables and
-Secrets** → edit `TWITCH_CLIENT_SECRET` → paste the new one → Deploy. Nothing
-to rebuild: the app never has the secret. The Worker notices the secret
-changed and mints a new token with it instead of serving the cached one; an
-app whose stored token Twitch no longer accepts gets the new one on its next
-launch, or within a minute of its next refused request.
-
-## Optional: cleaning up a login application you keep
-
-Not needed with the plan above: deleting the old application (step 11)
-removes its EventSub subscriptions. This is only for someone who keeps a
-login application whose secret leaked.
-
-While a login application's secret is out, anyone who has it can mint tokens
+Anyone holding a client secret of the login application can mint app tokens
 of that application and create EventSub **webhook subscriptions** or
 **conduits** for the people who logged in with it, for example to receive
 their whispers. Replacing the secret stops new ones; it does not delete those
@@ -241,7 +213,8 @@ that exist. ONSET itself only uses another kind (websocket), so any webhook
 subscription or conduit of the login application was made by someone else.
 
 `eventsub-cleanup.js` lists them and, if you type `DELETE`, deletes them.
-Run it on your own computer, after replacing that application's secret:
+Run it on your own computer, after replacing the login application's
+secret:
 
 1. Install Node.js (the "LTS" version) from <https://nodejs.org> if you do not
    have it.
@@ -328,8 +301,8 @@ The logs never contain the secret.
 
 - `worker.js` is the whole Worker: one file, no dependencies, so it can be
   pasted into the dashboard.
-- `eventsub-cleanup.js` is the owner's cleanup script (above); it exports
-  `cleanup()` for its tests.
+- `eventsub-cleanup.js` is the optional EventSub cleanup script (above); it
+  exports `cleanup()` for its tests.
 - Tests: `node --test` in this folder (Node 18 or newer, nothing to install).
   Twitch is a mocked `fetch`; KV and the rate limiter are in-memory fakes.
 - Caching uses KV plus a copy in memory, not the Cache API: the Cache API does
