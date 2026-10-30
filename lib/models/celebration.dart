@@ -41,7 +41,7 @@ enum CelebrationEffect {
 }
 
 /// The on-screen effects ONSET draws for a celebration (particles of its own,
-/// see `lib/widgets/celebrations/particles/`).
+/// see `lib/screens/channel/celebrations/particles/`).
 ///
 /// Named after the eight animations the app used to bundle, with the same
 /// intent, so a celebration looks like what it looked like before — drawn by

@@ -6,8 +6,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/models/celebration.dart';
-import 'package:onset/widgets/celebrations/particles/celebration_sprites.dart';
-import 'package:onset/widgets/celebrations/particles/celebration_view.dart';
+import 'package:onset/screens/channel/celebrations/particles/celebration_sprites.dart';
+import 'package:onset/screens/channel/celebrations/particles/celebration_view.dart';
 
 /// Renders every preset, with the real sparks and the real font, at three
 /// instants, and checks each instant draws something.

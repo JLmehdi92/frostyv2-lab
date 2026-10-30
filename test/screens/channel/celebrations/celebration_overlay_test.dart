@@ -3,11 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_points_service.dart';
 import 'package:onset/models/celebration.dart';
+import 'package:onset/screens/channel/celebrations/celebration_overlay.dart';
+import 'package:onset/screens/channel/celebrations/particles/celebration_view.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/services/hermes_client.dart';
-import 'package:onset/widgets/celebration_overlay.dart';
-import 'package:onset/widgets/celebrations/particles/celebration_view.dart';
 import 'package:provider/provider.dart';
 
 class MockChannelEventsStore extends Mock implements ChannelEventsStore {}

@@ -5,9 +5,9 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
 import 'package:onset/models/celebration.dart';
+import 'package:onset/screens/channel/celebrations/particles/celebration_particles.dart';
+import 'package:onset/screens/channel/celebrations/particles/celebration_sprites.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/widgets/celebrations/particles/celebration_particles.dart';
-import 'package:onset/widgets/celebrations/particles/celebration_sprites.dart';
 
 /// Draws a celebration [preset] at [progress], filling the space it is given.
 ///

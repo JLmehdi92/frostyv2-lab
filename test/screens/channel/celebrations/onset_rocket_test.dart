@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:onset/widgets/celebrations/onset_rocket.dart';
+import 'package:onset/screens/channel/celebrations/onset_rocket.dart';
 
 void main() {
   test('the rocket asset splits into a body and a flame', () {

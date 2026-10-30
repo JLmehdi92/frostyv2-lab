@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/raid_arrival.dart';
+import 'package:onset/screens/channel/celebrations/onset_rocket.dart';
 import 'package:onset/screens/channel/chat/widgets/raid_welcome_card.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/widgets/celebrations/onset_rocket.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 
 import '../../../../helpers/chat_message_harness.dart';

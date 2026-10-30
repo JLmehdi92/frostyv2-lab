@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/models/community_highlights.dart';
+import 'package:onset/screens/channel/celebrations/onset_rocket.dart';
 import 'package:onset/screens/channel/community_highlights/highlight_reducers.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/raid_card.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/widgets/celebrations/onset_rocket.dart';
 
 final _start = DateTime.utc(2026, 10, 13, 20);
 

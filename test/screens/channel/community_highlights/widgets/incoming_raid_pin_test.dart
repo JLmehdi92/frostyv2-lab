@@ -2,11 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/screens/channel/celebrations/onset_rocket.dart';
 import 'package:onset/screens/channel/chat/incoming_raid.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/incoming_raid_pin.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/raid_avatar.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/widgets/celebrations/onset_rocket.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 
 const _raid = IncomingRaid(

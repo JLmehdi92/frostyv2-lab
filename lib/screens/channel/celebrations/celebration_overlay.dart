@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/models/celebration.dart';
+import 'package:onset/screens/channel/celebrations/particles/celebration_particles.dart';
+import 'package:onset/screens/channel/celebrations/particles/celebration_view.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/utils/context_extensions.dart';
-import 'package:onset/widgets/celebrations/particles/celebration_particles.dart';
-import 'package:onset/widgets/celebrations/particles/celebration_view.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 
 /// Plays a celebration over the channel, then gets out of the way.

@@ -2,9 +2,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/models/celebration.dart';
-import 'package:onset/widgets/celebrations/particles/celebration_particles.dart';
-import 'package:onset/widgets/celebrations/particles/celebration_sprites.dart';
-import 'package:onset/widgets/celebrations/particles/celebration_view.dart';
+import 'package:onset/screens/channel/celebrations/particles/celebration_particles.dart';
+import 'package:onset/screens/channel/celebrations/particles/celebration_sprites.dart';
+import 'package:onset/screens/channel/celebrations/particles/celebration_view.dart';
 
 /// Serves the real assets, except that the first [failures] loads throw.
 class _FlakyBundle extends CachingAssetBundle {

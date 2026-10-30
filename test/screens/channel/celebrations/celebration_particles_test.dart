@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/models/celebration.dart';
-import 'package:onset/widgets/celebrations/particles/celebration_particles.dart';
+import 'package:onset/screens/channel/celebrations/particles/celebration_particles.dart';
 
 /// Progress values sampled across a whole celebration.
 final _steps = [for (var i = 0; i <= 120; i++) i / 120];

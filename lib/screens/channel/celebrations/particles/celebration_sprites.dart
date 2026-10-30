@@ -4,7 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
-import 'package:onset/widgets/celebrations/particles/celebration_particles.dart';
+import 'package:onset/screens/channel/celebrations/particles/celebration_particles.dart';
 
 /// The spark images, decoded once for the whole app.
 ///
