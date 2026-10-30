@@ -148,7 +148,6 @@ flutter:
     #   - images/a_dot_ham.jpeg
 
     assets:
-        - assets/icons/onset-mark.png
         - assets/celebrations/rocket.svg
         - assets/celebrations/gift_closed.png
         - assets/celebrations/gift_open.png
