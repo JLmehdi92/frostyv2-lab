@@ -18,7 +18,7 @@ class MergeAura extends StatefulWidget {
     this.fromLevel,
     this.pill = HtNeutrals.pill,
     this.pillText = Colors.white,
-    this.glow = HtGreen.g10,
+    this.glow = HtGreen.base,
     this.reduceMotion = false,
   });
 

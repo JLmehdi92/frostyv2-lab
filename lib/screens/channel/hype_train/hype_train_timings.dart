@@ -1,4 +1,4 @@
-/// Hype train animation timings, from the official app (notes §2.5).
+/// Hype train animation timings, matching the behaviour observed on Twitch.
 abstract final class HtTimings {
   static const textLong = Duration(milliseconds: 6000);
   static const scrollLong = Duration(milliseconds: 3000);

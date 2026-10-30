@@ -201,7 +201,7 @@ class HermesMessage {
   }
 }
 
-/// The topics the official app subscribes to, extracted from the 29.7.1 APK.
+/// The Hermes topics ONSET subscribes to.
 ///
 /// Kept as builders rather than raw strings so a channel id can never be
 /// forgotten — a topic without its suffix subscribes to nothing and fails

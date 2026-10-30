@@ -33,9 +33,8 @@ class TwitchChatHistoryService extends BaseApiClient {
   static final _channelId = RegExp(r'^[0-9]{1,20}$');
   static final _channelLogin = RegExp(r'^[a-zA-Z0-9_]{1,25}$');
 
-  // The fields of the official app's ChatHistory documents (Android 31.5.2,
-  // its web portal's `channel(name:)` form with the channel's badges) that
-  // ONSET draws: no AutoMod topics, no Shared Chat source badges.
+  // The `ChatHistory` fields ONSET draws, in the `channel(name:)` form with
+  // the channel's badges: no AutoMod topics, no Shared Chat source badges.
   static const _query =
       'query ChatHistory(\$channelLogin: String!, \$channelID: ID) { '
       'channel(name: \$channelLogin) { recentChatMessages { '

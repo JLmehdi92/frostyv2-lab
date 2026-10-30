@@ -14,8 +14,8 @@ import 'package:onset/services/playback_token_cache.dart';
 /// Flow: POST a `PlaybackAccessToken` to Twitch GQL using the public web
 /// client-id, then GET the usher `.m3u8` master playlist with low-latency flags.
 ///
-/// This bypasses the official embed and is intended for personal builds only;
-/// the caller is expected to fall back to the WebView engine if this throws.
+/// It does not go through the Twitch web embed; the caller is expected to
+/// fall back to the WebView engine if this throws.
 class TwitchStreamService extends BaseApiClient {
   /// Public web client-id used by twitch.tv itself (not a secret).
   static const _gqlClientId = 'kimne78kx3ncx6brgo4mv6wki5h1ko';

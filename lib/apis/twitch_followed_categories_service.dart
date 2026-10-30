@@ -22,8 +22,8 @@ class TwitchFollowedCategoriesService extends BaseApiClient {
 
   static final _numericId = RegExp(r'^[0-9]{1,20}$');
 
-  // The fields of Twitch's own FollowedGamesQuery (Android 31.5.2), plus the
-  // slug for the twitch.tv link. Validated anonymously on 2026-10-20.
+  // The `FollowedGamesQuery` fields ONSET shows, plus the slug for the
+  // twitch.tv link. Validated anonymously on 2026-10-20.
   static const _followedQuery =
       'query FollowedGamesQuery(\$first: Int) { currentUser { '
       'followedGames(first: \$first) { nodes { id name displayName slug '

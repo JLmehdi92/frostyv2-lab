@@ -136,14 +136,14 @@ class HtPalette {
   factory HtPalette.approaching(ColorScheme scheme) {
     final dark = scheme.brightness == Brightness.dark;
     final neutrals = HtNeutrals.of(scheme.brightness);
-    final green = dark ? HtGreen.g8 : HtGreen.g10;
+    final green = dark ? HtGreen.deep : HtGreen.base;
     return HtPalette(
       track: neutrals.backgroundFloat,
       fill: green,
       text: neutrals.textBase,
       checkPill: green,
       barTrack: neutrals.buttonBackgroundSecondary,
-      link: dark ? HtGreen.g11 : HtGreen.g7,
+      link: dark ? HtGreen.light : HtGreen.ink,
       icon: Icons.train_rounded,
       a11yName: 'Hype Train',
     );
@@ -158,8 +158,8 @@ class HtPalette {
   }) {
     final dark = scheme.brightness == Brightness.dark;
     final neutrals = HtNeutrals.of(scheme.brightness);
-    final green = dark ? HtGreen.g8 : HtGreen.g10;
-    final link = dark ? HtGreen.g11 : HtGreen.g7;
+    final green = dark ? HtGreen.deep : HtGreen.base;
+    final link = dark ? HtGreen.light : HtGreen.ink;
 
     /// The float card with the green fill and base text (a locked
     /// treasure).
@@ -182,8 +182,8 @@ class HtPalette {
       required bool trophy,
     }) {
       final colors = dark
-          ? const [HtGreen.g9, HtGreen.azureDark]
-          : const [HtGreen.g10, HtGreen.azureLight];
+          ? const [HtGreen.strong, HtGreen.azureDark]
+          : const [HtGreen.base, HtGreen.azureLight];
       return HtPalette(
         track: neutrals.backgroundBase,
         fill: colors.first,
@@ -242,8 +242,8 @@ class HtPalette {
         }
         return HtPalette(
           track: neutrals.backgroundFloat,
-          fill: HtGreen.g9,
-          fillColors: const [Color(0xFF1345AA), HtGreen.g9],
+          fill: HtGreen.strong,
+          fillColors: const [Color(0xFF1345AA), HtGreen.strong],
           fillCoversAll: true,
           text: Colors.white,
           checkPill: green,

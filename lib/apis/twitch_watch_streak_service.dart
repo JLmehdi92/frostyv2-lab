@@ -21,8 +21,8 @@ class TwitchWatchStreakService extends BaseApiClient {
 
   static final _numericId = RegExp(r'^[0-9]{1,20}$');
 
-  // Twitch Android 31.5.2's own documents (cg90, kq2), trimmed to what is
-  // shown. Validated anonymously on 2026-10-20.
+  // The watch streak queries, trimmed to what is shown. Validated
+  // anonymously on 2026-10-20.
   static const _milestoneQuery =
       'query WatchStreakMilestoneQuery(\$channelId: ID!) { '
       'channel(id: \$channelId) { self { watchStreakMilestone { '

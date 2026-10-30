@@ -96,7 +96,7 @@ class HtPillShell extends StatelessWidget {
                                   key: const ValueKey('ht-pill-fill'),
                                   decoration: BoxDecoration(
                                     color: fillColors == null
-                                        ? HtGreen.g8
+                                        ? HtGreen.deep
                                         : null,
                                     gradient: fillColors == null
                                         ? null

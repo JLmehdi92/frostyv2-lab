@@ -12,11 +12,11 @@ double _contrast(Color a, Color b) {
 void main() {
   test('each green step keeps the luminance of its purple step', () {
     const pairs = [
-      (Color(0xFF5C16C5), HtGreen.g7),
-      (Color(0xFF772CE8), HtGreen.g8),
-      (Color(0xFF9147FF), HtGreen.g9),
-      (Color(0xFFA970FF), HtGreen.g10),
-      (Color(0xFFBF94FF), HtGreen.g11),
+      (Color(0xFF5C16C5), HtGreen.ink),
+      (Color(0xFF772CE8), HtGreen.deep),
+      (Color(0xFF9147FF), HtGreen.strong),
+      (Color(0xFFA970FF), HtGreen.base),
+      (Color(0xFFBF94FF), HtGreen.light),
     ];
     for (final (purple, green) in pairs) {
       expect(
@@ -27,17 +27,17 @@ void main() {
     }
   });
 
-  test('g10 is the fork green', () {
-    expect(HtGreen.g10, const Color(0xFF12A87A));
+  test('base is the hype train green', () {
+    expect(HtGreen.base, const Color(0xFF12A87A));
   });
 
   test('base text reads at 4.5:1 on the fill in light and dark', () {
     expect(
-      _contrast(HtNeutrals.light.textBase, HtGreen.g10),
+      _contrast(HtNeutrals.light.textBase, HtGreen.base),
       greaterThanOrEqualTo(4.5),
     );
     expect(
-      _contrast(HtNeutrals.dark.textBase, HtGreen.g8),
+      _contrast(HtNeutrals.dark.textBase, HtGreen.deep),
       greaterThanOrEqualTo(4.5),
     );
   });

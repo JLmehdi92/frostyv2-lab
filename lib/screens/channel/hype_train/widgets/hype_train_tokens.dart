@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:onset/theme.dart';
 
-/// Twitch's purple ramp (`twitch_purple_7`–`11`) moved to the hue of
-/// #12A87A, each step's lightness solved to keep its purple's luminance.
-/// The hype train is green wherever the official app is purple.
+/// The hype train's green ramp, from the darkest ([ink]) to the lightest
+/// ([light]), in the hue of #12A87A. Each step keeps the luminance of the
+/// purple it stands for (in its doc), so contrasts stay the same.
 abstract final class HtGreen {
   /// For #5C16C5: links in light mode.
-  static const g7 = Color(0xFF09553D);
+  static const ink = Color(0xFF09553D);
 
   /// For #772CE8: the dark fill and the landscape pill.
-  static const g8 = Color(0xFF0C6D4F);
+  static const deep = Color(0xFF0C6D4F);
 
   /// For #9147FF: dark gradient starts and the unlocked treasure.
-  static const g9 = Color(0xFF0E8661);
+  static const strong = Color(0xFF0E8661);
 
   /// For #A970FF: the light fill.
-  static const g10 = Color(0xFF12A87A);
+  static const base = Color(0xFF12A87A);
 
   /// For #BF94FF: links and icons in dark mode.
-  static const g11 = Color(0xFF15C08B);
+  static const light = Color(0xFF15C08B);
 
   /// Where the all-time-high gradient ends (Twitch's pink).
   static const azureLight = Color(0xFF069DE9);

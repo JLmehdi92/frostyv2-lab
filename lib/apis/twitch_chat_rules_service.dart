@@ -11,9 +11,8 @@ class ChatRulesApiException extends ApiException {
   String toString() => 'ChatRulesApiException: $message';
 }
 
-/// A channel's chat rules from anonymous GQL: the public web Client-ID and
-/// the official app's own `ChatRules` document, no user token. Verified
-/// anonymously on 2026-10-20.
+/// A channel's chat rules from anonymous GQL: the public web Client-ID and a
+/// `ChatRules` query, no user token. Verified anonymously on 2026-10-20.
 class TwitchChatRulesService extends BaseApiClient {
   TwitchChatRulesService(Dio dio) : super(dio, '');
 

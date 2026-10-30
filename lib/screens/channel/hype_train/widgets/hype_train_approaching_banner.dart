@@ -117,7 +117,7 @@ class HypeTrainApproachingBanner extends StatelessWidget {
                                       : double.infinity,
                                   child: const ColoredBox(
                                     key: ValueKey('ht-approaching-side'),
-                                    color: HtGreen.g10,
+                                    color: HtGreen.base,
                                   ),
                                 ),
                               ),

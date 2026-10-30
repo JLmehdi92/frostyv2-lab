@@ -46,8 +46,8 @@ class HypeTrainCardPill extends StatelessWidget {
                         Icons.train_rounded,
                         size: 15,
                         color: brightness == Brightness.dark
-                            ? HtGreen.g11
-                            : HtGreen.g9,
+                            ? HtGreen.light
+                            : HtGreen.strong,
                       ),
                     ),
                   ),

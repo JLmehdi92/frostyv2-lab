@@ -95,7 +95,7 @@ class WatchStreak {
     };
   }
 
-  /// Twitch's panel wording (`x590`): [live] says whether the channel is
+  /// The streak panel's wording: [live] says whether the channel is
   /// live, which changes how a suspended streak is saved.
   WatchStreakCopy copy({
     required bool live,

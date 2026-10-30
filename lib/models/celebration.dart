@@ -25,11 +25,10 @@ enum CelebrationEffect {
 
   /// Which ONSET particle effect plays this effect.
   ///
-  /// **This mapping is ours, not Twitch's.** The official app does not name
-  /// its celebrations' animations, so the pairing could not be extracted; it
-  /// was chosen so the motion matches the word — a burst for fireworks,
-  /// rising embers for the flamethrower, a star burst for rain, stars circling
-  /// for float. It is the pairing the app's former animations had.
+  /// **This mapping is ours, not Twitch's.** Twitch only names the effect;
+  /// the pairing was chosen so the motion matches the word — a burst for
+  /// fireworks, rising embers for the flamethrower, a star burst for rain,
+  /// stars circling for float.
   CelebrationPreset get preset => switch (this) {
     fireworks => CelebrationPreset.confetti,
     extinctionEvent => CelebrationPreset.explosion,
@@ -43,9 +42,7 @@ enum CelebrationEffect {
 /// The on-screen effects ONSET draws for a celebration (particles of its own,
 /// see `lib/screens/channel/celebrations/particles/`).
 ///
-/// Named after the eight animations the app used to bundle, with the same
-/// intent, so a celebration looks like what it looked like before — drawn by
-/// ONSET rather than taken from Twitch.
+/// One preset per kind of motion, all drawn by ONSET.
 enum CelebrationPreset {
   /// Tumbling bits falling over the area.
   confetti,

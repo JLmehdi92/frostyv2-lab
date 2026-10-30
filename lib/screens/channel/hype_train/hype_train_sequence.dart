@@ -107,7 +107,7 @@ class HtPlanInput {
   final bool presenterVisible;
 }
 
-/// The steps that animate one applied event (notes §3.2).
+/// The steps that animate one applied event.
 List<HtStep> planSequence(HtPlanInput input) {
   var steps = [..._eventSteps(input), ..._athSteps(input)];
   if (input.reduceMotion) steps = [for (final s in steps) _still(s)];

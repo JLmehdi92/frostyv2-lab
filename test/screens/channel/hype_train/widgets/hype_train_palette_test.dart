@@ -162,8 +162,8 @@ void main() {
       expect(d.fill, const Color(0xFF0C6D4F));
       expect(l.track, HtNeutrals.light.backgroundFloat);
       expect(l.text, HtNeutrals.light.textBase);
-      expect(l.link, HtGreen.g7);
-      expect(d.link, HtGreen.g11);
+      expect(l.link, HtGreen.ink);
+      expect(d.link, HtGreen.light);
       expect(l.textOnFill, isNull);
     });
   });
@@ -215,7 +215,7 @@ void main() {
     );
 
     expect(locked.fillCoversAll, isFalse);
-    expect(locked.fill, HtGreen.g10);
+    expect(locked.fill, HtGreen.base);
     expect(unlocked.fillCoversAll, isTrue);
     expect(unlocked.fillColors, const [Color(0xFF1345AA), Color(0xFF0E8661)]);
     expect(unlocked.text, Colors.white);

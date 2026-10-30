@@ -1,8 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:onset/models/hype_train.dart';
 
-/// The hype train's English copy, in the official app's wording (a
-/// personal build: decision S1).
+/// The hype train's English copy.
 abstract final class HtCopy {
   static final _number = NumberFormat.decimalPattern();
 
