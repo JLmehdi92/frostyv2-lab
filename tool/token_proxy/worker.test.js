@@ -41,22 +41,36 @@ const validAnswer = (client = CLIENT) => () =>
     status: 200,
   });
 
+// Twitch's validate answer for each token: 200 for those listed, 401 else.
+const validFor = (...tokens) => (init) => {
+  const token = new Headers(init.headers).get('Authorization').replace('OAuth ', '');
+  return tokens.includes(token)
+    ? validAnswer()()
+    : new Response(JSON.stringify({ status: 401 }), { status: 401 });
+};
+
 const mints = () => calls.filter((c) => c.url.endsWith('/oauth2/token'));
 const validations = () => calls.filter((c) => c.url.endsWith('/oauth2/validate'));
 
 function fakeKv() {
   const store = new Map();
+  const puts = [];
+  const deletes = [];
   return {
     store,
+    puts,
+    deletes,
     async get(key, type) {
       const value = store.get(key);
       if (value === undefined) return null;
       return type === 'json' ? JSON.parse(value.value) : value.value;
     },
     async put(key, value, options) {
+      puts.push(key);
       store.set(key, { value, options });
     },
     async delete(key) {
+      deletes.push(key);
       store.delete(key);
     },
   };
@@ -194,15 +208,30 @@ test('the cached token is checked with Twitch at most every 10 minutes', async (
   const check = validations()[0];
   assert.equal(check.url, 'https://id.twitch.tv/oauth2/validate');
   assert.equal(new Headers(check.init.headers).get('Authorization'), `OAuth ${TOKEN}`);
-  // Recorded in KV, so other isolates do not check again at once.
-  assert.equal(JSON.parse(kv.store.get('twitch_app_token').value).validatedAt, now);
+  // A check writes nothing to KV: only a mint does.
+  assert.deepEqual(kv.puts.filter((key) => key === 'twitch_app_token'), ['twitch_app_token']);
 
+  // Each isolate keeps its own check time, in memory.
   const other = await loadWorker();
   await other.fetch(get(), env());
-  assert.equal(validations().length, 1);
+  assert.equal(validations().length, 2);
 });
 
-test('a revoked token is dropped everywhere and a new one minted', async () => {
+test('KV writes do not grow with checks or isolates: only mints write', async () => {
+  const isolates = [await loadWorker(), await loadWorker(), await loadWorker()];
+  for (let minute = 0; minute <= 120; minute += 5) {
+    for (const [i, worker] of isolates.entries()) {
+      const response = await worker.fetch(get('/app-token', { ip: `198.51.100.${minute}.${i}` }), env());
+      assert.equal(response.status, 200);
+    }
+    now += 5 * MINUTE;
+  }
+  assert.ok(validations().length > 10, 'the isolates did check');
+  assert.deepEqual(kv.puts.sort(), ['twitch_app_token', 'twitch_app_token_mint']);
+  assert.deepEqual(kv.deletes, []);
+});
+
+test('a revoked token is replaced by a new mint, KV overwritten, never deleted', async () => {
   const worker = await loadWorker();
   await worker.fetch(get(), env());
 
@@ -214,6 +243,48 @@ test('a revoked token is dropped everywhere and a new one minted', async () => {
   assert.equal(await tokenOf(response), TOKEN_2);
   assert.equal(mints().length, 2);
   assert.equal(JSON.parse(kv.store.get('twitch_app_token').value).token, TOKEN_2);
+  assert.deepEqual(kv.deletes, []);
+});
+
+test('an isolate with a stale token never removes the one another isolate just minted', async () => {
+  const stale = await loadWorker();
+  await stale.fetch(get(), env());
+  const entry = JSON.parse(kv.store.get('twitch_app_token').value);
+
+  // Another isolate found TOKEN dead and minted TOKEN_2 ten seconds ago.
+  now += 11 * MINUTE;
+  kv.store.set('twitch_app_token', {
+    value: JSON.stringify({ ...entry, token: TOKEN_2, validatedAt: now - 10 * 1000 }),
+  });
+  kv.store.set('twitch_app_token_mint', { value: JSON.stringify({ at: now - 10 * 1000 }) });
+  validateAnswer = validFor(TOKEN_2);
+
+  const response = await stale.fetch(get(), env());
+  assert.equal(await tokenOf(response), TOKEN_2);
+  assert.equal(JSON.parse(kv.store.get('twitch_app_token').value).token, TOKEN_2);
+  assert.deepEqual(kv.deletes, []);
+  assert.equal(mints().length, 1);
+});
+
+test('a token found dead is not served again while KV still holds it', async () => {
+  const worker = await loadWorker();
+  await worker.fetch(get(), env());
+
+  now += 11 * MINUTE;
+  validateAnswer = validFor();
+  kv.store.set('twitch_app_token_mint', { value: JSON.stringify({ at: now - 10 * 1000 }) });
+  assert.equal((await worker.fetch(get(), env())).status, 502);
+  // KV is left as it is: the next mint overwrites it.
+  assert.equal(JSON.parse(kv.store.get('twitch_app_token').value).token, TOKEN);
+
+  now += 1000;
+  assert.equal((await worker.fetch(get(), env())).status, 502);
+  assert.equal(validations().length, 1, 'not checked again either');
+
+  // Once the mint mark is a minute old, a new token comes.
+  now += MINUTE;
+  mintAnswer = tokenAnswer(TOKEN_2);
+  assert.equal(await tokenOf(await worker.fetch(get(), env())), TOKEN_2);
 });
 
 test("a token Twitch says is another app's is dropped too", async () => {

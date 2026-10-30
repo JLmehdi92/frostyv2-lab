@@ -14,16 +14,21 @@
 //   TWITCH_CLIENT_ID      secret   the SECOND application's client id
 //   TWITCH_CLIENT_SECRET  secret   the SECOND application's client secret
 //   TOKEN_CACHE           KV namespace binding (required): one token shared
-//                         by all of Cloudflare's machines, the record of when
-//                         it was last checked and when one was last minted
+//                         by all of Cloudflare's machines, and when one was
+//                         last minted. Written only when a token is minted:
+//                         two writes per mint, a few a day at most
 //   RATE_LIMITER          optional rate limiting binding (wrangler.toml);
 //                         without it a best-effort counter per isolate is used
 //
 // The token is public by design (every logged-out app gets it), so anyone
-// can revoke it with Twitch. The Worker therefore checks it with Twitch at
-// most every 10 minutes and mints a new one when it is dead, at most once a
-// minute for the whole world, so a revoked token cannot stick around and
-// revoking cannot make the Worker hammer Twitch.
+// can revoke it with Twitch. Each running copy of the Worker therefore
+// checks it with Twitch at most every 10 minutes (keeping the time in its
+// own memory, so checks never write KV) and mints a new one when it is
+// dead, at most once a minute for the whole world, so a revoked token cannot
+// stick around and revoking cannot make the Worker hammer Twitch. A dead
+// token is never deleted from KV (a copy with a stale read could delete one
+// another copy just minted): the next mint overwrites it, and each copy
+// remembers the dead tokens it found so it does not serve them again.
 //
 // The secret is only ever sent to id.twitch.tv. It is never returned, never
 // logged, and never part of an error.
@@ -38,9 +43,9 @@ const TWITCH_VALIDATE_URL = 'https://id.twitch.tv/oauth2/validate';
 // it got has a week before it expires.
 const REFRESH_MARGIN_MS = 7 * 24 * 60 * 60 * 1000;
 
-// How often the shared token is checked with Twitch (it may have been
-// revoked). Each check writes KV once: about 150 writes a day at most, under
-// the free plan's 1,000.
+// How often each running copy of the Worker checks the shared token with
+// Twitch (it may have been revoked). The time is kept in that copy's memory:
+// a check never writes KV, however many copies run.
 const VALIDATE_EVERY_MS = 10 * 60 * 1000;
 
 // When Twitch cannot be asked whether the token is still good, it is served
@@ -78,6 +83,11 @@ let memoryToken = null;
 
 // Until when this isolate does not try to mint again after a failure.
 let failedUntil = 0;
+
+// Tokens this isolate found dead: never served again, even if KV still
+// holds one until the next mint overwrites it.
+const deadTokens = new Set();
+const DEAD_TOKENS_MAX = 100;
 
 // Fallback rate limit counters: ip -> { count, windowStart }.
 const fallbackCounters = new Map();
@@ -198,13 +208,23 @@ async function writeToken(env, entry, now) {
   }
 }
 
-async function dropToken(env) {
+// The token KV holds, when it is usable and not one this isolate found
+// dead; its check time is the mint's, until this isolate checks it.
+async function storedToken(env, key, now) {
+  const stored = await readKv(env, KV_KEY);
+  if (!usable(stored, now, key) || deadTokens.has(stored.token)) return null;
+  return {
+    token: stored.token,
+    expiresAt: stored.expiresAt,
+    validatedAt: stored.validatedAt,
+    key,
+  };
+}
+
+function markDead(token) {
+  if (deadTokens.size >= DEAD_TOKENS_MAX) deadTokens.clear();
+  deadTokens.add(token);
   memoryToken = null;
-  try {
-    await env.TOKEN_CACHE.delete(KV_KEY);
-  } catch {
-    // It will be checked again, and found dead again, by the next isolate.
-  }
 }
 
 // fetch() with one deadline for the whole exchange, body included: the
@@ -292,10 +312,15 @@ async function askTwitch(env, key) {
 }
 
 async function mint(env, key, now) {
-  if (now < failedUntil) return null;
-  const mark = await readKv(env, KV_MINT_KEY);
-  if (mark && typeof mark.at === 'number' && now - mark.at < MINT_EVERY_MS) {
-    return null;
+  const mark = now < failedUntil ? null : await readKv(env, KV_MINT_KEY);
+  if (
+    now < failedUntil ||
+    (mark && typeof mark.at === 'number' && now - mark.at < MINT_EVERY_MS)
+  ) {
+    // Not this isolate's turn: another may just have minted one.
+    const other = await storedToken(env, key, now);
+    if (other) memoryToken = other;
+    return other;
   }
   try {
     await env.TOKEN_CACHE.put(KV_MINT_KEY, JSON.stringify({ at: now }), {
@@ -328,17 +353,7 @@ async function currentToken(env, now) {
 
   const key = await credentialsKey(env);
   let entry = usable(memoryToken, now, key) ? memoryToken : null;
-  if (!entry) {
-    const stored = await readKv(env, KV_KEY);
-    if (usable(stored, now, key)) {
-      entry = {
-        token: stored.token,
-        expiresAt: stored.expiresAt,
-        validatedAt: stored.validatedAt,
-        key,
-      };
-    }
-  }
+  if (!entry) entry = await storedToken(env, key, now);
 
   if (entry) {
     if (now - entry.validatedAt < VALIDATE_EVERY_MS) {
@@ -347,8 +362,8 @@ async function currentToken(env, now) {
     }
     const verdict = await checkWithTwitch(env, entry.token);
     if (verdict === 'good') {
+      // In memory only: a check never writes KV.
       memoryToken = { ...entry, validatedAt: now };
-      await writeToken(env, memoryToken, now);
       return memoryToken;
     }
     if (verdict === 'unknown') {
@@ -360,7 +375,7 @@ async function currentToken(env, now) {
       return memoryToken;
     }
     console.error('token proxy: the cached token was refused by Twitch, minting another');
-    await dropToken(env);
+    markDead(entry.token);
   }
 
   return mint(env, key, now);
