@@ -385,7 +385,12 @@ class LatencyController {
 
     if (_stopped) {
       if (!_drainable) return _rate;
-      return _drain(latencyMs, bufferMs!, nativeRate, lowLatency: true);
+      return _drain(
+        latencyMs,
+        bufferMs!,
+        nativeRate,
+        lowLatency: lowLatency != false,
+      );
     }
     if (lowLatency == false) {
       return _drain(latencyMs, bufferMs!, nativeRate, lowLatency: false);
@@ -497,8 +502,11 @@ class LatencyController {
 
   bool get _active => enabled && !_stopped;
 
+  /// A catch-up at [catchUpRate] runs, or ended within [strikeWindow]. The
+  /// drain is not one: it has its own stall guard, and its stalls are never
+  /// strikes.
   bool get _recentCatchUp {
-    if (_rate > 1) return true;
+    if (_catchingUp) return true;
     final end = _lastCatchUpEnd;
     return end != null && _now().difference(end) <= strikeWindow;
   }
@@ -535,8 +543,10 @@ class LatencyController {
   void _setStopped() =>
       _setPhase(AutoLatencyPhase.stopped, reason: _stopReason);
 
+  bool get _catchingUp => _rate == catchUpRate;
+
   void _toNormalRate() {
-    if (_rate > 1) _lastCatchUpEnd = _now();
+    if (_catchingUp) _lastCatchUpEnd = _now();
     _rate = 1.0;
     _notHeld = 0;
   }

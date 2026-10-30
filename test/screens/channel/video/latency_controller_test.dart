@@ -432,6 +432,47 @@ void main() {
       expect(feed(6000, 60, hold: 'paused'), everyElement(1.0));
     });
 
+    test('drain stalls on a stream without low latency are never strikes', () {
+      for (var i = 0; i < LatencyController.maxStrikes + 1; i++) {
+        final rates = feed(6000, 30, lowLatency: false, bufferMs: 4000);
+        expect(rates.last, LatencyController.drainRate, reason: 'drain $i');
+        controller.onStall();
+        expect(controller.status.targetMs, 1300, reason: 'stall $i');
+      }
+
+      // Nor a stall soon after a drain ended.
+      feed(6000, 30, lowLatency: false, bufferMs: 4000);
+      feed(6000, 5, lowLatency: false, bufferMs: 1900);
+      expect(controller.rate, 1.0);
+      controller.onStall();
+
+      expect(controller.status.targetMs, 1300);
+      expect(controller.status.phase, isNot(AutoLatencyPhase.stopped));
+    });
+
+    test('once stopped, a stream without low latency keeps its 2 s floor', () {
+      strikeOut();
+
+      // The default 1.8 s buffer: plenty above the low-latency floor, not
+      // above the normal one.
+      expect(feed(6000, 60, lowLatency: false), everyElement(1.0));
+      expect(controller.status.phase, AutoLatencyPhase.stopped);
+
+      expect(
+        feed(6000, 10, lowLatency: false, bufferMs: 4000).last,
+        LatencyController.drainRate,
+      );
+      feed(6000, 5, lowLatency: false, bufferMs: 1900);
+      expect(controller.rate, 1.0);
+    });
+
+    test('once stopped, a low-latency stream keeps its own floor', () {
+      strikeOut();
+      expect(feed(6000, 40).last, LatencyController.drainRate);
+      feed(6000, 5, bufferMs: 650);
+      expect(controller.rate, 1.0);
+    });
+
     test('a stream without low latency drains to the normal buffer', () {
       final rates = feed(6000, 30, lowLatency: false, bufferMs: 4000);
       expect(rates.last, LatencyController.drainRate);
