@@ -42,6 +42,7 @@ import 'package:onset/screens/vod/channel_videos.dart';
 import 'package:onset/screens/vod/vod_screen.dart';
 import 'package:onset/services/background_audio.dart';
 import 'package:onset/services/cache_manager.dart';
+import 'package:onset/services/font_licenses.dart';
 import 'package:onset/services/go_live/go_live.dart';
 import 'package:onset/services/go_live/go_live_poller.dart';
 import 'package:onset/services/go_live/go_live_worker.dart';
@@ -72,6 +73,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  registerFontLicenses();
 
   // Whether this is a cold start (the launch intro plays only then). Asked
   // now so the answer is in by the time the app is built.

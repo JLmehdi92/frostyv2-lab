@@ -7,3 +7,7 @@ own licences: the Amazon IVS Player SDK (Android) is distributed under
 Amazon's own licence terms, packages/simple_pip_mode under the MIT licence
 (see its LICENSE), and every other package under the licence it ships with,
 which the app lists in Settings › Other › About › Licenses.
+
+The Inter font (assets/fonts/) is Copyright (c) 2016 The Inter Project
+Authors and licensed under the SIL Open Font License 1.1; see
+assets/fonts/OFL.txt.
