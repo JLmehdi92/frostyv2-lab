@@ -230,6 +230,27 @@ void main() {
     });
   });
 
+  group('a malformed count', () {
+    for (final raw in ['-5', '0']) {
+      test('$raw gifts: no collapse, no banner, never negative', () {
+        final decision = onNotice(
+          UserNotice.fromTags({
+            'msg-id': 'submysterygift',
+            'display-name': 'G',
+            'msg-param-community-gift-id': 'odd',
+            'msg-param-mass-gift-count': raw,
+          }),
+          collapse: true,
+        );
+
+        expect(decision.header!.count, 0);
+        expect(decision.header!.collapsed, isFalse);
+        expect(decision.banner, isNull);
+        expect(onNotice(_child('odd'), collapse: true).show, isTrue);
+      });
+    }
+  });
+
   group('banner', () {
     test('a live bomb of five or more gets one', () {
       final decision = onNotice(_notice(massGiftHeader));

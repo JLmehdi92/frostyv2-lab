@@ -363,7 +363,14 @@ class UserNotice {
       benefitEndMonth: int.tryParse(
         tags['msg-param-sub-benefit-end-month'] ?? '',
       ),
-      massGiftCount: int.tryParse(tags['msg-param-mass-gift-count'] ?? ''),
+      // Never negative: a malformed count reads as none (no collapse, no
+      // banner) rather than "-5 recipients".
+      massGiftCount: switch (int.tryParse(
+        tags['msg-param-mass-gift-count'] ?? '',
+      )) {
+        final count? when count < 0 => 0,
+        final count => count,
+      },
       senderCount: int.tryParse(tags['msg-param-sender-count'] ?? ''),
       communityGiftId: tags['msg-param-community-gift-id']?.nullIfEmpty,
       originId: unescapeTag(tags['msg-param-origin-id']).nullIfEmpty,
