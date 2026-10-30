@@ -45,7 +45,7 @@ class VideoSettings extends StatelessWidget {
                 title: 'Low-latency player',
                 children: [
                   SettingsListSwitch(
-                    title: 'Low-latency player (Twitch IVS)',
+                    title: 'Low-latency player (Amazon IVS)',
                     subtitle: const Text(
                       'Plays the stream with the Amazon IVS player, built on '
                       'the same video technology as Twitch, for low latency. '

@@ -30,7 +30,7 @@ final SwitchRows _general = {
 final SwitchRows _video = {
   // Shown with the IVS engine only: checked before it is switched off.
   'Auto latency': (s) => s.autoLatency,
-  'Low-latency player (Twitch IVS)': (s) => s.playerEngine == PlayerEngine.ivs,
+  'Low-latency player (Amazon IVS)': (s) => s.playerEngine == PlayerEngine.ivs,
   'Enable video': (s) => s.showVideo,
   'Default to highest quality': (s) => s.defaultToHighestQuality,
   'Use fast video rendering': (s) => s.useTextureRendering,
@@ -193,7 +193,7 @@ void main() {
     expect(find.text('Twitch web token (2K)'), findsOneWidget);
 
     // The WebView fallback: IVS's own settings go.
-    await tester.tap(find.text('Low-latency player (Twitch IVS)'));
+    await tester.tap(find.text('Low-latency player (Amazon IVS)'));
     await tester.pumpAndSettle();
     expect(settings.playerEngine, PlayerEngine.twitchWeb);
     expect(find.text('Live catch-up'), findsNothing);
@@ -217,7 +217,7 @@ void main() {
       auth: auth,
     );
     for (final title in [
-      'Low-latency player (Twitch IVS)',
+      'Low-latency player (Amazon IVS)',
       'Use fast video rendering',
       'Background audio',
       'Closed Captions',
@@ -384,9 +384,7 @@ void main() {
     expect(find.text('All settings reset'), findsOneWidget);
   });
 
-  testWidgets('Other: no source code row without a repository', (
-    tester,
-  ) async {
+  testWidgets('Other: no source code row without a repository', (tester) async {
     await pumpSettings(
       tester,
       OtherSettings(settingsStore: settings, sourceUrl: ''),

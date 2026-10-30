@@ -770,8 +770,6 @@ const landscapeCutoutNames = ['None', 'Left', 'Right', 'Both'];
 
 enum LandscapeCutoutType { none, left, right, both }
 
-const playerEngineNames = ['IVS (Twitch player)', 'Native (mpv)', 'Twitch web'];
-
 const liveCatchUpModeNames = ['Speed up', 'Jump to live'];
 
 /// How the IVS player returns to the live edge after falling behind.
