@@ -201,8 +201,8 @@ the shared socket in `lib/services/realtime/`.
 - **Build.** Each push to `main` runs `.github/workflows/onset-update.yml`,
   which builds a signed arm64 APK with Flutter 3.38.4 and publishes it as a
   `build-N` GitHub release with its SHA-256, N being the APK's build number,
-  2000 + the workflow's run number (starting at 2001, so builds stay above
-  the earlier 10xx series). The app offers a release only when N is
+  2000 + the workflow's run number (so build numbers start at 2001 and only
+  grow). The app offers a release only when N is
   higher than its own build number. The one-time setup (keystore, secrets,
   public or private repository) is in `docs/MISES_A_JOUR.md`.
 - **App.** `OnsetUpdater` (`lib/services/onset_updater.dart`) is only enabled

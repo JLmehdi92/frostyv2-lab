@@ -3,9 +3,8 @@
 À chaque push sur `main`, GitHub Actions (workflow **ONSET update**,
 `.github/workflows/onset-update.yml`) construit un APK arm64 signé et le publie
 comme release `build-N` du dépôt (N = 2000 + numéro d'exécution du workflow,
-donc à partir de 2001, pour que les builds restent au-dessus de la série 10xx
-précédente : Android n'installe une mise à jour que si son numéro est plus
-grand).
+donc à partir de 2001, et toujours croissant : Android n'installe une mise à
+jour que si son numéro est plus grand).
 L'appli installée vérifie la dernière release au démarrage et au retour au
 premier plan (au plus toutes les 6 h tant qu'elle est à jour), affiche
 « Update available », télécharge l'APK, vérifie son SHA-256 et le confie à
@@ -316,11 +315,11 @@ portent les mêmes numéros que les points ci-dessous. Dans l'ordre :
    (dépannage dans le guide).
 
 **Facultatif : le script de nettoyage EventSub**, documenté dans le guide
-(« Optional: cleaning up a login application you keep »), pour qui garde une
-application de connexion dont le secret a fuité : il liste les abonnements
-*webhook* et les *conduits* de cette application et ne supprime rien tant
-qu'on n'a pas tapé `DELETE`. Il tourne sur votre ordinateur, seule exception
-à la règle des secrets ci-dessus.
+(« Optional: cleaning up EventSub subscriptions of the login application »),
+utile seulement si un secret de l'application de connexion a pu être
+exposé : il liste les abonnements *webhook* et les *conduits* de cette
+application et ne supprime rien tant qu'on n'a pas tapé `DELETE`. Il tourne
+sur votre ordinateur, seule exception à la règle des secrets ci-dessus.
 
 Limites, honnêtement :
 

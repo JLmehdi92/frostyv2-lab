@@ -112,15 +112,14 @@ void main() {
       expect(result.currentBuild, 2020);
     });
 
-    test('a build of the 2000 series is offered over the 1000s', () async {
-      // The update workflow numbers builds 2000 + its run number, above
-      // the earlier 10xx series.
+    test('a build of the 2000 series is offered over a lower one', () async {
+      // The update workflow numbers builds 2000 + its run number.
       latestIs(_release(2001));
 
-      final result = await updater(currentBuild: 1031).check();
+      final result = await updater(currentBuild: 1500).check();
 
       expect((result as UpdateAvailable).release.build, 2001);
-      expect(result.currentBuild, 1031);
+      expect(result.currentBuild, 1500);
     });
 
     test('the same or an older build is up to date', () async {
