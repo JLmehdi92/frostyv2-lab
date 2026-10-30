@@ -2,6 +2,10 @@ import 'package:flutter/foundation.dart';
 
 final _numericId = RegExp(r'^[0-9]{1,20}$');
 
+/// What a Twitch message id looks like (a UUID): an id reaches IRC lines
+/// the viewer sends (a reply names its parent), so nothing else is kept.
+final _messageId = RegExp(r'^[0-9A-Za-z-]{1,64}$');
+
 /// The longest text kept from one history message (Twitch caps a chat
 /// message at 500 characters; this leaves room and bounds hostile data).
 const _maxTextLength = 1000;
@@ -15,6 +19,11 @@ const _maxShortLength = 64;
 String? _string(Object? value, {int max = _maxShortLength}) {
   if (value is! String || value.isEmpty) return null;
   return value.length > max ? value.substring(0, max) : value;
+}
+
+String? _id(Object? value) {
+  final id = value is String ? value : null;
+  return id != null && _messageId.hasMatch(id) ? id : null;
 }
 
 String? _numeric(Object? value) {
@@ -112,7 +121,7 @@ class ChatHistoryParent {
 
   static ChatHistoryParent? tryParse(Object? json) {
     if (json is! Map) return null;
-    final id = _string(json['id']);
+    final id = _id(json['id']);
     if (id == null) return null;
     final content = json['content'];
     return ChatHistoryParent(
@@ -168,7 +177,7 @@ class ChatHistoryMessage {
   /// network.
   static ChatHistoryMessage? tryParse(Object? json) {
     if (json is! Map) return null;
-    final id = _string(json['id']);
+    final id = _id(json['id']);
     final sentAt = json['sentAt'];
     final time = sentAt is String ? DateTime.tryParse(sentAt) : null;
     if (id == null || time == null) return null;

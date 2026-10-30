@@ -86,6 +86,8 @@ abstract class BaseApiClient {
   }
 
   /// Generic POST request with common error handling
+  ///
+  /// [followRedirects] overrides the client's choice (null keeps it).
   Future<T> post<T>(
     String endpoint, {
     dynamic data,
@@ -93,6 +95,7 @@ abstract class BaseApiClient {
     ApiHeaders? headers,
     CancelToken? cancelToken,
     Map<String, Object?>? extra,
+    bool? followRedirects,
   }) async {
     try {
       final url = _buildUrl(endpoint);
@@ -100,7 +103,11 @@ abstract class BaseApiClient {
         url,
         data: data,
         queryParameters: queryParameters,
-        options: Options(headers: headers, extra: extra),
+        options: Options(
+          headers: headers,
+          extra: extra,
+          followRedirects: followRedirects,
+        ),
         cancelToken: cancelToken,
       );
       return response.data as T;

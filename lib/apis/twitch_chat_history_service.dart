@@ -83,6 +83,8 @@ class TwitchChatHistoryService extends BaseApiClient {
               },
             },
             cancelToken: cancel,
+            // The token must not follow a redirect to another host.
+            followRedirects: false,
           ).timeout(
             timeout,
             onTimeout: () {
@@ -109,11 +111,10 @@ class TwitchChatHistoryService extends BaseApiClient {
     final channel = data is Map ? data['channel'] : null;
     final recent = channel is Map ? channel['recentChatMessages'] : null;
     if (recent is! List) return const [];
-    final messages = [
-      for (final entry in recent) ?ChatHistoryMessage.tryParse(entry),
-    ];
-    return messages.length > maxMessages
-        ? messages.sublist(messages.length - maxMessages)
-        : messages;
+    // The newest only, cut before reading: a huge answer costs nothing.
+    final newest = recent.length > maxMessages
+        ? recent.sublist(recent.length - maxMessages)
+        : recent;
+    return [for (final entry in newest) ?ChatHistoryMessage.tryParse(entry)];
   }
 }

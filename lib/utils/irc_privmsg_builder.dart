@@ -51,7 +51,9 @@ bool _isSafeBadge(({String setId, String version}) badge) =>
 /// escaped the same way. [gifs] marks fragments, by index, as GIFs: they
 /// become the `gifs` tag, counted in characters as Twitch counts them, and
 /// only when [ChatGif.isLoadable] allows the address (else the fragment
-/// stays its title).
+/// stays its title), at most [GifMessagePart.maxGifs]. [action] makes it a
+/// `/me` line, wrapped by the builder itself after the text is cleaned.
+/// A `moderator` badge sets `mod=1`, as live IRC does.
 IRCMessage buildPrivmsgIrcMessage({
   required List<({String text, String? emoteId})> fragments,
   required String? login,
@@ -66,6 +68,7 @@ IRCMessage buildPrivmsgIrcMessage({
   String? viewerLogin,
   Map<String, String> extraTags = const {},
   Map<int, ({String id, String url})> gifs = const {},
+  bool action = false,
 }) {
   final text = StringBuffer();
   final emoteRanges = <String, List<String>>{};
@@ -84,6 +87,7 @@ IRCMessage buildPrivmsgIrcMessage({
     }
     final gif = gifs[index];
     if (gif != null &&
+        gifEntries.length < GifMessagePart.maxGifs &&
         length > 0 &&
         gif.id.isNotEmpty &&
         !_gifBreakers.hasMatch(gif.id) &&
@@ -110,12 +114,10 @@ IRCMessage buildPrivmsgIrcMessage({
       ? (shownName.isEmpty ? sender : shownName)
       : 'Deleted user';
 
+  final safeBadges = badges.where(_isSafeBadge).toList();
   final tags = <String, String>{
-    if (badges.any(_isSafeBadge))
-      'badges': badges
-          .where(_isSafeBadge)
-          .map((b) => '${b.setId}/${b.version}')
-          .join(','),
+    if (safeBadges.isNotEmpty)
+      'badges': safeBadges.map((b) => '${b.setId}/${b.version}').join(','),
     'color': ?_validColor(color),
     'display-name': _tagValue(name),
     if (emoteRanges.isNotEmpty)
@@ -123,6 +125,7 @@ IRCMessage buildPrivmsgIrcMessage({
           .map((e) => '${e.key}:${e.value.join(',')}')
           .join('/'),
     'id': _tagValue(id),
+    if (safeBadges.any((b) => b.setId == 'moderator')) 'mod': '1',
     'room-id': _tagValue(channelId),
     'tmi-sent-ts': '${sentAt.millisecondsSinceEpoch}',
     if (known && userId != null) 'user-id': _tagValue(userId),
@@ -138,9 +141,12 @@ IRCMessage buildPrivmsgIrcMessage({
       ? channelLogin.toLowerCase()
       : 'channel';
 
+  // The CTCP wrapper the parser reads as `/me`: its positions (emotes,
+  // GIFs) count from after it, so the ones above stay right.
+  final body = action ? '\x01ACTION $text\x01' : '$text';
   return IRCMessage.fromString(
     '@$tagString :$sender!$sender@$sender.tmi.twitch.tv PRIVMSG #$channel '
-    ':$text',
+    ':$body',
     userLogin: viewerLogin,
   );
 }

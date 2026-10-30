@@ -306,6 +306,66 @@ void main() {
     });
   });
 
+  group('review hardening', () {
+    test('redirects are not followed', () async {
+      reply(historyBody([historyEntry()]));
+      await load();
+      expect(requests.single.followRedirects, isFalse);
+    });
+
+    test('only id-shaped message and parent ids are kept', () async {
+      reply(
+        historyBody([
+          historyEntry(id: 'x\r\nPRIVMSG #c :pwn'),
+          historyEntry(id: 'a;b'),
+          historyEntry(id: 'a' * 65),
+          historyEntry(
+            id: 'ok-1',
+            parentMessage: {
+              'id': 'p\r\nPRIVMSG #c :pwn',
+              'content': {'text': 'q'},
+              'sender': {'login': 'asker'},
+            },
+            threadParentMessage: {
+              'id': 'root id',
+              'sender': {'login': 'starter'},
+            },
+          ),
+          historyEntry(
+            id: '0a1b2c3d-4e5f-6789-abcd-ef0123456789',
+            parentMessage: {
+              'id': 'f00d-1',
+              'content': {'text': 'q'},
+              'sender': {'login': 'asker'},
+            },
+          ),
+        ]),
+      );
+      final messages = await load();
+      expect(messages.map((m) => m.id), [
+        'ok-1',
+        '0a1b2c3d-4e5f-6789-abcd-ef0123456789',
+      ]);
+      expect(messages.first.parent, isNull);
+      expect(messages.first.threadParent, isNull);
+      expect(messages.last.parent!.id, 'f00d-1');
+    });
+
+    test('only the newest maxMessages raw entries are read', () async {
+      const max = TwitchChatHistoryService.maxMessages;
+      reply(
+        historyBody([
+          for (var i = 0; i < 5; i++) historyEntry(id: 'early-$i'),
+          for (var i = 0; i < max; i++)
+            i == 0 ? 'unreadable' : historyEntry(id: 'm$i'),
+        ]),
+      );
+      final messages = await load();
+      expect(messages, hasLength(max - 1));
+      expect(messages.where((m) => m.id.startsWith('early')), isEmpty);
+    });
+  });
+
   group('failure means no history', () {
     test('refused as unauthenticated', () async {
       reply({

@@ -5,6 +5,9 @@ import 'package:onset/utils/irc_privmsg_builder.dart';
 
 final _twitchLogin = RegExp(r'^[a-zA-Z0-9_]{1,25}$');
 
+const _actionPrefix = '\x01ACTION ';
+const _actionSuffix = '\x01';
+
 bool _never(String text) => false;
 
 /// The chat lines of [history] (Twitch's `ChatHistory`), oldest first, as
@@ -51,6 +54,10 @@ List<IRCMessage> chatHistoryLines(
       for (final fragment in message.fragments)
         (text: fragment.text, emoteId: fragment.emoteId),
     ];
+    // A `/me` line, if Twitch keeps IRC's CTCP wrapper around the whole
+    // text: unwrapped here, wrapped again by the builder once the text is
+    // clean.
+    final action = _unwrapAction(fragments);
     final gifs = <int, ({String id, String url})>{
       for (final (index, fragment) in message.fragments.indexed)
         index: ?fragment.gif,
@@ -101,7 +108,9 @@ List<IRCMessage> chatHistoryLines(
       }
       final thread = message.threadParent;
       final threadLogin = thread?.sender?.login;
-      if (thread != null && threadLogin != null) {
+      if (thread != null &&
+          threadLogin != null &&
+          _twitchLogin.hasMatch(threadLogin)) {
         extraTags.addAll({
           'reply-thread-parent-msg-id': thread.id,
           'reply-thread-parent-user-login': threadLogin.toLowerCase(),
@@ -125,6 +134,7 @@ List<IRCMessage> chatHistoryLines(
       viewerLogin: viewerLogin,
       extraTags: extraTags,
       gifs: gifs,
+      action: action,
     );
     final text = line.message;
     if (text != null && isMuted(text)) continue;
@@ -132,6 +142,38 @@ List<IRCMessage> chatHistoryLines(
     lines.add(line);
   }
   return lines;
+}
+
+/// Whether the text of [fragments] is wrapped in `\x01ACTION …\x01` (a
+/// `/me` line); if so, removes the wrapper from the first and last
+/// fragments, in place.
+bool _unwrapAction(List<({String text, String? emoteId})> fragments) {
+  if (fragments.isEmpty) return false;
+  final text = fragments.map((f) => f.text).join();
+  if (text.length < _actionPrefix.length + _actionSuffix.length ||
+      !text.startsWith(_actionPrefix) ||
+      !text.endsWith(_actionSuffix)) {
+    return false;
+  }
+  final first = fragments.first;
+  final last = fragments.last;
+  // The wrapper must sit inside the end fragments, not span them.
+  if (!first.text.startsWith(_actionPrefix) ||
+      !last.text.endsWith(_actionSuffix) ||
+      (fragments.length == 1 &&
+          first.text.length < _actionPrefix.length + _actionSuffix.length)) {
+    return false;
+  }
+  fragments.first = (
+    text: first.text.substring(_actionPrefix.length),
+    emoteId: first.emoteId,
+  );
+  final end = fragments.last;
+  fragments.last = (
+    text: end.text.substring(0, end.text.length - _actionSuffix.length),
+    emoteId: end.emoteId,
+  );
+  return true;
 }
 
 /// The lines of [history] not already in [shown] (by message id), each

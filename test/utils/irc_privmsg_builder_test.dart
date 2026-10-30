@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/models/chat_gif.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/utils/irc_privmsg_builder.dart';
 
@@ -177,5 +178,62 @@ void main() {
     expect(message.message, startsWith('ACTION waves'));
     expect(message.tags.containsKey('badges'), isFalse);
     expect(message.user, 'viewer');
+  });
+
+  test('at most GifMessagePart.maxGifs GIFs go in the tag', () {
+    final message = build(
+      fragments: [for (var i = 0; i < 8; i++) (text: 'gif$i ', emoteId: null)],
+      gifs: {
+        for (var i = 0; i < 8; i++)
+          i: (id: 'g$i', url: 'https://media.giphy.com/media/g$i/giphy.gif'),
+      },
+    );
+    expect(message.tags['gifs']!.split(','), hasLength(GifMessagePart.maxGifs));
+  });
+
+  test('a moderator badge gives the mod tag, as live IRC has it', () {
+    IRCMessage withBadges(List<({String setId, String version})> badges) =>
+        buildPrivmsgIrcMessage(
+          fragments: const [(text: 'hi', emoteId: null)],
+          login: 'viewer',
+          displayName: 'Viewer',
+          id: 'm-1',
+          channelId: '1',
+          channelLogin: 'chan',
+          sentAt: DateTime.utc(2026),
+          badges: badges,
+        );
+
+    expect(
+      withBadges(const [(setId: 'moderator', version: '1')]).tags['mod'],
+      '1',
+    );
+    expect(
+      withBadges(const [(setId: 'subscriber', version: '1')]).tags['mod'],
+      isNull,
+    );
+    // Not settable from outside.
+    expect(build(extraTags: const {'mod': '1'}).tags['mod'], isNull);
+  });
+
+  test('action: a /me line, still safe', () {
+    final message = buildPrivmsgIrcMessage(
+      fragments: const [
+        (text: 'waves ', emoteId: null),
+        (text: 'Kappa', emoteId: '25'),
+        (text: ' \x01ACTION x\x01', emoteId: null),
+      ],
+      login: 'viewer',
+      displayName: 'Viewer',
+      id: 'm-1',
+      channelId: '1',
+      channelLogin: 'chan',
+      sentAt: DateTime.utc(2026),
+      action: true,
+    );
+    expect(message.action, isTrue);
+    expect(message.message, 'waves Kappa ACTION x');
+    expect(message.tags['emotes'], '25:6-10');
+    expect(message.localEmotes!['Kappa'], isNotNull);
   });
 }

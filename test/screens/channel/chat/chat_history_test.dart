@@ -288,6 +288,68 @@ void main() {
     expect(line.mention, isTrue);
   });
 
+  test('a moderator line carries mod=1, so Delete is not offered on it', () {
+    final line = _lines([
+      _message(badges: const [(setId: 'moderator', version: '1')]),
+    ]).single;
+    expect(line.tags['mod'], '1');
+  });
+
+  test('a /me message (CTCP ACTION) renders as an action', () {
+    final lines = _lines([
+      _message(
+        id: 'me',
+        fragments: const [
+          ChatHistoryFragment(text: '\x01ACTION waves '),
+          ChatHistoryFragment(text: 'Kappa', emoteId: '25'),
+          ChatHistoryFragment(text: '\x01'),
+        ],
+      ),
+      _message(
+        id: 'one-fragment',
+        fragments: const [ChatHistoryFragment(text: '\x01ACTION dances\x01')],
+      ),
+      _message(
+        id: 'not-at-start',
+        fragments: const [ChatHistoryFragment(text: 'hi \x01ACTION x\x01')],
+      ),
+      _message(
+        id: 'unclosed',
+        fragments: const [ChatHistoryFragment(text: '\x01ACTION x')],
+      ),
+    ]);
+    final me = lines[0];
+    expect(me.action, isTrue);
+    expect(me.message, 'waves Kappa');
+    expect(me.tags['emotes'], '25:6-10');
+    expect(lines[1].action, isTrue);
+    expect(lines[1].message, 'dances');
+    expect(lines[2].action, isFalse);
+    expect(lines[2].message, 'hi ACTION x');
+    expect(lines[3].action, isFalse);
+    expect(lines[3].message, 'ACTION x');
+  });
+
+  test('a thread parent with an unusable login is left out', () {
+    final line = _lines([
+      _message(
+        fragments: const [ChatHistoryFragment(text: '@asker yes')],
+        parent: const ChatHistoryParent(
+          id: 'parent-1',
+          text: 'q',
+          sender: ChatHistoryUser(id: '222', login: 'asker'),
+        ),
+        threadParent: const ChatHistoryParent(
+          id: 'root-1',
+          sender: ChatHistoryUser(login: 'not a login;x=1'),
+        ),
+      ),
+    ]).single;
+    expect(line.tags['reply-parent-msg-id'], 'parent-1');
+    expect(line.tags.containsKey('reply-thread-parent-msg-id'), isFalse);
+    expect(line.tags.containsKey('reply-thread-parent-user-login'), isFalse);
+  });
+
   group('newHistoryLines', () {
     IRCMessage withId(String? id) =>
         IRCMessage(raw: '', command: Command.privateMessage, tags: {'id': ?id});
