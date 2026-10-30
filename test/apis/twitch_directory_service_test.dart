@@ -53,7 +53,7 @@ void main() {
       expect(page.pagination, isEmpty);
       expect(page.data, hasLength(2));
       final first = page.data.first;
-      expect(first.userId, '1216145641');
+      expect(first.userId, '900000101');
       expect(first.userLogin, 'streamer_1');
       expect(first.userName, 'Streamer_1');
       expect(first.gameId, '509658');

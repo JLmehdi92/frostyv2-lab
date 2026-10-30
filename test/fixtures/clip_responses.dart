@@ -15,7 +15,7 @@ const clipNode = {
   'videoOffsetSeconds': 1077,
   'language': 'EN',
   'curator': {
-    'id': '768198835',
+    'id': '900000201',
     'login': 'clipper_1',
     'displayName': 'clipper_1',
   },

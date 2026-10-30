@@ -27,7 +27,7 @@ void main() {
     expect(message.tags['display-name'], 'StreamElements');
     expect(message.tags['color'], '#5B99FF');
     expect(message.tags['badges'], 'moderator/1,bot-badge/1');
-    expect(message.message, startsWith('Meta Is NIET'));
+    expect(message.message, startsWith('No spoilers here'));
   });
 
   test('a GQL pin keeps its emote fragments as emote ranges', () {
@@ -68,10 +68,10 @@ void main() {
             as Map;
     final message = pinnedToIrcMessage(
       PinnedChatMessage.fromGql(edge['node'])!,
-      channelId: '145972905',
+      channelId: '900000111',
       channelLogin: 'channel_a',
     );
     expect(message.user, 'nightbot');
-    expect(message.message, contains('boozt.com'));
+    expect(message.message, contains('example.com'));
   });
 }

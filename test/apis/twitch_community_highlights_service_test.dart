@@ -44,14 +44,14 @@ void main() {
   test('asks anonymously with the web client id and the channel id', () async {
     reply(gqlGetViewablePollACTIVE);
 
-    await service.getPoll('105584645');
+    await service.getPoll('900000116');
 
     expect(
       requests.last.headers['Client-ID'],
       'kimne78kx3ncx6brgo4mv6wki5h1ko',
     );
     expect(requests.last.headers['Authorization'], isNull);
-    expect(lastBody()['variables'], {'channelID': '105584645'});
+    expect(lastBody()['variables'], {'channelID': '900000116'});
     expect(lastBody()['query'], contains('viewablePoll'));
   });
 
@@ -64,18 +64,18 @@ void main() {
   group('polls', () {
     test('active and completed polls', () async {
       reply(gqlGetViewablePollACTIVE);
-      expect((await service.getPoll('105584645'))!.status, PollStatus.active);
+      expect((await service.getPoll('900000116'))!.status, PollStatus.active);
 
       reply(gqlGetViewablePollCOMPLETED);
       expect(
-        (await service.getPoll('105584645'))!.status,
+        (await service.getPoll('900000116'))!.status,
         PollStatus.completed,
       );
     });
 
     test('no poll is null', () async {
       reply(gqlGetViewablePollAfterArchiveNull);
-      expect(await service.getPoll('105584645'), isNull);
+      expect(await service.getPoll('900000116'), isNull);
     });
   });
 
@@ -83,7 +83,7 @@ void main() {
     test('the active one', () async {
       reply(gqlGetActivePredictionACTIVE);
 
-      final predictions = await service.getPredictions('182714869');
+      final predictions = await service.getPredictions('900000001');
 
       expect(predictions.active?.title, 'TOP 10?');
       expect(lastBody()['query'], contains('resolvedPredictionEvents'));
@@ -117,7 +117,7 @@ void main() {
       ];
       reply(body);
 
-      final predictions = await service.getPredictions('182714869');
+      final predictions = await service.getPredictions('900000001');
 
       expect(predictions.active, isNotNull);
     });
@@ -126,7 +126,7 @@ void main() {
   group('pinned', () {
     test('the pinned message', () async {
       reply(gqlGetPinnedChat0);
-      final pin = await service.getPinned('145972905');
+      final pin = await service.getPinned('900000111');
       expect(pin?.senderLogin, 'nightbot');
     });
 

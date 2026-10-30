@@ -65,7 +65,7 @@ void main() {
       expect(event.poll.choices.first.title, 'yes');
       expect(event.poll.choices.first.votes, 1);
       expect(event.poll.multiChoice, isTrue);
-      expect(event.poll.channelId, '1263412413');
+      expect(event.poll.channelId, '900000120');
     });
 
     test('every poll event kind', () {
@@ -125,7 +125,7 @@ void main() {
       final prediction = event.prediction;
       expect(prediction.status, PredictionStatus.resolved);
       expect(prediction.winningOutcomeId, isNotNull);
-      expect(prediction.channelId, '182714869');
+      expect(prediction.channelId, '900000001');
       final first = prediction.outcomes.first;
       expect(first.points, 1044059);
       expect(first.users, 214);
@@ -188,7 +188,7 @@ void main() {
       expect(pin.senderDisplayName, 'Nightbot');
       expect(pin.color, '#7C7CE1');
       expect(pin.endsAt, isNull);
-      expect(pin.text, contains('boozt.com'));
+      expect(pin.text, contains('example.com'));
       expect(pin.fragments, hasLength(3));
       expect(pin.badges, isNotEmpty);
     });
@@ -208,7 +208,7 @@ void main() {
         pin.endsAt,
         DateTime.fromMillisecondsSinceEpoch(1791924777000, isUtc: true),
       );
-      expect(pin.text, startsWith('Meta Is NIET'));
+      expect(pin.text, startsWith('No spoilers here'));
     });
 
     test('update and unpin carry the pin id', () {
@@ -249,8 +249,8 @@ void main() {
       final raid = update.raid;
       expect(raid.targetLogin, 'raidtarget1');
       expect(raid.targetDisplayName, 'RaidTarget1');
-      expect(raid.targetId, '38581005');
-      expect(raid.sourceId, '136558367');
+      expect(raid.targetId, '900000144');
+      expect(raid.sourceId, '900000143');
       expect(raid.viewerCount, 1);
       expect(raid.targetViewerCount, 154);
       expect(raid.goAt, raid.createdAt!.add(const Duration(seconds: 90)));
