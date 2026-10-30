@@ -15,6 +15,18 @@ String formatLatency(int ms) {
 /// queue is not rebuilt on every latency tick.
 int chatDelaySecondsFromLatency(int ms) => (ms / 1000).clamp(0, 60).round();
 
+/// [chatDelaySecondsFromLatency] that keeps [current] until the latency is
+/// clearly nearer another whole second ([marginMs] past the half second).
+///
+/// Auto latency holds a stream around its target, which can sit near a half
+/// second (Ultra aims at 1.3 s and lets it wander to 1.7 s): plain rounding
+/// would then move the chat delay between two seconds on every swing.
+int chatDelaySecondsWithHysteresis(int ms, int? current, {int marginMs = 150}) {
+  final rounded = chatDelaySecondsFromLatency(ms);
+  if (current == null || rounded == current) return rounded;
+  return (ms - current * 1000).abs() >= 500 + marginMs ? rounded : current;
+}
+
 /// Formats a bitrate in bits per second, or `—` when unknown.
 String formatBitrate(int? bps) {
   if (bps == null || bps <= 0) return '—';

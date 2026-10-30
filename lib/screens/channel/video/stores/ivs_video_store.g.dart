@@ -395,6 +395,26 @@ mixin _$IvsVideoStore on IvsVideoStoreBase, Store {
     });
   }
 
+  late final _$_autoLatencyStatusAtom = Atom(
+    name: 'IvsVideoStoreBase._autoLatencyStatus',
+    context: context,
+  );
+
+  AutoLatencyStatus? get autoLatencyStatus {
+    _$_autoLatencyStatusAtom.reportRead();
+    return super._autoLatencyStatus;
+  }
+
+  @override
+  AutoLatencyStatus? get _autoLatencyStatus => autoLatencyStatus;
+
+  @override
+  set _autoLatencyStatus(AutoLatencyStatus? value) {
+    _$_autoLatencyStatusAtom.reportWrite(value, super._autoLatencyStatus, () {
+      super._autoLatencyStatus = value;
+    });
+  }
+
   late final _$_startupMsAtom = Atom(
     name: 'IvsVideoStoreBase._startupMs',
     context: context,

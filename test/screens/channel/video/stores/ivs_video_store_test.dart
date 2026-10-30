@@ -10,8 +10,11 @@ import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_stream_service.dart';
 import 'package:onset/models/playback_access_token.dart';
 import 'package:onset/models/stream.dart';
+import 'package:onset/screens/channel/video/buffer_fallback.dart';
+import 'package:onset/screens/channel/video/ivs_player_config.dart';
 import 'package:onset/screens/channel/video/ivs_recovery.dart';
 import 'package:onset/screens/channel/video/ivs_video.dart';
+import 'package:onset/screens/channel/video/latency_controller.dart';
 import 'package:onset/screens/channel/video/player_controller.dart';
 import 'package:onset/screens/channel/video/stores/ivs_video_store.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -61,6 +64,7 @@ void main() {
     BackgroundAudio? backgroundAudio,
     AudioFocus? audioFocus,
     DateTime Function()? now,
+    BufferFallback? bufferFallback,
   }) async {
     final s = IvsVideoStore(
       userLogin: 'streamer',
@@ -76,6 +80,7 @@ void main() {
       backgroundAudio: backgroundAudio,
       audioFocus: audioFocus,
       now: now,
+      bufferFallback: bufferFallback ?? BufferFallback(),
     );
     created = s;
     await s.ready;
@@ -328,7 +333,9 @@ void main() {
     });
 
     test('auto-synced chat delay only changes on whole seconds', () async {
-      settingsStore.autoSyncChatDelay = true;
+      settingsStore
+        ..autoSyncChatDelay = true
+        ..autoLatency = false;
       store = await createStore();
       await native.emit({'type': 'state', 'state': 'PLAYING'});
 
@@ -419,6 +426,252 @@ void main() {
       final afterSample = store.samplesVersion;
       store.resetStats();
       expect(store.samplesVersion, greaterThan(afterSample));
+    });
+  });
+
+  group('auto latency', () {
+    late DateTime now;
+    late BufferFallback fallback;
+
+    setUp(() {
+      now = DateTime(2026, 10, 30, 20);
+      fallback = BufferFallback(now: () => now);
+    });
+
+    /// One native latency tick per second, like `IvsPlayerCore`.
+    Future<void> tick(
+      int ms,
+      int seconds, {
+      int? bufferMs = 1800,
+      double? rate,
+      bool? lowLatency = true,
+    }) async {
+      for (var i = 0; i < seconds; i++) {
+        now = now.add(const Duration(seconds: 1));
+        await native.emit({
+          'type': 'latency',
+          'ms': ms,
+          'bufferMs': bufferMs,
+          'rate': rate,
+          'lowLatency': lowLatency,
+        });
+      }
+      for (var i = 0; i < 5; i++) {
+        await settle();
+      }
+    }
+
+    List<double> rates() => [
+      for (final c in native.callsNamed('setPlaybackRate'))
+        ((c.arguments as Map)['rate'] as num).toDouble(),
+    ];
+
+    Future<IvsVideoStore> playing() async {
+      final s = await createStore(now: () => now, bufferFallback: fallback);
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      return s;
+    }
+
+    test('catches a drifted stream up without reloading it', () async {
+      store = await playing();
+
+      await tick(2200, 8);
+      expect(rates(), [LatencyController.catchUpRate]);
+      expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.catchingUp);
+
+      await tick(1300, 8);
+      expect(rates(), [LatencyController.catchUpRate, 1.0]);
+      expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.steady);
+      expect(native.callsNamed('load'), isEmpty, reason: 'never a reload');
+      expect(store.liveJumps, 0);
+    });
+
+    test('off, the rate is never touched', () async {
+      settingsStore.autoLatency = false;
+      store = await playing();
+
+      await tick(4000, 60, bufferMs: 3000);
+
+      expect(native.callsNamed('setPlaybackRate'), isEmpty);
+      expect(store.autoLatencyStatus, isNull);
+      final create = native.managerCalls.singleWhere(
+        (c) => c.method == 'create',
+      );
+      expect(
+        ((create.arguments as Map)['config'] as Map)['speedUpCatchUp'],
+        isTrue,
+      );
+    });
+
+    test('a stream at its target is left at 1.0x', () async {
+      store = await playing();
+
+      await tick(1250, 120);
+
+      expect(native.callsNamed('setPlaybackRate'), isEmpty);
+    });
+
+    test('a rebuffer drops back to 1.0x at once', () async {
+      store = await playing();
+      await tick(2200, 8);
+
+      await native.emit({'type': 'rebuffering'});
+      await settle();
+
+      expect(rates().last, 1.0);
+      expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.settling);
+    });
+
+    test('pausing drops back to 1.0x and holds', () async {
+      store = await playing();
+      await tick(2200, 8);
+
+      store.handlePausePlay();
+      await settle();
+      expect(rates().last, 1.0);
+
+      await native.emit({'type': 'state', 'state': 'IDLE'});
+      await tick(9000, 30);
+      expect(rates().last, 1.0);
+      expect(store.autoLatencyStatus?.reason, 'paused');
+    });
+
+    test('picture-in-picture drops back to 1.0x and holds', () async {
+      store = await playing();
+      await tick(2200, 8);
+
+      store.onPipEntered();
+      await settle();
+      expect(rates().last, 1.0);
+
+      await tick(2200, 30);
+      expect(rates().last, 1.0);
+      expect(store.autoLatencyStatus?.reason, 'picture-in-picture');
+
+      store.onPipExited();
+      await tick(2200, 8);
+      expect(rates().last, LatencyController.catchUpRate);
+    });
+
+    test('the mini player drops back to 1.0x and holds', () async {
+      store = await playing();
+      await tick(2200, 8);
+
+      store.setMinimized(true);
+      await settle();
+      expect(rates().last, 1.0);
+      await tick(2200, 30);
+      expect(rates().last, 1.0);
+      expect(store.autoLatencyStatus?.reason, 'mini player');
+
+      store.setMinimized(false);
+      await tick(2200, 8);
+      expect(rates().last, LatencyController.catchUpRate);
+    });
+
+    test('an ad holds it', () async {
+      store = await playing();
+      await tick(1300, 10);
+
+      await native.emit({'type': 'ad', 'durationMs': 30000});
+      await tick(3000, 30);
+
+      expect(native.callsNamed('setPlaybackRate'), isEmpty);
+      expect(store.autoLatencyStatus?.reason, 'ad');
+    });
+
+    test('a refused rate stops it for the stream', () async {
+      native.rateThrows = true;
+      store = await playing();
+
+      await tick(2200, 8);
+      expect(rates(), [LatencyController.catchUpRate]);
+      expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.stopped);
+
+      await tick(4000, 60);
+      expect(rates(), hasLength(1), reason: 'never asked again');
+    });
+
+    test('a rate left fast by the player is put back to 1.0x', () async {
+      store = await playing();
+      await tick(1300, 10);
+      expect(native.callsNamed('setPlaybackRate'), isEmpty);
+
+      await tick(1300, 1, rate: 1.05);
+      expect(rates(), [1.0]);
+
+      // Never fought every second: twice at most.
+      await tick(1300, 10, rate: 1.03);
+      expect(rates(), [1.0, 1.0]);
+    });
+
+    test('each load starts back at 1.0x', () async {
+      store = await playing();
+      await tick(2200, 8);
+
+      await store.handleRefresh();
+      await settle();
+
+      expect(rates().last, 1.0);
+      final loadIndex = native.playerCalls.indexWhere(
+        (c) => c.method == 'load',
+      );
+      final rateIndex = native.playerCalls.lastIndexWhere(
+        (c) => c.method == 'setPlaybackRate',
+      );
+      expect(rateIndex, lessThan(loadIndex), reason: 'before the new source');
+    });
+
+    test('ultra stalls make the next stream standard, not this one', () async {
+      store = await playing();
+      expect(store.playerConfig.buffer, BufferProfile.ultra);
+      await tick(1300, 10);
+
+      await native.emit({'type': 'rebuffering'});
+      now = now.add(const Duration(seconds: 20));
+      await native.emit({'type': 'rebuffering'});
+      await settle();
+
+      expect(fallback.active, isTrue);
+      expect(store.bufferFallbackUntil, isNotNull);
+      expect(native.callsNamed('load'), isEmpty, reason: 'no reload now');
+      expect(store.playerConfig.buffer, BufferProfile.ultra);
+      expect(settingsStore.bufferProfile, BufferProfile.ultra);
+      expect(
+        IvsPlayerConfig.fromSettings(settingsStore, fallback: fallback).buffer,
+        BufferProfile.standard,
+      );
+    });
+
+    test('standard stalls never trip the ultra fallback', () async {
+      settingsStore.bufferProfile = BufferProfile.standard;
+      store = await playing();
+      await tick(2000, 10);
+
+      for (var i = 0; i < 3; i++) {
+        await native.emit({'type': 'rebuffering'});
+      }
+
+      expect(fallback.active, isFalse);
+    });
+
+    test('the chat delay does not flap around half a second', () async {
+      settingsStore.autoSyncChatDelay = true;
+      store = await playing();
+
+      final synced = <double>[];
+      final dispose = reaction(
+        (_) => settingsStore.syncedChatDelay,
+        synced.add,
+      );
+      for (final ms in [1400, 1600, 1450, 1620, 1480, 1600, 2200, 1300]) {
+        now = now.add(const Duration(seconds: 1));
+        await native.emit({'type': 'latency', 'ms': ms, 'bufferMs': 900});
+      }
+      dispose();
+
+      // 1 s until the latency is clearly nearer 2 s, then 1 s again.
+      expect(synced, [1.0, 2.0, 1.0]);
     });
   });
 

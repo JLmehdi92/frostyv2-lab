@@ -29,6 +29,26 @@ void main() {
     });
   });
 
+  group('chatDelaySecondsWithHysteresis', () {
+    test('rounds when there is no delay yet', () {
+      expect(chatDelaySecondsWithHysteresis(1600, null), 2);
+      expect(chatDelaySecondsWithHysteresis(1400, null), 1);
+    });
+
+    test('keeps the delay within 0.65 s of it', () {
+      expect(chatDelaySecondsWithHysteresis(1600, 1), 1);
+      expect(chatDelaySecondsWithHysteresis(1649, 1), 1);
+      expect(chatDelaySecondsWithHysteresis(1360, 2), 2);
+    });
+
+    test('moves once the latency is clearly nearer another second', () {
+      expect(chatDelaySecondsWithHysteresis(1650, 1), 2);
+      expect(chatDelaySecondsWithHysteresis(1350, 2), 1);
+      expect(chatDelaySecondsWithHysteresis(4200, 1), 4);
+      expect(chatDelaySecondsWithHysteresis(70000, 4), 60);
+    });
+  });
+
   group('formatBitrate', () {
     test('formats megabits and kilobits', () {
       expect(formatBitrate(6200000), '6.2 Mbps');

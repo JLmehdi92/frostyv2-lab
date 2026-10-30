@@ -148,6 +148,29 @@ void main() {
       },
     );
 
+    test('auto latency never touches a VOD', () async {
+      settingsStore
+        ..autoLatency = true
+        ..bufferProfile = BufferProfile.ultra;
+      store = await createStore();
+
+      final create = native.managerCalls.singleWhere(
+        (c) => c.method == 'create',
+      );
+      expect((create.arguments as Map)['config'], {'vod': true});
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      for (var i = 0; i < 40; i++) {
+        await native.emitProgress(
+          i * 250,
+          durationMs: 7200000,
+          bufferedMs: 30000 + i * 250,
+        );
+      }
+      await settleMany();
+
+      expect(native.callsNamed('setPlaybackRate'), isEmpty);
+    });
+
     test('starts at the requested position', () async {
       store = await createStore(startAt: const Duration(milliseconds: 1234000));
 
@@ -1204,26 +1227,29 @@ void main() {
       expect(store.captions.caption, 'hello');
     });
 
-    test('its caption tracks reach the menu, and each load asks again', () async {
-      settingsStore.showCaptions = true;
-      stubUrl();
-      store = await createStore();
-      await native.emit({
-        'type': 'textTracks',
-        'list': [
-          {'id': 'a', 'label': 'English', 'language': 'en'},
-        ],
-        'selected': 'a',
-      });
-      expect(store.captions.tracks.single.name, 'English');
+    test(
+      'its caption tracks reach the menu, and each load asks again',
+      () async {
+        settingsStore.showCaptions = true;
+        stubUrl();
+        store = await createStore();
+        await native.emit({
+          'type': 'textTracks',
+          'list': [
+            {'id': 'a', 'label': 'English', 'language': 'en'},
+          ],
+          'selected': 'a',
+        });
+        expect(store.captions.tracks.single.name, 'English');
 
-      final asked = native.callsNamed('setCaptions').length;
-      await native.emit({
-        'type': 'qualities',
-        'list': ['1080p60'],
-      });
-      expect(native.callsNamed('setCaptions').length, greaterThan(asked));
-    });
+        final asked = native.callsNamed('setCaptions').length;
+        await native.emit({
+          'type': 'qualities',
+          'list': ['1080p60'],
+        });
+        expect(native.callsNamed('setCaptions').length, greaterThan(asked));
+      },
+    );
   });
 
   group('captions on screen', () {
@@ -1239,7 +1265,9 @@ void main() {
         () => native.emit({'type': 'caption', 'text': 'hello there'}),
       );
       await tester.pumpWidget(
-        MaterialApp(home: Scaffold(body: VodVideo(store: store))),
+        MaterialApp(
+          home: Scaffold(body: VodVideo(store: store)),
+        ),
       );
 
       final line = tester.widget<CaptionText>(find.byType(CaptionText));

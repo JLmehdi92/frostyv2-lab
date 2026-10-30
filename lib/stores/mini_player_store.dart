@@ -82,7 +82,7 @@ abstract class MiniPlayerStoreBase with Store {
     _userLogin = userLogin;
     _userId = userId;
     _displayName = displayName;
-    _player = player;
+    _player = player..setMinimized(true);
     _chatTabsStore = chatTabsStore;
     _liveProgress = liveProgress;
     _visible = true;
@@ -98,7 +98,7 @@ abstract class MiniPlayerStoreBase with Store {
     LiveProgressTracker? liveProgress,
   })
   release() {
-    final player = _player;
+    final player = _player?..setMinimized(false);
     final chat = _chatTabsStore;
     final liveProgress = _liveProgress;
     _player = null;

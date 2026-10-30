@@ -63,6 +63,16 @@ void main() {
     expect(calls, isEmpty, reason: 'still playing, still followed');
   });
 
+  test('the player knows it is minimized, and when it is restored', () {
+    final p = player('p');
+    adopt(p, null);
+    verify(() => p.setMinimized(true)).called(1);
+
+    store.release();
+
+    verify(() => p.setMinimized(false)).called(1);
+  });
+
   test('closing saves the position before the player goes', () {
     adopt(player('p'), tracker('t'));
 

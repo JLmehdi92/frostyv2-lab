@@ -28,6 +28,10 @@ class FakeIvsNative {
   /// When true, the player's `load` fails like a broken native side.
   bool loadThrows = false;
 
+  /// When true, the player refuses `setPlaybackRate` like a live player
+  /// whose SDK rejects the rate.
+  bool rateThrows = false;
+
   /// Value returned by the player's `getPosition` (VOD resume saves).
   int? nativePosition;
   final playerCalls = <MethodCall>[];
@@ -58,6 +62,9 @@ class FakeIvsNative {
       playerCalls.add(call);
       if (call.method == 'load' && loadThrows) {
         throw PlatformException(code: 'load_failed');
+      }
+      if (call.method == 'setPlaybackRate' && rateThrows) {
+        throw PlatformException(code: 'rate_rejected');
       }
       if (call.method == 'getPosition') return nativePosition;
       return null;

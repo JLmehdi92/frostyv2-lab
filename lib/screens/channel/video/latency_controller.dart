@@ -178,8 +178,8 @@ class LatencyController {
   /// Samples whose median the decisions use.
   static const smoothing = 5;
 
-  /// Ticks in a row reporting 1.0x during a catch-up after which the rate is
-  /// taken as not kept by the player (something else owns it).
+  /// Ticks in a row reporting another rate during a catch-up after which
+  /// the rate is taken as not kept by the player (something else owns it).
   static const rateNotHeldTicks = 3;
 
   /// How long an ad holds the controller at least (and at most): the cue's
@@ -326,7 +326,7 @@ class LatencyController {
     final buffer = _median(_buffers);
     final target = effectiveTargetMs;
     if (_rate > 1) {
-      if (nativeRate != null && (nativeRate - 1).abs() < 0.005) {
+      if (nativeRate != null && (nativeRate - _rate).abs() > 0.005) {
         if (++_notHeld >= rateNotHeldTicks) {
           _stop('the player did not keep the rate');
           return _rate;

@@ -13,8 +13,10 @@ import 'package:onset/models/channel.dart';
 import 'package:onset/models/ivs_stats.dart';
 import 'package:onset/models/playback_access_token.dart';
 import 'package:onset/models/stream.dart';
+import 'package:onset/screens/channel/video/buffer_fallback.dart';
 import 'package:onset/screens/channel/video/ivs_player_config.dart';
 import 'package:onset/screens/channel/video/ivs_recovery.dart';
+import 'package:onset/screens/channel/video/latency_controller.dart';
 import 'package:onset/screens/channel/video/latency_stats.dart';
 import 'package:onset/screens/channel/video/live_edge_guard.dart';
 import 'package:onset/screens/channel/video/live_state_watcher.dart';
@@ -209,6 +211,42 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   /// Watches the latency for a drift the speed-up catch-up does not undo.
   final LiveEdgeGuard _liveEdge;
 
+  /// Brings a drifted stream back near live by playing it slightly faster,
+  /// with auto latency on (see [LatencyController]). It is the first line;
+  /// [_liveEdge]'s reload stays the last resort far behind.
+  late final _autoLatency = LatencyController.forProfile(
+    playerConfig.buffer,
+    enabled: playerConfig.autoLatency,
+    now: _now,
+  );
+
+  /// What auto latency is doing, for the stats panel (null when it is off
+  /// for this stream).
+  @readonly
+  AutoLatencyStatus? _autoLatencyStatus;
+
+  /// The rate last sent to the native player (it starts at 1.0x).
+  var _sentRate = 1.0;
+
+  /// 1.0x sent again since the last catch-up because the player still
+  /// reported it fast: bounded, so a rate the player keeps for its own
+  /// reasons is never fought every second.
+  var _rateResends = 0;
+
+  /// The native player refused a rate: none is sent again.
+  var _rateRefused = false;
+
+  /// Turns Ultra into Standard for the next streams after repeated stalls.
+  final BufferFallback _bufferFallback;
+
+  /// Until when new streams open with Standard instead of the chosen Ultra
+  /// (null when they do not, or auto latency is off).
+  DateTime? get bufferFallbackUntil =>
+      playerConfig.autoLatency ? _bufferFallback.until : null;
+
+  /// The player is shown in the in-app mini player.
+  var _minimized = false;
+
   /// A paused live stream played again after this long resumes at the live
   /// edge (like a fresh start) instead of where it stopped: picking up a
   /// call-length pause where it left off would keep the picture that far
@@ -266,13 +304,18 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     BackgroundAudio? backgroundAudio,
     AudioFocus? audioFocus,
     @visibleForTesting DateTime Function()? now,
+    @visibleForTesting BufferFallback? bufferFallback,
   }) : _ownsStreamService = streamService == null,
        _now = now ?? clock.now,
        _liveEdge = LiveEdgeGuard(now: now),
        _backgroundAudio = backgroundAudio ?? BackgroundAudio.shared,
        _audioFocus = audioFocus ?? AudioFocus.shared,
        _recovery = recoveryPolicy ?? IvsRecoveryPolicy(),
-       playerConfig = IvsPlayerConfig.fromSettings(settingsStore),
+       _bufferFallback = bufferFallback ?? BufferFallback.shared,
+       playerConfig = IvsPlayerConfig.fromSettings(
+         settingsStore,
+         fallback: bufferFallback ?? BufferFallback.shared,
+       ),
        // Timeouts so a hung GQL/usher request becomes a retry instead of an
        // endless spinner.
        _streamService =
@@ -290,6 +333,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     // 2K rendition for the rest of the session.
     _streamService.onWebTokenRejected = authStore.renewTwitchWebToken;
     _startupStopwatch.start();
+    if (playerConfig.autoLatency) _autoLatencyStatus = _autoLatency.status;
     if (settingsStore.autoSyncChatDelay) settingsStore.syncedChatDelay = 0.0;
     // Create the native player while the token/usher URL is resolving (they
     // used to run one after the other), then load as soon as both are ready.
@@ -605,6 +649,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     if (gate == _contentGate.value) return;
     runInAction(() => _contentGate.value = gate);
     if (gate == ContentGate.covering) {
+      _holdAutoLatency('paused');
       // An explicit pause, only of a stream that plays: a toggle would
       // start one still loading (that one is held when it starts).
       if (_isPlaying) {
@@ -635,7 +680,16 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
 
   /// Updates the picture-in-picture state when the OS enters/exits PiP.
   @action
-  void onPipEntered() => _isInPipMode = true;
+  void onPipEntered() {
+    _isInPipMode = true;
+    _holdAutoLatency('picture-in-picture');
+  }
+
+  /// The player moved into (or out of) the in-app mini player.
+  void setMinimized(bool minimized) {
+    _minimized = minimized;
+    if (minimized) _holdAutoLatency('mini player');
+  }
 
   @action
   void onPipExited() {
@@ -738,8 +792,12 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
     if (epoch != _recoveryEpoch) return;
     _hasPlayed = false;
     _lastLatencySecond = null;
-    // Every load starts at the live edge.
+    // Every load starts at the live edge, at 1.0x.
     _liveEdge.onLoad();
+    if (playerConfig.autoLatency) {
+      _autoLatency.onLoad();
+      _applyAutoRate();
+    }
     await _channel?.invokeMethod('load', {'url': url});
   }
 
@@ -801,6 +859,17 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         final name = e['name'] as String?;
         final index = _availableStreamQualities.indexOf(name ?? '');
         if (index != -1) _streamQualityIndex = index;
+        if (playerConfig.autoLatency) {
+          _autoLatency.onQualityChanged();
+          _applyAutoRate();
+        }
+        break;
+      case 'ad':
+        if (playerConfig.autoLatency) {
+          final ms = (e['durationMs'] as num?)?.toInt() ?? 0;
+          _autoLatency.onAd(Duration(milliseconds: ms));
+          _applyAutoRate();
+        }
         break;
       case 'latency':
         final ms = (e['ms'] as num?)?.toInt() ?? -1;
@@ -823,12 +892,27 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         if (_liveEdge.onSample(ms, playing: judged)) {
           unawaited(_jumpToLive());
         }
+        if (playerConfig.autoLatency) {
+          final nativeRate = (e['rate'] as num?)?.toDouble();
+          _autoLatency.onSample(
+            latencyMs: ms,
+            bufferMs: (e['bufferMs'] as num?)?.toInt(),
+            lowLatency: e['lowLatency'] as bool?,
+            nativeRate: nativeRate,
+            hold: _autoLatencyHold,
+          );
+          _applyAutoRate(nativeRate: nativeRate);
+        }
         // Paused, the latency grows a second a second while the picture
         // stands still: chat keeps the delay of the last moment played.
         if (!_isPlaying) break;
         // The chat delay keeps moving in whole seconds only, exactly as before,
-        // so the delayed chat queue is not rebuilt on every tick.
-        final seconds = chatDelaySecondsFromLatency(ms);
+        // so the delayed chat queue is not rebuilt on every tick. With auto
+        // latency holding the stream near a half second, it also waits for
+        // the latency to be clearly nearer another second.
+        final seconds = playerConfig.autoLatency
+            ? chatDelaySecondsWithHysteresis(ms, _lastLatencySecond)
+            : chatDelaySecondsFromLatency(ms);
         if (seconds == _lastLatencySecond) break;
         _lastLatencySecond = seconds;
         if (settingsStore.autoSyncChatDelay) {
@@ -837,6 +921,14 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         break;
       case 'rebuffering':
         _rebufferCount++;
+        // A stall of the stream that played (not of a load under way).
+        if (playerConfig.autoLatency && _hasPlayed && !_recovering) {
+          _autoLatency.onStall();
+          _applyAutoRate();
+          if (playerConfig.buffer == BufferProfile.ultra) {
+            _bufferFallback.onUltraRebuffer();
+          }
+        }
         break;
       case 'stats':
         // A tick can race a toggle-off; never resurrect hidden stats.
@@ -861,6 +953,71 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         _applyRecovery(_recovery.onError(kind));
         break;
     }
+  }
+
+  /// Why auto latency must not correct now, if it must not.
+  String? get _autoLatencyHold {
+    if (_paused || _covered) return 'paused';
+    if (_isInPipMode) return 'picture-in-picture';
+    if (_minimized) return 'mini player';
+    if (_recovering || _jumping || _status != IvsPlaybackStatus.playing) {
+      return 'reconnecting';
+    }
+    if (!_isPlaying) return 'buffering';
+    return null;
+  }
+
+  /// Back to 1.0x now, without waiting for the next tick.
+  void _holdAutoLatency(String reason) {
+    if (!playerConfig.autoLatency) return;
+    _autoLatency.hold(reason);
+    _applyAutoRate();
+  }
+
+  /// Sends the controller's rate when it changed, or 1.0x again when the
+  /// player still reports another rate ([nativeRate]) while it should not.
+  void _applyAutoRate({double? nativeRate}) {
+    final status = _autoLatency.status;
+    if (status != _autoLatencyStatus) {
+      runInAction(() => _autoLatencyStatus = status);
+    }
+    if (_rateRefused || _disposed) return;
+    final rate = _autoLatency.rate;
+    final leftFast =
+        rate == 1.0 &&
+        _rateResends < 2 &&
+        nativeRate != null &&
+        nativeRate > 1.005;
+    if (rate == _sentRate && !leftFast) return;
+    final channel = _channel;
+    if (channel == null) return;
+    if (rate > 1) {
+      _rateResends = 0;
+    } else if (rate == _sentRate) {
+      _rateResends++;
+    }
+    _sentRate = rate;
+    unawaited(_sendRate(channel, rate));
+  }
+
+  Future<void> _sendRate(MethodChannel channel, double rate) async {
+    try {
+      await channel.invokeMethod('setPlaybackRate', {'rate': rate});
+    } on PlatformException catch (e) {
+      _onRateRefused(e);
+    } on MissingPluginException catch (e) {
+      _onRateRefused(e);
+    }
+  }
+
+  /// The player refused the rate: auto latency stops for this stream and no
+  /// rate is sent again (the refused one never applied).
+  void _onRateRefused(Object error) {
+    debugPrint('IvsVideoStore setPlaybackRate refused: $error');
+    if (_disposed) return;
+    _rateRefused = true;
+    _autoLatency.onRateRejected();
+    _applyAutoRate();
   }
 
   void _applyRecovery(IvsRecoveryAction action) {
@@ -1082,6 +1239,7 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
 
   @override
   void handlePausePlay() {
+    if (!_paused) _holdAutoLatency('paused');
     if (_paused && _resumesAtLive) {
       unawaited(_jumpToLive(resume: true));
       return;
@@ -1227,8 +1385,10 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
   @override
   @action
   Future<void> handleRefresh() async {
-    // The viewer's own way out: the guard may try jumping again.
+    // The viewer's own way out: the guard may try jumping again, and auto
+    // latency may try again after giving up.
     _liveEdge.reset();
+    if (playerConfig.autoLatency && !_rateRefused) _autoLatency.reset();
     _latency = null;
     _latencyMs = null;
     _lastLatencySecond = null;
