@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/models/community_points.dart';
+import 'package:onset/screens/channel/chat/widgets/channel_points_sheet.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
-import 'package:onset/widgets/channel_points_sheet.dart';
 import 'package:onset/widgets/sheet/onset_panel.dart';
 import 'package:provider/provider.dart';
 

@@ -1,9 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:onset/models/chat_gif.dart';
+import 'package:onset/screens/channel/chat/widgets/first_frame_image.dart';
 import 'package:onset/screens/channel/chat/widgets/overlay_chat_scope.dart';
 import 'package:onset/services/cache_manager.dart';
-import 'package:onset/widgets/first_frame_image.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 
 /// A GIF sent in chat, drawn like the Twitch app draws it: a fixed height,

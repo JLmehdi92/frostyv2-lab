@@ -4,10 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_gif_image.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
+import 'package:onset/screens/channel/chat/widgets/first_frame_image.dart';
 import 'package:onset/screens/channel/chat/widgets/overlay_chat_scope.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/widgets/first_frame_image.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 
 import '../../../../fixtures/irc_messages.dart';

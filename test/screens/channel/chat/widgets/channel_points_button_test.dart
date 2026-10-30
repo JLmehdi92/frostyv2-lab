@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/models/community_points.dart';
+import 'package:onset/screens/channel/chat/widgets/channel_points_button.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
-import 'package:onset/widgets/channel_points_button.dart';
 import 'package:provider/provider.dart';
 
 class MockChannelEventsStore extends Mock implements ChannelEventsStore {}
