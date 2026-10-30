@@ -68,7 +68,7 @@ const _treasure = HtTreasure(
 );
 
 void main() {
-  test('timings match the reverse-engineered constants', () {
+  test('timings match the expected constants', () {
     expect(HtTimings.textLong.inMilliseconds, 6000);
     expect(HtTimings.scrollLong.inMilliseconds, 3000);
     expect(HtTimings.scrollDefault.inMilliseconds, 2500);

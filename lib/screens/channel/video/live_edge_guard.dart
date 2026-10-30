@@ -7,8 +7,8 @@ import 'package:clock/clock.dart';
 /// The IVS player keeps itself close to live with its speed-up catch-up,
 /// like the official app. What that does not undo is a larger buffer
 /// target: the SDK's low-latency buffer control has a 1 s
-/// `rebufferPenaltySeconds` and a 6 s `minBufferCeilingSeconds` (defaults
-/// read from the IVS config schema in the decompiled Twitch app), i.e. the
+/// `rebufferPenaltySeconds` and a 6 s `minBufferCeilingSeconds` (the IVS
+/// config schema's defaults), i.e. the
 /// target can grow after stalls, and a network drop the player resumes
 /// from leaves it behind by as long as it lasted. Chat (sent by viewers
 /// ~2 s behind live) then runs ahead of the picture.

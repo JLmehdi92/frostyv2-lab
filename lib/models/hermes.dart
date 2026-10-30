@@ -9,8 +9,7 @@ import 'dart:convert';
 /// still say "pubsub". Topics kept their old names, so a topic string like
 /// `hype-train-events-v2.<channelId>` is still the unit of subscription.
 ///
-/// Shapes below were confirmed against a live session on 2026-07-30, not
-/// inferred from the decompiled binary alone.
+/// Shapes below were confirmed against a live session on 2026-07-30.
 class HermesMessage {
   /// Server message types, as sent in the `type` field.
   static const typeWelcome = 'welcome';

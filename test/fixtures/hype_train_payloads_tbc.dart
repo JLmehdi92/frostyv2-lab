@@ -1,6 +1,6 @@
 // Hype train payloads NOT observed live yet (TBC): written from the
-// reverse-engineering notes (field names and casing as documented). Replace
-// with real captures when such a train runs.
+// expected field names and casing. Replace with real captures when such a
+// train runs.
 
 /// Realtime approaching (snake_case, deadlines keyed by events remaining).
 const htTbcApproachingEvent =
