@@ -34,8 +34,8 @@ Why a GIF in the README: an SVG shown through <img> is animated by desktop
 browsers, but not reliably on every GitHub surface (mobile Safari through
 GitHub's image proxy, the GitHub apps). A GIF plays everywhere. The GIF is
 rendered from the SVG in Chromium (Playwright), each frame frozen at its
-time, at twice the README's display width; ffmpeg maps the whole loop to one
-palette and Pillow writes each frame as the rectangle that changed. GIF
+time; ffmpeg maps the whole loop to one small palette and write_gif() lays
+the file out for the pickiest decoders (iOS included). GIF
 transparency is 1 bit, so the rounded corners are cut with a hard edge: no
 matte colour to fringe on GitHub's light or dark page.
 
@@ -63,6 +63,7 @@ import argparse
 import io
 import math
 import os
+import struct
 import subprocess
 import tempfile
 from collections import deque
@@ -97,12 +98,12 @@ PULSE_AT = 3.9       # the hold's pulse (from the loop's start)
 PING = 14            # ray ping distance, in px of the view box
 BEAT = 1.06          # dot size at the pulse's beat
 
-# The README GIF: drawn at 2x its display width (the README shows it at
-# 160 px), rendered at RENDER_SCALE times that and downsampled for clean
-# edges on the small halftone dots.
-GIF_SIZE = 320
-GIF_FPS = 25         # 4 cs per frame, an exact GIF delay; 160 frames a loop
-GIF_COLORS = 256     # palette size, transparency included
+# The README GIF: 1.75x its display width (the README shows it at 160 px),
+# rendered at RENDER_SCALE times that and downsampled for clean edges on the
+# small halftone dots.
+GIF_SIZE = 280
+GIF_FPS = 20         # 5 cs on every frame; 128 frames a loop
+GIF_COLORS = 48      # palette size given to ffmpeg, transparency included
 RENDER_SCALE = 2
 
 # --------------------------------------------------------------- measuring --
@@ -631,11 +632,110 @@ def corner_mask(size):
     return m.point(lambda v: 255 if v >= 128 else 0)
 
 
+def lzw(data, min_size):
+    """GIF LZW compression of a run of palette indices (variable-length codes,
+    a clear code when the 4096-entry table is full)."""
+    clear = 1 << min_size
+    out = bytearray()
+    acc = 0
+    nbits = 0
+
+    def emit(code, size):
+        nonlocal acc, nbits
+        acc |= code << nbits
+        nbits += size
+        while nbits >= 8:
+            out.append(acc & 0xFF)
+            acc >>= 8
+            nbits -= 8
+
+    size = min_size + 1
+    table = {}
+    nxt = clear + 2
+    emit(clear, size)
+    prefix = data[0]
+    for b in data[1:]:
+        key = (prefix << 8) | b
+        code = table.get(key)
+        if code is not None:
+            prefix = code
+            continue
+        emit(prefix, size)
+        if nxt < 4096:
+            table[key] = nxt
+            nxt += 1
+            if nxt > (1 << size) and size < 12:
+                size += 1
+        else:
+            emit(clear, size)
+            table = {}
+            nxt = clear + 2
+            size = min_size + 1
+        prefix = b
+    emit(prefix, size)
+    emit(clear + 1, size)
+    if nbits:
+        out.append(acc & 0xFF)
+    return bytes(out)
+
+
+def write_gif(path, frames, palette, clear, delay_cs):
+    """A looping GIF written block by block, in the most widely read layout.
+
+    frames are 2-D arrays of indices into palette; `clear` is the transparent
+    index. The layout, chosen for iOS (Safari, Photos, Quick Look) as much
+    as for browsers:
+      - one global colour table, no local tables;
+      - the NETSCAPE2.0 loop block (0 = forever) right after that table,
+        before any other block;
+      - every frame has the same delay, nothing is merged: a repeated frame
+        is a 1x1 no-op frame, so no decoder sees a long hold to mishandle;
+      - disposal 1 (keep), the first frame whole, then each frame only the
+        rectangle that changed, with its unchanged pixels transparent (what
+        gifsicle -O2 and ImageMagick's OptimizeTransparency write). The
+        rounded corners rely on the same rule: transparent keeps what is
+        under it, which is transparent from the first frame on.
+    """
+    h, w = frames[0].shape
+    bits = max(1, (len(palette) - 1).bit_length())
+    table = list(palette) + [(0, 0, 0)] * ((1 << bits) - len(palette))
+    min_size = max(2, bits)
+    out = bytearray(b'GIF89a')
+    out += struct.pack('<HHBBB', w, h, 0x80 | 0x70 | (bits - 1), clear, 0)
+    out += bytes(c for rgb in table for c in rgb)
+    out += b'\x21\xff\x0bNETSCAPE2.0\x03\x01\x00\x00\x00'
+    prev = None
+    for f in frames:
+        if prev is None:
+            x0, y0, x1, y1 = 0, 0, w, h
+            rect = f
+        else:
+            ys, xs = np.nonzero(f != prev)
+            if len(xs):
+                x0, y0, x1, y1 = xs.min(), ys.min(), xs.max() + 1, ys.max() + 1
+            else:
+                x0, y0, x1, y1 = 0, 0, 1, 1
+            rect = f[y0:y1, x0:x1].copy()
+            rect[rect == prev[y0:y1, x0:x1]] = clear
+        out += b'\x21\xf9\x04' + struct.pack('<BHBB', (1 << 2) | 1, delay_cs, clear, 0)
+        out += b'\x2c' + struct.pack('<HHHHB', x0, y0, x1 - x0, y1 - y0, 0)
+        data = lzw(rect.tobytes(), min_size)
+        out.append(min_size)
+        for i in range(0, len(data), 255):
+            out.append(len(data[i:i + 255]))
+            out += data[i:i + 255]
+        out.append(0)
+        prev = f
+    out.append(0x3B)
+    with open(path, 'wb') as fh:
+        fh.write(bytes(out))
+
+
 def gif(svg_text, path):
     """The README GIF: one seamless loop of the SVG animation, looping forever."""
     frames_n = round(PERIOD * GIF_FPS)
-    if abs(frames_n - PERIOD * GIF_FPS) > 1e-9:
-        raise SystemExit('PERIOD must be a whole number of GIF frames')
+    if abs(frames_n - PERIOD * GIF_FPS) > 1e-9 or 100 % GIF_FPS:
+        raise SystemExit('PERIOD must be whole frames of a whole number of cs')
     times = [i / GIF_FPS for i in range(frames_n)]
     big = render(svg_text, GIF_SIZE * RENDER_SCALE, times, clip=False)
     mask = corner_mask(GIF_SIZE)
@@ -658,20 +758,20 @@ def gif(svg_text, path):
             '-pix_fmt', 'pal8', '-start_number', '0',
             os.path.join(tmp, 'q%04d.png'),
         ], check=True)
-        frames = [
+        images = [
             Image.open(os.path.join(tmp, f'q{i:04d}.png')) for i in range(frames_n)
         ]
-        for f in frames:
-            f.load()
-        # Pillow writes the GIF rather than ffmpeg: with a transparent colour
-        # ffmpeg repaints every frame in full, while Pillow keeps each frame
-        # to the rectangle that changed (disposal 1, nothing cleared) and
-        # merges identical frames into one longer frame.
-        frames[0].save(
-            path, save_all=True, append_images=frames[1:],
-            duration=round(1000 / GIF_FPS), loop=0, disposal=1, optimize=False,
-            transparency=frames[0].info['transparency'],
-        )
+        clear = images[0].info['transparency']
+        source = images[0].getpalette()
+        frames = [np.asarray(im) for im in images]
+    # Keep only the colours in use, so the colour table is as small as it
+    # can be (smaller codes), with the transparent colour last.
+    used = sorted(set(np.unique(np.stack(frames)).tolist()) - {clear})
+    lut = np.zeros(256, np.uint8)
+    lut[used] = np.arange(len(used))
+    lut[clear] = len(used)
+    palette = [tuple(source[3 * u:3 * u + 3]) for u in used] + [(0, 0, 0)]
+    write_gif(path, [lut[f] for f in frames], palette, len(used), 100 // GIF_FPS)
 
 
 def main():
