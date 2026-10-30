@@ -75,13 +75,13 @@ void main() async {
   // Whether this is a cold start (the launch intro plays only then). Asked
   // now so the answer is in by the time the app is built.
   final launchInfo = LaunchInfo.load();
-  // The launch intro's first frame shows the mark where the splash drew
-  // it: decoded meanwhile, so that frame has the image (bounded, never
-  // holds the launch).
+  // The first frames show the mark (the intro's tile where the splash drew
+  // it, or the header's): decoded meanwhile, so they have the image
+  // (bounded, never holds the launch).
   final view = WidgetsBinding.instance.platformDispatcher.implicitView;
-  final markReady = OnsetMark.precache(
-    devicePixelRatio: view?.devicePixelRatio ?? 1,
-  );
+  final markReady = view == null
+      ? Future<void>.value()
+      : OnsetMark.precacheFor(view);
 
   // Initialize the native media_kit player (low-latency video engine).
   MediaKit.ensureInitialized();

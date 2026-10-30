@@ -271,7 +271,8 @@ void main() {
         find.descendant(of: _tile, matching: find.byType(Image)),
       );
       expect(
-        (image.image as AssetImage).assetName,
+        (image.image as ExactAssetImage).assetName,
+        // The 1.0x variant at this test's pixel ratio of 1.
         'assets/icons/onset_logo_72.png',
       );
       expect(image.opacity, isNull);

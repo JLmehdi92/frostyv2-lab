@@ -6,9 +6,10 @@ splash, it shows the app icon itself (assets/icons/icon_onset.png, 1024 x
 1024). Decoding the 1024 px icon for a 28-72 dp tile would cost a 4 MB
 bitmap each time, so this script writes what each place needs:
 
-Flutter, resolution-aware, one family per tile size (OnsetMark.imageFor in
-lib/widgets/launch/onset_mark.dart picks the smallest family at least as
-large as the tile; Flutter picks the variant for the pixel ratio):
+Flutter, one family per tile size, each in five pixel ratios
+(OnsetMark.imageFor in lib/widgets/launch/onset_mark.dart picks the
+smallest family at least as large as the tile, in the smallest variant at
+least as dense as the screen, so nothing is ever upscaled below 4.0x):
 
     assets/icons/onset_logo_30.png  the headers (28 dp phone, 30 dp tablet)
     assets/icons/onset_logo_52.png  release notes, update prompt (52 dp)
@@ -23,9 +24,13 @@ as transparency (a bitmap drawable cannot be clipped in XML):
     android/app/src/main/res/drawable-{m,h,xh,xxh,xxx}dpi/launch_tile.png
 
 The splash's pixels are the very pixels of the Flutter 72 dp variant of the
-same ratio (only the corners differ), so the first Flutter frame of the
-launch intro, which draws that variant clipped to the same corners, matches
-the splash it replaces.
+same ratio (only the corners differ). Android picks its bucket as
+imageFor picks its variant, the smallest at least as dense, so the first
+Flutter frame of the launch intro, which draws that variant clipped to the
+same corners, starts from the very bitmap the splash drew: pixel for pixel
+at 1, 1.5, 2, 3 and 4; at a ratio in between (2.625, 3.5...) both scale
+that same bitmap down, each with its own filter, so they agree up to
+resampling.
 
 Each size is resampled straight from the 1024 px source with a Lanczos
 filter in linear light (sRGB decoded first, re-encoded after), so the

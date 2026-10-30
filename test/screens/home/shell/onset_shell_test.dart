@@ -752,7 +752,8 @@ void main() {
           find.descendant(of: mark, matching: find.byType(Image)),
         );
         expect(
-          (image.image as AssetImage).assetName,
+          (image.image as ExactAssetImage).assetName,
+          // The 1.0x variant at the harness's pixel ratio of 1.
           'assets/icons/onset_logo_30.png',
         );
         final clip = tester.widget<ClipRRect>(
@@ -784,16 +785,40 @@ void main() {
     tester.platformDispatcher.accessibilityFeaturesTestValue =
         const FakeAccessibilityFeatures(disableAnimations: true);
     addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+    imageCache
+      ..clear()
+      ..clearLiveImages();
+    // What main() does before runApp, on the view the app will use.
+    tester.view
+      ..physicalSize = _phone
+      ..devicePixelRatio = 1;
+    await tester.runAsync(() => OnsetMark.precacheFor(tester.view));
     await h.pump(tester, intro: true);
-    await tester.pump();
     expect(find.byKey(LaunchIntro.overlayKey), findsNothing);
-    expect(
+    // Painted on the very first frame: no plain ground, then a pop.
+    final raw = tester.widget<RawImage>(
       find.descendant(
         of: find.byKey(OnsetShell.markKey),
-        matching: find.byType(Image),
+        matching: find.byType(RawImage),
       ),
-      findsOneWidget,
     );
+    expect(raw.image, isNotNull);
+  });
+
+  testWidgets('without the precache, the header\'s first frame has no image '
+      '(what the test above guards against)', (tester) async {
+    imageCache
+      ..clear()
+      ..clearLiveImages();
+    final h = _Harness();
+    await h.pump(tester, intro: true);
+    final raw = tester.widget<RawImage>(
+      find.descendant(
+        of: find.byKey(OnsetShell.markKey),
+        matching: find.byType(RawImage),
+      ),
+    );
+    expect(raw.image, isNull);
   });
 
   testWidgets('crossing the tablet size keeps every page and its scroll', (

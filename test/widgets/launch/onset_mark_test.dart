@@ -71,6 +71,13 @@ Future<_Pixels> _decode(String path) async {
   return pixels;
 }
 
+class _Metrics with WidgetsBindingObserver {
+  int changes = 0;
+
+  @override
+  void didChangeMetrics() => changes++;
+}
+
 class _FailingBundle extends CachingAssetBundle {
   @override
   Future<ByteData> load(String key) async =>
@@ -228,6 +235,129 @@ void main() {
     });
   });
 
+  group('the variant', () {
+    test('never smaller than the screen needs: the smallest at or above the '
+        'pixel ratio, as Android picks its density bucket', () {
+      for (final (dpr, variant) in [
+        (0.75, ''),
+        (1.0, ''),
+        (1.2, '1.5x/'),
+        (1.5, '1.5x/'),
+        (1.75, '2.0x/'),
+        (2.0, '2.0x/'),
+        (2.5, '3.0x/'),
+        (2.625, '3.0x/'),
+        (2.75, '3.0x/'),
+        (3.0, '3.0x/'),
+        (3.5, '4.0x/'),
+        (4.0, '4.0x/'),
+        (5.0, '4.0x/'),
+      ]) {
+        final image = OnsetMark.imageFor(30, devicePixelRatio: dpr);
+        expect(
+          image.assetName,
+          'assets/icons/${variant}onset_logo_30.png',
+          reason: 'at $dpr',
+        );
+        final scale = variant.isEmpty
+            ? 1.0
+            : double.parse(variant.substring(0, variant.length - 2));
+        expect(image.scale, scale, reason: 'at $dpr');
+      }
+    });
+
+    test('at each Android density, the 72 dp tile is the splash bitmap\'s '
+        'twin', () {
+      for (final ratio in _densities.keys) {
+        expect(
+          OnsetMark.imageFor(72, devicePixelRatio: ratio).assetName,
+          _flutterAsset(72, ratio),
+        );
+      }
+    });
+  });
+
+  group('precacheFor', () {
+    setUp(() {
+      imageCache
+        ..clear()
+        ..clearLiveImages();
+    });
+
+    AssetBundleImageKey key(String name, double scale) =>
+        AssetBundleImageKey(bundle: rootBundle, name: name, scale: scale);
+
+    testWidgets('a sized view: the intro\'s tile and the header\'s, at its '
+        'pixel ratio', (tester) async {
+      tester.view
+        ..physicalSize = const Size(1170, 2532)
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.runAsync(() => OnsetMark.precacheFor(tester.view));
+      expect(
+        imageCache.containsKey(key('assets/icons/3.0x/onset_logo_72.png', 3)),
+        isTrue,
+      );
+      expect(
+        imageCache.containsKey(key('assets/icons/3.0x/onset_logo_30.png', 3)),
+        isTrue,
+      );
+    });
+
+    testWidgets('before the first metrics: waits for them, then caches the '
+        'variant of the real pixel ratio', (tester) async {
+      // What the engine reports at the very start of main(): no size yet,
+      // and the default ratio of 1.
+      tester.view
+        ..physicalSize = Size.zero
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.runAsync(() async {
+        final done = OnsetMark.precacheFor(tester.view);
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        // The ratio first (still no size: it keeps waiting), then the size.
+        tester.view.devicePixelRatio = 3;
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        tester.view.physicalSize = const Size(1170, 2532);
+        await done;
+      });
+      expect(
+        imageCache.containsKey(key('assets/icons/3.0x/onset_logo_72.png', 3)),
+        isTrue,
+      );
+      expect(
+        imageCache.containsKey(key('assets/icons/3.0x/onset_logo_30.png', 3)),
+        isTrue,
+      );
+      expect(
+        imageCache.containsKey(key('assets/icons/onset_logo_72.png', 1)),
+        isFalse,
+      );
+    });
+
+    testWidgets('metrics that never come: it gives up within its cap, and '
+        'later metrics still reach the app', (tester) async {
+      tester.view
+        ..physicalSize = Size.zero
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final watch = Stopwatch()..start();
+      await tester.runAsync(
+        () => OnsetMark.precacheFor(
+          tester.view,
+          timeout: const Duration(milliseconds: 100),
+        ),
+      );
+      expect(watch.elapsed, lessThan(const Duration(seconds: 2)));
+      final observer = _Metrics();
+      tester.binding.addObserver(observer);
+      addTearDown(() => tester.binding.removeObserver(observer));
+      tester.view.physicalSize = const Size(390, 844);
+      expect(observer.changes, greaterThan(0));
+      expect(tester.takeException(), isNull);
+    });
+  });
+
   group('OnsetMarkTile', () {
     for (final MapEntry(key: size, value: family) in _families.entries) {
       testWidgets('at ${size.toInt()} dp: the icon from the $family dp family '
@@ -237,8 +367,9 @@ void main() {
 
         final image = tester.widget<Image>(_inTile(Image));
         expect(
-          (image.image as AssetImage).assetName,
-          'assets/icons/onset_logo_$family.png',
+          (image.image as ExactAssetImage).assetName,
+          // This test's pixel ratio is 3: the 3.0x variant.
+          'assets/icons/3.0x/onset_logo_$family.png',
         );
         expect(image.filterQuality, FilterQuality.medium);
         expect(image.gaplessPlayback, isTrue);
@@ -268,8 +399,9 @@ void main() {
         await tester.pumpWidget(_tile(OnsetMarkTile(drawnSize: drawn)));
         final image = tester.widget<Image>(_inTile(Image));
         expect(
-          (image.image as AssetImage).assetName,
-          'assets/icons/onset_logo_$family.png',
+          (image.image as ExactAssetImage).assetName,
+          // This test's pixel ratio is 3: the 3.0x variant.
+          'assets/icons/3.0x/onset_logo_$family.png',
           reason: 'drawn at $drawn',
         );
         // Laid out at its own size all the same.
@@ -345,7 +477,7 @@ void main() {
       await tester.pumpWidget(_tile(const OnsetMarkTile()));
       final image = tester.widget<Image>(_inTile(Image));
       final resolved = await tester.runAsync(
-        () => (image.image as AssetImage).obtainKey(
+        () => (image.image as ExactAssetImage).obtainKey(
           ImageConfiguration(bundle: rootBundle, devicePixelRatio: 3),
         ),
       );

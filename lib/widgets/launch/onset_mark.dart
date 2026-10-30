@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show FlutterView;
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -12,9 +13,11 @@ import 'package:onset/theme.dart';
 /// The icon is bundled downscaled, one family per tile size (30, 52 and
 /// 72 dp, each with its 1.5x–4.0x variants), written by
 /// `tool/onset_logo_assets.py`. The Android splash draws the 72 dp family's
-/// very pixels with the same 20 dp corners
-/// (`res/drawable-*dpi/launch_tile.png`, checked by a test), so the native
-/// splash hands over to the Flutter intro without a visible change.
+/// pixels with the same 20 dp corners (`res/drawable-*dpi/launch_tile.png`,
+/// checked by a test), and [imageFor] picks the bitmap Android picks: the
+/// native splash hands over to the Flutter intro pixel for pixel at
+/// Android's densities (1, 1.5, 2, 3, 4), and up to resampling between
+/// them.
 abstract final class OnsetMark {
   /// Side of the launch boards' tile, the size the intro draws it at.
   static const designSize = 72.0;
@@ -30,16 +33,37 @@ abstract final class OnsetMark {
   /// The bundled families, by the tile side they are sized for.
   static const _families = [30, 52, 72];
 
-  /// The icon for a [size] dp tile: the smallest family at least that
-  /// large (the largest beyond it). Flutter picks the variant for the
-  /// device's pixel ratio.
-  static AssetImage imageFor(double size) {
+  /// The bundled variants of each family, by pixel ratio.
+  static const _ratios = [1.0, 1.5, 2.0, 3.0, 4.0];
+
+  /// The icon for a [size] dp tile at [devicePixelRatio]: the smallest
+  /// family at least that large (the largest beyond it), in the smallest
+  /// variant at least that dense (the densest beyond it).
+  ///
+  /// Chosen here rather than by [AssetImage], which takes the nearest
+  /// variant above a 2.0 ratio: on a 2.5 or 3.5 screen it would pick 2.0x
+  /// or 3.0x and upscale it, soft. Never upscaling is also how Android
+  /// picks the splash's density bucket (1, 1.5, 2, 3, 4), so the 72 dp tile
+  /// starts from the very bitmap the splash drew from: the same pixels at
+  /// those ratios, each scaling that same bitmap down in between.
+  static ExactAssetImage imageFor(
+    double size, {
+    required double devicePixelRatio,
+  }) {
     // A scaled size is rarely exact: 30.000001 is still the 30 dp tile.
     final family = _families.firstWhere(
       (side) => side >= size - 0.01,
       orElse: () => _families.last,
     );
-    return AssetImage('assets/icons/onset_logo_$family.png');
+    final ratio = _ratios.firstWhere(
+      (r) => r >= devicePixelRatio - 0.001,
+      orElse: () => _ratios.last,
+    );
+    final folder = ratio == 1 ? '' : '${ratio.toStringAsFixed(1)}x/';
+    return ExactAssetImage(
+      'assets/icons/${folder}onset_logo_$family.png',
+      scale: ratio,
+    );
   }
 
   /// Decodes the icon for a [size] dp tile at [devicePixelRatio] into the
@@ -64,14 +88,19 @@ abstract final class OnsetMark {
     }
 
     listener = ImageStreamListener(
-      (_, _) => finish(),
+      // The cache keeps its own handle; this one is released at once, as
+      // Flutter's precacheImage does.
+      (info, _) {
+        info.dispose();
+        finish();
+      },
       onError: (error, _) {
         debugPrint('ONSET mark not precached: ${error.runtimeType}');
         finish();
       },
     );
     try {
-      stream = imageFor(size).resolve(
+      stream = imageFor(size, devicePixelRatio: devicePixelRatio).resolve(
         ImageConfiguration(
           bundle: bundle ?? rootBundle,
           devicePixelRatio: devicePixelRatio,
@@ -84,6 +113,60 @@ abstract final class OnsetMark {
       finish();
     }
     return done.future.timeout(timeout, onTimeout: finish);
+  }
+
+  /// What main() decodes before runApp, so the first frames have their
+  /// image instead of a plain tile and a pop: the intro's 72 dp tile (its
+  /// first frame replaces the Android splash) and the header's 30 dp one
+  /// (shown at once when no intro plays), at [view]'s pixel ratio, in
+  /// parallel.
+  ///
+  /// At the very start of main() the engine may not have sent the window's
+  /// metrics yet: the view then reports no size and a ratio of 1, and the
+  /// 1.0x variants would be cached for nothing. It waits for the first
+  /// metrics first. All of it within [timeout]; never throws.
+  static Future<void> precacheFor(
+    FlutterView view, {
+    AssetBundle? bundle,
+    Duration timeout = const Duration(milliseconds: 300),
+  }) async {
+    final clock = Stopwatch()..start();
+    if (view.physicalSize.isEmpty) await _firstMetrics(view, timeout);
+    final left = timeout - clock.elapsed;
+    if (view.physicalSize.isEmpty || left <= Duration.zero) return;
+    await Future.wait([
+      for (final size in [designSize, _families.first.toDouble()])
+        precache(
+          devicePixelRatio: view.devicePixelRatio,
+          size: size,
+          bundle: bundle,
+          timeout: left,
+        ),
+    ]);
+  }
+
+  /// Completes once [view] has a size, or after [timeout]. Listens as a
+  /// binding observer, removed afterwards: the framework's own metrics
+  /// handler is left alone.
+  static Future<void> _firstMetrics(FlutterView view, Duration timeout) {
+    final binding = WidgetsBinding.instance;
+    final observer = _FirstMetrics(view);
+    binding.addObserver(observer);
+    return observer.sized.future
+        .timeout(timeout, onTimeout: () {})
+        .whenComplete(() => binding.removeObserver(observer));
+  }
+}
+
+class _FirstMetrics with WidgetsBindingObserver {
+  final FlutterView view;
+  final sized = Completer<void>();
+
+  _FirstMetrics(this.view);
+
+  @override
+  void didChangeMetrics() {
+    if (!view.physicalSize.isEmpty && !sized.isCompleted) sized.complete();
   }
 }
 
@@ -148,7 +231,12 @@ class OnsetMarkTile extends StatelessWidget {
                   child: Transform.scale(
                     scale: markScale,
                     child: Image(
-                      image: OnsetMark.imageFor(drawnSize ?? size),
+                      image: OnsetMark.imageFor(
+                        drawnSize ?? size,
+                        devicePixelRatio: MediaQuery.devicePixelRatioOf(
+                          context,
+                        ),
+                      ),
                       width: size,
                       height: size,
                       fit: BoxFit.cover,
