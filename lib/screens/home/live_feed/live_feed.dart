@@ -1376,11 +1376,18 @@ class _PhonePage extends StatelessWidget {
               child: Semantics(
                 label: '$name live preview. Opens the channel',
                 button: true,
-                onTap: onOpen,
+                // The node alone takes the actions (a finger's tap preloads on
+                // touch-down, a screen reader's does both at once): a detector in
+                // semantics too would split off as a second, unlabelled node.
+                onTap: () {
+                  onPreload();
+                  onOpen();
+                },
                 onLongPress: onEnlarge,
                 onLongPressHint: showThumbnail ? 'enlarge' : 'Channel actions',
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
+                  excludeFromSemantics: true,
                   onTapDown: (_) => onPreload(),
                   onTap: onOpen,
                   onLongPress: onEnlarge,
@@ -1665,11 +1672,18 @@ class _TabletPage extends StatelessWidget {
             child: Semantics(
               label: '$name live preview. Opens the channel',
               button: true,
-              onTap: onOpen,
+              // The node alone takes the actions (a finger's tap preloads on
+              // touch-down, a screen reader's does both at once): a detector in
+              // semantics too would split off as a second, unlabelled node.
+              onTap: () {
+                onPreload();
+                onOpen();
+              },
               onLongPress: onEnlarge,
               onLongPressHint: showThumbnail ? 'enlarge' : 'Channel actions',
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
+                excludeFromSemantics: true,
                 onTapDown: (_) => onPreload(),
                 onTap: onOpen,
                 onLongPress: onEnlarge,

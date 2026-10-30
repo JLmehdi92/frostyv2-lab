@@ -395,95 +395,124 @@ void main() {
         semantics.dispose();
       });
 
-      testWidgets('the live feed, with a content warning', (tester) async {
-        final semantics = tester.ensureSemantics();
-        useSize(tester, size);
-        final api = _MockTwitchApi();
-        final auth = _MockAuthStore();
-        final user = _MockUserStore();
-        final settings = SettingsStore.fromJson({});
-        final mini = MiniPlayerStore();
-        when(() => auth.user).thenReturn(user);
-        when(() => auth.isLoggedIn).thenReturn(true);
-        when(() => auth.twitchWebToken).thenReturn(null);
-        when(
-          () => user.details,
-        ).thenReturn(const UserTwitch('7', 'me', 'Me', ''));
-        when(() => user.blockedUsers).thenReturn(ObservableList());
-        when(
-          () => api.getTopStreams(
-            cursor: any(named: 'cursor'),
-            language: any(named: 'language'),
-          ),
-        ).thenAnswer(
-          (_) async => StreamsTwitch([
-            for (var i = 1; i <= 4; i++) _stream(i),
-          ], const {}),
-        );
-        when(
-          () => api.getUser(userLogin: any(named: 'userLogin')),
-        ).thenAnswer((_) => Future.error(Exception('offline')));
-        when(() => api.getChannelsByIds(any())).thenAnswer(
-          (invocation) async => {
-            for (final id in invocation.positionalArguments.first as List)
-              id as String: Channel(
-                broadcasterId: id,
-                broadcasterLogin: 'login$id',
-                broadcasterName: 'Name $id',
-                broadcasterLanguage: 'fr',
-                title: 'Title $id',
-                gameId: '',
-                gameName: '',
-                contentClassificationLabels: const ['MatureGame'],
-              ),
-          },
-        );
-        AcceptedContentWarnings.reset();
-        addTearDown(AcceptedContentWarnings.reset);
-        final store = LiveFeedStore(
-          authStore: auth,
-          settingsStore: settings,
-          twitchApi: api,
-        );
-        final controller = PageController();
-        final preview = LivePreviewController(
-          resolveUrl: (login, CancelToken cancel) async =>
-              'https://usher/$login',
-          createBackend: _Preview.new,
-        );
-        await tester.pumpWidget(
-          MultiProvider(
-            providers: [
-              Provider<AuthStore>.value(value: auth),
-              Provider<SettingsStore>.value(value: settings),
-              Provider<TwitchApi>.value(value: api),
-              Provider<MiniPlayerStore>.value(value: mini),
-            ],
-            child: _app(
-              Scaffold(
-                body: LiveFeed(
-                  store: store,
-                  controller: controller,
-                  active: true,
-                  preview: preview,
-                  isMetered: () async => true,
-                  meteredChanges: const Stream.empty(),
+      for (final warned in [true, false]) {
+        testWidgets('the live feed, ${warned ? 'with' : 'without'} a content '
+            'warning', (tester) async {
+          final semantics = tester.ensureSemantics();
+          useSize(tester, size);
+          final api = _MockTwitchApi();
+          final auth = _MockAuthStore();
+          final user = _MockUserStore();
+          final settings = SettingsStore.fromJson({});
+          final mini = MiniPlayerStore();
+          when(() => auth.user).thenReturn(user);
+          when(() => auth.isLoggedIn).thenReturn(true);
+          when(() => auth.twitchWebToken).thenReturn(null);
+          when(
+            () => user.details,
+          ).thenReturn(const UserTwitch('7', 'me', 'Me', ''));
+          when(() => user.blockedUsers).thenReturn(ObservableList());
+          when(
+            () => api.getTopStreams(
+              cursor: any(named: 'cursor'),
+              language: any(named: 'language'),
+            ),
+          ).thenAnswer(
+            (_) async => StreamsTwitch([
+              for (var i = 1; i <= 4; i++) _stream(i),
+            ], const {}),
+          );
+          when(
+            () => api.getUser(userLogin: any(named: 'userLogin')),
+          ).thenAnswer((_) => Future.error(Exception('offline')));
+          when(() => api.getChannelsByIds(any())).thenAnswer(
+            (invocation) async => {
+              for (final id in invocation.positionalArguments.first as List)
+                id as String: Channel(
+                  broadcasterId: id,
+                  broadcasterLogin: 'login$id',
+                  broadcasterName: 'Name $id',
+                  broadcasterLanguage: 'fr',
+                  title: 'Title $id',
+                  gameId: '',
+                  gameName: '',
+                  contentClassificationLabels: warned
+                      ? const ['MatureGame']
+                      : const [],
+                ),
+            },
+          );
+          AcceptedContentWarnings.reset();
+          addTearDown(AcceptedContentWarnings.reset);
+          final store = LiveFeedStore(
+            authStore: auth,
+            settingsStore: settings,
+            twitchApi: api,
+          );
+          final controller = PageController();
+          final opened = <String>[];
+          final preview = LivePreviewController(
+            resolveUrl: (login, CancelToken cancel) async =>
+                'https://usher/$login',
+            createBackend: _Preview.new,
+          );
+          await tester.pumpWidget(
+            MultiProvider(
+              providers: [
+                Provider<AuthStore>.value(value: auth),
+                Provider<SettingsStore>.value(value: settings),
+                Provider<TwitchApi>.value(value: api),
+                Provider<MiniPlayerStore>.value(value: mini),
+              ],
+              child: _app(
+                Scaffold(
+                  body: LiveFeed(
+                    store: store,
+                    controller: controller,
+                    active: true,
+                    preview: preview,
+                    isMetered: () async => true,
+                    meteredChanges: const Stream.empty(),
+                    channelRoute: (stream) {
+                      opened.add(stream.userLogin);
+                      return MaterialPageRoute<void>(
+                        builder: (_) => const Scaffold(body: Text('channel')),
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
-          ),
-        );
-        for (var i = 0; i < 5; i++) {
-          await tester.pump(const Duration(milliseconds: 100));
-        }
-        expectNoSilentButtons(tester, reason: 'live feed');
-        await tester.pumpWidget(const SizedBox());
-        preview.dispose();
-        store.dispose();
-        controller.dispose();
-        await tester.pump();
-        semantics.dispose();
-      });
+          );
+          for (var i = 0; i < 5; i++) {
+            await tester.pump(const Duration(milliseconds: 100));
+          }
+          expectNoSilentButtons(tester, reason: 'live feed');
+          if (warned) {
+            // The warning's pill stays its own node, pressable.
+            expect(
+              tester.getSemantics(
+                find.bySemanticsLabel('Content warning. Play preview'),
+              ),
+              containsSemantics(hasTapAction: true),
+            );
+          } else {
+            // Pressed through its node, the preview opens the channel once.
+            tester.semantics.tap(
+              find.semantics.byLabel('Name 1 live preview. Opens the channel'),
+            );
+            await tester.pump();
+            await tester.pump(const Duration(milliseconds: 500));
+            expect(opened, ['login1']);
+          }
+          await tester.pumpWidget(const SizedBox());
+          preview.dispose();
+          store.dispose();
+          controller.dispose();
+          await tester.pump();
+          semantics.dispose();
+        });
+      }
 
       testWidgets('the onboarding setup', (tester) async {
         final semantics = tester.ensureSemantics();
