@@ -541,7 +541,6 @@ void main() {
                 loadLiveStreams: () async => const [],
                 loginPanelBuilder: (context, onSignedIn, onTokenCaptured) =>
                     const SizedBox.expand(),
-                onShareCrashLogsChanged: (_) {},
                 homeBuilder: (_) => const Scaffold(body: Text('home')),
               ),
             ),

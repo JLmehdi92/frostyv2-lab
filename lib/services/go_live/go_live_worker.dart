@@ -12,6 +12,7 @@ import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/services/go_live/go_live.dart';
 import 'package:onset/services/notifications/activity_log.dart';
 import 'package:onset/services/telemetry.dart';
+import 'package:onset/services/telemetry_consent.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 
@@ -59,7 +60,7 @@ Future<void> _initTelemetry() async {
   } catch (e) {
     debugPrint('Go-live check: settings unreadable: $e');
   }
-  Telemetry.setCollectionEnabled(!kDebugMode && shared);
+  setFirebaseCollection(shared);
 }
 
 /// The background entry point (its own isolate).

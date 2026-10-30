@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:ui' show lerpDouble;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
@@ -16,7 +15,6 @@ import 'package:onset/screens/onboarding/onboarding_setup.dart';
 import 'package:onset/screens/onboarding/onboarding_welcome.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
-import 'package:onset/services/telemetry.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/launch/launch_intro.dart';
@@ -65,17 +63,6 @@ enum OnboardingStep {
   };
 }
 
-/// Whether Firebase collects, for the "Share crash logs and analytics"
-/// setting [shared]: never in a debug build (as `main.dart` sets it), so
-/// development never pollutes the data.
-bool firebaseCollectionFor(bool shared) => shared && !kDebugMode;
-
-/// Turns the Firebase collection on or off, as the setting says (see
-/// [firebaseCollectionFor]).
-/// Nothing without Firebase (see [Telemetry]).
-void setFirebaseCollection(bool shared) =>
-    Telemetry.setCollectionEnabled(firebaseCollectionFor(shared));
-
 /// The first launch (boards Onboarding, OnboardingTablette, OnboardingEtapes):
 /// Intro, Log in (with the Twitch page), Setup, Welcome, then the app.
 ///
@@ -98,7 +85,6 @@ class OnboardingFlow extends StatefulWidget {
     super.key,
     this.loadLiveStreams,
     this.loginPanelBuilder,
-    this.onShareCrashLogsChanged,
     this.homeBuilder,
   });
 
@@ -110,10 +96,6 @@ class OnboardingFlow extends StatefulWidget {
   /// The Twitch page; [TwitchLoginPanel] by default.
   @visibleForTesting
   final LoginPanelBuilder? loginPanelBuilder;
-
-  /// What turns crash reports on or off; [setFirebaseCollection] by default.
-  @visibleForTesting
-  final ValueChanged<bool>? onShareCrashLogsChanged;
 
   /// The app opened at the end; [Home] by default.
   @visibleForTesting
@@ -751,8 +733,6 @@ class _OnboardingFlowState extends State<OnboardingFlow>
           auth: _auth,
           login: _login,
           preview: _streams.isEmpty ? null : _streams.first,
-          onShareCrashLogsChanged:
-              widget.onShareCrashLogsChanged ?? setFirebaseCollection,
           onNext: () => _go(OnboardingStep.welcome, forward: true),
         );
       case OnboardingStep.welcome:

@@ -5,8 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:onset/apis/firebase_performance_interceptor.dart';
-import 'package:onset/screens/onboarding/onboarding_flow.dart';
 import 'package:onset/services/telemetry.dart';
+import 'package:onset/services/telemetry_consent.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -136,7 +136,7 @@ void main() {
       expect(Telemetry.collecting, isFalse);
     });
 
-    test('the onboarding privacy choice does not throw', () {
+    test('the privacy choice does not throw', () {
       expect(() => setFirebaseCollection(true), returnsNormally);
       expect(() => setFirebaseCollection(false), returnsNormally);
     });

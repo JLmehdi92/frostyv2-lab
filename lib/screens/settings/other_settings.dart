@@ -11,7 +11,6 @@ import 'package:onset/screens/settings/widgets/settings_page.dart';
 import 'package:onset/screens/settings/widgets/update_check_tile.dart';
 import 'package:onset/services/cache_manager.dart';
 import 'package:onset/services/onset_updater.dart';
-import 'package:onset/services/telemetry.dart';
 import 'package:onset/widgets/alert_message.dart';
 import 'package:provider/provider.dart';
 
@@ -103,9 +102,8 @@ List<Widget> otherSettingsGroups(
             ),
             value: settingsStore.shareCrashLogsAndAnalytics,
             onChanged: (newValue) {
+              // The app follows it (syncFirebaseCollection).
               settingsStore.shareCrashLogsAndAnalytics = newValue;
-              // Nothing more in a build without Firebase.
-              Telemetry.setCollectionEnabled(newValue);
             },
           ),
         ),

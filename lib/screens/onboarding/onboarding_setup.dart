@@ -41,7 +41,6 @@ class OnboardingSetupStep extends StatefulWidget {
     required this.auth,
     required this.login,
     required this.preview,
-    required this.onShareCrashLogsChanged,
     required this.onNext,
   });
 
@@ -56,8 +55,6 @@ class OnboardingSetupStep extends StatefulWidget {
   /// The live channel the preview shows, when one could be had.
   final StreamTwitch? preview;
 
-  /// Turns the Firebase collection on or off with the setting.
-  final ValueChanged<bool> onShareCrashLogsChanged;
   final VoidCallback onNext;
 
   @override
@@ -208,8 +205,8 @@ class _OnboardingSetupStepState extends State<OnboardingSetupStep> {
                         ),
                         value: settings.shareCrashLogsAndAnalytics,
                         onChanged: (value) {
+                          // The app follows it (syncFirebaseCollection).
                           settings.shareCrashLogsAndAnalytics = value;
-                          widget.onShareCrashLogsChanged(value);
                         },
                       ),
                     ),

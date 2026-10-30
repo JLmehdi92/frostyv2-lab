@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:advanced_in_app_review/advanced_in_app_review.dart';
 import 'package:app_links/app_links.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -54,6 +53,7 @@ import 'package:onset/services/onset_updater.dart';
 import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 import 'package:onset/services/realtime/twitch_realtime_client.dart';
 import 'package:onset/services/telemetry.dart';
+import 'package:onset/services/telemetry_consent.dart';
 import 'package:onset/stores/global_assets_store.dart';
 import 'package:onset/stores/mini_player_store.dart';
 import 'package:onset/stores/whisper_store.dart';
@@ -123,11 +123,10 @@ void main() async {
   // Initialize a settings store from the settings JSON string.
   final settingsStore = SettingsStore.fromJson(jsonDecode(userSettings));
 
-  // Disable Firebase collection in debug builds to avoid polluting production data.
-  // In release builds, respect the user's preference.
-  Telemetry.setCollectionEnabled(
-    !kDebugMode && settingsStore.shareCrashLogsAndAnalytics,
-  );
+  // Firebase collects as the setting says, now and whenever it changes (the
+  // switch, the onboarding, a reset); never in a debug build. Kept for the
+  // app's lifetime.
+  syncFirebaseCollection(settingsStore);
 
   // Create a MobX reaction that will save the settings on disk every time they are changed.
   autorun((_) => prefs.setString('settings', jsonEncode(settingsStore)));

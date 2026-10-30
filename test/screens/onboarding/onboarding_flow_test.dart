@@ -51,7 +51,6 @@ const _tabletPortrait = Size(854, 1280);
 void main() {
   late SettingsStore settings;
   late FakeAuthStore auth;
-  late List<bool> crashChoices;
   late List<List<String>> orientations;
   VoidCallback? signIn;
   ValueChanged<Future<bool>>? tokenBack;
@@ -67,7 +66,6 @@ void main() {
     );
     settings = SettingsStore.fromJson({});
     auth = FakeAuthStore();
-    crashChoices = [];
     orientations = [];
     signIn = null;
     tokenBack = null;
@@ -91,7 +89,6 @@ void main() {
         color: Color(0xFF111111),
       );
     },
-    onShareCrashLogsChanged: crashChoices.add,
     homeBuilder: home ?? (_) => const Scaffold(body: Text('home')),
   );
 
@@ -497,12 +494,6 @@ void main() {
       });
     }
 
-    test('a debug build never collects, whatever the switch says', () {
-      // Tests run in debug mode.
-      expect(firebaseCollectionFor(true), isFalse);
-      expect(firebaseCollectionFor(false), isFalse);
-    });
-
     testWidgets('the live pictures are asked quietly (no "Session expired" '
         'over the onboarding)', (tester) async {
       final api = MockTwitchApi();
@@ -523,7 +514,6 @@ void main() {
           child: MaterialApp(
             home: OnboardingFlow(
               loginPanelBuilder: (_, _, _) => const SizedBox(),
-              onShareCrashLogsChanged: (_) {},
             ),
           ),
         ),
@@ -544,8 +534,8 @@ void main() {
       await tester.pump();
       await tester.tap(find.byType(OnboardingSwitch).at(1));
       await tester.pump();
+      // The app turns the collection on from the setting (main.dart).
       expect(settings.shareCrashLogsAndAnalytics, isTrue);
-      expect(crashChoices, [true]);
     });
   });
 
