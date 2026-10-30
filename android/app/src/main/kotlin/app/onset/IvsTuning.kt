@@ -12,8 +12,7 @@ private const val TUNING_TAG = "OnsetIVS"
  * Low-latency tuning for a native IVS player, sent from Dart as the `config`
  * map of `onset/ivs-texture-manager.create` (see `IvsPlayerConfig`).
  *
- * Defaults match the official Twitch app: live catch-up by speeding playback
- * up (not by jumping to live), a 100 ms initial buffer and the IVS default
+ * Defaults: live catch-up by speeding playback up (not by jumping to live), a 100 ms initial buffer and the IVS default
  * low-latency buffer targets.
  */
 data class IvsTuning(
