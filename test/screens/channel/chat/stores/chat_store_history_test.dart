@@ -440,4 +440,287 @@ void main() {
       async.elapse(const Duration(seconds: 30));
     });
   });
+
+  group('review fixes', () {
+    final liveTs = DateTime.utc(2026, 10, 30, 13).millisecondsSinceEpoch;
+
+    test('a reply never sends an id that is not id-shaped', () {
+      fakeAsync((async) {
+        final store = create(webToken: null);
+        async.flushMicrotasks();
+        final irc = sockets.single..receive(_welcome);
+        async.flushMicrotasks();
+
+        store.replyingToMessage = IRCMessage(
+          raw: '',
+          command: Command.privateMessage,
+          tags: {'id': 'x\r\nPRIVMSG #other :pwn', 'display-name': 'A'},
+        );
+        store.sendMessage('hi');
+        final hostile = irc.sent.last as String;
+        expect(hostile, isNot(contains('\r')));
+        expect(hostile, isNot(contains('\n')));
+        expect(hostile, 'PRIVMSG #channel :hi');
+
+        // The send timeout frees the input for the next message.
+        async.elapse(const Duration(seconds: 11));
+        store.replyingToMessage = IRCMessage(
+          raw: '',
+          command: Command.privateMessage,
+          tags: {'id': '0a1b2c3d-4e5f-6789-abcd-ef0123456789'},
+        );
+        store.sendMessage('yo');
+        expect(
+          irc.sent.last,
+          '@reply-parent-msg-id=0a1b2c3d-4e5f-6789-abcd-ef0123456789 '
+          'PRIVMSG #channel :yo',
+        );
+        store.dispose();
+        async.elapse(const Duration(seconds: 30));
+      });
+    });
+
+    test('a recent-messages string is split into lines, as IRC is', () {
+      fakeAsync((async) {
+        settings.showRecentMessages = true;
+        answerRobotty(
+          () async => [
+            '@id=r1\r\nPRIVMSG;x=y :old!old@old.tmi.twitch.tv PRIVMSG '
+                '#channel :hi',
+            '@id=r2 :old!old@old.tmi.twitch.tv PRIVMSG #channel :one\r\n'
+                '@id=r3 :old!old@old.tmi.twitch.tv PRIVMSG #channel :two\n'
+                '@id=r4 :old!old@old.tmi.twitch.tv PRIVMSG #channel :three',
+          ],
+        );
+        final store = create(webToken: null);
+        async.flushMicrotasks();
+        for (final message in store.messages) {
+          for (final value in message.tags.values) {
+            expect(value, isNot(matches(RegExp(r'[\r\n]'))));
+          }
+        }
+        expect(ids(store).take(3), ['r2', 'r3', 'r4']);
+        expect(
+          store.messages.take(3).map((m) => m.tags['historical']),
+          everyElement('1'),
+        );
+        store.dispose();
+        async.elapse(const Duration(seconds: 30));
+      });
+    });
+
+    test('a recent-messages line cannot unmark itself as history', () {
+      expect(
+        ChatStoreBase.markHistorical('@historical=0;id=a :x PRIVMSG #c :hi'),
+        '@historical=1;id=a :x PRIVMSG #c :hi',
+      );
+      expect(
+        ChatStoreBase.markHistorical('@id=a;historical= :x PRIVMSG #c :hi'),
+        '@historical=1;id=a :x PRIVMSG #c :hi',
+      );
+      expect(
+        ChatStoreBase.markHistorical(
+          '@historical=1;id=a;historical=0 :x PRIVMSG #c :hi',
+        ),
+        '@historical=1;id=a :x PRIVMSG #c :hi',
+      );
+    });
+
+    test('an unexpected failure while loading is caught', () {
+      fakeAsync((async) {
+        final user = _MockUserStore();
+        when(
+          () => user.details,
+        ).thenReturn(const UserTwitch('1', 'me', 'Me', ''));
+        when(() => user.blockedUsers).thenThrow(StateError('broken'));
+        answerHistory(() async => [_history('h1')]);
+        final store = create(user: user);
+        async.flushMicrotasks();
+        expect(sockets, hasLength(1));
+        expect(ids(store), isNot(contains('h1')));
+        store.dispose();
+        async.elapse(const Duration(seconds: 30));
+      });
+    });
+
+    group('live moderation before the history lands', () {
+      late Completer<List<ChatHistoryMessage>> history;
+      late ChatStore store;
+
+      void join() {
+        history = Completer();
+        answerHistory(() => history.future);
+        store = create();
+      }
+
+      test('a timeout marks that user\'s history lines', () {
+        fakeAsync((async) {
+          join();
+          async.flushMicrotasks();
+          sockets.single
+            ..receive(_welcome)
+            ..receive(
+              '@ban-duration=600;room-id=12345;target-user-id=90;'
+              'tmi-sent-ts=$liveTs :tmi.twitch.tv CLEARCHAT #channel :chatter',
+            );
+          async.elapse(const Duration(milliseconds: 250));
+          history.complete([
+            _history('h1'),
+            _history('h2', login: 'other', minute: 1),
+          ]);
+          async.flushMicrotasks();
+
+          final h1 = store.messages.singleWhere((m) => m.tags['id'] == 'h1');
+          expect(h1.command, Command.clearChat);
+          expect(h1.tags['ban-duration'], '600');
+          final h2 = store.messages.singleWhere((m) => m.tags['id'] == 'h2');
+          expect(h2.command, Command.privateMessage);
+          store.dispose();
+          async.elapse(const Duration(seconds: 30));
+        });
+      });
+
+      test('a deleted message is deleted in the history', () {
+        fakeAsync((async) {
+          join();
+          async.flushMicrotasks();
+          sockets.single
+            ..receive(_welcome)
+            ..receive(
+              '@login=chatter;room-id=12345;target-msg-id=h1;'
+              'tmi-sent-ts=$liveTs :tmi.twitch.tv CLEARMSG #channel :old line',
+            );
+          async.elapse(const Duration(milliseconds: 250));
+          history.complete([_history('h1'), _history('h2', minute: 1)]);
+          async.flushMicrotasks();
+
+          expect(
+            store.messages.singleWhere((m) => m.tags['id'] == 'h1').command,
+            Command.clearMessage,
+          );
+          expect(
+            store.messages.singleWhere((m) => m.tags['id'] == 'h2').command,
+            Command.privateMessage,
+          );
+          store.dispose();
+          async.elapse(const Duration(seconds: 30));
+        });
+      });
+
+      test('a cleared chat stays cleared', () {
+        fakeAsync((async) {
+          join();
+          async.flushMicrotasks();
+          sockets.single
+            ..receive(_welcome)
+            ..receive(
+              '@room-id=12345;tmi-sent-ts=$liveTs '
+              ':tmi.twitch.tv CLEARCHAT #channel',
+            );
+          async.elapse(const Duration(milliseconds: 250));
+          history.complete([_history('h1'), _history('h2', minute: 1)]);
+          async.flushMicrotasks();
+
+          expect(ids(store), isNot(contains('h1')));
+          expect(ids(store), isNot(contains('h2')));
+          expect(ids(store), contains('Chat was cleared by a moderator'));
+          store.dispose();
+          async.elapse(const Duration(seconds: 30));
+        });
+      });
+    });
+
+    group('recent-messages gift bombs and moderation', () {
+      const bombKey = '1234567890123456789';
+
+      setUp(() {
+        settings
+          ..showRecentMessages = true
+          ..collapseGiftBombs = true;
+      });
+
+      test('gifts fold into their header, and their live copies stay out', () {
+        fakeAsync((async) {
+          answerRobotty(
+            () async => [massGiftHeaderHistorical, ...massGiftRecipients],
+          );
+          final store = create(webToken: null);
+          async.flushMicrotasks();
+          expect(ids(store), contains('mystery-1'));
+          expect(
+            ids(store).where((id) => id!.startsWith('mystery-1-r')),
+            isEmpty,
+          );
+          expect(store.watchGiftBomb(bombKey)!.value.received, 5);
+
+          sockets.single
+            ..receive(_welcome)
+            ..receive(massGiftRecipient(3));
+          async.elapse(const Duration(milliseconds: 250));
+          expect(store.watchGiftBomb(bombKey)!.value.received, 5);
+          expect(
+            ids(store).where((id) => id!.startsWith('mystery-1-r')),
+            isEmpty,
+          );
+          expect(store.latestGiftBomb, isNull);
+          store.dispose();
+          async.elapse(const Duration(seconds: 30));
+        });
+      });
+
+      test('gifts already counted live are not counted again', () {
+        fakeAsync((async) {
+          final robotty = Completer<List<dynamic>>();
+          answerRobotty(() => robotty.future);
+          final store = create(webToken: null);
+          async.flushMicrotasks();
+          sockets.single
+            ..receive(_welcome)
+            ..receive(massGiftHeader)
+            ..receive(massGiftRecipient(1));
+          async.elapse(const Duration(milliseconds: 250));
+          expect(store.watchGiftBomb(bombKey)!.value.received, 1);
+
+          robotty.complete([massGiftHeaderHistorical, ...massGiftRecipients]);
+          async.flushMicrotasks();
+          expect(store.watchGiftBomb(bombKey)!.value.received, 5);
+          expect(ids(store).where((id) => id == 'mystery-1'), hasLength(1));
+          store.dispose();
+          async.elapse(const Duration(seconds: 30));
+        });
+      });
+
+      test('its timeouts and deletions apply to its own lines', () {
+        fakeAsync((async) {
+          settings.showModerationNotices = true;
+          answerRobotty(
+            () async => [
+              '@id=r1;tmi-sent-ts=1;user-id=90 '
+                  ':old!old@old.tmi.twitch.tv PRIVMSG #channel :one',
+              '@ban-duration=60;room-id=12345;target-user-id=90;'
+                  'tmi-sent-ts=2 :tmi.twitch.tv CLEARCHAT #channel :old',
+              '@id=r2;tmi-sent-ts=3;user-id=91 '
+                  ':other!other@other.tmi.twitch.tv PRIVMSG #channel :two',
+              '@login=other;target-msg-id=r2;tmi-sent-ts=4 '
+                  ':tmi.twitch.tv CLEARMSG #channel :two',
+            ],
+          );
+          final store = create(webToken: null);
+          async.flushMicrotasks();
+          final r1 = store.messages.singleWhere((m) => m.tags['id'] == 'r1');
+          expect(r1.command, Command.clearChat);
+          expect(r1.tags['ban-duration'], '60');
+          final r2 = store.messages.singleWhere((m) => m.tags['id'] == 'r2');
+          expect(r2.command, Command.clearMessage);
+          final notice = store.messages.where(
+            (m) => m.command == Command.notice && m.tags['historical'] == '1',
+          );
+          expect(notice, hasLength(1));
+          expect(store.restriction, isNull);
+          store.dispose();
+          async.elapse(const Duration(seconds: 30));
+        });
+      });
+    });
+  });
 }

@@ -15,6 +15,7 @@ import 'package:onset/models/emotes.dart';
 import 'package:onset/models/events.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/raid_arrival.dart';
+import 'package:onset/models/user_notice.dart';
 import 'package:onset/screens/channel/chat/chat_commands.dart';
 import 'package:onset/screens/channel/chat/chat_delay_queue.dart';
 import 'package:onset/screens/channel/chat/chat_history.dart' as history;
@@ -136,9 +137,29 @@ abstract class ChatStoreBase with Store {
   /// (null in tests and when not given).
   final TwitchChatHistoryService? chatHistory;
 
-  /// The ids of the history lines shown: the same message arriving live
-  /// afterwards is not shown twice.
+  /// The ids of the history lines shown (and of history gifts folded into
+  /// their bomb): the same message arriving live afterwards is not shown,
+  /// or counted, twice.
   final _historyIds = <String>{};
+
+  /// Whether the history is still on its way.
+  var _historyPending = true;
+
+  /// The deletions, timeouts and clears received live while the history
+  /// was on its way, to apply to it when it lands.
+  final _moderationBeforeHistory = <IRCMessage>[];
+
+  /// The ids of the notices handed to the gift-bomb tracker (the newest
+  /// [_maxTrackedNotices]), so a gift is never counted twice.
+  final _trackedNoticeIds = <String>{};
+
+  static const _maxTrackedNotices = 1000;
+
+  static final _lineBreak = RegExp(r'\r\n|\r|\n');
+
+  /// What a message id may look like in a reply the viewer sends: anything
+  /// else could carry its own IRC command into the viewer's connection.
+  static final _replyId = RegExp(r'^[A-Za-z0-9-]{1,64}$');
 
   /// Listens to the viewer's EventSub topics, to say what moderators
   /// decided about held messages (null in tests and when not given).
@@ -979,11 +1000,7 @@ abstract class ChatStoreBase with Store {
                 ? parsedIRCMessage.notice
                 : null;
             if (notice != null) {
-              final decision = _giftBombs.onNotice(
-                notice,
-                collapse: settings.collapseGiftBombs,
-                channelId: channelId,
-              );
+              final decision = _trackGiftBomb(parsedIRCMessage, notice);
               if (decision.banner case final banner?) {
                 _latestGiftBomb = banner;
               }
@@ -1009,6 +1026,7 @@ abstract class ChatStoreBase with Store {
             messageBuffer.add(parsedIRCMessage);
             break;
           case Command.clearChat:
+            if (_historyPending) _moderationBeforeHistory.add(parsedIRCMessage);
             IRCMessage.clearChat(
               messages: _messages,
               bufferedMessages: messageBuffer,
@@ -1029,6 +1047,7 @@ abstract class ChatStoreBase with Store {
             }
             break;
           case Command.clearMessage:
+            if (_historyPending) _moderationBeforeHistory.add(parsedIRCMessage);
             IRCMessage.clearMessage(
               messages: _messages,
               bufferedMessages: messageBuffer,
@@ -1631,9 +1650,15 @@ abstract class ChatStoreBase with Store {
     // Set waiting state for UI feedback
     _isWaitingForAck = true;
 
-    // Send the message to the IRC chat room.
+    // Send the message to the IRC chat room. The parent's id comes from
+    // chat (live, Twitch's history or a third party's): it is sent only if
+    // it looks like an id, so it cannot add a command to the line.
+    final replyId = replyingToMessage?.tags['id'];
+    final replyTo = replyId != null && _replyId.hasMatch(replyId)
+        ? replyId
+        : null;
     _channel?.sink.add(
-      '${replyingToMessage != null ? '@reply-parent-msg-id=${replyingToMessage!.tags['id']} ' : ''}PRIVMSG #$channelName :$message',
+      '${replyTo != null ? '@reply-parent-msg-id=$replyTo ' : ''}PRIVMSG #$channelName :$message',
     );
 
     // Text field and reply state cleared on USERSTATE confirmation (not optimistically)
@@ -1672,9 +1697,8 @@ abstract class ChatStoreBase with Store {
         userChatMessage.tags['user-id'] = auth.user.details!.id;
       }
 
-      if (replyingToMessage != null && replyingToMessage!.tags['id'] != null) {
-        userChatMessage.tags['reply-parent-msg-id'] =
-            replyingToMessage!.tags['id']!;
+      if (replyingToMessage != null && replyTo != null) {
+        userChatMessage.tags['reply-parent-msg-id'] = replyTo;
         userChatMessage.tags['reply-parent-display-name'] =
             replyingToMessage!.tags['display-name'] ?? '';
         userChatMessage.tags['reply-parent-msg-body'] =
@@ -1774,15 +1798,40 @@ abstract class ChatStoreBase with Store {
     timeRemaining = const Duration();
   }
 
-  /// [line] (one IRC line) tagged `historical=1`, unless it already is.
+  /// [line] (one IRC line) tagged `historical=1`: any other `historical`
+  /// tag it carries (`historical=0`, an empty one) is replaced, so a line
+  /// cannot pass for live.
   static String markHistorical(String line) {
     if (!line.startsWith('@')) return '@historical=1 $line';
     final end = line.indexOf(' ');
-    final tags = end == -1 ? line.substring(1) : line.substring(1, end);
-    if (tags.split(';').any((tag) => tag.startsWith('historical='))) {
+    final tags = (end == -1 ? line.substring(1) : line.substring(1, end)).split(
+      ';',
+    );
+    bool isMark(String tag) =>
+        tag == 'historical' || tag.startsWith('historical=');
+    final marks = tags.where(isMark);
+    if (marks.isNotEmpty && marks.every((tag) => tag == 'historical=1')) {
       return line;
     }
-    return '@historical=1;${line.substring(1)}';
+    final rest = tags.where((tag) => tag.isNotEmpty && !isMark(tag)).join(';');
+    final tail = end == -1 ? '' : line.substring(end);
+    return rest.isEmpty ? '@historical=1$tail' : '@historical=1;$rest$tail';
+  }
+
+  /// Hands [notice] (of [message]) to the gift-bomb tracker, remembering
+  /// its id so the same notice is never counted twice.
+  GiftBombDecision _trackGiftBomb(IRCMessage message, UserNotice notice) {
+    if (message.tags['id'] case final id?) {
+      _trackedNoticeIds.add(id);
+      if (_trackedNoticeIds.length > _maxTrackedNotices) {
+        _trackedNoticeIds.remove(_trackedNoticeIds.first);
+      }
+    }
+    return _giftBombs.onNotice(
+      notice,
+      collapse: settings.collapseGiftBombs,
+      channelId: channelId,
+    );
   }
 
   /// The people whose messages stay out of this chat, as live: the ones
@@ -1814,13 +1863,21 @@ abstract class ChatStoreBase with Store {
   /// moderation reactions.
   @visibleForTesting
   Future<void> loadHistory() async {
-    var lines = await _twitchHistory();
-    if (_shouldDisconnect) return;
-    if (lines == null && settings.showRecentMessages) {
-      lines = await _recentMessagesHistory();
+    try {
+      var lines = await _twitchHistory();
       if (_shouldDisconnect) return;
+      if (lines == null && settings.showRecentMessages) {
+        lines = await _recentMessagesHistory();
+        if (_shouldDisconnect) return;
+      }
+      if (lines != null && lines.isNotEmpty) _insertHistory(lines);
+    } catch (e) {
+      // The chat goes on without history; the type only, never content.
+      debugPrint('Chat history not shown: ${e.runtimeType}');
+    } finally {
+      _historyPending = false;
+      _moderationBeforeHistory.clear();
     }
-    if (lines != null && lines.isNotEmpty) _insertHistory(lines);
   }
 
   /// Twitch's history as chat lines, or null when Twitch gave none.
@@ -1865,9 +1922,22 @@ abstract class ChatStoreBase with Store {
       return null;
     }
     final hidden = _hiddenSenders;
+    // What live chat already showed or counted: such a line is skipped
+    // before it reaches the gift-bomb tracker, which would count it again.
+    final shown = {
+      for (final message in _messages.followedBy(messageBuffer))
+        ?message.tags['id'],
+      ..._trackedNoticeIds,
+    };
     final batch = <IRCMessage>[];
-    for (final line in raw) {
-      if (line is! String || line.isEmpty) continue;
+    // Each string is split into lines as IRC is: a line break inside one
+    // could otherwise hide a second command in a tag (the reply id).
+    final lines = [
+      for (final chunk in raw)
+        if (chunk is String) ...chunk.split(_lineBreak),
+    ];
+    for (final line in lines) {
+      if (line.isEmpty) continue;
       final IRCMessage message;
       try {
         // History, even when the service leaves out its mark.
@@ -1879,6 +1949,7 @@ abstract class ChatStoreBase with Store {
         debugPrint('Unreadable recent message: ${e.runtimeType}');
         continue;
       }
+      if (shown.contains(message.tags['id'])) continue;
       final user = message.user;
       if (user != null) chatDetailsStore.chatUsers.add(user);
       if (hidden.logins.contains(user?.toLowerCase()) ||
@@ -1896,14 +1967,9 @@ abstract class ChatStoreBase with Store {
           final notice = message.command == Command.userNotice
               ? message.notice
               : null;
-          if (notice != null &&
-              !_giftBombs
-                  .onNotice(
-                    notice,
-                    collapse: settings.collapseGiftBombs,
-                    channelId: channelId,
-                  )
-                  .show) {
+          if (notice != null && !_trackGiftBomb(message, notice).show) {
+            // Folded into its bomb: its live copy must not count again.
+            if (message.tags['id'] case final id?) _historyIds.add(id);
             continue;
           }
           batch.add(message);
@@ -1934,12 +2000,44 @@ abstract class ChatStoreBase with Store {
     return batch.isEmpty ? null : batch;
   }
 
+  /// [lines] with what moderators did live while they were on their way:
+  /// timeouts, bans and deletions mark them, and a cleared chat drops every
+  /// line said before the clear.
+  List<IRCMessage> _applyModerationBeforeHistory(List<IRCMessage> lines) {
+    var kept = lines;
+    for (final moderation in _moderationBeforeHistory) {
+      if (moderation.command == Command.clearMessage) {
+        IRCMessage.clearMessage(
+          messages: kept,
+          bufferedMessages: <IRCMessage>[],
+          ircMessage: moderation,
+        );
+      } else if (moderation.message != null) {
+        IRCMessage.clearChat(
+          messages: kept,
+          bufferedMessages: <IRCMessage>[],
+          ircMessage: moderation,
+        );
+      } else {
+        final clearedAt = int.tryParse(moderation.tags['tmi-sent-ts'] ?? '');
+        kept = [
+          if (clearedAt != null)
+            for (final line in kept)
+              if ((int.tryParse(line.tags['tmi-sent-ts'] ?? '') ?? 0) >
+                  clearedAt)
+                line,
+        ];
+      }
+    }
+    return kept;
+  }
+
   /// Puts [lines] above everything shown, in one change of the list.
   @action
   void _insertHistory(List<IRCMessage> lines) {
     final fresh = history.insertHistory(
       _messages,
-      lines,
+      _applyModerationBeforeHistory(lines),
       alsoShown: messageBuffer,
     );
     for (final line in fresh) {
