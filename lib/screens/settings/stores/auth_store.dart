@@ -925,13 +925,17 @@ abstract class AuthBase with Store {
     _appToken = fresh?.token;
   }
 
-  /// Whether Twitch still takes the app [token], issued to [client] (null:
-  /// this app, for a token stored by an older version). Network failures
-  /// throw.
+  /// Whether Twitch still takes the app [token] as one of [client], the
+  /// proxy's application. Network failures throw.
+  ///
+  /// A token stored without its application ([client] null) is never good:
+  /// older builds minted it for the login application, whose app tokens
+  /// could reach its users' private events, so it is replaced by the
+  /// proxy's without even asking Twitch.
   Future<bool> _appTokenIsGood(String token, String? client) async {
-    if (client == null) return twitchApi.validateToken(token: token);
+    if (client == null) return false;
     final check = await twitchApi.checkToken(token: token);
-    return check.isForeign && check.clientId == client;
+    return check.isForeign && !check.hasUser && check.clientId == client;
   }
 
   /// A new app token from the token proxy, checked with Twitch and stored

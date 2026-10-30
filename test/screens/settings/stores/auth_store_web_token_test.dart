@@ -34,20 +34,28 @@ void main() {
     pageLoads = 0;
     FlutterSecureStorage.setMockInitialValues({
       'default_token': 'the_default_token',
+      'default_token_client_id': 'proxy_app',
     });
     when(
       () => api.validateToken(token: any(named: 'token')),
     ).thenAnswer((_) async => true);
     // The launch, the reconnect loop and a pasted token ask checkToken; here
-    // it answers as validateToken does (this app's token, or refused).
-    when(() => api.checkToken(token: any(named: 'token'))).thenAnswer(
-      (invocation) async =>
-          await api.validateToken(
-            token: invocation.namedArguments[#token] as String,
-          )
+    // it answers as validateToken does (this app's token, or refused). The
+    // stored app token is the token proxy's, of its own application.
+    when(() => api.checkToken(token: any(named: 'token'))).thenAnswer((
+      invocation,
+    ) async {
+      final token = invocation.namedArguments[#token] as String;
+      if (token == 'the_default_token') {
+        return const TokenCheck.foreign('proxy_app');
+      }
+      return await api.validateToken(token: token)
           ? TokenCheck.valid
-          : TokenCheck.invalid,
-    );
+          : TokenCheck.invalid;
+    });
+    when(
+      () => api.getDefaultToken(),
+    ).thenThrow(const ApiException('no proxy in tests'));
     when(
       () => api.revokeToken(token: any(named: 'token')),
     ).thenAnswer((_) async {});
@@ -88,6 +96,7 @@ void main() {
   }) async {
     FlutterSecureStorage.setMockInitialValues({
       'default_token': 'the_default_token',
+      'default_token_client_id': 'proxy_app',
       'twitch_web_token': token,
     });
     final store = build(isAndroid: isAndroid, loadTwitchPage: loadTwitchPage);
@@ -443,6 +452,7 @@ void main() {
       fakeAsync((async) {
         FlutterSecureStorage.setMockInitialValues({
           'default_token': 'the_default_token',
+          'default_token_client_id': 'proxy_app',
           'user_token': 'user',
         });
         when(
@@ -487,6 +497,7 @@ void main() {
       fakeAsync((async) {
         FlutterSecureStorage.setMockInitialValues({
           'default_token': 'the_default_token',
+          'default_token_client_id': 'proxy_app',
           'user_token': 'user',
         });
         // The launch cannot validate: the reconnect loop starts.
@@ -531,6 +542,7 @@ void main() {
     Future<AuthStore> signedInWith(_FlakyStorage storage) async {
       FlutterSecureStorage.setMockInitialValues({
         'default_token': 'the_default_token',
+        'default_token_client_id': 'proxy_app',
         'twitch_web_token': 'web_of_viewer_1',
       });
       final store = AuthStore(
@@ -702,6 +714,7 @@ void main() {
         // A session from a previous launch, with a cookie to harvest.
         FlutterSecureStorage.setMockInitialValues({
           'default_token': 'the_default_token',
+          'default_token_client_id': 'proxy_app',
           'user_token': 'user',
         });
         jar = 'web_of_viewer_1';
@@ -728,6 +741,7 @@ void main() {
       fakeAsync((async) {
         FlutterSecureStorage.setMockInitialValues({
           'default_token': 'the_default_token',
+          'default_token_client_id': 'proxy_app',
           'user_token': 'user',
         });
         when(
@@ -854,6 +868,7 @@ void main() {
     test('the real platform default is not Android here', () async {
       FlutterSecureStorage.setMockInitialValues({
         'default_token': 'the_default_token',
+        'default_token_client_id': 'proxy_app',
         'twitch_web_token': 'pasted',
       });
       final store = AuthStore(twitchApi: api);

@@ -185,6 +185,40 @@ void main() {
       expect(proxyCalls(), 0);
     });
 
+    test('a stored token without its app (an older build: the login '
+        "application's) is replaced by the proxy's, even if Twitch takes "
+        'it', () async {
+      const legacy = 'legacyloginapptoken0123456789';
+      twitch.tokens[legacy] = (clientId: app, userId: '');
+      FlutterSecureStorage.setMockInitialValues({'default_token': legacy});
+      proxyHands(appToken);
+
+      await store.init();
+
+      expect(proxyCalls(), 1);
+      expect(store.token, appToken);
+      expect(store.headersTwitch['Client-Id'], publicApp);
+      expect(validations(legacy), 0, reason: 'not even asked about');
+      const storage = FlutterSecureStorage();
+      expect(await storage.read(key: 'default_token'), appToken);
+      expect(await storage.read(key: 'default_token_client_id'), publicApp);
+    });
+
+    test('offline at launch with such a token: no error, no token, and the '
+        'proxy is asked again later', () async {
+      const legacy = 'legacyloginapptoken0123456789';
+      twitch.tokens[legacy] = (clientId: app, userId: '');
+      FlutterSecureStorage.setMockInitialValues({'default_token': legacy});
+      proxyDown();
+
+      await store.init();
+
+      expect(store.error, isNull);
+      expect(store.isLoggedIn, isFalse);
+      expect(store.token, isNull);
+      expect(store.isAnonymous, isTrue);
+    });
+
     test('a stored token Twitch refuses is replaced', () async {
       FlutterSecureStorage.setMockInitialValues({
         'default_token': 'revokedtoken0123456789abcdefg',
@@ -406,6 +440,7 @@ void main() {
       FlutterSecureStorage.setMockInitialValues({
         'user_token': 'user',
         'default_token': 'stored_default',
+        'default_token_client_id': 'proxy_app',
       });
       when(
         () => api.checkToken(token: any(named: 'token')),
@@ -440,8 +475,8 @@ void main() {
 
     test('with the proxy down it still logs out', () async {
       when(
-        () => api.validateToken(token: any(named: 'token')),
-      ).thenAnswer((_) async => false);
+        () => api.checkToken(token: 'stored_default'),
+      ).thenAnswer((_) async => TokenCheck.invalid);
 
       await loggedIn.logout();
 
@@ -451,7 +486,7 @@ void main() {
 
     test('offline, it still logs out and keeps the stored app token', () async {
       when(
-        () => api.validateToken(token: any(named: 'token')),
+        () => api.checkToken(token: 'stored_default'),
       ).thenThrow(const NetworkException('offline'));
 
       await loggedIn.logout();
