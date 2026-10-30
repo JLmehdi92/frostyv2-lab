@@ -41,8 +41,8 @@ class IvsVideoStore = IvsVideoStoreBase with _$IvsVideoStore;
 /// reconnecting indicator and the fallback decision.
 enum IvsPlaybackStatus { loading, playing, reconnecting, offline, failed }
 
-/// Drives the native Amazon IVS player (the same engine the official Twitch
-/// app uses) over a MethodChannel, exposing the shared [PlayerController]
+/// Drives the native Amazon IVS player (the video technology Twitch is built
+/// on) over a MethodChannel, exposing the shared [PlayerController]
 /// surface so the existing overlay/channel can use it unchanged.
 abstract class IvsVideoStoreBase with Store implements PlayerController {
   final String userLogin;

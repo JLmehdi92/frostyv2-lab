@@ -822,8 +822,8 @@ enum CelebrationsOnVideo {
 
 /// Which engine plays the live video.
 enum PlayerEngine {
-  /// Amazon IVS player — the exact engine the official Twitch app uses, for
-  /// exact-parity low latency. Default.
+  /// Amazon IVS player, built on the same video technology as Twitch, for
+  /// low latency. Default.
   ivs,
 
   /// Native low-latency HLS player (media_kit / mpv). Fallback.

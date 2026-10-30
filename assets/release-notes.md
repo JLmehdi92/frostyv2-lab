@@ -8,7 +8,7 @@ The first ONSET: a new design on phone and tablet, and live video much closer to
 
 ### New
 
-- [Android] **Low-latency player:** streams play with the player of the official Twitch app, and the latency shows in the player.
+- [Android] **Low-latency player:** streams play with the Amazon IVS player, built on the same video technology as Twitch, and the latency shows in the player.
   - Turn it off in `Settings › Video` to use the Twitch web player.
 - **Noir & Signal:** every screen redesigned, with its own layout on tablets.
 - Home, Browse, Activity and Profile in one navigation bar, with Following, Live and Clips on Home.

@@ -47,9 +47,9 @@ class VideoSettings extends StatelessWidget {
                   SettingsListSwitch(
                     title: 'Low-latency player (Twitch IVS)',
                     subtitle: const Text(
-                      'Plays the stream with the same player the official '
-                      'Twitch app uses, for matching low latency. Turn off '
-                      'to use the original Twitch web player.',
+                      'Plays the stream with the Amazon IVS player, built on '
+                      'the same video technology as Twitch, for low latency. '
+                      'Turn off to use the original Twitch web player.',
                     ),
                     value: settingsStore.playerEngine == PlayerEngine.ivs,
                     onChanged: (enabled) => settingsStore.playerEngine = enabled
@@ -74,8 +74,8 @@ class VideoSettings extends StatelessWidget {
                       title: 'Live catch-up',
                       subtitle:
                           'Speed up plays slightly faster until it is back at '
-                          'live, like the official app (Auto latency does it '
-                          'when on). Jump to live skips ahead after a stall. '
+                          'live (Auto latency does it when on). Jump to live '
+                          'skips ahead after a stall. '
                           'Applies the next time a stream is opened.',
                       selectedOption:
                           liveCatchUpModeNames[settingsStore
