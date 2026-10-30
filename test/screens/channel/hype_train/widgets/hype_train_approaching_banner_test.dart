@@ -10,14 +10,12 @@ HtApproachingEvent approaching(
   Map<int, int> deadlines, {
   Set<String> participants = const {},
   int goal = 3,
-  int? creatorColor = 0xFFBD0078,
 }) => HtApproachingEvent(
   HypeTrainApproaching(
     id: 'a',
     goal: goal,
     deadlines: deadlines,
     participants: participants,
-    creatorColor: creatorColor,
   ),
 );
 
@@ -127,13 +125,8 @@ void main() {
       await h.close(tester);
     });
 
-    testWidgets('the events pill is green without a creator colour', (
-      tester,
-    ) async {
-      final h = await showing(
-        tester,
-        approaching(const {1: 40}, creatorColor: null),
-      );
+    testWidgets('the events pill is green', (tester) async {
+      final h = await showing(tester, approaching(const {1: 40}));
 
       expect(pillColor(tester), const Color(0xFF12A87A));
       final box =
@@ -143,22 +136,6 @@ void main() {
         find.descendant(of: _pill, matching: find.byIcon(Icons.train_rounded)),
         findsOneWidget,
       );
-      await h.close(tester);
-    });
-
-    testWidgets('the events pill is green whatever the creator colour', (
-      tester,
-    ) async {
-      // ONSET's colours replace the creator's (board CadeauxHypeTrain).
-      var h = await showing(
-        tester,
-        approaching(const {1: 40}, creatorColor: 0xFF9147FF),
-      );
-      expect(pillColor(tester), const Color(0xFF12A87A));
-      await h.close(tester);
-
-      h = await showing(tester, approaching(const {1: 40}));
-      expect(pillColor(tester), const Color(0xFF12A87A));
       await h.close(tester);
     });
 
