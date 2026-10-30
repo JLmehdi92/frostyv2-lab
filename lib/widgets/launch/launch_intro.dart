@@ -14,9 +14,10 @@ import 'package:onset/widgets/motion/staggered_entrance.dart';
 /// and "Storyboard", drawn over the app on a cold start:
 ///
 /// 0 ms the signal dot lights up → it grows into the tile with a small
-/// overshoot → "ON" appears and two rings leave the tile → O-N-S-E-T rise
-/// one by one over a signal underline → the tile flies to its place in the
-/// header → the ground clears and the home cards come in, 60 ms apart.
+/// overshoot → the ONSET icon comes in on it ([OnsetMarkTile]) and two
+/// rings leave the tile → O-N-S-E-T rise one by one over a signal
+/// underline → the tile flies to its place in the header, taking on its
+/// corners → the ground clears and the home cards come in, 60 ms apart.
 /// 1.4 s in all.
 ///
 /// - Never blocks loading: [child] (the app) is built from the first frame
@@ -435,6 +436,7 @@ class _LaunchIntroState extends State<LaunchIntro>
                                 from: _landFrom,
                                 slot: _slotRect(context),
                                 slotIsReal: _hasRealSlot,
+                                slotRadius: _slotRadius,
                               )
                             : _IntroFrame(
                                 t: t,
@@ -444,6 +446,7 @@ class _LaunchIntroState extends State<LaunchIntro>
                                     : null,
                                 slot: _slotRect(context),
                                 slotIsReal: _hasRealSlot,
+                                slotRadius: _slotRadius,
                               ),
                       ),
                     );
@@ -458,6 +461,15 @@ class _LaunchIntroState extends State<LaunchIntro>
 
   bool get _hasRealSlot =>
       widget.slotKey?.currentContext?.findRenderObject() is RenderBox;
+
+  /// The corners of the mark the tile lands on (the header's), when the
+  /// slot is one: the tile takes them on the way, so it lands as that mark.
+  double? get _slotRadius {
+    final slot = widget.slotKey?.currentWidget;
+    if (slot is! OnsetMarkTile || !_hasRealSlot) return null;
+    return slot.radius ??
+        OnsetMark.designRadius * slot.size / OnsetMark.designSize;
+  }
 
   /// Where the tile lands, in this widget's coordinates: the header's mark
   /// when there is one, else the boards' header slot.
@@ -477,6 +489,21 @@ class _LaunchIntroState extends State<LaunchIntro>
         ? Rect.fromLTWH(28, top + 21, 30, 30)
         : Rect.fromLTWH(16, top + 14, 28, 28);
   }
+}
+
+/// The flying tile's corner radius (at its 72 dp layout size) [flight] of
+/// the way from [radius] to the corners of the mark at [slot]: once scaled
+/// down onto it, the tile has that mark's very corners. Unchanged when the
+/// slot is not a mark ([slotRadius] null).
+double _landingRadius(
+  double radius, {
+  required Rect slot,
+  required double? slotRadius,
+  required double flight,
+}) {
+  if (slotRadius == null || slot.width <= 0) return radius;
+  final landed = slotRadius * OnsetMark.designSize / slot.width;
+  return radius + (landed - radius) * flight;
 }
 
 class _SkipOnPush extends NavigatorObserver {
@@ -499,12 +526,16 @@ class _IntroFrame extends StatelessWidget {
   final Rect slot;
   final bool slotIsReal;
 
+  /// The corners of the mark at [slot], when it is one.
+  final double? slotRadius;
+
   const _IntroFrame({
     required this.t,
     required this.fromTile,
     required this.splash,
     required this.slot,
     required this.slotIsReal,
+    required this.slotRadius,
   });
 
   static const _tile = OnsetMark.designSize;
@@ -543,12 +574,17 @@ class _IntroFrame extends StatelessWidget {
       _Timeline.tileEnd,
       OnsetMotion.standard,
     );
-    final radius = fromTile ? 20.0 : 36 - 16 * settle;
     final flight = span(
       t,
       _Timeline.flightStart,
       _Timeline.flightEnd,
       OnsetMotion.standard,
+    );
+    final radius = _landingRadius(
+      fromTile ? OnsetMark.designRadius : 36 - 16 * settle,
+      slot: slot,
+      slotRadius: slotRadius,
+      flight: flight,
     );
     final tileCenter = Offset.lerp(center, slot.center, flight)!;
     final tileScale = grow * rest + (slot.width / _tile - rest) * flight;
@@ -657,6 +693,7 @@ class _IntroFrame extends StatelessWidget {
                 opacity: tileOpacity.clamp(0.0, 1.0),
                 child: OnsetMarkTile(
                   radius: radius,
+                  drawnSize: _tile * tileScale,
                   markOpacity: markIn,
                   markScale: 0.6 + 0.4 * markIn,
                   glow: [
@@ -693,6 +730,7 @@ class _LandingFrame extends StatelessWidget {
   final Rect from;
   final Rect slot;
   final bool slotIsReal;
+  final double? slotRadius;
 
   const _LandingFrame({
     required this.t,
@@ -700,6 +738,7 @@ class _LandingFrame extends StatelessWidget {
     required this.from,
     required this.slot,
     required this.slotIsReal,
+    required this.slotRadius,
   });
 
   static const _tile = OnsetMark.designSize;
@@ -784,6 +823,13 @@ class _LandingFrame extends StatelessWidget {
               key: LaunchIntro.tileKey,
               opacity: tileOpacity.clamp(0.0, 1.0),
               child: OnsetMarkTile(
+                drawnSize: _tile * scale,
+                radius: _landingRadius(
+                  OnsetMark.designRadius,
+                  slot: slot,
+                  slotRadius: slotRadius,
+                  flight: flight,
+                ),
                 glow: [
                   BoxShadow(
                     color: OnsetTokens.accent.withValues(

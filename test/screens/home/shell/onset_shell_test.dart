@@ -706,10 +706,95 @@ void main() {
       expect(tile.left, closeTo(mark.left, 0.5));
       expect(tile.top, closeTo(mark.top, 0.5));
       expect(tile.width, closeTo(mark.width, 0.5));
+      // With the header's own corners: once scaled down, the intro's tile
+      // is the header's mark, radius included.
+      final scale = tile.width / OnsetMark.designSize;
+      final flying = tester.widget<OnsetMarkTile>(
+        find.descendant(
+          of: find.byKey(LaunchIntro.tileKey),
+          matching: find.byType(OnsetMarkTile),
+        ),
+      );
+      final header = tester.widget<OnsetMarkTile>(
+        find.byKey(OnsetShell.markKey),
+      );
+      expect(flying.radius! * scale, closeTo(header.radius!, 0.01));
+      // And with the header's own pixels: the image sized for it.
+      Image image(Finder of) => tester.widget<Image>(
+        find.descendant(of: of, matching: find.byType(Image)),
+      );
+      expect(
+        image(find.byKey(LaunchIntro.tileKey)).image,
+        image(find.byKey(OnsetShell.markKey)).image,
+      );
       await tester.pumpAndSettle();
       expect(find.byKey(LaunchIntro.overlayKey), findsNothing);
+      expect(find.byKey(OnsetShell.markKey), findsOneWidget);
     });
   }
+
+  for (final (size, side, radius) in [
+    (_phone, 28.0, 8.0),
+    (_tablet, 30.0, 9.0),
+  ]) {
+    for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+      testWidgets('the header mark is the ONSET icon '
+          '(${size.width.toInt()} wide, ${mode.name})', (tester) async {
+        final h = _Harness();
+        await h.pump(tester, size: size, mode: mode);
+        final mark = find.byKey(OnsetShell.markKey);
+        expect(mark, findsOneWidget);
+        final tile = tester.widget<OnsetMarkTile>(mark);
+        expect(tile.size, side);
+        expect(tile.radius, radius);
+        expect(tester.getSize(mark), Size(side, side));
+        final image = tester.widget<Image>(
+          find.descendant(of: mark, matching: find.byType(Image)),
+        );
+        expect(
+          (image.image as AssetImage).assetName,
+          'assets/icons/onset_logo_30.png',
+        );
+        final clip = tester.widget<ClipRRect>(
+          find.descendant(of: mark, matching: find.byType(ClipRRect)),
+        );
+        expect(clip.borderRadius, BorderRadius.circular(radius));
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
+
+  testWidgets('the header mark reads "ONSET" once, as an image', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    final h = _Harness();
+    await h.pump(tester);
+    expect(
+      tester.getSemantics(find.byKey(OnsetShell.markKey)),
+      matchesSemantics(label: 'ONSET', isImage: true),
+    );
+    semantics.dispose();
+  });
+
+  testWidgets('reduce motion: no intro, the header shows the icon at once', (
+    tester,
+  ) async {
+    final h = _Harness();
+    tester.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+    await h.pump(tester, intro: true);
+    await tester.pump();
+    expect(find.byKey(LaunchIntro.overlayKey), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byKey(OnsetShell.markKey),
+        matching: find.byType(Image),
+      ),
+      findsOneWidget,
+    );
+  });
 
   testWidgets('crossing the tablet size keeps every page and its scroll', (
     tester,

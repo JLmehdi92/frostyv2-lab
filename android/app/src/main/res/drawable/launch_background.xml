@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Before Android 12: the same frame as the Android 12+ splash, the launch
-     tile centred on the ONSET ground, in light and dark mode alike. -->
+     tile (drawable-*dpi/launch_tile.png: the ONSET icon at 72 dp with its
+     20 dp corners, written by tool/onset_logo_assets.py) centred on the
+     ONSET ground, in light and dark mode alike. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/launch_background" />
     <item

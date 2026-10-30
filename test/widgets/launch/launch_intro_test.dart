@@ -25,6 +25,7 @@ Widget _app({
   bool fromTile = false,
   bool holdOnName = false,
   GlobalKey? slotKey,
+  bool slotIsMark = false,
   ValueNotifier<Rect?>? splashTile,
   GlobalKey<NavigatorState>? navigatorKey,
 }) => MaterialApp(
@@ -58,7 +59,9 @@ Widget _app({
           Positioned(
             left: 40,
             top: 60,
-            child: SizedBox(key: slotKey, width: 24, height: 24),
+            child: slotIsMark
+                ? OnsetMarkTile(key: slotKey, size: 24, radius: 6)
+                : SizedBox(key: slotKey, width: 24, height: 24),
           ),
       ],
     ),
@@ -255,18 +258,77 @@ void main() {
     ) async {
       _setSize(tester, _phone);
       await tester.pumpWidget(_app(fromTile: true));
-      // The very first frame is the splash's: the full tile, its "ON" shown.
+      // The very first frame is the splash's: the full tile, its icon shown.
       expect(tester.getRect(_tile).width, closeTo(72, 0.01));
       expect(tester.getCenter(_tile), const Offset(195, 422));
       final mark = tester.widget<OnsetMarkTile>(find.byType(OnsetMarkTile));
       expect(mark.markOpacity, 1);
       expect(mark.markScale, 1);
+      // The splash's bitmap: the icon, whole, with the splash's 20 dp
+      // corners.
+      expect(mark.radius, 20);
+      final image = tester.widget<Image>(
+        find.descendant(of: _tile, matching: find.byType(Image)),
+      );
+      expect(
+        (image.image as AssetImage).assetName,
+        'assets/icons/onset_logo_72.png',
+      );
+      expect(image.opacity, isNull);
 
       // And it is shorter: it starts where the splash left off.
       await tester.pump();
       await tester.pump(_at(0.75));
       await tester.pump();
       expect(_overlay, findsNothing);
+    });
+
+    testWidgets('from the dot: the icon\'s ground grows, then the icon '
+        'comes in', (tester) async {
+      _setSize(tester, _phone);
+      await tester.pumpWidget(_app());
+      Finder image() =>
+          find.descendant(of: _tile, matching: find.byType(Image));
+      final dot = tester.widget<OnsetMarkTile>(
+        find.descendant(of: _tile, matching: find.byType(OnsetMarkTile)),
+      );
+      expect(dot.markOpacity, 0);
+      expect(image(), findsNothing);
+      await _pumpTo(tester, 0.24);
+      final fading = tester.widget<Image>(image());
+      expect(fading.opacity!.value, inExclusiveRange(0, 1));
+      await tester.pump(_at(0.1));
+      expect(tester.widget<Image>(image()).opacity, isNull);
+    });
+
+    testWidgets('lands with the header mark\'s own size and corners', (
+      tester,
+    ) async {
+      _setSize(tester, _phone);
+      final slot = GlobalKey();
+      await tester.pumpWidget(_app(slotKey: slot, slotIsMark: true));
+      await _pumpTo(tester, 0.8);
+      final rect = tester.getRect(_tile);
+      expect(rect, rectMoreOrLessEquals(const Rect.fromLTWH(40, 60, 24, 24)));
+      final flying = tester.widget<OnsetMarkTile>(
+        find.descendant(of: _tile, matching: find.byType(OnsetMarkTile)),
+      );
+      expect(flying.radius! * rect.width / 72, closeTo(6, 0.01));
+      await tester.pumpAndSettle();
+      expect(_overlay, findsNothing);
+    });
+
+    testWidgets('a slot that is not a mark keeps the board\'s corners', (
+      tester,
+    ) async {
+      _setSize(tester, _phone);
+      final slot = GlobalKey();
+      await tester.pumpWidget(_app(slotKey: slot));
+      await _pumpTo(tester, 0.8);
+      final flying = tester.widget<OnsetMarkTile>(
+        find.descendant(of: _tile, matching: find.byType(OnsetMarkTile)),
+      );
+      expect(flying.radius, 20);
     });
 
     testWidgets('never blurs: gradients and fills only', (tester) async {
@@ -519,6 +581,37 @@ void main() {
       expect(covered, 1);
       expect(LaunchIntro.running.value, isFalse);
       expect(LaunchIntro.landing.value, isFalse);
+    });
+
+    testWidgets('lands on the header mark with its corners', (tester) async {
+      _setSize(tester, _phone);
+      final slot = GlobalKey();
+      await tester.pumpWidget(
+        _app(play: false, slotKey: slot, slotIsMark: true),
+      );
+      await tester.pumpAndSettle();
+      LaunchIntro.land(
+        from: Rect.fromCenter(
+          center: const Offset(195, 422),
+          width: 72,
+          height: 72,
+        ),
+        onCovered: () {},
+      );
+      await tester.pump();
+      final start = tester.widget<OnsetMarkTile>(
+        find.descendant(of: _tile, matching: find.byType(OnsetMarkTile)),
+      );
+      expect(start.radius, 20);
+      await tester.pump(LaunchIntro.landingDuration * 0.8);
+      final rect = tester.getRect(_tile);
+      expect(rect, rectMoreOrLessEquals(const Rect.fromLTWH(40, 60, 24, 24)));
+      final flying = tester.widget<OnsetMarkTile>(
+        find.descendant(of: _tile, matching: find.byType(OnsetMarkTile)),
+      );
+      expect(flying.radius! * rect.width / 72, closeTo(6, 0.01));
+      await tester.pumpAndSettle();
+      expect(_overlay, findsNothing);
     });
 
     testWidgets('holds the next page\'s entrances until it uncovers them', (

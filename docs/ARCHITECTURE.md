@@ -32,9 +32,9 @@ repository root.
 android/             Android host app and the native Kotlin bridges
 ios/                 iOS host app (plugins only, no native player)
 packages/            simple_pip_mode (vendored plugin)
-assets/              fonts, celebration art, launcher icons, release notes
+assets/              fonts, celebration art, launcher icons, the ONSET mark, release notes
 docs/                this file and the in-app update setup (MISES_A_JOUR.md)
-tool/                developer scripts outside the app (onset_mark_glyphs.py)
+tool/                developer scripts outside the app (onset_logo_assets.py)
 lib/
   main.dart          entry point: services, global stores, providers, routes
   theme.dart         design tokens and the light and dark themes

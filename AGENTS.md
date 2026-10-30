@@ -28,7 +28,7 @@ dart run build_runner build --delete-conflicting-outputs             # Same, but
 - `lib/widgets/` — Widgets shared by several features
 - `lib/utils/` — Utility functions (general helpers in `common_utils.dart`)
 - `test/` — Mirrors `lib/`; `test/guards/` holds repo-wide checks, `test/helpers/` and `test/fixtures/` shared test code
-- `tool/` — Developer scripts that are not part of the app (e.g., `onset_mark_glyphs.py`)
+- `tool/` — Developer scripts that are not part of the app (e.g., `onset_logo_assets.py`)
 - `docs/` — `ARCHITECTURE.md` and the in-app update setup (`MISES_A_JOUR.md`)
 
 ## Architecture (non-obvious bits)

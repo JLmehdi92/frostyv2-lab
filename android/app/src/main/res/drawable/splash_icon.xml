@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Android 12+ splash icon (no icon background): a 288 dp canvas whose
-     centre holds the 72 dp launch tile, the size the Flutter intro starts
-     from. -->
+     centre holds the 72 dp launch tile (drawable-*dpi/launch_tile.png, the
+     ONSET icon with its 20 dp corners already cut out), the size the
+     Flutter intro starts from. The system masks this canvas to a 192 dp
+     circle (radius 96 dp): the rounded tile reaches at most 43 dp from the
+     centre (16 dp * sqrt 2 + its 20 dp corner), well inside it, so the mask
+     never crops the icon and the bitmap needs no extra padding. -->
 <inset xmlns:android="http://schemas.android.com/apk/res/android"
     android:drawable="@drawable/launch_tile"
     android:inset="108dp" />

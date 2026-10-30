@@ -1,94 +1,117 @@
+import 'dart:async';
+
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:onset/theme.dart';
 
-/// The ONSET mark as drawn by the launch intro and, later, the header: "ON"
-/// in the signal tile.
+/// The ONSET mark: the app icon (`assets/icons/icon_onset.png`, "ON" with
+/// its rays and dot on the lime halftone) in a rounded tile, as the launch
+/// intro, the headers, the onboarding, the release notes and the update
+/// prompt show it.
 ///
-/// The outline is Inter Bold Italic (the app's own font) at 32 px with
-/// -0.05 em tracking, centred in a 72 × 72 box, generated once by
-/// `tool/onset_mark_glyphs.py`. The Android splash draws the very same
-/// outline (`res/drawable/launch_tile.xml`, checked by a test), so the native
+/// The icon is bundled downscaled, one family per tile size (30, 52 and
+/// 72 dp, each with its 1.5x–4.0x variants), written by
+/// `tool/onset_logo_assets.py`. The Android splash draws the 72 dp family's
+/// very pixels with the same 20 dp corners
+/// (`res/drawable-*dpi/launch_tile.png`, checked by a test), so the native
 /// splash hands over to the Flutter intro without a visible change.
 abstract final class OnsetMark {
-  /// Side of the box [glyphsSvg] is drawn in.
+  /// Side of the launch boards' tile, the size the intro draws it at.
   static const designSize = 72.0;
 
   /// Corner radius of the tile at [designSize].
   static const designRadius = 20.0;
 
-  /// The "ON" outline in a 72 × 72 box, as SVG path data (absolute M, L, Q
-  /// and Z only).
-  static const glyphsSvg =
-      'M22.33,47.95Q19.57,47.95 17.46,46.84Q15.36,45.72 14.18,43.59'
-      'Q13,41.45 13,38.44Q13,35.58 13.9,32.99Q14.8,30.41 16.47,28.39'
-      'Q18.14,26.38 20.5,25.21Q22.86,24.05 25.78,24.05'
-      'Q28.53,24.05 30.64,25.16Q32.74,26.28 33.92,28.41'
-      'Q35.1,30.53 35.1,33.56Q35.1,36.42 34.2,39.02'
-      'Q33.3,41.61 31.63,43.62Q29.96,45.62 27.6,46.79'
-      'Q25.25,47.95 22.33,47.95ZM22.53,43.72Q24.46,43.72 25.91,42.82'
-      'Q27.36,41.92 28.34,40.44Q29.32,38.95 29.81,37.16'
-      'Q30.3,35.36 30.3,33.56Q30.3,30.97 29.04,29.62'
-      'Q27.78,28.28 25.6,28.28Q23.66,28.28 22.21,29.18'
-      'Q20.75,30.08 19.77,31.56Q18.78,33.05 18.29,34.84'
-      'Q17.8,36.64 17.8,38.42Q17.8,41.03 19.07,42.38'
-      'Q20.33,43.72 22.53,43.72ZM34.97,47.64L38.83,24.36L44.11,24.36'
-      'L49.5,36.14Q49.98,37.23 50.5,38.65Q51.03,40.06 51.5,41.97'
-      'Q51.67,40.23 51.87,38.48Q52.08,36.72 52.28,35.53L54.12,24.36'
-      'L59,24.36L55.14,47.64L49.86,47.64L44.95,36.95'
-      'Q44.48,35.92 44.09,34.94Q43.7,33.95 43.31,32.8'
-      'Q42.92,31.64 42.42,30.12Q42.18,32.34 41.98,34.12'
-      'Q41.78,35.89 41.61,36.94L39.84,47.64Z';
+  /// The icon's own ground (the mean of its outer band, printed by the
+  /// tool): the tile's fill behind the image, so the intro's dot grows in
+  /// the icon's lime and the icon comes in over it without an edge.
+  static const ground = Color(0xFFD6F427);
 
-  static Path? _glyphs;
+  /// The bundled families, by the tile side they are sized for.
+  static const _families = [30, 52, 72];
 
-  /// [glyphsSvg] as a [Path] (parsed once).
-  static Path glyphs() => _glyphs ??= _parse(glyphsSvg);
+  /// The icon for a [size] dp tile: the smallest family at least that
+  /// large (the largest beyond it). Flutter picks the variant for the
+  /// device's pixel ratio.
+  static AssetImage imageFor(double size) {
+    // A scaled size is rarely exact: 30.000001 is still the 30 dp tile.
+    final family = _families.firstWhere(
+      (side) => side >= size - 0.01,
+      orElse: () => _families.last,
+    );
+    return AssetImage('assets/icons/onset_logo_$family.png');
+  }
 
-  static Path _parse(String svg) {
-    final path = Path();
-    final commands = RegExp(r'([MLQZ])([^MLQZ]*)').allMatches(svg);
-    for (final command in commands) {
-      final numbers = RegExp(r'-?[0-9.]+')
-          .allMatches(command.group(2)!)
-          .map((m) => double.parse(m.group(0)!))
-          .toList();
-      switch (command.group(1)) {
-        case 'M':
-          path.moveTo(numbers[0], numbers[1]);
-        case 'L':
-          path.lineTo(numbers[0], numbers[1]);
-        case 'Q':
-          path.quadraticBezierTo(
-            numbers[0],
-            numbers[1],
-            numbers[2],
-            numbers[3],
-          );
-        case 'Z':
-          path.close();
-      }
+  /// Decodes the icon for a [size] dp tile at [devicePixelRatio] into the
+  /// image cache, so the first frame that shows it already has it: the
+  /// launch intro's first frame replaces the Android splash's tile.
+  ///
+  /// Never throws, and gives up after [timeout]: it must never hold the
+  /// launch. [bundle] is for tests.
+  static Future<void> precache({
+    required double devicePixelRatio,
+    double size = designSize,
+    AssetBundle? bundle,
+    Duration timeout = const Duration(milliseconds: 300),
+  }) {
+    final done = Completer<void>();
+    ImageStream? stream;
+    late final ImageStreamListener listener;
+    void finish() {
+      if (done.isCompleted) return;
+      stream?.removeListener(listener);
+      done.complete();
     }
-    return path;
+
+    listener = ImageStreamListener(
+      (_, _) => finish(),
+      onError: (error, _) {
+        debugPrint('ONSET mark not precached: ${error.runtimeType}');
+        finish();
+      },
+    );
+    try {
+      stream = imageFor(size).resolve(
+        ImageConfiguration(
+          bundle: bundle ?? rootBundle,
+          devicePixelRatio: devicePixelRatio,
+        ),
+      );
+      // Called at once when already cached: [stream] is set by then.
+      stream.addListener(listener);
+    } catch (e) {
+      debugPrint('ONSET mark not precached: ${e.runtimeType}');
+      finish();
+    }
+    return done.future.timeout(timeout, onTimeout: finish);
   }
 }
 
-/// The signal tile with the dark "ON", at [size] (72 on the launch boards,
-/// 28 in the phone header, 30 in the tablet's).
+/// The mark at [size] (72 on the launch boards, 52 in the release notes and
+/// the update prompt, 28 in the phone header, 30 in the tablet's): the
+/// icon, clipped to the tile's corners, over the icon's ground.
 ///
 /// [radius], [markOpacity], [markScale] and [glow] let the launch intro
-/// animate it; at rest it is the plain mark.
+/// animate it: the ground grows from a dot, then the icon fades and grows
+/// in over it. At rest it is the plain icon.
 class OnsetMarkTile extends StatelessWidget {
   final double size;
 
   /// Corner radius; defaults to the board's 20 at 72, scaled to [size].
   final double? radius;
 
-  /// The "ON" fades and grows in on the launch boards.
+  /// The icon fades and grows in over the ground on the launch boards.
   final double markOpacity;
   final double markScale;
 
   /// The soft accent halo around the tile on the launch boards.
   final List<BoxShadow>? glow;
+
+  /// The side the tile ends up on screen when a transform scales it (the
+  /// launch intro lays it out at 72 and scales it): the image is picked for
+  /// that size, so the tile landing on the header shows the header's very
+  /// pixels. [size] when null.
+  final double? drawnSize;
 
   const OnsetMarkTile({
     super.key,
@@ -97,10 +120,15 @@ class OnsetMarkTile extends StatelessWidget {
     this.markOpacity = 1,
     this.markScale = 1,
     this.glow,
+    this.drawnSize,
   });
 
   @override
   Widget build(BuildContext context) {
+    final corners = BorderRadius.circular(
+      radius ?? OnsetMark.designRadius * size / OnsetMark.designSize,
+    );
+    final opacity = markOpacity.clamp(0.0, 1.0);
     return Semantics(
       label: 'ONSET',
       image: true,
@@ -109,54 +137,40 @@ class OnsetMarkTile extends StatelessWidget {
         dimension: size,
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: OnsetTokens.accent,
-            borderRadius: BorderRadius.circular(
-              radius ?? OnsetMark.designRadius * size / OnsetMark.designSize,
-            ),
+            color: OnsetMark.ground,
+            borderRadius: corners,
             boxShadow: glow,
           ),
-          child: markOpacity <= 0
+          child: opacity <= 0
               ? null
-              : CustomPaint(
-                  painter: _MarkPainter(
-                    opacity: markOpacity.clamp(0.0, 1.0),
+              : ClipRRect(
+                  borderRadius: corners,
+                  child: Transform.scale(
                     scale: markScale,
+                    child: Image(
+                      image: OnsetMark.imageFor(drawnSize ?? size),
+                      width: size,
+                      height: size,
+                      fit: BoxFit.cover,
+                      // Downscaled from a variant at least the tile's size:
+                      // the default FilterQuality.medium (mipmapped
+                      // bilinear) is the right filter for that.
+                      // A tile changing size (the intro's flight) changes
+                      // family: the last image stays until the next one
+                      // is decoded.
+                      gaplessPlayback: true,
+                      // Announced once, by the tile.
+                      excludeFromSemantics: true,
+                      opacity: opacity >= 1
+                          ? null
+                          : AlwaysStoppedAnimation(opacity),
+                    ),
                   ),
                 ),
         ),
       ),
     );
   }
-}
-
-class _MarkPainter extends CustomPainter {
-  final double opacity;
-  final double scale;
-
-  const _MarkPainter({required this.opacity, required this.scale});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final unit = size.shortestSide / OnsetMark.designSize;
-    const half = OnsetMark.designSize / 2;
-    canvas
-      ..save()
-      ..scale(unit)
-      ..translate(half, half)
-      ..scale(scale)
-      ..translate(-half, -half)
-      ..drawPath(
-        OnsetMark.glyphs(),
-        Paint()
-          ..color = OnsetTokens.backgroundDark.withValues(alpha: opacity)
-          ..isAntiAlias = true,
-      )
-      ..restore();
-  }
-
-  @override
-  bool shouldRepaint(_MarkPainter oldDelegate) =>
-      oldDelegate.opacity != opacity || oldDelegate.scale != scale;
 }
 
 /// The "ONSET" name of the launch boards: five letters (Inter 800, 34 sp on

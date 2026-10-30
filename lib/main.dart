@@ -63,6 +63,7 @@ import 'package:onset/utils/twitch_links.dart';
 import 'package:onset/widgets/alert_message.dart';
 import 'package:onset/widgets/global_mini_player.dart';
 import 'package:onset/widgets/launch/launch_intro.dart';
+import 'package:onset/widgets/launch/onset_mark.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -74,6 +75,13 @@ void main() async {
   // Whether this is a cold start (the launch intro plays only then). Asked
   // now so the answer is in by the time the app is built.
   final launchInfo = LaunchInfo.load();
+  // The launch intro's first frame shows the mark where the splash drew
+  // it: decoded meanwhile, so that frame has the image (bounded, never
+  // holds the launch).
+  final view = WidgetsBinding.instance.platformDispatcher.implicitView;
+  final markReady = OnsetMark.precache(
+    devicePixelRatio: view?.devicePixelRatio ?? 1,
+  );
 
   // Initialize the native media_kit player (low-latency video engine).
   MediaKit.ensureInitialized();
@@ -295,6 +303,7 @@ void main() async {
     Telemetry.setUserIdentifier(authStore.user.details!.id);
   }
 
+  await markReady;
   runApp(
     MultiProvider(
       providers: [
