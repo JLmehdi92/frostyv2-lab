@@ -315,8 +315,10 @@ the [privacy policy](PRIVACY.md) ([version française](PRIVACY.fr.md)).
 
 ## Credits
 
-ONSET is based on [Frosty](https://github.com/tommyxchow/frosty) by Tommy
-Chow, licensed under AGPL-3.0, and has been extensively modified.
+ONSET — Copyright (C) 2026 ONSET contributors. Based on
+[Frosty](https://github.com/tommyxchow/frosty), Copyright (C) Tommy Chow,
+licensed under AGPL-3.0, and extensively modified. Licensed under the GNU
+AGPL-3.0-or-later; see [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
 ## License
 

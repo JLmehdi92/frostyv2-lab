@@ -351,8 +351,9 @@ void main() {
     expect(find.text('Release notes'), findsOneWidget);
     expect(find.text('Clear image cache'), findsOneWidget);
     expect(find.text('Share crash logs and analytics'), findsOneWidget);
-    // About: ONSET's own source code only, no third-party links.
+    // About: ONSET's own source code and the licences, no third-party links.
     expect(find.text('Source code'), findsOneWidget);
+    expect(find.text('Licenses'), findsOneWidget);
     expect(find.textContaining('Support'), findsNothing);
     expect(find.text('View source on GitHub'), findsNothing);
     expect(find.textContaining('Made by'), findsNothing);
@@ -393,7 +394,32 @@ void main() {
     );
     expect(find.text('Share crash logs and analytics'), findsOneWidget);
     expect(find.text('Source code'), findsNothing);
-    expect(find.text('About'), findsNothing);
+    // The licences stay: the AGPL notice does not depend on a repository.
+    expect(find.text('Licenses'), findsOneWidget);
+  });
+
+  testWidgets('Other: Licenses opens the licence page with the AGPL notice', (
+    tester,
+  ) async {
+    await pumpSettings(
+      tester,
+      OtherSettings(settingsStore: settings),
+      settings: settings,
+      auth: auth,
+    );
+    await tapVisible(tester, find.text('Licenses'));
+    // The page reads the package licences in the background: pumped, not
+    // settled, while its progress indicator spins.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.byType(LicensePage), findsOneWidget);
+    expect(find.text('ONSET'), findsWidgets);
+    expect(find.text(onsetLegalese), findsOneWidget);
+    expect(onsetLegalese, contains('GNU AGPL-3.0-or-later'));
+    expect(onsetLegalese, contains('NO WARRANTY'));
+    expect(onsetLegalese, contains('Frosty by Tommy Chow'));
+    expect(onsetLegalese, contains(onsetRepoUrl));
   });
 
   test('the source code link is ONSET\'s repository', () {

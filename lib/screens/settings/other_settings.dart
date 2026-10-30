@@ -20,7 +20,7 @@ import 'package:provider/provider.dart';
 class OtherSettings extends StatelessWidget {
   final SettingsStore settingsStore;
 
-  /// ONSET's source code (About › "Source code"); empty hides the row.
+  /// ONSET's source code (About › "Source code"); empty hides that row.
   final String sourceUrl;
 
   const OtherSettings({
@@ -34,16 +34,12 @@ class OtherSettings extends StatelessWidget {
     footer: SettingsPaneScope.maybeOf(context) == null
         ? const SettingsFooter()
         : null,
-    children: otherSettingsGroups(
-      context,
-      settingsStore,
-      sourceUrl: sourceUrl,
-    ),
+    children: otherSettingsGroups(context, settingsStore, sourceUrl: sourceUrl),
   );
 }
 
-/// The groups of [OtherSettings]. About holds ONSET's own source code link,
-/// and goes when there is none ([sourceUrl] empty).
+/// The groups of [OtherSettings]. About holds ONSET's own source code link
+/// (gone when [sourceUrl] is empty) and the licences.
 List<Widget> otherSettingsGroups(
   BuildContext context,
   SettingsStore settingsStore, {
@@ -109,10 +105,10 @@ List<Widget> otherSettingsGroups(
         ),
       ],
     ),
-    if (sourceUrl.isNotEmpty)
-      SettingsGroup(
-        title: 'About',
-        children: [
+    SettingsGroup(
+      title: 'About',
+      children: [
+        if (sourceUrl.isNotEmpty)
           SettingsRow(
             glyph: SettingsGlyphKind.code,
             title: 'Source code',
@@ -122,10 +118,30 @@ List<Widget> otherSettingsGroups(
               external: settingsStore.launchUrlExternal,
             ),
           ),
-        ],
-      ),
+        SettingsRow(
+          glyph: SettingsGlyphKind.list,
+          title: 'Licenses',
+          end: SettingsRowEnd.chevron,
+          onTap: () => showOnsetLicenses(context),
+        ),
+      ],
+    ),
   ];
 }
+
+/// The notice the licences page opens with: ONSET's licence, its lack of
+/// warranty, where it comes from and where its source is (AGPL section 5).
+const onsetLegalese =
+    'ONSET is free software under the GNU AGPL-3.0-or-later, with NO '
+    'WARRANTY. Based on Frosty by Tommy Chow. Source code: $onsetRepoUrl';
+
+/// "Licenses": Flutter's licence page, ONSET's notice first, then every
+/// package's licence.
+void showOnsetLicenses(BuildContext context) => showLicensePage(
+  context: context,
+  applicationName: 'ONSET',
+  applicationLegalese: onsetLegalese,
+);
 
 /// "Clear image cache": empties it, then says so.
 Future<void> clearImageCache(BuildContext context) async {

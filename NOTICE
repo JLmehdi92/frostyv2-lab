@@ -1,0 +1,9 @@
+ONSET — Copyright (C) 2026 ONSET contributors.
+Based on Frosty, Copyright (C) Tommy Chow (https://github.com/tommyxchow/frosty).
+Licensed under the GNU AGPL-3.0-or-later; see LICENSE.
+
+ONSET has been extensively modified from Frosty. Its dependencies keep their
+own licences: the Amazon IVS Player SDK (Android) is distributed under
+Amazon's own licence terms, packages/simple_pip_mode under the MIT licence
+(see its LICENSE), and every other package under the licence it ships with,
+which the app lists in Settings › Other › About › Licenses.
