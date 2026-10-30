@@ -247,8 +247,8 @@ class _ChatSettingsState extends State<ChatSettings> {
               SettingsListSwitch(
                 title: 'Collapse gift bombs',
                 subtitle: const Text(
-                  'Shows only the first message of a mass gift, without one '
-                  'line per recipient.',
+                  'Folds a gift bomb of five subs or more into its first '
+                  'line; tap "recipients" to see who got one.',
                 ),
                 value: settingsStore.collapseGiftBombs,
                 onChanged: (newValue) =>
@@ -265,8 +265,8 @@ class _ChatSettingsState extends State<ChatSettings> {
               SettingsListSwitch(
                 title: 'Show community highlights',
                 subtitle: const Text(
-                  'Shows polls, predictions, pinned messages and outgoing '
-                  'raids above chat.',
+                  'Shows polls, predictions, pinned messages, gift bombs '
+                  'and raids above chat.',
                 ),
                 value: settingsStore.showCommunityHighlights,
                 onChanged: (newValue) =>

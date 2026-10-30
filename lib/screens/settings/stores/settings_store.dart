@@ -298,7 +298,10 @@ abstract class _SettingsStoreBase with Store {
   // Alert defaults
   static const defaultHighlightFirstTimeChatter = true;
   static const defaultShowUserNotices = true;
-  static const defaultCollapseGiftBombs = false;
+  // On for new installs (board CadeauxHypeTrain): a bomb of five or more is
+  // one row with its recipients inside. Every launch saves the whole store,
+  // so an install that already ran keeps the value it saved.
+  static const defaultCollapseGiftBombs = true;
   static const defaultShowHypeTrain = true;
   static const defaultShowCommunityHighlights = true;
   static const defaultShowCelebrations = true;

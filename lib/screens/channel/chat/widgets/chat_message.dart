@@ -14,6 +14,7 @@ import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_link_card.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
 import 'package:onset/screens/channel/chat/widgets/filtered_message_sheet.dart';
+import 'package:onset/screens/channel/chat/widgets/gift_bomb_recipients.dart';
 import 'package:onset/screens/channel/chat/widgets/overlay_chat_scope.dart';
 import 'package:onset/screens/channel/chat/widgets/raid_welcome_card.dart';
 import 'package:onset/screens/channel/chat/widgets/reply_thread.dart';
@@ -800,6 +801,24 @@ class ChatMessage extends StatelessWidget {
       goalCurrent: notice.goalCurrentContributions,
       goalTarget: notice.goalTargetContributions,
       overlay: OverlayChatScope.of(context),
+      footer: _giftBombFooter(notice),
+    );
+  }
+
+  /// "N recipients ▾" under the header of a gift bomb whose gifts are
+  /// folded into it ("Collapse gift bombs", five gifts or more).
+  Widget? _giftBombFooter(UserNotice notice) {
+    if (!notice.isMassGiftHeader) return null;
+    final key = notice.giftBombKey;
+    if (key == null) return null;
+    final live = chatStore.watchGiftBomb(key);
+    if (live == null || !live.value.collapsed) return null;
+    return GiftBombRecipients(
+      key: ValueKey('gift-bomb-recipients-$key'),
+      live: live,
+      initiallyExpanded: chatStore.expandedGiftBombs.contains(key),
+      onExpandedChanged: (expanded) =>
+          chatStore.setGiftBombExpanded(key, expanded),
     );
   }
 

@@ -22,17 +22,20 @@ Matcher _closeTo(Color expected) => predicate<Color>(
 
 void main() {
   group('sub notice colours', () {
-    test('the accent is the same green in both themes', () {
-      expect(OnsetColors.light.subNoticeAccent, const Color(0xFF12A87A));
-      expect(OnsetColors.dark.subNoticeAccent, const Color(0xFF12A87A));
+    test('the accent is the signal lime, darkened on white', () {
+      // Board CadeauxHypeTrain: lime rows, green stays with the hype train.
+      expect(OnsetColors.dark.subNoticeAccent, OnsetTokens.accent);
+      expect(OnsetColors.dark.subNoticeAccent, OnsetColors.dark.live);
+      expect(OnsetColors.light.subNoticeAccent, const Color(0xFF6B8A00));
     });
 
     test('the background is the accent tinting each theme', () {
+      expect(OnsetColors.dark.subNoticeBackground, const Color(0xFF171B0E));
       expect(
         OnsetColors.dark.subNoticeBackground,
         _closeTo(
           Color.alphaBlend(
-            const Color(0xFF12A87A).withValues(alpha: 0.10),
+            OnsetTokens.accent.withValues(alpha: 0.07),
             OnsetTokens.backgroundDark,
           ),
         ),
@@ -41,14 +44,23 @@ void main() {
         OnsetColors.light.subNoticeBackground,
         _closeTo(
           Color.alphaBlend(
-            const Color(0xFF12A87A).withValues(alpha: 0.08),
+            const Color(0xFF6B8A00).withValues(alpha: 0.08),
             OnsetTokens.backgroundLight,
           ),
         ),
       );
     });
 
-    test('green text reads on the tint in both themes', () {
+    test('the accent bar stands out from the tint', () {
+      for (final colors in [OnsetColors.light, OnsetColors.dark]) {
+        expect(
+          _contrast(colors.subNoticeAccent, colors.subNoticeBackground),
+          greaterThanOrEqualTo(3),
+        );
+      }
+    });
+
+    test('lime text reads on the tint in both themes', () {
       for (final colors in [OnsetColors.light, OnsetColors.dark]) {
         expect(
           _contrast(colors.subNoticeText, colors.subNoticeBackground),
@@ -101,7 +113,14 @@ void main() {
           0.5,
         ),
       );
-      expect(halfway.subNoticeAccent, OnsetColors.dark.subNoticeAccent);
+      expect(
+        halfway.subNoticeAccent,
+        Color.lerp(
+          OnsetColors.light.subNoticeAccent,
+          OnsetColors.dark.subNoticeAccent,
+          0.5,
+        ),
+      );
     });
   });
 }

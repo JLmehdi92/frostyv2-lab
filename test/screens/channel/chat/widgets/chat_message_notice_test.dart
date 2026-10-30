@@ -4,7 +4,9 @@ import 'package:mobx/mobx.dart' show ObservableMap, runInAction;
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/user.dart';
+import 'package:onset/screens/channel/chat/gift_bomb_tracker.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_message.dart';
+import 'package:onset/screens/channel/chat/widgets/gift_bomb_recipients.dart';
 import 'package:onset/screens/channel/chat/widgets/overlay_chat_scope.dart';
 import 'package:onset/screens/channel/chat/widgets/user_notice_row.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
@@ -71,6 +73,79 @@ void main() {
       "BigGifter is gifting 5 Tier 1 Subs to Channel's community. They've "
       'gifted a total of 50 in the channel!',
     );
+  });
+
+  group('a collapsed gift bomb', () {
+    late GiftBombTracker tracker;
+    late MockChatStore store;
+    late Set<String> expanded;
+
+    setUp(() {
+      tracker = GiftBombTracker();
+      store = fakeChatStore();
+      expanded = {};
+      when(() => store.watchGiftBomb(any())).thenAnswer(
+        (invocation) =>
+            tracker.watch(invocation.positionalArguments.first as String),
+      );
+      when(() => store.expandedGiftBombs).thenReturn(expanded);
+      when(() => store.setGiftBombExpanded(any(), any())).thenAnswer((i) {
+        final key = i.positionalArguments.first as String;
+        if (i.positionalArguments.last as bool) {
+          expanded.add(key);
+        } else {
+          expanded.remove(key);
+        }
+      });
+    });
+
+    void feed(String raw, {bool collapse = true}) => tracker.onNotice(
+      IRCMessage.fromString(raw).notice!,
+      collapse: collapse,
+      channelId: '12345',
+    );
+
+    testWidgets('lists its recipients in the header row', (tester) async {
+      feed(massGiftHeader);
+      await pumpChatMessage(
+        tester,
+        IRCMessage.fromString(massGiftHeader),
+        store,
+      );
+      expect(find.text('0 of 5 recipients'), findsOneWidget);
+
+      for (final raw in massGiftRecipients) {
+        feed(raw);
+      }
+      await tester.pump();
+      expect(find.text('5 recipients'), findsOneWidget);
+      expect(find.text('Viewer1'), findsNothing);
+
+      await tester.tap(find.byKey(GiftBombRecipients.toggleKey));
+      await tester.pumpAndSettle();
+      for (var i = 1; i <= 5; i++) {
+        expect(find.text('Viewer$i'), findsOneWidget);
+      }
+      // The choice outlives the row.
+      expect(expanded, {'1234567890123456789'});
+      await pumpChatMessage(
+        tester,
+        IRCMessage.fromString(massGiftHeader),
+        store,
+      );
+      expect(find.text('Viewer1'), findsOneWidget);
+    });
+
+    testWidgets('without collapsing the header has no list', (tester) async {
+      feed(massGiftHeader, collapse: false);
+      await pumpChatMessage(
+        tester,
+        IRCMessage.fromString(massGiftHeader),
+        store,
+      );
+
+      expect(find.byType(GiftBombRecipients), findsNothing);
+    });
   });
 
   testWidgets('a notice spans the full width of the chat', (tester) async {

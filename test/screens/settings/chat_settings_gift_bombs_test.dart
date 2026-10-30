@@ -4,9 +4,8 @@ import 'package:onset/screens/settings/chat_settings.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 
 void main() {
-  testWidgets('a switch under the notices collapses gift bombs', (
-    tester,
-  ) async {
+  testWidgets('a switch under the notices collapses gift bombs of five or '
+      'more', (tester) async {
     final store = SettingsStore.fromJson({});
     await tester.pumpWidget(
       MaterialApp(
@@ -22,8 +21,8 @@ void main() {
     );
     expect(
       find.text(
-        'Shows only the first message of a mass gift, without one line per '
-        'recipient.',
+        'Folds a gift bomb of five subs or more into its first line; tap '
+        '"recipients" to see who got one.',
       ),
       findsOneWidget,
     );
@@ -35,9 +34,30 @@ void main() {
 
     await tester.ensureVisible(title);
     await tester.pumpAndSettle();
+    expect(store.collapseGiftBombs, isTrue);
     await tester.tap(title);
     await tester.pump();
 
-    expect(store.collapseGiftBombs, isTrue);
+    expect(store.collapseGiftBombs, isFalse);
+  });
+
+  testWidgets('community highlights mention gift bombs', (tester) async {
+    final store = SettingsStore.fromJson({});
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: ChatSettings(settingsStore: store)),
+      ),
+    );
+
+    final subtitle = find.text(
+      'Shows polls, predictions, pinned messages, gift bombs and raids '
+      'above chat.',
+    );
+    await tester.scrollUntilVisible(
+      subtitle,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(subtitle, findsOneWidget);
   });
 }

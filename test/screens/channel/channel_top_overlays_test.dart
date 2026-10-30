@@ -16,9 +16,9 @@ import 'package:onset/screens/channel/hype_train/widgets/hype_train_banner.dart'
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_level_pill.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_sheet.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_slot.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_video_pill.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
-import 'package:onset/utils/context_extensions.dart';
 
 import '../../helpers/community_highlights_harness.dart' as ch;
 import 'hype_train/widgets/hype_train_widget_harness.dart';
@@ -276,7 +276,7 @@ void main() {
     // Board ChaineHypeDetail: the sheet on the community green.
     expect(
       tester.widget<BottomSheet>(find.byType(BottomSheet)).backgroundColor,
-      context.onsetColors.subNoticeBackground,
+      htSheetBackground(Theme.of(context).brightness),
     );
 
     h.inject(const HtEndEvent(reason: HtEndReason.expired));

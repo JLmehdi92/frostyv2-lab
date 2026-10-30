@@ -11,18 +11,18 @@ void main() {
       });
 
       expect(store.showCelebrations, isTrue);
-      expect(store.collapseGiftBombs, isFalse);
+      expect(store.collapseGiftBombs, isTrue);
     });
 
     test('celebrations and gift bomb collapsing round-trip', () {
       final store = SettingsStore.fromJson({})
         ..showCelebrations = false
-        ..collapseGiftBombs = true;
+        ..collapseGiftBombs = false;
 
       final restored = SettingsStore.fromJson(store.toJson());
 
       expect(restored.showCelebrations, isFalse);
-      expect(restored.collapseGiftBombs, isTrue);
+      expect(restored.collapseGiftBombs, isFalse);
     });
 
     test('live catch-up and buffer profile defaults', () {
@@ -253,26 +253,35 @@ void main() {
   });
 
   group('collapseGiftBombs', () {
-    test('is off by default, like Twitch, also for older settings', () {
-      expect(SettingsStore.fromJson({}).collapseGiftBombs, isFalse);
+    test('is on for a new install (no settings saved yet)', () {
+      expect(SettingsStore.fromJson({}).collapseGiftBombs, isTrue);
+    });
+
+    test('a value an install already saved is kept, off included', () {
+      // Every launch saves the whole store, so an existing install has the
+      // key: the new default never overrides it.
       expect(
-        SettingsStore.fromJson({'showUserNotices': true}).collapseGiftBombs,
+        SettingsStore.fromJson({'collapseGiftBombs': false}).collapseGiftBombs,
+        isFalse,
+      );
+      expect(
+        SettingsStore.fromJson({'collapseGiftBombs': true}).collapseGiftBombs,
+        isTrue,
+      );
+      expect(
+        SettingsStore.fromJson(
+          (SettingsStore.fromJson({})..collapseGiftBombs = false).toJson(),
+        ).collapseGiftBombs,
         isFalse,
       );
     });
 
-    test('round-trips through JSON', () {
-      final store = SettingsStore.fromJson({})..collapseGiftBombs = true;
-
-      expect(SettingsStore.fromJson(store.toJson()).collapseGiftBombs, isTrue);
-    });
-
-    test('resetChatSettings turns it back off', () {
+    test('resetChatSettings turns it back to the default', () {
       final store = SettingsStore.fromJson({})
-        ..collapseGiftBombs = true
+        ..collapseGiftBombs = false
         ..resetChatSettings();
 
-      expect(store.collapseGiftBombs, isFalse);
+      expect(store.collapseGiftBombs, isTrue);
     });
   });
 

@@ -25,6 +25,13 @@ abstract final class HtGreen {
   static const azureDark = Color(0xFF057DB8);
 }
 
+/// The hype train details sheet's background (board ChaineHypeDetail): the
+/// community green at 10 % (8 % light) over the theme's background. Sub and
+/// gift rows moved to lime; the hype train keeps its green.
+Color htSheetBackground(Brightness brightness) => brightness == Brightness.dark
+    ? const Color(0xFF0B1A15)
+    : const Color(0xFFE6F2EE);
+
 /// Twitch's neutrals inside the hype train, for one brightness.
 @immutable
 class HtNeutrals {
