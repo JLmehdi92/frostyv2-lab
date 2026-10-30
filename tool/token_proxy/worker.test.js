@@ -113,6 +113,9 @@ const get = (path = '/app-token', { method = 'GET', ip = '203.0.113.7' } = {}) =
     headers: { 'CF-Connecting-IP': ip },
   });
 
+// The credentials fingerprint the Worker stored with its token (marks carry it).
+const storedKey = () => JSON.parse(kv.store.get('twitch_app_token').value).key;
+
 const tokenOf = async (response) => (await response.json()).access_token;
 
 // Lets every request in flight run as far as it can (the clock is mocked,
@@ -182,13 +185,13 @@ test('a token is only handed out while it has 7 days left', async () => {
   assert.equal(mints().length, 2);
 });
 
-test('KV shares the token between isolates, until the 7-day mark', async () => {
+test('KV shares the token between isolates, until an hour before it expires', async () => {
   const first = await loadWorker();
   await first.fetch(get(), env());
   assert.equal(mints().length, 1);
   const stored = kv.store.get('twitch_app_token');
   assert.ok(stored);
-  assert.equal(stored.options.expirationTtl, LIFETIME_S - 7 * 24 * 60 * 60);
+  assert.equal(stored.options.expirationTtl, LIFETIME_S - 60 * 60);
   assert.ok(!stored.value.includes(SECRET));
 
   const second = await loadWorker();
@@ -260,7 +263,7 @@ test('an isolate with a stale token never removes the one another isolate just m
   kv.store.set('twitch_app_token', {
     value: JSON.stringify({ ...entry, token: TOKEN_2, validatedAt: now - 10 * 1000 }),
   });
-  kv.store.set('twitch_app_token_mint', { value: JSON.stringify({ at: now - 10 * 1000 }) });
+  kv.store.set('twitch_app_token_mint', { value: JSON.stringify({ at: now - 10 * 1000, key: storedKey() }) });
   validateAnswer = validFor(TOKEN_2);
 
   const response = await stale.fetch(get(), env());
@@ -276,7 +279,7 @@ test('a token found dead is not served again while KV still holds it', async () 
 
   now += 11 * MINUTE;
   validateAnswer = validFor();
-  kv.store.set('twitch_app_token_mint', { value: JSON.stringify({ at: now - 10 * 1000 }) });
+  kv.store.set('twitch_app_token_mint', { value: JSON.stringify({ at: now - 10 * 1000, key: storedKey() }) });
   assert.equal((await worker.fetch(get(), env())).status, 502);
   // KV is left as it is: the next mint overwrites it.
   assert.equal(JSON.parse(kv.store.get('twitch_app_token').value).token, TOKEN);
@@ -468,6 +471,106 @@ test('a failure shared by concurrent requests does not wedge the isolate', async
   assert.equal(await tokenOf(await worker.fetch(get(), env())), TOKEN);
 });
 
+test('a token in its last 7 days is still served while a new one cannot be minted', async () => {
+  const worker = await loadWorker();
+  await worker.fetch(get(), env());
+  // Six days left: a mint is due, and Twitch refuses it.
+  now += LIFETIME_S * 1000 - 6 * DAY;
+  mintAnswer = () => new Response('{}', { status: 500 });
+  let response = await worker.fetch(get(), env());
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.access_token, TOKEN);
+  assert.equal(body.expires_in, 6 * 24 * 60 * 60);
+  assert.equal(mints().length, 2);
+
+  // Another isolate, while the backoff holds the next mint back: from KV.
+  now += 10 * 1000;
+  const other = await loadWorker();
+  response = await other.fetch(get(), env());
+  assert.equal(await tokenOf(response), TOKEN);
+  assert.equal(mints().length, 2);
+});
+
+test('a token in its last 7 days that Twitch refuses is not served', async () => {
+  const worker = await loadWorker();
+  await worker.fetch(get(), env());
+  now += LIFETIME_S * 1000 - 6 * DAY;
+  validateAnswer = validFor();
+  mintAnswer = () => new Response('{}', { status: 500 });
+  assert.equal((await worker.fetch(get(), env())).status, 502);
+});
+
+test('fixing the secret in the Worker ends the backoff at once', async () => {
+  const OLD = 'old-rotated-secret-0123456789';
+  // Twitch only takes the new secret.
+  mintAnswer = (init) =>
+    new URLSearchParams(init.body).get('client_secret') === SECRET
+      ? tokenAnswer(TOKEN)()
+      : new Response(JSON.stringify({ status: 403 }), { status: 403 });
+  const worker = await loadWorker();
+  for (let minute = 0; minute < 50; minute++) {
+    await worker.fetch(get('/app-token', { ip: `198.51.100.${minute}` }), env({ TWITCH_CLIENT_SECRET: OLD }));
+    now += MINUTE;
+  }
+  const failed = mints().length;
+  assert.ok(failed >= 4);
+  // Backed off: the last attempt was at minute 45, the next due at 60.
+  assert.equal(mints().at(-1).at, 1_800_000_000_000 + 45 * MINUTE);
+
+  // The owner pastes the right secret: the very next request works.
+  now += 1000;
+  const response = await worker.fetch(get(), env());
+  assert.equal(await tokenOf(response), TOKEN);
+  assert.equal(mints().length, failed + 1);
+});
+
+test('a refresh that never ends is abandoned: later requests are not stuck', { timeout: 5000 }, async () => {
+  const worker = await loadWorker();
+  // The runtime cancelled the request that started the refresh: its fetch
+  // and timers never settle.
+  globalThis.fetch = () => new Promise(() => {});
+  const realSetTimeout = globalThis.setTimeout;
+  globalThis.setTimeout = (fn) => realSetTimeout(fn, 0);
+  let response;
+  try {
+    // Its own waiter gives up at its deadline.
+    response = await worker.fetch(get(), env());
+  } finally {
+    globalThis.setTimeout = realSetTimeout;
+  }
+  assert.equal(response.status, 502);
+
+  // Later, Twitch answers again: a request after 15 s starts afresh.
+  globalThis.fetch = async (url, init) => {
+    calls.push({ url: String(url), init, at: now });
+    return String(url).endsWith('/oauth2/validate') ? validateAnswer(init) : mintAnswer(init);
+  };
+  now += 16 * 1000;
+  // The mint mark of the abandoned attempt is a minute old by now.
+  now += MINUTE;
+  response = await worker.fetch(get('/app-token', { ip: '192.0.2.9' }), env());
+  assert.equal(await tokenOf(response), TOKEN);
+});
+
+test('the shared refresh is handed to ctx.waitUntil, and works without a ctx', async () => {
+  const kept = [];
+  const ctx = { waitUntil: (promise) => kept.push(promise) };
+  const worker = await loadWorker();
+  const response = await worker.fetch(get(), env(), ctx);
+  assert.equal(await tokenOf(response), TOKEN);
+  assert.equal(kept.length, 1);
+  assert.ok(kept[0] instanceof Promise);
+  await kept[0];
+
+  // A cached token needs no refresh: nothing more to keep alive.
+  await worker.fetch(get(), env(), ctx);
+  assert.equal(kept.length, 1);
+
+  const bare = await loadWorker();
+  assert.equal((await bare.fetch(get(), env())).status, 200);
+});
+
 test('a revoked token cannot make the Worker mint more than once a minute', async () => {
   const worker = await loadWorker();
   await worker.fetch(get(), env());
@@ -475,7 +578,7 @@ test('a revoked token cannot make the Worker mint more than once a minute', asyn
 
   // Revoked right after it was minted: no second mint within the minute.
   now += 11 * MINUTE;
-  kv.store.set('twitch_app_token_mint', { value: JSON.stringify({ at: now - 30 * 1000 }) });
+  kv.store.set('twitch_app_token_mint', { value: JSON.stringify({ at: now - 30 * 1000, key: storedKey() }) });
   const response = await worker.fetch(get(), env());
   assert.equal(response.status, 502);
   assert.equal(mints().length, 1);

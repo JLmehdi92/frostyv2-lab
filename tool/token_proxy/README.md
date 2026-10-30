@@ -21,7 +21,9 @@ nobody's private data.
 - Every other address returns 404, every other method 405.
 - Everyone gets the same token. It is handed out while it has at least
   **7 days** left (Twitch's last about 58 days), so Twitch is asked for a new
-  one only every seven weeks or so.
+  one only every seven weeks or so. If a new one cannot be had then, the old
+  one keeps being handed out, as long as Twitch still takes it, until an
+  hour before it expires.
 - Every 10 minutes at most, each running copy of the Worker asks Twitch
   whether the token still works. Anyone can revoke a token they have, so if
   it was revoked the Worker stops serving it and mints another, **at most
@@ -293,7 +295,8 @@ the script revokes before it ends. Nothing is saved or sent anywhere else.
   once per revoked token, at most once a minute. If minting keeps failing
   (for example the "ONSET public" secret was replaced at Twitch but not
   here), the attempts back off to 1, 2, 4, 8, then every 15 minutes: about
-  100 writes a day while it lasts, and the first success resets it.
+  100 writes a day while it lasts. The first success resets it, and so does
+  fixing the secret in the Worker: the next request tries at once.
   Checking the token never writes, however many copies of the Worker run,
   and requests arriving at the same moment share one check and one mint.
 - **If the Worker is down**, the app still starts, logging in still works, and

@@ -44,6 +44,18 @@ const TWITCH_VALIDATE_URL = 'https://id.twitch.tv/oauth2/validate';
 // it got has a week before it expires.
 const REFRESH_MARGIN_MS = 7 * 24 * 60 * 60 * 1000;
 
+// While a new token cannot be minted (Twitch refuses, or the backoff holds
+// it back), the old one is still handed out until this close to its real
+// expiry, as long as Twitch takes it: better than no token at all.
+const SERVE_FLOOR_MS = 60 * 60 * 1000;
+
+// A request waits this long for the shared check-and-mint before giving up
+// (502); a check-and-mint running longer than REFRESH_ABANDON_MS is taken
+// for dead and the next request starts another. Each Twitch call has
+// TWITCH_TIMEOUT_MS, and one refresh makes at most two.
+const WAIT_DEADLINE_MS = 12 * 1000;
+const REFRESH_ABANDON_MS = 15 * 1000;
+
 // How often each running copy of the Worker checks the shared token with
 // Twitch (it may have been revoked). The time is kept in that copy's memory:
 // a check never writes KV, however many copies run.
@@ -89,11 +101,13 @@ const TOKEN_PATTERN = /^[A-Za-z0-9]{16,128}$/;
 // times in ms since epoch, key the credentials' fingerprint.
 let memoryToken = null;
 
-// Until when this isolate does not try to mint again after a failure.
-let failedUntil = 0;
+// Until when this isolate does not try to mint again after a failure, and
+// with which credentials (fixing the secret ends the wait at once).
+let failedUntil = { until: 0, key: null };
 
-// The check (and, if needed, mint) this isolate is doing right now: requests
-// that arrive meanwhile wait for it instead of checking and minting again.
+// The check (and, if needed, mint) this isolate is doing right now, and when
+// it started: requests that arrive meanwhile wait for it instead of
+// checking and minting again.
 let refreshing = null;
 
 // Tokens this isolate found dead: never served again, even if KV still
@@ -133,7 +147,10 @@ async function credentialsKey(env) {
     .join('');
 }
 
-function usable(entry, now, key) {
+// Whether [entry] can be handed out with at least [minLeft] before Twitch
+// expires it: REFRESH_MARGIN_MS normally, SERVE_FLOOR_MS while no new token
+// can be minted.
+function usable(entry, now, key, minLeft = REFRESH_MARGIN_MS) {
   return (
     entry !== null &&
     typeof entry === 'object' &&
@@ -142,7 +159,7 @@ function usable(entry, now, key) {
     TOKEN_PATTERN.test(entry.token) &&
     typeof entry.expiresAt === 'number' &&
     typeof entry.validatedAt === 'number' &&
-    entry.expiresAt - REFRESH_MARGIN_MS > now
+    entry.expiresAt - minLeft > now
   );
 }
 
@@ -209,7 +226,9 @@ async function readKv(env, key) {
 }
 
 async function writeToken(env, entry, now) {
-  const ttl = Math.floor((entry.expiresAt - REFRESH_MARGIN_MS - now) / 1000);
+  // Kept until shortly before its real expiry, so that it can still be
+  // served from KV if minting its successor fails.
+  const ttl = Math.floor((entry.expiresAt - SERVE_FLOOR_MS - now) / 1000);
   if (ttl < KV_MIN_TTL_S) return;
   try {
     await env.TOKEN_CACHE.put(KV_KEY, JSON.stringify(entry), {
@@ -222,9 +241,9 @@ async function writeToken(env, entry, now) {
 
 // The token KV holds, when it is usable and not one this isolate found
 // dead; its check time is the mint's, until this isolate checks it.
-async function storedToken(env, key, now) {
+async function storedToken(env, key, now, minLeft = REFRESH_MARGIN_MS) {
   const stored = await readKv(env, KV_KEY);
-  if (!usable(stored, now, key) || deadTokens.has(stored.token)) return null;
+  if (!usable(stored, now, key, minLeft) || deadTokens.has(stored.token)) return null;
   return {
     token: stored.token,
     expiresAt: stored.expiresAt,
@@ -330,9 +349,9 @@ function mintWait(failures) {
   return Math.min(MINT_EVERY_MS * 2 ** (failures - 1), MINT_BACKOFF_MAX_MS);
 }
 
-async function writeMintMark(env, at, failures) {
+async function writeMintMark(env, at, failures, key) {
   try {
-    await env.TOKEN_CACHE.put(KV_MINT_KEY, JSON.stringify({ at, failures }), {
+    await env.TOKEN_CACHE.put(KV_MINT_KEY, JSON.stringify({ at, failures, key }), {
       expirationTtl: KV_MINT_TTL_S,
     });
   } catch {
@@ -341,7 +360,11 @@ async function writeMintMark(env, at, failures) {
 }
 
 async function mint(env, key, now) {
-  const mark = now < failedUntil ? null : await readKv(env, KV_MINT_KEY);
+  const isolateWait = failedUntil.key === key && now < failedUntil.until;
+  let mark = isolateWait ? null : await readKv(env, KV_MINT_KEY);
+  // A mark of other credentials says nothing about these: the secret was
+  // just fixed, so no waiting.
+  if (mark && mark.key !== key) mark = null;
   let failures =
     mark && Number.isInteger(mark.failures) && mark.failures > 0 ? mark.failures : 0;
   if (failures > 0) {
@@ -353,7 +376,7 @@ async function mint(env, key, now) {
     }
   }
   if (
-    now < failedUntil ||
+    isolateWait ||
     (mark && typeof mark.at === 'number' && now - mark.at < mintWait(failures))
   ) {
     // Not this isolate's turn: another may just have minted one.
@@ -363,12 +386,12 @@ async function mint(env, key, now) {
   }
   // Claimed as if it fails: one write per attempt. A success is told by the
   // token it writes (see above).
-  await writeMintMark(env, now, failures + 1);
+  await writeMintMark(env, now, failures + 1, key);
 
   const fresh = await askTwitch(env, key);
   if (!usable(fresh, Date.now(), key)) {
     if (fresh) console.error('token proxy: Twitch gave a token that expires too soon');
-    failedUntil = now + FAILURE_BACKOFF_MS;
+    failedUntil = { until: now + FAILURE_BACKOFF_MS, key };
     return null;
   }
   memoryToken = fresh;
@@ -376,7 +399,7 @@ async function mint(env, key, now) {
   return fresh;
 }
 
-async function currentToken(env, now) {
+async function currentToken(env, now, ctx) {
   if (!env.TOKEN_CACHE || typeof env.TOKEN_CACHE.get !== 'function') {
     console.error('token proxy: the TOKEN_CACHE KV binding is missing (see README)');
     return null;
@@ -394,47 +417,72 @@ async function currentToken(env, now) {
     return memoryToken;
   }
   // One check-and-mint at a time in this isolate; cleared whatever happens,
-  // so a failure never wedges it.
-  if (!refreshing) {
-    refreshing = refresh(env, key, now).finally(() => {
-      refreshing = null;
+  // so a failure never wedges it. One that runs too long is taken for dead
+  // and replaced: if the request that started it was cancelled, the
+  // runtime may have cancelled its fetches and timers too, and it would
+  // never settle.
+  if (!refreshing || now - refreshing.startedAt > REFRESH_ABANDON_MS) {
+    const promise = refresh(env, key, now).finally(() => {
+      if (refreshing && refreshing.promise === promise) refreshing = null;
     });
+    refreshing = { promise, startedAt: now };
+    // Other requests wait on it: it must outlive the request that started
+    // it, which the runtime would otherwise cancel along with its fetches
+    // as soon as that client hangs up (the app gives up after 6 s).
+    if (ctx && typeof ctx.waitUntil === 'function') {
+      ctx.waitUntil(promise.catch(() => {}));
+    }
   }
-  return refreshing;
+  return waitFor(refreshing.promise);
+}
+
+// The shared refresh, or null (a 502) if it is not done by this request's
+// own deadline.
+async function waitFor(promise) {
+  let timer;
+  const deadline = new Promise((resolve) => {
+    timer = setTimeout(() => resolve(null), WAIT_DEADLINE_MS);
+  });
+  try {
+    return await Promise.race([promise, deadline]);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function refresh(env, key, now) {
-  let entry = usable(memoryToken, now, key) ? memoryToken : null;
-  if (!entry) entry = await storedToken(env, key, now);
+  // Any token still worth handing out, even in its last 7 days.
+  let entry =
+    usable(memoryToken, now, key, SERVE_FLOOR_MS) && !deadTokens.has(memoryToken.token)
+      ? memoryToken
+      : null;
+  if (!entry) entry = await storedToken(env, key, now, SERVE_FLOOR_MS);
 
-  if (entry) {
-    if (now - entry.validatedAt < VALIDATE_EVERY_MS) {
-      memoryToken = entry;
-      return entry;
-    }
+  if (entry && now - entry.validatedAt >= VALIDATE_EVERY_MS) {
     const verdict = await checkWithTwitch(env, entry.token);
     if (verdict === 'good') {
       // In memory only: a check never writes KV.
-      memoryToken = { ...entry, validatedAt: now };
-      return memoryToken;
-    }
-    if (verdict === 'unknown') {
+      entry = { ...entry, validatedAt: now };
+    } else if (verdict === 'unknown') {
       // Served as it is; asked again in a minute, by this isolate.
-      memoryToken = {
-        ...entry,
-        validatedAt: now - VALIDATE_EVERY_MS + VALIDATE_RETRY_MS,
-      };
-      return memoryToken;
+      entry = { ...entry, validatedAt: now - VALIDATE_EVERY_MS + VALIDATE_RETRY_MS };
+    } else {
+      console.error('token proxy: the cached token was refused by Twitch, minting another');
+      markDead(entry.token);
+      entry = null;
     }
-    console.error('token proxy: the cached token was refused by Twitch, minting another');
-    markDead(entry.token);
   }
+  if (entry) memoryToken = entry;
+  if (entry && usable(entry, now, key)) return entry;
 
-  return mint(env, key, now);
+  // None, or one in its last 7 days: mint. If that fails or must wait, the
+  // old one is still better than nothing.
+  const minted = await mint(env, key, now);
+  return minted || entry;
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname !== '/app-token') {
       return json(404, { error: 'not_found' });
@@ -450,7 +498,7 @@ export default {
 
     let entry;
     try {
-      entry = await currentToken(env, now);
+      entry = await currentToken(env, now, ctx);
     } catch {
       console.error('token proxy: unexpected failure');
       return unavailable();
