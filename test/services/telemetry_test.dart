@@ -217,6 +217,17 @@ void main() {
       expect(printed, isEmpty);
     });
 
+    test('an uncaught platform error is left to the engine to log', () {
+      final error = StateError('x');
+      expect(Telemetry.handlePlatformError(error, StackTrace.current), isFalse);
+      expect(printed, isEmpty);
+
+      Telemetry.setCollectionEnabled(true);
+      printed.clear();
+      expect(Telemetry.handlePlatformError(error, StackTrace.current), isTrue);
+      expect(printed, hasLength(1));
+    });
+
     test('an uncaught framework error is still shown, not reported', () {
       final shown = <FlutterErrorDetails>[];
       final savedPresent = FlutterError.presentError;
