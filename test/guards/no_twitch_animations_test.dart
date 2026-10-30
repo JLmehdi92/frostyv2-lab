@@ -2,9 +2,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-/// The on-screen celebrations used to be Twitch's channel-points Lotties,
-/// recoloured. They are ONSET particles now, and none of Twitch's files may
-/// come back.
+/// The on-screen celebrations are ONSET's own particles: no Lottie or
+/// third-party animation ships.
 void main() {
   test('no Lottie animation ships in assets/animations', () {
     final dir = Directory('assets/animations');

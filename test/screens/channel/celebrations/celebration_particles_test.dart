@@ -26,7 +26,7 @@ List<String> _describe(List<ParticleFrame> frames) => [
 ];
 
 void main() {
-  test('every effect Twitch sends has a preset, as the Lotties had', () {
+  test('every effect Twitch sends has a preset', () {
     expect(CelebrationEffect.fireworks.preset, CelebrationPreset.confetti);
     expect(
       CelebrationEffect.extinctionEvent.preset,
@@ -38,7 +38,7 @@ void main() {
     expect(CelebrationEffect.unknown.preset, CelebrationPreset.sparkles);
   });
 
-  test('eight presets, one per former animation', () {
+  test('eight presets, one per kind of motion', () {
     expect(CelebrationPreset.values.map((p) => p.name), [
       'confetti',
       'explosion',
