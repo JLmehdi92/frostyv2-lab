@@ -325,6 +325,21 @@ void main() {
         expect(find.text('Watch streak 12'), findsOneWidget);
         expect(find.text('Follow'), findsOneWidget);
         expect(find.text('Subscribe'), findsOneWidget);
+        // Subscribe and the watch streak stay hype green in both themes
+        // (once the theme change has animated through).
+        await tester.pump(const Duration(milliseconds: 400));
+        final green = dark ? OnsetTokens.hypeText : OnsetTokens.hypeTextLight;
+        final subscribe = tester.widget<OutlinedButton>(
+          find.ancestor(
+            of: find.text('Subscribe'),
+            matching: find.byType(OutlinedButton),
+          ),
+        );
+        expect(subscribe.style!.foregroundColor!.resolve({}), green);
+        expect(
+          tester.widget<Text>(find.text('Watch streak 12')).style?.color,
+          green,
+        );
         expect(find.text('ALSO LIVE FROM YOUR FOLLOWS'), findsOneWidget);
         info.alsoLive.value = const <StreamTwitch>[];
       }

@@ -9,7 +9,7 @@ import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart'
 
 /// A train is about to start, laid out like Twitch's approaching banner:
 /// the title over the subtitle on the float card, the events pill (train
-/// icon and check circles in the creator's colour, or green) at the end,
+/// icon and check circles, green) at the end,
 /// and the time window running out along a green 3 dp bar at the bottom.
 class HypeTrainApproachingBanner extends StatelessWidget {
   const HypeTrainApproachingBanner({
@@ -35,16 +35,7 @@ class HypeTrainApproachingBanner extends StatelessWidget {
         builder: (context) {
           final approaching = store.approaching;
           if (approaching == null) return const SizedBox.shrink();
-          final palette = HtPalette.of(
-            HtStyle.regular,
-            Theme.of(context).colorScheme,
-            creatorColor: approaching.creatorColor,
-          );
-          // Only the events pill takes the creator's colour.
-          final green = HtPalette.of(
-            HtStyle.regular,
-            Theme.of(context).colorScheme,
-          );
+          final palette = HtPalette.approaching(Theme.of(context).colorScheme);
           final title = HtCopy.approachingTitle(approaching.variant);
           final subtitle = store.approachingNMore
               ? HtCopy.approachingMore(store.approachingEventsLeft)
@@ -155,7 +146,7 @@ class HypeTrainApproachingBanner extends StatelessWidget {
                                 value: store.approachingCompleted
                                     ? 1
                                     : store.approachingFraction,
-                                color: green.fill,
+                                color: palette.fill,
                                 backgroundColor: Colors.transparent,
                               ),
                             ),

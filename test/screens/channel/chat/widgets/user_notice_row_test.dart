@@ -46,7 +46,7 @@ List<TextSpan> _systemSpans(WidgetTester tester) {
 }
 
 void main() {
-  testWidgets('draws a 4dp green accent bar on the green tint', (tester) async {
+  testWidgets('draws a 4dp lime accent bar on the lime tint', (tester) async {
     await _pump(
       tester,
       const UserNoticeRow(
@@ -58,11 +58,13 @@ void main() {
     final decoration = _decoration(tester);
     final border = decoration.border! as Border;
     expect(border.left.width, 4);
-    expect(border.left.color, const Color(0xFF12A87A));
-    expect(decoration.color, OnsetColors.dark.subNoticeBackground);
+    expect(border.left.color, OnsetTokens.accent);
+    expect(decoration.color, const Color(0xFF171B0E));
   });
 
-  testWidgets('uses the light tint in the light theme', (tester) async {
+  testWidgets('a darker lime bar on the light tint in the light theme', (
+    tester,
+  ) async {
     await _pump(
       tester,
       const UserNoticeRow(
@@ -72,7 +74,31 @@ void main() {
       brightness: Brightness.light,
     );
 
-    expect(_decoration(tester).color, OnsetColors.light.subNoticeBackground);
+    final decoration = _decoration(tester);
+    expect((decoration.border! as Border).left.color, const Color(0xFF6B8A00));
+    expect(decoration.color, OnsetColors.light.subNoticeBackground);
+  });
+
+  testWidgets('a footer sits under the sentence, in its column', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      const UserNoticeRow(
+        segments: _segments,
+        presentation: NoticePresentation(NoticeLayout.special),
+        footer: SizedBox(key: ValueKey('footer'), height: 44, width: 10),
+      ),
+    );
+
+    final line = tester.getRect(find.byKey(UserNoticeRow.systemLineKey));
+    final footer = tester.getRect(find.byKey(const ValueKey('footer')));
+    expect(footer.top, line.bottom);
+    expect(footer.left, line.left);
+    expect(
+      tester.getRect(find.byKey(UserNoticeRow.bodyKey)).bottom,
+      footer.bottom,
+    );
   });
 
   testWidgets('keeps a 2dp gap above and below the row', (tester) async {
@@ -268,7 +294,7 @@ void main() {
     expect((_decoration(tester).border! as Border).left.color, Colors.orange);
   });
 
-  testWidgets('a sponsor colour tints the row like the green does', (
+  testWidgets('a sponsor colour tints the row like the lime does', (
     tester,
   ) async {
     const sponsor = Color(0xFFFF7A00);
@@ -315,7 +341,7 @@ void main() {
       find.byType(LinearProgressIndicator),
     );
     expect(bar.value, closeTo(524 / 1200, 1e-9));
-    expect(bar.color, const Color(0xFF12A87A));
+    expect(bar.color, OnsetTokens.accent);
     expect(tester.getSize(find.byType(LinearProgressIndicator)).height, 6);
     expect(
       tester.getSize(find.byType(LinearProgressIndicator)).width,
@@ -325,7 +351,7 @@ void main() {
   });
 
   group('over the video', () {
-    testWidgets('a translucent black row, rounded, with the green bar', (
+    testWidgets('a translucent black row, rounded, with the lime bar', (
       tester,
     ) async {
       await _pump(
@@ -341,7 +367,7 @@ void main() {
       expect(decoration.color, const Color(0x29000000));
       final border = decoration.border! as Border;
       expect(border.left.width, 4);
-      expect(border.left.color, const Color(0xFF12A87A));
+      expect(border.left.color, OnsetTokens.accent);
 
       final clip = tester.widget<ClipRRect>(
         find.ancestor(

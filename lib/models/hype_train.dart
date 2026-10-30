@@ -402,7 +402,6 @@ class HtConfig {
     this.conversionRates = const {},
     this.conductorBadges = const {},
     this.calloutEmote,
-    this.creatorColor,
     this.kickoffMinPoints,
   });
 
@@ -447,7 +446,6 @@ class HtConfig {
         htString(callout, ['id']) ?? htString(raw, ['calloutEmoteId']);
     final calloutToken =
         htString(callout, ['token']) ?? htString(raw, ['calloutEmoteToken']);
-    final useColor = htField(raw, ['willUseCreatorColor']) != false;
     return HtConfig(
       difficulty: difficulty,
       maxLevel: maxLevel,
@@ -460,9 +458,6 @@ class HtConfig {
               id: calloutId,
               token: calloutToken,
             ),
-      creatorColor: useColor
-          ? htColor(htString(raw, ['primaryHexColor']))
-          : null,
       kickoffMinPoints: htInt(htMap(raw, ['kickoff']), [
         'minPoints',
         'min_points',
@@ -480,17 +475,7 @@ class HtConfig {
   final Map<HtSource, String> conductorBadges;
   final HtReward? calloutEmote;
 
-  /// The channel's colour as `0xFFRRGGBB`, when it asked for it.
-  final int? creatorColor;
   final int? kickoffMinPoints;
-}
-
-/// `BD0078` or `#BD0078` → `0xFFBD0078`; anything else → null.
-int? htColor(String? raw) {
-  if (raw == null) return null;
-  final hex = raw.startsWith('#') ? raw.substring(1) : raw;
-  if (!RegExp(r'^[0-9A-Fa-f]{6}$').hasMatch(hex)) return null;
-  return 0xFF000000 | int.parse(hex, radix: 16);
 }
 
 @immutable
@@ -833,7 +818,6 @@ class HypeTrainApproaching {
     required this.id,
     required this.goal,
     required this.deadlines,
-    this.creatorColor,
     this.participants = const {},
     this.levelOneRewards = const [],
     this.variant = HtVariant.regular,
@@ -867,7 +851,6 @@ class HypeTrainApproaching {
       id: id,
       goal: htInt(raw, ['goal']) ?? 3,
       deadlines: deadlines,
-      creatorColor: htColor(htString(raw, ['creatorColor', 'creator_color'])),
       participants: {
         for (final p in htList(raw, ['participants']))
           if (p is String) p,
@@ -886,7 +869,6 @@ class HypeTrainApproaching {
 
   /// Events still needed → seconds left for them (from when it arrived).
   final Map<int, int> deadlines;
-  final int? creatorColor;
 
   /// Users who already contributed.
   final Set<String> participants;

@@ -5,6 +5,7 @@ import 'package:onset/apis/twitch_hype_train_service.dart';
 import 'package:onset/models/hype_train.dart';
 import 'package:onset/models/hype_train_event.dart';
 import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_split_color.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_video_pill.dart';
 
 import '../hype_train_test_data.dart';
@@ -160,11 +161,14 @@ void main() {
       }),
     );
 
-    testWidgets('the fill sweeps the level fraction in #0C6D4F', (
+    testWidgets('the fill sweeps the level fraction in its level colour', (
       tester,
     ) async {
       final h = HtHarness(
-        snapshot: HtOngoingSnapshot(liveTrain(), fetchedAt: DateTime.utc(2026)),
+        snapshot: HtOngoingSnapshot(
+          liveTrain(level: 4),
+          fetchedAt: DateTime.utc(2026),
+        ),
       );
       await pumpPill(tester, h.store);
 
@@ -174,13 +178,21 @@ void main() {
       );
       expect(tester.getSize(fill).height, 32);
       expect(
-        (tester.widget<DecoratedBox>(fill).decoration as BoxDecoration).color,
-        const Color(0xFF0C6D4F),
+        (tester.widget<DecoratedBox>(fill).decoration as BoxDecoration)
+            .gradient!
+            .colors,
+        const [Color(0xFFC8FF3D), Color(0xFFC8FF3D)],
       );
+      // Dark on the lime, white over the video: the text turns at the edge.
+      final split = tester.renderObject<RenderHtSplitColor>(
+        find.byType(HtSplitColor),
+      );
+      expect(split.onFill, const Color(0xFF0A0A0A));
+      expect(split.onTrack, Colors.white);
       await h.close(tester);
     });
 
-    testWidgets('a shared train fills the pill magenta to green', (
+    testWidgets('a shared train fills the pill in its level colours', (
       tester,
     ) async {
       final h = HtHarness(
@@ -202,9 +214,11 @@ void main() {
       final decoration =
           tester.widget<DecoratedBox>(fill).decoration as BoxDecoration;
       expect(decoration.color, isNull);
+      // Level 7: the lime and orange of level 6 and up.
       expect(decoration.gradient!.colors, const [
-        Color(0xFFBE0078),
-        Color(0xFF0E8661),
+        Color(0xFFC8FF3D),
+        Color(0xFFFF7A45),
+        Color(0xFFC8FF3D),
       ]);
       await h.close(tester);
     });

@@ -49,13 +49,12 @@ void main() {
       );
     });
 
-    test('conductors and the creator colour', () {
+    test('conductors', () {
       expect(train.conductors.map((c) => c.source), [
         HtSource.bits,
         HtSource.subs,
       ]);
       expect(train.conductors.first.user.displayName, isNotEmpty);
-      expect(train.config.creatorColor, 0xFFBD0078);
     });
 
     test('the golden kappa train and its record', () {
@@ -66,11 +65,6 @@ void main() {
       expect(golden.ath?.level, 10);
       expect(golden.ath?.total, 32500);
       expect(golden.config.calloutEmote?.token, 'Kappa');
-      expect(
-        golden.config.creatorColor,
-        isNull,
-        reason: 'primaryHexColor null',
-      );
       expect(golden.config.kickoffMinPoints, 100);
     });
 
@@ -129,7 +123,6 @@ void main() {
       expect(approaching.goal, 3);
       expect(approaching.deadlines, {1: 286, 2: 120});
       expect(approaching.participants, {'900001'});
-      expect(approaching.creatorColor, 0xFF9147FF);
       expect(approaching.levelOneRewards.single.token, 'chanHype1');
     });
 
@@ -165,14 +158,6 @@ void main() {
       expect(htCdnUrl('https://evil.example/x.png'), isNull);
       expect(htCdnUrl('https://static-cdn.jtvnw.net.evil.example/x'), isNull);
       expect(htCdnUrl(null), isNull);
-    });
-
-    test('colours', () {
-      expect(htColor('BD0078'), 0xFFBD0078);
-      expect(htColor('#bd0078'), 0xFFBD0078);
-      expect(htColor('zzz'), isNull);
-      expect(htColor('#BD00781'), isNull);
-      expect(htColor(null), isNull);
     });
 
     test('wrongly typed fields fall back instead of throwing', () {

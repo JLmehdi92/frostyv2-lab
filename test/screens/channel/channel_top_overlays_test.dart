@@ -9,15 +9,16 @@ import 'package:onset/screens/channel/channel_top_overlays.dart';
 import 'package:onset/screens/channel/chat/gift_bomb_tracker.dart';
 import 'package:onset/screens/channel/chat/incoming_raid.dart';
 import 'package:onset/screens/channel/chat/stores/chat_tabs_store.dart';
+import 'package:onset/screens/channel/community_highlights/widgets/gift_bomb_pin.dart';
 import 'package:onset/screens/channel/community_highlights/widgets/highlight_slot.dart';
 import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_banner.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_level_pill.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_sheet.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_slot.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_video_pill.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
-import 'package:onset/utils/context_extensions.dart';
 
 import '../../helpers/community_highlights_harness.dart' as ch;
 import 'hype_train/widgets/hype_train_widget_harness.dart';
@@ -275,7 +276,7 @@ void main() {
     // Board ChaineHypeDetail: the sheet on the community green.
     expect(
       tester.widget<BottomSheet>(find.byType(BottomSheet)).backgroundColor,
-      context.onsetColors.subNoticeBackground,
+      htSheetBackground(Theme.of(context).brightness),
     );
 
     h.inject(const HtEndEvent(reason: HtEndReason.expired));
@@ -481,6 +482,57 @@ void main() {
       // binding checks before tear-down runs.
       hl.store.dispose();
       await train.close(tester);
+    });
+
+    group('the gift bomb pin in each chat', () {
+      // (view, chat column, one line?): a phone in portrait, the landscape
+      // side chats of the board, a tablet's side column and its portrait.
+      for (final (name, view, column, oneLine) in [
+        ('phone portrait 390x844', const Size(390, 844), 390.0, false),
+        ('landscape side chat 256', const Size(844, 390), 256.0, true),
+        ('landscape side chat 320', const Size(844, 390), 320.0, true),
+        ('tablet landscape 1280x854', const Size(1280, 854), 280.0, true),
+        ('tablet portrait 854x1280', const Size(854, 1280), 854.0, false),
+        ('tablet wide chat 600', const Size(1280, 854), 600.0, false),
+      ]) {
+        testWidgets(name, (tester) async {
+          hl.create();
+          final live = ValueNotifier(
+            const GiftBomb(
+              key: 'bomb',
+              gifterName: 'saladetomateoignons0saladetomateoignons0',
+              isAnonymous: false,
+              count: 20,
+            ),
+          );
+          addTearDown(live.dispose);
+          hl.store.showGiftBomb(live.value, live: live);
+          await tester.pump();
+          await pumpAt(
+            tester,
+            view,
+            chat(width: column, height: view.height - 200),
+          );
+          await tester.pump(const Duration(milliseconds: 300));
+          for (var i = 0; i < 20; i++) {
+            live.value = live.value.withGift('r$i');
+            await tester.pump(const Duration(milliseconds: 90));
+          }
+          await tester.pump(const Duration(seconds: 1));
+
+          expect(find.byType(GiftBombPin), findsOneWidget);
+          expect(find.text('×20'), oneLine ? findsOneWidget : findsNothing);
+          expect(
+            find.text(' is gifting 20 subs'),
+            oneLine ? findsNothing : findsOneWidget,
+          );
+          final pin = tester.getRect(find.byKey(GiftBombPin.pinKey));
+          expect(pin.height, oneLine ? 44 : 56);
+          expect(pin.width, lessThanOrEqualTo(560));
+          expect(tester.takeException(), isNull);
+          hl.store.dispose();
+        });
+      }
     });
 
     testWidgets('an incoming raid stays up while the train details are '

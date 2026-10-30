@@ -67,6 +67,15 @@ void main() {
       expect(notice.communityGiftId, '1234567890123456789');
     });
 
+    test('a negative gift bomb count reads as none', () {
+      final notice = UserNotice.fromTags(const {
+        'msg-id': 'submysterygift',
+        'msg-param-mass-gift-count': '-5',
+      });
+
+      expect(notice.massGiftCount, 0);
+    });
+
     test('ties every gift of a bomb to its header', () {
       for (final raw in massGiftRecipients) {
         final notice = _parse(raw);

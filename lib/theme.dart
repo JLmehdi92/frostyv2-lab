@@ -102,6 +102,11 @@ class OnsetTokens {
   /// Green text on a [hype]-tinted fill (the "Subscribe" button).
   static const hypeText = Color(0xFF3DDBA6);
 
+  /// [hypeText] for the light theme: the hype green darkened to 4.5:1 on a
+  /// light [hype] tint (Subscribe, the watch streak, the hype train sheet).
+  /// Sub and gift notices use their own lime (`OnsetColors.subNoticeText`).
+  static const hypeTextLight = Color(0xFF0A7957);
+
   /// Destructive actions only.
   static const danger = Color(0xFFFF5A5F);
 
@@ -252,14 +257,15 @@ class OnsetColors extends ThemeExtension<OnsetColors> {
   final Color hairline;
 
   /// The accent bar of a sub or gift notice. Twitch draws these in its own
-  /// purple; this app draws them green.
+  /// purple; this app draws them in the signal lime (board CadeauxHypeTrain),
+  /// darkened on the light theme. Green stays with the hype train.
   final Color subNoticeAccent;
 
   /// The tinted background of a sub or gift notice: [subNoticeAccent] over
   /// the theme's background.
   final Color subNoticeBackground;
 
-  /// Green text that stays readable on [subNoticeBackground].
+  /// Lime text that stays readable on [subNoticeBackground].
   final Color subNoticeText;
 
   const OnsetColors({
@@ -293,11 +299,12 @@ class OnsetColors extends ThemeExtension<OnsetColors> {
     live: Color(0xFF6B9E00),
     metadata: Color(0xFF6B6B6B),
     hairline: OnsetTokens.hairlineLight,
-    subNoticeAccent: Color(0xFF12A87A),
+    // The lime darkened until a 4 dp bar shows on white.
+    subNoticeAccent: Color(0xFF6B8A00),
     // The accent at 8% over the light background.
-    subNoticeBackground: Color(0xFFE6F2EE),
-    // Darkened until it passes 4.5:1 on the tint.
-    subNoticeText: Color(0xFF0A7957),
+    subNoticeBackground: Color(0xFFEDEFE4),
+    // Darkened until it passes 4.5:1 on the tint (5.6:1).
+    subNoticeText: Color(0xFF4F6600),
   );
 
   static const dark = OnsetColors(
@@ -311,10 +318,10 @@ class OnsetColors extends ThemeExtension<OnsetColors> {
     live: OnsetTokens.accent,
     metadata: OnsetTokens.textSecondaryDark,
     hairline: OnsetTokens.hairlineDark,
-    subNoticeAccent: Color(0xFF12A87A),
-    // The accent at 10% over the dark background.
-    subNoticeBackground: Color(0xFF0B1A15),
-    subNoticeText: Color(0xFF12A87A),
+    subNoticeAccent: OnsetTokens.accent,
+    // The accent at 7% over the dark background.
+    subNoticeBackground: Color(0xFF171B0E),
+    subNoticeText: OnsetTokens.accent,
   );
 
   @override

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:clock/clock.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobx/mobx.dart';
@@ -229,6 +230,25 @@ abstract class ChatStoreBase with Store {
   /// live, from this channel), set as its header reaches the chat.
   @readonly
   GiftBomb? _latestGiftBomb;
+
+  /// The gift bomb keyed [key] as its gifts arrive (after the chat delay),
+  /// while this chat still remembers it.
+  ValueListenable<GiftBomb>? watchGiftBomb(String key) => _giftBombs.watch(key);
+
+  /// The gift bombs whose recipients the viewer opened in their header row
+  /// (most recent last, at most [GiftBombTracker.maxTracked]): the rows are
+  /// rebuilt as chat scrolls, the choice must outlive them.
+  final expandedGiftBombs = <String>{};
+
+  /// Opens or closes the recipients of the gift bomb keyed [key].
+  void setGiftBombExpanded(String key, bool expanded) {
+    expandedGiftBombs.remove(key);
+    if (!expanded) return;
+    expandedGiftBombs.add(key);
+    if (expandedGiftBombs.length > GiftBombTracker.maxTracked) {
+      expandedGiftBombs.remove(expandedGiftBombs.first);
+    }
+  }
 
   /// The welcome of a raid the viewer followed here, waiting for the chat
   /// to be joined (it shows right after "Welcome to X's chat!").

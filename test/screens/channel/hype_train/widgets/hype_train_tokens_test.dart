@@ -49,25 +49,6 @@ void main() {
     expect(HtNeutrals.light.backgroundFloat, const Color(0xFFFFFFFF));
   });
 
-  test("Twitch's purples count as purple; other colours do not", () {
-    for (final purple in [
-      0xFF9146FF,
-      0xFF9147FF,
-      0xFF772CE8,
-      0xFFA970FF,
-      // Twitch's legacy purples.
-      0xFF6441A5,
-      0xFF6441A4,
-      0xFF7D5BBE,
-      0xFF451093,
-    ]) {
-      expect(isTwitchPurple(purple), isTrue, reason: purple.toRadixString(16));
-    }
-    for (final other in [0xFFBD0078, 0xFF12A87A, 0xFFFFB31A]) {
-      expect(isTwitchPurple(other), isFalse, reason: other.toRadixString(16));
-    }
-  });
-
   test('the banner is 74 dp, growing with text up to twice that', () {
     expect(htBannerHeight(TextScaler.noScaling), 74);
     expect(htBannerHeight(const TextScaler.linear(0.8)), 74);

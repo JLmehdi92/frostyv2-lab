@@ -120,7 +120,7 @@ SettingsStore _$SettingsStoreFromJson(
   ..highlightFirstTimeChatter =
       json['highlightFirstTimeChatter'] as bool? ?? true
   ..showUserNotices = json['showUserNotices'] as bool? ?? true
-  ..collapseGiftBombs = json['collapseGiftBombs'] as bool? ?? false
+  ..collapseGiftBombs = json['collapseGiftBombs'] as bool? ?? true
   ..showHypeTrain = json['showHypeTrain'] as bool? ?? true
   ..showCommunityHighlights = json['showCommunityHighlights'] as bool? ?? true
   ..showCelebrations = json['showCelebrations'] as bool? ?? true

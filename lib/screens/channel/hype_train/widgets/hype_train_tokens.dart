@@ -25,6 +25,13 @@ abstract final class HtGreen {
   static const azureDark = Color(0xFF057DB8);
 }
 
+/// The hype train details sheet's background (board ChaineHypeDetail): the
+/// community green at 10 % (8 % light) over the theme's background. Sub and
+/// gift rows moved to lime; the hype train keeps its green.
+Color htSheetBackground(Brightness brightness) => brightness == Brightness.dark
+    ? const Color(0xFF0B1A15)
+    : const Color(0xFFE6F2EE);
+
 /// Twitch's neutrals inside the hype train, for one brightness.
 @immutable
 class HtNeutrals {
@@ -181,18 +188,6 @@ abstract final class HtType {
 
 /// The trophy of the all-time high.
 const htTrophyGold = Color(0xFFFFB300);
-
-/// Whether a creator colour is one of Twitch's purples, current or legacy
-/// (#6441A5, #451093): hue 255–290°, saturation from 0.35, lightness
-/// 0.2–0.85. It falls back to green.
-bool isTwitchPurple(int argb) {
-  final hsl = HSLColor.fromColor(Color(argb));
-  return hsl.hue >= 255 &&
-      hsl.hue <= 290 &&
-      hsl.saturation >= 0.35 &&
-      hsl.lightness >= 0.2 &&
-      hsl.lightness <= 0.85;
-}
 
 /// The banner's height: 74 dp, growing with the text up to twice that.
 double htBannerHeight(TextScaler scaler) =>

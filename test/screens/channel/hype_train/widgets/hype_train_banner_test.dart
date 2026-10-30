@@ -6,7 +6,9 @@ import 'package:onset/screens/channel/hype_train/widgets/hype_train_banner.dart'
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_copy.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_countdown.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_level_pill.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_palette.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_progress_bar.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_split_color.dart';
 
 import 'hype_train_widget_harness.dart';
 
@@ -182,7 +184,9 @@ void main() {
     // Swipe up: there is no collapse button, as on Twitch.
     expect(find.byTooltip('Collapse Hype Train'), findsNothing);
     await tester.fling(_banner, const Offset(0, -120), 1000);
-    await tester.pumpAndSettle();
+    // Level 7's gradient flows for ever: settle by time, not by idling.
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1));
     expect(find.byType(HypeTrainBanner), findsNothing);
     expect(find.byKey(const ValueKey('ht-pill')), findsOneWidget);
     expect(tester.getSize(find.byKey(const ValueKey('ht-pill'))).height, 32);
@@ -195,7 +199,8 @@ void main() {
     );
 
     await tester.tap(find.byKey(const ValueKey('ht-pill')));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1));
     expect(find.byType(HypeTrainBanner), findsOneWidget);
     await h.close(tester);
   });
@@ -294,7 +299,8 @@ void main() {
       }
     });
 
-    testWidgets('the level pill is a black pill with LVL n', (tester) async {
+    testWidgets('the level pill is a near-black pill with LVL n in the '
+        'level colour', (tester) async {
       final h = running(tester);
       await pumpSlot(tester, h.store);
 
@@ -305,11 +311,11 @@ void main() {
         ),
       );
       final decoration = box.decoration as BoxDecoration;
-      expect(decoration.color, const Color(0xCC000000));
+      expect(decoration.color, const Color(0xDB0A0A0A));
       expect(decoration.borderRadius, BorderRadius.circular(20));
       expect(
         tester.widget<Text>(find.text('LVL 7')).style?.color,
-        Colors.white,
+        const Color(0xFFC8FF3D),
       );
       await h.close(tester);
     });
@@ -619,5 +625,222 @@ void main() {
       }
       await h.close(tester);
     });
+  });
+
+  group('ONSET level colours (board CadeauxHypeTrain)', () {
+    HypeTrainProgressBarState bar(WidgetTester tester) => tester
+        .state<HypeTrainProgressBarState>(find.byType(HypeTrainProgressBar));
+
+    RenderHtSplitColor splitOf(WidgetTester tester, Finder text) =>
+        tester.renderObject<RenderHtSplitColor>(
+          find.ancestor(of: text, matching: find.byType(HtSplitColor)).first,
+        );
+
+    BoxDecoration fillDecoration(WidgetTester tester) =>
+        tester
+                .widget<DecoratedBox>(find.byKey(const ValueKey('ht-fill')))
+                .decoration
+            as BoxDecoration;
+
+    testWidgets('dark text on the fill, light on the track, turning at '
+        'the edge', (tester) async {
+      final h = running(tester, level: 4);
+      await pumpSlot(tester, h.store);
+
+      expect(fillDecoration(tester).color, const Color(0xFFC8FF3D));
+      final numbers = splitOf(tester, find.text('33%'));
+      expect(numbers.onFill, HtLevelColors.onFill);
+      expect(numbers.onTrack, HtLevelColors.onTrack);
+      // The percentage is at the end, on the track: all light.
+      expect(numbers.split.at, 0);
+      // The subtitle starts on the fill and runs onto the track.
+      final subtitle = splitOf(
+        tester,
+        find.byKey(const ValueKey('ht-subtitle')),
+      );
+      final banner = tester.getRect(_banner);
+      final box = tester.getRect(find.byKey(const ValueKey('ht-subtitle')));
+      final edge = banner.left + banner.width * 0.33;
+      expect(subtitle.split.at, closeTo((edge - box.left) / box.width, 0.02));
+      expect(subtitle.split.fillOnLeft, isTrue);
+      // The level pill keeps its own colours.
+      expect(
+        find.ancestor(
+          of: find.byType(HypeTrainLevelPill),
+          matching: find.byType(HtSplitColor),
+        ),
+        findsNothing,
+      );
+      expect(find.byKey(const ValueKey('ht-hairline')), findsOneWidget);
+      await h.close(tester);
+    });
+
+    testWidgets('the edge follows the fill as it grows', (tester) async {
+      final h = running(tester);
+      await pumpSlot(tester, h.store);
+      final subtitle = splitOf(
+        tester,
+        find.byKey(const ValueKey('ht-subtitle')),
+      );
+      final before = subtitle.split.at;
+
+      h.inject(htSmall(16500));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(bar(tester).value, closeTo(0.43, 0.01));
+      expect(subtitle.split.at, greaterThan(before));
+      await h.close(tester);
+    });
+
+    testWidgets('right to left the fill and its dark text are on the right', (
+      tester,
+    ) async {
+      final h = running(tester, level: 2);
+      await pumpSlot(tester, h.store, direction: TextDirection.rtl);
+
+      final numbers = splitOf(tester, find.text('33%'));
+      expect(numbers.split.fillOnLeft, isFalse);
+      await h.close(tester);
+    });
+
+    testWidgets('level up: 100 % in 200 ms, a flash with "Level n '
+        'Complete!", the colour morphs in 600 ms, the bar restarts', (
+      tester,
+    ) async {
+      final h = running(tester, level: 2);
+      await pumpSlot(tester, h.store);
+      expect(fillDecoration(tester).color, const Color(0xFF14B8A6));
+
+      h.inject(htLevelUp(3));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(bar(tester).value, closeTo(1, 0.001));
+      expect(find.byKey(const ValueKey('ht-flash')), findsNothing);
+
+      // Flash 500 ms, then the marquee 2.5 s: "Level 2 Complete!".
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 2500));
+      expect(find.text('Level 2 Complete!'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 1));
+      final flash = tester.widget<ColoredBox>(
+        find.byKey(const ValueKey('ht-flash')),
+      );
+      expect(flash.color.a, closeTo(0.45, 0.02));
+      // The colour is already morphing to level 3's while it is announced.
+      expect(bar(tester).morphValue, lessThan(0.1));
+      expect(
+        fillDecoration(tester).gradient!.colors.first,
+        const Color(0xFF3DDBA6),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(bar(tester).morphValue, inExclusiveRange(0.3, 0.7));
+      expect(
+        tester
+            .widget<ColoredBox>(find.byKey(const ValueKey('ht-flash')))
+            .color
+            .a,
+        lessThan(0.2),
+      );
+      // The level pill's text morphs too.
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.byKey(const ValueKey('ht-flash')), findsNothing);
+      await tester.pump(const Duration(milliseconds: 1));
+      // Level 3 starts again from 0 rather than draining back.
+      expect(bar(tester).value, lessThan(0.1));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(bar(tester).morphValue, 1);
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(bar(tester).value, closeTo(0.1, 0.01));
+      // The pill counts up to the new level (1 s).
+      await tester.pump(const Duration(milliseconds: 800));
+      expect(find.text('LVL 3'), findsOneWidget);
+      expect(
+        tester.widget<Text>(find.text('LVL 3')).style?.color,
+        const Color(0xFF3DDBA6),
+      );
+      await h.close(tester);
+    });
+
+    testWidgets('reduce motion: no flash, a 200 ms colour change', (
+      tester,
+    ) async {
+      final h = running(tester, level: 2);
+      await pumpSlot(tester, h.store, reduceMotion: true);
+
+      h.inject(htLevelUp(3));
+      await tester.pump();
+      for (var t = 0; t < 40; t++) {
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(find.byKey(const ValueKey('ht-flash')), findsNothing);
+        if (find.text('Level 2 Complete!').evaluate().isNotEmpty) break;
+      }
+      expect(find.text('Level 2 Complete!'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(bar(tester).morphValue, inExclusiveRange(0.3, 0.7));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(bar(tester).morphValue, 1);
+      await h.close(tester);
+    });
+
+    testWidgets('level 6 and up flows; reduce motion and a hidden screen '
+        'stop it', (tester) async {
+      final h = running(tester);
+      await pumpSlot(tester, h.store);
+      final first = bar(tester).sheenValue;
+      await tester.pump(const Duration(seconds: 1));
+      expect(bar(tester).sheenValue, closeTo(first + 0.25, 0.01));
+      expect(
+        (fillDecoration(tester).gradient! as LinearGradient).tileMode,
+        TileMode.repeated,
+      );
+      await h.close(tester);
+
+      final still = running(tester);
+      await pumpSlot(tester, still.store, reduceMotion: true);
+      await tester.pump(const Duration(seconds: 1));
+      expect(bar(tester).sheenValue, 0);
+      await still.close(tester);
+    });
+
+    testWidgets('a background tab pauses the flow (TickerMode)', (
+      tester,
+    ) async {
+      final h = running(tester);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: TickerMode(
+            enabled: false,
+            child: Scaffold(
+              body: SizedBox(
+                width: 360,
+                child: HypeTrainBanner(store: h.store),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      final before = bar(tester).sheenValue;
+      await tester.pump(const Duration(seconds: 1));
+      expect(bar(tester).sheenValue, before);
+      await h.close(tester);
+    });
+
+    for (final (name, width, compact) in [
+      ('phone 390', 390.0, false),
+      ('tablet portrait 560', 560.0, false),
+      ('tablet side chat 280', 280.0, true),
+      ('landscape side chat 256', 256.0, true),
+    ]) {
+      testWidgets('every level fits: $name', (tester) async {
+        for (var level = 1; level <= 7; level++) {
+          final h = running(tester, level: level);
+          await pumpSlot(tester, h.store, width: width, compact: compact);
+          expect(tester.takeException(), isNull, reason: 'L$level');
+          await h.close(tester);
+        }
+      });
+    }
   });
 }

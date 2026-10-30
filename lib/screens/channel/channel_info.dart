@@ -534,7 +534,7 @@ class SubscribeButton extends StatelessWidget {
           style: OutlinedButton.styleFrom(
             foregroundColor: dark
                 ? OnsetTokens.hypeText
-                : OnsetColors.light.subNoticeText,
+                : OnsetTokens.hypeTextLight,
             backgroundColor: OnsetTokens.hype.withValues(alpha: 0.12),
             minimumSize: Size(0, height),
             padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -723,7 +723,7 @@ class _Chip extends StatelessWidget {
           height: 1,
           fontWeight: green ? FontWeight.w600 : FontWeight.w400,
           color: green
-              ? (dark ? OnsetTokens.hypeText : OnsetColors.light.subNoticeText)
+              ? (dark ? OnsetTokens.hypeText : OnsetTokens.hypeTextLight)
               : colors.body,
         ),
       ),

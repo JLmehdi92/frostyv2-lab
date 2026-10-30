@@ -7,12 +7,13 @@ import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 
 /// A sub, gift or other `USERNOTICE`, drawn as Twitch's Android app draws its
-/// notice rows, in green where Twitch uses purple.
+/// notice rows, in the signal lime where Twitch uses purple (board
+/// CadeauxHypeTrain).
 ///
 /// A full-width row, 2dp clear of its neighbours, with a 4dp accent bar down
 /// its left edge, an optional 18dp icon, the notice's sentence and, below it,
 /// the viewer's own message (a resub message, for instance) rendered as an
-/// ordinary chat line. The special and sub goal layouts sit on a green tint;
+/// ordinary chat line. The special and sub goal layouts sit on a lime tint;
 /// the generic and raid layouts have no tint and an accent in the text colour.
 ///
 /// In the chat drawn over the video ([overlay]) the tint gives way to a
@@ -44,6 +45,9 @@ class UserNoticeRow extends StatelessWidget {
   /// Whether the row sits in the chat drawn over the video.
   final bool overlay;
 
+  /// Under the sentence, in its column: a collapsed gift bomb's recipients.
+  final Widget? footer;
+
   const UserNoticeRow({
     super.key,
     required this.segments,
@@ -54,6 +58,7 @@ class UserNoticeRow extends StatelessWidget {
     this.goalCurrent,
     this.goalTarget,
     this.overlay = false,
+    this.footer,
   });
 
   /// The tinted body, inside the row's 2dp margins.
@@ -103,7 +108,7 @@ class UserNoticeRow extends StatelessWidget {
               padding: EdgeInsets.only(
                 left: _gap,
                 top: _gap,
-                bottom: userMessage == null ? _gap : 0,
+                bottom: userMessage == null && footer == null ? _gap : 0,
               ),
               child: presentation.layout == NoticeLayout.subGoal
                   ? _withGoal(context, accent)
@@ -111,6 +116,11 @@ class UserNoticeRow extends StatelessWidget {
                       padding: const EdgeInsets.only(right: _gap * 2),
                       child: _systemLine(context),
                     ),
+            ),
+          if (footer case final footer?)
+            Padding(
+              padding: const EdgeInsets.only(left: _gap, right: _gap * 2),
+              child: footer,
             ),
           if (userMessage != null)
             Padding(
@@ -171,9 +181,8 @@ class UserNoticeRow extends StatelessWidget {
     );
   }
 
-  /// The row's tint: the green one, or a sponsor's [accentColor] mixed into
-  /// the theme's background the same way (10% in the dark theme, 8% in the
-  /// light one).
+  /// The row's tint: the lime one, or a sponsor's [accentColor] mixed into
+  /// the theme's background (10% in the dark theme, 8% in the light one).
   Color _tint(BuildContext context) {
     final sponsor = accentColor;
     if (sponsor == null) return context.onsetColors.subNoticeBackground;

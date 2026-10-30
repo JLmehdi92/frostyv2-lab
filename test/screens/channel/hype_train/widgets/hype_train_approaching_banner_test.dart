@@ -10,14 +10,12 @@ HtApproachingEvent approaching(
   Map<int, int> deadlines, {
   Set<String> participants = const {},
   int goal = 3,
-  int? creatorColor = 0xFFBD0078,
 }) => HtApproachingEvent(
   HypeTrainApproaching(
     id: 'a',
     goal: goal,
     deadlines: deadlines,
     participants: participants,
-    creatorColor: creatorColor,
   ),
 );
 
@@ -127,13 +125,8 @@ void main() {
       await h.close(tester);
     });
 
-    testWidgets('the events pill is green without a creator colour', (
-      tester,
-    ) async {
-      final h = await showing(
-        tester,
-        approaching(const {1: 40}, creatorColor: null),
-      );
+    testWidgets('the events pill is green', (tester) async {
+      final h = await showing(tester, approaching(const {1: 40}));
 
       expect(pillColor(tester), const Color(0xFF12A87A));
       final box =
@@ -146,22 +139,7 @@ void main() {
       await h.close(tester);
     });
 
-    testWidgets("Twitch's purple turns green; other colours stay", (
-      tester,
-    ) async {
-      var h = await showing(
-        tester,
-        approaching(const {1: 40}, creatorColor: 0xFF9147FF),
-      );
-      expect(pillColor(tester), const Color(0xFF12A87A));
-      await h.close(tester);
-
-      h = await showing(tester, approaching(const {1: 40}));
-      expect(pillColor(tester), const Color(0xFFBD0078));
-      await h.close(tester);
-    });
-
-    testWidgets('only the events pill takes the creator colour', (
+    testWidgets('the side mark, the pill and the bar are green', (
       tester,
     ) async {
       Color? side(WidgetTester tester) => tester
@@ -171,7 +149,7 @@ void main() {
           tester.widget<LinearProgressIndicator>(_bar).color;
 
       final h = await showing(tester, approaching(const {1: 40}));
-      expect(pillColor(tester), const Color(0xFFBD0078));
+      expect(pillColor(tester), const Color(0xFF12A87A));
       expect(side(tester), const Color(0xFF12A87A));
       expect(bottom(tester), const Color(0xFF12A87A));
       await h.close(tester);
@@ -183,6 +161,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 600));
       expect(side(tester), const Color(0xFF12A87A));
       expect(bottom(tester), const Color(0xFF0C6D4F));
+      expect(pillColor(tester), const Color(0xFF0C6D4F));
       await d.close(tester);
     });
 

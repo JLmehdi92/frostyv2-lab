@@ -1,6 +1,7 @@
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/models/community_highlight_event.dart';
+import 'package:onset/models/user_notice.dart';
 import 'package:onset/screens/channel/chat/gift_bomb_tracker.dart';
 import 'package:onset/screens/channel/community_highlights/highlight_stack.dart';
 
@@ -40,6 +41,29 @@ void main() {
       async.elapse(const Duration(milliseconds: 200));
       expect(h.store.giftBomb, isNull);
       expect(h.store.visible, isFalse);
+      h.store.dispose();
+    });
+  });
+
+  test('the banner follows the bomb its chat follows', () {
+    run((async) {
+      h.create();
+      async.flushMicrotasks();
+      final tracker = GiftBombTracker();
+      tracker.onNotice(
+        UserNotice.fromTags(const {
+          'msg-id': 'submysterygift',
+          'display-name': 'BigGifter',
+          'msg-param-community-gift-id': 'bomb',
+          'msg-param-mass-gift-count': '5',
+          'room-id': '42',
+        }),
+        collapse: false,
+        channelId: '42',
+      );
+
+      h.store.showGiftBomb(_bomb(), live: tracker.watch('bomb'));
+      expect(h.store.giftBomb!.live, same(tracker.watch('bomb')));
       h.store.dispose();
     });
   });

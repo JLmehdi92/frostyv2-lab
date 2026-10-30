@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:onset/models/hype_train.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_split_color.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 
 /// Twitch's landscape hype train pill: 32 dp of translucent black with a
@@ -16,6 +17,7 @@ class HtPillShell extends StatelessWidget {
     required this.child,
     this.targetKey,
     this.fillColors,
+    this.textOnFill,
   });
 
   /// On the visible 32 dp pill.
@@ -30,12 +32,22 @@ class HtPillShell extends StatelessWidget {
   /// The fill as a start-to-end gradient (shared trains); flat #0C6D4F
   /// without it.
   final List<Color>? fillColors;
+
+  /// The content's colour over the fill, when white would not read there
+  /// (ONSET's level colours): it then turns at the fill's edge.
+  final Color? textOnFill;
   final String label;
   final String hint;
   final VoidCallback onTap;
 
   /// One row, white, at most 24 dp tall; scaled down when space is short.
   final Widget child;
+
+  Widget _split(Widget content) {
+    final onFill = textOnFill;
+    if (onFill == null) return content;
+    return HtSplitColor(onFill: onFill, onTrack: Colors.white, child: content);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,57 +81,64 @@ class HtPillShell extends StatelessWidget {
                   borderRadius: radius,
                   child: SizedBox(
                     height: HtDims.videoPill,
-                    child: Stack(
-                      fit: StackFit.passthrough,
-                      children: [
-                        Positioned.fill(
-                          child: Align(
-                            alignment: AlignmentDirectional.centerStart,
-                            child: FractionallySizedBox(
-                              widthFactor: fraction.clamp(0.0, 1.0),
-                              heightFactor: 1,
-                              child: DecoratedBox(
-                                key: const ValueKey('ht-pill-fill'),
-                                decoration: BoxDecoration(
-                                  color: fillColors == null ? HtGreen.g8 : null,
-                                  gradient: fillColors == null
-                                      ? null
-                                      : LinearGradient(
-                                          begin:
-                                              AlignmentDirectional.centerStart,
-                                          end: AlignmentDirectional.centerEnd,
-                                          colors: fillColors!,
-                                        ),
+                    child: HtFillScope(
+                      fraction: HtStillFraction(fraction.clamp(0.0, 1.0)),
+                      child: Stack(
+                        fit: StackFit.passthrough,
+                        children: [
+                          Positioned.fill(
+                            child: Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: FractionallySizedBox(
+                                widthFactor: fraction.clamp(0.0, 1.0),
+                                heightFactor: 1,
+                                child: DecoratedBox(
+                                  key: const ValueKey('ht-pill-fill'),
+                                  decoration: BoxDecoration(
+                                    color: fillColors == null
+                                        ? HtGreen.g8
+                                        : null,
+                                    gradient: fillColors == null
+                                        ? null
+                                        : LinearGradient(
+                                            begin: AlignmentDirectional
+                                                .centerStart,
+                                            end: AlignmentDirectional.centerEnd,
+                                            colors: fillColors!,
+                                          ),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: HtDims.margin,
-                            vertical: HtDims.marginHalf,
-                          ),
-                          child: IconTheme.merge(
-                            data: const IconThemeData(
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                            child: DefaultTextStyle.merge(
-                              style: HtType.titleExtraSmall.copyWith(
-                                color: Colors.white,
-                                fontFeatures: HtType.tabular,
+                          _split(
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: HtDims.margin,
+                                vertical: HtDims.marginHalf,
                               ),
-                              maxLines: 1,
-                              // A narrow chat shrinks the content.
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: child,
+                              child: IconTheme.merge(
+                                data: const IconThemeData(
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                child: DefaultTextStyle.merge(
+                                  style: HtType.titleExtraSmall.copyWith(
+                                    color: Colors.white,
+                                    fontFeatures: HtType.tabular,
+                                  ),
+                                  maxLines: 1,
+                                  // A narrow chat shrinks the content.
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: child,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),

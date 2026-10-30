@@ -152,6 +152,12 @@ flutter:
         - assets/icons/onset-mark.png
         - assets/animations/
         - assets/celebrations/rocket.svg
+        - assets/celebrations/gift_closed.png
+        - assets/celebrations/gift_open.png
+        - assets/celebrations/spark_lime.png
+        - assets/celebrations/spark_mint.png
+        - assets/celebrations/spark_white.png
+        - assets/celebrations/spark_dot.png
         - assets/release-notes.md
 
     # An image asset can refer to one or more resolution-specific "variants", see
