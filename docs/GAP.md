@@ -178,7 +178,7 @@
 | INT-22 | Récompenses hebdomadaires | P2 | ❌ | — | — | GQL privé |
 | INT-23 | Moments communautaires | P2 | ❌ | — | — | GQL privé |
 | INT-24 | Classements | P2 | ❌ | — | Helix `/bits/leaderboard` est réservé au diffuseur. | GQL privé |
-| INT-25 | Célébrations à l'écran | P2 | ✅ | `celebration_overlay.dart`, `celebration.dart`, `channel_events_store.dart`, `hermes_client.dart` | Portage ONSET : sujet Hermes `celebration-events-v1.<id>` (gifts de la communauté, alertes du diffuseur) ; cinq effets en animation Lottie recolorée, taille et opacité selon l'intensité, zone chat/vidéo/partout respectée, durée bornée à 0,5-15 s, jamais deux fois le même événement, jamais interactive. Réglage « Show celebrations ». À valider sur un vrai gift. | GQL privé |
+| INT-25 | Célébrations à l'écran | P2 | ✅ | `celebration_overlay.dart`, `celebration.dart`, `channel_events_store.dart`, `hermes_client.dart` | Portage ONSET : sujet Hermes `celebration-events-v1.<id>` (gifts de la communauté, alertes du diffuseur) ; cinq effets dessinés en particules ONSET (`lib/widgets/celebrations/particles/`, plus aucune Lottie Twitch), taille et opacité selon l'intensité, zone chat/vidéo/partout respectée, durée bornée à 0,5-15 s, jamais deux fois le même événement, jamais interactive. Réglage « Show celebrations ». À valider sur un vrai gift. | GQL privé |
 | INT-26 | Drops en stream | P1 | ❌ | — | Intégrité exigée : risque élevé. | GQL privé |
 | INT-27 | Campagnes et inventaire de drops | P1 | ❌ | — | Intégrité exigée : risque élevé. | GQL privé |
 | INT-28 | Extensions | P2 | ❌ | — | Exige un JWT d'extension et l'helper Twitch. | Impossible proprement |

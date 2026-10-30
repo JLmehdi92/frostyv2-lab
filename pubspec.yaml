@@ -84,7 +84,6 @@ dependencies:
     media_kit: ^1.2.6
     media_kit_video: ^2.0.1
     media_kit_libs_video: ^1.0.7
-    lottie: ^3.3.3
 
 dev_dependencies:
     flutter_test:
@@ -150,7 +149,6 @@ flutter:
 
     assets:
         - assets/icons/onset-mark.png
-        - assets/animations/
         - assets/celebrations/rocket.svg
         - assets/celebrations/gift_closed.png
         - assets/celebrations/gift_open.png
