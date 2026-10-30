@@ -3,9 +3,9 @@
 # One-time setup (secrets, keystore, token, token proxy):
 # docs/MISES_A_JOUR.md.
 #
-# The Twitch client secret is not here: it lives in the token proxy
-# (tool/token_proxy/), and the APK only gets the proxy's public URL, from the
-# repository variable TOKEN_PROXY_URL.
+# No Twitch client secret is here: logged-out viewers get their token from
+# the token proxy (tool/token_proxy/), and the APK only gets the proxy's
+# public URL, from the repository variable TOKEN_PROXY_URL.
 #
 # Two jobs: `build` holds the secrets with read-only repository access and
 # no third-party action beyond GitHub's own, pinned to commits; `publish` can
@@ -76,7 +76,7 @@ jobs:
       # would update to a build where logged-out viewers get no Twitch
       # emotes, badges, browsing or search, with nothing in the log saying
       # why. It is a variable, not a secret (the APK carries it anyway), and
-      # must be https (the app refuses anything else).
+      # must be a plain https URL (the app refuses anything else).
       - name: Check the secrets
         env:
           REPO_PRIVATE: ${{ steps.visibility.outputs.private }}
@@ -104,13 +104,13 @@ jobs:
             echo "::error::Missing repository secrets:$missing (see docs/MISES_A_JOUR.md)"
             exit 1
           fi
-          case "$TOKEN_PROXY_URL" in
-            https://?*) ;;
-            *)
-              echo "::error::The repository variable TOKEN_PROXY_URL is missing or does not start with https:// (see docs/MISES_A_JOUR.md)"
-              exit 1
-              ;;
-          esac
+          # The app's own pattern (TwitchApi.tokenProxyUrlPattern): a URL it
+          # would refuse must not ship.
+          proxy_pattern='^https://[A-Za-z0-9.-]+(:[0-9]+)?(/[A-Za-z0-9._~/-]*)?$'
+          if [[ ! "$TOKEN_PROXY_URL" =~ $proxy_pattern ]]; then
+            echo "::error::The repository variable TOKEN_PROXY_URL is missing or is not a plain https:// URL (see docs/MISES_A_JOUR.md)"
+            exit 1
+          fi
 
       # Actions are pinned to commits (tags can be moved). Secrets are passed
       # to the run steps that need them, but every step of this job shares the

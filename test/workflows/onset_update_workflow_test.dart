@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/apis/twitch_api.dart';
 
 /// The update workflow cannot run here, so its text is checked: a build made
 /// while the repository is public must never carry UPDATE_TOKEN, because the
@@ -113,23 +114,53 @@ void main() {
     );
   });
 
-  test('a build without an https token proxy URL fails, saying why', () {
+  test('a build without a token proxy URL the app accepts fails, saying '
+      'why', () {
     final check = step('Check the secrets');
 
-    expect(check, contains(r'case "$TOKEN_PROXY_URL" in'));
-    expect(check, contains('https://?*)'));
+    // The same pattern as the app's, so CI never ships a URL the app
+    // would refuse.
+    expect(
+      check,
+      contains("proxy_pattern='${TwitchApi.tokenProxyUrlPattern}'"),
+    );
+    expect(
+      check,
+      contains(r'if [[ ! "$TOKEN_PROXY_URL" =~ $proxy_pattern ]]; then'),
+    );
     expect(
       check,
       contains(
         '::error::The repository variable TOKEN_PROXY_URL is missing or '
-        'does not start with https://',
+        'is not a plain https:// URL',
       ),
     );
-    // The check fails the job: its error path ends in exit 1.
     final variableCheck = check.substring(
-      check.indexOf(r'case "$TOKEN_PROXY_URL" in'),
+      check.indexOf(r'if [[ ! "$TOKEN_PROXY_URL"'),
     );
     expect(variableCheck, contains('exit 1'));
+  });
+
+  test('the URL pattern refuses what the app refuses', () {
+    final pattern = RegExp(TwitchApi.tokenProxyUrlPattern);
+    for (final good in [
+      'https://onset-token.me.workers.dev',
+      'https://onset-token.me.workers.dev/',
+      'https://proxy.example.dev:8443/base',
+    ]) {
+      expect(pattern.hasMatch(good), isTrue, reason: good);
+    }
+    for (final bad in [
+      '',
+      'http://onset-token.me.workers.dev',
+      'https://user:pass@onset-token.me.workers.dev',
+      'https://onset-token.me.workers.dev?x=1',
+      'https://onset-token.me.workers.dev#x',
+      'https://onset-token.me.workers.dev/a b',
+      ' https://onset-token.me.workers.dev',
+    ]) {
+      expect(pattern.hasMatch(bad), isFalse, reason: bad);
+    }
   });
 
   test('the public build log says why there is no token', () {
