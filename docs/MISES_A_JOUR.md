@@ -2,15 +2,54 @@
 
 À chaque push sur `main`, GitHub Actions (workflow **ONSET update**,
 `.github/workflows/onset-update.yml`) construit un APK arm64 signé et le publie
-comme release `build-N` du dépôt privé (N = 1000 + numéro d'exécution). L'appli
+comme release `build-N` du dépôt (N = 1000 + numéro d'exécution). L'appli
 installée vérifie la dernière release au démarrage et au retour au premier plan
 (au plus toutes les 6 h tant qu'elle est à jour), affiche « Update available »,
 télécharge l'APK, vérifie son SHA-256 et le confie à l'installeur d'Android.
 **Réglages → Check for updates** force une vérification.
 
-Les builds locaux sans `UPDATE_TOKEN` ne vérifient jamais rien : la fonction
-n'existe que dans les APK produits par le workflow (voir l'étape 6 pour les
-builds locaux).
+Les builds locaux ne vérifient jamais rien (ils n'ont pas `UPDATE_REPO`) : la
+fonction n'existe que dans les APK produits par le workflow (voir l'étape 6
+pour les builds locaux).
+
+## 0. Dépôt public ou privé
+
+Le workflow lit la visibilité du dépôt **à chaque build**, deux fois : dans
+l'événement qui l'a lancé (`github.event.repository.private`) et en demandant
+le dépôt tel qu'il est maintenant. Le jeton n'est utilisé que si les deux
+disent « privé » ; si la visibilité est illisible, le build s'arrête.
+
+| Dépôt | Le build | L'appli installée |
+|---|---|---|
+| **Privé** | contient `UPDATE_TOKEN` (secret obligatoire) | lit les releases avec le jeton |
+| **Public** | **ne contient aucun jeton** (`UPDATE_TOKEN` vide, le secret n'est même pas lu ; il peut manquer) | lit les releases **sans jeton**, comme n'importe quel visiteur |
+
+Pourquoi : les releases d'un dépôt public — donc leurs APK — sont
+téléchargeables par tout le monde, et un jeton se lit dans un APK.
+
+- Sans jeton, l'appli interroge l'API GitHub anonymement (aucun en-tête
+  `Authorization`). La limite anonyme est de 60 requêtes par heure et par
+  adresse IP ; l'appli demande au plus une fois toutes les 6 h, c'est large.
+  Le téléchargement suit le même chemin qu'avant (lien de l'API, puis lien
+  signé de GitHub en `https`), et le SHA-256 est toujours vérifié avant
+  l'installation.
+- Un build **sans jeton** sur un dépôt redevenu **privé** ne voit plus rien
+  (GitHub répond 404) : l'appli considère qu'il n'y a pas de mise à jour, sans
+  message d'erreur, et ne redemande qu'au bout de 6 h. Il faudra installer à
+  la main le premier build fait en privé (étape 4).
+- Le dépôt passe en public **pendant** un build qui a pris le jeton : la
+  publication est refusée (« The repository is no longer private ») ;
+  relancez le workflow, le nouveau build n'aura pas de jeton. L'APK de ce
+  build reste au plus un jour dans les artefacts de l'exécution : évitez de
+  changer la visibilité pendant qu'un build tourne.
+- **Avant de rendre le dépôt public**, supprimez toutes les releases `build-*`
+  faites en privé (**Releases** → chaque release → **Delete**) : elles
+  contiennent le jeton, et elles deviendraient publiques avec le dépôt. Puis
+  révoquez le jeton (étape 2), devenu inutile.
+- `CLIENT_ID` et `SECRET` de Twitch restent dans **tous** les APK, publics
+  compris : quiconque télécharge une release publique peut les en extraire.
+  Tenez-les pour publiés dès le premier build public, et régénérez le secret
+  Twitch au passage au dépôt définitif (liste du 1er novembre, étape 7).
 
 ## 1. La clé de signature (keystore)
 
@@ -45,7 +84,9 @@ presse-papiers, à coller dans le secret `ANDROID_KEYSTORE_BASE64`) :
 [Convert]::ToBase64String([IO.File]::ReadAllBytes("C:\chemin\vers\onset-release.jks")) | Set-Clipboard
 ```
 
-## 2. Le jeton GitHub en lecture seule
+## 2. Le jeton GitHub en lecture seule (dépôt privé seulement)
+
+Inutile tant que le dépôt est public : le workflow ne le lit pas.
 
 github.com → photo de profil → **Settings** → **Developer settings** →
 **Personal access tokens** → **Fine-grained tokens** → **Generate new token** :
@@ -63,7 +104,8 @@ github.com → photo de profil → **Settings** → **Developer settings** →
 
 - le jeton lit **tout le code** du dépôt et **tous les APK** de ses releases ;
 - si le dépôt devient public un jour, tous les APK publiés (et donc ces
-  secrets) le deviennent aussi ;
+  secrets) le deviennent aussi : supprimez d'abord les releases faites en
+  privé (étape 0) ;
 - ne partagez donc jamais l'APK ; s'il fuite, révoquez le jeton (et créez-en un
   nouveau) **et** régénérez le secret client dans la console développeur
   Twitch, puis mettez à jour les secrets du dépôt.
@@ -77,14 +119,15 @@ github.com → photo de profil → **Settings** → **Developer settings** →
 |---|---|
 | `CLIENT_ID` | l'identifiant client Twitch (comme pour `--dart-define`) |
 | `SECRET` | le secret client Twitch |
-| `UPDATE_TOKEN` | le jeton de l'étape 2 |
+| `UPDATE_TOKEN` | le jeton de l'étape 2 (dépôt privé seulement) |
 | `ANDROID_KEYSTORE_BASE64` | le keystore encodé à l'étape 1 |
 | `ANDROID_KEYSTORE_PASSWORD` | mot de passe du keystore |
 | `ANDROID_KEY_ALIAS` | alias de la clé (`onset` avec la commande ci-dessus) |
 | `ANDROID_KEY_PASSWORD` | mot de passe de la clé |
 
 Si l'un d'eux manque, le workflow s'arrête tout de suite en le nommant (sans
-jamais afficher de valeur).
+jamais afficher de valeur). `UPDATE_TOKEN` n'est exigé que si le dépôt est
+privé.
 
 **Facultatifs — Firebase** (Crashlytics, Analytics, Performance) : sans eux,
 l'appli tourne simplement sans Firebase. Pour l'activer, créez votre projet
@@ -111,10 +154,10 @@ build verbeux affiche ses `--dart-define`, donc les secrets, dans les journaux.
    une autre branche, rien n'est publié).
 2. Une fois terminé, la release **ONSET build N** apparaît dans **Releases**.
 3. Avec une clé dédiée : désinstallez l'appli actuelle.
-4. Installez ce premier APK à la main, une seule fois (l'appli actuelle n'a pas
-   le jeton, elle ne peut pas le trouver seule) : sur la tablette, ouvrez la page
-   de la release dans le navigateur **connecté à GitHub** (le dépôt est privé),
-   téléchargez `onset-arm64.apk` et ouvrez-le.
+4. Installez ce premier APK à la main, une seule fois (l'appli actuelle ne peut
+   pas le trouver seule) : sur la tablette, ouvrez la page de la release dans le
+   navigateur (**connecté à GitHub** si le dépôt est privé), téléchargez
+   `onset-arm64.apk` et ouvrez-le.
 
 Ensuite, chaque push sur `main` (hors `docs/` et fichiers `.md`) produit
 une release que l'appli propose d'elle-même.
@@ -172,7 +215,32 @@ flutter build apk --release --build-number=1023 --dart-define=CLIENT_ID=<id> --d
 adb install -r build\app\outputs\flutter-apk\app-release.apk
 ```
 
-Un build local sans `UPDATE_TOKEN` ne propose aucune mise à jour : le build CI
+Un build local sans `UPDATE_REPO` ne propose aucune mise à jour : le build CI
 suivant devra être installé à la main (étape 4), sauf si vous ajoutez
-`--dart-define=UPDATE_TOKEN=<jeton> --dart-define=UPDATE_REPO=JLmehdi92/onset`
-à la commande de build.
+`--dart-define=UPDATE_REPO=JLmehdi92/onset` à la commande de build (plus
+`--dart-define=UPDATE_TOKEN=<jeton>` si le dépôt est privé ; ne partagez alors
+jamais cet APK).
+
+## 7. Liste du 1er novembre (passage au dépôt public `JLmehdi92/onset`)
+
+Dans cet ordre :
+
+1. **Twitch** : console développeur Twitch → l'application → **New Secret**,
+   puis mettez à jour le secret `SECRET` du dépôt (l'ancien a pu sortir dans un
+   APK public).
+2. **Jeton GitHub** : révoquez `UPDATE_TOKEN` (Developer settings → Personal
+   access tokens → le jeton → **Delete**) et supprimez le secret du dépôt. Ne
+   le recréez (étape 2, limité au seul dépôt de build) que si les builds
+   repartent d'un dépôt **privé** : un dépôt public n'en a pas besoin.
+3. Vérifiez qu'aucune release faite en privé n'est restée dans un dépôt
+   public (étape 0).
+4. **Lancez le build** : **Actions** → **ONSET update** → **Run workflow** sur
+   `main`. Dans un dépôt public, le journal affiche « Public repository: the
+   build carries no update token. »
+5. **Désinstallez l'ancienne appli** `com.tommychow.frosty.onset` (réglages
+   Android → Applications). Ses données (connexion Twitch, réglages) ne
+   passent pas à la nouvelle : un autre identifiant d'appli est une autre
+   appli pour Android.
+6. **Installez `app.onset`** à la main depuis la page de la release (étape 4),
+   reconnectez-vous à Twitch. Les builds suivants arrivent ensuite d'eux-mêmes,
+   sans jeton.

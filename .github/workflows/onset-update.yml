@@ -5,6 +5,10 @@
 # Two jobs: `build` holds the secrets with read-only repository access and
 # no third-party action beyond GitHub's own, pinned to commits; `publish` can
 # write releases but never sees a secret, only the built APK.
+#
+# The releases of a public repository, and so their APKs, can be downloaded
+# by anyone: a build made while the repository is public never carries
+# UPDATE_TOKEN (the app then reads the public releases without one).
 name: ONSET update
 on:
   workflow_dispatch:
@@ -32,25 +36,59 @@ jobs:
       contents: read
     outputs:
       build: ${{ steps.build.outputs.build }}
+      # "true" when the APK carries UPDATE_TOKEN.
+      token: ${{ steps.visibility.outputs.private }}
     steps:
-      # Names the missing secrets only, never a value.
+      # The token is used only when both the event and the repository as it
+      # is now say "private": re-running a run started while the repository
+      # was private, after making it public, must not bake the token in.
+      - name: Check the repository visibility
+        id: visibility
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_PRIVATE: ${{ github.event.repository.private }}
+        run: |
+          live="$(gh api "repos/$GITHUB_REPOSITORY" --jq .private)"
+          case "$EVENT_PRIVATE/$live" in
+            true/true) private=true ;;
+            true/false | false/true | false/false) private=false ;;
+            *)
+              echo "::error::Could not tell whether the repository is private"
+              exit 1
+              ;;
+          esac
+          echo "private=$private" >> "$GITHUB_OUTPUT"
+          if [ "$private" = true ]; then
+            echo "Private repository: the build carries the update token."
+          else
+            echo "Public repository: the build carries no update token."
+          fi
+
+      # Names the missing secrets only, never a value. UPDATE_TOKEN is needed
+      # (and read) only when the repository is private.
       - name: Check the secrets
         env:
+          REPO_PRIVATE: ${{ steps.visibility.outputs.private }}
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
           SECRET: ${{ secrets.SECRET }}
-          UPDATE_TOKEN: ${{ secrets.UPDATE_TOKEN }}
+          UPDATE_TOKEN: ${{ steps.visibility.outputs.private == 'true' && secrets.UPDATE_TOKEN || '' }}
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           missing=""
-          for name in CLIENT_ID SECRET UPDATE_TOKEN ANDROID_KEYSTORE_BASE64 \
+          for name in CLIENT_ID SECRET ANDROID_KEYSTORE_BASE64 \
             ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
             if [ -z "${!name}" ]; then
               missing="$missing $name"
             fi
           done
+          if [ "$REPO_PRIVATE" = true ]; then
+            if [ -z "$UPDATE_TOKEN" ]; then
+              missing="$missing UPDATE_TOKEN"
+            fi
+          fi
           if [ -n "$missing" ]; then
             echo "::error::Missing repository secrets:$missing (see docs/MISES_A_JOUR.md)"
             exit 1
@@ -102,7 +140,8 @@ jobs:
         env:
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
           SECRET: ${{ secrets.SECRET }}
-          UPDATE_TOKEN: ${{ secrets.UPDATE_TOKEN }}
+          # Empty when the repository is public: never in a public APK.
+          UPDATE_TOKEN: ${{ steps.visibility.outputs.private == 'true' && secrets.UPDATE_TOKEN || '' }}
           UPDATE_REPO: ${{ github.repository }}
           # Optional: without these secrets the build simply has no Firebase.
           FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
@@ -153,6 +192,19 @@ jobs:
     permissions:
       contents: write
     steps:
+      # The repository may have been made public while the APK was built:
+      # a build that carries the token is then never published.
+      - name: Check the repository is still private
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TOKEN_BUILD: ${{ needs.build.outputs.token }}
+        run: |
+          live="$(gh api "repos/$GITHUB_REPOSITORY" --jq .private)"
+          if [ "$TOKEN_BUILD" = true ] && [ "$live" != true ]; then
+            echo "::error::The repository is no longer private: this build carries the update token and is not published. Run the workflow again."
+            exit 1
+          fi
+
       - name: Fetch the APK
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
