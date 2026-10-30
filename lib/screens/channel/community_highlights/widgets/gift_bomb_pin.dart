@@ -8,6 +8,7 @@ import 'package:onset/screens/channel/chat/gift_bomb_tracker.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/celebrations/celebration_art.dart';
+import 'package:onset/widgets/celebrations/signal_pill.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/motion/rolling_number.dart';
@@ -154,12 +155,23 @@ class _GiftBombPinState extends State<GiftBombPin>
         : GiftBombPin.exit;
     if (first) _entry.forward();
     _syncHop();
-    // The open box and the sparks are decoded before the last gift.
-    for (final art in [
-      CelebrationArt.giftOpen,
-      for (final s in _sparks) s.art,
+    _precache();
+  }
+
+  /// Device pixel ratio the art was last precached for.
+  double? _precachedFor;
+
+  /// The open box (at both slot sizes: the layout picks one) and the sparks
+  /// are decoded before the last gift, once per pixel ratio.
+  void _precache() {
+    final ratio = MediaQuery.maybeDevicePixelRatioOf(context) ?? 1;
+    if (_precachedFor == ratio) return;
+    _precachedFor = ratio;
+    for (final (art, size) in [
+      (CelebrationArt.giftOpen, 20.0),
+      (CelebrationArt.giftOpen, 28.0),
+      for (final spark in _sparks) (spark.art, 14.0),
     ]) {
-      final size = art == CelebrationArt.giftOpen ? _boxSize : 14.0;
       precacheImage(
         CelebrationArt.sized(context, art, size),
         context,
@@ -168,19 +180,40 @@ class _GiftBombPinState extends State<GiftBombPin>
     }
   }
 
-  double get _boxSize => _compact ? 20 : 28;
-
   bool get _compact => widget.compact;
 
   @override
   void didUpdateWidget(GiftBombPin oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.banner.live != widget.banner.live) {
-      _follow(widget.banner.live);
-      _onBomb();
+    final old = oldWidget.banner;
+    final banner = widget.banner;
+    if (old.id != banner.id) {
+      // Another bomb in the same place (the details sheet is not keyed):
+      // start over as a new pin.
+      _follow(banner.live);
+      _bomb = banner.live?.value ?? banner.bomb;
+      _burstPlayed = false;
+      _burst.value = 0;
+      _leaving = false;
+      _exit.value = 0;
+      _entry.forward(from: 0);
+      _syncHop();
+      _scheduleLeave();
+      return;
     }
-    if (oldWidget.banner.endsAt != widget.banner.endsAt ||
-        oldWidget.banner.startedAt != widget.banner.startedAt) {
+    if (old.live != banner.live) {
+      _follow(banner.live);
+      _onBomb();
+    } else if (banner.live == null && old.bomb != banner.bomb) {
+      setState(() => _bomb = banner.bomb);
+    }
+    if (old.endsAt != banner.endsAt || old.startedAt != banner.startedAt) {
+      // Pinned again for longer: back up if it was already folding away.
+      if (_leaving && banner.endsAt.isAfter(widget.now())) {
+        _leaving = false;
+        _exit.value = 0;
+        _syncHop();
+      }
       _scheduleLeave();
     }
   }
@@ -750,15 +783,7 @@ class _CountChip extends StatelessWidget {
     key: GiftBombPin.countKey,
     height: 22,
     padding: const EdgeInsets.symmetric(horizontal: 8),
-    decoration: ShapeDecoration(
-      color: accent.withValues(alpha: 0.12),
-      shape: StadiumBorder(
-        side: BorderSide(
-          color: accent.withValues(alpha: 0.45),
-          width: OnsetTokens.hairlineWidth,
-        ),
-      ),
-    ),
+    decoration: signalPillDecoration(accent),
     child: Center(
       widthFactor: 1,
       child: Text(

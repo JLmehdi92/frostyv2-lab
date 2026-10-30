@@ -31,6 +31,7 @@ void main() {
     bool reduceMotion = false,
     Brightness brightness = Brightness.dark,
     double width = 390,
+    TextDirection direction = TextDirection.ltr,
   }) {
     const themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     return tester.pumpWidget(
@@ -44,10 +45,13 @@ void main() {
                 alignment: Alignment.topLeft,
                 child: SizedBox(
                   width: width,
-                  child: GiftBombRecipients(
-                    live: live,
-                    initiallyExpanded: expanded,
-                    onExpandedChanged: changes.add,
+                  child: Directionality(
+                    textDirection: direction,
+                    child: GiftBombRecipients(
+                      live: live,
+                      initiallyExpanded: expanded,
+                      onExpandedChanged: changes.add,
+                    ),
                   ),
                 ),
               ),
@@ -86,6 +90,22 @@ void main() {
     final text = tester.widget<Text>(find.text('0 of 5 recipients'));
     expect(text.style?.color, OnsetTokens.accent);
   });
+
+  for (final direction in TextDirection.values) {
+    testWidgets('the target reaches into the row padding (${direction.name})', (
+      tester,
+    ) async {
+      await pump(tester, direction: direction);
+
+      final row = tester.getRect(find.byType(GiftBombRecipients));
+      final target = tester.getRect(find.byKey(GiftBombRecipients.toggleKey));
+      if (direction == TextDirection.ltr) {
+        expect(target.left, row.left - 8);
+      } else {
+        expect(target.right, row.right + 8);
+      }
+    });
+  }
 
   testWidgets('the light theme uses the readable dark lime', (tester) async {
     await pump(tester, brightness: Brightness.light);

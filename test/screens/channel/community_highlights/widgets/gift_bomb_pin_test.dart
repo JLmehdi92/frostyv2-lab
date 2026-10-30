@@ -421,6 +421,47 @@ void main() {
     }
   });
 
+  group('a new banner in the same place', () {
+    testWidgets('another bomb starts over as a fresh pin', (tester) async {
+      await pump(tester, _banner(gifter: 'first'));
+      await wait(tester, const Duration(seconds: 10));
+      await wait(tester, const Duration(milliseconds: 300));
+      // The first one folded away at its end.
+      expect(tester.getSize(find.byType(GiftBombPin)).height, 0);
+
+      await pump(
+        tester,
+        GiftBombBanner(
+          bomb: const GiftBomb(
+            key: 'other',
+            gifterName: 'second',
+            isAnonymous: false,
+            count: 5,
+          ),
+          startedAt: now(),
+          endsAt: now().add(const Duration(seconds: 10)),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('second'), findsOneWidget);
+      expect(tester.getSize(find.byKey(GiftBombPin.pinKey)).height, 56);
+      expect(tester.getSize(find.byType(GiftBombPin)).height, 56);
+    });
+
+    testWidgets('the same bomb pinned again for longer comes back', (
+      tester,
+    ) async {
+      await pump(tester, _banner());
+      await wait(tester, const Duration(milliseconds: 9800));
+      await wait(tester, const Duration(milliseconds: 100));
+      expect(tester.getSize(find.byType(GiftBombPin)).height, lessThan(56));
+
+      await pump(tester, _banner(length: const Duration(seconds: 20)));
+      await tester.pump();
+      expect(tester.getSize(find.byType(GiftBombPin)).height, 56);
+    });
+  });
+
   group('dismiss', () {
     testWidgets('the close button folds it away, then dismisses', (
       tester,

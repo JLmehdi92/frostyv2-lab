@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:onset/screens/channel/chat/gift_bomb_tracker.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/celebrations/signal_pill.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
@@ -74,15 +75,7 @@ class _GiftBombRecipientsState extends State<GiftBombRecipients> {
         final chip = Container(
           height: 28,
           padding: const EdgeInsetsDirectional.only(start: 11, end: 8),
-          decoration: ShapeDecoration(
-            color: accent.withValues(alpha: 0.12),
-            shape: StadiumBorder(
-              side: BorderSide(
-                color: accent.withValues(alpha: 0.45),
-                width: OnsetTokens.hairlineWidth,
-              ),
-            ),
-          ),
+          decoration: signalPillDecoration(accent),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             spacing: 4,
@@ -152,7 +145,15 @@ class _GiftBombRecipientsState extends State<GiftBombRecipients> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Transform.translate(offset: const Offset(-8, 0), child: toggle),
+            // The target overlaps the row's start padding, so the pill lines up
+            // with the sentence.
+            Transform.translate(
+              offset: Offset(
+                Directionality.of(context) == TextDirection.rtl ? 8 : -8,
+                0,
+              ),
+              child: toggle,
+            ),
             if (reduceMotion)
               list
             else

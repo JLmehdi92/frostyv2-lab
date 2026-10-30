@@ -45,17 +45,6 @@ class GiftBomb {
   /// Whether every announced gift has arrived.
   bool get complete => count > 0 && received >= count;
 
-  GiftBomb withReceived(int received) => GiftBomb(
-    key: key,
-    gifterName: gifterName,
-    isAnonymous: isAnonymous,
-    count: count,
-    tier: tier,
-    received: received,
-    recipients: recipients,
-    collapsed: collapsed,
-  );
-
   /// One more gift, to [recipient] (null: an unnamed one, only counted).
   GiftBomb withGift(String? recipient) => GiftBomb(
     key: key,
