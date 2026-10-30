@@ -13,7 +13,7 @@ import java.net.URISyntaxException
  * WebView, which leaves the `auth-token` cookie in this jar. That cookie is the
  * only credential Twitch's GQL endpoint accepts for the enhanced-broadcast
  * renditions (1440p HEVC / AV1), because GQL only honours allowlisted
- * client-ids and the fork's own OAuth token is minted for its own client-id.
+ * client-ids and ONSET's own OAuth token is minted for ONSET's client-id.
  *
  * Dart cannot read that cookie itself: `webview_flutter`'s cookie manager only
  * writes and clears, and Twitch may mark the cookie `HttpOnly`, which hides it

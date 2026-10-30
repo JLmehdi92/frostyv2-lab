@@ -9,7 +9,7 @@ import 'package:flutter/services.dart';
 /// Why this exists: Twitch only serves the enhanced-broadcast renditions
 /// (1440p60 HEVC / AV1) to a viewer whose `PlaybackAccessToken` request is
 /// authenticated, and its GQL endpoint only honours allowlisted client-ids.
-/// The fork's own OAuth token is minted for the fork's client-id, so it is
+/// ONSET's own OAuth token is minted for ONSET's client-id, so it is
 /// rejected — measured, not assumed. The one credential that works is the
 /// `auth-token` cookie a real twitch.tv login leaves behind.
 ///

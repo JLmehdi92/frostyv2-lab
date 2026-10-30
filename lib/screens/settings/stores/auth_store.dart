@@ -871,8 +871,8 @@ abstract class AuthBase with Store {
 
           // Keep the 2K credential fresh on every launch, but only once we
           // know there is a session to refresh — running this while logged out
-          // would just load a signed-out page for nothing. Not awaited: this
-          // fork exists to cut latency, and startup must not wait on a page
+          // would just load a signed-out page for nothing. Not awaited: ONSET
+          // exists to cut latency, and startup must not wait on a page
           // load.
           unawaited(ensureTwitchWebToken());
         }

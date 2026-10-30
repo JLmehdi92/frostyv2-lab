@@ -19,8 +19,8 @@ abstract class _SettingsStoreBase with Store {
   // Theme defaults
   static const defaultThemeType = ThemeType.system;
 
-  /// Electric lime. Was Twitch's own `0xff9146ff`; the fork does not borrow the
-  /// identity it is trying to move away from. Users who already picked a colour
+  /// Electric lime, ONSET's own accent rather than Twitch's purple
+  /// (`0xff9146ff`). Users who already picked a colour
   /// keep it — this only applies to fresh installs and to a settings reset.
   static const defaultAccentColor = 0xffc8ff3d;
 

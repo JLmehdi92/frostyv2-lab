@@ -17,8 +17,6 @@ permissions:
 jobs:
   test:
     name: Check and test
-    # Linux only: on a private repository Windows minutes count double and
-    # macOS minutes ten times, which used up the monthly Actions quota.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

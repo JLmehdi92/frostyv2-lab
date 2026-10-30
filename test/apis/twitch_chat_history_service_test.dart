@@ -78,7 +78,7 @@ void main() {
     final auth = _MockAuthStore();
     when(() => auth.headersTwitch).thenReturn({
       'Authorization': 'Bearer helix-session-token',
-      'Client-Id': 'onset-fork-client-id',
+      'Client-Id': 'onset-login-client-id',
     });
     dio.interceptors
       ..add(TwitchAuthInterceptor(auth))
@@ -121,7 +121,7 @@ void main() {
       // Never the app's own Helix token, under any header name.
       for (final value in request.headers.values) {
         expect('$value', isNot(contains('helix-session-token')));
-        expect('$value', isNot(contains('onset-fork-client-id')));
+        expect('$value', isNot(contains('onset-login-client-id')));
       }
       final data = request.data as Map;
       expect(data['operationName'], 'ChatHistory');
