@@ -250,7 +250,7 @@ Dans cet ordre :
 4. **Lancez le build** : **Actions** → **ONSET update** → **Run workflow** sur
    `main`. Dans un dépôt public, le journal affiche « The build carries no
    update token (event or repository is public). »
-5. **Désinstallez l'ancienne appli** `com.tommychow.frosty.onset` (réglages
+5. **Désinstallez l'ancienne appli ONSET**, celle d'avant `app.onset` (réglages
    Android → Applications). Ses données (connexion Twitch, réglages) ne
    passent pas à la nouvelle : un autre identifiant d'appli est une autre
    appli pour Android.

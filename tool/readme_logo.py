@@ -22,8 +22,8 @@ wave runs through the halftone. Its resting state is the static logo, which
 is also what viewers who ask for reduced motion get.
 
 Usage (needs Pillow, numpy and potracer: pip install pillow numpy potracer):
-    python3 -I tool/readme_logo.py
-    python3 -I tool/readme_logo.py --icon <png> --out <dir>
+    python3 tool/readme_logo.py
+    python3 tool/readme_logo.py --icon <png> --out <dir>
 """
 import argparse
 import math

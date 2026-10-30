@@ -7,7 +7,7 @@
 
 <h1>ONSET</h1>
 
-<p><strong>Twitch on Android, close to the live edge.</strong><br>
+<p><strong>A Twitch client for Android, close to the live edge.</strong><br>
 An Android Twitch client built with Flutter: a native low-latency player and a full-featured chat.</p>
 
 <p>
@@ -24,8 +24,8 @@ An Android Twitch client built with Flutter: a native low-latency player and a f
 
 The Twitch web player, embedded in an app, keeps the picture several seconds
 behind the broadcast. ONSET plays live streams with the **Amazon IVS player**
-instead, the player Twitch's own app is built on, and keeps it near the live
-edge.
+instead, built on the same video technology as Twitch, and keeps it near the
+live edge.
 
 - **Native player by default.** On Android, live channels open in the IVS
   player, drawn into a Flutter texture. It speeds up slightly or jumps ahead
@@ -214,7 +214,7 @@ dart run build_runner build --delete-conflicting-outputs   # after changing a st
   `fix landscape bottom padding in chat bottom bar`).
 - CI runs `flutter analyze` and `flutter test` on every pull request to
   `main`.
-- README media live in `.github/assets/`. `python3 -I tool/readme_logo.py`
+- README media live in `.github/assets/`. `python3 tool/readme_logo.py`
   rebuilds the animated logo from the app icon
   (`assets/icons/icon_onset.png`), and
   `python3 tool/readme_shots/render.py` renders the screenshots.
