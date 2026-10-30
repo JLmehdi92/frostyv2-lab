@@ -365,6 +365,42 @@ void main() {
     expect(find.text('300 / 500'), findsOneWidget);
   });
 
+  testWidgets('choice pills in a Wrap hug their labels, side by side', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 400,
+            child: Wrap(
+              spacing: 8,
+              children: [
+                for (final label in ['100', '1K', 'Max'])
+                  SheetChoicePill(
+                    label: label,
+                    selected: label == '1K',
+                    onSelected: () {},
+                    tabular: true,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    final pills = find.byType(SheetChoicePill);
+    expect(pills, findsNWidgets(3));
+    final rows = <double>{};
+    for (final pill in pills.evaluate()) {
+      final box = pill.renderObject! as RenderBox;
+      expect(box.size.width, lessThan(100), reason: 'a pill, not a bar');
+      expect(box.size.height, 30);
+      rows.add(box.localToGlobal(Offset.zero).dy);
+    }
+    expect(rows, hasLength(1), reason: 'the pills sit side by side');
+  });
+
   testWidgets('a choice pill says when it is selected', (tester) async {
     final semantics = tester.ensureSemantics();
     var picked = false;

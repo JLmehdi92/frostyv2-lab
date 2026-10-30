@@ -886,11 +886,15 @@ class SheetChoicePill extends StatelessWidget {
           child: Container(
             height: large ? 36 : 30,
             padding: EdgeInsets.symmetric(horizontal: large ? 14 : 12),
-            alignment: Alignment.center,
-            child: Text(
-              label,
-              maxLines: 1,
-              style: tabular ? SheetText.tabular(style) : style,
+            // Centred, yet as wide as its label: the container's own
+            // alignment would stretch the pill across a Wrap's whole row.
+            child: Align(
+              widthFactor: 1,
+              child: Text(
+                label,
+                maxLines: 1,
+                style: tabular ? SheetText.tabular(style) : style,
+              ),
             ),
           ),
         ),

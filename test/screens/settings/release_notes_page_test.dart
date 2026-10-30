@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/release_notes.dart';
@@ -322,6 +323,35 @@ void main() {
     );
     expect(find.text('Android'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a platform tag hugs its name, the point follows it', (
+    tester,
+  ) async {
+    await open(
+      tester,
+      notes: '- [Android] Requires Android 8.\n\n## v1.0.0\n\n- One.\n',
+    );
+    final tag = find
+        .ancestor(of: find.text('Android'), matching: find.byType(Container))
+        .first;
+    final line = find.ancestor(
+      of: find.text('Android'),
+      matching: find.byType(RichText),
+    );
+    final tagBox = tester.getRect(tag);
+    expect(tagBox.width, lessThan(150), reason: 'a tag, not a bar');
+    // The point's text starts on the tag's line, right after it.
+    final paragraph = tester.renderObject<RenderParagraph>(line.last);
+    final firstWord = paragraph.getBoxesForSelection(
+      TextSelection(
+        baseOffset: paragraph.text.toPlainText().indexOf('Requires'),
+        extentOffset: paragraph.text.toPlainText().indexOf('Requires') + 1,
+      ),
+    );
+    expect(firstWord, isNotEmpty);
+    final wordTop = paragraph.localToGlobal(Offset(0, firstWord.first.top)).dy;
+    expect(wordTop, lessThan(tagBox.bottom));
   });
 
   testWidgets('unreadable notes show the empty state, never an error', (

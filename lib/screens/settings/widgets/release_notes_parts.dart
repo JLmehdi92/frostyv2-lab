@@ -520,7 +520,6 @@ class _ReleaseRichTextState extends State<ReleaseRichText> {
             height: 18,
             margin: const EdgeInsets.only(right: 6),
             padding: const EdgeInsets.symmetric(horizontal: 6),
-            alignment: Alignment.center,
             decoration: BoxDecoration(
               color: colors.tile,
               borderRadius: BorderRadius.circular(5),
@@ -529,13 +528,18 @@ class _ReleaseRichTextState extends State<ReleaseRichText> {
                 width: OnsetTokens.hairlineWidth,
               ),
             ),
-            child: Text(
-              platform,
-              style: _inter(
-                10,
-                weight: FontWeight.w600,
-                spacing: 0.2,
-                color: colors.secondary,
+            // Centred, yet as wide as its name: the container's own
+            // alignment would stretch the tag across the whole line.
+            child: Align(
+              widthFactor: 1,
+              child: Text(
+                platform,
+                style: _inter(
+                  10,
+                  weight: FontWeight.w600,
+                  spacing: 0.2,
+                  color: colors.secondary,
+                ),
               ),
             ),
           ),
