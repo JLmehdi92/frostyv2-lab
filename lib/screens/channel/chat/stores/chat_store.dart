@@ -1854,8 +1854,8 @@ abstract class ChatStoreBase with Store {
   /// Shows the chat said before joining, at the top, the way the official
   /// app does: Twitch's own history (the `ChatHistory` query, read with the
   /// viewer's twitch.tv web token). Only when Twitch gives none (no web
-  /// token, a failure, an empty answer) and the viewer turned on "Show
-  /// historical recent messages", the third-party recent-messages service.
+  /// token, a failure, an empty answer) and the viewer turned on "Fallback
+  /// chat history (third-party)", the third-party recent-messages service.
   ///
   /// The history goes in one insert above everything shown, never through
   /// the live path: no chat delay, held messages, sounds, mention or other
