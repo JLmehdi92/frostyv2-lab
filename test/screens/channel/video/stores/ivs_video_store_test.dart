@@ -65,6 +65,7 @@ void main() {
     AudioFocus? audioFocus,
     DateTime Function()? now,
     BufferFallback? bufferFallback,
+    Duration autoLatencyWatchdog = const Duration(seconds: 1),
   }) async {
     final s = IvsVideoStore(
       userLogin: 'streamer',
@@ -81,6 +82,7 @@ void main() {
       audioFocus: audioFocus,
       now: now,
       bufferFallback: bufferFallback ?? BufferFallback(),
+      autoLatencyWatchdog: autoLatencyWatchdog,
     );
     created = s;
     await s.ready;
@@ -536,37 +538,28 @@ void main() {
       expect(store.autoLatencyStatus?.reason, 'paused');
     });
 
-    test('picture-in-picture drops back to 1.0x and holds', () async {
+    // A 1.05x rate is invisible and inaudible: picture-in-picture and the
+    // mini player keep correcting (the SDK speed-up it replaces did too).
+    test('picture-in-picture keeps correcting', () async {
       store = await playing();
       await tick(2200, 8);
 
       store.onPipEntered();
-      await settle();
-      expect(rates().last, 1.0);
+      await tick(2200, 3);
 
-      await tick(2200, 30);
-      expect(rates().last, 1.0);
-      expect(store.autoLatencyStatus?.reason, 'picture-in-picture');
-
-      store.onPipExited();
-      await tick(2200, 8);
-      expect(rates().last, LatencyController.catchUpRate);
+      expect(rates(), [LatencyController.catchUpRate]);
+      expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.catchingUp);
     });
 
-    test('the mini player drops back to 1.0x and holds', () async {
+    test('the mini player keeps correcting', () async {
       store = await playing();
       await tick(2200, 8);
 
       store.setMinimized(true);
-      await settle();
-      expect(rates().last, 1.0);
-      await tick(2200, 30);
-      expect(rates().last, 1.0);
-      expect(store.autoLatencyStatus?.reason, 'mini player');
+      await tick(2200, 3);
 
-      store.setMinimized(false);
-      await tick(2200, 8);
-      expect(rates().last, LatencyController.catchUpRate);
+      expect(rates(), [LatencyController.catchUpRate]);
+      expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.catchingUp);
     });
 
     test('an ad holds it', () async {
@@ -592,6 +585,226 @@ void main() {
       expect(rates(), hasLength(1), reason: 'never asked again');
     });
 
+    test('a failed return to 1.0x is retried and never latches', () async {
+      store = await playing();
+      await tick(2200, 8);
+      expect(rates(), [LatencyController.catchUpRate]);
+
+      // 1.05x was accepted; the way back fails (a reload under way...).
+      native.rejectRate = (rate) => rate == 1.0;
+      store.handlePausePlay();
+      await settle();
+      expect(rates().last, 1.0);
+      expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.stopped);
+      expect(
+        store.autoLatencyStatus?.reason,
+        'the player did not return to 1.0x',
+      );
+
+      // Retried on the next tick while the player still plays fast...
+      final before = rates().length;
+      await tick(2200, 1, rate: 1.05);
+      expect(rates().length, before + 1);
+      expect(rates().last, 1.0);
+
+      // ...until it goes through.
+      native.rejectRate = null;
+      await tick(2200, 1, rate: 1.05);
+      final settled = rates().length;
+      await tick(2200, 5, rate: 1.0);
+      expect(rates().length, settled, reason: 'back at 1.0x: nothing more');
+
+      // Never latched: a refresh lets it catch up again.
+      await store.handleRefresh();
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await tick(2200, 8);
+      expect(rates().last, LatencyController.catchUpRate);
+    });
+
+    test('a player that stays fast is stopped visibly and nudged', () async {
+      store = await playing();
+      await tick(2200, 8);
+      await tick(1300, 6);
+      expect(rates(), [LatencyController.catchUpRate, 1.0]);
+
+      // The player keeps reporting 1.05x.
+      await tick(1300, 2, rate: 1.05);
+      expect(rates(), hasLength(4), reason: 'two quick resends');
+      await tick(1300, 1, rate: 1.05);
+      expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.stopped);
+      expect(store.autoLatencyStatus?.reason, 'the player stayed at 1.05x');
+
+      // Then every 10 s, never every second.
+      final before = rates().length;
+      await tick(1300, 20, rate: 1.05);
+      expect(rates().length - before, inInclusiveRange(1, 2));
+      expect(rates().every((r) => r == 1.0 || r > 1), isTrue);
+
+      // A new load gets its quick resends back.
+      await store.handleRefresh();
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      final afterLoad = rates().length;
+      await tick(1300, 1, rate: 1.05);
+      expect(rates().length, afterLoad + 1);
+    });
+
+    test('a refresh drops a catch-up to 1.0x before fetching', () async {
+      store = await playing();
+      await tick(2200, 8);
+      final url = Completer<String>();
+      when(
+        () => streamService.getUsherUrl(
+          userLogin: any(named: 'userLogin'),
+          forceFreshToken: any(named: 'forceFreshToken'),
+        ),
+      ).thenAnswer((_) => url.future);
+
+      final refresh = store.handleRefresh();
+      await settle();
+
+      expect(rates().last, 1.0);
+      expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.held);
+      expect(store.autoLatencyStatus?.reason, 'reconnecting');
+      url.complete(_usherUrl);
+      await refresh;
+    });
+
+    test('a tick without a latency drops back to 1.0x', () async {
+      store = await playing();
+      await tick(2200, 8);
+
+      now = now.add(const Duration(seconds: 1));
+      await native.emit({'type': 'latency', 'ms': null, 'bufferMs': 1800});
+      await settle();
+
+      expect(rates().last, 1.0);
+      expect(store.autoLatencyStatus?.reason, 'no latency reading');
+    });
+
+    test('a catch-up whose ticks stop is ended by the watchdog', () async {
+      store = await createStore(
+        now: () => now,
+        bufferFallback: fallback,
+        autoLatencyWatchdog: const Duration(milliseconds: 10),
+      );
+      await native.emit({'type': 'state', 'state': 'PLAYING'});
+      await tick(2200, 8);
+      expect(rates().last, LatencyController.catchUpRate);
+
+      now = now.add(const Duration(seconds: 4));
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+
+      expect(rates().last, 1.0);
+      expect(store.autoLatencyStatus?.reason, 'no latency ticks');
+    });
+
+    group('a quality switch', () {
+      Future<void> quality(String name) async {
+        await native.emit({'type': 'quality', 'name': name});
+        await settle();
+      }
+
+      Future<IvsVideoStore> catchingUpAt(String name) async {
+        final s = await playing();
+        await native.emit({
+          'type': 'qualities',
+          'list': ['1080p60', '720p60', '480p'],
+        });
+        for (var i = 0; i < 5; i++) {
+          await settle();
+        }
+        now = now.add(const Duration(seconds: 10));
+        await quality(name);
+        await tick(2200, 8);
+        expect(s.autoLatencyStatus?.phase, AutoLatencyPhase.catchingUp);
+        return s;
+      }
+
+      test('down during a catch-up is a strike', () async {
+        store = await catchingUpAt('1080p60');
+        await quality('720p60');
+
+        expect(rates().last, 1.0);
+        expect(
+          store.autoLatencyStatus?.targetMs,
+          1300 + LatencyController.strikeBackoffMs,
+        );
+      });
+
+      test('up during a catch-up is not', () async {
+        store = await catchingUpAt('480p');
+        await quality('720p60');
+
+        expect(store.autoLatencyStatus?.targetMs, 1300);
+      });
+
+      test('asked for by the viewer is not', () async {
+        store = await catchingUpAt('1080p60');
+        store.setStreamQuality('480p');
+        await quality('480p');
+
+        expect(store.autoLatencyStatus?.targetMs, 1300);
+        expect(store.autoLatencyStatus?.phase, AutoLatencyPhase.catchingUp);
+      });
+    });
+
+    group('the ultra fallback ignores stalls the viewer caused', () {
+      Future<void> twoStalls() async {
+        await native.emit({'type': 'rebuffering'});
+        now = now.add(const Duration(seconds: 2));
+        await native.emit({'type': 'rebuffering'});
+        await settle();
+      }
+
+      test('around a pause and resume', () async {
+        store = await playing();
+        await tick(1300, 10);
+        store.handlePausePlay();
+        await native.emit({'type': 'state', 'state': 'IDLE'});
+        await twoStalls();
+        now = now.add(const Duration(seconds: 3));
+        store.handlePausePlay();
+        await native.emit({'type': 'state', 'state': 'PLAYING'});
+        await twoStalls();
+
+        expect(fallback.active, isFalse);
+      });
+
+      test('right after picture-in-picture or the mini player', () async {
+        store = await playing();
+        await tick(1300, 10);
+        store
+          ..onPipEntered()
+          ..onPipExited();
+        await twoStalls();
+        store
+          ..setMinimized(true)
+          ..setMinimized(false);
+        await twoStalls();
+
+        expect(fallback.active, isFalse);
+      });
+
+      test('right after coming back to the app', () async {
+        store = await playing();
+        await tick(1300, 10);
+        store.handleAppResume();
+        await twoStalls();
+
+        expect(fallback.active, isFalse);
+      });
+
+      test('but counts them once the grace is over', () async {
+        store = await playing();
+        await tick(1300, 10);
+        store.handleAppResume();
+        now = now.add(const Duration(seconds: 11));
+        await twoStalls();
+
+        expect(fallback.active, isTrue);
+      });
+    });
+
     test('a rate left fast by the player is put back to 1.0x', () async {
       store = await playing();
       await tick(1300, 10);
@@ -600,9 +813,11 @@ void main() {
       await tick(1300, 1, rate: 1.05);
       expect(rates(), [1.0]);
 
-      // Never fought every second: twice at most.
+      // Never fought every second: two quick resends, then it gives up
+      // visibly and only nudges every 10 s.
       await tick(1300, 10, rate: 1.03);
       expect(rates(), [1.0, 1.0]);
+      expect(store.autoLatencyStatus?.reason, 'the player stayed at 1.03x');
     });
 
     test('each load starts back at 1.0x', () async {

@@ -32,6 +32,9 @@ class FakeIvsNative {
   /// whose SDK rejects the rate.
   bool rateThrows = false;
 
+  /// When set, the player refuses the rates it returns true for.
+  bool Function(double rate)? rejectRate;
+
   /// Value returned by the player's `getPosition` (VOD resume saves).
   int? nativePosition;
   final playerCalls = <MethodCall>[];
@@ -63,8 +66,11 @@ class FakeIvsNative {
       if (call.method == 'load' && loadThrows) {
         throw PlatformException(code: 'load_failed');
       }
-      if (call.method == 'setPlaybackRate' && rateThrows) {
-        throw PlatformException(code: 'rate_rejected');
+      if (call.method == 'setPlaybackRate') {
+        final rate = ((call.arguments as Map)['rate'] as num).toDouble();
+        if (rateThrows || (rejectRate?.call(rate) ?? false)) {
+          throw PlatformException(code: 'rate_rejected');
+        }
       }
       if (call.method == 'getPosition') return nativePosition;
       return null;
