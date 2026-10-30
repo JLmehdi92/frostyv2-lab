@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
@@ -37,6 +38,9 @@ class CelebrationParticles extends StatefulWidget {
 }
 
 class _CelebrationParticlesState extends State<CelebrationParticles> {
+  /// Celebrations on screen; the laid-out glyphs go with the last one.
+  static var _live = 0;
+
   late CelebrationSimulation _simulation = _simulate();
 
   CelebrationSimulation _simulate() => CelebrationSimulation(
@@ -49,6 +53,7 @@ class _CelebrationParticlesState extends State<CelebrationParticles> {
   @override
   void initState() {
     super.initState();
+    _live++;
     if (CelebrationSprites.images == null) {
       unawaited(
         CelebrationSprites.load().then((_) {
@@ -69,6 +74,12 @@ class _CelebrationParticlesState extends State<CelebrationParticles> {
         oldWidget.reduceMotion != widget.reduceMotion) {
       _simulation = _simulate();
     }
+  }
+
+  @override
+  void dispose() {
+    if (--_live == 0) _Glyphs.clear();
+    super.dispose();
   }
 
   @override
@@ -98,6 +109,9 @@ class CelebrationPainter extends CustomPainter {
     required this.sprites,
   }) : super(repaint: progress);
 
+  /// Reused frame after frame: a celebration allocates no draw buffers.
+  final _atlas = _Atlas();
+
   @override
   void paint(Canvas canvas, Size size) {
     if (size.isEmpty || !size.isFinite) return;
@@ -108,24 +122,31 @@ class CelebrationPainter extends CustomPainter {
     canvas.save();
     canvas.clipRect(Offset.zero & size);
 
-    // One batch per image, keyed by the image itself.
-    final atlas = <ui.Image, _AtlasBatch>{};
-    _AtlasBatch batch(ui.Image image) => atlas[image] ??= _AtlasBatch(image);
+    final atlas = _atlas;
     final glow = CelebrationSprites.glow;
     final paint = Paint()..isAntiAlias = true;
 
+    // Drawn in the simulation's order (back to front). Consecutive particles
+    // of the same image share one atlas draw; anything else drawn in between
+    // sends the pending ones first, so the stacking holds.
     for (final f in frames) {
       final center = Offset(f.x * size.width, f.y * size.height);
       final extent = f.size * unit;
       if (extent <= 0) continue;
 
+      final image = switch (f.shape) {
+        ParticleShape.sprite => sprites?[f.sprite],
+        ParticleShape.glow || ParticleShape.dot => glow,
+        _ => null,
+      };
+      if (image == null) atlas.flush(canvas);
+
       switch (f.shape) {
         case ParticleShape.sprite:
-          final image = sprites?[f.sprite];
           if (image == null) {
             _vectorSpark(canvas, paint, f, center, extent);
           } else {
-            batch(image).add(f, center, extent);
+            atlas.add(canvas, image, f, center, extent);
           }
         case ParticleShape.rect:
           canvas.save();
@@ -152,21 +173,17 @@ class CelebrationPainter extends CustomPainter {
           canvas.restore();
         case ParticleShape.glow:
           // The image's radius is half its width: a glow of radius [extent].
-          batch(glow).add(f, center, extent * 2);
+          atlas.add(canvas, glow, f, center, extent * 2);
         case ParticleShape.dot:
           // An ember: a coloured halo around a hotter, paler core.
-          batch(glow).add(f, center, extent * 2);
-          batch(glow).add(
-            ParticleFrame(
-              shape: ParticleShape.glow,
-              color: Color.lerp(f.color, CelebrationPalette.white, 0.6)!,
-              x: f.x,
-              y: f.y,
-              size: f.size,
-              opacity: f.opacity,
-            ),
+          atlas.add(canvas, glow, f, center, extent * 2);
+          atlas.add(
+            canvas,
+            glow,
+            f,
             center,
             extent * 0.7,
+            color: Color.lerp(f.color, CelebrationPalette.white, 0.6),
           );
         case ParticleShape.ring:
           paint
@@ -198,11 +215,7 @@ class CelebrationPainter extends CustomPainter {
       }
     }
 
-    // Sparks last, one draw call per image.
-    final spritePaint = Paint()..filterQuality = FilterQuality.low;
-    for (final sparks in atlas.values) {
-      sparks.draw(canvas, spritePaint);
-    }
+    atlas.flush(canvas);
     canvas.restore();
   }
 
@@ -253,43 +266,71 @@ class CelebrationPainter extends CustomPainter {
       oldDelegate.sprites != sprites;
 }
 
-/// The sparks of one image, drawn in a single [Canvas.drawAtlas].
-class _AtlasBatch {
-  final ui.Image image;
-  final transforms = <RSTransform>[];
-  final rects = <Rect>[];
-  final colors = <Color>[];
+/// Consecutive particles of one image, drawn in a single
+/// [Canvas.drawRawAtlas] from buffers allocated once.
+class _Atlas {
+  /// Every particle twice over: an ember is a halo and a core.
+  static const _capacity = kMaxCelebrationParticles * 2;
 
-  _AtlasBatch(this.image);
+  final _transforms = Float32List(_capacity * 4);
+  final _rects = Float32List(_capacity * 4);
+  final _colors = Int32List(_capacity);
+  final _paint = Paint()..filterQuality = FilterQuality.low;
+  ui.Image? _image;
+  var _count = 0;
 
-  void add(ParticleFrame f, Offset center, double extent) {
+  /// Queues [f] drawn from [image], [extent] wide, centred on [center], in
+  /// [color] (else the particle's own) multiplied into the image.
+  void add(
+    Canvas canvas,
+    ui.Image image,
+    ParticleFrame f,
+    Offset center,
+    double extent, {
+    Color? color,
+  }) {
+    if (!identical(_image, image) || _count == _capacity) flush(canvas);
+    _image = image;
+
     final w = image.width.toDouble();
     final h = image.height.toDouble();
-    transforms.add(
-      RSTransform.fromComponents(
-        rotation: f.rotation,
-        scale: extent / w,
-        anchorX: w / 2,
-        anchorY: h / 2,
-        translateX: center.dx,
-        translateY: center.dy,
-      ),
-    );
-    rects.add(Rect.fromLTWH(0, 0, w, h));
-    // Multiplied into the image: white keeps its colours, another colour
-    // tints it, and the alpha fades it.
-    colors.add(f.color.withValues(alpha: f.opacity));
+    final scale = extent / w;
+    final scos = math.cos(f.rotation) * scale;
+    final ssin = math.sin(f.rotation) * scale;
+    final i = _count * 4;
+    // An RSTransform rotating and scaling about the image's centre, then
+    // placing that centre on [center].
+    _transforms[i] = scos;
+    _transforms[i + 1] = ssin;
+    _transforms[i + 2] = center.dx - scos * w / 2 + ssin * h / 2;
+    _transforms[i + 3] = center.dy - ssin * w / 2 - scos * h / 2;
+    _rects[i] = 0;
+    _rects[i + 1] = 0;
+    _rects[i + 2] = w;
+    _rects[i + 3] = h;
+    // White keeps the image's colours, another colour tints it, the alpha
+    // fades it.
+    _colors[_count] = (color ?? f.color)
+        .withValues(alpha: f.opacity)
+        .toARGB32();
+    _count++;
   }
 
-  void draw(Canvas canvas, Paint paint) => canvas.drawAtlas(
-    image,
-    transforms,
-    rects,
-    colors,
-    BlendMode.modulate,
-    null,
-    paint,
-  );
+  /// Draws what is queued.
+  void flush(Canvas canvas) {
+    final image = _image;
+    if (_count == 0 || image == null) return;
+    canvas.drawRawAtlas(
+      image,
+      Float32List.sublistView(_transforms, 0, _count * 4),
+      Float32List.sublistView(_rects, 0, _count * 4),
+      Int32List.sublistView(_colors, 0, _count),
+      BlendMode.modulate,
+      null,
+      _paint,
+    );
+    _count = 0;
+  }
 }
 
 /// The "?" of the question marks, laid out once per colour and fade step.
@@ -300,6 +341,14 @@ abstract final class _Glyphs {
   /// brief, and it keeps the cache to a few dozen laid-out glyphs.
   static const _steps = 16;
   static final _cache = <int, TextPainter>{};
+
+  /// Releases the laid-out glyphs.
+  static void clear() {
+    for (final painter in _cache.values) {
+      painter.dispose();
+    }
+    _cache.clear();
+  }
 
   static TextPainter of(Color color, double opacity) {
     final step = (opacity.clamp(0.0, 1.0) * _steps).round();

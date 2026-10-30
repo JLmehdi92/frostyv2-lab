@@ -51,9 +51,13 @@ abstract final class CelebrationSprites {
 
   /// Starts decoding the sparks, once. Never throws.
   static Future<void> load([AssetBundle? bundle]) =>
-      _loading ??= _decode(bundle ?? rootBundle);
+      _loading ??= _decode(bundle ?? rootBundle).then((decoded) {
+        // Failed: the next celebration tries again.
+        if (!decoded) _loading = null;
+      });
 
-  static Future<void> _decode(AssetBundle bundle) async {
+  /// Whether every spark was decoded.
+  static Future<bool> _decode(AssetBundle bundle) async {
     final images = <CelebrationSprite, ui.Image>{};
     try {
       for (final sprite in CelebrationSprite.values) {
@@ -62,18 +66,22 @@ abstract final class CelebrationSprites {
           data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
           targetWidth: decodeWidth,
         );
-        final frame = await codec.getNextFrame();
-        codec.dispose();
-        images[sprite] = frame.image;
+        try {
+          images[sprite] = (await codec.getNextFrame()).image;
+        } finally {
+          codec.dispose();
+        }
       }
       _images = images;
+      return true;
     } catch (error) {
       // A missing or corrupt spark must not take the channel down: the
-      // vector sparks stand in for good.
+      // vector sparks stand in meanwhile.
       debugPrint('Celebration sparks unavailable: $error');
       for (final image in images.values) {
         image.dispose();
       }
+      return false;
     }
   }
 

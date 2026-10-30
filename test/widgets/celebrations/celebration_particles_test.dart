@@ -124,6 +124,37 @@ void main() {
     });
   }
 
+  test('confetti keeps the board size: 5-8 dp wide, 9-14 dp tall on 270', () {
+    final sim = _sim(
+      CelebrationPreset.confetti,
+      duration: const Duration(seconds: 6),
+    );
+    var seen = 0;
+    for (final p in _steps) {
+      for (final f in sim.frameAt(p)) {
+        seen++;
+        expect(f.size * 270, inInclusiveRange(5 - 1e-9, 8 + 1e-9));
+        expect(f.size * f.aspect * 270, inInclusiveRange(9 - 1e-9, 14 + 1e-9));
+      }
+    }
+    expect(seen, greaterThan(100));
+  });
+
+  test('loud: the dot beats as each ring leaves it', () {
+    final sim = _sim(CelebrationPreset.loud);
+    double dotAt(double seconds) => sim
+        .frameAt(seconds / 4)
+        .firstWhere((f) => f.sprite == CelebrationSprite.dot)
+        .size;
+    // 9 pulses of 1.25 s spread over 4 s: one every 0.34375 s.
+    const spacing = (4 - 1.25) / 8;
+    for (var i = 1; i < 8; i++) {
+      final onBeat = dotAt(i * spacing + 0.001);
+      final between = dotAt(i * spacing + spacing / 2);
+      expect(onBeat, greaterThan(between * 1.1), reason: 'pulse $i');
+    }
+  });
+
   test('out-of-range progress is clamped, never throws', () {
     for (final preset in CelebrationPreset.values) {
       final sim = _sim(preset);

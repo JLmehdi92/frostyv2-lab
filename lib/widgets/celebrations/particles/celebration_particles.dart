@@ -295,15 +295,18 @@ List<_Seed> _buildConfetti(double total, math.Random r) {
     for (var i = 0; i < count; i++)
       () {
         final life = _life(_between(r, 2.1, 3.0), total);
+        final width = _between(r, 5, 8);
         return _Seed(
-          start: _startIn(r, total, life),
+          // Weighted to the start, so it opens on a shower (the board's
+          // first 0.7 s) and thins out after.
+          start: math.pow(r.nextDouble(), 1.6) * math.max(0, total - life),
           life: life,
           color: palette[i % palette.length],
           x: _between(r, 0.02, 0.98),
           y: -0.06,
-          size: _between(r, 5, 8) / 270,
+          size: width / 270,
           // Height for width.
-          a: _between(r, 9, 14) / _between(r, 5, 8),
+          a: _between(r, 9, 14) / width,
           // Sway: amplitude and half period.
           b: _between(r, 6, 20) / 270,
           c: _between(r, 0.7, 1.3),
@@ -397,8 +400,10 @@ List<_Seed> _buildFlame(double total, math.Random r) {
 List<_Seed> _buildLoud(double total, math.Random r) {
   final life = _life(1.25, total);
   final pulses = (total / 0.42).floor().clamp(2, 40);
+  // The dot beats on the pulses' own spacing.
+  final spacing = math.max(_wave(1, pulses, total, life), 0.25);
   return [
-    _Seed(start: 0, life: total, sprite: CelebrationSprite.dot),
+    _Seed(start: 0, life: total, sprite: CelebrationSprite.dot, a: spacing),
     for (var i = 0; i < pulses; i++)
       _Seed(
         kind: i.isEven ? 1 : 2,
@@ -544,8 +549,8 @@ ParticleFrame _still(_Seed s, double p) => ParticleFrame(
   y: s.y,
   size: s.size,
   rotation: s.a * math.pi / 4,
-  // The flash itself: in over the first third, out over the last.
-  opacity: _clamp01(_window(p, 0.3, 0.6)),
+  // The flash itself: in over the first 30 %, out over the last 30 %.
+  opacity: _clamp01(_window(p, 0.3, 0.7)),
 );
 
 ParticleFrame? _frame(
@@ -659,7 +664,7 @@ ParticleFrame _flame(_Seed s, double p, double age) {
 ParticleFrame _loud(_Seed s, double p, double age) {
   if (s.kind == 0) {
     // The source, beating with each pulse.
-    final beat = math.exp(-((age % 0.42) / 0.12));
+    final beat = math.exp(-((age % s.a) / 0.12));
     final edge = _clamp01(math.min(age / 0.2, (s.life - age) / 0.3));
     return ParticleFrame(
       shape: ParticleShape.sprite,
