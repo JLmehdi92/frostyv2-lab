@@ -16,7 +16,7 @@ A native low-latency player and a full-featured chat.</p>
 <p>
   <a href="../../releases/latest"><img alt="Download for Android" height="36" src="https://img.shields.io/badge/Download_for-Android-C8FF3D?style=for-the-badge&labelColor=0A0A0A&logo=android&logoColor=C8FF3D"></a>
   &nbsp;
-  <img alt="iOS: coming soon" height="36" src="https://img.shields.io/badge/iOS-Coming_soon-5C5C5C?style=for-the-badge&labelColor=0A0A0A&logo=apple&logoColor=white">
+  <a href="../../issues/12"><img alt="iOS: join the waitlist" height="36" src="https://img.shields.io/badge/iOS-Join_the_waitlist-5C5C5C?style=for-the-badge&labelColor=0A0A0A&logo=apple&logoColor=white"></a>
 </p>
 
 </div>
@@ -161,7 +161,9 @@ repository's GitHub releases.
 
 **Is there an iPhone version?**
 Not yet. An iOS version is planned; how it will be distributed is not
-decided yet.
+decided yet. To be counted, add a 👍 to the
+[iOS waitlist issue](../../issues/12) and subscribe to it to hear when it
+ships.
 
 **Found a bug or have an idea?**
 [Open an issue](../../issues/new/choose) and pick *Bug report* or *Feature
