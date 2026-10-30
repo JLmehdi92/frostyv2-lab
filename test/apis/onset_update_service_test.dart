@@ -208,6 +208,118 @@ void main() {
     });
   });
 
+  group('without a token', () {
+    OnsetUpdateService anonymous(_Adapter adapter) => OnsetUpdateService(
+      token: '',
+      repo: _repo,
+      dio: Dio()..httpClientAdapter = adapter,
+      cacheDirectory: () async => cache,
+    );
+
+    _Adapter serving({String? hash, String location = _signedUrl}) =>
+        _Adapter((options) {
+          final url = options.uri.toString();
+          if (url == _latestUrl) return _json(_releaseJson());
+          if (url == _shaUrl) {
+            return ResponseBody.fromString(hash ?? _apkHash, 200);
+          }
+          if (url == _apkUrl) return _redirect(location);
+          return _bytes(_apk);
+        });
+
+    test('reads the latest release with no Authorization header', () async {
+      final adapter = serving();
+
+      final release = await anonymous(adapter).latest();
+
+      expect(release!.build, 1023);
+      final request = adapter.requests.single;
+      expect(request.uri.toString(), _latestUrl);
+      expect(_header(request, 'Authorization'), isNull);
+      expect(_header(request, 'Accept'), 'application/vnd.github+json');
+      expect(_header(request, 'X-GitHub-Api-Version'), '2022-11-28');
+    });
+
+    test('a 404 means no release is visible, not a failure', () async {
+      // A private repository answers 404 to an anonymous request.
+      final adapter = _Adapter((_) => _json({'message': 'Not Found'}, 404));
+
+      await expectLater(
+        anonymous(adapter).latest(),
+        throwsA(isA<UpdateNotVisibleException>()),
+      );
+    });
+
+    test('with a token, a 404 still reads as no release', () async {
+      final adapter = _Adapter((_) => _json({'message': 'Not Found'}, 404));
+
+      expect(await service(adapter).latest(), isNull);
+    });
+
+    test('other failures read as no release', () async {
+      for (final failing in [
+        _Adapter((_) => _json({'message': 'rate limited'}, 403)),
+        _Adapter((_) => _json({'message': 'x'}, 500)),
+        _Adapter(
+          (options) => throw DioException.connectionError(
+            requestOptions: options,
+            reason: 'offline',
+          ),
+        ),
+      ]) {
+        expect(await anonymous(failing).latest(), isNull);
+      }
+    });
+
+    test('downloads the APK through the public redirect, never with an '
+        'Authorization header', () async {
+      final adapter = serving();
+
+      final file = await anonymous(adapter).download(_release);
+
+      expect(file.readAsBytesSync(), _apk);
+      expect(adapter.requests.map((r) => r.uri.toString()), [
+        _shaUrl,
+        _apkUrl,
+        _signedUrl,
+      ]);
+      for (final request in adapter.requests) {
+        expect(_header(request, 'Authorization'), isNull);
+      }
+      expect(
+        _header(adapter.requests[1], 'Accept'),
+        'application/octet-stream',
+      );
+      expect(adapter.requests[1].followRedirects, isFalse);
+    });
+
+    test('still checks the SHA-256', () async {
+      final adapter = serving(hash: sha256.convert([1, 2, 3]).toString());
+
+      await expectLater(
+        anonymous(adapter).download(_release),
+        throwsA(isA<UpdateIntegrityException>()),
+      );
+      expect(Directory('${cache.path}/updates').listSync(), isEmpty);
+    });
+
+    test('still refuses a download without a hash', () async {
+      await expectLater(
+        anonymous(serving(hash: 'nope')).download(_release),
+        throwsA(isA<UpdateIntegrityException>()),
+      );
+    });
+
+    test('still refuses a redirect that is not https', () async {
+      await expectLater(
+        anonymous(
+          serving(location: 'http://objects.githubusercontent.com/apk'),
+        ).download(_release),
+        throwsA(isA<UpdateDownloadException>()),
+      );
+    });
+  });
+
   group('removeDownloadsUpTo', () {
     File touch(String name) =>
         File('${cache.path}/updates/$name')..createSync(recursive: true);

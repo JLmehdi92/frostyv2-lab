@@ -25,12 +25,24 @@ class UpdateCancelledException implements Exception {
   const UpdateCancelledException();
 }
 
-/// Reads ONSET builds from the GitHub releases of the private repository.
+/// GitHub shows no release to this build: it has no token and the repository
+/// answers 404, because it is private (or has no release yet). Not a failure:
+/// a build made while the repository was public simply cannot see it.
+class UpdateNotVisibleException implements Exception {
+  const UpdateNotVisibleException();
+}
+
+/// Reads ONSET builds from the GitHub releases of the update repository.
 ///
 /// It gets its own [Dio], never the app's: the Twitch interceptors must not
 /// see these requests, and the GitHub token must not reach Twitch. The token
 /// is only ever sent to api.github.com: asset downloads answer with a redirect
 /// to a signed URL, which is followed by hand without it.
+///
+/// A build made while the repository was public has no token (the workflow
+/// never bakes one into an APK that anyone can download): it reads the same
+/// API anonymously, with no Authorization header at all, which works as long
+/// as the repository is public.
 class OnsetUpdateService extends BaseApiClient {
   static const _apiOrigin = 'https://api.github.com';
   static final _repoPattern = RegExp(r'^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$');
@@ -76,8 +88,10 @@ class OnsetUpdateService extends BaseApiClient {
   bool get _validRepo =>
       _repo.isNotEmpty && !_repo.contains('..') && _repoPattern.hasMatch(_repo);
 
+  bool get _anonymous => _token.isEmpty;
+
   ApiHeaders get _apiHeaders => {
-    'Authorization': 'Bearer $_token',
+    if (!_anonymous) 'Authorization': 'Bearer $_token',
     'Accept': 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
   };
@@ -85,6 +99,9 @@ class OnsetUpdateService extends BaseApiClient {
   String _assetUrl(int id) => '$_apiOrigin/repos/$_repo/releases/assets/$id';
 
   /// The latest ONSET build, or null when there is none or it cannot be read.
+  ///
+  /// Throws [UpdateNotVisibleException] when this build has no token and
+  /// GitHub answers 404: the repository is private (or has no release yet).
   Future<OnsetRelease?> latest() async {
     if (!_validRepo) return null;
     try {
@@ -94,6 +111,9 @@ class OnsetUpdateService extends BaseApiClient {
       );
       return OnsetRelease.tryParse(json);
     } on ApiException catch (e) {
+      if (_anonymous && e.statusCode == 404) {
+        throw const UpdateNotVisibleException();
+      }
       // The message and status only: never the request, which holds the token.
       debugPrint('Update check failed: ${e.statusCode ?? e.message}');
       return null;

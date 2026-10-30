@@ -46,8 +46,9 @@ class UpdateInstallException implements Exception {
 /// Finds newer ONSET builds and installs them.
 ///
 /// Only Android builds made by the update workflow (which bakes in
-/// `UPDATE_TOKEN` and `UPDATE_REPO`) are enabled: anywhere else no request is
-/// ever made.
+/// `UPDATE_REPO`) are enabled: anywhere else no request is ever made. A build
+/// made while the repository is private also carries `UPDATE_TOKEN`; one made
+/// while it is public has none and reads the public releases anonymously.
 class OnsetUpdater {
   static const checkInterval = Duration(hours: 6);
   static const postponeFor = Duration(hours: 24);
@@ -70,10 +71,7 @@ class OnsetUpdater {
     OnsetInstaller installer = const OnsetInstaller(),
     Future<int> Function()? currentBuild,
     DateTime Function()? now,
-  }) : enabled =
-           (isAndroid ?? Platform.isAndroid) &&
-           token.isNotEmpty &&
-           repo.isNotEmpty,
+  }) : enabled = (isAndroid ?? Platform.isAndroid) && repo.isNotEmpty,
        _service = service ?? OnsetUpdateService(token: token, repo: repo),
        _installer = installer,
        _currentBuild = currentBuild ?? _installedBuild,
@@ -100,7 +98,16 @@ class OnsetUpdater {
       }
     }
 
-    final release = await _service.latest();
+    final OnsetRelease? release;
+    try {
+      release = await _service.latest();
+    } on UpdateNotVisibleException {
+      // A tokenless build cannot see a private repository's releases: there
+      // is nothing to offer, and asking again at every resume would only
+      // spend the anonymous rate limit.
+      await prefs.setInt(_lastCheckKey, now.millisecondsSinceEpoch);
+      return const UpToDate();
+    }
     if (release == null) return const UpdateCheckFailed();
 
     final current = await _currentBuild();

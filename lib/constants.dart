@@ -7,11 +7,13 @@ const clientId = String.fromEnvironment('CLIENT_ID');
 /// Twitch API client secret.
 const secret = String.fromEnvironment('SECRET');
 
-/// Read-only GitHub token for in-app updates, set by the update workflow.
-/// Empty in local builds, which then never look for updates.
+/// Read-only GitHub token for in-app updates, set by the update workflow
+/// only while the repository is private. Empty in a build made while it is
+/// public (which reads the public releases anonymously) and in local builds.
 const updateToken = String.fromEnvironment('UPDATE_TOKEN');
 
-/// The `owner/name` repository whose releases carry ONSET updates.
+/// The `owner/name` repository whose releases carry ONSET updates. Empty in
+/// local builds, which then never look for updates.
 const updateRepo = String.fromEnvironment('UPDATE_REPO');
 
 /// ONSET's public source code, linked from Settings › About ("Source code").

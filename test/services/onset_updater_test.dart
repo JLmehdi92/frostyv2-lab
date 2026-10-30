@@ -67,18 +67,27 @@ void main() {
       when(() => service.latest()).thenAnswer((_) async => release);
 
   group('enabled', () {
-    test('needs Android, a token and a repository', () {
+    test('needs Android and a repository', () {
       expect(updater().enabled, isTrue);
-      expect(updater(token: '').enabled, isFalse);
       expect(updater(repo: '').enabled, isFalse);
+      expect(updater(token: '', repo: '').enabled, isFalse);
       expect(updater(isAndroid: false).enabled, isFalse);
+    });
+
+    test('a build made while the repository was public has no token and '
+        'still looks for updates', () async {
+      latestIs(_release(1023));
+      final subject = updater(token: '');
+
+      expect(subject.enabled, isTrue);
+      expect(await subject.check(), isA<UpdateAvailable>());
     });
 
     test('a disabled updater never asks GitHub', () async {
       latestIs(_release(1023));
 
       expect(
-        await updater(token: '').check(force: true),
+        await updater(repo: '').check(force: true),
         isA<UpdateCheckSkipped>(),
       );
       expect(
@@ -146,6 +155,19 @@ void main() {
 
       now = now.add(const Duration(minutes: 1));
       expect(await updater().check(), isA<UpdateAvailable>());
+      verify(() => service.latest()).called(2);
+    });
+
+    test('a release hidden from a tokenless build is quietly no update, '
+        'asked at most every six hours', () async {
+      // A private repository answers 404 to a build that has no token.
+      when(() => service.latest()).thenThrow(const UpdateNotVisibleException());
+      final subject = updater(token: '');
+
+      expect(await subject.check(), isA<UpToDate>());
+      expect(await subject.check(force: true), isA<UpToDate>());
+      now = now.add(const Duration(hours: 1));
+      expect(await subject.check(), isA<UpdateCheckSkipped>());
       verify(() => service.latest()).called(2);
     });
 
@@ -219,7 +241,7 @@ void main() {
     test('also in builds that do not look for updates', () async {
       when(() => service.removeDownloadsUpTo(any())).thenAnswer((_) async {});
 
-      await updater(token: '').removeInstalledDownloads();
+      await updater(repo: '').removeInstalledDownloads();
 
       verify(() => service.removeDownloadsUpTo(1020)).called(1);
     });

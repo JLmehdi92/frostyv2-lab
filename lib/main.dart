@@ -327,7 +327,7 @@ void main() async {
         Provider<WhisperStore>.value(value: whisperStore),
         Provider<ActivityStore>.value(value: activityStore),
         Provider<MiniPlayerStore>(create: (_) => MiniPlayerStore()),
-        // In-app updates; silent in builds without the update token.
+        // In-app updates; silent in builds without UPDATE_REPO.
         Provider<OnsetUpdater>(create: (_) => OnsetUpdater()),
       ],
       child: MyApp(firstRun: firstRun, launchInfo: await launchInfo),
