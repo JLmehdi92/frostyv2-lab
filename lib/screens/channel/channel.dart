@@ -1728,6 +1728,9 @@ class _VideoChatState extends State<VideoChat>
         // Nothing plays from the PiP window behind the content warning.
         onPipAction: (_) => pipPlayPause(_videoStore),
         onPipEntered: () {
+          // The PiP window shows the player alone: a celebration playing
+          // over the channel is over, not kept to replay on the way back.
+          _eventsStore.clearCelebration();
           final store = _videoStore;
           if (store is IvsVideoStore) store.onPipEntered();
         },
