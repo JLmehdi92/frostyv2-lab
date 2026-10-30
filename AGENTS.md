@@ -10,7 +10,7 @@
 
 ```bash
 flutter pub get                                                     # Install dependencies
-flutter run --dart-define=clientId=ID --dart-define=secret=SECRET   # Run with Twitch credentials
+flutter run --dart-define=CLIENT_ID=ID --dart-define=SECRET=SECRET  # Run with Twitch credentials
 flutter analyze                                                     # Static analysis (run after changes)
 flutter test                                                        # Run tests (if changes touch testable logic)
 dart run build_runner build                                         # Regenerate .g.dart files (MobX/JSON models)
@@ -19,13 +19,17 @@ dart run build_runner build --delete-conflicting-outputs             # Same, but
 
 ## Source Structure
 
+- `lib/main.dart`, `lib/theme.dart`, `lib/constants.dart` — Entry point, theme and build-time constants
 - `lib/apis/` — API services (all extend `BaseApiClient`)
 - `lib/models/` — Data models (`@JsonSerializable` with `.g.dart` codegen)
-- `lib/screens/{feature}/` — Feature screens with co-located `stores/` subdirectories
+- `lib/screens/{feature}/` — Feature screens with co-located `stores/` and `widgets/` subdirectories (widgets used by one feature live there)
 - `lib/stores/` — Global stores only (e.g., `global_assets_store.dart`)
-- `lib/services/` — App-level services
-- `lib/widgets/` — Shared widgets
-- `lib/utils/` — Utility functions
+- `lib/services/` — App-level services (e.g., `cache_manager.dart`)
+- `lib/widgets/` — Widgets shared by several features
+- `lib/utils/` — Utility functions (general helpers in `common_utils.dart`)
+- `test/` — Mirrors `lib/`; `test/guards/` holds repo-wide checks, `test/helpers/` and `test/fixtures/` shared test code
+- `tool/` — Developer scripts that are not part of the app (e.g., `onset_mark_glyphs.py`)
+- `docs/` — `ARCHITECTURE.md` and the in-app update setup (`MISES_A_JOUR.md`)
 
 ## Architecture (non-obvious bits)
 
