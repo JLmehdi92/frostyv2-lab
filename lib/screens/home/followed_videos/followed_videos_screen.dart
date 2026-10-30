@@ -72,11 +72,19 @@ List<(FollowedVideosSection, List<Vod>)> groupFollowedVideos(
 /// on a tablet, in Today / Yesterday / This week / Older sections, with the
 /// viewer's progress.
 class FollowedVideosScreen extends StatefulWidget {
-  const FollowedVideosScreen({super.key, required this.store});
+  const FollowedVideosScreen({
+    super.key,
+    required this.store,
+    this.now = DateTime.now,
+  });
 
   static const routeName = '/followed-videos';
 
   final FollowedVideosStore store;
+
+  /// The clock the day sections are read from (fixed in tests, so they do
+  /// not depend on the hour the suite runs).
+  final DateTime Function() now;
 
   /// Opens the list for the logged-in viewer [userId].
   static Future<void> open(BuildContext context, {required String userId}) =>
@@ -188,7 +196,7 @@ class _FollowedVideosScreenState extends State<FollowedVideosScreen>
       );
     }
 
-    final sections = groupFollowedVideos(videos, DateTime.now());
+    final sections = groupFollowedVideos(videos, widget.now());
     final insets = MediaQuery.paddingOf(context);
     final side = tablet ? OnsetSpacing.gutterTablet : OnsetSpacing.gutterPhone;
     // Where each section's cards start in the one cascade of the page.

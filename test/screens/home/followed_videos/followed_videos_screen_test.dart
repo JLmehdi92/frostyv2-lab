@@ -15,11 +15,20 @@ class MockTwitchApi extends Mock implements TwitchApi {}
 
 class MockVodService extends Mock implements TwitchVodService {}
 
+/// Fixed clocks on either side of midnight: the day sections must not
+/// depend on when the suite runs.
+final _justAfterMidnight = DateTime(2026, 10, 30, 0, 30);
+final _justBeforeMidnight = DateTime(2026, 10, 29, 23, 30);
+
 void main() {
   late MockTwitchApi api;
   late MockVodService vods;
 
+  /// The screen's clock in these tests.
+  var clock = _justAfterMidnight;
+
   setUp(() {
+    clock = _justAfterMidnight;
     api = MockTwitchApi();
     vods = MockVodService();
     when(() => api.getFollowedChannels(userId: '7')).thenAnswer(
@@ -52,6 +61,7 @@ void main() {
         child: MaterialApp(
           theme: theme ?? ThemeData(extensions: const [OnsetColors.light]),
           home: FollowedVideosScreen(
+            now: () => clock,
             store: FollowedVideosStore(
               twitchApi: api,
               vodService: vods,
@@ -69,7 +79,7 @@ void main() {
     id: id,
     title: title,
     lengthSeconds: 3600,
-    createdAt: DateTime.now().subtract(age),
+    createdAt: clock.subtract(age),
     viewCount: 10,
     ownerId: '1',
     ownerLogin: 'c1',
@@ -84,7 +94,7 @@ void main() {
           id: 'a',
           title: 'Morning stream',
           lengthSeconds: 3600,
-          createdAt: DateTime.now().subtract(const Duration(days: 1)),
+          createdAt: clock.subtract(const Duration(days: 1)),
           viewCount: 10,
           ownerId: '1',
           ownerLogin: 'c1',
@@ -120,61 +130,87 @@ void main() {
     expect(find.text('No recent videos'), findsOneWidget);
   });
 
-  testWidgets('videos fall in Today / Yesterday / This week / Older', (
-    tester,
-  ) async {
-    when(() => vods.getFollowedVideos(any())).thenAnswer(
-      (_) async => [
-        video('a', Duration.zero, title: 'Now'),
-        video('b', const Duration(days: 1), title: 'Day before'),
-        video('c', const Duration(days: 3), title: 'Mid week'),
-        video('d', const Duration(days: 12), title: 'Long ago'),
-      ],
-    );
-    await pump(tester, size: const Size(390, 1400));
+  for (final at in [_justAfterMidnight, _justBeforeMidnight]) {
+    final label = '${at.hour}:${at.minute}';
+    testWidgets('videos fall in Today / Yesterday / This week / Older '
+        '(clock at $label)', (tester) async {
+      clock = at;
+      when(() => vods.getFollowedVideos(any())).thenAnswer(
+        (_) async => [
+          video('a', Duration.zero, title: 'Now'),
+          video('b', const Duration(days: 1), title: 'Day before'),
+          video('c', const Duration(days: 3), title: 'Mid week'),
+          video('d', const Duration(days: 12), title: 'Long ago'),
+        ],
+      );
+      await pump(tester, size: const Size(390, 1400));
 
-    expect(tester.takeException(), isNull);
-    for (final label in ['TODAY', 'YESTERDAY', 'THIS WEEK', 'OLDER']) {
-      expect(find.text(label), findsOneWidget, reason: label);
-    }
-    double top(String text) => tester.getTopLeft(find.text(text)).dy;
-    expect(top('TODAY'), lessThan(top('Now')));
-    expect(top('Now'), lessThan(top('YESTERDAY')));
-    expect(top('YESTERDAY'), lessThan(top('Day before')));
-    expect(top('THIS WEEK'), lessThan(top('Mid week')));
-    expect(top('OLDER'), lessThan(top('Long ago')));
-  });
+      expect(tester.takeException(), isNull);
+      for (final label in ['TODAY', 'YESTERDAY', 'THIS WEEK', 'OLDER']) {
+        expect(find.text(label), findsOneWidget, reason: label);
+      }
+      double top(String text) => tester.getTopLeft(find.text(text)).dy;
+      expect(top('TODAY'), lessThan(top('Now')));
+      expect(top('Now'), lessThan(top('YESTERDAY')));
+      expect(top('YESTERDAY'), lessThan(top('Day before')));
+      expect(top('THIS WEEK'), lessThan(top('Mid week')));
+      expect(top('OLDER'), lessThan(top('Long ago')));
+    });
+
+    testWidgets('the sections follow the screen\'s clock ($label)', (
+      tester,
+    ) async {
+      clock = at;
+      when(() => vods.getFollowedVideos(any())).thenAnswer(
+        (_) async => [
+          video('a', const Duration(minutes: 10), title: 'Just now'),
+          video('b', const Duration(hours: 1), title: 'An hour ago'),
+        ],
+      );
+      await pump(tester, size: const Size(390, 1400));
+      expect(find.text('TODAY'), findsOneWidget);
+      // An hour before 00:30 is yesterday; before 23:30, still today.
+      expect(
+        find.text('YESTERDAY'),
+        at.hour == 0 ? findsOneWidget : findsNothing,
+      );
+    });
+  }
 
   testWidgets('a tablet shows tiles in a grid, light and dark', (tester) async {
+    // Six videos of the same day, whichever side of midnight the clock is.
     when(() => vods.getFollowedVideos(any())).thenAnswer(
       (_) async => [
-        for (var i = 0; i < 6; i++) video('$i', Duration(hours: i)),
+        for (var i = 0; i < 6; i++) video('$i', Duration(minutes: i * 4)),
       ],
     );
-    for (final theme in [
-      ThemeData(extensions: const [OnsetColors.light]),
-      ThemeData(
-        brightness: Brightness.dark,
-        extensions: const [OnsetColors.dark],
-      ),
-    ]) {
-      for (final size in const [Size(1280, 854), Size(854, 1280)]) {
-        // A new screen each time (its own store, loaded once).
-        await tester.pumpWidget(const SizedBox());
-        await pump(tester, size: size, theme: theme);
-        expect(tester.takeException(), isNull);
-        expect(
-          find.text('The newest videos of the channels you follow'),
-          findsOneWidget,
-        );
-        final cards = find.byType(VodCard);
-        expect(cards, findsWidgets);
-        expect(tester.widget<VodCard>(cards.first).tile, isTrue);
-        // Several tiles share the first row.
-        final first = tester.getTopLeft(cards.at(0));
-        final second = tester.getTopLeft(cards.at(1));
-        expect(second.dy, first.dy);
-        expect(second.dx, greaterThan(first.dx));
+    for (final at in [_justAfterMidnight, _justBeforeMidnight]) {
+      clock = at;
+      for (final theme in [
+        ThemeData(extensions: const [OnsetColors.light]),
+        ThemeData(
+          brightness: Brightness.dark,
+          extensions: const [OnsetColors.dark],
+        ),
+      ]) {
+        for (final size in const [Size(1280, 854), Size(854, 1280)]) {
+          // A new screen each time (its own store, loaded once).
+          await tester.pumpWidget(const SizedBox());
+          await pump(tester, size: size, theme: theme);
+          expect(tester.takeException(), isNull);
+          expect(
+            find.text('The newest videos of the channels you follow'),
+            findsOneWidget,
+          );
+          final cards = find.byType(VodCard);
+          expect(cards, findsWidgets);
+          expect(tester.widget<VodCard>(cards.first).tile, isTrue);
+          // Several tiles share the first row.
+          final first = tester.getTopLeft(cards.at(0));
+          final second = tester.getTopLeft(cards.at(1));
+          expect(second.dy, first.dy);
+          expect(second.dx, greaterThan(first.dx));
+        }
       }
     }
   });
