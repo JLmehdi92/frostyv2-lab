@@ -6,7 +6,7 @@ import 'package:onset/theme.dart';
 ///
 /// The outline is Inter Bold Italic (the app's own font) at 32 px with
 /// -0.05 em tracking, centred in a 72 × 72 box, generated once by
-/// `scripts/onset_mark_glyphs.py`. The Android splash draws the very same
+/// `tool/onset_mark_glyphs.py`. The Android splash draws the very same
 /// outline (`res/drawable/launch_tile.xml`, checked by a test), so the native
 /// splash hands over to the Flutter intro without a visible change.
 abstract final class OnsetMark {

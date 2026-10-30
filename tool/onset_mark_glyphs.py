@@ -8,7 +8,7 @@ the native splash hands over to the Flutter intro without a visible change;
 test/widgets/launch/onset_mark_test.dart checks they agree.
 
 Usage (needs fontTools):
-    python3 -I scripts/onset_mark_glyphs.py assets/fonts/Inter-BoldItalic.ttf
+    python3 -I tool/onset_mark_glyphs.py assets/fonts/Inter-BoldItalic.ttf
 Prints the SVG path (OnsetMark.glyphsSvg and the vector's pathData).
 """
 import sys
