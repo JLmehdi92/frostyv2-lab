@@ -58,13 +58,15 @@ téléchargeables par tout le monde, et un jeton se lit dans un APK.
 - Supprimez aussi les releases `build-*` faites en privé (**Releases** →
   chaque release → **Delete**) : même avec un jeton révoqué, celles d'avant le
   proxy de jeton contiennent le `SECRET` de Twitch (point suivant).
-- Le **secret client Twitch n'est plus dans l'APK** : il vit dans le proxy de
-  jeton, un petit Cloudflare Worker (étape 8). L'APK ne contient plus que
-  `CLIENT_ID` et l'adresse du proxy (`TOKEN_PROXY_URL`), publics par nature :
-  quiconque télécharge une release peut les lire, et c'est sans danger. Les
-  APK construits **avant** le proxy contiennent encore l'ancien secret : c'est
-  pour cela qu'il faut le **régénérer** (étape 8, dernier point) ; tant qu'il
-  ne l'est pas, la fuite reste ouverte.
+- **Aucun secret client Twitch n'est plus dans l'APK** : le jeton des
+  utilisateurs déconnectés vient du proxy de jeton, un petit Cloudflare Worker
+  qui détient le secret d'une **seconde** application Twitch, « ONSET public »
+  (étape 8). L'APK ne contient plus que `CLIENT_ID` et l'adresse du proxy
+  (`TOKEN_PROXY_URL`), publics par nature : quiconque télécharge une release
+  peut les lire, et c'est sans danger. Les APK construits **avant** le proxy
+  contiennent encore l'ancien secret de l'application de connexion : c'est
+  pour cela qu'il faut le **régénérer** (étape 8, point 9) ; tant qu'il ne
+  l'est pas, la fuite reste ouverte.
 
 ## 1. La clé de signature (keystore)
 
@@ -141,8 +143,9 @@ le secret Twitch, lui, n'y est plus) :
 
 Si l'un d'eux manque, le workflow s'arrête tout de suite en le nommant (sans
 jamais afficher de valeur). `UPDATE_TOKEN` n'est exigé que si le dépôt est
-privé. Le secret client Twitch n'est **pas** un secret du dépôt : il va
-dans le proxy de jeton (étape 8).
+privé. Aucun secret client Twitch n'est un secret du dépôt : celui de
+l'application « ONSET public » va dans le Worker (étape 8), et celui de
+l'application de connexion ne sert plus nulle part.
 
 **Une variable, obligatoire** — même page, onglet **Variables** (pas
 *Secrets*) → **New repository variable** :
@@ -152,9 +155,10 @@ dans le proxy de jeton (étape 8).
 | `TOKEN_PROXY_URL` | l'adresse du proxy de jeton (étape 8), par exemple `https://onset-token.votre-nom.workers.dev`, **sans** `/app-token` |
 
 C'est une variable et non un secret parce que l'adresse est dans chaque APK de
-toute façon. Si elle manque ou ne commence pas par `https://`, le workflow
-s'arrête avec « The repository variable TOKEN_PROXY_URL is missing or does not
-start with https:// ». Ce refus est voulu : sans elle, toutes les applis
+toute façon. Si elle manque ou n'est pas une simple adresse `https://` (rien
+d'autre que l'adresse : ni `?`, ni `#`, ni espace, ni `nom:motdepasse@`, comme
+l'appli l'exige), le workflow s'arrête avec « The repository variable
+TOKEN_PROXY_URL is missing or is not a plain https:// URL ». Ce refus est voulu : sans elle, toutes les applis
 installées recevraient une mise à jour où, déconnecté, on n'a plus ni
 émotes ni badges Twitch, ni Parcourir, ni Recherche, sans rien dans le journal
 pour dire pourquoi.
@@ -255,9 +259,10 @@ jamais cet APK).
 
 Dans cet ordre :
 
-1. **Twitch** : si ce n'est pas déjà fait (étape 8), console développeur
-   Twitch → l'application → **New Secret**, puis mettez le nouveau secret
-   **dans le Worker seulement** (l'ancien a pu sortir dans un APK).
+1. **Twitch** : si ce n'est pas déjà fait (étape 8, points 9 à 11),
+   régénérez le secret de l'application **de connexion** et ne le mettez
+   **nulle part** (l'ancien a pu sortir dans un APK ; l'appli n'en a plus
+   besoin), puis nettoyez ses abonnements EventSub.
 2. **Jeton GitHub** : révoquez `UPDATE_TOKEN` (Developer settings → Personal
    access tokens → le jeton → **Delete**) **avant** de rendre un dépôt public
    (étape 0), et supprimez le secret du dépôt. Ne le recréez (étape 2, limité
@@ -280,61 +285,106 @@ Dans cet ordre :
 
 Déconnecté, ONSET a besoin d'un « jeton d'application » Twitch pour les émotes
 et badges Twitch du chat, Parcourir, Recherche, les catégories et les infos de
-chaîne des lecteurs. L'obtenir demande le **secret client** Twitch. Avant, ce
-secret était dans l'APK, donc lisible par quiconque l'ouvrait. Il vit
-désormais dans un petit **Cloudflare Worker** (gratuit), dans votre compte
-Cloudflare ; l'appli ne connaît que son adresse. Connecté, rien ne change :
-l'appli utilise votre propre jeton.
+chaîne des lecteurs. L'obtenir demande un **secret client** Twitch. Avant, le
+secret de l'application de connexion était dans l'APK, donc lisible par
+quiconque l'ouvrait. Désormais un petit **Cloudflare Worker** (gratuit), dans
+votre compte Cloudflare, fournit ce jeton ; l'appli ne connaît que son
+adresse. Connecté, rien ne change : l'appli utilise votre propre jeton, de
+l'application de connexion, comme avant.
+
+Le Worker fabrique ce jeton pour une **seconde application Twitch**, « ONSET
+public », à laquelle personne ne se connecte jamais. C'est important : un
+jeton d'application de l'application **de connexion** permettrait de
+s'abonner aux événements privés des personnes qui se sont connectées à ONSET
+(leurs chuchotements, par exemple). Un jeton d'une application que personne
+n'a autorisée n'atteint les données privées de personne.
 
 Le guide détaillé, écran par écran, est en anglais :
 [`tool/token_proxy/README.md`](../tool/token_proxy/README.md). Dans l'ordre :
 
-1. **Créer le Worker** (guide, étapes 1 et 2) : compte Cloudflare gratuit →
+1. **Créer l'application « ONSET public »** (guide, étape 1) : console
+   développeur Twitch → **Register Your Application** → nom `ONSET public`,
+   adresse de redirection `http://localhost`, type *Confidential* → **Manage**
+   → notez son **Client ID**, puis **New Secret** et notez son **Client
+   Secret**. Ce n'est **pas** l'application de connexion.
+2. **Créer le Worker** (guide, étape 2) : compte Cloudflare gratuit →
    **Workers & Pages** → **Create application** → modèle *Hello World* → nom
    `onset-token` → **Deploy** → **Edit code** → remplacer tout le code par
    celui de `tool/token_proxy/worker.js` → **Deploy**. Notez son adresse
    (`https://onset-token.votre-nom.workers.dev`).
-2. **Ajouter les 2 secrets** (guide, étape 3) : le Worker → **Settings** →
-   **Variables and Secrets** → **Add**, type **Secret** :
-   `TWITCH_CLIENT_ID` (l'identifiant client) et `TWITCH_CLIENT_SECRET` (le
-   secret client actuel). Recommandé ensuite : l'espace KV `TOKEN_CACHE`
-   (guide, étape 4).
-3. **Vérifier** : ouvrez `https://onset-token.votre-nom.workers.dev/app-token`
-   dans un navigateur ; vous devez voir `{"access_token":"…","expires_in":…}`.
-   Ce jeton n'est pas un secret (il ne lit que des données publiques).
-4. **Copier l'adresse dans la variable du dépôt** `TOKEN_PROXY_URL` (étape 3,
+3. **Lui donner son stockage, obligatoire** (guide, étape 3) : espace Workers
+   KV `onset-token-cache`, relié au Worker sous le nom `TOKEN_CACHE`. Sans lui
+   le Worker refuse de fonctionner.
+4. **Ajouter les 2 secrets d'« ONSET public »** (guide, étape 4) : le Worker →
+   **Settings** → **Variables and Secrets** → **Add**, type **Secret** :
+   `TWITCH_CLIENT_ID` et `TWITCH_CLIENT_SECRET`, ceux d'**ONSET public**
+   (point 1).
+5. **Vérifier** : ouvrez `https://onset-token.votre-nom.workers.dev/app-token`
+   dans un navigateur ; vous devez voir
+   `{"access_token":"…","expires_in":…,"client_id":"…"}`, avec le Client ID
+   d'**ONSET public**.
+6. **Copier l'adresse dans la variable du dépôt** `TOKEN_PROXY_URL` (étape 3,
    onglet **Variables**), **sans** `/app-token`.
-5. **Lancer un build** : **Actions** → **ONSET update** → **Run workflow** sur
+7. **Lancer un build** : **Actions** → **ONSET update** → **Run workflow** sur
    `main`, puis installez la mise à jour.
-6. **Tester déconnecté sur la tablette** : **Réglages** → déconnectez-vous
+8. **Tester déconnecté sur la tablette** : **Réglages** → déconnectez-vous
    (ou utilisez une appli jamais connectée). Ouvrez **Parcourir**, une
    catégorie, la **Recherche**, puis le chat d'une chaîne : les émotes et
    badges Twitch doivent s'afficher, sans popup « Session expired ». Si rien
-   ne s'affiche, ouvrez l'adresse `/app-token` de l'étape 3 pour voir si le
+   ne s'affiche, ouvrez l'adresse `/app-token` du point 5 pour voir si le
    Worker répond (dépannage dans le guide).
-7. **Régénérer le secret Twitch** : console développeur Twitch → l'application
-   → **Manage** → **New Secret**. C'est **cette étape qui ferme la fuite** :
-   les anciens APK (releases et artefacts déjà publiés, appareils où l'appli
-   est installée) contiennent toujours l'ancien secret, et on ne peut pas les
-   rappeler ; une fois régénéré, ce secret-là ne vaut plus rien.
-8. **Mettre le nouveau secret dans le Worker seulement** : le Worker →
-   **Settings** → **Variables and Secrets** → modifier
-   `TWITCH_CLIENT_SECRET` → coller le nouveau → **Deploy**. Rien à
-   reconstruire : l'appli n'a jamais le secret. Le Worker voit que le secret a
-   changé et redemande un jeton avec le nouveau. Rouvrez `/app-token` pour
-   vérifier.
-9. **Supprimer l'ancien secret GitHub `SECRET`** : dépôt → **Settings** →
-   **Secrets and variables** → **Actions** → `SECRET` → **Remove**. Le
-   workflow ne le lit plus ; il ne doit plus exister nulle part ailleurs que
-   dans le Worker.
+9. **Régénérer le secret de l'application de connexion, et ne le mettre
+   nulle part** : console développeur Twitch → l'application **de
+   connexion** (pas ONSET public) → **Manage** → **New Secret**. C'est **ce
+   point qui ferme la fuite** : les anciens APK (releases et artefacts déjà
+   publiés, appareils où l'appli est installée) contiennent toujours l'ancien
+   secret, et on ne peut pas les rappeler ; une fois régénéré, ce secret-là ne
+   vaut plus rien. Le nouveau ne va ni dans le Worker, ni dans GitHub, ni dans
+   l'appli : rien n'en a besoin (gardez-le seulement le temps du point 10).
+10. **Supprimer les abonnements EventSub laissés par la fuite** : avec
+    l'ancien secret, quelqu'un a pu créer des abonnements *webhook* ou des
+    *conduits* au nom de l'application de connexion (pour recevoir les
+    chuchotements des utilisateurs d'ONSET, par exemple). Régénérer le secret
+    ne les supprime pas. Sur votre ordinateur, installez Node.js (version
+    « LTS », <https://nodejs.org>), ouvrez PowerShell dans le dossier
+    `tool/token_proxy` et lancez `node eventsub-cleanup.js`. Il demande le
+    Client ID de l'application **de connexion** et son **nouveau** secret
+    (point 9 ; il ne s'affiche pas pendant la frappe), liste ce qu'il trouve,
+    et ne supprime rien tant que vous n'avez pas tapé `DELETE`. ONSET n'en
+    crée jamais de ce type : tout ce qu'il liste vient de quelqu'un d'autre.
+    Le secret ne part que vers Twitch (`id.twitch.tv`), pour un jeton
+    temporaire que le script révoque en finissant. Ne collez jamais ce secret
+    dans un site, une discussion ou un message : personne, pas même quelqu'un
+    qui vous aide, n'en a besoin. Ensuite, si vous voulez, régénérez-le encore
+    une fois sans le noter : ONSET n'en a pas besoin.
+11. **Supprimer l'ancien secret GitHub `SECRET`** : dépôt → **Settings** →
+    **Secrets and variables** → **Actions** → `SECRET` → **Remove**. Le
+    workflow ne le lit plus.
 
-Limites, honnêtement : l'adresse du Worker est publique (elle est dans
-l'APK) ; n'importe qui peut donc obtenir un jeton d'application, qui ne lit
-que des données publiques. Le Worker limite chaque adresse IP à 10 demandes
-par minute, mais depuis le tableau de bord cette limite est approximative
-(comptée séparément par chaque copie du Worker). Le plan gratuit autorise
-100 000 requêtes par jour : si quelqu'un les épuisait, seuls les utilisateurs
-déconnectés qui ont besoin d'un nouveau jeton ce jour-là s'en passeraient
-jusqu'à minuit UTC. Si le Worker est en panne, l'appli démarre quand même, la
-connexion marche, et ce qui demande le jeton échoue sans popup ; l'appli
-redemande au plus une fois par minute.
+Limites, honnêtement :
+
+- L'adresse du Worker est publique (elle est dans l'APK), donc le jeton
+  aussi. Avec « ONSET public », il lit des données publiques de Twitch et
+  rien d'aucun utilisateur d'ONSET. Quelqu'un pourrait quand même le
+  **révoquer** (le Worker s'en aperçoit en 10 minutes au plus et en fabrique
+  un autre, au plus une fois par minute : quelqu'un qui s'acharnerait
+  priverait les utilisateurs déconnectés d'émotes, de badges et de
+  Parcourir tant qu'il continue), **épuiser sa limite de débit** Twitch,
+  partagée par toutes les applis déconnectées, ou faire **suspendre « ONSET
+  public »** par Twitch en en abusant. Les utilisateurs connectés ne sont
+  jamais touchés : leur application est une autre.
+- Le Worker limite chaque adresse IP (chaque bloc `/64` en IPv6) à 10
+  demandes par minute, mais depuis le tableau de bord cette limite est
+  approximative (comptée séparément par chaque copie du Worker).
+- Le plan gratuit autorise 100 000 requêtes par jour, et une demande refusée
+  (429) **compte quand même**. Si quelqu'un les épuisait, seuls les
+  utilisateurs déconnectés qui ont besoin d'un nouveau jeton ce jour-là s'en
+  passeraient jusqu'à minuit UTC. **Restez sur le plan gratuit** : c'est un
+  plafond strict, un abus ne peut rien vous coûter. Si vous passez un jour à
+  un plan payant, réglez d'abord une alerte de facturation. Amélioration
+  possible : avec votre propre domaine chez Cloudflare, une règle de
+  limitation de débit du pare-feu (WAF) arrête les rafales avant qu'elles
+  n'atteignent le Worker et ne comptent.
+- Si le Worker est en panne, l'appli démarre quand même, la connexion marche,
+  et ce qui demande le jeton échoue sans popup ; l'appli redemande au plus une
+  fois par minute.

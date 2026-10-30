@@ -224,18 +224,27 @@ flutter run --dart-define=CLIENT_ID=<id> --dart-define=TOKEN_PROXY_URL=<https://
 flutter build apk --release --dart-define=CLIENT_ID=<id> --dart-define=TOKEN_PROXY_URL=<https://worker-url>
 ```
 
-- `CLIENT_ID` comes from a Twitch developer application (it is public by
-  design: it is in every Helix request). `TOKEN_PROXY_URL` is the token proxy,
-  a Cloudflare Worker (`tool/token_proxy/`) that holds the Twitch client
-  secret and hands logged-out viewers an app access token
-  (`TwitchApi.getDefaultToken`). The secret is never in the app or the
-  repository. The VS Code launch configurations read both values from `.env`
-  (copy `.env.example`).
-- Without a usable proxy (empty URL, not `https://`, or the Worker down) the
-  app still starts and logging in works; logged-out Helix features fail
-  quietly. `AuthStore` asks again at most once a minute, on a Helix 401, and
-  `UnauthorizedInterceptor` shows no login dialog while a logged-out viewer
-  has no token.
+- `CLIENT_ID` is the login Twitch application's (it is public by design: it
+  is in every Helix request). `TOKEN_PROXY_URL` is the token proxy, a
+  Cloudflare Worker (`tool/token_proxy/`) that hands logged-out viewers an app
+  access token (`TwitchApi.getDefaultToken`) minted for a **second** Twitch
+  application nobody logs in to, with that application's client id. The app
+  checks the token with Twitch and sends it with that client id
+  (`AuthStore`'s foreign-token mechanism, `default_token_client_id` in secure
+  storage); logged-in sessions keep the login application's. An app token of
+  the login application could subscribe to its users' private EventSub
+  events; one of an application nobody authorized cannot. No client secret
+  is in the app or the repository (`test/guards/no_client_secret_test.dart`).
+  The VS Code launch configurations read both values from `.env` (copy
+  `.env.example`). `TOKEN_PROXY_URL` must match
+  `TwitchApi.tokenProxyUrlPattern`, which the update workflow checks too.
+- Without a usable proxy (no URL, or the Worker down) the app still starts
+  and logging in works; logged-out Helix features fail quietly. A logged-out
+  viewer never gets the login dialog from a Helix 401
+  (`UnauthorizedInterceptor`, `AuthStore.isAnonymous`): `retryAppToken`, at
+  most once a minute, asks the proxy again when there is no token, or asks
+  Twitch whether the token still works and replaces it if it was revoked or
+  expired. A user's session, even reconnecting, keeps the dialog.
 - A release build without a release signing key configured in `android/`
   is signed with the debug key.
 - CI (`.github/workflows/ci.yml`) runs `flutter analyze` and `flutter test` on

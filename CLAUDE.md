@@ -57,7 +57,7 @@ flutter build apk --debug --dart-define=CLIENT_ID=<id> --dart-define=TOKEN_PROXY
 - Firebase is optional and no config is committed: without the `FIREBASE_*` `--dart-define`s the app runs with Crashlytics/Analytics/Performance off (`lib/services/telemetry.dart`); the Gradle Firebase plugins apply only when an `android/app/google-services.json` is present (git-ignored). See README.
 - `android/local.properties` is git-ignored and regenerated automatically.
 - Twitch `CLIENT_ID` and `TOKEN_PROXY_URL` are NOT in the repo (build-time only) — supply them via `--dart-define`.
-- The Twitch client **secret is never in the app**: it lives in the token proxy, a Cloudflare Worker (`tool/token_proxy/`, setup in its README) that hands logged-out viewers an app token. Never add it back as a `--dart-define` (`test/guards/no_client_secret_test.dart` fails if anything reads one).
+- **No Twitch client secret is ever in the app**: logged-out viewers get an app token from the token proxy, a Cloudflare Worker (`tool/token_proxy/`, setup in its README) holding the secret of a second Twitch application nobody logs in to, used with that application's client id. The login application needs no secret at all. Never add one back as a `--dart-define` (`test/guards/no_client_secret_test.dart` fails if anything reads one).
 
 ## Definition of done (per change)
 

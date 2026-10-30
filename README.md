@@ -184,11 +184,11 @@ sponsored by Twitch.
 1. Install Flutter **3.38.4** (Dart 3.10.3). Newer releases break
    `extended_text_field` and `simple_icons`; older ones break `app_links`.
 2. Register an application in the
-   [Twitch developer console](https://dev.twitch.tv/console) to get a
-   **Client ID** (and a **Client Secret**, which goes into the token proxy,
-   never into the app).
-3. Set up the token proxy, a small Cloudflare Worker that holds the client
-   secret and hands logged-out viewers a Twitch app token:
+   [Twitch developer console](https://dev.twitch.tv/console) for logging in,
+   to get its **Client ID**. The app needs no client secret.
+3. Set up the token proxy, a small Cloudflare Worker that hands logged-out
+   viewers a Twitch app token minted for a second Twitch application nobody
+   logs in to (it holds that application's secret):
    [`tool/token_proxy/README.md`](tool/token_proxy/README.md). Without it the
    app still runs, but logged-out viewers get no Twitch emotes, badges,
    browsing or search.
