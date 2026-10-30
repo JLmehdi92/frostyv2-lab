@@ -16,7 +16,7 @@ A native low-latency player and a full-featured chat.</p>
 <p>
   <a href="../../releases/latest"><img alt="Download for Android" height="36" src="https://img.shields.io/badge/Download_for-Android-C8FF3D?style=for-the-badge&labelColor=0A0A0A&logo=android&logoColor=C8FF3D"></a>
   &nbsp;
-  <a href="../../issues/12"><img alt="iOS: join the waitlist" height="36" src="https://img.shields.io/badge/iOS-Join_the_waitlist-5C5C5C?style=for-the-badge&labelColor=0A0A0A&logo=apple&logoColor=white"></a>
+  <a href="https://github.com/JLmehdi92/onset/issues/9"><img alt="iOS: join the waitlist" height="36" src="https://img.shields.io/badge/iOS-Join_the_waitlist-5C5C5C?style=for-the-badge&labelColor=0A0A0A&logo=apple&logoColor=white"></a>
 </p>
 
 </div>
@@ -162,7 +162,7 @@ repository's GitHub releases.
 **Is there an iPhone version?**
 Not yet. An iOS version is planned; how it will be distributed is not
 decided yet. To be counted, add a 👍 to the
-[iOS waitlist issue](../../issues/12) and subscribe to it to hear when it
+[iOS waitlist issue](https://github.com/JLmehdi92/onset/issues/9) and subscribe to it to hear when it
 ships.
 
 **Found a bug or have an idea?**
@@ -301,14 +301,28 @@ dart run build_runner build --delete-conflicting-outputs   # after changing a st
 
 Bug reports and feature requests are welcome through the issue templates.
 For a pull request, keep it to one change, run `flutter analyze` and
-`flutter test` first, and describe what you checked on a device.
+`flutter test` first, and describe what you checked on a device. The
+contributor guide, [CONTRIBUTING.md](CONTRIBUTING.md), has the commands, the
+code layout and the conventions.
 
 </details>
 
+## Privacy
+
+ONSET has no account system of its own, and the builds published here send
+no crash reports or analytics. What the app stores and sends is described in
+the [privacy policy](PRIVACY.md) ([version française](PRIVACY.fr.md)).
+
+## Credits
+
+ONSET is based on [Frosty](https://github.com/tommyxchow/frosty) by Tommy
+Chow, licensed under AGPL-3.0, and has been extensively modified.
+
 ## License
 
-ONSET is a modified version of an AGPL-3.0 licensed open-source Twitch client.
-It is distributed under the [AGPL-3.0-or-later](LICENSE).
+ONSET is a modified version of an AGPL-3.0 licensed open-source Twitch client
+(see [Credits](#credits)). It is distributed under the
+[AGPL-3.0-or-later](LICENSE).
 `packages/simple_pip_mode` is a vendored copy of the MIT-licensed
 `simple_pip_mode` plugin (see its `LICENSE`).
 
