@@ -53,7 +53,7 @@ void main() {
     String token = 'token',
     String repo = 'owner/app',
     bool isAndroid = true,
-    int currentBuild = 1020,
+    int currentBuild = 2020,
   }) => OnsetUpdater(
     token: token,
     repo: repo,
@@ -76,7 +76,7 @@ void main() {
 
     test('a build made while the repository was public has no token and '
         'still looks for updates', () async {
-      latestIs(_release(1023));
+      latestIs(_release(2023));
       final subject = updater(token: '');
 
       expect(subject.enabled, isTrue);
@@ -84,7 +84,7 @@ void main() {
     });
 
     test('a disabled updater never asks GitHub', () async {
-      latestIs(_release(1023));
+      latestIs(_release(2023));
 
       expect(
         await updater(repo: '').check(force: true),
@@ -104,19 +104,30 @@ void main() {
 
   group('check', () {
     test('offers a newer build', () async {
-      latestIs(_release(1023));
+      latestIs(_release(2023));
 
       final result = await updater().check();
 
-      expect((result as UpdateAvailable).release.build, 1023);
-      expect(result.currentBuild, 1020);
+      expect((result as UpdateAvailable).release.build, 2023);
+      expect(result.currentBuild, 2020);
+    });
+
+    test('a build of the 2000 series is offered over the 1000s', () async {
+      // The update workflow numbers builds 2000 + its run number, above
+      // every build of the 1000 series published before.
+      latestIs(_release(2001));
+
+      final result = await updater(currentBuild: 1031).check();
+
+      expect((result as UpdateAvailable).release.build, 2001);
+      expect(result.currentBuild, 1031);
     });
 
     test('the same or an older build is up to date', () async {
-      latestIs(_release(1020));
+      latestIs(_release(2020));
       expect(await updater().check(), isA<UpToDate>());
 
-      latestIs(_release(1001));
+      latestIs(_release(2001));
       expect(await updater().check(force: true), isA<UpToDate>());
     });
 
@@ -127,7 +138,7 @@ void main() {
     });
 
     test('asks at most every six hours', () async {
-      latestIs(_release(1020));
+      latestIs(_release(2020));
       final subject = updater();
 
       await subject.check();
@@ -141,7 +152,7 @@ void main() {
     });
 
     test('the six hours survive a restart', () async {
-      latestIs(_release(1020));
+      latestIs(_release(2020));
       await updater().check();
 
       now = now.add(const Duration(hours: 1));
@@ -150,7 +161,7 @@ void main() {
 
     test('a newer build is offered again at the next start', () async {
       // The process can die while "install unknown apps" is being granted.
-      latestIs(_release(1023));
+      latestIs(_release(2023));
       await updater().check();
 
       now = now.add(const Duration(minutes: 1));
@@ -185,7 +196,7 @@ void main() {
       verify(() => service.latest()).called(2);
 
       now = now.add(const Duration(hours: 6));
-      latestIs(_release(1023));
+      latestIs(_release(2023));
       expect(await subject.check(), isA<UpdateAvailable>());
     });
 
@@ -193,12 +204,12 @@ void main() {
       latestIs(null);
       await updater().check();
 
-      latestIs(_release(1023));
+      latestIs(_release(2023));
       expect(await updater().check(), isA<UpdateAvailable>());
     });
 
     test('a clock set back does not silence checks', () async {
-      latestIs(_release(1020));
+      latestIs(_release(2020));
       final subject = updater();
 
       await subject.check();
@@ -207,7 +218,7 @@ void main() {
     });
 
     test('a forced check ignores the six hours', () async {
-      latestIs(_release(1023));
+      latestIs(_release(2023));
       final subject = updater();
 
       await subject.check();
@@ -218,10 +229,10 @@ void main() {
 
   group('later', () {
     test('keeps the same build quiet for 24 hours', () async {
-      latestIs(_release(1023));
+      latestIs(_release(2023));
       final subject = updater();
 
-      await subject.postpone(_release(1023));
+      await subject.postpone(_release(2023));
       now = now.add(const Duration(hours: 7));
       expect(await subject.check(), isA<UpdateCheckSkipped>());
 
@@ -231,18 +242,18 @@ void main() {
 
     test('a newer build prompts again', () async {
       final subject = updater();
-      await subject.postpone(_release(1023));
+      await subject.postpone(_release(2023));
 
-      latestIs(_release(1024));
+      latestIs(_release(2024));
       now = now.add(const Duration(hours: 7));
       expect(await subject.check(), isA<UpdateAvailable>());
     });
 
     test('a forced check still shows the postponed build', () async {
-      latestIs(_release(1023));
+      latestIs(_release(2023));
       final subject = updater();
 
-      await subject.postpone(_release(1023));
+      await subject.postpone(_release(2023));
       expect(await subject.check(force: true), isA<UpdateAvailable>());
     });
   });
@@ -251,9 +262,9 @@ void main() {
     test('removes the downloads up to the installed build', () async {
       when(() => service.removeDownloadsUpTo(any())).thenAnswer((_) async {});
 
-      await updater(currentBuild: 1023).removeInstalledDownloads();
+      await updater(currentBuild: 2023).removeInstalledDownloads();
 
-      verify(() => service.removeDownloadsUpTo(1023)).called(1);
+      verify(() => service.removeDownloadsUpTo(2023)).called(1);
     });
 
     test('also in builds that do not look for updates', () async {
@@ -261,7 +272,7 @@ void main() {
 
       await updater(repo: '').removeInstalledDownloads();
 
-      verify(() => service.removeDownloadsUpTo(1020)).called(1);
+      verify(() => service.removeDownloadsUpTo(2020)).called(1);
     });
 
     test('a failure is ignored', () async {
@@ -275,7 +286,7 @@ void main() {
 
   group('install', () {
     test('installs the downloaded file from the app cache', () async {
-      final file = File('${Directory.systemTemp.path}/updates/onset-1023.apk');
+      final file = File('${Directory.systemTemp.path}/updates/onset-2023.apk');
       when(
         () => service.download(
           any(),
@@ -284,7 +295,7 @@ void main() {
         ),
       ).thenAnswer((_) async => file);
 
-      await updater().downloadAndInstall(_release(1023));
+      await updater().downloadAndInstall(_release(2023));
 
       expect(calls.single.method, 'install');
       expect(calls.single.arguments, {'path': file.path});
@@ -300,7 +311,7 @@ void main() {
         ),
       ).thenAnswer((_) async {
         order.add('download');
-        return File('/tmp/updates/onset-1023.apk');
+        return File('/tmp/updates/onset-2023.apk');
       });
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(OnsetInstaller.channel, (call) async {
@@ -309,7 +320,7 @@ void main() {
           });
 
       await updater().downloadAndInstall(
-        _release(1023),
+        _release(2023),
         onInstall: () => order.add('onInstall'),
       );
 
@@ -323,7 +334,7 @@ void main() {
           onProgress: any(named: 'onProgress'),
           cancelToken: any(named: 'cancelToken'),
         ),
-      ).thenAnswer((_) async => File('/tmp/updates/onset-1023.apk'));
+      ).thenAnswer((_) async => File('/tmp/updates/onset-2023.apk'));
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
             OnsetInstaller.channel,
@@ -331,7 +342,7 @@ void main() {
           );
 
       await expectLater(
-        updater().downloadAndInstall(_release(1023)),
+        updater().downloadAndInstall(_release(2023)),
         throwsA(isA<UpdateCancelledException>()),
       );
     });
@@ -343,7 +354,7 @@ void main() {
           onProgress: any(named: 'onProgress'),
           cancelToken: any(named: 'cancelToken'),
         ),
-      ).thenAnswer((_) async => File('/tmp/updates/onset-1023.apk'));
+      ).thenAnswer((_) async => File('/tmp/updates/onset-2023.apk'));
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
             OnsetInstaller.channel,
@@ -351,7 +362,7 @@ void main() {
           );
 
       await expectLater(
-        updater().downloadAndInstall(_release(1023)),
+        updater().downloadAndInstall(_release(2023)),
         throwsA(isA<UpdateInstallException>()),
       );
     });
@@ -367,7 +378,7 @@ void main() {
 
       await expectLater(
         updater().downloadAndInstall(
-          _release(1023),
+          _release(2023),
           cancelToken: CancelToken(),
         ),
         throwsA(isA<UpdateIntegrityException>()),

@@ -61,7 +61,7 @@ ResponseBody _bytes(List<int> bytes) => ResponseBody.fromBytes(
   },
 );
 
-Map<String, dynamic> _releaseJson({String tag = 'build-1023'}) => {
+Map<String, dynamic> _releaseJson({String tag = 'build-2023'}) => {
   'tag_name': tag,
   'body': 'notes',
   'assets': [
@@ -100,7 +100,7 @@ void main() {
 
       final release = await service(adapter).latest();
 
-      expect(release!.build, 1023);
+      expect(release!.build, 2023);
       final request = adapter.requests.single;
       expect(request.uri.toString(), _latestUrl);
       expect(_header(request, 'Authorization'), 'Bearer $_token');
@@ -232,7 +232,7 @@ void main() {
 
       final release = await anonymous(adapter).latest();
 
-      expect(release!.build, 1023);
+      expect(release!.build, 2023);
       final request = adapter.requests.single;
       expect(request.uri.toString(), _latestUrl);
       expect(_header(request, 'Authorization'), isNull);
@@ -350,13 +350,13 @@ void main() {
         File('${cache.path}/updates/$name')..createSync(recursive: true);
 
     test('keeps only downloads newer than the installed build', () async {
-      final installed = touch('onset-1023.apk');
-      final older = touch('onset-1001.apk');
-      final newer = touch('onset-1030.apk');
-      final partial = touch('onset-1031.apk.part');
+      final installed = touch('onset-2023.apk');
+      final older = touch('onset-2001.apk');
+      final newer = touch('onset-2030.apk');
+      final partial = touch('onset-2031.apk.part');
       final stray = touch('notes.txt');
 
-      await service(_Adapter((_) => _json({}))).removeDownloadsUpTo(1023);
+      await service(_Adapter((_) => _json({}))).removeDownloadsUpTo(2023);
 
       expect(installed.existsSync(), isFalse);
       expect(older.existsSync(), isFalse);
@@ -366,7 +366,7 @@ void main() {
     });
 
     test('does nothing without a download folder', () async {
-      await service(_Adapter((_) => _json({}))).removeDownloadsUpTo(1023);
+      await service(_Adapter((_) => _json({}))).removeDownloadsUpTo(2023);
 
       expect(Directory('${cache.path}/updates').existsSync(), isFalse);
     });
@@ -401,7 +401,7 @@ void main() {
         expect(_header(apkRequests[0], 'Accept'), 'application/octet-stream');
         expect(_header(apkRequests[1], 'Authorization'), isNull);
         expect(file.readAsBytesSync(), _apk);
-        expect(file.path, '${cache.path}/updates/onset-1023.apk');
+        expect(file.path, '${cache.path}/updates/onset-2023.apk');
       },
     );
 
@@ -517,7 +517,7 @@ void main() {
     });
 
     test('removes older downloads', () async {
-      final old = File('${cache.path}/updates/onset-1001.apk')
+      final old = File('${cache.path}/updates/onset-2001.apk')
         ..createSync(recursive: true);
 
       await service(serving()).download(_release);

@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/models/onset_release.dart';
 
 Map<String, dynamic> releaseJson({
-  Object? tag = 'build-1023',
+  Object? tag = 'build-2023',
   Object? body = 'Faster chat\nFix PiP',
   List<Object?>? assets,
 }) => {
@@ -21,8 +21,8 @@ void main() {
     test('reads the build, the notes and both assets', () {
       final release = OnsetRelease.tryParse(releaseJson())!;
 
-      expect(release.build, 1023);
-      expect(release.tag, 'build-1023');
+      expect(release.build, 2023);
+      expect(release.tag, 'build-2023');
       expect(release.notes, 'Faster chat\nFix PiP');
       expect(release.apkAssetId, 11);
       expect(release.shaAssetId, 12);

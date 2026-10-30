@@ -12,8 +12,8 @@ import 'package:provider/provider.dart';
 class _MockUpdater extends Mock implements OnsetUpdater {}
 
 const _release = OnsetRelease(
-  build: 1023,
-  tag: 'build-1023',
+  build: 2023,
+  tag: 'build-2023',
   notes: '',
   apkAssetId: 1,
   shaAssetId: 2,
@@ -26,7 +26,7 @@ void main() {
   setUp(() {
     updater = _MockUpdater();
     when(() => updater.enabled).thenReturn(true);
-    when(() => updater.currentBuild()).thenAnswer((_) async => 1020);
+    when(() => updater.currentBuild()).thenAnswer((_) async => 2020);
   });
 
   Future<void> pumpSettings(WidgetTester tester, {OnsetUpdater? provided}) {
@@ -48,7 +48,7 @@ void main() {
 
     expect(find.byType(UpdateCheckTile), findsOneWidget);
     expect(find.text('Check for updates'), findsOneWidget);
-    expect(find.text('Build 1020'), findsOneWidget);
+    expect(find.text('Build 2020'), findsOneWidget);
   });
 
   testWidgets('is hidden when updates are off', (tester) async {
@@ -116,7 +116,7 @@ void main() {
   testWidgets('offers a newer build', (tester) async {
     when(
       () => updater.check(force: true),
-    ).thenAnswer((_) async => const UpdateAvailable(_release, 1020));
+    ).thenAnswer((_) async => const UpdateAvailable(_release, 2020));
     await pumpSettings(tester, provided: updater);
     await tester.pumpAndSettle();
 
@@ -124,6 +124,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Update available'), findsOneWidget);
-    expect(find.text('ONSET build 1023 is ready.'), findsOneWidget);
+    expect(find.text('ONSET build 2023 is ready.'), findsOneWidget);
   });
 }

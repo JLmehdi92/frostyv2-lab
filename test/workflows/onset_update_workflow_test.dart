@@ -102,6 +102,18 @@ void main() {
     );
   });
 
+  test('build numbers start above 2000', () {
+    // Builds published before this repository went up to the 1000s:
+    // Android installs an update only over a lower build number, and the
+    // app offers only a higher one, so the run number alone would restart
+    // below them.
+    final build = step('Build the APK');
+
+    expect(build, contains(r'BUILD=$((2000 + GITHUB_RUN_NUMBER))'));
+    expect(build, contains(r'--build-number="$BUILD"'));
+    expect(build, contains(r'echo "build=$BUILD" >> "$GITHUB_OUTPUT"'));
+  });
+
   test('the token proxy URL comes from a repository variable', () {
     const fromVariable = r'TOKEN_PROXY_URL: ${{ vars.TOKEN_PROXY_URL }}';
 

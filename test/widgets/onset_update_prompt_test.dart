@@ -28,8 +28,8 @@ class _ScreenState extends State<_Screen> with OnsetUpdateChecks {
 const _mb = 1024 * 1024;
 
 const _release = OnsetRelease(
-  build: 1023,
-  tag: 'build-1023',
+  build: 2023,
+  tag: 'build-2023',
   notes: 'Faster chat\nFix PiP',
   apkAssetId: 1,
   shaAssetId: 2,
@@ -86,7 +86,7 @@ void main() {
               onPressed: () => offerUpdate(
                 context,
                 updater,
-                const UpdateAvailable(_release, 1020),
+                const UpdateAvailable(_release, 2020),
                 waitForResume: () => resumed.future,
               ),
               child: const Text('offer'),
@@ -103,7 +103,7 @@ void main() {
     await pumpOffer(tester);
 
     expect(find.text('Update available'), findsOneWidget);
-    expect(find.text('ONSET build 1023 is ready.'), findsOneWidget);
+    expect(find.text('ONSET build 2023 is ready.'), findsOneWidget);
     expect(find.text('Faster chat\nFix PiP'), findsOneWidget);
     expect(find.text('Later'), findsOneWidget);
     expect(find.text('Update'), findsOneWidget);
@@ -296,7 +296,7 @@ void main() {
     ) async {
       when(
         () => updater.check(),
-      ).thenAnswer((_) async => const UpdateAvailable(_release, 1020));
+      ).thenAnswer((_) async => const UpdateAvailable(_release, 2020));
 
       await pumpWatcher(tester, provided: updater);
       await tester.pumpAndSettle();
@@ -336,7 +336,7 @@ void main() {
 
       when(
         () => updater.check(),
-      ).thenAnswer((_) async => const UpdateAvailable(_release, 1020));
+      ).thenAnswer((_) async => const UpdateAvailable(_release, 2020));
       for (final state in [
         AppLifecycleState.inactive,
         AppLifecycleState.hidden,

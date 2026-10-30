@@ -36,7 +36,8 @@ packages/            simple_pip_mode (vendored plugin)
 assets/              fonts, celebration art, launcher icons, the ONSET mark, release notes
 docs/                this file and the in-app update setup (MISES_A_JOUR.md)
 tool/                developer scripts outside the app (onset_logo_assets.py,
-                     readme_logo.py, readme_shots/)
+                     readme_logo.py, readme_shots/) and token_proxy/, the
+                     Cloudflare Worker that hands out logged-out app tokens
 lib/
   main.dart          entry point: services, global stores, providers, routes
   theme.dart         design tokens and the light and dark themes
@@ -199,8 +200,11 @@ the shared socket in `lib/services/realtime/`.
 
 - **Build.** Each push to `main` runs `.github/workflows/onset-update.yml`,
   which builds a signed arm64 APK with Flutter 3.38.4 and publishes it as a
-  `build-N` GitHub release with its SHA-256. The one-time setup (keystore,
-  secrets, public or private repository) is in `docs/MISES_A_JOUR.md`.
+  `build-N` GitHub release with its SHA-256, N being the APK's build number,
+  2000 + the workflow's run number (above the builds of the 1000 series
+  published before this repository). The app offers a release only when N is
+  higher than its own build number. The one-time setup (keystore, secrets,
+  public or private repository) is in `docs/MISES_A_JOUR.md`.
 - **App.** `OnsetUpdater` (`lib/services/onset_updater.dart`) is only enabled
   on Android builds that carry `UPDATE_REPO` (and `UPDATE_TOKEN` while the
   repository is private); see `lib/constants.dart`. It checks the latest
