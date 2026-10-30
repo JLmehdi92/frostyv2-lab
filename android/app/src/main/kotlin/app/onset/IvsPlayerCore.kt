@@ -4,6 +4,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.amazonaws.ivs.player.AdCue
 import com.amazonaws.ivs.player.Cue
 import com.amazonaws.ivs.player.Player
 import com.amazonaws.ivs.player.PlayerException
@@ -19,7 +20,7 @@ private const val CORE_TAG = "OnsetIVS"
  * ([IvsTexturePlayer]), live or VOD ([IvsTuning.vod]).
  *
  * Given an IVS [Player] and a per-instance [MethodChannel], it bridges
- * play/pause/quality/sound/load (and, for VODs, seek/rate/position) from
+ * play/pause/quality/sound/load/rate (and, for VODs, seek/position) from
  * Dart, forwards player events back, and ticks either the live latency (plus
  * optional stats) once per second or the VOD progress four times a second.
  * [onVideoSize] lets the texture resize its buffer to the source resolution.
@@ -115,8 +116,7 @@ class IvsPlayerCore(
                     if (newUrl != null) player.load(Uri.parse(newUrl))
                     result.success(null)
                 }
-                // VOD-only controls: a live player has no seek and its speed is
-                // owned by the live catch-up.
+                // VOD-only control: a live player has no seek.
                 "seekTo" -> if (tuning.vod) {
                     val ms = call.argument<Number>("ms")?.toLong() ?: 0L
                     if (autoPlayPending) {
@@ -130,13 +130,26 @@ class IvsPlayerCore(
                 } else {
                     result.notImplemented()
                 }
-                "setPlaybackRate" -> if (tuning.vod) {
+                "setPlaybackRate" -> {
                     val raw = call.argument<Number>("rate")?.toFloat() ?: 1f
                     val rate = if (raw.isNaN()) 1f else raw
-                    player.playbackRate = rate.coerceIn(0.5f, 2f)
-                    result.success(null)
-                } else {
-                    result.notImplemented()
+                    if (tuning.vod) {
+                        player.playbackRate = rate.coerceIn(0.5f, 2f)
+                        result.success(null)
+                    } else {
+                        // Live: only Dart's auto latency sets it, to catch up
+                        // gently (the player is then created without the SDK
+                        // speed-up, which would reset it). Clamped so a live
+                        // stream can never play slower than real time nor
+                        // visibly fast; a refusal is reported so Dart stops.
+                        try {
+                            player.playbackRate = rate.coerceIn(1f, 1.1f)
+                            result.success(null)
+                        } catch (t: Throwable) {
+                            Log.w(CORE_TAG, "live rate $rate rejected: $t")
+                            result.error("rate_rejected", t.message, null)
+                        }
+                    }
                 }
                 "getPosition" -> if (tuning.vod) {
                     result.success(runCatching { player.position }.getOrNull())
@@ -194,6 +207,18 @@ class IvsPlayerCore(
             }
             override fun onVideoSizeChanged(w: Int, h: Int) { onVideoSize?.invoke(w, h) }
             override fun onCue(cue: Cue) {
+                // Dart's auto latency never speeds an ad up.
+                if (cue is AdCue) {
+                    send(
+                        mapOf(
+                            "type" to "ad",
+                            "durationMs" to cue.duration,
+                            "startMs" to cue.startTime,
+                            "endMs" to cue.endTime,
+                        ),
+                    )
+                    return
+                }
                 if (!captionsEnabled || cue !is TextCue) return
                 send(
                     mapOf(
@@ -318,7 +343,7 @@ class IvsPlayerCore(
                 // Reschedule first so a failing getter can never stop the
                 // latency ticker (dispose() removes it on this same thread).
                 main.postDelayed(this, 1000)
-                try { send(mapOf("type" to "latency", "ms" to player.liveLatency)) } catch (_: Throwable) {}
+                try { send(latencyTick()) } catch (_: Throwable) {}
                 try { sendQualitiesIfChanged() } catch (t: Throwable) { Log.w(CORE_TAG, "qualities failed: $t") }
                 if (statsEnabled) {
                     try { send(collectStats()) } catch (t: Throwable) { Log.w(CORE_TAG, "stats failed: $t") }
@@ -326,6 +351,29 @@ class IvsPlayerCore(
             }
         }
         main.postDelayed(latencyTicker!!, 1000)
+    }
+
+    /**
+     * The latency once a second, with what Dart's auto latency needs to judge
+     * it: how much is buffered, the rate actually playing, and whether the
+     * stream is low-latency. Only the latency is required; a getter the SDK
+     * cannot answer is sent as null.
+     */
+    private fun latencyTick(): Map<String, Any?> {
+        val latency = player.liveLatency
+        val position = runCatching { player.position }.getOrNull()
+        val buffered = runCatching { player.bufferedPosition }.getOrNull()
+        return mapOf(
+            "type" to "latency",
+            "ms" to latency,
+            "bufferMs" to if (position != null && buffered != null) {
+                (buffered - position).coerceAtLeast(0L)
+            } else {
+                null
+            },
+            "rate" to runCatching { player.playbackRate.toDouble() }.getOrNull(),
+            "lowLatency" to runCatching { player.isLiveLowLatency }.getOrNull(),
+        )
     }
 
     /**
