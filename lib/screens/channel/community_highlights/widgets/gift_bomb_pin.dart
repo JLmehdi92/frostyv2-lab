@@ -419,25 +419,30 @@ class _GiftBombPinState extends State<GiftBombPin>
         label: '${bomb.gifterName} is gifting ${bomb.count} $_subs',
         value: _semanticsValue,
         child: RepaintBoundary(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Stack(
-              children: [
-                card,
-                PositionedDirectional(
-                  start: 0,
-                  end: 0,
-                  bottom: 0,
-                  child: GiftBombCountdownBar(
-                    key: GiftBombPin.drainKey,
-                    startedAt: widget.banner.startedAt,
-                    endsAt: widget.banner.endsAt,
-                    now: widget.now,
-                    color: accent,
+          // Unclipped: the sparks may fly past the card's edge, as on the
+          // board. Only the drain bar follows the rounded corners.
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              card,
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: GiftBombCountdownBar(
+                        key: GiftBombPin.drainKey,
+                        startedAt: widget.banner.startedAt,
+                        endsAt: widget.banner.endsAt,
+                        now: widget.now,
+                        color: accent,
+                      ),
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -831,7 +836,9 @@ class _Leave extends StatelessWidget {
           ? exit.value
           : Curves.ease.transform((ms / 200).clamp(0.0, 1.0));
       // One structure either way: the pin's state survives a change.
+      // Clipped only while it folds, so the sparks are free at rest.
       return ClipRect(
+        clipBehavior: exit.value == 0 ? Clip.none : Clip.hardEdge,
         child: Align(
           alignment: Alignment.topCenter,
           heightFactor: reduceMotion ? 1 : 1 - _ease.transform(exit.value),
