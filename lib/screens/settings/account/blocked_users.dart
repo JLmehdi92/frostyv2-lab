@@ -163,6 +163,7 @@ class _BlockedRow extends StatelessWidget {
             Semantics(
               label: 'Unblock $name',
               button: true,
+              onTap: () => onUnblock(name),
               excludeSemantics: true,
               child: SettingsButton(
                 label: 'Unblock',

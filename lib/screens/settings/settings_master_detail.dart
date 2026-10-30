@@ -235,6 +235,9 @@ class _AsideRow extends StatelessWidget {
         selected: selected,
         label: page.title,
         value: value,
+        // Excluding the subtree drops the detector's tap: say it here, or a
+        // screen reader reads a button that does nothing.
+        onTap: onTap,
         excludeSemantics: true,
         child: PressScale(
           child: GestureDetector(
@@ -304,14 +307,16 @@ class _LogoutRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = SettingsColors.of(context);
+    void logOut() => confirmLogout(context, authStore);
     return Semantics(
       button: true,
       label: 'Log out',
+      onTap: logOut,
       excludeSemantics: true,
       child: PressScale(
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () => confirmLogout(context, authStore),
+          onTap: logOut,
           child: SizedBox(
             height: 48,
             child: Padding(

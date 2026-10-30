@@ -104,6 +104,14 @@ class _MutedWordsSheetState extends State<MutedWordsSheet> {
             listenable: textController,
             builder: (context, _) {
               final empty = textController.text.isEmpty;
+              void submit() {
+                if (textController.text.isEmpty) {
+                  textFieldFocusNode.unfocus();
+                } else {
+                  addMutedWord(textController.text);
+                }
+              }
+
               return Container(
                 height: 48,
                 padding: const EdgeInsets.only(left: 16, right: 4),
@@ -151,15 +159,10 @@ class _MutedWordsSheetState extends State<MutedWordsSheet> {
                       child: Semantics(
                         button: true,
                         label: empty ? 'Cancel' : 'Add keyword',
+                        onTap: submit,
                         excludeSemantics: true,
                         child: GestureDetector(
-                          onTap: () {
-                            if (textController.text.isEmpty) {
-                              textFieldFocusNode.unfocus();
-                            } else {
-                              addMutedWord(textController.text);
-                            }
-                          },
+                          onTap: submit,
                           child: AnimatedContainer(
                             duration: settingsMotion(context, 160),
                             width: 40,

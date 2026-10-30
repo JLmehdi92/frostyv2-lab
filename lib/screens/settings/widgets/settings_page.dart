@@ -402,6 +402,7 @@ class _JumpChip extends StatelessWidget {
     return Semantics(
       button: true,
       label: label,
+      onTap: onTap,
       excludeSemantics: true,
       child: PressScale(
         child: GestureDetector(
