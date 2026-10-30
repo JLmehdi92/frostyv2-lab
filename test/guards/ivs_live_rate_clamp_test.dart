@@ -25,4 +25,16 @@ void main() {
   test('a refused live rate is reported, never thrown', () {
     expect(core, contains('result.error("rate_rejected"'));
   });
+
+  test('a latency tick is never dropped silently', () {
+    expect(
+      core,
+      contains('"ms" to runCatching { player.liveLatency }.getOrNull()'),
+    );
+    expect(core, contains('Log.w(CORE_TAG, "latency tick failed: \$t")'));
+    expect(
+      core,
+      isNot(contains('send(latencyTick()) } catch (_: Throwable) {}')),
+    );
+  });
 }

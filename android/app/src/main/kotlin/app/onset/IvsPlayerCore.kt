@@ -343,7 +343,9 @@ class IvsPlayerCore(
                 // Reschedule first so a failing getter can never stop the
                 // latency ticker (dispose() removes it on this same thread).
                 main.postDelayed(this, 1000)
-                try { send(latencyTick()) } catch (_: Throwable) {}
+                // Never dropped silently: Dart's auto latency ends a catch-up
+                // on a tick without a latency, and on missing ticks.
+                try { send(latencyTick()) } catch (t: Throwable) { Log.w(CORE_TAG, "latency tick failed: $t") }
                 try { sendQualitiesIfChanged() } catch (t: Throwable) { Log.w(CORE_TAG, "qualities failed: $t") }
                 if (statsEnabled) {
                     try { send(collectStats()) } catch (t: Throwable) { Log.w(CORE_TAG, "stats failed: $t") }
@@ -356,16 +358,15 @@ class IvsPlayerCore(
     /**
      * The latency once a second, with what Dart's auto latency needs to judge
      * it: how much is buffered, the rate actually playing, and whether the
-     * stream is low-latency. Only the latency is required; a getter the SDK
-     * cannot answer is sent as null.
+     * stream is low-latency. A getter the SDK cannot answer, the latency
+     * included, is sent as null.
      */
     private fun latencyTick(): Map<String, Any?> {
-        val latency = player.liveLatency
         val position = runCatching { player.position }.getOrNull()
         val buffered = runCatching { player.bufferedPosition }.getOrNull()
         return mapOf(
             "type" to "latency",
-            "ms" to latency,
+            "ms" to runCatching { player.liveLatency }.getOrNull(),
             "bufferMs" to if (position != null && buffered != null) {
                 (buffered - position).coerceAtLeast(0L)
             } else {
