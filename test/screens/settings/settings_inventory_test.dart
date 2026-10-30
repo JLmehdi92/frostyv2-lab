@@ -71,7 +71,7 @@ final SwitchRows _chat = {
   'Show BTTV badges': (s) => s.showBTTVBadges,
   'Show FFZ emotes': (s) => s.showFFZEmotes,
   'Show FFZ badges': (s) => s.showFFZBadges,
-  'Show historical recent messages': (s) => s.showRecentMessages,
+  'Fallback chat history (third-party)': (s) => s.showRecentMessages,
 };
 
 void main() {

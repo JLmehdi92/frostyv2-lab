@@ -434,13 +434,12 @@ class _ChatSettingsState extends State<ChatSettings> {
             title: 'Recent messages',
             children: [
               SettingsListSwitch(
-                title: 'Show historical recent messages',
+                title: 'Fallback chat history (third-party)',
                 subtitle: Text.rich(
                   TextSpan(
                     text:
-                        'When Twitch\'s own chat history is unavailable '
-                        '(no twitch.tv session), loads historical recent '
-                        'messages through a third-party API service at ',
+                        'When Twitch\'s own chat history is unavailable, '
+                        'fails or is empty, loads recent messages from ',
                     children: [
                       TextSpan(
                         text: 'https://recent-messages.robotty.de/',
@@ -454,6 +453,9 @@ class _ChatSettingsState extends State<ChatSettings> {
                             'https://recent-messages.robotty.de/',
                             external: settingsStore.launchUrlExternal,
                           ),
+                      ),
+                      const TextSpan(
+                        text: ', which then receives the channel name.',
                       ),
                     ],
                   ),

@@ -164,15 +164,14 @@ class _OnboardingSetupStepState extends State<OnboardingSetupStep> {
                   ),
                   _Divided(
                     child: _SwitchRow(
-                      title: 'Show historical recent messages',
+                      title: 'Fallback chat history (third-party)',
                       accent: accent,
                       detail: Text.rich(
                         TextSpan(
                           text:
                               'When Twitch\'s own chat history is '
-                              'unavailable (no twitch.tv session), loads '
-                              'historical recent messages through a '
-                              'third-party API service at ',
+                              'unavailable, fails or is empty, loads recent '
+                              'messages from ',
                           children: [
                             TextSpan(
                               text: 'recent-messages.robotty.de',
@@ -183,6 +182,9 @@ class _OnboardingSetupStepState extends State<OnboardingSetupStep> {
                                 decoration: TextDecoration.underline,
                                 decorationColor: accent,
                               ),
+                            ),
+                            const TextSpan(
+                              text: ', which then receives the channel name.',
                             ),
                           ],
                         ),

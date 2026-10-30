@@ -195,7 +195,22 @@ void main() {
         await tapText(tester, 'Skip');
         expect(tester.takeException(), isNull);
         expect(find.text('Setup'), findsOneWidget);
-        expect(find.text('Show historical recent messages'), findsOneWidget);
+        expect(
+          find.text('Fallback chat history (third-party)'),
+          findsOneWidget,
+        );
+        // Says when the third party is asked, and what it receives.
+        expect(
+          find.textContaining(
+            'unavailable, fails or is empty',
+            findRichText: true,
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining('channel name', findRichText: true),
+          findsOneWidget,
+        );
         expect(find.text('Share crash logs and analytics'), findsOneWidget);
 
         await tapText(tester, 'Next');
