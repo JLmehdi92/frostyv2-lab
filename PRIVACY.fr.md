@@ -70,13 +70,13 @@ de l'application Twitch n'ait jamais à se trouver dans l'application.
 
 | Quoi | Où | Détails |
 |---|---|---|
-| Votre jeton d'accès Twitch, le jeton web twitch.tv, votre identifiant utilisateur Twitch, le jeton anonyme de l'application | Stockage chiffré de l'application (`flutter_secure_storage`, clé conservée dans l'Android Keystore) | Supprimés à la déconnexion, sauf le jeton anonyme. |
-| Cookies et cache web de twitch.tv | La vue web de l'application | Effacés à la déconnexion. |
+| Votre jeton d'accès Twitch, le jeton web twitch.tv, votre identifiant utilisateur Twitch (la connexion enregistrée), le jeton anonyme de l'application | Stockage chiffré de l'application (`flutter_secure_storage`, clé conservée dans l'Android Keystore) | Supprimés à la déconnexion, sauf le jeton anonyme. |
+| Cookies, cache web et stockage des sites de twitch.tv | La vue web de l'application | Les cookies sont effacés à la déconnexion ; le cache web et le stockage des sites restent jusqu'à ce que vous effaciez les données de l'application ou la désinstalliez. |
 | Vos réglages | Préférences de l'application | Thème, options de chat, de vidéo et de notifications, y compris les interrupteurs cités plus bas. |
 | Historique de recherche (8 recherches au plus), emotes récemment utilisées (48 au plus), dernière qualité vidéo choisie | Préférences de l'application | |
-| L'endroit où vous vous êtes arrêté dans les rediffusions (300 au plus) et dans les directs (300 au plus, identifiants et horaires seulement) | Préférences de l'application | Conservé séparément pour chaque compte, sert à « Continue watching » et à la reprise. |
+| L'endroit où vous vous êtes arrêté dans les rediffusions (300 au plus) et dans les directs (300 au plus, identifiants et horaires seulement) | Préférences de l'application | Conservé séparément pour chaque compte, sous son identifiant utilisateur Twitch, sert à « Continue watching » et à la reprise. Conservé après la déconnexion. |
 | Historique des notifications (écran Activity, 100 entrées au plus) | Préférences de l'application | Annonces de mise en direct, rappels de programmes et mentions dans le chat, y compris le texte de la mention. |
-| État des notifications de mise en direct, rappels de programmes, règles de chat acceptées, vérifications de mises à jour | Préférences de l'application | Votre identifiant utilisateur Twitch, chaînes mises en sourdine, chaînes déjà annoncées, heures des rappels. |
+| État des notifications de mise en direct, rappels de programmes, règles de chat acceptées, vérifications de mises à jour | Préférences de l'application | Votre identifiant utilisateur Twitch (pour la vérification des mises en direct et les règles de chat acceptées), chaînes mises en sourdine, chaînes déjà annoncées, heures des rappels. Conservé après la déconnexion. |
 | Images (emotes, badges, avatars, miniatures) | Cache | Supprimées après 30 jours sans utilisation. À vider dans **Settings › Other › Clear image cache**. |
 | Mises à jour téléchargées | Cache | Supprimées une fois la version installée. |
 
@@ -142,20 +142,25 @@ micro, à la position, aux contacts ni au stockage.
 
 ## 7. Durée de conservation
 
-- **Sur votre appareil :** jusqu'à ce que vous vous déconnectiez (identifiants
-  et session web), vidiez le cache d'images, effaciez les données de
-  l'application ou la désinstalliez. Les listes sont plafonnées comme indiqué
-  en section 3.
+- **Sur votre appareil :** jusqu'à ce que vous vous déconnectiez (jetons,
+  connexion enregistrée et cookies web), vidiez le cache d'images, effaciez
+  les données de l'application ou la désinstalliez (tout le reste, y compris
+  l'identifiant Twitch conservé avec les listes locales, comme indiqué en
+  section 3). Les listes sont plafonnées comme indiqué en section 3.
 - **Twitch et les autres services :** selon leurs propres politiques.
 
 ## 8. Supprimer vos données
 
 - **Déconnexion** (Profile ou Settings) : ONSET demande à Twitch de révoquer
-  votre jeton d'accès, supprime vos jetons et votre identifiant Twitch de
-  l'appareil et efface les cookies de la vue web. Vos réglages et votre
-  historique local restent sur l'appareil. ONSET ne demande pas à Twitch de
-  fermer la session web twitch.tv elle-même ; vous pouvez aussi retirer l'accès
-  d'ONSET dans vos paramètres Twitch, rubrique **Connexions**.
+  votre jeton d'accès, supprime de l'appareil vos jetons et la connexion
+  enregistrée (votre identifiant Twitch dans le stockage chiffré) et efface
+  les cookies de la vue web. Vos réglages et votre historique local restent
+  sur l'appareil, de même que l'identifiant Twitch conservé avec ces listes
+  locales (positions de lecture, règles de chat acceptées, vérification des
+  mises en direct), jusqu'à ce que vous effaciez les données de l'application
+  ou la désinstalliez. ONSET ne demande pas à Twitch de fermer la session web
+  twitch.tv elle-même ; vous pouvez aussi retirer l'accès d'ONSET dans vos
+  paramètres Twitch, rubrique **Connexions**.
 - **Effacer les données de l'application** (Paramètres Android › Applications ›
   ONSET › Stockage) ou **désinstaller** ONSET : tout ce qu'ONSET a enregistré
   sur l'appareil est supprimé.

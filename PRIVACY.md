@@ -65,13 +65,13 @@ never has to be inside the app.
 
 | What | Where | Details |
 |---|---|---|
-| Your Twitch access token, the twitch.tv web token, your Twitch user ID, the anonymous app token | Encrypted app storage (`flutter_secure_storage`, key kept in the Android Keystore) | Deleted when you log out, except the anonymous app token. |
-| twitch.tv cookies and web cache | The app's web view | Cleared when you log out. |
+| Your Twitch access token, the twitch.tv web token, your Twitch user ID (the stored login), the anonymous app token | Encrypted app storage (`flutter_secure_storage`, key kept in the Android Keystore) | Deleted when you log out, except the anonymous app token. |
+| twitch.tv cookies, web cache and site storage | The app's web view | The cookies are cleared when you log out; the web cache and site storage stay until you clear the app's data or uninstall it. |
 | Your settings | App preferences | Theme, chat, video and notification options, including the switches below. |
 | Search history (up to 8 searches), recently used emotes (up to 48), last chosen video quality | App preferences | |
-| Where you stopped in past broadcasts (up to 300) and in live broadcasts (up to 300, IDs and times only) | App preferences | Kept apart for each account, used for "Continue watching" and resuming. |
+| Where you stopped in past broadcasts (up to 300) and in live broadcasts (up to 300, IDs and times only) | App preferences | Kept apart for each account, under its Twitch user ID, used for "Continue watching" and resuming. Kept after you log out. |
 | Notification history (Activity screen, up to 100 entries) | App preferences | Go-live notices, schedule reminders, and chat mentions, including the text of the mention. |
-| Go-live notification state, schedule reminders, chat rules you accepted, update checks | App preferences | Your Twitch user ID, channels you muted, channels already announced, reminder times. |
+| Go-live notification state, schedule reminders, chat rules you accepted, update checks | App preferences | Your Twitch user ID (for the go-live check and the chat rules you accepted), channels you muted, channels already announced, reminder times. Kept after you log out. |
 | Images (emotes, badges, avatars, thumbnails) | Cache | Removed after 30 days without use. Clear it in **Settings › Other › Clear image cache**. |
 | Downloaded app updates | Cache | Deleted once that version is installed. |
 
@@ -134,18 +134,22 @@ storage permissions.
 
 ## 7. How long data is kept
 
-- **On your device:** until you log out (credentials and web session), clear
-  the image cache, clear the app's data, or uninstall the app. Lists are capped
-  as described in section 3.
+- **On your device:** until you log out (tokens, stored login and web
+  cookies), clear the image cache, clear the app's data, or uninstall the app
+  (everything else, including the Twitch user ID kept with local lists, as
+  described in section 3). Lists are capped as described in section 3.
 - **Twitch and other services:** according to their own policies.
 
 ## 8. Deleting your data
 
 - **Log out** (Profile or Settings): ONSET asks Twitch to revoke your access
-  token, deletes your tokens and Twitch user ID from the device, and clears the
-  web view's cookies. Your settings and local history stay on the device.
-  ONSET does not ask Twitch to end the twitch.tv web session itself; you can
-  also remove ONSET's access in your Twitch settings, under **Connections**.
+  token, deletes your tokens and the stored login (your Twitch user ID in the
+  encrypted storage) from the device, and clears the web view's cookies. Your
+  settings and local history stay on the device, and so does the Twitch user
+  ID kept with those local lists (watch positions, accepted chat rules, the
+  go-live check) until you clear the app's data or uninstall it. ONSET does
+  not ask Twitch to end the twitch.tv web session itself; you can also remove
+  ONSET's access in your Twitch settings, under **Connections**.
 - **Clear the app's data** (Android Settings › Apps › ONSET › Storage) or
   **uninstall** ONSET: everything ONSET stored on the device is deleted.
 - Data held by Twitch and the other services is deleted through them.
