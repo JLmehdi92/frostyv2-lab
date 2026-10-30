@@ -1,16 +1,29 @@
 // ONSET token proxy: a Cloudflare Worker that hands logged-out ONSET apps a
-// Twitch app access token, so the Twitch client secret never ships in an APK.
+// Twitch app access token, so no Twitch client secret ships in an APK.
 //
-// GET /app-token -> 200 { "access_token": "...", "expires_in": N }
+// GET /app-token -> 200 { "access_token": "...", "expires_in": N, "client_id": "..." }
 // Anything else  -> 404 (other paths) or 405 (other methods on /app-token).
 //
+// The token belongs to a SECOND Twitch application ("ONSET public"), not the
+// one people log in with. No user ever authorizes that second application,
+// so its tokens can reach nobody's private data (an app token of the login
+// application could, for example, subscribe to the whispers of everyone who
+// logged in to ONSET). The app sends client_id along with the token.
+//
 // Settings (Cloudflare dashboard -> the Worker -> Settings):
-//   TWITCH_CLIENT_ID      secret   the Twitch application's client id
-//   TWITCH_CLIENT_SECRET  secret   the Twitch application's client secret
-//   TOKEN_CACHE           optional KV namespace binding, shares one token
-//                         between all of Cloudflare's machines
+//   TWITCH_CLIENT_ID      secret   the SECOND application's client id
+//   TWITCH_CLIENT_SECRET  secret   the SECOND application's client secret
+//   TOKEN_CACHE           KV namespace binding (required): one token shared
+//                         by all of Cloudflare's machines, the record of when
+//                         it was last checked and when one was last minted
 //   RATE_LIMITER          optional rate limiting binding (wrangler.toml);
 //                         without it a best-effort counter per isolate is used
+//
+// The token is public by design (every logged-out app gets it), so anyone
+// can revoke it with Twitch. The Worker therefore checks it with Twitch at
+// most every 10 minutes and mints a new one when it is dead, at most once a
+// minute for the whole world, so a revoked token cannot stick around and
+// revoking cannot make the Worker hammer Twitch.
 //
 // The secret is only ever sent to id.twitch.tv. It is never returned, never
 // logged, and never part of an error.
@@ -18,21 +31,40 @@
 // Kept to one file with no imports, so it can be pasted into the dashboard.
 
 const TWITCH_TOKEN_URL = 'https://id.twitch.tv/oauth2/token';
+const TWITCH_VALIDATE_URL = 'https://id.twitch.tv/oauth2/validate';
 
-// A token is handed out until this long before Twitch expires it, then a new
-// one is asked for: every app gets one that lasts at least this long.
-const REFRESH_MARGIN_MS = 10 * 60 * 1000;
+// A token is handed out while it has at least this long left (Twitch's
+// last about 58 days), then a new one is minted: an app that keeps the one
+// it got has a week before it expires.
+const REFRESH_MARGIN_MS = 7 * 24 * 60 * 60 * 1000;
 
-// Twitch's answer gets this long, after which the proxy gives up (502).
+// How often the shared token is checked with Twitch (it may have been
+// revoked). Each check writes KV once: about 150 writes a day at most, under
+// the free plan's 1,000.
+const VALIDATE_EVERY_MS = 10 * 60 * 1000;
+
+// When Twitch cannot be asked whether the token is still good, it is served
+// as it is and asked again this much later.
+const VALIDATE_RETRY_MS = 60 * 1000;
+
+// At most one mint a minute for the whole world (a KV mark), and a failure
+// is remembered this long in each isolate before Twitch is tried again.
+const MINT_EVERY_MS = 60 * 1000;
+const FAILURE_BACKOFF_MS = 30 * 1000;
+
+// Twitch's answer gets this long, body included, after which the proxy
+// gives up (502).
 const TWITCH_TIMEOUT_MS = 5000;
 
 const KV_KEY = 'twitch_app_token';
+const KV_MINT_KEY = 'twitch_app_token_mint';
 
 // KV refuses expirations closer than 60 s.
 const KV_MIN_TTL_S = 60;
 
 // Best-effort fallback limit (when there is no RATE_LIMITER binding): this
-// many requests per IP per window, counted in this isolate only.
+// many requests per IP (per /64 for IPv6) per window, counted in this
+// isolate only.
 const FALLBACK_LIMIT = 10;
 const FALLBACK_WINDOW_MS = 60 * 1000;
 const FALLBACK_MAX_IPS = 10000;
@@ -40,9 +72,12 @@ const FALLBACK_MAX_IPS = 10000;
 // What Twitch's app tokens look like: nothing else is passed on.
 const TOKEN_PATTERN = /^[A-Za-z0-9]{16,128}$/;
 
-// This isolate's copy of the token: { token, expiresAt, key }, expiresAt in
-// ms since epoch, key the credentials' fingerprint (see credentialsKey).
+// This isolate's copy of the token: { token, expiresAt, validatedAt, key },
+// times in ms since epoch, key the credentials' fingerprint.
 let memoryToken = null;
+
+// Until when this isolate does not try to mint again after a failure.
+let failedUntil = 0;
 
 // Fallback rate limit counters: ip -> { count, windowStart }.
 const fallbackCounters = new Map();
@@ -65,7 +100,7 @@ const unavailable = () => json(502, { error: 'unavailable' });
 
 // A short fingerprint of the Twitch credentials (not reversible). A cached
 // token made with other credentials is not used: after the secret is
-// replaced, the KV copy would otherwise be served for up to two months.
+// replaced, the KV copy would otherwise be served for weeks.
 async function credentialsKey(env) {
   const data = new TextEncoder().encode(
     `${env.TWITCH_CLIENT_ID || ''}\n${env.TWITCH_CLIENT_SECRET || ''}`,
@@ -84,16 +119,40 @@ function usable(entry, now, key) {
     typeof entry.token === 'string' &&
     TOKEN_PATTERN.test(entry.token) &&
     typeof entry.expiresAt === 'number' &&
+    typeof entry.validatedAt === 'number' &&
     entry.expiresAt - REFRESH_MARGIN_MS > now
   );
 }
 
+// The rate limit key: the IPv4 address, or the /64 of an IPv6 address (one
+// subscriber usually has a whole /64, so counting single addresses would
+// let one client use billions of them).
+function rateKey(ip) {
+  if (!ip || !ip.includes(':')) return ip || 'unknown';
+  const [head, tail = null] = ip.toLowerCase().split('::');
+  const headParts = head ? head.split(':') : [];
+  const tailParts = tail === null ? [] : tail ? tail.split(':') : [];
+  // An embedded IPv4 (::ffff:1.2.3.4) takes two groups.
+  const groupsOf = (parts) =>
+    parts.reduce((n, part) => n + (part.includes('.') ? 2 : 1), 0);
+  const missing = 8 - groupsOf(headParts) - groupsOf(tailParts);
+  const groups = [
+    ...headParts,
+    ...(tail === null ? [] : Array(Math.max(0, missing)).fill('0')),
+    ...tailParts,
+  ];
+  const prefix = groups
+    .slice(0, 4)
+    .map((group) => (/^[0-9a-f]{1,4}$/.test(group) ? parseInt(group, 16).toString(16) : '?'));
+  return `${prefix.join(':')}::/64`;
+}
+
 async function allowed(request, env, now) {
-  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const key = rateKey(request.headers.get('CF-Connecting-IP'));
 
   if (env.RATE_LIMITER && typeof env.RATE_LIMITER.limit === 'function') {
     try {
-      const { success } = await env.RATE_LIMITER.limit({ key: ip });
+      const { success } = await env.RATE_LIMITER.limit({ key });
       return success;
     } catch {
       // The limiter is down: fall through to the local counter.
@@ -102,34 +161,32 @@ async function allowed(request, env, now) {
 
   // Best effort: each Cloudflare isolate counts on its own, and isolates
   // come and go, so this only slows down a single noisy client.
-  let counter = fallbackCounters.get(ip);
+  let counter = fallbackCounters.get(key);
   if (!counter || now - counter.windowStart >= FALLBACK_WINDOW_MS) {
     if (!counter && fallbackCounters.size >= FALLBACK_MAX_IPS) {
-      for (const [key, value] of fallbackCounters) {
+      for (const [k, value] of fallbackCounters) {
         if (now - value.windowStart >= FALLBACK_WINDOW_MS) {
-          fallbackCounters.delete(key);
+          fallbackCounters.delete(k);
         }
       }
       if (fallbackCounters.size >= FALLBACK_MAX_IPS) fallbackCounters.clear();
     }
     counter = { count: 0, windowStart: now };
-    fallbackCounters.set(ip, counter);
+    fallbackCounters.set(key, counter);
   }
   counter.count += 1;
   return counter.count <= FALLBACK_LIMIT;
 }
 
-async function readKv(env) {
-  if (!env.TOKEN_CACHE) return null;
+async function readKv(env, key) {
   try {
-    return await env.TOKEN_CACHE.get(KV_KEY, 'json');
+    return await env.TOKEN_CACHE.get(key, 'json');
   } catch {
     return null;
   }
 }
 
-async function writeKv(env, entry, now) {
-  if (!env.TOKEN_CACHE) return;
+async function writeToken(env, entry, now) {
   const ttl = Math.floor((entry.expiresAt - REFRESH_MARGIN_MS - now) / 1000);
   if (ttl < KV_MIN_TTL_S) return;
   try {
@@ -141,49 +198,81 @@ async function writeKv(env, entry, now) {
   }
 }
 
-async function askTwitch(env, key) {
-  const clientId = env.TWITCH_CLIENT_ID;
-  const clientSecret = env.TWITCH_CLIENT_SECRET;
-  if (!clientId || !clientSecret) {
-    console.error('token proxy: TWITCH_CLIENT_ID or TWITCH_CLIENT_SECRET is not set');
-    return null;
+async function dropToken(env) {
+  memoryToken = null;
+  try {
+    await env.TOKEN_CACHE.delete(KV_KEY);
+  } catch {
+    // It will be checked again, and found dead again, by the next isolate.
   }
+}
 
+// fetch() with one deadline for the whole exchange, body included: the
+// timer is cleared only once read() has the body.
+async function fetchWithin(url, init, read) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TWITCH_TIMEOUT_MS);
-  let response;
   try {
-    response = await fetch(TWITCH_TOKEN_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      // In the body, not the URL: URLs end up in logs.
-      body: new URLSearchParams({
-        client_id: clientId,
-        client_secret: clientSecret,
-        grant_type: 'client_credentials',
-      }).toString(),
-      signal: controller.signal,
-    });
-  } catch {
-    console.error('token proxy: Twitch could not be reached');
-    return null;
+    const response = await fetch(url, { ...init, signal: controller.signal });
+    return await read(response);
   } finally {
     clearTimeout(timer);
   }
+}
 
-  if (!response.ok) {
-    // The status only: Twitch's error text is not needed to act on it.
-    console.error(`token proxy: Twitch answered ${response.status}`);
-    return null;
+// Whether Twitch still takes the token as this application's:
+// 'good', 'dead' (refused, or another application's) or 'unknown'.
+async function checkWithTwitch(env, token) {
+  try {
+    return await fetchWithin(
+      TWITCH_VALIDATE_URL,
+      { headers: { Authorization: `OAuth ${token}` } },
+      async (response) => {
+        if (response.status === 401) return 'dead';
+        if (!response.ok) return 'unknown';
+        const body = await response.json();
+        return body && body.client_id === env.TWITCH_CLIENT_ID ? 'good' : 'dead';
+      },
+    );
+  } catch {
+    return 'unknown';
   }
+}
 
+async function askTwitch(env, key) {
   let body;
   try {
-    body = await response.json();
+    body = await fetchWithin(
+      TWITCH_TOKEN_URL,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        // In the body, not the URL: URLs end up in logs.
+        body: new URLSearchParams({
+          client_id: env.TWITCH_CLIENT_ID,
+          client_secret: env.TWITCH_CLIENT_SECRET,
+          grant_type: 'client_credentials',
+        }).toString(),
+      },
+      async (response) => {
+        if (!response.ok) {
+          // The status only: Twitch's error text is not needed to act on it.
+          console.error(`token proxy: Twitch answered ${response.status}`);
+          return null;
+        }
+        try {
+          return await response.json();
+        } catch {
+          console.error('token proxy: Twitch answered something that is not JSON');
+          return null;
+        }
+      },
+    );
   } catch {
-    console.error('token proxy: Twitch answered something that is not JSON');
+    console.error('token proxy: Twitch could not be reached');
     return null;
   }
+  if (body === null) return null;
 
   const token = body && body.access_token;
   const expiresIn = body && body.expires_in;
@@ -198,27 +287,83 @@ async function askTwitch(env, key) {
     return null;
   }
 
-  return { token, expiresAt: Date.now() + expiresIn * 1000, key };
+  const now = Date.now();
+  return { token, expiresAt: now + expiresIn * 1000, validatedAt: now, key };
+}
+
+async function mint(env, key, now) {
+  if (now < failedUntil) return null;
+  const mark = await readKv(env, KV_MINT_KEY);
+  if (mark && typeof mark.at === 'number' && now - mark.at < MINT_EVERY_MS) {
+    return null;
+  }
+  try {
+    await env.TOKEN_CACHE.put(KV_MINT_KEY, JSON.stringify({ at: now }), {
+      expirationTtl: KV_MIN_TTL_S,
+    });
+  } catch {
+    // Without the mark, the isolate's own backoff still applies.
+  }
+
+  const fresh = await askTwitch(env, key);
+  if (!usable(fresh, Date.now(), key)) {
+    if (fresh) console.error('token proxy: Twitch gave a token that expires too soon');
+    failedUntil = now + FAILURE_BACKOFF_MS;
+    return null;
+  }
+  memoryToken = fresh;
+  await writeToken(env, fresh, Date.now());
+  return fresh;
 }
 
 async function currentToken(env, now) {
-  const key = await credentialsKey(env);
-  if (usable(memoryToken, now, key)) return memoryToken;
-
-  const stored = await readKv(env);
-  if (usable(stored, now, key)) {
-    memoryToken = { token: stored.token, expiresAt: stored.expiresAt, key };
-    return memoryToken;
+  if (!env.TOKEN_CACHE || typeof env.TOKEN_CACHE.get !== 'function') {
+    console.error('token proxy: the TOKEN_CACHE KV binding is missing (see README)');
+    return null;
+  }
+  if (!env.TWITCH_CLIENT_ID || !env.TWITCH_CLIENT_SECRET) {
+    console.error('token proxy: TWITCH_CLIENT_ID or TWITCH_CLIENT_SECRET is not set');
+    return null;
   }
 
-  // Not shared with other requests waiting at the same moment: Workers do
-  // not let one request wait on another's I/O. A refresh happens about once
-  // every two months, so a few simultaneous ones cost Twitch a few calls.
-  const fresh = await askTwitch(env, key);
-  if (!usable(fresh, Date.now(), key)) return null;
-  memoryToken = fresh;
-  await writeKv(env, fresh, Date.now());
-  return fresh;
+  const key = await credentialsKey(env);
+  let entry = usable(memoryToken, now, key) ? memoryToken : null;
+  if (!entry) {
+    const stored = await readKv(env, KV_KEY);
+    if (usable(stored, now, key)) {
+      entry = {
+        token: stored.token,
+        expiresAt: stored.expiresAt,
+        validatedAt: stored.validatedAt,
+        key,
+      };
+    }
+  }
+
+  if (entry) {
+    if (now - entry.validatedAt < VALIDATE_EVERY_MS) {
+      memoryToken = entry;
+      return entry;
+    }
+    const verdict = await checkWithTwitch(env, entry.token);
+    if (verdict === 'good') {
+      memoryToken = { ...entry, validatedAt: now };
+      await writeToken(env, memoryToken, now);
+      return memoryToken;
+    }
+    if (verdict === 'unknown') {
+      // Served as it is; asked again in a minute, by this isolate.
+      memoryToken = {
+        ...entry,
+        validatedAt: now - VALIDATE_EVERY_MS + VALIDATE_RETRY_MS,
+      };
+      return memoryToken;
+    }
+    console.error('token proxy: the cached token was refused by Twitch, minting another');
+    await dropToken(env);
+  }
+
+  return mint(env, key, now);
 }
 
 export default {
@@ -248,6 +393,7 @@ export default {
     return json(200, {
       access_token: entry.token,
       expires_in: Math.max(0, Math.floor((entry.expiresAt - Date.now()) / 1000)),
+      client_id: env.TWITCH_CLIENT_ID,
     });
   },
 };
