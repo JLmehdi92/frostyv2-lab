@@ -23,10 +23,10 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone 13, Pixel 6]
- - OS: [e.g. iOS 15, Android 12]
- - App Version: [shown at the end of Settings, e.g. ONSET v1.0.0 (1)]
+**Device (please complete the following information):**
+ - Device: [e.g. Pixel 8, Galaxy Tab S9]
+ - OS: [e.g. Android 14]
+ - App Version: [shown at the end of Settings, e.g. ONSET v1.0.0 (2001)]
 
 **Additional context**
 Add any other context about the problem here.
