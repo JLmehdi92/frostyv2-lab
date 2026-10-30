@@ -93,6 +93,13 @@ abstract class AuthBase with Store {
   static const foreignTokenNotice =
       'This token was created for another app — some features may not work.';
 
+  /// What the app says once when Twitch refused the stored login at launch
+  /// (it expired, was revoked, or its app no longer exists, as after an
+  /// update that changes ONSET's Twitch application): logged out, the
+  /// viewer is told to log in again instead of finding out later.
+  static const sessionEndedNotice =
+      'Your Twitch session has ended. Log in again from Settings.';
+
   /// The Twitch API service for making requests.
   final TwitchApi twitchApi;
 
@@ -428,8 +435,9 @@ abstract class AuthBase with Store {
   @readonly
   String? _error;
 
-  /// A notice for the viewer about the session ([foreignTokenNotice]),
-  /// until it is shown ([clearTokenNotice]). Never the token.
+  /// A notice for the viewer about the session ([foreignTokenNotice],
+  /// [sessionEndedNotice]), until it is shown ([clearTokenNotice]). Never
+  /// the token.
   @readonly
   String? _tokenNotice;
 
@@ -845,8 +853,12 @@ abstract class AuthBase with Store {
           return;
         }
 
-        // If the token is invalid, logout.
-        if (!_tokenIsValid) return await logout();
+        // If the token is invalid, logout, and say so.
+        if (!_tokenIsValid) {
+          await logout();
+          runInAction(() => _tokenNotice = sessionEndedNotice);
+          return;
+        }
 
         // Initialize the user store.
         await user.init();
