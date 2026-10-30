@@ -252,6 +252,41 @@ void main() {
       }
     });
 
+    test('Android never collects the advertising id', () {
+      final manifest = File(
+        'android/app/src/main/AndroidManifest.xml',
+      ).readAsStringSync().replaceAll(RegExp(r'\s+'), ' ');
+      expect(
+        manifest,
+        contains('xmlns:tools="http://schemas.android.com/tools"'),
+      );
+      // Merged in by the Firebase Analytics library: removed from the app.
+      for (final permission in [
+        'com.google.android.gms.permission.AD_ID',
+        'android.permission.ACCESS_ADSERVICES_AD_ID',
+        'android.permission.ACCESS_ADSERVICES_ATTRIBUTION',
+      ]) {
+        expect(
+          manifest,
+          contains(
+            '<uses-permission android:name="$permission" '
+            'tools:node="remove" />',
+          ),
+          reason: permission,
+        );
+      }
+      for (final key in [
+        'google_analytics_adid_collection_enabled',
+        'google_analytics_default_allow_ad_personalization_signals',
+      ]) {
+        expect(
+          manifest,
+          contains('android:name="$key" android:value="false"'),
+          reason: key,
+        );
+      }
+    });
+
     test('iOS collects nothing by default', () {
       final plist = File(
         'ios/Runner/Info.plist',
