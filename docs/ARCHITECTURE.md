@@ -131,9 +131,12 @@ channel screen (`lib/screens/channel/channel.dart`) depend on.
   (`lib/screens/channel/video/ivs_stats_panel.dart`). With Auto latency on
   (default), `LatencyController`
   (`lib/screens/channel/video/latency_controller.dart`) plays a drifted IVS
-  stream at 1.05x until it is back near its target, without a reload; the
-  player is then created without the SDK speed-up, which would reset the
-  rate. With Ultra buffering, repeated stalls make the next streams use
+  stream at 1.05x until it is back near its target, without a reload (in
+  picture-in-picture and the mini player too); the player is then created
+  without the SDK speed-up, which would reset the rate. Where the catch-up
+  does not run (stopped after stalls, a stream without low latency), a
+  1.03x drain of a clearly excessive buffer takes the SDK's place. With
+  Ultra buffering, repeated network stalls make the next streams use
   Standard for a while (`lib/screens/channel/video/buffer_fallback.dart`).
   `LiveEdgeGuard` (`lib/screens/channel/video/live_edge_guard.dart`) stays
   the last resort: it reloads the IVS stream when it drifts too far behind

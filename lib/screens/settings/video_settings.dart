@@ -61,10 +61,10 @@ class VideoSettings extends StatelessWidget {
                       title: 'Auto latency',
                       subtitle: const Text(
                         'Keeps the stream close to live by playing very '
-                        'slightly faster when it drifts behind. Never reloads '
-                        'the player. If Ultra keeps stalling, the next streams '
-                        'use Standard for a while. Applies the next time a '
-                        'stream is opened.',
+                        'slightly faster when it drifts behind, without '
+                        'reloading it. If Ultra keeps stalling, the next '
+                        'streams use Standard for a while. Applies the next '
+                        'time a stream is opened.',
                       ),
                       value: settingsStore.autoLatency,
                       onChanged: (enabled) =>
