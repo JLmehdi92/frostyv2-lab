@@ -128,9 +128,16 @@ channel screen (`lib/screens/channel/channel.dart`) depend on.
   playing when the token or playlist flow changes.
 - **Latency.** The overlay shows the measured latency (`showLatency`, on by
   default; `lib/screens/channel/video/latency_pill.dart`) and a stats panel
-  (`lib/screens/channel/video/ivs_stats_panel.dart`). `LiveEdgeGuard`
-  (`lib/screens/channel/video/live_edge_guard.dart`) reloads the IVS stream
-  when it drifts too far behind live. The measured latency can drive the chat
+  (`lib/screens/channel/video/ivs_stats_panel.dart`). With Auto latency on
+  (default), `LatencyController`
+  (`lib/screens/channel/video/latency_controller.dart`) plays a drifted IVS
+  stream at 1.05x until it is back near its target, without a reload; the
+  player is then created without the SDK speed-up, which would reset the
+  rate. With Ultra buffering, repeated stalls make the next streams use
+  Standard for a while (`lib/screens/channel/video/buffer_fallback.dart`).
+  `LiveEdgeGuard` (`lib/screens/channel/video/live_edge_guard.dart`) stays
+  the last resort: it reloads the IVS stream when it drifts too far behind
+  live. The measured latency can drive the chat
   delay, so messages line up with the picture
   (`lib/screens/channel/chat/chat_delay_queue.dart`).
 - **Mini player and PiP.** Dragging the video down hands the live
