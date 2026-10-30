@@ -13,9 +13,33 @@ An Android Twitch client built with Flutter: a native low-latency player and a f
   <a href="LICENSE"><img alt="License: AGPL-3.0-or-later" src="https://img.shields.io/badge/License-AGPL--3.0--or--later-C8FF3D?style=flat-square&labelColor=0A0A0A"></a>
 </p>
 
+<p>
+  <a href="../../releases/latest"><img alt="Download for Android" height="36" src="https://img.shields.io/badge/Download_for-Android-C8FF3D?style=for-the-badge&labelColor=0A0A0A&logo=android&logoColor=C8FF3D"></a>
+  &nbsp;
+  <img alt="iOS: coming soon" height="36" src="https://img.shields.io/badge/iOS-Coming_soon-5C5C5C?style=for-the-badge&labelColor=0A0A0A&logo=apple&logoColor=white">
+</p>
+
 </div>
 
 ---
+
+## Install on Android
+
+1. **Download** `onset-arm64.apk` from the
+   [latest release](../../releases/latest) (under *Assets*). It is for 64-bit
+   Android phones and tablets running Android 6.0 or later.
+2. **Open the file.** If Android asks, allow installing apps from this
+   source (your browser or file manager), then tap **Install**.
+3. **Open ONSET** and tap **Connect with Twitch** to log in with your Twitch
+   account. You can also tap **Skip** and log in later from the Profile tab.
+
+Updates then arrive inside the app: ONSET checks this project's GitHub
+releases when it starts and when it comes back to the foreground, shows
+**Update available** when there is a newer build, and verifies the download's
+SHA-256 before handing it to Android's installer.
+
+No Twitch developer account, Firebase project or build tools are needed to
+use the app.
 
 ## Why ONSET
 
@@ -25,8 +49,8 @@ instead, built on the same video technology as Twitch, and keeps it near the
 live edge.
 
 - **Native player by default.** On Android, live channels open in the IVS
-  player, drawn into a Flutter texture. It speeds up slightly or jumps ahead
-  (your choice) when it falls behind, and reloads if it drifts too far.
+  player. It speeds up slightly or jumps ahead (your choice) when it falls
+  behind, and reloads if it drifts too far.
 - **A fallback that always plays.** The Twitch web player stays one switch
   away in *Settings › Video*. If the native player cannot get the stream or
   fails, the channel switches to the web player on its own, so a change on
@@ -77,7 +101,7 @@ live edge.
 <li>Phone and tablet layouts, light and dark themes, custom accent</li>
 <li>Follows the system's reduce-motion setting</li>
 <li>Go-live and mention notifications, schedule reminders</li>
-<li>Optional in-app updates from this repository's releases</li>
+<li>In-app updates from this project's releases, installed only when you tap Update</li>
 </ul>
 </td>
 </tr>
@@ -112,7 +136,43 @@ live edge.
 <sub>Rendered from the app's own widgets with sample channels; stream previews
 and avatars are placeholder art.</sub>
 
-## Getting started
+## FAQ
+
+**Is it safe to install?**
+ONSET is open source. Each APK is built by GitHub Actions from this
+repository, signed with the project's release key, and published with a
+SHA-256 checksum next to it (`onset-arm64.apk.sha256`), so you can check the
+file you downloaded. It is not reviewed by an app store, so only install
+APKs taken from this repository's releases.
+
+**How do updates work?**
+ONSET looks for a newer build when it starts and when it comes back to the
+foreground (at most every 6 hours once it is up to date). When one exists it
+shows **Update available**: **Update** downloads it, checks its SHA-256 and
+opens Android's installer, which asks you to confirm; **Later** hides that
+build for 24 hours. The first time, Android asks you to let ONSET install
+apps. A download that does not match its checksum is deleted and never
+installed. You can also check by hand with **Check for updates** in the
+Updates section of Settings.
+
+**Why isn't it on the Play Store?**
+ONSET is an independent open-source client. It is distributed through this
+repository's GitHub releases.
+
+**Is there an iPhone version?**
+Not yet. An iOS version is planned and will be offered as a direct download
+once it is ready.
+
+**Is ONSET affiliated with Twitch?**
+No. It is an independent project, not affiliated with, endorsed by or
+sponsored by Twitch.
+
+## For developers
+
+<details>
+<summary><b>Build from source</b></summary>
+
+### Getting started
 
 1. Install Flutter **3.38.4** (Dart 3.10.3). Newer releases break
    `extended_text_field` and `simple_icons`; older ones break `app_links`.
@@ -138,8 +198,9 @@ and avatars are placeholder art.</sub>
    A release build without `android/key.properties` is signed with the debug
    key.
 
-The native player is Android-only (6.0 and later). The Dart code stays
-iOS-compatible, and iOS plays through the web player.
+The native player is Android-only (6.0 and later), drawn into a Flutter
+texture. The Dart code stays iOS-compatible, and iOS plays through the web
+player.
 
 ### Firebase (optional)
 
@@ -165,7 +226,7 @@ native collection stays off until the app applies the setting. The update
 workflow passes the same values from the `FIREBASE_*` repository secrets when
 they exist.
 
-## In-app updates
+### Signed releases and in-app updates
 
 Each push to `main` can build a signed arm64 APK and publish it as a
 `build-N` release of this repository, with its SHA-256. Builds made by that
@@ -174,7 +235,12 @@ the Android installer; local builds never check. The one-time setup (signing
 key, secrets, public or private repository) is in
 [docs/MISES_A_JOUR.md](docs/MISES_A_JOUR.md) (in French).
 
-## Project structure
+</details>
+
+<details>
+<summary><b>Project structure, development and contributing</b></summary>
+
+### Project structure
 
 ```
 lib/
@@ -194,7 +260,7 @@ docs/          architecture and update setup
 The layers, the player engines and their fallback, the stores and the chat are
 described in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## Development
+### Development
 
 ```bash
 flutter analyze   # must stay clean
@@ -217,11 +283,13 @@ dart run build_runner build --delete-conflicting-outputs   # after changing a st
   shows (rendered with Playwright Chromium and ffmpeg), and
   `python3 tool/readme_shots/render.py` renders the screenshots.
 
-## Contributing
+### Contributing
 
 Bug reports and feature requests are welcome through the issue templates.
 For a pull request, keep it to one change, run `flutter analyze` and
 `flutter test` first, and describe what you checked on a device.
+
+</details>
 
 ## License
 
