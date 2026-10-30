@@ -1,0 +1,9 @@
+{
+  "name": "onset-token-proxy",
+  "private": true,
+  "type": "module",
+  "description": "Cloudflare Worker holding the Twitch client secret for ONSET. No dependencies.",
+  "scripts": {
+    "test": "node --test"
+  }
+}
