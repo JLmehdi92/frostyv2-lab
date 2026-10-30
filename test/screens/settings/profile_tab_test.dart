@@ -14,6 +14,7 @@ import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/video_settings.dart';
 import 'package:onset/screens/settings/widgets/chat_filters_setting.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
+import 'package:onset/widgets/motion/press_scale.dart';
 
 import 'settings_harness.dart';
 
@@ -248,6 +249,29 @@ void main() {
       // More than two groups: chips jump to them.
       expect(find.bySemanticsLabel('Jump to a group'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the jump chips hug their labels and share a row', (
+      tester,
+    ) async {
+      final auth = FakeAuthStore(loggedIn: true);
+      await pumpProfile(tester, auth, size: const Size(1280, 854));
+
+      final jump = find.bySemanticsLabel('Jump to a group');
+      expect(jump, findsOneWidget);
+      final chips = find.descendant(
+        of: jump,
+        matching: find.byType(PressScale),
+      );
+      expect(chips, findsAtLeast(3));
+      final pane = tester.getSize(jump).width;
+      final rows = <double>{};
+      for (final chip in chips.evaluate()) {
+        final box = chip.renderObject! as RenderBox;
+        expect(box.size.width, lessThan(pane / 3), reason: 'a pill, not a bar');
+        rows.add(box.localToGlobal(Offset.zero).dy);
+      }
+      expect(rows, hasLength(1), reason: 'the chips sit side by side');
     });
 
     testWidgets('a page inside a section opens over it, back returns', (

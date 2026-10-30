@@ -411,7 +411,6 @@ class _JumpChip extends StatelessWidget {
           child: Container(
             height: 36,
             padding: const EdgeInsets.symmetric(horizontal: 14),
-            alignment: Alignment.center,
             decoration: ShapeDecoration(
               color: colors.card,
               shape: StadiumBorder(
@@ -421,13 +420,18 @@ class _JumpChip extends StatelessWidget {
                 ),
               ),
             ),
-            child: Text(
-              label,
-              style: TextStyle(
-                fontFamily: OnsetTokens.bodyFamily,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: colors.body,
+            // Centred, yet as wide as its label: the container's own
+            // alignment would stretch the pill across the Wrap's whole row.
+            child: Align(
+              widthFactor: 1,
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontFamily: OnsetTokens.bodyFamily,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: colors.body,
+                ),
               ),
             ),
           ),
