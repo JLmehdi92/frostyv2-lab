@@ -2,16 +2,22 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+# A newer push to main makes the previous check pointless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 # Analyze and test only: no reason to write to the repository.
 permissions:
   contents: read
 jobs:
   test:
-    name: Check and test on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+    name: Check and test
+    # Linux only: on a private repository Windows minutes count double and
+    # macOS minutes ten times, which used up the monthly Actions quota.
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       # Pinned: newer Flutter releases break extended_text_field and
