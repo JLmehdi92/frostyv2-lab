@@ -56,12 +56,15 @@ téléchargeables par tout le monde, et un jeton se lit dans un APK.
   jeton. Le jeton, révoqué avant le changement (encadré ci-dessus), ne
   servirait de toute façon plus à rien.
 - Supprimez aussi les releases `build-*` faites en privé (**Releases** →
-  chaque release → **Delete**) : même avec un jeton révoqué, elles
-  contiennent `CLIENT_ID` et `SECRET` de Twitch (point suivant).
-- `CLIENT_ID` et `SECRET` de Twitch restent dans **tous** les APK, publics
-  compris : quiconque télécharge une release publique peut les en extraire.
-  Tenez-les pour publiés dès le premier build public, et régénérez le secret
-  Twitch au passage au dépôt définitif (liste du 1er novembre, étape 7).
+  chaque release → **Delete**) : même avec un jeton révoqué, celles d'avant le
+  proxy de jeton contiennent le `SECRET` de Twitch (point suivant).
+- Le **secret client Twitch n'est plus dans l'APK** : il vit dans le proxy de
+  jeton, un petit Cloudflare Worker (étape 8). L'APK ne contient plus que
+  `CLIENT_ID` et l'adresse du proxy (`TOKEN_PROXY_URL`), publics par nature :
+  quiconque télécharge une release peut les lire, et c'est sans danger. Les
+  APK construits **avant** le proxy contiennent encore l'ancien secret : c'est
+  pour cela qu'il faut le **régénérer** (étape 8, dernier point) ; tant qu'il
+  ne l'est pas, la fuite reste ouverte.
 
 ## 1. La clé de signature (keystore)
 
@@ -111,16 +114,16 @@ github.com → photo de profil → **Settings** → **Developer settings** →
   les mises à jour s'arrêtent : nouveau jeton, mise à jour du secret, nouveau
   build, installé une fois à la main (étape 4).
 
-**L'APK contient des secrets en clair** — ce jeton, mais aussi `CLIENT_ID` et
-`SECRET` de Twitch — et n'importe qui peut les en extraire :
+**L'APK contient ce jeton en clair**, et n'importe qui peut l'en extraire (il
+contient aussi `CLIENT_ID` et l'adresse du proxy de jeton, publics par nature ;
+le secret Twitch, lui, n'y est plus) :
 
 - le jeton lit **tout le code** du dépôt et **tous les APK** de ses releases ;
 - si le dépôt devient public un jour, tous les APK publiés (et donc ces
   secrets) le deviennent aussi : supprimez d'abord les releases faites en
   privé (étape 0) ;
 - ne partagez donc jamais l'APK ; s'il fuite, révoquez le jeton (et créez-en un
-  nouveau) **et** régénérez le secret client dans la console développeur
-  Twitch, puis mettez à jour les secrets du dépôt.
+  nouveau), puis mettez à jour le secret `UPDATE_TOKEN` du dépôt.
 
 ## 3. Les secrets du dépôt
 
@@ -130,7 +133,6 @@ github.com → photo de profil → **Settings** → **Developer settings** →
 | Secret | Valeur |
 |---|---|
 | `CLIENT_ID` | l'identifiant client Twitch (comme pour `--dart-define`) |
-| `SECRET` | le secret client Twitch |
 | `UPDATE_TOKEN` | le jeton de l'étape 2 (dépôt privé seulement) |
 | `ANDROID_KEYSTORE_BASE64` | le keystore encodé à l'étape 1 |
 | `ANDROID_KEYSTORE_PASSWORD` | mot de passe du keystore |
@@ -139,7 +141,23 @@ github.com → photo de profil → **Settings** → **Developer settings** →
 
 Si l'un d'eux manque, le workflow s'arrête tout de suite en le nommant (sans
 jamais afficher de valeur). `UPDATE_TOKEN` n'est exigé que si le dépôt est
-privé.
+privé. Le secret client Twitch n'est **pas** un secret du dépôt : il va
+dans le proxy de jeton (étape 8).
+
+**Une variable, obligatoire** — même page, onglet **Variables** (pas
+*Secrets*) → **New repository variable** :
+
+| Variable | Valeur |
+|---|---|
+| `TOKEN_PROXY_URL` | l'adresse du proxy de jeton (étape 8), par exemple `https://onset-token.votre-nom.workers.dev`, **sans** `/app-token` |
+
+C'est une variable et non un secret parce que l'adresse est dans chaque APK de
+toute façon. Si elle manque ou ne commence pas par `https://`, le workflow
+s'arrête avec « The repository variable TOKEN_PROXY_URL is missing or does not
+start with https:// ». Ce refus est voulu : sans elle, toutes les applis
+installées recevraient une mise à jour où, déconnecté, on n'a plus ni
+émotes ni badges Twitch, ni Parcourir, ni Recherche, sans rien dans le journal
+pour dire pourquoi.
 
 **Facultatifs — Firebase** (Crashlytics, Analytics, Performance) : sans eux,
 l'appli tourne simplement sans Firebase. Pour l'activer, créez votre projet
@@ -210,7 +228,7 @@ builds CI suivants tant qu'ils ne l'ont pas dépassé.
 Avec la clé de debug du PC (alternative de l'étape 1) :
 
 ```powershell
-flutter build apk --debug --build-number=1023 --dart-define=CLIENT_ID=<id> --dart-define=SECRET=<secret>
+flutter build apk --debug --build-number=1023 --dart-define=CLIENT_ID=<id> --dart-define=TOKEN_PROXY_URL=<adresse du proxy>
 flutter run --use-application-binary=build\app\outputs\flutter-apk\app-debug.apk
 ```
 
@@ -223,7 +241,7 @@ même clé (fichier `android/key.properties` sur le PC, jamais commité :
 par-dessus avec `adb` (`flutter install` désinstalle d'abord) :
 
 ```powershell
-flutter build apk --release --build-number=1023 --dart-define=CLIENT_ID=<id> --dart-define=SECRET=<secret>
+flutter build apk --release --build-number=1023 --dart-define=CLIENT_ID=<id> --dart-define=TOKEN_PROXY_URL=<adresse du proxy>
 adb install -r build\app\outputs\flutter-apk\app-release.apk
 ```
 
@@ -237,9 +255,9 @@ jamais cet APK).
 
 Dans cet ordre :
 
-1. **Twitch** : console développeur Twitch → l'application → **New Secret**,
-   puis mettez à jour le secret `SECRET` du dépôt (l'ancien a pu sortir dans un
-   APK public).
+1. **Twitch** : si ce n'est pas déjà fait (étape 8), console développeur
+   Twitch → l'application → **New Secret**, puis mettez le nouveau secret
+   **dans le Worker seulement** (l'ancien a pu sortir dans un APK).
 2. **Jeton GitHub** : révoquez `UPDATE_TOKEN` (Developer settings → Personal
    access tokens → le jeton → **Delete**) **avant** de rendre un dépôt public
    (étape 0), et supprimez le secret du dépôt. Ne le recréez (étape 2, limité
@@ -257,3 +275,66 @@ Dans cet ordre :
 6. **Installez `app.onset`** à la main depuis la page de la release (étape 4),
    reconnectez-vous à Twitch. Les builds suivants arrivent ensuite d'eux-mêmes,
    sans jeton.
+
+## 8. Sortir le secret Twitch de l'APK : le proxy de jeton
+
+Déconnecté, ONSET a besoin d'un « jeton d'application » Twitch pour les émotes
+et badges Twitch du chat, Parcourir, Recherche, les catégories et les infos de
+chaîne des lecteurs. L'obtenir demande le **secret client** Twitch. Avant, ce
+secret était dans l'APK, donc lisible par quiconque l'ouvrait. Il vit
+désormais dans un petit **Cloudflare Worker** (gratuit), dans votre compte
+Cloudflare ; l'appli ne connaît que son adresse. Connecté, rien ne change :
+l'appli utilise votre propre jeton.
+
+Le guide détaillé, écran par écran, est en anglais :
+[`tool/token_proxy/README.md`](../tool/token_proxy/README.md). Dans l'ordre :
+
+1. **Créer le Worker** (guide, étapes 1 et 2) : compte Cloudflare gratuit →
+   **Workers & Pages** → **Create application** → modèle *Hello World* → nom
+   `onset-token` → **Deploy** → **Edit code** → remplacer tout le code par
+   celui de `tool/token_proxy/worker.js` → **Deploy**. Notez son adresse
+   (`https://onset-token.votre-nom.workers.dev`).
+2. **Ajouter les 2 secrets** (guide, étape 3) : le Worker → **Settings** →
+   **Variables and Secrets** → **Add**, type **Secret** :
+   `TWITCH_CLIENT_ID` (l'identifiant client) et `TWITCH_CLIENT_SECRET` (le
+   secret client actuel). Recommandé ensuite : l'espace KV `TOKEN_CACHE`
+   (guide, étape 4).
+3. **Vérifier** : ouvrez `https://onset-token.votre-nom.workers.dev/app-token`
+   dans un navigateur ; vous devez voir `{"access_token":"…","expires_in":…}`.
+   Ce jeton n'est pas un secret (il ne lit que des données publiques).
+4. **Copier l'adresse dans la variable du dépôt** `TOKEN_PROXY_URL` (étape 3,
+   onglet **Variables**), **sans** `/app-token`.
+5. **Lancer un build** : **Actions** → **ONSET update** → **Run workflow** sur
+   `main`, puis installez la mise à jour.
+6. **Tester déconnecté sur la tablette** : **Réglages** → déconnectez-vous
+   (ou utilisez une appli jamais connectée). Ouvrez **Parcourir**, une
+   catégorie, la **Recherche**, puis le chat d'une chaîne : les émotes et
+   badges Twitch doivent s'afficher, sans popup « Session expired ». Si rien
+   ne s'affiche, ouvrez l'adresse `/app-token` de l'étape 3 pour voir si le
+   Worker répond (dépannage dans le guide).
+7. **Régénérer le secret Twitch** : console développeur Twitch → l'application
+   → **Manage** → **New Secret**. C'est **cette étape qui ferme la fuite** :
+   les anciens APK (releases et artefacts déjà publiés, appareils où l'appli
+   est installée) contiennent toujours l'ancien secret, et on ne peut pas les
+   rappeler ; une fois régénéré, ce secret-là ne vaut plus rien.
+8. **Mettre le nouveau secret dans le Worker seulement** : le Worker →
+   **Settings** → **Variables and Secrets** → modifier
+   `TWITCH_CLIENT_SECRET` → coller le nouveau → **Deploy**. Rien à
+   reconstruire : l'appli n'a jamais le secret. Le Worker voit que le secret a
+   changé et redemande un jeton avec le nouveau. Rouvrez `/app-token` pour
+   vérifier.
+9. **Supprimer l'ancien secret GitHub `SECRET`** : dépôt → **Settings** →
+   **Secrets and variables** → **Actions** → `SECRET` → **Remove**. Le
+   workflow ne le lit plus ; il ne doit plus exister nulle part ailleurs que
+   dans le Worker.
+
+Limites, honnêtement : l'adresse du Worker est publique (elle est dans
+l'APK) ; n'importe qui peut donc obtenir un jeton d'application, qui ne lit
+que des données publiques. Le Worker limite chaque adresse IP à 10 demandes
+par minute, mais depuis le tableau de bord cette limite est approximative
+(comptée séparément par chaque copie du Worker). Le plan gratuit autorise
+100 000 requêtes par jour : si quelqu'un les épuisait, seuls les utilisateurs
+déconnectés qui ont besoin d'un nouveau jeton ce jour-là s'en passeraient
+jusqu'à minuit UTC. Si le Worker est en panne, l'appli démarre quand même, la
+connexion marche, et ce qui demande le jeton échoue sans popup ; l'appli
+redemande au plus une fois par minute.

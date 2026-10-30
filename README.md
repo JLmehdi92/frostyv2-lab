@@ -185,21 +185,28 @@ sponsored by Twitch.
    `extended_text_field` and `simple_icons`; older ones break `app_links`.
 2. Register an application in the
    [Twitch developer console](https://dev.twitch.tv/console) to get a
-   **Client ID** and a **Client Secret**.
-3. Copy `.env.example` to `.env` and fill in `CLIENT_ID` and `SECRET` (the
-   VS Code launch configurations read it with `--dart-define-from-file=.env`).
-4. Fetch the dependencies and generate the MobX / JSON code:
+   **Client ID** (and a **Client Secret**, which goes into the token proxy,
+   never into the app).
+3. Set up the token proxy, a small Cloudflare Worker that holds the client
+   secret and hands logged-out viewers a Twitch app token:
+   [`tool/token_proxy/README.md`](tool/token_proxy/README.md). Without it the
+   app still runs, but logged-out viewers get no Twitch emotes, badges,
+   browsing or search.
+4. Copy `.env.example` to `.env` and fill in `CLIENT_ID` and `TOKEN_PROXY_URL`
+   (the Worker's `https://` address; the VS Code launch configurations read
+   the file with `--dart-define-from-file=.env`).
+5. Fetch the dependencies and generate the MobX / JSON code:
 
    ```bash
    flutter pub get
    dart run build_runner build --delete-conflicting-outputs
    ```
 
-5. Run or build:
+6. Run or build:
 
    ```bash
-   flutter run --dart-define=CLIENT_ID=<id> --dart-define=SECRET=<secret>
-   flutter build apk --release --dart-define=CLIENT_ID=<id> --dart-define=SECRET=<secret>
+   flutter run --dart-define=CLIENT_ID=<id> --dart-define=TOKEN_PROXY_URL=<https://worker-url>
+   flutter build apk --release --dart-define=CLIENT_ID=<id> --dart-define=TOKEN_PROXY_URL=<https://worker-url>
    ```
 
    A release build without `android/key.properties` is signed with the debug

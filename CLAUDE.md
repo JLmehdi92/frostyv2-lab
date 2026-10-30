@@ -20,7 +20,7 @@
 
 ```bash
 flutter pub get
-flutter run --dart-define=CLIENT_ID=ID --dart-define=SECRET=SECRET   # NOTE: env names are UPPERCASE (constants.dart uses String.fromEnvironment('CLIENT_ID'/'SECRET'))
+flutter run --dart-define=CLIENT_ID=ID --dart-define=TOKEN_PROXY_URL=https://...   # NOTE: env names are UPPERCASE (constants.dart uses String.fromEnvironment('CLIENT_ID'/'TOKEN_PROXY_URL'))
 flutter analyze            # run after every change — must be clean
 flutter test
 dart run build_runner build --delete-conflicting-outputs   # after MobX/JSON model changes
@@ -50,13 +50,14 @@ git clone https://github.com/JLmehdi92/onset.git
 cd onset
 flutter pub get
 dart run build_runner build --delete-conflicting-outputs
-flutter build apk --debug --dart-define=CLIENT_ID=<id> --dart-define=SECRET=<secret>
+flutter build apk --debug --dart-define=CLIENT_ID=<id> --dart-define=TOKEN_PROXY_URL=<https://worker-url>
 ```
 
 - **Flutter version: 3.38.4** (Dart 3.10.3). Newer (3.44+) breaks `extended_text_field`/`simple_icons`; older (3.35) breaks `app_links`. Pin with the matching stable tag.
 - Firebase is optional and no config is committed: without the `FIREBASE_*` `--dart-define`s the app runs with Crashlytics/Analytics/Performance off (`lib/services/telemetry.dart`); the Gradle Firebase plugins apply only when an `android/app/google-services.json` is present (git-ignored). See README.
 - `android/local.properties` is git-ignored and regenerated automatically.
-- Twitch `CLIENT_ID`/`SECRET` are NOT in the repo (build-time only) — supply them via `--dart-define`.
+- Twitch `CLIENT_ID` and `TOKEN_PROXY_URL` are NOT in the repo (build-time only) — supply them via `--dart-define`.
+- The Twitch client **secret is never in the app**: it lives in the token proxy, a Cloudflare Worker (`tool/token_proxy/`, setup in its README) that hands logged-out viewers an app token. Never add it back as a `--dart-define` (`test/guards/no_client_secret_test.dart` fails if anything reads one).
 
 ## Definition of done (per change)
 

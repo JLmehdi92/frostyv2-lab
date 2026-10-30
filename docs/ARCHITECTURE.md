@@ -220,13 +220,22 @@ flutter pub get
 dart run build_runner build --delete-conflicting-outputs   # after store or model changes
 flutter analyze                                            # must be clean
 flutter test                                               # must be green
-flutter run --dart-define=CLIENT_ID=<id> --dart-define=SECRET=<secret>
-flutter build apk --release --dart-define=CLIENT_ID=<id> --dart-define=SECRET=<secret>
+flutter run --dart-define=CLIENT_ID=<id> --dart-define=TOKEN_PROXY_URL=<https://worker-url>
+flutter build apk --release --dart-define=CLIENT_ID=<id> --dart-define=TOKEN_PROXY_URL=<https://worker-url>
 ```
 
-- `CLIENT_ID` and `SECRET` come from a Twitch developer application and are
-  never committed. The VS Code launch configurations read them from `.env`
+- `CLIENT_ID` comes from a Twitch developer application (it is public by
+  design: it is in every Helix request). `TOKEN_PROXY_URL` is the token proxy,
+  a Cloudflare Worker (`tool/token_proxy/`) that holds the Twitch client
+  secret and hands logged-out viewers an app access token
+  (`TwitchApi.getDefaultToken`). The secret is never in the app or the
+  repository. The VS Code launch configurations read both values from `.env`
   (copy `.env.example`).
+- Without a usable proxy (empty URL, not `https://`, or the Worker down) the
+  app still starts and logging in works; logged-out Helix features fail
+  quietly. `AuthStore` asks again at most once a minute, on a Helix 401, and
+  `UnauthorizedInterceptor` shows no login dialog while a logged-out viewer
+  has no token.
 - A release build without a release signing key configured in `android/`
   is signed with the debug key.
 - CI (`.github/workflows/ci.yml`) runs `flutter analyze` and `flutter test` on
