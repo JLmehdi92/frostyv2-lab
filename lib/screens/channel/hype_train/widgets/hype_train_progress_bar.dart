@@ -9,8 +9,8 @@ import 'package:onset/screens/channel/hype_train/widgets/hype_train_palette.dart
 /// It animates to [percent] in [duration] (a `fillTo` step).
 ///
 /// ONSET's level colours (board CadeauxHypeTrain): a new level's colour
-/// morphs in over [morph] (600 ms, 200 ms with reduced motion); after a level
-/// up the bar starts again from 0 rather than draining back; the level 6+
+/// morphs in over [morph] (600 ms, 200 ms with reduced motion); on a higher
+/// [level] the bar starts again from 0 rather than draining back; the level 6+
 /// gradient flows (4 s a period) unless [animateSheen] is off.
 class HypeTrainProgressBar extends StatefulWidget {
   const HypeTrainProgressBar({
@@ -21,6 +21,7 @@ class HypeTrainProgressBar extends StatefulWidget {
     this.morph = morphDuration,
     this.animateSheen = true,
     this.edge,
+    this.level,
   });
 
   final int percent;
@@ -38,6 +39,9 @@ class HypeTrainProgressBar extends StatefulWidget {
   /// Receives the drawn fill (0–1) on every frame, for text that turns at
   /// the fill's edge.
   final ValueNotifier<double>? edge;
+
+  /// The level the bar fills: a higher one starts again from 0.
+  final int? level;
 
   static const morphDuration = Duration(milliseconds: 600);
   static const reducedMorph = Duration(milliseconds: 200);
@@ -114,7 +118,11 @@ class HypeTrainProgressBarState extends State<HypeTrainProgressBar>
       return;
     }
     // A level up: the new level fills up from nothing.
-    if (widget.percent < oldWidget.percent) _controller.value = 0;
+    final oldLevel = oldWidget.level;
+    final level = widget.level;
+    if (oldLevel != null && level != null && level > oldLevel) {
+      _controller.value = 0;
+    }
     _controller.animateTo(
       target,
       duration: widget.duration,

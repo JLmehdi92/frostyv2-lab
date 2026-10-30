@@ -27,6 +27,29 @@ class HtFillScope extends SingleChildRenderObjectWidget {
     ..textDirection = Directionality.of(context);
 }
 
+/// A fill that does not move (a pill redrawn with each value): equal to any
+/// other of the same value, so a rebuild with the same fill repaints nothing.
+@immutable
+class HtStillFraction implements ValueListenable<double> {
+  const HtStillFraction(this.value);
+
+  @override
+  final double value;
+
+  @override
+  void addListener(VoidCallback listener) {}
+
+  @override
+  void removeListener(VoidCallback listener) {}
+
+  @override
+  bool operator ==(Object other) =>
+      other is HtStillFraction && other.value == value;
+
+  @override
+  int get hashCode => value.hashCode;
+}
+
 /// The render object of [HtFillScope].
 class RenderHtFillScope extends RenderProxyBox {
   RenderHtFillScope({

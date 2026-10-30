@@ -270,6 +270,7 @@ class _HypeTrainBannerState extends State<HypeTrainBanner> {
                               morph: morph,
                               animateSheen: !store.reduceMotion,
                               edge: _edge,
+                              level: level,
                             ),
                           ),
                         ),

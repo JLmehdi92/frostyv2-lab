@@ -19,6 +19,7 @@ Future<void> pumpBar(
   TextDirection direction = TextDirection.ltr,
   Duration morph = HypeTrainProgressBar.morphDuration,
   ValueNotifier<double>? edge,
+  int? level,
 }) => tester.pumpWidget(
   Directionality(
     textDirection: direction,
@@ -32,6 +33,7 @@ Future<void> pumpBar(
           duration: duration,
           morph: morph,
           edge: edge,
+          level: level,
           palette:
               palette ??
               HtPalette.of(HtStyle.regular, const ColorScheme.light()),
@@ -135,11 +137,9 @@ void main() {
     HypeTrainProgressBarState state(WidgetTester tester) => tester
         .state<HypeTrainProgressBarState>(find.byType(HypeTrainProgressBar));
 
-    testWidgets('a lower percentage restarts from 0 (a level up)', (
-      tester,
-    ) async {
-      await pumpBar(tester, 100, palette: level(2));
-      await pumpBar(tester, 20, palette: level(3));
+    testWidgets('a new level restarts from 0', (tester) async {
+      await pumpBar(tester, 100, palette: level(2), level: 2);
+      await pumpBar(tester, 20, palette: level(3), level: 3);
       await tester.pump(const Duration(milliseconds: 1));
       expect(state(tester).value, lessThan(0.05));
       await tester.pump(const Duration(milliseconds: 100));
@@ -147,6 +147,17 @@ void main() {
       expect(mid, inExclusiveRange(0.05, 0.2));
       await tester.pump(const Duration(milliseconds: 100));
       expect(state(tester).value, closeTo(0.2, 0.001));
+    });
+
+    testWidgets('a drop within one level drains back, from where it was', (
+      tester,
+    ) async {
+      await pumpBar(tester, 62, palette: level(2), level: 2);
+      await pumpBar(tester, 58, palette: level(2), level: 2);
+      await tester.pump(const Duration(milliseconds: 1));
+      expect(state(tester).value, greaterThan(0.58));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(state(tester).value, closeTo(0.58, 0.001));
     });
 
     testWidgets("a new level's colour morphs in over 600 ms", (tester) async {

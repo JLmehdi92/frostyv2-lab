@@ -82,9 +82,7 @@ class HtPillShell extends StatelessWidget {
                   child: SizedBox(
                     height: HtDims.videoPill,
                     child: HtFillScope(
-                      fraction: AlwaysStoppedAnimation(
-                        fraction.clamp(0.0, 1.0),
-                      ),
+                      fraction: HtStillFraction(fraction.clamp(0.0, 1.0)),
                       child: Stack(
                         fit: StackFit.passthrough,
                         children: [
