@@ -1504,15 +1504,30 @@ void main() {
     await close(tester);
   });
 
-  testWidgets('after an update, the bundled (empty) notes open nothing', (
-    tester,
-  ) async {
-    SharedPreferences.setMockInitialValues({'last_shown_version': '0.9.0'});
+  testWidgets('a later launch of the same version with the bundled notes '
+      'opens nothing', (tester) async {
+    SharedPreferences.setMockInitialValues({'last_shown_version': '1.0.0'});
     bundledNotes();
     await pump(tester);
     for (var i = 0; i < 10; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
+    expect(find.byType(ReleaseNotes), findsNothing);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('last_shown_version'), '1.0.0');
+    await close(tester);
+  });
+
+  testWidgets('after an update to 1.0.0, the bundled notes open its entry as '
+      'just updated, and Got it closes them', (tester) async {
+    SharedPreferences.setMockInitialValues({'last_shown_version': '0.9.0'});
+    bundledNotes();
+    await pump(tester);
+    expect(find.byType(ReleaseNotes), findsOneWidget);
+    expect(find.text('Updated to 1.0.0'), findsOneWidget);
+    expect(find.textContaining('You were on'), findsOneWidget);
+    await tester.tap(find.text('Got it'));
+    await tester.pumpAndSettle();
     expect(find.byType(ReleaseNotes), findsNothing);
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString('last_shown_version'), '1.0.0');

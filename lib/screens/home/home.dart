@@ -191,7 +191,11 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
       context,
       MaterialPageRoute(
         settings: const RouteSettings(name: ReleaseNotes.routeName),
-        builder: (context) => const ReleaseNotes(),
+        // Opened by itself: "Updated to <current>", "You were on <stored>".
+        builder: (context) => ReleaseNotes(
+          updatedTo: currentVersion,
+          updatedFrom: storedVersion,
+        ),
       ),
     ).then((_) => prefs.setString('last_shown_version', currentVersion));
   }

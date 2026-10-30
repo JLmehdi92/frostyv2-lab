@@ -36,6 +36,10 @@ enum SettingsGlyphKind {
   error,
   reconnect,
   trash,
+  sparkle,
+  trendUp,
+  wrench,
+  list,
 }
 
 /// The board's elements of each glyph: path data, `c:cx,cy,r` circles and
@@ -87,6 +91,21 @@ const Map<SettingsGlyphKind, List<String>> _shapes = {
   ],
   SettingsGlyphKind.lock: ['r:5,11,14,9,2', 'M8 11V8a4 4 0 0 1 8 0v3'],
   SettingsGlyphKind.check: ['M5 12.5l4.5 4.5L19 7.5'],
+  // Release notes' sections (board NotesMiseAJour): New, Improvements,
+  // Fixes, and any other section.
+  SettingsGlyphKind.sparkle: [
+    'M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z',
+    'M19 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z',
+  ],
+  SettingsGlyphKind.trendUp: ['M3 17l6-6 4 4 8-8', 'M15 7h6v6'],
+  SettingsGlyphKind.wrench: [
+    'M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 '
+        '7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z',
+  ],
+  SettingsGlyphKind.list: [
+    'M9 6h11M9 12h11M9 18h11',
+    'M4.5 6h.01M4.5 12h.01M4.5 18h.01',
+  ],
   SettingsGlyphKind.dice: [
     'r:4,4,16,16,3.5',
     'c:9,9,1.3',

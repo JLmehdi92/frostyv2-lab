@@ -157,9 +157,31 @@ A big update.
     });
   });
 
-  test('the bundled release notes have no entries yet', () {
+  test('the bundled release notes hold the 1.0.0 entry', () {
     final bundled = File('assets/release-notes.md').readAsStringSync();
-    expect(parseReleaseNotes(bundled).whereType<ReleaseVersion>(), isEmpty);
+    // The comment for writers stays first.
+    expect(bundled.trimLeft(), startsWith('<!--'));
+    final entries = parseReleaseEntries(bundled).entries;
+    expect(entries, hasLength(1));
+    final entry = entries.single;
+    expect(entry.version, '1.0.0');
+    expect(entry.label, 'v1.0.0');
+    expect(entry.date, matches(RegExp(r'^[A-Z][a-z]+ \d{1,2}, \d{4}$')));
+    expect(entry.sections, isNotEmpty);
+    expect(entry.summary, isNotEmpty);
+    // Never on a first launch, whatever the notes say.
+    expect(
+      shouldShowReleaseNotes(lastShown: null, current: '1.0.0', notes: bundled),
+      isFalse,
+    );
+    expect(
+      shouldShowReleaseNotes(
+        lastShown: '1.0.0',
+        current: '1.0.0',
+        notes: bundled,
+      ),
+      isFalse,
+    );
   });
 
   // On a device, rootBundle refuses a 0-byte asset ("The asset does not
@@ -168,9 +190,12 @@ A big update.
     final data = await rootBundle.load('assets/release-notes.md');
     expect(data.lengthInBytes, greaterThan(0));
     final text = await rootBundle.loadString('assets/release-notes.md');
-    expect(parseReleaseNotes(text), isEmpty);
+    expect(parseReleaseEntries(text).entries, hasLength(1));
     expect(await ReleaseNotes.read(), text);
-    expect(parseReleaseNotes(await ReleaseNotes.load()), isEmpty);
+    expect(
+      parseReleaseEntries(await ReleaseNotes.load()).entries,
+      hasLength(1),
+    );
   });
 
   test('an HTML comment line is not a block', () {
@@ -194,6 +219,114 @@ A big update.
       ReleaseNotes.debugSource = () => throw StateError('no asset');
       expect(await ReleaseNotes.read(), isNull);
       expect(await ReleaseNotes.load(), '');
+    });
+  });
+
+  group('parseReleaseEntries', () {
+    const notes = '''
+Read this first.
+
+## v1.1.0
+
+November 12, 2026
+
+What changed.
+
+### New
+
+- One.
+- **Two** with `code`.
+  - Under two (not counted).
+
+### Bug Fixes
+
+- [iOS] A fix.
+
+### Odds and ends
+
+- Something else.
+- And another.
+
+---
+
+## 1.0.0
+
+- Written before any section.
+
+#### See all release notes at [x](https://x.dev)
+''';
+
+    test('versions, notes, sections and their points', () {
+      final data = parseReleaseEntries(notes);
+      expect(
+        [for (final b in data.preamble) (b as ReleaseParagraph).text],
+        ['Read this first.'],
+      );
+      expect(data.entries, hasLength(2));
+      final latest = data.entries.first;
+      expect(latest.version, '1.1.0');
+      expect(latest.label, 'v1.1.0');
+      expect(latest.name, 'ONSET 1.1.0');
+      expect(latest.date, 'November 12, 2026');
+      expect(latest.notes, ['What changed.']);
+      expect(
+        [for (final s in latest.sections) (s.title, s.kind, s.count)],
+        [
+          ('New', ReleaseSectionKind.added, 2),
+          ('Bug Fixes', ReleaseSectionKind.fixed, 1),
+          ('Odds and ends', ReleaseSectionKind.other, 2),
+        ],
+      );
+      expect(latest.sections.first.items, hasLength(3));
+      expect(latest.summary, '2 new · 1 fix · 2 changes');
+
+      final first = data.entries.last;
+      expect((first.version, first.date), ('1.0.0', null));
+      expect(first.sections.single.title, isNull);
+      expect(first.sections.single.items.last, isA<ReleaseParagraph>());
+      expect(first.summary, '1 change');
+    });
+
+    test('section names decide the kind, whatever their case', () {
+      ReleaseSectionKind kind(String title) => parseReleaseEntries(
+        '## v1.0.0\n\n### $title\n\n- x\n',
+      ).entries.single.sections.single.kind;
+      expect(kind('NEW'), ReleaseSectionKind.added);
+      expect(kind('Features'), ReleaseSectionKind.added);
+      expect(kind('Improvements'), ReleaseSectionKind.improved);
+      expect(kind('Changed'), ReleaseSectionKind.improved);
+      expect(kind('Fixes'), ReleaseSectionKind.fixed);
+      expect(kind('bug fixes'), ReleaseSectionKind.fixed);
+      expect(kind('Misc'), ReleaseSectionKind.other);
+      expect(kind('Bugfixes'), ReleaseSectionKind.fixed);
+      expect(kind('Fixes for the new player'), ReleaseSectionKind.fixed);
+      expect(kind('Breaking changes'), ReleaseSectionKind.other);
+    });
+
+    test('counts read one and many', () {
+      final entry = parseReleaseEntries('''
+## v2.0.0
+
+### New
+
+- a
+
+### Improvements
+
+- b
+- c
+
+### Fixes
+
+- d
+- e
+''').entries.single;
+      expect(entry.summary, '1 new · 2 improvements · 2 fixes');
+    });
+
+    test('nothing to read: no entries', () {
+      expect(parseReleaseEntries('').entries, isEmpty);
+      expect(parseReleaseEntries('<!-- only a note -->\n').entries, isEmpty);
     });
   });
 }
