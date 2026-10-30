@@ -135,7 +135,12 @@ abstract class _SettingsStoreBase with Store {
   static const defaultBackgroundAudio = false;
   static const defaultPlayerEngine = PlayerEngine.ivs;
   static const defaultLiveCatchUpMode = LiveCatchUpMode.speedUp;
-  static const defaultBufferProfile = BufferProfile.standard;
+
+  /// Ultra for an install that never saved a profile: every launch saves the
+  /// whole store, so an install that ran before keeps the profile it has,
+  /// picked or not (the two cannot be told apart).
+  static const defaultBufferProfile = BufferProfile.ultra;
+  static const defaultAutoLatency = true;
   static const defaultVodAutoplay = VodAutoplay.always;
 
   // Overlay defaults
@@ -218,13 +223,21 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var liveCatchUpMode = defaultLiveCatchUpMode;
 
-  /// IVS low-latency buffer targets.
+  /// IVS low-latency buffer targets. An unknown saved value reads as
+  /// Standard, the profile that rebuffers least.
   @JsonKey(
     defaultValue: defaultBufferProfile,
     unknownEnumValue: BufferProfile.standard,
   )
   @observable
   var bufferProfile = defaultBufferProfile;
+
+  /// Keeps a live IVS stream close to live by playing it very slightly
+  /// faster when it drifts behind, without ever reloading it; with Ultra,
+  /// repeated stalls make the next streams use Standard for a while.
+  @JsonKey(defaultValue: defaultAutoLatency)
+  @observable
+  var autoLatency = defaultAutoLatency;
 
   /// When the next video starts by itself at the end of a VOD (Twitch's
   /// "Video Autoplaying").
@@ -264,6 +277,7 @@ abstract class _SettingsStoreBase with Store {
     playerEngine = defaultPlayerEngine;
     liveCatchUpMode = defaultLiveCatchUpMode;
     bufferProfile = defaultBufferProfile;
+    autoLatency = defaultAutoLatency;
     vodAutoplay = defaultVodAutoplay;
 
     showOverlay = defaultShowOverlay;

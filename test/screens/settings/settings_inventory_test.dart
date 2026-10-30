@@ -183,9 +183,11 @@ void main() {
     await tester.tap(find.text('Jump to live'));
     await tester.pumpAndSettle();
     expect(settings.liveCatchUpMode, LiveCatchUpMode.jumpToLive);
-    await tester.tap(find.text('Ultra'));
-    await tester.pumpAndSettle();
+    // Ultra is the default: the other choice must stick.
     expect(settings.bufferProfile, BufferProfile.ultra);
+    await tester.tap(find.text('Standard'));
+    await tester.pumpAndSettle();
+    expect(settings.bufferProfile, BufferProfile.standard);
     expect(find.text('Twitch web token (2K)'), findsOneWidget);
 
     // The WebView fallback: IVS's own settings go.
@@ -379,9 +381,7 @@ void main() {
     expect(find.text('All settings reset'), findsOneWidget);
   });
 
-  testWidgets('Other: no source code row without a repository', (
-    tester,
-  ) async {
+  testWidgets('Other: no source code row without a repository', (tester) async {
     await pumpSettings(
       tester,
       OtherSettings(settingsStore: settings, sourceUrl: ''),

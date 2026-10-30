@@ -84,7 +84,8 @@ SettingsStore _$SettingsStoreFromJson(
         json['bufferProfile'],
         unknownValue: BufferProfile.standard,
       ) ??
-      BufferProfile.standard
+      BufferProfile.ultra
+  ..autoLatency = json['autoLatency'] as bool? ?? true
   ..vodAutoplay =
       $enumDecodeNullable(
         _$VodAutoplayEnumMap,
@@ -207,6 +208,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'playerEngine': _$PlayerEngineEnumMap[instance.playerEngine]!,
   'liveCatchUpMode': _$LiveCatchUpModeEnumMap[instance.liveCatchUpMode]!,
   'bufferProfile': _$BufferProfileEnumMap[instance.bufferProfile]!,
+  'autoLatency': instance.autoLatency,
   'vodAutoplay': _$VodAutoplayEnumMap[instance.vodAutoplay]!,
   'showOverlay': instance.showOverlay,
   'toggleableOverlay': instance.toggleableOverlay,
@@ -791,6 +793,24 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   set bufferProfile(BufferProfile value) {
     _$bufferProfileAtom.reportWrite(value, super.bufferProfile, () {
       super.bufferProfile = value;
+    });
+  }
+
+  late final _$autoLatencyAtom = Atom(
+    name: '_SettingsStoreBase.autoLatency',
+    context: context,
+  );
+
+  @override
+  bool get autoLatency {
+    _$autoLatencyAtom.reportRead();
+    return super.autoLatency;
+  }
+
+  @override
+  set autoLatency(bool value) {
+    _$autoLatencyAtom.reportWrite(value, super.autoLatency, () {
+      super.autoLatency = value;
     });
   }
 
@@ -1936,6 +1956,7 @@ backgroundAudio: ${backgroundAudio},
 playerEngine: ${playerEngine},
 liveCatchUpMode: ${liveCatchUpMode},
 bufferProfile: ${bufferProfile},
+autoLatency: ${autoLatency},
 vodAutoplay: ${vodAutoplay},
 showOverlay: ${showOverlay},
 toggleableOverlay: ${toggleableOverlay},

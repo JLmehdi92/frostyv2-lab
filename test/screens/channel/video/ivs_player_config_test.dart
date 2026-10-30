@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/screens/channel/video/buffer_fallback.dart';
 import 'package:onset/screens/channel/video/ivs_player_config.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 
@@ -52,12 +53,163 @@ void main() {
     test('fromSettings reads both settings', () {
       final settings = SettingsStore.fromJson({})
         ..liveCatchUpMode = LiveCatchUpMode.jumpToLive
-        ..bufferProfile = BufferProfile.ultra;
+        ..bufferProfile = BufferProfile.ultra
+        ..autoLatency = false;
 
-      final config = IvsPlayerConfig.fromSettings(settings);
+      final config = IvsPlayerConfig.fromSettings(
+        settings,
+        fallback: BufferFallback(),
+      );
 
       expect(config.catchUp, LiveCatchUpMode.jumpToLive);
       expect(config.buffer, BufferProfile.ultra);
+      expect(config.autoLatency, isFalse);
+    });
+
+    group('auto latency', () {
+      final everyCombination = [
+        for (final catchUp in LiveCatchUpMode.values)
+          for (final buffer in BufferProfile.values) (catchUp, buffer),
+      ];
+
+      test('off leaves the create args exactly as before', () {
+        final expected = {
+          (LiveCatchUpMode.speedUp, BufferProfile.standard): {
+            'speedUpCatchUp': true,
+            'rebufferToLive': false,
+            'initialBufferMs': 100,
+          },
+          (LiveCatchUpMode.speedUp, BufferProfile.ultra): {
+            'speedUpCatchUp': true,
+            'rebufferToLive': false,
+            'initialBufferMs': 100,
+            'llMinBufferSec': 0.5,
+            'llMinBufferCeilingSec': 3.0,
+          },
+          (LiveCatchUpMode.jumpToLive, BufferProfile.standard): {
+            'speedUpCatchUp': false,
+            'rebufferToLive': true,
+            'initialBufferMs': 100,
+          },
+          (LiveCatchUpMode.jumpToLive, BufferProfile.ultra): {
+            'speedUpCatchUp': false,
+            'rebufferToLive': true,
+            'initialBufferMs': 100,
+            'llMinBufferSec': 0.5,
+            'llMinBufferCeilingSec': 3.0,
+          },
+        };
+        for (final (catchUp, buffer) in everyCombination) {
+          final settings = SettingsStore.fromJson({})
+            ..liveCatchUpMode = catchUp
+            ..bufferProfile = buffer
+            ..autoLatency = false;
+          expect(
+            IvsPlayerConfig.fromSettings(
+              settings,
+              fallback: BufferFallback(),
+            ).toCreateArgs(),
+            expected[(catchUp, buffer)],
+            reason: '$catchUp $buffer',
+          );
+        }
+      });
+
+      test('takes the rate over from the SDK speed-up', () {
+        // The SDK speed-up resets any other rate on every buffer update.
+        final args = const IvsPlayerConfig(
+          catchUp: LiveCatchUpMode.speedUp,
+          buffer: BufferProfile.ultra,
+          autoLatency: true,
+        ).toCreateArgs();
+
+        expect(args['speedUpCatchUp'], isFalse);
+        expect(args['rebufferToLive'], isFalse);
+        expect(args['llMinBufferSec'], 0.5);
+      });
+
+      test('leaves jump to live as it is', () {
+        expect(
+          const IvsPlayerConfig(
+            catchUp: LiveCatchUpMode.jumpToLive,
+            buffer: BufferProfile.standard,
+            autoLatency: true,
+          ).toCreateArgs(),
+          const IvsPlayerConfig(
+            catchUp: LiveCatchUpMode.jumpToLive,
+            buffer: BufferProfile.standard,
+          ).toCreateArgs(),
+        );
+      });
+
+      test('ultra falls back to standard after repeated stalls', () {
+        var now = DateTime(2026, 10, 30, 20);
+        final fallback = BufferFallback(now: () => now)
+          ..onUltraRebuffer()
+          ..onUltraRebuffer();
+        final settings = SettingsStore.fromJson({});
+
+        final config = IvsPlayerConfig.fromSettings(
+          settings,
+          fallback: fallback,
+        );
+
+        expect(config.buffer, BufferProfile.standard);
+        expect(config.bufferFallback, isTrue);
+        expect(config.toCreateArgs().containsKey('llMinBufferSec'), isFalse);
+        expect(config.label, 'Auto · Standard (Ultra stalled)');
+        expect(settings.bufferProfile, BufferProfile.ultra, reason: 'kept');
+
+        now = now.add(BufferFallback.holdFor);
+        expect(
+          IvsPlayerConfig.fromSettings(settings, fallback: fallback).buffer,
+          BufferProfile.ultra,
+        );
+      });
+
+      test('the fallback only applies with auto latency on', () {
+        final fallback = BufferFallback()
+          ..onUltraRebuffer()
+          ..onUltraRebuffer();
+        final settings = SettingsStore.fromJson({})..autoLatency = false;
+
+        expect(
+          IvsPlayerConfig.fromSettings(settings, fallback: fallback).buffer,
+          BufferProfile.ultra,
+        );
+      });
+
+      test('a chosen standard stays standard', () {
+        final settings = SettingsStore.fromJson({})
+          ..bufferProfile = BufferProfile.standard;
+
+        final config = IvsPlayerConfig.fromSettings(
+          settings,
+          fallback: BufferFallback(),
+        );
+
+        expect(config.buffer, BufferProfile.standard);
+        expect(config.bufferFallback, isFalse);
+      });
+
+      test('the label says auto latency replaces the speed-up', () {
+        expect(
+          const IvsPlayerConfig(
+            catchUp: LiveCatchUpMode.speedUp,
+            buffer: BufferProfile.ultra,
+            autoLatency: true,
+          ).label,
+          'Auto · Ultra',
+        );
+        expect(
+          const IvsPlayerConfig(
+            catchUp: LiveCatchUpMode.jumpToLive,
+            buffer: BufferProfile.ultra,
+            autoLatency: true,
+          ).label,
+          'Jump to live + auto · Ultra',
+        );
+      });
     });
 
     test('describes the active mode for the stats panel', () {
@@ -82,10 +234,16 @@ void main() {
     expect(IvsPlayerConfig.vodCreateArgs, {'vod': true});
     for (final catchUp in LiveCatchUpMode.values) {
       for (final buffer in BufferProfile.values) {
-        expect(
-          IvsPlayerConfig(catchUp: catchUp, buffer: buffer).toCreateArgs(),
-          isNot(contains('vod')),
-        );
+        for (final autoLatency in [false, true]) {
+          expect(
+            IvsPlayerConfig(
+              catchUp: catchUp,
+              buffer: buffer,
+              autoLatency: autoLatency,
+            ).toCreateArgs(),
+            isNot(contains('vod')),
+          );
+        }
       }
     }
   });

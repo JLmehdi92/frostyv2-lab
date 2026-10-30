@@ -29,21 +29,52 @@ void main() {
       final store = SettingsStore.fromJson({});
 
       expect(store.liveCatchUpMode, LiveCatchUpMode.speedUp);
-      expect(store.bufferProfile, BufferProfile.standard);
+      expect(store.bufferProfile, BufferProfile.ultra);
+      expect(store.autoLatency, isTrue);
+    });
+
+    test('a buffer profile saved before Ultra became the default is kept', () {
+      // Every launch saves the whole store, so a saved value is the one the
+      // viewer had (picked, or the Standard default they kept): only an
+      // install that never saved one gets Ultra.
+      final standard = SettingsStore.fromJson({'bufferProfile': 'standard'});
+      final ultra = SettingsStore.fromJson({'bufferProfile': 'ultra'});
+
+      expect(standard.bufferProfile, BufferProfile.standard);
+      expect(ultra.bufferProfile, BufferProfile.ultra);
+      expect(
+        SettingsStore.fromJson(standard.toJson()).bufferProfile,
+        BufferProfile.standard,
+      );
+    });
+
+    test('auto latency is on for settings saved before it existed', () {
+      final store = SettingsStore.fromJson({
+        'bufferProfile': 'standard',
+        'liveCatchUpMode': 'speedUp',
+      });
+
+      expect(store.autoLatency, isTrue);
+    });
+
+    test('auto latency round-trips through JSON', () {
+      final store = SettingsStore.fromJson({})..autoLatency = false;
+
+      expect(SettingsStore.fromJson(store.toJson()).autoLatency, isFalse);
     });
 
     test('live catch-up and buffer profile round-trip through JSON', () {
       final store = SettingsStore.fromJson({})
         ..liveCatchUpMode = LiveCatchUpMode.jumpToLive
-        ..bufferProfile = BufferProfile.ultra;
+        ..bufferProfile = BufferProfile.standard;
 
       final restored = SettingsStore.fromJson(store.toJson());
 
       expect(restored.liveCatchUpMode, LiveCatchUpMode.jumpToLive);
-      expect(restored.bufferProfile, BufferProfile.ultra);
+      expect(restored.bufferProfile, BufferProfile.standard);
     });
 
-    test('unknown catch-up and buffer values fall back to defaults', () {
+    test('unknown catch-up and buffer values fall back to the safe ones', () {
       final store = SettingsStore.fromJson({
         'liveCatchUpMode': 'warp',
         'bufferProfile': 'ludicrous',
@@ -56,11 +87,13 @@ void main() {
     test('resetVideoSettings restores catch-up and buffer defaults', () {
       final store = SettingsStore.fromJson({})
         ..liveCatchUpMode = LiveCatchUpMode.jumpToLive
-        ..bufferProfile = BufferProfile.ultra
+        ..bufferProfile = BufferProfile.standard
+        ..autoLatency = false
         ..resetVideoSettings();
 
       expect(store.liveCatchUpMode, LiveCatchUpMode.speedUp);
-      expect(store.bufferProfile, BufferProfile.standard);
+      expect(store.bufferProfile, BufferProfile.ultra);
+      expect(store.autoLatency, isTrue);
     });
 
     test('catch-up and buffer names match their enums', () {

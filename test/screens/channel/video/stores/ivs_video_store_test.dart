@@ -125,6 +125,9 @@ void main() {
   });
 
   test('creates the native player then loads the usher url', () async {
+    settingsStore
+      ..autoLatency = false
+      ..bufferProfile = BufferProfile.standard;
     store = await createStore();
 
     final create = native.managerCalls.singleWhere((c) => c.method == 'create');
@@ -135,6 +138,19 @@ void main() {
       'initialBufferMs': 100,
     });
     expect(store.textureId, native.textureId);
+  });
+
+  test('by default opens on ultra with auto latency owning the rate', () async {
+    store = await createStore();
+
+    final create = native.managerCalls.singleWhere((c) => c.method == 'create');
+    expect((create.arguments as Map)['config'], {
+      'speedUpCatchUp': false,
+      'rebufferToLive': false,
+      'initialBufferMs': 100,
+      'llMinBufferSec': 0.5,
+      'llMinBufferCeilingSec': 3.0,
+    });
   });
 
   test(
@@ -173,6 +189,7 @@ void main() {
   });
 
   test('captures the player config when the stream is opened', () async {
+    settingsStore.bufferProfile = BufferProfile.standard;
     final s = IvsVideoStore(
       userLogin: 'streamer',
       userId: '123',
