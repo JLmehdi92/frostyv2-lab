@@ -370,8 +370,12 @@ portent les mêmes numéros que les points ci-dessous. Dans l'ordre :
     appli jamais connectée). Ouvrez **Parcourir**, une catégorie, la
     **Recherche**, puis le chat d'une chaîne : les émotes et badges Twitch
     doivent s'afficher, sans popup « Session expired ». Si rien ne s'affiche,
-    ouvrez l'adresse `/app-token` du point 5 pour voir si le Worker répond
-    (dépannage dans le guide).
+    ouvrez l'adresse `/app-token` du point 5 pour voir si le Worker répond,
+    et vérifiez que son `client_id` est bien celui d'**ONSET public** :
+    l'appli refuse un jeton de l'application de connexion « ONSET » (un
+    Worker réglé avec les identifiants d'ONSET exposerait les événements
+    privés des utilisateurs), et cette confusion se voit justement comme
+    « rien ne marche déconnecté » (dépannage dans le guide).
 11. **Supprimer l'ancienne application** : connecté avec votre compte Twitch
     **personnel**, <https://dev.twitch.tv/console/apps> → l'ancienne
     application ONSET → **Manage** → **Delete** (en bas) → confirmez. C'est
@@ -397,7 +401,8 @@ Limites, honnêtement :
 - L'adresse du Worker est publique (elle est dans l'APK), donc le jeton
   aussi. Avec « ONSET public », il lit des données publiques de Twitch et
   rien d'aucun utilisateur d'ONSET. Quelqu'un pourrait quand même le
-  **révoquer** (le Worker s'en aperçoit en 10 minutes au plus et en fabrique
+  **révoquer** (chaque copie du Worker s'en aperçoit en 10 minutes au plus,
+  sans rien écrire dans KV, et il en fabrique
   un autre, au plus une fois par minute : quelqu'un qui s'acharnerait
   priverait les utilisateurs déconnectés d'émotes, de badges et de
   Parcourir tant qu'il continue), **épuiser sa limite de débit** Twitch,

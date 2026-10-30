@@ -22,10 +22,11 @@ nobody's private data.
 - Everyone gets the same token. It is handed out while it has at least
   **7 days** left (Twitch's last about 58 days), so Twitch is asked for a new
   one only every seven weeks or so.
-- Every 10 minutes at most, the Worker asks Twitch whether the token still
-  works. Anyone can revoke a token they have, so if it was revoked the Worker
-  throws it away and mints another, **at most once a minute** for the whole
-  world (a revoke cannot make it hammer Twitch).
+- Every 10 minutes at most, each running copy of the Worker asks Twitch
+  whether the token still works. Anyone can revoke a token they have, so if
+  it was revoked the Worker stops serving it and mints another, **at most
+  once a minute** for the whole world (a revoke cannot make it hammer
+  Twitch).
 - The secret is only ever sent to Twitch. It is never shown, returned or
   logged.
 
@@ -192,7 +193,11 @@ it, and sees "Your Twitch session has ended. Log in again from Settings."
 Log out (or use a device that never logged in). Open **Browse**, a category,
 **Search**, then a channel's chat: Twitch emotes and badges must show, and no
 "Session expired" pop-up may appear. If nothing shows, open the
-`/app-token` address of step 5 to see whether the Worker answers.
+`/app-token` address of step 5 to see whether the Worker answers, and check
+that its `client_id` is **ONSET public**'s: the app refuses a token of the
+login application "ONSET" (a Worker set up with ONSET's credentials would
+expose users' private events), so a mix-up there looks like logged-out
+features not working.
 
 ## Step 11. Delete the old login application
 
@@ -283,8 +288,10 @@ the script revokes before it ends. Nothing is saved or sent anywhere else.
   rule** on the Worker's route blocks floods before they reach the Worker and
   before they count as requests.
 - **KV writes.** The free plan allows 1,000 KV writes a day. The Worker
-  writes about once every 10 minutes at most (each check of the token), plus
-  one per mint: well under it.
+  writes only when it mints a token (two writes: the token and the time of
+  the mint): once every seven weeks or so, plus once per revoked token, at
+  most once a minute. Checking the token never writes, however many copies
+  of the Worker run.
 - **If the Worker is down**, the app still starts, logging in still works, and
   logged-out features that need the token fail quietly (no login pop-ups).
   The app asks again at most once a minute, when a request is refused.
@@ -303,6 +310,10 @@ Worker → **Logs** (enable them if asked) and reload `/app-token`:
 - `the cached token was refused by Twitch, minting another`: someone revoked
   the token, or it expired; the Worker is already replacing it. If a new one
   was minted less than a minute ago, wait a minute.
+
+If `/app-token` works but logged-out features still don't, check that the
+Worker's two secrets are **ONSET public**'s (step 4), not ONSET's: the app
+refuses a token of the login application (a debug build's log says so).
 
 The logs never contain the secret.
 
