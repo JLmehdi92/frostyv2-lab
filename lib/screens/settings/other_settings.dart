@@ -98,8 +98,8 @@ List<Widget> otherSettingsGroups(
           builder: (_) => SettingsListSwitch(
             title: 'Share crash logs and analytics',
             subtitle: const Text(
-              'Help improve ONSET by sending anonymous crash logs and '
-              'analytics through Firebase.',
+              'Help improve ONSET by sending crash logs and analytics '
+              'through Firebase, without your Twitch account or channels.',
             ),
             value: settingsStore.shareCrashLogsAndAnalytics,
             onChanged: (newValue) {

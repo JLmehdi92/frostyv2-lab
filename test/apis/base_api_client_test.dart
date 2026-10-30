@@ -480,4 +480,37 @@ void main() {
       expect(exception.statusCode, 401);
     });
   });
+
+  group('crashReasonFor', () {
+    test('names the service, never who or what was asked for', () {
+      // A path can name a channel (recent messages, usher) or carry a
+      // user id (7TV, BTTV, FFZ); a query can name anyone.
+      for (final (url, reason) in [
+        (
+          'https://recent-messages.robotty.de/api/v2/recent-messages/somelogin',
+          'GET https://recent-messages.robotty.de',
+        ),
+        (
+          'https://usher.ttvnw.net/api/channel/hls/somelogin.m3u8?token=t',
+          'GET https://usher.ttvnw.net',
+        ),
+        ('https://7tv.io/v3/users/twitch/12345', 'GET https://7tv.io'),
+        (
+          'https://api.twitch.tv/helix/users?login=somelogin',
+          'GET https://api.twitch.tv',
+        ),
+      ]) {
+        expect(
+          crashReasonFor(RequestOptions(path: url, method: 'GET')),
+          reason,
+        );
+      }
+      expect(
+        crashReasonFor(
+          RequestOptions(path: '/chat/color', baseUrl: 'https://api.test.com'),
+        ),
+        'GET https://api.test.com',
+      );
+    });
+  });
 }

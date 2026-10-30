@@ -7,6 +7,12 @@ typedef JsonList = List<dynamic>;
 typedef QueryParams = Map<String, dynamic>;
 typedef ApiHeaders = Map<String, String>;
 
+/// The crash report reason of a failed [request]: its method and service
+/// only. Its path can name a channel or carry a user id, its query can name
+/// anyone (whisper partners, chatters).
+String crashReasonFor(RequestOptions request) =>
+    '${request.method} ${request.uri.origin}';
+
 /// Custom API exceptions for better error handling
 class ApiException implements Exception {
   final String message;
@@ -220,11 +226,7 @@ abstract class BaseApiClient {
       Telemetry.recordError(
         exception,
         error.stackTrace,
-        // No query: it can name people (whisper partners, chatters).
-        reason:
-            '${error.requestOptions.method} '
-            '${error.requestOptions.uri.origin}'
-            '${error.requestOptions.uri.path}',
+        reason: crashReasonFor(error.requestOptions),
       );
     }
 

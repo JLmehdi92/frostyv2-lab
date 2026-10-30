@@ -201,8 +201,9 @@ class _OnboardingSetupStepState extends State<OnboardingSetupStep> {
                         title: 'Share crash logs and analytics',
                         accent: accent,
                         detail: const Text(
-                          'Help improve ONSET by sending anonymous crash logs '
-                          'and analytics through Firebase.',
+                          'Help improve ONSET by sending crash logs and '
+                          'analytics through Firebase, without your Twitch '
+                          'account or channels.',
                           style: OnboardingType.rowDetail,
                         ),
                         value: settings.shareCrashLogsAndAnalytics,

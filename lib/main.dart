@@ -303,10 +303,8 @@ void main() async {
     credentials: () => authStore.token,
   );
 
+  // Whether, never who: crash reports carry no user id.
   Telemetry.setCustomKey('is_logged_in', authStore.isLoggedIn);
-  if (authStore.isLoggedIn && authStore.user.details != null) {
-    Telemetry.setUserIdentifier(authStore.user.details!.id);
-  }
 
   await markReady;
   runApp(

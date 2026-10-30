@@ -1305,7 +1305,7 @@ abstract class ChatStoreBase with Store {
         Telemetry.recordError(
           error,
           StackTrace.current,
-          reason: '7TV WebSocket error, channel=$channelName',
+          reason: '7TV WebSocket error',
         );
       },
       // Held events stay: each is whole and releases on schedule, in order.
@@ -1317,8 +1317,6 @@ abstract class ChatStoreBase with Store {
 
   @action
   Future<void> connectToChat({bool isReconnect = false}) async {
-    Telemetry.setCustomKey('channel', channelName);
-
     // Fetch assets first so they're available for all messages
     getAssets().catchError(
       (e) => debugPrint('Failed to fetch chat assets: $e'),
@@ -1363,7 +1361,7 @@ abstract class ChatStoreBase with Store {
         Telemetry.recordError(
           error,
           StackTrace.current,
-          reason: 'IRC WebSocket error, channel=$channelName',
+          reason: 'IRC WebSocket error',
         );
       },
       onDone: () async {
@@ -1381,7 +1379,7 @@ abstract class ChatStoreBase with Store {
 
         if (_retries >= _maxRetries) {
           Telemetry.log(
-            'WebSocket reconnection failed after $_maxRetries attempts, channel=$channelName',
+            'WebSocket reconnection failed after $_maxRetries attempts',
           );
           // Remove the reconnect message before showing final disconnect notice
           if (_reconnectMessage != null) {
@@ -1408,9 +1406,7 @@ abstract class ChatStoreBase with Store {
 
         // Increment the retry count.
         _retries++;
-        Telemetry.log(
-          'WebSocket reconnecting: attempt $_retries/$_maxRetries, channel=$channelName',
-        );
+        Telemetry.log('WebSocket reconnecting: attempt $_retries/$_maxRetries');
 
         // Start exponential backoff only after first failed attempt (capped at 8s).
         // First retry is immediate to catch brief network hiccups.

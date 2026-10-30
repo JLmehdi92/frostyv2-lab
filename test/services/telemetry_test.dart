@@ -122,7 +122,6 @@ void main() {
       );
       expect(() => Telemetry.log('message'), returnsNormally);
       expect(() => Telemetry.setCustomKey('key', true), returnsNormally);
-      expect(() => Telemetry.setUserIdentifier('id'), returnsNormally);
       expect(() => Telemetry.setCollectionEnabled(true), returnsNormally);
       expect(() => Telemetry.setCollectionEnabled(false), returnsNormally);
       expect(Telemetry.newHttpMetric('https://example.com/a', 'GET'), isNull);

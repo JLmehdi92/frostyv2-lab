@@ -975,7 +975,6 @@ abstract class AuthBase with Store {
         _signedInWith = token;
         _error = null;
         Telemetry.setCustomKey('is_logged_in', true);
-        Telemetry.setUserIdentifier(details.id);
         _stopReconnectLoop();
         if (switching && _isAndroid) unawaited(harvestTwitchWebToken());
         if (check.isForeign) await _noticeForeignToken(details.id);
@@ -1049,7 +1048,6 @@ abstract class AuthBase with Store {
       _isLoggedIn = false;
       _signedInWith = null;
       Telemetry.setCustomKey('is_logged_in', false);
-      Telemetry.setUserIdentifier('');
 
       debugPrint('Successfully logged out');
     } catch (e) {

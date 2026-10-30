@@ -197,10 +197,6 @@ abstract final class Telemetry {
     () => FirebaseCrashlytics.instance.setCustomKey(key, value),
   );
 
-  static void setUserIdentifier(String identifier) => _guardCollecting(
-    () => FirebaseCrashlytics.instance.setUserIdentifier(identifier),
-  );
-
   /// Turns crash reports, analytics and performance traces on or off. Off,
   /// the crash reports Crashlytics kept on the device are deleted unsent.
   static void setCollectionEnabled(bool enabled) {
