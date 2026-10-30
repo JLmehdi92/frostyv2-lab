@@ -935,10 +935,10 @@ abstract class AuthBase with Store {
   }
 
   /// A new app token from the token proxy, checked with Twitch and stored
-  /// with its app ([clientId] null when it is this app's) for the next
-  /// launches; null when there is none to be had (no proxy in this build,
-  /// the proxy or the network down, a token Twitch refuses or that is not
-  /// the app the proxy named). The app then runs without one: the
+  /// with its app for the next launches; null when there is none to be had
+  /// (no proxy in this build, the proxy or the network down, a token Twitch
+  /// refuses, one of the login application or of a user, or one that is not
+  /// of the app the proxy named). The app then runs without one: the
   /// logged-out features that need Helix fail quietly, everything else
   /// works, logging in included, so this is not an [error].
   Future<({String token, String? clientId})?> _fetchAppToken() async {
@@ -952,22 +952,27 @@ abstract class AuthBase with Store {
       debugPrint('No app token: $e');
       return null;
     }
-    final String? client;
-    if (check.isValid) {
-      client = null;
-    } else if (check.isForeign && check.clientId == fresh.clientId) {
-      client = fresh.clientId;
-    } else {
-      debugPrint('No app token: Twitch refuses the one the proxy sent.');
+    // Only an app token of the proxy's own application: one of the login
+    // application (a Worker set up with its credentials) could subscribe to
+    // the private events of everyone who logged in, and a user's token is
+    // someone's account. Neither is used, whatever Twitch says of it.
+    final String? refusal = check.isInvalid
+        ? 'Twitch refuses it'
+        : check.isValid
+        ? "it is the login application's (check the Worker's credentials)"
+        : check.hasUser
+        ? "it is a user's token"
+        : check.clientId != fresh.clientId
+        ? 'it is not the application the proxy named'
+        : null;
+    if (refusal != null) {
+      debugPrint('No app token from the proxy: $refusal.');
       return null;
     }
+    final String client = fresh.clientId;
     try {
       await _storage.write(key: _defaultTokenKey, value: fresh.token);
-      if (client == null) {
-        await _storage.delete(key: _defaultTokenClientIdKey);
-      } else {
-        await _storage.write(key: _defaultTokenClientIdKey, value: client);
-      }
+      await _storage.write(key: _defaultTokenClientIdKey, value: client);
     } catch (e) {
       debugPrint('Saving the app token failed: ${e.runtimeType}');
     }

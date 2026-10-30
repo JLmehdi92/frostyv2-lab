@@ -135,6 +135,35 @@ void main() {
       expect(store.error, isNull);
     });
 
+    test('a token of the login application is refused: the Worker was '
+        'set up with the wrong credentials', () async {
+      twitch.tokens['loginapptoken0123456789abcdef'] = (
+        clientId: app,
+        userId: '',
+      );
+      proxyHands('loginapptoken0123456789abcdef');
+
+      await store.init();
+
+      expect(store.token, isNull);
+      expect(
+        await const FlutterSecureStorage().read(key: 'default_token'),
+        isNull,
+      );
+    });
+
+    test("a user's token from the proxy is refused", () async {
+      twitch.tokens['someusertoken0123456789abcdef'] = (
+        clientId: publicApp,
+        userId: '42',
+      );
+      proxyHands('someusertoken0123456789abcdef');
+
+      await store.init();
+
+      expect(store.token, isNull);
+    });
+
     test('a token of another app than the proxy says is not used', () async {
       proxyHands(appToken, 'someotherappid0123456789abcd');
 

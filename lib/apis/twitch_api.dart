@@ -91,7 +91,7 @@ class AppToken {
 /// refused (expired, revoked).
 @immutable
 class TokenCheck {
-  const TokenCheck._(this._kind, [this.clientId]);
+  const TokenCheck._(this._kind, [this.clientId, this.hasUser = false]);
 
   /// Valid, issued to this app.
   static const valid = TokenCheck._(_TokenKind.valid);
@@ -100,14 +100,19 @@ class TokenCheck {
   static const invalid = TokenCheck._(_TokenKind.invalid);
 
   /// Valid, but issued to the app [clientId] (null when Twitch did not say).
-  const TokenCheck.foreign([String? clientId])
-    : this._(_TokenKind.foreign, clientId);
+  const TokenCheck.foreign([String? clientId, bool hasUser = false])
+    : this._(_TokenKind.foreign, clientId, hasUser);
 
   final _TokenKind _kind;
 
   /// The app a foreign token was issued to: Helix only takes the token with
   /// that app's Client-Id.
   final String? clientId;
+
+  /// Whether Twitch named a user for a foreign token: a user access token,
+  /// where an app access token has none. Not part of `==`, which compares
+  /// what the token is for this app.
+  final bool hasUser;
 
   bool get isValid => _kind == _TokenKind.valid;
   bool get isForeign => _kind == _TokenKind.foreign;
@@ -450,10 +455,12 @@ class TwitchApi extends BaseApiClient {
       if (issuedTo is String && issuedTo == _appClientId) {
         return TokenCheck.valid;
       }
+      final user = data['user_id'];
       return TokenCheck.foreign(
         issuedTo is String && _clientIdPattern.hasMatch(issuedTo)
             ? issuedTo
             : null,
+        user is String && user.isNotEmpty,
       );
     } on UnauthorizedException {
       // 401 -> token is invalid/expired (propagated from interceptor for validate requests)
