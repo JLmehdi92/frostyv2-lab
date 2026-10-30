@@ -1,9 +1,12 @@
+import 'dart:async' show Timer;
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_auth_interceptor.dart';
 import 'package:onset/apis/unauthorized_interceptor.dart';
 import 'package:onset/constants.dart';
+import 'package:onset/constants.dart' as constants show tokenProxyUrl;
 import 'package:onset/models/badges.dart';
 import 'package:onset/models/category.dart';
 import 'package:onset/models/channel.dart';
@@ -118,11 +121,25 @@ class TwitchApi extends BaseApiClient {
   /// [appClientId] is this app's Twitch client id (the build's
   /// `CLIENT_ID`); a token is only accepted when Twitch says it was issued
   /// to it.
-  TwitchApi(Dio dio, {String? appClientId})
+  ///
+  /// [tokenProxyUrl] is ONSET's token proxy (the build's `TOKEN_PROXY_URL`),
+  /// where [getDefaultToken] gets a logged-out viewer's token.
+  TwitchApi(Dio dio, {String? appClientId, String? tokenProxyUrl})
     : _appClientId = appClientId ?? clientId,
+      _tokenProxyUrl = tokenProxyUrl ?? constants.tokenProxyUrl,
       super(dio, _helixBaseUrl);
 
   final String _appClientId;
+
+  final String _tokenProxyUrl;
+
+  /// How long [getDefaultToken] waits for the token proxy, connection
+  /// included: launch and logout wait on it.
+  static const appTokenTimeout = Duration(seconds: 6);
+
+  /// What a token handed out by the proxy may look like (Twitch's are 30
+  /// lowercase letters and digits): nothing else goes into a header.
+  static final _appTokenPattern = RegExp(r'^[A-Za-z0-9]{16,128}$');
 
   /// What a Twitch client id looks like (it is sent back as a header).
   static final _clientIdPattern = RegExp(r'^[A-Za-z0-9_-]{1,64}$');
@@ -299,19 +316,70 @@ class TwitchApi extends BaseApiClient {
     return UserTwitch.fromJson(userData.first);
   }
 
-  /// Returns a token for an anonymous user.
-  Future<String> getDefaultToken() async {
-    // Use custom base URL for OAuth
-    final data = await post<JsonMap>(
-      '$_oauthBaseUrl/token',
-      queryParameters: {
-        'client_id': clientId,
-        'client_secret': secret,
-        'grant_type': 'client_credentials',
-      },
-    );
+  /// An app access token for a logged-out viewer, from ONSET's token proxy
+  /// (`GET <proxy>/app-token`, see tool/token_proxy/): the proxy holds the
+  /// Twitch client secret, the app never sees it.
+  ///
+  /// Throws an [ApiException] when the build has no usable proxy URL (empty,
+  /// or not a plain `https://` origin and path), when the proxy does not
+  /// answer within [timeout] ([TimeoutException]) or answers with an error,
+  /// and when its answer is not a token. Never asks the viewer to log in.
+  Future<String> getDefaultToken({Duration timeout = appTokenTimeout}) async {
+    final endpoint = _appTokenEndpoint(_tokenProxyUrl);
+    if (endpoint == null) {
+      throw const ApiException('No token proxy in this build');
+    }
 
-    return data['access_token'] as String;
+    // One deadline for the whole request, connection included (Dio's
+    // per-request options have no connect timeout).
+    final cancel = CancelToken();
+    var timedOut = false;
+    final deadline = Timer(timeout, () {
+      timedOut = true;
+      cancel.cancel('token proxy timeout');
+    });
+    final Object? data;
+    try {
+      data = await get<Object?>(
+        endpoint.toString(),
+        cancelToken: cancel,
+        extra: {
+          // Not a Twitch session: a failure here is never a login prompt,
+          // and the proxy gets none of the session's headers.
+          UnauthorizedInterceptor.quiet: true,
+          TwitchAuthInterceptor.noSessionHeaders: true,
+        },
+      );
+    } on ApiException {
+      if (timedOut) throw const TimeoutException('Token proxy timeout');
+      rethrow;
+    } finally {
+      deadline.cancel();
+    }
+
+    final token = data is Map ? data['access_token'] : null;
+    if (token is! String || !_appTokenPattern.hasMatch(token)) {
+      throw const ApiException('The token proxy sent no token');
+    }
+    return token;
+  }
+
+  /// `<proxy>/app-token`, or null when [proxy] is not an `https://` URL with
+  /// a host and nothing but a path (no credentials, query or fragment).
+  static Uri? _appTokenEndpoint(String proxy) {
+    final base = Uri.tryParse(proxy.trim());
+    if (base == null ||
+        base.scheme != 'https' ||
+        base.host.isEmpty ||
+        base.userInfo.isNotEmpty ||
+        base.hasQuery ||
+        base.hasFragment) {
+      return null;
+    }
+    final path = base.path.endsWith('/')
+        ? base.path.substring(0, base.path.length - 1)
+        : base.path;
+    return base.replace(path: '$path/app-token');
   }
 
   /// Revokes the user's [token] so it stops working everywhere (logout).

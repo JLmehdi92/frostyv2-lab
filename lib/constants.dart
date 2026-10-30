@@ -4,8 +4,12 @@ import 'package:onset/theme.dart';
 /// Twitch API client ID.
 const clientId = String.fromEnvironment('CLIENT_ID');
 
-/// Twitch API client secret.
-const secret = String.fromEnvironment('SECRET');
+/// ONSET's token proxy (tool/token_proxy/), which hands logged-out viewers
+/// a Twitch app access token: it holds the client secret, so the APK carries
+/// none. Must be `https://`. Empty in a build without one: logged-out
+/// features that need Helix then fail quietly, and the rest of the app,
+/// logging in included, works.
+const tokenProxyUrl = String.fromEnvironment('TOKEN_PROXY_URL');
 
 /// Read-only GitHub token for in-app updates, set by the update workflow
 /// only while the repository is private. Empty in a build made while it is

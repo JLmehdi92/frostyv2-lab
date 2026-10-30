@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:onset/main.dart';
@@ -26,6 +28,16 @@ class UnauthorizedInterceptor extends Interceptor {
     // Check if this is a 401 Unauthorized error
     if (err.response?.statusCode == 401) {
       if (!promptsLogin(err.requestOptions)) {
+        handler.next(err);
+        return;
+      }
+
+      // Logged out without an app token (the token proxy or the network was
+      // down): what failed needs that token, not a login, so no dialog —
+      // which would otherwise come back on every Helix call. The token is
+      // asked for again instead (at most once a minute).
+      if (!_authStore.isLoggedIn && _authStore.token == null) {
+        unawaited(_authStore.retryAppToken());
         handler.next(err);
         return;
       }
