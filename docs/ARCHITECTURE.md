@@ -245,6 +245,12 @@ flutter build apk --release --dart-define=CLIENT_ID=<id> --dart-define=TOKEN_PRO
   most once a minute, asks the proxy again when there is no token, or asks
   Twitch whether the token still works and replaces it if it was revoked or
   expired. A user's session, even reconnecting, keeps the dialog.
+- Changing the login application (a new `CLIENT_ID`) needs no migration: a
+  stored user token of the old application keeps working as another app's
+  token (`TokenCheck.foreign`, with `foreignTokenNotice`) while that
+  application exists; once it is deleted Twitch refuses it, and the launch
+  logs out cleanly with `sessionEndedNotice` (no reconnect loop). A stored
+  app token of the old application is replaced by the proxy's.
 - A release build without a release signing key configured in `android/`
   is signed with the debug key.
 - CI (`.github/workflows/ci.yml`) runs `flutter analyze` and `flutter test` on

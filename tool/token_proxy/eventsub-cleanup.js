@@ -9,6 +9,10 @@
 // websocket subscriptions, which this script never sees: everything it
 // lists was made by someone else.
 //
+// Optional: deleting the old login application in the Twitch console (the
+// plan in README.md) deletes its subscriptions too. This is for a login
+// application that is kept after its secret leaked.
+//
 // Run it on your own computer (Node 18 or newer, nothing to install):
 //
 //   cd tool/token_proxy
