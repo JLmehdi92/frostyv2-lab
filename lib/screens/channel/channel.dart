@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/apis/twitch_chat_history_service.dart';
 import 'package:onset/apis/twitch_chat_rules_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
 import 'package:onset/models/community_highlights.dart';
@@ -229,6 +230,7 @@ class _VideoChatState extends State<VideoChat>
           whisperStore: context.read<WhisperStore>(),
           listenEvents: context.read<TwitchEventSubClient>().listen,
           chatRulesService: context.read<TwitchChatRulesService>(),
+          chatHistoryService: context.read<TwitchChatHistoryService?>(),
           primaryChannelId: widget.userId,
           primaryChannelLogin: widget.userLogin,
           primaryDisplayName: widget.userName,

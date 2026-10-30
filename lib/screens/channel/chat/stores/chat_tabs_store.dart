@@ -7,6 +7,7 @@ import 'package:onset/apis/bttv_api.dart';
 import 'package:onset/apis/ffz_api.dart';
 import 'package:onset/apis/seventv_api.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_chat_history_service.dart';
 import 'package:onset/apis/twitch_chat_rules_service.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/user.dart';
@@ -111,6 +112,10 @@ abstract class ChatTabsStoreBase with Store {
 
   /// Reads each chat's rules (none are shown without it).
   final TwitchChatRulesService? chatRulesService;
+
+  /// Reads each chat's recent history from Twitch on joining (none is
+  /// loaded from Twitch without it).
+  final TwitchChatHistoryService? chatHistoryService;
 
   /// The list of open chat tabs.
   @readonly
@@ -308,6 +313,7 @@ abstract class ChatTabsStoreBase with Store {
     this.whisperStore,
     this.listenEvents,
     this.chatRulesService,
+    this.chatHistoryService,
   }) {
     // Enable wakelock once for all chat tabs
     if (settingsStore.keepScreenAwake) {
@@ -356,6 +362,7 @@ abstract class ChatTabsStoreBase with Store {
     return ChatStore(
       twitchApi: twitchApi,
       whispers: whisperStore,
+      chatHistory: chatHistoryService,
       listenEvents: listenEvents,
       chatRules: switch (chatRulesService) {
         final service? => ChatRulesStore(

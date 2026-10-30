@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_chat_history_service.dart';
 import 'package:onset/screens/channel/chat/details/stores/chat_details_store.dart';
 import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/stores/user_store.dart';
+import 'package:onset/services/notifications/mention_alerts.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
@@ -15,6 +17,8 @@ class MockTwitchApi extends Mock implements TwitchApi {}
 class MockAuthStore extends Mock implements AuthStore {}
 
 class MockChatAssetsStore extends Mock implements ChatAssetsStore {}
+
+class MockChatHistoryService extends Mock implements TwitchChatHistoryService {}
 
 /// A socket the test feeds and closes, like the server would.
 class FakeSocket implements WebSocketChannel {
@@ -79,17 +83,25 @@ class _FakeSink implements WebSocketSink {
 
 /// A chat store of channel `channel` (id 12345) on fake sockets, appended
 /// to [sockets] as it connects.
+///
+/// [webToken] is the viewer's twitch.tv web token, [user] the logged-in
+/// viewer (logged out when null).
 ChatStore createTestChatStore({
   required SettingsStore settings,
   required List<FakeSocket> sockets,
   MockTwitchApi? api,
+  TwitchChatHistoryService? chatHistory,
+  String? webToken,
+  UserStore? user,
+  MentionAlerts? mentionAlerts,
 }) {
   final twitchApi = api ?? MockTwitchApi();
   final auth = MockAuthStore();
-  when(() => auth.isLoggedIn).thenReturn(false);
+  when(() => auth.isLoggedIn).thenReturn(user != null);
   when(() => auth.token).thenReturn(null);
   when(() => auth.headersTwitch).thenReturn({});
-  when(() => auth.user).thenReturn(UserStore(twitchApi: twitchApi));
+  when(() => auth.twitchWebToken).thenReturn(webToken);
+  when(() => auth.user).thenReturn(user ?? UserStore(twitchApi: twitchApi));
   final assets = MockChatAssetsStore();
   when(() => assets.init()).thenAnswer((_) async {});
   when(() => assets.showEmoteMenu).thenReturn(false);
@@ -121,6 +133,8 @@ ChatStore createTestChatStore({
     channelName: 'channel',
     channelId: '12345',
     displayName: 'Channel',
+    chatHistory: chatHistory,
+    mentionAlerts: mentionAlerts,
     connectSocket: (uri) {
       final socket = FakeSocket(uri);
       sockets.add(socket);

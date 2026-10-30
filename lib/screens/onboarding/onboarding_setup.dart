@@ -169,8 +169,10 @@ class _OnboardingSetupStepState extends State<OnboardingSetupStep> {
                       detail: Text.rich(
                         TextSpan(
                           text:
-                              'Loads historical recent messages in chat '
-                              'through a third-party API service at ',
+                              'When Twitch\'s own chat history is '
+                              'unavailable (no twitch.tv session), loads '
+                              'historical recent messages through a '
+                              'third-party API service at ',
                           children: [
                             TextSpan(
                               text: 'recent-messages.robotty.de',

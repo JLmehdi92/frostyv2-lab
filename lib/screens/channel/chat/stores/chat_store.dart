@@ -8,13 +8,16 @@ import 'package:flutter/services.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/apis/twitch_chat_history_service.dart';
 import 'package:onset/models/badges.dart';
+import 'package:onset/models/chat_history.dart';
 import 'package:onset/models/emotes.dart';
 import 'package:onset/models/events.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/raid_arrival.dart';
 import 'package:onset/screens/channel/chat/chat_commands.dart';
 import 'package:onset/screens/channel/chat/chat_delay_queue.dart';
+import 'package:onset/screens/channel/chat/chat_history.dart' as history;
 import 'package:onset/screens/channel/chat/chat_restrictions.dart';
 import 'package:onset/screens/channel/chat/details/stores/chat_details_store.dart';
 import 'package:onset/screens/channel/chat/gift_bomb_tracker.dart';
@@ -128,6 +131,14 @@ abstract class ChatStoreBase with Store {
 
   /// The viewer's whispers, for `/w` (null in tests and when not given).
   final WhisperStore? whispers;
+
+  /// Twitch's own recent chat, shown on joining like the official app
+  /// (null in tests and when not given).
+  final TwitchChatHistoryService? chatHistory;
+
+  /// The ids of the history lines shown: the same message arriving live
+  /// afterwards is not shown twice.
+  final _historyIds = <String>{};
 
   /// Listens to the viewer's EventSub topics, to say what moderators
   /// decided about held messages (null in tests and when not given).
@@ -706,6 +717,7 @@ abstract class ChatStoreBase with Store {
     required this.channelId,
     required this.displayName,
     this.whispers,
+    this.chatHistory,
     this.listenEvents,
     this.mentionAlerts,
     this.chatRules,
@@ -794,11 +806,10 @@ abstract class ChatStoreBase with Store {
 
     _messages.add(IRCMessage.createNotice(message: 'Connecting to chat...'));
 
-    if (settings.showRecentMessages) {
-      getRecentMessage().then((_) => connectToChat());
-    } else {
-      connectToChat();
-    }
+    // IRC first: the history is put above whatever live chat has shown by
+    // the time it arrives, so it never holds the chat back.
+    connectToChat();
+    unawaited(loadHistory());
 
     // Tell the scrollController to determine when auto-scroll should be enabled or disabled.
     scrollController.addListener(() {
@@ -872,6 +883,14 @@ abstract class ChatStoreBase with Store {
           message,
           userLogin: auth.user.details?.login,
         );
+
+        // Already shown from the history loaded on joining.
+        final command = parsedIRCMessage.command;
+        if ((command == Command.privateMessage ||
+                command == Command.userNotice) &&
+            _historyIds.contains(parsedIRCMessage.tags['id'])) {
+          continue;
+        }
 
         if (parsedIRCMessage.user != null) {
           chatDetailsStore.chatUsers.add(parsedIRCMessage.user!);
@@ -1766,20 +1785,171 @@ abstract class ChatStoreBase with Store {
     return '@historical=1;${line.substring(1)}';
   }
 
-  @action
-  Future<void> getRecentMessage() async {
-    try {
-      final recentMessages = await twitchApi.getRecentMessages(
-        userLogin: channelName,
-      );
+  /// The people whose messages stay out of this chat, as live: the ones
+  /// the viewer blocked, unless the viewer moderates it or owns it (who
+  /// sees everything said in it).
+  ({Set<String> logins, Set<String> ids}) get _hiddenSenders {
+    if (_userState.mod || channelName == auth.user.details?.login) {
+      return (logins: const {}, ids: const {});
+    }
+    final blocked = auth.user.blockedUsers;
+    return (
+      logins: {for (final user in blocked) user.userLogin.toLowerCase()},
+      ids: {for (final user in blocked) user.userId},
+    );
+  }
 
-      for (final message in recentMessages) {
-        // History, even when the service leaves out its mark: nothing in
-        // it (a raid, a ban) acts as if it happened now.
-        if (message is String) _handleIRCData(markHistorical(message));
-      }
+  bool _muted(String text) =>
+      isMuted(text, settings.mutedWords, wholeWord: settings.matchWholeWord);
+
+  /// Shows the chat said before joining, at the top, the way the official
+  /// app does: Twitch's own history (the `ChatHistory` query, read with the
+  /// viewer's twitch.tv web token). Only when Twitch gives none (no web
+  /// token, a failure, an empty answer) and the viewer turned on "Show
+  /// historical recent messages", the third-party recent-messages service.
+  ///
+  /// The history goes in one insert above everything shown, never through
+  /// the live path: no chat delay, held messages, sounds, mention or other
+  /// notices, raid, celebration, gift-bomb or hype pins, restrictions or
+  /// moderation reactions.
+  @visibleForTesting
+  Future<void> loadHistory() async {
+    var lines = await _twitchHistory();
+    if (_shouldDisconnect) return;
+    if (lines == null && settings.showRecentMessages) {
+      lines = await _recentMessagesHistory();
+      if (_shouldDisconnect) return;
+    }
+    if (lines != null && lines.isNotEmpty) _insertHistory(lines);
+  }
+
+  /// Twitch's history as chat lines, or null when Twitch gave none.
+  Future<List<IRCMessage>?> _twitchHistory() async {
+    final service = chatHistory;
+    final token = auth.twitchWebToken;
+    if (service == null || token == null || token.isEmpty) return null;
+    final List<ChatHistoryMessage> messages;
+    try {
+      messages = await service.getRecentMessages(
+        channelLogin: channelName,
+        channelId: channelId,
+        authToken: token,
+      );
     } catch (e) {
-      debugPrint('Failed to fetch recent messages: $e');
+      debugPrint('Chat history unavailable: ${e.runtimeType}');
+      return null;
+    }
+    if (messages.isEmpty) return null;
+    final hidden = _hiddenSenders;
+    return history.chatHistoryLines(
+      messages,
+      channelId: channelId,
+      channelLogin: channelName,
+      viewerLogin: auth.user.details?.login,
+      hiddenLogins: hidden.logins,
+      hiddenUserIds: hidden.ids,
+      muted: _muted,
+    );
+  }
+
+  /// The recent-messages service's lines (raw IRC, `historical=1`) as one
+  /// history batch, or null when it gave none. Its moderation lines apply
+  /// within the batch (a deleted or timed-out message shows so); nothing in
+  /// it acts on the chat as if it happened now.
+  Future<List<IRCMessage>?> _recentMessagesHistory() async {
+    final List<dynamic> raw;
+    try {
+      raw = await twitchApi.getRecentMessages(userLogin: channelName);
+    } catch (e) {
+      debugPrint('Failed to fetch recent messages: ${e.runtimeType}');
+      return null;
+    }
+    final hidden = _hiddenSenders;
+    final batch = <IRCMessage>[];
+    for (final line in raw) {
+      if (line is! String || line.isEmpty) continue;
+      final IRCMessage message;
+      try {
+        // History, even when the service leaves out its mark.
+        message = IRCMessage.fromString(
+          markHistorical(line),
+          userLogin: auth.user.details?.login,
+        );
+      } catch (e) {
+        debugPrint('Unreadable recent message: ${e.runtimeType}');
+        continue;
+      }
+      final user = message.user;
+      if (user != null) chatDetailsStore.chatUsers.add(user);
+      if (hidden.logins.contains(user?.toLowerCase()) ||
+          hidden.ids.contains(message.tags['user-id'])) {
+        continue;
+      }
+      switch (message.command) {
+        case Command.privateMessage:
+        case Command.notice:
+        case Command.userNotice:
+          final text = message.message;
+          if (text != null && _muted(text)) continue;
+          // A gift bomb's gifts fold into its header as live ones do; a
+          // historical bomb never earns the pinned banner.
+          final notice = message.command == Command.userNotice
+              ? message.notice
+              : null;
+          if (notice != null &&
+              !_giftBombs
+                  .onNotice(
+                    notice,
+                    collapse: settings.collapseGiftBombs,
+                    channelId: channelId,
+                  )
+                  .show) {
+            continue;
+          }
+          batch.add(message);
+        case Command.clearChat:
+          IRCMessage.clearChat(
+            messages: batch,
+            bufferedMessages: <IRCMessage>[],
+            ircMessage: message,
+          );
+          if (settings.showModerationNotices) {
+            final notice = moderationNoticeLine(
+              message,
+              hiddenLogins: hidden.logins,
+              newestFirst: batch.reversed,
+            );
+            if (notice != null) batch.add(notice);
+          }
+        case Command.clearMessage:
+          IRCMessage.clearMessage(
+            messages: batch,
+            bufferedMessages: <IRCMessage>[],
+            ircMessage: message,
+          );
+        default:
+          continue;
+      }
+    }
+    return batch.isEmpty ? null : batch;
+  }
+
+  /// Puts [lines] above everything shown, in one change of the list.
+  @action
+  void _insertHistory(List<IRCMessage> lines) {
+    final fresh = history.insertHistory(
+      _messages,
+      lines,
+      alsoShown: messageBuffer,
+    );
+    for (final line in fresh) {
+      if (line.tags['id'] case final id?) _historyIds.add(id);
+      if (line.user case final user?) chatDetailsStore.chatUsers.add(user);
+    }
+    if (_messages.length >= _messageLimit) {
+      _messages = _messages
+          .sublist(_messages.length - _messageLimit + _messagesToRemove)
+          .asObservable();
     }
   }
 

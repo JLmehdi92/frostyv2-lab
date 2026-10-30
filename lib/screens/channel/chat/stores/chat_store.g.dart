@@ -444,16 +444,6 @@ mixin _$ChatStore on ChatStoreBase, Store {
     );
   }
 
-  late final _$getRecentMessageAsyncAction = AsyncAction(
-    'ChatStoreBase.getRecentMessage',
-    context: context,
-  );
-
-  @override
-  Future<void> getRecentMessage() {
-    return _$getRecentMessageAsyncAction.run(() => super.getRecentMessage());
-  }
-
   late final _$ChatStoreBaseActionController = ActionController(
     name: 'ChatStoreBase',
     context: context,
@@ -640,6 +630,18 @@ mixin _$ChatStore on ChatStoreBase, Store {
     );
     try {
       return super.cancelSleepTimer();
+    } finally {
+      _$ChatStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void _insertHistory(List<IRCMessage> lines) {
+    final _$actionInfo = _$ChatStoreBaseActionController.startAction(
+      name: 'ChatStoreBase._insertHistory',
+    );
+    try {
+      return super._insertHistory(lines);
     } finally {
       _$ChatStoreBaseActionController.endAction(_$actionInfo);
     }

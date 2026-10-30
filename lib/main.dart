@@ -17,6 +17,7 @@ import 'package:onset/apis/seventv_api.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_auth_interceptor.dart';
 import 'package:onset/apis/twitch_channel_profile_service.dart';
+import 'package:onset/apis/twitch_chat_history_service.dart';
 import 'package:onset/apis/twitch_chat_rules_service.dart';
 import 'package:onset/apis/twitch_clip_service.dart';
 import 'package:onset/apis/twitch_community_highlights_service.dart';
@@ -161,6 +162,9 @@ void main() async {
   );
   final twitchDirectoryService = TwitchDirectoryService(anonymousGqlDio);
   final twitchChatRulesService = TwitchChatRulesService(anonymousGqlDio);
+  // Chat history on joining: the web token is added per request, to GQL
+  // only.
+  final twitchChatHistoryService = TwitchChatHistoryService(anonymousGqlDio);
   // Followed categories: the web token is added per request, to GQL only.
   final twitchFollowedCategoriesService = TwitchFollowedCategoriesService(
     anonymousGqlDio,
@@ -324,6 +328,9 @@ void main() async {
         ),
         Provider<TwitchDirectoryService>.value(value: twitchDirectoryService),
         Provider<TwitchChatRulesService>.value(value: twitchChatRulesService),
+        Provider<TwitchChatHistoryService>.value(
+          value: twitchChatHistoryService,
+        ),
         Provider<TwitchFollowedCategoriesService>.value(
           value: twitchFollowedCategoriesService,
         ),
