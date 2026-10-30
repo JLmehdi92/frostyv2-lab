@@ -237,7 +237,7 @@ void main() {
 
     await tester.tap(nav('profile'));
     await tester.pumpAndSettle();
-    // Profile inside the shell (board MoiDeconnecte): no back button of its
+    // Profile inside the shell: no back button of its
     // own, the login card, the settings' sections, the header's settings.
     expect(find.byType(ProfileTab), findsOneWidget);
     expect(find.byTooltip('Back'), findsNothing);

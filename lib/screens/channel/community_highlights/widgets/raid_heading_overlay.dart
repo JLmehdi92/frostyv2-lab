@@ -67,7 +67,7 @@ class RaidOverlayLayer extends StatelessWidget {
   }
 }
 
-/// "Heading to Y" over the video (board Raids): an opaque scrim — never a
+/// "Heading to Y" over the video: an opaque scrim — never a
 /// blur over the video —, the target's picture inside a lime ring that
 /// sweeps around it, and "N viewers coming with you".
 ///

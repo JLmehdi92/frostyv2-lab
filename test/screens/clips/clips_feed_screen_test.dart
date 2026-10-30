@@ -518,7 +518,7 @@ void main() {
     });
   });
 
-  group('board Clips', () {
+  group('phone feed', () {
     testWidgets('the next clip waits under the details; a tap goes there', (
       tester,
     ) async {
@@ -682,7 +682,7 @@ void main() {
     await close(tester);
   });
 
-  group('board ClipsTablette', () {
+  group('tablet feed', () {
     Future<void> pumpAt(
       WidgetTester tester,
       Size size, {

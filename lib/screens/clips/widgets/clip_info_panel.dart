@@ -12,7 +12,7 @@ import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/profile_picture.dart';
 
 /// Title, views and age, category, channel and clipper, and the actions of
-/// a clip under the player (board Clips): Watch full video, Copy link and
+/// a clip under the player: Watch full video, Copy link and
 /// Share.
 class ClipInfoPanel extends StatelessWidget {
   const ClipInfoPanel({

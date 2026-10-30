@@ -191,7 +191,7 @@ void main() {
         ),
       );
       expect(find.text('Winner: No'), findsOneWidget);
-      // The winner's bar carries the check (board ChaineSondagePari).
+      // The winner's bar carries the check.
       final winnerBar = find.ancestor(
         of: find.text('No'),
         matching: find.byType(HighlightBar),
@@ -319,7 +319,7 @@ void main() {
     });
   });
 
-  group('board chrome', () {
+  group('card chrome', () {
     testWidgets('a 16 dp card in the sheet tone, 36 dp bars', (tester) async {
       await pump(tester, PollCard(poll: _poll(), card: card()));
       final material = tester.widget<Material>(

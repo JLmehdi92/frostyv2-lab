@@ -135,7 +135,7 @@ void main() {
     expect(find.byType(TagStreams), findsOneWidget);
   });
 
-  group('the redesigned page (board Categorie, tag state)', () {
+  group('the redesigned page (tag state)', () {
     late MockTwitchApi api;
 
     setUp(() {

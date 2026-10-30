@@ -16,7 +16,7 @@ class ChatModes extends StatelessWidget {
   Widget build(BuildContext context) {
     return Observer(
       builder: (context) {
-        // The board's pills: what is on, and for how long.
+        // The pills: what is on, and for how long.
         final active = <(String, SheetGlyphKind, String?)>[
           if (roomState.emoteOnly != '0')
             ('Emote only', SheetGlyphKind.emote, null),

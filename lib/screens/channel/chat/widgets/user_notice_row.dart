@@ -7,8 +7,7 @@ import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 
 /// A sub, gift or other `USERNOTICE`, drawn as Twitch's Android app draws its
-/// notice rows, in the signal lime where Twitch uses purple (board
-/// CadeauxHypeTrain).
+/// notice rows, in the signal lime where Twitch uses purple.
 ///
 /// A full-width row, 2dp clear of its neighbours, with a 4dp accent bar down
 /// its left edge, an optional 18dp icon, the notice's sentence and, below it,

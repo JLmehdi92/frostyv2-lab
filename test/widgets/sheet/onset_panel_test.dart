@@ -7,7 +7,7 @@ import 'package:onset/widgets/sheet/onset_sheet.dart';
 import '../../helpers/live_curves.dart';
 
 void main() {
-  // The board ChaineOutilsTablette: 1280 × 854, the video 880 × 495 at the
+  // A landscape tablet: 1280 × 854, the video 880 × 495 at the
   // top left, the chat column from 880.
   const screen = Rect.fromLTWH(0, 0, 1280, 854);
   const video = Rect.fromLTWH(0, 0, 880, 495);
@@ -26,7 +26,7 @@ void main() {
         gap: 18,
       )!;
       expect(placement.side, PanelSide.above);
-      // Board: left 884, top 214, the nub under the pill.
+      // Left 884, top 214, the nub under the pill.
       expect(placement.rect, const Rect.fromLTWH(884, 214, 384, 562));
       expect(placement.nub, closeTo(1226 - 884, 0.01));
     });
@@ -41,7 +41,7 @@ void main() {
         avoid: video,
         gap: 18,
       )!;
-      // Board: left 892, top 404.
+      // Left 892, top 404.
       expect(placement.rect, const Rect.fromLTWH(892, 404, 376, 372));
       expect(placement.nub, 22);
     });

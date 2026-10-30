@@ -54,7 +54,7 @@ Future<void> showHypeTrainDetails(
 ) => showOnsetSheet<void>(
   context: context,
   constraints: const BoxConstraints(maxWidth: 480),
-  // Board ChaineHypeDetail: the details on the community green, the hype
+  // The details on the community green, the hype
   // train itself unchanged.
   background: htSheetBackground(Theme.of(context).brightness),
   builder: (context) => _ClosesWhenHidden(

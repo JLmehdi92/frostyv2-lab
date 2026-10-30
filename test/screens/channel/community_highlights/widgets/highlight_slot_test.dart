@@ -129,7 +129,7 @@ void main() {
     // The expanded poll keeps the slot.
     expect(h.store.current!.kind, HighlightKind.poll);
     expect(find.widgetWithText(HighlightNewPill, 'New pinned'), findsOneWidget);
-    // The board's 30 dp signal pill.
+    // The 30 dp signal pill.
     expect(
       tester
           .getSize(find.widgetWithText(HighlightNewPill, 'New pinned'))

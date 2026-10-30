@@ -7,11 +7,9 @@ import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
-/// The colours of the channel screen's sheets, menus, panels and dialogs
-/// (boards ChaineTchatOutils, ChaineCarteUtilisateur, ChaineModeration,
-/// ChaineDetailsTchat, ChainePoints, ChaineSondagePari, ChaineOutilsTablette).
+/// The colours of the channel screen's sheets, menus, panels and dialogs.
 ///
-/// The boards are drawn dark; the light values keep the same tiers on a
+/// The design is dark; the light values keep the same tiers on a
 /// white ground (the pairs `FeedColors` set for the home screen).
 class SheetColors {
   const SheetColors({
@@ -179,7 +177,7 @@ class SheetColors {
       accentOf(context).withValues(alpha: alpha);
 }
 
-/// The type of the sheets (Inter, the boards' sizes).
+/// The type of the sheets (Inter, the sizes).
 abstract final class SheetText {
   /// "Chat modes", "Clear chat?", a dialog's title: 18 / 700.
   static const title = TextStyle(
@@ -259,7 +257,7 @@ const kPanelRadius = 20.0;
 /// The scrim under a sheet: black at 62 %.
 const kSheetScrim = Color(0x9E000000);
 
-/// Shows a channel-screen sheet with the boards' frame: #141414 (or
+/// Shows a channel-screen sheet with the frame: #141414 (or
 /// [panel] #181818 for a sheet over a sheet), 24 dp top corners, the light
 /// top edge, the 36 × 4 handle, the 62 % scrim; [background] tints it (the
 /// hype train's green). On a phone it still starts under the video
@@ -563,7 +561,7 @@ class SheetBackHeader extends StatelessWidget {
   }
 }
 
-/// The boards' switch: a 44 × 26 track (the signal colour when on), a
+/// The switch: a 44 × 26 track (the signal colour when on), a
 /// 20 dp knob that slides (260 ms, a cross-fade under reduce motion).
 class OnsetSwitch extends StatelessWidget {
   const OnsetSwitch({
@@ -744,7 +742,7 @@ enum SheetButtonTone {
   text,
 }
 
-/// The boards' pill buttons: 44 dp (48 with [large]), fully rounded.
+/// The pill buttons: 44 dp (48 with [large]), fully rounded.
 class SheetButton extends StatelessWidget {
   const SheetButton({
     super.key,
@@ -906,7 +904,7 @@ class SheetChoicePill extends StatelessWidget {
 /// How a [SheetChoicePill] is announced: one of a set, or a tab.
 enum SheetChoiceRole { radio, tab }
 
-/// The boards' dialog: a 326 dp card, 24 dp corners, #1E1E1E, a title
+/// The dialog: a 326 dp card, 24 dp corners, #1E1E1E, a title
 /// (18 / 700), its content and the actions at the end.
 class OnsetDialog extends StatelessWidget {
   const OnsetDialog({
@@ -1111,7 +1109,7 @@ class InitialAvatar extends StatelessWidget {
   final String name;
   final double size;
 
-  /// The boards' palette for people without a picture.
+  /// The palette for people without a picture.
   static const palette = [
     Color(0xFF7CB7FF),
     Color(0xFFFF9ECF),

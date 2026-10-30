@@ -11,8 +11,7 @@ import 'package:onset/widgets/profile_picture.dart';
 import 'package:onset/widgets/state_glyph.dart';
 import 'package:onset/widgets/state_views.dart';
 
-/// The colours of the whispers (boards Messages, MessagesTablette), dark
-/// from the boards and their light counterparts.
+/// The colours of the whispers, dark and light.
 @immutable
 class WhisperColors {
   const WhisperColors({
@@ -159,7 +158,7 @@ class WhisperCountPill extends StatelessWidget {
   }
 }
 
-/// A conversation in a list (boards Messages, MessagesTablette, and
+/// A conversation in a list (and
 /// Activity's whispers): the person's picture, name, when, the last
 /// whisper (a "You" arrow when it was the viewer's) and the unread count.
 class WhisperThreadRow extends StatelessWidget {
@@ -319,7 +318,7 @@ class WhisperThreadRow extends StatelessWidget {
   }
 }
 
-/// The board's inset accent bar on the left edge of the conversation on
+/// The inset accent bar on the left edge of the conversation on
 /// screen.
 class _SelectedBar extends StatelessWidget {
   const _SelectedBar({

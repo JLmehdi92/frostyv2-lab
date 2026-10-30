@@ -152,7 +152,7 @@ void main() {
     expect(find.text('Notify when Streamer goes live'), findsOneWidget);
     expect(bell(), isTrue);
 
-    // The whole row toggles it (board ChaineCarteUtilisateur).
+    // The whole row toggles it.
     await tester.tap(find.text('Notify when Streamer goes live'));
     await tester.pumpAndSettle();
     expect(bell(), isFalse);

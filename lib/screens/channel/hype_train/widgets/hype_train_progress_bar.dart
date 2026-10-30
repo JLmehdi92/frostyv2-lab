@@ -8,7 +8,7 @@ import 'package:onset/screens/channel/hype_train/widgets/hype_train_palette.dart
 /// squeezed into it; an unlocked treasure's gradient covers everything.
 /// It animates to [percent] in [duration] (a `fillTo` step).
 ///
-/// ONSET's level colours (board CadeauxHypeTrain): a new level's colour
+/// ONSET's level colours: a new level's colour
 /// morphs in over [morph] (600 ms, 200 ms with reduced motion); on a higher
 /// [level] the bar starts again from 0 rather than draining back; the level 6+
 /// gradient flows (4 s a period) unless [animateSheen] is off.

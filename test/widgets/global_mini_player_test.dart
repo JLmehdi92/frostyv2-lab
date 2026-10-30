@@ -19,7 +19,7 @@ class MockChatTabsStore extends Mock implements ChatTabsStore {}
 void main() {
   const phone = MediaQueryData(size: Size(390, 844));
 
-  test("under the shell's header and above its bar (board MiniLecteur)", () {
+  test("under the shell's header and above its bar", () {
     // Home's header (100) and the floating bar (14 + 64).
     final area = MiniWindowArea.of(
       phone,
@@ -200,7 +200,7 @@ void main() {
   });
 
   testWidgets('a drag lifts the window and shows where it can land, '
-      'and close works (board MiniLecteur)', (tester) async {
+      'and close works', (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -267,9 +267,7 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
-  testWidgets('drag releases do not pile up curved animations', (
-    tester,
-  ) async {
+  testWidgets('drag releases do not pile up curved animations', (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);

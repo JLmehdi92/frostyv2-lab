@@ -12,7 +12,7 @@ const onboardingTips = [
   'Don’t forget to leave a rating and/or review on the app store!',
 ];
 
-/// Step 4, Welcome (boards Onboarding and OnboardingTablette): the three
+/// Step 4, Welcome: the three
 /// tips, then "Let's go!" opens the app.
 class OnboardingWelcomeStep extends StatelessWidget {
   const OnboardingWelcomeStep({

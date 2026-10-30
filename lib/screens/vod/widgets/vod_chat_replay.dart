@@ -20,8 +20,8 @@ const kReplayEmotesNote =
     "7TV, BTTV and FFZ emotes are the channel's current sets, which may "
     'differ from the ones used during the broadcast.';
 
-/// The chat replay pane under (or beside) the VOD player (boards Rediff,
-/// RediffTablette, Clips): "Chat replay" with its "synced to video" pill
+/// The chat replay pane under (or beside) the VOD player:
+/// "Chat replay" with its "synced to video" pill
 /// and the note about emotes, then the messages as the live chat draws
 /// them.
 class VodChatReplay extends StatefulWidget {

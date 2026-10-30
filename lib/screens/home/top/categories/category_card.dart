@@ -42,7 +42,7 @@ String categoryMonogram(String name) {
       .join();
 }
 
-/// The boards' dark washes behind a box art that cannot be shown.
+/// The dark washes behind a box art that cannot be shown.
 const _washes = [
   [Color(0xFF4A3B24), Color(0xFF17120A)],
   [Color(0xFF1F3B5E), Color(0xFF0B1522)],
@@ -53,8 +53,7 @@ const _washes = [
 ];
 
 /// A category's box art (3:4) with its inner hairline; while it loads, the
-/// skeleton; when it cannot be had, a dark wash with the category's
-/// letters (boards Parcourir, Recherche).
+/// skeleton; when it cannot be had, a dark wash with the category's letters.
 class CategoryArt extends StatelessWidget {
   const CategoryArt({
     super.key,
@@ -167,7 +166,7 @@ class _Monogram extends StatelessWidget {
   }
 }
 
-/// A category in a grid (boards Parcourir, ParcourirTablette): the box art
+/// A category in a grid: the box art
 /// and the name under it on up to two lines. [selected] rings it in the
 /// signal colour (the tablet's category beside its streams).
 class CategoryTile extends StatelessWidget {
@@ -279,7 +278,7 @@ class CategoryTileSkeleton extends StatelessWidget {
   }
 }
 
-/// A category in a list (board Recherche): its box art (45 × 60), its name
+/// A category in a list: its box art (45 × 60), its name
 /// and a chevron; a tap opens its page.
 class CategoryCard extends StatelessWidget {
   final CategoryTwitch category;

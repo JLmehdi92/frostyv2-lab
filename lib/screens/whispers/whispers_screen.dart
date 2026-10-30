@@ -44,7 +44,7 @@ class WhisperTarget {
   int get hashCode => userId.hashCode;
 }
 
-/// The viewer's whispers (boards Messages and MessagesTablette): on a
+/// The viewer's whispers: on a
 /// phone the conversations, a conversation sliding over them; on a tablet
 /// the conversations beside the one on screen.
 ///
@@ -101,7 +101,7 @@ class _WhispersScreenState extends State<WhispersScreen>
   /// window crosses the tablet size.
   final _keys = <String, GlobalKey>{};
 
-  /// The tablet opens the most recent conversation by itself (the board),
+  /// The tablet opens the most recent conversation by itself,
   /// until the viewer closes one: then the pane waits for a choice, so a
   /// conversation is never read without being opened.
   var _autoOpen = true;
@@ -569,7 +569,7 @@ class _NoWhispers extends StatelessWidget {
   }
 }
 
-/// Logged out (Etats 05): back, and the invitation to connect.
+/// Logged out: back, and the invitation to connect.
 class _LoggedOut extends StatelessWidget {
   const _LoggedOut({required this.onBack});
 

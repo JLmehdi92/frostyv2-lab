@@ -45,7 +45,7 @@ class HighlightCardContext {
 }
 
 /// The button that sends a viewer to twitch.tv to take part (Twitch keeps
-/// voting and predicting to its own pages): the board's 40 dp text button.
+/// voting and predicting to its own pages): the 40 dp text button.
 Widget? _takePart(
   HighlightCardContext card,
   String label, {
@@ -84,7 +84,7 @@ Widget? _takePart(
   );
 }
 
-/// The poll bars' fills: the leaders brighter (board ChaineSondagePari).
+/// The poll bars' fills: the leaders brighter.
 Color _pollFill(BuildContext context, {required bool leader}) {
   final dark = Theme.of(context).brightness == Brightness.dark;
   final base = dark ? Colors.white : Colors.black;
@@ -216,7 +216,7 @@ class PredictionCard extends StatelessWidget {
       icon: Icons.emoji_events_outlined,
       glyph: SheetGlyphKind.trophy,
       title: 'Prediction',
-      // Board: the trophy in light blue on a blue-tinted tile.
+      // The trophy in light blue on a blue-tinted tile.
       accent: dark ? const Color(0xFF8DB4FF) : kPredictionBlue,
       tint: kPredictionBlue.withValues(alpha: 0.18),
       expanded: card.expanded,
@@ -372,7 +372,7 @@ class PinnedCard extends StatelessWidget {
       ),
       maxLines: card.expanded ? 12 : 2,
       overflow: TextOverflow.ellipsis,
-      // Board: the pinned message at 14 / 1.5, not the 15 / 600 headline.
+      // The pinned message at 14 / 1.5, not the 15 / 600 headline.
       style: TextStyle(
         fontFamily: OnsetTokens.bodyFamily,
         fontSize: 14,

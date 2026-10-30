@@ -133,7 +133,7 @@ void main() {
             greaterThanOrEqualTo(4.5),
             reason: 'L$level on $fill',
           );
-          // White on the fill is what the board refuses.
+          // White on the fill is what the design refuses.
           expect(HtPalette.contrast(Colors.white, fill), lessThan(4.5));
         }
         expect(

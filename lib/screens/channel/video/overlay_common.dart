@@ -5,7 +5,7 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
 
-/// The soft shadow under the live player's chrome (the boards'
+/// The soft shadow under the live player's chrome (the
 /// `drop-shadow(0 1px 2px rgba(0,0,0,.6))`), so its text and glyphs read
 /// over a bright picture where the scrim is thin.
 const kPlayerChromeShadow = [

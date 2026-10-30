@@ -29,7 +29,7 @@ enum OnboardingLogin {
   failed,
 }
 
-/// Step 3, Setup (boards Onboarding and OnboardingTablette): who is logged
+/// Step 3, Setup: who is logged
 /// in, a small live preview that follows the theme and the accent, the
 /// theme, the accent colour, the chat history and the crash reports.
 class OnboardingSetupStep extends StatefulWidget {

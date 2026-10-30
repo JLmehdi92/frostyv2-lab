@@ -98,7 +98,7 @@ void _tell(BuildContext context, String message) {
   );
 }
 
-/// Offers [update]: a sheet on a phone (board MiseAJour), a dialog on a
+/// Offers [update]: a sheet on a phone, a dialog on a
 /// tablet; it is answered with "Update" (true) or "Later" (false), never
 /// dismissed in passing.
 Future<bool?> _askUpdate(BuildContext context, UpdateAvailable update) {
@@ -183,7 +183,7 @@ Future<bool?> _askUpdate(BuildContext context, UpdateAvailable update) {
   );
 }
 
-/// "Update available" (board MiseAJour): the ONSET tile, the build, what is
+/// "Update available": the ONSET tile, the build, what is
 /// installed and the download's size, the start of its release notes, and
 /// the choice between "Update" (pops true) and "Later" (pops false).
 class UpdateAvailableDialog extends StatelessWidget {

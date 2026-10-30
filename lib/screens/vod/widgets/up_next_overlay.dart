@@ -13,7 +13,7 @@ import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 
-/// The official app's Up Next card over the ended video (board Rediff):
+/// The official app's Up Next card over the ended video:
 /// "UP NEXT" and the seconds left, Cancel, the next video's picture, title
 /// and channel, and "Play now" in a ring that closes over the countdown.
 /// Without autoplay it waits for the viewer, without a countdown. Dark

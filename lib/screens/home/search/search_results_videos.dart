@@ -88,9 +88,8 @@ class SearchResultsVideos extends StatelessWidget {
   }
 }
 
-/// The first videos found, in the tablet's Top column (board
-/// RechercheTablette, an approved addition): at most [limit], "See all"
-/// being the Videos tab.
+/// The first videos found, in the tablet's Top column: at most [limit],
+/// "See all" being the Videos tab.
 class SearchVideosColumn extends StatelessWidget {
   const SearchVideosColumn({super.key, required this.store, this.limit = 5});
 

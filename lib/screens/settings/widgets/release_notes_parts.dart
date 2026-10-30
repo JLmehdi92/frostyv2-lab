@@ -17,8 +17,8 @@ import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:provider/provider.dart';
 
-/// The pieces of the release notes page (boards NotesMiseAJour and
-/// NotesMiseAJourTablette), shared by its phone and tablet layouts.
+/// The pieces of the release notes page,
+/// shared by its phone and tablet layouts.
 
 TextStyle _inter(
   double size, {

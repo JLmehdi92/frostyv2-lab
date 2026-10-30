@@ -1,9 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:onset/widgets/sheet/svg_path.dart';
 
-/// The icons of the profile and settings screens, drawn from the boards' own
-/// 24 × 24 strokes (Moi, MoiDeconnecte, Parametres, ParametresTablette,
-/// MiseAJour): round caps and joins.
+/// The icons of the profile and settings screens, drawn from ONSET's own
+/// 24 × 24 strokes: round caps and joins.
 enum SettingsGlyphKind {
   general,
   video,
@@ -42,7 +41,7 @@ enum SettingsGlyphKind {
   list,
 }
 
-/// The board's elements of each glyph: path data, `c:cx,cy,r` circles and
+/// The elements of each glyph: path data, `c:cx,cy,r` circles and
 /// `r:x,y,w,h,rx` rectangles.
 const Map<SettingsGlyphKind, List<String>> _shapes = {
   SettingsGlyphKind.general: [
@@ -91,7 +90,7 @@ const Map<SettingsGlyphKind, List<String>> _shapes = {
   ],
   SettingsGlyphKind.lock: ['r:5,11,14,9,2', 'M8 11V8a4 4 0 0 1 8 0v3'],
   SettingsGlyphKind.check: ['M5 12.5l4.5 4.5L19 7.5'],
-  // Release notes' sections (board NotesMiseAJour): New, Improvements,
+  // Release notes' sections: New, Improvements,
   // Fixes, and any other section.
   SettingsGlyphKind.sparkle: [
     'M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z',
@@ -156,7 +155,7 @@ Path settingsGlyphPath(SettingsGlyphKind kind) => _cache.putIfAbsent(kind, () {
   return path;
 });
 
-/// One of the boards' profile and settings icons, stroked in [color].
+/// One of the profile and settings icons, stroked in [color].
 class SettingsGlyph extends StatelessWidget {
   const SettingsGlyph(
     this.kind, {

@@ -35,7 +35,7 @@ class _PointsIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = context.onsetColors.live;
-    // The boards' generic mark: a ring in the signal colour.
+    // The generic mark: a ring in the signal colour.
     final fallback = Container(
       key: ChannelPointsButton.genericIconKey,
       width: size,
@@ -137,8 +137,7 @@ class ChannelPointsButton extends StatelessWidget {
         void openPoints() {
           // Fresh, like Twitch's panel (at most once a minute).
           unawaited(store.refreshWatchStreak());
-          // A sheet on a phone; on a tablet a panel above the pill
-          // (board ChaineOutilsTablette).
+          // A sheet on a phone; on a tablet a panel above the pill.
           showSheetOrPanel<void>(
             context: context,
             size: ChannelPointsSheet.panelSize,
@@ -152,7 +151,7 @@ class ChannelPointsButton extends StatelessWidget {
           );
         }
 
-        // A pill beside the message box (boards Chaine, TablettePortrait).
+        // A pill beside the message box.
         final button = Tooltip(
           message: points.pointsName ?? 'Channel points',
           preferBelow: false,

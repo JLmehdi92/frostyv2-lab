@@ -6,8 +6,8 @@ import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/widgets/onset_chip.dart';
 
-/// The period and sort chips above a channel's or a category's clips
-/// (boards Categorie, VideosChaine): 30 dp pills, the chosen ones in the
+/// The period and sort chips above a channel's or a category's clips:
+/// 30 dp pills, the chosen ones in the
 /// signal tint, a hairline between the two groups.
 class ClipFilterBar extends StatelessWidget {
   const ClipFilterBar({super.key, required this.store});

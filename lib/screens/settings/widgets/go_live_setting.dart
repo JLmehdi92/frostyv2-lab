@@ -192,7 +192,7 @@ class _GoLiveBellTileState extends State<GoLiveBellTile> {
       if (mounted) setState(() {});
     }
 
-    // The board's row with a switch (ChaineCarteUtilisateur's "More").
+    // The row with a switch (as in the user card's "More").
     return MergeSemantics(
       child: SheetRow(
         glyph: SheetGlyphKind.bell,

@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/theme.dart';
 
-/// The "Noir & Signal 2.0" values, read off the design system board
-/// (Main.dc.html). The board is the source of truth: a token that drifts from
-/// it fails here.
+/// The "Noir & Signal 2.0" values of ONSET's design system: a token that
+/// drifts from them fails here.
 void main() {
   group('tokens v2', () {
     test('keep every existing token as it was', () {
@@ -110,7 +109,7 @@ void main() {
       expect(style.color, isNull);
     }
 
-    test('matches the board', () {
+    test('matches the design system', () {
       expectStyle(
         OnsetType.display,
         size: 34,

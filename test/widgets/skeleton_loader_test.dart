@@ -22,7 +22,7 @@ RenderSkeletonSheen _painter(WidgetTester tester) => tester.renderObject(
 );
 
 void main() {
-  testWidgets('dark: the board greys, with a moving sheen', (tester) async {
+  testWidgets('dark: the skeleton greys, with a moving sheen', (tester) async {
     await tester.pumpWidget(
       _host(const Center(child: SkeletonLoader(width: 120, height: 40))),
     );

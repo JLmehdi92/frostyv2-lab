@@ -171,7 +171,7 @@ class _VideoChatState extends State<VideoChat>
   final _contentGateKey = GlobalKey();
 
   /// Where the video is, so a tablet's anchored panels (user card, points,
-  /// emote menu) keep it clear (board ChaineOutilsTablette).
+  /// emote menu) keep it clear.
   final _panelAvoid = PanelAvoidHolder();
 
   /// The portrait video size while its handle is dragged; saved to the
@@ -183,7 +183,7 @@ class _VideoChatState extends State<VideoChat>
   // Divider drag state for synchronizing animation
   bool _isDividerDragging = false;
 
-  /// A tablet's side chat, a shade off the ground (board Tablette).
+  /// A tablet's side chat, a shade off the ground.
   static const _tabletChatColor = Color(0xFF0D0D0D);
 
   // Essential constants for good UX balance
@@ -487,7 +487,7 @@ class _VideoChatState extends State<VideoChat>
     fromChannel: true,
   );
 
-  /// A tablet beside its chat (board Tablette): the video first, the
+  /// A tablet beside its chat: the video first, the
   /// channel's info area under it while there is room for it.
   Widget _buildTabletVideoColumn(Widget video, {required bool infoArea}) {
     return Observer(
@@ -515,7 +515,7 @@ class _VideoChatState extends State<VideoChat>
     );
   }
 
-  /// A tablet's side chat (board Tablette): its header, then the chat.
+  /// A tablet's side chat: its header, then the chat.
   Widget _buildTabletChat(Widget chat, SettingsStore settingsStore) {
     final hairline = BorderSide(
       color: context.onsetColors.hairline,
@@ -531,10 +531,7 @@ class _VideoChatState extends State<VideoChat>
       ),
       child: Column(
         children: [
-          TabletChatHeader(
-            settings: settingsStore,
-            onMore: _openChatDetails,
-          ),
+          TabletChatHeader(settings: settingsStore, onMore: _openChatDetails),
           Expanded(child: ChatMoreInHeader(child: chat)),
         ],
       ),
@@ -1127,7 +1124,7 @@ class _VideoChatState extends State<VideoChat>
         : overlayGestures;
 
     // The latency stays over the video whether the controls show or not
-    // (board ChaineLecteur: always readable, never under a menu), where
+    // (always readable, never under a menu), where
     // their top row leaves it room.
     final metrics = PlayerChromeMetrics.of(context);
     final chrome = Stack(
@@ -1194,8 +1191,7 @@ class _VideoChatState extends State<VideoChat>
             children: [
               player,
               // Twitch's own warning left in the web player gets the taps.
-              if (_videoStore.settingsStore.showOverlay && !_webGateUp)
-                chrome,
+              if (_videoStore.settingsStore.showOverlay && !_webGateUp) chrome,
               ChannelVideoTopOverlay(
                 hypeTrain: _hypeTrainStore,
                 highlights: _highlightsStore,
@@ -1389,8 +1385,10 @@ class _VideoChatState extends State<VideoChat>
                                     if (settingsStore.showOverlay)
                                       LayoutBuilder(
                                         builder: (context, constraints) {
-                                          final totalWidth = constraints.maxWidth;
-                                          final chatWidth = _chatStore.expandChat
+                                          final totalWidth =
+                                              constraints.maxWidth;
+                                          final chatWidth =
+                                              _chatStore.expandChat
                                               ? 0.5
                                               : settingsStore.chatWidth;
 
@@ -1433,7 +1431,8 @@ class _VideoChatState extends State<VideoChat>
                                                         overlayChat,
                                                         Expanded(
                                                           child: Stack(
-                                                            fit: StackFit.expand,
+                                                            fit:
+                                                                StackFit.expand,
                                                             children: [
                                                               chrome,
                                                               statsLayer,
@@ -1444,7 +1443,8 @@ class _VideoChatState extends State<VideoChat>
                                                     : [
                                                         Expanded(
                                                           child: Stack(
-                                                            fit: StackFit.expand,
+                                                            fit:
+                                                                StackFit.expand,
                                                             children: [
                                                               chrome,
                                                               statsLayer,
@@ -1462,13 +1462,15 @@ class _VideoChatState extends State<VideoChat>
                                                   left:
                                                       settingsStore
                                                           .landscapeChatLeftSide
-                                                      ? (totalWidth * chatWidth) -
+                                                      ? (totalWidth *
+                                                                chatWidth) -
                                                             12
                                                       : null,
                                                   right:
                                                       !settingsStore
                                                           .landscapeChatLeftSide
-                                                      ? (totalWidth * chatWidth) -
+                                                      ? (totalWidth *
+                                                                chatWidth) -
                                                             12
                                                       : null,
                                                   child: draggableDivider,
@@ -1488,7 +1490,7 @@ class _VideoChatState extends State<VideoChat>
                                     ),
                                   ],
                                 ),
-                            )
+                              )
                             : SafeArea(
                                 bottom: false,
                                 left:
@@ -1509,8 +1511,7 @@ class _VideoChatState extends State<VideoChat>
                                         : settingsStore.chatWidth;
 
                                     // A tablet puts its info area under the
-                                    // video and a header on its chat (board
-                                    // Tablette).
+                                    // video and a header on its chat.
                                     final tablet = context.isLargeScreen;
 
                                     // Create the landscape chat container with proper styling
@@ -1643,8 +1644,7 @@ class _VideoChatState extends State<VideoChat>
                       final videoHeight = portraitVideoHeight(width, scale);
                       final large = context.isLargeScreen;
                       // On a phone, sheets start under the video so the
-                      // live and its latency stay in view (approved
-                      // addition to the board ChaineLecteur).
+                      // live and its latency stay in view.
                       return SheetsUnderVideo(
                         top:
                             settingsStore.showVideo &&
@@ -1669,8 +1669,7 @@ class _VideoChatState extends State<VideoChat>
                                       _portraitDragScale.value = null;
                                     },
                                   ),
-                                  // The channel under the video (boards
-                                  // Chaine, TablettePortrait).
+                                  // The channel under the video.
                                   ChannelInfoRow(
                                     player: _videoStore,
                                     login: widget.userLogin,

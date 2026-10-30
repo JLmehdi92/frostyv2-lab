@@ -6,8 +6,7 @@ import 'package:onset/theme.dart';
 import 'package:onset/widgets/accent_picker_controls.dart';
 import 'package:onset/widgets/motion/haptics.dart';
 
-/// The accent colour picker of Setup (boards Onboarding: a sheet;
-/// OnboardingTablette: a dialog): the colour square, the hue slider,
+/// The accent colour picker of Setup (a sheet; on a tablet, a dialog): the colour square, the hue slider,
 /// "Random", "Cancel" and "Done".
 ///
 /// Every change is applied at once through [onChanged], so the whole

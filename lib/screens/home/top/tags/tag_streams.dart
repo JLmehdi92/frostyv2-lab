@@ -11,8 +11,8 @@ import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/settled_blur.dart';
 
-/// The live streams with a tag, in any of Twitch's orders (board Categorie,
-/// "tag" state): a glass header with the tag and the order over the list,
+/// The live streams with a tag, in any of Twitch's orders
+/// ("tag" state): a glass header with the tag and the order over the list,
 /// the tag lit on every card.
 class TagStreams extends StatefulWidget {
   static const routeName = 'TagStreams';
@@ -21,7 +21,7 @@ class TagStreams extends StatefulWidget {
 
   final String tag;
 
-  /// The header's title row and order row (board: 56 + 48, a hairline).
+  /// The header's title row and order row (56 + 48, a hairline).
   static const headerHeight = 56.0 + 48.0 + OnsetTokens.hairlineWidth;
 
   /// Opens the page of [tag], when it is a Twitch tag.

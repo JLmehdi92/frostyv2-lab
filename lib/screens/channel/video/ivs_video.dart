@@ -97,8 +97,8 @@ class IvsTextureVideo extends StatelessWidget {
   }
 }
 
-/// Shown over the last picture while only the sound plays (board
-/// ChaineLecteur: the picture goes, the sound goes on).
+/// Shown over the last picture while only the sound plays
+/// (the picture goes, the sound goes on).
 class _AudioOnlyBadge extends StatelessWidget {
   const _AudioOnlyBadge();
 

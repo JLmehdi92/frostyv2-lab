@@ -14,8 +14,8 @@ String vodDetails(Vod vod) => [
       '${vod.viewCount == 1 ? 'view' : 'views'}',
 ].join(' · ');
 
-/// Title and details of a VOD under the player (boards Rediff and
-/// RediffTablette): the title, then the category pill and the age and
+/// Title and details of a VOD under the player:
+/// the title, then the category pill and the age and
 /// views; a broadcast still recording says so.
 class VodInfoStrip extends StatelessWidget {
   const VodInfoStrip({
@@ -74,7 +74,7 @@ class VodInfoStrip extends StatelessWidget {
                 color: colors.text,
               ),
             ),
-            // The pill's 44 dp target takes the board's 8 dp gap.
+            // The pill's 44 dp target takes the 8 dp gap.
             if (!hasCategory) const SizedBox(height: 8),
             Wrap(
               crossAxisAlignment: WrapCrossAlignment.center,
@@ -104,8 +104,7 @@ class VodInfoStrip extends StatelessWidget {
   }
 }
 
-/// "● Recording": a broadcast still live, in the signal (boards
-/// VideosChaine, VideosSuivies).
+/// "● Recording": a broadcast still live, in the signal.
 class RecordingBadge extends StatelessWidget {
   const RecordingBadge({super.key, this.height = 19, this.fontSize = 10.5});
 

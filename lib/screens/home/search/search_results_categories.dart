@@ -8,8 +8,8 @@ import 'package:onset/screens/home/top/categories/category_streams.dart';
 import 'package:onset/widgets/motion/staggered_entrance.dart';
 import 'package:onset/widgets/state_views.dart';
 
-/// The categories found by a search (boards Recherche and
-/// RechercheTablette), the exact name first: rows on a phone, box arts in
+/// The categories found by a search,
+/// the exact name first: rows on a phone, box arts in
 /// [columns] on a tablet. A tap opens the category.
 class SearchResultsCategories extends StatelessWidget {
   final SearchStore searchStore;
@@ -45,7 +45,7 @@ class SearchResultsCategories extends StatelessWidget {
     constraints: const BoxConstraints(minHeight: 100),
     child: Center(
       child: failed
-          // "Try again" (approved addition): the same search again.
+          // "Try again": the same search again.
           ? InlineStatus.error(
               message: message,
               onRetry: () => searchStore.handleQuery(searchStore.lastQuery),

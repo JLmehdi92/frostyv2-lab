@@ -6,8 +6,7 @@ import 'package:onset/screens/vod/vod_time.dart';
 import 'package:onset/screens/vod/widgets/video_card_layout.dart';
 import 'package:onset/screens/vod/widgets/video_glyph.dart';
 
-/// A clip in a list, laid out like the VOD cards (board VideosChaine's
-/// Clips): thumbnail with its views and length, then the title, category
+/// A clip in a list, laid out like the VOD cards: thumbnail with its views and length, then the title, category
 /// (or channel), age and clipper.
 class ClipCard extends StatelessWidget {
   const ClipCard({

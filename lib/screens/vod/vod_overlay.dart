@@ -42,8 +42,8 @@ abstract final class _Over {
   static const pillRing = Color(0x24FFFFFF);
 }
 
-/// The sizes of the boards: Rediff on a phone, RediffTablette on a tablet's
-/// large player, and a smaller set for a player too short for them.
+/// The sizes of the controls: one set on a phone, one on a tablet's large
+/// player, and a smaller set for a player too short for them.
 class _OverlayMetrics {
   const _OverlayMetrics({
     required this.topScrim,
@@ -131,8 +131,8 @@ class _OverlayMetrics {
   final bool large;
 }
 
-/// Controls over the VOD (or clip) player (boards Rediff, RediffTablette,
-/// Clips): back, title and channel, ±10 s and play/pause, the seek bar with
+/// Controls over the VOD (or clip) player:
+/// back, title and channel, ±10 s and play/pause, the seek bar with
 /// the copyright-muted parts, elapsed time, speed, sound, PiP, fit/fill and
 /// rotation. Double-tap the left or right third to skip 10 s. Gradients
 /// only: nothing is blurred over the video.
@@ -185,7 +185,7 @@ class VodOverlay extends StatefulWidget {
 class _VodOverlayState extends State<VodOverlay> {
   static const _skip = Duration(seconds: 10);
 
-  /// How long the "−10 s" / "+10 s" badge stays (board Rediff: 700 ms).
+  /// How long the "−10 s" / "+10 s" badge stays (700 ms).
   static const _badgeTime = Duration(milliseconds: 700);
 
   Offset? _doubleTapAt;
@@ -377,7 +377,7 @@ class _VodOverlayState extends State<VodOverlay> {
         Positioned(
           left: m.seekSide,
           right: m.seekSide,
-          // The 40 dp touch band is centred on the board's 24 dp bar.
+          // The 40 dp touch band is centred on the 24 dp bar.
           bottom: m.seekBottom - 8,
           child: Observer(
             builder: (context) => VodSeekBar(
@@ -734,7 +734,7 @@ class _PlainButton extends StatelessWidget {
   }
 }
 
-/// A control over the video: a board glyph with its soft shadow in a 44 dp
+/// A control over the video: a glyph with its soft shadow in a 44 dp
 /// (or [size]) target.
 class _OverlayButton extends StatelessWidget {
   const _OverlayButton({
@@ -939,7 +939,7 @@ class _SpeedPill extends StatelessWidget {
 }
 
 /// "−10 s" / "+10 s" in a 72 dp disc after a side double tap: it pops in,
-/// holds, then fades (board Rediff, 700 ms); a plain fade under reduce
+/// holds, then fades (700 ms); a plain fade under reduce
 /// motion.
 class _SkipBadge extends StatelessWidget {
   const _SkipBadge({super.key, required this.forward, required this.duration});
@@ -1015,7 +1015,7 @@ Future<void> showVodSettingsSheet(
 );
 
 /// Quality, volume, captions, playback speed and share-at-time for a VOD or
-/// a clip (board Rediff's sheet): quality pills, the volume slider, the
+/// a clip: quality pills, the volume slider, the
 /// Closed Captions switch, a grid of speeds, then the link rows.
 class VodSettingsSheet extends StatelessWidget {
   const VodSettingsSheet({

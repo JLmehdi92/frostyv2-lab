@@ -13,8 +13,7 @@ import 'package:onset/widgets/profile_picture.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
 
 /// A small label over a video thumbnail (length, "Watched", views…): 19 dp
-/// (22 on a tile), black at 65 %, a light hairline (boards VideosChaine,
-/// VideosSuivies).
+/// (22 on a tile), black at 65 %, a light hairline.
 class VideoCardChip extends StatelessWidget {
   const VideoCardChip({
     super.key,
@@ -84,9 +83,9 @@ Color videoCardOnImage(BuildContext context) => OverImage.text;
 typedef VideoCardFallback = ({VideoGlyphKind glyph, String? label});
 
 /// A recorded video in a list (VOD, clip): the thumbnail with its chips,
-/// length and progress, then the title and details. A row beside its text
-/// (board VideosChaine, VideosSuivies), or a [tile] with the text under it
-/// (board VideosSuiviesTablette). The card sinks under the finger; a long
+/// length and progress, then the title and details. A row beside its text,
+/// or a [tile] with the text under it.
+/// The card sinks under the finger; a long
 /// press on the picture enlarges it.
 class VideoCardLayout extends StatelessWidget {
   const VideoCardLayout({
@@ -141,7 +140,7 @@ class VideoCardLayout extends StatelessWidget {
   /// What a screen reader says for the whole card (its text otherwise).
   final String? semanticsLabel;
 
-  /// The row's picture on a phone (board VideosChaine: 152 × 86).
+  /// The row's picture on a phone (152 × 86).
   static const rowThumbnailWidth = 152.0;
 
   @override
@@ -180,7 +179,7 @@ class VideoCardLayout extends StatelessWidget {
   Widget _row(BuildContext context, FeedColors colors) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // The board's 152 dp on a phone; a wider row (a tablet's) gives the
+        // The 152 dp on a phone; a wider row (a tablet's) gives the
         // picture more, up to 240.
         final width = math.min(
           240.0,
@@ -269,7 +268,7 @@ class VideoCardLayout extends StatelessWidget {
           ),
         ),
         if (subtitle != null)
-          // A row names the channel with its picture (board VideosSuivies);
+          // A row names the channel with its picture;
           // a tile has it beside the title already.
           !large && login != null && login.isNotEmpty
               ? Row(
@@ -427,7 +426,7 @@ class _VideoPicture extends StatelessWidget {
   }
 }
 
-/// A row card loading (board VideosChaine): the picture and three lines,
+/// A row card loading: the picture and three lines,
 /// under the global sheen.
 class VideoRowSkeleton extends StatelessWidget {
   const VideoRowSkeleton({super.key});
@@ -473,7 +472,7 @@ class VideoRowSkeleton extends StatelessWidget {
   }
 }
 
-/// A tile loading (board VideosSuiviesTablette).
+/// A tile loading.
 class VideoTileSkeleton extends StatelessWidget {
   const VideoTileSkeleton({super.key});
 

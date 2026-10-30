@@ -20,7 +20,7 @@ import 'package:onset/widgets/alert_message.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/profile_picture.dart';
 
-/// A tablet's area around the VOD (board RediffTablette): the title,
+/// A tablet's area around the VOD: the title,
 /// category and views, the channel's card with "Open channel", the player's
 /// actions as pills (copy the link at the current time, share, speed,
 /// quality, captions) and, under a landscape video, what the player does

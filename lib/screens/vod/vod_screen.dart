@@ -166,7 +166,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   static const _historyTimeout = Duration(seconds: 3);
   var _mutedSegments = const <MutedSegment>[];
 
-  /// A tablet's side chat in the dark theme (board RediffTablette).
+  /// A tablet's side chat in the dark theme.
   static const _tabletChatColor = Color(0xFF0D0D0D);
   var _fillScreen = false;
   var _forceWeb = false;
@@ -668,7 +668,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     return VodChatReplay(store: replay, showHeader: header, large: large);
   }
 
-  /// A tablet's details (board RediffTablette): under a portrait video
+  /// A tablet's details: under a portrait video
   /// above the chat, or under a landscape video beside it.
   Widget _details(Vod vod, {required bool legend}) => Observer(
     builder: (context) => VodDetailsPanel(
@@ -725,7 +725,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   /// this much room.
   static const _minTabletDetailsHeight = 120.0;
 
-  /// A tablet beside its chat (board RediffTablette): the 16:9 video at the
+  /// A tablet beside its chat: the 16:9 video at the
   /// top, the details under it.
   Widget _buildTabletVideoColumn(Widget video) {
     final vod = _vod;
@@ -804,8 +804,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
           ),
         );
 
-        // A tablet puts the details under the video and a header on its
-        // chat (board RediffTablette).
+        // A tablet puts the details under the video and a header on its chat.
         final dark = Theme.of(context).brightness == Brightness.dark;
         final hairline = BorderSide(
           color: FeedColors.of(context).hairline,

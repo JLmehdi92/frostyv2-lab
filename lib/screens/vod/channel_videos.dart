@@ -15,7 +15,7 @@ import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/profile_picture.dart';
 
 /// A channel's past broadcasts, highlights, uploads and clips, each played
-/// in-app (board VideosChaine): the channel and "· Videos" over the tabs
+/// in-app: the channel and "· Videos" over the tabs
 /// with the signal underline; the tabs also follow a swipe.
 class ChannelVideosScreen extends StatefulWidget {
   static const routeName = 'ChannelVideos';

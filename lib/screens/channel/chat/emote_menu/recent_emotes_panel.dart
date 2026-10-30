@@ -18,7 +18,7 @@ class RecentEmotesPanel extends StatelessWidget {
     return Observer(
       builder: (context) {
         if (chatStore.assetsStore.recentEmotes.isEmpty) {
-          // The board's empty state.
+          // The empty state.
           final color = SheetColors.of(context).tertiary;
           // Scrolls (never by hand) rather than overflow while the menu
           // folds away under it.

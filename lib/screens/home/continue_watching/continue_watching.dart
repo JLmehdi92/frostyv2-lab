@@ -78,7 +78,7 @@ class _ShelfHeader extends StatelessWidget {
   }
 }
 
-/// The thumbnail of an item with its progress bar (board: 3 px, signal over
+/// The thumbnail of an item with its progress bar (3 px, signal over
 /// white 18 %) and, [resumeLabel], "Resume at 2:31:04".
 class _ResumeThumbnail extends StatelessWidget {
   const _ResumeThumbnail({
@@ -172,7 +172,7 @@ class _ResumeThumbnail extends StatelessWidget {
   }
 }
 
-/// Following's "Continue watching" on a phone (board Accueil): a row of
+/// Following's "Continue watching" on a phone: a row of
 /// 244 dp cards, each the video with its progress, "Resume at …", the
 /// channel's picture, title, channel and when it was left. Nothing when
 /// there is nothing to resume.
@@ -291,8 +291,8 @@ class ContinueWatchingShelf extends StatelessWidget {
   }
 }
 
-/// Following's "Continue watching" beside the tablet's hero (board
-/// TabletteAccueil): the latest [rows] videos as 210 x 118 rows with
+/// Following's "Continue watching" beside the tablet's hero:
+/// the latest [rows] videos as 210 x 118 rows with
 /// "Resume at … · channel".
 class ContinueWatchingColumn extends StatelessWidget {
   const ContinueWatchingColumn({super.key, required this.store, this.rows = 2});
@@ -431,7 +431,7 @@ class ContinueWatchingScreen extends StatelessWidget {
   }
 }
 
-/// The shelf's skeleton (board Etats, "Chargement"): the title, then two
+/// The shelf's skeleton: the title, then two
 /// cards.
 class ContinueWatchingSkeleton extends StatelessWidget {
   const ContinueWatchingSkeleton({super.key});

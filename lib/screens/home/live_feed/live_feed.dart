@@ -52,7 +52,7 @@ void selectLiveCategory(
   store.selectCategory(categoryId);
 }
 
-/// Home's Live feed (boards Live and LiveTablette): the top live channels
+/// Home's Live feed: the top live channels
 /// one at a time, a swipe up for the next, each with its muted preview.
 ///
 /// - One preview plays at a time, never with sound until asked, and only
@@ -578,7 +578,7 @@ class _LiveFeedState extends State<LiveFeed> {
   }
 
   // -----------------------------------------------------------------------
-  // Phone (board Live).
+  // Phone.
 
   Widget _phone(BuildContext context) {
     final padding = MediaQuery.paddingOf(context);
@@ -641,7 +641,7 @@ class _LiveFeedState extends State<LiveFeed> {
   }
 
   // -----------------------------------------------------------------------
-  // Tablet (board LiveTablette).
+  // Tablet.
 
   Widget _tablet(BuildContext context) {
     final padding = MediaQuery.paddingOf(context);
@@ -743,8 +743,8 @@ class _LiveFeedState extends State<LiveFeed> {
   }
 }
 
-/// The category chips: "All" and the categories most live now (boards:
-/// 32 dp pills; over the phone's video, glassless white on dark).
+/// The category chips: "All" and the categories most live now
+/// (32 dp pills; over the phone's video, glassless white on dark).
 class LiveFeedChips extends StatelessWidget {
   const LiveFeedChips({
     super.key,
@@ -1050,7 +1050,7 @@ class _WarningPill extends StatelessWidget {
   }
 }
 
-/// A round action over the preview (boards: 48 / 50 dp, dark, hairline).
+/// A round action over the preview (48 / 50 dp, dark, hairline).
 class _RoundAction extends StatelessWidget {
   const _RoundAction({
     required this.icon,
@@ -1202,7 +1202,7 @@ class _Watching extends StatelessWidget {
   }
 }
 
-/// The primary action: "Watch with chat" (boards: signal fill, 48 dp).
+/// The primary action: "Watch with chat" (signal fill, 48 dp).
 class _WatchButton extends StatelessWidget {
   const _WatchButton({
     required this.onPressed,
@@ -1317,7 +1317,7 @@ class _CategoryLine extends StatelessWidget {
   }
 }
 
-/// One channel of the phone feed (board Live).
+/// One channel of the phone feed.
 class _PhonePage extends StatelessWidget {
   const _PhonePage({
     required this.stream,
@@ -1625,7 +1625,7 @@ class _SwipeHintState extends State<_SwipeHint>
   }
 }
 
-/// One channel of the tablet feed (board LiveTablette): the preview card.
+/// One channel of the tablet feed: the preview card.
 class _TabletPage extends StatelessWidget {
   const _TabletPage({
     required this.stream,
@@ -2202,7 +2202,7 @@ class _EndPage extends StatelessWidget {
   );
 }
 
-/// The phone feed, loading: the board's preview and lines in skeleton.
+/// The phone feed, loading: the preview and lines in skeleton.
 class _PhoneSkeleton extends StatelessWidget {
   const _PhoneSkeleton();
 

@@ -35,7 +35,7 @@ class UserActionsModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The board's "More" sheet (ChaineCarteUtilisateur).
+    // The "More" sheet of the user card.
     return ListView(
       primary: false,
       shrinkWrap: true,

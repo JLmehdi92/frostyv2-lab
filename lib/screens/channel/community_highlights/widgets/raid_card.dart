@@ -51,7 +51,7 @@ double raidProgress(OutgoingRaid raid, Duration left) {
   return (1 - left.inMilliseconds / (total * 1000)).clamp(0.0, 1.0);
 }
 
-/// This channel raids another (board Raids): a card pinned above chat with
+/// This channel raids another: a card pinned above chat with
 /// the RAID eyebrow, "X is raiding Y", the viewers, a countdown ring, a
 /// dotted track from this channel to the target that the ONSET rocket
 /// crosses as the time runs out, and "Go now" / "Stay here". Staying,
@@ -433,7 +433,7 @@ class _RingPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Board: r 18 in a 44 box, 2.5 stroke, from the top.
+    // r 18 in a 44 box, 2.5 stroke, from the top.
     final rect = Rect.fromCircle(center: size.center(Offset.zero), radius: 18);
     final paint = Paint()
       ..style = PaintingStyle.stroke
@@ -902,7 +902,7 @@ class _HideButton extends StatelessWidget {
   }
 }
 
-/// The board's `fadeup`: in from 6 dp below, fading in; out by fading.
+/// The `fadeup`: in from 6 dp below, fading in; out by fading.
 class _FadeUp extends StatelessWidget {
   const _FadeUp({required this.animation, required this.child});
 

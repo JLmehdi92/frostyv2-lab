@@ -52,7 +52,7 @@ class _ChatRestrictionBarState extends State<ChatRestrictionBar> {
     super.dispose();
   }
 
-  /// The board's glyphs (ChaineModeration).
+  /// The glyph for each restriction.
   static SheetGlyphKind _glyph(ChatRestrictionKind kind) => switch (kind) {
     ChatRestrictionKind.banned => SheetGlyphKind.block,
     ChatRestrictionKind.timedOut => SheetGlyphKind.timer,

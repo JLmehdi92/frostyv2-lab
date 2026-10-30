@@ -246,7 +246,7 @@ const _sparkCycle = [
   CelebrationSprite.mint,
 ];
 
-/// Same spots as the board's "Étincelles", for the still flash.
+/// Same spots as the sparks, for the still flash.
 const _stillSpots = [
   (0.14, 0.2, 0.09),
   (0.84, 0.16, 0.08),
@@ -281,7 +281,7 @@ List<_Seed> _buildStill(CelebrationPreset preset, double total, math.Random r) {
   ];
 }
 
-/// The board's confetti: lime, green, mint and white bits, 5–8 × 9–14 dp on a
+/// The confetti: lime, green, mint and white bits, 5–8 × 9–14 dp on a
 /// 270 dp fall, 2.1–3 s each, swaying and turning over as they fall.
 List<_Seed> _buildConfetti(double total, math.Random r) {
   const palette = [
@@ -297,7 +297,7 @@ List<_Seed> _buildConfetti(double total, math.Random r) {
         final life = _life(_between(r, 2.1, 3.0), total);
         final width = _between(r, 5, 8);
         return _Seed(
-          // Weighted to the start, so it opens on a shower (the board's
+          // Weighted to the start, so it opens on a shower (the
           // first 0.7 s) and thins out after.
           start: math.pow(r.nextDouble(), 1.6) * math.max(0, total - life),
           life: life,
@@ -469,8 +469,8 @@ List<_Seed> _buildQuestionMarks(double total, math.Random r) {
   ];
 }
 
-/// Waves of stars thrown out from the middle, each twinkling as on the
-/// board (grow and turn 45° by 45 %, shrink and turn on to 90°).
+/// Waves of stars thrown out from the middle, each twinkling (grow and
+/// turn 45° by 45 %, shrink and turn on to 90°).
 List<_Seed> _buildSparkles(double total, math.Random r) {
   final waves = (total / 1.4).ceil().clamp(1, 6);
   final life = _waveLife(total, waves, 1.5, 2.6);
@@ -742,7 +742,7 @@ ParticleFrame _sparkle(_Seed s, double p) {
       opacity: _clamp01(0.7 * (1 - p)),
     );
   }
-  // The board's twinkle: scale 0 → 1 by 45 %, back to 0 at the end.
+  // The twinkle: scale 0 → 1 by 45 %, back to 0 at the end.
   final scale = p < 0.45
       ? Curves.easeOut.transform(p / 0.45)
       : 1 - Curves.easeIn.transform((p - 0.45) / 0.55);

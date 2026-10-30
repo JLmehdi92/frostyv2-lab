@@ -23,7 +23,7 @@ Matcher _closeTo(Color expected) => predicate<Color>(
 void main() {
   group('sub notice colours', () {
     test('the accent is the signal lime, darkened on white', () {
-      // Board CadeauxHypeTrain: lime rows, green stays with the hype train.
+      // Lime rows, green stays with the hype train.
       expect(OnsetColors.dark.subNoticeAccent, OnsetTokens.accent);
       expect(OnsetColors.dark.subNoticeAccent, OnsetColors.dark.live);
       expect(OnsetColors.light.subNoticeAccent, const Color(0xFF6B8A00));

@@ -39,7 +39,7 @@ import 'package:provider/provider.dart';
 /// provided [listType]. For a widget that displays the top streams under a
 /// category, refer to [CategoryStreams].
 ///
-/// Following (boards Accueil and TabletteAccueil) leads with "Continue
+/// Following leads with "Continue
 /// watching" and the hero live card, then "Live now" with its order, the
 /// pinned channels, the others, the followed videos, the followed
 /// categories and the offline channels. On a tablet the hero shares its row
@@ -195,7 +195,7 @@ class _StreamsListState extends State<StreamsList>
     }
   }
 
-  /// "Try again" (approved addition): the same as pulling to refresh.
+  /// "Try again": the same as pulling to refresh.
   void _retry() => unawaited(_refresh());
 
   double get _extraTopPadding => widget.topInset;
@@ -400,7 +400,7 @@ class _StreamsListState extends State<StreamsList>
   }
 
   // ---------------------------------------------------------------------
-  // Following, phone (board Accueil).
+  // Following, phone.
 
   List<Widget> _followingPhone(BuildContext context, SettingsStore settings) {
     final pinned = [
@@ -525,7 +525,7 @@ class _StreamsListState extends State<StreamsList>
   }
 
   // ---------------------------------------------------------------------
-  // Following, tablet (board TabletteAccueil).
+  // Following, tablet.
 
   /// Grid columns in this page's width, each at least [minWidth] wide.
   int _columns(
@@ -732,7 +732,7 @@ class _StreamsListState extends State<StreamsList>
   }
 
   // ---------------------------------------------------------------------
-  // Loading (board Etats / EtatsTablette, "Chargement").
+  // Loading.
 
   List<Widget> _skeleton(BuildContext context, SettingsStore settings) {
     final large = context.isLargeScreen;
@@ -928,7 +928,7 @@ class RowGridSliver extends StatelessWidget {
   }
 }
 
-/// "Live now N" and the order (boards Accueil and TabletteAccueil).
+/// "Live now N" and the order.
 class _LiveNowHeader extends StatelessWidget {
   const _LiveNowHeader({
     required this.count,
@@ -1075,7 +1075,7 @@ class HiddenStreamsBanner extends StatelessWidget {
   }
 }
 
-/// Opens the newest videos of the followed channels (board Etats: a 60 dp
+/// Opens the newest videos of the followed channels (a 60 dp
 /// card, 420 wide on a tablet).
 class FollowedVideosTile extends StatelessWidget {
   const FollowedVideosTile({super.key});
@@ -1346,7 +1346,7 @@ class FeedRowSkeleton extends StatelessWidget {
   }
 }
 
-/// A [StreamCard] tile, loading (board EtatsTablette).
+/// A [StreamCard] tile, loading.
 class FeedTileSkeleton extends StatelessWidget {
   const FeedTileSkeleton({super.key});
 

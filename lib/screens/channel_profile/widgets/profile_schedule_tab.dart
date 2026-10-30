@@ -56,7 +56,7 @@ List<ScheduleSegment> comingUp(ChannelSchedule schedule, DateTime now) => [
     if (!segment.isCancelled && segment.startAt.isAfter(now)) segment,
 ];
 
-/// A stream to come in the boards' card: its day in a tile, the time (and
+/// A stream to come in the card: its day in a tile, the time (and
 /// category), the title, and Twitch's "Remind Me" when it can have one.
 class ProfileScheduleCard extends StatelessWidget {
   const ProfileScheduleCard({

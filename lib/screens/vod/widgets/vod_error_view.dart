@@ -53,8 +53,8 @@ class VodErrorView extends StatelessWidget {
     const text = OnsetTokens.textPrimaryDark;
     final detail = detailFor(problem);
     final retry = _retryable ? onRetry : null;
-    // The player's own ground, as the content warning draws it (board
-    // Rediff): a glyph in its disc, the message, the detail, "Try again".
+    // The player's own ground, as the content warning draws it:
+    // a glyph in its disc, the message, the detail, "Try again".
     return ColoredBox(
       color: Colors.black,
       child: Center(

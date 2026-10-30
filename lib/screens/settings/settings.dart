@@ -18,9 +18,8 @@ import 'package:onset/utils/context_extensions.dart';
 import 'package:provider/provider.dart';
 
 /// The settings page pushed over the app (Profile's "Settings", the chat's
-/// menu): on a phone the board Parametres' first page (the account, the
-/// sections, then Other's groups); on a tablet ParametresTablette's side
-/// column and pane.
+/// menu): on a phone its first page (the account, the sections, then
+/// Other's groups); on a tablet a side column and a pane.
 class Settings extends StatefulWidget {
   static const routeName = 'Settings';
 

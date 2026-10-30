@@ -415,35 +415,36 @@ void main() {
       expect(clip.borderRadius, BorderRadius.circular(20 * 28 / 72));
     });
 
-    testWidgets('the launch boards fade and grow the icon in over the ground', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        _tile(const OnsetMarkTile(markOpacity: 0, markScale: 0.6)),
-      );
-      // A plain tile of the icon's ground (the intro's dot growing).
-      expect(_inTile(Image), findsNothing);
-      expect(
-        (tester.widget<DecoratedBox>(_inTile(DecoratedBox)).decoration
-                as BoxDecoration)
-            .color,
-        OnsetMark.ground,
-      );
+    testWidgets(
+      'the launch intro fades and grows the icon in over the ground',
+      (tester) async {
+        await tester.pumpWidget(
+          _tile(const OnsetMarkTile(markOpacity: 0, markScale: 0.6)),
+        );
+        // A plain tile of the icon's ground (the intro's dot growing).
+        expect(_inTile(Image), findsNothing);
+        expect(
+          (tester.widget<DecoratedBox>(_inTile(DecoratedBox)).decoration
+                  as BoxDecoration)
+              .color,
+          OnsetMark.ground,
+        );
 
-      await tester.pumpWidget(
-        _tile(const OnsetMarkTile(markOpacity: 0.5, markScale: 0.8)),
-      );
-      final image = tester.widget<Image>(_inTile(Image));
-      expect(image.opacity!.value, 0.5);
-      final scale = tester.widget<Transform>(
-        find.ancestor(of: _inTile(Image), matching: find.byType(Transform)),
-      );
-      expect(scale.transform.entry(0, 0), closeTo(0.8, 1e-6));
-      expect(scale.transform.entry(1, 1), closeTo(0.8, 1e-6));
+        await tester.pumpWidget(
+          _tile(const OnsetMarkTile(markOpacity: 0.5, markScale: 0.8)),
+        );
+        final image = tester.widget<Image>(_inTile(Image));
+        expect(image.opacity!.value, 0.5);
+        final scale = tester.widget<Transform>(
+          find.ancestor(of: _inTile(Image), matching: find.byType(Transform)),
+        );
+        expect(scale.transform.entry(0, 0), closeTo(0.8, 1e-6));
+        expect(scale.transform.entry(1, 1), closeTo(0.8, 1e-6));
 
-      await tester.pumpWidget(_tile(const OnsetMarkTile()));
-      expect(tester.widget<Image>(_inTile(Image)).opacity, isNull);
-    });
+        await tester.pumpWidget(_tile(const OnsetMarkTile()));
+        expect(tester.widget<Image>(_inTile(Image)).opacity, isNull);
+      },
+    );
 
     testWidgets('one image node for screen readers: "ONSET"', (tester) async {
       final semantics = tester.ensureSemantics();

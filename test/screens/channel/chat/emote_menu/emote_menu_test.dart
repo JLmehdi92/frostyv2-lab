@@ -83,7 +83,7 @@ void main() {
   }
 
   for (final brightness in Brightness.values) {
-    testWidgets('phone: board tabs, set pills and the 8-column grid '
+    testWidgets('phone: tabs, set pills and the 8-column grid '
         '($brightness)', (tester) async {
       await pump(
         tester,
@@ -118,9 +118,7 @@ void main() {
     });
   }
 
-  testWidgets('clearing the recents leaves the board empty state', (
-    tester,
-  ) async {
+  testWidgets('clearing the recents leaves the empty state', (tester) async {
     await pump(
       tester,
       SizedBox(height: 281, child: EmoteMenu(chatStore: chat)),

@@ -32,9 +32,7 @@ void main() {
     return store;
   }
 
-  testWidgets('long press: the message in a card and the board rows', (
-    tester,
-  ) async {
+  testWidgets('long press: the message in a card and the rows', (tester) async {
     await open(tester, mod: false);
     expect(tester.takeException(), isNull);
     final sheet = tester.widget<BottomSheet>(find.byType(BottomSheet));

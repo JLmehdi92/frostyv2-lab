@@ -8,8 +8,8 @@ import 'package:onset/screens/settings/stores/settings_store.dart';
 /// The side column the double tap reaches is full screen beside the chat:
 /// on a tablet the video then takes its whole column, without the channel's
 /// info area under it (as it did before that area existed). "Show chat"
-/// and every other path keep the tablet's side column with its info area
-/// (board Tablette). Phones have one side column either way.
+/// and every other path keep the tablet's side column with its info area.
+/// Phones have one side column either way.
 ///
 /// [plainSide] says which one is on screen:
 /// - set when the double tap goes from the overlay to the side column;

@@ -18,10 +18,9 @@ import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/motion/staggered_entrance.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-/// The navigation shell's Profile: on a phone the board Moi (the viewer,
-/// their account, the settings' sections, logging out) or MoiDeconnecte
-/// (logged out); on a tablet the settings themselves, side column and pane
-/// (ParametresTablette).
+/// The navigation shell's Profile: on a phone the viewer, their account,
+/// the settings' sections and logging out (or the logged-out page); on a
+/// tablet the settings themselves, side column and pane.
 ///
 /// One state for both layouts: the tablet's page is kept when the window
 /// crosses the tablet size and back.

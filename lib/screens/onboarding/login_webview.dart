@@ -13,7 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 /// The "Connect with Twitch" page, on its own (the login from Profile, the
-/// "Session expired" prompt, clip creation): the board's bar (back, title,
+/// "Session expired" prompt, clip creation): the bar (back, title,
 /// "?" help) over the Twitch page.
 ///
 /// Signing in pops it, or replaces it with [routeAfter] when given, as the
@@ -144,7 +144,7 @@ class LoginBar extends StatelessWidget {
 }
 
 /// The "?" of the login page: how to get past the Twitch cookie banner when
-/// it still blocks the login (boards' dialog: 24 dp corners, #1E1E1E, an
+/// it still blocks the login (a dialog: 24 dp corners, #1E1E1E, an
 /// icon tile, the title, the text, "Close"; 440 dp wide on a tablet).
 Future<void> showLoginHelp(
   BuildContext context, {
@@ -215,7 +215,7 @@ Future<void> showLoginHelp(
   );
 }
 
-/// The boards' dialog card: #1E1E1E, 24 dp corners, the 0.5 dp ring.
+/// The dialog card: #1E1E1E, 24 dp corners, the 0.5 dp ring.
 class _OnboardingDialog extends StatelessWidget {
   const _OnboardingDialog({
     required this.children,
@@ -537,7 +537,7 @@ class _TwitchLoginPanelState extends State<TwitchLoginPanel> {
         widget.pageBuilder?.call(_controller) ??
         WebViewWidget(controller: _controller);
     if (widget.tablet) {
-      // The page is a phone page: centred in the panel, as on the board.
+      // The page is a phone page: centred in the panel.
       page = Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),

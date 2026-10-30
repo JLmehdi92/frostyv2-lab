@@ -16,8 +16,8 @@ import 'package:onset/widgets/motion/staggered_entrance.dart';
 import 'package:onset/widgets/onset_scrollbar.dart';
 import 'package:onset/widgets/state_views.dart';
 
-/// Browse's top categories as a grid of box arts (boards Parcourir and
-/// ParcourirTablette), most watched first, more as the end comes into view.
+/// Browse's top categories as a grid of box arts,
+/// most watched first, more as the end comes into view.
 ///
 /// As the tablet's [rail] beside a category, it says so in its title, rings
 /// the [selectedId] and hands taps to [onSelect]; elsewhere a tap opens the
@@ -42,7 +42,7 @@ class Categories extends StatefulWidget {
   /// Null: a tap opens the category's page.
   final ValueChanged<CategoryTwitch>? onSelect;
 
-  /// Tile columns in [width] (at least three: the phone's board).
+  /// Tile columns in [width] (at least three, as on a phone).
   static int columnsFor(double width, {required double gap}) =>
       math.max(3, ((width + gap) / (_minTile + gap)).floor());
 
@@ -94,7 +94,7 @@ class _CategoriesState extends State<Categories>
     }
   }
 
-  /// The grid's padding, from the boards: 16 on a phone, the tablet's 28
+  /// The grid's padding: 16 on a phone, the tablet's 28
   /// gutter, the rail's 28 / 20.
   EdgeInsets _gutter(BuildContext context) {
     final padding = MediaQuery.paddingOf(context);
@@ -218,7 +218,7 @@ class _CategoriesState extends State<Categories>
                       ...header,
                       RowGridSliver(
                         // While the next page loads, a row of skeletons ends
-                        // the grid (boards).
+                        // the grid.
                         itemCount:
                             categories.length +
                             (loadingMore

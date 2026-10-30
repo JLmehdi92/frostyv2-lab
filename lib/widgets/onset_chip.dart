@@ -7,8 +7,8 @@ import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 
-/// A pill that selects one of a few views or filters (boards Categorie,
-/// ParcourirTablette, VideosChaine): the selected one is tinted with the
+/// A pill that selects one of a few views or filters:
+/// the selected one is tinted with the
 /// signal accent and outlined by it, the others sit on the raised grey.
 ///
 /// The pill is drawn [height] tall inside a 44 dp touch target.

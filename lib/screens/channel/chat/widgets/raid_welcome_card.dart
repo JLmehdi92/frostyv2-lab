@@ -6,7 +6,7 @@ import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 
-/// "You followed X's raid" (board Raids, welcome): a 12 dp card washed in
+/// "You followed X's raid" (welcome): a 12 dp card washed in
 /// the signal colour with its rule drawing in down the left edge and the
 /// rocket popping, at the top of the chat the viewer arrived in.
 ///

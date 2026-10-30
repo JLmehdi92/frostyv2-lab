@@ -106,23 +106,17 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets(
-    'the channel, "· Videos" and the four tabs (board VideosChaine)',
-    (tester) async {
-      await pump(tester);
+  testWidgets('the channel, "· Videos" and the four tabs', (tester) async {
+    await pump(tester);
 
-      expect(tester.takeException(), isNull);
-      expect(
-        find.text('Streamer · Videos', findRichText: true),
-        findsOneWidget,
-      );
-      for (final tab in ['Past broadcasts', 'Highlights', 'Uploads', 'Clips']) {
-        expect(find.text(tab), findsOneWidget, reason: tab);
-      }
-      expect(find.text('archive 0'), findsOneWidget);
-      expect(tester.widget<VodCard>(find.byType(VodCard).first).tile, isFalse);
-    },
-  );
+    expect(tester.takeException(), isNull);
+    expect(find.text('Streamer · Videos', findRichText: true), findsOneWidget);
+    for (final tab in ['Past broadcasts', 'Highlights', 'Uploads', 'Clips']) {
+      expect(find.text(tab), findsOneWidget, reason: tab);
+    }
+    expect(find.text('archive 0'), findsOneWidget);
+    expect(tester.widget<VodCard>(find.byType(VodCard).first).tile, isFalse);
+  });
 
   testWidgets('a tab tap and a swipe both change the list', (tester) async {
     await pump(tester);

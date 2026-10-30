@@ -208,7 +208,7 @@ class ChatMessage extends StatelessWidget {
       return;
     }
 
-    // Board ChaineModeration: the message in a card, then what can be
+    // The message in a card, then what can be
     // done with it.
     showOnsetSheet<void>(
       context: context,

@@ -6,7 +6,7 @@ import 'package:onset/theme.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 
-/// A setting with a few options: a segmented pill (boards Parametres), or
+/// A setting with a few options: a segmented pill, or
 /// with [stacked] one option per line (Video Autoplaying).
 class SettingsListSelect extends StatelessWidget {
   final String? title;

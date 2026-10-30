@@ -101,8 +101,7 @@ class ChatBottomBar extends StatelessWidget {
 
     return Observer(
       builder: (context) {
-        // A tablet in portrait has the larger input (board
-        // TablettePortrait).
+        // A tablet in portrait has the larger input.
         final large = context.isLargeScreen && context.isPortrait;
         final matchingEmotes = chatStore.matchingEmotes;
         final matchingChatters = chatStore.matchingChatters;
@@ -194,8 +193,8 @@ class ChatBottomBar extends StatelessWidget {
               ),
             ],
             // Wrap autocomplete sections with TextFieldTapRegion so taps
-            // on them don't trigger TextField's onTapOutside callback. Board
-            // ChaineTchatOutils: one 56 dp row of chips under a hairline.
+            // on them don't trigger TextField's onTapOutside callback. One
+            // 56 dp row of chips under a hairline.
             if (chatStore.settings.autocomplete &&
                 chatStore.showEmoteAutocomplete &&
                 matchingEmotes.isNotEmpty)
@@ -281,7 +280,7 @@ class ChatBottomBar extends StatelessWidget {
                 },
               ),
             Padding(
-              // Board Chaine: 10 above, 12 at the sides and below (44 dp
+              // 10 above, 12 at the sides and below (44 dp
               // pill); 8 above on a tablet (48 dp). Both stay within the
               // 68 dp the chat list keeps free for the bar
               // (ChatStore.bottomBarHeight).
@@ -337,7 +336,7 @@ class ChatBottomBar extends StatelessWidget {
                                 isConnected &&
                                 !locked;
                             // Inside the pill, as an accent disc, once there
-                            // is something to send (board ChaineTchatOutils).
+                            // is something to send.
                             final sendButton =
                                 chatStore.showSendButton && inputControls.send
                                 ? _SendButton(
@@ -378,8 +377,7 @@ class ChatBottomBar extends StatelessWidget {
                                   // The pill is 44 high (48 on a tablet in
                                   // portrait), the field 40 inside it.
                                   isDense: true,
-                                  // Board ChaineTchatOutils: a signal ring
-                                  // while typing; ChaineModeration: a darker
+                                  // A signal ring while typing; a darker
                                   // pill while the viewer cannot chat.
                                   fillColor: locked
                                       ? SheetColors.of(context).field
@@ -433,8 +431,7 @@ class ChatBottomBar extends StatelessWidget {
                                             ),
                                             child: emoteMenuButton,
                                           ),
-                                        // It pops in with the first
-                                        // character (board "pop").
+                                        // It pops in with the first character.
                                         _PopIn(
                                           child: sendButton == null
                                               ? null
@@ -497,8 +494,8 @@ class ChatBottomBar extends StatelessWidget {
                       large: large,
                       gap: 8,
                     ),
-                    // The chat's details, always one tap away (approved
-                    // addition next to the points), unless the chat's header
+                    // The chat's details, always one tap away next to the
+                    // points, unless the chat's header
                     // already has it (a tablet's side chat).
                     if (!ChatMoreInHeader.of(context)) ...[
                       const SizedBox(width: 8),
@@ -599,7 +596,7 @@ class _SendButton extends StatelessWidget {
 }
 
 /// "⋯": the chat's details (modes, chatters, rules, reconnect, add chat…),
-/// a 44 dp disc beside the channel points (board ChaineDetailsTchat).
+/// a 44 dp disc beside the channel points.
 class ChatMoreButton extends StatelessWidget {
   const ChatMoreButton({
     super.key,
@@ -636,8 +633,8 @@ class ChatMoreButton extends StatelessWidget {
   }
 }
 
-/// Marks a chat whose header holds the "⋯" (a tablet's side chat, board
-/// Tablette), so the input row does not repeat it.
+/// Marks a chat whose header holds the "⋯" (a tablet's side chat),
+/// so the input row does not repeat it.
 class ChatMoreInHeader extends InheritedWidget {
   const ChatMoreInHeader({super.key, required super.child});
 
@@ -666,7 +663,7 @@ class _ShrinkWhenNarrow extends StatelessWidget {
 }
 
 /// A row of autocomplete suggestions over the input: 56 dp, a hairline
-/// above, chips 8 dp apart; it opens by growing (board ChaineTchatOutils).
+/// above, chips 8 dp apart; it opens by growing.
 class _AutocompleteRow extends StatelessWidget {
   const _AutocompleteRow({
     super.key,
@@ -711,7 +708,7 @@ class _AutocompleteRow extends StatelessWidget {
 }
 
 /// Grows from nothing to its height once, when it first appears (the
-/// boards' 260 ms "ins"); a plain fade under reduce motion.
+/// 260 ms "ins"); a plain fade under reduce motion.
 class _GrowIn extends StatefulWidget {
   const _GrowIn({required this.child});
 

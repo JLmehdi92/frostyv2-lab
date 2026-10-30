@@ -275,7 +275,7 @@ class _HypeTrainBannerState extends State<HypeTrainBanner> {
                           ),
                         ),
                         // "Level n Complete!" flashes the banner white
-                        // (board: 45 % to nothing in 500 ms).
+                        // (45 % to nothing in 500 ms).
                         if (palette.textOnFill != null &&
                             !store.reduceMotion &&
                             step?.kind == HtStepKind.levelComplete)

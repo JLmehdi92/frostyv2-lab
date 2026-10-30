@@ -22,7 +22,7 @@ import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/state_glyph.dart';
 import 'package:onset/widgets/state_views.dart';
 
-/// Twitch's Activity (boards Activite and ActiviteTablette): the
+/// Twitch's Activity: the
 /// notifications (here, those ONSET posted on this device: go-live,
 /// mentions, reminders) and, when logged in, the whispers. A section of
 /// the navigation shell; on a phone its header holds the tabs
@@ -176,8 +176,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
   }
 }
 
-/// The colours of Activity, dark from the boards and their light
-/// counterparts.
+/// The colours of Activity, dark and light.
 @immutable
 class _ActivityColors {
   const _ActivityColors({
@@ -282,7 +281,7 @@ class _NotificationsListState extends State<_NotificationsList> {
     if (remove == true && mounted) _remove(entry);
   }
 
-  /// The tablet's menu, at the row's top right (board ActiviteTablette).
+  /// The tablet's menu, at the row's top right.
   Future<bool?> _showPopover(BuildContext rowContext, ActivityEntry entry) {
     final colors = _ActivityColors.of(context);
     final box = rowContext.findRenderObject()! as RenderBox;
@@ -825,7 +824,7 @@ class _EntryAvatar extends StatelessWidget {
   }
 }
 
-/// The phone's options (board Activite): the notification, then "Remove
+/// The phone's options: the notification, then "Remove
 /// notification".
 class _RemoveSheet extends StatelessWidget {
   const _RemoveSheet({required this.entry});
@@ -886,7 +885,7 @@ class _RemoveSheet extends StatelessWidget {
   }
 }
 
-/// Activity on a tablet (board ActiviteTablette): the notifications, and
+/// Activity on a tablet: the notifications, and
 /// beside them the whispers when logged in.
 class _TabletActivity extends StatelessWidget {
   const _TabletActivity({
@@ -1060,7 +1059,7 @@ class _MarkAllPill extends StatelessWidget {
   }
 }
 
-/// The whispers beside the notifications (board ActiviteTablette): the
+/// The whispers beside the notifications: the
 /// conversations, "See all" opening the whispers.
 class _WhispersColumn extends StatelessWidget {
   const _WhispersColumn({required this.store, required this.colors});

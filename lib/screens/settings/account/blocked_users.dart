@@ -9,7 +9,7 @@ import 'package:onset/theme.dart';
 import 'package:onset/utils/common_utils.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 
-/// The viewer's blocked users (boards Parametres, ParametresTablette), each
+/// The viewer's blocked users, each
 /// with "Unblock"; pull to refresh.
 class BlockedUsers extends StatelessWidget {
   final AuthStore authStore;

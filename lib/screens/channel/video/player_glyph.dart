@@ -1,9 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:onset/screens/channel/video/overlay_common.dart';
 
-/// The live player's icons, drawn from the boards' own 24 × 24 paths
-/// (Chaine, ChaineLecteur, Tablette, TablettePortrait): stroked, round caps
-/// and joins, like the rest of ONSET's chrome.
+/// The live player's icons, drawn from ONSET's own 24 × 24 paths: stroked,
+/// round caps and joins, like the rest of ONSET's chrome.
 enum PlayerGlyphKind {
   back,
   clip,
@@ -85,7 +84,7 @@ class _PlayerGlyphPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final scale = size.width / 24;
     if (shadow) {
-      // 1 px down, 2 px of blur, as drawn on the boards.
+      // 1 px down, 2 px of blur.
       canvas
         ..save()
         ..translate(0, 1)
@@ -181,7 +180,7 @@ class _PlayerGlyphPainter extends CustomPainter {
           ..drawRRect(box(3, 5, 18, 14, 2), stroke)
           ..drawLine(const Offset(15, 5), const Offset(15, 19), stroke);
       case PlayerGlyphKind.fillScreen:
-        // The four rounded corners of the board's "Fill screen".
+        // The four rounded corners of the "Fill screen".
         final corners = Path()
           ..moveTo(8, 3)
           ..lineTo(5, 3)

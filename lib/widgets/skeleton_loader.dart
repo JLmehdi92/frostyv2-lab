@@ -9,8 +9,7 @@ import 'package:onset/theme.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 
 /// A placeholder in the exact shape of what is loading, with a discreet
-/// sheen sweeping across it (the "Chargement" card of the micro-animation
-/// board).
+/// sheen sweeping across it.
 ///
 /// - Dark theme: [OnsetTokens.skeletonDark] with a subtle
 ///   [OnsetTokens.skeletonSheenDark] band, at 100°, sweeping every 1.6 s.

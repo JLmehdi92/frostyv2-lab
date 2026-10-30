@@ -1,7 +1,6 @@
 import 'package:flutter/animation.dart';
 
-/// Motion tokens of Noir & Signal 2.0 (the "Mouvement" card of the design
-/// system board and the micro-animation board).
+/// Motion tokens of Noir & Signal 2.0, ONSET's design system.
 ///
 /// The grammar, in short:
 /// - Anything the finger moves or that moves in space uses a spring, so it

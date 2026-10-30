@@ -177,8 +177,8 @@ class ContentWarningCover extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Opaque: over a player it also swallows taps so the controls
-    // underneath cannot be reached before accepting (board ChaineLecteur:
-    // the ground, not a scrim, with the player paused behind it).
+    // underneath cannot be reached before accepting
+    // (the ground, not a scrim, with the player paused behind it).
     return SizedBox.expand(
       child: ColoredBox(
         color: OnsetTokens.backgroundDark,

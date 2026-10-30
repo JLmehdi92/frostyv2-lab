@@ -10,17 +10,17 @@ import 'package:onset/widgets/sheet/onset_panel.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
-/// The emote menu (board ChaineTchatOutils): Recent, Twitch, 7TV, BTTV and
+/// The emote menu: Recent, Twitch, 7TV, BTTV and
 /// FFZ as underlined tabs, their sets as pills, the grid. Under the chat
-/// input on a phone; in a panel above it on a tablet
-/// (ChaineOutilsTablette), where it is [panel].
+/// input on a phone; in a panel above it on a tablet, where it is
+/// [panel].
 class EmoteMenu extends StatelessWidget {
   const EmoteMenu({super.key, required this.chatStore, this.panel = false});
 
   final ChatStore chatStore;
   final bool panel;
 
-  /// The tablet panel (board ChaineOutilsTablette).
+  /// The tablet panel.
   static const panelSize = Size(376, 372);
 
   @override
@@ -90,7 +90,7 @@ enum EmoteTabsStyle {
 }
 
 /// Tabs over pages that swipe, like the menu always had, drawn as the
-/// board's underlined tabs (providers) or pills (sets).
+/// underlined tabs (providers) or pills (sets).
 class EmoteTabsView extends StatefulWidget {
   const EmoteTabsView({
     super.key,
@@ -293,8 +293,8 @@ class _EmoteTabsViewState extends State<EmoteTabsView>
   }
 }
 
-/// The emote menu in a tablet panel, above the chat input
-/// (ChaineOutilsTablette). Shown while [open]; a tap anywhere but the
+/// The emote menu in a tablet panel, above the chat input. Shown while
+/// [open]; a tap anywhere but the
 /// panel and the input closes it ([onClose]). Focusing the input closes
 /// it too, as on a phone (the keyboard and the menu take turns).
 class EmoteMenuPanelOverlay extends StatefulWidget {

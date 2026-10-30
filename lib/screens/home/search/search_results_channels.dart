@@ -25,7 +25,7 @@ import 'package:onset/widgets/user_actions_modal.dart';
 /// tablet's grid.
 enum GoToStyle { row, pill }
 
-/// The channels found by a search (boards Recherche and RechercheTablette):
+/// The channels found by a search:
 /// the exact match first in its card, then the others (at most [limit]),
 /// then "Go to channel" for a login the search did not list.
 ///
@@ -66,7 +66,7 @@ class SearchResultsChannels extends StatefulWidget {
 }
 
 class _SearchResultsChannelsState extends State<SearchResultsChannels> {
-  /// "Try again" (approved addition): the same search again.
+  /// "Try again": the same search again.
   void _retry() => widget.searchStore.handleQuery(widget.searchStore.lastQuery);
 
   Future<void> _handleSearch(BuildContext context, String search) async {
@@ -528,7 +528,7 @@ class _GoToChannel extends StatelessWidget {
   }
 }
 
-/// A result row, loading (board Recherche: a 40 dp circle and two lines).
+/// A result row, loading (a 40 dp circle and two lines).
 class SearchRowSkeleton extends StatelessWidget {
   const SearchRowSkeleton({super.key, required this.index, this.large = false});
 

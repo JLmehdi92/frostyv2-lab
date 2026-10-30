@@ -163,7 +163,7 @@ void main() {
     expect(commands.single, isA<ClearChatCommand>());
   });
 
-  testWidgets('board rows: 56 dp modes, a red clear row, no overflow', (
+  testWidgets('rows: 56 dp modes, a red clear row, no overflow', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(390, 844);

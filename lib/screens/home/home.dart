@@ -41,8 +41,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_pip_mode/simple_pip.dart';
 
-/// The app's first page: the navigation shell (boards Accueil and
-/// TabletteAccueil) around Home (Following, Live, Clips), Browse
+/// The app's first page: the navigation shell
+/// around Home (Following, Live, Clips), Browse
 /// (categories and search), Activity and Profile (account and settings).
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -192,10 +192,8 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
       MaterialPageRoute(
         settings: const RouteSettings(name: ReleaseNotes.routeName),
         // Opened by itself: "Updated to <current>", "You were on <stored>".
-        builder: (context) => ReleaseNotes(
-          updatedTo: currentVersion,
-          updatedFrom: storedVersion,
-        ),
+        builder: (context) =>
+            ReleaseNotes(updatedTo: currentVersion, updatedFrom: storedVersion),
       ),
     ).then((_) => prefs.setString('last_shown_version', currentVersion));
   }

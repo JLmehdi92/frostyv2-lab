@@ -17,7 +17,7 @@ import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 
-/// Settings › Chat (board Parametres): sizing with its preview, how
+/// Settings › Chat: sizing with its preview, how
 /// messages look, the delay, layout, alerts, autocomplete, landscape,
 /// filters and muted keywords, emote and badge providers, recent messages.
 class ChatSettings extends StatefulWidget {

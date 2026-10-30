@@ -15,7 +15,7 @@ String playerLatencyLabel(PlayerController store) => switch (store) {
 };
 
 /// The latency to the broadcaster, in a pill over the top-right corner of
-/// the video (boards Chaine, ChaineLecteur, Tablette, TablettePortrait).
+/// the video.
 ///
 /// It stays where it is whether the player's controls show or not, so the
 /// latency can always be read on a real device (a project rule); a tap

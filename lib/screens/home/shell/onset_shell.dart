@@ -20,10 +20,10 @@ class ShellHeader {
   /// The title next to the mark: the "ONSET" wordmark by default.
   final String title;
 
-  /// Whether the signal mark leads the title (Activity's board has none).
+  /// Whether the signal mark leads the title (Activity has none).
   final bool showMark;
 
-  /// Activity's board uses a screen title (24) instead of the wordmark (20).
+  /// Activity uses a screen title (24) instead of the wordmark (20).
   final bool largeTitle;
 
   /// The search button (phone); Browse has its search field instead.
@@ -51,7 +51,7 @@ class ShellHeader {
   /// At the end of the tablet's tab row (the Live feed's category chips).
   final Widget? tabsTrailing;
 
-  /// The phone's settings button (Profile's board Moi); none when null.
+  /// The phone's settings button (on Profile); none when null.
   final VoidCallback? onSettings;
 
   const ShellHeader({
@@ -93,8 +93,7 @@ class ShellWhispers {
       : 'Whispers';
 }
 
-/// The shell's measures, from the boards Accueil (phone) and
-/// TabletteAccueil (tablet).
+/// The shell's measures, on a phone and on a tablet.
 abstract final class ShellMetrics {
   // Phone.
   static const titleRow = 56.0;
@@ -173,8 +172,7 @@ abstract final class ShellMetrics {
   }
 }
 
-/// The colours of the chrome, from the boards (dark) and their light
-/// counterparts.
+/// The colours of the chrome, dark and light.
 @immutable
 class _ShellPalette {
   final Color ground;
@@ -869,10 +867,10 @@ class _PhoneHeader extends StatelessWidget {
   }
 }
 
-/// How far the gradient over the clips feed reaches (board Clips).
+/// How far the gradient over the clips feed reaches.
 const _videoFade = 130.0;
 
-/// The boards' material: a blur with a little more saturation.
+/// The material: a blur with a little more saturation.
 ui.ImageFilter _glass(double sigma) => ui.ImageFilter.compose(
   outer: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
   inner: const ColorFilter.matrix(_saturate170),
@@ -1156,7 +1154,7 @@ class _PhoneNav extends StatelessWidget {
   }
 }
 
-/// The boards' `inset 0 0.5px 0` highlight along the top edge.
+/// The `inset 0 0.5px 0` highlight along the top edge.
 class _TopHighlight extends CustomPainter {
   final Color color;
   final double radius;

@@ -2,10 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:onset/screens/channel/video/overlay_common.dart';
 import 'package:onset/widgets/sheet/svg_path.dart';
 
-/// The icons of the recorded-video screens (boards Rediff, RediffTablette,
-/// VideosChaine, Clips, ClipsTablette, CreerClip, VideosSuivies), read from
-/// the boards' own 24 × 24 elements: round caps and joins, stroked unless
-/// the board fills them.
+/// The icons of the recorded-video screens, read from ONSET's own 24 × 24
+/// elements: round caps and joins, stroked unless filled.
 enum VideoGlyphKind {
   back,
   settings,
@@ -45,7 +43,7 @@ enum VideoGlyphKind {
   alert,
 }
 
-/// The board's elements of each glyph: path data (`f:` when filled),
+/// The elements of each glyph: path data (`f:` when filled),
 /// `c:cx,cy,r` circles and `r:x,y,w,h,rx` rectangles (`fr:` filled).
 const Map<VideoGlyphKind, List<String>> _shapes = {
   VideoGlyphKind.back: ['M15 6l-6 6 6 6'],
@@ -63,7 +61,7 @@ const Map<VideoGlyphKind, List<String>> _shapes = {
   VideoGlyphKind.muted: ['M4 9h4l5-4v14l-5-4H4z', 'M17 9l4 6M21 9l-4 6'],
   VideoGlyphKind.pip: ['r:3,5,18,14,2', 'r:12,11,7,6,1'],
   VideoGlyphKind.fullscreen: ['M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5'],
-  // The same corners turned inwards (no board draws it).
+  // The same corners turned inwards.
   VideoGlyphKind.exitFullscreen: ['M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5'],
   VideoGlyphKind.fillScreen: ['r:3,6,18,12,2', 'M7 10v4M17 10v4'],
   VideoGlyphKind.skipBack: ['f:M11 6v12l-8-6zM21 6v12l-8-6z'],
@@ -106,7 +104,7 @@ const Map<VideoGlyphKind, List<String>> _shapes = {
   VideoGlyphKind.alert: ['c:12,12,8.5', 'M12 8v5M12 16h.01'],
 };
 
-/// The "10" inside the skip arrows, where the boards write it.
+/// The "10" inside the skip arrows, and where it goes.
 const Map<VideoGlyphKind, double> _tenAt = {
   VideoGlyphKind.replay10: 12.6,
   VideoGlyphKind.forward10: 11.4,
@@ -151,7 +149,7 @@ Path videoGlyphPath(VideoGlyphKind kind) {
   return path;
 }
 
-/// One of the boards' video icons in [color].
+/// One of the video icons in [color].
 class VideoGlyph extends StatelessWidget {
   const VideoGlyph(
     this.kind, {
@@ -239,7 +237,7 @@ class _VideoGlyphPainter extends CustomPainter {
     }
     final tenX = _tenAt[kind];
     if (tenX != null) {
-      // The boards write "10" at 6.6 / 700, its baseline at y 15.2.
+      // "10" at 6.6 / 700, its baseline at y 15.2.
       final painter = TextPainter(
         text: TextSpan(
           text: '10',

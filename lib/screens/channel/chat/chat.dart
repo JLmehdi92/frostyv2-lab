@@ -50,8 +50,8 @@ class _ChatState extends State<Chat> {
   /// Whether the last build put the emote menu under the input.
   bool _builtInline = false;
 
-  /// Where the tablet's emote panel goes, above the input in this chat
-  /// (board ChaineOutilsTablette); null when it does not fit (the menu
+  /// Where the tablet's emote panel goes, above the input in this chat;
+  /// null when it does not fit (the menu
   /// then opens under the input, as on a phone). Read from the last
   /// layout, so [_recheckPlacement] confirms it after each frame.
   PanelPlacement? _emotePanelPlacement() {
@@ -334,7 +334,7 @@ class _ChatState extends State<Chat> {
   }
 
   /// The emote menu under the input (a phone, or a tablet without room
-  /// for the panel): board ChaineTchatOutils, #101010 under a hairline.
+  /// for the panel): #101010 under a hairline.
   Widget _buildEmoteMenu(BuildContext context, {required bool open}) {
     final colors = SheetColors.of(context);
     return AnimatedContainer(

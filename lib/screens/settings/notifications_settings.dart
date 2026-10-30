@@ -7,7 +7,7 @@ import 'package:onset/screens/settings/widgets/mention_notification_setting.dart
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
 import 'package:onset/screens/settings/widgets/settings_page.dart';
 
-/// Settings › Notifications (board Parametres): go-live notices for the
+/// Settings › Notifications: go-live notices for the
 /// channels followed, chat mentions. Both were under General before.
 class NotificationsSettings extends StatelessWidget {
   final SettingsStore settingsStore;

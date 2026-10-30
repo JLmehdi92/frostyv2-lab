@@ -16,7 +16,7 @@ import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
 /// "X is gifting N subs", pinned above chat for a gift bomb of five subs or
-/// more (board CadeauxHypeTrain, A): ONSET's gift box in a ring that fills
+/// more: ONSET's gift box in a ring that fills
 /// as the gifts are handed out, the gifter in the signal colour, and a 2 dp
 /// bar draining until the pin leaves, Twitch's 10 to 30 s.
 ///
@@ -81,8 +81,8 @@ class GiftBombPin extends StatefulWidget {
 }
 
 /// One spark of the burst: which art, where it flies (degrees from the
-/// right, clockwise, and how far), its size and its turn, all in dp/degrees
-/// (board `sparks`).
+/// right, clockwise, and how far), its size and its turn, all in
+/// dp/degrees.
 typedef _Spark = ({
   String art,
   double deg,
@@ -102,7 +102,7 @@ const List<_Spark> _sparks = [
   (art: CelebrationArt.sparkDot, deg: 226, dist: 22, size: 9, rot: 34),
 ];
 
-/// The board's `cubic-bezier(.2,0,0,1)`, applied to each keyframe segment.
+/// The `cubic-bezier(.2,0,0,1)`, applied to each keyframe segment.
 const _ease = OnsetMotion.standard;
 
 class _GiftBombPinState extends State<GiftBombPin>
@@ -422,7 +422,7 @@ class _GiftBombPinState extends State<GiftBombPin>
         color: colors.sheet,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      // In front, so the hairline adds no padding (board: an inset ring).
+      // In front, so the hairline adds no padding (an inset ring).
       foregroundDecoration: ShapeDecoration(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -452,8 +452,8 @@ class _GiftBombPinState extends State<GiftBombPin>
         label: '${bomb.gifterName} is gifting ${bomb.count} $_subs',
         value: _semanticsValue,
         child: RepaintBoundary(
-          // Unclipped: the sparks may fly past the card's edge, as on the
-          // board. Only the drain bar follows the rounded corners.
+          // Unclipped: the sparks may fly past the card's edge. Only the
+          // drain bar follows the rounded corners.
           child: Stack(
             clipBehavior: Clip.none,
             children: [
@@ -710,7 +710,7 @@ class _GiftBombPinState extends State<GiftBombPin>
   }
 }
 
-/// The hop at [t] of its 1.2 s loop (board `gbHop`): up 2 dp and tilted 4°
+/// The hop at [t] of its 1.2 s loop: up 2 dp and tilted 4°
 /// left at a quarter, back, then the same to the right, each quarter eased
 /// in and out. Returns the lift (negative is up) and the tilt in degrees.
 @visibleForTesting
@@ -724,7 +724,7 @@ class _GiftBombPinState extends State<GiftBombPin>
   return (-2 * amount, side * 4 * amount);
 }
 
-/// The box's squash then swell at [t] of its 320 ms (board `gbPop`): 0.92
+/// The box's squash then swell at [t] of its 320 ms: 0.92
 /// at 20 %, 1.12 at 70 %, back to 1.
 double _popScale(double t) {
   double seg(double a, double b, double from, double to) =>
@@ -734,7 +734,7 @@ double _popScale(double t) {
   return seg(0.7, 1, 1.12, 1);
 }
 
-/// The glow's opacity and scale at [t] of its 400 ms (board `gbGlow`).
+/// The glow's opacity and scale at [t] of its 400 ms.
 (double, double) _glowAt(double t) {
   if (t <= 0) return (0, 0.6);
   if (t <= 0.4) {
@@ -745,7 +745,7 @@ double _popScale(double t) {
   return (1 - e, 1 + 0.25 * e);
 }
 
-/// A spark at [t] of its 560 ms (board `spark`): how far along its path,
+/// A spark at [t] of its 560 ms: how far along its path,
 /// how much of its turn, its scale and its opacity.
 (double, double, double, double) _sparkAt(double t) {
   final double opacity;
@@ -804,7 +804,7 @@ class _CountChip extends StatelessWidget {
   );
 }
 
-/// The pin coming in (board `pinIn`, 260 ms): from 8 dp higher, at 98.5 %,
+/// The pin coming in (260 ms): from 8 dp higher, at 98.5 %,
 /// fading in. Reduce motion: a plain fade.
 class _Enter extends StatelessWidget {
   const _Enter({
@@ -838,7 +838,7 @@ class _Enter extends StatelessWidget {
   );
 }
 
-/// The pin folding away (board `.row.closing`): its height to nothing in
+/// The pin folding away: its height to nothing in
 /// 280 ms while it fades out in 200 ms, so chat moves up without a jump.
 /// Reduce motion: a fade only.
 class _Leave extends StatelessWidget {

@@ -23,7 +23,7 @@ const kTimeoutPresets = [
 ];
 
 /// A moderator's actions on one person of the chat, for the user card:
-/// timeout, ban, unban and warn (board ChaineCarteUtilisateur: a row of
+/// timeout, ban, unban and warn (a row of
 /// pills that scrolls sideways, the timeout lengths in a menu). Says how
 /// the last one went under it.
 class ChatModerationBar extends StatefulWidget {
@@ -101,7 +101,7 @@ class _ChatModerationBarState extends State<ChatModerationBar> {
     final last = _last;
     final enabled = !_busy;
     final height = widget.dense ? 40.0 : 44.0;
-    // The menu opens above the pill (board: 196 dp, 40 dp lengths).
+    // The menu opens above the pill (196 dp, 40 dp lengths).
     const menuPadding = 6.0;
     const itemHeight = 40.0;
     final menuHeight = kTimeoutPresets.length * itemHeight + menuPadding * 2;

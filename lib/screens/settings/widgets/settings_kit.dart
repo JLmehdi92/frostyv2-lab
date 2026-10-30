@@ -6,10 +6,8 @@ import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 
-/// The colours of the profile and settings screens (boards Moi,
-/// MoiDeconnecte, Parametres, ParametresTablette, ParametresDetails,
-/// MiseAJour). The boards are drawn dark; the light values keep the same
-/// tiers on a pale ground.
+/// The colours of the profile and settings screens. The design is dark;
+/// the light values keep the same tiers on a pale ground.
 @immutable
 class SettingsColors {
   const SettingsColors({
@@ -178,7 +176,7 @@ class SettingsColors {
   }
 }
 
-/// The type of the profile and settings screens (Inter, the boards' sizes).
+/// The type of the profile and settings screens (Inter, the sizes).
 abstract final class SettingsText {
   /// "ACCOUNT", "MESSAGE SIZING": 11 / 600, 0.14 em, upper case.
   static const section = TextStyle(
@@ -503,7 +501,7 @@ class SettingsRow extends StatelessWidget {
         ),
         if (value != null && value.isNotEmpty)
           ConstrainedBox(
-            // The board's 46 % of the row at most.
+            // The 46 % of the row at most.
             constraints: BoxConstraints(maxWidth: rowWidth * 0.46),
             child: Text(
               value,
@@ -520,7 +518,7 @@ class SettingsRow extends StatelessWidget {
   }
 }
 
-/// The boards' switch: a 46 × 28 track (the signal colour when on), a 22 dp
+/// The switch: a 46 × 28 track (the signal colour when on), a 22 dp
 /// knob that slides (300 ms; a fade under reduce motion).
 class SettingsSwitch extends StatelessWidget {
   const SettingsSwitch({super.key, required this.value});
@@ -582,7 +580,7 @@ class SettingsSwitch extends StatelessWidget {
   }
 }
 
-/// A pill button of the boards: 44 dp (48 with [large]), fully rounded.
+/// A pill button: 44 dp (48 with [large]), fully rounded.
 enum SettingsButtonTone {
   /// The one primary action: the signal colour.
   primary,
@@ -675,7 +673,7 @@ class SettingsButton extends StatelessWidget {
   }
 }
 
-/// The boards' dialog: a 360 dp card (420 on a tablet), 24 dp corners,
+/// The dialog: a 360 dp card (420 on a tablet), 24 dp corners,
 /// #1A1A1A, a title (19 / 700), its text and the actions at the end.
 class SettingsDialog extends StatelessWidget {
   const SettingsDialog({

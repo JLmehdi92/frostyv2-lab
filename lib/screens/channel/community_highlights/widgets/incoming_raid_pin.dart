@@ -9,7 +9,7 @@ import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
-/// "X is raiding with N viewers" (board Raids, incoming pin): a 54 dp row
+/// "X is raiding with N viewers" (incoming pin): a 54 dp row
 /// with 14 dp corners, the raider's picture with the ONSET rocket flying
 /// in, and a close button. It leaves by itself after a few seconds.
 class IncomingRaidPin extends StatelessWidget {
@@ -156,7 +156,7 @@ class IncomingRaidPin extends StatelessWidget {
   }
 }
 
-/// The rocket flying in from below left (board `rkIn`: 760 ms, from
+/// The rocket flying in from below left (760 ms, from
 /// (-26, 26) at half size, fully opaque by 60 %).
 class _FlyIn extends StatelessWidget {
   const _FlyIn({required this.child});

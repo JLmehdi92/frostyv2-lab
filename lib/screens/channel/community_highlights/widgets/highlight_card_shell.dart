@@ -5,7 +5,7 @@ import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
-/// The frame of a community highlight card (board ChaineSondagePari): a
+/// The frame of a community highlight card: a
 /// 16 dp card, the kind's tile, its title and a status line, the expand
 /// chevron and close, the headline, and the [body] when [expanded]. A tap
 /// anywhere on it expands or collapses it.
@@ -32,7 +32,7 @@ class HighlightCardShell extends StatelessWidget {
 
   final IconData icon;
 
-  /// The board's glyph for the kind, drawn instead of [icon].
+  /// The glyph for the kind, drawn instead of [icon].
   final SheetGlyphKind? glyph;
 
   /// "Poll", "Prediction"…
@@ -226,7 +226,7 @@ class HighlightCardShell extends StatelessWidget {
   }
 }
 
-/// A labelled bar (board ChaineSondagePari): a fill of [fraction] in
+/// A labelled bar: a fill of [fraction] in
 /// [fill] behind [label] and [trailing], 36 dp, 10 dp corners. [leading]
 /// marks a winner.
 class HighlightBar extends StatelessWidget {

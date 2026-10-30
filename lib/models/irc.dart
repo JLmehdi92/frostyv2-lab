@@ -369,10 +369,7 @@ class IRCMessage {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: isCurrentChannel
-                      ? Border.all(
-                          color: context.onsetColors.live,
-                          width: 1.5,
-                        )
+                      ? Border.all(color: context.onsetColors.live, width: 1.5)
                       : null,
                 ),
                 child: Container(
@@ -392,10 +389,7 @@ class IRCMessage {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: isCurrentChannel
-                      ? Border.all(
-                          color: context.onsetColors.live,
-                          width: 1.5,
-                        )
+                      ? Border.all(color: context.onsetColors.live, width: 1.5)
                       : null,
                 ),
               ),
@@ -791,10 +785,7 @@ class IRCMessage {
               child: Semantics(
                 label: '${cheer.prefix} ${cheer.amount} bits',
                 child: OnsetCachedNetworkImage(
-                  imageUrl: cheer.tier.url(
-                    dark: dark,
-                    animated: animateEmotes,
-                  ),
+                  imageUrl: cheer.tier.url(dark: dark, animated: animateEmotes),
                   height: emoteSize,
                   useFade: false,
                   placeholder: (context, url) => const SizedBox(),
@@ -1230,8 +1221,7 @@ class IRCMessage {
             spacing: 3,
             children: [
               Text(emote.type.toString()),
-              if (emote.ownerDisplayName != null &&
-                  emote.ownerUsername != null)
+              if (emote.ownerDisplayName != null && emote.ownerUsername != null)
                 Text(
                   'by ${utils.getReadableName(emote.ownerDisplayName!, emote.ownerUsername!)}',
                   style: detail,
@@ -1245,7 +1235,7 @@ class IRCMessage {
     );
   }
 
-  /// An emote's or a badge's details (board ChaineTchatOutils): the
+  /// An emote's or a badge's details: the
   /// picture in a 64 dp tile (a tap opens it full size), its name and what
   /// it is, then copy and open.
   static void _showAssetDetailsBottomSheet(
@@ -1562,9 +1552,7 @@ class IRCMessage {
       // Cut around the GIFs now: their positions count in the text as sent.
       gifParts = GifMessagePart.split(
         message,
-        ChatGif.parseTag(
-          UserNotice.unescapeTag(_rawTagValue(rawTags, 'gifs')),
-        ),
+        ChatGif.parseTag(UserNotice.unescapeTag(_rawTagValue(rawTags, 'gifs'))),
       );
 
       message = _normalizeText(message);

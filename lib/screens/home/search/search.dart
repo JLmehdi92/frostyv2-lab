@@ -139,7 +139,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 }
 
-/// Search (boards Recherche and RechercheTablette): the field, the past
+/// Search: the field, the past
 /// searches, then the results under Top, Channels, Categories and Videos.
 class Search extends StatefulWidget {
   // The scroll controller for handling scroll to top functionality.
@@ -178,7 +178,7 @@ enum _SearchTab {
   final String label;
 }
 
-/// The header's rows (boards: the field row, then the result tabs).
+/// The header's rows (the field row, then the result tabs).
 abstract final class _Metrics {
   static double fieldRow(bool large) => large ? 68 : 64;
   static double tabsRow(bool large) => large ? 46 : 44;
@@ -215,8 +215,7 @@ class _SearchState extends State<Search> {
 
   late var _tab = _SearchTab.values[_session.tab];
 
-  /// The tablet's Top has a Videos column (an approved addition): videos
-  /// are searched there too.
+  /// The tablet's Top has a Videos column: videos are searched there too.
   var _videosOnTop = false;
 
   ReactionDisposer? _disposeQueryReaction;
@@ -666,7 +665,7 @@ class _SearchState extends State<Search> {
                   SearchVideosColumn(store: topVideos),
                 ],
               );
-        // Three columns where they fit (landscape, board); otherwise the
+        // Three columns where they fit (landscape); otherwise the
         // channels and categories side by side, the videos under them.
         final Widget top = width >= 400 + 340 + 2 * 36 + 300
             ? Row(
@@ -735,7 +734,7 @@ class _SearchState extends State<Search> {
   }
 }
 
-/// The search field (boards: a pill on the surface, ringed in the signal
+/// The search field (a pill on the surface, ringed in the signal
 /// colour while typing; "Clear" once something is typed, "Cancel" to put
 /// the keyboard away).
 class _SearchField extends StatelessWidget {

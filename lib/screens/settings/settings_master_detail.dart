@@ -69,7 +69,7 @@ class SettingsSelection extends ChangeNotifier {
   }
 }
 
-/// The tablet's settings (board ParametresTablette): the side column (the
+/// The tablet's settings: the side column (the
 /// profile, the sections, the account, logging out, the version) and the
 /// chosen page beside it, in two columns when there is room.
 class SettingsMasterDetail extends StatelessWidget {

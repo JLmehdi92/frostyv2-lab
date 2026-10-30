@@ -7,8 +7,8 @@ import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/sheet/svg_path.dart';
 
-/// The colours of the first launch (boards Onboarding, OnboardingTablette,
-/// OnboardingEtapes). The onboarding is always drawn in the intro's black,
+/// The colours of the first launch.
+/// The onboarding is always drawn in the intro's black,
 /// whatever theme is picked in its Setup step: it continues the launch
 /// intro, and only the Setup preview follows the theme.
 abstract final class OnboardingColors {
@@ -48,7 +48,7 @@ abstract final class OnboardingColors {
 }
 
 /// What reads on [accent]: near-black on a light accent, white on a dark
-/// one (whichever contrasts more, as the boards compute it).
+/// one (whichever contrasts more).
 Color onAccentFor(Color accent) {
   final luminance = accent.computeLuminance();
   final onBlack = (luminance + 0.05) / 0.0533;
@@ -97,7 +97,7 @@ abstract final class OnboardingType {
   );
 }
 
-/// A card of the boards: #141414, 16 dp corners, the 0.5 dp ring.
+/// An onboarding card: #141414, 16 dp corners, the 0.5 dp ring.
 BoxDecoration onboardingCard({double radius = 16}) => BoxDecoration(
   color: OnboardingColors.surface,
   borderRadius: BorderRadius.circular(radius),
@@ -107,7 +107,7 @@ BoxDecoration onboardingCard({double radius = 16}) => BoxDecoration(
   ),
 );
 
-/// The onboarding's own icons, from the boards' 24 × 24 strokes (round caps
+/// The onboarding's own icons, from the 24 × 24 strokes (round caps
 /// and joins).
 enum OnboardingGlyphKind {
   arrowRight,
@@ -273,7 +273,7 @@ class _GlyphPainter extends CustomPainter {
       old.kind != kind || old.color != color || old.strokeWidth != strokeWidth;
 }
 
-/// The boards' main button: a 52 dp pill in the accent ([accent], the
+/// The main button: a 52 dp pill in the accent ([accent], the
 /// colour picked in Setup), 15 / 700 text, an optional 18 dp icon before
 /// ([leading]) or after ([trailing]) the label; it presses in to 0.97.
 class OnboardingButton extends StatelessWidget {
@@ -355,7 +355,7 @@ class OnboardingButton extends StatelessWidget {
   }
 }
 
-/// The boards' quiet button: transparent, 15 / 600 (#D6D6D6), a pill.
+/// The quiet button: transparent, 15 / 600 (#D6D6D6), a pill.
 class OnboardingTextButton extends StatelessWidget {
   const OnboardingTextButton({
     super.key,
@@ -463,7 +463,7 @@ class OnboardingIconButton extends StatelessWidget {
   }
 }
 
-/// The boards' switch: a 48 × 28 track (the accent when on, #2A2A2A off), a
+/// The switch: a 48 × 28 track (the accent when on, #2A2A2A off), a
 /// 22 dp knob that slides in 260 ms, in a 52 × 44 target.
 class OnboardingSwitch extends StatelessWidget {
   const OnboardingSwitch({
@@ -550,9 +550,9 @@ class OnboardingSwitch extends StatelessWidget {
 }
 
 /// How a step's parts come in: they rise 12 dp and fade in, 460 ms on the
-/// emphasized-decelerate curve, each a little after the one before (boards'
-/// `.st` with delays `.d1`–`.d7`). Given by the flow to the step it opens
-/// going forward; a step opened going back shows at once, as the boards do.
+/// emphasized-decelerate curve, each a little after the one before. Given
+/// by the flow to the step it opens going forward; a step opened going
+/// back shows at once.
 class StepEntrance extends InheritedWidget {
   const StepEntrance({
     super.key,
@@ -569,7 +569,7 @@ class StepEntrance extends InheritedWidget {
   final List<Duration> delays;
   final Duration total;
 
-  /// The boards' step delays (`.d0`–`.d7`).
+  /// The step delays (`.d0`–`.d7`).
   static const stepDelays = [
     Duration.zero,
     Duration(milliseconds: 30),

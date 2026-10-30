@@ -25,7 +25,7 @@ abstract final class HtGreen {
   static const azureDark = Color(0xFF057DB8);
 }
 
-/// The hype train details sheet's background (board ChaineHypeDetail): the
+/// The hype train details sheet's background: the
 /// community green at 10 % (8 % light) over the theme's background. Sub and
 /// gift rows moved to lime; the hype train keeps its green.
 Color htSheetBackground(Brightness brightness) => brightness == Brightness.dark

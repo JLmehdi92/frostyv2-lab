@@ -141,9 +141,7 @@ void main() {
     );
   });
 
-  testWidgets('board pills: 44 dp, the menu opens above the timeout', (
-    tester,
-  ) async {
+  testWidgets('pills: 44 dp, the menu opens above the timeout', (tester) async {
     await pump(tester);
     for (final label in ['Timeout', 'Ban', 'Unban', 'Warn']) {
       expect(

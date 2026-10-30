@@ -12,11 +12,11 @@ const onboardingDescription =
     'A mobile Twitch client with 7TV, BetterTTV (BTTV), and FrankerFaceZ '
     '(FFZ) support.';
 
-/// Step 1, Intro, on a phone (board Onboarding): the description under the
+/// Step 1, Intro, on a phone: the description under the
 /// tile and the name (the flow draws those), the version, "Next".
 ///
 /// [nameBottom] is where the name's underline ends, in the step's
-/// coordinates: the description sits 31 dp under it, as on the board.
+/// coordinates: the description sits 31 dp under it.
 class OnboardingIntroPhone extends StatelessWidget {
   const OnboardingIntroPhone({
     super.key,
@@ -83,7 +83,7 @@ class OnboardingIntroPhone extends StatelessWidget {
   static const neededBelowName = 31 + 70 + 24 + 15 + 92;
 }
 
-/// Step 1, Intro, on a tablet (board OnboardingTablette): "First launch"
+/// Step 1, Intro, on a tablet: "First launch"
 /// and the description, "Next" at the bottom right (the tile, the name and
 /// the version are in the brand pane).
 class OnboardingIntroTablet extends StatelessWidget {

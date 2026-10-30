@@ -104,7 +104,7 @@ void main() {
       expect(find.byTooltip('Send'), findsNothing);
       final more = tester.getRect(find.byTooltip('More'));
       expect(more.size, const Size(44, 44));
-      // On the right of the message box (board ChaineDetailsTchat).
+      // On the right of the message box.
       expect(more.right, closeTo(390 - 12, 0.5));
       final field = tester.getRect(find.byType(ExtendedTextField));
       // No points here (signed out of them): no empty gap for them.

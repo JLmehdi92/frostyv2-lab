@@ -19,7 +19,7 @@ class StreamTags extends StatelessWidget {
   final int max;
 
   /// The tag of the page the card is on: lit in the signal colour, and it
-  /// does not open its own page again (board Categorie).
+  /// does not open its own page again.
   final String? active;
 
   /// Opens a tag; null leaves the pills inert.

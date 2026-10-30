@@ -17,7 +17,7 @@ import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:provider/provider.dart';
 
-/// The shell's Browse section (boards Parcourir and ParcourirTablette):
+/// The shell's Browse section:
 /// "Categories" (the top categories) and "Live channels" (the top streams),
 /// the tabs living in the shell's header.
 ///
@@ -38,11 +38,11 @@ class BrowsePage extends StatefulWidget {
   final ScrollController categoriesController;
   final ScrollController liveController;
 
-  /// Width from which the categories sit beside the chosen one (the
-  /// landscape tablet of the board, 1280 dp).
+  /// Width from which the categories sit beside the chosen one (a
+  /// landscape tablet, 1280 dp wide).
   static const masterDetailWidth = 1000.0;
 
-  /// The rail's width (board: 448).
+  /// The rail's width (448).
   static const railWidth = 448.0;
 
   @override
@@ -136,7 +136,7 @@ class _BrowsePageState extends State<BrowsePage> {
 }
 
 /// The chosen category's streams, videos and clips in a raised panel
-/// (board ParcourirTablette: #141414, 24 dp top corners); another category
+/// (#141414, 24 dp top corners); another category
 /// slides in over the last (280 ms).
 class _CategoryPane extends StatelessWidget {
   const _CategoryPane({required this.categoryId});
@@ -245,7 +245,7 @@ class _LiveChannels extends StatelessWidget {
   }
 }
 
-/// "Live channels across Twitch" (board ParcourirTablette).
+/// "Live channels across Twitch".
 class _LiveChannelsTitle extends StatelessWidget {
   const _LiveChannelsTitle();
 

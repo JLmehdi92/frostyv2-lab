@@ -240,15 +240,14 @@ class HypeTrainSheet extends StatelessWidget {
   }
 }
 
-/// A section title, 16 dp below the previous one: board ChaineHypeDetail's
-/// label (11 / 700, wide tracking, upper case) in the community green.
+/// A section title, 16 dp below the previous one: a label (11 / 700, wide tracking, upper case) in the community green.
 class _Header extends StatelessWidget {
   const _Header(this.title, {required this.neutrals});
 
   final String title;
   final HtNeutrals neutrals;
 
-  /// The board's section label.
+  /// The section label.
   static const style = TextStyle(
     fontFamily: OnsetTokens.bodyFamily,
     fontSize: 11,

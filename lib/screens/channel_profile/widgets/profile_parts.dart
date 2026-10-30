@@ -11,8 +11,7 @@ import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/profile_picture.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
-// The shared pieces of the channel profile (boards Profil and
-// ProfilTablette).
+// The shared pieces of the channel profile.
 
 /// A 44 dp round button over the banner (back, share, more): a dark disc
 /// with a light glyph, readable on any picture. [onBar] draws it on the
@@ -31,7 +30,7 @@ class ProfileRoundButton extends StatelessWidget {
   final String tooltip;
   final VoidCallback onPressed;
 
-  /// The disc's opacity (boards: 45 % on a phone, 50 % on a tablet).
+  /// The disc's opacity (45 % on a phone, 50 % on a tablet).
   final double disc;
 
   /// From 0 (over the banner) to 1 (on the collapsed bar).
@@ -78,7 +77,7 @@ class ProfileRoundButton extends StatelessWidget {
 }
 
 /// The channel's picture in a [border] of the signal colour while it is
-/// live, the ring pulsing outwards like the boards' (1.6 s, out to
+/// live, the ring pulsing outwards (1.6 s, out to
 /// [pulse] dp). The pulse runs in its own layer, stops in the background,
 /// off-screen ([TickerMode]) and under reduce motion.
 class ProfileAvatar extends StatefulWidget {
@@ -238,7 +237,7 @@ class _PulsePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final t = progress.value;
     if (t <= 0 || t >= 1) return;
-    // The board's box-shadow: spread 0 → reach, 55 % → 0.
+    // The box-shadow: spread 0 → reach, 55 % → 0.
     final eased = const Cubic(0.2, 0, 0, 1).transform(t);
     final radius = size.shortestSide / 2;
     final spread = reach * eased;
@@ -257,7 +256,7 @@ class _PulsePainter extends CustomPainter {
       old.progress != progress || old.color != color || old.reach != reach;
 }
 
-/// "Recent broadcasts" and its "See all" (boards: 18/700, 19/700 on a
+/// "Recent broadcasts" and its "See all" (18/700, 19/700 on a
 /// tablet; "See all" 13 sp in the secondary grey).
 class ProfileSectionTitle extends StatelessWidget {
   const ProfileSectionTitle({
@@ -408,7 +407,7 @@ class ProfileDateTile extends StatelessWidget {
   }
 }
 
-/// Twitch's reminder toggle in the boards' pill (36 dp): "Remind Me" with a
+/// Twitch's reminder toggle in the pill (36 dp): "Remind Me" with a
 /// bell, outlined; "Reminder Set" with a check, tinted in the signal
 /// colour.
 class ProfileRemindButton extends StatelessWidget {
@@ -534,7 +533,7 @@ SystemUiOverlayStyle profileOverlayStyle(
   );
 }
 
-/// The profile's tabs (boards: 15 / 700 selected, 600 in the tertiary grey
+/// The profile's tabs (15 / 700 selected, 600 in the tertiary grey
 /// otherwise, 22 dp apart, a 2 dp signal line under the selected one and a
 /// hairline under the row; 16 sp, 26 dp apart and a 2.5 dp line on a
 /// tablet). They follow the [controller]'s swipes.

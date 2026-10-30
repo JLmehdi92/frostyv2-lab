@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 
-/// ONSET's own raid rocket (board KitAssets), drawn for this project.
+/// ONSET's own raid rocket, drawn for this project.
 const kRocketAsset = 'assets/celebrations/rocket.svg';
 
 /// The rocket drawing, whole and split into its body and its flame so the

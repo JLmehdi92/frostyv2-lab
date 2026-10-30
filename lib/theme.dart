@@ -68,7 +68,7 @@ class OnsetTokens {
 
   // Noir & Signal 2.0 ─────────────────────────────────────────────────────────
   // Added by the redesign, next to the values above (which keep their names
-  // and values). Read off the design system board: depth is three greys and a
+  // and values). From the design system: depth is three greys and a
   // hairline, never a shadow.
 
   /// The third grey, above [surfaceDark]: chips, pressed cards, secondary
@@ -76,7 +76,7 @@ class OnsetTokens {
   static const raisedDark = Color(0xFF1E1E1E);
 
   /// Loading skeletons on the dark ground, and the highlight of their sheen.
-  /// Lighter than the board's #161616, which vanished on a sheet or card
+  /// Lighter than the #161616, which vanished on a sheet or card
   /// ([surfaceDark]): this reads on both, and the sheen stays a hint.
   static const skeletonDark = Color(0xFF232323);
   static const skeletonSheenDark = Color(0xFF2F2F2F);
@@ -130,7 +130,7 @@ abstract final class OnsetSpacing {
   static const xl = 24.0;
   static const xxl = 32.0;
 
-  /// Screen edge on a phone, and on a tablet (the tablet boards keep a wider
+  /// Screen edge on a phone, and on a tablet (a tablet keeps a wider
   /// margin instead of stretching the phone layout).
   static const gutterPhone = 16.0;
   static const gutterTablet = 28.0;
@@ -257,7 +257,7 @@ class OnsetColors extends ThemeExtension<OnsetColors> {
   final Color hairline;
 
   /// The accent bar of a sub or gift notice. Twitch draws these in its own
-  /// purple; this app draws them in the signal lime (board CadeauxHypeTrain),
+  /// purple; this app draws them in the signal lime,
   /// darkened on the light theme. Green stays with the hype train.
   final Color subNoticeAccent;
 

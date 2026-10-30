@@ -41,7 +41,7 @@ String _label(String name, String id, Map<String, String> months) {
 }
 
 /// What the user card tells about someone besides their messages: their
-/// badges (as the board's pills), when they made their account and, to a
+/// badges (as pills), when they made their account and, to a
 /// moderator, since when they follow the channel (Twitch only tells
 /// moderators).
 class UserCardInfo extends StatefulWidget {

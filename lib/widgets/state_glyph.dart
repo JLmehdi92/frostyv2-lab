@@ -1,12 +1,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:onset/widgets/sheet/svg_path.dart';
 
-/// The icons of the shared states, Activity and Whispers (boards Etats,
-/// EtatsTablette, Activite, ActiviteTablette, Messages, MessagesTablette),
-/// read from the boards' own 24 × 24 elements: round caps and joins,
-/// stroked.
+/// The icons of the shared states, Activity and Whispers, read from
+/// ONSET's own 24 × 24 elements: round caps and joins, stroked.
 enum StateGlyphKind {
-  /// No connection (Etats 03).
+  /// No connection.
   offline,
 
   /// "Try again".
@@ -15,7 +13,7 @@ enum StateGlyphKind {
   /// Something failed.
   alert,
 
-  /// Logged out (Etats 05).
+  /// Logged out.
   account,
 
   /// Activity's empty state.
@@ -52,7 +50,7 @@ enum StateGlyphKind {
   whisper,
 }
 
-/// The board's elements of each glyph: path data and `c:cx,cy,r` circles.
+/// The elements of each glyph: path data and `c:cx,cy,r` circles.
 const Map<StateGlyphKind, List<String>> _shapes = {
   StateGlyphKind.offline: [
     'M3 3l18 18',
@@ -114,7 +112,7 @@ Path _pathOf(StateGlyphKind kind) => _cache.putIfAbsent(kind, () {
   return path;
 });
 
-/// One of the boards' state icons, stroked in [color].
+/// One of the state icons, stroked in [color].
 class StateGlyph extends StatelessWidget {
   const StateGlyph(
     this.kind, {

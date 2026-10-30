@@ -30,8 +30,7 @@ import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/uptime.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Sizes of the live player's chrome on this screen (boards ChaineLecteur
-/// for the phone, Tablette and TablettePortrait for the tablet), shared
+/// Sizes of the live player's chrome on this screen (phone or tablet), shared
 /// with the channel screen, which puts the latency pill exactly where the
 /// controls' top row leaves room for it.
 @immutable
@@ -122,7 +121,7 @@ class PlayerChromeMetrics {
   double get pillTop => top + (44 - pillHeight) / 2;
 }
 
-/// Light on dark over the picture, in either theme (the boards' values).
+/// Light on dark over the picture, in either theme.
 abstract final class _Over {
   static const text = OnsetTokens.textPrimaryDark;
   static const body = Color(0xFFE5E5E5);
@@ -273,7 +272,7 @@ class VideoOverlay extends StatelessWidget {
       ),
     );
 
-    // The side chat's own control on a tablet (board Tablette): hides it
+    // The side chat's own control on a tablet: hides it
     // (the "hidden" layout the double tap reaches) and brings it back.
     final sideChatButton = Observer(
       builder: (_) {
@@ -485,7 +484,7 @@ class VideoOverlay extends StatelessWidget {
                       color: _Over.text,
                       shadow: true,
                     ),
-                    // Lit while its panel is open (board CreerClip).
+                    // Lit while its panel is open.
                     activeIcon: PlayerGlyph(
                       PlayerGlyphKind.clip,
                       color: context.onsetColors.live,
@@ -572,8 +571,8 @@ class VideoOverlay extends StatelessWidget {
         ),
       );
 
-  /// Quality, volume, captions and the measurement (board ChaineLecteur's
-  /// sheet, in the frame of the channel sheets).
+  /// Quality, volume, captions and the measurement (a sheet, in the frame
+  /// of the channel sheets).
   void _openSettings(BuildContext context) {
     videoStore.updateStreamQualities();
     showOnsetSheet<void>(
@@ -692,7 +691,7 @@ class VideoOverlay extends StatelessWidget {
   }
 }
 
-/// A 44 dp control over the video: a board glyph with its soft shadow.
+/// A 44 dp control over the video: a glyph with its soft shadow.
 class _PlayerButton extends StatelessWidget {
   const _PlayerButton({
     required this.tooltip,
@@ -730,7 +729,7 @@ class _PlayerButton extends StatelessWidget {
           style: IconButton.styleFrom(
             foregroundColor: color,
             highlightColor: const Color(0x1FFFFFFF),
-            // The boards' 44 dp row, not Material's 48.
+            // The 44 dp row, not Material's 48.
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           icon: PlayerGlyph(glyph, color: color, size: glyphSize, shadow: true),
@@ -940,8 +939,8 @@ class _ChannelIdentity extends StatelessWidget {
   }
 }
 
-/// "LIVE 3:12:40 · 👁 2,445" at the bottom left (the phone boards), or
-/// "LIVE · 2,445 · 3:12:40" with the pinging dot (the tablet boards). A tap
+/// "LIVE 3:12:40 · 👁 2,445" at the bottom left (on a phone), or
+/// "LIVE · 2,445 · 3:12:40" with the pinging dot (on a tablet). A tap
 /// on the viewers lists the chatters.
 class _LiveStats extends StatelessWidget {
   const _LiveStats({

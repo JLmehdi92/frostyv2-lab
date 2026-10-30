@@ -26,7 +26,7 @@ import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
 
 /// Opens the chat's details ("⋯" beside the points, or a tablet's chat
-/// header): board ChaineDetailsTchat.
+/// header).
 Future<void> showChatDetails(
   BuildContext context, {
   required ChatStore chatStore,
@@ -62,7 +62,7 @@ class ChatDetails extends StatefulWidget {
     required this.onAddChat,
   });
 
-  /// The board's tallest sheet.
+  /// The tallest sheet.
   static const maxHeight = 600.0;
 
   /// The sleep timer's lengths.

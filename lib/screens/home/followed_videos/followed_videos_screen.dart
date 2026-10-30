@@ -19,8 +19,7 @@ import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/motion/staggered_entrance.dart';
 import 'package:onset/widgets/state_views.dart';
 
-/// The day sections of the followed videos, newest first (an approved
-/// addition to board VideosSuivies).
+/// The day sections of the followed videos, newest first.
 enum FollowedVideosSection {
   today('Today'),
   yesterday('Yesterday'),
@@ -67,8 +66,8 @@ List<(FollowedVideosSection, List<Vod>)> groupFollowedVideos(
   ];
 }
 
-/// The newest videos of the channels the viewer follows (boards
-/// VideosSuivies, VideosSuiviesTablette): rows on a phone, a grid of tiles
+/// The newest videos of the channels the viewer follows:
+/// rows on a phone, a grid of tiles
 /// on a tablet, in Today / Yesterday / This week / Older sections, with the
 /// viewer's progress.
 class FollowedVideosScreen extends StatefulWidget {
@@ -266,9 +265,8 @@ class _FollowedVideosScreenState extends State<FollowedVideosScreen>
   }
 }
 
-/// The page's top (board VideosSuivies: 56 dp, the back chevron and the
-/// title; VideosSuiviesTablette: 88 dp, the back disc, the title and what
-/// the list is).
+/// The page's top (56 dp, the back chevron and the title; on a tablet
+/// 88 dp, the back disc, the title and what the list is).
 class _Header extends StatelessWidget {
   const _Header({required this.tablet});
 

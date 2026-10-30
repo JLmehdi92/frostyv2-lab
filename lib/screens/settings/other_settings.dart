@@ -14,7 +14,7 @@ import 'package:onset/services/onset_updater.dart';
 import 'package:onset/widgets/alert_message.dart';
 import 'package:provider/provider.dart';
 
-/// Settings › Other (boards Parametres, MiseAJour): updates and release
+/// Settings › Other: updates and release
 /// notes, storage and reset, privacy, about. On a phone these groups end
 /// the settings' first page.
 class OtherSettings extends StatelessWidget {

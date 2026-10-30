@@ -17,9 +17,9 @@ import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/user_actions_modal.dart';
 
-/// Opens someone's user card (board ChaineCarteUtilisateur): a sheet on a
+/// Opens someone's user card: a sheet on a
 /// phone (under the video), a panel beside the chat on a tablet when
-/// [anchor] (what was tapped) leaves room for it (ChaineOutilsTablette).
+/// [anchor] (what was tapped) leaves room for it.
 Future<void> showChatUserCard(
   BuildContext context, {
   required ChatStore chatStore,
@@ -55,10 +55,10 @@ class ChatUserModal extends StatefulWidget {
     required this.userId,
   });
 
-  /// The tablet panel (board ChaineOutilsTablette).
+  /// The tablet panel.
   static const panelSize = Size(384, 344);
 
-  /// The phone sheet (board ChaineCarteUtilisateur).
+  /// The phone sheet.
   static const sheetHeight = 470.0;
 
   @override

@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:onset/screens/channel/hype_train/stores/hype_train_store.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart';
 
-/// ONSET's level colour of a regular (or shared) hype train (board
-/// CadeauxHypeTrain, C): it climbs with the level, from green to the signal
+/// ONSET's level colour of a regular (or shared) hype train: it climbs with the level, from green to the signal
 /// lime and orange; from level 6 a lime and orange gradient flows. Dark text
 /// on the fill, light text on the darkened track, 4.5:1 or better on both.
 @immutable
@@ -230,7 +229,7 @@ class HtPalette {
       case HtStyle.regular:
         return byLevel(icon: Icons.train_rounded, name: 'Hype Train');
       case HtStyle.shared:
-        // The board's shared train: the level colour and the speedlines.
+        // The shared train: the level colour and the speedlines.
         return byLevel(
           icon: Icons.groups_rounded,
           name: 'Shared Hype Train',

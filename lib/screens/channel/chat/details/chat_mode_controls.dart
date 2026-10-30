@@ -130,7 +130,7 @@ class _ChatModeControlsState extends State<ChatModeControls> {
   }
 
   /// A choice of [values] that, while the mode is on, applies at once: the
-  /// board's 34 dp select under the mode's name.
+  /// 34 dp select under the mode's name.
   Widget _picker({
     required Duration value,
     required List<Duration> values,
@@ -146,7 +146,7 @@ class _ChatModeControlsState extends State<ChatModeControls> {
     );
     return Container(
       height: 34,
-      // The board's select, as wide as its longest choice reads.
+      // The select, as wide as its longest choice reads.
       constraints: const BoxConstraints(maxWidth: 220),
       margin: const EdgeInsets.only(top: 6),
       padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
@@ -246,7 +246,7 @@ class _ChatModeControlsState extends State<ChatModeControls> {
       ),
     );
 
-    // Board ChaineModeration: "Chat modes", the five switches, then
+    // "Chat modes", the five switches, then
     // "Clear chat" in red and how the last change went.
     return ListView(
       primary: false,

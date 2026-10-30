@@ -6,8 +6,7 @@ import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 
-/// "● synced to video": the signal pill beside a replay's title (boards
-/// Rediff, Clips).
+/// "● synced to video": the signal pill beside a replay's title.
 class SyncedPill extends StatelessWidget {
   const SyncedPill({super.key, required this.label});
 
@@ -335,7 +334,7 @@ class VideoSectionLabel extends StatelessWidget {
   );
 }
 
-/// An empty list of videos (board VideosChaine): the camera in a tile,
+/// An empty list of videos: the camera in a tile,
 /// what is missing, "Pull down to check again."
 class VideoListEmpty extends StatelessWidget {
   const VideoListEmpty({

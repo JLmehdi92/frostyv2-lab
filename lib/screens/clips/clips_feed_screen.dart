@@ -38,7 +38,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 typedef FeedPlayerFactory =
     VodPlayerController Function(Clip clip, {required bool focused});
 
-/// The official app's clips feed (boards Clips, ClipsTablette): Twitch's
+/// The official app's clips feed: Twitch's
 /// top clips, one at a time, a double-tap to play or pause. On a phone,
 /// one clip per page and a swipe to the next; on a tablet, the clip on a
 /// stage beside the queue ("Up next in Clips"), where a tap plays any
@@ -501,7 +501,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
   void _openClip(Clip clip) =>
       unawaited(ClipScreen.open(context, slug: clip.slug, clip: clip));
 
-  // --- Phone (board Clips) ---------------------------------------------------
+  // --- Phone ---------------------------------------------------
 
   Widget _buildClipPage(BuildContext context, int index) {
     final clips = _store.clips;
@@ -748,7 +748,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
     );
   }
 
-  // --- Tablet (board ClipsTablette) -----------------------------------------
+  // --- Tablet -----------------------------------------
 
   Widget _buildTablet(BuildContext context) {
     final clips = _store.clips;
@@ -914,7 +914,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Always dark, as the boards draw it: the shell sets the system bars
+    // Always dark: the shell sets the system bars
     // over the feed (light icons, dark bar).
     final page = Theme(
       data: OnsetThemes(colorSchemeSeed: Color(_settings.accentColor)).dark,
@@ -1370,7 +1370,7 @@ class _SwipeHintState extends State<_SwipeHint>
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
-          // Up 5 dp and back (board Clips' "peek").
+          // Up 5 dp and back (a "peek").
           final t = OnsetMotion.standard.transform(
             1 - (2 * _controller.value - 1).abs(),
           );
@@ -1591,9 +1591,9 @@ class _Stage extends StatelessWidget {
   }
 }
 
-/// The tablet's queue (board ClipsTablette, "Up next in Clips"): every clip
-/// of the feed, the one playing tinted with its signal bars; a tap plays a
-/// clip (an approved addition), the next page loads as the end shows.
+/// The tablet's queue ("Up next in Clips"): every clip of the feed, the one playing tinted with
+/// its signal bars; a tap plays a clip, the next page loads as the end
+/// shows.
 class _Queue extends StatelessWidget {
   const _Queue({
     required this.store,
@@ -1969,7 +1969,7 @@ class _FeedSkeleton extends StatelessWidget {
         );
         // The details' lines under the box (avatar row, title, gaps).
         const details = 104.0;
-        // The board's full width (800 dp at most on a tablet), unless the
+        // The full width (800 dp at most on a tablet), unless the
         // height cannot hold it with the details (a phone held sideways):
         // then as wide as the height allows.
         var width = math.min(roomWidth, large ? 800.0 : double.infinity);

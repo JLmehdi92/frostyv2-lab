@@ -20,10 +20,9 @@ Color onFillColor(Color fill) {
   return onBlack >= onWhite ? OnsetTokens.backgroundDark : Colors.white;
 }
 
-/// The message of an empty, failed or logged-out screen (boards Etats /
-/// EtatsTablette): a mark, the app's message as it words it and, when it
-/// can help, one action ("Try again", an approved addition, does what
-/// pulling to refresh does).
+/// The message of an empty, failed or logged-out screen: a mark, the app's
+/// message as it words it and, when it can help, one action ("Try again"
+/// does what pulling to refresh does).
 class FeedStatusView extends StatelessWidget {
   const FeedStatusView({
     super.key,
@@ -73,7 +72,7 @@ class FeedStatusView extends StatelessWidget {
        signalOff = false,
        primaryAction = false;
 
-  /// Logged out (Etats 05): what an account would give ("Log in to …")
+  /// Logged out: what an account would give ("Log in to …")
   /// and "Connect with Twitch".
   const FeedStatusView.signIn({
     super.key,
@@ -94,10 +93,10 @@ class FeedStatusView extends StatelessWidget {
   /// A second, quieter line under [message].
   final String? detail;
 
-  /// A Material icon in the disc (when the boards have no glyph for it).
+  /// A Material icon in the disc (when there is no glyph for it).
   final IconData? icon;
 
-  /// A board glyph in the disc.
+  /// A glyph in the disc.
   final StateGlyphKind? glyph;
   final String? action;
   final VoidCallback? onAction;
@@ -202,7 +201,7 @@ class FeedStatusView extends StatelessWidget {
   }
 }
 
-/// The signal turned off (Etats 02): a ring, a disc, a dark dot.
+/// The signal turned off: a ring, a disc, a dark dot.
 class SignalOffMark extends StatelessWidget {
   const SignalOffMark({super.key, required this.size});
 

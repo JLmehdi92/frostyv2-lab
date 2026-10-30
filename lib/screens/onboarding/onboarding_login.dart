@@ -79,7 +79,7 @@ const _disclaimer =
     'ONSET only asks for the necessary permissions through the official '
     'Twitch API. You’ll be able to review them before authorizing.';
 
-/// Step 2, Log in (boards Onboarding and OnboardingTablette): what the login
+/// Step 2, Log in: what the login
 /// allows, in plain words, before Twitch opens; "Connect with Twitch" opens
 /// the Twitch page, "Skip" goes on without an account.
 class OnboardingLoginStep extends StatelessWidget {

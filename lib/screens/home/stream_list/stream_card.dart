@@ -13,9 +13,9 @@ import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/profile_picture.dart';
 import 'package:onset/widgets/uptime.dart';
 
-/// A live stream in a list (board Accueil: the 150 x 84 thumbnail beside
+/// A live stream in a list (the 150 x 84 thumbnail beside
 /// the channel, title and category) or, as a [tile], in a tablet grid
-/// (board TabletteAccueil: the thumbnail on top, the channel's picture
+/// (the thumbnail on top, the channel's picture
 /// beside its lines).
 ///
 /// A tap opens the channel (its token is asked for as the finger lands), a
@@ -54,7 +54,7 @@ class StreamCard extends StatelessWidget {
     this.activeTag,
   });
 
-  /// The row's thumbnail width (board: 150; 200 in a wide row).
+  /// The row's thumbnail width (150; 200 in a wide row).
   static double rowThumbnailWidth(double rowWidth) =>
       rowWidth >= 500 ? 200 : 150;
 
@@ -202,8 +202,7 @@ class StreamCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 13, color: colors.body),
           ),
-        // A category's list names no category: its viewers instead (board
-        // Categorie).
+        // A category's list names no category: its viewers instead.
         if (!showCategory && showThumbnail)
           Text(
             '${formatViewers(streamInfo.viewerCount, compact: false)} viewers',

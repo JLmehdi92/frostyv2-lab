@@ -42,7 +42,7 @@ void main() {
     reduceMotion: reduceMotion,
   );
 
-  group('phone (board Moi)', () {
+  group('phone', () {
     testWidgets('logged in: the viewer, the account, the sections, log out', (
       tester,
     ) async {
@@ -97,7 +97,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       verify(() => auth.logout()).called(1);
-      // Logged out, Profile becomes the board MoiDeconnecte.
+      // Logged out, Profile becomes the logged-out page.
       expect(find.text('Connect with Twitch'), findsOneWidget);
       expect(find.text('Log out'), findsNothing);
       expect(tester.takeException(), isNull);
@@ -224,7 +224,7 @@ void main() {
     }
   });
 
-  group('tablet (board ParametresTablette)', () {
+  group('tablet', () {
     testWidgets('the side column and the page beside it', (tester) async {
       final auth = FakeAuthStore(loggedIn: true);
       await pumpProfile(tester, auth, size: const Size(1280, 854));

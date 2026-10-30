@@ -46,7 +46,7 @@ double _within(double value, double low, double high) =>
 /// [region] (the chat column) when it can; beside, it centres on the
 /// anchor and slides down under [avoid]. Null when no side fits.
 ///
-/// The boards' tablet panels (ChaineOutilsTablette): the emote menu and the
+/// The tablet panels: the emote menu and the
 /// points above the chat input, the user card beside the chat.
 PanelPlacement? placePanel({
   required Rect bounds,
@@ -507,7 +507,7 @@ class _PanelRoute<T> extends PopupRoute<T> {
     if (reduceMotionOf(context)) {
       return FadeTransition(opacity: fade, child: child);
     }
-    // The boards' "pop": up 6 dp from 97 %, growing from the anchor.
+    // The "pop": up 6 dp from 97 %, growing from the anchor.
     final rect = placement.rect;
     final origin = switch (placement.side) {
       PanelSide.above => Offset(placement.nub, rect.height),

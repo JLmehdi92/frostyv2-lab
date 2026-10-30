@@ -6,8 +6,8 @@ import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 
-/// "Sorted by …" above a category's or a tag's live streams (boards
-/// Categorie and ParcourirTablette): a quiet text button that opens the
+/// "Sorted by …" above a category's or a tag's live streams:
+/// a quiet text button that opens the
 /// orders in a raised menu, the current one ticked in the signal colour.
 class StreamSortButton extends StatelessWidget {
   const StreamSortButton({super.key, required this.sort, required this.onSort});
@@ -15,7 +15,7 @@ class StreamSortButton extends StatelessWidget {
   final StreamSort sort;
   final ValueChanged<StreamSort> onSort;
 
-  /// The menu's width (boards: 236 on a phone, 240 on a tablet).
+  /// The menu's width (236 on a phone, 240 on a tablet).
   static const menuWidth = 240.0;
 
   @override
@@ -141,8 +141,8 @@ class _SortOption extends StatelessWidget {
   }
 }
 
-/// "Sorted by …" beside Following's "Live now" (boards Accueil and
-/// TabletteAccueil: a 32 dp pill), like Twitch's subheader; it opens the
+/// "Sorted by …" beside Following's "Live now"
+/// (a 32 dp pill), like Twitch's subheader; it opens the
 /// other orders and remembers the choice.
 class FollowedSortButton extends StatelessWidget {
   const FollowedSortButton({super.key, required this.settingsStore});

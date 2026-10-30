@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
-/// The navigation shell's icons, drawn from the boards' own 24 × 24 paths
-/// (Accueil, TabletteAccueil): an outline when idle, filled when active.
+/// The navigation shell's icons, drawn from ONSET's own 24 × 24 paths: an
+/// outline when idle, filled when active.
 enum ShellGlyphKind { home, browse, activity, search, whispers }
 
 class ShellGlyph extends StatelessWidget {

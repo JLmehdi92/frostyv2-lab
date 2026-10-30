@@ -21,7 +21,7 @@ typedef LiveFeedListFactory =
 
 class LiveFeedStore = LiveFeedStoreBase with _$LiveFeedStore;
 
-/// Home's Live feed (boards Live and LiveTablette): the top live streams,
+/// Home's Live feed: the top live streams,
 /// one at a time, or those of a category chosen in the chips; the channels
 /// the viewer is not interested in are left out for this session.
 ///

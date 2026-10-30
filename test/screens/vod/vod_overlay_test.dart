@@ -341,7 +341,7 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
-  group('board sizes', () {
+  group('control sizes', () {
     final archive = Vod(
       id: '1000000001',
       title: 'Morning stream',
@@ -362,7 +362,7 @@ void main() {
       );
 
       expect(find.text('Past broadcast'), findsOneWidget);
-      // RediffTablette: a 68 dp play disc.
+      // A tablet: a 68 dp play disc.
       expect(tester.getSize(find.byTooltip('Play')).width, 68);
     });
 

@@ -12,7 +12,7 @@ import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/motion/staggered_entrance.dart';
 
-/// The release notes (boards NotesMiseAJour and NotesMiseAJourTablette).
+/// The release notes.
 ///
 /// From Settings: the latest version in a card, the earlier ones in a list
 /// that opens in place (phone), or a version list beside the chosen
@@ -144,7 +144,7 @@ class _ReleaseNotesState extends State<ReleaseNotes> {
     );
   }
 
-  /// [child] entering [index] steps after the first, 6 dp up (the boards'
+  /// [child] entering [index] steps after the first, 6 dp up (the
   /// 60 ms steps when just updated, 40 ms from Settings).
   Widget _enter(int index, Widget child) => StaggeredEntrance(
     index: index,

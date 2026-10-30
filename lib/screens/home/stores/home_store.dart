@@ -30,7 +30,7 @@ enum HomeFeed {
   final String label;
 }
 
-/// Browse's tabs (boards Parcourir and ParcourirTablette).
+/// Browse's tabs.
 enum BrowseTab {
   categories('Categories'),
   live('Live channels');

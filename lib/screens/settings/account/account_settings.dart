@@ -31,7 +31,7 @@ const twitchAccountPages = [
   ),
 ];
 
-/// Settings › Account (boards Parametres, ParametresTablette): who is
+/// Settings › Account: who is
 /// logged in, their channel and blocked users, their twitch.tv pages, and
 /// logging out.
 class AccountSettings extends StatelessWidget {
@@ -284,7 +284,7 @@ Future<void> loginFromClipboard(AuthStore authStore) async {
   authStore.login(token: clipboardText, acceptAnyApp: true);
 }
 
-/// Profile while logged out (board MoiDeconnecte): "Anonymous", why to log
+/// Profile while logged out: "Anonymous", why to log
 /// in and "Connect with Twitch" (a long press logs in with a copied token);
 /// or, when Twitch cannot be reached, the problem and "Reconnect".
 class ProfileLoginCard extends StatelessWidget {

@@ -7,7 +7,7 @@ import 'package:onset/models/stream.dart';
 /// What the channel screen says about the viewer and this channel beyond
 /// the stream itself: whether they follow it (the "Follow" / "Following"
 /// button) and, beside a tablet's video, their other followed channels live
-/// now (board Tablette, "Also live from your follows").
+/// now ("Also live from your follows").
 ///
 /// Asked once, [headStart] after the screen opens, so it never competes
 /// with the player's own requests; any failure leaves the defaults (the

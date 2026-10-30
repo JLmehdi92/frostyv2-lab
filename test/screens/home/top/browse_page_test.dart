@@ -245,7 +245,7 @@ void main() {
       '32399',
     );
     expect(find.text('Counter-Strike'), findsNWidgets(2));
-    // Its live streams in the pane, their viewers in words (board).
+    // Its live streams in the pane, their viewers in words.
     expect(find.text('Streamer2'), findsOneWidget);
     expect(find.text('2,104 viewers'), findsOneWidget);
     expect(tester.takeException(), isNull);

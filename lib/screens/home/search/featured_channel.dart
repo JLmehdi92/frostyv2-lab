@@ -27,7 +27,7 @@ String offlineLine(ChannelQuery channel) =>
     channel.gameName.isEmpty ? 'Offline' : 'Offline · ${channel.gameName}';
 
 /// A channel's picture, ringed in the signal colour while it is live
-/// (boards Recherche: 2 dp of ground, then 1.5 dp of signal, drawn outside
+/// (2 dp of ground, then 1.5 dp of signal, drawn outside
 /// the picture so nothing moves).
 class SearchAvatar extends StatelessWidget {
   const SearchAvatar({
@@ -61,7 +61,7 @@ class SearchAvatar extends StatelessWidget {
   }
 }
 
-/// The exact match of a search (boards Recherche and RechercheTablette): a
+/// The exact match of a search: a
 /// raised card with the picture, the name, live or offline with the
 /// category, and the stream's title.
 class FeaturedChannelCard extends StatelessWidget {

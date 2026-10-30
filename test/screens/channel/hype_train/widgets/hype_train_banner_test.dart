@@ -627,7 +627,7 @@ void main() {
     });
   });
 
-  group('ONSET level colours (board CadeauxHypeTrain)', () {
+  group('ONSET level colours', () {
     HypeTrainProgressBarState bar(WidgetTester tester) => tester
         .state<HypeTrainProgressBarState>(find.byType(HypeTrainProgressBar));
 

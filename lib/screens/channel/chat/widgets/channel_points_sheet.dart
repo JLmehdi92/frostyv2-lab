@@ -35,7 +35,7 @@ class ChannelPointsSheet extends StatelessWidget {
 
   const ChannelPointsSheet({super.key, required this.points, this.store});
 
-  /// The tablet panel above the points pill (board ChaineOutilsTablette).
+  /// The tablet panel above the points pill.
   static const panelSize = Size(384, 562);
 
   static String formatPoints(int value) {
@@ -81,8 +81,8 @@ class _Panel extends StatefulWidget {
 }
 
 class _PanelState extends State<_Panel> {
-  /// The outcome being bet on inside a tablet panel (board
-  /// ChaineOutilsTablette: the bet replaces the list in the same panel).
+  /// The outcome being bet on inside a tablet panel
+  /// (the bet replaces the list in the same panel).
   PredictionOutcome? _betOn;
 
   /// The prediction [_betOn] belongs to: a bet view left open across a new
@@ -154,7 +154,7 @@ class _PanelState extends State<_Panel> {
           _betPrediction = null;
         }),
         onBet: (stake) {
-          // The panel closes with the bet, as the board's does.
+          // The panel closes with the bet, as the sheet does.
           final navigator = Navigator.of(context);
           final messenger = ScaffoldMessenger.of(context);
           navigator.pop();
@@ -190,7 +190,7 @@ class _PanelState extends State<_Panel> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Board ChainePoints: the points mark, the name, the balance.
+          // The points mark, the name, the balance.
           Padding(
             padding: EdgeInsets.fromLTRB(16, panel ? 14 : 6, 16, 12),
             child: Row(
@@ -307,7 +307,7 @@ class _PanelState extends State<_Panel> {
   }
 }
 
-/// The boards' generic points mark: a ring in the signal colour.
+/// The generic points mark: a ring in the signal colour.
 class _PointsRing extends StatelessWidget {
   const _PointsRing({required this.size, this.stroke = 2.5, this.color});
 
@@ -357,7 +357,7 @@ class WatchStreakCard extends StatelessWidget {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final green = dark ? OnsetTokens.hypeText : OnsetTokens.hypeTextLight;
 
-    // Board ChainePoints: a #1A1A1A card, the green flame, the community
+    // A #1A1A1A card, the green flame, the community
     // green bar towards the next milestone.
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -576,7 +576,7 @@ class _PredictionCard extends StatelessWidget {
     final onBet = this.onBet;
     final duration = motionDuration(context, const Duration(milliseconds: 420));
 
-    // The outcomes reach 8 dp past the text on each side (board: the tap
+    // The outcomes reach 8 dp past the text on each side (the tap
     // area is wider than the column, the text lines up with it).
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -731,8 +731,8 @@ class _PredictionCard extends StatelessWidget {
   }
 }
 
-/// Picks a stake for one outcome (board ChainePoints' bet sheet; inside the
-/// panel on a tablet, with a way back to the list).
+/// Picks a stake for one outcome (the bet sheet; inside the panel on a
+/// tablet, with a way back to the list).
 ///
 /// Presets rather than a free slider: this opens over a narrow landscape chat
 /// column where a drag target would be both cramped and easy to misfire, and
@@ -970,7 +970,7 @@ class _BetSheetState extends State<BetSheet> {
   }
 }
 
-/// A reward: its tile, title and cost (board ChainePoints); dimmed and not
+/// A reward: its tile, title and cost; dimmed and not
 /// tappable when out of reach.
 class RewardRow extends StatelessWidget {
   final PointsReward reward;

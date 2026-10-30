@@ -29,7 +29,7 @@ import 'package:onset/widgets/skeleton_loader.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
 import 'package:provider/provider.dart';
 
-/// A category's page (board Categorie): its header, then its live streams,
+/// A category's page: its header, then its live streams,
 /// videos or clips. On a tablet the same content also sits beside Browse's
 /// categories ([CategoryView] with `embedded`).
 class CategoryStreams extends StatelessWidget {
@@ -124,7 +124,7 @@ class CategoryStreams extends StatelessWidget {
   }
 }
 
-/// The page's round back button, on the header's picture (board: 44 dp,
+/// The page's round back button, on the header's picture (44 dp,
 /// black at 45 %).
 class _BackButton extends StatelessWidget {
   const _BackButton();
@@ -175,7 +175,7 @@ class CategoryView extends StatefulWidget {
 
   final String categoryId;
 
-  /// In the tablet's pane (board ParcourirTablette): no back button, the
+  /// In the tablet's pane: no back button, the
   /// header and grid measures of the pane.
   final bool embedded;
 
@@ -318,8 +318,7 @@ class _CategoryViewState extends State<CategoryView> {
 }
 
 /// The category's picture, eyebrow, name and "Follow on Twitch", then the
-/// sections and, for the live streams, their order (boards Categorie and
-/// ParcourirTablette).
+/// sections and, for the live streams, their order.
 class _CategoryHeader extends StatelessWidget {
   const _CategoryHeader({
     required this.store,
@@ -439,8 +438,8 @@ class _CategoryHeader extends StatelessWidget {
   }
 }
 
-/// The box art, faint behind the header and fading into the page (board
-/// Categorie: 24 %; ParcourirTablette: into the pane).
+/// The box art, faint behind the header and fading into the page
+/// (24 %; on a tablet, into the pane).
 class _HeroWash extends StatelessWidget {
   const _HeroWash({required this.category, required this.embedded});
 

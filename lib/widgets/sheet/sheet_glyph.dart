@@ -2,10 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:onset/widgets/sheet/svg_path.dart';
 
 /// The icons of the channel screen's sheets, menus and panels, drawn from
-/// the boards' own 24 × 24 strokes (ChaineTchatOutils, ChaineCarteUtilisateur,
-/// ChaineModeration, ChaineDetailsTchat, ChainePoints, ChaineSondagePari,
-/// ChaineOutilsTablette): round caps and joins, 1.8 wide unless the board
-/// says otherwise.
+/// ONSET's own 24 × 24 strokes: round caps and joins, 1.8 wide unless a
+/// glyph says otherwise.
 enum SheetGlyphKind {
   emote,
   trash,
@@ -56,7 +54,7 @@ enum SheetGlyphKind {
   lock,
 }
 
-/// The board's elements of each glyph: path data, `c:cx,cy,r` circles and
+/// The elements of each glyph: path data, `c:cx,cy,r` circles and
 /// `r:x,y,w,h,rx` rectangles.
 const Map<SheetGlyphKind, List<String>> _shapes = {
   SheetGlyphKind.emote: [
@@ -208,7 +206,7 @@ Path sheetGlyphPath(SheetGlyphKind kind) => _cache.putIfAbsent(kind, () {
   return path;
 });
 
-/// One of the boards' sheet icons, stroked in [color].
+/// One of the sheet icons, stroked in [color].
 class SheetGlyph extends StatelessWidget {
   const SheetGlyph(
     this.kind, {

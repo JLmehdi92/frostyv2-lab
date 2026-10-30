@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
 import 'package:onset/theme.dart';
 
-/// A setting picked on a scale: its title and value, then the boards'
+/// A setting picked on a scale: its title and value, then the
 /// slider (a 4 dp track filled in the signal colour, a 20 dp thumb).
 class SettingsListSlider extends StatefulWidget {
   final String title;

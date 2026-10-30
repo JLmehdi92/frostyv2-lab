@@ -18,7 +18,7 @@ import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
 
-/// The channel's banner (boards Profil and ProfilTablette): its picture
+/// The channel's banner: its picture
 /// dimmed on black, fading into the ground at the bottom; without one, the
 /// channel's colour.
 class ProfileBanner extends StatelessWidget {
@@ -186,7 +186,7 @@ class ProfileIdentity extends StatelessWidget {
   }
 }
 
-/// Watch (live) or Chat (offline), Follow and Subscribe (boards: pills of
+/// Watch (live) or Chat (offline), Follow and Subscribe (pills of
 /// 44 dp side by side on a phone; on a tablet "Watch live" 48 dp across,
 /// the other two under it).
 class ProfileActions extends StatelessWidget {
@@ -349,7 +349,7 @@ class _WatchButton extends StatelessWidget {
   }
 }
 
-/// The part of a phone's header under the banner (board Profil): the
+/// The part of a phone's header under the banner: the
 /// avatar hanging over the banner's edge, the name and followers, the
 /// channel's stream, then Watch, Follow and Subscribe.
 class ProfileHeader extends StatelessWidget {
@@ -444,7 +444,7 @@ class ProfileHeader extends StatelessWidget {
   }
 }
 
-/// A phone's whole header as one pinned sliver (board Profil): the banner
+/// A phone's whole header as one pinned sliver: the banner
 /// with Back, Share and More over it, then [content] ([ProfileHeader],
 /// [contentHeight] tall) and the [tabs]. Scrolled, the banner folds into a
 /// 56 dp bar on the ground with the channel's name, the content slides
@@ -629,7 +629,7 @@ class RenderProfileMeasured extends RenderProxyBox {
   }
 }
 
-/// A tablet's profile column (board ProfilTablette): the avatar, the name,
+/// A tablet's profile column: the avatar, the name,
 /// "Watch live", Follow and Subscribe, the bio and the social links.
 class ProfileRail extends StatelessWidget {
   const ProfileRail({
@@ -703,7 +703,7 @@ class ProfileRail extends StatelessWidget {
   }
 }
 
-/// A social link as the boards' pill (32 dp, the surface, the inner ring),
+/// A social link as the pill (32 dp, the surface, the inner ring),
 /// with its site's mark.
 class ProfileSocialPill extends StatelessWidget {
   const ProfileSocialPill({

@@ -131,7 +131,7 @@ void main() {
   }
 
   for (final brightness in Brightness.values) {
-    testWidgets('phone: the board sheet ($brightness)', (tester) async {
+    testWidgets('phone: the sheet ($brightness)', (tester) async {
       final context = await pump(
         tester,
         const Size(390, 844),
@@ -206,7 +206,7 @@ void main() {
     final panel = tester.getRect(find.byType(OnsetPanelSurface));
     expect(panel.size, ChatUserModal.panelSize);
     expect(panel.right, 880 - 12);
-    // No "RECENT MESSAGES" label in the panel (board).
+    // No "RECENT MESSAGES" label in the panel.
     expect(find.text('RECENT MESSAGES'), findsNothing);
     expect(
       tester.getSize(find.widgetWithText(ModerationPill, 'Timeout')).height,

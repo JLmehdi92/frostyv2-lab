@@ -622,7 +622,7 @@ void main() {
     await close(tester);
   });
 
-  group('layouts (boards Rediff, RediffTablette)', () {
+  group('layouts', () {
     testWidgets('a phone: the title strip, then the synced replay', (
       tester,
     ) async {

@@ -101,8 +101,8 @@ Future<T?> showModalBottomSheetWithProperFocus<T>({
   });
 }
 
-/// Makes the sheets opened below it start under the video (approved
-/// addition to the board ChaineLecteur): the phone channel screen puts it
+/// Makes the sheets opened below it start under the video: the phone
+/// channel screen puts it
 /// around its portrait layout with the video's bottom edge.
 class SheetsUnderVideo extends InheritedWidget {
   const SheetsUnderVideo({super.key, required this.top, required super.child});
@@ -111,7 +111,7 @@ class SheetsUnderVideo extends InheritedWidget {
   /// open as usual (no video, landscape, a tablet).
   final double? top;
 
-  /// Between the video and the sheet's top edge (the boards' 12 dp).
+  /// Between the video and the sheet's top edge (the 12 dp).
   static const gap = 12.0;
 
   /// The video's bottom edge, when sheets should start under it. Read once

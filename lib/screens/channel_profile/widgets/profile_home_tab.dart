@@ -35,7 +35,7 @@ const kProfileHomePreviewCount = 4;
 int profileGridColumns(double width, {required bool large}) =>
     !large ? 2 : (width >= 640 ? 3 : 2);
 
-/// A channel's profile Home (boards Profil and ProfilTablette): on a
+/// A channel's profile Home: on a
 /// tablet ([showStream]) the stream beside "Coming up", on a phone the
 /// next stream (the stream is in the header there); then "Recent
 /// broadcasts" and the week's "Popular clips", each with "See all".
@@ -315,7 +315,7 @@ class _Section extends StatelessWidget {
   }
 }
 
-/// A tile's picture (boards: 12 dp corners, 14 on a tablet): the image (or
+/// A tile's picture (12 dp corners, 14 on a tablet): the image (or
 /// a mark), chips in the top corner, the length bottom right and the
 /// progress along the bottom. A long press enlarges it.
 class _TilePicture extends StatelessWidget {
@@ -489,7 +489,7 @@ class _TileText extends StatelessWidget {
   }
 }
 
-/// A past broadcast in the Home grid (boards' "Recent broadcasts"): its
+/// A past broadcast in the Home grid ("Recent broadcasts"): its
 /// picture with the length and the viewer's progress, its title, age and
 /// views. A tap plays it in-app.
 class ProfileVideoTile extends StatelessWidget {

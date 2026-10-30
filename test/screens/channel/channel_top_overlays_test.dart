@@ -273,7 +273,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.byType(HypeTrainSheet), findsOneWidget);
-    // Board ChaineHypeDetail: the sheet on the community green.
+    // The sheet on the community green.
     expect(
       tester.widget<BottomSheet>(find.byType(BottomSheet)).backgroundColor,
       htSheetBackground(Theme.of(context).brightness),
@@ -486,7 +486,7 @@ void main() {
 
     group('the gift bomb pin in each chat', () {
       // (view, chat column, one line?): a phone in portrait, the landscape
-      // side chats of the board, a tablet's side column and its portrait.
+      // side chats, a tablet's side column and its portrait.
       for (final (name, view, column, oneLine) in [
         ('phone portrait 390x844', const Size(390, 844), 390.0, false),
         ('landscape side chat 256', const Size(844, 390), 256.0, true),

@@ -7,7 +7,7 @@ import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 
 /// The live dot: a signal-coloured dot that sends out a ripple, like a radio
-/// signal (the "Signal" card of the micro-animation board).
+/// signal.
 ///
 /// - It ripples in short bursts ([ripples], then [rest] with no ticker at
 ///   all): a screen left idle with live dots on it stops drawing frames

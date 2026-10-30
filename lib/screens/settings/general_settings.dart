@@ -11,7 +11,7 @@ import 'package:onset/screens/settings/widgets/settings_page.dart';
 import 'package:onset/screens/settings/widgets/stream_language_setting.dart';
 import 'package:onset/screens/settings/widgets/theme_selection_setting.dart';
 
-/// Settings › General (board Parametres): theme and accent, stream cards,
+/// Settings › General: theme and accent, stream cards,
 /// browsing, links. The notifications moved to their own page.
 class GeneralSettings extends StatelessWidget {
   final SettingsStore settingsStore;

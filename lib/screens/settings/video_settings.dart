@@ -12,7 +12,7 @@ import 'package:onset/screens/settings/widgets/settings_twitch_web_token.dart';
 import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
 
-/// Settings › Video (board Parametres): the low-latency player, playback,
+/// Settings › Video: the low-latency player, playback,
 /// the overlay, videos and content, captions.
 class VideoSettings extends StatelessWidget {
   final SettingsStore settingsStore;

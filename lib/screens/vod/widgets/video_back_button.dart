@@ -3,7 +3,7 @@ import 'package:onset/screens/vod/widgets/video_glyph.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 
-/// The player's back chevron alone (boards Rediff, Clips): over a player
+/// The player's back chevron alone: over a player
 /// that has no controls yet (loading, an error, Twitch's own warning in the
 /// web player).
 class VideoBackButton extends StatelessWidget {

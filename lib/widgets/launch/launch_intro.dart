@@ -10,8 +10,8 @@ import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/motion/staggered_entrance.dart';
 
-/// The launch intro of the boards "Lancement" (phone), "LancementTablette"
-/// and "Storyboard", drawn over the app on a cold start:
+/// The launch intro, on a phone and on a tablet, drawn over the app on a
+/// cold start:
 ///
 /// 0 ms the signal dot lights up → it grows into the tile with a small
 /// overshoot → the ONSET icon comes in on it ([OnsetMarkTile]) and two
@@ -31,7 +31,7 @@ import 'package:onset/widgets/motion/staggered_entrance.dart';
 ///   first frame is that tile and the sequence picks up from there;
 ///   [splashTile] is where the splash really drew it, once known.
 /// - [slotKey]: the header's mark, where the tile lands. Without one the
-///   tile lands where the boards put it (16 / 28 dp from the left edge, in
+///   tile lands at its place in the header (16 / 28 dp from the left edge, in
 ///   the header row) and dissolves into the header.
 /// - [holdOnName] (the first run): the intro stops once the name is drawn,
 ///   without the flight. The onboarding starts on that very frame (the same
@@ -61,11 +61,10 @@ class LaunchIntro extends StatefulWidget {
   /// The whole sequence (the storyboard's 1 400 ms).
   static const duration = Duration(milliseconds: 1400);
 
-  /// The landing from the onboarding (board Onboarding, its last frame).
+  /// The landing from the onboarding (its last frame).
   static const landingDuration = Duration(milliseconds: 1400);
 
-  /// The tablet's landing, from the tile already on screen (board
-  /// OnboardingTablette).
+  /// The tablet's landing, from the tile already on screen.
   static const landingFromTileDuration = Duration(milliseconds: 1250);
 
   @visibleForTesting
@@ -160,7 +159,7 @@ class LaunchIntro extends StatefulWidget {
   State<LaunchIntro> createState() => _LaunchIntroState();
 }
 
-/// Where each step sits on the 0–1 timeline. The fractions are the boards'
+/// Where each step sits on the 0–1 timeline. The fractions are the
 /// keyframes (written for 1.9 s), played over [LaunchIntro.duration].
 abstract final class _Timeline {
   static const dotEnd = 0.08;
@@ -199,9 +198,9 @@ abstract final class _Timeline {
   ]) => curve.transform(((t - start) / (end - start)).clamp(0.0, 1.0));
 }
 
-/// The landing's keyframes (board Onboarding: tile pops in 0–18 %, one ring
-/// 18–40 %, flight 40–78 %, header 64–80 %, cards from 66 %; board
-/// OnboardingTablette, from the tile already there: flight 8–52 %, header
+/// The landing's keyframes (tile pops in 0–18 %, one ring
+/// 18–40 %, flight 40–78 %, header 64–80 %, cards from 66 %; after the
+/// tablet onboarding, from the tile already there: flight 8–52 %, header
 /// 40–62 %, cards from 44 %). The screen first fades to black over the
 /// onboarding (its 280 ms fade-out) and the page is swapped underneath.
 /// The flight never starts before the swap: the header it lands on only
@@ -396,7 +395,7 @@ class _LaunchIntroState extends State<LaunchIntro>
   }
 
   /// Where the tile rests once grown: on the native splash's tile when it
-  /// handed over, else in the middle at the boards' 72 dp.
+  /// handed over, else in the middle at the 72 dp.
   Rect _restingRect(BuildContext context) {
     final splash = widget.fromTile ? widget.splashTile?.value : null;
     return splash ??
@@ -472,7 +471,7 @@ class _LaunchIntroState extends State<LaunchIntro>
   }
 
   /// Where the tile lands, in this widget's coordinates: the header's mark
-  /// when there is one, else the boards' header slot.
+  /// when there is one, else the header slot.
   Rect _slotRect(BuildContext context) {
     final target = widget.slotKey?.currentContext?.findRenderObject();
     final self = context.findRenderObject();
@@ -547,7 +546,7 @@ class _IntroFrame extends StatelessWidget {
     final size = MediaQuery.sizeOf(context);
     final tablet = isLargeScreenSize(size);
     final center = splash?.center ?? size.center(Offset.zero);
-    // The tile's resting size, as a share of the boards' 72 dp.
+    // The tile's resting size, as a share of the 72 dp.
     final rest = (splash?.width ?? _tile) / _tile;
     const span = _Timeline.span;
 

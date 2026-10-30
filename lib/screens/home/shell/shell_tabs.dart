@@ -8,7 +8,7 @@ import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/state_views.dart';
 
 /// A row of tabs with the signal underline sliding under the active one
-/// (Accueil's Following / Live / Clips).
+/// (Home's Following / Live / Clips).
 class ShellTabs extends StatelessWidget {
   final List<String> labels;
   final int index;

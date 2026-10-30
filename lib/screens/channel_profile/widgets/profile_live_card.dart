@@ -75,9 +75,9 @@ class ProfileStreamFacts {
       live == null && image(0, DateTime(0)) == null && title == null;
 }
 
-/// The channel's stream on its profile. On a phone (board Profil) a row:
+/// The channel's stream on its profile. On a phone a row:
 /// the 112 × 63 picture with its "LIVE" badge, the title, viewers and
-/// uptime, and a chevron. On a tablet ([large], board ProfilTablette) the
+/// uptime, and a chevron. On a tablet ([large]) the
 /// 16:9 picture with the badge, the title and details over a dark fade.
 ///
 /// A tap opens the channel; while live, the finger going down asks for
@@ -182,7 +182,7 @@ class ProfileLiveCard extends StatelessWidget {
     if (live == null) return const SizedBox.shrink();
     if (!live.isRerun) {
       if (large) return const LiveBadge();
-      // The phone board's small badge: 18 high, 10 sp, no ping.
+      // The phone's small badge: 18 high, 10 sp, no ping.
       return Container(
         height: 18,
         padding: const EdgeInsets.symmetric(horizontal: 6),

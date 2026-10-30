@@ -43,7 +43,7 @@ void main() {
 
   group('showOnsetSheet', () {
     for (final brightness in Brightness.values) {
-      testWidgets('draws the board frame ($brightness)', (tester) async {
+      testWidgets('draws the sheet frame ($brightness)', (tester) async {
         final context = await pump(tester, brightness: brightness);
         showOnsetSheet<void>(
           context: context,
@@ -60,7 +60,7 @@ void main() {
           (sheet.shape! as RoundedRectangleBorder).borderRadius,
           const BorderRadius.vertical(top: Radius.circular(24)),
         );
-        // The board's 36 × 4 handle, 8 dp from the top.
+        // The 36 × 4 handle, 8 dp from the top.
         final handle = find.descendant(
           of: find.byType(SheetHandle),
           matching: find.byType(Container),
@@ -251,9 +251,7 @@ void main() {
     );
   });
 
-  testWidgets('the dialog: board card, Cancel and the primary pill', (
-    tester,
-  ) async {
+  testWidgets('the dialog: card, Cancel and the primary pill', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: const OnsetThemes(colorSchemeSeed: OnsetTokens.accent).dark,

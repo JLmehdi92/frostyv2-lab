@@ -139,7 +139,7 @@ class _VodSeekBarState extends State<VodSeekBar> {
                         mutedRanges: muted,
                         enabled: _enabled,
                         dragging: drag != null,
-                        // Board Rediff: the signal for what was played,
+                        // The signal for what was played,
                         // white 22 % / 38 % for the track and the buffer,
                         // the muted parts as light ticks above.
                         playedColor: context.onsetColors.live,
@@ -240,7 +240,7 @@ class VodSeekBarPainter extends CustomPainter {
     canvas.drawRRect(bar(0, played), Paint()..color = playedColor);
     final mutedPaint = Paint()..color = mutedColor;
     for (final (start, end) in mutedRanges) {
-      // 2 px tall, 3 px above the track (board Rediff).
+      // 2 px tall, 3 px above the track.
       canvas.drawRRect(
         RRect.fromLTRBR(
           start * width,

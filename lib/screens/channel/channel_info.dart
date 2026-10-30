@@ -36,8 +36,8 @@ String shortUptime(Duration elapsed) {
 bool _canAct(String? viewerLogin, String login) =>
     viewerLogin != null && viewerLogin.toLowerCase() != login.toLowerCase();
 
-/// The channel under the portrait video (boards Chaine and
-/// TablettePortrait): its picture in the live ring, its name, what it
+/// The channel under the portrait video:
+/// its picture in the live ring, its name, what it
 /// streams (category · viewers · uptime on a phone, title — category on a
 /// tablet) and Follow (+ Subscribe on a tablet).
 class ChannelInfoRow extends StatelessWidget {
@@ -556,7 +556,7 @@ class SubscribeButton extends StatelessWidget {
   }
 }
 
-/// Under a tablet's video beside the chat (board Tablette): the title, its
+/// Under a tablet's video beside the chat: the title, its
 /// chips (category, language, watch streak), Follow and Subscribe, and the
 /// viewer's other followed channels live now.
 class TabletChannelPanel extends StatefulWidget {
@@ -859,7 +859,7 @@ class _AlsoLiveCard extends StatelessWidget {
   }
 }
 
-/// The top of a tablet's side chat (board Tablette): "Chat", whether it
+/// The top of a tablet's side chat: "Chat", whether it
 /// waits for the video ("synced to video", or the manual delay) and "⋯",
 /// the chat's details.
 class TabletChatHeader extends StatelessWidget {

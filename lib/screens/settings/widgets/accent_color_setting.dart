@@ -53,7 +53,7 @@ class AccentColorSetting extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: color,
                     shape: BoxShape.circle,
-                    // The board's double ring: the card, then the text.
+                    // The double ring: the card, then the text.
                     boxShadow: [
                       BoxShadow(color: colors.text, spreadRadius: 3.5),
                       BoxShadow(color: colors.card, spreadRadius: 2),

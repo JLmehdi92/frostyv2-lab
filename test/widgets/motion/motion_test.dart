@@ -20,7 +20,7 @@ void main() {
       expect(spring.bounce, closeTo(0.2, 1e-9));
     });
 
-    test('curves match the boards', () {
+    test('curves match the design system', () {
       expect(OnsetMotion.emphasizedDecelerate, const Cubic(0.05, 0.7, 0.1, 1));
       expect(OnsetMotion.standard, const Cubic(0.2, 0, 0, 1));
       expect(OnsetMotion.emphasizedAccelerate, const Cubic(0.3, 0, 0.8, 0.15));

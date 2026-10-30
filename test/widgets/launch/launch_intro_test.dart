@@ -319,9 +319,7 @@ void main() {
       expect(_overlay, findsNothing);
     });
 
-    testWidgets('a slot that is not a mark keeps the board\'s corners', (
-      tester,
-    ) async {
+    testWidgets('a slot that is not a mark keeps its corners', (tester) async {
       _setSize(tester, _phone);
       final slot = GlobalKey();
       await tester.pumpWidget(_app(slotKey: slot));

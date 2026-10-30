@@ -15,8 +15,8 @@ import 'package:onset/widgets/profile_picture.dart';
 import 'package:onset/widgets/state_glyph.dart';
 import 'package:onset/widgets/state_views.dart';
 
-/// The whispers with one person, and a field to answer (boards Messages
-/// and MessagesTablette): the phone's page over the list, or the tablet's
+/// The whispers with one person, and a field to answer:
+/// the phone's page over the list, or the tablet's
 /// pane ([pane]).
 ///
 /// While it is built, the conversation is open in [store]: its whispers

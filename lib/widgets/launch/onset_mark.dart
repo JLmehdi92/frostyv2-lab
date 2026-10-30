@@ -18,7 +18,7 @@ import 'package:onset/theme.dart';
 /// splash hands over to the Flutter intro pixel for pixel; between them the
 /// two may start from different bitmaps and agree only up to resampling.
 abstract final class OnsetMark {
-  /// Side of the launch boards' tile, the size the intro draws it at.
+  /// Side of the launch tile, the size the intro draws it at.
   static const designSize = 72.0;
 
   /// Corner radius of the tile at [designSize].
@@ -170,7 +170,7 @@ class _FirstMetrics with WidgetsBindingObserver {
   }
 }
 
-/// The mark at [size] (72 on the launch boards, 52 in the release notes and
+/// The mark at [size] (72 in the launch intro, 52 in the release notes and
 /// the update prompt, 28 in the phone header, 30 in the tablet's): the
 /// icon, clipped to the tile's corners, over the icon's ground.
 ///
@@ -180,14 +180,14 @@ class _FirstMetrics with WidgetsBindingObserver {
 class OnsetMarkTile extends StatelessWidget {
   final double size;
 
-  /// Corner radius; defaults to the board's 20 at 72, scaled to [size].
+  /// Corner radius; defaults to the 20 at 72, scaled to [size].
   final double? radius;
 
-  /// The icon fades and grows in over the ground on the launch boards.
+  /// The icon fades and grows in over the ground in the launch intro.
   final double markOpacity;
   final double markScale;
 
-  /// The soft accent halo around the tile on the launch boards.
+  /// The soft accent halo around the tile in the launch intro.
   final List<BoxShadow>? glow;
 
   /// The side the tile ends up on screen when a transform scales it (the
@@ -261,7 +261,7 @@ class OnsetMarkTile extends StatelessWidget {
   }
 }
 
-/// The "ONSET" name of the launch boards: five letters (Inter 800, 34 sp on
+/// The "ONSET" name in the launch intro: five letters (Inter 800, 34 sp on
 /// a phone, 40 on a tablet) over the signal underline (120 / 140 × 2 dp,
 /// 12 dp below).
 ///

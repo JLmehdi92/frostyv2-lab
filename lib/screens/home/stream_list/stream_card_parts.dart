@@ -23,8 +23,7 @@ import 'package:onset/widgets/skeleton_loader.dart';
 import 'package:onset/widgets/user_actions_modal.dart';
 import 'package:provider/provider.dart';
 
-/// The colours of the home feeds' cards (boards Accueil, TabletteAccueil,
-/// Live), dark from the boards and their light counterparts.
+/// The colours of the home feeds' cards, dark and light.
 @immutable
 class FeedColors {
   final Color text;
@@ -229,7 +228,7 @@ class StreamThumbnail extends StatelessWidget {
   }
 }
 
-/// The signal "LIVE" badge with its pinging dot (boards: 24 high, 11 sp;
+/// The signal "LIVE" badge with its pinging dot (24 high, 11 sp;
 /// [large]: 26 high, 12 sp; [small], search results: 18 high, 10 sp).
 class LiveBadge extends StatelessWidget {
   const LiveBadge({super.key, this.large = false, this.small = false});
@@ -358,7 +357,7 @@ class ViewerPill extends StatelessWidget {
 }
 
 /// "Streak N": the viewer's running watch streak in a channel, in the
-/// community green (boards Accueil, TabletteAccueil).
+/// community green.
 class StreakPill extends StatelessWidget {
   const StreakPill({
     super.key,
@@ -370,7 +369,7 @@ class StreakPill extends StatelessWidget {
   final int value;
   final double height;
 
-  /// Drawn over a picture: the dark board colours in either theme.
+  /// Drawn over a picture: the dark colours in either theme.
   final bool overImage;
 
   @override
@@ -441,7 +440,7 @@ class RingedAvatar extends StatelessWidget {
   }
 }
 
-/// The hairline drawn inside a picture's edge (boards: inset 0.5 px,
+/// The hairline drawn inside a picture's edge (inset 0.5 px,
 /// white 10 %).
 class InsetHairline extends StatelessWidget {
   const InsetHairline({super.key, required this.borderRadius});

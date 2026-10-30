@@ -4,8 +4,7 @@ import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 
 /// A number that rolls to its new value instead of jumping (viewer counts,
-/// channel points, a hype train level): the "Compteurs" card of the
-/// micro-animation board.
+/// channel points, a hype train level).
 ///
 /// [text] is the formatted number ("12 418", "1,000", "12.4K"). The two
 /// values are lined up from the right, and only the places that changed

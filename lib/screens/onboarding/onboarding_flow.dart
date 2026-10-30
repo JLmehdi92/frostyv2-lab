@@ -63,7 +63,7 @@ enum OnboardingStep {
   };
 }
 
-/// The first launch (boards Onboarding, OnboardingTablette, OnboardingEtapes):
+/// The first launch:
 /// Intro, Log in (with the Twitch page), Setup, Welcome, then the app.
 ///
 /// - It continues the launch intro: its first frame is the intro's last

@@ -13,7 +13,7 @@ import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-/// The pages of the settings (boards Parametres, ParametresTablette): the
+/// The pages of the settings: the
 /// five sections, the account and its blocked users, and the chat filters
 /// under Chat.
 enum SettingsPageId {

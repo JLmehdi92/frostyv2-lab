@@ -1,11 +1,11 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
-/// Reads SVG path data (`d="…"`) into a [Path]: the subset the design
-/// boards draw with (M L H V C S Q T A Z, absolute and relative).
+/// Reads SVG path data (`d="…"`) into a [Path]: the subset ONSET's glyphs
+/// use (M L H V C S Q T A Z, absolute and relative).
 ///
-/// The boards' glyphs are ONSET's own 24 × 24 strokes; parsing their path
-/// data keeps each glyph a copy of the board instead of a re-drawing.
+/// The glyphs are ONSET's own 24 × 24 strokes; parsing their path
+/// data keeps each glyph exact instead of a re-drawing.
 /// Throws a [FormatException] on data it cannot read.
 Path parseSvgPath(String data) {
   final tokens = _tokenize(data);
@@ -159,11 +159,11 @@ List<String> _tokenize(String data) {
   return tokens;
 }
 
-/// The circle `cx cy r` of a board glyph.
+/// The circle `cx cy r` of a glyph.
 Path svgCircle(double cx, double cy, double r) =>
     Path()..addOval(Rect.fromCircle(center: Offset(cx, cy), radius: r));
 
-/// The rounded rectangle `x y width height rx` of a board glyph.
+/// The rounded rectangle `x y width height rx` of a glyph.
 Path svgRect(double x, double y, double width, double height, double rx) =>
     Path()..addRRect(
       RRect.fromRectAndRadius(

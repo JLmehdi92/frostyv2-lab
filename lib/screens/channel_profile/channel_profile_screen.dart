@@ -33,7 +33,7 @@ import 'package:onset/widgets/state_views.dart';
 import 'package:onset/widgets/user_actions_modal.dart';
 import 'package:provider/provider.dart';
 
-/// The profile's tabs, in the boards' order.
+/// The profile's tabs, in order.
 enum ProfileTab {
   home('Home'),
   videos('Videos'),
@@ -46,7 +46,7 @@ enum ProfileTab {
   final String label;
 }
 
-/// A channel's profile page (boards Profil and ProfilTablette).
+/// A channel's profile page.
 ///
 /// On a phone, the banner folds into a bar (Back, the name, Share, More)
 /// over the avatar, the name, the channel's stream, Watch, Follow and

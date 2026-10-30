@@ -124,7 +124,7 @@ void main() {
     });
   }
 
-  test('confetti keeps the board size: 5-8 dp wide, 9-14 dp tall on 270', () {
+  test('confetti keeps its size: 5-8 dp wide, 9-14 dp tall on 270', () {
     final sim = _sim(
       CelebrationPreset.confetti,
       duration: const Duration(seconds: 6),

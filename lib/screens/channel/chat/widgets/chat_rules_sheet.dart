@@ -8,8 +8,8 @@ import 'package:onset/widgets/sheet/onset_sheet.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
 /// The official app's "Chat Rules" sheet: the channel's picture and name
-/// over the title, the rules as a numbered list, and "OK, Got it!" (board
-/// ChaineDetailsTchat's rules view, also shown inside the chat menu).
+/// over the title, the rules as a numbered list, and "OK, Got it!" (also
+/// shown inside the chat menu).
 class ChatRulesSheet extends StatelessWidget {
   const ChatRulesSheet({
     super.key,

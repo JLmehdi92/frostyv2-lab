@@ -210,7 +210,7 @@ void main() {
     await settle(tester);
   }
 
-  group('phone (board Profil)', () {
+  group('phone', () {
     testWidgets('the header, the stream, the actions and the tabs', (
       tester,
     ) async {
@@ -242,7 +242,7 @@ void main() {
         expect(find.byTooltip('Share'), findsOneWidget);
         expect(find.byTooltip('More'), findsOneWidget);
 
-        // The board's order.
+        // The order.
         final xs = [
           for (final tab in ProfileTab.values)
             tester.getTopLeft(find.widgetWithText(Tab, tab.label)).dx,
@@ -457,7 +457,7 @@ void main() {
     });
   });
 
-  group('tablet (board ProfilTablette)', () {
+  group('tablet', () {
     for (final size in [_tabletLandscape, _tabletPortrait]) {
       testWidgets('the profile column and the tabs, $size', (tester) async {
         answerProfile();

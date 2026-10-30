@@ -20,8 +20,7 @@ void _openCategory(BuildContext context, FollowedCategory category) =>
     );
 
 /// Following's "Categories": the categories the viewer follows, with how
-/// many people watch each (boards Accueil / Etats: 104 dp box art on a
-/// phone, 132 on a tablet); a tap opens its live streams. Nothing when
+/// many people watch each (104 dp box art on a phone, 132 on a tablet); a tap opens its live streams. Nothing when
 /// there are none (or Twitch did not give them).
 class FollowedCategoriesSection extends StatelessWidget {
   const FollowedCategoriesSection({super.key, required this.categories});
@@ -141,8 +140,8 @@ class _FollowedCategoryTile extends StatelessWidget {
   }
 }
 
-/// The followed categories as pills, under the tablet's hero
-/// (TabletteAccueil): box art and name; a tap opens its live streams.
+/// The followed categories as pills, under the tablet's hero: box art and
+/// name; a tap opens its live streams.
 class FollowedCategoryChips extends StatelessWidget {
   const FollowedCategoryChips({super.key, required this.categories});
 

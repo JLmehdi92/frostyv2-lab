@@ -183,7 +183,7 @@ class HighlightSlot extends StatelessWidget {
   }
 }
 
-/// The board's glyph for a highlight kind.
+/// The glyph for a highlight kind.
 SheetGlyphKind highlightGlyph(HighlightKind kind) => switch (kind) {
   HighlightKind.poll => SheetGlyphKind.poll,
   HighlightKind.prediction => SheetGlyphKind.trophy,
@@ -193,7 +193,7 @@ SheetGlyphKind highlightGlyph(HighlightKind kind) => switch (kind) {
   HighlightKind.incomingRaid => SheetGlyphKind.people,
 };
 
-/// "‹ 2 / 3 ›" and the "New poll" pill (board ChaineSondagePari: a 40 dp
+/// "‹ 2 / 3 ›" and the "New poll" pill (a 40 dp
 /// row under the card).
 class HighlightPager extends StatelessWidget {
   const HighlightPager({super.key, required this.store});

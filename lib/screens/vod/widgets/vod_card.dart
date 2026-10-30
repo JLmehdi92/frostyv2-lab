@@ -16,8 +16,8 @@ String? vodThumbnailUrl(Vod vod) {
   return url;
 }
 
-/// A past broadcast, highlight or upload in a list (boards VideosChaine,
-/// VideosSuivies, VideosSuiviesTablette): the thumbnail with Recording,
+/// A past broadcast, highlight or upload in a list:
+/// the thumbnail with Recording,
 /// Watched or the lock and its length and progress, then the title, the
 /// category (or the channel) and the age and views.
 class VodCard extends StatelessWidget {

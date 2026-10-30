@@ -60,14 +60,14 @@ void main() {
   Future<void> done(WidgetTester tester) =>
       tester.pumpWidget(const SizedBox.shrink());
 
-  test('shortUptime reads like the board', () {
+  test('shortUptime reads short', () {
     expect(shortUptime(const Duration(hours: 3, minutes: 12)), '3 h 12');
     expect(shortUptime(const Duration(hours: 1, minutes: 5)), '1 h 05');
     expect(shortUptime(const Duration(minutes: 45)), '45 min');
     expect(shortUptime(const Duration(minutes: -3)), '0 min');
   });
 
-  group('ChannelInfoRow (board Chaine)', () {
+  group('ChannelInfoRow', () {
     Widget row(
       FakePlayer player, {
       String? viewer = 'viewer',
@@ -262,8 +262,7 @@ void main() {
       await done(tester);
     });
 
-    testWidgets('tablet portrait: title — category, Subscribe (board '
-        'TablettePortrait)', (tester) async {
+    testWidgets('tablet portrait: title — category, Subscribe', (tester) async {
       await pump(
         tester,
         row(FakePlayer(stream: fakeStream()), large: true),
@@ -287,7 +286,7 @@ void main() {
     });
   });
 
-  group('TabletChannelPanel (board Tablette)', () {
+  group('TabletChannelPanel', () {
     testWidgets('title, chips, buttons and the other live follows', (
       tester,
     ) async {

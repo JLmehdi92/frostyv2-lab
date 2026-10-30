@@ -8,8 +8,7 @@ import 'package:onset/widgets/motion/motion.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 
-/// Under the header row of a collapsed gift bomb (board CadeauxHypeTrain,
-/// B): "3 of 5 recipients ▾" while the gifts arrive, then "5 recipients ▾",
+/// Under the header row of a collapsed gift bomb: "3 of 5 recipients ▾" while the gifts arrive, then "5 recipients ▾",
 /// a 28 dp pill in a 44 dp target that opens the recipients inline as
 /// pills (220 ms).
 ///
@@ -118,7 +117,7 @@ class _GiftBombRecipientsState extends State<GiftBombRecipients> {
             behavior: HitTestBehavior.opaque,
             onTap: onToggle,
             // A 44 dp target around the 28 dp pill, overlapping the row's
-            // padding as on the board.
+            // padding.
             child: Padding(
               padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
               child: chip,

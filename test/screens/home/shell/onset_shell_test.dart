@@ -333,7 +333,7 @@ void main() {
       await tester.tap(_nav(ShellSection.activity));
       await tester.pumpAndSettle();
       expect(find.text('Activity 0'), findsOneWidget);
-      // Activity's board: a title, no mark, no whispers button.
+      // Activity: a title, no mark, no whispers button.
       expect(find.byKey(OnsetShell.markKey), findsNothing);
       expect(find.byTooltip('Whispers'), findsNothing);
 
@@ -615,7 +615,7 @@ void main() {
     await tester.tap(_nav(ShellSection.browse));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    // The bar keeps its board width instead of stretching.
+    // The bar keeps its width instead of stretching.
     final bar = tester.getRect(find.byKey(const ValueKey('shell-nav')));
     expect(bar.width, ShellMetrics.navMaxWidth);
     expect(bar.center.dx, 844 / 2);

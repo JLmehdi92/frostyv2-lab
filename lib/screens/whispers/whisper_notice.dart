@@ -6,8 +6,7 @@ import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/profile_picture.dart';
 import 'package:onset/widgets/state_glyph.dart';
 
-/// A whisper received elsewhere in the app (boards Etats 06 and
-/// EtatsTablette): a floating card with the sender's picture and its
+/// A whisper received elsewhere in the app: a floating card with the sender's picture and its
 /// whisper mark, their name and the whisper on two lines at most, and
 /// "Open". It leaves by itself, like any snack bar (not while accessible
 /// navigation is on: "Open" is its action).

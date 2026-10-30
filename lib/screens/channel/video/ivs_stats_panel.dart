@@ -20,7 +20,7 @@ class IvsStatsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Board ChaineLecteur: light on black 60 %, 10.5 sp tabular figures,
+    // Light on black 60 %, 10.5 sp tabular figures,
     // the labels at 66 %.
     const textColor = OnsetTokens.textPrimaryDark;
     const style = TextStyle(

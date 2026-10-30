@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-/// A tablet beside its chat (board Tablette): the video first, at the 16:9
+/// A tablet beside its chat: the video first, at the 16:9
 /// size its column's width gives it, and the channel's info area under it
 /// only while that leaves the area [minInfoHeight]. Otherwise the video
 /// takes the whole column, as before the info area existed: the player

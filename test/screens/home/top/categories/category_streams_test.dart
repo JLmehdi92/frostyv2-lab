@@ -370,7 +370,7 @@ void main() {
     verify(() => helix.getStreamsUnderCategory(gameId: '32982')).called(1);
   });
 
-  group('the redesigned page (board Categorie)', () {
+  group('the redesigned page', () {
     setUp(() {
       when(
         () => helix.getCategory(gameId: any(named: 'gameId')),
@@ -435,7 +435,7 @@ void main() {
       final sort = tester.getCenter(find.byTooltip('Sort streams'));
       expect((sort.dy - chip.dy).abs(), lessThan(2));
       expect(sort.dx, greaterThan(chip.dx));
-      // At the row's end (board: margin-left auto).
+      // At the row's end (margin-left auto).
       expect(
         tester.getRect(find.byTooltip('Sort streams')).right,
         greaterThan(1280 - 28 - 8 - 1),

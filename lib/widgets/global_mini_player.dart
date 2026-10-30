@@ -26,7 +26,7 @@ import 'package:simple_pip_mode/pip_widget.dart';
 class GlobalMiniPlayer extends StatefulWidget {
   const GlobalMiniPlayer({super.key});
 
-  /// The window's corners (board MiniLecteur).
+  /// The window's corners.
   static const radius = 16.0;
 
   /// Opens the mini window's channel again (a tap on the window, a mention
@@ -56,7 +56,7 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
   final ValueNotifier<Offset?> _offset = ValueNotifier(null);
 
   /// True while a finger moves the window: it lifts (1.04) and the four
-  /// corners it can land in show (board MiniLecteur).
+  /// corners it can land in show.
   final ValueNotifier<bool> _dragging = ValueNotifier(false);
 
   /// The corner the window rests in (top-right at first); null while it
@@ -140,7 +140,7 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
           height: height,
           // The one window that floats over arbitrary content: it needs a
           // shadow as well as its hairline to read as detached from a
-          // bright thumbnail (board MiniLecteur).
+          // bright thumbnail.
           child: DecoratedBox(
             decoration: const BoxDecoration(
               borderRadius: BorderRadius.all(
@@ -420,7 +420,7 @@ enum MiniCorner {
 }
 
 /// "Close mini player": a 26 dp disc of black 62 % in the top-right corner,
-/// inside a 44 dp target (board MiniLecteur).
+/// inside a 44 dp target.
 class _CloseButton extends StatelessWidget {
   const _CloseButton({required this.onPressed});
 
@@ -471,7 +471,7 @@ class _CloseButton extends StatelessWidget {
 }
 
 /// The four corners the dragged window can land in, dashed, the nearest
-/// in the signal colour (board MiniLecteur).
+/// in the signal colour.
 class _CornerTargets extends StatelessWidget {
   const _CornerTargets({
     required this.area,

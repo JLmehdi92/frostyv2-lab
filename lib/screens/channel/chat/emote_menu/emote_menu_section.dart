@@ -73,8 +73,8 @@ class _EmoteMenuSectionState extends State<EmoteMenuSection>
 }
 
 /// The grid of the emote menu: 8 columns on a phone in portrait, 6 beside
-/// the video, 16 for a chat alone in landscape; 6 tall cells in a tablet's
-/// panel (boards ChaineTchatOutils, ChaineOutilsTablette).
+/// the video, 16 for a chat alone in landscape; 6 tall cells in a
+/// tablet's panel.
 SliverGridDelegate emoteGridDelegate(
   BuildContext context, {
   required bool panel,

@@ -38,7 +38,7 @@ void main() {
     });
   });
 
-  testWidgets('follows the latency, 26 dp high (board Chaine)', (tester) async {
+  testWidgets('follows the latency, 26 dp high', (tester) async {
     final player = FakePlayer();
     await pump(tester, player);
     expect(find.text('2.1s'), findsOneWidget);

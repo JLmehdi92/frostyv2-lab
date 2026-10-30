@@ -10,7 +10,7 @@ import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/motion/rolling_number.dart';
 import 'package:onset/widgets/uptime.dart';
 
-/// The hero live card (boards Accueil and, [large], TabletteAccueil): the
+/// The hero live card (on a tablet with [large]): the
 /// stream's picture with the "LIVE" badge, its viewers and uptime, the
 /// channel in the live ring, its title and category, and the viewer's
 /// streak; on a tablet a "Watch" button. Also every card of a list with
@@ -31,7 +31,7 @@ class LargeStreamCard extends StatelessWidget {
   /// The viewer's running watch streak here, if any (followed list).
   final int? watchStreak;
 
-  /// The tablet hero (TabletteAccueil): larger type, the viewers spelled
+  /// The tablet hero: larger type, the viewers spelled
   /// out, the uptime and streak in the meta line, a "Watch" button.
   final bool large;
 
@@ -106,7 +106,7 @@ class LargeStreamCard extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             StreamThumbnail(stream: streamInfo, borderRadius: radius),
-            // Board: 35 % black at the top, clear in the middle, 90 % at
+            // 35 % black at the top, clear in the middle, 90 % at
             // the bottom (gradients only: nothing is blurred).
             const DecoratedBox(
               decoration: BoxDecoration(
@@ -278,7 +278,7 @@ class LargeStreamCard extends StatelessWidget {
               showPinOption: showPinOption,
               isPinned: isPinned,
             ),
-            // Boards: 358 x 204 on a phone, 640 x 330 on a tablet.
+            // 358 x 204 on a phone, 640 x 330 on a tablet.
             child: AspectRatio(
               aspectRatio: large ? 640 / 330 : 16 / 9,
               child: card,

@@ -88,8 +88,8 @@ class RenderHtFillScope extends RenderProxyBox {
 }
 
 /// Paints [child] in [onFill] where the hype train fill is behind it and in
-/// [onTrack] elsewhere, the colour turning exactly at the fill's edge (board
-/// CadeauxHypeTrain: dark text on the fill, light on the track). Only the
+/// [onTrack] elsewhere, the colour turning exactly at the fill's edge
+/// (dark text on the fill, light on the track). Only the
 /// child's shapes count: its own colours are replaced, so use it on text and
 /// icons, never on pictures. Without an [HtFillScope] above it, it paints
 /// the child in [onTrack].

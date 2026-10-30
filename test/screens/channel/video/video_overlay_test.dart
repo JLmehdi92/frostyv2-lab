@@ -81,7 +81,7 @@ void main() {
   Future<void> done(WidgetTester tester) =>
       tester.pumpWidget(const SizedBox.shrink());
 
-  group('phone portrait (board ChaineLecteur)', () {
+  group('phone portrait', () {
     testWidgets('has every control of the live player, without overflow', (
       tester,
     ) async {
@@ -234,7 +234,7 @@ void main() {
     await done(tester);
   });
 
-  group('phone landscape full screen (board ChaineLecteur)', () {
+  group('phone landscape full screen', () {
     testWidgets('adds the chat overlay toggle and full screen', (tester) async {
       final settings = SettingsStore.fromJson({})
         ..fullScreen = true
@@ -342,7 +342,7 @@ void main() {
     });
   });
 
-  group('tablet (boards Tablette, TablettePortrait)', () {
+  group('tablet', () {
     testWidgets('beside the chat: the category, and "Hide chat"', (
       tester,
     ) async {

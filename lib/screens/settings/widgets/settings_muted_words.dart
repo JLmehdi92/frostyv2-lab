@@ -6,8 +6,8 @@ import 'package:onset/screens/settings/widgets/settings_kit.dart';
 import 'package:onset/screens/settings/widgets/settings_page.dart';
 import 'package:onset/theme.dart';
 
-/// "Muted keywords": how many there are; a tap opens the list (board
-/// Parametres: the field, the words, "Undo" after a removal).
+/// "Muted keywords": how many there are; a tap opens the list
+/// (the field, the words, "Undo" after a removal).
 class SettingsMutedWords extends StatelessWidget {
   final SettingsStore settingsStore;
   const SettingsMutedWords({super.key, required this.settingsStore});
