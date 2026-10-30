@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:lottie/lottie.dart';
 import 'package:onset/models/celebration.dart';
 import 'package:onset/screens/channel/stores/channel_events_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/utils/context_extensions.dart';
+import 'package:onset/widgets/celebrations/particles/celebration_particles.dart';
+import 'package:onset/widgets/celebrations/particles/celebration_view.dart';
+import 'package:onset/widgets/motion/reduce_motion.dart';
 
 /// Plays a celebration over the channel, then gets out of the way.
 ///
 /// Twitch fires these for gifted subs and for the alert sets a streamer
-/// configures. The animations are Twitch's own, recoloured to this app's
-/// palette: their multicolour originals — Twitch purple included — would fight
-/// the flat black system everywhere else.
+/// configures. They are drawn by ONSET's own particles
+/// ([CelebrationParticles]) in the app's palette, never Twitch's artwork.
 ///
 /// Always non-interactive. A celebration that swallowed a tap on the player
 /// would be worse than no celebration at all.
@@ -85,32 +86,76 @@ class _CelebrationPlayer extends StatefulWidget {
 }
 
 class _CelebrationPlayerState extends State<_CelebrationPlayer>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  /// The one ticker of a celebration: it times the fade and the particles.
   late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: widget.celebration.duration,
   );
 
-  /// Fades the whole thing in and out, so it never appears or vanishes
-  /// abruptly over the video.
-  late final Animation<double> _fade = TweenSequence<double>([
-    TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 12),
-    TweenSequenceItem(tween: ConstantTween(1.0), weight: 68),
-    TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 20),
-  ]).animate(_controller);
+  late Animation<double> _fade;
+
+  /// Read once, when the celebration starts: switching it mid-way does not
+  /// turn a running celebration into another.
+  late bool _reduceMotion;
+
+  var _started = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
 
-    _controller.forward().whenCompleteOrCancel(() {
-      // Guard: the channel can be closed mid-celebration.
-      if (mounted) widget.onFinished();
-    });
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (!_started) {
+      _started = true;
+      _reduceMotion = reduceMotionOf(context);
+      if (_reduceMotion) _controller.duration = kReducedCelebrationDuration;
+
+      // Fades the whole thing in and out, so it never appears or vanishes
+      // abruptly over the video. Under reduce motion the particles flash on
+      // their own, a still fade with nothing travelling.
+      _fade = _reduceMotion
+          ? const AlwaysStoppedAnimation(1)
+          : TweenSequence<double>([
+              TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 12),
+              TweenSequenceItem(tween: ConstantTween(1.0), weight: 68),
+              TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 20),
+            ]).animate(_controller);
+
+      _controller.forward().whenCompleteOrCancel(() {
+        // Guard: the channel can be closed mid-celebration.
+        if (mounted) widget.onFinished();
+      });
+    }
+
+    // Hidden (another screen on top, an offstage page): a celebration is a
+    // moment, so it ends rather than waiting, paused, to replay late.
+    if (!TickerMode.of(context)) _end();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Sent to the background: same — over, not kept for the return.
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.detached) {
+      _end();
+    }
+  }
+
+  /// Stops the celebration; its finish callback runs once, as at the end.
+  void _end() {
+    if (_controller.isAnimating) _controller.stop();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
   }
@@ -152,14 +197,14 @@ class _CelebrationPlayerState extends State<_CelebrationPlayer>
             child: SizedBox(
               width: side,
               height: side,
-              child: Lottie.asset(
-                celebration.effect.asset,
-                controller: _controller,
-                repeat: false,
-                fit: BoxFit.contain,
-                // A missing or corrupt asset must not take the channel screen
-                // down with it.
-                errorBuilder: (_, _, _) => const SizedBox.shrink(),
+              child: CelebrationParticles(
+                preset: celebration.effect.preset,
+                progress: _controller,
+                duration: _controller.duration!,
+                seed:
+                    celebration.eventId?.hashCode ??
+                    identityHashCode(celebration),
+                reduceMotion: _reduceMotion,
               ),
             ),
           ),

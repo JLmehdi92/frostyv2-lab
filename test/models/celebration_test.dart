@@ -35,7 +35,7 @@ void main() {
     };
     for (final MapEntry(:key, :value) in effects.entries) {
       expect(Celebration.tryParse({'type': key})!.effect, value);
-      expect(value.asset, startsWith('assets/animations/celebration_'));
+      expect(CelebrationPreset.values, contains(value.preset));
     }
     expect(Celebration.tryParse({'type': 'CONFETTI_CANNON'}), isNull);
     expect(Celebration.tryParse({}), isNull);

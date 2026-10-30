@@ -23,21 +23,53 @@ enum CelebrationEffect {
     _ => unknown,
   };
 
-  /// Which bundled animation plays this effect.
+  /// Which ONSET particle effect plays this effect.
   ///
-  /// **This mapping is ours, not Twitch's.** The official app does not
-  /// reference these files by name for celebrations, so the pairing could not
-  /// be extracted; it was chosen so the motion matches the word — a burst for
-  /// fireworks, falling pieces for rain, a drifting shape for float. The
-  /// animations themselves are Twitch's, recoloured to the app's palette.
-  String get asset => switch (this) {
-    fireworks => 'assets/animations/celebration_confetti.json',
-    extinctionEvent => 'assets/animations/celebration_explosion.json',
-    flamethrower => 'assets/animations/celebration_flame.json',
-    rain => 'assets/animations/celebration_sparkles.json',
-    float => 'assets/animations/celebration_star_bonk.json',
-    unknown => 'assets/animations/celebration_sparkles.json',
+  /// **This mapping is ours, not Twitch's.** The official app does not name
+  /// its celebrations' animations, so the pairing could not be extracted; it
+  /// was chosen so the motion matches the word — a burst for fireworks,
+  /// rising embers for the flamethrower, a star burst for rain, stars circling
+  /// for float. It is the pairing the app's former animations had.
+  CelebrationPreset get preset => switch (this) {
+    fireworks => CelebrationPreset.confetti,
+    extinctionEvent => CelebrationPreset.explosion,
+    flamethrower => CelebrationPreset.flame,
+    rain => CelebrationPreset.sparkles,
+    float => CelebrationPreset.starBonk,
+    unknown => CelebrationPreset.sparkles,
   };
+}
+
+/// The on-screen effects ONSET draws for a celebration (particles of its own,
+/// see `lib/widgets/celebrations/particles/`).
+///
+/// Named after the eight animations the app used to bundle, with the same
+/// intent, so a celebration looks like what it looked like before — drawn by
+/// ONSET rather than taken from Twitch.
+enum CelebrationPreset {
+  /// Tumbling bits falling over the area.
+  confetti,
+
+  /// A radial burst with a shock ring.
+  explosion,
+
+  /// Embers rising and flickering from the bottom.
+  flame,
+
+  /// Rings pulsing out like sound waves.
+  loud,
+
+  /// Gentle twinkles here and there.
+  onboardingSparkles,
+
+  /// Question marks floating up.
+  questionMarks,
+
+  /// A burst of stars.
+  sparkles,
+
+  /// Stars circling and bouncing, as after a bonk on the head.
+  starBonk,
 }
 
 /// How big Twitch wants the celebration to feel.
