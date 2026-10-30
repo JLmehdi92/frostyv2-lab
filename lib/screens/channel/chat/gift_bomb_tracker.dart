@@ -22,6 +22,15 @@ class GiftBomb {
   /// How many of its gifts have arrived so far.
   final int received;
 
+  /// Who received them so far, in order: the first
+  /// [GiftBombTracker.maxRecipients] names (every gift is still counted in
+  /// [received]).
+  final List<String> recipients;
+
+  /// Whether its gifts are folded into its header row ("Collapse gift
+  /// bombs", decided once when the header arrives).
+  final bool collapsed;
+
   const GiftBomb({
     required this.key,
     required this.gifterName,
@@ -29,7 +38,12 @@ class GiftBomb {
     required this.count,
     this.tier,
     this.received = 0,
+    this.recipients = const [],
+    this.collapsed = false,
   });
+
+  /// Whether every announced gift has arrived.
+  bool get complete => count > 0 && received >= count;
 
   GiftBomb withReceived(int received) => GiftBomb(
     key: key,
@@ -38,6 +52,25 @@ class GiftBomb {
     count: count,
     tier: tier,
     received: received,
+    recipients: recipients,
+    collapsed: collapsed,
+  );
+
+  /// One more gift, to [recipient] (null: an unnamed one, only counted).
+  GiftBomb withGift(String? recipient) => GiftBomb(
+    key: key,
+    gifterName: gifterName,
+    isAnonymous: isAnonymous,
+    count: count,
+    tier: tier,
+    received: received + 1,
+    recipients:
+        recipient == null ||
+            recipient.isEmpty ||
+            recipients.length >= GiftBombTracker.maxRecipients
+        ? recipients
+        : List.unmodifiable([...recipients, recipient]),
+    collapsed: collapsed,
   );
 
   @override
@@ -48,11 +81,21 @@ class GiftBomb {
       other.isAnonymous == isAnonymous &&
       other.count == count &&
       other.tier == tier &&
-      other.received == received;
+      other.received == received &&
+      other.collapsed == collapsed &&
+      listEquals(other.recipients, recipients);
 
   @override
-  int get hashCode =>
-      Object.hash(key, gifterName, isAnonymous, count, tier, received);
+  int get hashCode => Object.hash(
+    key,
+    gifterName,
+    isAnonymous,
+    count,
+    tier,
+    received,
+    collapsed,
+    Object.hashAll(recipients),
+  );
 
   @override
   String toString() => 'GiftBomb($key, $gifterName, $count, $received)';
@@ -62,14 +105,20 @@ class GiftBomb {
 /// time).
 @immutable
 class GiftBombBanner {
+  /// The bomb as its header announced it.
   final GiftBomb bomb;
   final DateTime startedAt;
   final DateTime endsAt;
+
+  /// The bomb as its gifts arrive (see [GiftBombTracker.watch]); null when
+  /// the chat does not follow it, in which case [bomb] is all there is.
+  final ValueListenable<GiftBomb>? live;
 
   const GiftBombBanner({
     required this.bomb,
     required this.startedAt,
     required this.endsAt,
+    this.live,
   });
 
   /// How long the banner stays up in all.
@@ -111,12 +160,14 @@ Duration? bannerDuration(int count) => switch (count) {
   _ => const Duration(seconds: 30),
 };
 
-/// Follows the gift bombs of one chat, one notice at a time, in O(1).
+/// Follows the gift bombs of one chat, one notice at a time.
 ///
 /// Twitch's Android app shows a bomb's header and then every one of its
-/// gifts; with `collapse` on, the gifts of a bomb whose header was shown are
-/// counted but not shown. A gift that arrives before its header is always
-/// shown: suppressing it would lose the event.
+/// gifts; with `collapse` on, the gifts of a bomb of five or more whose
+/// header was shown are counted (and their recipients kept) but not shown:
+/// the header row lists them. Smaller bombs always show every gift. A gift
+/// that arrives before its header is always shown: suppressing it would lose
+/// the event.
 ///
 /// A pure helper: the chat store feeds it each `USERNOTICE` after the chat
 /// delay, so a banner appears in step with the video.
@@ -125,15 +176,25 @@ class GiftBombTracker {
   /// own gifts are still arriving.
   static const maxTracked = 100;
 
+  /// How many recipient names one bomb keeps.
+  static const maxRecipients = 100;
+
+  /// The smallest bomb whose gifts "Collapse gift bombs" folds away.
+  static const collapseFrom = 5;
+
   /// Bombs by key, least recently active first (a map literal keeps its
-  /// insertion order).
-  final _bombs = <String, GiftBomb>{};
+  /// insertion order), each in a notifier the pin and the header row follow.
+  final _bombs = <String, ValueNotifier<GiftBomb>>{};
 
   /// How many bombs are remembered.
   int get length => _bombs.length;
 
   /// The bomb keyed [key], if still remembered.
-  GiftBomb? bomb(String key) => _bombs[key];
+  GiftBomb? bomb(String key) => _bombs[key]?.value;
+
+  /// The bomb keyed [key] as its gifts arrive, if still remembered. A
+  /// forgotten bomb's notifier stays with whoever holds it, frozen.
+  ValueListenable<GiftBomb>? watch(String key) => _bombs[key];
 
   GiftBombDecision onNotice(
     UserNotice notice, {
@@ -154,7 +215,11 @@ class GiftBombTracker {
         isAnonymous: notice.isAnonymous,
         count: notice.massGiftCount ?? 0,
         tier: notice.tier,
-        received: key == null ? 0 : (_bombs[key]?.received ?? 0),
+        received: key == null ? 0 : (_bombs[key]?.value.received ?? 0),
+        recipients: key == null
+            ? const []
+            : (_bombs[key]?.value.recipients ?? const []),
+        collapsed: collapse && (notice.massGiftCount ?? 0) >= collapseFrom,
       );
       if (key != null) _remember(bomb);
 
@@ -174,18 +239,32 @@ class GiftBombTracker {
     final isGift =
         notice.kind == UserNoticeKind.subGift ||
         notice.kind == UserNoticeKind.anonSubGift;
-    final bomb = key == null ? null : _bombs[key];
+    final bomb = key == null ? null : _bombs[key]?.value;
     if (!isGift || bomb == null) return GiftBombDecision.shown;
 
-    _remember(bomb.withReceived(bomb.received + 1));
-    return collapse ? GiftBombDecision.suppressed : GiftBombDecision.shown;
+    _remember(
+      bomb.withGift(
+        readableNoticeName(
+          notice.recipientDisplayName ?? notice.recipientLogin ?? '',
+          notice.recipientLogin,
+        ),
+      ),
+    );
+    return bomb.collapsed
+        ? GiftBombDecision.suppressed
+        : GiftBombDecision.shown;
   }
 
   /// Stores [bomb] as the most recently active, forgetting the least
-  /// recently active one beyond [maxTracked].
+  /// recently active one beyond [maxTracked]. A bomb already known keeps
+  /// its notifier, so whoever follows it sees the change.
   void _remember(GiftBomb bomb) {
-    _bombs.remove(bomb.key);
-    _bombs[bomb.key] = bomb;
+    final live = _bombs.remove(bomb.key);
+    if (live == null) {
+      _bombs[bomb.key] = ValueNotifier(bomb);
+    } else {
+      _bombs[bomb.key] = live..value = bomb;
+    }
     if (_bombs.length > maxTracked) _bombs.remove(_bombs.keys.first);
   }
 }
