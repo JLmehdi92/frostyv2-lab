@@ -11,9 +11,14 @@ enum AutoLatencyPhase {
   /// or catching up kept causing stalls) until a manual refresh.
   stopped,
 
-  /// Not allowed to act now: paused, picture-in-picture, mini player, ad,
-  /// reconnecting, no buffer reading...
+  /// Not allowed to catch up now: paused, ad, reconnecting, no buffer or
+  /// latency reading, not a low-latency stream...
   held,
+
+  /// Stopped (after stalls) or on a stream without low latency: drains a
+  /// clearly excessive buffer at [LatencyController.drainRate], like the SDK
+  /// speed-up this replaces.
+  draining,
 
   /// Waiting for the connection to have been calm long enough.
   settling,
@@ -88,8 +93,20 @@ class AutoLatencyStatus {
 /// - any stall stops it at once; a stall (or an ABR switch) during or right
 ///   after a catch-up is a strike that raises the target, and after
 ///   [maxStrikes] it stops for the stream;
-/// - it never acts while held (paused, picture-in-picture, mini player, ad,
-///   reconnecting) and never above [maxLiveRate].
+/// - it never acts while held (paused, ad, reconnecting, a missing reading)
+///   and never above [maxLiveRate]; picture-in-picture and the mini player
+///   are not holds: the rate is invisible there too, and every check keeps
+///   running;
+/// - a tick gap, or no tick at all ([checkTicks]), ends a catch-up at once.
+///
+/// With auto latency on, the player is created without the SDK speed-up
+/// (it would reset any other rate). Where the catch-up does not run for long
+/// (stopped after stalls, a stream without low latency) a timid drain takes
+/// the SDK's place: [drainRate] only when the latency is [drainAboveMs] past
+/// the target with buffer above the floor, never after a stall in the last
+/// [calmAfterStall], never after the player refused or did not keep a rate,
+/// and never during an ad (the SDK leaves its own speed-up alone during ads
+/// too: `MediaPlayer::checkBufferSpeedUp` skips while its ad flag is set).
 ///
 /// Pure Dart with an injectable clock: the store feeds it the native ticks
 /// and applies [rate].
@@ -183,6 +200,20 @@ class LatencyController {
   /// the rate is taken as not kept by the player (something else owns it).
   static const rateNotHeldTicks = 3;
 
+  /// The rate of the SDK-like drain: the SDK speed-up's own 1.03x.
+  static const drainRate = 1.03;
+
+  /// The drain starts once the latency is this far above the target, with
+  /// buffer above the floor...
+  static const drainAboveMs = 1500;
+
+  /// ...and stops once it is within this of it, or at the floor.
+  static const drainStopAboveMs = 1000;
+
+  /// The floor of a stream without low latency: the IVS normal-latency
+  /// minimum buffer (2.0 s in the SDK schema).
+  static const normalLatencyFloorMs = 2000;
+
   /// How long an ad holds the controller at least (and at most): the cue's
   /// duration is not trusted beyond that.
   static const minAdHold = Duration(seconds: 60);
@@ -211,6 +242,12 @@ class LatencyController {
   var _strikes = 0;
   var _notHeld = 0;
   var _stopped = false;
+  String? _stopReason;
+
+  /// Whether the SDK-like drain may run once stopped: not when a rate was
+  /// refused or not kept.
+  var _drainable = false;
+  DateTime? _lastStallAt;
   var _rate = 1.0;
   late AutoLatencyPhase _phase;
   String? _reason;
@@ -240,27 +277,37 @@ class LatencyController {
     _adUntil = null;
     _restartCalm(startSettle);
     if (_active) _setPhase(AutoLatencyPhase.settling);
+    if (_stopped) _setStopped();
   }
 
   /// The viewer refreshed the stream: forget the strikes and try again.
   void reset() {
     _strikes = 0;
     _stopped = false;
+    _stopReason = null;
+    _drainable = false;
     _notHeld = 0;
     if (enabled) _setPhase(AutoLatencyPhase.settling);
   }
 
   /// The player rebuffered: back to 1.0x at once, and wait for a longer calm.
   void onStall() {
-    if (!_active) return;
+    if (!enabled) return;
+    _lastStallAt = _now();
+    if (_stopped) {
+      _toNormalRate();
+      _clearCalm();
+      _setStopped();
+      return;
+    }
     _strikeIfRecent();
     _toNormalRate();
     _restartCalm(calmAfterStall);
     if (_active) _setPhase(AutoLatencyPhase.settling);
   }
 
-  /// The quality changed: only a catch-up that may have caused it (an ABR
-  /// down-switch on a drained buffer) cares.
+  /// The quality went down without being asked: only a catch-up that may
+  /// have caused it (an ABR down-switch on a drained buffer) cares.
   void onQualityChanged() {
     if (!_active || !_recentCatchUp) return;
     onStall();
@@ -269,7 +316,7 @@ class LatencyController {
   /// An ad starts: no correction for its length, within [minAdHold] and
   /// [maxAdHold].
   void onAd(Duration duration) {
-    if (!_active) return;
+    if (!enabled) return;
     final hold = duration < minAdHold
         ? minAdHold
         : (duration > maxAdHold ? maxAdHold : duration);
@@ -277,18 +324,39 @@ class LatencyController {
     _holdFor('ad');
   }
 
-  /// The viewer is about to make correcting wrong (pause, picture-in-picture,
-  /// mini player): back to 1.0x now, without waiting for the next tick. The
-  /// catch-up it ends was ended by the viewer: a stall after it (a resume
-  /// often rebuffers) is not a strike.
+  /// The viewer is about to make correcting wrong (pause, the content
+  /// warning, a refresh): back to 1.0x now, without waiting for the next
+  /// tick. The catch-up it ends was ended by the viewer: a stall after it (a
+  /// resume often rebuffers) is not a strike.
   void hold(String reason) {
-    if (!_active) return;
+    if (!enabled) return;
     _holdFor(reason);
     _lastCatchUpEnd = null;
   }
 
   /// The native player refused the rate: stop for the stream.
-  void onRateRejected() => _stop('the player refused the rate');
+  void onRateRejected() => stop('the player refused the rate');
+
+  /// Stops for the stream with [reason], without the drain: the rate itself
+  /// is in doubt (the store saw the player refuse or keep a rate).
+  void stop(String reason) => _stop(reason, drainable: false);
+
+  /// A tick came without a usable latency: back to 1.0x and hold.
+  void onMissingLatency() {
+    _lastSampleAt = _now();
+    _holdFor('no latency reading');
+  }
+
+  /// The watchdog, called between ticks: a rate above 1.0x whose ticks
+  /// stopped coming for longer than [maxSampleGap] goes back to 1.0x. True
+  /// when it did.
+  bool checkTicks() {
+    if (_rate <= 1) return false;
+    final last = _lastSampleAt;
+    if (last == null || _now().difference(last) <= maxSampleGap) return false;
+    _holdFor('no latency ticks');
+    return true;
+  }
 
   /// One latency tick; returns the rate to apply.
   double onSample({
@@ -302,18 +370,25 @@ class LatencyController {
     final last = _lastSampleAt;
     _lastSampleAt = now;
     if (!enabled) return _rate;
-    if (_stopped) return _rate;
+    // Unchecked for that long: back to 1.0x before anything else.
     if (last != null && now.difference(last) > maxSampleGap) _clearCalm();
 
     final adUntil = _adUntil;
     final heldBecause =
         hold ??
         (adUntil != null && now.isBefore(adUntil) ? 'ad' : null) ??
-        (lowLatency == false ? 'not a low-latency stream' : null) ??
         (bufferMs == null ? 'no buffer reading' : null);
     if (heldBecause != null) {
       _holdFor(heldBecause);
       return _rate;
+    }
+
+    if (_stopped) {
+      if (!_drainable) return _rate;
+      return _drain(latencyMs, bufferMs!, nativeRate, lowLatency: true);
+    }
+    if (lowLatency == false) {
+      return _drain(latencyMs, bufferMs!, nativeRate, lowLatency: false);
     }
 
     _push(_latencies, latencyMs);
@@ -321,6 +396,7 @@ class LatencyController {
     final calmSince = _calmSince ??= now;
     final calm = now.difference(calmSince);
     if (calm < _requiredCalm) {
+      _toNormalRate();
       _calmLeftSeconds = (_requiredCalm - calm).inSeconds;
       _setPhase(AutoLatencyPhase.settling);
       return _rate;
@@ -330,14 +406,7 @@ class LatencyController {
     final buffer = _median(_buffers);
     final target = effectiveTargetMs;
     if (_rate > 1) {
-      if (nativeRate != null && (nativeRate - _rate).abs() > 0.005) {
-        if (++_notHeld >= rateNotHeldTicks) {
-          _stop('the player did not keep the rate');
-          return _rate;
-        }
-      } else {
-        _notHeld = 0;
-      }
+      if (_rateNotKept(nativeRate)) return _rate;
       final ran = now.difference(_catchUpStart ?? now) >= minCatchUp;
       if ((ran && latency <= target + stopAboveMs) || buffer <= bufferFloorMs) {
         _toNormalRate();
@@ -361,6 +430,71 @@ class LatencyController {
     return _rate;
   }
 
+  /// The SDK-like drain, for a stopped controller or a stream without low
+  /// latency (which has no low-latency target: only its buffer is judged).
+  double _drain(
+    int latencyMs,
+    int bufferMs,
+    double? nativeRate, {
+    required bool lowLatency,
+  }) {
+    final now = _now();
+    _push(_latencies, latencyMs);
+    _push(_buffers, bufferMs);
+    void rest() {
+      _toNormalRate();
+      if (_stopped) {
+        _setStopped();
+      } else {
+        _setPhase(AutoLatencyPhase.held, reason: 'not a low-latency stream');
+      }
+    }
+
+    final lastStall = _lastStallAt;
+    final calm =
+        lastStall == null || now.difference(lastStall) >= calmAfterStall;
+    if (!calm || _latencies.length < smoothing) {
+      rest();
+      return _rate;
+    }
+    final latency = _median(_latencies);
+    final buffer = _median(_buffers);
+    final floor = lowLatency ? bufferFloorMs : normalLatencyFloorMs;
+    final target = effectiveTargetMs;
+    if (_rate > 1) {
+      if (_rateNotKept(nativeRate)) return _rate;
+      if (buffer <= floor ||
+          (lowLatency && latency <= target + drainStopAboveMs)) {
+        rest();
+      }
+      return _rate;
+    }
+    if (buffer > floor + bufferHeadroomMs &&
+        (!lowLatency || latency > target + drainAboveMs)) {
+      _rate = drainRate;
+      _notHeld = 0;
+      _setPhase(
+        AutoLatencyPhase.draining,
+        reason: _stopped ? _stopReason : 'not a low-latency stream',
+      );
+    } else {
+      rest();
+    }
+    return _rate;
+  }
+
+  /// Counts ticks where the player reports another rate than the one asked
+  /// for; true (and stopped, without the drain) once it is clearly not kept.
+  bool _rateNotKept(double? nativeRate) {
+    if (nativeRate == null || (nativeRate - _rate).abs() <= 0.005) {
+      _notHeld = 0;
+      return false;
+    }
+    if (++_notHeld < rateNotHeldTicks) return false;
+    stop('the player did not keep the rate');
+    return true;
+  }
+
   bool get _active => enabled && !_stopped;
 
   bool get _recentCatchUp {
@@ -372,22 +506,34 @@ class LatencyController {
   void _strikeIfRecent() {
     if (!_recentCatchUp) return;
     _strikes++;
-    if (_strikes >= maxStrikes) _stop('stalls after catching up');
+    if (_strikes >= maxStrikes) {
+      _stop('stalls after catching up', drainable: true);
+    }
   }
 
   void _holdFor(String reason) {
     _toNormalRate();
     _clearCalm();
-    _setPhase(AutoLatencyPhase.held, reason: reason);
+    if (_stopped) {
+      _setStopped();
+    } else {
+      _setPhase(AutoLatencyPhase.held, reason: reason);
+    }
   }
 
-  void _stop(String reason) {
+  void _stop(String reason, {required bool drainable}) {
     if (!enabled) return;
     _toNormalRate();
+    // A doubt about the rate, once seen, keeps the drain off for the stream.
+    _drainable = drainable && (!_stopped || _drainable);
     _stopped = true;
+    _stopReason = reason;
     _clearCalm();
-    _setPhase(AutoLatencyPhase.stopped, reason: reason);
+    _setStopped();
   }
+
+  void _setStopped() =>
+      _setPhase(AutoLatencyPhase.stopped, reason: _stopReason);
 
   void _toNormalRate() {
     if (_rate > 1) _lastCatchUpEnd = _now();
@@ -400,7 +546,10 @@ class LatencyController {
     _clearCalm();
   }
 
+  /// Forgets the calm and the windows, and goes back to 1.0x: nothing that
+  /// was judged on them may run on.
   void _clearCalm() {
+    _toNormalRate();
     _calmSince = null;
     _latencies.clear();
     _buffers.clear();
@@ -442,6 +591,9 @@ String describeAutoLatency(AutoLatencyStatus? status) {
     AutoLatencyPhase.steady => 'at target$target',
     AutoLatencyPhase.catchingUp =>
       'catching up ${status.rate.toStringAsFixed(2)}x$target',
+    AutoLatencyPhase.draining =>
+      'draining ${status.rate.toStringAsFixed(2)}x'
+          '${status.reason == null ? '' : ' (${status.reason})'}',
   };
 }
 

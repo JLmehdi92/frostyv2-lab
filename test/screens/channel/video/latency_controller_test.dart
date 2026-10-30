@@ -184,6 +184,16 @@ void main() {
       expect(controller.status.phase, AutoLatencyPhase.held);
     });
 
+    test('a tick gap during a catch-up returns to 1.0x at once', () {
+      feed(2200, 8);
+      expect(controller.rate, LatencyController.catchUpRate);
+
+      now = now.add(const Duration(seconds: 10));
+
+      expect(feed(2200, 1), [1.0]);
+      expect(controller.status.phase, AutoLatencyPhase.settling);
+    });
+
     test('a ticker gap means the calm has to be seen again', () {
       feed(2200, 4);
       now = now.add(const Duration(seconds: 10));
@@ -259,7 +269,7 @@ void main() {
   });
 
   group('holds', () {
-    for (final reason in ['paused', 'picture-in-picture', 'mini player']) {
+    for (final reason in ['paused', 'reconnecting', 'buffering']) {
       test('never corrects while $reason', () {
         expect(feed(3000, 60, hold: reason), everyElement(1.0));
         expect(controller.status.phase, AutoLatencyPhase.held);
@@ -353,6 +363,140 @@ void main() {
         controller.status.targetMs,
         1300 + LatencyController.strikeBackoffMs,
       );
+    });
+  });
+
+  group('SDK-like drain', () {
+    // Three strikes: auto latency gave up for the stream. Target 2.8 s.
+    void strikeOut() {
+      for (var strike = 0; strike < LatencyController.maxStrikes; strike++) {
+        feed(3000, 30);
+        controller.onStall();
+      }
+      expect(controller.status.phase, AutoLatencyPhase.stopped);
+    }
+
+    test('after giving up, drains at 1.03x only when clearly behind', () {
+      strikeOut();
+
+      expect(feed(4200, 40), everyElement(1.0), reason: 'not clearly high');
+      final rates = feed(6000, 10);
+
+      expect(rates.last, LatencyController.drainRate);
+      expect(controller.status.phase, AutoLatencyPhase.draining);
+      expect(controller.status.reason, 'stalls after catching up');
+    });
+
+    test('the drain stops at the buffer floor and goes back to stopped', () {
+      strikeOut();
+      feed(6000, 40);
+      expect(controller.rate, LatencyController.drainRate);
+
+      feed(6000, 5, bufferMs: 600);
+
+      expect(controller.rate, 1.0);
+      expect(controller.status.phase, AutoLatencyPhase.stopped);
+    });
+
+    test('the drain stops on a stall and waits for calm', () {
+      strikeOut();
+      feed(6000, 40);
+      controller.onStall();
+
+      expect(controller.rate, 1.0);
+      expect(
+        feed(6000, LatencyController.calmAfterStall.inSeconds - 1),
+        everyElement(1.0),
+      );
+      expect(feed(6000, 6).last, LatencyController.drainRate);
+    });
+
+    test('never drains after the player refused the rate', () {
+      controller.onRateRejected();
+      expect(feed(6000, 60), everyElement(1.0));
+    });
+
+    test('never drains a stream the store stopped', () {
+      controller.stop('the player stayed at 1.05x');
+      expect(feed(6000, 60), everyElement(1.0));
+    });
+
+    test('never drains during an ad', () {
+      feed(1300, 10);
+      controller.onAd(const Duration(seconds: 90));
+      expect(feed(6000, 80), everyElement(1.0));
+    });
+
+    test('never drains while paused', () {
+      strikeOut();
+      expect(feed(6000, 60, hold: 'paused'), everyElement(1.0));
+    });
+
+    test('a stream without low latency drains to the normal buffer', () {
+      final rates = feed(6000, 30, lowLatency: false, bufferMs: 4000);
+      expect(rates.last, LatencyController.drainRate);
+
+      feed(6000, 5, lowLatency: false, bufferMs: 1900);
+      expect(controller.rate, 1.0);
+      expect(controller.status.reason, 'not a low-latency stream');
+
+      expect(
+        feed(6000, 30, lowLatency: false, bufferMs: 2200),
+        everyElement(1.0),
+        reason: 'not enough buffer above the normal-latency floor',
+      );
+    });
+  });
+
+  group('lost ticks', () {
+    test('a tick without a latency drops back to 1.0x and holds', () {
+      feed(2200, 8);
+      expect(controller.rate, LatencyController.catchUpRate);
+
+      now = now.add(const Duration(seconds: 1));
+      controller.onMissingLatency();
+
+      expect(controller.rate, 1.0);
+      expect(controller.status.phase, AutoLatencyPhase.held);
+      expect(controller.status.reason, 'no latency reading');
+    });
+
+    test('the watchdog ends a catch-up whose ticks stopped', () {
+      feed(2200, 8);
+      now = now.add(LatencyController.maxSampleGap);
+      expect(controller.checkTicks(), isFalse, reason: 'not late yet');
+      expect(controller.rate, LatencyController.catchUpRate);
+
+      now = now.add(const Duration(milliseconds: 1));
+      expect(controller.checkTicks(), isTrue);
+      expect(controller.rate, 1.0);
+      expect(controller.status.reason, 'no latency ticks');
+    });
+
+    test('the watchdog leaves a stream at 1.0x alone', () {
+      feed(1300, 10);
+      now = now.add(const Duration(minutes: 1));
+
+      expect(controller.checkTicks(), isFalse);
+      expect(controller.status.phase, AutoLatencyPhase.steady);
+    });
+
+    test('the watchdog also ends a drain', () {
+      feed(6000, 30, lowLatency: false, bufferMs: 4000);
+      expect(controller.rate, LatencyController.drainRate);
+
+      now = now.add(const Duration(seconds: 4));
+      expect(controller.checkTicks(), isTrue);
+      expect(controller.rate, 1.0);
+    });
+
+    test('the store can stop it with a reason', () {
+      feed(2200, 8);
+      controller.stop('the player stayed at 1.05x');
+
+      expect(controller.rate, 1.0);
+      expect(controller.status.phase, AutoLatencyPhase.stopped);
+      expect(controller.status.reason, 'the player stayed at 1.05x');
     });
   });
 
@@ -456,6 +600,20 @@ void main() {
         'stopped: stalls after catching up',
       );
     });
+  });
+
+  test('describeAutoLatency says why it drains', () {
+    expect(
+      describeAutoLatency(
+        const AutoLatencyStatus(
+          phase: AutoLatencyPhase.draining,
+          rate: 1.03,
+          targetMs: 2800,
+          reason: 'stalls after catching up',
+        ),
+      ),
+      'draining 1.03x (stalls after catching up)',
+    );
   });
 
   test('describeBufferFallback says until when', () {
