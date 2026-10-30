@@ -5,6 +5,8 @@ on:
     paths-ignore:
       - 'docs/**'
       - '**.md'
+  pull_request:
+    branches: [main]
 # A newer push to main makes the previous check pointless.
 concurrency:
   group: ci-${{ github.ref }}
