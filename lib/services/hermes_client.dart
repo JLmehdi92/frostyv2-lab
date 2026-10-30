@@ -30,8 +30,7 @@ class HermesEvent {
 
 /// Client for Twitch's real-time gateway.
 ///
-/// Hermes replaced `pubsub-edge.twitch.tv`, which no longer exists in the
-/// official app. It carries hype trains, predictions, channel points, creator
+/// Hermes replaced `pubsub-edge.twitch.tv`. It carries hype trains, predictions, channel points, creator
 /// goals, leaderboards and the rest — one socket for all of them.
 ///
 /// Two behaviours are not guessable from the protocol and were confirmed on a

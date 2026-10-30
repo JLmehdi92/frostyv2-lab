@@ -8,7 +8,7 @@ class FollowedCategory {
   /// The category's twitch.tv slug, when Twitch gave one that looks right.
   final String? slug;
 
-  /// Box art at 285x380, the size Twitch's app asks for.
+  /// Box art at 285x380.
   final String boxArtUrl;
 
   /// People watching the category's live streams right now.

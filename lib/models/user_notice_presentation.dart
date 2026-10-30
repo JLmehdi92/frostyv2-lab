@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:onset/models/user_notice.dart';
 
-/// The row a notice is drawn in, after Twitch's Android app.
+/// The row a notice is drawn in.
 enum NoticeLayout {
   /// Subs, gifts and most paid events: a tinted row with an accent bar.
   special,
@@ -76,10 +76,10 @@ class NoticePresentation {
   String toString() => 'NoticePresentation($layout, $icon, $iconBias)';
 }
 
-/// Picks a notice's row and icon the way Twitch's Android app does.
+/// Picks a notice's row and icon.
 ///
 /// A named sub or gift has no icon: the green accent bar alone marks it.
-/// Kinds Twitch's app drops are kept, in the special row without an icon.
+/// Rarer kinds are kept, in the special row without an icon.
 NoticePresentation noticePresentation(UserNotice notice) {
   switch (notice.kind) {
     case UserNoticeKind.announcement:

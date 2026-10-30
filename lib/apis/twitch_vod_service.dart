@@ -91,8 +91,7 @@ class TwitchVodService extends BaseApiClient {
   static const _videoQuery =
       'query Video(\$id: ID!) { video(id: \$id) { $_videoFields } }';
 
-  // The official app's Videos search tab: `searchFor` on the VOD index, 25
-  // per page with Twitch's cursor (paging answers anonymously, verified
+  // The Videos search tab: `searchFor` on the VOD index, 25 per page with Twitch's cursor (paging answers anonymously, verified
   // 2026-10-20).
   static const _searchVideosQuery =
       'query SearchVideos(\$query: String!, \$target: SearchForTarget) { '
@@ -110,8 +109,8 @@ class TwitchVodService extends BaseApiClient {
       'fragments { text emote { emoteID } } userBadges { setID version } '
       'userColor } } } pageInfo { hasNextPage } } } }';
 
-  // The video's own labels, as the official app asks for a VOD's warning
-  // (not the channel's current ones; verified anonymously, 2026-10-17).
+  // The video's own labels, for a VOD's warning (not the channel's current
+  // ones; verified anonymously, 2026-10-17).
   static const _contentLabelsQuery =
       'query VideoContentLabels(\$id: ID!) { video(id: \$id) { '
       'contentClassificationLabels { id } } }';
@@ -126,8 +125,8 @@ class TwitchVodService extends BaseApiClient {
       'query VideoViewingHistory(\$id: ID!) { video(id: \$id) { self { '
       'viewingHistory { position updatedAt } } } }';
 
-  // The official app's "Continue watching" shelf (ResumeWatchingVideosQuery,
-  // limit 10 there): the viewer's started videos with their positions. Needs
+  // The "Continue watching" shelf: the viewer's started videos with their
+  // positions. Needs
   // the web token: anonymous answers `currentUser: null`.
   static const _resumeWatchingQuery =
       'query ResumeWatchingVideos(\$limit: Int!) { currentUser { id '
@@ -137,8 +136,7 @@ class TwitchVodService extends BaseApiClient {
   /// Videos per [getVideos] request.
   static const _videosBatch = 25;
 
-  // The official app's write, for a VOD and for a live broadcast (by stream
-  // id). The full document is accepted with the web Client-ID (an anonymous
+  // Saves a position, for a VOD and for a live broadcast (by stream id). The full document is accepted with the web Client-ID (an anonymous
   // try answers "unauthenticated", 2026-10-20).
   static const _updateViewedVideoMutation =
       'mutation UpdateUserViewedVideo(\$input: UpdateUserViewedVideoInput!) '

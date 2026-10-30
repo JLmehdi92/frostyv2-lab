@@ -15,9 +15,9 @@ final _numericId = RegExp(r'^[0-9]{1,20}$');
 /// time since it started minus the player's latency (`2.3s`). This is the
 /// archive VOD's timeline. Null when the start cannot be read.
 ///
-/// The official app reads the broadcast offset from the stream's ID3 tags
-/// (`ld_lat_data.stream_offset`); our players do not surface them, so this
-/// can differ by a few seconds.
+/// The stream also carries the broadcast offset in its ID3 tags, but ONSET's
+/// players do not surface them, so this estimate can differ by a few
+/// seconds.
 int? liveOffsetSeconds({
   required StreamTwitch stream,
   String? latency,
@@ -192,10 +192,10 @@ class LiveProgressRepository {
       });
 }
 
-/// Records where the viewer is in a live broadcast, like the official app
-/// does so the broadcast can later resume in its VOD: kept on this device
-/// every 20 s while playing, and written to the viewer's Twitch account
-/// every 5 minutes while playing (the official app's interval), on pause,
+/// Records where the viewer is in a live broadcast, so the broadcast can
+/// later resume in its VOD: kept on this device every 20 s while playing,
+/// and written to the viewer's Twitch account every 5 minutes while
+/// playing, on pause,
 /// when the app goes to the background and when the screen closes.
 class LiveProgressTracker {
   LiveProgressTracker({

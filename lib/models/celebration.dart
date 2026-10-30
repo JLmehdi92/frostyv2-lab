@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 
 /// The animation Twitch asks for.
 ///
-/// Values come from `CelebrationEffect` in the official Android app. Twitch
-/// fires these itself for community gifts — a captured event carried
+/// Values Twitch sends in `effect`. Twitch fires these itself for community gifts — a captured event carried
 /// `celebration_source: "system_gifting"` — as well as for the alert sets a
 /// streamer configures.
 enum CelebrationEffect {

@@ -24,8 +24,8 @@ class ChatGif {
 
   /// The entries of a `gifs` tag value, sorted by [start].
   ///
-  /// Skips an entry like the Twitch app does: not exactly three `|` fields,
-  /// an empty id or url, or a range that is not two integers joined by `-`.
+  /// Skips an entry with not exactly three `|` fields, an empty id or url,
+  /// or a range that is not two integers joined by `-`.
   static List<ChatGif> parseTag(String? value) {
     if (value == null || value.isEmpty) return const [];
     final gifs = <ChatGif>[];
@@ -52,10 +52,10 @@ class ChatGif {
   /// Whether the app may load [url]: `https` on the default port, no user,
   /// and a host in [allowedHosts] or one of their subdomains.
   ///
-  /// Twitch's app loads any address it is given. Here the tag can also come
-  /// from the third-party recent-messages history, so a line could otherwise
-  /// make every viewer fetch any address (their IP to any server, or a device
-  /// on their network). A refused GIF shows its title instead.
+  /// The tag can also come from the third-party recent-messages history, so
+  /// a line could otherwise make every viewer fetch any address (their IP to
+  /// any server, or a device on their network). A refused GIF shows its
+  /// title instead.
   bool get isLoadable {
     final uri = Uri.tryParse(url);
     if (uri == null || !uri.isScheme('https') || uri.userInfo.isNotEmpty) {
@@ -103,8 +103,8 @@ class GifMessagePart {
   /// [gifs] must be sorted by start. A position counts characters (code
   /// points), as the `emotes` tag does: an emoji before a GIF is one
   /// position. A range that does not fit that way is read in UTF-16 units,
-  /// as the Twitch app reads it, unless it would cut an emoji in two. Like
-  /// the Twitch app, a GIF is kept only when `0 <= start <= end` and it ends
+  /// unless it would cut an emoji in two. A GIF is kept only when
+  /// `0 <= start <= end` and it ends
   /// in the message, and one that starts before the end of the previous kept
   /// GIF is dropped. At most [maxGifs] are kept.
   static List<GifMessagePart> split(String message, List<ChatGif> gifs) {

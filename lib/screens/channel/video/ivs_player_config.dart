@@ -31,8 +31,8 @@ class IvsPlayerConfig {
     );
   }
 
-  /// Initial buffer before the first frame (the official app uses 100 ms on
-  /// the live theatre).
+  /// Initial buffer before the first frame: 100 ms, so live video starts as
+  /// soon as possible.
   static const initialBufferMs = 100;
 
   /// Ultra profile low-latency buffer targets, in seconds.

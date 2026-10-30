@@ -56,8 +56,7 @@ class TwitchClipService extends BaseApiClient {
       'criteria: {period: \$period, sort: \$sort}) { edges { node { '
       '$_clipFields } } pageInfo { hasNextPage } } } }';
 
-  // The official app's clips feed (`TopClips`): Twitch's top clips, paged
-  // with its cursor (answers anonymously, verified 2026-10-20).
+  // The clips feed: Twitch's top clips, paged with its cursor (answers anonymously, verified 2026-10-20).
   static const _topClipsQuery =
       'query TopClipsFeed(\$first: Int, \$after: Cursor, '
       '\$languages: [String!]) { topClips(first: \$first, after: \$after, '

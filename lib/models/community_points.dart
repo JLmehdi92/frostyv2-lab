@@ -95,8 +95,7 @@ class PointsReward {
 
   /// Twitch's own name for a built-in reward.
   ///
-  /// These carry no title over the wire — the official clients hold the
-  /// strings — so an unknown type falls back to its readable identifier rather
+  /// These carry no title over the wire, so an unknown type falls back to its readable identifier rather
   /// than to a blank row.
   static String automaticRewardTitle(String type) => switch (type) {
     'SEND_HIGHLIGHTED_MESSAGE' => 'Highlight my message',

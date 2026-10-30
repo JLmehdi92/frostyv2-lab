@@ -169,7 +169,7 @@ class VodResumeRepository {
 /// the same save seen through two clocks.
 const _sameSaveSlack = Duration(minutes: 2);
 
-/// Where to start a VOD, like the official app (J:gmx.a): a `?t=` link
+/// Where to start a VOD: a `?t=` link
 /// wins; then 30 s before the position saved on this device ([saved]);
 /// then where the viewer's Twitch account left it ([server], as is, live
 /// sessions included); then 30 s before where this device saw them leave
@@ -218,7 +218,7 @@ Duration startPositionFor({
 
 /// Saves the position of the current player every 20 s while it plays, when
 /// it pauses, when the app goes to the background and when the screen
-/// closes (the official app's cadence), on this device and to the viewer's
+/// closes, on this device and to the viewer's
 /// Twitch account ([report]).
 class VodResumeController {
   VodResumeController({
@@ -290,7 +290,7 @@ class VodResumeController {
         viewer: viewer?.call(),
         recording: recording,
       ),
-      // The official app writes any position past the start (J:cc90.S2).
+      // Any position past the start is written to the account.
       if (send != null && at.inSeconds > 0)
         send(at.inSeconds).then<void>(
           (_) {},

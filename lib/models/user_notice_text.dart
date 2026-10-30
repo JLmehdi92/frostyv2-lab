@@ -21,14 +21,14 @@ class NoticeSegment {
   String toString() => bold ? '**$text**' : text;
 }
 
-/// Words a sub or gift notice the way Twitch's Android app does.
+/// Words a sub or gift notice.
 ///
-/// Twitch's app builds these sentences from the `msg-param-*` tags rather than
-/// showing `system-msg`, and sets every name in bold. The tags carry the same
+/// The sentences are built from the `msg-param-*` tags rather than showing
+/// `system-msg`, with every name in bold. The tags carry the same
 /// facts in every language, so the sentence reads the same whatever the
 /// channel's locale.
 ///
-/// Kinds Twitch has no sentence for (and Twitch's app drops), or a notice
+/// Kinds with no sentence of their own, or a notice
 /// missing a value its sentence needs, fall back to Twitch's own `system-msg`
 /// with the leading name in bold. [channelName] is the display name of the
 /// channel a gift bomb is aimed at.

@@ -6,8 +6,8 @@ import 'package:onset/models/community_points.dart';
 /// Reads channel points and predictions from Twitch's private GQL endpoint.
 ///
 /// None of this is in the public Helix API: Helix exposes predictions to the
-/// *broadcaster* only, and channel points not at all from a viewer's side. The
-/// official clients use GQL, which is the same door the 2K work already opened.
+/// *broadcaster* only, and channel points not at all from a viewer's side.
+/// They are read through GQL, as the 2K renditions already are.
 ///
 /// Reads use no credential; writes use the viewer's own token, doing what any
 /// official client would do on their behalf.

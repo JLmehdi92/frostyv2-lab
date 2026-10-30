@@ -6,9 +6,8 @@ import 'package:onset/apis/base_api_client.dart' hide TimeoutException;
 import 'package:onset/constants.dart';
 import 'package:onset/models/chat_history.dart';
 
-/// The chat said in a channel before the viewer joined, the way Twitch's
-/// own Android app loads it: one `ChatHistory` GQL query reading
-/// `Channel.recentChatMessages`.
+/// The chat said in a channel before the viewer joined: one `ChatHistory`
+/// GQL query reading `Channel.recentChatMessages`.
 ///
 /// Twitch answers it only for a logged-in twitch.tv session, so it is read
 /// with the viewer's twitch.tv web token (the one 2K uses) and the web

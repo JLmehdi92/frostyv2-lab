@@ -145,9 +145,8 @@ class TwitchStreamService extends BaseApiClient {
   /// Query parameters for the usher master playlist, shared by
   /// [getStreamVariants] and [getUsherUrl].
   ///
-  /// Matches what the official app sends: no legacy `low_latency` or
-  /// `player=twitchweb` flags (`fast_bread` is what enables the low-latency
-  /// segments).
+  /// No legacy `low_latency` or `player=twitchweb` flags: `fast_bread` is
+  /// what enables the low-latency segments.
   @visibleForTesting
   static Map<String, String> usherQueryParameters({
     required String signature,
@@ -155,8 +154,7 @@ class TwitchStreamService extends BaseApiClient {
     required int p,
   }) => {
     'allow_source': 'true',
-    // Lists the "audio_only" rendition, as the official app does; adaptive
-    // quality never picks it.
+    // Lists the "audio_only" rendition; adaptive quality never picks it.
     'allow_audio_only': 'true',
     'fast_bread': 'true', // enables Twitch low-latency segments
     // Advertise the higher-quality codecs so Twitch includes the 1440p/4K

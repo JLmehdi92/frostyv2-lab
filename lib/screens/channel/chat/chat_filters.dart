@@ -30,7 +30,7 @@ class AutoModFlag {
 const _maxFlags = 100;
 
 /// The ratings of a `flags` tag, `start-end:A.n/I.n/P.n/S.n` separated by
-/// commas, read like the official app: an entry without a readable range
+/// commas: an entry without a readable range
 /// is skipped, an unreadable level is no level.
 List<AutoModFlag> parseAutoModFlags(String? tag) {
   if (tag == null || tag.isEmpty) return const [];
@@ -103,8 +103,8 @@ class ChatFilterSettings {
   final bool harassment;
   final bool profanity;
 
-  /// Whether the text [flag] rates is hidden (the official app's test, in
-  /// its order: aggressive, identity, profanity, sexual).
+  /// Whether the text [flag] rates is hidden, checking the categories in
+  /// this order: aggressive, identity, profanity, sexual.
   bool hides(AutoModFlag flag) =>
       enabled &&
       ((harassment && flag.aggressive >= threshold) ||
@@ -145,8 +145,8 @@ class ChatFilterSettings {
 /// [text] does not contain, so a hidden unit is always told apart from the
 /// text a chatter sent (icon fonts use that range too).
 ///
-/// Positions count characters (code points), like the `emotes` tag. Like
-/// the official app, a range is used only when `start < end` and it ends
+/// Positions count characters (code points), like the `emotes` tag. A range
+/// is used only when `start < end` and it ends
 /// in the text, and ranges are taken by start, one that starts inside the
 /// previous one being skipped (hidden or not). Spaces, emojis and the
 /// invisible repeat character stay, so the masked text splits into the

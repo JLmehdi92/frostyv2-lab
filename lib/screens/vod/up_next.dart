@@ -3,7 +3,7 @@ import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/vod/vod_resume.dart';
 
 /// Whether the viewer has seen enough of [vod] for Up Next to skip it, with
-/// the official app's rule (`VodModel.isWatched`): to the end of a video
+/// this rule: to the end of a video
 /// under 5 minutes, 5 minutes of one up to 50 minutes, a tenth of a longer
 /// one. [saved] is where this device last left it.
 bool isVodWatched(Vod vod, VodResumeEntry? saved) {

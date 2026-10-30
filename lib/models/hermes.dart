@@ -2,11 +2,9 @@ import 'dart:convert';
 
 /// The envelope every Hermes message shares.
 ///
-/// Hermes is the WebSocket gateway the official Twitch clients use for
-/// real-time channel events — hype trains, predictions, channel points and the
-/// rest. It replaced the older `pubsub-edge.twitch.tv` service, which no longer
-/// appears anywhere in the current Android app; only the internal class names
-/// still say "pubsub". Topics kept their old names, so a topic string like
+/// Hermes is Twitch's WebSocket gateway for real-time channel events — hype
+/// trains, predictions, channel points and the rest. Hermes replaced
+/// `pubsub-edge.twitch.tv`. Topics kept their old names, so a topic string like
 /// `hype-train-events-v2.<channelId>` is still the unit of subscription.
 ///
 /// Shapes below were confirmed against a live session on 2026-07-30.

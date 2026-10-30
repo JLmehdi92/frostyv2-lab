@@ -6,10 +6,6 @@ import 'package:flutter/material.dart';
 /// asked whether the `msg-id` *contained* "sub", which makes `submysterygift`,
 /// `subgift`, `resub` and `giftsubbasematch` indistinguishable and picks the
 /// same icon for all four.
-///
-/// Twitch's Android app reads the same tags: it parses `msg-id`, the
-/// `msg-param-*` values and `system-msg` of every `USERNOTICE` it receives, and
-/// words and lays out each kind from them.
 enum UserNoticeKind {
   /// A brand-new subscription.
   sub,
@@ -23,8 +19,8 @@ enum UserNoticeKind {
   /// The header of a mass gift: "X is gifting N Tier 1 Subs to …".
   ///
   /// Twitch follows it with one [subGift] per recipient, all sharing the same
-  /// `msg-param-community-gift-id`. Twitch's Android app shows the header and
-  /// then every one of those gifts on its own line.
+  /// `msg-param-community-gift-id`. The chat shows the header and then every
+  /// one of those gifts on its own line.
   communityGift,
 
   /// An anonymous gift.
@@ -91,8 +87,8 @@ enum AnnouncementColor { primary, blue, green, orange, purple }
 
 /// A parsed `USERNOTICE`.
 ///
-/// [systemMessage] is Twitch's own wording, generated server-side. Like
-/// Twitch's Android app, the chat words subs and gifts from the typed fields
+/// [systemMessage] is Twitch's own wording, generated server-side. The chat
+/// words subs and gifts from the typed fields
 /// instead (see `userNoticeText`), and keeps [systemMessage] for the kinds it
 /// has no sentence of its own for. The typed fields also drive the
 /// presentation: layout, icon, colour and gift bomb grouping.
