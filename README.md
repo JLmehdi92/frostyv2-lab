@@ -190,7 +190,7 @@ lib/
 android/       host app and the native IVS player bridge (Kotlin)
 packages/      simple_pip_mode (vendored)
 test/          mirrors lib/
-tool/          developer scripts
+tool/          developer scripts (the mark's bitmaps, README media)
 docs/          architecture and update setup
 ```
 
@@ -215,7 +215,8 @@ dart run build_runner build --delete-conflicting-outputs   # after changing a st
 - CI runs `flutter analyze` and `flutter test` on every pull request to
   `main`.
 - README media live in `.github/assets/`. `python3 -I tool/readme_logo.py`
-  rebuilds the animated logo from the launcher icon, and
+  rebuilds the animated logo from the app icon
+  (`assets/icons/icon_onset.png`), and
   `python3 tool/readme_shots/render.py` renders the screenshots.
 
 ## Contributing
