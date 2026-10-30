@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/widgets.dart';
-import 'package:onset/cache_manager.dart';
+import 'package:onset/services/cache_manager.dart';
 
 /// A wrapper around [CachedNetworkImage] that adds custom defaults for ONSET.
 class OnsetCachedNetworkImage extends StatelessWidget {

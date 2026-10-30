@@ -5,7 +5,7 @@ import 'package:onset/screens/channel/hype_train/widgets/hype_train_card_pill.da
 import 'package:onset/screens/home/stream_list/stream_card.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/utils.dart';
+import 'package:onset/utils/common_utils.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/motion/rolling_number.dart';
 import 'package:onset/widgets/uptime.dart';

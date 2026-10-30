@@ -10,7 +10,7 @@ import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/services/playback_preloader.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/utils.dart';
+import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/image_size.dart';
 import 'package:onset/utils/modal_bottom_sheet.dart';

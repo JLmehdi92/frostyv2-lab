@@ -6,7 +6,7 @@ import 'package:onset/screens/settings/widgets/settings_glyph.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
 import 'package:onset/screens/settings/widgets/settings_page.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/utils.dart';
+import 'package:onset/utils/common_utils.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 
 /// The viewer's blocked users (boards Parametres, ParametresTablette), each

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:onset/models/channel.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/utils.dart';
+import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/profile_picture.dart';

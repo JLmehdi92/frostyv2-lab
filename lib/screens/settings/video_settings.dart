@@ -9,7 +9,7 @@ import 'package:onset/screens/settings/widgets/settings_list_select.dart';
 import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
 import 'package:onset/screens/settings/widgets/settings_page.dart';
 import 'package:onset/screens/settings/widgets/settings_twitch_web_token.dart';
-import 'package:onset/utils.dart';
+import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
 
 /// Settings › Video (board Parametres): the low-latency player, playback,

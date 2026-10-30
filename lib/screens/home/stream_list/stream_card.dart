@@ -7,7 +7,7 @@ import 'package:onset/screens/home/stream_list/stream_tags.dart';
 import 'package:onset/screens/home/stream_list/watch_streak_tag.dart';
 import 'package:onset/screens/home/top/tags/tag_streams.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/utils.dart';
+import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
 import 'package:onset/widgets/profile_picture.dart';

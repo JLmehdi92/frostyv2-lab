@@ -13,7 +13,7 @@ import 'package:onset/screens/home/top/categories/category_streams.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/services/shared_timer_service.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/utils.dart';
+import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/twitch_links.dart';
 import 'package:onset/widgets/motion/motion.dart';

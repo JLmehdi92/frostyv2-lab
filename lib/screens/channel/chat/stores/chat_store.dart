@@ -32,7 +32,7 @@ import 'package:onset/services/notifications/mention_alerts.dart';
 import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 import 'package:onset/services/telemetry.dart';
 import 'package:onset/stores/whisper_store.dart';
-import 'package:onset/utils.dart';
+import 'package:onset/utils/common_utils.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 part 'chat_store.g.dart';

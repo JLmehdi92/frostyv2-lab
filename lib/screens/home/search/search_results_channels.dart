@@ -10,7 +10,7 @@ import 'package:onset/screens/home/search/featured_channel.dart';
 import 'package:onset/screens/home/search/search_store.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/utils.dart';
+import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/modal_bottom_sheet.dart';
 import 'package:onset/widgets/alert_message.dart';

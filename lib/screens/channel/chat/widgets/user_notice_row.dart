@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:onset/cache_manager.dart';
 import 'package:onset/models/user_notice_presentation.dart';
 import 'package:onset/models/user_notice_text.dart';
+import 'package:onset/services/cache_manager.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 

@@ -8,7 +8,7 @@ import 'package:onset/screens/channel/chat/widgets/user_card_info.dart';
 import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
 import 'package:onset/screens/whispers/whisper_conversation.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/utils.dart';
+import 'package:onset/utils/common_utils.dart';
 import 'package:onset/widgets/alert_message.dart';
 import 'package:onset/widgets/onset_scrollbar.dart';
 import 'package:onset/widgets/profile_picture.dart';

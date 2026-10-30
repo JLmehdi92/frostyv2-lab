@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:onset/cache_manager.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/release_notes.dart';
@@ -10,6 +9,7 @@ import 'package:onset/screens/settings/widgets/settings_kit.dart';
 import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
 import 'package:onset/screens/settings/widgets/settings_page.dart';
 import 'package:onset/screens/settings/widgets/update_check_tile.dart';
+import 'package:onset/services/cache_manager.dart';
 import 'package:onset/services/onset_updater.dart';
 import 'package:onset/services/telemetry.dart';
 import 'package:onset/widgets/alert_message.dart';

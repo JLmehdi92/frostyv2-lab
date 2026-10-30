@@ -26,7 +26,7 @@ import 'package:onset/services/network_metering.dart';
 import 'package:onset/services/playback_token_cache.dart';
 import 'package:onset/stores/mini_player_store.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/utils.dart';
+import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/share_link.dart';
 import 'package:onset/widgets/alert_message.dart';

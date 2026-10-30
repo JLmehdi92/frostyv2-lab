@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/models/channel.dart';
-import 'package:onset/utils.dart';
+import 'package:onset/utils/common_utils.dart';
 import 'package:onset/widgets/alert_message.dart';
 import 'package:onset/widgets/animated_scroll_border.dart';
 import 'package:onset/widgets/live_indicator.dart';

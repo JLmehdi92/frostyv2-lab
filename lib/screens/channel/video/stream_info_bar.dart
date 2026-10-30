@@ -4,7 +4,7 @@ import 'package:onset/models/channel.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/screens/home/top/categories/category_streams.dart';
 import 'package:onset/theme.dart';
-import 'package:onset/utils.dart';
+import 'package:onset/utils/common_utils.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/live_indicator.dart';
 import 'package:onset/widgets/profile_picture.dart';

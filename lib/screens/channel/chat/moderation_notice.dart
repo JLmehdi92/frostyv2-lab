@@ -1,5 +1,5 @@
 import 'package:onset/models/irc.dart';
-import 'package:onset/utils.dart';
+import 'package:onset/utils/common_utils.dart';
 
 final _login = RegExp(r'^[a-z0-9_]{1,25}$');
 
