@@ -204,6 +204,26 @@ void main() {
       expect(await storage.read(key: 'default_token_client_id'), publicApp);
     });
 
+    test(
+      'such a token is not used even while the proxy is being asked',
+      () async {
+        const legacy = 'legacyloginapptoken0123456789';
+        twitch.tokens[legacy] = (clientId: app, userId: '');
+        FlutterSecureStorage.setMockInitialValues({'default_token': legacy});
+        proxyHands(appToken);
+        twitch.proxyDelay = const Duration(milliseconds: 200);
+
+        final launch = store.init();
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        expect(proxyCalls(), 1, reason: 'the proxy is being asked');
+        expect(store.token, isNull);
+        expect(store.headersTwitch.containsKey('Authorization'), isFalse);
+        await launch;
+
+        expect(store.token, appToken);
+      },
+    );
+
     test('offline at launch with such a token: no error, no token, and the '
         'proxy is asked again later', () async {
       const legacy = 'legacyloginapptoken0123456789';

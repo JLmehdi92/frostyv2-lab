@@ -914,10 +914,15 @@ abstract class AuthBase with Store {
     } catch (e) {
       debugPrint('Reading the app token app failed: ${e.runtimeType}');
     }
-    _token = stored;
-    _tokenClientId = storedClient;
-    _appToken = stored;
-    if (stored != null && await _appTokenIsGood(stored, storedClient)) return;
+    // A token without its application (an older build's, of the login
+    // application) is not used even while the proxy is asked for another.
+    final candidate = storedClient == null ? null : stored;
+    _token = candidate;
+    _tokenClientId = candidate == null ? null : storedClient;
+    _appToken = candidate;
+    if (candidate != null && await _appTokenIsGood(candidate, storedClient)) {
+      return;
+    }
 
     final fresh = await _fetchAppToken();
     _token = fresh?.token;
