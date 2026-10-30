@@ -68,7 +68,7 @@ dependencies:
     flutter_markdown_plus: ^1.0.7
     path_provider: ^2.1.5
     # Go-live notices: a periodic background check and local notifications.
-    # Pinned (newer releases need a newer Flutter, see CLAUDE.md).
+    # Pinned (newer releases need a newer Flutter, see CONTRIBUTING.md).
     workmanager: 0.10.10
     flutter_local_notifications: 22.3.1
     # Times for scheduled reminders (already used by the plugin above).
