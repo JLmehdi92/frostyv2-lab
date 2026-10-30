@@ -189,18 +189,6 @@ abstract final class HtType {
 /// The trophy of the all-time high.
 const htTrophyGold = Color(0xFFFFB300);
 
-/// Whether a creator colour is one of Twitch's purples, current or legacy
-/// (#6441A5, #451093): hue 255–290°, saturation from 0.35, lightness
-/// 0.2–0.85. It falls back to green.
-bool isTwitchPurple(int argb) {
-  final hsl = HSLColor.fromColor(Color(argb));
-  return hsl.hue >= 255 &&
-      hsl.hue <= 290 &&
-      hsl.saturation >= 0.35 &&
-      hsl.lightness >= 0.2 &&
-      hsl.lightness <= 0.85;
-}
-
 /// The banner's height: 74 dp, growing with the text up to twice that.
 double htBannerHeight(TextScaler scaler) =>
     HtDims.banner * (scaler.scale(14) / 14).clamp(1.0, 2.0);

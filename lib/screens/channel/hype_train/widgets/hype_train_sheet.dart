@@ -655,13 +655,10 @@ class _ApproachingDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = HtPalette.of(
-      approaching.variant == HtVariant.goldenKappa
-          ? HtStyle.goldenKappa
-          : HtStyle.regular,
-      Theme.of(context).colorScheme,
-      creatorColor: approaching.creatorColor,
-    );
+    final scheme = Theme.of(context).colorScheme;
+    final palette = approaching.variant == HtVariant.goldenKappa
+        ? HtPalette.of(HtStyle.goldenKappa, scheme)
+        : HtPalette.approaching(scheme);
     final body = HtType.bodySmall.copyWith(
       color: neutrals.textBase,
       height: 1.3,

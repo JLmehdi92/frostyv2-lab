@@ -4,6 +4,7 @@ import 'package:onset/apis/twitch_hype_train_service.dart';
 import 'package:onset/models/hype_train.dart';
 import 'package:onset/models/hype_train_event.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_end_strip.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_palette.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 
 import 'hype_train_widget_harness.dart';
@@ -104,9 +105,11 @@ void main() {
     final strip = tester.getRect(_strip);
     expect(tester.getSize(_bar).height, 3);
     expect(tester.getRect(_bar).bottom, strip.bottom);
+    // The level's own colour (the last of its gradient).
+    final level = HtLevelColors.of(h.store.train!.level);
     expect(
       tester.widget<LinearProgressIndicator>(_bar).color,
-      const Color(0xFF12A87A),
+      level.gradient?.last ?? level.fill,
     );
 
     await frames(tester, 10000);

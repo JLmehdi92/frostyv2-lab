@@ -146,9 +146,10 @@ void main() {
       await h.close(tester);
     });
 
-    testWidgets("Twitch's purple turns green; other colours stay", (
+    testWidgets('the events pill is green whatever the creator colour', (
       tester,
     ) async {
+      // ONSET's colours replace the creator's (board CadeauxHypeTrain).
       var h = await showing(
         tester,
         approaching(const {1: 40}, creatorColor: 0xFF9147FF),
@@ -157,11 +158,11 @@ void main() {
       await h.close(tester);
 
       h = await showing(tester, approaching(const {1: 40}));
-      expect(pillColor(tester), const Color(0xFFBD0078));
+      expect(pillColor(tester), const Color(0xFF12A87A));
       await h.close(tester);
     });
 
-    testWidgets('only the events pill takes the creator colour', (
+    testWidgets('the side mark, the pill and the bar are green', (
       tester,
     ) async {
       Color? side(WidgetTester tester) => tester
@@ -171,7 +172,7 @@ void main() {
           tester.widget<LinearProgressIndicator>(_bar).color;
 
       final h = await showing(tester, approaching(const {1: 40}));
-      expect(pillColor(tester), const Color(0xFFBD0078));
+      expect(pillColor(tester), const Color(0xFF12A87A));
       expect(side(tester), const Color(0xFF12A87A));
       expect(bottom(tester), const Color(0xFF12A87A));
       await h.close(tester);
@@ -183,6 +184,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 600));
       expect(side(tester), const Color(0xFF12A87A));
       expect(bottom(tester), const Color(0xFF0C6D4F));
+      expect(pillColor(tester), const Color(0xFF0C6D4F));
       await d.close(tester);
     });
 

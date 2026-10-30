@@ -12,11 +12,17 @@ void main() {
     brightness: Brightness.dark,
   );
 
-  /// Every palette: each style in both themes, the treasure both ways.
+  /// Every palette: each style in both themes, the regular and shared
+  /// trains at every level, the treasure both ways, before a train.
   List<(String, HtPalette)> all() => [
     for (final scheme in [light, dark]) ...[
       for (final style in HtStyle.values)
-        ('$style ${scheme.brightness}', HtPalette.of(style, scheme)),
+        for (var level = 1; level <= 7; level++)
+          (
+            '$style L$level ${scheme.brightness}',
+            HtPalette.of(style, scheme, level: level),
+          ),
+      ('approaching ${scheme.brightness}', HtPalette.approaching(scheme)),
       (
         'unlocked treasure ${scheme.brightness}',
         HtPalette.of(HtStyle.treasure, scheme, treasureUnlocked: true),
@@ -46,20 +52,120 @@ void main() {
     );
   });
 
-  test('the regular fill is green: #12A87A light, #0C6D4F dark', () {
-    final l = HtPalette.of(HtStyle.regular, light);
-    final d = HtPalette.of(HtStyle.regular, dark);
+  group('ONSET level colours', () {
+    const fills = {
+      1: Color(0xFF12A87A),
+      2: Color(0xFF14B8A6),
+      3: Color(0xFF3DDBA6),
+      4: Color(0xFFC8FF3D),
+      5: Color(0xFFFF7A45),
+      6: Color(0xFFC8FF3D),
+      9: Color(0xFFC8FF3D),
+    };
 
-    expect(l.fill, const Color(0xFF12A87A));
-    expect(d.fill, const Color(0xFF0C6D4F));
-    expect(l.track, HtNeutrals.light.backgroundFloat);
-    expect(d.track, HtNeutrals.dark.backgroundFloat);
-    expect(l.text, HtNeutrals.light.textBase);
-    expect(l.pill, const Color(0xCC000000));
-    expect(l.pillText, Colors.white);
-    expect(l.link, HtGreen.g7);
-    expect(d.link, HtGreen.g11);
-    expect(l.fillColors, isNull);
+    test('the regular train climbs from green to lime and orange', () {
+      for (final MapEntry(key: level, value: fill) in fills.entries) {
+        for (final scheme in [light, dark]) {
+          final p = HtPalette.of(HtStyle.regular, scheme, level: level);
+          expect(p.fill, fill, reason: 'L$level');
+          expect(p.pillText, fill, reason: 'L$level pill');
+          expect(p.text, const Color(0xFFF5F5F5));
+          expect(p.textOnFill, const Color(0xFF0A0A0A));
+          expect(p.pill, const Color(0xDB0A0A0A));
+          expect(p.radius, 12);
+          expect(p.hairline, isNotNull);
+        }
+      }
+      expect(
+        HtPalette.of(HtStyle.regular, dark).track,
+        const Color(0xFF142C24),
+      );
+      expect(
+        HtPalette.of(HtStyle.regular, dark, level: 4).track,
+        const Color(0xFF313A1B),
+      );
+      expect(
+        HtPalette.of(HtStyle.regular, dark, level: 5).track,
+        const Color(0xFF3A241C),
+      );
+    });
+
+    test('level 3 is a mint to cyan gradient; 6 and up flow lime-orange', () {
+      expect(HtPalette.of(HtStyle.regular, dark, level: 3).fillColors, const [
+        Color(0xFF3DDBA6),
+        Color(0xFF7CF0FF),
+        Color(0xFF3DDBA6),
+      ]);
+      expect(HtPalette.of(HtStyle.regular, dark, level: 3).fillSheen, isFalse);
+      for (final level in [6, 7, 12]) {
+        final p = HtPalette.of(HtStyle.regular, dark, level: level);
+        expect(p.fillColors, const [
+          Color(0xFFC8FF3D),
+          Color(0xFFFF7A45),
+          Color(0xFFC8FF3D),
+        ]);
+        expect(p.fillSheen, isTrue);
+      }
+      for (final level in [1, 2, 4, 5]) {
+        expect(
+          HtPalette.of(HtStyle.regular, dark, level: level).fillColors,
+          isNull,
+        );
+      }
+    });
+
+    test('a shared train takes the level colour and keeps its speedlines', () {
+      final shared = HtPalette.of(HtStyle.shared, dark, level: 5);
+      expect(shared.fill, const Color(0xFFFF7A45));
+      expect(shared.speedlines, isTrue);
+      expect(shared.pillFillColors, const [
+        Color(0xFFFF7A45),
+        Color(0xFFFF7A45),
+      ]);
+    });
+
+    test('dark text reads on every fill, light text on every track', () {
+      for (var level = 1; level <= 6; level++) {
+        final p = HtPalette.of(HtStyle.regular, dark, level: level);
+        for (final fill in p.fillColors ?? [p.fill]) {
+          expect(
+            HtPalette.contrast(p.textOnFill!, fill),
+            greaterThanOrEqualTo(4.5),
+            reason: 'L$level on $fill',
+          );
+          // White on the fill is what the board refuses.
+          expect(HtPalette.contrast(Colors.white, fill), lessThan(4.5));
+        }
+        expect(
+          HtPalette.contrast(p.text, p.track),
+          greaterThanOrEqualTo(4.5),
+          reason: 'L$level track',
+        );
+      }
+    });
+
+    test('the sheet icon stays visible on the light theme', () {
+      for (var level = 1; level <= 6; level++) {
+        final p = HtPalette.of(HtStyle.regular, light, level: level);
+        expect(
+          HtPalette.contrast(p.checkPill, HtNeutrals.light.backgroundAlt),
+          greaterThanOrEqualTo(4.5),
+          reason: 'L$level',
+        );
+      }
+    });
+
+    test('before a train: the float card, green', () {
+      final l = HtPalette.approaching(light);
+      final d = HtPalette.approaching(dark);
+      expect(l.fill, const Color(0xFF12A87A));
+      expect(d.fill, const Color(0xFF0C6D4F));
+      expect(l.track, HtNeutrals.light.backgroundFloat);
+      expect(l.text, HtNeutrals.light.textBase);
+      expect(l.link, HtGreen.g7);
+      expect(d.link, HtGreen.g11);
+      expect(l.textOnFill, isNull);
+    });
   });
 
   test('golden, community and Mythic keep their own hues', () {
@@ -115,54 +221,19 @@ void main() {
     expect(unlocked.text, Colors.white);
   });
 
-  test('the landscape pill fill: magenta to green when shared', () {
-    expect(HtPalette.of(HtStyle.shared, light).pillFillColors, const [
-      Color(0xFFBE0078),
-      Color(0xFF0E8661),
-    ]);
-    expect(HtPalette.of(HtStyle.regular, dark).pillFillColors, isNull);
-  });
-
-  test('a Twitch-purple creator colour falls back to green', () {
-    expect(
-      HtPalette.of(HtStyle.regular, light, creatorColor: 0xFF9147FF).fill,
-      HtGreen.g10,
-    );
-    expect(
-      HtPalette.of(HtStyle.regular, dark, creatorColor: 0xFF9146FF).fill,
-      HtGreen.g8,
-    );
-    for (final legacy in [0xFF6441A5, 0xFF451093]) {
-      expect(
-        HtPalette.of(HtStyle.regular, light, creatorColor: legacy).fill,
-        HtGreen.g10,
-        reason: legacy.toRadixString(16),
-      );
-    }
-    expect(
-      HtPalette.of(HtStyle.regular, light, creatorColor: 0xFFBD0078).fill,
-      const Color(0xFFBD0078),
-    );
-  });
-
-  test('another creator colour tints the regular fill only', () {
-    const creator = 0xFFBD0078;
-
-    expect(
-      HtPalette.of(HtStyle.regular, light, creatorColor: creator).fill,
-      const Color(creator),
-    );
-    expect(
-      HtPalette.of(HtStyle.regular, light, creatorColor: creator).checkPill,
-      const Color(creator),
-    );
-    for (final style in HtStyle.values) {
-      if (style == HtStyle.regular) continue;
-      expect(
-        HtPalette.of(style, light, creatorColor: creator).fill,
-        isNot(const Color(creator)),
-        reason: '$style',
-      );
+  test('the special trains keep their own pill and text', () {
+    for (final style in [
+      HtStyle.treasure,
+      HtStyle.community,
+      HtStyle.mythic,
+      HtStyle.goldenKappa,
+      HtStyle.athReached,
+      HtStyle.athApproaching,
+    ]) {
+      final p = HtPalette.of(style, dark, level: 4);
+      expect(p.textOnFill, isNull, reason: '$style');
+      expect(p.fill, isNot(const Color(0xFFC8FF3D)), reason: '$style');
+      expect(p.radius, HtDims.radius, reason: '$style');
     }
   });
 
@@ -207,6 +278,8 @@ void main() {
   test('text reads at 3:1 on the fill; Mythic has a shadow instead', () {
     for (final (name, p) in all()) {
       if (p.fillCoversAll) continue;
+      // The level colours turn their text dark over the fill (tested above).
+      if (p.textOnFill != null) continue;
       if (name.startsWith('${HtStyle.mythic}')) {
         expect(p.textShadow, isNotNull, reason: name);
         continue;

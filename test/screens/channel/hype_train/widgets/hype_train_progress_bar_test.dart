@@ -17,6 +17,8 @@ Future<void> pumpBar(
   HtPalette? palette,
   Duration duration = const Duration(milliseconds: 200),
   TextDirection direction = TextDirection.ltr,
+  Duration morph = HypeTrainProgressBar.morphDuration,
+  ValueNotifier<double>? edge,
 }) => tester.pumpWidget(
   Directionality(
     textDirection: direction,
@@ -28,6 +30,8 @@ Future<void> pumpBar(
         child: HypeTrainProgressBar(
           percent: percent,
           duration: duration,
+          morph: morph,
+          edge: edge,
           palette:
               palette ??
               HtPalette.of(HtStyle.regular, const ColorScheme.light()),
@@ -123,5 +127,107 @@ void main() {
 
     expect(_clip, findsNothing);
     expect(tester.getSize(_fill), const Size(300, 74));
+  });
+
+  group('ONSET level colours', () {
+    HtPalette level(int n) =>
+        HtPalette.of(HtStyle.regular, const ColorScheme.dark(), level: n);
+    HypeTrainProgressBarState state(WidgetTester tester) => tester
+        .state<HypeTrainProgressBarState>(find.byType(HypeTrainProgressBar));
+
+    testWidgets('a lower percentage restarts from 0 (a level up)', (
+      tester,
+    ) async {
+      await pumpBar(tester, 100, palette: level(2));
+      await pumpBar(tester, 20, palette: level(3));
+      await tester.pump(const Duration(milliseconds: 1));
+      expect(state(tester).value, lessThan(0.05));
+      await tester.pump(const Duration(milliseconds: 100));
+      final mid = state(tester).value;
+      expect(mid, inExclusiveRange(0.05, 0.2));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(state(tester).value, closeTo(0.2, 0.001));
+    });
+
+    testWidgets("a new level's colour morphs in over 600 ms", (tester) async {
+      await pumpBar(tester, 50, palette: level(1));
+      await pumpBar(tester, 50, palette: level(2));
+      expect(state(tester).morphValue, 0);
+      // Both fills are drawn while it morphs.
+      expect(
+        find.descendant(
+          of: find.byType(HypeTrainProgressBar),
+          matching: find.byType(Opacity),
+        ),
+        findsOneWidget,
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(state(tester).morphValue, closeTo(0.5, 0.01));
+      final track = tester
+          .widgetList<ColoredBox>(
+            find.descendant(
+              of: find.byType(HypeTrainProgressBar),
+              matching: find.byType(ColoredBox),
+            ),
+          )
+          .first
+          .color;
+      expect(track, isNot(level(1).track));
+      expect(track, isNot(level(2).track));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(state(tester).morphValue, 1);
+      expect(
+        (tester.widget<DecoratedBox>(_fill).decoration as BoxDecoration).color,
+        const Color(0xFF14B8A6),
+      );
+    });
+
+    testWidgets('reduced motion morphs in 200 ms', (tester) async {
+      await pumpBar(
+        tester,
+        50,
+        palette: level(4),
+        morph: HypeTrainProgressBar.reducedMorph,
+      );
+      await pumpBar(
+        tester,
+        50,
+        palette: level(5),
+        morph: HypeTrainProgressBar.reducedMorph,
+      );
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(state(tester).morphValue, 1);
+    });
+
+    testWidgets('publishes the drawn fill for the text', (tester) async {
+      final edge = ValueNotifier<double>(-1);
+      addTearDown(edge.dispose);
+      await pumpBar(tester, 10, palette: level(4), edge: edge);
+      expect(edge.value, closeTo(0.1, 1e-9));
+
+      await pumpBar(tester, 60, palette: level(4), edge: edge);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(edge.value, state(tester).value);
+      expect(edge.value, inExclusiveRange(0.1, 0.6));
+    });
+
+    testWidgets('level 6 and up flows across a repeating gradient', (
+      tester,
+    ) async {
+      await pumpBar(tester, 50, palette: level(6));
+      final gradient =
+          (tester.widget<DecoratedBox>(_fill).decoration as BoxDecoration)
+                  .gradient!
+              as LinearGradient;
+      expect(gradient.tileMode, TileMode.repeated);
+      expect(state(tester).sheenValue, 0);
+      await tester.pump(HypeTrainProgressBar.sheenPeriod ~/ 2);
+      expect(state(tester).sheenValue, closeTo(0.5, 0.01));
+      final moved =
+          (tester.widget<DecoratedBox>(_fill).decoration as BoxDecoration)
+                  .gradient!
+              as LinearGradient;
+      expect(moved.transform, isNotNull);
+    });
   });
 }

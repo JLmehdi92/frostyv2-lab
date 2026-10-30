@@ -24,7 +24,15 @@ import 'package:onset/screens/channel/hype_train/widgets/hype_train_marquee.dart
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_palette.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_pill_shell.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_progress_bar.dart';
+import 'package:onset/screens/channel/hype_train/widgets/hype_train_split_color.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_tokens.dart';
+
+/// The level whose colours show: the level shown, or already the next one
+/// while "Level n Complete!" plays, so the colour morphs as it is announced.
+int htPaletteLevel(HypeTrainStore store) =>
+    store.step?.kind == HtStepKind.levelComplete
+    ? store.train?.level ?? store.shownLevel
+    : store.shownLevel;
 
 /// The palette of the store's train in the current theme.
 HtPalette htPaletteOf(BuildContext context, HypeTrainStore store) {
@@ -33,11 +41,40 @@ HtPalette htPaletteOf(BuildContext context, HypeTrainStore store) {
   return HtPalette.of(
     store.style,
     Theme.of(context).colorScheme,
-    creatorColor: train?.config.creatorColor,
+    level: htPaletteLevel(store),
     treasureUnlocked:
         treasure == HtUnlockState.unlocked ||
         treasure == HtUnlockState.unlockNow,
   );
+}
+
+/// [child] in the palette's text colours, turning at the fill's edge (dark
+/// on the fill, light on the track) when the palette has two (ONSET's level
+/// colours); as is otherwise. For text and icons only.
+Widget htSplit(HtPalette palette, Widget child) {
+  final onFill = palette.textOnFill;
+  if (onFill == null) return child;
+  return HtSplitColor(onFill: onFill, onTrack: palette.text, child: child);
+}
+
+/// Announcements that are only text and icons: their colour turns at the
+/// fill's edge like the resting content.
+const _splitSteps = {
+  HtStepKind.levelComplete,
+  HtStepKind.instruction,
+  HtStepKind.largeContribution,
+  HtStepKind.totals,
+  HtStepKind.summary,
+};
+
+/// The palette an announcement is drawn with. With ONSET's level colours,
+/// an announcement with pictures (emotes, avatars) takes one colour, dark
+/// once the fill covers half the banner, light before; text-only ones keep
+/// both and turn at the fill's edge.
+HtPalette htAnnouncementPalette(HtPalette palette, HtStep? step, int percent) {
+  final onFill = palette.textOnFill;
+  if (onFill == null || _splitSteps.contains(step?.kind)) return palette;
+  return palette.withText(percent >= 50 ? onFill : palette.text);
 }
 
 /// The resting subtitle: the record, the final level, the treasure or
@@ -98,6 +135,15 @@ class _HypeTrainBannerState extends State<HypeTrainBanner> {
   /// where the merge's pill counts up from.
   int? _levelBeforeMerge;
 
+  /// The fill as drawn, for the text that turns at its edge.
+  final _edge = ValueNotifier<double>(0);
+
+  @override
+  void dispose() {
+    _edge.dispose();
+    super.dispose();
+  }
+
   @override
   void didUpdateWidget(HypeTrainBanner oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -136,6 +182,9 @@ class _HypeTrainBannerState extends State<HypeTrainBanner> {
               : _slowFades.contains(step?.kind)
               ? HtTimings.fade
               : HtTimings.short;
+          final morph = store.reduceMotion
+              ? HypeTrainProgressBar.reducedMorph
+              : HypeTrainProgressBar.morphDuration;
           final rest = LayoutBuilder(
             builder: (context, constraints) => Row(
               children: [
@@ -146,6 +195,7 @@ class _HypeTrainBannerState extends State<HypeTrainBanner> {
                     compact,
                     // An announced level change counts up on its own pill.
                     animatePill: resting && !store.reduceMotion,
+                    pillColorDuration: morph,
                   ),
                 ),
                 // Natural size when there is room; scaled down when not.
@@ -157,10 +207,13 @@ class _HypeTrainBannerState extends State<HypeTrainBanner> {
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: AlignmentDirectional.centerEnd,
-                    child: _Numbers(
-                      store: store,
-                      percent: store.shownPercent,
-                      palette: palette,
+                    child: htSplit(
+                      palette,
+                      _Numbers(
+                        store: store,
+                        percent: store.shownPercent,
+                        palette: palette,
+                      ),
                     ),
                   ),
                 ),
@@ -175,10 +228,13 @@ class _HypeTrainBannerState extends State<HypeTrainBanner> {
                       duration: store.reduceMotion
                           ? Duration.zero
                           : HtTimings.extraShort,
-                      child: Icon(
-                        Icons.expand_more_rounded,
-                        size: HtDims.icon,
-                        color: palette.text,
+                      child: htSplit(
+                        palette,
+                        Icon(
+                          Icons.expand_more_rounded,
+                          size: HtDims.icon,
+                          color: palette.text,
+                        ),
                       ),
                     ),
                   ),
@@ -186,83 +242,131 @@ class _HypeTrainBannerState extends State<HypeTrainBanner> {
               ],
             ),
           );
+          final radius = BorderRadius.circular(palette.radius);
+          final hairline = palette.hairline;
           return RepaintBoundary(
             child: _BannerSemantics(
               store: store,
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(HtDims.radius),
+                borderRadius: radius,
                 child: SizedBox(
                   key: const ValueKey('ht-banner'),
                   height: height,
-                  child: Stack(
-                    fit: StackFit.passthrough,
-                    children: [
-                      // The fill is the banner's background; it stays
-                      // through the announcements.
-                      Positioned.fill(
-                        child: ExcludeSemantics(
-                          child: HypeTrainProgressBar(
-                            percent: store.shownPercent,
-                            palette: palette,
-                            duration: store.reduceMotion
-                                ? Duration.zero
-                                : HtTimings.extraShort,
+                  child: HtFillScope(
+                    fraction: _edge,
+                    child: Stack(
+                      fit: StackFit.passthrough,
+                      children: [
+                        // The fill is the banner's background; it stays
+                        // through the announcements.
+                        Positioned.fill(
+                          child: ExcludeSemantics(
+                            child: HypeTrainProgressBar(
+                              percent: store.shownPercent,
+                              palette: palette,
+                              duration: store.reduceMotion
+                                  ? Duration.zero
+                                  : HtTimings.extraShort,
+                              morph: morph,
+                              animateSheen: !store.reduceMotion,
+                              edge: _edge,
+                            ),
                           ),
                         ),
-                      ),
-                      if (palette.speedlines)
-                        Positioned.fill(
-                          child: IgnorePointer(
-                            child: Opacity(
-                              opacity: 0.7,
-                              child: CustomPaint(
-                                key: const ValueKey('ht-speedlines'),
-                                painter: HtSpeedlinesPainter(
-                                  color: palette.fill,
-                                  rtl:
-                                      Directionality.of(context) ==
-                                      TextDirection.rtl,
+                        // "Level n Complete!" flashes the banner white
+                        // (board: 45 % to nothing in 500 ms).
+                        if (palette.textOnFill != null &&
+                            !store.reduceMotion &&
+                            step?.kind == HtStepKind.levelComplete)
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: TweenAnimationBuilder<double>(
+                                key: ValueKey('ht-flash-${store.stepIndex}'),
+                                tween: Tween(begin: 0.45, end: 0),
+                                duration: HtTimings.short,
+                                curve: Curves.easeOut,
+                                builder: (context, opacity, _) => ColoredBox(
+                                  key: const ValueKey('ht-flash'),
+                                  color: Colors.white.withValues(
+                                    alpha: opacity,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      Material(
-                        type: MaterialType.transparency,
-                        child: InkWell(
-                          onTap: widget.onTap ?? store.toggleExpanded,
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onVerticalDragEnd: (details) {
-                              if ((details.primaryVelocity ?? 0) < -200) {
-                                store.setCollapsed(true);
-                              }
-                            },
-                            child: Stack(
-                              fit: StackFit.passthrough,
-                              children: [
-                                AnimatedOpacity(
-                                  opacity: resting ? 1 : 0,
-                                  duration: fade,
-                                  child: rest,
-                                ),
-                                // Announcements take the whole banner.
-                                Positioned.fill(
-                                  child: HypeTrainStepContent(
-                                    store: store,
-                                    palette: palette,
-                                    compact: compact,
-                                    previousLevel: _levelBeforeMerge == level
-                                        ? null
-                                        : _levelBeforeMerge,
+                        if (palette.speedlines)
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: Opacity(
+                                opacity: 0.7,
+                                child: CustomPaint(
+                                  key: const ValueKey('ht-speedlines'),
+                                  painter: HtSpeedlinesPainter(
+                                    color: palette.fill,
+                                    rtl:
+                                        Directionality.of(context) ==
+                                        TextDirection.rtl,
                                   ),
                                 ),
-                              ],
+                              ),
+                            ),
+                          ),
+                        Material(
+                          type: MaterialType.transparency,
+                          child: InkWell(
+                            onTap: widget.onTap ?? store.toggleExpanded,
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onVerticalDragEnd: (details) {
+                                if ((details.primaryVelocity ?? 0) < -200) {
+                                  store.setCollapsed(true);
+                                }
+                              },
+                              child: Stack(
+                                fit: StackFit.passthrough,
+                                children: [
+                                  AnimatedOpacity(
+                                    opacity: resting ? 1 : 0,
+                                    duration: fade,
+                                    child: rest,
+                                  ),
+                                  // Announcements take the whole banner.
+                                  Positioned.fill(
+                                    child: HypeTrainStepContent(
+                                      store: store,
+                                      palette: htAnnouncementPalette(
+                                        palette,
+                                        step,
+                                        store.shownPercent,
+                                      ),
+                                      compact: compact,
+                                      previousLevel: _levelBeforeMerge == level
+                                          ? null
+                                          : _levelBeforeMerge,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                        if (hairline != null)
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: DecoratedBox(
+                                key: const ValueKey('ht-hairline'),
+                                decoration: BoxDecoration(
+                                  borderRadius: radius,
+                                  border: Border.all(
+                                    color: hairline,
+                                    width: 0.5,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -281,6 +385,7 @@ Widget _restColumn(
   HtPalette palette,
   bool compact, {
   bool animatePill = true,
+  Duration pillColorDuration = Duration.zero,
 }) {
   final train = store.train;
   if (train == null) return const SizedBox.shrink();
@@ -295,12 +400,15 @@ Widget _restColumn(
       HtDims.margin,
       HtDims.margin,
     ),
-    child: Text(
-      compact ? title : htSubtitle(store, train),
-      key: const ValueKey('ht-subtitle'),
-      maxLines: compact ? 1 : 2,
-      overflow: TextOverflow.ellipsis,
-      style: palette.textStyle(HtType.bodySmall),
+    child: htSplit(
+      palette,
+      Text(
+        compact ? title : htSubtitle(store, train),
+        key: const ValueKey('ht-subtitle'),
+        maxLines: compact ? 1 : 2,
+        overflow: TextOverflow.ellipsis,
+        style: palette.textStyle(HtType.bodySmall),
+      ),
     ),
   );
   // Read here, in the banner's observer, not in the layout builder.
@@ -310,6 +418,7 @@ Widget _restColumn(
     foreground: palette.pillText,
     trophy: palette.trophy,
     animate: animatePill,
+    colorDuration: pillColorDuration,
   );
   return ExcludeSemantics(
     child: LayoutBuilder(
@@ -338,12 +447,15 @@ Widget _restColumn(
               if (!compact) ...[
                 const SizedBox(width: HtDims.margin),
                 Flexible(
-                  child: Text(
-                    title,
-                    key: const ValueKey('ht-title'),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: palette.textStyle(HtType.titleDefault),
+                  child: htSplit(
+                    palette,
+                    Text(
+                      title,
+                      key: const ValueKey('ht-title'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: palette.textStyle(HtType.titleDefault),
+                    ),
                   ),
                 ),
               ],
@@ -493,6 +605,7 @@ class HypeTrainPill extends StatelessWidget {
               pillKey: const ValueKey('ht-pill'),
               fraction: store.shownPercent / 100,
               fillColors: palette.pillFillColors,
+              textOnFill: palette.textOnFill,
               label: store.semanticsSummary,
               hint: HtCopy.expand,
               onTap: () => store.setCollapsed(false),
@@ -553,7 +666,10 @@ class HypeTrainStepContent extends StatelessWidget {
       builder: (context) {
         final step = store.step;
         final rainbow = step != null && step.rainbow && !store.reduceMotion;
-        var content = _content(context, step, rainbow: rainbow);
+        var content = htSplit(
+          palette,
+          _content(context, step, rainbow: rainbow),
+        );
         if (step != null && rainbow) {
           content = RainbowSweep(
             cycleDuration: step.duration ~/ HtTimings.rainbowCycles,
