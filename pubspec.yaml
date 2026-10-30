@@ -156,6 +156,11 @@ flutter:
         - assets/celebrations/spark_white.png
         - assets/celebrations/spark_dot.png
         - assets/release-notes.md
+        # The ONSET mark: the app icon downscaled for 30, 52 and 72 dp tiles,
+        # each with its 1.5x-4.0x variants beside it (tool/onset_logo_assets.py).
+        - assets/icons/onset_logo_30.png
+        - assets/icons/onset_logo_52.png
+        - assets/icons/onset_logo_72.png
 
     # An image asset can refer to one or more resolution-specific "variants", see
     # https://flutter.dev/to/resolution-aware-images
