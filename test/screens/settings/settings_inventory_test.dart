@@ -384,7 +384,9 @@ void main() {
     expect(find.text('All settings reset'), findsOneWidget);
   });
 
-  testWidgets('Other: no source code row without a repository', (tester) async {
+  testWidgets('Other: no source code row without a repository', (
+    tester,
+  ) async {
     await pumpSettings(
       tester,
       OtherSettings(settingsStore: settings, sourceUrl: ''),
