@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/screens/activity/stores/activity_store.dart';
-import 'package:onset/screens/home/home_store.dart';
+import 'package:onset/screens/home/stores/home_store.dart';
 import 'package:onset/screens/vod/vod_time.dart';
 import 'package:onset/screens/whispers/whisper_kit.dart';
 import 'package:onset/screens/whispers/whispers_screen.dart';

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:onset/screens/channel/video/video_store.dart';
+import 'package:onset/screens/channel/video/stores/video_store.dart';
 import 'package:onset/screens/channel/video/web_content_gate.dart';
 import 'package:onset/screens/vod/stores/web_vod_store.dart';
 
@@ -69,7 +69,7 @@ void main() {
 
     test('held again on every page the web view loads', () {
       final code = File(
-        'lib/screens/channel/video/video_store.dart',
+        'lib/screens/channel/video/stores/video_store.dart',
       ).readAsStringSync().replaceAll(RegExp(r'\s+'), '');
       expect(code, contains('everyPage:_holdIfCovered,'));
       expect(code, contains('onPageStarted:_pageInit.onPageStarted,'));

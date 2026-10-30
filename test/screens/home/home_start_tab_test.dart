@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobx/mobx.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:onset/screens/home/home_store.dart';
+import 'package:onset/screens/home/stores/home_store.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 

@@ -8,7 +8,7 @@ import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/models/category.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/models/user.dart';
-import 'package:onset/screens/home/stream_list/stream_list_store.dart';
+import 'package:onset/screens/home/stream_list/stores/stream_list_store.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/stores/user_store.dart';

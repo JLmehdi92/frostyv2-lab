@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:onset/screens/home/search/search_videos_store.dart';
+import 'package:onset/screens/home/search/stores/search_videos_store.dart';
 import 'package:onset/screens/vod/widgets/video_card_layout.dart';
 import 'package:onset/screens/vod/widgets/vod_card.dart';
 import 'package:onset/utils/context_extensions.dart';

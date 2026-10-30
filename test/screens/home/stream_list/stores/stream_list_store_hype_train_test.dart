@@ -6,7 +6,7 @@ import 'package:onset/apis/twitch_hype_train_service.dart';
 import 'package:onset/models/hype_train.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/models/user.dart';
-import 'package:onset/screens/home/stream_list/stream_list_store.dart';
+import 'package:onset/screens/home/stream_list/stores/stream_list_store.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/stores/user_store.dart';

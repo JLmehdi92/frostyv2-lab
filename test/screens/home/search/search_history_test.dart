@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/screens/home/search/search.dart';
-import 'package:onset/screens/home/search/search_store.dart';
+import 'package:onset/screens/home/search/stores/search_store.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';

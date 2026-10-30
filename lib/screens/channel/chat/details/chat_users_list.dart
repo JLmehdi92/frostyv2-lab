@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:intl/intl.dart';
 import 'package:onset/apis/twitch_api.dart';
-import 'package:onset/screens/channel/chat/details/chat_details_store.dart';
+import 'package:onset/screens/channel/chat/details/stores/chat_details_store.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
 import 'package:onset/screens/channel/chat/widgets/chat_user_modal.dart';
 import 'package:onset/theme.dart';

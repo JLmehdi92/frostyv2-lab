@@ -16,7 +16,7 @@ import 'package:onset/models/raid_arrival.dart';
 import 'package:onset/screens/channel/chat/chat_commands.dart';
 import 'package:onset/screens/channel/chat/chat_delay_queue.dart';
 import 'package:onset/screens/channel/chat/chat_restrictions.dart';
-import 'package:onset/screens/channel/chat/details/chat_details_store.dart';
+import 'package:onset/screens/channel/chat/details/stores/chat_details_store.dart';
 import 'package:onset/screens/channel/chat/gift_bomb_tracker.dart';
 import 'package:onset/screens/channel/chat/held_messages.dart';
 import 'package:onset/screens/channel/chat/incoming_raid.dart';

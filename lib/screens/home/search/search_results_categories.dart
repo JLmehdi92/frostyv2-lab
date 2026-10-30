@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/models/category.dart';
-import 'package:onset/screens/home/search/search_store.dart';
+import 'package:onset/screens/home/search/stores/search_store.dart';
 import 'package:onset/screens/home/top/categories/category_card.dart';
 import 'package:onset/screens/home/top/categories/category_streams.dart';
 import 'package:onset/widgets/motion/staggered_entrance.dart';

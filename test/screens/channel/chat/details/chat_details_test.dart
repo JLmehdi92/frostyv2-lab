@@ -7,7 +7,7 @@ import 'package:onset/models/chat_rules.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/screens/channel/chat/details/chat_details.dart';
-import 'package:onset/screens/channel/chat/details/chat_details_store.dart';
+import 'package:onset/screens/channel/chat/details/stores/chat_details_store.dart';
 import 'package:onset/screens/channel/chat/stores/chat_rules_store.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';

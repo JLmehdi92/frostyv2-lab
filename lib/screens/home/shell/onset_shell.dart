@@ -2,9 +2,9 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:onset/screens/home/home_store.dart';
 import 'package:onset/screens/home/shell/shell_glyph.dart';
 import 'package:onset/screens/home/shell/shell_tabs.dart';
+import 'package:onset/screens/home/stores/home_store.dart';
 import 'package:onset/screens/settings/widgets/settings_glyph.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';

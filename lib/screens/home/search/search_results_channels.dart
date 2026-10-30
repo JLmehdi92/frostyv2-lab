@@ -7,7 +7,7 @@ import 'package:onset/models/channel.dart';
 import 'package:onset/screens/channel/channel.dart';
 import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
 import 'package:onset/screens/home/search/featured_channel.dart';
-import 'package:onset/screens/home/search/search_store.dart';
+import 'package:onset/screens/home/search/stores/search_store.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/common_utils.dart';

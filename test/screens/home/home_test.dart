@@ -28,7 +28,7 @@ import 'package:onset/screens/home/live_feed/live_feed.dart';
 import 'package:onset/screens/home/search/search.dart';
 import 'package:onset/screens/home/shell/onset_shell.dart';
 import 'package:onset/screens/home/shell/shell_tabs.dart';
-import 'package:onset/screens/home/stream_list/stream_list_store.dart';
+import 'package:onset/screens/home/stream_list/stores/stream_list_store.dart';
 import 'package:onset/screens/home/stream_list/streams_list.dart';
 import 'package:onset/screens/home/top/categories/categories.dart';
 import 'package:onset/screens/settings/general_settings.dart';

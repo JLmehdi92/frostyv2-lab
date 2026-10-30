@@ -6,7 +6,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/screens/activity/activity_screen.dart';
 import 'package:onset/screens/activity/stores/activity_store.dart';
-import 'package:onset/screens/home/home_store.dart';
+import 'package:onset/screens/home/stores/home_store.dart';
 import 'package:onset/screens/whispers/whisper_conversation.dart';
 import 'package:onset/screens/whispers/whispers_screen.dart';
 import 'package:onset/services/notifications/activity_log.dart';

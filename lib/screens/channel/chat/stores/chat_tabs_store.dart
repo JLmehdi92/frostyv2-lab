@@ -10,7 +10,7 @@ import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_chat_rules_service.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/models/user.dart';
-import 'package:onset/screens/channel/chat/details/chat_details_store.dart';
+import 'package:onset/screens/channel/chat/details/stores/chat_details_store.dart';
 import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:onset/screens/channel/chat/stores/chat_rules_store.dart';
 import 'package:onset/screens/channel/chat/stores/chat_store.dart';
