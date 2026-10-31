@@ -5,6 +5,7 @@ on:
     paths-ignore:
       - 'docs/**'
       - '**.md'
+      - 'site/**'
   pull_request:
     branches: [main]
 # A newer push to main makes the previous check pointless.

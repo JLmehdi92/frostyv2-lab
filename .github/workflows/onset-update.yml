@@ -23,6 +23,7 @@ on:
     paths-ignore:
       - 'docs/**'
       - '**.md'
+      - 'site/**'
 
 concurrency:
   group: onset-update
