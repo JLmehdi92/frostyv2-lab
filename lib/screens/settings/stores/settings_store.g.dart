@@ -173,6 +173,8 @@ SettingsStore _$SettingsStoreFromJson(
   ..chatFilterProfanity = json['chatFilterProfanity'] as bool? ?? true
   ..shareCrashLogsAndAnalytics =
       json['shareCrashLogsAndAnalytics'] as bool? ?? false
+  ..telemetryConsentVersion =
+      (json['telemetryConsentVersion'] as num?)?.toInt() ?? 0
   ..fullScreen = json['fullScreen'] as bool? ?? false
   ..fullScreenChatOverlay = json['fullScreenChatOverlay'] as bool? ?? false
   ..pinnedChannelIds =
@@ -262,6 +264,7 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'chatFilterHarassment': instance.chatFilterHarassment,
   'chatFilterProfanity': instance.chatFilterProfanity,
   'shareCrashLogsAndAnalytics': instance.shareCrashLogsAndAnalytics,
+  'telemetryConsentVersion': instance.telemetryConsentVersion,
   'fullScreen': instance.fullScreen,
   'fullScreenChatOverlay': instance.fullScreenChatOverlay,
   'pinnedChannelIds': instance.pinnedChannelIds,

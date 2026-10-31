@@ -53,23 +53,80 @@ void main() {
       expect(SettingsStore.fromJson({}).shareCrashLogsAndAnalytics, isFalse);
     });
 
-    test('a saved crash logs and analytics choice is kept', () {
-      // Every launch saves the whole store, so an install that already ran
-      // has the value it saved (picked, or the old default it kept): only an
-      // install that never saved one, and a reset, get the new default.
-      final shared = SettingsStore.fromJson({
-        'shareCrashLogsAndAnalytics': true,
-      });
-      final notShared = SettingsStore.fromJson({
-        'shareCrashLogsAndAnalytics': false,
+    group('crash logs and analytics consent', () {
+      test('a new install starts at the current consent version, off', () {
+        final constructed = SettingsStore();
+        final fresh = SettingsStore.fromJson({});
+
+        for (final store in [constructed, fresh]) {
+          expect(store.shareCrashLogsAndAnalytics, isFalse);
+          expect(store.telemetryConsentVersion, kTelemetryConsentVersion);
+          expect(
+            store.toJson()['telemetryConsentVersion'],
+            kTelemetryConsentVersion,
+          );
+        }
       });
 
-      expect(shared.shareCrashLogsAndAnalytics, isTrue);
-      expect(notShared.shareCrashLogsAndAnalytics, isFalse);
-      expect(
-        SettingsStore.fromJson(shared.toJson()).shareCrashLogsAndAnalytics,
-        isTrue,
-      );
+      test('an "on" saved before the consent version is turned off once', () {
+        // Older builds ticked the switch for the viewer (it was on by
+        // default) and every launch saved it: not a choice the viewer made.
+        final store = SettingsStore.fromJson({
+          'shareCrashLogsAndAnalytics': true,
+        });
+
+        expect(store.shareCrashLogsAndAnalytics, isFalse);
+        expect(store.telemetryConsentVersion, kTelemetryConsentVersion);
+
+        final older = SettingsStore.fromJson({
+          'shareCrashLogsAndAnalytics': true,
+          'telemetryConsentVersion': 0,
+        });
+        expect(older.shareCrashLogsAndAnalytics, isFalse);
+      });
+
+      test('a choice saved at the consent version is kept', () {
+        final shared = SettingsStore.fromJson({
+          'shareCrashLogsAndAnalytics': true,
+          'telemetryConsentVersion': kTelemetryConsentVersion,
+        });
+        final notShared = SettingsStore.fromJson({
+          'shareCrashLogsAndAnalytics': false,
+          'telemetryConsentVersion': kTelemetryConsentVersion,
+        });
+
+        expect(shared.shareCrashLogsAndAnalytics, isTrue);
+        expect(notShared.shareCrashLogsAndAnalytics, isFalse);
+      });
+
+      test('an opt-in after the migration survives the next launch', () {
+        final migrated = SettingsStore.fromJson({
+          'shareCrashLogsAndAnalytics': true,
+        })..shareCrashLogsAndAnalytics = true;
+
+        final relaunched = SettingsStore.fromJson(migrated.toJson());
+
+        expect(relaunched.shareCrashLogsAndAnalytics, isTrue);
+        expect(relaunched.telemetryConsentVersion, kTelemetryConsentVersion);
+      });
+
+      test('a reset turns it off and keeps the version current', () {
+        final store = SettingsStore.fromJson({
+          'shareCrashLogsAndAnalytics': true,
+          'telemetryConsentVersion': kTelemetryConsentVersion,
+        });
+
+        store.resetAllSettings();
+
+        expect(store.shareCrashLogsAndAnalytics, isFalse);
+        expect(store.telemetryConsentVersion, kTelemetryConsentVersion);
+        // So an opt-in after the reset is not migrated away.
+        store.shareCrashLogsAndAnalytics = true;
+        expect(
+          SettingsStore.fromJson(store.toJson()).shareCrashLogsAndAnalytics,
+          isTrue,
+        );
+      });
     });
 
     test('auto latency is on for settings saved before it existed', () {

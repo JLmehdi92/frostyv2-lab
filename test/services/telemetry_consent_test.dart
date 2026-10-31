@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobx/mobx.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/services/telemetry.dart';
 import 'package:onset/services/telemetry_consent.dart';
@@ -36,10 +37,30 @@ void main() {
     expect(Telemetry.collecting, isFalse);
 
     syncFirebaseCollection(
-      SettingsStore.fromJson({'shareCrashLogsAndAnalytics': true}),
+      SettingsStore.fromJson({
+        'shareCrashLogsAndAnalytics': true,
+        'telemetryConsentVersion': kTelemetryConsentVersion,
+      }),
       debug: false,
     )();
     expect(Telemetry.collecting, isTrue);
+  });
+
+  test('an "on" saved before the consent version never collects at launch', () {
+    // The store is migrated as it loads, before the reaction first fires,
+    // so collection is never turned on, not even for a moment.
+    final calls = <bool>[];
+    final store = SettingsStore.fromJson({'shareCrashLogsAndAnalytics': true});
+    final dispose = reaction<bool>(
+      (_) => store.shareCrashLogsAndAnalytics,
+      calls.add,
+      fireImmediately: true,
+    );
+    addTearDown(dispose.call);
+    syncFirebaseCollection(store, debug: false)();
+
+    expect(calls, [false]);
+    expect(Telemetry.collecting, isFalse);
   });
 
   test('the switch turns collection on and off at once', () {

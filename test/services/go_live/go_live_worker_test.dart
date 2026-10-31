@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/constants.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/services/go_live/go_live_worker.dart';
 
 void main() {
@@ -43,6 +44,31 @@ void main() {
     expect(sharesCrashLogsIn('[]'), isFalse);
     expect(sharesCrashLogsIn('{"shareCrashLogsAndAnalytics":"yes"}'), isFalse);
     expect(sharesCrashLogsIn('{"shareCrashLogsAndAnalytics":false}'), isFalse);
-    expect(sharesCrashLogsIn('{"shareCrashLogsAndAnalytics":true}'), isTrue);
+    expect(
+      sharesCrashLogsIn(
+        '{"shareCrashLogsAndAnalytics":true,'
+        '"telemetryConsentVersion":$kTelemetryConsentVersion}',
+      ),
+      isTrue,
+    );
+  });
+
+  test('the background check ignores an "on" saved before the consent '
+      'version', () {
+    // It can run after an update before the app has opened (and saved the
+    // migrated settings): an old "on" was ticked for the viewer.
+    expect(sharesCrashLogsIn('{"shareCrashLogsAndAnalytics":true}'), isFalse);
+    expect(
+      sharesCrashLogsIn(
+        '{"shareCrashLogsAndAnalytics":true,"telemetryConsentVersion":0}',
+      ),
+      isFalse,
+    );
+    expect(
+      sharesCrashLogsIn(
+        '{"shareCrashLogsAndAnalytics":true,"telemetryConsentVersion":"1"}',
+      ),
+      isFalse,
+    );
   });
 }

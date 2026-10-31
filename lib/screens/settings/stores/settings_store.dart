@@ -5,12 +5,19 @@ import 'package:onset/screens/channel/video/captions.dart';
 
 part 'settings_store.g.dart';
 
+/// The version of the "Share crash logs and analytics" consent. Settings
+/// saved below it carry no choice the viewer made, and the setting is turned
+/// off when they load (see [SettingsStore.telemetryConsentVersion]).
+const kTelemetryConsentVersion = 1;
+
 @JsonSerializable()
 class SettingsStore extends _SettingsStoreBase with _$SettingsStore {
   SettingsStore();
 
   factory SettingsStore.fromJson(Map<String, dynamic> json) =>
-      _$SettingsStoreFromJson(json).._applyChatSyncDefault();
+      _$SettingsStoreFromJson(json)
+        .._applyChatSyncDefault()
+        .._applyTelemetryConsentVersion();
   Map<String, dynamic> toJson() => _$SettingsStoreToJson(this);
 }
 
@@ -680,9 +687,25 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var shareCrashLogsAndAnalytics = defaultShareCrashLogsAndAnalytics;
 
+  /// The consent version [shareCrashLogsAndAnalytics] was chosen under (see
+  /// [kTelemetryConsentVersion]). Builds before it had the switch on by
+  /// default, ticked in the onboarding, and every launch saved it: a saved
+  /// "on" there is no consent. Settings saved without it read 0, are turned
+  /// off once as they load (before anything reads the setting), and keep the
+  /// viewer's choice from then on. A new install starts at the current one.
+  @JsonKey(defaultValue: 0)
+  var telemetryConsentVersion = kTelemetryConsentVersion;
+
+  void _applyTelemetryConsentVersion() {
+    if (telemetryConsentVersion >= kTelemetryConsentVersion) return;
+    telemetryConsentVersion = kTelemetryConsentVersion;
+    shareCrashLogsAndAnalytics = false;
+  }
+
   @action
   void resetOtherSettings() {
     shareCrashLogsAndAnalytics = defaultShareCrashLogsAndAnalytics;
+    telemetryConsentVersion = kTelemetryConsentVersion;
   }
 
   // * Global configs

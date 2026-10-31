@@ -9,6 +9,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/constants.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/services/go_live/go_live.dart';
 import 'package:onset/services/notifications/activity_log.dart';
 import 'package:onset/services/telemetry.dart';
@@ -32,17 +33,22 @@ const kGoLiveInterval = Duration(minutes: 15);
 final _login = RegExp(r'^[a-zA-Z0-9_]{1,25}$');
 
 /// The "Share crash logs and analytics" setting in [saved], the settings
-/// JSON the app keeps (`main.dart`): the default (off) without one, or when
-/// it does not read.
+/// JSON the app keeps (`main.dart`): the default (off) without one, when it
+/// does not read, or when it was saved below [kTelemetryConsentVersion]
+/// (the check can run after an update before the app has opened and saved
+/// its migrated settings; see `SettingsStore.telemetryConsentVersion`).
 bool sharesCrashLogsIn(String? saved) {
   // The setting's default: off until the viewer opts in.
   const fallback = false;
   if (saved == null) return fallback;
   try {
     final settings = jsonDecode(saved);
-    final value = settings is Map
-        ? settings['shareCrashLogsAndAnalytics']
-        : null;
+    if (settings is! Map) return fallback;
+    final version = settings['telemetryConsentVersion'];
+    if (version is! int || version < kTelemetryConsentVersion) {
+      return fallback;
+    }
+    final value = settings['shareCrashLogsAndAnalytics'];
     return value is bool ? value : fallback;
   } on FormatException {
     return fallback;
