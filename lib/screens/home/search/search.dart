@@ -604,15 +604,16 @@ class _SearchState extends State<Search> {
   List<Widget> _tabletResults(BuildContext context) {
     const gutter = OnsetSpacing.gutterTablet;
     final query = _searchStore.searchText;
-    final media = MediaQuery.of(context);
-    final width = media.size.width - media.padding.horizontal - 2 * gutter;
+    final size = MediaQuery.sizeOf(context);
+    final insets = MediaQuery.paddingOf(context);
+    final width = size.width - insets.horizontal - 2 * gutter;
     // The page's gutter and the window's side insets around the results,
     // which then pad themselves with none.
     Widget padded(Widget child, {double top = 20}) => SliverPadding(
       padding: EdgeInsets.fromLTRB(
-        gutter + media.padding.left,
+        gutter + insets.left,
         top,
-        gutter + media.padding.right,
+        gutter + insets.right,
         0,
       ),
       sliver: SliverToBoxAdapter(

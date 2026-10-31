@@ -134,9 +134,17 @@ abstract final class ShellMetrics {
   /// What the chrome covers on screen, from the edges: the header from the
   /// top, the floating nav from the bottom (phone). The mini player stays
   /// inside.
-  static EdgeInsets chrome(MediaQueryData media, ShellHeader header) {
-    final padding = media.padding;
-    if (isLargeScreenSize(media.size)) {
+  static EdgeInsets chrome(MediaQueryData media, ShellHeader header) =>
+      chromeFor(media.size, media.padding, header);
+
+  /// [chrome] from the screen's [size] and [padding] alone, for a caller
+  /// that must not depend on the rest of its metrics.
+  static EdgeInsets chromeFor(
+    Size size,
+    EdgeInsets padding,
+    ShellHeader header,
+  ) {
+    if (isLargeScreenSize(size)) {
       return EdgeInsets.only(
         top: padding.top + tabletHeader(header),
         bottom: padding.bottom,

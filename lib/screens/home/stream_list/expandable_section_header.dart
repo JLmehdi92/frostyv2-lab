@@ -33,9 +33,9 @@ class ExpandableSectionHeader extends StatelessWidget {
         padding:
             padding ??
             EdgeInsets.fromLTRB(
-              16 + MediaQuery.of(context).padding.left,
+              16 + MediaQuery.paddingOf(context).left,
               0,
-              16 + MediaQuery.of(context).padding.right,
+              16 + MediaQuery.paddingOf(context).right,
               8,
             ),
         child: Column(

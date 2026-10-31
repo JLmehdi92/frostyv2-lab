@@ -536,7 +536,7 @@ class ChatBottomBar extends StatelessWidget {
             ? Padding(
                 padding: EdgeInsets.only(
                   bottom: needsBottomPadding
-                      ? MediaQuery.of(context).padding.bottom
+                      ? MediaQuery.paddingOf(context).bottom
                       : 0,
                 ),
                 child: bottomBarContent,
@@ -545,7 +545,7 @@ class ChatBottomBar extends StatelessWidget {
                 gradientDirection: GradientDirection.down,
                 padding: EdgeInsets.only(
                   bottom: needsBottomPadding
-                      ? MediaQuery.of(context).padding.bottom
+                      ? MediaQuery.paddingOf(context).bottom
                       : 0,
                 ),
                 child: bottomBarContent,

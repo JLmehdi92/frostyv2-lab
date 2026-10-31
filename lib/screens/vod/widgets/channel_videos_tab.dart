@@ -156,7 +156,7 @@ class _ChannelVideosTabState extends State<ChannelVideosTab>
               ),
             SliverPadding(
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).padding.bottom + 16,
+                bottom: MediaQuery.paddingOf(context).bottom + 16,
               ),
             ),
           ],

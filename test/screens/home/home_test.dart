@@ -59,6 +59,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_pip_mode/simple_pip.dart';
 
 import '../../helpers/fake_vod_controller.dart';
+import '../../helpers/keyboard_animation.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 
@@ -719,6 +720,37 @@ void main() {
     await tester.pump();
     await tester.pumpAndSettle();
     expect(mini.shellChrome, const EdgeInsets.only(top: 56, bottom: 78));
+    await close(tester);
+  });
+
+  testWidgets('the keyboard of a page over Home does not rebuild Home', (
+    tester,
+  ) async {
+    await pump(tester);
+    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    unawaited(
+      navigator.push(
+        MaterialPageRoute<void>(
+          builder: (_) => const Scaffold(body: Center(child: TextField())),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(LiveFeed, skipOffstage: false), findsOneWidget);
+    final counts = await countRebuilds(
+      () => animateKeyboard(tester),
+      where: (element) =>
+          element.widget is Home ||
+          element.findAncestorWidgetOfExactType<Home>() != null,
+    );
+    // Home stays mounted under the page: before, its whole shell and every
+    // kept page were built again on each frame of the keyboard.
+    expect(counts.of<Home>(), 0, reason: '$counts');
+    expect(counts.of<OnsetShell>(), 0, reason: '$counts');
+    expect(counts.of<LiveFeed>(), 0, reason: '$counts');
+    await animateKeyboard(tester, open: false);
+    navigator.pop();
+    await tester.pumpAndSettle();
     await close(tester);
   });
 

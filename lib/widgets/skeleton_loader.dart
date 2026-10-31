@@ -279,7 +279,7 @@ class SkeletonText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final random = Random();
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.sizeOf(context).width;
 
     // Calculate random width based on provided constraints or reasonable defaults
     final min = minWidth ?? screenWidth * 0.3;
@@ -345,11 +345,11 @@ class StreamCardSkeletonLoader extends StatelessWidget {
         top: 8,
         bottom: 8,
         left: showThumbnail
-            ? 16 + MediaQuery.of(context).padding.left
-            : 4 + MediaQuery.of(context).padding.left,
+            ? 16 + MediaQuery.paddingOf(context).left
+            : 4 + MediaQuery.paddingOf(context).left,
         right: showThumbnail
-            ? 16 + MediaQuery.of(context).padding.right
-            : 4 + MediaQuery.of(context).padding.right,
+            ? 16 + MediaQuery.paddingOf(context).right
+            : 4 + MediaQuery.paddingOf(context).right,
       ),
       child: Row(
         children: [
@@ -415,7 +415,7 @@ class OfflineChannelCardSkeletonLoader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: 16 + MediaQuery.of(context).padding.left,
+        horizontal: 16 + MediaQuery.paddingOf(context).left,
         vertical: 8,
       ),
       child: Row(

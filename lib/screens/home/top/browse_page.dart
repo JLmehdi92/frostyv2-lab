@@ -82,10 +82,10 @@ class _BrowsePageState extends State<BrowsePage> {
   }
 
   Widget _categoriesTab(BuildContext context) {
-    final media = MediaQuery.of(context);
+    final size = MediaQuery.sizeOf(context);
+    final padding = MediaQuery.paddingOf(context);
     final masterDetail =
-        context.isLargeScreen &&
-        media.size.width >= BrowsePage.masterDetailWidth;
+        context.isLargeScreen && size.width >= BrowsePage.masterDetailWidth;
     if (!masterDetail) {
       return Categories(
         key: _gridKey,
@@ -105,7 +105,7 @@ class _BrowsePageState extends State<BrowsePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SizedBox(
-              width: BrowsePage.railWidth + media.padding.left,
+              width: BrowsePage.railWidth + padding.left,
               child: MediaQuery.removePadding(
                 context: context,
                 removeRight: true,
@@ -123,7 +123,7 @@ class _BrowsePageState extends State<BrowsePage> {
               child: Padding(
                 padding: EdgeInsets.only(
                   top: 16,
-                  right: OnsetSpacing.gutterTablet + media.padding.right,
+                  right: OnsetSpacing.gutterTablet + padding.right,
                 ),
                 child: _CategoryPane(categoryId: selected),
               ),
