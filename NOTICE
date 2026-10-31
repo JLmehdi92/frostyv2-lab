@@ -1,14 +1,15 @@
 ONSET — Copyright (C) 2026 ONSET contributors.
 Licensed under the GNU AGPL-3.0-or-later; see LICENSE.
 
-Portions of this software are derived from Frosty (AGPL-3.0) and have been
-modified since 2026.
+Portions of this software are derived from Frosty, Copyright (C) the Frosty
+authors (AGPL-3.0), and have been modified from 2026 onward; see the git
+history for dates.
 
-Its dependencies keep their
-own licences: the Amazon IVS Player SDK (Android) is distributed under
-Amazon's own licence terms, packages/simple_pip_mode under the MIT licence
-(see its LICENSE), and every other package under the licence it ships with,
-which the app lists in Settings › Other › About › Licenses.
+ONSET's dependencies keep their own licences: the Amazon IVS Player SDK
+(Android) is distributed under Amazon's own licence terms,
+packages/simple_pip_mode under the MIT licence (see its LICENSE), and every
+other package under the licence it ships with, which the app lists in
+Settings › Other › About › Licenses.
 
 The Inter font (assets/fonts/) is Copyright (c) 2016 The Inter Project
 Authors and licensed under the SIL Open Font License 1.1; see
