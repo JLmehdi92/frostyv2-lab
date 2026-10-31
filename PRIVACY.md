@@ -1,6 +1,6 @@
 # ONSET Privacy Policy
 
-**Effective date:** 30 October 2026
+**Effective date:** 31 October 2026
 
 ONSET is a free, open-source (AGPL-3.0-or-later) Twitch client for Android
 (package `app.onset`). It is an independent project, not affiliated with,
@@ -20,15 +20,18 @@ app's source code, which anyone can read at
   rent any data**.
 - Your Twitch credentials and your history stay **on your device** and go
   only to Twitch.
-- The builds published on GitHub send **no crash reports, analytics or
-  performance data** (section 5).
+- The builds published on GitHub include Google Firebase crash reports and
+  analytics, but send **nothing unless you turn on Share crash logs and
+  analytics**, which is off by default (section 5).
 
 ## 1. Who is responsible
 
 The app is developed by a private individual based in France, who is
-responsible for the app and for its token service (section 4): Mehdi SEDDIKI,
-contact: `onsetapp.contact@gmail.com`. The published builds send the developer
-no personal data; the token service only sees your IP address for a moment
+responsible for the app, for its token service (section 4) and for the crash
+reports and analytics collected through Google Firebase (section 5): Mehdi
+SEDDIKI, contact: `onsetapp.contact@gmail.com`. Unless you turn on **Share
+crash logs and analytics**, the published builds send the developer no
+personal data; the token service only sees your IP address for a moment
 (sections 4 and 5).
 
 Twitch, the emote services and the other services listed in section 4 decide
@@ -74,6 +77,7 @@ never has to be inside the app.
 | Go-live notification state, schedule reminders, chat rules you accepted, update checks | App preferences | Your Twitch user ID (for the go-live check and the chat rules you accepted), channels you muted, channels already announced, reminder times. Kept after you log out. |
 | Images (emotes, badges, avatars, thumbnails) | Cache | Removed after 30 days without use. Clear it in **Settings › Other › Clear image cache**. |
 | Downloaded app updates | Cache | Deleted once that version is installed. |
+| Crash reports waiting to be sent, and the random identifiers the Firebase libraries use | App storage (Firebase libraries) | Reports wait here until they are sent while **Share crash logs and analytics** is on; with the setting off, unsent reports are deleted at start-up and when you turn it off (section 5). |
 
 ONSET turns off Android backup for its data (`allowBackup="false"`, and the
 data extraction rules exclude everything), so none of it is copied to a
@@ -97,6 +101,7 @@ user agent).
 | **recent-messages.robotty.de** | Only if you turn on **Fallback chat history (third-party)** (off by default), and only when Twitch's own recent chat is unavailable, fails or is empty (for example when you are not logged in) | The login name of the channel whose chat you open. |
 | **GIPHY** (giphy.com and its subdomains) | When a chat message contains a GIF from Twitch's GIF keyboard, unless **Show GIFs in Chat** is off | A request for that GIF image. Only GIPHY and Twitch image addresses are loaded. |
 | **GitHub** (api.github.com, github.com, objects.githubusercontent.com, release-assets.githubusercontent.com) | In builds that include the updater (the APKs published in this repository's releases do; a build made without it never contacts GitHub): at launch and when the app returns to the foreground (at most every 6 hours once up to date), and when you tap **Update** or **Check for updates** | A request for the latest release of the ONSET repository; the download of the new APK when you tap Update. No account information. |
+| **Google Firebase** (Crashlytics, Google Analytics for Firebase and Performance Monitoring, run by Google) | Only while **Share crash logs and analytics** is on (off by default), and never in debug builds | Crash and error reports, the names of the app screens you open, request timings cut to the service's domain, and device and app details. No Twitch user ID, user name or channel name. See section 5. |
 | **Google Play** (in-app review) | After several launches, if Google Play is installed | The app may ask Google Play to show its rating prompt, through Google Play's in-app review service. |
 
 Links you tap in chat or in the app open in your browser or in the app; links
@@ -106,14 +111,72 @@ from Twitch.
 
 ## 5. Crash reports and analytics (Firebase)
 
-The builds published in this repository's releases include no Firebase
-configuration: they send no crash reports, analytics or performance data to
-anyone, and the **Share crash logs and analytics** setting has no effect in
-them. If that ever changes, this policy will be updated first.
+The builds published in this repository's releases include Google Firebase:
+Crashlytics (crash reports), Google Analytics for Firebase (usage statistics)
+and Performance Monitoring (speed measurements). They collect **only if you
+turn on Share crash logs and analytics**.
 
-As the code is public: it contains the Google Firebase Crashlytics, Analytics
-and Performance Monitoring libraries, which only start in a build made with a
-Firebase configuration.
+**Off by default.** The setting is off on a new install. You can turn it on
+in the setup screens at first launch or in **Settings › Other › Privacy**,
+and turn it off at any time in the same place. **Reset settings**
+(**Settings › Other**) turns it off again. Debug builds never collect,
+whatever the setting.
+
+**While it is off, nothing is sent.** The app hands no error, log line or
+measurement to Crashlytics or Performance Monitoring, and all three
+collections are declared disabled in the app until it applies your choice at
+start-up, so Analytics records nothing either. Crashlytics would otherwise
+keep crash reports on the device to send them later: the app hands it
+nothing, and any report Crashlytics still kept on its own (for a crash in the
+app's native code, for example) is deleted unsent each time the app starts
+with the setting off and when you turn the setting off. What was sent while
+the setting was on is not recalled (section 7 says how long it is kept).
+
+**While it is on, the app sends:**
+
+- **Crash reports (Crashlytics):** crashes and uncaught errors, and some
+  unexpected errors the app recovers from (for example a server error, a
+  chat or real-time connection error, a video player failure). Each report
+  holds the error's type and message, the stack trace and a short label of
+  where it happened; for a failed request, its method and the service's
+  address cut to the domain (for example `https://api.twitch.tv`), never the
+  path or the query. Short log lines are added on some failures (chat and
+  login reconnection attempts; a Twitch directory or highlights query that
+  stopped working, with its error message), and a yes/no value for whether
+  you are logged in. Crashlytics adds technical details such as the device
+  model, Android version, app version, orientation, free memory and storage.
+- **Analytics (Google Analytics for Firebase):** the name of each app screen
+  you open. These are fixed names such as `VideoChat`, `VodScreen`,
+  `Settings` or `/search`, never the channel, video or search behind them.
+  ONSET logs no other events of its own. The Analytics library also records
+  events by itself (such as first open, sessions, time spent in the app, app
+  updates) with device and app details (device model, Android version, app
+  version, language) and an approximate location (country or region) that
+  Google derives from your IP address.
+- **Performance (Performance Monitoring):** for each request the app makes
+  through its own HTTP client, the service's domain only (no path or query),
+  the method, the response code and the duration. The Performance library
+  also measures some things by itself, such as the app's start-up time and
+  screen rendering (slow or frozen frames).
+
+**What is not included.** ONSET puts no Twitch user ID, user name or channel
+name in these reports, and no tokens. Request addresses are cut to the
+domain. The Firebase libraries tell installations apart with random
+identifiers they generate (a Firebase installation ID and an Analytics app
+instance ID), which are not linked to your Twitch account and are replaced
+when you clear the app's data or reinstall it. The advertising ID is not
+collected: the app removes the advertising ID permissions, turns off
+advertising ID collection in Analytics and disables ad personalisation
+signals.
+
+**Legal basis.** Your consent (GDPR Article 6(1)(a)), given by turning the
+setting on. You can withdraw it at any time by turning the setting off; this
+does not affect what was collected before.
+
+**Google as processor.** Google processes this data on the developer's
+behalf, as a processor, under the Firebase data processing terms. Google may
+process it outside the European Union, including in the United States, with
+the safeguards those terms provide.
 
 ## 6. Android permissions
 
@@ -129,7 +192,7 @@ Libraries included in the app add a few more, such as vibration
 (notifications), wake lock and short foreground service (background go-live
 check), and Wi-Fi state (IVS player). The advertising ID and ad-services
 permissions that the Firebase Analytics library would add are removed from
-the app. ONSET does not request camera, microphone, location, contacts or
+the app, and the advertising ID is not collected (section 5). ONSET does not request camera, microphone, location, contacts or
 storage permissions.
 
 ## 7. How long data is kept
@@ -138,6 +201,10 @@ storage permissions.
   cookies), clear the image cache, clear the app's data, or uninstall the app
   (everything else, including the Twitch user ID kept with local lists, as
   described in section 3). Lists are capped as described in section 3.
+- **Firebase** (only what was sent while **Share crash logs and analytics**
+  was on): Crashlytics keeps crash data for 90 days. Google Analytics keeps
+  event data for 2 months (the project's setting). Performance data is kept
+  according to Google's Firebase terms. The data is then deleted.
 - **Twitch and other services:** according to their own policies.
 
 ## 8. Deleting your data
@@ -151,7 +218,16 @@ storage permissions.
   not ask Twitch to end the twitch.tv web session itself; you can also remove
   ONSET's access in your Twitch settings, under **Connections**.
 - **Clear the app's data** (Android Settings › Apps › ONSET › Storage) or
-  **uninstall** ONSET: everything ONSET stored on the device is deleted.
+  **uninstall** ONSET: everything ONSET stored on the device is deleted,
+  including unsent crash reports and the Firebase identifiers.
+- **Turn off Share crash logs and analytics** (**Settings › Other ›
+  Privacy**): nothing more is sent, and the crash reports kept on the device
+  and not yet sent are deleted. What Firebase already received carries no
+  account identifier (no Twitch user ID or user name, only the random
+  identifiers of section 5), so the developer may be unable to match a
+  deletion request sent by email to your data. You can still write to
+  `onsetapp.contact@gmail.com`; in any case that data expires with the
+  retention periods of section 7.
 - Data held by Twitch and the other services is deleted through them.
 
 ## 9. Children
@@ -166,9 +242,12 @@ directed at children under 13.
 ## 10. Your rights
 
 Under the GDPR you have the right to access, correct and delete your personal
-data, to object to or restrict its processing, and to data portability. The
-developer holds no data about you from the published builds (sections 4 and
-5). To exercise a right, or for any question, write to
+data, to object to or restrict its processing, and to data portability, and
+you can withdraw your consent to crash reports and analytics at any time by
+turning off **Share crash logs and analytics**. The developer holds no data
+about you from the published builds unless you turned that setting on; that
+data is linked to no account, so the developer may be unable to find yours
+(sections 5 and 8). To exercise a right, or for any question, write to
 `onsetapp.contact@gmail.com`. You can also lodge a complaint with the French
 data protection authority, the CNIL (https://www.cnil.fr).
 
@@ -185,12 +264,16 @@ For data held by Twitch or the other services, contact them directly.
 - Cloudflare (token service): https://www.cloudflare.com/privacypolicy/
 - GitHub: https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement
 - Amazon Web Services (IVS player): https://aws.amazon.com/privacy/
-- Google (Google Play): https://policies.google.com/privacy
+- Google (Google Play, Firebase): https://policies.google.com/privacy
+- Google Firebase (crash reports and analytics): https://firebase.google.com/support/privacy
 
 ## 12. Changes
 
 If ONSET starts handling data differently, this policy will be updated and its
 effective date changed. The history of this file is public in the repository.
+
+- 31 October 2026: the published builds include Firebase crash reports and
+  analytics, off unless you turn them on.
 
 ## 13. Contact
 

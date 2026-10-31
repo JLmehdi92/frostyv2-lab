@@ -133,10 +133,23 @@ installées recevraient une mise à jour où, déconnecté, on n'a plus ni
 pour dire pourquoi.
 
 **Facultatifs — Firebase** (Crashlytics, Analytics, Performance) : sans eux,
-l'appli tourne simplement sans Firebase, et c'est le cas des builds publiés
-par ce dépôt (voir [`PRIVACY.fr.md`](../PRIVACY.fr.md)). Pour l'activer dans
-vos propres builds, créez votre projet Firebase (console Firebase → ajouter
-une appli Android `app.onset`, et iOS `app.onset` si besoin), puis ajoutez :
+l'appli tourne simplement sans Firebase. Le dépôt des releases (JLmehdi92/ONSET)
+a les cinq secrets Android (`FIREBASE_API_KEY`, `FIREBASE_APP_ID_ANDROID`,
+`FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_PROJECT_ID`,
+`FIREBASE_STORAGE_BUCKET` ; pas d'identifiant iOS) : les builds publiés
+incluent donc Firebase, qui ne recueille rien tant que l'utilisateur n'active
+pas « Share crash logs and analytics » (désactivé par défaut). Le workflow
+n'écrit pas de `google-services.json` : les plugins Gradle Firebase ne
+s'appliquent pas à ces builds.
+
+**Mettre à jour la politique de confidentialité ([`PRIVACY.md`](../PRIVACY.md)
+et [`PRIVACY.fr.md`](../PRIVACY.fr.md)) AVANT d'ajouter ou de retirer ces
+secrets** : elle décrit les builds publiés avec Firebase, et le prochain build
+change dès que les secrets changent.
+
+Pour l'activer dans vos propres builds, créez votre projet Firebase (console
+Firebase → ajouter une appli Android `app.onset`, et iOS `app.onset` si
+besoin), puis ajoutez :
 
 | Secret | Valeur |
 |---|---|

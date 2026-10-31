@@ -21,7 +21,11 @@ repository root.
   settings, `flutter_cache_manager` / `cached_network_image` for images.
 - **Firebase** (Crashlytics, Analytics, Performance) is optional: it only
   starts when the build carries the `FIREBASE_*` dart-defines
-  (`lib/services/telemetry.dart`). No Firebase config is committed.
+  (`lib/services/telemetry.dart`), and collects only once the viewer turns
+  on "Share crash logs and analytics" (`lib/services/telemetry_consent.dart`).
+  No Firebase config is committed; the release repository's `FIREBASE_*`
+  secrets give the published builds one, so the privacy policy must be
+  updated before Firebase is turned on or off there.
 - **Tests**: `flutter_test`, `mocktail`, `http_mock_adapter`.
 
 ## 2. Repository layout

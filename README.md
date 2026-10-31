@@ -238,7 +238,9 @@ applies the Firebase Gradle plugins (Crashlytics mapping upload, automatic
 performance traces); the dart-defines are still what starts Firebase, and
 native collection stays off until the app applies the setting. The update
 workflow passes the same values from the `FIREBASE_*` repository secrets when
-they exist.
+they exist (it writes no `google-services.json`, so its builds get none of the
+Gradle plugins). This repository has them for Android, so the published
+builds include Firebase, collecting only once the viewer turns the setting on.
 
 ### Signed releases and in-app updates
 
@@ -309,9 +311,11 @@ code layout and the conventions.
 
 ## Privacy
 
-ONSET has no account system of its own, and the builds published here send
-no crash reports or analytics. What the app stores and sends is described in
-the [privacy policy](PRIVACY.md) ([version française](PRIVACY.fr.md)).
+ONSET has no account system of its own. The builds published here include
+Firebase crash reports and analytics, but send nothing unless you turn on
+"Share crash logs and analytics" (off by default). What the app stores and
+sends is described in the [privacy policy](PRIVACY.md)
+([version française](PRIVACY.fr.md)).
 
 ## Credits
 
