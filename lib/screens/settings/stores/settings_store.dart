@@ -1,3 +1,5 @@
+import 'dart:ui' show Locale;
+
 import 'package:json_annotation/json_annotation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/screens/channel/chat/stores/chat_tabs_store.dart';
@@ -9,6 +11,12 @@ part 'settings_store.g.dart';
 /// saved below it carry no choice the viewer made, and the setting is turned
 /// off when they load (see [SettingsStore.telemetryConsentVersion]).
 const kTelemetryConsentVersion = 1;
+
+/// The version of the one-time language question. Settings saved below it
+/// were saved by a build that never asked: Home asks once (a new install
+/// answers on the onboarding's Intro instead), see
+/// [SettingsStore.languagePromptVersion].
+const kLanguagePromptVersion = 1;
 
 @JsonSerializable()
 class SettingsStore extends _SettingsStoreBase with _$SettingsStore {
@@ -109,6 +117,34 @@ abstract class _SettingsStoreBase with Store {
   @observable
   var mentionNotifications = defaultMentionNotifications;
 
+  /// The language of the app: the device's ([AppLanguage.system]) or one
+  /// the viewer picked. Never reset with the other settings (a reset must
+  /// not change the language the viewer reads them in).
+  @JsonKey(
+    defaultValue: AppLanguage.system,
+    unknownEnumValue: AppLanguage.system,
+  )
+  @observable
+  var appLanguage = AppLanguage.system;
+
+  /// The language question version [appLanguage] was answered under (see
+  /// [kLanguagePromptVersion]). Settings saved without it read 0: Home asks
+  /// once. A new install starts at the current one and answers on the
+  /// onboarding's Intro. Never reset, like [appLanguage].
+  @JsonKey(defaultValue: 0)
+  @observable
+  var languagePromptVersion = kLanguagePromptVersion;
+
+  /// The viewer chose [language] (the onboarding, the one-time question):
+  /// the question is answered for good.
+  @action
+  void chooseLanguage(AppLanguage language) {
+    appLanguage = language;
+    languagePromptVersion = kLanguagePromptVersion;
+  }
+
+  // The language (appLanguage, languagePromptVersion) is kept out of this
+  // reset on purpose: see [appLanguage].
   @action
   void resetGeneralSettings() {
     themeType = defaultThemeType;
@@ -732,6 +768,8 @@ abstract class _SettingsStoreBase with Store {
     pinnedChannelIds = defaultPinnedChannelIds;
   }
 
+  /// Every setting back to its default, except the language (see
+  /// [appLanguage]).
   @action
   void resetAllSettings() {
     resetGeneralSettings();
@@ -740,6 +778,22 @@ abstract class _SettingsStoreBase with Store {
     resetOtherSettings();
     resetGlobalConfigs();
   }
+}
+
+/// The language of the app ([SettingsStore.appLanguage]).
+enum AppLanguage {
+  /// The device's: French on a French device, English otherwise
+  /// (resolveAppLocale in lib/l10n/l10n.dart).
+  system,
+  en,
+  fr;
+
+  /// The locale it forces, none for [system].
+  Locale? get locale => switch (this) {
+    system => null,
+    en => const Locale('en'),
+    fr => const Locale('fr'),
+  };
 }
 
 const themeNames = ['System', 'Light', 'Dark'];

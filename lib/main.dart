@@ -7,6 +7,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/bttv_api.dart';
@@ -26,6 +27,7 @@ import 'package:onset/apis/twitch_hype_train_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
 import 'package:onset/apis/unauthorized_interceptor.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/activity/stores/activity_store.dart';
@@ -117,6 +119,10 @@ void main() async {
   }
 
   await initUtils();
+
+  // Dates in every supported language (French month and day names): the
+  // app's language is only known once it is built.
+  await initializeDateFormatting();
 
   // With the shared preferences instance, obtain the existing user settings if it exists.
   // If default settings don't exist, use an empty JSON string to use the default values.
@@ -568,6 +574,12 @@ class _MyAppState extends State<MyApp> {
 
         return MaterialApp(
           title: 'ONSET',
+          // The language picked, or the device's (resolveAppLocale).
+          locale: settingsStore.appLanguage.locale,
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localeListResolutionCallback: (device, _) =>
+              resolveAppLocale(AppLanguage.system, device ?? const []),
           theme: themes.light,
           darkTheme: themes.dark,
           themeMode: settingsStore.themeType == ThemeType.system
@@ -585,20 +597,24 @@ class _MyAppState extends State<MyApp> {
           navigatorKey: navigatorKey,
           // The launch intro covers the app on a cold start while it builds
           // and loads underneath.
-          builder: (context, child) => LaunchIntro(
-            play: widget.launchInfo.playsIntro,
-            fromTile: widget.launchInfo.nativeTile,
-            // The first run stops on the name: the onboarding picks it up
-            // from there.
-            holdOnName: widget.firstRun,
-            splashTile: LaunchInfo.splashTile,
-            // The tile lands on the header's mark.
-            slotKey: OnsetShell.markKey,
-            child: Stack(
-              children: [
-                ?child,
-                const Positioned.fill(child: GlobalMiniPlayer()),
-              ],
+          builder: (context, child) => LocaleSync(
+            // The language shown, for what runs without the app's widgets.
+            onLocale: const [saveUiLanguage],
+            child: LaunchIntro(
+              play: widget.launchInfo.playsIntro,
+              fromTile: widget.launchInfo.nativeTile,
+              // The first run stops on the name: the onboarding picks it up
+              // from there.
+              holdOnName: widget.firstRun,
+              splashTile: LaunchInfo.splashTile,
+              // The tile lands on the header's mark.
+              slotKey: OnsetShell.markKey,
+              child: Stack(
+                children: [
+                  ?child,
+                  const Positioned.fill(child: GlobalMiniPlayer()),
+                ],
+              ),
             ),
           ),
         );

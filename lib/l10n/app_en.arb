@@ -1,0 +1,51 @@
+{
+  "@@locale": "en",
+  "languageNameEnglish": "English",
+  "@languageNameEnglish": {
+    "description": "English, written in English (an endonym, identical in every language): the language pill of the onboarding Intro, the one-time language prompt and Settings › General › Language."
+  },
+  "languageNameFrench": "Français",
+  "@languageNameFrench": {
+    "description": "French, written in French (an endonym, identical in every language): the language pill of the onboarding Intro, the one-time language prompt and Settings › General › Language."
+  },
+  "languageChoiceSemantics": "Language · Langue",
+  "@languageChoiceSemantics": {
+    "description": "What a screen reader calls the language pill (onboarding Intro, one-time language prompt), in both languages on purpose so it is understood whatever language is on screen."
+  },
+  "appLanguageSystem": "System",
+  "@appLanguageSystem": {
+    "description": "Settings › General › Language: the option that follows the device's language."
+  },
+  "commonNext": "Next",
+  "@commonNext": {
+    "description": "Button that goes on to the next step (onboarding Intro and Setup)."
+  },
+  "commonBack": "Back",
+  "@commonBack": {
+    "description": "Tooltip of the back chevron (onboarding bar, Twitch login page, sheet sub-views, in-app Twitch pages)."
+  },
+  "commonCancel": "Cancel",
+  "@commonCancel": {
+    "description": "Button that closes a picker or dialog without keeping the change (accent colour picker)."
+  },
+  "commonDone": "Done",
+  "@commonDone": {
+    "description": "Button that closes a picker and keeps the change (accent colour picker)."
+  },
+  "commonClose": "Close",
+  "@commonClose": {
+    "description": "Button or tooltip that closes a dialog or a full-screen view (login help, photo viewer)."
+  },
+  "commonTryAgain": "Try again",
+  "@commonTryAgain": {
+    "description": "Button that retries what failed (Twitch login page, error states)."
+  },
+  "commonRetry": "Retry",
+  "@commonRetry": {
+    "description": "Default tooltip of the retry icon at the end of an alert message (snackbars, inline errors)."
+  },
+  "commonLiveBadge": "LIVE",
+  "@commonLiveBadge": {
+    "description": "The small badge on a live channel's picture (onboarding mosaic and Setup preview). Kept short and in capitals: it sits in a 16-20 dp pill."
+  }
+}

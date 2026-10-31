@@ -1,0 +1,291 @@
+import 'package:flutter_test/flutter_test.dart';
+
+import 'hardcoded_strings.dart';
+import 'l10n_allowlist.dart';
+import 'l10n_baseline.dart';
+
+/// Every text a viewer reads comes from the ARB files (lib/l10n), so it is
+/// in French and in English. Files still being translated are counted in
+/// l10n_baseline.dart, a ratchet that only goes down; what is never
+/// translated (brands, Twitch's data) is in l10n_allowlist.dart, with why.
+void main() {
+  group('the scanner', () {
+    List<String> texts(String source) => [
+      for (final literal in flaggedIn(source)) literal.text,
+    ];
+
+    test('flags text in places that show it', () {
+      expect(
+        texts('''
+import 'package:flutter/material.dart';
+
+enum Tab { home('Home'); const Tab(this.label); final String label; }
+
+class A extends StatelessWidget {
+  const A({super.key, this.title = 'Default title'});
+  final String title;
+  @override
+  Widget build(BuildContext context) => Column(children: [
+    const Text('Hello'),
+    Text('Signed in as \$name'),
+    Tooltip(message: 'Close', child: Text(x ? 'On' : 'Off')),
+    Semantics(label: 'Step', value: 'Step 1 of 4'),
+    IconButton(tooltip: 'Back'.toUpperCase(), onPressed: null),
+    Text.rich(TextSpan(text: 'Logged in as ')),
+    SnackBar(content: Text('Link copied')),
+    Thing(primaryLabel: 'Save'),
+  ]);
+}
+
+const themeNames = ['System', 'Light'];
+'''),
+        unorderedEquals([
+          'Home',
+          'Default title',
+          'Hello',
+          'Signed in as {}',
+          'Close',
+          'On',
+          'Off',
+          'Step',
+          'Step 1 of 4',
+          'Back',
+          'Logged in as ',
+          'Link copied',
+          'Save',
+          'System',
+          'Light',
+        ]),
+      );
+    });
+
+    test('flags sentences anywhere, joined across lines', () {
+      expect(
+        texts('''
+const tip = 'Links to the full changelog are in '
+    'the settings.';
+String f(String name) => 'Could not open \$name channel';
+'''),
+        [
+          'Links to the full changelog are in the settings.',
+          'Could not open {} channel',
+        ],
+      );
+    });
+
+    test('flags the words inside an interpolation, not the frame', () {
+      expect(
+        texts("final x = Row(label: '\${pinned ? 'Unpin' : 'Pin'} \$name');"),
+        ['Unpin', 'Pin'],
+      );
+    });
+
+    test('leaves code alone', () {
+      expect(
+        texts(r'''
+import 'package:onset/main.dart';
+part 'a.g.dart';
+
+@JsonKey(name: 'Display Name')
+var a = 1;
+
+void f(Map<String, dynamic> json, SharedPreferences prefs) {
+  debugPrint('Could not load the page: $e');
+  Telemetry.recordError(e, s, reason: 'go-live init failed');
+  assert(x, 'This must never happen here');
+  if (x == 'Some label') return;
+  switch (y) { case 'Other words': break; }
+  final z = switch (y) { 'Two words' => 1, _ => 2 };
+  prefs.setString('first run', 'x');
+  json['Some Key'];
+  final m = {'Map key words': 1};
+  RegExp(r'Latency To Broadcaster');
+  Uri.https('www.twitch.tv', '/some path');
+  const ValueKey('signing in');
+  RouteSettings(name: 'Release Notes');
+  const MethodChannel('onset/locale channel');
+  throw StateError('No user here');
+  throw ApiException('Unable to connect');
+  Text('recent-messages.robotty.de');
+  Text('https://twitch.tv/x');
+  Text('assets/release-notes.md');
+  Text(""" Multi line script with words """);
+  Text('predictions-channel-v1');
+  Text('LAST_DAY');
+  Text('#C8FF3D');
+  Text('v5.0.5');
+  Text('$count');
+}
+
+class B {
+  @override
+  String toString() => 'B with words($a)';
+}
+'''),
+        isEmpty,
+      );
+    });
+
+    test('says where a literal is and why', () {
+      final [literal] = flaggedIn(
+        "\n\nfinal t = Text('Hello');\n",
+        path: 'lib/x.dart',
+      );
+      expect(literal.path, 'lib/x.dart');
+      expect(literal.line, 3);
+      expect(literal.reason, 'ui');
+    });
+  });
+
+  group('the allow-list and the ratchet', () {
+    const hello = FlaggedLiteral(
+      path: 'lib/a.dart',
+      line: 1,
+      text: 'Hello',
+      reason: 'ui',
+    );
+    const brand = FlaggedLiteral(
+      path: 'lib/a.dart',
+      line: 2,
+      text: 'ONSET',
+      reason: 'ui',
+    );
+
+    test('an allow-listed literal is not counted', () {
+      expect(
+        notAllowed(
+          [hello, brand],
+          {
+            'lib/a.dart': {'ONSET': 'brand'},
+          },
+        )['lib/a.dart'],
+        [hello],
+      );
+    });
+
+    test('an allow-list entry matching nothing is stale', () {
+      expect(
+        staleAllowlistEntries(
+          [hello],
+          {
+            'lib/a.dart': {'Gone': 'extracted'},
+            'lib/gone.dart': {'ONSET': 'deleted file'},
+          },
+        ),
+        ['lib/a.dart: Gone', 'lib/gone.dart: ONSET'],
+      );
+      expect(
+        staleAllowlistEntries(
+          [brand],
+          {
+            'lib/a.dart': {'ONSET': 'brand'},
+          },
+        ),
+        isEmpty,
+      );
+    });
+
+    test('a new file with literals fails', () {
+      expect(ratchetProblems({'lib/new.dart': 1}, {}), hasLength(1));
+    });
+
+    test('more literals than the baseline fails', () {
+      expect(
+        ratchetProblems({'lib/a.dart': 3}, {'lib/a.dart': 2}).single,
+        contains('allows 2'),
+      );
+    });
+
+    test('fewer literals fails until the baseline is lowered', () {
+      expect(
+        ratchetProblems({'lib/a.dart': 1}, {'lib/a.dart': 2}).single,
+        contains('lower it to 1'),
+      );
+    });
+
+    test('a baseline entry for a clean or deleted file is stale', () {
+      expect(ratchetProblems({'lib/a.dart': 0}, {'lib/a.dart': 2}), [
+        contains('remove it'),
+      ]);
+      expect(ratchetProblems({}, {'lib/gone.dart': 2}), [
+        contains('remove it'),
+      ]);
+    });
+
+    test('equal counts pass', () {
+      expect(
+        ratchetProblems(
+          {'lib/a.dart': 2, 'lib/clean.dart': 0},
+          {'lib/a.dart': 2},
+        ),
+        isEmpty,
+      );
+    });
+  });
+
+  group('lib/', () {
+    late List<FlaggedLiteral> flagged;
+    late int fileCount;
+
+    setUpAll(() {
+      final files = scannedFiles();
+      fileCount = files.length;
+      flagged = [
+        for (final file in files)
+          ...flaggedIn(
+            file.readAsStringSync(),
+            path: file.path.replaceAll('\\', '/'),
+          ),
+      ];
+    });
+
+    test('is read, generated code excepted', () {
+      expect(fileCount, greaterThan(300));
+      final paths = scannedFiles().map((f) => f.path.replaceAll('\\', '/'));
+      expect(paths, contains('lib/main.dart'));
+      expect(paths, contains('lib/l10n/l10n.dart'));
+      expect(paths.where((p) => p.endsWith('.g.dart')), isEmpty);
+      expect(
+        paths.where((p) => p.contains('lib/l10n/app_localizations')),
+        isEmpty,
+      );
+    });
+
+    test('the allow-list has no stale entry', () {
+      expect(staleAllowlistEntries(flagged, l10nAllowlist), isEmpty);
+    });
+
+    test(
+      'each file has exactly the hard-coded strings its baseline allows',
+      () {
+        final left = notAllowed(flagged, l10nAllowlist);
+        final counts = {
+          for (final MapEntry(key: path, value: literals) in left.entries)
+            path: literals.length,
+        };
+        final problems = ratchetProblems(counts, l10nBaseline);
+        expect(
+          problems,
+          isEmpty,
+          reason: [
+            ...problems,
+            for (final path in counts.keys)
+              if (!l10nBaseline.containsKey(path))
+                ...left[path]!.map((literal) => '$literal'),
+          ].join('\n'),
+        );
+      },
+    );
+
+    test('the files translated so far stay clean', () {
+      final left = notAllowed(flagged, l10nAllowlist);
+      for (final path in _translated) {
+        expect(left[path], isNull, reason: path);
+        expect(l10nBaseline.containsKey(path), isFalse, reason: path);
+      }
+    });
+  });
+}
+
+/// Files whose texts are all in the ARB files: none may come back.
+const _translated = ['lib/l10n/l10n.dart'];

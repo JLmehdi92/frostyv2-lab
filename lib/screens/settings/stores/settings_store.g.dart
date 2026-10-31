@@ -41,6 +41,15 @@ SettingsStore _$SettingsStoreFromJson(
       []
   ..launchUrlExternal = json['launchUrlExternal'] as bool? ?? false
   ..mentionNotifications = json['mentionNotifications'] as bool? ?? true
+  ..appLanguage =
+      $enumDecodeNullable(
+        _$AppLanguageEnumMap,
+        json['appLanguage'],
+        unknownValue: AppLanguage.system,
+      ) ??
+      AppLanguage.system
+  ..languagePromptVersion =
+      (json['languagePromptVersion'] as num?)?.toInt() ?? 0
   ..showVideo = json['showVideo'] as bool? ?? true
   ..warnMatureContent = json['warnMatureContent'] as bool? ?? true
   ..showCaptions = json['showCaptions'] as bool? ?? false
@@ -196,6 +205,8 @@ Map<String, dynamic> _$SettingsStoreToJson(
   'hiddenContentLabels': instance.hiddenContentLabels,
   'launchUrlExternal': instance.launchUrlExternal,
   'mentionNotifications': instance.mentionNotifications,
+  'appLanguage': _$AppLanguageEnumMap[instance.appLanguage]!,
+  'languagePromptVersion': instance.languagePromptVersion,
   'showVideo': instance.showVideo,
   'warnMatureContent': instance.warnMatureContent,
   'showCaptions': instance.showCaptions,
@@ -288,6 +299,12 @@ const _$FollowedSortEnumMap = {
   FollowedSort.recent: 'recent',
   FollowedSort.name: 'name',
   FollowedSort.category: 'category',
+};
+
+const _$AppLanguageEnumMap = {
+  AppLanguage.system: 'system',
+  AppLanguage.en: 'en',
+  AppLanguage.fr: 'fr',
 };
 
 const _$CaptionSizeEnumMap = {
@@ -539,6 +556,46 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
       super.mentionNotifications,
       () {
         super.mentionNotifications = value;
+      },
+    );
+  }
+
+  late final _$appLanguageAtom = Atom(
+    name: '_SettingsStoreBase.appLanguage',
+    context: context,
+  );
+
+  @override
+  AppLanguage get appLanguage {
+    _$appLanguageAtom.reportRead();
+    return super.appLanguage;
+  }
+
+  @override
+  set appLanguage(AppLanguage value) {
+    _$appLanguageAtom.reportWrite(value, super.appLanguage, () {
+      super.appLanguage = value;
+    });
+  }
+
+  late final _$languagePromptVersionAtom = Atom(
+    name: '_SettingsStoreBase.languagePromptVersion',
+    context: context,
+  );
+
+  @override
+  int get languagePromptVersion {
+    _$languagePromptVersionAtom.reportRead();
+    return super.languagePromptVersion;
+  }
+
+  @override
+  set languagePromptVersion(int value) {
+    _$languagePromptVersionAtom.reportWrite(
+      value,
+      super.languagePromptVersion,
+      () {
+        super.languagePromptVersion = value;
       },
     );
   }
@@ -1861,6 +1918,18 @@ mixin _$SettingsStore on _SettingsStoreBase, Store {
   );
 
   @override
+  void chooseLanguage(AppLanguage language) {
+    final _$actionInfo = _$_SettingsStoreBaseActionController.startAction(
+      name: '_SettingsStoreBase.chooseLanguage',
+    );
+    try {
+      return super.chooseLanguage(language);
+    } finally {
+      _$_SettingsStoreBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
   void resetGeneralSettings() {
     final _$actionInfo = _$_SettingsStoreBaseActionController.startAction(
       name: '_SettingsStoreBase.resetGeneralSettings',
@@ -1945,6 +2014,8 @@ streamLanguage: ${streamLanguage},
 hiddenContentLabels: ${hiddenContentLabels},
 launchUrlExternal: ${launchUrlExternal},
 mentionNotifications: ${mentionNotifications},
+appLanguage: ${appLanguage},
+languagePromptVersion: ${languagePromptVersion},
 showVideo: ${showVideo},
 warnMatureContent: ${warnMatureContent},
 showCaptions: ${showCaptions},

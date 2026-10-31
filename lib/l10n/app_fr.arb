@@ -1,0 +1,15 @@
+{
+  "@@locale": "fr",
+  "languageNameEnglish": "English",
+  "languageNameFrench": "Français",
+  "languageChoiceSemantics": "Language · Langue",
+  "appLanguageSystem": "Système",
+  "commonNext": "Suivant",
+  "commonBack": "Retour",
+  "commonCancel": "Annuler",
+  "commonDone": "Terminé",
+  "commonClose": "Fermer",
+  "commonTryAgain": "Réessayer",
+  "commonRetry": "Réessayer",
+  "commonLiveBadge": "LIVE"
+}
