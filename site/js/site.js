@@ -386,22 +386,24 @@
     var stage = doc.getElementById('lat-stage');
     if (!pin || !stage) return null;
     // Step states are a 0..1 custom property mixed into the theme's own text colours,
-    // so the dimmed and lit states stay correct in both light and dark.
-    gsap.set(['#ls2', '#ls3'], { '--on': 0 });
-    gsap.set('#ls1', { '--on': 1 });
+    // so the dimmed and lit states stay correct in both light and dark. Their starting state
+    // (step 01 lit, 02 and 03 dimmed) comes from the lat-run class in the CSS, not from an inline
+    // set: ScrollTrigger's refresh can clear inline values before the scrubbed tweens record their
+    // start, which used to leave every step lit. Every step tween states both ends explicitly.
+    pin.classList.add('lat-run');
     var trig = pinned
       ? { trigger: pin, start: function () { return 'top ' + latPinTop() + 'px'; }, end: '+=1200', scrub: 0.8, pin: true, anticipatePin: 1, invalidateOnRefresh: true }
       : { trigger: stage, start: 'top 75%', end: 'bottom 80%', scrub: 0.6 };
     var tl = gsap.timeline({ scrollTrigger: trig });
     tl.fromTo('#lat-edge-label', { '--fl': 0 }, { '--fl': 1, duration: 0.3, ease: 'power2.out' }, 0.1)
       .to('#lat-edge-label', { '--fl': 0, duration: 0.3, ease: 'power2.in' }, 0.7)
-      .to('#ls1', { '--on': 0, duration: 0.3 }, 1)
-      .to('#ls2', { '--on': 1, duration: 0.3 }, 1)
+      .fromTo('#ls1', { '--on': 1 }, { '--on': 0, duration: 0.3, immediateRender: false }, 1)
+      .fromTo('#ls2', { '--on': 0 }, { '--on': 1, duration: 0.3, immediateRender: false }, 1)
       .from('#row-web', { autoAlpha: 0, y: 8, duration: 0.4 }, 1)
       .from('#web-gap', { right: '66%', duration: 1, ease: 'power1.inOut' }, 1.2)
       .from('#web-gap-label', { autoAlpha: 0, duration: 0.4 }, 1.9)
-      .to('#ls2', { '--on': 0, duration: 0.3 }, 2.5)
-      .to('#ls3', { '--on': 1, duration: 0.3 }, 2.5)
+      .fromTo('#ls2', { '--on': 1 }, { '--on': 0, duration: 0.3, immediateRender: false }, 2.5)
+      .fromTo('#ls3', { '--on': 0 }, { '--on': 1, duration: 0.3, immediateRender: false }, 2.5)
       .from('#row-on', { autoAlpha: 0, y: 8, duration: 0.4 }, 2.5)
       .from(['#on-head', '#on-gap'], { left: '60%', duration: 1.4, ease: 'power3.inOut' }, 2.8)
       .fromTo('#odo-list', { y: 0, yPercent: 0 }, { y: 0, yPercent: -80, duration: 1.4, ease: 'steps(4)' }, 2.8);

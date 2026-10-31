@@ -351,6 +351,12 @@ html.lenis,html.lenis body{height:auto}
   .why-grid{gap:12px}
   .card{padding:22px}
 }
+/* narrow landscape tablets: the sub copy reaches the "+1 sub" chip, so the chip sits higher
+   and the mint spark moves below it */
+@media (min-width:1024px) and (max-width:1099px){
+  .fo-sub{top:16.5%}
+  .fo-spm{top:27%}
+}
 /* ---------- portrait tablet (768–1023) ---------- */
 @media (max-width:1023px){
   .fo-close{left:3%;top:12px}
@@ -464,6 +470,11 @@ html.js.pre .stage,
 html.js.pre .fo,
 html.js.pre .rv,
 html.js.pre .rv-item{opacity:0}
+
+/* Set by js/site.js only when the latency scrub runs: steps 02 and 03 start dimmed and light in
+   turn. Without it (no script, reduced motion, library missing) every step stays fully readable. */
+.lat-run #ls2,
+.lat-run #ls3{--on:0}
 
 /* Without JavaScript: the carousel scrolls natively and every caption is listed. */
 html:not(.js) .tgl,
