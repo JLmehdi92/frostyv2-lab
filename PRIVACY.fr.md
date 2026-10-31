@@ -152,7 +152,7 @@ rappelé (la section 7 indique combien de temps c'est conservé).
 
 **Réglage activé, l'application envoie** (de même que la vérification des
 mises en direct en arrière-plan, si vous avez activé le réglage, pour ses
-propres erreurs)** :**
+propres erreurs) :
 
 - **Rapports de plantage (Crashlytics) :** les plantages et erreurs non
   interceptées, et certaines erreurs inattendues dont l'application se remet
