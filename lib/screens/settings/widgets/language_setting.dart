@@ -43,8 +43,6 @@ class _LanguageSettingState extends State<LanguageSetting>
     return Observer(
       builder: (context) {
         final l = context.l10n;
-        const languages = AppLanguage.values;
-        final labels = [for (final language in languages) language.label(l)];
         final device = resolveAppLanguage(
           AppLanguage.system,
           WidgetsBinding.instance.platformDispatcher.locales,
@@ -52,13 +50,13 @@ class _LanguageSettingState extends State<LanguageSetting>
         return SettingsListSelect(
           groupLabel: l.settingsLanguageTitle,
           stacked: true,
-          selectedOption: settingsStore.appLanguage.label(l),
-          options: labels,
+          value: settingsStore.appLanguage,
+          values: AppLanguage.values,
+          labelOf: (language) => language.label(l),
           subtitle: l.settingsLanguageSystemSubtitle(
             language: device.nameInText(l),
           ),
-          onChanged: (label) =>
-              settingsStore.chooseLanguage(languages[labels.indexOf(label)]),
+          onChanged: settingsStore.chooseLanguage,
         );
       },
     );

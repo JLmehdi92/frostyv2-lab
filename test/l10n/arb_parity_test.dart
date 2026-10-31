@@ -19,6 +19,16 @@ const _sameInBothLanguages = {
   'onboardingPermissionClipsTitle': 'Twitch calls them "clips" in French.',
   'shellFeedClips': 'Twitch calls them "clips" in French.',
   'shellActivityNotifications': '"Notifications" is spelled the same.',
+  'settingsPageChat': '"Chat" is also the French word for it.',
+  'settingsPageNotifications': '"Notifications" is spelled the same.',
+  'bufferProfileStandard': 'A buffer profile\'s name, French as well.',
+  'bufferProfileUltra': 'A buffer profile\'s name, French as well.',
+  'playerConfigAuto': '"Auto" is the French short form too.',
+  'chatFilterDiscrimination': 'Twitch\'s French name for the AutoMod category.',
+  'updatesBuild':
+      '"build" is the word French developers use; a number '
+      'follows.',
+  'releaseNotesVersions': '"Versions" is spelled the same.',
 };
 
 void main() {

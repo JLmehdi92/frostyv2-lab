@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobx/mobx.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/home/stores/home_store.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
@@ -157,7 +159,7 @@ void main() {
 
     test('the choices of the setting are the new places', () {
       expect(
-        [for (final tab in HomeTab.values) tab.label],
+        [for (final tab in HomeTab.values) tab.label(L10n.english)],
         ['Following', 'Live', 'Clips', 'Browse'],
       );
     });

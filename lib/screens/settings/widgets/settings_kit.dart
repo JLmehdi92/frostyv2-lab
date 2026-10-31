@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/widgets/settings_glyph.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
@@ -769,7 +770,7 @@ Future<bool> confirmSettingsAction(
       message: message,
       actions: [
         SettingsButton(
-          label: 'Cancel',
+          label: context.l10n.commonCancel,
           onPressed: () => Navigator.pop(context, false),
         ),
         SettingsButton(

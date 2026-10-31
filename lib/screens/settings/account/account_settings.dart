@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:intl/intl.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/screens/channel/channel.dart';
 import 'package:onset/screens/onboarding/login_webview.dart';
@@ -15,21 +16,19 @@ import 'package:onset/widgets/onset_cached_network_image.dart';
 import 'package:onset/widgets/twitch_web_page.dart';
 
 /// Account settings only twitch.tv can change: password, email, phone,
-/// two-factor and verification; linked accounts.
-const twitchAccountPages = [
-  (
-    SettingsGlyphKind.shield,
-    'Security and privacy',
-    'Password, email, phone, two-factor — on twitch.tv',
-    '/settings/security',
-  ),
-  (
-    SettingsGlyphKind.link,
-    'Connections',
-    'Linked accounts — on twitch.tv',
-    '/settings/connections',
-  ),
-];
+/// two-factor and verification; linked accounts. Named in
+/// lib/l10n/enum_labels.dart.
+enum TwitchAccountPage {
+  security(SettingsGlyphKind.shield, '/settings/security'),
+  connections(SettingsGlyphKind.link, '/settings/connections');
+
+  const TwitchAccountPage(this.glyph, this.path);
+
+  final SettingsGlyphKind glyph;
+
+  /// Its path on www.twitch.tv.
+  final String path;
+}
 
 /// Settings › Account: who is
 /// logged in, their channel and blocked users, their twitch.tv pages, and
@@ -49,6 +48,7 @@ class AccountSettings extends StatelessWidget {
           return const SizedBox.shrink();
         }
         final colors = SettingsColors.of(context);
+        final l = context.l10n;
         return SettingsGroupsView(
           children: [
             SettingsGroup(
@@ -80,7 +80,7 @@ class AccountSettings extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              accountLine(details),
+                              accountLine(l, details),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -98,17 +98,17 @@ class AccountSettings extends StatelessWidget {
               ],
             ),
             SettingsGroup(
-              title: 'Your account',
+              title: l.settingsYourAccount,
               children: [
                 SettingsRow(
                   glyph: SettingsGlyphKind.user,
-                  title: 'My channel',
+                  title: l.settingsMyChannel,
                   end: SettingsRowEnd.chevron,
                   onTap: () => openMyChannel(context, authStore),
                 ),
                 SettingsRow(
                   glyph: SettingsGlyphKind.ban,
-                  title: 'Blocked users',
+                  title: l.settingsPageBlocked,
                   value: '${authStore.user.blockedUsers.length}',
                   end: SettingsRowEnd.chevron,
                   onTap: () => openBlockedUsers(context, authStore),
@@ -116,14 +116,14 @@ class AccountSettings extends StatelessWidget {
               ],
             ),
             SettingsGroup(
-              title: 'On twitch.tv',
+              title: l.settingsOnTwitch,
               children: [
-                for (final (glyph, title, _, path) in twitchAccountPages)
+                for (final page in TwitchAccountPage.values)
                   SettingsRow(
-                    glyph: glyph,
-                    title: title,
+                    glyph: page.glyph,
+                    title: page.title(l),
                     end: SettingsRowEnd.external,
-                    onTap: () => openTwitchAccountPage(context, title, path),
+                    onTap: () => openTwitchAccountPage(context, page),
                   ),
               ],
             ),
@@ -131,7 +131,7 @@ class AccountSettings extends StatelessWidget {
               children: [
                 SettingsRow(
                   glyph: SettingsGlyphKind.logout,
-                  title: 'Log out',
+                  title: l.settingsLogOut,
                   danger: true,
                   onTap: () async {
                     final out = await confirmLogout(context, authStore);
@@ -160,17 +160,17 @@ bool hasAccount(AuthStore authStore) =>
     authStore.isLoggedIn &&
     authStore.user.details != null;
 
-/// "@login · Joined March 2019".
-String accountLine(UserTwitch user) {
-  final joined = joinedText(user);
+/// "@login · Joined March 2019", in [l]'s language.
+String accountLine(AppLocalizations l, UserTwitch user) {
+  final joined = joinedText(l, user);
   return joined == null ? '@${user.login}' : '@${user.login} · $joined';
 }
 
-/// "Joined March 2019", when Twitch said when.
-String? joinedText(UserTwitch user) {
+/// "Joined March 2019" in [l]'s language, when Twitch said when.
+String? joinedText(AppLocalizations l, UserTwitch user) {
   final created = user.createdAt;
   if (created == null) return null;
-  return 'Joined ${DateFormat.yMMMM().format(created.toLocal())}';
+  return l.settingsJoined(date: created.toLocal());
 }
 
 /// The viewer's picture from their account (no request of its own), or
@@ -248,20 +248,20 @@ void openBlockedUsers(BuildContext context, AuthStore authStore) =>
 
 /// One of Twitch's own account pages, signed in (the app has no API for
 /// these).
-void openTwitchAccountPage(BuildContext context, String title, String path) =>
+void openTwitchAccountPage(BuildContext context, TwitchAccountPage page) =>
     TwitchWebPage.open(
       context,
-      title: title,
-      url: Uri.https('www.twitch.tv', path),
+      title: page.title(context.l10n),
+      url: Uri.https('www.twitch.tv', page.path),
     );
 
 /// Asks before logging out; true when the viewer logged out.
 Future<bool> confirmLogout(BuildContext context, AuthStore authStore) async {
   final confirmed = await confirmSettingsAction(
     context,
-    title: 'Log out',
-    message: 'Are you sure you want to log out?',
-    confirm: 'Log out',
+    title: context.l10n.settingsLogOutTitle,
+    message: context.l10n.settingsLogOutMessage,
+    confirm: context.l10n.settingsLogOut,
   );
   if (!confirmed) return false;
   authStore.logout();
@@ -297,6 +297,7 @@ class ProfileLoginCard extends StatelessWidget {
     return Observer(
       builder: (context) {
         final colors = SettingsColors.of(context);
+        final l = context.l10n;
         final error = authStore.error != null;
         final disc = Container(
           width: 60,
@@ -331,7 +332,9 @@ class ProfileLoginCard extends StatelessWidget {
                   Semantics(
                     header: true,
                     child: Text(
-                      error ? 'Unable to connect to Twitch' : 'Anonymous',
+                      error
+                          ? l.settingsUnableToReachTwitch
+                          : l.settingsAnonymous,
                       style: TextStyle(
                         fontFamily: OnsetTokens.bodyFamily,
                         fontSize: error ? 20 : 24,
@@ -344,8 +347,8 @@ class ProfileLoginCard extends StatelessWidget {
                   ),
                   Text(
                     error
-                        ? 'Check your connection, then try again'
-                        : 'Watching without an account',
+                        ? l.settingsCheckConnection
+                        : l.settingsWatchingWithoutAccount,
                     style: TextStyle(
                       fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 13,
@@ -362,7 +365,7 @@ class ProfileLoginCard extends StatelessWidget {
           body = [
             heading,
             SettingsButton(
-              label: 'Reconnect',
+              label: l.settingsReconnect,
               large: true,
               expand: true,
               icon: SettingsGlyph(
@@ -377,12 +380,11 @@ class ProfileLoginCard extends StatelessWidget {
           body = [
             heading,
             Text(
-              'Log in to enable the ability to chat, view followed streams, '
-              'and more.',
+              l.settingsLoginPitch,
               style: SettingsText.body.copyWith(color: colors.body),
             ),
             SettingsButton(
-              label: 'Connect with Twitch',
+              label: l.commonConnectWithTwitch,
               tone: SettingsButtonTone.primary,
               large: true,
               expand: true,
@@ -394,9 +396,7 @@ class ProfileLoginCard extends StatelessWidget {
               onPressed: () => openLogin(context),
             ),
             Text(
-              'ONSET only asks for the necessary permissions through the '
-              "official Twitch API. You'll be able to review them before "
-              'authorizing.',
+              l.settingsLoginDisclaimer,
               style: TextStyle(
                 fontFamily: OnsetTokens.bodyFamily,
                 fontSize: 12,
@@ -415,7 +415,7 @@ class ProfileLoginCard extends StatelessWidget {
                 ),
               ),
               child: Text(
-                'Have a token copied? Long-press this card to log in with it.',
+                l.settingsTokenLoginTip,
                 style: TextStyle(
                   fontFamily: OnsetTokens.bodyFamily,
                   fontSize: 12,
@@ -427,7 +427,7 @@ class ProfileLoginCard extends StatelessWidget {
           ];
         }
         return Semantics(
-          onLongPressHint: error ? null : 'log in with a copied token',
+          onLongPressHint: error ? null : l.settingsTokenLoginHint,
           child: GestureDetector(
             behavior: HitTestBehavior.translucent,
             onLongPress: error ? null : () => loginFromClipboard(authStore),

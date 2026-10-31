@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/enum_labels.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/accent_color_setting.dart';
@@ -23,56 +24,59 @@ class GeneralSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Observer(
-      builder: (context) => SettingsGroupsView(
-        children: [
-          SettingsGroup(
-            title: context.l10n.settingsLanguageTitle,
-            children: [LanguageSetting(settingsStore: settingsStore)],
-          ),
-          SettingsGroup(
-            title: 'Theme',
-            children: [
-              ThemeSelectionSetting(settingsStore: settingsStore),
-              AccentColorSetting(settingsStore: settingsStore),
-            ],
-          ),
-          SettingsGroup(
-            title: 'Stream card',
-            children: [
-              SettingsListSwitch(
-                title: 'Use large stream card',
-                value: settingsStore.largeStreamCard,
-                onChanged: (newValue) =>
-                    settingsStore.largeStreamCard = newValue,
-              ),
-              SettingsListSwitch(
-                title: 'Show thumbnail',
-                value: settingsStore.showThumbnails,
-                onChanged: (newValue) =>
-                    settingsStore.showThumbnails = newValue,
-              ),
-            ],
-          ),
-          SettingsGroup(
-            title: 'Browse',
-            children: [
-              SettingsListSelect(
-                title: 'Open the app on',
-                selectedOption: settingsStore.startTab.label,
-                options: [for (final tab in HomeTab.values) tab.label],
-                onChanged: (label) => settingsStore.startTab = HomeTab.values
-                    .firstWhere((tab) => tab.label == label),
-              ),
-              StreamLanguageSetting(settingsStore: settingsStore),
-              HiddenContentLabelsSetting(settingsStore: settingsStore),
-            ],
-          ),
-          SettingsGroup(
-            title: 'Links',
-            children: [ExternalBrowserSetting(settingsStore: settingsStore)],
-          ),
-        ],
-      ),
+      builder: (context) {
+        final l = context.l10n;
+        return SettingsGroupsView(
+          children: [
+            SettingsGroup(
+              title: l.settingsLanguageTitle,
+              children: [LanguageSetting(settingsStore: settingsStore)],
+            ),
+            SettingsGroup(
+              title: l.settingsTheme,
+              children: [
+                ThemeSelectionSetting(settingsStore: settingsStore),
+                AccentColorSetting(settingsStore: settingsStore),
+              ],
+            ),
+            SettingsGroup(
+              title: l.settingsStreamCard,
+              children: [
+                SettingsListSwitch(
+                  title: l.settingsLargeStreamCard,
+                  value: settingsStore.largeStreamCard,
+                  onChanged: (newValue) =>
+                      settingsStore.largeStreamCard = newValue,
+                ),
+                SettingsListSwitch(
+                  title: l.settingsShowThumbnail,
+                  value: settingsStore.showThumbnails,
+                  onChanged: (newValue) =>
+                      settingsStore.showThumbnails = newValue,
+                ),
+              ],
+            ),
+            SettingsGroup(
+              title: l.settingsBrowse,
+              children: [
+                SettingsListSelect(
+                  title: l.settingsStartTab,
+                  value: settingsStore.startTab,
+                  values: HomeTab.values,
+                  labelOf: (tab) => tab.label(l),
+                  onChanged: (tab) => settingsStore.startTab = tab,
+                ),
+                StreamLanguageSetting(settingsStore: settingsStore),
+                HiddenContentLabelsSetting(settingsStore: settingsStore),
+              ],
+            ),
+            SettingsGroup(
+              title: l.settingsLinks,
+              children: [ExternalBrowserSetting(settingsStore: settingsStore)],
+            ),
+          ],
+        );
+      },
     );
   }
 }

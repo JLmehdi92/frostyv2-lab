@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
@@ -333,7 +335,9 @@ class _Legend extends StatelessWidget {
           Text(
             upNext == VodAutoplay.never
                 ? 'Up Next at the end'
-                : 'Up Next at the end · ${upNext.label}',
+                // English, like the rest of the panel, until it is
+                // translated.
+                : 'Up Next at the end · ${upNext.label(L10n.english)}',
             style: style,
           ),
       ],

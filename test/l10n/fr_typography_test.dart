@@ -90,6 +90,7 @@ const _properNouns = {
   'ONSET',
   'Hype',
   'Train',
+  'Trains',
   'Kappa',
   'Bits',
   'Prime',
@@ -109,6 +110,11 @@ const _properNouns = {
   'Language',
   'Langue',
   'Internet',
+  'WebView',
+  // Android's French name for the floating video window.
+  'Picture-in-picture',
+  // The megabyte's symbol (« 38,0 Mo »).
+  'Mo',
 };
 
 /// The app's screens and sections, named as their titles read (« dans

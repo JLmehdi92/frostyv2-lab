@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/home/shell/onset_shell.dart';
 import 'package:onset/screens/settings/account/account_settings.dart';
 import 'package:onset/screens/settings/settings.dart';
@@ -95,15 +97,21 @@ class _ProfileTabState extends State<ProfileTab> {
     );
   }
 
-  String _notificationsSummary(bool loggedIn) {
-    if (!loggedIn) return 'Log in to get go-live and mention notifications';
-    final mentions = widget.settingsStore.mentionNotifications ? 'on' : 'off';
+  String _notificationsSummary(AppLocalizations l, bool loggedIn) {
+    if (!loggedIn) return l.settingsSummaryNotificationsLoggedOut;
+    final mentions = _onOff(widget.settingsStore.mentionNotifications);
     final goLive = _goLive;
     if (!widget.goLivePlatform.supported || goLive == null) {
-      return 'Mentions $mentions';
+      return l.settingsSummaryMentions(mentions: mentions);
     }
-    return 'Go-live ${goLive ? 'on' : 'off'} · mentions $mentions';
+    return l.settingsSummaryGoLiveMentions(
+      goLive: _onOff(goLive),
+      mentions: mentions,
+    );
   }
+
+  /// The select value of the summary messages.
+  static String _onOff(bool on) => on ? 'on' : 'off';
 }
 
 class _PhoneProfile extends StatelessWidget {
@@ -115,7 +123,7 @@ class _PhoneProfile extends StatelessWidget {
 
   final SettingsStore settingsStore;
   final AuthStore authStore;
-  final String Function(bool loggedIn) notificationsSummary;
+  final String Function(AppLocalizations l, bool loggedIn) notificationsSummary;
 
   @override
   Widget build(BuildContext context) {
@@ -136,14 +144,17 @@ class _PhoneProfile extends StatelessWidget {
             _SettingsCard(
               settingsStore: settingsStore,
               authStore: authStore,
-              notificationsSummary: notificationsSummary(authStore.isLoggedIn),
+              notificationsSummary: notificationsSummary(
+                context.l10n,
+                authStore.isLoggedIn,
+              ),
             ),
             if (loggedIn)
               SettingsGroup(
                 children: [
                   SettingsRow(
                     glyph: SettingsGlyphKind.logout,
-                    title: 'Log out',
+                    title: context.l10n.settingsLogOut,
                     danger: true,
                     strong: true,
                     onTap: () => confirmLogout(context, authStore),
@@ -188,10 +199,11 @@ class _ProfileHeader extends StatelessWidget {
     final colors = SettingsColors.of(context);
     final ground = Theme.of(context).scaffoldBackgroundColor;
     final details = authStore.user.details!;
-    final joined = joinedText(details);
+    final l = context.l10n;
+    final joined = joinedText(l, details);
     return Semantics(
       container: true,
-      label: 'Your profile',
+      label: l.settingsYourProfile,
       explicitChildNodes: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -272,7 +284,7 @@ class _ProfileHeader extends StatelessWidget {
             children: [
               Expanded(
                 child: SettingsButton(
-                  label: 'My channel',
+                  label: l.settingsMyChannel,
                   expand: true,
                   icon: SettingsGlyph(
                     SettingsGlyphKind.play,
@@ -284,7 +296,7 @@ class _ProfileHeader extends StatelessWidget {
               ),
               Expanded(
                 child: SettingsButton(
-                  label: 'Settings',
+                  label: l.settingsTitle,
                   expand: true,
                   icon: SettingsGlyph(
                     SettingsGlyphKind.general,
@@ -312,24 +324,24 @@ class _AccountCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Observer(
       builder: (context) => SettingsGroup(
-        title: 'Account',
+        title: context.l10n.settingsPageAccount,
         children: [
           SettingsRow(
             glyph: SettingsGlyphKind.ban,
-            title: 'Blocked users',
+            title: context.l10n.settingsPageBlocked,
             strong: true,
             value: '${authStore.user.blockedUsers.length}',
             end: SettingsRowEnd.chevron,
             onTap: () => openBlockedUsers(context, authStore),
           ),
-          for (final (glyph, title, detail, path) in twitchAccountPages)
+          for (final page in TwitchAccountPage.values)
             SettingsRow(
-              glyph: glyph,
-              title: title,
+              glyph: page.glyph,
+              title: page.title(context.l10n),
               strong: true,
-              subtitle: Text(detail),
+              subtitle: Text(page.detail(context.l10n)),
               end: SettingsRowEnd.external,
-              onTap: () => openTwitchAccountPage(context, title, path),
+              onTap: () => openTwitchAccountPage(context, page),
             ),
         ],
       ),
@@ -352,7 +364,7 @@ class _SettingsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SettingsGroup(
-      title: 'Settings',
+      title: context.l10n.settingsTitle,
       children: [
         for (final page in SettingsPageId.sections)
           SettingsSectionRow(

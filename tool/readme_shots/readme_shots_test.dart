@@ -354,7 +354,7 @@ class _FakeAuthStore extends Mock implements AuthStore {
   bool get webSessionExpired => false;
 
   @override
-  String? get tokenNotice => null;
+  TokenNotice? get tokenNotice => null;
 
   @override
   String? get token => null;

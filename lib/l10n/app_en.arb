@@ -22,15 +22,15 @@
   },
   "commonBack": "Back",
   "@commonBack": {
-    "description": "Tooltip of the back chevron (onboarding bar, Twitch login page, sheet sub-views, in-app Twitch pages)."
+    "description": "Tooltip of the back chevron (onboarding bar, Twitch login page, sheet sub-views, in-app Twitch pages, settings pages, release notes), and the label of the tablet settings pane's back button."
   },
   "commonCancel": "Cancel",
   "@commonCancel": {
-    "description": "Button that closes a picker or dialog without keeping the change (accent colour picker)."
+    "description": "Button that closes a picker or dialog without keeping the change: accent colour picker, settings confirmations, the Twitch web token and update dialogs, the muted keywords field."
   },
   "commonDone": "Done",
   "@commonDone": {
-    "description": "Button that closes a picker and keeps the change (accent colour picker)."
+    "description": "Button that closes a picker or a settings list and keeps the change (accent colour pickers, settings sheets)."
   },
   "commonClose": "Close",
   "@commonClose": {
@@ -54,7 +54,7 @@
   },
   "commonConnectWithTwitch": "Connect with Twitch",
   "@commonConnectWithTwitch": {
-    "description": "Button that opens the Twitch login (onboarding Log in step, logged-out screens), and the title of the Twitch login page."
+    "description": "Button that opens the Twitch login (onboarding Log in step, Profile and other logged-out screens), and the title of the Twitch login page."
   },
   "settingsLanguageTitle": "Language",
   "@settingsLanguageTitle": {
@@ -254,15 +254,15 @@
   },
   "themeSystem": "System",
   "@themeSystem": {
-    "description": "The theme that follows the device (onboarding Setup pill)."
+    "description": "The theme that follows the device (onboarding Setup pill, Settings › General › Theme)."
   },
   "themeLight": "Light",
   "@themeLight": {
-    "description": "The light theme (onboarding Setup pill)."
+    "description": "The light theme (onboarding Setup pill, Settings › General › Theme)."
   },
   "themeDark": "Dark",
   "@themeDark": {
-    "description": "The dark theme (onboarding Setup pill)."
+    "description": "The dark theme (onboarding Setup pill, Settings › General › Theme)."
   },
   "onboardingSetupThemeSystemNote": "Follows your device",
   "@onboardingSetupThemeSystemNote": {
@@ -278,7 +278,7 @@
   },
   "accentColorTitle": "Accent color",
   "@accentColorTitle": {
-    "description": "The accent colour row of onboarding Setup, and the title of its colour picker."
+    "description": "The accent colour row (onboarding Setup, Settings › General), and the title of its colour picker."
   },
   "accentColorSemantics": "Accent color, {hex}",
   "@accentColorSemantics": {
@@ -292,7 +292,7 @@
   },
   "accentColorRandom": "Random",
   "@accentColorRandom": {
-    "description": "Accent colour picker: picks a random colour."
+    "description": "Accent colour pickers (onboarding, Settings): picks a random colour."
   },
   "accentSaturationBrightness": "Saturation and brightness",
   "@accentSaturationBrightness": {
@@ -324,11 +324,11 @@
   },
   "onboardingSetupHistoryTitle": "Fallback chat history (third-party)",
   "@onboardingSetupHistoryTitle": {
-    "description": "Onboarding Setup step: the switch that loads recent chat messages from a third party."
+    "description": "The switch that loads recent chat messages from a third party (onboarding Setup step, Settings › Chat › Recent messages)."
   },
   "onboardingSetupHistoryDetail": "When Twitch's own chat history is unavailable, fails or is empty, loads recent messages from {link}, which then receives the channel name.",
   "@onboardingSetupHistoryDetail": {
-    "description": "Onboarding Setup step: the text under the fallback chat history switch. The link is the third party's host, underlined.",
+    "description": "Onboarding Setup step: the text under the fallback chat history switch. The link is the third party's host, underlined. Also under the same switch in Settings › Chat › Recent messages.",
     "placeholders": {
       "link": {
         "type": "String",
@@ -338,11 +338,11 @@
   },
   "onboardingSetupCrashTitle": "Share crash logs and analytics",
   "@onboardingSetupCrashTitle": {
-    "description": "Onboarding Setup step: the crash logs and analytics consent switch."
+    "description": "The crash logs and analytics consent switch (onboarding Setup step, Settings › Other › Privacy)."
   },
   "onboardingSetupCrashDetail": "Help improve ONSET by sending crash logs and analytics through Firebase, without your Twitch account or channels.",
   "@onboardingSetupCrashDetail": {
-    "description": "Onboarding Setup step: the text under the crash logs and analytics switch."
+    "description": "Onboarding Setup step: the text under the crash logs and analytics switch. Also under the same switch in Settings › Other › Privacy."
   },
   "onboardingWelcomeTitle": "Welcome!",
   "@onboardingWelcomeTitle": {
@@ -422,7 +422,7 @@
   },
   "shellSectionBrowse": "Browse",
   "@shellSectionBrowse": {
-    "description": "The Browse section of the bottom bar (tablet: the top pill), and Browse's header title."
+    "description": "The Browse section of the bottom bar (tablet: the top pill), and Browse's header title. Also an option of Settings › General › « Open the app on »."
   },
   "shellSectionActivity": "Activity",
   "@shellSectionActivity": {
@@ -444,15 +444,15 @@
   },
   "shellFeedFollowing": "Following",
   "@shellFeedFollowing": {
-    "description": "Home's top tab of the followed channels that are live."
+    "description": "Home's top tab of the followed channels that are live. Also an option of Settings › General › « Open the app on »."
   },
   "shellFeedLive": "Live",
   "@shellFeedLive": {
-    "description": "Home's top tab of the top live streams."
+    "description": "Home's top tab of the top live streams. Also an option of Settings › General › « Open the app on »."
   },
   "shellFeedClips": "Clips",
   "@shellFeedClips": {
-    "description": "Home's top tab of the clips feed."
+    "description": "Home's top tab of the clips feed. Also an option of Settings › General › « Open the app on »."
   },
   "shellBrowseCategories": "Categories",
   "@shellBrowseCategories": {
@@ -672,6 +672,1583 @@
   },
   "releaseNotesEarlierVersions": "Earlier versions",
   "@releaseNotesEarlierVersions": {
-    "description": "Release notes on a phone: the heading of the older versions."
+    "description": "Release notes on a phone: the heading of the older versions. Opened from Settings, or after an update to the newest entry."
+  },
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "Title of the settings page, its section label in Profile and on the tablet side column, and the button that opens it on Profile."
+  },
+  "settingsCustomize": "Customize",
+  "@settingsCustomize": {
+    "description": "Phone settings: the label of the group of sections (General, Video, Chat, Notifications)."
+  },
+  "settingsSectionsSemantics": "Settings sections",
+  "@settingsSectionsSemantics": {
+    "description": "What a screen reader calls the tablet settings' side column."
+  },
+  "settingsJumpToGroup": "Jump to a group",
+  "@settingsJumpToGroup": {
+    "description": "What a screen reader calls the row of chips that scroll a tablet settings page to one of its groups."
+  },
+  "settingsPageGeneral": "General",
+  "@settingsPageGeneral": {
+    "description": "The General settings page: its row, title and side column entry. French: exactly « Général », other messages cite it."
+  },
+  "settingsPageGeneralDescription": "Theme, stream cards, browsing and links",
+  "@settingsPageGeneralDescription": {
+    "description": "Tablet: the line under the General settings page title."
+  },
+  "settingsPageVideo": "Video",
+  "@settingsPageVideo": {
+    "description": "The Video settings page: its row, title and side column entry."
+  },
+  "settingsPageVideoDescription": "The low-latency player, playback, overlay, videos and captions",
+  "@settingsPageVideoDescription": {
+    "description": "Tablet: the line under the Video settings page title."
+  },
+  "settingsPageChat": "Chat",
+  "@settingsPageChat": {
+    "description": "The Chat settings page: its row, title and side column entry; also a group of Settings › Notifications."
+  },
+  "settingsPageChatDescription": "How chat looks, waits, alerts and filters",
+  "@settingsPageChatDescription": {
+    "description": "Tablet: the line under the Chat settings page title."
+  },
+  "settingsPageNotifications": "Notifications",
+  "@settingsPageNotifications": {
+    "description": "The Notifications settings page: its row, title and side column entry."
+  },
+  "settingsPageNotificationsDescription": "Go-live and chat mention notifications",
+  "@settingsPageNotificationsDescription": {
+    "description": "Tablet: the line under the Notifications settings page title."
+  },
+  "settingsPageOther": "Other",
+  "@settingsPageOther": {
+    "description": "The Other settings page (updates, storage, privacy, about): its row, title and side column entry. French: exactly « Autres », other messages cite it."
+  },
+  "settingsPageOtherDescription": "Updates, storage, privacy and about",
+  "@settingsPageOtherDescription": {
+    "description": "Tablet: the line under the Other settings page title."
+  },
+  "settingsPageAccount": "Account",
+  "@settingsPageAccount": {
+    "description": "The Account settings page (the viewer's Twitch account): its title and side column entry, and its group label in Profile and on the tablet side column."
+  },
+  "settingsPageAccountDescription": "Your Twitch account in ONSET",
+  "@settingsPageAccountDescription": {
+    "description": "Tablet: the line under the Account settings page title."
+  },
+  "settingsPageBlocked": "Blocked users",
+  "@settingsPageBlocked": {
+    "description": "The blocked users page: its title, side column entry and the rows that open it (Profile, Account)."
+  },
+  "settingsPageBlockedDescription": "People you blocked on Twitch",
+  "@settingsPageBlockedDescription": {
+    "description": "Tablet: the line under the blocked users page title."
+  },
+  "settingsPageChatFilters": "Edit Chat Filters",
+  "@settingsPageChatFilters": {
+    "description": "Settings › Chat: the row that opens the chat filters, and that page's title."
+  },
+  "settingsSummaryGeneral": "Theme, accent color, browse, links",
+  "@settingsSummaryGeneral": {
+    "description": "Profile and phone settings: the line under the General section."
+  },
+  "settingsSummaryVideo": "Low-latency player, captions, overlay",
+  "@settingsSummaryVideo": {
+    "description": "Profile and phone settings: the line under the Video section."
+  },
+  "settingsSummaryChat": "Sizing, alerts, filters, emotes",
+  "@settingsSummaryChat": {
+    "description": "Profile and phone settings: the line under the Chat section."
+  },
+  "settingsSummaryNotifications": "Go-live and chat mentions",
+  "@settingsSummaryNotifications": {
+    "description": "Phone settings, logged in: the line under the Notifications section."
+  },
+  "settingsSummaryNotificationsLoggedOut": "Log in to get go-live and mention notifications",
+  "@settingsSummaryNotificationsLoggedOut": {
+    "description": "Profile and phone settings, logged out: the line under the Notifications section."
+  },
+  "settingsSummaryOther": "Updates, cache, privacy, about",
+  "@settingsSummaryOther": {
+    "description": "Profile and phone settings: the line under the Other section."
+  },
+  "settingsSummaryMentions": "{mentions, select, on{Mentions on} other{Mentions off}}",
+  "@settingsSummaryMentions": {
+    "description": "Profile: the line under the Notifications section where go-live notifications do not exist (not Android). mentions is on or off.",
+    "placeholders": {
+      "mentions": {
+        "type": "String",
+        "example": "on"
+      }
+    }
+  },
+  "settingsSummaryGoLiveMentions": "{goLive, select, on{Go-live on} other{Go-live off}} · {mentions, select, on{mentions on} other{mentions off}}",
+  "@settingsSummaryGoLiveMentions": {
+    "description": "Profile: the line under the Notifications section: whether go-live and chat mention notifications are on. goLive and mentions are on or off.",
+    "placeholders": {
+      "goLive": {
+        "type": "String",
+        "example": "on"
+      },
+      "mentions": {
+        "type": "String",
+        "example": "off"
+      }
+    }
+  },
+  "settingsUnableToReachTwitch": "Unable to connect to Twitch",
+  "@settingsUnableToReachTwitch": {
+    "description": "Phone settings account card and Profile, when Twitch cannot be reached (a network problem, not a login)."
+  },
+  "settingsCheckConnection": "Check your connection, then try again",
+  "@settingsCheckConnection": {
+    "description": "Under « Unable to connect to Twitch » (phone settings account card, Profile)."
+  },
+  "settingsReconnect": "Reconnect",
+  "@settingsReconnect": {
+    "description": "Button that tries to reach Twitch again (phone settings account card, Profile)."
+  },
+  "settingsAccountCardDetail": "Blocked users, twitch.tv, log out",
+  "@settingsAccountCardDetail": {
+    "description": "Phone settings account card, logged in: the line under the name (what the account page holds)."
+  },
+  "settingsAnonymous": "Anonymous",
+  "@settingsAnonymous": {
+    "description": "Phone settings account card and Profile, logged out: the title in place of a name."
+  },
+  "settingsWatchingWithoutAccount": "Watching without an account",
+  "@settingsWatchingWithoutAccount": {
+    "description": "Profile, logged out: the line under « Anonymous »."
+  },
+  "settingsLoginPitch": "Log in to enable the ability to chat, view followed streams, and more.",
+  "@settingsLoginPitch": {
+    "description": "Phone settings account card and Profile, logged out: why to log in."
+  },
+  "settingsLoginDisclaimer": "ONSET only asks for the necessary permissions through the official Twitch API. You'll be able to review them before authorizing.",
+  "@settingsLoginDisclaimer": {
+    "description": "Profile, logged out: the note under « Connect with Twitch »."
+  },
+  "settingsTokenLoginTip": "Have a token copied? Long-press this card to log in with it.",
+  "@settingsTokenLoginTip": {
+    "description": "Profile, logged out: the tip at the end of the login card (a long press logs in with a copied token)."
+  },
+  "settingsTokenLoginHint": "log in with a copied token",
+  "@settingsTokenLoginHint": {
+    "description": "What a screen reader says a long press on the Profile login card does (lower case: it follows « double tap and hold to »)."
+  },
+  "settingsYourAccount": "Your account",
+  "@settingsYourAccount": {
+    "description": "Settings › Account: the group with « My channel » and « Blocked users »."
+  },
+  "settingsMyChannel": "My channel",
+  "@settingsMyChannel": {
+    "description": "Opens the viewer's own channel (Settings › Account, Profile, tablet side column)."
+  },
+  "settingsOnTwitch": "On twitch.tv",
+  "@settingsOnTwitch": {
+    "description": "Settings › Account: the group of Twitch's own account pages."
+  },
+  "settingsTwitchSecurity": "Security and privacy",
+  "@settingsTwitchSecurity": {
+    "description": "Settings › Account and Profile: opens Twitch's security and privacy page, and that page's title."
+  },
+  "settingsTwitchSecurityDetail": "Password, email, phone, two-factor — on twitch.tv",
+  "@settingsTwitchSecurityDetail": {
+    "description": "Profile: the line under « Security and privacy »."
+  },
+  "settingsTwitchConnections": "Connections",
+  "@settingsTwitchConnections": {
+    "description": "Settings › Account and Profile: opens Twitch's connections page (linked accounts), and that page's title. French: Twitch's own name for that page."
+  },
+  "settingsTwitchConnectionsDetail": "Linked accounts — on twitch.tv",
+  "@settingsTwitchConnectionsDetail": {
+    "description": "Profile: the line under « Connections »."
+  },
+  "settingsLogOut": "Log out",
+  "@settingsLogOut": {
+    "description": "The row or button that logs out (Settings › Account, Profile, tablet side column), and the button that confirms it."
+  },
+  "settingsLogOutTitle": "Log out",
+  "@settingsLogOutTitle": {
+    "description": "Title of the dialog that asks before logging out."
+  },
+  "settingsLogOutMessage": "Are you sure you want to log out?",
+  "@settingsLogOutMessage": {
+    "description": "Text of the dialog that asks before logging out."
+  },
+  "settingsJoined": "Joined {date}",
+  "@settingsJoined": {
+    "description": "Under the viewer's name (Settings › Account, Profile): when the Twitch account was created, as month and year.",
+    "placeholders": {
+      "date": {
+        "type": "DateTime",
+        "format": "yMMMM",
+        "example": "2019-03-01"
+      }
+    }
+  },
+  "settingsYourProfile": "Your profile",
+  "@settingsYourProfile": {
+    "description": "What a screen reader calls the head of Profile (picture, name, buttons)."
+  },
+  "settingsUnblock": "Unblock",
+  "@settingsUnblock": {
+    "description": "The button that unblocks someone (blocked users page), and the title of the dialog that asks first."
+  },
+  "settingsUnblockName": "Unblock {name}",
+  "@settingsUnblockName": {
+    "description": "What a screen reader says for the « Unblock » button of a blocked user.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "JLTomy"
+      }
+    }
+  },
+  "settingsUnblockMessage": "Are you sure you want to unblock \"{name}\"?",
+  "@settingsUnblockMessage": {
+    "description": "Text of the dialog that asks before unblocking someone.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "JLTomy"
+      }
+    }
+  },
+  "settingsBlock": "Block",
+  "@settingsBlock": {
+    "description": "Title of the dialog that asks before blocking someone (from a channel or a chat user card)."
+  },
+  "settingsBlockMessage": "Are you sure you want to block \"{name}\"? This will remove them from channel lists, search results, and chat messages.",
+  "@settingsBlockMessage": {
+    "description": "Text of the dialog that asks before blocking someone.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "JLTomy"
+      }
+    }
+  },
+  "commonYes": "Yes",
+  "@commonYes": {
+    "description": "The button that confirms a block or an unblock."
+  },
+  "settingsNoBlockedUsers": "No blocked users",
+  "@settingsNoBlockedUsers": {
+    "description": "The blocked users page when there are none."
+  },
+  "settingsBlockedCount": "{count, plural, other{{count} blocked}}",
+  "@settingsBlockedCount": {
+    "description": "The blocked users page: the label above the list (shown in capitals).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "settingsBlockedNote": "Blocked users are removed from channel lists, search results, and chat messages. Pull down to refresh.",
+  "@settingsBlockedNote": {
+    "description": "The blocked users page: the note under the list."
+  },
+  "authForeignTokenNotice": "This token was created for another app — some features may not work.",
+  "@authForeignTokenNotice": {
+    "description": "Snackbar shown once when the session's Twitch token belongs to another app."
+  },
+  "authSessionEndedNotice": "Your Twitch session has ended. Log in again from Settings.",
+  "@authSessionEndedNotice": {
+    "description": "Snackbar shown once when Twitch refused the stored login at launch."
+  },
+  "settingsTheme": "Theme",
+  "@settingsTheme": {
+    "description": "Settings › General: the theme group, and what a screen reader calls its pill."
+  },
+  "settingsAccentColorChange": "Change accent color",
+  "@settingsAccentColorChange": {
+    "description": "What a screen reader says for the accent colour row of Settings › General (it opens the picker)."
+  },
+  "settingsAccentColorLive": "Applies everywhere as you pick",
+  "@settingsAccentColorLive": {
+    "description": "Accent colour picker of Settings: the line under the colour code."
+  },
+  "settingsStreamCard": "Stream card",
+  "@settingsStreamCard": {
+    "description": "Settings › General: the group about the cards of live channels."
+  },
+  "settingsLargeStreamCard": "Use large stream card",
+  "@settingsLargeStreamCard": {
+    "description": "Settings › General › Stream card: the switch for the large card."
+  },
+  "settingsShowThumbnail": "Show thumbnail",
+  "@settingsShowThumbnail": {
+    "description": "Settings › General › Stream card: the switch that shows the stream picture."
+  },
+  "settingsBrowse": "Browse",
+  "@settingsBrowse": {
+    "description": "Settings › General: the browsing group."
+  },
+  "settingsStartTab": "Open the app on",
+  "@settingsStartTab": {
+    "description": "Settings › General › Browse: the choice of where the app opens (Following, Live, Clips, Browse)."
+  },
+  "settingsLinks": "Links",
+  "@settingsLinks": {
+    "description": "Settings › General: the links group."
+  },
+  "settingsExternalBrowser": "Open links in external browser",
+  "@settingsExternalBrowser": {
+    "description": "Settings › General › Links: the switch that opens links outside the app."
+  },
+  "settingsStreamLanguage": "Stream language",
+  "@settingsStreamLanguage": {
+    "description": "Settings › General › Browse: the row that filters live channels by language, its list's title, and what a screen reader calls that list."
+  },
+  "streamLanguageAll": "All languages",
+  "@streamLanguageAll": {
+    "description": "Stream language filter (Settings › General › Browse): no filter."
+  },
+  "streamLanguageOther": "Other",
+  "@streamLanguageOther": {
+    "description": "Stream language filter (Settings › General › Browse): streams in a language not listed."
+  },
+  "settingsHideLabeled": "Hide labeled streams",
+  "@settingsHideLabeled": {
+    "description": "Settings › General › Browse: the row that hides streams with content classification labels, and its list's title."
+  },
+  "settingsHideLabeledValue": "{count, plural, =0{None} other{{count} labels}}",
+  "@settingsHideLabeledValue": {
+    "description": "Settings › General › Browse: the value of « Hide labeled streams » when none or several labels are hidden (one label shows its name instead).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "settingsHideLabeledNote": "Streams with these labels are left out of Top, categories and tags. Followed channels always show.",
+  "@settingsHideLabeledNote": {
+    "description": "The list of content labels to hide: the note under its title."
+  },
+  "contentLabelDrugs": "Drugs, Intoxication, or Excessive Tobacco Use",
+  "@contentLabelDrugs": {
+    "description": "Twitch's content classification label (Settings › General › Hide labeled streams, the mature content warning)."
+  },
+  "contentLabelSexualThemes": "Sexual Themes",
+  "@contentLabelSexualThemes": {
+    "description": "Twitch's content classification label."
+  },
+  "contentLabelViolentGraphic": "Violent and Graphic Depictions",
+  "@contentLabelViolentGraphic": {
+    "description": "Twitch's content classification label."
+  },
+  "contentLabelGambling": "Gambling",
+  "@contentLabelGambling": {
+    "description": "Twitch's content classification label."
+  },
+  "contentLabelProfanity": "Significant Profanity or Vulgarity",
+  "@contentLabelProfanity": {
+    "description": "Twitch's content classification label."
+  },
+  "contentLabelMatureGame": "Mature-Rated Game",
+  "@contentLabelMatureGame": {
+    "description": "Twitch's content classification label."
+  },
+  "contentLabelPolitics": "Politics and Sensitive Social Issues",
+  "@contentLabelPolitics": {
+    "description": "Twitch's content classification label."
+  },
+  "settingsLowLatencyPlayer": "Low-latency player",
+  "@settingsLowLatencyPlayer": {
+    "description": "Settings › Video (Android): the group of the Amazon IVS player's settings."
+  },
+  "settingsLowLatencyPlayerSwitch": "Low-latency player (Amazon IVS)",
+  "@settingsLowLatencyPlayerSwitch": {
+    "description": "Settings › Video › Low-latency player: the switch between the Amazon IVS player and the Twitch web player."
+  },
+  "settingsLowLatencyPlayerDetail": "Plays the stream with the Amazon IVS player, built on the same video technology as Twitch, for low latency. Turn off to use the original Twitch web player.",
+  "@settingsLowLatencyPlayerDetail": {
+    "description": "Settings › Video › Low-latency player: what the switch does."
+  },
+  "settingsAutoLatency": "Auto latency",
+  "@settingsAutoLatency": {
+    "description": "Settings › Video › Low-latency player: the switch that keeps the stream close to live by playing slightly faster."
+  },
+  "settingsAutoLatencyDetail": "Keeps the stream close to live by playing very slightly faster when it drifts behind, without reloading it. If Ultra keeps stalling, the next streams use Standard for a while. Applies the next time a stream is opened.",
+  "@settingsAutoLatencyDetail": {
+    "description": "Settings › Video › Low-latency player: what « Auto latency » does. Ultra and Standard are the buffer profiles."
+  },
+  "settingsLiveCatchUp": "Live catch-up",
+  "@settingsLiveCatchUp": {
+    "description": "Settings › Video › Low-latency player: how the player gets back to live after falling behind."
+  },
+  "settingsLiveCatchUpDetail": "Speed up plays slightly faster until it is back at live (Auto latency does it when on). Jump to live skips ahead after a stall. Applies the next time a stream is opened.",
+  "@settingsLiveCatchUpDetail": {
+    "description": "Settings › Video › Low-latency player: what the two « Live catch-up » options do. Starts with the options' names (liveCatchUpSpeedUp, liveCatchUpJumpToLive)."
+  },
+  "liveCatchUpSpeedUp": "Speed up",
+  "@liveCatchUpSpeedUp": {
+    "description": "Live catch-up option (Settings › Video): play slightly faster until back at live. Also in the live video stats."
+  },
+  "liveCatchUpJumpToLive": "Jump to live",
+  "@liveCatchUpJumpToLive": {
+    "description": "Live catch-up option (Settings › Video): skip to live after a stall. Also in the live video stats."
+  },
+  "settingsBufferProfile": "Buffer profile",
+  "@settingsBufferProfile": {
+    "description": "Settings › Video › Low-latency player: how much video the player keeps ahead."
+  },
+  "settingsBufferProfileDetail": "Ultra keeps an even smaller buffer for lower latency but may rebuffer more on weak connections. Applies the next time a stream is opened.",
+  "@settingsBufferProfileDetail": {
+    "description": "Settings › Video › Low-latency player: what the « Ultra » buffer profile changes."
+  },
+  "bufferProfileStandard": "Standard",
+  "@bufferProfileStandard": {
+    "description": "Buffer profile option (Settings › Video): the player's default buffer. Also in the live video stats."
+  },
+  "bufferProfileUltra": "Ultra",
+  "@bufferProfileUltra": {
+    "description": "Buffer profile option (Settings › Video): an even smaller buffer. Also in the live video stats."
+  },
+  "playerConfigAuto": "Auto",
+  "@playerConfigAuto": {
+    "description": "Live video stats, « Mode »: auto latency with « Speed up » catch-up."
+  },
+  "playerConfigJumpToLiveAuto": "Jump to live + auto",
+  "@playerConfigJumpToLiveAuto": {
+    "description": "Live video stats, « Mode »: auto latency with « Jump to live » catch-up."
+  },
+  "playerConfigUltraStalled": "{mode} · {buffer} (Ultra stalled)",
+  "@playerConfigUltraStalled": {
+    "description": "Live video stats, « Mode »: the catch-up and the buffer profile, when the player went back to Standard because Ultra kept stalling.",
+    "placeholders": {
+      "mode": {
+        "type": "String",
+        "example": "Auto"
+      },
+      "buffer": {
+        "type": "String",
+        "example": "Standard"
+      }
+    }
+  },
+  "settingsPlayback": "Playback",
+  "@settingsPlayback": {
+    "description": "Settings › Video: the playback group."
+  },
+  "settingsEnableVideo": "Enable video",
+  "@settingsEnableVideo": {
+    "description": "Settings › Video › Playback: the switch that shows the video above the chat."
+  },
+  "settingsHighestQuality": "Default to highest quality",
+  "@settingsHighestQuality": {
+    "description": "Settings › Video › Playback: the switch that starts streams at their best quality."
+  },
+  "settingsFastRendering": "Use fast video rendering",
+  "@settingsFastRendering": {
+    "description": "Settings › Video › Playback (Android): the switch for the faster WebView rendering."
+  },
+  "settingsFastRenderingDetail": "Uses a faster WebView rendering method. Disable if you experience crashes while watching streams.",
+  "@settingsFastRenderingDetail": {
+    "description": "Settings › Video › Playback: what « Use fast video rendering » does."
+  },
+  "settingsKeepAwake": "Keep screen awake",
+  "@settingsKeepAwake": {
+    "description": "Settings › Video › Playback: the switch that keeps the screen on."
+  },
+  "settingsKeepAwakeDetail": "Prevents the screen from sleeping while a channel is open.",
+  "@settingsKeepAwakeDetail": {
+    "description": "Settings › Video › Playback: what « Keep screen awake » does."
+  },
+  "settingsBackgroundAudio": "Background audio",
+  "@settingsBackgroundAudio": {
+    "description": "Settings › Video › Playback (Android): the switch that keeps the sound playing outside the app."
+  },
+  "settingsBackgroundAudioDetail": "Keeps a live stream playing when you leave the app or turn off the screen, with media controls in a notification.",
+  "@settingsBackgroundAudioDetail": {
+    "description": "Settings › Video › Playback: what « Background audio » does."
+  },
+  "settingsOverlay": "Overlay",
+  "@settingsOverlay": {
+    "description": "Settings › Video: the group about the controls drawn over the video."
+  },
+  "settingsCustomOverlay": "Use custom video overlay",
+  "@settingsCustomOverlay": {
+    "description": "Settings › Video › Overlay: the switch for ONSET's own controls over the video."
+  },
+  "settingsCustomOverlayDetail": "Replaces Twitch's default web overlay with a mobile-friendly version.",
+  "@settingsCustomOverlayDetail": {
+    "description": "Settings › Video › Overlay: what « Use custom video overlay » does."
+  },
+  "settingsToggleOverlay": "Long-press player to toggle overlay",
+  "@settingsToggleOverlay": {
+    "description": "Settings › Video › Overlay: the switch that lets a long press on the player switch overlays."
+  },
+  "settingsToggleOverlayDetail": "Allows switching between Twitch's overlay and the custom overlay.",
+  "@settingsToggleOverlayDetail": {
+    "description": "Settings › Video › Overlay: what the long-press switch does."
+  },
+  "settingsShowLatency": "Show latency",
+  "@settingsShowLatency": {
+    "description": "Settings › Video › Overlay: the switch that shows the delay behind live in the player."
+  },
+  "settingsShowLatencyDetail": "Displays the stream latency in the video overlay. With the low-latency player, tap it to show live video stats.",
+  "@settingsShowLatencyDetail": {
+    "description": "Settings › Video › Overlay: what « Show latency » does."
+  },
+  "settingsVideosAndContent": "Videos and content",
+  "@settingsVideosAndContent": {
+    "description": "Settings › Video: the group about past broadcasts and mature content."
+  },
+  "settingsVodAutoplay": "Video Autoplaying",
+  "@settingsVodAutoplay": {
+    "description": "Settings › Video › Videos and content: when the next video plays by itself."
+  },
+  "settingsVodAutoplayDetail": "Choose when videos should play automatically",
+  "@settingsVodAutoplayDetail": {
+    "description": "Settings › Video › Videos and content: the line under the autoplay options."
+  },
+  "vodAutoplayAlways": "Mobile data & Wi-Fi",
+  "@vodAutoplayAlways": {
+    "description": "Video autoplay option (Settings › Video), with Twitch's wording: always."
+  },
+  "vodAutoplayWifiOnly": "Wi-Fi Only",
+  "@vodAutoplayWifiOnly": {
+    "description": "Video autoplay option (Settings › Video): only on Wi-Fi."
+  },
+  "vodAutoplayNever": "Never",
+  "@vodAutoplayNever": {
+    "description": "Video autoplay option (Settings › Video): never."
+  },
+  "settingsWarnMature": "Warn about mature content",
+  "@settingsWarnMature": {
+    "description": "Settings › Video › Videos and content: the switch for the mature content warning."
+  },
+  "settingsWarnMatureDetail": "Shows a warning before a channel labeled for mature content.",
+  "@settingsWarnMatureDetail": {
+    "description": "Settings › Video › Videos and content: what the mature content switch does."
+  },
+  "settingsCaptions": "Captions",
+  "@settingsCaptions": {
+    "description": "Settings › Video (Android): the captions group."
+  },
+  "settingsClosedCaptions": "Closed Captions",
+  "@settingsClosedCaptions": {
+    "description": "Settings › Video › Captions: the switch that shows captions."
+  },
+  "settingsClosedCaptionsDetail": "Shows captions over live streams and videos that have them. When there are several, pick one in the player menu.",
+  "@settingsClosedCaptionsDetail": {
+    "description": "Settings › Video › Captions: what the captions switch does."
+  },
+  "settingsCaptionSize": "Caption size",
+  "@settingsCaptionSize": {
+    "description": "Settings › Video › Captions: the size options."
+  },
+  "captionSizeSmall": "Small",
+  "@captionSizeSmall": {
+    "description": "Caption size option (Settings › Video › Captions). French: feminine, it agrees with « taille »."
+  },
+  "captionSizeMedium": "Medium",
+  "@captionSizeMedium": {
+    "description": "Caption size option."
+  },
+  "captionSizeLarge": "Large",
+  "@captionSizeLarge": {
+    "description": "Caption size option."
+  },
+  "captionSizeExtraLarge": "Extra large",
+  "@captionSizeExtraLarge": {
+    "description": "Caption size option."
+  },
+  "settingsCaptionBackground": "Caption background",
+  "@settingsCaptionBackground": {
+    "description": "Settings › Video › Captions: the background options."
+  },
+  "captionBackgroundBlack": "Black",
+  "@captionBackgroundBlack": {
+    "description": "Caption background option (Settings › Video › Captions). French: masculine, it agrees with « fond »."
+  },
+  "captionBackgroundTranslucent": "Translucent",
+  "@captionBackgroundTranslucent": {
+    "description": "Caption background option."
+  },
+  "captionBackgroundNone": "None",
+  "@captionBackgroundNone": {
+    "description": "Caption background option."
+  },
+  "settingsCaptionSample": "This is how captions look.",
+  "@settingsCaptionSample": {
+    "description": "Settings › Video › Captions: the sample caption drawn with the chosen style."
+  },
+  "webTokenTitle": "Twitch web token (2K)",
+  "@webTokenTitle": {
+    "description": "Settings › Video › Low-latency player: the row, and the dialog, of the Twitch token that unlocks 2K streams."
+  },
+  "webTokenExpired": "Twitch session expired — log in again to restore 2K",
+  "@webTokenExpired": {
+    "description": "Settings › Video: the line under « Twitch web token (2K) » when Twitch refused the token."
+  },
+  "webTokenUnset": "Not set — log in to pick it up automatically",
+  "@webTokenUnset": {
+    "description": "Settings › Video: the line under « Twitch web token (2K) » when there is none."
+  },
+  "webTokenActive": "Active — picked up automatically, 2K requested",
+  "@webTokenActive": {
+    "description": "Settings › Video: the line under « Twitch web token (2K) » when it is in use."
+  },
+  "webTokenNotSet": "Not set",
+  "@webTokenNotSet": {
+    "description": "Settings › Video: the value of « Twitch web token (2K) » when there is none."
+  },
+  "webTokenExplanation": "Some streams only offer their 2K (1440p HEVC) quality to a signed-in viewer. This is normally picked up on its own when you log in, and refreshed on each launch — you should never need to touch it. Fill it in by hand only if that fails: paste the value of the \"auth-token\" cookie from twitch.tv in a browser.",
+  "@webTokenExplanation": {
+    "description": "The Twitch web token dialog: what the token is for, and how to fill it in by hand. \"auth-token\" is the cookie's name and stays as is."
+  },
+  "webTokenIsSet": "A token is set.",
+  "@webTokenIsSet": {
+    "description": "The Twitch web token dialog: there is one."
+  },
+  "webTokenNoneSet": "No token set.",
+  "@webTokenNoneSet": {
+    "description": "The Twitch web token dialog: there is none."
+  },
+  "webTokenClear": "Clear",
+  "@webTokenClear": {
+    "description": "The Twitch web token dialog: removes the token."
+  },
+  "webTokenNewField": "New auth-token",
+  "@webTokenNewField": {
+    "description": "The Twitch web token dialog: the field's label when a token is already set. \"auth-token\" is the cookie's name."
+  },
+  "webTokenFieldHint": "Paste to replace — never shown",
+  "@webTokenFieldHint": {
+    "description": "The Twitch web token dialog: the hint in the field."
+  },
+  "webTokenReplace": "Replace",
+  "@webTokenReplace": {
+    "description": "The Twitch web token dialog: saves the pasted token over the one set."
+  },
+  "webTokenSave": "Save",
+  "@webTokenSave": {
+    "description": "The Twitch web token dialog: saves the pasted token."
+  },
+  "settingsMessageSizing": "Message sizing",
+  "@settingsMessageSizing": {
+    "description": "Settings › Chat: the group of size sliders, with its preview."
+  },
+  "settingsChatPreview": "Preview",
+  "@settingsChatPreview": {
+    "description": "Settings › Chat › Message sizing: the row that opens a sample of chat drawn with the chosen sizes."
+  },
+  "settingsChatPreviewBadgeEmote": "Badge and emote preview.",
+  "@settingsChatPreviewBadgeEmote": {
+    "description": "Settings › Chat preview: the first sample message, between a badge and an emote."
+  },
+  "settingsChatPreviewText": "Hello! Here's a text preview.",
+  "@settingsChatPreviewText": {
+    "description": "Settings › Chat preview: the second sample message."
+  },
+  "settingsChatPreviewSpacing": "And another for spacing without an emote!",
+  "@settingsChatPreviewSpacing": {
+    "description": "Settings › Chat preview: the third sample message."
+  },
+  "settingsBadgeScale": "Badge scale",
+  "@settingsBadgeScale": {
+    "description": "Settings › Chat › Message sizing: the badge size slider."
+  },
+  "settingsEmoteScale": "Emote scale",
+  "@settingsEmoteScale": {
+    "description": "Settings › Chat › Message sizing: the emote size slider."
+  },
+  "settingsMessageScale": "Message scale",
+  "@settingsMessageScale": {
+    "description": "Settings › Chat › Message sizing: the text size slider, as a factor."
+  },
+  "settingsScaleValue": "{scale}x",
+  "@settingsScaleValue": {
+    "description": "Settings › Chat › Message sizing: the value of a scale slider, as a factor (1.00x).",
+    "placeholders": {
+      "scale": {
+        "type": "double",
+        "example": "1.25",
+        "format": "decimalPatternDigits",
+        "optionalParameters": {
+          "decimalDigits": 2
+        }
+      }
+    }
+  },
+  "settingsMessageSpacing": "Message spacing",
+  "@settingsMessageSpacing": {
+    "description": "Settings › Chat › Message sizing: the space between messages."
+  },
+  "settingsSpacingValue": "{pixels}px",
+  "@settingsSpacingValue": {
+    "description": "Settings › Chat › Message sizing: the value of the spacing slider, in logical pixels.",
+    "placeholders": {
+      "pixels": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  "settingsFontSize": "Font size",
+  "@settingsFontSize": {
+    "description": "Settings › Chat › Message sizing: the font size slider."
+  },
+  "settingsMessageAppearance": "Message appearance",
+  "@settingsMessageAppearance": {
+    "description": "Settings › Chat: the group about how messages show."
+  },
+  "settingsShowDeleted": "Show deleted messages",
+  "@settingsShowDeleted": {
+    "description": "Settings › Chat › Message appearance: the switch that reveals deleted messages."
+  },
+  "settingsShowDeletedDetail": "Restores the original message of deleted messages.",
+  "@settingsShowDeletedDetail": {
+    "description": "Settings › Chat › Message appearance: what « Show deleted messages » does."
+  },
+  "settingsAnimateEmotes": "Animate emotes",
+  "@settingsAnimateEmotes": {
+    "description": "Settings › Chat › Message appearance: the switch that animates emotes."
+  },
+  "settingsAnimateEmotesDetail": "Off shows the first frame of animated emotes in chat.",
+  "@settingsAnimateEmotesDetail": {
+    "description": "Settings › Chat › Message appearance: what turning « Animate emotes » off does."
+  },
+  "settingsAnimatedGifs": "Animated GIFs",
+  "@settingsAnimatedGifs": {
+    "description": "Settings › Chat › Message appearance: the switch that animates GIFs."
+  },
+  "settingsAnimatedGifsDetail": "Off shows the first frame of GIFs sent in chat.",
+  "@settingsAnimatedGifsDetail": {
+    "description": "Settings › Chat › Message appearance: what turning « Animated GIFs » off does."
+  },
+  "settingsShowGifs": "Show GIFs in Chat",
+  "@settingsShowGifs": {
+    "description": "Settings › Chat › Message appearance: the switch that shows GIFs at all."
+  },
+  "settingsShowGifsDetail": "Off shows the title of a GIF instead of the GIF.",
+  "@settingsShowGifsDetail": {
+    "description": "Settings › Chat › Message appearance: what turning « Show GIFs in Chat » off does."
+  },
+  "settingsLinkPreviews": "Preview clips and videos",
+  "@settingsLinkPreviews": {
+    "description": "Settings › Chat › Message appearance: the switch for link cards."
+  },
+  "settingsLinkPreviewsDetail": "Shows a card under messages that link a Twitch clip or video.",
+  "@settingsLinkPreviewsDetail": {
+    "description": "Settings › Chat › Message appearance: what « Preview clips and videos » does."
+  },
+  "settingsModerationNotices": "Show timeouts and bans",
+  "@settingsModerationNotices": {
+    "description": "Settings › Chat › Message appearance: the switch for moderation lines."
+  },
+  "settingsModerationNoticesDetail": "Adds a line when a moderator times out or bans someone.",
+  "@settingsModerationNoticesDetail": {
+    "description": "Settings › Chat › Message appearance: what « Show timeouts and bans » does."
+  },
+  "settingsMessageDividers": "Show message dividers",
+  "@settingsMessageDividers": {
+    "description": "Settings › Chat › Message appearance: the switch for lines between messages."
+  },
+  "settingsTimestamps": "Message timestamps",
+  "@settingsTimestamps": {
+    "description": "Settings › Chat › Message appearance: the timestamp options."
+  },
+  "timestampDisabled": "Disabled",
+  "@timestampDisabled": {
+    "description": "Message timestamp option (Settings › Chat): none."
+  },
+  "timestampTwelve": "12-hour",
+  "@timestampTwelve": {
+    "description": "Message timestamp option (Settings › Chat): the 12-hour clock."
+  },
+  "timestampTwentyFour": "24-hour",
+  "@timestampTwentyFour": {
+    "description": "Message timestamp option (Settings › Chat): the 24-hour clock."
+  },
+  "settingsDelayAndLatency": "Delay and latency",
+  "@settingsDelayAndLatency": {
+    "description": "Settings › Chat: the group about holding messages back to match the video."
+  },
+  "settingsSyncDelay": "Sync message delay and stream latency",
+  "@settingsSyncDelay": {
+    "description": "Settings › Chat › Delay and latency: the switch that delays chat as much as the video is behind live."
+  },
+  "settingsSyncDelayDetail": "Holds each message for as long as the video is behind live, so chat matches what you see. Your own messages show at once.",
+  "@settingsSyncDelayDetail": {
+    "description": "Settings › Chat › Delay and latency: what the sync switch does."
+  },
+  "settingsMessageDelay": "Message delay",
+  "@settingsMessageDelay": {
+    "description": "Settings › Chat › Delay and latency: the manual delay slider (when sync is off)."
+  },
+  "settingsMessageDelayValue": "{seconds, plural, other{{seconds} seconds}}",
+  "@settingsMessageDelayValue": {
+    "description": "Settings › Chat › Delay and latency: the value of the delay slider.",
+    "placeholders": {
+      "seconds": {
+        "type": "int",
+        "example": "15"
+      }
+    }
+  },
+  "settingsMessageDelayDetail": "Adds a delay before each message is rendered in chat. ",
+  "@settingsMessageDelayDetail": {
+    "description": "Settings › Chat › Delay and latency: what the delay slider does (Android)."
+  },
+  "settingsMessageDelayDetailIos": "Adds a delay before each message is rendered in chat. 15 seconds is recommended for iOS.",
+  "@settingsMessageDelayDetailIos": {
+    "description": "Settings › Chat › Delay and latency: what the delay slider does, on iOS."
+  },
+  "settingsLayout": "Layout",
+  "@settingsLayout": {
+    "description": "Settings › Chat: the layout group."
+  },
+  "settingsEmoteButtonLeft": "Move emote menu button left",
+  "@settingsEmoteButtonLeft": {
+    "description": "Settings › Chat › Layout: the switch that moves the emote menu button."
+  },
+  "settingsEmoteButtonLeftDetail": "Places the emote menu button on the left side to avoid accidental presses.",
+  "@settingsEmoteButtonLeftDetail": {
+    "description": "Settings › Chat › Layout: what the emote button switch does."
+  },
+  "settingsPersistTabs": "Persist chat tabs",
+  "@settingsPersistTabs": {
+    "description": "Settings › Chat › Layout: the switch that keeps secondary chat tabs."
+  },
+  "settingsPersistTabsDetail": "Secondary chat tabs are remembered when switching channels.",
+  "@settingsPersistTabsDetail": {
+    "description": "Settings › Chat › Layout: what « Persist chat tabs » does."
+  },
+  "settingsAlerts": "Alerts",
+  "@settingsAlerts": {
+    "description": "Settings › Chat: the group about highlighted messages and events."
+  },
+  "settingsFirstTimeChatters": "Highlight first time chatters",
+  "@settingsFirstTimeChatters": {
+    "description": "Settings › Chat › Alerts: the switch that highlights a viewer's first message in a channel."
+  },
+  "settingsUserNotices": "Show notices",
+  "@settingsUserNotices": {
+    "description": "Settings › Chat › Alerts: the switch for sub, resub, announcement and raid lines."
+  },
+  "settingsUserNoticesDetail": "Shows notices such as subs and re-subs, announcements, and raids.",
+  "@settingsUserNoticesDetail": {
+    "description": "Settings › Chat › Alerts: what « Show notices » does."
+  },
+  "settingsCollapseGiftBombs": "Collapse gift bombs",
+  "@settingsCollapseGiftBombs": {
+    "description": "Settings › Chat › Alerts: the switch that folds a gift bomb (many gifted subs at once) into one line."
+  },
+  "settingsCollapseGiftBombsDetail": "Folds a gift bomb of five subs or more into its first line; tap \"recipients\" to see who got one.",
+  "@settingsCollapseGiftBombsDetail": {
+    "description": "Settings › Chat › Alerts: what « Collapse gift bombs » does. \"recipients\" is the link the folded line shows."
+  },
+  "settingsShowHypeTrains": "Show Hype Trains",
+  "@settingsShowHypeTrains": {
+    "description": "Settings › Chat › Alerts: the switch for the Hype Train above chat."
+  },
+  "settingsShowHypeTrainsDetail": "Shows Hype Train progress, levels and rewards above chat.",
+  "@settingsShowHypeTrainsDetail": {
+    "description": "Settings › Chat › Alerts: what « Show Hype Trains » does."
+  },
+  "settingsCommunityHighlights": "Show community highlights",
+  "@settingsCommunityHighlights": {
+    "description": "Settings › Chat › Alerts: the switch for pinned polls, predictions and so on above chat."
+  },
+  "settingsCommunityHighlightsDetail": "Shows polls, predictions, pinned messages, gift bombs and raids above chat.",
+  "@settingsCommunityHighlightsDetail": {
+    "description": "Settings › Chat › Alerts: what « Show community highlights » does."
+  },
+  "settingsCelebrations": "Show celebrations",
+  "@settingsCelebrations": {
+    "description": "Settings › Chat › Alerts: the switch for the animation when someone gifts subs."
+  },
+  "settingsCelebrationsDetail": "Plays an animation over the channel when someone gifts subs.",
+  "@settingsCelebrationsDetail": {
+    "description": "Settings › Chat › Alerts: what « Show celebrations » does."
+  },
+  "settingsCelebrationsOnVideo": "Celebrations on video",
+  "@settingsCelebrationsOnVideo": {
+    "description": "Settings › Chat › Alerts: how celebrations show (Full or Subtle). Cited by the release notes."
+  },
+  "settingsCelebrationsOnVideoDetail": "Full plays the animation over the video. Subtle keeps the video clear and says it with a line in chat.",
+  "@settingsCelebrationsOnVideoDetail": {
+    "description": "Settings › Chat › Alerts: what the two « Celebrations on video » options do, starting with their names (celebrationsFull, celebrationsSubtle)."
+  },
+  "celebrationsFull": "Full",
+  "@celebrationsFull": {
+    "description": "Celebrations on video option (Settings › Chat): the animation plays over the video. French: feminine plural, it agrees with « célébrations »."
+  },
+  "celebrationsSubtle": "Subtle",
+  "@celebrationsSubtle": {
+    "description": "Celebrations on video option (Settings › Chat): a line in chat instead."
+  },
+  "settingsAutocomplete": "Autocomplete",
+  "@settingsAutocomplete": {
+    "description": "Settings › Chat: the autocomplete group."
+  },
+  "settingsAutocompleteBar": "Show autocomplete bar",
+  "@settingsAutocompleteBar": {
+    "description": "Settings › Chat › Autocomplete: the switch for the suggestion bar."
+  },
+  "settingsAutocompleteBarDetail": "Shows a bar containing matching emotes and mentions while typing.",
+  "@settingsAutocompleteBarDetail": {
+    "description": "Settings › Chat › Autocomplete: what the suggestion bar switch does."
+  },
+  "settingsLandscape": "Landscape mode",
+  "@settingsLandscape": {
+    "description": "Settings › Chat: the group about the chat beside the video in landscape."
+  },
+  "settingsChatLeft": "Move chat left",
+  "@settingsChatLeft": {
+    "description": "Settings › Chat › Landscape mode: the switch that puts the chat on the left."
+  },
+  "settingsVerticalChat": "Force vertical chat",
+  "@settingsVerticalChat": {
+    "description": "Settings › Chat › Landscape mode: the switch that keeps the chat under the video."
+  },
+  "settingsVerticalChatDetail": "Intended for tablets and other larger displays.",
+  "@settingsVerticalChatDetail": {
+    "description": "Settings › Chat › Landscape mode: what « Force vertical chat » is for."
+  },
+  "settingsNotchSide": "Fill notch side",
+  "@settingsNotchSide": {
+    "description": "Settings › Chat › Landscape mode: which side of a display notch the app draws into."
+  },
+  "settingsNotchSideDetail": "Overrides and fills the available space in devices with a display notch.",
+  "@settingsNotchSideDetail": {
+    "description": "Settings › Chat › Landscape mode: what « Fill notch side » does."
+  },
+  "notchSideNone": "None",
+  "@notchSideNone": {
+    "description": "Fill notch side option (Settings › Chat). French: masculine, it agrees with « côté »."
+  },
+  "notchSideLeft": "Left",
+  "@notchSideLeft": {
+    "description": "Fill notch side option."
+  },
+  "notchSideRight": "Right",
+  "@notchSideRight": {
+    "description": "Fill notch side option."
+  },
+  "notchSideBoth": "Both",
+  "@notchSideBoth": {
+    "description": "Fill notch side option."
+  },
+  "settingsOverlayOpacity": "Chat overlay opacity",
+  "@settingsOverlayOpacity": {
+    "description": "Settings › Chat › Landscape mode: how opaque the chat drawn over the video is in fullscreen."
+  },
+  "settingsOverlayOpacityValue": "{percent}%",
+  "@settingsOverlayOpacityValue": {
+    "description": "Settings › Chat › Landscape mode: the value of the chat overlay opacity slider.",
+    "placeholders": {
+      "percent": {
+        "type": "int",
+        "example": "50"
+      }
+    }
+  },
+  "settingsOverlayOpacityDetail": "Sets the opacity (transparency) of the overlay chat in fullscreen mode.",
+  "@settingsOverlayOpacityDetail": {
+    "description": "Settings › Chat › Landscape mode: what the chat overlay opacity slider does."
+  },
+  "settingsFiltersGroup": "Chat filters and muted keywords",
+  "@settingsFiltersGroup": {
+    "description": "Settings › Chat: the group of the chat filters and muted keywords."
+  },
+  "settingsFiltersOn": "On",
+  "@settingsFiltersOn": {
+    "description": "Settings › Chat: the value of « Edit Chat Filters » when filtering is on. French: plural, it agrees with « filtres »."
+  },
+  "settingsFiltersOff": "Off",
+  "@settingsFiltersOff": {
+    "description": "Settings › Chat: the value of « Edit Chat Filters » when filtering is off."
+  },
+  "settingsWholeWords": "Match whole words",
+  "@settingsWholeWords": {
+    "description": "Settings › Chat › Chat filters and muted keywords: the switch that only mutes whole words."
+  },
+  "settingsWholeWordsDetail": "Only matches whole words instead of partial matches.",
+  "@settingsWholeWordsDetail": {
+    "description": "Settings › Chat: what « Match whole words » does."
+  },
+  "settingsEmotesAndBadges": "Emotes and badges",
+  "@settingsEmotesAndBadges": {
+    "description": "Settings › Chat: the group of emote and badge providers."
+  },
+  "settingsShowTwitchEmotes": "Show Twitch emotes",
+  "@settingsShowTwitchEmotes": {
+    "description": "Settings › Chat › Emotes and badges: a provider switch."
+  },
+  "settingsShowTwitchBadges": "Show Twitch badges",
+  "@settingsShowTwitchBadges": {
+    "description": "Settings › Chat › Emotes and badges: a provider switch."
+  },
+  "settingsShow7tvEmotes": "Show 7TV emotes",
+  "@settingsShow7tvEmotes": {
+    "description": "Settings › Chat › Emotes and badges: a provider switch."
+  },
+  "settingsShowBttvEmotes": "Show BTTV emotes",
+  "@settingsShowBttvEmotes": {
+    "description": "Settings › Chat › Emotes and badges: a provider switch."
+  },
+  "settingsShowBttvBadges": "Show BTTV badges",
+  "@settingsShowBttvBadges": {
+    "description": "Settings › Chat › Emotes and badges: a provider switch."
+  },
+  "settingsShowFfzEmotes": "Show FFZ emotes",
+  "@settingsShowFfzEmotes": {
+    "description": "Settings › Chat › Emotes and badges: a provider switch."
+  },
+  "settingsShowFfzBadges": "Show FFZ badges",
+  "@settingsShowFfzBadges": {
+    "description": "Settings › Chat › Emotes and badges: a provider switch."
+  },
+  "settingsRecentMessages": "Recent messages",
+  "@settingsRecentMessages": {
+    "description": "Settings › Chat: the group of the fallback chat history."
+  },
+  "chatFiltersEnable": "Enable filtering in chat",
+  "@chatFiltersEnable": {
+    "description": "Settings › Chat › Edit Chat Filters: the main switch."
+  },
+  "chatFiltersExplanation": "Select the filters you would like to block in chat across all channels. In channels you moderate, you will still see all messages.",
+  "@chatFiltersExplanation": {
+    "description": "Settings › Chat › Edit Chat Filters: what filtering does."
+  },
+  "chatFiltersGroup": "Filters",
+  "@chatFiltersGroup": {
+    "description": "Settings › Chat › Edit Chat Filters: the group of the four filters."
+  },
+  "chatFilterDiscrimination": "Discrimination",
+  "@chatFilterDiscrimination": {
+    "description": "A chat filter (Twitch's AutoMod category)."
+  },
+  "chatFilterDiscriminationDetail": "Negative language about race, gender, orientation, or similar",
+  "@chatFilterDiscriminationDetail": {
+    "description": "What the Discrimination chat filter hides."
+  },
+  "chatFilterSexual": "Sexually Explicit Language",
+  "@chatFilterSexual": {
+    "description": "A chat filter (Twitch's AutoMod category)."
+  },
+  "chatFilterSexualDetail": "References to sexual acts, sexual content, and body parts",
+  "@chatFilterSexualDetail": {
+    "description": "What the sexually explicit language chat filter hides."
+  },
+  "chatFilterHarassment": "Harassment",
+  "@chatFilterHarassment": {
+    "description": "A chat filter (Twitch's AutoMod category)."
+  },
+  "chatFilterHarassmentDetail": "Aggressive or sexually harassing language towards other people",
+  "@chatFilterHarassmentDetail": {
+    "description": "What the harassment chat filter hides."
+  },
+  "chatFilterProfanity": "Profanity",
+  "@chatFilterProfanity": {
+    "description": "A chat filter (Twitch's AutoMod category)."
+  },
+  "chatFilterProfanityDetail": "Curse words, expletives, or other obscenities",
+  "@chatFilterProfanityDetail": {
+    "description": "What the profanity chat filter hides."
+  },
+  "chatFiltersNote": "Twitch's AutoMod rates the words of each live chat message; only words it rates are hidden, so a message it did not rate always shows. Hidden words show as stars: tap them to see the message. Chat replays of past broadcasts are not filtered.",
+  "@chatFiltersNote": {
+    "description": "Settings › Chat › Edit Chat Filters: the note under the filters."
+  },
+  "mutedKeywordsTitle": "Muted keywords",
+  "@mutedKeywordsTitle": {
+    "description": "Settings › Chat: the row of the muted keywords, and its list's title."
+  },
+  "mutedKeywordsCount": "{count, plural, =0{None} =1{1 keyword} other{{count} keywords}}",
+  "@mutedKeywordsCount": {
+    "description": "Settings › Chat: the value of « Muted keywords ».",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "mutedKeywordsHint": "Enter keywords to mute",
+  "@mutedKeywordsHint": {
+    "description": "The muted keywords list: the hint in the field."
+  },
+  "mutedKeywordsAdd": "Add keyword",
+  "@mutedKeywordsAdd": {
+    "description": "The muted keywords list: the button (and its tooltip) that adds what is typed."
+  },
+  "mutedKeywordsEmpty": "No muted keywords",
+  "@mutedKeywordsEmpty": {
+    "description": "The muted keywords list when there are none."
+  },
+  "mutedKeywordsRemove": "Remove {word}",
+  "@mutedKeywordsRemove": {
+    "description": "The muted keywords list: the tooltip of the cross after a keyword.",
+    "placeholders": {
+      "word": {
+        "type": "String",
+        "example": "spoiler"
+      }
+    }
+  },
+  "mutedKeywordsRemoved": "Removed '{word}'",
+  "@mutedKeywordsRemoved": {
+    "description": "Snackbar after a muted keyword was removed (with « Undo »).",
+    "placeholders": {
+      "word": {
+        "type": "String",
+        "example": "spoiler"
+      }
+    }
+  },
+  "commonUndo": "Undo",
+  "@commonUndo": {
+    "description": "Snackbar button that undoes what was just done (a muted keyword removed)."
+  },
+  "settingsChannelsYouFollow": "Channels you follow",
+  "@settingsChannelsYouFollow": {
+    "description": "Settings › Notifications: the go-live group."
+  },
+  "goLiveTitle": "Go-live notifications",
+  "@goLiveTitle": {
+    "description": "Settings › Notifications: the switch that notifies when followed channels go live."
+  },
+  "goLiveAndroidOnly": "Android only.",
+  "@goLiveAndroidOnly": {
+    "description": "Settings › Notifications: the line under « Go-live notifications » where they do not exist."
+  },
+  "goLiveLoggedOut": "Log in to be told when channels you follow go live.",
+  "@goLiveLoggedOut": {
+    "description": "Settings › Notifications, logged out: the line under « Go-live notifications »."
+  },
+  "goLiveBlocked": "Notifications are blocked for this app. Allow them in the system settings.",
+  "@goLiveBlocked": {
+    "description": "Settings › Notifications: the line under « Go-live notifications » when the system blocks them."
+  },
+  "goLiveOnDetail": "Checked every 90 seconds while ONSET is open or playing, and about every 15 minutes otherwise, when the system allows. Turn a channel's bell off from its menu.",
+  "@goLiveOnDetail": {
+    "description": "Settings › Notifications: the line under « Go-live notifications » when they are on."
+  },
+  "goLiveOffDetail": "Be told when channels you follow go live.",
+  "@goLiveOffDetail": {
+    "description": "Settings › Notifications: the line under « Go-live notifications » when they are off."
+  },
+  "goLiveLogInAgain": "Log in again to get go-live notifications.",
+  "@goLiveLogInAgain": {
+    "description": "Settings › Notifications: the line under « Go-live notifications » when Twitch refused the login the background check uses."
+  },
+  "goLiveReadFailed": "Couldn't read the go-live setting.",
+  "@goLiveReadFailed": {
+    "description": "Settings › Notifications: the line under « Go-live notifications » when its state could not be read."
+  },
+  "goLiveTurnOnFailed": "Couldn't turn on go-live notifications.",
+  "@goLiveTurnOnFailed": {
+    "description": "Settings › Notifications: the line under « Go-live notifications » when turning them on failed."
+  },
+  "goLiveTurnOffFailed": "Couldn't turn off go-live notifications.",
+  "@goLiveTurnOffFailed": {
+    "description": "Settings › Notifications: the line under « Go-live notifications » when turning them off failed."
+  },
+  "notificationsAllowInSystem": "Allow notifications for this app in the system settings.",
+  "@notificationsAllowInSystem": {
+    "description": "Settings › Notifications: the line under a notification switch when the system permission was refused."
+  },
+  "goLiveBellFailed": "Couldn't change the bell.",
+  "@goLiveBellFailed": {
+    "description": "Snackbar when a channel's go-live bell could not be changed (the channel's menu)."
+  },
+  "goLiveBell": "Notify when {name} goes live",
+  "@goLiveBell": {
+    "description": "A channel's menu (chat user card « More »): the switch for that channel's go-live notifications.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "JLTomy"
+      }
+    }
+  },
+  "mentionTitle": "Chat mention notifications",
+  "@mentionTitle": {
+    "description": "Settings › Notifications › Chat: the switch for mention notifications."
+  },
+  "mentionLoggedOut": "Log in to be told when someone mentions you in chat.",
+  "@mentionLoggedOut": {
+    "description": "Settings › Notifications › Chat, logged out: the line under the mention switch."
+  },
+  "mentionBlocked": "Notifications are blocked for this app.",
+  "@mentionBlocked": {
+    "description": "Settings › Notifications › Chat: the line under the mention switch when the system blocks notifications (with « Allow »)."
+  },
+  "mentionAllow": "Allow",
+  "@mentionAllow": {
+    "description": "Settings › Notifications › Chat: the button that asks the system for the notification permission."
+  },
+  "mentionDetail": "When someone mentions you in a chat you are watching while ONSET is in the background or in picture-in-picture.",
+  "@mentionDetail": {
+    "description": "Settings › Notifications › Chat: when mention notifications come."
+  },
+  "settingsUpdates": "Updates",
+  "@settingsUpdates": {
+    "description": "Settings › Other: the updates group."
+  },
+  "settingsReleaseNotes": "Release notes",
+  "@settingsReleaseNotes": {
+    "description": "Settings › Other › Updates: the row that opens the release notes, and their page title."
+  },
+  "settingsUpdatesNote": "ONSET looks for a newer build when it starts and when it comes back to the foreground. Release notes open by themselves after an update to a new version.",
+  "@settingsUpdatesNote": {
+    "description": "Settings › Other › Updates: the note under the rows (builds with in-app updates)."
+  },
+  "settingsStorage": "Storage and reset",
+  "@settingsStorage": {
+    "description": "Settings › Other: the storage group."
+  },
+  "settingsClearCache": "Clear image cache",
+  "@settingsClearCache": {
+    "description": "Settings › Other › Storage and reset: empties the image cache."
+  },
+  "settingsCacheCleared": "Image cache cleared",
+  "@settingsCacheCleared": {
+    "description": "Snackbar after the image cache was emptied."
+  },
+  "settingsReset": "Reset settings",
+  "@settingsReset": {
+    "description": "Settings › Other › Storage and reset: puts every setting back to its default."
+  },
+  "settingsResetTitle": "Reset all settings",
+  "@settingsResetTitle": {
+    "description": "Title of the dialog that asks before resetting the settings."
+  },
+  "settingsResetMessage": "Are you sure you want to reset all settings?",
+  "@settingsResetMessage": {
+    "description": "Text of the dialog that asks before resetting the settings."
+  },
+  "settingsResetConfirm": "Reset",
+  "@settingsResetConfirm": {
+    "description": "The button that confirms resetting the settings."
+  },
+  "settingsResetDone": "All settings reset",
+  "@settingsResetDone": {
+    "description": "Snackbar after the settings were reset."
+  },
+  "settingsPrivacy": "Privacy",
+  "@settingsPrivacy": {
+    "description": "Settings › Other: the privacy group."
+  },
+  "settingsAbout": "About",
+  "@settingsAbout": {
+    "description": "Settings › Other: the group with the source code and the licences."
+  },
+  "settingsSourceCode": "Source code",
+  "@settingsSourceCode": {
+    "description": "Settings › Other › About: opens ONSET's source code."
+  },
+  "settingsLicenses": "Licenses",
+  "@settingsLicenses": {
+    "description": "Settings › Other › About: opens the licences page."
+  },
+  "settingsLegalese": "ONSET is free software under the GNU AGPL-3.0-or-later, with NO WARRANTY. Source code: {url}",
+  "@settingsLegalese": {
+    "description": "The notice at the top of the licences page: ONSET's licence, its lack of warranty and where its source is. GNU AGPL-3.0-or-later is the licence's name and stays as is.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "https://github.com/JLmehdi92/onset"
+      }
+    }
+  },
+  "updatesUpToDate": "You're up to date",
+  "@updatesUpToDate": {
+    "description": "Snackbar after « Check for updates » found nothing newer."
+  },
+  "updatesCheckFailed": "Couldn't check for updates",
+  "@updatesCheckFailed": {
+    "description": "Snackbar when « Check for updates » failed."
+  },
+  "updatesCheck": "Check for updates",
+  "@updatesCheck": {
+    "description": "Settings › Other › Updates: looks for a newer build now."
+  },
+  "updatesBuild": "Build {build}",
+  "@updatesBuild": {
+    "description": "Settings › Other › Updates: the line under « Check for updates », the installed build number.",
+    "placeholders": {
+      "build": {
+        "type": "int",
+        "example": "68"
+      }
+    }
+  },
+  "updatesChecking": "Checking",
+  "@updatesChecking": {
+    "description": "What a screen reader says for the spinner while looking for updates."
+  },
+  "followedSortViewers": "Viewers (High to Low)",
+  "@followedSortViewers": {
+    "description": "How Following orders its live channels (the sort button): most viewers first."
+  },
+  "followedSortRecent": "Recently Started",
+  "@followedSortRecent": {
+    "description": "How Following orders its live channels: the most recently started lives first."
+  },
+  "followedSortName": "Name (A-Z)",
+  "@followedSortName": {
+    "description": "How Following orders its live channels: by name."
+  },
+  "followedSortCategory": "Category",
+  "@followedSortCategory": {
+    "description": "How Following orders its live channels: grouped by category."
+  },
+  "releaseKindAdded": "{count, plural, other{{count} new}}",
+  "@releaseKindAdded": {
+    "description": "Release notes: in the line summing up a version (« 2 new · 3 improvements · 1 fix »), its new features.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "releaseKindImproved": "{count, plural, one{{count} improvement} other{{count} improvements}}",
+  "@releaseKindImproved": {
+    "description": "Release notes: in the line summing up a version, its improvements.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "releaseKindFixed": "{count, plural, one{{count} fix} other{{count} fixes}}",
+  "@releaseKindFixed": {
+    "description": "Release notes: in the line summing up a version, its fixes.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "releaseKindOther": "{count, plural, one{{count} change} other{{count} changes}}",
+  "@releaseKindOther": {
+    "description": "Release notes: in the line summing up a version, its other changes.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "releaseNotesWhatsNew": "WHAT'S NEW",
+  "@releaseNotesWhatsNew": {
+    "description": "Release notes: the small capitals above the latest version (and the title on a tablet when opened from Settings)."
+  },
+  "releaseNotesWhatsNewIn": "WHAT'S NEW IN {version}",
+  "@releaseNotesWhatsNewIn": {
+    "description": "Release notes opened after an update: the small capitals above « Updated to … ». The version is a number such as 1.1.0 (« la » stands for « la version »).",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "1.1.0"
+      }
+    }
+  },
+  "releaseNotesUpdatedTo": "Updated to {version}",
+  "@releaseNotesUpdatedTo": {
+    "description": "Release notes opened after an update: the title. The version is a number such as 1.1.0 (« la » stands for « la version »).",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "1.1.0"
+      }
+    }
+  },
+  "releaseNotesWasOn": "You were on {version}",
+  "@releaseNotesWasOn": {
+    "description": "Release notes opened after an update (tablet): the version installed before. The version is shown in figures of even width.",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "1.0.2"
+      }
+    }
+  },
+  "releaseNotesWasOnSince": "You were on {version}. Here is what changed since then.",
+  "@releaseNotesWasOnSince": {
+    "description": "Release notes opened after an update (phone): the version installed before, and what follows. The version is shown in figures of even width.",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "1.0.2"
+      }
+    }
+  },
+  "releaseNotesOtherVersions": "Other versions",
+  "@releaseNotesOtherVersions": {
+    "description": "Release notes on a phone, opened after an update to an older entry: the heading of the other versions."
+  },
+  "releaseNotesGotIt": "Got it",
+  "@releaseNotesGotIt": {
+    "description": "Release notes opened after an update: the button that closes them."
+  },
+  "releaseNotesVersions": "Versions",
+  "@releaseNotesVersions": {
+    "description": "Release notes on a tablet: the label of the version list."
+  },
+  "releaseNotesFootnote": "Release notes open by themselves after an update to a new version.",
+  "@releaseNotesFootnote": {
+    "description": "Release notes: the note at the end of the page."
+  },
+  "releaseNotesPoints": "{count, plural, =1{1 point} other{{count} points}}",
+  "@releaseNotesPoints": {
+    "description": "Release notes: what a screen reader says for the count beside a section's name.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "releaseNotesLatest": "Latest",
+  "@releaseNotesLatest": {
+    "description": "Release notes: marks the newest version in the list (and what a screen reader says for it). French: feminine, it agrees with « version »."
+  },
+  "releaseNotesLatestBadge": "LATEST",
+  "@releaseNotesLatestBadge": {
+    "description": "Release notes on a tablet: the small badge on the newest version."
+  },
+  "releaseNotesNewer": "Newer",
+  "@releaseNotesNewer": {
+    "description": "Release notes on a tablet: the button to the next newer version."
+  },
+  "releaseNotesOlder": "Older",
+  "@releaseNotesOlder": {
+    "description": "Release notes on a tablet: the button to the next older version."
+  },
+  "releaseNotesEmpty": "No release notes yet",
+  "@releaseNotesEmpty": {
+    "description": "Release notes when there are none."
+  },
+  "releaseNotesEmptyDetail": "What changes in each version of ONSET shows up here, and opens by itself after an update.",
+  "@releaseNotesEmptyDetail": {
+    "description": "Release notes when there are none: the line under « No release notes yet »."
+  },
+  "updateAllowTitle": "Allow updates",
+  "@updateAllowTitle": {
+    "description": "Title of the dialog that asks to let ONSET install its updates (Android)."
+  },
+  "updateAllowMessage": "Android asks you to let ONSET install apps. Turn on \"Allow from this source\" on the next screen, then come back.",
+  "@updateAllowMessage": {
+    "description": "Text of the dialog that asks to let ONSET install its updates. \"Allow from this source\" is the name of the Android switch, in Android's own words."
+  },
+  "updateOpenSettings": "Open settings",
+  "@updateOpenSettings": {
+    "description": "The button that opens the Android setting that lets ONSET install apps."
+  },
+  "updateNotAllowed": "ONSET is not allowed to install updates",
+  "@updateNotAllowed": {
+    "description": "Snackbar when the Android setting was left off."
+  },
+  "updateCorrupted": "The download was corrupted — try again",
+  "@updateCorrupted": {
+    "description": "Snackbar when the downloaded update failed its integrity check."
+  },
+  "updateInstallFailed": "Android could not install the update",
+  "@updateInstallFailed": {
+    "description": "Snackbar when Android refused the update."
+  },
+  "updateDownloadFailed": "Download failed",
+  "@updateDownloadFailed": {
+    "description": "Snackbar when the update could not be downloaded."
+  },
+  "updateInstalledBuild": "Installed: build {build}",
+  "@updateInstalledBuild": {
+    "description": "Update dialog: the build installed now (in a line with the size and the check).",
+    "placeholders": {
+      "build": {
+        "type": "int",
+        "example": "68"
+      }
+    }
+  },
+  "updateSize": "{megabytes} MB",
+  "@updateSize": {
+    "description": "Update dialog: the download size, in megabytes.",
+    "placeholders": {
+      "megabytes": {
+        "type": "double",
+        "example": "24.6",
+        "format": "decimalPatternDigits",
+        "optionalParameters": {
+          "decimalDigits": 1
+        }
+      }
+    }
+  },
+  "updateChecked": "SHA-256 checked before install",
+  "@updateChecked": {
+    "description": "Update dialog: the download is checked before it is installed."
+  },
+  "updateAvailable": "Update available",
+  "@updateAvailable": {
+    "description": "Update dialog: its title, and what a screen reader calls it."
+  },
+  "updateNewBuild": "NEW BUILD",
+  "@updateNewBuild": {
+    "description": "Update dialog: the small capitals above the title."
+  },
+  "updateReady": "ONSET build {build} is ready.",
+  "@updateReady": {
+    "description": "Update dialog: the build that can be installed.",
+    "placeholders": {
+      "build": {
+        "type": "int",
+        "example": "69"
+      }
+    }
+  },
+  "updateNow": "Update",
+  "@updateNow": {
+    "description": "Update dialog: downloads and installs the update."
+  },
+  "updateLater": "Later",
+  "@updateLater": {
+    "description": "Update dialog: asks again later."
+  },
+  "updateInstalling": "Installing update",
+  "@updateInstalling": {
+    "description": "Title of the update progress dialog while Android installs it."
+  },
+  "updateDownloading": "Downloading update",
+  "@updateDownloading": {
+    "description": "Title of the update progress dialog while it downloads."
+  },
+  "updateProgress": "{received} / {total} MB",
+  "@updateProgress": {
+    "description": "Update progress dialog: how much is downloaded, in megabytes.",
+    "placeholders": {
+      "received": {
+        "type": "double",
+        "example": "12.3",
+        "format": "decimalPatternDigits",
+        "optionalParameters": {
+          "decimalDigits": 1
+        }
+      },
+      "total": {
+        "type": "double",
+        "example": "24.6",
+        "format": "decimalPatternDigits",
+        "optionalParameters": {
+          "decimalDigits": 1
+        }
+      }
+    }
   }
 }

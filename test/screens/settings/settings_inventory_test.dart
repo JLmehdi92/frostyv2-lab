@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/constants.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/video/captions.dart';
 import 'package:onset/screens/settings/account/account_settings.dart';
 import 'package:onset/screens/settings/chat_settings.dart';
@@ -141,7 +143,7 @@ void main() {
 
     // "Open the app on": the shell's places, never the old Top / Search.
     for (final tab in HomeTab.values) {
-      expect(find.text(tab.label), findsOneWidget);
+      expect(find.text(tab.label(L10n.english)), findsOneWidget);
     }
     await tapVisible(tester, find.text('Browse'));
     expect(settings.startTab, HomeTab.browse);
@@ -415,10 +417,16 @@ void main() {
 
     expect(find.byType(LicensePage), findsOneWidget);
     expect(find.text('ONSET'), findsWidgets);
-    expect(find.text(onsetLegalese), findsOneWidget);
-    expect(onsetLegalese, contains('GNU AGPL-3.0-or-later'));
-    expect(onsetLegalese, contains('NO WARRANTY'));
-    expect(onsetLegalese, contains(onsetRepoUrl));
+    final legalese = onsetLegalese(L10n.english);
+    expect(find.text(legalese), findsOneWidget);
+    expect(legalese, contains('GNU AGPL-3.0-or-later'));
+    expect(legalese, contains('NO WARRANTY'));
+    expect(legalese, contains(onsetRepoUrl));
+    // The French notice names the same licence and repository.
+    final french = onsetLegalese(lookupAppLocalizations(const Locale('fr')));
+    expect(french, contains('GNU AGPL-3.0-or-later'));
+    expect(french, contains('SANS AUCUNE GARANTIE'));
+    expect(french, contains(onsetRepoUrl));
   });
 
   test('the source code link is ONSET\'s repository', () {

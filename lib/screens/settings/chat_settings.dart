@@ -4,6 +4,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/constants.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/chat_filters_setting.dart';
 import 'package:onset/screens/settings/widgets/settings_glyph.dart';
@@ -43,434 +45,399 @@ class _ChatSettingsState extends State<ChatSettings> {
     final settingsStore = widget.settingsStore;
 
     return Observer(
-      builder: (context) => SettingsGroupsView(
-        children: [
-          SettingsGroup(
-            title: 'Message sizing',
-            children: [
-              _ChatPreview(settingsStore: settingsStore),
-              SettingsListSlider(
-                title: 'Badge scale',
-                trailing: '${settingsStore.badgeScale.toStringAsFixed(2)}x',
-                value: settingsStore.badgeScale,
-                min: 0.25,
-                max: 3.0,
-                divisions: 11,
-                onChanged: (newValue) => settingsStore.badgeScale = newValue,
-              ),
-              SettingsListSlider(
-                title: 'Emote scale',
-                trailing: '${settingsStore.emoteScale.toStringAsFixed(2)}x',
-                value: settingsStore.emoteScale,
-                min: 0.25,
-                max: 3.0,
-                divisions: 11,
-                onChanged: (newValue) => settingsStore.emoteScale = newValue,
-              ),
-              SettingsListSlider(
-                title: 'Message scale',
-                trailing: '${settingsStore.messageScale.toStringAsFixed(2)}x',
-                value: settingsStore.messageScale,
-                min: 0.5,
-                max: 2.0,
-                divisions: 6,
-                onChanged: (newValue) => settingsStore.messageScale = newValue,
-              ),
-              SettingsListSlider(
-                title: 'Message spacing',
-                trailing:
-                    '${settingsStore.messageSpacing.toStringAsFixed(0)}px',
-                value: settingsStore.messageSpacing,
-                max: 30.0,
-                divisions: 15,
-                onChanged: (newValue) =>
-                    settingsStore.messageSpacing = newValue,
-              ),
-              SettingsListSlider(
-                title: 'Font size',
-                trailing: settingsStore.fontSize.toInt().toString(),
-                value: settingsStore.fontSize,
-                min: 5,
-                max: 20,
-                divisions: 15,
-                onChanged: (newValue) => settingsStore.fontSize = newValue,
-              ),
-            ],
-          ),
-          SettingsGroup(
-            title: 'Message appearance',
-            children: [
-              SettingsListSwitch(
-                title: 'Show deleted messages',
-                subtitle: const Text(
-                  'Restores the original message of deleted messages.',
-                ),
-                value: settingsStore.showDeletedMessages,
-                onChanged: (newValue) =>
-                    settingsStore.showDeletedMessages = newValue,
-              ),
-              SettingsListSwitch(
-                title: 'Animate emotes',
-                subtitle: const Text(
-                  'Off shows the first frame of animated emotes in chat.',
-                ),
-                value: settingsStore.animateEmotes,
-                onChanged: (newValue) => settingsStore.animateEmotes = newValue,
-              ),
-              SettingsListSwitch(
-                title: 'Animated GIFs',
-                subtitle: const Text(
-                  'Off shows the first frame of GIFs sent in chat.',
-                ),
-                value: settingsStore.animateGifs,
-                onChanged: (newValue) => settingsStore.animateGifs = newValue,
-              ),
-              SettingsListSwitch(
-                title: 'Show GIFs in Chat',
-                subtitle: const Text(
-                  'Off shows the title of a GIF instead of the GIF.',
-                ),
-                value: settingsStore.showGifs,
-                onChanged: (newValue) => settingsStore.showGifs = newValue,
-              ),
-              SettingsListSwitch(
-                title: 'Preview clips and videos',
-                subtitle: const Text(
-                  'Shows a card under messages that link a Twitch clip or '
-                  'video.',
-                ),
-                value: settingsStore.showLinkPreviews,
-                onChanged: (newValue) =>
-                    settingsStore.showLinkPreviews = newValue,
-              ),
-              SettingsListSwitch(
-                title: 'Show timeouts and bans',
-                subtitle: const Text(
-                  'Adds a line when a moderator times out or bans someone.',
-                ),
-                value: settingsStore.showModerationNotices,
-                onChanged: (newValue) =>
-                    settingsStore.showModerationNotices = newValue,
-              ),
-              SettingsListSwitch(
-                title: 'Show message dividers',
-                value: settingsStore.showChatMessageDividers,
-                onChanged: (newValue) =>
-                    settingsStore.showChatMessageDividers = newValue,
-              ),
-              SettingsListSelect(
-                title: 'Message timestamps',
-                selectedOption:
-                    timestampNames[settingsStore.timestampType.index],
-                options: timestampNames,
-                onChanged: (newValue) => settingsStore.timestampType =
-                    TimestampType.values[timestampNames.indexOf(newValue)],
-              ),
-            ],
-          ),
-          SettingsGroup(
-            title: 'Delay and latency',
-            children: [
-              SettingsListSwitch(
-                title: 'Sync message delay and stream latency',
-                subtitle: const Text(
-                  'Holds each message for as long as the video is behind '
-                  'live, so chat matches what you see. Your own messages '
-                  'show at once.',
-                ),
-                value: settingsStore.autoSyncChatDelay,
-                onChanged: (newValue) =>
-                    settingsStore.autoSyncChatDelay = newValue,
-              ),
-              if (!settingsStore.autoSyncChatDelay)
+      builder: (context) {
+        final l = context.l10n;
+        return SettingsGroupsView(
+          children: [
+            SettingsGroup(
+              title: l.settingsMessageSizing,
+              children: [
+                _ChatPreview(settingsStore: settingsStore),
                 SettingsListSlider(
-                  title: 'Message delay',
-                  trailing: '${settingsStore.chatDelay.toInt()} seconds',
-                  subtitle:
-                      'Adds a delay before each message is rendered in chat. '
-                      '${Platform.isIOS ? '15 seconds is recommended for iOS.' : ''}',
-                  value: settingsStore.chatDelay,
+                  title: l.settingsBadgeScale,
+                  trailing: l.settingsScaleValue(
+                    scale: settingsStore.badgeScale,
+                  ),
+                  value: settingsStore.badgeScale,
+                  min: 0.25,
+                  max: 3.0,
+                  divisions: 11,
+                  onChanged: (newValue) => settingsStore.badgeScale = newValue,
+                ),
+                SettingsListSlider(
+                  title: l.settingsEmoteScale,
+                  trailing: l.settingsScaleValue(
+                    scale: settingsStore.emoteScale,
+                  ),
+                  value: settingsStore.emoteScale,
+                  min: 0.25,
+                  max: 3.0,
+                  divisions: 11,
+                  onChanged: (newValue) => settingsStore.emoteScale = newValue,
+                ),
+                SettingsListSlider(
+                  title: l.settingsMessageScale,
+                  trailing: l.settingsScaleValue(
+                    scale: settingsStore.messageScale,
+                  ),
+                  value: settingsStore.messageScale,
+                  min: 0.5,
+                  max: 2.0,
+                  divisions: 6,
+                  onChanged: (newValue) =>
+                      settingsStore.messageScale = newValue,
+                ),
+                SettingsListSlider(
+                  title: l.settingsMessageSpacing,
+                  trailing: l.settingsSpacingValue(
+                    pixels: settingsStore.messageSpacing.round(),
+                  ),
+                  value: settingsStore.messageSpacing,
                   max: 30.0,
-                  divisions: 30,
-                  onChanged: (newValue) => settingsStore.chatDelay = newValue,
+                  divisions: 15,
+                  onChanged: (newValue) =>
+                      settingsStore.messageSpacing = newValue,
                 ),
-            ],
-          ),
-          SettingsGroup(
-            title: 'Layout',
-            children: [
-              SettingsListSwitch(
-                title: 'Move emote menu button left',
-                subtitle: const Text(
-                  'Places the emote menu button on the left side to avoid '
-                  'accidental presses.',
+                SettingsListSlider(
+                  title: l.settingsFontSize,
+                  trailing: settingsStore.fontSize.toInt().toString(),
+                  value: settingsStore.fontSize,
+                  min: 5,
+                  max: 20,
+                  divisions: 15,
+                  onChanged: (newValue) => settingsStore.fontSize = newValue,
                 ),
-                value: settingsStore.emoteMenuButtonOnLeft,
-                onChanged: (newValue) =>
-                    settingsStore.emoteMenuButtonOnLeft = newValue,
-              ),
-              SettingsListSwitch(
-                title: 'Persist chat tabs',
-                subtitle: const Text(
-                  'Secondary chat tabs are remembered when switching '
-                  'channels.',
+              ],
+            ),
+            SettingsGroup(
+              title: l.settingsMessageAppearance,
+              children: [
+                SettingsListSwitch(
+                  title: l.settingsShowDeleted,
+                  subtitle: Text(l.settingsShowDeletedDetail),
+                  value: settingsStore.showDeletedMessages,
+                  onChanged: (newValue) =>
+                      settingsStore.showDeletedMessages = newValue,
                 ),
-                value: settingsStore.persistChatTabs,
-                onChanged: (newValue) {
-                  settingsStore.persistChatTabs = newValue;
-                  if (!newValue) {
-                    settingsStore.secondaryTabs = [];
-                  }
-                },
-              ),
-            ],
-          ),
-          SettingsGroup(
-            title: 'Alerts',
-            children: [
-              SettingsListSwitch(
-                title: 'Highlight first time chatters',
-                value: settingsStore.highlightFirstTimeChatter,
-                onChanged: (newValue) =>
-                    settingsStore.highlightFirstTimeChatter = newValue,
-              ),
-              SettingsListSwitch(
-                title: 'Show notices',
-                subtitle: const Text(
-                  'Shows notices such as subs and re-subs, announcements, '
-                  'and raids.',
+                SettingsListSwitch(
+                  title: l.settingsAnimateEmotes,
+                  subtitle: Text(l.settingsAnimateEmotesDetail),
+                  value: settingsStore.animateEmotes,
+                  onChanged: (newValue) =>
+                      settingsStore.animateEmotes = newValue,
                 ),
-                value: settingsStore.showUserNotices,
-                onChanged: (newValue) =>
-                    settingsStore.showUserNotices = newValue,
-              ),
-              SettingsListSwitch(
-                title: 'Collapse gift bombs',
-                subtitle: const Text(
-                  'Folds a gift bomb of five subs or more into its first '
-                  'line; tap "recipients" to see who got one.',
+                SettingsListSwitch(
+                  title: l.settingsAnimatedGifs,
+                  subtitle: Text(l.settingsAnimatedGifsDetail),
+                  value: settingsStore.animateGifs,
+                  onChanged: (newValue) => settingsStore.animateGifs = newValue,
                 ),
-                value: settingsStore.collapseGiftBombs,
-                onChanged: (newValue) =>
-                    settingsStore.collapseGiftBombs = newValue,
-              ),
-              SettingsListSwitch(
-                title: 'Show Hype Trains',
-                subtitle: const Text(
-                  'Shows Hype Train progress, levels and rewards above chat.',
+                SettingsListSwitch(
+                  title: l.settingsShowGifs,
+                  subtitle: Text(l.settingsShowGifsDetail),
+                  value: settingsStore.showGifs,
+                  onChanged: (newValue) => settingsStore.showGifs = newValue,
                 ),
-                value: settingsStore.showHypeTrain,
-                onChanged: (newValue) => settingsStore.showHypeTrain = newValue,
-              ),
-              SettingsListSwitch(
-                title: 'Show community highlights',
-                subtitle: const Text(
-                  'Shows polls, predictions, pinned messages, gift bombs '
-                  'and raids above chat.',
+                SettingsListSwitch(
+                  title: l.settingsLinkPreviews,
+                  subtitle: Text(l.settingsLinkPreviewsDetail),
+                  value: settingsStore.showLinkPreviews,
+                  onChanged: (newValue) =>
+                      settingsStore.showLinkPreviews = newValue,
                 ),
-                value: settingsStore.showCommunityHighlights,
-                onChanged: (newValue) =>
-                    settingsStore.showCommunityHighlights = newValue,
-              ),
-              SettingsListSwitch(
-                title: 'Show celebrations',
-                subtitle: const Text(
-                  'Plays an animation over the channel when someone gifts '
-                  'subs.',
+                SettingsListSwitch(
+                  title: l.settingsModerationNotices,
+                  subtitle: Text(l.settingsModerationNoticesDetail),
+                  value: settingsStore.showModerationNotices,
+                  onChanged: (newValue) =>
+                      settingsStore.showModerationNotices = newValue,
                 ),
-                value: settingsStore.showCelebrations,
-                onChanged: (newValue) =>
-                    settingsStore.showCelebrations = newValue,
-              ),
-              if (settingsStore.showCelebrations)
+                SettingsListSwitch(
+                  title: l.settingsMessageDividers,
+                  value: settingsStore.showChatMessageDividers,
+                  onChanged: (newValue) =>
+                      settingsStore.showChatMessageDividers = newValue,
+                ),
                 SettingsListSelect(
-                  title: 'Celebrations on video',
-                  subtitle:
-                      'Full plays the animation over the video. Subtle keeps '
-                      'the video clear and says it with a line in chat.',
-                  selectedOption: settingsStore.celebrationsOnVideo.label,
-                  options: [
-                    for (final option in CelebrationsOnVideo.values)
-                      option.label,
-                  ],
-                  onChanged: (label) =>
-                      settingsStore.celebrationsOnVideo = CelebrationsOnVideo
-                          .values
-                          .firstWhere((option) => option.label == label),
+                  title: l.settingsTimestamps,
+                  value: settingsStore.timestampType,
+                  values: TimestampType.values,
+                  labelOf: (type) => type.label(l),
+                  onChanged: (type) => settingsStore.timestampType = type,
                 ),
-            ],
-          ),
-          SettingsGroup(
-            title: 'Autocomplete',
-            children: [
-              SettingsListSwitch(
-                title: 'Show autocomplete bar',
-                subtitle: const Text(
-                  'Shows a bar containing matching emotes and mentions while '
-                  'typing.',
+              ],
+            ),
+            SettingsGroup(
+              title: l.settingsDelayAndLatency,
+              children: [
+                SettingsListSwitch(
+                  title: l.settingsSyncDelay,
+                  subtitle: Text(l.settingsSyncDelayDetail),
+                  value: settingsStore.autoSyncChatDelay,
+                  onChanged: (newValue) =>
+                      settingsStore.autoSyncChatDelay = newValue,
                 ),
-                value: settingsStore.autocomplete,
-                onChanged: (newValue) => settingsStore.autocomplete = newValue,
-              ),
-            ],
-          ),
-          SettingsGroup(
-            title: 'Landscape mode',
-            children: [
-              SettingsListSwitch(
-                title: 'Move chat left',
-                value: settingsStore.landscapeChatLeftSide,
-                onChanged: (newValue) =>
-                    settingsStore.landscapeChatLeftSide = newValue,
-              ),
-              SettingsListSwitch(
-                title: 'Force vertical chat',
-                subtitle: const Text(
-                  'Intended for tablets and other larger displays.',
+                if (!settingsStore.autoSyncChatDelay)
+                  SettingsListSlider(
+                    title: l.settingsMessageDelay,
+                    trailing: l.settingsMessageDelayValue(
+                      seconds: settingsStore.chatDelay.toInt(),
+                    ),
+                    subtitle: Platform.isIOS
+                        ? l.settingsMessageDelayDetailIos
+                        : l.settingsMessageDelayDetail,
+                    value: settingsStore.chatDelay,
+                    max: 30.0,
+                    divisions: 30,
+                    onChanged: (newValue) => settingsStore.chatDelay = newValue,
+                  ),
+              ],
+            ),
+            SettingsGroup(
+              title: l.settingsLayout,
+              children: [
+                SettingsListSwitch(
+                  title: l.settingsEmoteButtonLeft,
+                  subtitle: Text(l.settingsEmoteButtonLeftDetail),
+                  value: settingsStore.emoteMenuButtonOnLeft,
+                  onChanged: (newValue) =>
+                      settingsStore.emoteMenuButtonOnLeft = newValue,
                 ),
-                value: settingsStore.landscapeForceVerticalChat,
-                onChanged: (newValue) =>
-                    settingsStore.landscapeForceVerticalChat = newValue,
-              ),
-              SettingsListSelect(
-                title: 'Fill notch side',
-                subtitle:
-                    'Overrides and fills the available space in devices with '
-                    'a display notch.',
-                selectedOption:
-                    landscapeCutoutNames[settingsStore.landscapeCutout.index],
-                options: landscapeCutoutNames,
-                onChanged: (newValue) => settingsStore.landscapeCutout =
-                    LandscapeCutoutType.values[landscapeCutoutNames.indexOf(
-                      newValue,
-                    )],
-              ),
-              SettingsListSlider(
-                title: 'Chat overlay opacity',
-                trailing:
-                    '${(settingsStore.fullScreenChatOverlayOpacity * 100).toStringAsFixed(0)}%',
-                subtitle:
-                    'Sets the opacity (transparency) of the overlay chat in '
-                    'fullscreen mode.',
-                value: settingsStore.fullScreenChatOverlayOpacity,
-                divisions: 10,
-                onChanged: (newValue) =>
-                    settingsStore.fullScreenChatOverlayOpacity = newValue,
-              ),
-            ],
-          ),
-          SettingsGroup(
-            title: 'Chat filters and muted keywords',
-            children: [
-              SettingsRow(
-                glyph: SettingsGlyphKind.filter,
-                title: 'Edit Chat Filters',
-                value: settingsStore.chatFiltersEnabled ? 'On' : 'Off',
-                end: SettingsRowEnd.chevron,
-                onTap: () => openSettingsPage(
-                  context,
-                  id: SettingsPageId.chatFilters,
-                  builder: (context) =>
-                      ChatFiltersSetting(settingsStore: settingsStore),
+                SettingsListSwitch(
+                  title: l.settingsPersistTabs,
+                  subtitle: Text(l.settingsPersistTabsDetail),
+                  value: settingsStore.persistChatTabs,
+                  onChanged: (newValue) {
+                    settingsStore.persistChatTabs = newValue;
+                    if (!newValue) {
+                      settingsStore.secondaryTabs = [];
+                    }
+                  },
                 ),
-              ),
-              SettingsMutedWords(settingsStore: settingsStore),
-              SettingsListSwitch(
-                title: 'Match whole words',
-                subtitle: const Text(
-                  'Only matches whole words instead of partial matches.',
+              ],
+            ),
+            SettingsGroup(
+              title: l.settingsAlerts,
+              children: [
+                SettingsListSwitch(
+                  title: l.settingsFirstTimeChatters,
+                  value: settingsStore.highlightFirstTimeChatter,
+                  onChanged: (newValue) =>
+                      settingsStore.highlightFirstTimeChatter = newValue,
                 ),
-                value: settingsStore.matchWholeWord,
-                onChanged: (newValue) =>
-                    settingsStore.matchWholeWord = newValue,
-              ),
-            ],
-          ),
-          SettingsGroup(
-            title: 'Emotes and badges',
-            children: [
-              SettingsListSwitch(
-                title: 'Show Twitch emotes',
-                value: settingsStore.showTwitchEmotes,
-                onChanged: (newValue) =>
-                    settingsStore.showTwitchEmotes = newValue,
-              ),
-              SettingsListSwitch(
-                title: 'Show Twitch badges',
-                value: settingsStore.showTwitchBadges,
-                onChanged: (newValue) =>
-                    settingsStore.showTwitchBadges = newValue,
-              ),
-              SettingsListSwitch(
-                title: 'Show 7TV emotes',
-                value: settingsStore.show7TVEmotes,
-                onChanged: (newValue) => settingsStore.show7TVEmotes = newValue,
-              ),
-              SettingsListSwitch(
-                title: 'Show BTTV emotes',
-                value: settingsStore.showBTTVEmotes,
-                onChanged: (newValue) =>
-                    settingsStore.showBTTVEmotes = newValue,
-              ),
-              SettingsListSwitch(
-                title: 'Show BTTV badges',
-                value: settingsStore.showBTTVBadges,
-                onChanged: (newValue) =>
-                    settingsStore.showBTTVBadges = newValue,
-              ),
-              SettingsListSwitch(
-                title: 'Show FFZ emotes',
-                value: settingsStore.showFFZEmotes,
-                onChanged: (newValue) => settingsStore.showFFZEmotes = newValue,
-              ),
-              SettingsListSwitch(
-                title: 'Show FFZ badges',
-                value: settingsStore.showFFZBadges,
-                onChanged: (newValue) => settingsStore.showFFZBadges = newValue,
-              ),
-            ],
-          ),
-          SettingsGroup(
-            title: 'Recent messages',
-            children: [
-              SettingsListSwitch(
-                title: 'Fallback chat history (third-party)',
-                subtitle: Text.rich(
-                  TextSpan(
-                    text:
-                        'When Twitch\'s own chat history is unavailable, '
-                        'fails or is empty, loads recent messages from ',
-                    children: [
-                      TextSpan(
-                        text: 'https://recent-messages.robotty.de/',
-                        style: TextStyle(
-                          color: SettingsColors.accentOf(context),
-                          decoration: TextDecoration.underline,
-                          decorationColor: SettingsColors.accentOf(context),
-                        ),
-                        recognizer: _recentLink
-                          ..onTap = () => launchSettingsLink(
-                            'https://recent-messages.robotty.de/',
-                            external: settingsStore.launchUrlExternal,
-                          ),
-                      ),
-                      const TextSpan(
-                        text: ', which then receives the channel name.',
-                      ),
-                    ],
+                SettingsListSwitch(
+                  title: l.settingsUserNotices,
+                  subtitle: Text(l.settingsUserNoticesDetail),
+                  value: settingsStore.showUserNotices,
+                  onChanged: (newValue) =>
+                      settingsStore.showUserNotices = newValue,
+                ),
+                SettingsListSwitch(
+                  title: l.settingsCollapseGiftBombs,
+                  subtitle: Text(l.settingsCollapseGiftBombsDetail),
+                  value: settingsStore.collapseGiftBombs,
+                  onChanged: (newValue) =>
+                      settingsStore.collapseGiftBombs = newValue,
+                ),
+                SettingsListSwitch(
+                  title: l.settingsShowHypeTrains,
+                  subtitle: Text(l.settingsShowHypeTrainsDetail),
+                  value: settingsStore.showHypeTrain,
+                  onChanged: (newValue) =>
+                      settingsStore.showHypeTrain = newValue,
+                ),
+                SettingsListSwitch(
+                  title: l.settingsCommunityHighlights,
+                  subtitle: Text(l.settingsCommunityHighlightsDetail),
+                  value: settingsStore.showCommunityHighlights,
+                  onChanged: (newValue) =>
+                      settingsStore.showCommunityHighlights = newValue,
+                ),
+                SettingsListSwitch(
+                  title: l.settingsCelebrations,
+                  subtitle: Text(l.settingsCelebrationsDetail),
+                  value: settingsStore.showCelebrations,
+                  onChanged: (newValue) =>
+                      settingsStore.showCelebrations = newValue,
+                ),
+                if (settingsStore.showCelebrations)
+                  SettingsListSelect(
+                    title: l.settingsCelebrationsOnVideo,
+                    subtitle: l.settingsCelebrationsOnVideoDetail,
+                    value: settingsStore.celebrationsOnVideo,
+                    values: CelebrationsOnVideo.values,
+                    labelOf: (option) => option.label(l),
+                    onChanged: (option) =>
+                        settingsStore.celebrationsOnVideo = option,
+                  ),
+              ],
+            ),
+            SettingsGroup(
+              title: l.settingsAutocomplete,
+              children: [
+                SettingsListSwitch(
+                  title: l.settingsAutocompleteBar,
+                  subtitle: Text(l.settingsAutocompleteBarDetail),
+                  value: settingsStore.autocomplete,
+                  onChanged: (newValue) =>
+                      settingsStore.autocomplete = newValue,
+                ),
+              ],
+            ),
+            SettingsGroup(
+              title: l.settingsLandscape,
+              children: [
+                SettingsListSwitch(
+                  title: l.settingsChatLeft,
+                  value: settingsStore.landscapeChatLeftSide,
+                  onChanged: (newValue) =>
+                      settingsStore.landscapeChatLeftSide = newValue,
+                ),
+                SettingsListSwitch(
+                  title: l.settingsVerticalChat,
+                  subtitle: Text(l.settingsVerticalChatDetail),
+                  value: settingsStore.landscapeForceVerticalChat,
+                  onChanged: (newValue) =>
+                      settingsStore.landscapeForceVerticalChat = newValue,
+                ),
+                SettingsListSelect(
+                  title: l.settingsNotchSide,
+                  subtitle: l.settingsNotchSideDetail,
+                  value: settingsStore.landscapeCutout,
+                  values: LandscapeCutoutType.values,
+                  labelOf: (side) => side.label(l),
+                  onChanged: (side) => settingsStore.landscapeCutout = side,
+                ),
+                SettingsListSlider(
+                  title: l.settingsOverlayOpacity,
+                  trailing: l.settingsOverlayOpacityValue(
+                    percent: (settingsStore.fullScreenChatOverlayOpacity * 100)
+                        .round(),
+                  ),
+                  subtitle: l.settingsOverlayOpacityDetail,
+                  value: settingsStore.fullScreenChatOverlayOpacity,
+                  divisions: 10,
+                  onChanged: (newValue) =>
+                      settingsStore.fullScreenChatOverlayOpacity = newValue,
+                ),
+              ],
+            ),
+            SettingsGroup(
+              title: l.settingsFiltersGroup,
+              children: [
+                SettingsRow(
+                  glyph: SettingsGlyphKind.filter,
+                  title: l.settingsPageChatFilters,
+                  value: settingsStore.chatFiltersEnabled
+                      ? l.settingsFiltersOn
+                      : l.settingsFiltersOff,
+                  end: SettingsRowEnd.chevron,
+                  onTap: () => openSettingsPage(
+                    context,
+                    id: SettingsPageId.chatFilters,
+                    builder: (context) =>
+                        ChatFiltersSetting(settingsStore: settingsStore),
                   ),
                 ),
-                value: settingsStore.showRecentMessages,
-                onChanged: (newValue) =>
-                    settingsStore.showRecentMessages = newValue,
-              ),
-            ],
-          ),
-        ],
-      ),
+                SettingsMutedWords(settingsStore: settingsStore),
+                SettingsListSwitch(
+                  title: l.settingsWholeWords,
+                  subtitle: Text(l.settingsWholeWordsDetail),
+                  value: settingsStore.matchWholeWord,
+                  onChanged: (newValue) =>
+                      settingsStore.matchWholeWord = newValue,
+                ),
+              ],
+            ),
+            SettingsGroup(
+              title: l.settingsEmotesAndBadges,
+              children: [
+                SettingsListSwitch(
+                  title: l.settingsShowTwitchEmotes,
+                  value: settingsStore.showTwitchEmotes,
+                  onChanged: (newValue) =>
+                      settingsStore.showTwitchEmotes = newValue,
+                ),
+                SettingsListSwitch(
+                  title: l.settingsShowTwitchBadges,
+                  value: settingsStore.showTwitchBadges,
+                  onChanged: (newValue) =>
+                      settingsStore.showTwitchBadges = newValue,
+                ),
+                SettingsListSwitch(
+                  title: l.settingsShow7tvEmotes,
+                  value: settingsStore.show7TVEmotes,
+                  onChanged: (newValue) =>
+                      settingsStore.show7TVEmotes = newValue,
+                ),
+                SettingsListSwitch(
+                  title: l.settingsShowBttvEmotes,
+                  value: settingsStore.showBTTVEmotes,
+                  onChanged: (newValue) =>
+                      settingsStore.showBTTVEmotes = newValue,
+                ),
+                SettingsListSwitch(
+                  title: l.settingsShowBttvBadges,
+                  value: settingsStore.showBTTVBadges,
+                  onChanged: (newValue) =>
+                      settingsStore.showBTTVBadges = newValue,
+                ),
+                SettingsListSwitch(
+                  title: l.settingsShowFfzEmotes,
+                  value: settingsStore.showFFZEmotes,
+                  onChanged: (newValue) =>
+                      settingsStore.showFFZEmotes = newValue,
+                ),
+                SettingsListSwitch(
+                  title: l.settingsShowFfzBadges,
+                  value: settingsStore.showFFZBadges,
+                  onChanged: (newValue) =>
+                      settingsStore.showFFZBadges = newValue,
+                ),
+              ],
+            ),
+            SettingsGroup(
+              title: l.settingsRecentMessages,
+              children: [
+                SettingsListSwitch(
+                  title: l.onboardingSetupHistoryTitle,
+                  subtitle: Text.rich(
+                    TextSpan(
+                      children: l10nSpans(
+                        l.onboardingSetupHistoryDetail(link: l10nMark(0)),
+                        [
+                          TextSpan(
+                            text: _recentMessagesUrl,
+                            style: TextStyle(
+                              color: SettingsColors.accentOf(context),
+                              decoration: TextDecoration.underline,
+                              decorationColor: SettingsColors.accentOf(context),
+                            ),
+                            recognizer: _recentLink
+                              ..onTap = () => launchSettingsLink(
+                                _recentMessagesUrl,
+                                external: settingsStore.launchUrlExternal,
+                              ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  value: settingsStore.showRecentMessages,
+                  onChanged: (newValue) =>
+                      settingsStore.showRecentMessages = newValue,
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 }
+
+/// The third party asked for recent messages when Twitch has none.
+const _recentMessagesUrl = 'https://recent-messages.robotty.de/';
 
 /// "Preview": opens a sample of chat drawn with the sizes below (real badge
 /// and emote, loaded only once it is open).
@@ -498,7 +465,7 @@ class _ChatPreviewState extends State<_ChatPreview> {
         Semantics(
           expanded: _open,
           child: SettingsRow(
-            title: 'Preview',
+            title: context.l10n.settingsChatPreview,
             minHeight: 52,
             onTap: () => setState(() => _open = !_open),
             trailing: AnimatedRotation(
@@ -550,8 +517,9 @@ class _ChatPreviewState extends State<_ChatPreview> {
                                     width: defaultBadgeSize * store.badgeScale,
                                   ),
                                 ),
-                                const TextSpan(
-                                  text: ' Badge and emote preview. ',
+                                TextSpan(
+                                  text:
+                                      ' ${context.l10n.settingsChatPreviewBadgeEmote} ',
                                 ),
                                 WidgetSpan(
                                   alignment: PlaceholderAlignment.middle,
@@ -568,12 +536,12 @@ class _ChatPreviewState extends State<_ChatPreview> {
                           ),
                           SizedBox(height: store.messageSpacing),
                           Text(
-                            "Hello! Here's a text preview.",
+                            context.l10n.settingsChatPreviewText,
                             textScaler: store.messageScale.textScaler,
                           ),
                           SizedBox(height: store.messageSpacing),
                           Text(
-                            'And another for spacing without an emote!',
+                            context.l10n.settingsChatPreviewSpacing,
                             textScaler: store.messageScale.textScaler,
                           ),
                         ],

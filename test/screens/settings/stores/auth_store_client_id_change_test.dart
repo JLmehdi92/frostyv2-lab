@@ -72,7 +72,7 @@ void main() {
 
       expect(store.isLoggedIn, isFalse);
       expect(store.error, isNull);
-      expect(store.tokenNotice, AuthBase.sessionEndedNotice);
+      expect(store.tokenNotice, TokenNotice.sessionEnded);
       expect(
         await const FlutterSecureStorage().read(key: 'user_token'),
         isNull,
@@ -99,7 +99,7 @@ void main() {
 
     expect(store.isLoggedIn, isTrue);
     expect(store.headersTwitch['Client-Id'], oldApp);
-    expect(store.tokenNotice, AuthBase.foreignTokenNotice);
+    expect(store.tokenNotice, TokenNotice.foreignToken);
   });
 
   test(

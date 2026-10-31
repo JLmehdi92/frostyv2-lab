@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
 import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
@@ -19,6 +20,7 @@ class ChatFiltersSetting extends StatelessWidget {
     return Observer(
       builder: (context) {
         final on = store.chatFiltersEnabled;
+        final l = context.l10n;
         Widget category({
           required String title,
           required String description,
@@ -36,63 +38,43 @@ class ChatFiltersSetting extends StatelessWidget {
             SettingsGroup(
               children: [
                 SettingsListSwitch(
-                  title: 'Enable filtering in chat',
+                  title: l.chatFiltersEnable,
                   value: on,
                   onChanged: (value) => store.chatFiltersEnabled = value,
                 ),
-                const SettingsNote(
-                  'Select the filters you would like to block in chat across '
-                  'all channels. In channels you moderate, you will still see '
-                  'all messages.',
-                ),
+                SettingsNote(l.chatFiltersExplanation),
               ],
             ),
             SettingsGroup(
-              title: 'Filters',
+              title: l.chatFiltersGroup,
               children: [
                 category(
-                  title: 'Discrimination',
-                  description:
-                      'Negative language about race, gender, orientation, or '
-                      'similar',
+                  title: l.chatFilterDiscrimination,
+                  description: l.chatFilterDiscriminationDetail,
                   value: store.chatFilterDiscrimination,
                   onChanged: (value) => store.chatFilterDiscrimination = value,
                 ),
                 category(
-                  title: 'Sexually Explicit Language',
-                  description:
-                      'References to sexual acts, sexual content, and body '
-                      'parts',
+                  title: l.chatFilterSexual,
+                  description: l.chatFilterSexualDetail,
                   value: store.chatFilterSexual,
                   onChanged: (value) => store.chatFilterSexual = value,
                 ),
                 category(
-                  title: 'Harassment',
-                  description:
-                      'Aggressive or sexually harassing language towards '
-                      'other people',
+                  title: l.chatFilterHarassment,
+                  description: l.chatFilterHarassmentDetail,
                   value: store.chatFilterHarassment,
                   onChanged: (value) => store.chatFilterHarassment = value,
                 ),
                 category(
-                  title: 'Profanity',
-                  description: 'Curse words, expletives, or other obscenities',
+                  title: l.chatFilterProfanity,
+                  description: l.chatFilterProfanityDetail,
                   value: store.chatFilterProfanity,
                   onChanged: (value) => store.chatFilterProfanity = value,
                 ),
               ],
             ),
-            const SettingsGroup(
-              children: [
-                SettingsNote(
-                  "Twitch's AutoMod rates the words of each live chat "
-                  'message; only words it rates are hidden, so a message it '
-                  'did not rate always shows. Hidden words show as stars: '
-                  'tap them to see the message. Chat replays of past '
-                  'broadcasts are not filtered.',
-                ),
-              ],
-            ),
+            SettingsGroup(children: [SettingsNote(l.chatFiltersNote)]),
           ],
         );
       },

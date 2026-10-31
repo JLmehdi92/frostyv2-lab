@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/go_live_setting.dart';
 import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
@@ -69,35 +70,28 @@ class _MentionNotificationSettingState
       builder: (context) {
         final on = widget.loggedIn && widget.settingsStore.mentionNotifications;
         final error = Theme.of(context).colorScheme.error;
+        final l = context.l10n;
         final Widget subtitle;
         if (!widget.loggedIn) {
-          subtitle = const Text(
-            'Log in to be told when someone mentions you in chat.',
-          );
+          subtitle = Text(l.mentionLoggedOut);
         } else if (_refused) {
           subtitle = Text(
-            'Allow notifications for this app in the system settings.',
+            l.notificationsAllowInSystem,
             style: TextStyle(color: error),
           );
         } else if (on && _blocked) {
           subtitle = Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Notifications are blocked for this app.',
-                style: TextStyle(color: error),
-              ),
-              TextButton(onPressed: _ask, child: const Text('Allow')),
+              Text(l.mentionBlocked, style: TextStyle(color: error)),
+              TextButton(onPressed: _ask, child: Text(l.mentionAllow)),
             ],
           );
         } else {
-          subtitle = const Text(
-            'When someone mentions you in a chat you are watching while '
-            'ONSET is in the background or in picture-in-picture.',
-          );
+          subtitle = Text(l.mentionDetail);
         }
         return SettingsListSwitch(
-          title: 'Chat mention notifications',
+          title: l.mentionTitle,
           subtitle: subtitle,
           value: on,
           onChanged: widget.loggedIn ? _set : null,

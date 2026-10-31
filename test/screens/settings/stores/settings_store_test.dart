@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 
 void main() {
@@ -178,8 +180,17 @@ void main() {
     });
 
     test('catch-up and buffer names match their enums', () {
-      expect(liveCatchUpModeNames, ['Speed up', 'Jump to live']);
-      expect(bufferProfileNames, ['Standard', 'Ultra']);
+      expect(
+        [for (final mode in LiveCatchUpMode.values) mode.label(L10n.english)],
+        ['Speed up', 'Jump to live'],
+      );
+      expect(
+        [
+          for (final profile in BufferProfile.values)
+            profile.label(L10n.english),
+        ],
+        ['Standard', 'Ultra'],
+      );
     });
 
     test('keeps a saved showLatency value over the new default', () {
@@ -761,18 +772,18 @@ void main() {
       expect(LandscapeCutoutType.values, contains(LandscapeCutoutType.both));
     });
 
-    test('themeNames matches ThemeType order', () {
-      expect(themeNames.length, ThemeType.values.length);
-      expect(themeNames[0], 'System');
-      expect(themeNames[1], 'Light');
-      expect(themeNames[2], 'Dark');
+    test('theme names follow ThemeType', () {
+      expect(
+        [for (final theme in ThemeType.values) theme.label(L10n.english)],
+        ['System', 'Light', 'Dark'],
+      );
     });
 
-    test('timestampNames matches TimestampType order', () {
-      expect(timestampNames.length, TimestampType.values.length);
-      expect(timestampNames[0], 'Disabled');
-      expect(timestampNames[1], '12-hour');
-      expect(timestampNames[2], '24-hour');
+    test('timestamp names follow TimestampType', () {
+      expect(
+        [for (final type in TimestampType.values) type.label(L10n.english)],
+        ['Disabled', '12-hour', '24-hour'],
+      );
     });
   });
 }

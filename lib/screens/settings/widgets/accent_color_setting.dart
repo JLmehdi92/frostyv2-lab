@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/settings_glyph.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
@@ -26,8 +27,8 @@ class AccentColorSetting extends StatelessWidget {
         final colors = SettingsColors.of(context);
         final color = Color(settingsStore.accentColor);
         return SettingsRow(
-          title: 'Accent color',
-          semanticsLabel: 'Change accent color',
+          title: context.l10n.accentColorTitle,
+          semanticsLabel: context.l10n.settingsAccentColorChange,
           onTap: () => showAccentColorPicker(context, settingsStore),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
@@ -195,7 +196,7 @@ class _AccentPickerState extends State<_AccentPicker> {
       scopesRoute: true,
       namesRoute: true,
       explicitChildNodes: true,
-      label: 'Accent color',
+      label: context.l10n.accentColorTitle,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -206,7 +207,7 @@ class _AccentPickerState extends State<_AccentPicker> {
               children: [
                 Expanded(
                   child: Text(
-                    'Accent color',
+                    context.l10n.accentColorTitle,
                     style: SettingsText.pageTitle.copyWith(
                       letterSpacing: -0.27,
                       color: colors.text,
@@ -226,7 +227,7 @@ class _AccentPickerState extends State<_AccentPicker> {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  child: const Text('Done'),
+                  child: Text(context.l10n.commonDone),
                 ),
               ],
             ),
@@ -277,7 +278,7 @@ class _AccentPickerState extends State<_AccentPicker> {
                             ),
                           ),
                           Text(
-                            'Applies everywhere as you pick',
+                            context.l10n.settingsAccentColorLive,
                             style: TextStyle(
                               fontFamily: OnsetTokens.bodyFamily,
                               fontSize: 12,
@@ -288,7 +289,7 @@ class _AccentPickerState extends State<_AccentPicker> {
                       ),
                     ),
                     SettingsButton(
-                      label: 'Random',
+                      label: context.l10n.accentColorRandom,
                       icon: SettingsGlyph(
                         SettingsGlyphKind.dice,
                         size: 17,

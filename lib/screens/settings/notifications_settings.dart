@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/go_live_setting.dart';
@@ -27,7 +28,7 @@ class NotificationsSettings extends StatelessWidget {
         return SettingsGroupsView(
           children: [
             SettingsGroup(
-              title: 'Channels you follow',
+              title: context.l10n.settingsChannelsYouFollow,
               children: [
                 GoLiveSetting(
                   userId: loggedIn ? authStore.user.details?.id : null,
@@ -35,7 +36,7 @@ class NotificationsSettings extends StatelessWidget {
               ],
             ),
             SettingsGroup(
-              title: 'Chat',
+              title: context.l10n.settingsPageChat,
               children: [
                 MentionNotificationSetting(
                   settingsStore: settingsStore,

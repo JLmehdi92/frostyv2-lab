@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/video/latency_controller.dart';
 import 'package:onset/screens/channel/video/latency_stats.dart';
 import 'package:onset/screens/channel/video/overlay_common.dart';
@@ -99,7 +100,9 @@ class IvsStatsPanel extends StatelessWidget {
                     null => '—',
                   },
                 ),
-                ('Mode', store.playerConfig.label),
+                // English, like the rest of the panel, until it is
+                // translated.
+                ('Mode', store.playerConfig.label(L10n.english)),
                 ('Auto latency', describeAutoLatency(store.autoLatencyStatus)),
                 if (describeBufferFallback(store.bufferFallbackUntil)
                     case final fallback?)

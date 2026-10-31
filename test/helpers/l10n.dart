@@ -93,7 +93,9 @@ Future<void> pumpLocalized(
 /// The English texts the screen shows while it should be in French: every
 /// drawn text (and text field) equal to an English message that French
 /// words differently. Placeholder messages are matched on their fixed
-/// text around the placeholders.
+/// text around the placeholders; a message that is one plural or select
+/// on each of its branches, in any case (labels shown in capitals too). A
+/// text that the French of the same message also gives is no leak.
 List<String> englishLeaks(WidgetTester tester) {
   final english =
       jsonDecode(File('lib/l10n/app_en.arb').readAsStringSync())
@@ -103,25 +105,84 @@ List<String> englishLeaks(WidgetTester tester) {
           as Map<String, Object?>;
   // A word French also shows as is (the endonym "English") is no leak.
   final frenchValues = french.values.toSet();
-  final patterns = <RegExp>[];
+  final checks = <({List<RegExp> english, List<RegExp> french})>[];
   for (final MapEntry(:key, :value) in english.entries) {
     if (key.startsWith('@') ||
         value is! String ||
         frenchValues.contains(value)) {
       continue;
     }
-    // A plural or select: its branches are not matched (none is shown
-    // whole), its simple placeholders are.
-    if (RegExp(r'\{\w+,').hasMatch(value)) continue;
-    final fixed = value.split(RegExp(r'\{\w+\}')).map(RegExp.escape).join('.+');
-    patterns.add(RegExp('^$fixed\$'));
+    final englishPatterns = _shownPatterns(value);
+    if (englishPatterns.isEmpty) continue;
+    checks.add((
+      english: englishPatterns,
+      french: _shownPatterns(french[key]! as String),
+    ));
   }
   final shown = <String>{
     for (final widget in tester.widgetList<RichText>(find.byType(RichText)))
       widget.text.toPlainText(),
   };
+  // A text French shows as is, in any case ("LIVE"), is no leak either.
+  final frenchTexts = {
+    for (final value in frenchValues)
+      if (value is String) value.toLowerCase(),
+  };
+  bool leaks(String text) =>
+      !frenchTexts.contains(text.toLowerCase()) &&
+      checks.any(
+        (check) =>
+            check.english.any((pattern) => pattern.hasMatch(text)) &&
+            !check.french.any((pattern) => pattern.hasMatch(text)),
+      );
   return [
     for (final text in shown)
-      if (patterns.any((pattern) => pattern.hasMatch(text))) text,
+      if (leaks(text)) text,
   ];
+}
+
+/// What [message] can show, as patterns: the message itself with each
+/// placeholder as any text, or for a message that is one plural or select,
+/// each of its branches. Empty for a choice inside other text (no branch is
+/// shown whole), and for text with fewer than three letters of its own
+/// around its placeholders.
+List<RegExp> _shownPatterns(String message) {
+  RegExp? pattern(String text) {
+    final fixed = text.split(RegExp(r'\{\w+\}|#'));
+    // Next to no words of its own ("{scale}x", "{pixels}px"): it cannot be
+    // told from the data it shows.
+    if (RegExp(r'\p{L}', unicode: true).allMatches(fixed.join()).length < 3 &&
+        fixed.length > 1) {
+      return null;
+    }
+    // Whatever the case: group labels and eyebrows are shown in capitals.
+    return RegExp(
+      '^${fixed.map(RegExp.escape).join('.+')}\$',
+      caseSensitive: false,
+    );
+  }
+
+  final choice = RegExp(r'^\{\w+, ?(plural|select), ?').firstMatch(message);
+  if (choice == null) {
+    if (RegExp(r'\{\w+,').hasMatch(message)) return const [];
+    return [?pattern(message)];
+  }
+  // The branches: "selector{text}" up to the closing brace.
+  final branches = <RegExp>[];
+  var i = choice.end;
+  while (i < message.length - 1) {
+    final open = message.indexOf('{', i);
+    if (open < 0) break;
+    var depth = 0;
+    var end = open;
+    for (; end < message.length; end++) {
+      if (message[end] == '{') depth++;
+      if (message[end] == '}' && --depth == 0) break;
+    }
+    final text = message.substring(open + 1, end);
+    if (RegExp(r'\{\w+,').hasMatch(text)) return const [];
+    if (pattern(text) case final branch?) branches.add(branch);
+    i = end + 1;
+  }
+  return branches;
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/video/player_controller.dart';
 import 'package:onset/screens/channel/video/player_glyph.dart';
 import 'package:onset/theme.dart';
@@ -113,7 +114,11 @@ class _ContentWarningGateState extends State<ContentWarningGate> {
       final channel = await context.read<TwitchApi>().getChannel(
         userId: widget.userId,
       );
-      labels = contentLabelNames(channel.contentClassificationLabels);
+      // English, like the rest of the warning, until it is translated.
+      labels = contentLabelNames(
+        channel.contentClassificationLabels,
+        L10n.english,
+      );
     } catch (_) {
       // Fail open: a channel we cannot read is not blocked.
     }

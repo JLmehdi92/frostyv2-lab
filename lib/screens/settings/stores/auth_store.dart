@@ -10,6 +10,7 @@ import 'package:mobx/mobx.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/constants.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/main.dart';
 import 'package:onset/screens/settings/stores/user_store.dart';
 import 'package:onset/services/telemetry.dart';
@@ -20,6 +21,20 @@ import 'package:webview_flutter/webview_flutter.dart';
 part 'auth_store.g.dart';
 
 class AuthStore = AuthBase with _$AuthStore;
+
+/// What the app tells the viewer once about the session (named in
+/// lib/l10n/enum_labels.dart).
+enum TokenNotice {
+  /// The session's token was issued to another app (stored by an older
+  /// version, or pasted from another tool): some features may not work.
+  foreignToken,
+
+  /// Twitch refused the stored login at launch (it expired, was revoked,
+  /// or its app no longer exists, as after an update that changes ONSET's
+  /// Twitch application): logged out, the viewer is told to log in again
+  /// instead of finding out later.
+  sessionEnded,
+}
 
 /// One opened login page ([AuthBase.beginLogin]): the `state` its
 /// authorization carries, and whether Twitch handed it a token. Several can
@@ -87,18 +102,6 @@ abstract class AuthBase with Store {
   /// The account last told that its token was created for another app (the
   /// notice is shown once).
   static const _foreignNoticeKey = 'foreign_token_notice_user';
-
-  /// What the app says once when the session's token was issued to another
-  /// app (stored by an older version, or pasted from another tool).
-  static const foreignTokenNotice =
-      'This token was created for another app — some features may not work.';
-
-  /// What the app says once when Twitch refused the stored login at launch
-  /// (it expired, was revoked, or its app no longer exists, as after an
-  /// update that changes ONSET's Twitch application): logged out, the
-  /// viewer is told to log in again instead of finding out later.
-  static const sessionEndedNotice =
-      'Your Twitch session has ended. Log in again from Settings.';
 
   /// The Twitch API service for making requests.
   final TwitchApi twitchApi;
@@ -435,18 +438,17 @@ abstract class AuthBase with Store {
   @readonly
   String? _error;
 
-  /// A notice for the viewer about the session ([foreignTokenNotice],
-  /// [sessionEndedNotice]), until it is shown ([clearTokenNotice]). Never
-  /// the token.
+  /// A notice for the viewer about the session ([TokenNotice]), until it is
+  /// shown ([clearTokenNotice]). Never the token.
   @readonly
-  String? _tokenNotice;
+  TokenNotice? _tokenNotice;
 
   /// The notice was shown.
   @action
   void clearTokenNotice() => _tokenNotice = null;
 
-  /// The session's token is another app's: [foreignTokenNotice], once for
-  /// [userId]'s account.
+  /// The session's token is another app's: [TokenNotice.foreignToken],
+  /// once for [userId]'s account.
   Future<void> _noticeForeignToken(String userId) async {
     try {
       if (await _storage.read(key: _foreignNoticeKey) == userId) return;
@@ -454,7 +456,7 @@ abstract class AuthBase with Store {
     } catch (e) {
       debugPrint('Token notice state unavailable: ${e.runtimeType}');
     }
-    runInAction(() => _tokenNotice = foreignTokenNotice);
+    runInAction(() => _tokenNotice = TokenNotice.foreignToken);
   }
 
   /// Navigation handler for the login webview. Fires on every navigation request (whenever the URL changes).
@@ -775,10 +777,12 @@ abstract class AuthBase with Store {
         .where((blockedUser) => blockedUser.userId == targetUserId)
         .isNotEmpty;
 
-    final title = isBlocked ? 'Unblock' : 'Block';
+    final l = context.l10n;
+    final title = isBlocked ? l.settingsUnblock : l.settingsBlock;
 
-    final message =
-        'Are you sure you want to ${isBlocked ? 'unblock "$targetUser"?' : 'block "$targetUser"? This will remove them from channel lists, search results, and chat messages.'}';
+    final message = isBlocked
+        ? l.settingsUnblockMessage(name: targetUser)
+        : l.settingsBlockMessage(name: targetUser);
 
     void onPressed() {
       if (isBlocked) {
@@ -797,9 +801,12 @@ abstract class AuthBase with Store {
         actions: [
           TextButton(
             onPressed: Navigator.of(context).pop,
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
-          FilledButton(onPressed: onPressed, child: const Text('Yes')),
+          FilledButton(
+            onPressed: onPressed,
+            child: Text(context.l10n.commonYes),
+          ),
         ],
       ),
     );
@@ -829,7 +836,6 @@ abstract class AuthBase with Store {
       // renditions; its absence is not an error.
       _twitchWebToken = await _storage.read(key: _twitchWebTokenKey);
 
-
       // If the token does not exist, get the default token.
       // Otherwise, log in.
       if (_token == null) {
@@ -856,7 +862,7 @@ abstract class AuthBase with Store {
         // If the token is invalid, logout, and say so.
         if (!_tokenIsValid) {
           await logout();
-          runInAction(() => _tokenNotice = sessionEndedNotice);
+          runInAction(() => _tokenNotice = TokenNotice.sessionEnded);
           return;
         }
 
@@ -1080,7 +1086,7 @@ abstract class AuthBase with Store {
   /// The token must have been issued to this app (a login page could be
   /// handed someone else's), unless [acceptAnyApp]: a token the viewer
   /// brought themselves (pasted), which signs in whatever app it was made
-  /// for, with [foreignTokenNotice] when it is another app's.
+  /// for, with [TokenNotice.foreignToken] when it is another app's.
   ///
   /// Nothing of the session changes until the token is validated and its
   /// user read (with that token, not the session's): then, one at a time

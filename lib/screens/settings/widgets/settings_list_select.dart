@@ -8,12 +8,25 @@ import 'package:onset/widgets/motion/press_scale.dart';
 
 /// A setting with a few options: a segmented pill, or
 /// with [stacked] one option per line (Video Autoplaying).
-class SettingsListSelect extends StatelessWidget {
+///
+/// The options are [values], shown by [labelOf], with [value] selected:
+/// the choice is the value itself, never found back from its label (two
+/// languages, two labels).
+class SettingsListSelect<T> extends StatelessWidget {
   final String? title;
   final String? subtitle;
-  final String selectedOption;
-  final List<String> options;
-  final ValueChanged<String> onChanged;
+
+  /// The option selected.
+  final T value;
+
+  /// The options, in order.
+  final List<T> values;
+
+  /// What an option is called on screen.
+  final String Function(T value) labelOf;
+
+  /// Told the option tapped, when it is not [value].
+  final ValueChanged<T> onChanged;
 
   /// One option per line, for long labels.
   final bool stacked;
@@ -25,15 +38,16 @@ class SettingsListSelect extends StatelessWidget {
     super.key,
     this.title,
     this.subtitle,
-    required this.selectedOption,
-    required this.options,
+    required this.value,
+    required this.values,
+    required this.labelOf,
     required this.onChanged,
     this.stacked = false,
     this.groupLabel,
   });
 
-  void _pick(String option) {
-    if (option == selectedOption) return;
+  void _pick(T option) {
+    if (option == value) return;
     HapticFeedback.selectionClick();
     onChanged(option);
   }
@@ -84,11 +98,11 @@ class SettingsListSelect extends StatelessWidget {
       ),
       child: Row(
         children: [
-          for (final option in options)
+          for (final option in values)
             Expanded(
               child: _Option(
-                label: option,
-                selected: option == selectedOption,
+                label: labelOf(option),
+                selected: option == value,
                 onTap: () => _pick(option),
                 child: SizedBox(
                   height: 44,
@@ -101,11 +115,11 @@ class SettingsListSelect extends StatelessWidget {
                             duration: duration,
                             curve: OnsetMotion.standard,
                             decoration: ShapeDecoration(
-                              color: option == selectedOption
+                              color: option == value
                                   ? accent.withValues(alpha: 0.14)
                                   : accent.withValues(alpha: 0),
                               shape: StadiumBorder(
-                                side: option == selectedOption
+                                side: option == value
                                     ? BorderSide(
                                         color: accent.withValues(alpha: 0.85),
                                       )
@@ -119,18 +133,16 @@ class SettingsListSelect extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           child: Text(
-                            option,
+                            labelOf(option),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontFamily: OnsetTokens.bodyFamily,
                               fontSize: 12.5,
-                              fontWeight: option == selectedOption
+                              fontWeight: option == value
                                   ? FontWeight.w700
                                   : FontWeight.w500,
-                              color: option == selectedOption
-                                  ? accent
-                                  : colors.body,
+                              color: option == value ? accent : colors.body,
                             ),
                           ),
                         ),
@@ -154,10 +166,10 @@ class SettingsListSelect extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: 6,
       children: [
-        for (final option in options)
+        for (final option in values)
           _Option(
-            label: option,
-            selected: option == selectedOption,
+            label: labelOf(option),
+            selected: option == value,
             onTap: () => _pick(option),
             child: AnimatedContainer(
               duration: duration,
@@ -165,37 +177,35 @@ class SettingsListSelect extends StatelessWidget {
               height: 44,
               padding: const EdgeInsets.only(left: 14, right: 12),
               decoration: BoxDecoration(
-                color: option == selectedOption
+                color: option == value
                     ? accent.withValues(alpha: 0.08)
                     : colors.stackIdle,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: option == selectedOption
+                  color: option == value
                       ? accent.withValues(alpha: 0.7)
                       : colors.stackRing,
-                  width: option == selectedOption
-                      ? 1
-                      : OnsetTokens.hairlineWidth,
+                  width: option == value ? 1 : OnsetTokens.hairlineWidth,
                 ),
               ),
               child: Row(
                 children: [
                   Expanded(
                     child: Text(
-                      option,
+                      labelOf(option),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontFamily: OnsetTokens.bodyFamily,
                         fontSize: 14,
-                        fontWeight: option == selectedOption
+                        fontWeight: option == value
                             ? FontWeight.w700
                             : FontWeight.w500,
                         color: colors.text,
                       ),
                     ),
                   ),
-                  if (option == selectedOption)
+                  if (option == value)
                     SettingsGlyph(
                       SettingsGlyphKind.check,
                       strokeWidth: 2.4,

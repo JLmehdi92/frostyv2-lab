@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/widgets/settings_glyph.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
@@ -28,9 +29,9 @@ class BlockedUsers extends StatelessWidget {
   }) async {
     final confirmed = await confirmSettingsAction(
       context,
-      title: 'Unblock',
-      message: 'Are you sure you want to unblock "$name"?',
-      confirm: 'Yes',
+      title: context.l10n.settingsUnblock,
+      message: context.l10n.settingsUnblockMessage(name: name),
+      confirm: context.l10n.commonYes,
       danger: false,
     );
     if (confirmed) await authStore.user.unblock(targetId: id);
@@ -70,7 +71,7 @@ class BlockedUsers extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'No blocked users',
+                      context.l10n.settingsNoBlockedUsers,
                       style: TextStyle(
                         fontFamily: OnsetTokens.bodyFamily,
                         fontSize: 15,
@@ -92,7 +93,9 @@ class BlockedUsers extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               spacing: 8,
               children: [
-                SettingsSectionLabel('${blocked.length} blocked'),
+                SettingsSectionLabel(
+                  context.l10n.settingsBlockedCount(count: blocked.length),
+                ),
                 SettingsCard(
                   child: Column(
                     children: [
@@ -118,8 +121,7 @@ class BlockedUsers extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(4, 4, 4, 0),
                   child: Text(
-                    'Blocked users are removed from channel lists, search '
-                    'results, and chat messages. Pull down to refresh.',
+                    context.l10n.settingsBlockedNote,
                     style: SettingsText.detail.copyWith(
                       height: 1.5,
                       color: colors.tertiary,
@@ -161,12 +163,12 @@ class _BlockedRow extends StatelessWidget {
               ),
             ),
             Semantics(
-              label: 'Unblock $name',
+              label: context.l10n.settingsUnblockName(name: name),
               button: true,
               onTap: () => onUnblock(name),
               excludeSemantics: true,
               child: SettingsButton(
-                label: 'Unblock',
+                label: context.l10n.settingsUnblock,
                 onPressed: () => onUnblock(name),
               ),
             ),

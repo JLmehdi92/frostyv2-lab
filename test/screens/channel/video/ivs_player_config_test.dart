@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/video/buffer_fallback.dart';
 import 'package:onset/screens/channel/video/ivs_player_config.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
@@ -157,7 +158,7 @@ void main() {
         expect(config.buffer, BufferProfile.standard);
         expect(config.bufferFallback, isTrue);
         expect(config.toCreateArgs().containsKey('llMinBufferSec'), isFalse);
-        expect(config.label, 'Auto · Standard (Ultra stalled)');
+        expect(config.label(L10n.english), 'Auto · Standard (Ultra stalled)');
         expect(settings.bufferProfile, BufferProfile.ultra, reason: 'kept');
 
         now = now.add(BufferFallback.holdFor);
@@ -198,7 +199,7 @@ void main() {
             catchUp: LiveCatchUpMode.speedUp,
             buffer: BufferProfile.ultra,
             autoLatency: true,
-          ).label,
+          ).label(L10n.english),
           'Auto · Ultra',
         );
         expect(
@@ -206,7 +207,7 @@ void main() {
             catchUp: LiveCatchUpMode.jumpToLive,
             buffer: BufferProfile.ultra,
             autoLatency: true,
-          ).label,
+          ).label(L10n.english),
           'Jump to live + auto · Ultra',
         );
       });
@@ -217,14 +218,14 @@ void main() {
         const IvsPlayerConfig(
           catchUp: LiveCatchUpMode.speedUp,
           buffer: BufferProfile.standard,
-        ).label,
+        ).label(L10n.english),
         'Speed up · Standard',
       );
       expect(
         const IvsPlayerConfig(
           catchUp: LiveCatchUpMode.jumpToLive,
           buffer: BufferProfile.ultra,
-        ).label,
+        ).label(L10n.english),
         'Jump to live · Ultra',
       );
     });

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/account/account_settings.dart';
 import 'package:onset/screens/settings/account/blocked_users.dart';
 import 'package:onset/screens/settings/chat_settings.dart';
@@ -67,7 +69,7 @@ class _SettingsState extends State<Settings> {
   Widget build(BuildContext context) {
     final authStore = context.read<AuthStore>();
     return SettingsScaffold(
-      title: 'Settings',
+      title: context.l10n.settingsTitle,
       body: context.isLargeScreen
           ? SettingsMasterDetail(
               selection: _selection,
@@ -101,7 +103,7 @@ class SettingsHome extends StatelessWidget {
       children: [
         SettingsAccountCard(authStore: authStore),
         SettingsGroup(
-          title: 'Customize',
+          title: context.l10n.settingsCustomize,
           children: [
             for (final page in SettingsPageId.customize)
               SettingsSectionRow(
@@ -117,19 +119,23 @@ class SettingsHome extends StatelessWidget {
   }
 }
 
-/// The line under a section in Profile and the phone's settings.
-String settingsSectionSummary(SettingsPageId page, {required bool loggedIn}) =>
-    switch (page) {
-      SettingsPageId.general => 'Theme, accent color, browse, links',
-      SettingsPageId.video => 'Low-latency player, captions, overlay',
-      SettingsPageId.chat => 'Sizing, alerts, filters, emotes',
-      SettingsPageId.notifications =>
-        loggedIn
-            ? 'Go-live and chat mentions'
-            : 'Log in to get go-live and mention notifications',
-      SettingsPageId.other => 'Updates, cache, privacy, about',
-      _ => '',
-    };
+/// The line under a section in Profile and the phone's settings, in [l]'s
+/// language.
+String settingsSectionSummary(
+  AppLocalizations l,
+  SettingsPageId page, {
+  required bool loggedIn,
+}) => switch (page) {
+  SettingsPageId.general => l.settingsSummaryGeneral,
+  SettingsPageId.video => l.settingsSummaryVideo,
+  SettingsPageId.chat => l.settingsSummaryChat,
+  SettingsPageId.notifications =>
+    loggedIn
+        ? l.settingsSummaryNotifications
+        : l.settingsSummaryNotificationsLoggedOut,
+  SettingsPageId.other => l.settingsSummaryOther,
+  _ => '',
+};
 
 /// A section of the settings (General, Video…): its icon, its name and what
 /// is in it; opens its page.
@@ -153,7 +159,7 @@ class SettingsSectionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget row(String summary) => SettingsRow(
       glyph: page.glyph,
-      title: page.title,
+      title: page.title(context.l10n),
       strong: true,
       minHeight: 60,
       subtitle: Text(summary),
@@ -171,8 +177,13 @@ class SettingsSectionRow extends StatelessWidget {
     // A given summary is already up to date (its owner observes it).
     if (summary case final summary?) return row(summary);
     return Observer(
-      builder: (context) =>
-          row(settingsSectionSummary(page, loggedIn: authStore.isLoggedIn)),
+      builder: (context) => row(
+        settingsSectionSummary(
+          context.l10n,
+          page,
+          loggedIn: authStore.isLoggedIn,
+        ),
+      ),
     );
   }
 }
@@ -208,6 +219,7 @@ class SettingsAccountCard extends StatelessWidget {
     return Observer(
       builder: (context) {
         final colors = SettingsColors.of(context);
+        final l = context.l10n;
         final details = authStore.user.details;
         final Widget leading;
         final String title;
@@ -221,17 +233,17 @@ class SettingsAccountCard extends StatelessWidget {
             color: colors.danger,
             fill: colors.dangerTint,
           );
-          title = 'Unable to connect to Twitch';
-          detail = 'Check your connection, then try again';
+          title = l.settingsUnableToReachTwitch;
+          detail = l.settingsCheckConnection;
           onTap = authStore.init;
           trailing = SettingsButton(
-            label: 'Reconnect',
+            label: l.settingsReconnect,
             onPressed: authStore.init,
           );
         } else if (authStore.isLoggedIn && details != null) {
           leading = SettingsAvatar(user: details, size: 48);
           title = details.displayName;
-          detail = 'Blocked users, twitch.tv, log out';
+          detail = l.settingsAccountCardDetail;
           onTap = () => openSettingsPage(
             context,
             id: SettingsPageId.account,
@@ -243,10 +255,8 @@ class SettingsAccountCard extends StatelessWidget {
             color: colors.secondary,
             fill: colors.tile,
           );
-          title = 'Anonymous';
-          detail =
-              'Log in to enable the ability to chat, view followed streams, '
-              'and more.';
+          title = l.settingsAnonymous;
+          detail = l.settingsLoginPitch;
           onTap = () => openLogin(context);
           onLongPress = () => loginFromClipboard(authStore);
         }

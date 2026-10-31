@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/apis/twitch_directory_service.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/theme.dart';
@@ -164,7 +166,9 @@ class FollowedSortButton extends StatelessWidget {
               CheckedPopupMenuItem(
                 value: option,
                 checked: option == sort,
-                child: Text(option.label),
+                // English, like the rest of the button, until it is
+                // translated.
+                child: Text(option.label(L10n.english)),
               ),
           ],
           child: Container(
@@ -186,7 +190,7 @@ class FollowedSortButton extends StatelessWidget {
                 Icon(Icons.sort_rounded, size: 14, color: colors.body),
                 Flexible(
                   child: Text(
-                    'Sorted by ${sort.label}',
+                    'Sorted by ${sort.label(L10n.english)}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(

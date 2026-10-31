@@ -77,7 +77,7 @@ void main() {
     await store.init();
 
     expect(store.isLoggedIn, isTrue);
-    expect(store.tokenNotice, AuthBase.foreignTokenNotice);
+    expect(store.tokenNotice, TokenNotice.foreignToken);
     // Helix takes the token with its own app's Client-Id.
     expect(store.headersTwitch['Client-Id'], 'other_app');
     expect(
@@ -128,7 +128,7 @@ void main() {
     await store.login(token: 'foreign', acceptAnyApp: true);
 
     expect(store.isLoggedIn, isTrue);
-    expect(store.tokenNotice, AuthBase.foreignTokenNotice);
+    expect(store.tokenNotice, TokenNotice.foreignToken);
     // Its user was read, and Helix is then asked, with its app's Client-Id.
     verify(
       () => api.getUserInfo(token: 'foreign', clientId: 'other_app'),

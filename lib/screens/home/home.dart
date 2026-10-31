@@ -225,14 +225,17 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
 
   late final ReactionDisposer _disposeTokenNotice;
 
-  Future<void> _showTokenNotice(String? notice) async {
+  Future<void> _showTokenNotice(TokenNotice? notice) async {
     if (notice == null) return;
     // Not under the launch intro's tile.
     await LaunchIntro.landed();
     if (!mounted) return;
     _authStore.clearTokenNotice();
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(notice), duration: const Duration(seconds: 6)),
+      SnackBar(
+        content: Text(notice.label(context.l10n)),
+        duration: const Duration(seconds: 6),
+      ),
     );
   }
 

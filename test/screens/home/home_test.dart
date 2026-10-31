@@ -1310,12 +1310,12 @@ void main() {
     tester,
   ) async {
     final auth = FakeAuthStore(loggedIn: true);
-    when(() => auth.tokenNotice).thenReturn(AuthBase.foreignTokenNotice);
+    when(() => auth.tokenNotice).thenReturn(TokenNotice.foreignToken);
     when(auth.clearTokenNotice).thenReturn(null);
     await pump(tester, auth: auth);
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text(AuthBase.foreignTokenNotice), findsOneWidget);
+    expect(find.text(L10n.english.authForeignTokenNotice), findsOneWidget);
     verify(auth.clearTokenNotice).called(1);
     await close(tester);
   });

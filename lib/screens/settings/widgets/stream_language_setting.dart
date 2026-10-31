@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
 import 'package:onset/screens/settings/widgets/settings_page.dart';
@@ -18,8 +19,8 @@ class StreamLanguageSetting extends StatelessWidget {
         final selected = streamLanguageOrAll(settingsStore.streamLanguage);
 
         return SettingsRow(
-          title: 'Stream language',
-          value: kStreamLanguages[selected]!,
+          title: context.l10n.settingsStreamLanguage,
+          value: streamLanguageName(selected, context.l10n),
           end: SettingsRowEnd.chevron,
           onTap: () => showSettingsSheet<void>(
             context: context,
@@ -46,22 +47,21 @@ class _LanguageList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SettingsSheetContent(
-      title: 'Stream language',
+      title: context.l10n.settingsStreamLanguage,
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.fromLTRB(12, 4, 12, 20),
           sliver: SliverToBoxAdapter(
             child: Semantics(
-              label: 'Stream language',
+              label: context.l10n.settingsStreamLanguage,
               container: true,
               explicitChildNodes: true,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  for (final MapEntry(key: code, value: name)
-                      in kStreamLanguages.entries)
+                  for (final code in kStreamLanguageCodes)
                     SettingsChoiceRow(
-                      label: name,
+                      label: streamLanguageName(code, context.l10n),
                       selected: code == selected,
                       onTap: () => onSelected(code),
                     ),

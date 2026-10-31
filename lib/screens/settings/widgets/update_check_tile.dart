@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/widgets/settings_glyph.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
 import 'package:onset/services/onset_updater.dart';
@@ -37,9 +38,9 @@ class _UpdateCheckTileState extends State<UpdateCheckTile> {
       case UpdateAvailable():
         await offerUpdate(context, widget.updater, result);
       case UpToDate():
-        _tell("You're up to date");
+        _tell(context.l10n.updatesUpToDate);
       case UpdateCheckFailed():
-        _tell("Couldn't check for updates");
+        _tell(context.l10n.updatesCheckFailed);
       case UpdateCheckSkipped():
         break;
     }
@@ -56,13 +57,13 @@ class _UpdateCheckTileState extends State<UpdateCheckTile> {
     final colors = SettingsColors.of(context);
     return SettingsRow(
       glyph: SettingsGlyphKind.update,
-      title: 'Check for updates',
+      title: context.l10n.updatesCheck,
       subtitle: FutureBuilder<int>(
         future: _currentBuild,
-        builder: (context, snapshot) => Text(
-          snapshot.hasData ? 'Build ${snapshot.data}' : '',
-          style: OnsetType.tabular(const TextStyle()),
-        ),
+        builder: (context, snapshot) => Text(switch (snapshot.data) {
+          final build? => context.l10n.updatesBuild(build: build),
+          null => '',
+        }, style: OnsetType.tabular(const TextStyle())),
       ),
       trailing: _checking
           ? SizedBox.square(
@@ -71,7 +72,7 @@ class _UpdateCheckTileState extends State<UpdateCheckTile> {
                 strokeWidth: 2,
                 color: SettingsColors.accentOf(context),
                 backgroundColor: colors.buttonRing,
-                semanticsLabel: 'Checking',
+                semanticsLabel: context.l10n.updatesChecking,
               ),
             )
           : null,

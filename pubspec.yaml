@@ -164,6 +164,8 @@ flutter:
         - assets/celebrations/spark_white.png
         - assets/celebrations/spark_dot.png
         - assets/release-notes.md
+        # Its French translation, version for version (release_notes_fr_test).
+        - assets/release-notes.fr.md
         # The Inter font's licence, shown on the Licenses page.
         - assets/fonts/OFL.txt
         # The ONSET mark: the app icon downscaled for 30, 52 and 72 dp tiles,

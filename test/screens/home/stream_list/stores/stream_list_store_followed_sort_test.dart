@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobx/mobx.dart' show ObservableList;
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/screens/home/stream_list/stores/stream_list_store.dart';
@@ -99,8 +101,8 @@ void main() {
     });
 
     test('labels use Twitch wording where Twitch has one', () {
-      expect(FollowedSort.viewers.label, 'Viewers (High to Low)');
-      expect(FollowedSort.recent.label, 'Recently Started');
+      expect(FollowedSort.viewers.label(L10n.english), 'Viewers (High to Low)');
+      expect(FollowedSort.recent.label(L10n.english), 'Recently Started');
     });
   });
 

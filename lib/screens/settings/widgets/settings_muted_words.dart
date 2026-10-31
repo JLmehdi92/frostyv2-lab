@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/settings_glyph.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
@@ -19,12 +20,8 @@ class SettingsMutedWords extends StatelessWidget {
         final count = settingsStore.mutedWords.length;
         return SettingsRow(
           glyph: SettingsGlyphKind.mute,
-          title: 'Muted keywords',
-          value: switch (count) {
-            0 => 'None',
-            1 => '1 keyword',
-            _ => '$count keywords',
-          },
+          title: context.l10n.mutedKeywordsTitle,
+          value: context.l10n.mutedKeywordsCount(count: count),
           end: SettingsRowEnd.chevron,
           onTap: () => showSettingsSheet<void>(
             context: context,
@@ -95,7 +92,7 @@ class _MutedWordsSheetState extends State<MutedWordsSheet> {
     final colors = SettingsColors.of(context);
     final accent = SettingsColors.accentOf(context);
     return SettingsSheetContent(
-      title: 'Muted keywords',
+      title: context.l10n.mutedKeywordsTitle,
       pinned: Padding(
         padding: const EdgeInsets.only(bottom: 10),
         child: Padding(
@@ -140,7 +137,7 @@ class _MutedWordsSheetState extends State<MutedWordsSheet> {
                           color: colors.text,
                         ),
                         decoration: InputDecoration(
-                          hintText: 'Enter keywords to mute',
+                          hintText: context.l10n.mutedKeywordsHint,
                           hintStyle: TextStyle(
                             fontFamily: OnsetTokens.bodyFamily,
                             fontSize: 15,
@@ -155,10 +152,14 @@ class _MutedWordsSheetState extends State<MutedWordsSheet> {
                       ),
                     ),
                     Tooltip(
-                      message: empty ? 'Cancel' : 'Add keyword',
+                      message: empty
+                          ? context.l10n.commonCancel
+                          : context.l10n.mutedKeywordsAdd,
                       child: Semantics(
                         button: true,
-                        label: empty ? 'Cancel' : 'Add keyword',
+                        label: empty
+                            ? context.l10n.commonCancel
+                            : context.l10n.mutedKeywordsAdd,
                         onTap: submit,
                         excludeSemantics: true,
                         child: GestureDetector(
@@ -217,7 +218,7 @@ class _MutedWordsSheetState extends State<MutedWordsSheet> {
                         ),
                       ),
                       Text(
-                        'No muted keywords',
+                        context.l10n.mutedKeywordsEmpty,
                         style: TextStyle(
                           fontFamily: OnsetTokens.bodyFamily,
                           fontSize: 14,
@@ -268,7 +269,9 @@ class _MutedWordsSheetState extends State<MutedWordsSheet> {
                                 ),
                               ),
                               IconButton(
-                                tooltip: 'Remove $word',
+                                tooltip: context.l10n.mutedKeywordsRemove(
+                                  word: word,
+                                ),
                                 constraints: const BoxConstraints.tightFor(
                                   width: 44,
                                   height: 44,
@@ -300,9 +303,9 @@ class _MutedWordsSheetState extends State<MutedWordsSheet> {
     removeMutedWord(index);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text("Removed '$word'"),
+        content: Text(context.l10n.mutedKeywordsRemoved(word: word)),
         action: SnackBarAction(
-          label: 'Undo',
+          label: context.l10n.commonUndo,
           onPressed: () {
             settingsStore.mutedWords = [...settingsStore.mutedWords, word];
           },

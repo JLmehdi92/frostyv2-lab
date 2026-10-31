@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
 import 'package:onset/screens/channel/video/content_warning_gate.dart';
@@ -309,7 +310,8 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
       final ids = await _service
           .getContentLabels(vod.id)
           .timeout(_labelsTimeout);
-      return contentLabelNames(ids);
+      // English, like the rest of the warning, until it is translated.
+      return contentLabelNames(ids, L10n.english);
     } catch (e) {
       debugPrint('VodScreen content labels failed: ${e.runtimeType}');
       return const [];

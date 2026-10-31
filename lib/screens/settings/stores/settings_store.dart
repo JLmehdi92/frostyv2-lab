@@ -796,26 +796,20 @@ enum AppLanguage {
   };
 }
 
-const themeNames = ['System', 'Light', 'Dark'];
-
 enum ThemeType { system, light, dark }
 
 /// Where the app opens ("Open the app on"): one of Home's top tabs, or
 /// Browse.
 enum HomeTab {
-  following('Following'),
-  live('Live'),
-  clips('Clips'),
-  browse('Browse');
-
-  const HomeTab(this.label);
-
-  final String label;
+  following,
+  live,
+  clips,
+  browse;
 
   /// The names saved before the navigation shell, and where they went: Top
   /// (top streams and categories) is Home's Live tab, Search lives in
   /// Browse.
-  static const legacyNames = {'top': 'live', 'search': 'browse'};
+  static final legacyNames = {'top': live.name, 'search': browse.name};
 
   /// Reads the saved start tab of [json], moving a value saved before the
   /// navigation shell to its new place.
@@ -828,26 +822,11 @@ enum HomeTab {
 /// How Following orders its live channels. Twitch's other order,
 /// "Recommended For You", is its own server ranking, which Helix does not
 /// give.
-enum FollowedSort {
-  viewers('Viewers (High to Low)'),
-  recent('Recently Started'),
-  name('Name (A-Z)'),
-  category('Category');
-
-  const FollowedSort(this.label);
-
-  final String label;
-}
-
-const timestampNames = ['Disabled', '12-hour', '24-hour'];
+enum FollowedSort { viewers, recent, name, category }
 
 enum TimestampType { disabled, twelve, twentyFour }
 
-const landscapeCutoutNames = ['None', 'Left', 'Right', 'Both'];
-
 enum LandscapeCutoutType { none, left, right, both }
-
-const liveCatchUpModeNames = ['Speed up', 'Jump to live'];
 
 /// How the IVS player returns to the live edge after falling behind.
 enum LiveCatchUpMode {
@@ -857,8 +836,6 @@ enum LiveCatchUpMode {
   /// Skips straight to the live edge after a rebuffer (previous behaviour).
   jumpToLive,
 }
-
-const bufferProfileNames = ['Standard', 'Ultra'];
 
 /// IVS low-latency buffer targets.
 enum BufferProfile {
@@ -873,26 +850,18 @@ enum BufferProfile {
 /// options and wording.
 enum VodAutoplay {
   /// Twitch's default.
-  always('Mobile data & Wi-Fi'),
-  wifiOnly('Wi-Fi Only'),
-  never('Never');
-
-  const VodAutoplay(this.label);
-
-  final String label;
+  always,
+  wifiOnly,
+  never,
 }
 
 /// How a celebration Twitch fires shows ("Celebrations on video").
 enum CelebrationsOnVideo {
   /// The animation plays over the channel.
-  full('Full'),
+  full,
 
   /// Nothing covers the video: a compact line in chat says it instead.
-  subtle('Subtle');
-
-  const CelebrationsOnVideo(this.label);
-
-  final String label;
+  subtle,
 }
 
 /// Which engine plays the live video.

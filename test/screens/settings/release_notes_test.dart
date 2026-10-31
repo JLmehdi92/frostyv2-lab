@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/widgets/release_notes.dart';
 
 void main() {
@@ -168,7 +169,7 @@ A big update.
     expect(entry.label, 'v1.0.0');
     expect(entry.date, matches(RegExp(r'^[A-Z][a-z]+ \d{1,2}, \d{4}$')));
     expect(entry.sections, isNotEmpty);
-    expect(entry.summary, isNotEmpty);
+    expect(entry.summary(L10n.english), isNotEmpty);
     // Never on a first launch, whatever the notes say.
     expect(
       shouldShowReleaseNotes(lastShown: null, current: '1.0.0', notes: bundled),
@@ -278,13 +279,13 @@ What changed.
         ],
       );
       expect(latest.sections.first.items, hasLength(3));
-      expect(latest.summary, '2 new · 1 fix · 2 changes');
+      expect(latest.summary(L10n.english), '2 new · 1 fix · 2 changes');
 
       final first = data.entries.last;
       expect((first.version, first.date), ('1.0.0', null));
       expect(first.sections.single.title, isNull);
       expect(first.sections.single.items.last, isA<ReleaseParagraph>());
-      expect(first.summary, '1 change');
+      expect(first.summary(L10n.english), '1 change');
     });
 
     test('section names decide the kind, whatever their case', () {
@@ -321,7 +322,7 @@ What changed.
 - d
 - e
 ''').entries.single;
-      expect(entry.summary, '1 new · 2 improvements · 2 fixes');
+      expect(entry.summary(L10n.english), '1 new · 2 improvements · 2 fixes');
     });
 
     test('nothing to read: no entries', () {

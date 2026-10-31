@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/video_settings.dart';
 
@@ -24,7 +26,7 @@ void main() {
       findsOneWidget,
     );
     for (final option in VodAutoplay.values) {
-      expect(find.text(option.label), findsOneWidget);
+      expect(find.text(option.label(L10n.english)), findsOneWidget);
     }
 
     await tester.ensureVisible(find.text('Never'));

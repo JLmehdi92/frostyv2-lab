@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mobx/mobx.dart' show Observable, ObservableList, runInAction;
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
@@ -116,7 +117,11 @@ Future<void> pumpSettings(
         Provider<AuthStore>.value(value: auth),
         Provider<SettingsStore>.value(value: settings),
       ],
+      // The app's localizations (English here): they also load the date
+      // symbols "Joined March 2019" is written with.
       child: MaterialApp(
+        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
         theme: themes.light,
         darkTheme: themes.dark,
         themeMode: mode,

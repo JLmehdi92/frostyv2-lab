@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/caption_style_setting.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
@@ -37,20 +39,17 @@ class VideoSettings extends StatelessWidget {
     return Observer(
       builder: (context) {
         final ivs = android && settingsStore.playerEngine == PlayerEngine.ivs;
+        final l = context.l10n;
         return SettingsGroupsView(
           children: [
             // The IVS engine only exists natively on Android.
             if (android)
               SettingsGroup(
-                title: 'Low-latency player',
+                title: l.settingsLowLatencyPlayer,
                 children: [
                   SettingsListSwitch(
-                    title: 'Low-latency player (Amazon IVS)',
-                    subtitle: const Text(
-                      'Plays the stream with the Amazon IVS player, built on '
-                      'the same video technology as Twitch, for low latency. '
-                      'Turn off to use the original Twitch web player.',
-                    ),
+                    title: l.settingsLowLatencyPlayerSwitch,
+                    subtitle: Text(l.settingsLowLatencyPlayerDetail),
                     value: settingsStore.playerEngine == PlayerEngine.ivs,
                     onChanged: (enabled) => settingsStore.playerEngine = enabled
                         ? PlayerEngine.ivs
@@ -58,97 +57,67 @@ class VideoSettings extends StatelessWidget {
                   ),
                   if (ivs) ...[
                     SettingsListSwitch(
-                      title: 'Auto latency',
-                      subtitle: const Text(
-                        'Keeps the stream close to live by playing very '
-                        'slightly faster when it drifts behind, without '
-                        'reloading it. If Ultra keeps stalling, the next '
-                        'streams use Standard for a while. Applies the next '
-                        'time a stream is opened.',
-                      ),
+                      title: l.settingsAutoLatency,
+                      subtitle: Text(l.settingsAutoLatencyDetail),
                       value: settingsStore.autoLatency,
                       onChanged: (enabled) =>
                           settingsStore.autoLatency = enabled,
                     ),
                     SettingsListSelect(
-                      title: 'Live catch-up',
-                      subtitle:
-                          'Speed up plays slightly faster until it is back at '
-                          'live (Auto latency does it when on). Jump to live '
-                          'skips ahead after a stall. '
-                          'Applies the next time a stream is opened.',
-                      selectedOption:
-                          liveCatchUpModeNames[settingsStore
-                              .liveCatchUpMode
-                              .index],
-                      options: liveCatchUpModeNames,
-                      onChanged: (newValue) => settingsStore.liveCatchUpMode =
-                          LiveCatchUpMode.values[liveCatchUpModeNames.indexOf(
-                            newValue,
-                          )],
+                      title: l.settingsLiveCatchUp,
+                      subtitle: l.settingsLiveCatchUpDetail,
+                      value: settingsStore.liveCatchUpMode,
+                      values: LiveCatchUpMode.values,
+                      labelOf: (mode) => mode.label(l),
+                      onChanged: (mode) => settingsStore.liveCatchUpMode = mode,
                     ),
                     SettingsListSelect(
-                      title: 'Buffer profile',
-                      subtitle:
-                          'Ultra keeps an even smaller buffer for lower '
-                          'latency but may rebuffer more on weak connections. '
-                          'Applies the next time a stream is opened.',
-                      selectedOption:
-                          bufferProfileNames[settingsStore.bufferProfile.index],
-                      options: bufferProfileNames,
-                      onChanged: (newValue) => settingsStore.bufferProfile =
-                          BufferProfile.values[bufferProfileNames.indexOf(
-                            newValue,
-                          )],
+                      title: l.settingsBufferProfile,
+                      subtitle: l.settingsBufferProfileDetail,
+                      value: settingsStore.bufferProfile,
+                      values: BufferProfile.values,
+                      labelOf: (profile) => profile.label(l),
+                      onChanged: (profile) =>
+                          settingsStore.bufferProfile = profile,
                     ),
                     SettingsTwitchWebToken(authStore: context.authStore),
                   ],
                 ],
               ),
             SettingsGroup(
-              title: 'Playback',
+              title: l.settingsPlayback,
               children: [
                 SettingsListSwitch(
-                  title: 'Enable video',
+                  title: l.settingsEnableVideo,
                   value: settingsStore.showVideo,
                   onChanged: (newValue) => settingsStore.showVideo = newValue,
                 ),
                 if (!ios || isIPad())
                   SettingsListSwitch(
-                    title: 'Default to highest quality',
+                    title: l.settingsHighestQuality,
                     value: settingsStore.defaultToHighestQuality,
                     onChanged: (newValue) =>
                         settingsStore.defaultToHighestQuality = newValue,
                   ),
                 if (android)
                   SettingsListSwitch(
-                    title: 'Use fast video rendering',
-                    subtitle: const Text(
-                      'Uses a faster WebView rendering method. Disable if you '
-                      'experience crashes while watching streams.',
-                    ),
+                    title: l.settingsFastRendering,
+                    subtitle: Text(l.settingsFastRenderingDetail),
                     value: settingsStore.useTextureRendering,
                     onChanged: (newValue) =>
                         settingsStore.useTextureRendering = newValue,
                   ),
                 SettingsListSwitch(
-                  title: 'Keep screen awake',
-                  subtitle: const Text(
-                    'Prevents the screen from sleeping while a channel is '
-                    'open.',
-                  ),
+                  title: l.settingsKeepAwake,
+                  subtitle: Text(l.settingsKeepAwakeDetail),
                   value: settingsStore.keepScreenAwake,
                   onChanged: (newValue) =>
                       settingsStore.keepScreenAwake = newValue,
                 ),
                 if (android)
                   SettingsListSwitch(
-                    title: 'Background audio',
-                    subtitle: const Text(
-                      'Keeps a live stream playing when you leave the app or '
-                      'turn off the screen, with media controls in a '
-                      'notification.',
-                    ),
+                    title: l.settingsBackgroundAudio,
+                    subtitle: Text(l.settingsBackgroundAudioDetail),
                     value: settingsStore.backgroundAudio,
                     onChanged: (newValue) =>
                         settingsStore.backgroundAudio = newValue,
@@ -156,60 +125,44 @@ class VideoSettings extends StatelessWidget {
               ],
             ),
             SettingsGroup(
-              title: 'Overlay',
+              title: l.settingsOverlay,
               children: [
                 SettingsListSwitch(
-                  title: 'Use custom video overlay',
-                  subtitle: const Text(
-                    "Replaces Twitch's default web overlay with a "
-                    'mobile-friendly version.',
-                  ),
+                  title: l.settingsCustomOverlay,
+                  subtitle: Text(l.settingsCustomOverlayDetail),
                   value: settingsStore.showOverlay,
                   onChanged: (newValue) => settingsStore.showOverlay = newValue,
                 ),
                 SettingsListSwitch(
-                  title: 'Long-press player to toggle overlay',
-                  subtitle: const Text(
-                    "Allows switching between Twitch's overlay and the "
-                    'custom overlay.',
-                  ),
+                  title: l.settingsToggleOverlay,
+                  subtitle: Text(l.settingsToggleOverlayDetail),
                   value: settingsStore.toggleableOverlay,
                   onChanged: (newValue) =>
                       settingsStore.toggleableOverlay = newValue,
                 ),
                 SettingsListSwitch(
-                  title: 'Show latency',
-                  subtitle: const Text(
-                    'Displays the stream latency in the video overlay. With '
-                    'the low-latency player, tap it to show live video '
-                    'stats.',
-                  ),
+                  title: l.settingsShowLatency,
+                  subtitle: Text(l.settingsShowLatencyDetail),
                   value: settingsStore.showLatency,
                   onChanged: (newValue) => settingsStore.showLatency = newValue,
                 ),
               ],
             ),
             SettingsGroup(
-              title: 'Videos and content',
+              title: l.settingsVideosAndContent,
               children: [
                 SettingsListSelect(
-                  title: 'Video Autoplaying',
-                  subtitle: 'Choose when videos should play automatically',
+                  title: l.settingsVodAutoplay,
+                  subtitle: l.settingsVodAutoplayDetail,
                   stacked: true,
-                  selectedOption: settingsStore.vodAutoplay.label,
-                  options: [
-                    for (final option in VodAutoplay.values) option.label,
-                  ],
-                  onChanged: (label) => settingsStore.vodAutoplay = VodAutoplay
-                      .values
-                      .firstWhere((option) => option.label == label),
+                  value: settingsStore.vodAutoplay,
+                  values: VodAutoplay.values,
+                  labelOf: (option) => option.label(l),
+                  onChanged: (option) => settingsStore.vodAutoplay = option,
                 ),
                 SettingsListSwitch(
-                  title: 'Warn about mature content',
-                  subtitle: const Text(
-                    'Shows a warning before a channel labeled for mature '
-                    'content.',
-                  ),
+                  title: l.settingsWarnMature,
+                  subtitle: Text(l.settingsWarnMatureDetail),
                   value: settingsStore.warnMatureContent,
                   onChanged: (newValue) =>
                       settingsStore.warnMatureContent = newValue,
@@ -219,7 +172,7 @@ class VideoSettings extends StatelessWidget {
             // Captions come from the IVS player, Android only.
             if (android)
               SettingsGroup(
-                title: 'Captions',
+                title: l.settingsCaptions,
                 children: captionStyleRows(settingsStore),
               ),
           ],

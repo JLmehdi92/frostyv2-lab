@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/video/captions.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/settings_list_select.dart';
@@ -25,34 +27,28 @@ class CaptionStyleSetting extends StatelessWidget {
 List<Widget> captionStyleRows(SettingsStore store) => [
   Observer(
     builder: (context) => SettingsListSwitch(
-      title: 'Closed Captions',
-      subtitle: const Text(
-        'Shows captions over live streams and videos that have them. '
-        'When there are several, pick one in the player menu.',
-      ),
+      title: context.l10n.settingsClosedCaptions,
+      subtitle: Text(context.l10n.settingsClosedCaptionsDetail),
       value: store.showCaptions,
       onChanged: (value) => store.showCaptions = value,
     ),
   ),
   Observer(
     builder: (context) => SettingsListSelect(
-      title: 'Caption size',
-      selectedOption: store.captionSize.label,
-      options: [for (final size in CaptionSize.values) size.label],
-      onChanged: (label) => store.captionSize = CaptionSize.values.firstWhere(
-        (size) => size.label == label,
-      ),
+      title: context.l10n.settingsCaptionSize,
+      value: store.captionSize,
+      values: CaptionSize.values,
+      labelOf: (size) => size.label(context.l10n),
+      onChanged: (size) => store.captionSize = size,
     ),
   ),
   Observer(
     builder: (context) => SettingsListSelect(
-      title: 'Caption background',
-      selectedOption: store.captionBackground.label,
-      options: [
-        for (final background in CaptionBackground.values) background.label,
-      ],
-      onChanged: (label) => store.captionBackground = CaptionBackground.values
-          .firstWhere((background) => background.label == label),
+      title: context.l10n.settingsCaptionBackground,
+      value: store.captionBackground,
+      values: CaptionBackground.values,
+      labelOf: (background) => background.label(context.l10n),
+      onChanged: (background) => store.captionBackground = background,
     ),
   ),
   Observer(
@@ -68,7 +64,7 @@ List<Widget> captionStyleRows(SettingsStore store) => [
         ),
       ),
       child: CaptionText(
-        text: 'This is how captions look.',
+        text: context.l10n.settingsCaptionSample,
         size: store.captionSize,
         background: store.captionBackground,
       ),

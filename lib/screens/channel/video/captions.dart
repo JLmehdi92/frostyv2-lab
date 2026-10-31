@@ -28,27 +28,18 @@ const kCaptionMaxShown = Duration(seconds: 8);
 
 /// The size of the caption line, Twitch's (15) by default.
 enum CaptionSize {
-  small(13, 'Small'),
-  medium(15, 'Medium'),
-  large(19, 'Large'),
-  extraLarge(24, 'Extra large');
+  small(13),
+  medium(15),
+  large(19),
+  extraLarge(24);
 
-  const CaptionSize(this.fontSize, this.label);
+  const CaptionSize(this.fontSize);
 
   final double fontSize;
-  final String label;
 }
 
 /// What sits behind the caption line: Twitch's black box by default.
-enum CaptionBackground {
-  black('Black'),
-  translucent('Translucent'),
-  none('None');
-
-  const CaptionBackground(this.label);
-
-  final String label;
-}
+enum CaptionBackground { black, translucent, none }
 
 /// One caption track the player offers.
 class CaptionTrack {

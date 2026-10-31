@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/account/account_settings.dart';
 import 'package:onset/screens/settings/settings.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -156,7 +158,7 @@ class _Aside extends StatelessWidget {
   Widget build(BuildContext context) {
     final bottom = MediaQuery.paddingOf(context).bottom;
     return Semantics(
-      label: 'Settings sections',
+      label: context.l10n.settingsSectionsSemantics,
       container: true,
       explicitChildNodes: true,
       child: ListenableBuilder(
@@ -176,17 +178,17 @@ class _Aside extends StatelessWidget {
               children: [
                 _ProfileCard(authStore: authStore),
                 const SizedBox(height: 18),
-                const SettingsSectionLabel(
-                  'Settings',
-                  padding: EdgeInsets.symmetric(horizontal: 12),
+                SettingsSectionLabel(
+                  context.l10n.settingsTitle,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                 ),
                 const SizedBox(height: 6),
                 for (final id in SettingsPageId.sections) row(id),
                 if (loggedIn) ...[
                   const SizedBox(height: 18),
-                  const SettingsSectionLabel(
-                    'Account',
-                    padding: EdgeInsets.symmetric(horizontal: 12),
+                  SettingsSectionLabel(
+                    context.l10n.settingsPageAccount,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                   ),
                   const SizedBox(height: 6),
                   row(SettingsPageId.account),
@@ -233,7 +235,7 @@ class _AsideRow extends StatelessWidget {
       child: Semantics(
         button: true,
         selected: selected,
-        label: page.title,
+        label: page.title(context.l10n),
         value: value,
         // Excluding the subtree drops the detector's tap: say it here, or a
         // screen reader reads a button that does nothing.
@@ -269,7 +271,7 @@ class _AsideRow extends StatelessWidget {
                   ),
                   Expanded(
                     child: Text(
-                      page.title,
+                      page.title(context.l10n),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -310,7 +312,7 @@ class _LogoutRow extends StatelessWidget {
     void logOut() => confirmLogout(context, authStore);
     return Semantics(
       button: true,
-      label: 'Log out',
+      label: context.l10n.settingsLogOut,
       onTap: logOut,
       excludeSemantics: true,
       child: PressScale(
@@ -326,7 +328,7 @@ class _LogoutRow extends StatelessWidget {
                 children: [
                   SettingsGlyph(SettingsGlyphKind.logout, color: colors.danger),
                   Text(
-                    'Log out',
+                    context.l10n.settingsLogOut,
                     style: TextStyle(
                       fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 15,
@@ -388,7 +390,7 @@ class _ProfileCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          accountLine(details),
+                          accountLine(context.l10n, details),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -403,7 +405,7 @@ class _ProfileCard extends StatelessWidget {
                 ],
               ),
               SettingsButton(
-                label: 'My channel',
+                label: context.l10n.settingsMyChannel,
                 expand: true,
                 icon: SettingsGlyph(
                   SettingsGlyphKind.play,
@@ -468,8 +470,8 @@ class _Pane extends StatelessWidget {
               key: ValueKey(('page', page, selection.turn)),
               onOpen: _open,
               columns: columns,
-              title: page.title,
-              description: page.description,
+              title: page.title(context.l10n),
+              description: page.description(context.l10n),
               child: Builder(
                 builder: (context) => buildSettingsPage(
                   page,
@@ -520,7 +522,7 @@ class _Pane extends StatelessWidget {
                             onOpen: _open,
                             columns: 1,
                             title: sub.title,
-                            backLabel: sub.parent.title,
+                            backLabel: sub.parent.title(context.l10n),
                             onBack: selection.closeSub,
                             child: Builder(builder: sub.builder),
                           ),

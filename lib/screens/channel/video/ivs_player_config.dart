@@ -1,3 +1,5 @@
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel/video/buffer_fallback.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 
@@ -53,15 +55,17 @@ class IvsPlayerConfig {
   /// [buffer] is Standard only because Ultra stalled on a recent stream.
   final bool bufferFallback;
 
-  /// Short description shown in the stats panel.
-  String get label {
+  /// Short description shown in the stats panel, in [l]'s language.
+  String label(AppLocalizations l) {
     final mode = switch ((catchUp, autoLatency)) {
-      (LiveCatchUpMode.speedUp, true) => 'Auto',
-      (LiveCatchUpMode.jumpToLive, true) => 'Jump to live + auto',
-      (_, false) => liveCatchUpModeNames[catchUp.index],
+      (LiveCatchUpMode.speedUp, true) => l.playerConfigAuto,
+      (LiveCatchUpMode.jumpToLive, true) => l.playerConfigJumpToLiveAuto,
+      (_, false) => catchUp.label(l),
     };
-    return '$mode · ${bufferProfileNames[buffer.index]}'
-        '${bufferFallback ? ' (Ultra stalled)' : ''}';
+    final profile = buffer.label(l);
+    return bufferFallback
+        ? l.playerConfigUltraStalled(mode: mode, buffer: profile)
+        : '$mode · $profile';
   }
 
   Map<String, Object> toCreateArgs() => {

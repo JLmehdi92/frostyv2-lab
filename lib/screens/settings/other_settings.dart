@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/constants.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/release_notes.dart';
 import 'package:onset/screens/settings/widgets/settings_glyph.dart';
@@ -47,14 +48,15 @@ List<Widget> otherSettingsGroups(
 }) {
   final updater = context.read<OnsetUpdater?>();
   final updates = updater != null && updater.enabled;
+  final l = context.l10n;
   return [
     SettingsGroup(
-      title: 'Updates',
+      title: l.settingsUpdates,
       children: [
         if (updates) UpdateCheckTile(updater: updater),
         SettingsRow(
           glyph: SettingsGlyphKind.notes,
-          title: 'Release notes',
+          title: l.settingsReleaseNotes,
           end: SettingsRowEnd.chevron,
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute(
@@ -63,39 +65,31 @@ List<Widget> otherSettingsGroups(
             ),
           ),
         ),
-        if (updates)
-          const SettingsNote(
-            'ONSET looks for a newer build when it starts and when it comes '
-            'back to the foreground. Release notes open by themselves after '
-            'an update to a new version.',
-          ),
+        if (updates) SettingsNote(l.settingsUpdatesNote),
       ],
     ),
     SettingsGroup(
-      title: 'Storage and reset',
+      title: l.settingsStorage,
       children: [
         SettingsRow(
           glyph: SettingsGlyphKind.cache,
-          title: 'Clear image cache',
+          title: l.settingsClearCache,
           onTap: () => clearImageCache(context),
         ),
         SettingsRow(
           glyph: SettingsGlyphKind.reset,
-          title: 'Reset settings',
+          title: l.settingsReset,
           onTap: () => confirmResetSettings(context, settingsStore),
         ),
       ],
     ),
     SettingsGroup(
-      title: 'Privacy',
+      title: l.settingsPrivacy,
       children: [
         Observer(
-          builder: (_) => SettingsListSwitch(
-            title: 'Share crash logs and analytics',
-            subtitle: const Text(
-              'Help improve ONSET by sending crash logs and analytics '
-              'through Firebase, without your Twitch account or channels.',
-            ),
+          builder: (context) => SettingsListSwitch(
+            title: context.l10n.onboardingSetupCrashTitle,
+            subtitle: Text(context.l10n.onboardingSetupCrashDetail),
             value: settingsStore.shareCrashLogsAndAnalytics,
             onChanged: (newValue) {
               // The app follows it (syncFirebaseCollection).
@@ -106,12 +100,12 @@ List<Widget> otherSettingsGroups(
       ],
     ),
     SettingsGroup(
-      title: 'About',
+      title: l.settingsAbout,
       children: [
         if (sourceUrl.isNotEmpty)
           SettingsRow(
             glyph: SettingsGlyphKind.code,
-            title: 'Source code',
+            title: l.settingsSourceCode,
             end: SettingsRowEnd.external,
             onTap: () => launchSettingsLink(
               sourceUrl,
@@ -120,7 +114,7 @@ List<Widget> otherSettingsGroups(
           ),
         SettingsRow(
           glyph: SettingsGlyphKind.list,
-          title: 'Licenses',
+          title: l.settingsLicenses,
           end: SettingsRowEnd.chevron,
           onTap: () => showOnsetLicenses(context),
         ),
@@ -129,19 +123,18 @@ List<Widget> otherSettingsGroups(
   ];
 }
 
-/// The notice the licences page opens with: ONSET's licence, its lack of
-/// warranty and where its source is (AGPL section 5). Where the code comes
-/// from is in NOTICE, shipped with the source.
-const onsetLegalese =
-    'ONSET is free software under the GNU AGPL-3.0-or-later, with NO '
-    'WARRANTY. Source code: $onsetRepoUrl';
+/// The notice the licences page opens with, in [l]'s language: ONSET's
+/// licence, its lack of warranty and where its source is (AGPL section 5).
+/// Where the code comes from is in NOTICE, shipped with the source.
+String onsetLegalese(AppLocalizations l) =>
+    l.settingsLegalese(url: onsetRepoUrl);
 
 /// "Licenses": Flutter's licence page, ONSET's notice first, then every
 /// package's licence.
 void showOnsetLicenses(BuildContext context) => showLicensePage(
   context: context,
   applicationName: 'ONSET',
-  applicationLegalese: onsetLegalese,
+  applicationLegalese: onsetLegalese(context.l10n),
 );
 
 /// "Clear image cache": empties it, then says so.
@@ -154,8 +147,11 @@ Future<void> clearImageCache(BuildContext context) async {
   if (!context.mounted) return;
 
   ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: AlertMessage(message: 'Image cache cleared', centered: false),
+    SnackBar(
+      content: AlertMessage(
+        message: context.l10n.settingsCacheCleared,
+        centered: false,
+      ),
     ),
   );
 }
@@ -168,17 +164,20 @@ Future<void> confirmResetSettings(
 ) async {
   final confirmed = await confirmSettingsAction(
     context,
-    title: 'Reset all settings',
-    message: 'Are you sure you want to reset all settings?',
-    confirm: 'Reset',
+    title: context.l10n.settingsResetTitle,
+    message: context.l10n.settingsResetMessage,
+    confirm: context.l10n.settingsResetConfirm,
   );
   if (!confirmed) return;
   HapticFeedback.heavyImpact();
   settingsStore.resetAllSettings();
   if (!context.mounted) return;
   ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: AlertMessage(message: 'All settings reset', centered: false),
+    SnackBar(
+      content: AlertMessage(
+        message: context.l10n.settingsResetDone,
+        centered: false,
+      ),
     ),
   );
 }

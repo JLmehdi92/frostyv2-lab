@@ -85,7 +85,7 @@ class ReleaseFootnote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-    'Release notes open by themselves after an update to a new version.',
+    context.l10n.releaseNotesFootnote,
     style: _inter(
       12.5,
       height: 1.5,
@@ -188,18 +188,19 @@ class ReleasePrimaryButton extends StatelessWidget {
   );
 }
 
-/// "You were on 1.0.2", with [after] following it.
+/// "You were on 1.0.2", the version in figures of even width; with
+/// [sinceThen], "Here is what changed since then." after it.
 class ReleaseWasOn extends StatelessWidget {
   const ReleaseWasOn(
     this.version, {
     super.key,
-    this.after = '',
+    this.sinceThen = false,
     this.fontSize = 14,
     this.maxLines,
   });
 
   final String version;
-  final String after;
+  final bool sinceThen;
   final double fontSize;
 
   /// Cut with an ellipsis past this many lines (the tablet's header: one).
@@ -208,16 +209,21 @@ class ReleaseWasOn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = SettingsColors.of(context);
+    final l = context.l10n;
+    final mark = l10nMark(0);
     return Text.rich(
       TextSpan(
-        text: 'You were on ',
-        children: [
-          TextSpan(
-            text: version,
-            style: OnsetType.tabular(TextStyle(color: colors.body)),
-          ),
-          if (after.isNotEmpty) TextSpan(text: after),
-        ],
+        children: l10nSpans(
+          sinceThen
+              ? l.releaseNotesWasOnSince(version: mark)
+              : l.releaseNotesWasOn(version: mark),
+          [
+            TextSpan(
+              text: version,
+              style: OnsetType.tabular(TextStyle(color: colors.body)),
+            ),
+          ],
+        ),
       ),
       maxLines: maxLines,
       overflow: maxLines == null ? null : TextOverflow.ellipsis,
@@ -283,11 +289,13 @@ class ReleaseFreshHero extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   spacing: 3,
                   children: [
-                    ReleaseEyebrow("WHAT'S NEW IN $to"),
+                    ReleaseEyebrow(
+                      context.l10n.releaseNotesWhatsNewIn(version: to),
+                    ),
                     Semantics(
                       header: true,
                       child: Text(
-                        'Updated to $to',
+                        context.l10n.releaseNotesUpdatedTo(version: to),
                         style: _inter(
                           24,
                           weight: FontWeight.w800,
@@ -302,8 +310,7 @@ class ReleaseFreshHero extends StatelessWidget {
               ),
             ],
           ),
-          if (from case final from?)
-            ReleaseWasOn(from, after: '. Here is what changed since then.'),
+          if (from case final from?) ReleaseWasOn(from, sinceThen: true),
         ],
       ),
     );
@@ -368,9 +375,9 @@ class ReleaseSectionView extends StatelessWidget {
               ),
               Text(
                 '${section.count}',
-                semanticsLabel: section.count == 1
-                    ? '1 point'
-                    : '${section.count} points',
+                semanticsLabel: context.l10n.releaseNotesPoints(
+                  count: section.count,
+                ),
                 style: _inter(
                   12,
                   weight: FontWeight.w600,
@@ -678,7 +685,7 @@ class ReleaseLatestCard extends StatelessWidget {
                   ReleaseVersionPill(entry.label, latest: latest),
                   if (latest)
                     Text(
-                      'Latest',
+                      context.l10n.releaseNotesLatest,
                       style: _inter(
                         12,
                         weight: FontWeight.w600,
@@ -712,9 +719,9 @@ class ReleaseLatestCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (entry.summary.isNotEmpty)
+                  if (entry.summary(context.l10n).isNotEmpty)
                     Text(
-                      entry.summary,
+                      entry.summary(context.l10n),
                       style: _inter(
                         12.5,
                         tabular: true,
@@ -793,7 +800,7 @@ class _VersionLines extends StatelessWidget {
                     borderRadius: BorderRadius.circular(OnsetTokens.radiusPill),
                   ),
                   child: Text(
-                    'LATEST',
+                    context.l10n.releaseNotesLatestBadge,
                     style: _inter(
                       10.5,
                       weight: FontWeight.w800,
@@ -823,9 +830,10 @@ class _VersionLines extends StatelessWidget {
               if (date != null) Flexible(child: date),
             ],
           ),
-        if (entry.summary.isNotEmpty)
+        if (entry.summary(context.l10n) case final summary
+            when summary.isNotEmpty)
           Text(
-            entry.summary,
+            summary,
             style: _inter(12.5, tabular: true, color: colors.tertiary),
           ),
       ],
@@ -833,12 +841,16 @@ class _VersionLines extends StatelessWidget {
   }
 }
 
-/// What the screen reader says for a version's row.
-String _rowLabel(ReleaseEntry entry, {bool latest = false}) => [
+/// What the screen reader says for a version's row, in [l]'s language.
+String _rowLabel(
+  AppLocalizations l,
+  ReleaseEntry entry, {
+  bool latest = false,
+}) => [
   entry.label,
-  if (latest) 'Latest',
+  if (latest) l.releaseNotesLatest,
   ?entry.date,
-  if (entry.summary.isNotEmpty) entry.summary,
+  if (entry.summary(l) case final summary when summary.isNotEmpty) summary,
 ].join(', ');
 
 /// The phone's "Earlier versions": one row per version, each opening in
@@ -998,7 +1010,7 @@ class _EarlierRowState extends State<_EarlierRow>
           container: true,
           button: true,
           expanded: widget.open,
-          label: _rowLabel(entry),
+          label: _rowLabel(context.l10n, entry),
           onTap: _toggle,
           excludeSemantics: true,
           child: InkWell(
@@ -1091,7 +1103,7 @@ class ReleaseVersionRow extends StatelessWidget {
       container: true,
       button: true,
       selected: selected,
-      label: _rowLabel(entry, latest: latest),
+      label: _rowLabel(context.l10n, entry, latest: latest),
       onTap: onTap,
       excludeSemantics: true,
       child: PressScale(
@@ -1198,9 +1210,9 @@ class ReleaseDetail extends StatelessWidget {
                 ),
               ),
             ),
-            if (entry.summary.isNotEmpty)
+            if (entry.summary(context.l10n).isNotEmpty)
               Text(
-                entry.summary,
+                entry.summary(context.l10n),
                 style: _inter(13, tabular: true, color: colors.tertiary),
               ),
             if (entry.notes.isNotEmpty) ReleaseNotesParagraphs(entry.notes),
@@ -1254,7 +1266,7 @@ class ReleaseDetail extends StatelessWidget {
               children: [
                 if (newer case final newer?)
                   _StepButton(
-                    label: 'Newer',
+                    label: context.l10n.releaseNotesNewer,
                     version: newer.label,
                     forward: false,
                     onTap: onNewer,
@@ -1262,7 +1274,7 @@ class ReleaseDetail extends StatelessWidget {
                 const Spacer(),
                 if (older case final older?)
                   _StepButton(
-                    label: 'Older',
+                    label: context.l10n.releaseNotesOlder,
                     version: older.label,
                     forward: true,
                     onTap: onOlder,
@@ -1442,7 +1454,7 @@ class ReleaseEmptyState extends StatelessWidget {
         Semantics(
           header: true,
           child: Text(
-            'No release notes yet',
+            context.l10n.releaseNotesEmpty,
             textAlign: TextAlign.center,
             style: _inter(
               tablet ? 22 : 20,
@@ -1456,8 +1468,7 @@ class ReleaseEmptyState extends StatelessWidget {
         ConstrainedBox(
           constraints: BoxConstraints(maxWidth: tablet ? 380 : 280),
           child: Text(
-            'What changes in each version of ONSET shows up here, and opens '
-            'by itself after an update.',
+            context.l10n.releaseNotesEmptyDetail,
             textAlign: TextAlign.center,
             style: _inter(14, height: 1.55, color: colors.secondary),
           ),
@@ -1477,7 +1488,7 @@ class ReleaseRoundBack extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = SettingsColors.of(context);
     return IconButton(
-      tooltip: 'Back',
+      tooltip: context.l10n.commonBack,
       onPressed: onPressed,
       constraints: const BoxConstraints.tightFor(width: 44, height: 44),
       padding: EdgeInsets.zero,

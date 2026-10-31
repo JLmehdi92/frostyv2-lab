@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:onset/apis/onset_update_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/onset_release.dart';
 import 'package:onset/screens/settings/widgets/settings_glyph.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
@@ -38,11 +39,9 @@ Future<void> offerUpdate(
     if (!context.mounted) return;
     final openSettings = await confirmSettingsAction(
       context,
-      title: 'Allow updates',
-      message:
-          'Android asks you to let ONSET install apps. Turn on "Allow from '
-          'this source" on the next screen, then come back.',
-      confirm: 'Open settings',
+      title: context.l10n.updateAllowTitle,
+      message: context.l10n.updateAllowMessage,
+      confirm: context.l10n.updateOpenSettings,
       danger: false,
     );
     if (!openSettings) return;
@@ -52,7 +51,7 @@ Future<void> offerUpdate(
     await back;
     if (!await updater.canInstall()) {
       if (context.mounted) {
-        _tell(context, 'ONSET is not allowed to install updates');
+        _tell(context, context.l10n.updateNotAllowed);
       }
       return;
     }
@@ -69,13 +68,13 @@ Future<void> offerUpdate(
   if (!context.mounted) return;
   switch (error) {
     case UpdateIntegrityException():
-      _tell(context, 'The download was corrupted — try again');
+      _tell(context, context.l10n.updateCorrupted);
     case UpdateInstallException():
-      _tell(context, 'Android could not install the update');
+      _tell(context, context.l10n.updateInstallFailed);
     case null || UpdateCancelledException():
       break;
     default:
-      _tell(context, 'Download failed');
+      _tell(context, context.l10n.updateDownloadFailed);
   }
 }
 
@@ -198,25 +197,24 @@ class UpdateAvailableDialog extends StatelessWidget {
     this.currentBuild,
   });
 
-  static String _megabytes(int bytes) =>
-      (bytes / (1024 * 1024)).toStringAsFixed(1);
-
   @override
   Widget build(BuildContext context) {
     final colors = SettingsColors.of(context);
     final accent = SettingsColors.accentOf(context);
+    final l = context.l10n;
     final notes = release.notes.trim();
     final installed = [
-      if (currentBuild case final build?) 'Installed: build $build',
-      if (release.apkSize > 0) '${_megabytes(release.apkSize)} MB',
-      'SHA-256 checked before install',
+      if (currentBuild case final build?) l.updateInstalledBuild(build: build),
+      if (release.apkSize > 0)
+        l.updateSize(megabytes: _megabytes(release.apkSize)),
+      l.updateChecked,
     ].join(' · ');
 
     return Semantics(
       scopesRoute: true,
       namesRoute: true,
       explicitChildNodes: true,
-      label: 'Update available',
+      label: l.updateAvailable,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -262,7 +260,7 @@ class UpdateAvailableDialog extends StatelessWidget {
                   spacing: 3,
                   children: [
                     Text(
-                      'NEW BUILD',
+                      l.updateNewBuild,
                       style: TextStyle(
                         fontFamily: OnsetTokens.bodyFamily,
                         fontSize: 10.5,
@@ -274,7 +272,7 @@ class UpdateAvailableDialog extends StatelessWidget {
                     Semantics(
                       header: true,
                       child: Text(
-                        'Update available',
+                        l.updateAvailable,
                         style: TextStyle(
                           fontFamily: OnsetTokens.bodyFamily,
                           fontSize: 22,
@@ -295,7 +293,7 @@ class UpdateAvailableDialog extends StatelessWidget {
             spacing: 4,
             children: [
               Text(
-                'ONSET build ${release.build} is ready.',
+                l.updateReady(build: release.build),
                 style: TextStyle(
                   fontFamily: OnsetTokens.bodyFamily,
                   fontSize: 15,
@@ -371,14 +369,14 @@ class UpdateAvailableDialog extends StatelessWidget {
             spacing: 8,
             children: [
               SettingsButton(
-                label: 'Update',
+                label: l.updateNow,
                 tone: SettingsButtonTone.primary,
                 large: true,
                 expand: true,
                 onPressed: () => Navigator.pop(context, true),
               ),
               SettingsButton(
-                label: 'Later',
+                label: l.updateLater,
                 large: true,
                 expand: true,
                 onPressed: () => Navigator.pop(context, false),
@@ -448,9 +446,6 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
     super.dispose();
   }
 
-  static String _megabytes(int bytes) =>
-      (bytes / (1024 * 1024)).toStringAsFixed(1);
-
   @override
   Widget build(BuildContext context) {
     final progress = _installing || _total <= 0
@@ -461,7 +456,9 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
     return PopScope(
       canPop: false,
       child: SettingsDialog(
-        title: _installing ? 'Installing update' : 'Downloading update',
+        title: _installing
+            ? context.l10n.updateInstalling
+            : context.l10n.updateDownloading,
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: 14,
@@ -475,8 +472,11 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
             ),
             Text(
               _total > 0
-                  ? '${_megabytes(_received)} / ${_megabytes(_total)} MB'
-                  : '${_megabytes(_received)} MB',
+                  ? context.l10n.updateProgress(
+                      received: _megabytes(_received),
+                      total: _megabytes(_total),
+                    )
+                  : context.l10n.updateSize(megabytes: _megabytes(_received)),
               style: OnsetType.tabular(
                 TextStyle(
                   fontFamily: OnsetTokens.bodyFamily,
@@ -491,7 +491,7 @@ class _UpdateProgressDialogState extends State<UpdateProgressDialog> {
           Opacity(
             opacity: _installing ? 0.4 : 1,
             child: SettingsButton(
-              label: 'Cancel',
+              label: context.l10n.commonCancel,
               onPressed: _installing || _cancelToken.isCancelled
                   ? null
                   : () => setState(() => _cancelToken.cancel()),
@@ -554,3 +554,6 @@ mixin OnsetUpdateChecks<T extends StatefulWidget> on State<T> {
     super.dispose();
   }
 }
+
+/// [bytes] in megabytes (MiB), shown with one decimal.
+double _megabytes(int bytes) => bytes / (1024 * 1024);

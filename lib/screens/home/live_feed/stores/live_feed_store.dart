@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_directory_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/screens/home/stream_list/stores/stream_list_store.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -160,8 +161,11 @@ abstract class LiveFeedStoreBase with Store {
       read = {
         for (final id in ids)
           id: switch (channels[id]) {
+            // English, like the rest of the warning, until it is
+            // translated.
             final channel? => contentLabelNames(
               channel.contentClassificationLabels,
+              L10n.english,
             ),
             // Not in Twitch's answer: unknown, so not previewed unasked.
             null => null,

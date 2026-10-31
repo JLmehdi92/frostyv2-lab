@@ -5,6 +5,7 @@ import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/general_settings.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
+import 'package:onset/screens/settings/widgets/language_setting.dart';
 import 'package:onset/theme.dart';
 import 'package:provider/provider.dart';
 
@@ -125,7 +126,12 @@ void main() {
       find.text(french.settingsLanguageTitle.toUpperCase()),
       findsOneWidget,
     );
-    expect(find.text(french.appLanguageSystem), findsOneWidget);
+    // (The theme's pill, now in French too, has its own « Système ».)
+    Finder inLanguage(String text) => find.descendant(
+      of: find.byType(LanguageSetting),
+      matching: find.text(text),
+    );
+    expect(inLanguage(french.appLanguageSystem), findsOneWidget);
     // System still says the device's language (English here).
     expect(
       find.text(
@@ -136,7 +142,7 @@ void main() {
       findsOneWidget,
     );
 
-    await tester.tap(find.text(french.appLanguageSystem));
+    await tester.tap(inLanguage(french.appLanguageSystem));
     await tester.pumpAndSettle();
     expect(settings.appLanguage, AppLanguage.system);
     expect(

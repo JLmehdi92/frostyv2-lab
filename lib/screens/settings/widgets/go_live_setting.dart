@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
 import 'package:onset/services/go_live/go_live.dart';
 import 'package:onset/services/go_live/go_live_worker.dart';
@@ -33,10 +34,13 @@ class GoLiveSetting extends StatefulWidget {
   State<GoLiveSetting> createState() => _GoLiveSettingState();
 }
 
+/// What went wrong the last time the setting was read or changed.
+enum _GoLiveProblem { readFailed, refused, turnOnFailed, turnOffFailed }
+
 class _GoLiveSettingState extends State<GoLiveSetting> {
   GoLivePrefs? _prefs;
   var _busy = false;
-  String? _problem;
+  _GoLiveProblem? _problem;
 
   /// Notices blocked in the system settings since they were turned on.
   var _blocked = false;
@@ -62,7 +66,7 @@ class _GoLiveSettingState extends State<GoLiveSetting> {
     } catch (e, stack) {
       _report(e, stack);
       if (mounted) {
-        setState(() => _problem = "Couldn't read the go-live setting.");
+        setState(() => _problem = _GoLiveProblem.readFailed);
       }
     }
   }
@@ -82,7 +86,7 @@ class _GoLiveSettingState extends State<GoLiveSetting> {
     try {
       if (on) {
         if (!await widget.platform.requestPermission()) {
-          _problem = 'Allow notifications for this app in the system settings.';
+          _problem = _GoLiveProblem.refused;
           return;
         }
         // Scheduled first: the switch only says on once it is.
@@ -98,8 +102,9 @@ class _GoLiveSettingState extends State<GoLiveSetting> {
     } catch (e, stack) {
       _report(e, stack);
       if (on) await prefs.setEnabled(false).catchError((_) {});
-      _problem =
-          "Couldn't ${on ? 'turn on' : 'turn off'} go-live notifications.";
+      _problem = on
+          ? _GoLiveProblem.turnOnFailed
+          : _GoLiveProblem.turnOffFailed;
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -111,29 +116,33 @@ class _GoLiveSettingState extends State<GoLiveSetting> {
     final loggedIn = widget.userId != null;
     final supported = widget.platform.supported;
     final on = (prefs?.enabled ?? false) && loggedIn;
+    final l = context.l10n;
+    final problem = _problem;
     final String subtitle;
     if (!supported) {
-      subtitle = 'Android only.';
+      subtitle = l.goLiveAndroidOnly;
     } else if (!loggedIn) {
-      subtitle = 'Log in to be told when channels you follow go live.';
-    } else if (_problem != null) {
-      subtitle = _problem!;
+      subtitle = l.goLiveLoggedOut;
+    } else if (problem != null) {
+      subtitle = switch (problem) {
+        _GoLiveProblem.readFailed => l.goLiveReadFailed,
+        _GoLiveProblem.refused => l.notificationsAllowInSystem,
+        _GoLiveProblem.turnOnFailed => l.goLiveTurnOnFailed,
+        _GoLiveProblem.turnOffFailed => l.goLiveTurnOffFailed,
+      };
     } else if (on && _blocked) {
-      subtitle =
-          'Notifications are blocked for this app. Allow them in the system '
-          'settings.';
+      subtitle = l.goLiveBlocked;
     } else if (on && prefs?.problem != null) {
-      subtitle = prefs!.problem!;
+      // The only problem the background check keeps: Twitch refused its
+      // login.
+      subtitle = l.goLiveLogInAgain;
     } else if (on) {
-      subtitle =
-          'Checked every 90 seconds while ONSET is open or playing, and '
-          'about every 15 minutes otherwise, when the system allows. Turn a '
-          "channel's bell off from its menu.";
+      subtitle = l.goLiveOnDetail;
     } else {
-      subtitle = 'Be told when channels you follow go live.';
+      subtitle = l.goLiveOffDetail;
     }
     return SettingsListSwitch(
-      title: 'Go-live notifications',
+      title: l.goLiveTitle,
       subtitle: Text(
         subtitle,
         style: _problem != null || (on && (_blocked || prefs?.problem != null))
@@ -185,7 +194,7 @@ class _GoLiveBellTileState extends State<GoLiveBellTile> {
         _GoLiveSettingState._report(e, stack);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Couldn't change the bell.")),
+            SnackBar(content: Text(context.l10n.goLiveBellFailed)),
           );
         }
       }
@@ -196,7 +205,7 @@ class _GoLiveBellTileState extends State<GoLiveBellTile> {
     return MergeSemantics(
       child: SheetRow(
         glyph: SheetGlyphKind.bell,
-        label: 'Notify when ${widget.name} goes live',
+        label: context.l10n.goLiveBell(name: widget.name),
         onTap: () => change(!on),
         trailing: OnsetSwitch(value: on, onChanged: change),
       ),

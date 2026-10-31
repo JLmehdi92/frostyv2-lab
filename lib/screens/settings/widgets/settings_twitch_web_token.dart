@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/widgets/settings_glyph.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
@@ -28,13 +29,11 @@ class SettingsTwitchWebToken extends StatelessWidget {
 
   /// What the tile says about the token, in the three states that matter to
   /// the user rather than the three the code tracks.
-  String _status() {
-    if (authStore.webSessionExpired) {
-      return 'Twitch session expired — log in again to restore 2K';
-    }
+  String _status(AppLocalizations l) {
+    if (authStore.webSessionExpired) return l.webTokenExpired;
     return authStore.twitchWebToken == null
-        ? 'Not set — log in to pick it up automatically'
-        : 'Active — picked up automatically, 2K requested';
+        ? l.webTokenUnset
+        : l.webTokenActive;
   }
 
   @override
@@ -44,8 +43,8 @@ class SettingsTwitchWebToken extends StatelessWidget {
         final colors = SettingsColors.of(context);
         final set = authStore.twitchWebToken != null;
         return SettingsRow(
-          title: 'Twitch web token (2K)',
-          subtitle: Text(_status()),
+          title: context.l10n.webTokenTitle,
+          subtitle: Text(_status(context.l10n)),
           end: SettingsRowEnd.chevron,
           onTap: () => _edit(context),
           // Only whether one is set: the token itself is never drawn.
@@ -73,7 +72,7 @@ class SettingsTwitchWebToken extends StatelessWidget {
                     color: colors.secondary,
                   ),
                   Text(
-                    set ? '••••••' : 'Not set',
+                    set ? '••••••' : context.l10n.webTokenNotSet,
                     style: TextStyle(
                       fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 12,
@@ -131,14 +130,10 @@ class _WebTokenDialogState extends State<_WebTokenDialog> {
       borderSide: BorderSide(color: color),
     );
 
+    final l = context.l10n;
     return SettingsDialog(
-      title: 'Twitch web token (2K)',
-      message:
-          'Some streams only offer their 2K (1440p HEVC) quality to a '
-          'signed-in viewer. This is normally picked up on its own when you '
-          'log in, and refreshed on each launch — you should never need to '
-          'touch it. Fill it in by hand only if that fails: paste the value '
-          'of the "auth-token" cookie from twitch.tv in a browser.',
+      title: l.webTokenTitle,
+      message: l.webTokenExplanation,
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: 14,
@@ -165,7 +160,7 @@ class _WebTokenDialogState extends State<_WebTokenDialog> {
                 ),
                 Expanded(
                   child: Text(
-                    isSet ? 'A token is set.' : 'No token set.',
+                    isSet ? l.webTokenIsSet : l.webTokenNoneSet,
                     style: TextStyle(
                       fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 14,
@@ -187,7 +182,7 @@ class _WebTokenDialogState extends State<_WebTokenDialog> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    child: const Text('Clear'),
+                    child: Text(l.webTokenClear),
                   ),
               ],
             ),
@@ -206,8 +201,8 @@ class _WebTokenDialogState extends State<_WebTokenDialog> {
               color: colors.text,
             ),
             decoration: InputDecoration(
-              labelText: isSet ? 'New auth-token' : 'auth-token',
-              hintText: 'Paste to replace — never shown',
+              labelText: isSet ? l.webTokenNewField : _cookieName,
+              hintText: l.webTokenFieldHint,
               floatingLabelBehavior: FloatingLabelBehavior.always,
               filled: true,
               fillColor: colors.well,
@@ -221,11 +216,11 @@ class _WebTokenDialogState extends State<_WebTokenDialog> {
       ),
       actions: [
         SettingsButton(
-          label: 'Cancel',
+          label: l.commonCancel,
           onPressed: () => Navigator.pop(context),
         ),
         SettingsButton(
-          label: isSet ? 'Replace' : 'Save',
+          label: isSet ? l.webTokenReplace : l.webTokenSave,
           tone: SettingsButtonTone.primary,
           onPressed: canSave ? () => _save(_controller.text) : null,
         ),
@@ -233,3 +228,7 @@ class _WebTokenDialogState extends State<_WebTokenDialog> {
     );
   }
 }
+
+/// The cookie's name on twitch.tv: the field's label when no token is set,
+/// the same in every language.
+const _cookieName = 'auth-token';

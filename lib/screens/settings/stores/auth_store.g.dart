@@ -128,16 +128,16 @@ mixin _$AuthStore on AuthBase, Store {
     context: context,
   );
 
-  String? get tokenNotice {
+  TokenNotice? get tokenNotice {
     _$_tokenNoticeAtom.reportRead();
     return super._tokenNotice;
   }
 
   @override
-  String? get _tokenNotice => tokenNotice;
+  TokenNotice? get _tokenNotice => tokenNotice;
 
   @override
-  set _tokenNotice(String? value) {
+  set _tokenNotice(TokenNotice? value) {
     _$_tokenNoticeAtom.reportWrite(value, super._tokenNotice, () {
       super._tokenNotice = value;
     });

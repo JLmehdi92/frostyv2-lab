@@ -11,6 +11,28 @@ const l10nAllowlist = <String, Map<String, String>>{
   'lib/screens/home/shell/onset_shell.dart': {
     'ONSET': 'The header\'s default title: the app\'s name, a brand.',
   },
+  'lib/screens/settings/other_settings.dart': {
+    'ONSET':
+        'The app\'s name on the licences page (applicationName): a brand.',
+  },
+  'lib/screens/settings/profile_tab.dart': {
+    'ONSET v{} ({})':
+        'The app\'s name, its version and build number: a brand and figures.',
+  },
+  'lib/screens/settings/stores/auth_store.dart': {
+    'Twitch refuses it':
+        'Why the token proxy\'s app token is refused: only printed for '
+        'debugging (debugPrint), never shown.',
+    "it is the login application's (check the Worker's credentials)":
+        'Same: a debug log, never shown.',
+    "it is a user's token": 'Same: a debug log, never shown.',
+    'it is not the application the proxy named':
+        'Same: a debug log, never shown.',
+  },
+  'lib/screens/settings/widgets/settings_page.dart': {
+    'ONSET v{} ({})':
+        'The app\'s name, its version and build number: a brand and figures.',
+  },
   'lib/widgets/launch/onset_mark.dart': {
     'ONSET': 'The wordmark\'s screen-reader label: the app\'s name, a brand.',
   },

@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/widgets/settings_glyph.dart';
 import 'package:onset/screens/settings/widgets/settings_kit.dart';
 import 'package:onset/theme.dart';
@@ -16,41 +18,19 @@ import 'package:url_launcher/url_launcher.dart';
 /// The pages of the settings: the
 /// five sections, the account and its blocked users, and the chat filters
 /// under Chat.
+///
+/// Their names are in lib/l10n/enum_labels.dart (`title`, `description`).
 enum SettingsPageId {
-  general(
-    'General',
-    'Theme, stream cards, browsing and links',
-    SettingsGlyphKind.general,
-  ),
-  video(
-    'Video',
-    'The low-latency player, playback, overlay, videos and captions',
-    SettingsGlyphKind.video,
-  ),
-  chat(
-    'Chat',
-    'How chat looks, waits, alerts and filters',
-    SettingsGlyphKind.chat,
-  ),
-  notifications(
-    'Notifications',
-    'Go-live and chat mention notifications',
-    SettingsGlyphKind.bell,
-  ),
-  other(
-    'Other',
-    'Updates, storage, privacy and about',
-    SettingsGlyphKind.other,
-  ),
-  account('Account', 'Your Twitch account in ONSET', SettingsGlyphKind.user),
-  blocked(
-    'Blocked users',
-    'People you blocked on Twitch',
-    SettingsGlyphKind.ban,
-  ),
-  chatFilters('Edit Chat Filters', '', SettingsGlyphKind.filter);
+  general(SettingsGlyphKind.general),
+  video(SettingsGlyphKind.video),
+  chat(SettingsGlyphKind.chat),
+  notifications(SettingsGlyphKind.bell),
+  other(SettingsGlyphKind.other),
+  account(SettingsGlyphKind.user),
+  blocked(SettingsGlyphKind.ban),
+  chatFilters(SettingsGlyphKind.filter);
 
-  const SettingsPageId(this.title, this.description, this.glyph);
+  const SettingsPageId(this.glyph);
 
   /// The sections under "Customize" (phone) and "Settings" (Profile).
   static const customize = [general, video, chat, notifications];
@@ -58,10 +38,6 @@ enum SettingsPageId {
   /// The sections of the tablet's side column.
   static const sections = [general, video, chat, notifications, other];
 
-  final String title;
-
-  /// Under the title on a tablet.
-  final String description;
   final SettingsGlyphKind glyph;
 
   /// The pages listed on their own in the tablet's side column.
@@ -127,7 +103,7 @@ Future<void> openSettingsPage(
   String? title,
 }) {
   final pane = SettingsPaneScope.maybeOf(context);
-  final name = title ?? id.title;
+  final name = title ?? id.title(context.l10n);
   if (pane != null) {
     pane.onOpen(id, name, builder);
     return Future.value();
@@ -310,12 +286,12 @@ class _SettingsGroupsViewState extends State<SettingsGroupsView> {
                         strokeWidth: 2,
                         color: colors.body,
                       ),
-                      label: Text(pane.backLabel ?? 'Back'),
+                      label: Text(pane.backLabel ?? context.l10n.commonBack),
                     ),
                   )
                 else
                   Text(
-                    'SETTINGS',
+                    context.l10n.settingsTitle.toUpperCase(),
                     style: SettingsText.section.copyWith(
                       color: colors.secondary,
                     ),
@@ -350,7 +326,7 @@ class _SettingsGroupsViewState extends State<SettingsGroupsView> {
           Padding(
             padding: const EdgeInsets.only(bottom: 20),
             child: Semantics(
-              label: 'Jump to a group',
+              label: context.l10n.settingsJumpToGroup,
               container: true,
               explicitChildNodes: true,
               child: Wrap(
@@ -553,7 +529,7 @@ class SettingsBackButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => IconButton(
-    tooltip: 'Back',
+    tooltip: context.l10n.commonBack,
     onPressed: onPressed,
     constraints: const BoxConstraints.tightFor(width: 44, height: 44),
     padding: EdgeInsets.zero,
@@ -775,7 +751,7 @@ class SettingsSheetContent extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                child: const Text('Done'),
+                child: Text(context.l10n.commonDone),
               ),
             ],
           ),
