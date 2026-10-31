@@ -318,18 +318,10 @@ turn on "Share crash logs and analytics" (off by default). What the app stores a
 sends is described in the [privacy policy](PRIVACY.md)
 ([version française](PRIVACY.fr.md)).
 
-## Credits
-
-ONSET — Copyright (C) 2026 ONSET contributors. Based on
-[Frosty](https://github.com/tommyxchow/frosty), Copyright (C) Tommy Chow,
-licensed under AGPL-3.0, and extensively modified. Licensed under the GNU
-AGPL-3.0-or-later; see [LICENSE](LICENSE) and [NOTICE](NOTICE).
-
 ## License
 
-ONSET is a modified version of an AGPL-3.0 licensed open-source Twitch client
-(see [Credits](#credits)). It is distributed under the
-[AGPL-3.0-or-later](LICENSE).
+ONSET — Copyright (C) 2026 ONSET contributors. It is distributed under the
+[AGPL-3.0-or-later](LICENSE); see also [NOTICE](NOTICE).
 `packages/simple_pip_mode` is a vendored copy of the MIT-licensed
 `simple_pip_mode` plugin (see its `LICENSE`).
 

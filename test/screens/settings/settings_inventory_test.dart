@@ -418,7 +418,6 @@ void main() {
     expect(find.text(onsetLegalese), findsOneWidget);
     expect(onsetLegalese, contains('GNU AGPL-3.0-or-later'));
     expect(onsetLegalese, contains('NO WARRANTY'));
-    expect(onsetLegalese, contains('Frosty by Tommy Chow'));
     expect(onsetLegalese, contains(onsetRepoUrl));
   });
 

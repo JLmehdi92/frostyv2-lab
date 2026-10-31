@@ -130,10 +130,11 @@ List<Widget> otherSettingsGroups(
 }
 
 /// The notice the licences page opens with: ONSET's licence, its lack of
-/// warranty, where it comes from and where its source is (AGPL section 5).
+/// warranty and where its source is (AGPL section 5). Where the code comes
+/// from is in NOTICE, shipped with the source.
 const onsetLegalese =
     'ONSET is free software under the GNU AGPL-3.0-or-later, with NO '
-    'WARRANTY. Based on Frosty by Tommy Chow. Source code: $onsetRepoUrl';
+    'WARRANTY. Source code: $onsetRepoUrl';
 
 /// "Licenses": Flutter's licence page, ONSET's notice first, then every
 /// package's licence.
