@@ -8,8 +8,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/screens/onboarding/onboarding_flow.dart';
-import 'package:onset/screens/onboarding/onboarding_intro.dart';
 import 'package:onset/screens/onboarding/onboarding_language_choice.dart';
+import 'package:onset/screens/onboarding/onboarding_parts.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/stores/user_store.dart';
@@ -125,24 +125,49 @@ void main() {
     await settle(tester);
   }
 
-  /// What overlaps on the phone's Intro, in reading order: the tile, the
-  /// description, the language pill, the version, then "Next". A part that
-  /// scrolled out of its area is not drawn there, so only the visible part
-  /// of each counts.
-  List<String> introOverlaps(WidgetTester tester, AppLocalizations l) {
-    final scroll = find.descendant(
-      of: find.byType(OnboardingIntroPhone),
-      matching: find.byType(Scrollable),
+  /// The rectangle [element] draws in, in the window's coordinates.
+  Rect drawnRect(Element element) {
+    final box = element.renderObject! as RenderBox;
+    return MatrixUtils.transformRect(
+      box.getTransformTo(null),
+      Offset.zero & box.size,
     );
-    final area = scroll.evaluate().isEmpty
-        ? Offset.zero & tester.view.physicalSize
-        : tester.getRect(scroll);
-    Rect shown(Finder finder) => tester.getRect(finder).intersect(area);
+  }
+
+  /// What [finder] shows of itself: its rectangle inside the window and
+  /// inside every scrolling area it sits in.
+  Rect visibleRect(WidgetTester tester, Finder finder) {
+    final window = Offset.zero & tester.view.physicalSize;
+    var rect = tester.getRect(finder).intersect(window);
+    for (final scrollable
+        in find
+            .ancestor(of: finder, matching: find.byType(Scrollable))
+            .evaluate()) {
+      rect = rect.intersect(drawnRect(scrollable));
+    }
+    return rect;
+  }
+
+  /// What is wrong on the phone's Intro:
+  /// - parts overlapping, in reading order: the tile, the name, the
+  ///   description, the language pill, the version (when shown), "Next";
+  ///   only the visible part of each counts (a part scrolled out of its
+  ///   area is not drawn there);
+  /// - the language pill not wholly in view: cut by the window or by a
+  ///   scrolling edge, under "Next", or its labels cut short.
+  List<String> introProblems(WidgetTester tester, AppLocalizations l) {
+    final version = find.text('v5.0.5 (68)');
+    final languagePill = find.byType(OnboardingLanguageChoice);
     final parts = [
       ('tile', tester.getRect(find.byType(OnsetMarkTile))),
-      ('description', shown(find.text(l.onboardingIntroDescription))),
-      ('pill', shown(find.byType(OnboardingLanguageChoice))),
-      ('version', shown(find.text('v5.0.5 (68)'))),
+      ('name', tester.getRect(find.byType(OnsetWordmark))),
+      (
+        'description',
+        visibleRect(tester, find.text(l.onboardingIntroDescription)),
+      ),
+      ('pill', visibleRect(tester, languagePill)),
+      if (version.evaluate().isNotEmpty)
+        ('version', visibleRect(tester, version)),
       ('Next', tester.getRect(find.text(l.commonNext))),
     ];
     final problems = <String>[];
@@ -156,10 +181,29 @@ void main() {
         );
       }
     }
-    // Nothing scrolled under "Next".
-    final next = tester.getRect(find.text(l.commonNext));
-    if (area.bottom > next.top + 0.01 && scroll.evaluate().isNotEmpty) {
-      problems.add('the scrolling area runs under Next');
+    final whole = tester.getRect(languagePill);
+    final seen = visibleRect(tester, languagePill);
+    if ((whole.height - seen.height).abs() > 0.01 ||
+        (whole.width - seen.width).abs() > 0.01) {
+      problems.add('the pill is cut: $whole shows only $seen');
+    }
+    final next = tester.getRect(
+      find.ancestor(
+        of: find.text(l.commonNext),
+        matching: find.byType(OnboardingButton),
+      ),
+    );
+    if (whole.bottom > next.top + 0.01) {
+      problems.add('the pill (to ${whole.bottom}) runs under Next');
+    }
+    for (final label in [
+      english.languageNameEnglish,
+      english.languageNameFrench,
+    ]) {
+      final paragraph = tester.renderObject<RenderParagraph>(
+        find.descendant(of: languagePill, matching: find.text(label)),
+      );
+      if (paragraph.didExceedMaxLines) problems.add('"$label" is cut short');
     }
     return problems;
   }
@@ -311,7 +355,14 @@ void main() {
             expect(tester.takeException(), isNull);
             expect(find.text(l.onboardingIntroDescription), findsOneWidget);
             if (size.shortestSide < 600) {
-              expect(introOverlaps(tester, l), isEmpty);
+              expect(introProblems(tester, l), isEmpty);
+            } else {
+              // A tablet's pill, under the description, is wholly in view.
+              final languagePill = find.byType(OnboardingLanguageChoice);
+              expect(
+                visibleRect(tester, languagePill),
+                tester.getRect(languagePill),
+              );
             }
 
             void noEnglish() {

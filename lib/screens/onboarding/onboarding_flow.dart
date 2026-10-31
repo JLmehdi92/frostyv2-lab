@@ -533,7 +533,7 @@ class _OnboardingFlowState extends State<OnboardingFlow>
         )!;
         final tileScale = lerpDouble(
           launch.width / OnsetMark.designSize,
-          1,
+          geometry.tileScale,
           slide,
         )!;
         final nameCenterX = lerpDouble(
@@ -552,10 +552,20 @@ class _OnboardingFlowState extends State<OnboardingFlow>
         final (introOpacity, introShift) = _stepMotion(OnboardingStep.intro);
         final brandOpacity = tablet ? 1.0 : introOpacity;
         final brandShift = tablet ? 0.0 : introShift;
+        // From where the launch intro left the name to under the tile at
+        // rest (closer, under a smaller tile, on a short phone window).
         final nameTop =
             tileCenter.dy +
-            OnsetMark.designSize / 2 +
-            OnsetWordmark.gapBelowTile(tablet: tablet);
+            lerpDouble(
+              OnsetMark.designSize / 2,
+              OnsetMark.designSize / 2 * geometry.tileScale,
+              slide,
+            )! +
+            lerpDouble(
+              OnsetWordmark.gapBelowTile(tablet: tablet),
+              geometry.tileGap,
+              slide,
+            )!;
 
         final brand = Visibility(
           visible: brandOpacity > 0,
@@ -715,6 +725,7 @@ class _OnboardingFlowState extends State<OnboardingFlow>
         }
         return OnboardingIntroPhone(
           nameBottom: geometry.nameBottom,
+          fit: geometry.introFit,
           version: _version,
           accent: accent,
           bottomInset: geometry.bottomInset,
@@ -797,6 +808,9 @@ class _Geometry {
     required this.barSide,
     required this.stepPadding,
     required this.tileCenter,
+    required this.tileScale,
+    required this.tileGap,
+    required this.introFit,
     required this.nameBottom,
     required this.webTop,
     required this.bottomInset,
@@ -815,16 +829,26 @@ class _Geometry {
     const half = OnsetMark.designSize / 2;
     if (!tablet) {
       // The tile in the middle (where the launch intro left it), raised on
-      // a short window so the description, the version and "Next" fit.
-      final gap = OnsetWordmark.gapBelowTile(tablet: false);
+      // a short window so the description, the language pill, the version
+      // and "Next" fit; on a shorter one still, the parts draw closer and
+      // the tile shrinks (IntroPhoneFit).
+      final top = padding.top + 56 + 8;
+      final nextTop = h - padding.bottom - OnboardingIntroPhone.aboveNext;
+      final fit = IntroPhoneFit.of(
+        room: nextTop - top,
+        nameHeight: nameHeight,
+        descriptionRoom: descriptionHeight,
+        textScaler: textScaler,
+      );
+      final tileHalf = half * fit.tileScale;
+      final gap = fit.tileGap;
       final lowest =
-          h -
-          padding.bottom -
-          OnboardingIntroPhone.neededBelowName(descriptionHeight, textScaler) -
+          nextTop -
+          fit.belowName(descriptionHeight, textScaler) -
           nameHeight -
           gap -
-          half;
-      final highest = padding.top + 56 + half + 8;
+          tileHalf;
+      final highest = top + tileHalf;
       final cy = (h / 2).clamp(highest, lowest < highest ? highest : lowest);
       final full = Offset.zero & size;
       return _Geometry(
@@ -843,7 +867,10 @@ class _Geometry {
           padding.bottom + 20,
         ),
         tileCenter: Offset(w / 2, cy),
-        nameBottom: cy + half + gap + nameHeight,
+        tileScale: fit.tileScale,
+        tileGap: gap,
+        introFit: fit,
+        nameBottom: cy + tileHalf + gap + nameHeight,
         webTop: padding.top + 56,
         bottomInset: padding.bottom,
       );
@@ -869,6 +896,9 @@ class _Geometry {
           padding.bottom + 40,
         ),
         tileCenter: Offset(pane / 2, h / 2),
+        tileScale: 1,
+        tileGap: OnsetWordmark.gapBelowTile(tablet: true),
+        introFit: IntroPhoneFit.roomy,
         nameBottom: 0,
         webTop: padding.top + 72,
         bottomInset: padding.bottom,
@@ -889,6 +919,9 @@ class _Geometry {
       barSide: 28,
       stepPadding: EdgeInsets.fromLTRB(64, 104, 64, padding.bottom + 40),
       tileCenter: Offset(w / 2, groupTop + half),
+      tileScale: 1,
+      tileGap: gap,
+      introFit: IntroPhoneFit.roomy,
       nameBottom: 0,
       webTop: 72,
       bottomInset: padding.bottom,
@@ -913,6 +946,15 @@ class _Geometry {
 
   /// The tile at rest.
   final Offset tileCenter;
+
+  /// The tile's scale at rest: 1, less on a short phone window.
+  final double tileScale;
+
+  /// From the tile's bottom to the name's top, at rest.
+  final double tileGap;
+
+  /// A phone's: how its Intro fits the window.
+  final IntroPhoneFit introFit;
 
   /// A phone's: where the name's underline ends.
   final double nameBottom;

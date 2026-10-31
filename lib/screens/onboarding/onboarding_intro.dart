@@ -7,6 +7,7 @@ import 'package:onset/screens/onboarding/onboarding_language_choice.dart';
 import 'package:onset/screens/onboarding/onboarding_parts.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/theme.dart';
+import 'package:onset/widgets/launch/onset_mark.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 
@@ -15,13 +16,19 @@ import 'package:onset/widgets/onset_cached_network_image.dart';
 /// version, "Next".
 ///
 /// [nameBottom] is where the name's underline ends, in the step's
-/// coordinates: the description sits 31 dp under it. [language] is the
-/// language the pill shows selected; [onLanguage] is told a tap on the
-/// other one.
+/// coordinates; [fit] says how tight the parts sit (the flow works it out
+/// with [IntroPhoneFit.of], and places the tile and the name by it).
+/// [language] is the language the pill shows selected; [onLanguage] is
+/// told a tap on the other one.
+///
+/// The language pill is the screen's key choice, so it is always shown
+/// whole, above "Next": the description is the only part that scrolls,
+/// when even the tightest [fit] leaves it too little room.
 class OnboardingIntroPhone extends StatelessWidget {
   const OnboardingIntroPhone({
     super.key,
     required this.nameBottom,
+    required this.fit,
     required this.version,
     required this.accent,
     required this.bottomInset,
@@ -31,6 +38,7 @@ class OnboardingIntroPhone extends StatelessWidget {
   });
 
   final double nameBottom;
+  final IntroPhoneFit fit;
   final String? version;
   final Color accent;
   final double bottomInset;
@@ -43,7 +51,7 @@ class OnboardingIntroPhone extends StatelessWidget {
 
   /// The space between the version and the bottom: "Next" (52) and 16
   /// above it, over the bottom inset's 24.
-  static const _aboveNext = 24 + 52 + 16.0;
+  static const aboveNext = 24 + 52 + 16.0;
 
   @override
   Widget build(BuildContext context) {
@@ -52,60 +60,58 @@ class OnboardingIntroPhone extends StatelessWidget {
     return Stack(
       children: [
         // The description from the top, the pill and the version from the
-        // bottom: one column, so they never overlap. When the window is too
-        // short for all of them (large text) it scrolls instead.
+        // bottom: one column, so they never overlap. The pill and the
+        // version keep their room; when the description has too little,
+        // it scrolls in what is left.
         Positioned.fill(
           child: Padding(
             padding: EdgeInsets.only(
-              top: nameBottom + 31,
-              bottom: bottomInset + _aboveNext,
+              top: nameBottom + fit.descriptionGap,
+              bottom: bottomInset + aboveNext,
             ),
-            child: LayoutBuilder(
-              builder: (context, constraints) => SingleChildScrollView(
-                physics: const ClampingScrollPhysics(),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: descriptionSide,
-                          ),
-                          child: StepRise(
-                            order: 2,
-                            child: Text(
-                              context.l10n.onboardingIntroDescription,
-                              textAlign: TextAlign.center,
-                              style: descriptionStyle,
-                            ),
-                          ),
+            child: Column(
+              children: [
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: SingleChildScrollView(
+                      physics: const ClampingScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: descriptionSide,
+                      ),
+                      child: StepRise(
+                        order: 2,
+                        child: Text(
+                          context.l10n.onboardingIntroDescription,
+                          textAlign: TextAlign.center,
+                          style: descriptionStyle,
                         ),
-                        const SizedBox(height: 24),
-                        const Spacer(),
-                        StepRise(
-                          order: 5,
-                          child: SizedBox(
-                            width: math.min(
-                              textScaler.scale(languageWidth),
-                              width - 32,
-                            ),
-                            child: OnboardingLanguageChoice(
-                              value: language,
-                              onChanged: onLanguage,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        StepRise(
-                          order: 3,
-                          child: OnboardingVersion(version: version),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              ),
+                SizedBox(height: fit.pillGap),
+                StepRise(
+                  order: 5,
+                  child: SizedBox(
+                    width: math.min(
+                      textScaler.scale(languageWidth),
+                      width - 32,
+                    ),
+                    child: OnboardingLanguageChoice(
+                      value: language,
+                      onChanged: onLanguage,
+                    ),
+                  ),
+                ),
+                if (fit.showVersion) ...[
+                  SizedBox(height: fit.versionGap),
+                  StepRise(
+                    order: 3,
+                    child: OnboardingVersion(version: version),
+                  ),
+                ],
+              ],
             ),
           ),
         ),
@@ -159,22 +165,159 @@ class OnboardingIntroPhone extends StatelessWidget {
     final threeLines = textScaler.scale(70);
     return height > threeLines ? height : threeLines;
   }
+}
 
-  /// The height the intro needs under the name, with [descriptionRoom] and
-  /// text scaled by [textScaler]: the description, the language pill and
-  /// 16 under it, the version line, "Next". Less raises the tile; when even
-  /// that is not enough, the column scrolls.
-  static double neededBelowName(
-    double descriptionRoom,
-    TextScaler textScaler,
-  ) =>
-      31 +
+/// How the phone's Intro fits its window: the tile's size and the gaps
+/// between the tile, the name, the description, the language pill and the
+/// version.
+///
+/// A roomy window gets the design ([roomy]). A short one (a small phone,
+/// large text) first loses its decoration, in this order, and only as far
+/// as needed: tighter gaps, a smaller tile (down to [minTileScale] of its
+/// size), then no version line. When even that leaves the description too
+/// little room, the description scrolls; the pill never does.
+@immutable
+class IntroPhoneFit {
+  const IntroPhoneFit({
+    required this.tileScale,
+    required this.tileGap,
+    required this.descriptionGap,
+    required this.pillGap,
+    required this.versionGap,
+    required this.showVersion,
+  });
+
+  /// The design, when everything fits.
+  static const roomy = IntroPhoneFit(
+    tileScale: 1,
+    tileGap: 30,
+    descriptionGap: 31,
+    pillGap: 24,
+    versionGap: 16,
+    showVersion: true,
+  );
+
+  /// The gaps of a short window.
+  static const tight = IntroPhoneFit(
+    tileScale: 1,
+    tileGap: 18,
+    descriptionGap: 18,
+    pillGap: 16,
+    versionGap: 10,
+    showVersion: true,
+  );
+
+  /// The smallest the tile gets, as a share of its design size.
+  static const minTileScale = 0.6;
+
+  /// The tile's size at its design scale.
+  static const tileSize = OnsetMark.designSize;
+
+  /// The tile's scale at rest (1 at its design size).
+  final double tileScale;
+
+  /// From the tile's bottom to the name's top.
+  final double tileGap;
+
+  /// From the name's underline to the description.
+  final double descriptionGap;
+
+  /// From the description's room to the language pill.
+  final double pillGap;
+
+  /// From the language pill to the version line.
+  final double versionGap;
+
+  /// Whether the version line is shown under the pill.
+  final bool showVersion;
+
+  /// The height from the name's underline to the top of "Next"'s area:
+  /// the description's [descriptionRoom], the pill and the version.
+  double belowName(double descriptionRoom, TextScaler textScaler) =>
+      descriptionGap +
       descriptionRoom +
-      24 +
+      pillGap +
       OnboardingLanguageChoice.heightFor(textScaler) +
-      16 +
-      OnboardingVersion.heightFor(textScaler) +
-      _aboveNext;
+      (showVersion ? versionGap + OnboardingVersion.heightFor(textScaler) : 0);
+
+  /// The height it needs from the tile's top to "Next"'s area, the name
+  /// being [nameHeight] tall.
+  double needed({
+    required double nameHeight,
+    required double descriptionRoom,
+    required TextScaler textScaler,
+  }) =>
+      tileSize * tileScale +
+      tileGap +
+      nameHeight +
+      belowName(descriptionRoom, textScaler);
+
+  IntroPhoneFit _copyWith({double? tileScale, bool? showVersion}) =>
+      IntroPhoneFit(
+        tileScale: tileScale ?? this.tileScale,
+        tileGap: tileGap,
+        descriptionGap: descriptionGap,
+        pillGap: pillGap,
+        versionGap: versionGap,
+        showVersion: showVersion ?? this.showVersion,
+      );
+
+  /// The roomiest fit for [room], the height from the tile's highest top
+  /// to "Next"'s area, with a [nameHeight] tall name and a description
+  /// needing [descriptionRoom].
+  static IntroPhoneFit of({
+    required double room,
+    required double nameHeight,
+    required double descriptionRoom,
+    required TextScaler textScaler,
+  }) {
+    bool fits(IntroPhoneFit fit) =>
+        fit.needed(
+          nameHeight: nameHeight,
+          descriptionRoom: descriptionRoom,
+          textScaler: textScaler,
+        ) <=
+        room;
+    if (fits(roomy)) return roomy;
+    if (fits(tight)) return tight;
+    // The tile as large as the room left allows.
+    IntroPhoneFit shrunk(IntroPhoneFit fit) {
+      final rest =
+          fit.needed(
+            nameHeight: nameHeight,
+            descriptionRoom: descriptionRoom,
+            textScaler: textScaler,
+          ) -
+          tileSize * fit.tileScale;
+      final scale = ((room - rest) / tileSize).clamp(minTileScale, 1.0);
+      return fit._copyWith(tileScale: scale);
+    }
+
+    final smaller = shrunk(tight);
+    if (fits(smaller)) return smaller;
+    // No version line; and the description scrolls if it still lacks room.
+    return shrunk(tight._copyWith(showVersion: false));
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is IntroPhoneFit &&
+      other.tileScale == tileScale &&
+      other.tileGap == tileGap &&
+      other.descriptionGap == descriptionGap &&
+      other.pillGap == pillGap &&
+      other.versionGap == versionGap &&
+      other.showVersion == showVersion;
+
+  @override
+  int get hashCode => Object.hash(
+    tileScale,
+    tileGap,
+    descriptionGap,
+    pillGap,
+    versionGap,
+    showVersion,
+  );
 }
 
 /// Step 1, Intro, on a tablet: "First launch", the description and the
@@ -208,7 +351,10 @@ class OnboardingIntroTablet extends StatelessWidget {
           children: [
             Expanded(
               child: Center(
-                child: SingleChildScrollView(
+                // The language pill under the description, the pair in the
+                // middle; when the description is too tall for the pane
+                // (large text), it scrolls and the pill stays in view.
+                child: Padding(
                   padding: EdgeInsets.fromLTRB(
                     padding.left,
                     padding.top,
@@ -218,47 +364,55 @@ class OnboardingIntroTablet extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
-                    spacing: 20,
                     children: [
-                      StepRise(
-                        order: 1,
-                        child: Text(
-                          context.l10n.onboardingIntroEyebrow.toUpperCase(),
-                          style: OnboardingType.eyebrow,
-                        ),
-                      ),
-                      StepRise(
-                        order: 2,
-                        child: Semantics(
-                          header: true,
-                          child: Text(
-                            context.l10n.onboardingIntroDescription,
-                            style: TextStyle(
-                              fontFamily: OnsetTokens.displayFamily,
-                              fontSize: size,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.035 * size,
-                              height: 1.12,
-                              color: OnboardingColors.text,
-                            ),
+                      Flexible(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            spacing: 20,
+                            children: [
+                              StepRise(
+                                order: 1,
+                                child: Text(
+                                  context.l10n.onboardingIntroEyebrow
+                                      .toUpperCase(),
+                                  style: OnboardingType.eyebrow,
+                                ),
+                              ),
+                              StepRise(
+                                order: 2,
+                                child: Semantics(
+                                  header: true,
+                                  child: Text(
+                                    context.l10n.onboardingIntroDescription,
+                                    style: TextStyle(
+                                      fontFamily: OnsetTokens.displayFamily,
+                                      fontSize: size,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: -0.035 * size,
+                                      height: 1.12,
+                                      color: OnboardingColors.text,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
+                      const SizedBox(height: 24),
                       StepRise(
                         order: 5,
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: SizedBox(
-                            width: math.min(
-                              MediaQuery.textScalerOf(
-                                context,
-                              ).scale(OnboardingIntroPhone.languageWidth),
-                              width,
-                            ),
-                            child: OnboardingLanguageChoice(
-                              value: language,
-                              onChanged: onLanguage,
-                            ),
+                        child: SizedBox(
+                          width: math.min(
+                            MediaQuery.textScalerOf(
+                              context,
+                            ).scale(OnboardingIntroPhone.languageWidth),
+                            width,
+                          ),
+                          child: OnboardingLanguageChoice(
+                            value: language,
+                            onChanged: onLanguage,
                           ),
                         ),
                       ),

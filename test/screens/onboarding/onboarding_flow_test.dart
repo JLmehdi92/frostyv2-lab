@@ -11,6 +11,7 @@ import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/screens/onboarding/onboarding_flow.dart';
+import 'package:onset/screens/onboarding/onboarding_language_choice.dart';
 import 'package:onset/screens/onboarding/onboarding_login.dart';
 import 'package:onset/screens/onboarding/onboarding_parts.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -191,7 +192,12 @@ void main() {
           ),
           findsOneWidget,
         );
-        expect(find.text('v5.0.5 (68)'), findsOneWidget);
+        // A short window gives the version's line to the language pill.
+        expect(
+          find.text('v5.0.5 (68)'),
+          size.height < 640 ? findsNothing : findsOneWidget,
+        );
+        expect(find.byType(OnboardingLanguageChoice), findsOneWidget);
 
         await tapText(tester, 'Next');
         expect(tester.takeException(), isNull);
