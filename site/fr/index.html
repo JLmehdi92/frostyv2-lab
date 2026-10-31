@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ONSET — Twitch, en direct. Pas en différé.</title>
+<meta name="description" content="ONSET est un client Android gratuit et open source pour Twitch : lecteur natif à faible latence et chat complet avec les emotes 7TV, BTTV et FFZ.">
+<link rel="canonical" href="https://onsetapp.app/fr/">
+<link rel="alternate" hreflang="en" href="https://onsetapp.app/">
+<link rel="alternate" hreflang="fr" href="https://onsetapp.app/fr/">
+<link rel="alternate" hreflang="x-default" href="https://onsetapp.app/">
+<meta name="theme-color" content="#0A0A0A">
+<meta name="color-scheme" content="dark">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ONSET">
+<meta property="og:url" content="https://onsetapp.app/fr/">
+<meta property="og:title" content="ONSET — Twitch, en direct. Pas en différé.">
+<meta property="og:description" content="Un client Android gratuit et open source pour Twitch : lecteur natif à faible latence et chat complet avec les emotes 7TV, BTTV et FFZ.">
+<meta property="og:image" content="https://onsetapp.app/assets/og-fr.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Icône de l’application ONSET et le titre « Twitch, en direct. Pas en différé. »">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:locale:alternate" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ONSET — Twitch, en direct. Pas en différé.">
+<meta name="twitter:description" content="Un client Android gratuit et open source pour Twitch : lecteur natif à faible latence et chat complet avec les emotes 7TV, BTTV et FFZ.">
+<meta name="twitter:image" content="https://onsetapp.app/assets/og-fr.png">
+<meta name="twitter:image:alt" content="Icône de l’application ONSET et le titre « Twitch, en direct. Pas en différé. »">
+<link rel="icon" href="/favicon.ico" sizes="32x32 48x48">
+<link rel="icon" href="/assets/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" href="/css/site.css">
+<script type="application/json" id="i18n">{"decimal": ",", "unit": "\u00a0s"}</script>
+<script src="/js/boot.js"></script>
+<link rel="preload" href="/assets/onset-icon.webp" as="image" type="image/webp">
+<link rel="preload" href="/fonts/inter-800.ad01331a.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/inter-400.0fe1a476.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/js/vendor/gsap-3.13.0.min.js" as="script">
+<link rel="preload" href="/js/vendor/ScrollTrigger-3.13.0.min.js" as="script">
+<link rel="preload" href="/js/vendor/lenis-1.3.11.min.js" as="script">
+<link rel="preload" href="/js/site.js" as="script">
+<script src="/js/vendor/gsap-3.13.0.min.js" defer></script>
+<script src="/js/vendor/ScrollTrigger-3.13.0.min.js" defer></script>
+<script src="/js/vendor/lenis-1.3.11.min.js" defer></script>
+<script src="/js/site.js" defer></script>
+</head>
+<body>
+<div class="page" id="top">
+
+  <header class="bar">
+    <div class="wrap bar-in">
+      <a class="brand" href="#top" aria-label="ONSET, retour en haut">
+        <img src="/assets/onset-icon.webp" alt="" width="32" height="32">
+        <span>ONSET</span>
+      </a>
+      <div class="bar-r">
+        <a class="bar-dl" href="https://github.com/JLmehdi92/ONSET/releases/latest/download/onset-arm64.apk" aria-label="Télécharger ONSET pour Android (APK)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"></path><path d="M7.5 10.5 12 15l4.5-4.5"></path><path d="M5 19.5h14"></path></svg>
+          <span class="lbl-l">Télécharger</span><span class="lbl-s">APK</span>
+        </a>
+        <a class="gh" href="https://github.com/JLmehdi92/ONSET" target="_blank" rel="noopener noreferrer" aria-label="ONSET sur GitHub">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"></path></svg>
+          <span class="gh-t">GitHub</span>
+        </a>
+        <nav class="lng" aria-label="Langue"><a href="/" hreflang="en" lang="en" aria-label="English" data-lang="en">EN</a><span class="lng-sep" aria-hidden="true">·</span><a href="/fr/" hreflang="fr" lang="fr" aria-label="Français" aria-current="page" data-lang="fr">FR</a></nav>
+        <button class="tgl" type="button" aria-label="Thème clair" aria-pressed="false">
+          <svg class="ti ti-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2.5v2"></path><path d="M12 19.5v2"></path><path d="m5.3 5.3 1.4 1.4"></path><path d="m17.3 17.3 1.4 1.4"></path><path d="M2.5 12h2"></path><path d="M19.5 12h2"></path><path d="m5.3 18.7 1.4-1.4"></path><path d="m17.3 6.7 1.4-1.4"></path></svg>
+          <svg class="ti ti-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"></path></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero" id="hero" aria-labelledby="hero-title">
+      <div class="rocket-layer" aria-hidden="true">
+        <span class="trail"></span><span class="trail"></span><span class="trail"></span><span class="trail"></span><span class="trail"></span><span class="trail"></span><span class="trail"></span><span class="trail"></span><span class="trail"></span><span class="trail"></span><span class="trail"></span><span class="trail"></span><span class="trail"></span><span class="trail"></span><span class="trail"></span><span class="trail"></span><span class="trail"></span><span class="trail"></span>
+        <img width="52" height="52" class="rocket" src="/assets/rocket.svg" alt="">
+      </div>
+
+      <div class="fo fo-close" data-depth="0.65" aria-hidden="true"><div class="fo-p"><div class="fo-d">
+        <span class="chip chip-sm"><span class="chip-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12h11"></path><path d="m11 7.5 4.5 4.5-4.5 4.5"></path><path d="M20 5v14"></path></svg></span>Proche du direct</span>
+      </div></div></div>
+      <div class="fo fo-msg1" data-depth="0.55" aria-hidden="true"><div class="fo-p"><div class="fo-d">
+        <span class="msg"><b class="u1">pixelmoth</b> : bonsoir à tous</span>
+      </div></div></div>
+      <div class="fo fo-on1" data-depth="0.9" aria-hidden="true"><div class="fo-p"><div class="fo-d disc" style="width:100%;height:100%"><img width="96" height="96" src="/assets/on-mark.webp" alt=""></div></div></div>
+      <div class="fo fo-spl1" data-depth="0.6" aria-hidden="true"><div class="fo-p"><div class="fo-d"><img width="80" height="80" class="spk" src="/assets/spark-lime.webp" alt=""></div></div></div>
+      <div class="fo fo-msg2" data-depth="0.5" aria-hidden="true"><div class="fo-p"><div class="fo-d">
+        <span class="msg"><b class="u2">mossbyte</b> : drop capté à la seconde près</span>
+      </div></div></div>
+      <div class="fo fo-spm" data-depth="0.5" aria-hidden="true"><div class="fo-p"><div class="fo-d"><img width="80" height="80" class="spk" src="/assets/spark-mint.webp" alt=""></div></div></div>
+      <div class="fo fo-sub" data-depth="0.75" aria-hidden="true"><div class="fo-p"><div class="fo-d">
+        <span class="chip chip-sm chip-sub" id="chip-sub"><span class="chip-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="2"></rect><path d="M3 9h18"></path><path d="M12 9v11"></path><path d="M12 9c-1.5-3-5-3-5-1s3 1 5 1c2 0 5 1 5-1s-3.5-2-5 1z"></path></svg></span>+1 abo</span>
+      </div></div></div>
+      <div class="fo fo-gift" data-depth="1" aria-hidden="true"><div class="fo-p"><div class="fo-d" style="width:100%;height:100%">
+        <div class="gift-body" id="gift-body">
+          <img width="288" height="288" class="gift-img gift-c" src="/assets/gift-closed.webp" alt="">
+          <img width="288" height="288" class="gift-img gift-o" src="/assets/gift-open.webp" alt="">
+          <img width="80" height="80" class="bs" src="/assets/spark-lime.webp" alt=""><img width="80" height="80" class="bs" src="/assets/spark-mint.webp" alt=""><img width="80" height="80" class="bs" src="/assets/spark-white.webp" alt=""><img width="80" height="80" class="bs" src="/assets/spark-lime.webp" alt=""><img width="80" height="80" class="bs" src="/assets/spark-mint.webp" alt=""><img width="80" height="80" class="bs" src="/assets/spark-lime.webp" alt=""><img width="80" height="80" class="bs" src="/assets/spark-white.webp" alt=""><img width="80" height="80" class="bs" src="/assets/spark-mint.webp" alt="">
+        </div>
+      </div></div></div>
+      <div class="fo fo-on2" data-depth="0.4" aria-hidden="true"><div class="fo-p"><div class="fo-d disc" style="width:100%;height:100%"><img width="96" height="96" src="/assets/on-mark.webp" alt=""></div></div></div>
+      <div class="fo fo-msg3" data-depth="0.45" aria-hidden="true"><div class="fo-p"><div class="fo-d">
+        <span class="msg"><b class="u3">quietfern</b> : la reverb sur ce lead est énorme</span>
+      </div></div></div>
+
+      <div class="hero-copy">
+        <h1 class="h1" id="hero-title"><span class="ln"><span class="li">Twitch, <span class="hl">en direct.</span></span></span><span class="ln"><span class="li">Pas en différé.</span></span></h1>
+        <p class="sub">ONSET est un client Twitch gratuit, indépendant et open source pour Android, avec un lecteur natif à faible latence et un chat complet qui affiche les emotes 7TV, BTTV et FFZ.</p>
+        <div class="stores">
+          <a class="store store-a" href="https://github.com/JLmehdi92/ONSET/releases/latest/download/onset-arm64.apk">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5v12"></path><path d="M7 11l5 5 5-5"></path><path d="M4.5 20.5h15"></path></svg>
+            <span class="store-lbl"><small>Télécharger pour</small><strong>Android</strong></span>
+          </a>
+          <a class="store store-b" href="https://github.com/JLmehdi92/ONSET/issues/1" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"></rect><path d="M11 18.5h2"></path></svg>
+            <span class="store-lbl"><small>Liste d’attente</small><strong>iPhone</strong></span>
+          </a>
+        </div>
+        <div class="credit">
+          <p class="credit-a">Gratuit · Open source · Sans pub</p>
+          <p class="credit-b">Suivre le développement sur <a href="https://github.com/JLmehdi92/ONSET" target="_blank" rel="noopener noreferrer">GitHub</a><span class="credit-sep" aria-hidden="true">·</span><a href="https://github.com/JLmehdi92/ONSET/releases" target="_blank" rel="noopener noreferrer">Toutes les versions</a></p>
+        </div>
+      </div>
+
+      <div class="stage" role="img" aria-label="ONSET sur deux téléphones Android : un live avec son chat, et l’écran d’accueil">
+        <div class="aura" aria-hidden="true"></div>
+        <div class="dev dev-c"><div class="par"><div class="phone"><div class="screen scr-watch"><div class="sw-top"></div><img fetchpriority="high" width="616" height="347" src="/assets/player-phone.webp" alt=""><img fetchpriority="high" width="616" height="777" src="/assets/chat-phone.webp" alt=""></div></div></div></div>
+        <div class="dev dev-r"><div class="par"><div class="phone"><div class="screen"><img width="616" height="1368" src="/assets/home-phone.webp" alt=""></div></div></div></div>
+        <div class="float-live"><div class="par">
+          <div class="pill-live"><span class="ldot ldot-pulse"></span><span class="pl-label">LIVE</span><span class="pl-div"></span><span class="pl-roll"><span class="pl-num tnum" id="lv-n">1,8 s</span></span></div>
+          <p class="pl-cap">Exemple de la latence affichée par le lecteur</p>
+        </div></div>
+      </div>
+      <p class="stage-note">La pastille LIVE illustre la latence affichée par le lecteur.</p>
+    </section>
+
+    <!-- LATENCY -->
+    <section class="sec lat" id="latency" aria-labelledby="lat-title">
+      <div class="wrap">
+        <div class="lat-pin" id="lat-pin">
+        <div class="rv">
+          <p class="eyebrow">Latence</p>
+          <h2 class="h2 h2-xl" id="lat-title">Quelques secondes, pas dix.</h2>
+        </div>
+
+        <div class="lat-stage" id="lat-stage">
+          <div class="lat-left">
+            <p class="lede lat-lede">Les lecteurs web intégrés gardent une grosse mémoire tampon et décrochent du direct. Le lecteur natif d’ONSET utilise Amazon IVS, bâti sur la même technologie vidéo que Twitch, et vous garde au plus près du live.</p>
+            <ol class="lat-steps">
+              <li class="lat-step" id="ls1">
+                <span class="lat-n tnum">01</span>
+                <div><h3>Le direct se joue à la pointe.</h3><p>La pointe du direct, c’est l’instant le plus récent du live. Tout ce qui est derrière a déjà eu lieu.</p></div>
+              </li>
+              <li class="lat-step" id="ls2">
+                <span class="lat-n tnum">02</span>
+                <div><h3>Le lecteur web traîne derrière.</h3><p>Intégré à une page, il garde un long tampon : ce que vous voyez est en retard sur l’action.</p></div>
+              </li>
+              <li class="lat-step" id="ls3">
+                <span class="lat-n tnum">03</span>
+                <div><h3>ONSET reste à la pointe.</h3><p>Un tampon court et un rattrapage en douceur dès que la lecture prend du retard. La latence mesurée s’affiche dans le lecteur.</p></div>
+              </li>
+            </ol>
+          </div>
+
+          <div class="lat-viz">
+            <div class="lat-card">
+              <p class="label">Illustration, pas une mesure<span class="label-more">. L’application mesure le délai réel.</span></p>
+              <div class="lat-lanes">
+                <span class="lat-edge-label" id="lat-edge-label">Pointe du direct</span>
+                <span class="lat-edge" id="lat-edge" aria-hidden="true"></span>
+                <div class="lat-strip" aria-hidden="true">
+                  <div class="lat-frames">
+                    <span class="lat-tile tA"></span><span class="lat-tile tB"></span><span class="lat-tile tA"></span><span class="lat-tile tB"></span><span class="lat-tile tB"></span><span class="lat-tile tA"></span><span class="lat-tile tB"></span><span class="lat-tile tA"></span>
+                    <span class="lat-tile tA"></span><span class="lat-tile tB"></span><span class="lat-tile tA"></span><span class="lat-tile tB"></span><span class="lat-tile tB"></span><span class="lat-tile tA"></span><span class="lat-tile tB"></span><span class="lat-tile tA"></span>
+                  </div>
+                  <span class="lat-live-tile" id="lat-live-tile"></span>
+                </div>
+                <div class="lat-row lat-row-web" id="row-web">
+                  <div class="lat-rhead"><p class="lat-rlabel">Lecteur web intégré</p></div>
+                  <div class="lat-track">
+                    <span class="lat-line"></span>
+                    <span class="lat-gap lat-gap-web" id="web-gap" style="left:34%"><span class="lat-gaplabel" id="web-gap-label">Loin derrière le direct</span></span>
+                    <span class="lat-dot lat-dot-web" id="web-head" style="left:34%"></span>
+                  </div>
+                </div>
+                <div class="lat-row lat-row-on" id="row-on">
+                  <div class="lat-rhead"><p class="lat-rlabel">Lecteur natif ONSET</p></div>
+                  <div class="lat-track">
+                    <span class="lat-line"></span>
+                    <span class="lat-gap lat-gap-on" id="on-gap" style="left:92%"></span>
+                    <span class="lat-dot lat-dot-on" id="on-head" style="left:92%">
+                      <span class="on-read"><span class="on-read-k">Proche du direct</span><span class="on-sep" aria-hidden="true">·</span><span class="odo tnum"><span class="odo-list" id="odo-list"><span>2,4 s</span><span>2,2 s</span><span>2,0 s</span><span>1,9 s</span><span>1,8 s</span></span></span></span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="lat-axis" aria-hidden="true"><span class="lat-prog" id="lat-prog"></span><span>Plus tôt</span><span>Maintenant</span></div>
+            </div>
+          </div>
+        </div>
+        </div>
+
+        <p class="lat-foot">Illustration, pas une mesure. Le délai obtenu dépend du live et de votre réseau ; ONSET mesure le délai réel et l’affiche en direct dans le lecteur.</p>
+      </div>
+    </section>
+
+    <!-- CAROUSEL -->
+    <section class="shots" aria-labelledby="shots-title">
+      <div class="wrap center rv">
+        <p class="eyebrow">Dans l’application</p>
+        <h2 class="h2" id="shots-title">Vu de plus près.</h2>
+      </div>
+      <div class="car rv">
+        <div class="car-vp" id="car-vp" tabindex="0" role="region" aria-roledescription="carrousel" aria-label="Captures d’écran d’ONSET. Utilisez les flèches gauche et droite pour les parcourir.">
+          <div class="car-track" id="car-track">
+            <div class="slide" role="group" aria-roledescription="diapositive" aria-label="1 sur 5">
+              <div class="sl-in"><div class="phone"><div class="screen"><img width="616" height="1368" src="/assets/home-phone.webp" alt="Écran d’accueil d’ONSET avec les sections « Continue watching » et « Live now »" draggable="false" loading="lazy" decoding="async"></div></div></div>
+            </div>
+            <div class="slide" role="group" aria-roledescription="diapositive" aria-label="2 sur 5">
+              <div class="sl-in"><div class="phone"><div class="screen scr-watch"><div class="sw-top"></div><img width="616" height="347" src="/assets/player-phone.webp" alt="Lecteur d’ONSET avec l’affichage de sa latence en direct" draggable="false" loading="lazy" decoding="async"><img width="616" height="777" src="/assets/chat-phone.webp" alt="Le chat sous le lecteur" draggable="false" loading="lazy" decoding="async"></div></div></div>
+            </div>
+            <div class="slide" role="group" aria-roledescription="diapositive" aria-label="3 sur 5">
+              <div class="sl-in"><div class="phone"><div class="screen scr-chat">
+                <div class="chat-top"><div class="em-row"><span>7TV</span><span>BTTV</span><span>FFZ</span></div><p class="em-cap">7TV, BTTV et FFZ intégrés</p></div>
+                <img width="616" height="777" src="/assets/chat-phone.webp" alt="Chat d’ONSET avec des messages, un avis d’exclusion temporaire et une mention mise en avant" draggable="false" loading="lazy" decoding="async">
+              </div></div></div>
+            </div>
+            <div class="slide" role="group" aria-roledescription="diapositive" aria-label="4 sur 5">
+              <div class="sl-in"><div class="phone"><div class="screen"><img width="616" height="1368" src="/assets/settings-phone.webp" alt="Profil et paramètres d’ONSET" draggable="false" loading="lazy" decoding="async"></div></div></div>
+            </div>
+            <div class="slide slide-tab" role="group" aria-roledescription="diapositive" aria-label="5 sur 5">
+              <div class="sl-in">
+                <div class="tab-dev"><div class="tab-scr"><img width="1920" height="1200" src="/assets/home-tablet.webp" alt="Écran d’accueil d’ONSET sur une tablette" draggable="false" loading="lazy" decoding="async"></div></div>
+                <div class="tab-phone"><div class="phone"><div class="screen"><img width="1920" height="1200" src="/assets/home-tablet.webp" alt="Écran d’accueil d’ONSET sur une tablette" draggable="false" loading="lazy" decoding="async"></div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="arrow arrow-prev" type="button" aria-label="Capture précédente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14.5 6-6 6 6 6"></path></svg></button>
+        <button class="arrow arrow-next" type="button" aria-label="Capture suivante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 6 6 6-6 6"></path></svg></button>
+      </div>
+      <div class="caps" aria-live="off">
+        <p class="cap is-on" aria-hidden="false">Les chaînes que vous suivez, au plus près du direct.</p>
+        <p class="cap" aria-hidden="true">Un lecteur natif qui suit le rythme du live.</p>
+        <p class="cap" aria-hidden="true">Tout le chat, avec les emotes 7TV, BTTV et FFZ et les outils de modération.</p>
+        <p class="cap" aria-hidden="true">Clair ou sombre, à votre couleur d’accent.</p>
+        <p class="cap" aria-hidden="true">Pensé aussi pour les tablettes.</p>
+      </div>
+      <div class="dots">
+        <button class="dot is-on" type="button" aria-label="Afficher la capture 1 sur 5" aria-current="true"><span></span></button>
+        <button class="dot" type="button" aria-label="Afficher la capture 2 sur 5" aria-current="false"><span></span></button>
+        <button class="dot" type="button" aria-label="Afficher la capture 3 sur 5" aria-current="false"><span></span></button>
+        <button class="dot" type="button" aria-label="Afficher la capture 4 sur 5" aria-current="false"><span></span></button>
+        <button class="dot" type="button" aria-label="Afficher la capture 5 sur 5" aria-current="false"><span></span></button>
+      </div>
+    </section>
+
+    <!-- HIGHLIGHTS -->
+    <section class="sec sec-line why" aria-labelledby="why-title">
+      <div class="wrap">
+        <div class="rv">
+          <p class="eyebrow">Pourquoi ONSET</p>
+          <h2 class="h2" id="why-title">Conçu pour le direct.</h2>
+        </div>
+        <div class="why-grid rv-group">
+          <article class="card rv-item">
+            <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12h11"></path><path d="m11 7.5 4.5 4.5-4.5 4.5"></path><path d="M20 5v14"></path></svg></span>
+            <h3>Proche du direct</h3>
+            <p>Un lecteur natif qui reste au plus près du direct, et le lecteur web de Twitch en secours, activable dans les paramètres.</p>
+          </article>
+          <article class="card rv-item">
+            <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5h16v10H9l-5 4z"></path></svg></span>
+            <h3>Le chat comme il se doit</h3>
+            <p>Les emotes 7TV, BTTV et FFZ, et les messages récents dès votre arrivée (avec un compte connecté).</p>
+          </article>
+          <article class="card rv-item">
+            <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5"></rect><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"></path></svg></span>
+            <h3>Privé par défaut</h3>
+            <p>Pas de pub, aucune donnée vendue. Les rapports de plantage et les statistiques restent désactivés tant que vous ne les activez pas.</p>
+          </article>
+          <article class="card rv-item">
+            <span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8.5 8-4 4 4 4"></path><path d="m15.5 8 4 4-4 4"></path><path d="m13.5 5-3 14"></path></svg></span>
+            <h3>Open source</h3>
+            <p>Sous licence AGPL-3.0-or-later. Lisez le code, compilez-le, améliorez-le.</p>
+            <a class="tlink" href="https://github.com/JLmehdi92/ONSET" target="_blank" rel="noopener noreferrer">Voir sur GitHub <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"></path><path d="M8 7h9v9"></path></svg></a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="sec sec-line" id="faq" aria-labelledby="faq-title">
+      <div class="wrap faq-grid">
+        <div class="rv">
+          <p class="eyebrow">FAQ</p>
+          <h2 class="h2" id="faq-title">Vos questions, nos réponses.</h2>
+          <p class="lede faq-lede">Une autre question ? Écrivez à <a href="mailto:contact@onsetapp.app">contact@onsetapp.app</a>.</p>
+        </div>
+        <div class="faq-list rv">
+          <details class="faq-item" open>
+            <summary>ONSET est-il gratuit ?<span class="faq-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></span></summary>
+            <p class="faq-a">Oui. ONSET est gratuit, au téléchargement comme à l’usage, et open source sous licence AGPL-3.0-or-later.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Est-ce une application officielle de Twitch ?<span class="faq-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></span></summary>
+            <p class="faq-a">Non. ONSET est un projet indépendant, qui n’est ni affilié à Twitch, ni approuvé ni sponsorisé par la plateforme.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Faut-il un compte Twitch ?<span class="faq-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></span></summary>
+            <p class="faq-a">Non. Vous pouvez parcourir et regarder sans vous connecter. Pour discuter dans le chat ou voir les chaînes que vous suivez, connectez-vous sur la page de connexion de Twitch elle-même : ONSET ne voit jamais votre mot de passe.</p>
+          </details>
+          <details class="faq-item">
+            <summary>ONSET collecte-t-il mes données ?<span class="faq-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></span></summary>
+            <p class="faq-a">Pas par défaut. Les rapports de plantage et les statistiques restent désactivés tant que vous ne les activez pas, et ONSET n’a aucun système de compte. Pas de pub, aucune donnée vendue. Twitch et les services d’emotes reçoivent ce dont ils ont besoin pour fonctionner ; la <a href="/fr/privacy">politique de confidentialité</a> détaille ce qui part où.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Comment installer l’APK ?<span class="faq-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></span></summary>
+            <div class="faq-a">
+              <ol class="faq-steps">
+                <li><span><a href="https://github.com/JLmehdi92/ONSET/releases/latest/download/onset-arm64.apk">Téléchargez l’APK</a>.</span></li>
+                <li><span>Ouvrez le fichier téléchargé. Si Android le demande, autorisez votre navigateur dans « Installer des applications inconnues ».</span></li>
+                <li><span>Appuyez sur Installer, puis ouvrez ONSET.</span></li>
+              </ol>
+              <p>Ensuite, ONSET vous propose les mises à jour directement dans l’application.</p>
+            </div>
+          </details>
+          <details class="faq-item">
+            <summary>Existe-t-il une version iPhone ?<span class="faq-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></span></summary>
+            <p class="faq-a">Pas encore. Abonnez-vous à la <a href="https://github.com/JLmehdi92/ONSET/issues/1" target="_blank" rel="noopener noreferrer">liste d’attente iPhone</a> sur GitHub pour savoir quand elle sera prête.</p>
+          </details>
+          <details class="faq-item">
+            <summary>De quoi ai-je besoin pour l’utiliser ?<span class="faq-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></span></summary>
+            <p class="faq-a">D’un téléphone ou d’une tablette Android à processeur ARM 64 bits (arm64), sous Android 7.0 ou version ultérieure.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- CLOSING BAND -->
+    <section class="cta2" aria-labelledby="cta-title">
+      <div class="wrap cta2-in rv">
+        <img class="cta2-icon" src="/assets/onset-icon-192.webp" alt="Icône de l’application ONSET" width="64" height="64" loading="lazy" decoding="async">
+        <h2 class="h2" id="cta-title">Vivez-le en direct.</h2>
+        <p class="cta2-sub">Gratuit, pour Android 7.0 ou version ultérieure.</p>
+        <div class="stores">
+          <a class="store store-a" href="https://github.com/JLmehdi92/ONSET/releases/latest/download/onset-arm64.apk">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5v12"></path><path d="M7 11l5 5 5-5"></path><path d="M4.5 20.5h15"></path></svg>
+            <span class="store-lbl"><small>Télécharger pour</small><strong>Android</strong></span>
+          </a>
+          <a class="store store-b" href="https://github.com/JLmehdi92/ONSET/issues/1" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"></rect><path d="M11 18.5h2"></path></svg>
+            <span class="store-lbl"><small>Liste d’attente</small><strong>iPhone</strong></span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap">
+      <div class="foot-top">
+        <a class="brand" href="#top" aria-label="ONSET, retour en haut"><img src="/assets/onset-icon.webp" alt="" width="32" height="32"><span>ONSET</span></a>
+        <nav class="foot-links" aria-label="Pied de page">
+          <a href="https://github.com/JLmehdi92/ONSET" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href="/fr/privacy">Politique de confidentialité</a>
+          <a href="https://github.com/JLmehdi92/ONSET/issues/1" target="_blank" rel="noopener noreferrer">Liste d’attente iPhone</a>
+          <a href="mailto:contact@onsetapp.app">contact@onsetapp.app</a>
+        </nav>
+      </div>
+      <div class="foot-bot">
+        <p class="disc-txt">ONSET est un projet indépendant. Il n’est ni affilié à Twitch Interactive, Inc., ni approuvé ni sponsorisé par elle. Twitch est une marque de Twitch Interactive, Inc. 7TV, BetterTTV, FrankerFaceZ et Amazon IVS appartiennent à leurs propriétaires respectifs.</p>
+        <p class="foot-cr">Open source · AGPL-3.0-or-later</p>
+      </div>
+    </div>
+  </footer>
+</div>
+</body>
+</html>

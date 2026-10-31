@@ -12,13 +12,18 @@
   var revealedEarly = !html.classList.contains('pre');
   if (!root) { html.classList.remove('pre'); return; }
 
-  var texts = [
-    'Your follows, live and close to the edge.',
-    'A native player that keeps up with the stream.',
-    'Full chat with 7TV, BTTV and FFZ emotes, plus moderation tools.',
-    'Light or dark, your accent color.',
-    'Made for tablets too.'
-  ];
+  // Every visible string lives in the page's HTML. The only text this script writes is the LIVE
+  // delay readout, so a page in another language sets its number format in a JSON block
+  // (<script type="application/json" id="i18n">, which the browser never runs, so the CSP allows it).
+  var L = { decimal: '.', unit: 's' };
+  try {
+    var cfg = doc.getElementById('i18n');
+    if (cfg) {
+      var o = JSON.parse(cfg.textContent);
+      for (var k in L) { if (typeof o[k] === 'string') L[k] = o[k]; }
+    }
+  } catch (e) {}
+  var fmtDelay = function (v) { return String(v).replace('.', L.decimal) + L.unit; };
 
   var S = { theme: 'dark', lat: null, index: null, heroOn: true };
   // No reduced-motion branch anywhere: the OS "reduce motion" setting (Windows "animation effects"
@@ -41,7 +46,7 @@
 
   var setLat = function (v) {
     S.lat = v;
-    if (lvN) lvN.textContent = v + 's';
+    if (lvN) lvN.textContent = fmtDelay(v);
   };
   var setGiftOpen = function (open) {
     if (giftBody) giftBody.classList.toggle('is-open', !!open);

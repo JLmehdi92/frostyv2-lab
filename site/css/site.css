@@ -90,6 +90,14 @@ html.lenis,html.lenis body{height:auto}
 .tgl{position:relative;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;border:1px solid var(--hl2);background:transparent;color:var(--t1);cursor:pointer;padding:0;transition:border-color .2s ease,background-color .2s ease,transform .1s ease-out;-webkit-tap-highlight-color:transparent}
 .tgl:hover{border-color:var(--hl3);background:var(--s1)}
 .tgl:active{transform:scale(.94)}
+/* language switch: "EN · FR" in a pill like GitHub's, the current language lit as on the legal pages;
+   on phones only the other language shows, as a round button beside the theme toggle */
+.lng{display:inline-flex;align-items:center;height:44px;padding:0 5px;border-radius:100px;border:1px solid var(--hl2);font-size:13px;font-weight:600;letter-spacing:.04em;transition:border-color .2s ease}
+.lng:hover{border-color:var(--hl3)}
+.lng a{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:42px;padding:0 5px;border-radius:100px;color:var(--t3);text-decoration:none;-webkit-tap-highlight-color:transparent;transition:color .2s ease}
+.lng a:hover{color:var(--t1)}
+.lng a[aria-current]{color:var(--t1)}
+.lng-sep{color:var(--t4);font-weight:400}
 .ti{position:absolute;width:20px;height:20px;transition:transform .45s cubic-bezier(.16,1,.3,1),opacity .3s ease}
 .ti-moon{opacity:0;transform:rotate(-90deg) scale(.6)}
 .theme-light .ti-sun{opacity:0;transform:rotate(90deg) scale(.6)}
@@ -193,6 +201,17 @@ html.lenis,html.lenis body{height:auto}
 .fo-gift{left:84%;top:38%;width:130px;height:130px}
 .fo-on2{left:8%;top:64%;width:44px;height:44px}
 .fo-msg3{left:75%;top:66%}
+/* French: the first headline line ("Twitch, en direct.") is wider than the English one, so the second
+   chat message sits a little higher and further right, and leaves when that still is not enough */
+html[lang="fr"] .fo-msg2{left:76%;top:4%}
+@media (min-width:1200px) and (max-width:1259px){
+  html[lang="fr"] .fo-msg2{display:none}
+  html[lang="fr"] .fo-spl1{left:19%}
+}
+/* French, narrow portrait tablets: the headline reaches the drifting "Proche du direct" chip */
+@media (min-width:768px) and (max-width:899px){
+  html[lang="fr"] .fo-close{display:none}
+}
 
 /* ---------- latency ---------- */
 .lat{padding-top:clamp(72px,7vw,96px)}
@@ -393,6 +412,9 @@ html.lenis,html.lenis body{height:auto}
   .lbl-s{display:inline}
   .gh{width:44px;padding:0;justify-content:center}
   .gh-t{display:none}
+  .lng{width:44px;padding:0;justify-content:center}
+  .lng a[aria-current],.lng-sep{display:none}
+  .lng a{width:42px;min-width:0;padding:0;color:var(--t1)}
   .hero{padding-top:36px}
   .sub{margin-top:16px}
   .stores{margin-top:24px;width:100%;flex-direction:column;align-items:stretch;max-width:360px}

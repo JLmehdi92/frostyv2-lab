@@ -1,11 +1,17 @@
-/* Legal pages: theme toggle (dark by default, as on the home page), the current entry in the contents
-   list and the floating shortcut back to the contents. Everything works without this file; without it
-   the toggle stays hidden and the shortcut is always shown. */
+/* Legal pages: theme toggle (dark by default, as on the home page), the remembered language choice,
+   the current entry in the contents list and the floating shortcut back to the contents. Everything
+   works without this file; without it the toggle stays hidden and the shortcut is always shown. */
 (function () {
   'use strict';
   var doc = document;
   var w = window;
   doc.documentElement.classList.add('js');
+  // The language switch stores an explicit choice, as on the home page (js/boot.js reads it there).
+  doc.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[data-lang]') : null;
+    if (!a) return;
+    try { w.localStorage.setItem('onset.lang', a.getAttribute('data-lang')); } catch (er) {}
+  }, true);
 
   var init = function () {
     var root = doc.querySelector('.page');
