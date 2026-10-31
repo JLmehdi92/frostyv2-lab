@@ -32,7 +32,7 @@ En cas de divergence, la version anglaise (`PRIVACY.md`) fait foi.
 L'application est développée par un particulier établi en France, responsable
 de l'application, de son service de jetons (section 4) et des rapports de
 plantage et statistiques recueillis via Google Firebase (section 5) : Mehdi
-SEDDIKI, contact : `onsetapp.contact@gmail.com`. Tant que vous n'activez pas
+SEDDIKI, contact : `contact@onsetapp.app`. Tant que vous n'activez pas
 **Share crash logs and analytics**, les versions publiées n'envoient aucun
 rapport de plantage, aucune statistique ni donnée de performance (les
 bibliothèques Firebase démarrent quand même et peuvent contacter les serveurs
@@ -271,7 +271,7 @@ micro, à la position, aux contacts ni au stockage.
   Twitch ni nom d'utilisateur, seulement les identifiants aléatoires de la
   section 5) : le développeur peut ne pas parvenir à rattacher à vos données
   une demande de suppression envoyée par e-mail. Vous pouvez tout de même
-  écrire à `onsetapp.contact@gmail.com` ; dans tous les cas, ces données
+  écrire à `contact@onsetapp.app` ; dans tous les cas, ces données
   expirent avec les durées de conservation de la section 7.
 - Les données détenues par Twitch et les autres services se suppriment auprès
   d'eux.
@@ -297,7 +297,7 @@ ne détient aucune donnée vous concernant issue des versions publiées, sauf si
 vous avez activé ce réglage ; ces données ne sont liées à aucun compte, si
 bien que le développeur peut ne pas retrouver les vôtres (sections 5 et 8).
 Pour exercer un droit, ou pour toute question, écrivez à
-`onsetapp.contact@gmail.com`. Vous pouvez aussi adresser une réclamation à
+`contact@onsetapp.app`. Vous pouvez aussi adresser une réclamation à
 l'autorité française de protection des données, la CNIL
 (https://www.cnil.fr).
 
@@ -333,4 +333,4 @@ public dans le dépôt.
 
 ## 13. Contact
 
-`onsetapp.contact@gmail.com`
+`contact@onsetapp.app`

@@ -29,7 +29,7 @@ app's source code, which anyone can read at
 The app is developed by a private individual based in France, who is
 responsible for the app, for its token service (section 4) and for the crash
 reports and analytics collected through Google Firebase (section 5): Mehdi
-SEDDIKI, contact: `onsetapp.contact@gmail.com`. Unless you turn on **Share
+SEDDIKI, contact: `contact@onsetapp.app`. Unless you turn on **Share
 crash logs and analytics**, the published builds send no crash reports,
 analytics or performance data (the Firebase libraries are still started and
 may contact Google's servers, without any of that data; section 5); the
@@ -239,7 +239,7 @@ not request camera, microphone, location, contacts or storage permissions.
   account identifier (no Twitch user ID or user name, only the random
   identifiers of section 5), so the developer may be unable to match a
   deletion request sent by email to your data. You can still write to
-  `onsetapp.contact@gmail.com`; in any case that data expires with the
+  `contact@onsetapp.app`; in any case that data expires with the
   retention periods of section 7.
 - Data held by Twitch and the other services is deleted through them.
 
@@ -261,7 +261,7 @@ turning off **Share crash logs and analytics**. The developer holds no data
 about you from the published builds unless you turned that setting on; that
 data is linked to no account, so the developer may be unable to find yours
 (sections 5 and 8). To exercise a right, or for any question, write to
-`onsetapp.contact@gmail.com`. You can also lodge a complaint with the French
+`contact@onsetapp.app`. You can also lodge a complaint with the French
 data protection authority, the CNIL (https://www.cnil.fr).
 
 For data held by Twitch or the other services, contact them directly.
@@ -292,4 +292,4 @@ effective date changed. The history of this file is public in the repository.
 
 ## 13. Contact
 
-`onsetapp.contact@gmail.com`
+`contact@onsetapp.app`

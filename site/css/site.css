@@ -446,13 +446,7 @@ html.lenis,html.lenis body{height:auto}
 }
 
 /* ---------- preferences ---------- */
-@media (prefers-reduced-motion:reduce){
-  .ldot-pulse::after,.lat-frames{animation:none}
-  .store-a::after{transition:none;display:none}
-  .ti{transition:opacity .2s ease}
-  .cap{transform:none;transition:opacity .25s ease}
-  .faq-ic,.bar-dl svg,.store-a svg{transition:none}
-}
+/* No reduced-motion branch: the owner decided that every visitor sees the motion, whatever the OS setting. */
 @media (prefers-reduced-transparency:reduce){
   .chip,.msg,.arrow,.pill-live,.pl-cap{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--s1)}
 }
@@ -472,7 +466,7 @@ html.js.pre .rv,
 html.js.pre .rv-item{opacity:0}
 
 /* Set by js/site.js only when the latency scrub runs: steps 02 and 03 start dimmed and light in
-   turn. Without it (no script, reduced motion, library missing) every step stays fully readable. */
+   turn. Without it (no script, library missing) every step stays fully readable. */
 .lat-run #ls2,
 .lat-run #ls3{--on:0}
 

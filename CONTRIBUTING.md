@@ -73,6 +73,10 @@ The token proxy has its own tests: `node --test` in `tool/token_proxy/`
   `.g.dart` files by hand, and commit the regenerated ones.
 - The secure storage cleanup in `main.dart` looks unnecessary but handles an
   Android/iOS case where secure storage survives an uninstall. Keep it.
+- Any change to `PRIVACY.md` or `PRIVACY.fr.md` must be mirrored in the
+  site's pages, `site/privacy.html` and `site/fr/privacy.html`;
+  `test/guards/site_privacy_sync_test.dart` fails until they match word for
+  word.
 - Several files use CRLF line endings (`pubspec.yaml`, `AndroidManifest.xml`,
   some Dart files): edit them in place without converting the whole file.
 

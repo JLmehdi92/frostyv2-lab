@@ -1,0 +1,140 @@
+/* Legal pages (/privacy, /fr/privacy). Loaded after site.css, whose tokens, bar and footer they reuse. */
+.legal-page{--legal-pb:clamp(56px,7vw,96px);--end-room:236px;--link:#C8FF3D;--link-line:rgba(200,255,61,.45);--code-bg:#1A1A1A;--shade:rgba(255,255,255,.22);--bar-h:72px}
+.legal-page.theme-light{--link:#4A6100;--link-line:rgba(74,97,0,.45);--code-bg:#EDEDED;--shade:rgba(0,0,0,.18)}
+
+.skip{position:absolute;left:var(--pad);top:-100px;z-index:30;padding:10px 16px;border-radius:100px;background:var(--t1);color:var(--bg);font-size:14px;font-weight:600;text-decoration:none}
+.skip:focus{top:14px}
+
+.legal{position:relative;padding-top:clamp(32px,5vw,64px);padding-bottom:var(--legal-pb)}
+/* A faint dot grid at the top, as on the 404 page. */
+.legal::before{content:"";position:absolute;left:0;right:0;top:0;height:480px;pointer-events:none;opacity:.7;background-image:radial-gradient(circle,var(--dot) 1.3px,transparent 1.8px);background-size:22px 22px;-webkit-mask-image:radial-gradient(75% 100% at 50% 0%,#000 0%,rgba(0,0,0,.3) 45%,transparent 78%);mask-image:radial-gradient(75% 100% at 50% 0%,#000 0%,rgba(0,0,0,.3) 45%,transparent 78%)}
+.legal-grid{position:relative;display:grid;grid-template-columns:minmax(0,1fr);justify-items:center}
+.doc{width:100%;max-width:760px;min-width:0}
+
+/* language switch and eyebrow */
+.doc-meta{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;padding-bottom:20px;border-bottom:1px solid var(--hl)}
+.lang{display:flex;align-items:center;gap:2px;font-size:14px;font-weight:500}
+.lang a{display:inline-flex;align-items:center;min-height:44px;padding:0 8px;border-radius:8px;color:var(--t3);text-decoration:none;transition:color .2s ease}
+.lang a:hover{color:var(--t1)}
+.lang a[aria-current="page"]{color:var(--t1);font-weight:600}
+.lang-sep{color:var(--t4)}
+
+/* contents: a sticky column on wide screens, a collapsible block after the title and intro elsewhere */
+.toc-col{display:none}
+.toc ol{list-style:none;margin:0;padding:0}
+.toc a{display:block;padding:6px 12px;border-left:2px solid transparent;font-size:14px;line-height:1.4;color:var(--t3);text-decoration:none;transition:color .2s ease,border-color .2s ease}
+.toc a:hover{color:var(--t1)}
+.toc a[aria-current="true"]{color:var(--t1);border-left-color:var(--link)}
+.toc-h{margin:0 0 10px;padding-left:14px;font-size:12px;line-height:1.4;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t4)}
+.policy > .toc-m{margin-top:1.6em;border:1px solid var(--hl);border-radius:12px;background:var(--s1);line-height:1.4;scroll-margin-top:calc(var(--bar-h) + 16px)}
+.toc-m summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:52px;padding:0 16px;cursor:pointer;font-size:15px;font-weight:600;color:var(--t1);border-radius:12px;-webkit-tap-highlight-color:transparent}
+.toc-m summary::-webkit-details-marker{display:none}
+.toc-ic{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;border:1px solid var(--hl3);color:var(--t2);flex:none;transition:transform .3s cubic-bezier(.16,1,.3,1)}
+.toc-ic svg{width:13px;height:13px}
+.toc-m[open] .toc-ic{transform:rotate(45deg)}
+.toc-m nav{padding:0 4px 12px}
+.toc-m a{min-height:44px;display:flex;align-items:center;padding:8px 12px}
+
+/* the policy */
+.policy{margin-top:clamp(28px,4vw,44px);font-size:17px;line-height:1.7;color:var(--t2);animation:legal-in .5s ease both;scroll-margin-top:calc(var(--bar-h) + 16px)}
+.policy:focus{outline:none}
+@keyframes legal-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* About 70 characters per line (measured): 62ch came to 665px and 77 characters, since ch is the
+   width of a zero, wider than the average letter. */
+.policy > *{max-width:36em}
+.policy > .tbl{max-width:none}
+.policy h1{font-size:clamp(2rem,1.3rem + 2.4vw,3rem);line-height:1.05;font-weight:800;letter-spacing:-0.038em;color:var(--t1);text-wrap:balance}
+.policy h1 + p{margin-top:16px;font-size:15px;color:var(--t3)}
+.policy h1 + p strong{color:var(--t2)}
+.policy h2{margin-top:2.6em;padding-top:1.4em;border-top:1px solid var(--hl);font-size:clamp(1.3rem,1.1rem + .6vw,1.6rem);line-height:1.25;font-weight:700;letter-spacing:-0.022em;color:var(--t1);scroll-margin-top:calc(var(--bar-h) + 16px)}
+.policy p,.policy ul{margin:1.05em 0 0}
+.policy h2 + p,.policy h2 + ul,.policy h2 + .tbl{margin-top:.9em}
+.policy ul{padding-left:1.25em}
+.policy li{padding-left:.25em}
+.policy li + li{margin-top:.6em}
+.policy li::marker{color:var(--t4)}
+.policy strong{font-weight:600;color:var(--t1)}
+.policy a{color:var(--link);text-decoration:underline;text-decoration-color:var(--link-line);text-decoration-thickness:1px;text-underline-offset:3px;overflow-wrap:anywhere;transition:text-decoration-color .2s ease}
+.policy a:hover{text-decoration-color:var(--link)}
+.policy code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:.86em;padding:.12em .38em;border-radius:6px;background:var(--code-bg);border:1px solid var(--hl);color:var(--t1);overflow-wrap:anywhere}
+
+/* tables scroll inside their own frame, never the page */
+/* The edge shades appear only on a side that has more to scroll to (local covers over scroll shades). */
+.tbl{margin-top:1.4em;overflow-x:auto;border:1px solid var(--hl);border-radius:12px;-webkit-overflow-scrolling:touch;
+  background:linear-gradient(to right,var(--s1) 40%,transparent) left center/48px 100% no-repeat local,
+    linear-gradient(to left,var(--s1) 40%,transparent) right center/48px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%,var(--shade),transparent) left center/16px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%,var(--shade),transparent) right center/16px 100% no-repeat scroll,
+    var(--s1)}
+.tbl table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:15px;line-height:1.55}
+.tbl-3 table{min-width:700px}
+.tbl-2 table{min-width:340px}
+.tbl-3 th:nth-child(1){width:26%}
+.tbl-3 th:nth-child(2){width:32%}
+.tbl-2 th:nth-child(1){width:34%}
+.tbl th,.tbl td{padding:14px 16px;text-align:left;vertical-align:top;border-top:1px solid var(--hl);overflow-wrap:break-word}
+.tbl thead th{border-top:0;overflow-wrap:anywhere;padding-top:12px;padding-bottom:12px;font-size:12px;line-height:1.4;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t4);background:var(--s2)}
+.tbl tbody th{font-weight:600;color:var(--t1)}
+.tbl td{color:var(--t2)}
+.tbl:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+
+/* Floating shortcut back to the contents below 1080px: a plain anchor; legal.js only shows it once the
+   contents block is out of view (without JavaScript it is always there). */
+.toc-fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:15;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px 0 13px;border-radius:100px;background:var(--glass);-webkit-backdrop-filter:blur(14px) saturate(160%);backdrop-filter:blur(14px) saturate(160%);border:1px solid var(--hl3);box-shadow:var(--shadow);color:var(--t1);font-size:14px;font-weight:600;text-decoration:none;-webkit-tap-highlight-color:transparent;transition:opacity .25s ease,transform .25s ease,visibility .25s,border-color .2s ease}
+.toc-fab:hover{border-color:var(--t3)}
+.toc-fab svg{width:18px;height:18px;flex:none}
+html.js .toc-fab{opacity:0;visibility:hidden;transform:translateY(8px)}
+html.js .toc-fab.is-on{opacity:1;visibility:visible;transform:none}
+.legal-page .foot{padding-bottom:96px}
+
+.doc-end{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 24px;margin-top:56px;padding-top:20px;border-top:1px solid var(--hl)}
+.doc-src,.doc-top{display:inline-flex;align-items:center;gap:8px;min-height:44px;font-size:14px;font-weight:600;color:var(--t1);text-decoration:none}
+.doc-src{border-bottom:1px solid var(--hl3);min-height:0;padding:12px 0 4px}
+.doc-src:hover{border-color:var(--t1)}
+.doc-src svg,.doc-top svg{width:16px;height:16px;flex:none}
+.doc-top{color:var(--t3)}
+.doc-top:hover{color:var(--t1)}
+
+.legal-page .foot-links a[aria-current="page"]{color:var(--t1)}
+.legal-page .skip:focus-visible,.legal-page .toc-m summary:focus-visible,.legal-page .toc-fab:focus-visible{outline:2px solid var(--focus);outline-offset:3px}
+
+@media (min-width:1080px){
+  .legal-grid{grid-template-columns:232px minmax(0,760px);justify-content:center;justify-items:stretch;column-gap:clamp(40px,5vw,72px)}
+  /* The column reaches into the page's bottom padding, and the list is never taller than what stays
+     between the bar and the footer, so at the very end it is released below the bar, not under it. */
+  .toc-col{display:block;padding-top:76px;margin-bottom:calc(var(--legal-pb) * -1)}
+  .toc-d{position:sticky;top:calc(var(--bar-h) + 24px);max-height:calc(100vh - var(--bar-h) - 24px - var(--end-room));overflow-y:auto;padding:0 4px}
+  .toc-d a{padding:5px 12px;font-size:13.5px;line-height:1.38}
+  .toc-d a:focus-visible{outline-offset:-2px}
+  .policy > .toc-m,.toc-fab{display:none}
+  .legal-page .foot{padding-bottom:40px}
+  .doc{max-width:none}
+}
+@media (max-width:767px){
+  .legal-page{--bar-h:64px}
+  .policy{font-size:16.5px;line-height:1.68}
+  .tbl{margin-left:calc(var(--pad) * -1);margin-right:calc(var(--pad) * -1);border-radius:0;border-left:0;border-right:0}
+  .tbl th,.tbl td{padding:12px 14px}
+  .doc-end{margin-top:40px}
+}
+/* Narrow screens: each table row becomes a block, every cell under its column name (CSS text only). */
+@media (max-width:600px){
+  .tbl{overflow:visible;background:var(--s1)}
+  .tbl table,.tbl tbody,.tbl tr,.tbl tbody th,.tbl td{display:block}
+  .tbl-3 table,.tbl-2 table{min-width:0;table-layout:auto}
+  .tbl thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+  .tbl tr{padding:16px 0 14px;border-top:1px solid var(--hl)}
+  .tbl tbody tr:first-child{border-top:0}
+  .policy .tbl th,.policy .tbl td{width:auto;border-top:0;padding:0 var(--pad)}
+  .tbl tbody th{font-size:16px;line-height:1.45}
+  .tbl td{margin-top:10px}
+  .tbl td::before{content:attr(data-label);display:block;margin-bottom:2px;font-size:11px;line-height:1.4;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--t4)}
+  .tbl td:empty{display:none}
+}
+@media (prefers-reduced-transparency:reduce){
+  .toc-fab{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--s1)}
+}
+@media (prefers-contrast:more){
+  .tbl,.toc-m,.toc-fab{border-color:var(--t3)}
+  .policy a{text-decoration-color:currentColor}
+}

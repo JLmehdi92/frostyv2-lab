@@ -21,7 +21,8 @@
   ];
 
   var S = { theme: 'dark', lat: null, index: null, heroOn: true };
-  var reduce = !!(w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  // No reduced-motion branch anywhere: the OS "reduce motion" setting (Windows "animation effects"
+  // included) is ignored on purpose, because the owner decided that every visitor sees the motion.
   var finePointer = !!(w.matchMedia && w.matchMedia('(hover: hover) and (pointer: fine)').matches);
   var car = null;
   var drift = [];
@@ -83,7 +84,7 @@
   }
 
   /* ---------- carousel: 1:1 drag, velocity projection, critically damped snap ---------- */
-  var initCarousel = function (still) {
+  var initCarousel = function () {
     var vp = doc.getElementById('car-vp');
     var track = doc.getElementById('car-track');
     if (!vp || !track) return;
@@ -121,7 +122,7 @@
       if (S.index === i) return;
       setIndex(i);
       var g = w.gsap;
-      if (g && !reduce) g.fromTo('.dots', { y: 6, opacity: 0.4 }, { y: 0, opacity: 1, duration: 0.45, ease: 'power3.out', overwrite: true });
+      if (g) g.fromTo('.dots', { y: 6, opacity: 0.4 }, { y: 0, opacity: 1, duration: 0.45, ease: 'power3.out', overwrite: true });
     };
     var step = function (now) {
       var dt = Math.min(0.032, Math.max(0, (now - C.last) / 1000));
@@ -149,7 +150,6 @@
       C.idx = i;
       C.target = offsetFor(i);
       setIdx(i);
-      if (reduce) { stopSpring(); C.x = C.target; C.v = 0; render(); return; }
       C.v = v0 || 0;
       if (!C.anim) { C.anim = true; C.last = performance.now(); C.raf = requestAnimationFrame(step); }
     };
@@ -278,7 +278,6 @@
       step: function (d) { stopAuto(); animateTo(wrapI(C.idx + d), 0); }
     };
 
-    if (still) return;
     if (w.IntersectionObserver) {
       new IntersectionObserver(function (entries) { C.visible = entries[0].isIntersecting; }).observe(vp);
     }
@@ -303,18 +302,12 @@
   if (nextBtn) nextBtn.addEventListener('click', function () { carStep(1); });
   dotEls.forEach(function (d, i) { d.addEventListener('click', function () { carGo(i); }); });
 
-  try { initCarousel(reduce); } catch (e) {}
+  try { initCarousel(); } catch (e) {}
 
   var gsap = w.gsap;
   var ST = w.ScrollTrigger;
   if (!gsap) { unhold(); return; }
   if (ST) gsap.registerPlugin(ST);
-
-  if (reduce) {
-    unhold();
-    gsap.from(['.hero-copy', '.stage'], { opacity: 0, duration: 0.3, ease: 'none', clearProps: 'opacity' });
-    return;
-  }
 
   /* ---------- entrance: copy reveal, phones settling in ---------- */
   // The top bar is never held back by boot.js, so on a slow load it is already on screen when this
