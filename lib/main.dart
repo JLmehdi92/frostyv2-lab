@@ -7,7 +7,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:intl/date_symbol_data_local.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/bttv_api.dart';
@@ -119,10 +118,6 @@ void main() async {
   }
 
   await initUtils();
-
-  // Dates in every supported language (French month and day names): the
-  // app's language is only known once it is built.
-  await initializeDateFormatting();
 
   // With the shared preferences instance, obtain the existing user settings if it exists.
   // If default settings don't exist, use an empty JSON string to use the default values.

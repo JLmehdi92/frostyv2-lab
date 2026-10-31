@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,11 +8,13 @@ import 'package:mocktail/mocktail.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/screens/onboarding/onboarding_flow.dart';
+import 'package:onset/screens/onboarding/onboarding_intro.dart';
 import 'package:onset/screens/onboarding/onboarding_language_choice.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/stores/user_store.dart';
 import 'package:onset/widgets/launch/launch_intro.dart';
+import 'package:onset/widgets/launch/onset_mark.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -122,6 +125,45 @@ void main() {
     await settle(tester);
   }
 
+  /// What overlaps on the phone's Intro, in reading order: the tile, the
+  /// description, the language pill, the version, then "Next". A part that
+  /// scrolled out of its area is not drawn there, so only the visible part
+  /// of each counts.
+  List<String> introOverlaps(WidgetTester tester, AppLocalizations l) {
+    final scroll = find.descendant(
+      of: find.byType(OnboardingIntroPhone),
+      matching: find.byType(Scrollable),
+    );
+    final area = scroll.evaluate().isEmpty
+        ? Offset.zero & tester.view.physicalSize
+        : tester.getRect(scroll);
+    Rect shown(Finder finder) => tester.getRect(finder).intersect(area);
+    final parts = [
+      ('tile', tester.getRect(find.byType(OnsetMarkTile))),
+      ('description', shown(find.text(l.onboardingIntroDescription))),
+      ('pill', shown(find.byType(OnboardingLanguageChoice))),
+      ('version', shown(find.text('v5.0.5 (68)'))),
+      ('Next', tester.getRect(find.text(l.commonNext))),
+    ];
+    final problems = <String>[];
+    for (var i = 1; i < parts.length; i++) {
+      final (aboveName, above) = parts[i - 1];
+      final (name, rect) = parts[i];
+      if (rect.height <= 0 || above.height <= 0) continue;
+      if (above.bottom > rect.top + 0.01) {
+        problems.add(
+          '$aboveName (to ${above.bottom}) over $name (${rect.top})',
+        );
+      }
+    }
+    // Nothing scrolled under "Next".
+    final next = tester.getRect(find.text(l.commonNext));
+    if (area.bottom > next.top + 0.01 && scroll.evaluate().isNotEmpty) {
+      problems.add('the scrolling area runs under Next');
+    }
+    return problems;
+  }
+
   OnboardingLanguageChoice pill(WidgetTester tester) =>
       tester.widget(find.byType(OnboardingLanguageChoice));
 
@@ -229,6 +271,22 @@ void main() {
         ],
       ),
     );
+    // Each name is spoken in its own language.
+    for (final (name, locale) in const [
+      ('English', Locale('en')),
+      ('Français', Locale('fr')),
+    ]) {
+      final label = tester
+          .getSemantics(find.bySemanticsLabel(name))
+          .attributedLabel;
+      expect(
+        label.attributes.whereType<LocaleStringAttribute>().map(
+          (a) => a.locale,
+        ),
+        [locale],
+        reason: name,
+      );
+    }
     semantics.dispose();
   });
 
@@ -236,6 +294,8 @@ void main() {
     for (final (name, size) in const [
       ('a 390x844 phone', Size(390, 844)),
       ('a small phone', Size(360, 640)),
+      ('a 320x568 phone', Size(320, 568)),
+      ('a 360x560 phone', Size(360, 560)),
       ('a short window', Size(400, 480)),
       ('a landscape tablet', Size(1280, 854)),
       ('a portrait tablet', Size(854, 1280)),
@@ -244,24 +304,14 @@ void main() {
         ('English', english, const Locale('en', 'US')),
         ('French', french, const Locale('fr', 'FR')),
       ]) {
-        for (final scale in const [1.0, 1.3]) {
+        for (final scale in const [1.0, 1.3, 2.0]) {
           testWidgets('$name, $lang, text ×$scale', (tester) async {
             await pump(tester, size: size, device: [device], textScale: scale);
             await settle(tester);
             expect(tester.takeException(), isNull);
             expect(find.text(l.onboardingIntroDescription), findsOneWidget);
-            if (size.shortestSide < 600 && size.height >= 640) {
-              // The phone's Intro: description, pill, version, Next, in
-              // that order and apart.
-              final description = tester.getRect(
-                find.text(l.onboardingIntroDescription),
-              );
-              final choice = tester.getRect(
-                find.byType(OnboardingLanguageChoice),
-              );
-              final version = tester.getRect(find.text('v5.0.5 (68)'));
-              expect(description.bottom, lessThanOrEqualTo(choice.top));
-              expect(choice.bottom, lessThanOrEqualTo(version.top));
+            if (size.shortestSide < 600) {
+              expect(introOverlaps(tester, l), isEmpty);
             }
 
             void noEnglish() {
@@ -276,6 +326,11 @@ void main() {
             await tapText(tester, l.onboardingLoginSkip);
             expect(tester.takeException(), isNull);
             expect(find.text(l.onboardingSetupTitle), findsOneWidget);
+            // The preview's stand-in line is never cut.
+            final detail = tester.renderObject<RenderParagraph>(
+              find.text(l.onboardingSetupPreviewDetail),
+            );
+            expect(detail.didExceedMaxLines, isFalse);
             noEnglish();
             await tapText(tester, l.commonNext);
             expect(tester.takeException(), isNull);

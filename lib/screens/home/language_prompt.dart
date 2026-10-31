@@ -76,7 +76,8 @@ class _LanguagePrompt extends StatelessWidget {
                 label: l.languagePromptConfirm,
                 large: true,
                 expand: true,
-                onPressed: () => Navigator.pop(context, selected),
+                // Read now: a tap on the pill in the same frame counts.
+                onPressed: () => Navigator.pop(context, _selected(settings)),
               ),
             ],
           ),

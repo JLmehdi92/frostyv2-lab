@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:onset/l10n/enum_labels.dart';
 import 'package:onset/l10n/l10n.dart';
@@ -73,6 +75,11 @@ class OnboardingLanguageChoice extends StatelessWidget {
   /// The options, in order.
   static const languages = [AppLanguage.en, AppLanguage.fr];
 
+  /// Its height with text scaled by [textScaler]: 44 dp, more when the text
+  /// needs it.
+  static double heightFor(TextScaler textScaler) =>
+      math.max(44, (textScaler.scale(14) * 1.3 + 6 + 16).ceilToDouble());
+
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
@@ -87,7 +94,7 @@ class OnboardingLanguageChoice extends StatelessWidget {
       explicitChildNodes: true,
       label: l.languageChoiceSemantics,
       child: Container(
-        height: 44,
+        height: heightFor(MediaQuery.textScalerOf(context)),
         padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
           color: colors.track,
@@ -141,10 +148,22 @@ class OnboardingLanguageChoice extends StatelessWidget {
                                   ? colors.selectedText
                                   : colors.idleText,
                             ),
-                            child: Text(
-                              language.label(l),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            // Spoken in its own language, and shrunk
+                            // rather than cut when it cannot fit.
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text.rich(
+                                  TextSpan(
+                                    text: language.label(l),
+                                    locale: language.locale,
+                                  ),
+                                  maxLines: 1,
+                                ),
+                              ),
                             ),
                           ),
                         ),

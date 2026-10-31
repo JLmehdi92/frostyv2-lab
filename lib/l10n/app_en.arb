@@ -60,15 +60,23 @@
   "@settingsLanguageTitle": {
     "description": "Settings › General: the title of the first group, the app's language."
   },
-  "settingsLanguageSystemSubtitle": "“System” uses your device’s language (currently {language}).",
+  "settingsLanguageSystemSubtitle": "“System” follows your device’s language (currently: {language}).",
   "@settingsLanguageSystemSubtitle": {
-    "description": "Settings › General › Language: the line under the options, saying which language the System option gives on this device.",
+    "description": "Settings › General › Language: the line under the options, saying which language the System option gives on this device. The language is named as in a sentence (languageInTextEnglish, languageInTextFrench).",
     "placeholders": {
       "language": {
         "type": "String",
         "example": "English"
       }
     }
+  },
+  "languageInTextEnglish": "English",
+  "@languageInTextEnglish": {
+    "description": "The English language named inside a sentence of the language on screen (lower case in French), as in the System subtitle of Settings › General › Language."
+  },
+  "languageInTextFrench": "French",
+  "@languageInTextFrench": {
+    "description": "The French language named inside a sentence of the language on screen (lower case in French), as in the System subtitle of Settings › General › Language."
   },
   "languagePromptTitle": "Choose your language",
   "@languagePromptTitle": {

@@ -1058,14 +1058,16 @@ class _SearchField extends StatelessWidget {
                         strokeWidth: 2,
                       ),
                       SizedBox(width: height > 40 ? 10 : 8),
+                      // Two lines when the hint runs long (French on a
+                      // narrow phone) rather than cut.
                       Expanded(
                         child: Text(
                           label,
-                          maxLines: 1,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: OnsetType.body.copyWith(
                             fontSize: height > 40 ? 15 : 14,
-                            height: 1.2,
+                            height: 1.15,
                             color: palette.fieldText,
                           ),
                         ),

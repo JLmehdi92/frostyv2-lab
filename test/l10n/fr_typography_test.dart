@@ -24,6 +24,8 @@ void main() {
         'Non connecté · vous pourrez vous connecter plus tard',
         'Changez-la dans Paramètres › Général, depuis l’onglet Profil',
         'La rubrique «\u00A0Autres\u00A0» des paramètres',
+        'Voir https://www.twitch.tv/jltomy ou twitch.tv',
+        'Le live\u00A0– sans pub\u00A0– reprend',
         '{count, plural, one{# chaîne} other{# chaînes}}',
       ]) {
         expect(frenchTypographyProblems(message), isEmpty, reason: message);
@@ -51,6 +53,17 @@ void main() {
         'Connecté·e',
         'Points de Chaîne',
         'Dans les Paramètres de la Chaîne',
+        'Bienvenue\u202F!Encore',
+        'Pourquoi\u202F?Parce que',
+        'Compte\u00A0:Viewer',
+        'Bienvenue \u202F!',
+        'Compte\u00A0 : nom',
+        'Lʼapp',
+        'L‘app',
+        'L`app',
+        'L′app',
+        'Le live — sans pub — reprend',
+        'Le live – sans pub – reprend',
         '{count, plural, one{# chaîne!} other{# chaînes}}',
       ]) {
         expect(frenchTypographyProblems(message), isNotEmpty, reason: message);
@@ -95,6 +108,7 @@ const _properNouns = {
   'Français',
   'Language',
   'Langue',
+  'Internet',
 };
 
 /// The app's screens and sections, named as their titles read (« dans
@@ -129,36 +143,62 @@ List<String> frenchTypographyProblems(String message) {
   return problems;
 }
 
-List<String> _runProblems(String run) {
+const _nnbsp = ' ';
+const _nbsp = ' ';
+
+/// URLs and hosts are left alone (their `:` and `/` are not French
+/// punctuation).
+final _url = RegExp(r'\S+://\S*|\b[a-z0-9-]+(?:\.[a-z0-9-]+)+\.[a-z]{2,}\b');
+
+List<String> _runProblems(String text) {
+  final run = text.replaceAll(_url, 'X');
   final problems = <String>[];
   for (var i = 0; i < run.length; i++) {
     final char = run[i];
     final before = i > 0 ? run[i - 1] : '';
     final after = i + 1 < run.length ? run[i + 1] : '';
     if (';!?%'.contains(char) &&
-        before != ' ' &&
+        before != _nnbsp &&
         !(char != '%' && '!?'.contains(before) && before.isNotEmpty)) {
       problems.add('"$char" needs a narrow no-break space (U+202F) before');
     }
-    if (char == ':' && before != ' ') {
+    if (char == ':' && before != _nbsp) {
       final timeLike =
           RegExp(r'[\dX]').hasMatch(before) && RegExp(r'[\dX]').hasMatch(after);
       if (!timeLike) {
         problems.add('":" needs a no-break space (U+00A0) before');
       }
     }
-    if (char == '«' && after != ' ') {
+    if (char == '«' && after != _nbsp) {
       problems.add('"«" needs a no-break space (U+00A0) after');
     }
-    if (char == '»' && before != ' ') {
+    if (char == '»' && before != _nbsp) {
       problems.add('"»" needs a no-break space (U+00A0) before');
     }
   }
+  // After ! ? ; : (not a time) and », a space before the next word.
+  if (RegExp(r'[!?;»]\p{L}', unicode: true).hasMatch(run) ||
+      RegExp(r'(?<![\dX]):\p{L}', unicode: true).hasMatch(run)) {
+    problems.add('no space after ! ? ; : or »');
+  }
+  // A no-break space beside an ordinary one: one of them is wrong.
+  if (RegExp('[ \t][$_nnbsp$_nbsp]|[$_nnbsp$_nbsp][ \t]').hasMatch(run)) {
+    problems.add('an ordinary space next to a no-break one');
+  }
   if (run.contains("'")) problems.add('straight apostrophe: use ’');
+  if (RegExp('[ʼ‘′`]').hasMatch(run)) {
+    problems.add('wrong apostrophe (ʼ ‘ ′ `): use ’');
+  }
   if (run.contains('"')) problems.add('straight quotes: use « »');
   if (run.contains('...')) problems.add('three dots: use …');
   if (run.contains('  ')) problems.add('double space');
   if (RegExp(r'\s[.,…]').hasMatch(run)) problems.add('space before . , or …');
+  // A dash between words: « – » after a no-break space, like everywhere
+  // in the app (never the em dash).
+  if (run.contains('—')) problems.add('em dash: use «$_nbsp– »');
+  if (RegExp('[^$_nbsp]–\\s').hasMatch(run)) {
+    problems.add('dash between words: write «$_nbsp– »');
+  }
   if (RegExp(r'\d\s?i?[eè]me').hasMatch(run)) {
     problems.add('"2ème": write 2e, 3e');
   }

@@ -188,11 +188,23 @@ abstract class AppLocalizations {
   /// **'Language'**
   String get settingsLanguageTitle;
 
-  /// Settings › General › Language: the line under the options, saying which language the System option gives on this device.
+  /// Settings › General › Language: the line under the options, saying which language the System option gives on this device. The language is named as in a sentence (languageInTextEnglish, languageInTextFrench).
   ///
   /// In en, this message translates to:
-  /// **'“System” uses your device’s language (currently {language}).'**
+  /// **'“System” follows your device’s language (currently: {language}).'**
   String settingsLanguageSystemSubtitle({required String language});
+
+  /// The English language named inside a sentence of the language on screen (lower case in French), as in the System subtitle of Settings › General › Language.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageInTextEnglish;
+
+  /// The French language named inside a sentence of the language on screen (lower case in French), as in the System subtitle of Settings › General › Language.
+  ///
+  /// In en, this message translates to:
+  /// **'French'**
+  String get languageInTextFrench;
 
   /// Title of the one-time sheet that asks the language after the update that added French.
   ///

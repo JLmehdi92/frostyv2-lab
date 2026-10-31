@@ -128,6 +128,82 @@ class B {
       );
     });
 
+    test('hole: text under a widget or call named …Error or …Exception', () {
+      expect(
+        texts('''
+Widget a() => FeedError(child: Text('Something went wrong'));
+void b() => _showError('Could not load clips now');
+ApiException c() => UnauthorizedException('Please log in to continue');
+ApiException d() => NotFoundException('Resource not found');
+'''),
+        [
+          'Something went wrong',
+          'Could not load clips now',
+          'Please log in to continue',
+          'Resource not found',
+        ],
+      );
+      // A thrown one is code (its message is for logs).
+      expect(texts("void e() => throw StateError('No user here');"), isEmpty);
+    });
+
+    test('hole: one word with trailing punctuation in a place that shows '
+        'text', () {
+      expect(
+        texts('''
+final a = Text('Loading...');
+final b = Text('Error:');
+final c = Text('Done.');
+final d = Row(label: 'Viewers:');
+'''),
+        ['Loading...', 'Error:', 'Done.', 'Viewers:'],
+      );
+      // Still code: a dotted version, snake_case, a host.
+      expect(
+        texts('''
+final a = Text('v5.0.5');
+final b = Text('first_run');
+final c = Text('twitch.tv');
+'''),
+        isEmpty,
+      );
+    });
+
+    test('hole: literals handed to the project\'s own helpers that show '
+        'text', () {
+      expect(
+        texts('''
+void _tell(BuildContext context, String message) =>
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+void _announce(String title, {required String detail}) =>
+    _tell(context, '\$title: \$detail');
+void f(BuildContext context) {
+  _tell(context, 'Saved');
+  _announce('Update', detail: 'Ready');
+}
+'''),
+        ['Saved', 'Update', 'Ready'],
+      );
+    });
+
+    test('hole: option lists, label maps and label getters', () {
+      expect(
+        texts('''
+final a = SettingsListSelect(options: ['Small', 'Large'], selectedOption: 'Small');
+const sizeLabels = {CaptionSize.small: 'Tiny'};
+class B {
+  String get label => 'Following';
+  String title(int i) {
+    return 'Welcome';
+  }
+}
+'''),
+        ['Small', 'Large', 'Small', 'Tiny', 'Following', 'Welcome'],
+      );
+    });
+
     test('says where a literal is and why', () {
       final [literal] = flaggedIn(
         "\n\nfinal t = Text('Hello');\n",
@@ -232,11 +308,15 @@ class B {
     setUpAll(() {
       final files = scannedFiles();
       fileCount = files.length;
+      final sources = {for (final file in files) file: file.readAsStringSync()};
+      // The project's helpers that show text, found across lib/.
+      final helpers = uiHelpersIn(sources.values);
       flagged = [
-        for (final file in files)
+        for (final MapEntry(key: file, value: source) in sources.entries)
           ...flaggedIn(
-            file.readAsStringSync(),
+            source,
             path: file.path.replaceAll('\\', '/'),
+            helpers: helpers,
           ),
       ];
     });

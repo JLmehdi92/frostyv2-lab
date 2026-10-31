@@ -33,6 +33,10 @@ class IcuMessage {
   /// string per text run between ICU structure.
   final texts = <String>[];
 
+  /// The literal text between arguments and ICU structure, without any
+  /// marker: what the generated code must spell out.
+  final fragments = <String>[];
+
   /// Parses [source] as an ICU message (gen-l10n's dialect: apostrophes
   /// are plain text). Throws [FormatException] when it is malformed.
   factory IcuMessage.parse(String source) {
@@ -63,9 +67,10 @@ class _IcuParser {
   /// branch, `#` is the count.
   void parseMessage({required bool inPlural}) {
     final text = StringBuffer();
-    void flush() {
-      message.texts.add(text.toString());
-      text.clear();
+    final fragment = StringBuffer();
+    void cut() {
+      if (fragment.isNotEmpty) message.fragments.add(fragment.toString());
+      fragment.clear();
     }
 
     while (!atEnd) {
@@ -73,19 +78,23 @@ class _IcuParser {
       if (char == '}') break;
       if (char == '{') {
         index++;
+        cut();
         _parseArgument();
         text.write('X');
         continue;
       }
       if (char == '#' && inPlural) {
+        cut();
         text.write('X');
         index++;
         continue;
       }
       text.write(char);
+      fragment.write(char);
       index++;
     }
-    flush();
+    cut();
+    message.texts.add(text.toString());
   }
 
   String _name() {

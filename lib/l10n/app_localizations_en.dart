@@ -55,8 +55,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String settingsLanguageSystemSubtitle({required String language}) {
-    return '“System” uses your device’s language (currently $language).';
+    return '“System” follows your device’s language (currently: $language).';
   }
+
+  @override
+  String get languageInTextEnglish => 'English';
+
+  @override
+  String get languageInTextFrench => 'French';
 
   @override
   String get languagePromptTitle => 'Choose your language';

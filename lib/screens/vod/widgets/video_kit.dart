@@ -338,17 +338,27 @@ class VideoSectionLabel extends StatelessWidget {
 /// An empty list of videos: the camera in a tile,
 /// what is missing, "Pull down to check again."
 class VideoListEmpty extends StatelessWidget {
-  const VideoListEmpty({super.key, required this.message, this.hint});
+  const VideoListEmpty({
+    super.key,
+    required this.message,
+    this.hint = defaultHint,
+  });
 
   final String message;
 
-  /// The line under [message]; "Pull down to check again." when null.
+  /// The line under [message], none when null. [defaultHint] (the default)
+  /// stands for "Pull down to check again." in the language on screen.
   final String? hint;
+
+  /// Stands for the standard hint (a private-use character, never shown).
+  static const defaultHint = '\u{F8FF}';
 
   @override
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
-    final hint = this.hint ?? context.l10n.videoListEmptyHint;
+    final hint = this.hint == defaultHint
+        ? context.l10n.videoListEmptyHint
+        : this.hint;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
@@ -384,16 +394,17 @@ class VideoListEmpty extends StatelessWidget {
               color: colors.text,
             ),
           ),
-          Text(
-            hint,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: OnsetTokens.bodyFamily,
-              fontSize: 13,
-              height: 1.5,
-              color: colors.secondary,
+          if (hint != null)
+            Text(
+              hint,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: OnsetTokens.bodyFamily,
+                fontSize: 13,
+                height: 1.5,
+                color: colors.secondary,
+              ),
             ),
-          ),
         ],
       ),
     );

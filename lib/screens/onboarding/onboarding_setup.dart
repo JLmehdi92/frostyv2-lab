@@ -512,11 +512,24 @@ class _Preview extends StatelessWidget {
                 ),
               ),
             ),
+            // "Preview" on top, so the name and the detail have the row's
+            // whole width (French runs longer).
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: 2,
                 children: [
+                  AnimatedDefaultTextStyle(
+                    duration: duration,
+                    style: TextStyle(
+                      fontFamily: OnsetTokens.bodyFamily,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.26,
+                      color: meta,
+                    ),
+                    child: Text(l.onboardingSetupPreviewBadge),
+                  ),
                   AnimatedDefaultTextStyle(
                     duration: duration,
                     style: textStyle,
@@ -535,27 +548,17 @@ class _Preview extends StatelessWidget {
                         color: meta,
                       ),
                     ),
+                    // The stand-in wraps rather than being cut; a live
+                    // channel's category can be long and is cut.
                     child: Text(
                       detail,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      maxLines: stream == null ? null : 1,
+                      overflow: stream == null
+                          ? TextOverflow.visible
+                          : TextOverflow.ellipsis,
                     ),
                   ),
                 ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsetsDirectional.only(end: 6),
-              child: AnimatedDefaultTextStyle(
-                duration: duration,
-                style: TextStyle(
-                  fontFamily: OnsetTokens.bodyFamily,
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 1.26,
-                  color: meta,
-                ),
-                child: Text(l.onboardingSetupPreviewBadge),
               ),
             ),
           ],

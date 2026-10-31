@@ -55,8 +55,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String settingsLanguageSystemSubtitle({required String language}) {
-    return '« Système » utilise la langue de votre appareil (actuellement : $language).';
+    return '« Système » suit la langue de votre appareil (actuellement : $language).';
   }
+
+  @override
+  String get languageInTextEnglish => 'anglais';
+
+  @override
+  String get languageInTextFrench => 'français';
 
   @override
   String get languagePromptTitle => 'Choisissez votre langue';
@@ -70,7 +76,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingIntroDescription =>
-      'Un client Twitch mobile compatible avec 7TV, BetterTTV (BTTV) et FrankerFaceZ (FFZ).';
+      'Un client mobile pour Twitch, compatible avec 7TV, BetterTTV (BTTV) et FrankerFaceZ (FFZ).';
 
   @override
   String get onboardingIntroEyebrow => 'Premier lancement';
@@ -88,7 +94,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingLoginLead =>
-      'ONSET a besoin de votre autorisation pour vous permettre de discuter dans le chat, de voir les lives de vos chaînes suivies et bien plus encore.';
+      'ONSET a besoin de votre autorisation pour vous permettre de discuter dans le chat, de voir les lives des chaînes que vous suivez, et plus encore.';
 
   @override
   String get onboardingLoginAuthorizeHeader => 'Ce que vous autorisez';
@@ -103,8 +109,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get onboardingPermissionFollowsTitle => 'Chaînes suivies';
 
   @override
-  String get onboardingPermissionFollowsDetail =>
-      'Voir qui est en direct en ce moment';
+  String get onboardingPermissionFollowsDetail => 'Voir qui est en direct';
 
   @override
   String get onboardingPermissionEmotesTitle => 'Vos emotes';
@@ -153,7 +158,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingSetupLead =>
-      'Ajustons quelques réglages avant de commencer. Vous pourrez les modifier à tout moment, comme bien d’autres.';
+      'Ajustons quelques réglages avant de commencer. Ceux-ci et bien d’autres restent modifiables à tout moment.';
 
   @override
   String onboardingSetupLoggedInAs({required String name}) {
@@ -165,7 +170,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingSetupLoginFailed =>
-      'Échec de la connexion · revenez en arrière pour réessayer, ou connectez-vous plus tard depuis l’onglet Profil';
+      'Échec de la connexion · réessayez en revenant en arrière, ou plus tard depuis l’onglet Profil';
 
   @override
   String get onboardingSetupNotLoggedIn =>
@@ -204,11 +209,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get onboardingSetupThemeSystemNote => 'Suit votre appareil';
 
   @override
-  String get onboardingSetupThemeLightNote => 'Des surfaces claires partout';
+  String get onboardingSetupThemeLightNote => 'Surfaces claires partout';
 
   @override
-  String get onboardingSetupThemeDarkNote =>
-      'Noir, le thème par défaut d’ONSET';
+  String get onboardingSetupThemeDarkNote => 'Le thème par défaut d’ONSET';
 
   @override
   String get accentColorTitle => 'Couleur d’accent';
@@ -245,20 +249,20 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingSetupHistoryTitle =>
-      'Historique du chat de secours (tiers)';
+      'Historique de secours du chat (tiers)';
 
   @override
   String onboardingSetupHistoryDetail({required String link}) {
-    return 'Quand l’historique du chat de Twitch est indisponible, échoue ou est vide, charge les messages récents depuis $link, qui reçoit alors le nom de la chaîne.';
+    return 'Si l’historique du chat de Twitch est indisponible, ne se charge pas ou est vide, ONSET récupère les messages récents depuis $link, qui reçoit alors le nom de la chaîne.';
   }
 
   @override
   String get onboardingSetupCrashTitle =>
-      'Partager les rapports de plantage et les statistiques';
+      'Partager les rapports de plantage et statistiques';
 
   @override
   String get onboardingSetupCrashDetail =>
-      'Aidez à améliorer ONSET en envoyant les rapports de plantage et les statistiques via Firebase, sans votre compte Twitch ni vos chaînes.';
+      'Aidez-nous à améliorer ONSET en envoyant les rapports de plantage et les statistiques d’utilisation via Firebase. Ni votre compte Twitch ni vos chaînes ne sont transmis.';
 
   @override
   String get onboardingWelcomeTitle => 'Bienvenue !';
@@ -268,11 +272,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingWelcomeTipGitHub =>
-      'Le dépôt GitHub, en haut à droite des paramètres, vous permet d’explorer le code source d’ONSET, de signaler des bugs, de proposer des fonctionnalités et plus encore.';
+      'Le bouton GitHub, en haut à droite des paramètres, ouvre le dépôt d’ONSET : explorez le code source, signalez des bugs, proposez des fonctionnalités, et plus encore.';
 
   @override
   String get onboardingWelcomeTipChangelog =>
-      'Les liens vers le journal des modifications complet et la FAQ se trouvent dans les paramètres, rubrique « Autres ».';
+      'Les liens vers le journal complet des modifications et la FAQ se trouvent dans les paramètres, rubrique « Autres ».';
 
   @override
   String get onboardingWelcomeTipRating =>
@@ -285,15 +289,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get loginHelpTooltip => 'Aide à la connexion';
 
   @override
-  String get loginHelpTitle => 'Contourner la bannière de cookies de Twitch';
+  String get loginHelpTitle => 'Contourner le bandeau de cookies de Twitch';
 
   @override
   String get loginHelpBodyOnboarding =>
-      'Si la bannière de cookies de Twitch bloque encore la connexion, touchez l’un des liens de la description de la politique de cookies et naviguez jusqu’à la page d’accueil de Twitch. De là, connectez-vous depuis l’icône de profil en haut à droite. Une fois la connexion faite, revenez à la première étape de la prise en main, puis réessayez.';
+      'Si le bandeau de cookies de Twitch bloque encore la connexion, appuyez sur l’un des liens de son texte sur la politique de cookies et naviguez jusqu’à la page d’accueil de Twitch. De là, essayez de vous connecter depuis l’icône de profil en haut à droite. Une fois la connexion effectuée, revenez à la première étape de la prise en main, puis réessayez.';
 
   @override
   String get loginHelpBodyElsewhere =>
-      'Si la bannière de cookies de Twitch bloque encore la connexion, touchez l’un des liens de la description de la politique de cookies et naviguez jusqu’à la page d’accueil de Twitch. De là, connectez-vous depuis l’icône de profil en haut à droite. Une fois la connexion faite, revenez en arrière, puis rouvrez la page de connexion.';
+      'Si le bandeau de cookies de Twitch bloque encore la connexion, appuyez sur l’un des liens de son texte sur la politique de cookies et naviguez jusqu’à la page d’accueil de Twitch. De là, essayez de vous connecter depuis l’icône de profil en haut à droite. Une fois la connexion effectuée, revenez en arrière, puis rouvrez la page de connexion.';
 
   @override
   String loginHostSecure({required String host}) {
@@ -313,7 +317,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get loginLoadFailedDetail =>
-      'Vérifiez votre connexion, puis réessayez.';
+      'Vérifiez votre connexion Internet, puis réessayez.';
 
   @override
   String get shellSectionHome => 'Accueil';
@@ -332,8 +336,8 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Activité, $count nouveautés',
-      one: 'Activité, $count nouveauté',
+      other: 'Activité, $count éléments non lus',
+      one: 'Activité, $count élément non lu',
     );
     return '$_temp0';
   }
@@ -379,8 +383,8 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$label, $count nouveautés',
-      one: '$label, $count nouveauté',
+      other: '$label, $count éléments non lus',
+      one: '$label, $count élément non lu',
     );
     return '$_temp0';
   }
@@ -392,7 +396,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get shellSearch => 'Rechercher';
 
   @override
-  String get shellSearchHint => 'Rechercher des chaînes, catégories ou vidéos';
+  String get shellSearchHint =>
+      'Rechercher des chaînes, des catégories ou des vidéos';
 
   @override
   String get shellSettings => 'Paramètres';

@@ -531,6 +531,8 @@ mixin OnsetUpdateChecks<T extends StatefulWidget> on State<T> {
     try {
       final result = await updater.check();
       if (result is UpdateAvailable && mounted) {
+        await beforeUpdateOffer();
+        if (!mounted) return;
         await offerUpdate(context, updater, result);
       }
     } catch (e) {
@@ -540,6 +542,11 @@ mixin OnsetUpdateChecks<T extends StatefulWidget> on State<T> {
       _updateBusy = false;
     }
   }
+
+  /// Waited for before the offer opens: a screen with a sheet of its own to
+  /// show first (Home's one-time language question) completes it once
+  /// that sheet is closed, so the two never stack.
+  Future<void> beforeUpdateOffer() async {}
 
   @override
   void dispose() {

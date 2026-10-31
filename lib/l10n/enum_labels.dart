@@ -13,6 +13,15 @@ extension AppLanguageLabel on AppLanguage {
     AppLanguage.en => l.languageNameEnglish,
     AppLanguage.fr => l.languageNameFrench,
   };
+
+  /// The language named inside a sentence of the language on screen
+  /// (« anglais » in French), for the explicit languages; System keeps its
+  /// option name.
+  String nameInText(AppLocalizations l) => switch (this) {
+    AppLanguage.system => l.appLanguageSystem,
+    AppLanguage.en => l.languageInTextEnglish,
+    AppLanguage.fr => l.languageInTextFrench,
+  };
 }
 
 extension ThemeTypeLabel on ThemeType {

@@ -453,6 +453,7 @@ class _OnboardingFlowState extends State<OnboardingFlow>
         textScaler: textScaler,
         width: size.width - 2 * OnboardingIntroPhone.descriptionSide,
       ),
+      textScaler: textScaler,
     );
     final tablet = geometry.tablet;
 
@@ -806,6 +807,7 @@ class _Geometry {
     EdgeInsets padding, {
     required double nameHeight,
     required double descriptionHeight,
+    required TextScaler textScaler,
   }) {
     final w = size.width;
     final h = size.height;
@@ -818,7 +820,7 @@ class _Geometry {
       final lowest =
           h -
           padding.bottom -
-          OnboardingIntroPhone.neededBelowName(descriptionHeight) -
+          OnboardingIntroPhone.neededBelowName(descriptionHeight, textScaler) -
           nameHeight -
           gap -
           half;

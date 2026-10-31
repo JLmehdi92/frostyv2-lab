@@ -39,6 +39,13 @@ abstract final class L10n {
 
   /// The app now shows [locale] (an unsupported one reads as English):
   /// [current] and `Intl.defaultLocale` (dates and numbers) follow.
+  ///
+  /// Dates need their symbols loaded for that language: in the app the
+  /// MaterialApp's localization delegates (flutter_localizations) load them
+  /// before [LocaleSync] calls this. Code that calls it without a
+  /// MaterialApp, such as the background go-live isolate, must first call
+  /// `initializeDateFormatting` (package:intl/date_symbol_data_local.dart),
+  /// or `DateFormat` throws.
   static void use(Locale locale) {
     final supported = resolveAppLocale(AppLanguage.system, [locale]);
     Intl.defaultLocale = supported.languageCode;
@@ -128,7 +135,9 @@ const kUiLanguagePrefsKey = 'ui_language';
 
 /// Saves [locale]'s language under [kUiLanguagePrefsKey] (a [LocaleSync]
 /// listener). Nothing breaks without it: the background reads the device's
-/// language then.
+/// language then. The background isolate that reads it calls [L10n.use]
+/// with no MaterialApp, so it initialises date formatting itself (see
+/// [L10n.use]).
 Future<void> saveUiLanguage(Locale locale) async {
   try {
     final prefs = await SharedPreferences.getInstance();

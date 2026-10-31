@@ -17,6 +17,7 @@ import 'package:onset/models/category.dart';
 import 'package:onset/models/channel.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/models/followed_channel.dart';
+import 'package:onset/models/onset_release.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/models/vod.dart';
@@ -44,6 +45,7 @@ import 'package:onset/screens/settings/widgets/release_notes.dart';
 import 'package:onset/screens/vod/vod_player_controller.dart';
 import 'package:onset/screens/whispers/whispers_screen.dart';
 import 'package:onset/services/notifications/activity_log.dart';
+import 'package:onset/services/onset_updater.dart';
 import 'package:onset/services/playback_focus.dart';
 import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 import 'package:onset/stores/mini_player_store.dart';
@@ -1890,6 +1892,64 @@ void main() {
       await close(tester);
     });
 
+    testWidgets('the update offer waits for the question: never both at '
+        'once', (tester) async {
+      savedBeforeFrench();
+      final updater = _MockUpdater();
+      when(() => updater.enabled).thenReturn(true);
+      when(() => updater.removeInstalledDownloads()).thenAnswer((_) async {});
+      when(() => updater.check()).thenAnswer(
+        (_) async => const UpdateAvailable(
+          OnsetRelease(
+            build: 2023,
+            tag: 'build-2023',
+            notes: 'Faster chat',
+            apkAssetId: 1,
+            shaAssetId: 2,
+            apkSize: 1024,
+          ),
+          2020,
+        ),
+      );
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<AuthStore>.value(value: FakeAuthStore()),
+            Provider<SettingsStore>.value(value: settings),
+            Provider<TwitchApi>.value(value: api),
+            Provider<TwitchClipService>.value(value: clips),
+            Provider<TwitchVodService>.value(value: vods),
+            Provider<TwitchHypeTrainService>.value(
+              value: MockHypeTrainService(),
+            ),
+            Provider<ActivityStore>.value(value: activity),
+            Provider<WhisperStore>.value(value: whispers),
+            Provider<MiniPlayerStore>.value(value: mini),
+            Provider<OnsetUpdater>.value(value: updater),
+          ],
+          child: MaterialApp(
+            theme: themes.light,
+            navigatorObservers: [OnsetShell.routeObserver],
+            home: const Home(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      verify(() => updater.check()).called(1);
+      expect(find.text(english.languagePromptTitle), findsOneWidget);
+      expect(find.text('Update available'), findsNothing);
+
+      await tester.tap(find.text(english.languagePromptConfirm));
+      await tester.pumpAndSettle();
+      expect(find.text(english.languagePromptTitle), findsNothing);
+      expect(find.text('Update available'), findsWidgets);
+      await close(tester);
+    });
+
     testWidgets('waits while a page covers Home, then asks', (tester) async {
       savedBeforeFrench();
       tester.view.physicalSize = const Size(390, 844);
@@ -1947,6 +2007,8 @@ void main() {
     });
   });
 }
+
+class _MockUpdater extends Mock implements OnsetUpdater {}
 
 class _RouteNames extends NavigatorObserver {
   _RouteNames(this.names);

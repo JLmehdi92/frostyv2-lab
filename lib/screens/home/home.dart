@@ -204,6 +204,11 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
   @override
   void initState() {
     super.initState();
+    // Answered before: the update offer has nothing to wait for.
+    if (context.read<SettingsStore>().languagePromptVersion >=
+        kLanguagePromptVersion) {
+      _settleLanguage();
+    }
     _whispers = _whisperStore.incoming.listen(_onWhisper);
     _disposeAccount = reaction((_) => _whisperStore.me, _onAccount);
     OnsetShell.routeObserver.addListener(_onRoutes);
@@ -291,6 +296,17 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     }
   }
 
+  /// Completes once the language question is settled (answered now, or
+  /// before): the update offer waits for it ([beforeUpdateOffer]).
+  final _languageSettled = Completer<void>();
+
+  @override
+  Future<void> beforeUpdateOffer() => _languageSettled.future;
+
+  void _settleLanguage() {
+    if (!_languageSettled.isCompleted) _languageSettled.complete();
+  }
+
   /// Asks the language of an install from before French
   /// ([SettingsStore.languagePromptVersion] under [kLanguagePromptVersion]):
   /// after the launch intro has landed, and only with Home in front. New
@@ -300,12 +316,14 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     final settings = context.read<SettingsStore>();
     if (settings.languagePromptVersion >= kLanguagePromptVersion) {
       _languagePending = false;
+      _settleLanguage();
       return true;
     }
     await LaunchIntro.landed();
     if (!mounted || _covered) return false;
     _languagePending = false;
     await showLanguagePrompt(context, settings: settings);
+    _settleLanguage();
     return mounted;
   }
 

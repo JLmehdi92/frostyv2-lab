@@ -88,7 +88,11 @@ void main() {
   ) async {
     await pump(tester);
     expect(
-      find.text(english.settingsLanguageSystemSubtitle(language: 'English')),
+      find.text(
+        english.settingsLanguageSystemSubtitle(
+          language: english.languageInTextEnglish,
+        ),
+      ),
       findsOneWidget,
     );
   });
@@ -101,7 +105,11 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.text(french.settingsLanguageSystemSubtitle(language: 'Français')),
+      find.text(
+        french.settingsLanguageSystemSubtitle(
+          language: french.languageInTextFrench,
+        ),
+      ),
       findsOneWidget,
     );
   });
@@ -120,7 +128,11 @@ void main() {
     expect(find.text(french.appLanguageSystem), findsOneWidget);
     // System still says the device's language (English here).
     expect(
-      find.text(french.settingsLanguageSystemSubtitle(language: 'English')),
+      find.text(
+        french.settingsLanguageSystemSubtitle(
+          language: french.languageInTextEnglish,
+        ),
+      ),
       findsOneWidget,
     );
 
@@ -140,6 +152,31 @@ void main() {
     expect(settings.appLanguage, AppLanguage.en);
     expect(
       find.text(english.settingsLanguageTitle.toUpperCase()),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a device language change updates what System says, even '
+      'with an explicit language', (tester) async {
+    settings.chooseLanguage(AppLanguage.en);
+    await pump(tester);
+    expect(
+      find.text(
+        english.settingsLanguageSystemSubtitle(
+          language: english.languageInTextEnglish,
+        ),
+      ),
+      findsOneWidget,
+    );
+    tester.platformDispatcher.localesTestValue = const [Locale('fr', 'FR')];
+    await tester.pumpAndSettle();
+    expect(settings.appLanguage, AppLanguage.en);
+    expect(
+      find.text(
+        english.settingsLanguageSystemSubtitle(
+          language: english.languageInTextFrench,
+        ),
+      ),
       findsOneWidget,
     );
   });

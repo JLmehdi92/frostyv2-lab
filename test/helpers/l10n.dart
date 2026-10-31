@@ -101,9 +101,13 @@ List<String> englishLeaks(WidgetTester tester) {
   final french =
       jsonDecode(File('lib/l10n/app_fr.arb').readAsStringSync())
           as Map<String, Object?>;
+  // A word French also shows as is (the endonym "English") is no leak.
+  final frenchValues = french.values.toSet();
   final patterns = <RegExp>[];
   for (final MapEntry(:key, :value) in english.entries) {
-    if (key.startsWith('@') || value is! String || french[key] == value) {
+    if (key.startsWith('@') ||
+        value is! String ||
+        frenchValues.contains(value)) {
       continue;
     }
     // A plural or select: its branches are not matched (none is shown

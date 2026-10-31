@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'arb.dart';
@@ -159,8 +160,25 @@ void main() {
         );
         for (final key in enKeys) {
           final message = IcuMessage.parse(arb[key]! as String);
-          if (message.arguments.isNotEmpty) continue;
-          expect(members[key], arb[key], reason: '$lang $key: regenerate');
+          final member = members[key]!;
+          if (message.arguments.isEmpty) {
+            expect(member.value, arb[key], reason: '$lang $key: regenerate');
+            continue;
+          }
+          // A message with placeholders: the same parameters, and every
+          // piece of its text spelled out in the method.
+          expect(
+            member.parameters,
+            message.arguments.toSet(),
+            reason: '$lang $key: regenerate',
+          );
+          for (final fragment in message.fragments) {
+            expect(
+              member.texts.any((text) => text.contains(fragment)),
+              isTrue,
+              reason: '$lang $key: "$fragment" is not generated; regenerate',
+            );
+          }
         }
       });
     }
@@ -181,11 +199,14 @@ void main() {
   });
 }
 
-/// The members of the generated class in [path]: each getter with the
-/// text it returns, each method (a message with placeholders) with null.
-Map<String, String?> _generatedMembers(String path) {
+/// A generated message: the text a getter returns, or a method's
+/// parameters and the texts of its string literals.
+typedef _Member = ({String? value, Set<String> parameters, List<String> texts});
+
+/// The members of the generated class in [path], by message key.
+Map<String, _Member> _generatedMembers(String path) {
   final unit = parseString(content: File(path).readAsStringSync()).unit;
-  final members = <String, String?>{};
+  final members = <String, _Member>{};
   for (final declaration in unit.declarations) {
     if (declaration is! ClassDeclaration) continue;
     for (final member in declaration.members) {
@@ -197,8 +218,32 @@ Map<String, String?> _generatedMembers(String path) {
               body.expression is StringLiteral
           ? (body.expression as StringLiteral).stringValue
           : null;
-      members[member.name.lexeme] = value;
+      final texts = _Literals();
+      body.accept(texts);
+      members[member.name.lexeme] = (
+        value: value,
+        parameters: {
+          for (final parameter in member.parameters?.parameters ?? const [])
+            ?parameter.name?.lexeme,
+        },
+        texts: texts.found,
+      );
     }
   }
   return members;
+}
+
+/// The text of every string literal, an interpolation cutting it.
+class _Literals extends RecursiveAstVisitor<void> {
+  final found = <String>[];
+
+  @override
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
+    found.add(node.value);
+  }
+
+  @override
+  void visitInterpolationString(InterpolationString node) {
+    found.add(node.value);
+  }
 }

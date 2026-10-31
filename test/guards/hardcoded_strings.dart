@@ -57,15 +57,106 @@ List<File> scannedFiles([String root = 'lib']) {
 final _generatedL10n = RegExp(r'(^|/)lib/l10n/app_localizations[^/]*\.dart$');
 
 /// The literals of [source] (the file at [path]) that read like UI text.
-List<FlaggedLiteral> flaggedIn(String source, {String path = 'source.dart'}) {
+///
+/// [helpers] are the project's functions that show a parameter as text
+/// ([uiHelpersIn]); by default, those of [source] itself.
+List<FlaggedLiteral> flaggedIn(
+  String source, {
+  String path = 'source.dart',
+  UiHelpers? helpers,
+}) {
   final result = parseString(
     content: source,
     path: path,
     throwIfDiagnostics: false,
   );
-  final visitor = _Visitor(path, result.lineInfo);
+  final visitor = _Visitor(
+    path,
+    result.lineInfo,
+    helpers ?? uiHelpersIn([source]),
+  );
   result.unit.accept(visitor);
   return visitor.found;
+}
+
+/// Functions and methods that show one of their parameters as text, by
+/// name: each with the parameters that do (`#0` for the first positional
+/// one, the name for a named one). A literal passed there is UI text.
+typedef UiHelpers = Map<String, Set<String>>;
+
+/// The [UiHelpers] of [sources]: a parameter that reaches a place showing
+/// text (`Text(message)`, `label: title`), directly or through another
+/// helper.
+UiHelpers uiHelpersIn(Iterable<String> sources) {
+  final units = [
+    for (final source in sources)
+      parseString(content: source, throwIfDiagnostics: false).unit,
+  ];
+  final helpers = <String, Set<String>>{};
+  for (var pass = 0; pass < 6; pass++) {
+    final finder = _HelperFinder(helpers);
+    for (final unit in units) {
+      unit.accept(finder);
+    }
+    if (!finder.changed) break;
+  }
+  return helpers;
+}
+
+class _HelperFinder extends RecursiveAstVisitor<void> {
+  _HelperFinder(this.helpers);
+
+  final UiHelpers helpers;
+  var changed = false;
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    _check(
+      node.name.lexeme,
+      node.functionExpression.parameters,
+      node.functionExpression.body,
+    );
+    super.visitFunctionDeclaration(node);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    _check(node.name.lexeme, node.parameters, node.body);
+    super.visitMethodDeclaration(node);
+  }
+
+  void _check(String name, FormalParameterList? parameters, FunctionBody body) {
+    if (parameters == null) return;
+    final keys = <String, String>{};
+    var position = 0;
+    for (final parameter in parameters.parameters) {
+      final id = parameter.name?.lexeme;
+      if (id == null) continue;
+      keys[id] = parameter.isNamed ? id : '#${position++}';
+    }
+    if (keys.isEmpty) return;
+    final uses = _Uses(keys.keys.toSet());
+    body.accept(uses);
+    for (final use in uses.found) {
+      if (_inUiPlace(use, helpers)) {
+        if (helpers.putIfAbsent(name, () => {}).add(keys[use.name]!)) {
+          changed = true;
+        }
+      }
+    }
+  }
+}
+
+class _Uses extends RecursiveAstVisitor<void> {
+  _Uses(this.names);
+
+  final Set<String> names;
+  final found = <SimpleIdentifier>[];
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (names.contains(node.name)) found.add(node);
+  }
 }
 
 /// [flagged] grouped by file, without what [allowlist] lets through.
@@ -141,7 +232,10 @@ final _letters = RegExp(r'\p{L}{2,}', unicode: true);
 final _codeToken = RegExp(r'^[\w-]+[:_/.][\w-]+(?:[:_/.][\w-]+)*$');
 final _codeChars = RegExp(r'[{};=`\\]');
 final _host = RegExp(r'^[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:/\S*)?$');
-final _snakeOrDotted = RegExp(r'^[\w.:/-]*[_.:/][\w.:/-]*$');
+
+/// One token with a separator between word characters: `v5.0.5`,
+/// `chat:read`, `a/b` (not `Done.` or `Error:`, words with punctuation).
+final _snakeOrDotted = RegExp(r'^[\w-]+(?:[.:/][\w-]+)+$');
 final _kebab = RegExp(r'^[a-z0-9]+(?:-[a-z0-9]+){2,}$');
 
 /// Variables holding UI text by name (`themeNames`, `_notes`).
@@ -293,6 +387,10 @@ const _uiNames = {
   'question',
   'prompt',
   'warning',
+  'options',
+  'selectedOption',
+  'labels',
+  'tabs',
 };
 
 final _uiSuffix = RegExp(
@@ -315,10 +413,11 @@ bool _isUiName(String name) =>
     (_uiNames.contains(name) || _uiSuffix.hasMatch(name));
 
 class _Visitor extends RecursiveAstVisitor<void> {
-  _Visitor(this.path, this.lines);
+  _Visitor(this.path, this.lines, this.helpers);
 
   final String path;
   final LineInfo lines;
+  final UiHelpers helpers;
   final found = <FlaggedLiteral>[];
 
   @override
@@ -370,7 +469,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
     if (_textIsCode(text)) return;
     if (_contextIsCode(node)) return;
     final String reason;
-    if (_inUiPlace(node)) {
+    if (_inUiPlace(node, helpers)) {
       reason = 'ui';
     } else if (_sentenceLike(text)) {
       reason = 'sentence';
@@ -396,6 +495,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
     if (RegExp(r'^#[0-9A-Fa-f]{3,8}$').hasMatch(t)) return true;
     if (!t.contains(RegExp(r'\s')) &&
         (t.startsWith('/') ||
+            t.contains('_') ||
             _snakeOrDotted.hasMatch(t) ||
             _kebab.hasMatch(t))) {
       return true;
@@ -429,12 +529,10 @@ class _Visitor extends RecursiveAstVisitor<void> {
     return const {};
   }
 
+  // An exception's message is code only when it is thrown (the throw
+  // exempts it): a built one can be shown (an API error on screen).
   static bool _exemptCallee(Set<String> names) => names.any(
-    (n) =>
-        _exemptClasses.contains(n) ||
-        _exemptMethods.contains(n) ||
-        n.endsWith('Exception') ||
-        n.endsWith('Error'),
+    (n) => _exemptClasses.contains(n) || _exemptMethods.contains(n),
   );
 
   /// Walks up from [node] through what keeps its text as it is
@@ -459,6 +557,8 @@ class _Visitor extends RecursiveAstVisitor<void> {
         SwitchExpression() => child is SwitchExpressionCase,
         MethodInvocation(:final target, :final methodName) =>
           child == target && _transparentMethods.contains(methodName.name),
+        MapLiteralEntry(:final value) => child == value,
+        SetOrMapLiteral() => child is MapLiteralEntry,
         _ => false,
       };
       if (!transparent) break;
@@ -504,30 +604,69 @@ class _Visitor extends RecursiveAstVisitor<void> {
     }
     return false;
   }
+}
 
-  bool _inUiPlace(AstNode node) {
-    final (child, anchor) = _anchor(node);
-    switch (anchor) {
-      case NamedExpression(:final name):
-        final label = name.label.name;
-        if (label == 'value') {
-          final call = anchor.parent?.parent;
-          return _calleeNames(call).contains('Semantics');
-        }
-        return _isUiName(label);
-      case ArgumentList():
-        final call = anchor.parent;
-        if (call is EnumConstantArguments) return true;
-        return _calleeNames(call).any(_uiPositional.contains);
-      case DefaultFormalParameter(:final defaultValue, :final parameter)
-          when defaultValue == child:
-        final name = parameter.name?.lexeme;
-        return name != null && _isUiName(name);
-      case VariableDeclaration(:final initializer, :final name)
-          when initializer == child:
-        return _uiVariable.hasMatch(name.lexeme);
-      default:
+/// Whether [node] (a literal, or a parameter in a helper) lands in a place
+/// that shows text, the [helpers] included.
+bool _inUiPlace(AstNode node, UiHelpers helpers) {
+  final (child, anchor) = _Visitor._anchor(node);
+  switch (anchor) {
+    case NamedExpression(:final name):
+      final label = name.label.name;
+      final call = anchor.parent?.parent;
+      if (label == 'value') {
+        return _Visitor._calleeNames(call).contains('Semantics');
+      }
+      if (_isUiName(label)) return true;
+      return _helperTakes(call, label, helpers);
+    case ArgumentList(:final arguments):
+      final call = anchor.parent;
+      if (call is EnumConstantArguments) return true;
+      if (_Visitor._calleeNames(call).any(_uiPositional.contains)) {
+        return true;
+      }
+      final position = arguments
+          .where((a) => a is! NamedExpression)
+          .toList()
+          .indexOf(child as Expression);
+      return position >= 0 && _helperTakes(call, '#$position', helpers);
+    case ExpressionFunctionBody():
+      return _inUiFunction(anchor, helpers);
+    case ReturnStatement():
+      return _inUiFunction(anchor, helpers);
+    case DefaultFormalParameter(:final defaultValue, :final parameter)
+        when defaultValue == child:
+      final name = parameter.name?.lexeme;
+      return name != null && _isUiName(name);
+    case VariableDeclaration(:final initializer, :final name)
+        when initializer == child:
+      return _uiVariable.hasMatch(name.lexeme);
+    default:
+      return false;
+  }
+}
+
+/// Whether [call] is a helper showing its parameter [key] as text.
+bool _helperTakes(AstNode? call, String key, UiHelpers helpers) {
+  final String? name = switch (call) {
+    MethodInvocation(:final methodName) => methodName.name,
+    _ => null,
+  };
+  return name != null && (helpers[name]?.contains(key) ?? false);
+}
+
+/// Whether [node] (a function body's expression, or a return) returns from
+/// a getter or function named like UI text (`label`, `title`).
+bool _inUiFunction(AstNode node, UiHelpers helpers) {
+  for (AstNode? up = node.parent; up != null; up = up.parent) {
+    switch (up) {
+      case FunctionExpression() when up.parent is! FunctionDeclaration:
         return false;
+      case FunctionDeclaration(:final name) || MethodDeclaration(:final name):
+        return _isUiName(name.lexeme);
+      default:
+        break;
     }
   }
+  return false;
 }

@@ -38,48 +38,76 @@ class OnboardingIntroPhone extends StatelessWidget {
   final ValueChanged<AppLanguage> onLanguage;
   final VoidCallback onNext;
 
-  /// The language pill's width.
+  /// The language pill's width at text scale 1.
   static const languageWidth = 232.0;
+
+  /// The space between the version and the bottom: "Next" (52) and 16
+  /// above it, over the bottom inset's 24.
+  static const _aboveNext = 24 + 52 + 16.0;
 
   @override
   Widget build(BuildContext context) {
+    final textScaler = MediaQuery.textScalerOf(context);
+    final width = MediaQuery.sizeOf(context).width;
     return Stack(
       children: [
-        Positioned(
-          left: descriptionSide,
-          right: descriptionSide,
-          top: nameBottom + 31,
-          child: StepRise(
-            order: 2,
-            child: Text(
-              context.l10n.onboardingIntroDescription,
-              textAlign: TextAlign.center,
-              style: descriptionStyle,
+        // The description from the top, the pill and the version from the
+        // bottom: one column, so they never overlap. When the window is too
+        // short for all of them (large text) it scrolls instead.
+        Positioned.fill(
+          child: Padding(
+            padding: EdgeInsets.only(
+              top: nameBottom + 31,
+              bottom: bottomInset + _aboveNext,
             ),
-          ),
-        ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: bottomInset + 92 + 15 + 16,
-          child: StepRise(
-            order: 5,
-            child: Center(
-              child: SizedBox(
-                width: languageWidth,
-                child: OnboardingLanguageChoice(
-                  value: language,
-                  onChanged: onLanguage,
+            child: LayoutBuilder(
+              builder: (context, constraints) => SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: descriptionSide,
+                          ),
+                          child: StepRise(
+                            order: 2,
+                            child: Text(
+                              context.l10n.onboardingIntroDescription,
+                              textAlign: TextAlign.center,
+                              style: descriptionStyle,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        const Spacer(),
+                        StepRise(
+                          order: 5,
+                          child: SizedBox(
+                            width: math.min(
+                              textScaler.scale(languageWidth),
+                              width - 32,
+                            ),
+                            child: OnboardingLanguageChoice(
+                              value: language,
+                              onChanged: onLanguage,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        StepRise(
+                          order: 3,
+                          child: OnboardingVersion(version: version),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: bottomInset + 92,
-          child: StepRise(order: 3, child: OnboardingVersion(version: version)),
         ),
         Positioned(
           left: 16,
@@ -132,11 +160,21 @@ class OnboardingIntroPhone extends StatelessWidget {
     return height > threeLines ? height : threeLines;
   }
 
-  /// The height the intro needs under the name, with [descriptionRoom]:
-  /// the description, the language pill (44 and 16 around it), the version
-  /// and the button.
-  static double neededBelowName(double descriptionRoom) =>
-      31 + descriptionRoom + 24 + 60 + 15 + 92;
+  /// The height the intro needs under the name, with [descriptionRoom] and
+  /// text scaled by [textScaler]: the description, the language pill and
+  /// 16 under it, the version line, "Next". Less raises the tile; when even
+  /// that is not enough, the column scrolls.
+  static double neededBelowName(
+    double descriptionRoom,
+    TextScaler textScaler,
+  ) =>
+      31 +
+      descriptionRoom +
+      24 +
+      OnboardingLanguageChoice.heightFor(textScaler) +
+      16 +
+      OnboardingVersion.heightFor(textScaler) +
+      _aboveNext;
 }
 
 /// Step 1, Intro, on a tablet: "First launch", the description and the
@@ -211,7 +249,12 @@ class OnboardingIntroTablet extends StatelessWidget {
                         child: Padding(
                           padding: const EdgeInsets.only(top: 4),
                           child: SizedBox(
-                            width: OnboardingIntroPhone.languageWidth,
+                            width: math.min(
+                              MediaQuery.textScalerOf(
+                                context,
+                              ).scale(OnboardingIntroPhone.languageWidth),
+                              width,
+                            ),
                             child: OnboardingLanguageChoice(
                               value: language,
                               onChanged: onLanguage,
@@ -256,6 +299,10 @@ class OnboardingVersion extends StatelessWidget {
   const OnboardingVersion({super.key, required this.version});
 
   final String? version;
+
+  /// Its line's height with text scaled by [textScaler] (12 dp Inter).
+  static double heightFor(TextScaler textScaler) =>
+      (textScaler.scale(12) * 1.25).ceilToDouble();
 
   @override
   Widget build(BuildContext context) {

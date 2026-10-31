@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -20,6 +21,7 @@ void main() {
     0x2013: '–',
     0x2014: '—',
     0x00B7: '·',
+    0x203A: '›',
     0x0153: 'œ',
     0x0152: 'Œ',
     0x00E6: 'æ',
@@ -71,11 +73,31 @@ void main() {
     expect(mapped, isNot(contains(0x1F600)));
   });
 
+  // Every character beyond ASCII the ARB files use (› in "Paramètres ›
+  // Général", the no-break spaces…), on top of the list above.
+  final used = <int, String>{
+    for (final path in const ['lib/l10n/app_en.arb', 'lib/l10n/app_fr.arb'])
+      for (final MapEntry(:key, :value)
+          in (jsonDecode(File(path).readAsStringSync()) as Map<String, Object?>)
+              .entries)
+        if (!key.startsWith('@') && value is String)
+          for (final rune in value.runes)
+            if (rune > 0x7E) rune: String.fromCharCode(rune),
+  };
+
+  test('the ARB files are read for their characters', () {
+    expect(used.keys, containsAll([0x202F, 0x00A0, 0x2019, 0x203A]));
+  });
+
   for (final face in faces) {
-    test('${face.uri.pathSegments.last} draws French', () {
+    test('${face.uri.pathSegments.last} draws French and every ARB '
+        'character', () {
       final mapped = cmapCodePoints(face.readAsBytesSync());
       final missing = [
-        for (final MapEntry(key: code, value: name) in french.entries)
+        for (final MapEntry(key: code, value: name) in {
+          ...french,
+          ...used,
+        }.entries)
           if (!mapped.contains(code))
             'U+${code.toRadixString(16).toUpperCase().padLeft(4, '0')} $name',
       ];
