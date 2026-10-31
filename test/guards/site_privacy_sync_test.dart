@@ -12,9 +12,10 @@ import 'package:flutter_test/flutter_test.dart';
 /// Markdown file's plain text (syntax dropped, link text kept), whitespace
 /// collapsed on both sides. The top bar, language switch and footer sit
 /// outside the article and are ignored. The contents block inside the article
-/// is left out too, after checking that it only lists the section headings.
-/// Nothing inside the article may be hidden (`hidden`, `style=`,
-/// `aria-hidden`), so the compared text is the text a reader sees.
+/// is left out too; it and the desktop contents list must list exactly the
+/// section headings. The article may only use the few tags, attributes and
+/// classes the page needs, so nothing in it can be hidden from the reader
+/// while still counting as policy text.
 void main() {
   group('the guard', () {
     const markdown = '''
@@ -43,6 +44,8 @@ https://example.org. Write to `me@example.com`; an address such as
 <!doctype html><html lang="en"><body>
 <header class="bar"><a href="/">ONSET</a></header>
 <nav class="lang"><a href="/privacy">English</a> · <a href="/fr/privacy">Français</a></nav>
+<aside class="toc-col"><nav class="toc toc-d"><p class="toc-h">On this page</p>
+<ol><li><a href="#a-section">1. A section</a></li></ol></nav></aside>
 <article class="policy" id="policy" tabindex="-1">
 <h1 id="policy-title">Policy</h1>
 <p><strong>Effective date:</strong> 1 May 2026</p>
@@ -56,7 +59,7 @@ https://example.org. Write to `me@example.com`; an address such as
 <h2 id="a-section">1. A section</h2>
 <ul><li>First item, <strong>bold across lines</strong>.</li>
 <li>Second item.</li></ul>
-<div class="tbl"><table><thead><tr><th>What</th><th>Where</th></tr></thead>
+<div class="tbl tbl-2" role="region" tabindex="0" aria-label="What · Where"><table><thead><tr><th>What</th><th>Where</th></tr></thead>
 <tbody><tr><th scope="row">Tokens</th><td data-label="Where">Encrypted storage (<code>flutter_secure_storage</code>)</td></tr>
 <tr><th scope="row">Images</th><td data-label="Where"></td></tr></tbody></table></div>
 </article>
@@ -73,7 +76,7 @@ https://example.org. Write to `me@example.com`; an address such as
       expect(html, isNot(contains('On this page')));
       expect(firstDifference(md, html), isNull);
       expect(linkDifference(markdown, page, 'page.html'), isNull);
-      expect(hiddenContent(page, 'page.html'), isEmpty);
+      expect(markupProblems(page, 'page.html'), isEmpty);
       expect(tocProblems(page, 'page.html'), isEmpty);
     });
 
@@ -159,19 +162,47 @@ https://example.org. Write to `me@example.com`; an address such as
       },
     );
 
-    test('refuses hidden content inside the article', () {
-      for (final attribute in [
-        'hidden',
-        'style="display:none"',
-        'aria-hidden="true"',
-      ]) {
+    test('finds two link targets swapped', () {
+      expect(
+        linkDifference(
+          markdown,
+          page
+              .replaceFirst('href="https://example.com"', 'href="#swap"')
+              .replaceFirst(
+                'href="https://example.org"',
+                'href="https://example.com"',
+              )
+              .replaceFirst('href="#swap"', 'href="https://example.org"'),
+          'page.html',
+        ),
+        isNotNull,
+      );
+    });
+
+    test('refuses markup that can hide text or fake a link', () {
+      const hiders = [
+        '<p hidden>X</p>',
+        '<p style="display:none">X</p>',
+        '<p aria-hidden="true">X</p>',
+        '<p class="skip">X</p>',
+        '<details><summary>More</summary>X</details>',
+        '<noscript>X</noscript>',
+        '<template>X</template>',
+        '<p><del>X</del></p>',
+        "<p><a data-href=\"mailto:me@example.com\" href='mailto:evil@example.net'>X</a></p>",
+        '<p><a>X</a></p>',
+      ];
+      for (final hider in hiders) {
         expect(
-          hiddenContent(
-            page.replaceFirst('<li>Second item.</li>', '<li $attribute>X</li>'),
+          markupProblems(
+            page.replaceFirst(
+              '<h2 id="a-section">',
+              '$hider\n<h2 id="a-section">',
+            ),
             'page.html',
           ),
           isNotEmpty,
-          reason: attribute,
+          reason: hider,
         );
       }
     });
@@ -193,6 +224,29 @@ https://example.org. Write to `me@example.com`; an address such as
           page.replaceFirst(
             '<a href="#a-section">1. A section</a>',
             '<a href="https://example.net">1. A section</a>',
+          ),
+          'page.html',
+        ),
+        isNotEmpty,
+      );
+    });
+
+    test('checks the desktop contents list too', () {
+      expect(
+        tocProblems(
+          page.replaceFirst(
+            '<ol><li><a href="#a-section">1. A section</a></li></ol></nav></aside>',
+            '<ol><li><a href="#a-section">1. Old name</a></li></ol></nav></aside>',
+          ),
+          'page.html',
+        ),
+        isNotEmpty,
+      );
+      expect(
+        tocProblems(
+          page.replaceFirst(
+            '<ol><li><a href="#a-section">1. A section</a></li></ol></nav></aside>',
+            '<ol></ol></nav></aside>',
           ),
           'page.html',
         ),
@@ -249,7 +303,7 @@ https://example.org. Write to `me@example.com`; an address such as
         reason: entry.value,
       );
 
-      expect(hiddenContent(htmlSource, entry.value), isEmpty);
+      expect(markupProblems(htmlSource, entry.value), isEmpty);
       expect(tocProblems(htmlSource, entry.value), isEmpty);
       final links = linkDifference(mdSource, htmlSource, entry.value);
       if (links != null) fail(links);
@@ -271,42 +325,45 @@ const linkedCode = {
   'PRIVACY.md': 'https://github.com/JLmehdi92/ONSET/blob/main/PRIVACY.md',
 };
 
-final _email = RegExp(r'[\w.+-]+@[\w-]+(?:\.[\w-]+)+');
-final _bareUrl = RegExp(r'https?://[^\s<>()`|]+[^\s<>()`|.,;:]');
+final _mdLink = RegExp(
+  r'!?\[[^\]]*\]\(([^)\s]+)[^)]*\)'
+  r'|<(https?://[^>]+)>'
+  r'|(https?://[^\s<>()`|]+[^\s<>()`|.,;:])'
+  r'|([\w.+-]+@[\w-]+(?:\.[\w-]+)+)',
+);
+final _email = RegExp(r'^[\w.+-]+@[\w-]+(?:\.[\w-]+)+$');
 final _tocBlock = RegExp(
   r'<details\b[^>]*\bclass="[^"]*\btoc\b[^"]*"[^>]*>[\s\S]*?</details>',
 );
-final _anchor = RegExp(r'<a\b[^>]*?\bhref="([^"]*)"[^>]*>([\s\S]*?)</a>');
+final _deskToc = RegExp(
+  r'<nav\b[^>]*\bclass="[^"]*\btoc-d\b[^"]*"[^>]*>[\s\S]*?</nav>',
+);
+final _anchor = RegExp(r'<a\s(?:[^>]*?\s)?href="([^"]*)"[^>]*>([\s\S]*?)</a>');
 
-/// The link targets a Markdown file has once shown on GitHub, plus the
-/// targets the page adds: `mailto:` for each address and [linkedCode].
+/// The link targets of a Markdown file as GitHub shows them, in reading
+/// order, plus the targets the page adds: `mailto:` for each address and
+/// [linkedCode].
 List<String> markdownLinkTargets(String markdown) {
   final targets = <String>[];
   final text = markdown.replaceAll('\r\n', '\n');
-  final code = RegExp(r'`([^`]+)`');
   var last = 0;
   void prose(String s) {
-    s = s.replaceAllMapped(RegExp(r'!?\[[^\]]*\]\(([^)\s]+)[^)]*\)'), (m) {
-      targets.add(m.group(1)!);
-      return ' ';
-    });
-    s = s.replaceAllMapped(RegExp(r'<(https?://[^>]+)>'), (m) {
-      targets.add(m.group(1)!);
-      return ' ';
-    });
-    s = s.replaceAllMapped(_bareUrl, (m) {
-      targets.add(m.group(0)!);
-      return ' ';
-    });
-    targets.addAll(_email.allMatches(s).map((m) => 'mailto:${m.group(0)}'));
+    for (final m in _mdLink.allMatches(s)) {
+      final email = m.group(4);
+      targets.add(
+        email != null
+            ? 'mailto:$email'
+            : (m.group(1) ?? m.group(2) ?? m.group(3))!,
+      );
+    }
   }
 
-  for (final m in code.allMatches(text)) {
+  for (final m in RegExp(r'`([^`]+)`').allMatches(text)) {
     prose(text.substring(last, m.start));
     final span = m.group(1)!;
     if (linkedCode.containsKey(span)) {
       targets.add(linkedCode[span]!);
-    } else if (_email.hasMatch(span) && _email.stringMatch(span) == span) {
+    } else if (_email.hasMatch(span)) {
       targets.add('mailto:$span');
     }
     last = m.end;
@@ -315,71 +372,144 @@ List<String> markdownLinkTargets(String markdown) {
   return targets;
 }
 
-/// The `href` of every link in a fragment, entities decoded.
+/// The `href` of every link in a fragment, in order, entities decoded.
 List<String> htmlLinkTargets(String fragment) => _anchor
     .allMatches(fragment)
     .map((m) => decodeEntities(m.group(1)!))
     .toList();
 
-/// Null when the article links to exactly the Markdown's targets (as a
-/// multiset), otherwise the targets missing from the page and the extra ones.
+/// Null when the article links to exactly the Markdown's targets, in the
+/// same order, otherwise where the two lists first differ.
 String? linkDifference(String markdown, String html, String name) {
   final expected = markdownLinkTargets(markdown);
   final actual = htmlLinkTargets(policyBody(html, name));
-  final missing = [...expected];
-  final extra = <String>[];
-  for (final href in actual) {
-    if (!missing.remove(href)) extra.add(href);
+  final n = expected.length < actual.length ? expected.length : actual.length;
+  var i = 0;
+  while (i < n && expected[i] == actual[i]) {
+    i++;
   }
-  if (missing.isEmpty && extra.isEmpty) return null;
-  return '$name: its links no longer match the policy.\n'
-      '  Missing from the page: ${missing.isEmpty ? 'none' : missing.join(', ')}\n'
-      '  Not in the policy:     ${extra.isEmpty ? 'none' : extra.join(', ')}';
+  if (i == expected.length && i == actual.length) return null;
+  String at(List<String> l) => i < l.length ? l[i] : '(no more links)';
+  return '$name: its links no longer match the policy (${expected.length} '
+      'expected, ${actual.length} found). Link ${i + 1}:\n'
+      '  Policy: ${at(expected)}\n'
+      '  Page:   ${at(actual)}';
 }
 
-/// The opening tags inside the article (contents block left out) that hide
-/// or restyle what they hold.
-List<String> hiddenContent(String html, String name) => RegExp(
-  r'<[a-zA-Z][^>]*\s(?:hidden|style|aria-hidden)\b[^>]*>',
-  caseSensitive: false,
-).allMatches(policyBody(html, name)).map((m) => m.group(0)!).toList();
+const _allowedTags = {
+  'a', 'code', 'div', 'h1', 'h2', 'li', 'p', 'strong', 'table', 'tbody', //
+  'td', 'th', 'thead', 'tr', 'ul',
+};
+const _allowedAttributes = {
+  'aria-label', 'class', 'data-label', 'href', 'id', 'role', 'scope', //
+  'tabindex',
+};
+const _allowedClasses = {'tbl tbl-2', 'tbl tbl-3'};
 
-/// What is wrong with the contents block inside the article, if any: it may
-/// hold a short summary and links to the policy's own headings, labelled with
-/// their exact text, each once and in order, and nothing else.
+/// What in the article (contents block left out) could hide text or fake a
+/// link: a tag, attribute or class the page does not use there, an attribute
+/// value without double quotes, or a link without an `href`.
+List<String> markupProblems(String html, String name) {
+  final problems = <String>[];
+  final tags = RegExp(r'<(/?)([a-zA-Z][\w-]*)([^>]*)>');
+  final attributes = RegExp(
+    r'''\s+([^\s=>]+)(?:\s*=\s*("[^"]*"|'[^']*'|[^\s>]+))?''',
+  );
+  for (final m in tags.allMatches(policyBody(html, name))) {
+    final tag = m.group(2)!.toLowerCase();
+    if (!_allowedTags.contains(tag)) {
+      problems.add('$name: <$tag> inside the policy');
+      continue;
+    }
+    if (m.group(1)!.isNotEmpty) continue;
+    var hasHref = false;
+    for (final a in attributes.allMatches(m.group(3)!)) {
+      final attribute = a.group(1)!.toLowerCase();
+      final value = a.group(2);
+      if (!_allowedAttributes.contains(attribute)) {
+        problems.add('$name: $attribute= on <$tag>');
+      } else if (value == null || !value.startsWith('"')) {
+        problems.add(
+          '$name: $attribute on <$tag> without a double-quoted value',
+        );
+      } else if (attribute == 'class' &&
+          !_allowedClasses.contains(value.substring(1, value.length - 1))) {
+        problems.add('$name: class $value on <$tag>');
+      }
+      if (attribute == 'href') hasHref = true;
+    }
+    if (tag == 'a' && !hasHref) problems.add('$name: a link without href');
+  }
+  return problems;
+}
+
+/// What is wrong with the two contents lists, if anything. The block inside
+/// the article (optional) and the desktop list (required) may each hold a
+/// short label and links to the policy's own headings, labelled with their
+/// exact text, each once and in order, and nothing else.
 List<String> tocProblems(String html, String name) {
   final article = policyArticle(html, name);
-  final blocks = _tocBlock.allMatches(article).toList();
-  if (blocks.isEmpty) return [];
-  if (blocks.length > 1) return ['$name: more than one contents block'];
-  final block = blocks.single.group(0)!;
   final heads = RegExp(r'<h2\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)</h2>')
       .allMatches(article.replaceAll(_tocBlock, ' '))
       .map((h) => '#${h.group(1)} ${_visibleText(h.group(2)!)}')
       .toList();
+  final problems = <String>[];
+  final blocks = _tocBlock.allMatches(article).toList();
+  if (blocks.length > 1) problems.add('$name: more than one contents block');
+  for (final b in blocks) {
+    problems.addAll(
+      _listProblems(
+        b.group(0)!,
+        heads,
+        '$name, contents in the policy',
+        RegExp(r'<summary\b[\s\S]*?</summary>'),
+      ),
+    );
+  }
+  final desk = _deskToc.allMatches(html).toList();
+  if (desk.length != 1) {
+    problems.add(
+      '$name: expected one desktop contents list (.toc-d), found '
+      '${desk.length}',
+    );
+  } else {
+    problems.addAll(
+      _listProblems(
+        desk.single.group(0)!,
+        heads,
+        '$name, desktop contents',
+        RegExp(r'<p\b[^>]*\bclass="toc-h"[^>]*>[\s\S]*?</p>'),
+      ),
+    );
+  }
+  return problems;
+}
+
+List<String> _listProblems(
+  String block,
+  List<String> heads,
+  String where,
+  RegExp label,
+) {
+  final problems = <String>[];
   final links = _anchor
       .allMatches(block)
       .map((a) => '${a.group(1)} ${_visibleText(a.group(2)!)}')
       .toList();
-  final problems = <String>[];
   if (links.join('\n') != heads.join('\n')) {
     problems.add(
-      '$name: the contents block must list exactly the section headings, '
-      'found:\n  ${links.join('\n  ')}',
+      '$where must list exactly the section headings, found:\n'
+      '  ${links.join('\n  ')}',
     );
   }
-  final summary = RegExp(r'<summary\b[\s\S]*?</summary>').firstMatch(block);
-  if (summary != null && _visibleText(summary.group(0)!).length > 40) {
-    problems.add('$name: the contents summary is too long to be a label');
+  final labelMatch = label.firstMatch(block);
+  if (labelMatch != null && _visibleText(labelMatch.group(0)!).length > 40) {
+    problems.add('$where: its label is too long to be a label');
   }
   final rest = _visibleText(
-    block
-        .replaceAll(_anchor, ' ')
-        .replaceAll(RegExp(r'<summary\b[\s\S]*?</summary>'), ' '),
+    block.replaceAll(_anchor, ' ').replaceAll(label, ' '),
   );
-  if (rest.isNotEmpty) {
-    problems.add('$name: text in the contents block outside its links: $rest');
-  }
+  if (rest.isNotEmpty) problems.add('$where: text outside its links: $rest');
   return problems;
 }
 
