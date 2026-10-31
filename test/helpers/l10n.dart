@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -87,4 +88,36 @@ Future<void> pumpLocalized(
     home: child,
   );
   await tester.pumpWidget(wrap?.call(app) ?? app);
+}
+
+/// The English texts the screen shows while it should be in French: every
+/// drawn text (and text field) equal to an English message that French
+/// words differently. Placeholder messages are matched on their fixed
+/// text around the placeholders.
+List<String> englishLeaks(WidgetTester tester) {
+  final english =
+      jsonDecode(File('lib/l10n/app_en.arb').readAsStringSync())
+          as Map<String, Object?>;
+  final french =
+      jsonDecode(File('lib/l10n/app_fr.arb').readAsStringSync())
+          as Map<String, Object?>;
+  final patterns = <RegExp>[];
+  for (final MapEntry(:key, :value) in english.entries) {
+    if (key.startsWith('@') || value is! String || french[key] == value) {
+      continue;
+    }
+    // A plural or select: its branches are not matched (none is shown
+    // whole), its simple placeholders are.
+    if (RegExp(r'\{\w+,').hasMatch(value)) continue;
+    final fixed = value.split(RegExp(r'\{\w+\}')).map(RegExp.escape).join('.+');
+    patterns.add(RegExp('^$fixed\$'));
+  }
+  final shown = <String>{
+    for (final widget in tester.widgetList<RichText>(find.byType(RichText)))
+      widget.text.toPlainText(),
+  };
+  return [
+    for (final text in shown)
+      if (patterns.any((pattern) => pattern.hasMatch(text))) text,
+  ];
 }

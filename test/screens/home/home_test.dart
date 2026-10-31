@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobx/mobx.dart' show Observable, ObservableList, runInAction;
 import 'package:mocktail/mocktail.dart';
@@ -11,6 +12,7 @@ import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_clip_service.dart';
 import 'package:onset/apis/twitch_hype_train_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/category.dart';
 import 'package:onset/models/channel.dart';
 import 'package:onset/models/clip.dart';
@@ -148,7 +150,9 @@ void main() {
     when(
       () => api.getUser(userLogin: any(named: 'userLogin')),
     ).thenAnswer((_) => Future.error(Exception('offline')));
-    settings = SettingsStore.fromJson({})..keepScreenAwake = false;
+    // The language question is answered (it has its own tests below).
+    settings = SettingsStore.fromJson({'languagePromptVersion': 1})
+      ..keepScreenAwake = false;
     activity = ActivityStore(log: await ActivityLog.load());
     whispers = WhisperStore(
       twitchApi: api,
@@ -1394,8 +1398,10 @@ void main() {
   testWidgets('a value saved before the shell still opens its place', (
     tester,
   ) async {
-    settings = SettingsStore.fromJson({'startTab': 'search'})
-      ..keepScreenAwake = false;
+    settings = SettingsStore.fromJson({
+      'startTab': 'search',
+      'languagePromptVersion': 1,
+    })..keepScreenAwake = false;
     await pump(tester);
     expect(find.byType(Categories), findsOneWidget);
     await close(tester);
@@ -1681,6 +1687,264 @@ void main() {
     expect(orientations, contains(isEmpty));
     expect(pushed, contains(ReleaseNotes.routeName));
     await close(tester);
+  });
+
+  group('the one-time language question', () {
+    final english = L10n.english;
+    final french = lookupAppLocalizations(const Locale('fr'));
+
+    /// Settings saved by a build before French: never asked.
+    void savedBeforeFrench() {
+      settings = SettingsStore.fromJson({})..keepScreenAwake = false;
+    }
+
+    Future<void> settle(WidgetTester tester) async {
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    testWidgets('asked once to an install from before French, preselected '
+        'to the device; Continue answers it', (tester) async {
+      savedBeforeFrench();
+      await pump(tester);
+      expect(find.text(english.languagePromptTitle), findsOneWidget);
+      await tester.tap(find.text(english.languagePromptConfirm));
+      await tester.pumpAndSettle();
+      expect(find.text(english.languagePromptTitle), findsNothing);
+      expect(settings.appLanguage, AppLanguage.en);
+      expect(settings.languagePromptVersion, kLanguagePromptVersion);
+      await close(tester);
+
+      // Answered: never again.
+      await pump(tester);
+      expect(find.text(english.languagePromptTitle), findsNothing);
+      await close(tester);
+    });
+
+    testWidgets('not asked once answered (a new install answers on the '
+        'onboarding)', (tester) async {
+      await pump(tester);
+      await settle(tester);
+      expect(find.text(english.languagePromptTitle), findsNothing);
+      await close(tester);
+    });
+
+    testWidgets('comes before the release notes, which open after it', (
+      tester,
+    ) async {
+      savedBeforeFrench();
+      SharedPreferences.setMockInitialValues({'last_shown_version': '0.9.0'});
+      notesFor100();
+      await pump(tester);
+      expect(find.text(english.languagePromptTitle), findsOneWidget);
+      expect(find.byType(ReleaseNotes), findsNothing);
+      await tester.tap(find.text(english.languagePromptConfirm));
+      await tester.pumpAndSettle();
+      expect(find.byType(ReleaseNotes), findsOneWidget);
+      await close(tester);
+    });
+
+    testWidgets('the scrim does not close it; back keeps the preselection', (
+      tester,
+    ) async {
+      savedBeforeFrench();
+      tester.platformDispatcher.localesTestValue = const [Locale('fr', 'FR')];
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+      await pump(tester);
+      expect(find.text(english.languagePromptTitle), findsOneWidget);
+      await tester.tapAt(const Offset(20, 40));
+      await tester.pumpAndSettle();
+      expect(find.text(english.languagePromptTitle), findsOneWidget);
+      expect(settings.languagePromptVersion, 0);
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.text(english.languagePromptTitle), findsNothing);
+      // The device is French: back confirmed French.
+      expect(settings.appLanguage, AppLanguage.fr);
+      expect(settings.languagePromptVersion, kLanguagePromptVersion);
+      await close(tester);
+    });
+
+    testWidgets('a tap on the pill switches the app (the question with it) '
+        'at once', (tester) async {
+      savedBeforeFrench();
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<AuthStore>.value(value: FakeAuthStore()),
+            Provider<SettingsStore>.value(value: settings),
+            Provider<TwitchApi>.value(value: api),
+            Provider<TwitchClipService>.value(value: clips),
+            Provider<TwitchVodService>.value(value: vods),
+            Provider<TwitchHypeTrainService>.value(
+              value: MockHypeTrainService(),
+            ),
+            Provider<ActivityStore>.value(value: activity),
+            Provider<WhisperStore>.value(value: whispers),
+            Provider<MiniPlayerStore>.value(value: mini),
+          ],
+          child: Observer(
+            builder: (_) => MaterialApp(
+              locale: settings.appLanguage.locale,
+              supportedLocales: AppLocalizations.supportedLocales,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              theme: themes.light,
+              navigatorObservers: [OnsetShell.routeObserver],
+              home: const Home(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(english.languagePromptTitle), findsOneWidget);
+      await tester.tap(find.text('Français'));
+      await tester.pumpAndSettle();
+      expect(settings.appLanguage, AppLanguage.fr);
+      expect(find.text(french.languagePromptTitle), findsOneWidget);
+      // The shell under it too.
+      expect(find.text(french.shellSectionHome), findsOneWidget);
+      // Not answered until Continue.
+      expect(settings.languagePromptVersion, 0);
+      await tester.tap(find.text(french.languagePromptConfirm));
+      await tester.pumpAndSettle();
+      expect(settings.appLanguage, AppLanguage.fr);
+      expect(settings.languagePromptVersion, kLanguagePromptVersion);
+      await close(tester);
+    });
+
+    testWidgets('a page opened while the tile lands: asked once it closes', (
+      tester,
+    ) async {
+      savedBeforeFrench();
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final navigator = GlobalKey<NavigatorState>();
+      final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<AuthStore>.value(value: FakeAuthStore()),
+            Provider<SettingsStore>.value(value: settings),
+            Provider<TwitchApi>.value(value: api),
+            Provider<TwitchClipService>.value(value: clips),
+            Provider<TwitchVodService>.value(value: vods),
+            Provider<TwitchHypeTrainService>.value(
+              value: MockHypeTrainService(),
+            ),
+            Provider<ActivityStore>.value(value: activity),
+            Provider<WhisperStore>.value(value: whispers),
+            Provider<MiniPlayerStore>.value(value: mini),
+          ],
+          child: MaterialApp(
+            navigatorKey: navigator,
+            theme: themes.light,
+            navigatorObservers: [
+              LaunchIntro.navigatorObserver,
+              OnsetShell.routeObserver,
+            ],
+            builder: (context, child) =>
+                LaunchIntro(slotKey: OnsetShell.markKey, child: child!),
+            home: const Scaffold(body: Text('onboarding')),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(
+        LaunchIntro.land(
+          from: const Rect.fromLTWH(159, 386, 72, 72),
+          onCovered: () => navigator.currentState!.pushAndRemoveUntil(
+            PageRouteBuilder<void>(
+              transitionDuration: Duration.zero,
+              pageBuilder: (_, _, _) => const Home(),
+            ),
+            (_) => false,
+          ),
+        ),
+        isTrue,
+      );
+      await tester.pump();
+      await tester.pump(LaunchIntro.landingDuration * 0.3);
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.byType(Home), findsOneWidget);
+      // Home is in front, waiting for the tile; a link opens a page.
+      navigator.currentState!.push(
+        MaterialPageRoute<void>(
+          builder: (_) => const Scaffold(body: Text('channel')),
+        ),
+      );
+      await tester.pump(LaunchIntro.landingDuration);
+      await settle(tester);
+      expect(find.text('channel'), findsOneWidget);
+      expect(find.text(english.languagePromptTitle), findsNothing);
+
+      navigator.currentState!.pop();
+      await settle(tester);
+      expect(find.text(english.languagePromptTitle), findsOneWidget);
+      await close(tester);
+    });
+
+    testWidgets('waits while a page covers Home, then asks', (tester) async {
+      savedBeforeFrench();
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final navigator = GlobalKey<NavigatorState>();
+      final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<AuthStore>.value(value: FakeAuthStore()),
+            Provider<SettingsStore>.value(value: settings),
+            Provider<TwitchApi>.value(value: api),
+            Provider<TwitchClipService>.value(value: clips),
+            Provider<TwitchVodService>.value(value: vods),
+            Provider<TwitchHypeTrainService>.value(
+              value: MockHypeTrainService(),
+            ),
+            Provider<ActivityStore>.value(value: activity),
+            Provider<WhisperStore>.value(value: whispers),
+            Provider<MiniPlayerStore>.value(value: mini),
+          ],
+          child: MaterialApp(
+            navigatorKey: navigator,
+            theme: themes.light,
+            navigatorObservers: [OnsetShell.routeObserver],
+            home: const Scaffold(body: Text('onboarding')),
+          ),
+        ),
+      );
+      final onboarding = ModalRoute.of(
+        tester.element(find.text('onboarding')),
+      )!;
+      navigator.currentState!.push(
+        MaterialPageRoute<void>(
+          builder: (_) => const Scaffold(body: Text('channel')),
+        ),
+      );
+      await tester.pumpAndSettle();
+      navigator.currentState!.replace(
+        oldRoute: onboarding,
+        newRoute: PageRouteBuilder<void>(
+          transitionDuration: Duration.zero,
+          pageBuilder: (_, _, _) => const Home(),
+        ),
+      );
+      await settle(tester);
+      expect(find.text('channel'), findsOneWidget);
+      expect(find.text(english.languagePromptTitle), findsNothing);
+
+      navigator.currentState!.pop();
+      await settle(tester);
+      expect(find.text(english.languagePromptTitle), findsOneWidget);
+      await close(tester);
+    });
   });
 }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
@@ -35,6 +36,7 @@ class UserActionsModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     // The "More" sheet of the user card.
     return ListView(
       primary: false,
@@ -44,7 +46,7 @@ class UserActionsModal extends StatelessWidget {
         if (showProfile)
           SheetRow(
             glyph: SheetGlyphKind.profile,
-            label: 'Profile',
+            label: l.userActionsProfile,
             onTap: () {
               Navigator.pop(context);
               ChannelProfileScreen.open(
@@ -57,7 +59,7 @@ class UserActionsModal extends StatelessWidget {
           ),
         SheetRow(
           glyph: SheetGlyphKind.videos,
-          label: 'Videos',
+          label: l.userActionsVideos,
           onTap: () {
             Navigator.pop(context);
             ChannelVideosScreen.open(
@@ -70,7 +72,9 @@ class UserActionsModal extends StatelessWidget {
         if (showPinOption)
           SheetRow(
             glyph: SheetGlyphKind.pin,
-            label: '${isPinned == true ? 'Unpin' : 'Pin'} $name',
+            label: isPinned == true
+                ? l.userActionsUnpin(name: name)
+                : l.userActionsPin(name: name),
             onTap: () {
               if (isPinned == true) {
                 context.read<SettingsStore>().pinnedChannelIds = [
@@ -90,7 +94,7 @@ class UserActionsModal extends StatelessWidget {
         if (authStore.isLoggedIn)
           SheetRow(
             glyph: SheetGlyphKind.block,
-            label: 'Block $name',
+            label: l.userActionsBlock(name: name),
             onTap: () => authStore
                 .showBlockDialog(
                   context,
@@ -107,8 +111,8 @@ class UserActionsModal extends StatelessWidget {
         if (authStore.isLoggedIn)
           SheetRow(
             glyph: SheetGlyphKind.heart,
-            label: 'Follow $name on Twitch',
-            detail: 'Opens the channel on twitch.tv',
+            label: l.userActionsFollowOnTwitch(name: name),
+            detail: l.userActionsFollowDetail,
             end: SheetRowEnd.external,
             onTap: () {
               Navigator.pop(context);
@@ -121,7 +125,7 @@ class UserActionsModal extends StatelessWidget {
           ),
         SheetRow(
           glyph: SheetGlyphKind.link,
-          label: 'Copy link',
+          label: l.userActionsCopyLink,
           onTap: () async {
             await Clipboard.setData(
               ClipboardData(text: 'https://www.twitch.tv/$userLogin'),
@@ -129,13 +133,13 @@ class UserActionsModal extends StatelessWidget {
             if (!context.mounted) return;
             ScaffoldMessenger.of(
               context,
-            ).showSnackBar(const SnackBar(content: Text('Link copied')));
+            ).showSnackBar(SnackBar(content: Text(l.userActionsLinkCopied)));
             Navigator.pop(context);
           },
         ),
         SheetRow(
           glyph: SheetGlyphKind.share,
-          label: 'Share $name',
+          label: l.userActionsShare(name: name),
           onTap: () async {
             await shareLink(context, 'https://www.twitch.tv/$userLogin');
             if (context.mounted) Navigator.pop(context);
@@ -143,10 +147,10 @@ class UserActionsModal extends StatelessWidget {
         ),
         SheetRow(
           glyph: SheetGlyphKind.flag,
-          label: 'Report $name',
+          label: l.userActionsReport(name: name),
           onTap: () => TwitchWebPage.open(
             context,
-            title: 'Report $name',
+            title: l.userActionsReport(name: name),
             url: Uri.https('www.twitch.tv', '/$userLogin/report'),
           ),
         ),

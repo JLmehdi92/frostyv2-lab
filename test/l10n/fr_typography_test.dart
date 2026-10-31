@@ -22,6 +22,8 @@ void main() {
         'Connectez-vous avec Twitch',
         'Le Hype Train de Twitch',
         'Non connecté · vous pourrez vous connecter plus tard',
+        'Changez-la dans Paramètres › Général, depuis l’onglet Profil',
+        'La rubrique «\u00A0Autres\u00A0» des paramètres',
         '{count, plural, one{# chaîne} other{# chaînes}}',
       ]) {
         expect(frenchTypographyProblems(message), isEmpty, reason: message);
@@ -48,6 +50,7 @@ void main() {
         'La 2ème fois',
         'Connecté·e',
         'Points de Chaîne',
+        'Dans les Paramètres de la Chaîne',
         '{count, plural, one{# chaîne!} other{# chaînes}}',
       ]) {
         expect(frenchTypographyProblems(message), isNotEmpty, reason: message);
@@ -92,6 +95,18 @@ const _properNouns = {
   'Français',
   'Language',
   'Langue',
+};
+
+/// The app's screens and sections, named as their titles read (« dans
+/// Paramètres › Général », « l’onglet Profil »).
+const _screenNames = {
+  'Accueil',
+  'Parcourir',
+  'Activité',
+  'Profil',
+  'Paramètres',
+  'Général',
+  'Autres',
 };
 
 final _letter = RegExp(r'\p{L}', unicode: true);
@@ -159,12 +174,16 @@ List<String> _titleCaseProblems(String run) {
   final tokens = run.split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
   final problems = <String>[];
   var sentenceStart = true;
+  var quoted = false;
   for (final token in tokens) {
+    if (token.startsWith('«') || token.startsWith('“')) quoted = true;
     final word = token.replaceAll(RegExp(r'^[«“(]+|[»”),.!?;:…]+$'), '');
     final hasLetters = _letter.hasMatch(word);
     if (hasLetters && !sentenceStart && word != 'X') {
       final named =
           _properNouns.contains(word) ||
+          _screenNames.contains(word) ||
+          quoted ||
           _properNouns.contains(word.split('’').first) ||
           RegExp(r'\d').hasMatch(word) ||
           (word.length > 1 && _allCaps.hasMatch(word));
@@ -173,8 +192,9 @@ List<String> _titleCaseProblems(String run) {
       }
     }
     if (hasLetters || word == 'X') sentenceStart = false;
+    if (token.contains('»') || token.contains('”')) quoted = false;
     if (RegExp(r'[.!?…]$').hasMatch(token) ||
-        const {'·', '—', '–'}.contains(token)) {
+        const {'·', '—', '–', '›'}.contains(token)) {
       sentenceStart = true;
     }
   }

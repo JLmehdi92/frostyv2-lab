@@ -6,6 +6,8 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobx/mobx.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/home/shell/onset_shell.dart';
 import 'package:onset/screens/home/shell/shell_pages.dart';
 import 'package:onset/screens/home/shell/shell_tabs.dart';
@@ -77,7 +79,7 @@ class _Harness {
   ShellHeader header(ShellSection section, HomeFeed feed) => switch (section) {
     ShellSection.home => ShellHeader(
       showWhispers: loggedIn,
-      tabs: [for (final f in store.feeds) f.label],
+      tabs: [for (final f in store.feeds) f.label(L10n.english)],
       tabIndex: store.feeds.indexOf(feed),
       onTab: (i) => store.selectFeed(store.feeds[i]),
       overVideo: feed == HomeFeed.clips,
@@ -153,7 +155,7 @@ class _Harness {
                                   media,
                                   header(ShellSection.home, f),
                                 ),
-                                child: _Page(f.label, disposed),
+                                child: _Page(f.label(L10n.english), disposed),
                               ),
                             )
                           : MediaQuery(
@@ -161,7 +163,7 @@ class _Harness {
                                 media,
                                 header(page, feed),
                               ),
-                              child: _Page(page.label, disposed),
+                              child: _Page(page.label(L10n.english), disposed),
                             ),
                     ),
                   );

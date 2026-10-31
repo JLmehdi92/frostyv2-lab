@@ -7,48 +7,18 @@ import 'package:onset/widgets/motion/motion.dart';
 part 'home_store.g.dart';
 
 /// The sections of the navigation shell: the bottom bar on a phone, the
-/// pill in the tablet's top bar (Profile is the avatar there).
-enum ShellSection {
-  home('Home'),
-  browse('Browse'),
-  activity('Activity'),
-  profile('Profile');
-
-  const ShellSection(this.label);
-
-  final String label;
-}
+/// pill in the tablet's top bar (Profile is the avatar there). Their names
+/// are in lib/l10n/enum_labels.dart, like those of the tabs below.
+enum ShellSection { home, browse, activity, profile }
 
 /// Home's top tabs.
-enum HomeFeed {
-  following('Following'),
-  live('Live'),
-  clips('Clips');
-
-  const HomeFeed(this.label);
-
-  final String label;
-}
+enum HomeFeed { following, live, clips }
 
 /// Browse's tabs.
-enum BrowseTab {
-  categories('Categories'),
-  live('Live channels');
-
-  const BrowseTab(this.label);
-
-  final String label;
-}
+enum BrowseTab { categories, live }
 
 /// Activity's tabs (Whispers only when logged in).
-enum ActivityTab {
-  notifications('Notifications'),
-  whispers('Whispers');
-
-  const ActivityTab(this.label);
-
-  final String label;
-}
+enum ActivityTab { notifications, whispers }
 
 /// Where [tab] opens the shell: its section and, for Home, its top tab.
 /// Logged out there is no Following, so it opens on Live.

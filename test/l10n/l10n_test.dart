@@ -58,14 +58,21 @@ void main() {
       expect(seen, ['Next', 'Suivant', 'Next']);
     });
 
-    test('French plural forms: "one" covers 0 and 1', () {
-      // The French plural rule the ARB messages rely on.
-      String fr(int n) =>
-          Intl.plural(n, locale: 'fr', one: '$n chaîne', other: '$n chaînes');
-      expect(fr(0), '0 chaîne');
-      expect(fr(1), '1 chaîne');
-      expect(fr(2), '2 chaînes');
-      expect(fr(1000000), '1000000 chaînes');
+    test('plurals: French "one" covers 0 and 1; English stays as it was', () {
+      final french = lookupAppLocalizations(fr);
+      String fr0(int n) => french.shellWhispersUnread(count: n);
+      expect(fr0(0), 'Chuchotements (0 non lu)');
+      expect(fr0(1), 'Chuchotements (1 non lu)');
+      expect(fr0(2), 'Chuchotements (2 non lus)');
+      expect(fr0(1000000), 'Chuchotements (1000000 non lus)');
+      for (final n in [0, 1, 2, 1000000]) {
+        expect(
+          L10n.english.shellWhispersUnread(count: n),
+          'Whispers ($n unread)',
+        );
+      }
+      expect(french.accentHue(degrees: 0), 'Teinte 0 degré');
+      expect(french.accentHue(degrees: 202), 'Teinte 202 degrés');
     });
   });
 

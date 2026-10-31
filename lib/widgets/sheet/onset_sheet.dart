@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/modal_bottom_sheet.dart';
@@ -529,7 +530,7 @@ class SheetBackHeader extends StatelessWidget {
           spacing: 2,
           children: [
             IconButton(
-              tooltip: 'Back',
+              tooltip: context.l10n.commonBack,
               onPressed: onBack,
               style: IconButton.styleFrom(
                 minimumSize: const Size(44, 44),

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/main.dart' show navigatorKey;
 import 'package:onset/screens/channel/channel.dart';
 import 'package:onset/screens/channel/video/ivs_video.dart';
@@ -193,7 +194,7 @@ class _GlobalMiniPlayerState extends State<GlobalMiniPlayer>
                         // it starts one, so it would cover the whole screen.
                         container: true,
                         button: true,
-                        label: 'Return to stream',
+                        label: context.l10n.miniPlayerReturn,
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: () => _restore(store),
@@ -429,7 +430,7 @@ class _CloseButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: 'Close mini player',
+      message: context.l10n.miniPlayerClose,
       child: Semantics(
         button: true,
         child: GestureDetector(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
@@ -36,7 +37,7 @@ class FeedStatusView extends StatelessWidget {
     this.actionIcon,
     this.signalOff = false,
     this.primaryAction = false,
-  });
+  }) : _standardAction = null;
 
   /// Nothing to show: the message under the signal turned off, or, with
   /// [glyph], under that glyph in its disc (Activity's bell), with an
@@ -48,6 +49,7 @@ class FeedStatusView extends StatelessWidget {
     this.glyph,
   }) : icon = null,
        action = null,
+       _standardAction = null,
        onAction = null,
        actionGlyph = null,
        actionIcon = null,
@@ -65,7 +67,8 @@ class FeedStatusView extends StatelessWidget {
        glyph = isConnectionProblem(message)
            ? StateGlyphKind.offline
            : StateGlyphKind.alert,
-       action = 'Try again',
+       action = null,
+       _standardAction = _tryAgain,
        onAction = onRetry,
        actionGlyph = StateGlyphKind.retry,
        actionIcon = null,
@@ -81,7 +84,8 @@ class FeedStatusView extends StatelessWidget {
   }) : detail = null,
        icon = null,
        glyph = StateGlyphKind.account,
-       action = 'Connect with Twitch',
+       action = null,
+       _standardAction = _connectWithTwitch,
        onAction = onConnect,
        actionGlyph = null,
        actionIcon = null,
@@ -99,6 +103,16 @@ class FeedStatusView extends StatelessWidget {
   /// A glyph in the disc.
   final StateGlyphKind? glyph;
   final String? action;
+
+  /// The action of [FeedStatusView.error] and [FeedStatusView.signIn], in
+  /// the language on screen (read in [build], [action] being null).
+  final String Function(AppLocalizations l)? _standardAction;
+
+  static String _tryAgain(AppLocalizations l) => l.commonTryAgain;
+
+  static String _connectWithTwitch(AppLocalizations l) =>
+      l.commonConnectWithTwitch;
+
   final VoidCallback? onAction;
   final StateGlyphKind? actionGlyph;
   final IconData? actionIcon;
@@ -112,7 +126,11 @@ class FeedStatusView extends StatelessWidget {
     final colors = FeedColors.of(context);
     final large = context.isLargeScreen;
     // Activity's empty state: a smaller disc and a second line.
-    final quiet = !signalOff && this.action == null && this.detail != null;
+    final quiet =
+        !signalOff &&
+        this.action == null &&
+        _standardAction == null &&
+        this.detail != null;
     final markSize = quiet ? 64.0 : (large ? 88.0 : 72.0);
     final Widget mark;
     if (signalOff) {
@@ -141,7 +159,7 @@ class FeedStatusView extends StatelessWidget {
               ),
       );
     }
-    final action = this.action;
+    final action = this.action ?? _standardAction?.call(context.l10n);
     final detail = this.detail;
     return Center(
       child: Padding(
@@ -401,7 +419,7 @@ class InlineStatus extends StatelessWidget {
             ),
             if (onRetry != null)
               StatePill(
-                label: 'Try again',
+                label: context.l10n.commonTryAgain,
                 onPressed: onRetry,
                 glyph: StateGlyphKind.retry,
                 compact: true,

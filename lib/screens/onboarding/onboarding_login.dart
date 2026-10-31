@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/onboarding/onboarding_parts.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/theme.dart';
 
-/// One thing the login lets ONSET do, and the Twitch scopes behind it
-/// ([AuthBase.loginScopes]; a test checks that every scope is listed).
+/// One thing the login lets ONSET do, in the viewer's language, and the
+/// Twitch scopes behind it ([AuthBase.loginScopes]; a test checks that
+/// every scope is listed).
 class OnboardingPermission {
   const OnboardingPermission({
     required this.glyph,
@@ -14,8 +16,8 @@ class OnboardingPermission {
   });
 
   final OnboardingGlyphKind glyph;
-  final String title;
-  final String detail;
+  final String Function(AppLocalizations l) title;
+  final String Function(AppLocalizations l) detail;
   final List<String> scopes;
 }
 
@@ -23,32 +25,32 @@ class OnboardingPermission {
 const onboardingPermissions = [
   OnboardingPermission(
     glyph: OnboardingGlyphKind.chat,
-    title: 'Chat',
-    detail: 'Read and send messages',
+    title: _chatTitle,
+    detail: _chatDetail,
     scopes: ['chat:read', 'chat:edit', 'user:read:chat'],
   ),
   OnboardingPermission(
     glyph: OnboardingGlyphKind.heart,
-    title: 'Followed channels',
-    detail: 'See who is live right now',
+    title: _followsTitle,
+    detail: _followsDetail,
     scopes: ['user:read:follows'],
   ),
   OnboardingPermission(
     glyph: OnboardingGlyphKind.smile,
-    title: 'Your emotes',
-    detail: 'Use your sub and follower emotes',
+    title: _emotesTitle,
+    detail: _emotesDetail,
     scopes: ['user:read:emotes'],
   ),
   OnboardingPermission(
     glyph: OnboardingGlyphKind.send,
-    title: 'Whispers',
-    detail: 'Read and send whispers',
+    title: _whispersTitle,
+    detail: _whispersDetail,
     scopes: ['user:manage:whispers'],
   ),
   OnboardingPermission(
     glyph: OnboardingGlyphKind.shield,
-    title: 'Moderation',
-    detail: 'Bans, warnings, messages, chat modes',
+    title: _moderationTitle,
+    detail: _moderationDetail,
     scopes: [
       'moderator:manage:banned_users',
       'moderator:manage:chat_messages',
@@ -59,14 +61,14 @@ const onboardingPermissions = [
   ),
   OnboardingPermission(
     glyph: OnboardingGlyphKind.scissors,
-    title: 'Clips',
-    detail: 'Create clips from a stream',
+    title: _clipsTitle,
+    detail: _clipsDetail,
     scopes: ['clips:edit'],
   ),
   OnboardingPermission(
     glyph: OnboardingGlyphKind.userX,
-    title: 'Blocks and name color',
-    detail: 'Manage blocks, change your chat color',
+    title: _blocksTitle,
+    detail: _blocksDetail,
     scopes: [
       'user:read:blocked_users',
       'user:manage:blocked_users',
@@ -75,9 +77,25 @@ const onboardingPermissions = [
   ),
 ];
 
-const _disclaimer =
-    'ONSET only asks for the necessary permissions through the official '
-    'Twitch API. You’ll be able to review them before authorizing.';
+String _chatTitle(AppLocalizations l) => l.onboardingPermissionChatTitle;
+String _chatDetail(AppLocalizations l) => l.onboardingPermissionChatDetail;
+String _followsTitle(AppLocalizations l) => l.onboardingPermissionFollowsTitle;
+String _followsDetail(AppLocalizations l) =>
+    l.onboardingPermissionFollowsDetail;
+String _emotesTitle(AppLocalizations l) => l.onboardingPermissionEmotesTitle;
+String _emotesDetail(AppLocalizations l) => l.onboardingPermissionEmotesDetail;
+String _whispersTitle(AppLocalizations l) =>
+    l.onboardingPermissionWhispersTitle;
+String _whispersDetail(AppLocalizations l) =>
+    l.onboardingPermissionWhispersDetail;
+String _moderationTitle(AppLocalizations l) =>
+    l.onboardingPermissionModerationTitle;
+String _moderationDetail(AppLocalizations l) =>
+    l.onboardingPermissionModerationDetail;
+String _clipsTitle(AppLocalizations l) => l.onboardingPermissionClipsTitle;
+String _clipsDetail(AppLocalizations l) => l.onboardingPermissionClipsDetail;
+String _blocksTitle(AppLocalizations l) => l.onboardingPermissionBlocksTitle;
+String _blocksDetail(AppLocalizations l) => l.onboardingPermissionBlocksDetail;
 
 /// Step 2, Log in: what the login
 /// allows, in plain words, before Twitch opens; "Connect with Twitch" opens
@@ -99,6 +117,7 @@ class OnboardingLoginStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tablet = layout.tablet;
+    final l = context.l10n;
     return OnboardingStepFrame(
       layout: layout,
       content: [
@@ -106,15 +125,17 @@ class OnboardingLoginStep extends StatelessWidget {
           order: 1,
           child: Semantics(
             header: true,
-            child: Text('Log in', style: OnboardingType.title(tablet: tablet)),
+            child: Text(
+              l.onboardingLoginTitle,
+              style: OnboardingType.title(tablet: tablet),
+            ),
           ),
         ),
         SizedBox(height: tablet ? 12 : 10),
         StepRise(
           order: 2,
           child: Text(
-            'ONSET needs your permission in order to enable the ability to '
-            'chat, view followed streams, and more.',
+            l.onboardingLoginLead,
             style: OnboardingType.lead(tablet: tablet),
           ),
         ),
@@ -125,11 +146,11 @@ class OnboardingLoginStep extends StatelessWidget {
         ),
         if (tablet) ...[
           const SizedBox(height: 18),
-          const StepRise(
+          StepRise(
             order: 4,
             child: Text(
-              _disclaimer,
-              style: TextStyle(
+              l.onboardingLoginDisclaimer,
+              style: const TextStyle(
                 fontSize: 12.5,
                 height: 1.5,
                 color: OnboardingColors.tertiary,
@@ -141,12 +162,12 @@ class OnboardingLoginStep extends StatelessWidget {
       footer: OnboardingFooter(
         tablet: tablet,
         primaryWidth: 250,
-        note: const StepRise(
+        note: StepRise(
           order: 4,
           child: Text(
-            _disclaimer,
+            l.onboardingLoginDisclaimer,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 12,
               height: 1.5,
               color: OnboardingColors.tertiary,
@@ -156,7 +177,7 @@ class OnboardingLoginStep extends StatelessWidget {
         primary: StepRise(
           order: tablet ? 6 : 5,
           child: OnboardingButton(
-            label: 'Connect with Twitch',
+            label: l.commonConnectWithTwitch,
             accent: accent,
             leading: OnboardingGlyphKind.login,
             onPressed: onConnect,
@@ -165,7 +186,7 @@ class OnboardingLoginStep extends StatelessWidget {
         secondary: StepRise(
           order: tablet ? 5 : 6,
           child: OnboardingTextButton(
-            label: 'Skip',
+            label: l.onboardingLoginSkip,
             height: tablet ? 52 : 44,
             onPressed: onSkip,
           ),
@@ -192,7 +213,7 @@ class _PermissionList extends StatelessWidget {
             child: Semantics(
               header: true,
               child: Text(
-                'What you will authorize'.toUpperCase(),
+                context.l10n.onboardingLoginAuthorizeHeader.toUpperCase(),
                 style: OnboardingType.eyebrow,
               ),
             ),
@@ -234,7 +255,7 @@ class _PermissionGrid extends StatelessWidget {
           child: Semantics(
             header: true,
             child: Text(
-              'What you will authorize'.toUpperCase(),
+              context.l10n.onboardingLoginAuthorizeHeader.toUpperCase(),
               style: OnboardingType.eyebrow,
             ),
           ),
@@ -296,7 +317,7 @@ class _PermissionRow extends StatelessWidget {
               spacing: tile == 32 ? 1 : 2,
               children: [
                 Text(
-                  permission.title,
+                  permission.title(context.l10n),
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -304,7 +325,7 @@ class _PermissionRow extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  permission.detail,
+                  permission.detail(context.l10n),
                   style: const TextStyle(
                     fontSize: 12.5,
                     height: 1.35,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 
 /// The colour square of the accent pickers (onboarding's Setup, Settings ›
 /// General): saturation across, brightness down, for the hue.
@@ -28,10 +29,11 @@ class AccentSaturationValue extends StatelessWidget {
               .withValue(1 - (position.dy / height).clamp(0.0, 1.0)),
         );
         return Semantics(
-          label: 'Saturation and brightness',
-          value:
-              '${(hsv.saturation * 100).round()} %, '
-              '${(hsv.value * 100).round()} %',
+          label: context.l10n.accentSaturationBrightness,
+          value: context.l10n.accentSaturationBrightnessValue(
+            saturation: (hsv.saturation * 100).round(),
+            brightness: (hsv.value * 100).round(),
+          ),
           // Picks on touch, then follows the finger: drags along either axis
           // win over a scrolling sheet around it (the square is hit first),
           // and each one reads both coordinates.
@@ -157,7 +159,7 @@ class AccentHueSlider extends StatelessWidget {
                         Expanded(
                           child: Semantics(
                             button: true,
-                            label: 'Hue $named degrees',
+                            label: context.l10n.accentHue(degrees: named),
                             onTap: () => onChanged(named.toDouble()),
                             child: const SizedBox.expand(),
                           ),

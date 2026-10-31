@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/onboarding/onboarding_parts.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
@@ -107,14 +108,14 @@ class LoginBar extends StatelessWidget {
       children: [
         OnboardingIconButton(
           glyph: OnboardingGlyphKind.chevronLeft,
-          tooltip: 'Back',
+          tooltip: context.l10n.commonBack,
           onPressed: onBack,
         ),
         Expanded(
           child: Semantics(
             header: true,
             child: Text(
-              'Connect with Twitch',
+              context.l10n.commonConnectWithTwitch,
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -129,7 +130,7 @@ class LoginBar extends StatelessWidget {
         ),
         OnboardingIconButton(
           glyph: OnboardingGlyphKind.help,
-          tooltip: 'Login help',
+          tooltip: context.l10n.loginHelpTooltip,
           size: 21,
           strokeWidth: 1.8,
           onPressed: () => showLoginHelp(
@@ -152,9 +153,7 @@ Future<void> showLoginHelp(
   bool inOnboarding = true,
 }) {
   final theme = Theme.of(context);
-  final retry = inOnboarding
-      ? 'go back to the first step of the onboarding and then try again.'
-      : 'go back, then open the login again.';
+  final l = context.l10n;
   return showDialog<void>(
     context: context,
     barrierColor: OnboardingColors.scrim,
@@ -162,7 +161,7 @@ Future<void> showLoginHelp(
       data: theme,
       child: _OnboardingDialog(
         width: tablet ? 440 : null,
-        label: 'Login help',
+        label: l.loginHelpTooltip,
         children: [
           Container(
             width: 40,
@@ -177,9 +176,9 @@ Future<void> showLoginHelp(
               color: OnboardingColors.text,
             ),
           ),
-          const Text(
-            'Workaround for the Twitch cookie banner',
-            style: TextStyle(
+          Text(
+            l.loginHelpTitle,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
               letterSpacing: -0.27,
@@ -188,11 +187,7 @@ Future<void> showLoginHelp(
             ),
           ),
           Text(
-            'If the Twitch cookie banner is still blocking the login, try '
-            'clicking one of the links in the cookie policy description and '
-            'navigating until you reach the Twitch home page. From there, you '
-            'can try logging in on the top right profile icon. Once logged '
-            'in, $retry',
+            inOnboarding ? l.loginHelpBodyOnboarding : l.loginHelpBodyElsewhere,
             style: const TextStyle(
               fontSize: 14,
               height: 1.55,
@@ -202,7 +197,7 @@ Future<void> showLoginHelp(
           Align(
             alignment: AlignmentDirectional.centerEnd,
             child: OnboardingTextButton(
-              label: 'Close',
+              label: l.commonClose,
               fontSize: 14,
               color: OnboardingColors.text,
               padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -633,7 +628,9 @@ class _HostStrip extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              semanticsLabel: secure ? 'Secure page: $label' : 'Page: $label',
+              semanticsLabel: secure
+                  ? context.l10n.loginHostSecure(host: label)
+                  : context.l10n.loginHostPage(host: label),
               style: const TextStyle(
                 fontSize: 12,
                 color: OnboardingColors.tertiary,
@@ -663,10 +660,13 @@ class _LoginFailedLine extends StatelessWidget {
         color: OnsetTokens.danger.withValues(alpha: 0.12),
         child: Row(
           children: [
-            const Expanded(
+            Expanded(
               child: Text(
-                'Twitch did not sign you in. Try again.',
-                style: TextStyle(fontSize: 13, color: OnboardingColors.text),
+                context.l10n.loginFailedLine,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: OnboardingColors.text,
+                ),
               ),
             ),
             TextButton(
@@ -675,7 +675,7 @@ class _LoginFailedLine extends StatelessWidget {
                 foregroundColor: OnboardingColors.text,
                 minimumSize: const Size(44, 44),
               ),
-              child: const Text('Try again'),
+              child: Text(context.l10n.commonTryAgain),
             ),
           ],
         ),
@@ -710,9 +710,12 @@ class _SigningIn extends StatelessWidget {
                 value: reduceMotionOf(context) ? 0.25 : null,
               ),
             ),
-            const Text(
-              'Signing you in…',
-              style: TextStyle(fontSize: 14, color: OnboardingColors.secondary),
+            Text(
+              context.l10n.loginSigningIn,
+              style: const TextStyle(
+                fontSize: 14,
+                color: OnboardingColors.secondary,
+              ),
             ),
           ],
         ),
@@ -739,19 +742,19 @@ class _LoadFailed extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             spacing: 8,
             children: [
-              const Text(
-                'Twitch could not be reached',
+              Text(
+                context.l10n.loginLoadFailedTitle,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
                   color: OnboardingColors.text,
                 ),
               ),
-              const Text(
-                'Check your connection, then try again.',
+              Text(
+                context.l10n.loginLoadFailedDetail,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
                   height: 1.5,
                   color: OnboardingColors.secondary,
@@ -761,7 +764,7 @@ class _LoadFailed extends StatelessWidget {
               SizedBox(
                 width: 200,
                 child: OnboardingButton(
-                  label: 'Try again',
+                  label: context.l10n.commonTryAgain,
                   accent: accent,
                   height: 44,
                   leading: OnboardingGlyphKind.refresh,

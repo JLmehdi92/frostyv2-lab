@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/onboarding/onboarding_parts.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/widgets/accent_picker_controls.dart';
@@ -143,7 +144,7 @@ class _AccentPickerState extends State<_AccentPicker> {
       scopesRoute: true,
       namesRoute: true,
       explicitChildNodes: true,
-      label: 'Accent color',
+      label: context.l10n.accentColorTitle,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -151,10 +152,10 @@ class _AccentPickerState extends State<_AccentPicker> {
         children: [
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Accent color',
-                  style: TextStyle(
+                  context.l10n.accentColorTitle,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.27,
@@ -201,20 +202,20 @@ class _AccentPickerState extends State<_AccentPicker> {
               clipBehavior: Clip.antiAlias,
               child: InkWell(
                 onTap: _randomize,
-                child: const SizedBox(
+                child: SizedBox(
                   height: 44,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     spacing: 8,
                     children: [
-                      OnboardingGlyph(
+                      const OnboardingGlyph(
                         OnboardingGlyphKind.dice,
                         size: 17,
                         color: OnboardingColors.text,
                       ),
                       Text(
-                        'Random',
-                        style: TextStyle(
+                        context.l10n.accentColorRandom,
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: OnboardingColors.text,
@@ -233,7 +234,7 @@ class _AccentPickerState extends State<_AccentPicker> {
               spacing: 8,
               children: [
                 OnboardingTextButton(
-                  label: 'Cancel',
+                  label: context.l10n.commonCancel,
                   fontSize: 14,
                   padding: const EdgeInsets.symmetric(horizontal: 18),
                   onPressed: () => Navigator.pop(context, false),
@@ -241,7 +242,7 @@ class _AccentPickerState extends State<_AccentPicker> {
                 SizedBox(
                   width: 96,
                   child: OnboardingButton(
-                    label: 'Done',
+                    label: context.l10n.commonDone,
                     accent: color,
                     height: 44,
                     onPressed: () => Navigator.pop(context, true),

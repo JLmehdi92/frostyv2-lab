@@ -7,11 +7,14 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_directory_service.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/activity/activity_screen.dart';
 import 'package:onset/screens/activity/stores/activity_store.dart';
 import 'package:onset/screens/channel/channel.dart';
 import 'package:onset/screens/clips/clips_feed_screen.dart';
 import 'package:onset/screens/clips/stores/clips_feed_store.dart';
+import 'package:onset/screens/home/language_prompt.dart';
 import 'package:onset/screens/home/live_feed/live_feed.dart';
 import 'package:onset/screens/home/live_feed/stores/live_feed_store.dart';
 import 'package:onset/screens/home/search/search.dart';
@@ -253,11 +256,13 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
     _onRoutes();
   }
 
-  /// What Home does once it is in front: free the orientation and show the
-  /// release notes. Home can be built under a page (the first run's
-  /// landing with a deep-linked channel kept on top): then neither may undo
-  /// that page's orientation or open over it, and both wait.
+  /// What Home does once it is in front: free the orientation, ask the
+  /// language once, then show the release notes. Home can be built under a
+  /// page (the first run's landing with a deep-linked channel kept on top):
+  /// then none of them may undo that page's orientation or open over it,
+  /// and they wait.
   var _orientationPending = true;
+  var _languagePending = true;
   var _notesPending = true;
 
   void _inFront() {
@@ -265,10 +270,43 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
       _orientationPending = false;
       SystemChrome.setPreferredOrientations([]);
     }
-    if (_notesPending) {
-      _notesPending = false;
-      unawaited(checkAndShowReleaseNotes());
+    if (_languagePending || _notesPending) unawaited(_greet());
+  }
+
+  /// The language question, then the release notes; one run at a time
+  /// (Home comes back in front while the question is open).
+  var _greeting = false;
+
+  Future<void> _greet() async {
+    if (_greeting) return;
+    _greeting = true;
+    try {
+      if (_languagePending && !await _askLanguageOnce()) return;
+      if (_notesPending && mounted) {
+        _notesPending = false;
+        await checkAndShowReleaseNotes();
+      }
+    } finally {
+      _greeting = false;
     }
+  }
+
+  /// Asks the language of an install from before French
+  /// ([SettingsStore.languagePromptVersion] under [kLanguagePromptVersion]):
+  /// after the launch intro has landed, and only with Home in front. New
+  /// installs answered on the onboarding's Intro. Says whether the question
+  /// is settled (else Home asks when it is in front again).
+  Future<bool> _askLanguageOnce() async {
+    final settings = context.read<SettingsStore>();
+    if (settings.languagePromptVersion >= kLanguagePromptVersion) {
+      _languagePending = false;
+      return true;
+    }
+    await LaunchIntro.landed();
+    if (!mounted || _covered) return false;
+    _languagePending = false;
+    await showLanguagePrompt(context, settings: settings);
+    return mounted;
   }
 
   /// A page opened over the shell, or left it.
@@ -356,7 +394,9 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
       ScaffoldMessenger.of(context)
         ..clearSnackBars()
         ..showSnackBar(
-          SnackBar(content: Text("Couldn't open $login's channel.")),
+          SnackBar(
+            content: Text(context.l10n.homeOpenChannelFailed(login: login)),
+          ),
         );
     }
   }
@@ -376,7 +416,7 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
         final feeds = _homeStore.feeds;
         return ShellHeader(
           showWhispers: loggedIn,
-          tabs: [for (final f in feeds) f.label],
+          tabs: [for (final f in feeds) f.label(context.l10n)],
           tabIndex: feeds.indexOf(feed),
           onTab: (i) => _homeStore.selectFeed(feeds[i]),
           overVideo: _isVideoFeed(feed) || (!page && _videoLeaving),
@@ -394,11 +434,11 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
       case ShellSection.browse:
         const tabs = BrowseTab.values;
         return ShellHeader(
-          title: 'Browse',
+          title: context.l10n.shellSectionBrowse,
           showSearch: false,
           showWhispers: loggedIn,
           searchField: true,
-          tabs: [for (final tab in tabs) tab.label],
+          tabs: [for (final tab in tabs) tab.label(context.l10n)],
           tabIndex: tabs.indexOf(_homeStore.browseTab),
           onTab: (i) => _homeStore.selectBrowseTab(tabs[i]),
         );
@@ -408,11 +448,13 @@ class _HomeState extends State<Home> with OnsetUpdateChecks {
         // no tabs.
         final tabbed = tabs.length > 1 && !context.isLargeScreen;
         return ShellHeader(
-          title: 'Activity',
+          title: context.l10n.shellSectionActivity,
           showMark: false,
           largeTitle: true,
           showWhispers: false,
-          tabs: tabbed ? [for (final tab in tabs) tab.label] : const [],
+          tabs: tabbed
+              ? [for (final tab in tabs) tab.label(context.l10n)]
+              : const [],
           tabBadges: tabbed
               ? [
                   for (final tab in tabs)

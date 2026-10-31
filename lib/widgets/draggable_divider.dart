@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 
@@ -35,8 +36,9 @@ class DraggableDivider extends StatefulWidget {
   /// Whether to show the background divider line
   final bool showDividerLine;
 
-  /// What a screen reader calls the width being resized.
-  final String semanticLabel;
+  /// What a screen reader calls the width being resized ("Chat width"
+  /// when null).
+  final String? semanticLabel;
 
   /// How much one screen-reader adjustment changes the width.
   static const semanticStep = 0.05;
@@ -53,7 +55,7 @@ class DraggableDivider extends StatefulWidget {
     this.isResizableOnLeft = true,
     this.showHandle = true,
     this.showDividerLine = true,
-    this.semanticLabel = 'Chat width',
+    this.semanticLabel,
   });
 
   @override
@@ -135,8 +137,9 @@ class _DraggableDividerState extends State<DraggableDivider> {
     (widget.currentWidth + delta).clamp(widget.minWidth, widget.maxWidth),
   );
 
-  String _percent(double width) =>
-      '${(width.clamp(widget.minWidth, widget.maxWidth) * 100).round()}%';
+  String _percent(double width) => context.l10n.draggableDividerValue(
+    percent: (width.clamp(widget.minWidth, widget.maxWidth) * 100).round(),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -146,7 +149,7 @@ class _DraggableDividerState extends State<DraggableDivider> {
 
     return Semantics(
       slider: true,
-      label: widget.semanticLabel,
+      label: widget.semanticLabel ?? context.l10n.draggableDividerChatWidth,
       value: _percent(widget.currentWidth),
       increasedValue: _percent(widget.currentWidth + step),
       decreasedValue: _percent(widget.currentWidth - step),

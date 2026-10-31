@@ -1,22 +1,23 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/stream.dart';
+import 'package:onset/screens/onboarding/onboarding_language_choice.dart';
 import 'package:onset/screens/onboarding/onboarding_parts.dart';
+import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/onset_cached_network_image.dart';
 
-/// The intro's text (the app's own description).
-const onboardingDescription =
-    'A mobile Twitch client with 7TV, BetterTTV (BTTV), and FrankerFaceZ '
-    '(FFZ) support.';
-
 /// Step 1, Intro, on a phone: the description under the
-/// tile and the name (the flow draws those), the version, "Next".
+/// tile and the name (the flow draws those), the language pill, the
+/// version, "Next".
 ///
 /// [nameBottom] is where the name's underline ends, in the step's
-/// coordinates: the description sits 31 dp under it.
+/// coordinates: the description sits 31 dp under it. [language] is the
+/// language the pill shows selected; [onLanguage] is told a tap on the
+/// other one.
 class OnboardingIntroPhone extends StatelessWidget {
   const OnboardingIntroPhone({
     super.key,
@@ -24,6 +25,8 @@ class OnboardingIntroPhone extends StatelessWidget {
     required this.version,
     required this.accent,
     required this.bottomInset,
+    required this.language,
+    required this.onLanguage,
     required this.onNext,
   });
 
@@ -31,25 +34,43 @@ class OnboardingIntroPhone extends StatelessWidget {
   final String? version;
   final Color accent;
   final double bottomInset;
+  final AppLanguage language;
+  final ValueChanged<AppLanguage> onLanguage;
   final VoidCallback onNext;
+
+  /// The language pill's width.
+  static const languageWidth = 232.0;
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
         Positioned(
-          left: 36,
-          right: 36,
+          left: descriptionSide,
+          right: descriptionSide,
           top: nameBottom + 31,
-          child: const StepRise(
+          child: StepRise(
             order: 2,
             child: Text(
-              onboardingDescription,
+              context.l10n.onboardingIntroDescription,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                height: 1.5,
-                color: OnboardingColors.secondary,
+              style: descriptionStyle,
+            ),
+          ),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: bottomInset + 92 + 15 + 16,
+          child: StepRise(
+            order: 5,
+            child: Center(
+              child: SizedBox(
+                width: languageWidth,
+                child: OnboardingLanguageChoice(
+                  value: language,
+                  onChanged: onLanguage,
+                ),
               ),
             ),
           ),
@@ -67,7 +88,7 @@ class OnboardingIntroPhone extends StatelessWidget {
           child: StepRise(
             order: 4,
             child: OnboardingButton(
-              label: 'Next',
+              label: context.l10n.commonNext,
               accent: accent,
               trailing: OnboardingGlyphKind.arrowRight,
               onPressed: onNext,
@@ -78,24 +99,63 @@ class OnboardingIntroPhone extends StatelessWidget {
     );
   }
 
-  /// The height the intro needs under the name: the description (up to
-  /// three lines), the version and the button.
-  static const neededBelowName = 31 + 70 + 24 + 15 + 92;
+  /// The description's margins and type.
+  static const descriptionSide = 36.0;
+  static const descriptionStyle = TextStyle(
+    fontSize: 15,
+    height: 1.5,
+    color: OnboardingColors.secondary,
+  );
+
+  /// The room the description [text] takes in [width], in [body] (the
+  /// style it inherits) scaled by [textScaler]: three lines at least, so
+  /// the tile does not move when the language changes, more when the
+  /// language or large text needs them.
+  static double descriptionRoom(
+    String text, {
+    required TextStyle? body,
+    required TextScaler textScaler,
+    required double width,
+  }) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: (body ?? const TextStyle()).merge(descriptionStyle),
+      ),
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+      textScaler: textScaler,
+    )..layout(maxWidth: width);
+    final height = painter.height;
+    painter.dispose();
+    final threeLines = textScaler.scale(70);
+    return height > threeLines ? height : threeLines;
+  }
+
+  /// The height the intro needs under the name, with [descriptionRoom]:
+  /// the description, the language pill (44 and 16 around it), the version
+  /// and the button.
+  static double neededBelowName(double descriptionRoom) =>
+      31 + descriptionRoom + 24 + 60 + 15 + 92;
 }
 
-/// Step 1, Intro, on a tablet: "First launch"
-/// and the description, "Next" at the bottom right (the tile, the name and
-/// the version are in the brand pane).
+/// Step 1, Intro, on a tablet: "First launch", the description and the
+/// language pill, "Next" at the bottom right (the tile, the name and the
+/// version are in the brand pane).
 class OnboardingIntroTablet extends StatelessWidget {
   const OnboardingIntroTablet({
     super.key,
     required this.layout,
     required this.accent,
+    required this.language,
+    required this.onLanguage,
     required this.onNext,
   });
 
   final OnboardingStepLayout layout;
   final Color accent;
+  final AppLanguage language;
+  final ValueChanged<AppLanguage> onLanguage;
   final VoidCallback onNext;
 
   @override
@@ -125,7 +185,7 @@ class OnboardingIntroTablet extends StatelessWidget {
                       StepRise(
                         order: 1,
                         child: Text(
-                          'First launch'.toUpperCase(),
+                          context.l10n.onboardingIntroEyebrow.toUpperCase(),
                           style: OnboardingType.eyebrow,
                         ),
                       ),
@@ -134,7 +194,7 @@ class OnboardingIntroTablet extends StatelessWidget {
                         child: Semantics(
                           header: true,
                           child: Text(
-                            onboardingDescription,
+                            context.l10n.onboardingIntroDescription,
                             style: TextStyle(
                               fontFamily: OnsetTokens.displayFamily,
                               fontSize: size,
@@ -142,6 +202,19 @@ class OnboardingIntroTablet extends StatelessWidget {
                               letterSpacing: -0.035 * size,
                               height: 1.12,
                               color: OnboardingColors.text,
+                            ),
+                          ),
+                        ),
+                      ),
+                      StepRise(
+                        order: 5,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: SizedBox(
+                            width: OnboardingIntroPhone.languageWidth,
+                            child: OnboardingLanguageChoice(
+                              value: language,
+                              onChanged: onLanguage,
                             ),
                           ),
                         ),
@@ -163,7 +236,7 @@ class OnboardingIntroTablet extends StatelessWidget {
                 primary: StepRise(
                   order: 4,
                   child: OnboardingButton(
-                    label: 'Next',
+                    label: context.l10n.commonNext,
                     accent: accent,
                     trailing: OnboardingGlyphKind.arrowRight,
                     onPressed: onNext,
@@ -432,9 +505,9 @@ class _MosaicTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(5),
                 ),
                 alignment: Alignment.center,
-                child: const Text(
-                  'LIVE',
-                  style: TextStyle(
+                child: Text(
+                  context.l10n.commonLiveBadge,
+                  style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.6,

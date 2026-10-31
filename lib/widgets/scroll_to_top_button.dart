@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 
 class ScrollToTopButton extends StatelessWidget {
   final ScrollController scrollController;
@@ -11,7 +12,7 @@ class ScrollToTopButton extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Tooltip(
-          message: 'Scroll to top',
+          message: context.l10n.scrollToTop,
           preferBelow: false,
           child: FilledButton(
             onPressed: () => scrollController.animateTo(

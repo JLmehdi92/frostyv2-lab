@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/widgets/blurred_container.dart';
 
 class OnsetNotification extends StatelessWidget {
@@ -44,7 +45,7 @@ class OnsetNotification extends StatelessWidget {
             onPressed: onDismissed,
             icon: const Icon(Icons.close_rounded, size: 20),
             visualDensity: VisualDensity.compact,
-            tooltip: 'Dismiss',
+            tooltip: context.l10n.commonDismiss,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
       ],

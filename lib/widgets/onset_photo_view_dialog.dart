@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/services/cache_manager.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/blurred_container.dart';
@@ -187,7 +188,7 @@ class _OnsetPhotoViewDialogState extends State<OnsetPhotoViewDialog>
           opacity: buttonsOpacity,
           duration: const Duration(milliseconds: 100),
           child: IconButton(
-            tooltip: 'Close',
+            tooltip: context.l10n.commonClose,
             icon: Icon(
               Icons.close,
               color: context.onsetColors.overlayOnSurface,
@@ -213,7 +214,9 @@ class _OnsetPhotoViewDialogState extends State<OnsetPhotoViewDialog>
                   child: FilledButton.tonal(
                     onPressed: _toggleResolution,
                     child: Text(
-                      _isFullResolution ? 'View thumbnail' : 'View original',
+                      _isFullResolution
+                          ? context.l10n.photoViewThumbnail
+                          : context.l10n.photoViewOriginal,
                       style: TextStyle(
                         color: context.onsetColors.overlayOnSurface,
                       ),

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/screens/home/home.dart';
 import 'package:onset/screens/onboarding/login_webview.dart';
@@ -410,8 +411,9 @@ class _OnboardingFlowState extends State<OnboardingFlow>
     return Observer(
       builder: (context) {
         final accent = Color(_settings.accentColor);
+        final theme = OnsetThemes(colorSchemeSeed: accent).dark;
         return Theme(
-          data: OnsetThemes(colorSchemeSeed: accent).dark,
+          data: theme,
           child: AnnotatedRegion<SystemUiOverlayStyle>(
             value: onboardingBars,
             child: PopScope(
@@ -421,7 +423,7 @@ class _OnboardingFlowState extends State<OnboardingFlow>
               },
               child: Material(
                 color: OnboardingColors.ground,
-                child: _layout(context, accent),
+                child: _layout(context, accent, theme.textTheme.bodyMedium),
               ),
             ),
           ),
@@ -430,18 +432,27 @@ class _OnboardingFlowState extends State<OnboardingFlow>
     );
   }
 
-  Widget _layout(BuildContext context, Color accent) {
+  /// [body] is the text style the steps inherit (the Material's), which
+  /// the phone's Intro description is measured in.
+  Widget _layout(BuildContext context, Color accent, TextStyle? body) {
     final size = MediaQuery.sizeOf(context);
     final padding = MediaQuery.paddingOf(context);
+    final textScaler = MediaQuery.textScalerOf(context);
     final geometry = _Geometry.of(
       size,
       padding,
       nameHeight:
-          MediaQuery.textScalerOf(context).scale(
+          textScaler.scale(
                 OnsetWordmark.letterSize(tablet: isLargeScreenSize(size)),
               ) *
               1.2 +
           14,
+      descriptionHeight: OnboardingIntroPhone.descriptionRoom(
+        context.l10n.onboardingIntroDescription,
+        body: body,
+        textScaler: textScaler,
+        width: size.width - 2 * OnboardingIntroPhone.descriptionSide,
+      ),
     );
     final tablet = geometry.tablet;
 
@@ -643,12 +654,15 @@ class _OnboardingFlowState extends State<OnboardingFlow>
     );
   }
 
+  /// The Intro's parts by order; the language pill (order 5) comes in
+  /// right after the description.
   static const _phoneIntroDelays = [
     Duration.zero,
     Duration(milliseconds: 340),
     Duration(milliseconds: 420),
     Duration(milliseconds: 500),
     Duration(milliseconds: 560),
+    Duration(milliseconds: 460),
   ];
 
   static const _tabletIntroDelays = [
@@ -657,7 +671,20 @@ class _OnboardingFlowState extends State<OnboardingFlow>
     Duration(milliseconds: 690),
     Duration(milliseconds: 760),
     Duration(milliseconds: 830),
+    Duration(milliseconds: 760),
   ];
+
+  /// The language the Intro's pill shows: the one picked, else the
+  /// device's.
+  AppLanguage get _language => resolveAppLanguage(
+    _settings.appLanguage,
+    WidgetsBinding.instance.platformDispatcher.locales,
+  );
+
+  /// A tap on the pill: the onboarding (and the app) switches language at
+  /// once.
+  void _chooseLanguage(AppLanguage language) =>
+      _settings.chooseLanguage(language);
 
   Widget _stepContent(
     OnboardingStep step,
@@ -666,13 +693,22 @@ class _OnboardingFlowState extends State<OnboardingFlow>
     Color accent,
   ) {
     final tablet = geometry.tablet;
-    void next() => _go(OnboardingStep.login, forward: true);
+    final language = _language;
+    void next() {
+      // Chosen for good, even without a tap: a new install never gets the
+      // one-time question Home asks older ones.
+      _settings.chooseLanguage(language);
+      _go(OnboardingStep.login, forward: true);
+    }
+
     switch (step) {
       case OnboardingStep.intro:
         if (tablet) {
           return OnboardingIntroTablet(
             layout: layout,
             accent: accent,
+            language: language,
+            onLanguage: _chooseLanguage,
             onNext: next,
           );
         }
@@ -681,6 +717,8 @@ class _OnboardingFlowState extends State<OnboardingFlow>
           version: _version,
           accent: accent,
           bottomInset: geometry.bottomInset,
+          language: language,
+          onLanguage: _chooseLanguage,
           onNext: next,
         );
       case OnboardingStep.login:
@@ -767,6 +805,7 @@ class _Geometry {
     Size size,
     EdgeInsets padding, {
     required double nameHeight,
+    required double descriptionHeight,
   }) {
     final w = size.width;
     final h = size.height;
@@ -779,7 +818,7 @@ class _Geometry {
       final lowest =
           h -
           padding.bottom -
-          OnboardingIntroPhone.neededBelowName -
+          OnboardingIntroPhone.neededBelowName(descriptionHeight) -
           nameHeight -
           gap -
           half;
@@ -916,7 +955,7 @@ class _TopBar extends StatelessWidget {
               opacity: hasBack ? 1 : 0,
               child: OnboardingIconButton(
                 glyph: OnboardingGlyphKind.chevronLeft,
-                tooltip: 'Back',
+                tooltip: context.l10n.commonBack,
                 onPressed: onBack,
               ),
             ),
@@ -952,8 +991,8 @@ class _Progress extends StatelessWidget {
   Widget build(BuildContext context) {
     final width = motionDuration(context, const Duration(milliseconds: 360));
     return Semantics(
-      label: 'Onboarding progress',
-      value: 'Step ${index + 1} of 4',
+      label: context.l10n.onboardingProgressLabel,
+      value: context.l10n.onboardingProgressValue(step: index + 1, count: 4),
       excludeSemantics: true,
       child: Row(
         mainAxisSize: MainAxisSize.min,

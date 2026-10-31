@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 
 /// A simple widget that displays an alert message in the center.
 class AlertMessage extends StatelessWidget {
@@ -29,8 +30,9 @@ class AlertMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final defaultColor =
-        vertical ? colorScheme.onSurfaceVariant : colorScheme.onSurface;
+    final defaultColor = vertical
+        ? colorScheme.onSurfaceVariant
+        : colorScheme.onSurface;
 
     final Widget widget;
 
@@ -65,7 +67,7 @@ class AlertMessage extends StatelessWidget {
           if (trailingIcon != null) ...[
             const SizedBox(width: 8),
             IconButton(
-              tooltip: trailingTooltip ?? 'Retry',
+              tooltip: trailingTooltip ?? context.l10n.commonRetry,
               icon: Icon(trailingIcon, color: color ?? defaultColor),
               onPressed: onTrailingIconPressed,
               padding: EdgeInsets.zero,

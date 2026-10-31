@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/release_notes.dart';
 import 'package:onset/screens/settings/widgets/settings_glyph.dart';
@@ -845,14 +846,15 @@ String _rowLabel(ReleaseEntry entry, {bool latest = false}) => [
 class ReleaseEarlierVersions extends StatelessWidget {
   const ReleaseEarlierVersions({
     super.key,
-    this.title = 'Earlier versions',
+    this.title,
     required this.entries,
     required this.indexes,
     required this.open,
     required this.onToggle,
   });
 
-  final String title;
+  /// The heading; "Earlier versions" when null.
+  final String? title;
 
   /// Every entry of the notes, and the positions of those listed here.
   final List<ReleaseEntry> entries;
@@ -871,7 +873,9 @@ class ReleaseEarlierVersions extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: ReleaseListLabel(title),
+          child: ReleaseListLabel(
+            title ?? context.l10n.releaseNotesEarlierVersions,
+          ),
         ),
         DecoratedBox(
           decoration: BoxDecoration(

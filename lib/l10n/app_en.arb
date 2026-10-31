@@ -47,5 +47,623 @@
   "commonLiveBadge": "LIVE",
   "@commonLiveBadge": {
     "description": "The small badge on a live channel's picture (onboarding mosaic and Setup preview). Kept short and in capitals: it sits in a 16-20 dp pill."
+  },
+  "commonDismiss": "Dismiss",
+  "@commonDismiss": {
+    "description": "Tooltip of the cross that hides an in-app notification banner."
+  },
+  "commonConnectWithTwitch": "Connect with Twitch",
+  "@commonConnectWithTwitch": {
+    "description": "Button that opens the Twitch login (onboarding Log in step, logged-out screens), and the title of the Twitch login page."
+  },
+  "settingsLanguageTitle": "Language",
+  "@settingsLanguageTitle": {
+    "description": "Settings › General: the title of the first group, the app's language."
+  },
+  "settingsLanguageSystemSubtitle": "“System” uses your device’s language (currently {language}).",
+  "@settingsLanguageSystemSubtitle": {
+    "description": "Settings › General › Language: the line under the options, saying which language the System option gives on this device.",
+    "placeholders": {
+      "language": {
+        "type": "String",
+        "example": "English"
+      }
+    }
+  },
+  "languagePromptTitle": "Choose your language",
+  "@languagePromptTitle": {
+    "description": "Title of the one-time sheet that asks the language after the update that added French."
+  },
+  "languagePromptBody": "ONSET is now available in English and French. You can change the language anytime in Settings › General.",
+  "@languagePromptBody": {
+    "description": "Text of the one-time language sheet, under its title."
+  },
+  "languagePromptConfirm": "Continue",
+  "@languagePromptConfirm": {
+    "description": "Button of the one-time language sheet that keeps the language selected."
+  },
+  "onboardingIntroDescription": "A mobile Twitch client with 7TV, BetterTTV (BTTV), and FrankerFaceZ (FFZ) support.",
+  "@onboardingIntroDescription": {
+    "description": "Onboarding Intro: the app's description under its name (a large heading on a tablet)."
+  },
+  "onboardingIntroEyebrow": "First launch",
+  "@onboardingIntroEyebrow": {
+    "description": "Onboarding Intro on a tablet: the small line above the description (shown in capitals)."
+  },
+  "onboardingProgressLabel": "Onboarding progress",
+  "@onboardingProgressLabel": {
+    "description": "What a screen reader calls the onboarding’s four-segment progress bar."
+  },
+  "onboardingProgressValue": "Step {step} of {count}",
+  "@onboardingProgressValue": {
+    "description": "Screen-reader value of the onboarding progress bar.",
+    "placeholders": {
+      "step": {
+        "type": "int",
+        "example": "1"
+      },
+      "count": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "onboardingLoginTitle": "Log in",
+  "@onboardingLoginTitle": {
+    "description": "Onboarding: title of the Log in step."
+  },
+  "onboardingLoginLead": "ONSET needs your permission in order to enable the ability to chat, view followed streams, and more.",
+  "@onboardingLoginLead": {
+    "description": "Onboarding Log in step: the text under the title."
+  },
+  "onboardingLoginAuthorizeHeader": "What you will authorize",
+  "@onboardingLoginAuthorizeHeader": {
+    "description": "Onboarding Log in step: header of the permission list (shown in capitals)."
+  },
+  "onboardingPermissionChatTitle": "Chat",
+  "@onboardingPermissionChatTitle": {
+    "description": "Onboarding Log in step, permission list: the chat permission."
+  },
+  "onboardingPermissionChatDetail": "Read and send messages",
+  "@onboardingPermissionChatDetail": {
+    "description": "Onboarding Log in step, permission list: what the chat permission allows."
+  },
+  "onboardingPermissionFollowsTitle": "Followed channels",
+  "@onboardingPermissionFollowsTitle": {
+    "description": "Onboarding Log in step, permission list: the followed channels permission."
+  },
+  "onboardingPermissionFollowsDetail": "See who is live right now",
+  "@onboardingPermissionFollowsDetail": {
+    "description": "Onboarding Log in step, permission list: what the followed channels permission allows."
+  },
+  "onboardingPermissionEmotesTitle": "Your emotes",
+  "@onboardingPermissionEmotesTitle": {
+    "description": "Onboarding Log in step, permission list: the viewer's own emotes permission."
+  },
+  "onboardingPermissionEmotesDetail": "Use your sub and follower emotes",
+  "@onboardingPermissionEmotesDetail": {
+    "description": "Onboarding Log in step, permission list: what the emotes permission allows."
+  },
+  "onboardingPermissionWhispersTitle": "Whispers",
+  "@onboardingPermissionWhispersTitle": {
+    "description": "Onboarding Log in step, permission list: the whispers permission."
+  },
+  "onboardingPermissionWhispersDetail": "Read and send whispers",
+  "@onboardingPermissionWhispersDetail": {
+    "description": "Onboarding Log in step, permission list: what the whispers permission allows."
+  },
+  "onboardingPermissionModerationTitle": "Moderation",
+  "@onboardingPermissionModerationTitle": {
+    "description": "Onboarding Log in step, permission list: the moderation permissions."
+  },
+  "onboardingPermissionModerationDetail": "Bans, warnings, messages, chat modes",
+  "@onboardingPermissionModerationDetail": {
+    "description": "Onboarding Log in step, permission list: what the moderation permissions allow."
+  },
+  "onboardingPermissionClipsTitle": "Clips",
+  "@onboardingPermissionClipsTitle": {
+    "description": "Onboarding Log in step, permission list: the clips permission."
+  },
+  "onboardingPermissionClipsDetail": "Create clips from a stream",
+  "@onboardingPermissionClipsDetail": {
+    "description": "Onboarding Log in step, permission list: what the clips permission allows."
+  },
+  "onboardingPermissionBlocksTitle": "Blocks and name color",
+  "@onboardingPermissionBlocksTitle": {
+    "description": "Onboarding Log in step, permission list: the blocks and chat colour permissions."
+  },
+  "onboardingPermissionBlocksDetail": "Manage blocks, change your chat color",
+  "@onboardingPermissionBlocksDetail": {
+    "description": "Onboarding Log in step, permission list: what the blocks and chat colour permissions allow."
+  },
+  "onboardingLoginDisclaimer": "ONSET only asks for the necessary permissions through the official Twitch API. You’ll be able to review them before authorizing.",
+  "@onboardingLoginDisclaimer": {
+    "description": "Onboarding Log in step: the note above the buttons (in the content on a tablet)."
+  },
+  "onboardingLoginSkip": "Skip",
+  "@onboardingLoginSkip": {
+    "description": "Onboarding Log in step: goes on without an account."
+  },
+  "onboardingSetupTitle": "Setup",
+  "@onboardingSetupTitle": {
+    "description": "Onboarding: title of the Setup step."
+  },
+  "onboardingSetupLead": "Let’s tweak some settings before you get started. You can always change these and more later.",
+  "@onboardingSetupLead": {
+    "description": "Onboarding Setup step: the text under the title."
+  },
+  "onboardingSetupLoggedInAs": "Logged in as {name}",
+  "@onboardingSetupLoggedInAs": {
+    "description": "Onboarding Setup step: the pill saying which Twitch account is logged in. The name is shown in bold.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "JLTomy"
+      }
+    }
+  },
+  "loginSigningIn": "Signing you in…",
+  "@loginSigningIn": {
+    "description": "While Twitch finishes the login (onboarding Setup pill, over the Twitch login page)."
+  },
+  "onboardingSetupLoginFailed": "Login failed · go back to try again, or log in later from Profile",
+  "@onboardingSetupLoginFailed": {
+    "description": "Onboarding Setup step: the pill when the Twitch login did not go through. Profile is the bottom bar section."
+  },
+  "onboardingSetupNotLoggedIn": "Not logged in · you can log in later from Profile",
+  "@onboardingSetupNotLoggedIn": {
+    "description": "Onboarding Setup step: the pill when no account is logged in. Profile is the bottom bar section."
+  },
+  "onboardingSetupPreviewChannel": "A live channel",
+  "@onboardingSetupPreviewChannel": {
+    "description": "Onboarding Setup step, live preview: the stand-in channel name when no live channel could be loaded."
+  },
+  "onboardingSetupPreviewDetail": "Category · viewers",
+  "@onboardingSetupPreviewDetail": {
+    "description": "Onboarding Setup step, live preview: the stand-in line under the channel name."
+  },
+  "onboardingSetupPreviewSemantics": "Preview: {name}, {detail}",
+  "@onboardingSetupPreviewSemantics": {
+    "description": "What a screen reader says for the onboarding Setup live preview.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "JLTomy"
+      },
+      "detail": {
+        "type": "String",
+        "example": "Just Chatting · 1,234"
+      }
+    }
+  },
+  "onboardingSetupPreviewBadge": "PREVIEW",
+  "@onboardingSetupPreviewBadge": {
+    "description": "Onboarding Setup step, live preview: the small capitals at its end."
+  },
+  "onboardingSetupThemeTitle": "Theme",
+  "@onboardingSetupThemeTitle": {
+    "description": "Onboarding Setup step: the theme row and what a screen reader calls its pill."
+  },
+  "themeSystem": "System",
+  "@themeSystem": {
+    "description": "The theme that follows the device (onboarding Setup pill)."
+  },
+  "themeLight": "Light",
+  "@themeLight": {
+    "description": "The light theme (onboarding Setup pill)."
+  },
+  "themeDark": "Dark",
+  "@themeDark": {
+    "description": "The dark theme (onboarding Setup pill)."
+  },
+  "onboardingSetupThemeSystemNote": "Follows your device",
+  "@onboardingSetupThemeSystemNote": {
+    "description": "Onboarding Setup step: the note beside Theme when System is picked."
+  },
+  "onboardingSetupThemeLightNote": "Light surfaces everywhere",
+  "@onboardingSetupThemeLightNote": {
+    "description": "Onboarding Setup step: the note beside Theme when Light is picked."
+  },
+  "onboardingSetupThemeDarkNote": "Noir, the ONSET default",
+  "@onboardingSetupThemeDarkNote": {
+    "description": "Onboarding Setup step: the note beside Theme when Dark is picked (\"Noir\" is the dark theme's name)."
+  },
+  "accentColorTitle": "Accent color",
+  "@accentColorTitle": {
+    "description": "The accent colour row of onboarding Setup, and the title of its colour picker."
+  },
+  "accentColorSemantics": "Accent color, {hex}",
+  "@accentColorSemantics": {
+    "description": "What a screen reader says for the onboarding Setup accent colour row.",
+    "placeholders": {
+      "hex": {
+        "type": "String",
+        "example": "#C8FF3D"
+      }
+    }
+  },
+  "accentColorRandom": "Random",
+  "@accentColorRandom": {
+    "description": "Accent colour picker: picks a random colour."
+  },
+  "accentSaturationBrightness": "Saturation and brightness",
+  "@accentSaturationBrightness": {
+    "description": "What a screen reader calls the colour square of the accent colour pickers."
+  },
+  "accentSaturationBrightnessValue": "{saturation} %, {brightness} %",
+  "@accentSaturationBrightnessValue": {
+    "description": "Screen-reader value of the colour square of the accent colour pickers.",
+    "placeholders": {
+      "saturation": {
+        "type": "int",
+        "example": "76"
+      },
+      "brightness": {
+        "type": "int",
+        "example": "100"
+      }
+    }
+  },
+  "accentHue": "{degrees, plural, other{Hue {degrees} degrees}}",
+  "@accentHue": {
+    "description": "A screen-reader button on the hue slider of the accent colour pickers (eight named hues, 0 to 315).",
+    "placeholders": {
+      "degrees": {
+        "type": "int",
+        "example": "202"
+      }
+    }
+  },
+  "onboardingSetupHistoryTitle": "Fallback chat history (third-party)",
+  "@onboardingSetupHistoryTitle": {
+    "description": "Onboarding Setup step: the switch that loads recent chat messages from a third party."
+  },
+  "onboardingSetupHistoryDetail": "When Twitch's own chat history is unavailable, fails or is empty, loads recent messages from {link}, which then receives the channel name.",
+  "@onboardingSetupHistoryDetail": {
+    "description": "Onboarding Setup step: the text under the fallback chat history switch. The link is the third party's host, underlined.",
+    "placeholders": {
+      "link": {
+        "type": "String",
+        "example": "recent-messages.robotty.de"
+      }
+    }
+  },
+  "onboardingSetupCrashTitle": "Share crash logs and analytics",
+  "@onboardingSetupCrashTitle": {
+    "description": "Onboarding Setup step: the crash logs and analytics consent switch."
+  },
+  "onboardingSetupCrashDetail": "Help improve ONSET by sending crash logs and analytics through Firebase, without your Twitch account or channels.",
+  "@onboardingSetupCrashDetail": {
+    "description": "Onboarding Setup step: the text under the crash logs and analytics switch."
+  },
+  "onboardingWelcomeTitle": "Welcome!",
+  "@onboardingWelcomeTitle": {
+    "description": "Onboarding: title of the last step, Welcome."
+  },
+  "onboardingWelcomeLead": "Just a few more things…",
+  "@onboardingWelcomeLead": {
+    "description": "Onboarding Welcome step: the text under the title, above the three tips."
+  },
+  "onboardingWelcomeTipGitHub": "Check out the GitHub repo at the top-right of the settings page to explore ONSET’s source code, report bugs, make feature requests, and more.",
+  "@onboardingWelcomeTipGitHub": {
+    "description": "Onboarding Welcome step: the first tip."
+  },
+  "onboardingWelcomeTipChangelog": "Links to the full changelog and FAQ are in the settings page under “Other”.",
+  "@onboardingWelcomeTipChangelog": {
+    "description": "Onboarding Welcome step: the second tip. \"Other\" is the name of a settings page."
+  },
+  "onboardingWelcomeTipRating": "Don’t forget to leave a rating and/or review on the app store!",
+  "@onboardingWelcomeTipRating": {
+    "description": "Onboarding Welcome step: the third tip."
+  },
+  "onboardingWelcomeGo": "Let’s go!",
+  "@onboardingWelcomeGo": {
+    "description": "Onboarding Welcome step: the button that opens the app."
+  },
+  "loginHelpTooltip": "Login help",
+  "@loginHelpTooltip": {
+    "description": "Tooltip of the \"?\" on the Twitch login page, and what a screen reader calls its dialog."
+  },
+  "loginHelpTitle": "Workaround for the Twitch cookie banner",
+  "@loginHelpTitle": {
+    "description": "Title of the login help dialog."
+  },
+  "loginHelpBodyOnboarding": "If the Twitch cookie banner is still blocking the login, try clicking one of the links in the cookie policy description and navigating until you reach the Twitch home page. From there, you can try logging in on the top right profile icon. Once logged in, go back to the first step of the onboarding and then try again.",
+  "@loginHelpBodyOnboarding": {
+    "description": "Text of the login help dialog, opened from the onboarding."
+  },
+  "loginHelpBodyElsewhere": "If the Twitch cookie banner is still blocking the login, try clicking one of the links in the cookie policy description and navigating until you reach the Twitch home page. From there, you can try logging in on the top right profile icon. Once logged in, go back, then open the login again.",
+  "@loginHelpBodyElsewhere": {
+    "description": "Text of the login help dialog, opened from the settings (outside the onboarding)."
+  },
+  "loginHostSecure": "Secure page: {host}",
+  "@loginHostSecure": {
+    "description": "What a screen reader says for the address strip of the Twitch login page, on an https page.",
+    "placeholders": {
+      "host": {
+        "type": "String",
+        "example": "id.twitch.tv"
+      }
+    }
+  },
+  "loginHostPage": "Page: {host}",
+  "@loginHostPage": {
+    "description": "What a screen reader says for the address strip of the Twitch login page, on a page that is not https.",
+    "placeholders": {
+      "host": {
+        "type": "String",
+        "example": "http://id.twitch.tv"
+      }
+    }
+  },
+  "loginFailedLine": "Twitch did not sign you in. Try again.",
+  "@loginFailedLine": {
+    "description": "The line under the address of the Twitch login page when Twitch handed back a token that did not log in."
+  },
+  "loginLoadFailedTitle": "Twitch could not be reached",
+  "@loginLoadFailedTitle": {
+    "description": "Twitch login page: the title when the page could not load."
+  },
+  "loginLoadFailedDetail": "Check your connection, then try again.",
+  "@loginLoadFailedDetail": {
+    "description": "Twitch login page: the text under the title when the page could not load."
+  },
+  "shellSectionHome": "Home",
+  "@shellSectionHome": {
+    "description": "The Home section of the bottom bar (tablet: the top pill)."
+  },
+  "shellSectionBrowse": "Browse",
+  "@shellSectionBrowse": {
+    "description": "The Browse section of the bottom bar (tablet: the top pill), and Browse's header title."
+  },
+  "shellSectionActivity": "Activity",
+  "@shellSectionActivity": {
+    "description": "The Activity section of the bottom bar (tablet: the top pill), and Activity's header title."
+  },
+  "shellSectionProfile": "Profile",
+  "@shellSectionProfile": {
+    "description": "The Profile section of the bottom bar (tablet: the avatar's tooltip)."
+  },
+  "shellActivityNew": "{count, plural, other{Activity, {count} new}}",
+  "@shellActivityNew": {
+    "description": "What a screen reader (and the tooltip) says for the Activity section when notifications are unread.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "shellFeedFollowing": "Following",
+  "@shellFeedFollowing": {
+    "description": "Home's top tab of the followed channels that are live."
+  },
+  "shellFeedLive": "Live",
+  "@shellFeedLive": {
+    "description": "Home's top tab of the top live streams."
+  },
+  "shellFeedClips": "Clips",
+  "@shellFeedClips": {
+    "description": "Home's top tab of the clips feed."
+  },
+  "shellBrowseCategories": "Categories",
+  "@shellBrowseCategories": {
+    "description": "Browse's tab of the categories."
+  },
+  "shellBrowseLiveChannels": "Live channels",
+  "@shellBrowseLiveChannels": {
+    "description": "Browse's tab of the live channels."
+  },
+  "shellActivityNotifications": "Notifications",
+  "@shellActivityNotifications": {
+    "description": "Activity's tab of the notifications ONSET posted."
+  },
+  "shellWhispers": "Whispers",
+  "@shellWhispers": {
+    "description": "Activity's tab of the whispers, and the tooltip of the header's whispers button."
+  },
+  "shellWhispersUnread": "{count, plural, other{Whispers ({count} unread)}}",
+  "@shellWhispersUnread": {
+    "description": "Tooltip of the header's whispers button when whispers are unread.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "shellWhispersRefused": "Whispers (log in again to get them)",
+  "@shellWhispersRefused": {
+    "description": "Tooltip of the header's whispers button when Twitch refused them until a new login."
+  },
+  "shellTabUnread": "{count, plural, other{{label}, {count} unread}}",
+  "@shellTabUnread": {
+    "description": "What a screen reader says for a header tab with an unread count (Activity: Notifications, Whispers).",
+    "placeholders": {
+      "label": {
+        "type": "String",
+        "example": "Notifications"
+      },
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "shellNavSemantics": "Main",
+  "@shellNavSemantics": {
+    "description": "What a screen reader calls the bottom bar (tablet: the top pill) of the main sections."
+  },
+  "shellSearch": "Search",
+  "@shellSearch": {
+    "description": "The search button and field of the header, and what a screen reader calls them."
+  },
+  "shellSearchHint": "Search channels, categories or videos",
+  "@shellSearchHint": {
+    "description": "Browse's search field on a phone."
+  },
+  "shellSettings": "Settings",
+  "@shellSettings": {
+    "description": "Tooltip of the header's settings button (on Profile)."
+  },
+  "homeOpenChannelFailed": "Couldn't open {login}'s channel.",
+  "@homeOpenChannelFailed": {
+    "description": "Snackbar when a channel opened from Activity could not be loaded.",
+    "placeholders": {
+      "login": {
+        "type": "String",
+        "example": "jltomy"
+      }
+    }
+  },
+  "mentionNotice": "You were mentioned in {login}'s chat",
+  "@mentionNotice": {
+    "description": "Snackbar when a mention notification is tapped while a player or a conversation covers the chat.",
+    "placeholders": {
+      "login": {
+        "type": "String",
+        "example": "jltomy"
+      }
+    }
+  },
+  "deepLinkCategoryFallback": "Category",
+  "@deepLinkCategoryFallback": {
+    "description": "Title of the in-app Twitch page opened for a category link Twitch search did not find, when the link has no name."
+  },
+  "deepLinkFailed": "Unable to navigate to '{uri}'",
+  "@deepLinkFailed": {
+    "description": "Snackbar when a link to Twitch cannot be opened in the app.",
+    "placeholders": {
+      "uri": {
+        "type": "String",
+        "example": "https://www.twitch.tv/jltomy"
+      }
+    }
+  },
+  "deepLinkOpenInBrowser": "Open in browser",
+  "@deepLinkOpenInBrowser": {
+    "description": "Tooltip of the button at the end of the link failure snackbar."
+  },
+  "scrollToTop": "Scroll to top",
+  "@scrollToTop": {
+    "description": "Tooltip of the button that scrolls a list back to its top."
+  },
+  "miniPlayerReturn": "Return to stream",
+  "@miniPlayerReturn": {
+    "description": "What a screen reader says for the mini player: it opens the channel again."
+  },
+  "miniPlayerClose": "Close mini player",
+  "@miniPlayerClose": {
+    "description": "Tooltip of the mini player's close button."
+  },
+  "userActionsProfile": "Profile",
+  "@userActionsProfile": {
+    "description": "Channel long-press menu: opens the channel's profile."
+  },
+  "userActionsVideos": "Videos",
+  "@userActionsVideos": {
+    "description": "Channel long-press menu: opens the channel's videos."
+  },
+  "userActionsPin": "Pin {name}",
+  "@userActionsPin": {
+    "description": "Channel long-press menu: pins the channel to the top of Following.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "JLTomy"
+      }
+    }
+  },
+  "userActionsUnpin": "Unpin {name}",
+  "@userActionsUnpin": {
+    "description": "Channel long-press menu: unpins the channel.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "JLTomy"
+      }
+    }
+  },
+  "userActionsBlock": "Block {name}",
+  "@userActionsBlock": {
+    "description": "Channel long-press menu: blocks the channel.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "JLTomy"
+      }
+    }
+  },
+  "userActionsFollowOnTwitch": "Follow {name} on Twitch",
+  "@userActionsFollowOnTwitch": {
+    "description": "Channel long-press menu: follows the channel on twitch.tv.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "JLTomy"
+      }
+    }
+  },
+  "userActionsFollowDetail": "Opens the channel on twitch.tv",
+  "@userActionsFollowDetail": {
+    "description": "Channel long-press menu: the second line under \"Follow … on Twitch\"."
+  },
+  "userActionsCopyLink": "Copy link",
+  "@userActionsCopyLink": {
+    "description": "Channel long-press menu: copies the channel's link."
+  },
+  "userActionsLinkCopied": "Link copied",
+  "@userActionsLinkCopied": {
+    "description": "Snackbar after the channel's link was copied."
+  },
+  "userActionsShare": "Share {name}",
+  "@userActionsShare": {
+    "description": "Channel long-press menu: shares the channel's link.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "JLTomy"
+      }
+    }
+  },
+  "userActionsReport": "Report {name}",
+  "@userActionsReport": {
+    "description": "Channel long-press menu: reports the channel on twitch.tv, and that page's title.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "JLTomy"
+      }
+    }
+  },
+  "draggableDividerChatWidth": "Chat width",
+  "@draggableDividerChatWidth": {
+    "description": "What a screen reader calls the divider that resizes the chat beside the video."
+  },
+  "draggableDividerValue": "{percent}%",
+  "@draggableDividerValue": {
+    "description": "Screen-reader value of the chat width divider: the share of the window the chat takes.",
+    "placeholders": {
+      "percent": {
+        "type": "int",
+        "example": "30"
+      }
+    }
+  },
+  "photoViewThumbnail": "View thumbnail",
+  "@photoViewThumbnail": {
+    "description": "Full-screen picture viewer: switches back to the small picture."
+  },
+  "photoViewOriginal": "View original",
+  "@photoViewOriginal": {
+    "description": "Full-screen picture viewer: loads the full-size picture."
+  },
+  "videoListEmptyHint": "Pull down to check again.",
+  "@videoListEmptyHint": {
+    "description": "The line under an empty list of videos or clips."
+  },
+  "releaseNotesEarlierVersions": "Earlier versions",
+  "@releaseNotesEarlierVersions": {
+    "description": "Release notes on a phone: the heading of the older versions."
   }
 }

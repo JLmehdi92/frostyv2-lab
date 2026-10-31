@@ -14,6 +14,10 @@ const _sameInBothLanguages = {
   'languageChoiceSemantics': 'Bilingual on purpose, whatever is on screen.',
   'commonLiveBadge':
       'The badge word French viewers use as is; it fits its pill.',
+  'onboardingPermissionChatTitle': '"Chat" is also the French word for it.',
+  'onboardingPermissionClipsTitle': 'Twitch calls them "clips" in French.',
+  'shellFeedClips': 'Twitch calls them "clips" in French.',
+  'shellActivityNotifications': '"Notifications" is spelled the same.',
 };
 
 void main() {

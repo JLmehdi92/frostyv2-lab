@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/widgets/motion/haptics.dart';
 import 'package:onset/widgets/motion/motion.dart';
@@ -150,7 +151,10 @@ class ShellTabs extends StatelessWidget {
                       selected: i == index,
                       inMutuallyExclusiveGroup: true,
                       label: _badge(i) > 0
-                          ? '${labels[i]}, ${_badge(i)} unread'
+                          ? context.l10n.shellTabUnread(
+                              label: labels[i],
+                              count: _badge(i),
+                            )
                           : labels[i],
                       // The text's own semantics are excluded, the tap with
                       // them: a screen reader taps through this one.

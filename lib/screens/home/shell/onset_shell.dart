@@ -2,6 +2,8 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/home/shell/shell_glyph.dart';
 import 'package:onset/screens/home/shell/shell_tabs.dart';
 import 'package:onset/screens/home/stores/home_store.dart';
@@ -86,11 +88,11 @@ class ShellWhispers {
     required this.onOpen,
   });
 
-  String get tooltip => refused
-      ? 'Whispers (log in again to get them)'
+  String tooltip(AppLocalizations l) => refused
+      ? l.shellWhispersRefused
       : unread > 0
-      ? 'Whispers ($unread unread)'
-      : 'Whispers';
+      ? l.shellWhispersUnread(count: unread)
+      : l.shellWhispers;
 }
 
 /// The shell's measures, on a phone and on a tablet.
@@ -487,7 +489,7 @@ class OnsetShell extends StatelessWidget {
                                   ? Align(
                                       alignment: Alignment.centerRight,
                                       child: _SearchField(
-                                        label: 'Search',
+                                        label: context.l10n.shellSearch,
                                         height: 40,
                                         palette: palette,
                                         onTap: onSearch,
@@ -495,7 +497,7 @@ class OnsetShell extends StatelessWidget {
                                       ),
                                     )
                                   : _SearchField(
-                                      label: 'Search',
+                                      label: context.l10n.shellSearch,
                                       height: 40,
                                       palette: palette,
                                       onTap: onSearch,
@@ -761,7 +763,7 @@ class _PhoneHeader extends StatelessWidget {
                   ),
                   if (header.showSearch)
                     _HeaderButton(
-                      tooltip: 'Search',
+                      tooltip: context.l10n.shellSearch,
                       onPressed: onSearch,
                       child: ShellGlyph(
                         ShellGlyphKind.search,
@@ -805,7 +807,7 @@ class _PhoneHeader extends StatelessWidget {
                 ),
                 if (header.showSearch)
                   _HeaderButton(
-                    tooltip: 'Search',
+                    tooltip: context.l10n.shellSearch,
                     onPressed: onSearch,
                     child: ShellGlyph(
                       ShellGlyphKind.search,
@@ -817,7 +819,7 @@ class _PhoneHeader extends StatelessWidget {
                   _WhispersButton(whispers: whispers, palette: palette),
                 if (header.onSettings case final onSettings?)
                   _HeaderButton(
-                    tooltip: 'Settings',
+                    tooltip: context.l10n.shellSettings,
                     onPressed: onSettings,
                     child: SettingsGlyph(
                       SettingsGlyphKind.general,
@@ -834,7 +836,7 @@ class _PhoneHeader extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
             child: _SearchField(
-              label: 'Search channels, categories or videos',
+              label: context.l10n.shellSearchHint,
               height: 44,
               palette: palette,
               onTap: onSearch,
@@ -926,6 +928,7 @@ class _WhispersButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tooltip = whispers.tooltip(context.l10n);
     final dotColor = whispers.refused ? OnsetTokens.danger : palette.accent;
     final showDot = whispers.refused || whispers.unread > 0;
     final glyph = Stack(
@@ -956,16 +959,16 @@ class _WhispersButton extends StatelessWidget {
     );
     if (!circle) {
       return _HeaderButton(
-        tooltip: whispers.tooltip,
+        tooltip: tooltip,
         onPressed: whispers.onOpen,
         child: glyph,
       );
     }
     return Tooltip(
-      message: whispers.tooltip,
+      message: tooltip,
       child: Semantics(
         button: true,
-        label: whispers.tooltip,
+        label: tooltip,
         onTap: whispers.onOpen,
         excludeSemantics: true,
         child: PressScale(
@@ -1016,7 +1019,7 @@ class _SearchField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'Search',
+      label: context.l10n.shellSearch,
       hint: label,
       onTap: onTap,
       excludeSemantics: true,
@@ -1135,7 +1138,7 @@ class _PhoneNav extends StatelessWidget {
     return Semantics(
       container: true,
       explicitChildNodes: true,
-      label: 'Main',
+      label: context.l10n.shellNavSemantics,
       child: DecoratedBox(
         key: const ValueKey('shell-nav'),
         decoration: const BoxDecoration(
@@ -1190,10 +1193,10 @@ class _TopHighlight extends CustomPainter {
 
 String _badgeText(int count) => count > 99 ? '99+' : '$count';
 
-String _sectionLabel(ShellSection section, int badge) =>
+String _sectionLabel(AppLocalizations l, ShellSection section, int badge) =>
     section == ShellSection.activity && badge > 0
-    ? 'Activity, $badge new'
-    : section.label;
+    ? l.shellActivityNew(count: badge)
+    : section.label(l);
 
 /// One item of the phone's bar: 72 × 50, the signal tint when active.
 class _NavItem extends StatelessWidget {
@@ -1245,11 +1248,11 @@ class _NavItem extends StatelessWidget {
         button: true,
         selected: active,
         inMutuallyExclusiveGroup: true,
-        label: _sectionLabel(section, badge),
+        label: _sectionLabel(context.l10n, section, badge),
         onTap: onTap,
         excludeSemantics: true,
         child: Tooltip(
-          message: _sectionLabel(section, badge),
+          message: _sectionLabel(context.l10n, section, badge),
           excludeFromSemantics: true,
           child: PressScale(
             child: GestureDetector(
@@ -1277,7 +1280,7 @@ class _NavItem extends StatelessWidget {
                         icon,
                         const SizedBox(height: 3),
                         Text(
-                          section.label,
+                          section.label(context.l10n),
                           maxLines: 1,
                           textScaler: TextScaler.noScaling,
                           style: TextStyle(
@@ -1406,11 +1409,11 @@ class _ProfileButton extends StatelessWidget {
     return Semantics(
       button: true,
       selected: active,
-      label: 'Profile',
+      label: context.l10n.shellSectionProfile,
       onTap: onTap,
       excludeSemantics: true,
       child: Tooltip(
-        message: 'Profile',
+        message: context.l10n.shellSectionProfile,
         excludeFromSemantics: true,
         child: PressScale(
           child: GestureDetector(
@@ -1455,7 +1458,7 @@ class _PillNav extends StatelessWidget {
     return Semantics(
       container: true,
       explicitChildNodes: true,
-      label: 'Main',
+      label: context.l10n.shellNavSemantics,
       child: Container(
         height: 46,
         padding: const EdgeInsets.all(4),
@@ -1473,14 +1476,14 @@ class _PillNav extends StatelessWidget {
               ShellSection.browse,
               ShellSection.activity,
             ])
-              _pillItem(target, duration),
+              _pillItem(context.l10n, target, duration),
           ],
         ),
       ),
     );
   }
 
-  Widget _pillItem(ShellSection target, Duration duration) {
+  Widget _pillItem(AppLocalizations l, ShellSection target, Duration duration) {
     final active = target == section;
     final color = active ? palette.pillActiveText : palette.pillIdle;
     final badge = target == ShellSection.activity ? activityBadge : 0;
@@ -1493,7 +1496,7 @@ class _PillNav extends StatelessWidget {
       button: true,
       selected: active,
       inMutuallyExclusiveGroup: true,
-      label: _sectionLabel(target, badge),
+      label: _sectionLabel(l, target, badge),
       onTap: () => onSelect(target),
       excludeSemantics: true,
       child: PressScale(
@@ -1524,7 +1527,7 @@ class _PillNav extends StatelessWidget {
                 ),
                 const SizedBox(width: 7),
                 Text(
-                  target.label,
+                  target.label(l),
                   maxLines: 1,
                   textScaler: TextScaler.noScaling,
                   style: TextStyle(

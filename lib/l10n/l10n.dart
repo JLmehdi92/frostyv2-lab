@@ -60,6 +60,18 @@ Locale resolveAppLocale(AppLanguage language, List<Locale> device) {
   return const Locale('en');
 }
 
+/// The language the app shows for [language] on a device preferring
+/// [device]: [language] itself when the viewer picked one, else the
+/// device's ([resolveAppLocale]). Never [AppLanguage.system]: what the
+/// language pills show selected, and what choosing nothing stores.
+AppLanguage resolveAppLanguage(AppLanguage language, List<Locale> device) {
+  if (language != AppLanguage.system) return language;
+  return switch (resolveAppLocale(language, device).languageCode) {
+    'fr' => AppLanguage.fr,
+    _ => AppLanguage.en,
+  };
+}
+
 /// Says the locale the app shows to whoever needs it outside widgets.
 ///
 /// Placed in `MaterialApp.builder`, under the app's [Localizations]: each

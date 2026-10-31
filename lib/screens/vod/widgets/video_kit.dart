@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/home/top/categories/category_streams.dart';
 import 'package:onset/screens/vod/widgets/video_glyph.dart';
@@ -337,19 +338,17 @@ class VideoSectionLabel extends StatelessWidget {
 /// An empty list of videos: the camera in a tile,
 /// what is missing, "Pull down to check again."
 class VideoListEmpty extends StatelessWidget {
-  const VideoListEmpty({
-    super.key,
-    required this.message,
-    this.hint = 'Pull down to check again.',
-  });
+  const VideoListEmpty({super.key, required this.message, this.hint});
 
   final String message;
+
+  /// The line under [message]; "Pull down to check again." when null.
   final String? hint;
 
   @override
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
-    final hint = this.hint;
+    final hint = this.hint ?? context.l10n.videoListEmptyHint;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
@@ -385,17 +384,16 @@ class VideoListEmpty extends StatelessWidget {
               color: colors.text,
             ),
           ),
-          if (hint != null)
-            Text(
-              hint,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: OnsetTokens.bodyFamily,
-                fontSize: 13,
-                height: 1.5,
-                color: colors.secondary,
-              ),
+          Text(
+            hint,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: OnsetTokens.bodyFamily,
+              fontSize: 13,
+              height: 1.5,
+              color: colors.secondary,
             ),
+          ),
         ],
       ),
     );

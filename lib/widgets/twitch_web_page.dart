@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/widgets/blurred_container.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -73,7 +74,7 @@ class _TwitchWebPageState extends State<TwitchWebPage> {
               : Brightness.dark,
         ),
         leading: IconButton(
-          tooltip: 'Back',
+          tooltip: context.l10n.commonBack,
           icon: Icon(Icons.adaptive.arrow_back_rounded),
           onPressed: Navigator.of(context).pop,
         ),

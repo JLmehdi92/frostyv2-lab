@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'hardcoded_strings.dart';
@@ -280,6 +282,7 @@ class B {
     test('the files translated so far stay clean', () {
       final left = notAllowed(flagged, l10nAllowlist);
       for (final path in _translated) {
+        expect(File(path).existsSync(), isTrue, reason: '$path is gone');
         expect(left[path], isNull, reason: path);
         expect(l10nBaseline.containsKey(path), isFalse, reason: path);
       }
@@ -288,4 +291,60 @@ class B {
 }
 
 /// Files whose texts are all in the ARB files: none may come back.
-const _translated = ['lib/l10n/l10n.dart'];
+const _translated = [
+  'lib/l10n/enum_labels.dart',
+  'lib/l10n/l10n.dart',
+  'lib/main.dart',
+  'lib/screens/home/home.dart',
+  'lib/screens/home/language_prompt.dart',
+  'lib/screens/home/shell/onset_shell.dart',
+  'lib/screens/home/shell/shell_glyph.dart',
+  'lib/screens/home/shell/shell_pages.dart',
+  'lib/screens/home/shell/shell_tabs.dart',
+  'lib/screens/home/stores/home_store.dart',
+  'lib/screens/onboarding/login_webview.dart',
+  'lib/screens/onboarding/onboarding_accent_picker.dart',
+  'lib/screens/onboarding/onboarding_flow.dart',
+  'lib/screens/onboarding/onboarding_intro.dart',
+  'lib/screens/onboarding/onboarding_language_choice.dart',
+  'lib/screens/onboarding/onboarding_login.dart',
+  'lib/screens/onboarding/onboarding_parts.dart',
+  'lib/screens/onboarding/onboarding_setup.dart',
+  'lib/screens/onboarding/onboarding_welcome.dart',
+  'lib/screens/settings/widgets/language_setting.dart',
+  'lib/widgets/accent_picker_controls.dart',
+  'lib/widgets/adaptive_sliver_list.dart',
+  'lib/widgets/alert_message.dart',
+  'lib/widgets/blurred_container.dart',
+  'lib/widgets/draggable_divider.dart',
+  'lib/widgets/global_mini_player.dart',
+  'lib/widgets/launch/launch_intro.dart',
+  'lib/widgets/launch/onset_mark.dart',
+  'lib/widgets/live_indicator.dart',
+  'lib/widgets/motion/haptics.dart',
+  'lib/widgets/motion/motion.dart',
+  'lib/widgets/motion/press_scale.dart',
+  'lib/widgets/motion/reduce_motion.dart',
+  'lib/widgets/motion/rolling_number.dart',
+  'lib/widgets/motion/signal_ping.dart',
+  'lib/widgets/motion/staggered_entrance.dart',
+  'lib/widgets/onset_alert_dialog.dart',
+  'lib/widgets/onset_cached_network_image.dart',
+  'lib/widgets/onset_chip.dart',
+  'lib/widgets/onset_notification.dart',
+  'lib/widgets/onset_photo_view_dialog.dart',
+  'lib/widgets/onset_scrollbar.dart',
+  'lib/widgets/profile_picture.dart',
+  'lib/widgets/scroll_to_top_button.dart',
+  'lib/widgets/settled_blur.dart',
+  'lib/widgets/sheet/onset_panel.dart',
+  'lib/widgets/sheet/onset_sheet.dart',
+  'lib/widgets/sheet/sheet_glyph.dart',
+  'lib/widgets/sheet/svg_path.dart',
+  'lib/widgets/skeleton_loader.dart',
+  'lib/widgets/state_glyph.dart',
+  'lib/widgets/state_views.dart',
+  'lib/widgets/twitch_web_page.dart',
+  'lib/widgets/uptime.dart',
+  'lib/widgets/user_actions_modal.dart',
+];

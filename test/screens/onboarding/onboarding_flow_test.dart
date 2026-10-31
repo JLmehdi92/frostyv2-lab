@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobx/mobx.dart' show Observable, ObservableList, runInAction;
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/screens/onboarding/onboarding_flow.dart';
@@ -131,12 +133,20 @@ void main() {
           Provider<AuthStore>.value(value: auth),
           Provider<SettingsStore>.value(value: settings),
         ],
-        child: MaterialApp(
-          navigatorKey: navigatorKey,
-          navigatorObservers: [LaunchIntro.navigatorObserver],
-          builder: (context, child) =>
-              LaunchIntro(play: intro, holdOnName: holdOnName, child: child!),
-          home: child ?? flow(),
+        // The app follows the language picked, as main.dart's does.
+        child: Observer(
+          builder: (_) => MaterialApp(
+            locale: settings.appLanguage.locale,
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            localeListResolutionCallback: (device, _) =>
+                resolveAppLocale(AppLanguage.system, device ?? const []),
+            navigatorKey: navigatorKey,
+            navigatorObservers: [LaunchIntro.navigatorObserver],
+            builder: (context, child) =>
+                LaunchIntro(play: intro, holdOnName: holdOnName, child: child!),
+            home: child ?? flow(),
+          ),
         ),
       ),
     );
@@ -275,8 +285,8 @@ void main() {
       await settle(tester);
       await tapText(tester, 'Next');
       for (final permission in onboardingPermissions) {
-        expect(find.text(permission.title), findsOneWidget);
-        expect(find.text(permission.detail), findsOneWidget);
+        expect(find.text(permission.title(L10n.english)), findsOneWidget);
+        expect(find.text(permission.detail(L10n.english)), findsOneWidget);
       }
     });
   });

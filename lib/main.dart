@@ -456,7 +456,9 @@ class _MyAppState extends State<MyApp> {
         ScaffoldMessenger.maybeOf(navigatorContext)
           ?..clearSnackBars()
           ..showSnackBar(
-            SnackBar(content: Text("You were mentioned in $login's chat")),
+            SnackBar(
+              content: Text(navigatorContext.l10n.mentionNotice(login: login)),
+            ),
           );
       case MentionTap.restoreMini:
         GlobalMiniPlayer.restore(mini);
@@ -502,7 +504,7 @@ class _MyAppState extends State<MyApp> {
     if (navigatorContext == null || !navigatorContext.mounted) return;
     await TwitchWebPage.open(
       navigatorContext,
-      title: link.name ?? 'Category',
+      title: link.name ?? navigatorContext.l10n.deepLinkCategoryFallback,
       url: twitchCategoryUrl(link),
     );
   }
@@ -658,12 +660,14 @@ class _MyAppState extends State<MyApp> {
       return;
     }
 
+    // In the language of the screen the snackbar shows over.
+    final l = (navigatorKey.currentContext ?? context).l10n;
     final failureSnackbar = SnackBar(
       content: AlertMessage(
-        message: 'Unable to navigate to \'$uri\'',
+        message: l.deepLinkFailed(uri: '$uri'),
         centered: false,
         trailingIcon: Icons.open_in_browser_rounded,
-        trailingTooltip: 'Open in browser',
+        trailingTooltip: l.deepLinkOpenInBrowser,
         // Fallback, allow user to open URL outside app
         onTrailingIconPressed: () async {
           await launchUrl(

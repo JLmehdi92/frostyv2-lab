@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/onboarding/onboarding_parts.dart';
 import 'package:onset/theme.dart';
 
 /// The app's three tips, as the Welcome step lists them.
-const onboardingTips = [
-  'Check out the GitHub repo at the top-right of the settings page to '
-      'explore ONSET’s source code, report bugs, make feature requests, and '
-      'more.',
-  'Links to the full changelog and FAQ are in the settings page under '
-      '“Other”.',
-  'Don’t forget to leave a rating and/or review on the app store!',
+List<String> onboardingTips(AppLocalizations l) => [
+  l.onboardingWelcomeTipGitHub,
+  l.onboardingWelcomeTipChangelog,
+  l.onboardingWelcomeTipRating,
 ];
 
 /// Step 4, Welcome: the three
@@ -29,6 +27,7 @@ class OnboardingWelcomeStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tablet = layout.tablet;
+    final l = context.l10n;
     return OnboardingStepFrame(
       layout: layout,
       content: [
@@ -37,7 +36,7 @@ class OnboardingWelcomeStep extends StatelessWidget {
           child: Semantics(
             header: true,
             child: Text(
-              'Welcome!',
+              l.onboardingWelcomeTitle,
               style: OnboardingType.title(tablet: tablet),
             ),
           ),
@@ -46,12 +45,12 @@ class OnboardingWelcomeStep extends StatelessWidget {
         StepRise(
           order: 2,
           child: Text(
-            'Just a few more things…',
+            l.onboardingWelcomeLead,
             style: OnboardingType.lead(tablet: tablet),
           ),
         ),
         SizedBox(height: tablet ? 28 : 24),
-        for (final (i, tip) in onboardingTips.indexed) ...[
+        for (final (i, tip) in onboardingTips(l).indexed) ...[
           if (i > 0) SizedBox(height: tablet ? 12 : 10),
           StepRise(
             order: 3 + i,
@@ -64,7 +63,7 @@ class OnboardingWelcomeStep extends StatelessWidget {
         primary: StepRise(
           order: 6,
           child: OnboardingButton(
-            label: 'Let’s go!',
+            label: l.onboardingWelcomeGo,
             accent: accent,
             trailing: OnboardingGlyphKind.arrowRight,
             onPressed: onFinish,
