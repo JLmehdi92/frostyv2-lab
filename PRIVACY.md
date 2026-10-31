@@ -20,9 +20,9 @@ app's source code, which anyone can read at
   rent any data**.
 - Your Twitch credentials and your history stay **on your device** and go
   only to Twitch.
-- The builds published on GitHub include Google Firebase crash reports and
-  analytics, but send **nothing unless you turn on Share crash logs and
-  analytics**, which is off by default (section 5).
+- The builds published on GitHub include Google Firebase, but send **no
+  crash reports, analytics or performance data unless you turn on Share crash
+  logs and analytics**, which is off by default (section 5).
 
 ## 1. Who is responsible
 
@@ -30,9 +30,10 @@ The app is developed by a private individual based in France, who is
 responsible for the app, for its token service (section 4) and for the crash
 reports and analytics collected through Google Firebase (section 5): Mehdi
 SEDDIKI, contact: `onsetapp.contact@gmail.com`. Unless you turn on **Share
-crash logs and analytics**, the published builds send the developer no
-personal data; the token service only sees your IP address for a moment
-(sections 4 and 5).
+crash logs and analytics**, the published builds send no crash reports,
+analytics or performance data (the Firebase libraries are still started and
+may contact Google's servers, without any of that data; section 5); the
+token service only sees your IP address for a moment (section 4).
 
 Twitch, the emote services and the other services listed in section 4 decide
 for themselves what they do with the data they receive. Their own privacy
@@ -101,7 +102,7 @@ user agent).
 | **recent-messages.robotty.de** | Only if you turn on **Fallback chat history (third-party)** (off by default), and only when Twitch's own recent chat is unavailable, fails or is empty (for example when you are not logged in) | The login name of the channel whose chat you open. |
 | **GIPHY** (giphy.com and its subdomains) | When a chat message contains a GIF from Twitch's GIF keyboard, unless **Show GIFs in Chat** is off | A request for that GIF image. Only GIPHY and Twitch image addresses are loaded. |
 | **GitHub** (api.github.com, github.com, objects.githubusercontent.com, release-assets.githubusercontent.com) | In builds that include the updater (the APKs published in this repository's releases do; a build made without it never contacts GitHub): at launch and when the app returns to the foreground (at most every 6 hours once up to date), and when you tap **Update** or **Check for updates** | A request for the latest release of the ONSET repository; the download of the new APK when you tap Update. No account information. |
-| **Google Firebase** (Crashlytics, Google Analytics for Firebase and Performance Monitoring, run by Google) | Only while **Share crash logs and analytics** is on (off by default), and never in debug builds | Crash and error reports, the names of the app screens you open, request timings cut to the service's domain, and device and app details. No Twitch user ID, user name or channel name. See section 5. |
+| **Google Firebase** (Crashlytics, Google Analytics for Firebase and Performance Monitoring, run by Google) | Reports, analytics and performance data: only while **Share crash logs and analytics** is on (off by default), and never in debug builds; the libraries may contact Google at start-up in any case | Crash and error reports, the names of the app screens you open, request timings cut to the service's domain, and device and app details. No Twitch user ID, user name or channel name. See section 5. |
 | **Google Play** (in-app review) | After several launches, if Google Play is installed | The app may ask Google Play to show its rating prompt, through Google Play's in-app review service. |
 
 Links you tap in chat or in the app open in your browser or in the app; links
@@ -122,13 +123,16 @@ and turn it off at any time in the same place. **Reset settings**
 (**Settings › Other**) turns it off again. Debug builds never collect,
 whatever the setting.
 
-**While it is off, nothing is sent.** The app hands no error, log line or
-measurement to Crashlytics or Performance Monitoring, and all three
-collections are declared disabled in the app until it applies your choice at
-start-up, so Analytics records nothing either. Crashlytics would otherwise
+**While it is off, no crash reports, analytics or performance data are
+sent.** The Firebase libraries are still started and may contact Google's
+servers (for example to register the installation), without any of that
+data. The app hands no error, log line or measurement to Crashlytics or
+Performance Monitoring, and all three collections are declared disabled in
+the app until it applies your choice at start-up, so Analytics records
+nothing either. Crashlytics would otherwise
 keep crash reports on the device to send them later: the app hands it
 nothing, and any report Crashlytics still kept on its own (for a crash in the
-app's native code, for example) is deleted unsent each time the app starts
+app's Android code, for example) is deleted unsent each time the app starts
 with the setting off and when you turn the setting off. What was sent while
 the setting was on is not recalled (section 7 says how long it is kept).
 
@@ -157,7 +161,9 @@ the setting was on is not recalled (section 7 says how long it is kept).
   through its own HTTP client, the service's domain only (no path or query),
   the method, the response code and the duration. The Performance library
   also measures some things by itself, such as the app's start-up time and
-  screen rendering (slow or frozen frames).
+  screen rendering (slow or frozen frames). Google also receives your IP
+  address, which it uses to find the country, and the Firebase installation
+  ID.
 
 **What is not included.** ONSET puts no Twitch user ID, user name or channel
 name in these reports, and no tokens. Request addresses are cut to the
@@ -173,10 +179,11 @@ signals.
 setting on. You can withdraw it at any time by turning the setting off; this
 does not affect what was collected before.
 
-**Google as processor.** Google processes this data on the developer's
-behalf, as a processor, under the Firebase data processing terms. Google may
-process it outside the European Union, including in the United States, with
-the safeguards those terms provide.
+**Google as processor.** Google processes this data as the developer's
+processor, under the Firebase data processing terms (Analytics data sharing
+with Google is turned off in the project), and may process it outside the
+European Union, including in the United States, with the safeguards those
+terms provide.
 
 ## 6. Android permissions
 
@@ -192,8 +199,8 @@ Libraries included in the app add a few more, such as vibration
 (notifications), wake lock and short foreground service (background go-live
 check), and Wi-Fi state (IVS player). The advertising ID and ad-services
 permissions that the Firebase Analytics library would add are removed from
-the app, and the advertising ID is not collected (section 5). ONSET does not request camera, microphone, location, contacts or
-storage permissions.
+the app, and the advertising ID is not collected (section 5). ONSET does
+not request camera, microphone, location, contacts or storage permissions.
 
 ## 7. How long data is kept
 
@@ -202,9 +209,12 @@ storage permissions.
   (everything else, including the Twitch user ID kept with local lists, as
   described in section 3). Lists are capped as described in section 3.
 - **Firebase** (only what was sent while **Share crash logs and analytics**
-  was on): Crashlytics keeps crash data for 90 days. Google Analytics keeps
-  event data for 2 months (the project's setting). Performance data is kept
-  according to Google's Firebase terms. The data is then deleted.
+  was on): Crashlytics keeps crash data and its identifiers for 90 days.
+  Performance Monitoring keeps events linked to an IP address for 30 days and
+  other performance data for 60 days. Google Analytics keeps user- and
+  event-level data for 2 months (the project's setting); aggregated,
+  non-identifying reports are kept. The Firebase installation ID is kept
+  until the developer deletes it.
 - **Twitch and other services:** according to their own policies.
 
 ## 8. Deleting your data
@@ -221,8 +231,9 @@ storage permissions.
   **uninstall** ONSET: everything ONSET stored on the device is deleted,
   including unsent crash reports and the Firebase identifiers.
 - **Turn off Share crash logs and analytics** (**Settings › Other ›
-  Privacy**): nothing more is sent, and the crash reports kept on the device
-  and not yet sent are deleted. What Firebase already received carries no
+  Privacy**): no more crash reports, analytics or performance data are
+  sent, and the crash reports kept on the device and not yet sent are
+  deleted. What Firebase already received carries no
   account identifier (no Twitch user ID or user name, only the random
   identifiers of section 5), so the developer may be unable to match a
   deletion request sent by email to your data. You can still write to
@@ -273,7 +284,9 @@ If ONSET starts handling data differently, this policy will be updated and its
 effective date changed. The history of this file is public in the repository.
 
 - 31 October 2026: the published builds include Firebase crash reports and
-  analytics, off unless you turn them on.
+  analytics, off unless you turn them on. Installs that ran an older build,
+  where the setting was on by default, had it turned off by this update:
+  turn it on again if you want to share crash logs and analytics.
 
 ## 13. Contact
 

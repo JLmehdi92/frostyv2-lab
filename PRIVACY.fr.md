@@ -22,10 +22,10 @@ En cas de divergence, la version anglaise (`PRIVACY.md`) fait foi.
   vend ni ne loue aucune donnée**.
 - Vos identifiants Twitch et votre historique restent **sur votre appareil** et
   ne sont envoyés qu'à Twitch.
-- Les versions publiées sur GitHub incluent les rapports de plantage et les
-  statistiques de Google Firebase, mais n'envoient **rien tant que vous
-  n'activez pas Share crash logs and analytics**, désactivé par défaut
-  (section 5).
+- Les versions publiées sur GitHub incluent Google Firebase, mais n'envoient
+  **aucun rapport de plantage, aucune statistique ni donnée de performance
+  tant que vous n'activez pas Share crash logs and analytics**, désactivé par
+  défaut (section 5).
 
 ## 1. Responsable du traitement
 
@@ -33,9 +33,11 @@ L'application est développée par un particulier établi en France, responsable
 de l'application, de son service de jetons (section 4) et des rapports de
 plantage et statistiques recueillis via Google Firebase (section 5) : Mehdi
 SEDDIKI, contact : `onsetapp.contact@gmail.com`. Tant que vous n'activez pas
-**Share crash logs and analytics**, les versions publiées n'envoient aucune
-donnée personnelle au développeur ; le service de jetons ne voit votre adresse
-IP qu'un instant (sections 4 et 5).
+**Share crash logs and analytics**, les versions publiées n'envoient aucun
+rapport de plantage, aucune statistique ni donnée de performance (les
+bibliothèques Firebase démarrent quand même et peuvent contacter les serveurs
+de Google, sans aucune de ces données ; section 5) ; le service de jetons ne
+voit votre adresse IP qu'un instant (section 4).
 
 Twitch, les services d'emotes et les autres services listés en section 4
 décident eux-mêmes de l'usage des données qu'ils reçoivent. Leurs propres
@@ -107,7 +109,7 @@ informations techniques de base (comme l'agent utilisateur de l'application).
 | **recent-messages.robotty.de** | Seulement si vous activez **Fallback chat history (third-party)** (désactivé par défaut), et seulement quand l'historique récent de Twitch n'est pas disponible, échoue ou est vide (par exemple quand vous n'êtes pas connecté) | Le nom de la chaîne dont vous ouvrez le chat. |
 | **GIPHY** (giphy.com et ses sous-domaines) | Quand un message de chat contient un GIF du clavier GIF de Twitch, sauf si **Show GIFs in Chat** est désactivé | Une requête pour cette image GIF. Seules les adresses d'images de GIPHY et de Twitch sont chargées. |
 | **GitHub** (api.github.com, github.com, objects.githubusercontent.com, release-assets.githubusercontent.com) | Dans les versions qui incluent le système de mise à jour (c'est le cas des APK publiés dans les releases de ce dépôt ; une version construite sans lui ne contacte jamais GitHub) : au lancement et au retour au premier plan (au plus toutes les 6 heures une fois à jour), et quand vous touchez **Update** ou **Check for updates** | Une requête pour la dernière version publiée du dépôt ONSET ; le téléchargement du nouvel APK quand vous touchez Update. Aucune information de compte. |
-| **Google Firebase** (Crashlytics, Google Analytics for Firebase et Performance Monitoring, exploités par Google) | Seulement tant que **Share crash logs and analytics** est activé (désactivé par défaut), et jamais dans les versions de débogage | Rapports de plantage et d'erreurs, noms des écrans de l'application que vous ouvrez, durées des requêtes réduites au domaine du service, informations sur l'appareil et l'application. Aucun identifiant utilisateur Twitch, nom d'utilisateur ni nom de chaîne. Voir la section 5. |
+| **Google Firebase** (Crashlytics, Google Analytics for Firebase et Performance Monitoring, exploités par Google) | Rapports, statistiques et données de performance : seulement tant que **Share crash logs and analytics** est activé (désactivé par défaut), et jamais dans les versions de débogage ; les bibliothèques peuvent contacter Google au démarrage dans tous les cas | Rapports de plantage et d'erreurs, noms des écrans de l'application que vous ouvrez, durées des requêtes réduites au domaine du service, informations sur l'appareil et l'application. Aucun identifiant utilisateur Twitch, nom d'utilisateur ni nom de chaîne. Voir la section 5. |
 | **Google Play** (avis dans l'application) | Après plusieurs lancements, si Google Play est installé | L'application peut demander à Google Play d'afficher sa fenêtre de notation, via le service d'avis dans l'application de Google Play. |
 
 Les liens que vous touchez dans le chat ou dans l'application s'ouvrent dans
@@ -131,14 +133,17 @@ tout moment au même endroit. **Reset settings** (**Settings › Other**) le
 désactive à nouveau. Les versions de débogage ne recueillent jamais rien,
 quel que soit le réglage.
 
-**Réglage désactivé, rien n'est envoyé.** L'application ne transmet aucune
+**Réglage désactivé, aucun rapport de plantage, aucune statistique ni donnée
+de performance n'est envoyé ;** les bibliothèques Firebase démarrent quand
+même et peuvent contacter les serveurs de Google (par exemple pour enregistrer
+l'installation), sans aucune de ces données. L'application ne transmet aucune
 erreur, ligne de journal ni mesure à Crashlytics ou à Performance Monitoring,
 et les trois collectes sont déclarées désactivées dans l'application jusqu'à
 ce qu'elle applique votre choix au démarrage : Analytics n'enregistre donc
 rien non plus. Crashlytics conserverait sinon des rapports de plantage sur
 l'appareil pour les envoyer plus tard : l'application ne lui transmet rien,
 et tout rapport que Crashlytics aurait conservé de lui-même (pour un plantage
-du code natif de l'application, par exemple) est supprimé sans être envoyé à
+du code Android de l'application, par exemple) est supprimé sans être envoyé à
 chaque démarrage avec le réglage désactivé et quand vous désactivez le
 réglage. Ce qui a été envoyé pendant que le réglage était activé n'est pas
 rappelé (la section 7 indique combien de temps c'est conservé).
@@ -175,7 +180,8 @@ rappelé (la section 7 indique combien de temps c'est conservé).
   seulement (ni chemin ni paramètres), la méthode, le code de réponse et la
   durée. La bibliothèque Performance mesure aussi certaines choses d'elle-même,
   comme le temps de démarrage de l'application et l'affichage des écrans
-  (images lentes ou figées).
+  (images lentes ou figées). Google reçoit aussi votre adresse IP, dont il se
+  sert pour déterminer le pays, et l'identifiant d'installation Firebase.
 
 **Ce qui n'en fait pas partie.** ONSET ne met dans ces rapports aucun
 identifiant utilisateur Twitch, nom d'utilisateur ni nom de chaîne, et aucun
@@ -194,10 +200,11 @@ RGPD), donné en activant le réglage. Vous pouvez le retirer à tout moment en
 désactivant le réglage ; cela ne remet pas en cause ce qui a été recueilli
 auparavant.
 
-**Google, sous-traitant.** Google traite ces données pour le compte du
-développeur, en tant que sous-traitant, selon les conditions de traitement
-des données de Firebase. Google peut les traiter hors de l'Union européenne,
-notamment aux États-Unis, avec les garanties que prévoient ces conditions.
+**Google, sous-traitant.** Google traite ces données en tant que
+sous-traitant du développeur, selon les conditions de traitement des données
+de Firebase (le partage des données Analytics avec Google est désactivé dans
+le projet), et peut les traiter hors de l'Union européenne, notamment aux
+États-Unis, avec les garanties que prévoient ces conditions.
 
 ## 6. Autorisations Android
 
@@ -227,10 +234,13 @@ micro, à la position, aux contacts ni au stockage.
   section 3). Les listes sont plafonnées comme indiqué en section 3.
 - **Firebase** (seulement ce qui a été envoyé pendant que **Share crash logs
   and analytics** était activé) : Crashlytics conserve les données de
-  plantage 90 jours. Google Analytics conserve les données d'événements
-  2 mois (le réglage du projet). Les données de performance sont conservées
-  selon les conditions Firebase de Google. Les données sont ensuite
-  supprimées.
+  plantage et leurs identifiants 90 jours. Performance Monitoring conserve
+  les événements liés à une adresse IP 30 jours et les autres données de
+  performance 60 jours. Google Analytics conserve les données au niveau de
+  l'utilisateur et des événements 2 mois (le réglage du projet) ; les
+  rapports agrégés, qui n'identifient personne, sont conservés.
+  L'identifiant d'installation Firebase est conservé jusqu'à ce que le
+  développeur le supprime.
 - **Twitch et les autres services :** selon leurs propres politiques.
 
 ## 8. Supprimer vos données
@@ -250,8 +260,9 @@ micro, à la position, aux contacts ni au stockage.
   sur l'appareil est supprimé, y compris les rapports de plantage non envoyés
   et les identifiants Firebase.
 - **Désactiver Share crash logs and analytics** (**Settings › Other ›
-  Privacy**) : plus rien n'est envoyé, et les rapports de plantage conservés
-  sur l'appareil et pas encore envoyés sont supprimés. Ce que Firebase a déjà
+  Privacy**) : plus aucun rapport de plantage, aucune statistique ni donnée
+  de performance n'est envoyé, et les rapports de plantage conservés sur
+  l'appareil et pas encore envoyés sont supprimés. Ce que Firebase a déjà
   reçu ne porte aucun identifiant de compte (ni identifiant utilisateur
   Twitch ni nom d'utilisateur, seulement les identifiants aléatoires de la
   section 5) : le développeur peut ne pas parvenir à rattacher à vos données
@@ -310,7 +321,11 @@ Si ONSET se met à traiter les données différemment, cette politique sera mise
 public dans le dépôt.
 
 - 31 octobre 2026 : les versions publiées incluent les rapports de plantage et
-  les statistiques de Firebase, désactivés sauf si vous les activez.
+  les statistiques de Firebase, désactivés sauf si vous les activez. Sur les
+  installations qui avaient fait tourner une version plus ancienne, où le
+  réglage était activé par défaut, cette mise à jour l'a désactivé :
+  réactivez-le si vous voulez partager les rapports de plantage et les
+  statistiques.
 
 ## 13. Contact
 

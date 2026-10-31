@@ -137,8 +137,11 @@ l'appli tourne simplement sans Firebase. Le dépôt des releases (JLmehdi92/ONSE
 a les cinq secrets Android (`FIREBASE_API_KEY`, `FIREBASE_APP_ID_ANDROID`,
 `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_PROJECT_ID`,
 `FIREBASE_STORAGE_BUCKET` ; pas d'identifiant iOS) : les builds publiés
-incluent donc Firebase, qui ne recueille rien tant que l'utilisateur n'active
-pas « Share crash logs and analytics » (désactivé par défaut). Le workflow
+incluent donc Firebase, qui n'envoie aucun rapport de plantage, aucune
+statistique ni donnée de performance tant que l'utilisateur n'active pas
+« Share crash logs and analytics » (désactivé par défaut) ; les bibliothèques
+Firebase démarrent quand même et peuvent contacter les serveurs de Google
+(par exemple pour enregistrer l'installation), sans aucune de ces données. Le workflow
 n'écrit pas de `google-services.json` : les plugins Gradle Firebase ne
 s'appliquent pas à ces builds.
 
