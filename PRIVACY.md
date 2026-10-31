@@ -102,7 +102,7 @@ user agent).
 | **recent-messages.robotty.de** | Only if you turn on **Fallback chat history (third-party)** (off by default), and only when Twitch's own recent chat is unavailable, fails or is empty (for example when you are not logged in) | The login name of the channel whose chat you open. |
 | **GIPHY** (giphy.com and its subdomains) | When a chat message contains a GIF from Twitch's GIF keyboard, unless **Show GIFs in Chat** is off | A request for that GIF image. Only GIPHY and Twitch image addresses are loaded. |
 | **GitHub** (api.github.com, github.com, objects.githubusercontent.com, release-assets.githubusercontent.com) | In builds that include the updater (the APKs published in this repository's releases do; a build made without it never contacts GitHub): at launch and when the app returns to the foreground (at most every 6 hours once up to date), and when you tap **Update** or **Check for updates** | A request for the latest release of the ONSET repository; the download of the new APK when you tap Update. No account information. |
-| **Google Firebase** (Crashlytics, Google Analytics for Firebase and Performance Monitoring, run by Google) | Reports, analytics and performance data: only while **Share crash logs and analytics** is on (off by default), and never in debug builds; the libraries may contact Google at start-up in any case | Crash and error reports, the names of the app screens you open, request timings cut to the service's domain, and device and app details. No Twitch user ID, user name or channel name. See section 5. |
+| **Google Firebase** (Crashlytics, Google Analytics for Firebase and Performance Monitoring, run by Google) | Reports, analytics and performance data: only while **Share crash logs and analytics** is on (off by default), in the app and during the background go-live check, if you turned the setting on; never in debug builds. The libraries may contact Google when the app starts in any case | Crash and error reports, the names of the app screens you open, request timings cut to the service's domain, and device and app details. No Twitch user ID, user name or channel name. See section 5. |
 | **Google Play** (in-app review) | After several launches, if Google Play is installed | The app may ask Google Play to show its rating prompt, through Google Play's in-app review service. |
 
 Links you tap in chat or in the app open in your browser or in the app; links
@@ -124,9 +124,10 @@ and turn it off at any time in the same place. **Reset settings**
 whatever the setting.
 
 **While it is off, no crash reports, analytics or performance data are
-sent.** The Firebase libraries are still started and may contact Google's
-servers (for example to register the installation), without any of that
-data. The app hands no error, log line or measurement to Crashlytics or
+sent.** When the app opens, the Firebase libraries are still started and may
+contact Google's servers (for example to register the installation), without
+any of that data; the background go-live check does not start them at all.
+The app hands no error, log line or measurement to Crashlytics or
 Performance Monitoring, and all three collections are declared disabled in
 the app until it applies your choice at start-up, so Analytics records
 nothing either. Crashlytics would otherwise
@@ -136,7 +137,8 @@ app's Android code, for example) is deleted unsent each time the app starts
 with the setting off and when you turn the setting off. What was sent while
 the setting was on is not recalled (section 7 says how long it is kept).
 
-**While it is on, the app sends:**
+**While it is on, the app sends** (and so does the background go-live check,
+if you turned the setting on, for its own errors)**:**
 
 - **Crash reports (Crashlytics):** crashes and uncaught errors, and some
   unexpected errors the app recovers from (for example a server error, a

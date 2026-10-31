@@ -55,19 +55,48 @@ bool sharesCrashLogsIn(String? saved) {
   }
 }
 
-/// Starts Firebase for the background check, collecting only when the app
-/// was allowed to (never in a debug build, as `main.dart`).
-Future<void> _initTelemetry() async {
-  if (!await Telemetry.initialize(reportUncaught: false)) return;
-  var shared = false;
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    shared = sharesCrashLogsIn(prefs.getString('settings'));
-  } catch (e) {
-    debugPrint('Go-live check: settings unreadable: $e');
+/// Starts Firebase for the background check only when the viewer shares
+/// crash logs and analytics ([sharesCrashLogsIn] on what [readSettings]
+/// returns): a viewer who does not share never has Firebase started in the
+/// background. Once [startFirebase] succeeds, the settings are read again
+/// right before [setCollection], so an opt-out made in the app meanwhile
+/// turns collection off instead of on. Settings that do not read count as
+/// off.
+@visibleForTesting
+Future<void> initGoLiveTelemetry({
+  required Future<String?> Function() readSettings,
+  required Future<bool> Function() startFirebase,
+  required void Function(bool shared) setCollection,
+}) async {
+  Future<bool> shares() async {
+    try {
+      return sharesCrashLogsIn(await readSettings());
+    } catch (e) {
+      debugPrint('Go-live check: settings unreadable: $e');
+      return false;
+    }
   }
-  setFirebaseCollection(shared);
+
+  if (!await shares()) return;
+  if (!await startFirebase()) return;
+  setCollection(await shares());
 }
+
+/// The settings the app saved, as it last wrote them (another isolate: the
+/// cached copy may be stale).
+Future<String?> _readSavedSettings() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.reload();
+  return prefs.getString('settings');
+}
+
+/// Firebase for the background check (never collecting in a debug build,
+/// as `main.dart`).
+Future<void> _initTelemetry() => initGoLiveTelemetry(
+  readSettings: _readSavedSettings,
+  startFirebase: () => Telemetry.initialize(reportUncaught: false),
+  setCollection: setFirebaseCollection,
+);
 
 /// The background entry point (its own isolate).
 @pragma('vm:entry-point')
@@ -75,7 +104,8 @@ void goLiveCallbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     if (task != _task) return true;
     // Reporting is a bonus: the check runs without it (and without Firebase
-    // in a build that has no config, or without the viewer's consent).
+    // in a build that has no config, or without the viewer's consent, in
+    // which case Firebase is not even started).
     await _initTelemetry();
     void report(Object error, StackTrace stack) {
       debugPrint('Go-live check failed: $error');

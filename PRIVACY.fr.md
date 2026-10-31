@@ -109,7 +109,7 @@ informations techniques de base (comme l'agent utilisateur de l'application).
 | **recent-messages.robotty.de** | Seulement si vous activez **Fallback chat history (third-party)** (désactivé par défaut), et seulement quand l'historique récent de Twitch n'est pas disponible, échoue ou est vide (par exemple quand vous n'êtes pas connecté) | Le nom de la chaîne dont vous ouvrez le chat. |
 | **GIPHY** (giphy.com et ses sous-domaines) | Quand un message de chat contient un GIF du clavier GIF de Twitch, sauf si **Show GIFs in Chat** est désactivé | Une requête pour cette image GIF. Seules les adresses d'images de GIPHY et de Twitch sont chargées. |
 | **GitHub** (api.github.com, github.com, objects.githubusercontent.com, release-assets.githubusercontent.com) | Dans les versions qui incluent le système de mise à jour (c'est le cas des APK publiés dans les releases de ce dépôt ; une version construite sans lui ne contacte jamais GitHub) : au lancement et au retour au premier plan (au plus toutes les 6 heures une fois à jour), et quand vous touchez **Update** ou **Check for updates** | Une requête pour la dernière version publiée du dépôt ONSET ; le téléchargement du nouvel APK quand vous touchez Update. Aucune information de compte. |
-| **Google Firebase** (Crashlytics, Google Analytics for Firebase et Performance Monitoring, exploités par Google) | Rapports, statistiques et données de performance : seulement tant que **Share crash logs and analytics** est activé (désactivé par défaut), et jamais dans les versions de débogage ; les bibliothèques peuvent contacter Google au démarrage dans tous les cas | Rapports de plantage et d'erreurs, noms des écrans de l'application que vous ouvrez, durées des requêtes réduites au domaine du service, informations sur l'appareil et l'application. Aucun identifiant utilisateur Twitch, nom d'utilisateur ni nom de chaîne. Voir la section 5. |
+| **Google Firebase** (Crashlytics, Google Analytics for Firebase et Performance Monitoring, exploités par Google) | Rapports, statistiques et données de performance : seulement tant que **Share crash logs and analytics** est activé (désactivé par défaut), dans l'application et pendant la vérification des mises en direct en arrière-plan, si vous avez activé le réglage ; jamais dans les versions de débogage. Les bibliothèques peuvent contacter Google à l'ouverture de l'application dans tous les cas | Rapports de plantage et d'erreurs, noms des écrans de l'application que vous ouvrez, durées des requêtes réduites au domaine du service, informations sur l'appareil et l'application. Aucun identifiant utilisateur Twitch, nom d'utilisateur ni nom de chaîne. Voir la section 5. |
 | **Google Play** (avis dans l'application) | Après plusieurs lancements, si Google Play est installé | L'application peut demander à Google Play d'afficher sa fenêtre de notation, via le service d'avis dans l'application de Google Play. |
 
 Les liens que vous touchez dans le chat ou dans l'application s'ouvrent dans
@@ -134,9 +134,11 @@ désactive à nouveau. Les versions de débogage ne recueillent jamais rien,
 quel que soit le réglage.
 
 **Réglage désactivé, aucun rapport de plantage, aucune statistique ni donnée
-de performance n'est envoyé ;** les bibliothèques Firebase démarrent quand
-même et peuvent contacter les serveurs de Google (par exemple pour enregistrer
-l'installation), sans aucune de ces données. L'application ne transmet aucune
+de performance n'est envoyé ;** à l'ouverture de l'application, les
+bibliothèques Firebase démarrent quand même et peuvent contacter les serveurs
+de Google (par exemple pour enregistrer l'installation), sans aucune de ces
+données ; la vérification des mises en direct en arrière-plan ne les démarre
+pas du tout. L'application ne transmet aucune
 erreur, ligne de journal ni mesure à Crashlytics ou à Performance Monitoring,
 et les trois collectes sont déclarées désactivées dans l'application jusqu'à
 ce qu'elle applique votre choix au démarrage : Analytics n'enregistre donc
@@ -148,7 +150,9 @@ chaque démarrage avec le réglage désactivé et quand vous désactivez le
 réglage. Ce qui a été envoyé pendant que le réglage était activé n'est pas
 rappelé (la section 7 indique combien de temps c'est conservé).
 
-**Réglage activé, l'application envoie :**
+**Réglage activé, l'application envoie** (de même que la vérification des
+mises en direct en arrière-plan, si vous avez activé le réglage, pour ses
+propres erreurs)** :**
 
 - **Rapports de plantage (Crashlytics) :** les plantages et erreurs non
   interceptées, et certaines erreurs inattendues dont l'application se remet
