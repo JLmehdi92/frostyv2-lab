@@ -29,6 +29,7 @@ dart run build_runner build --delete-conflicting-outputs             # Same, but
 - `lib/utils/` — Utility functions (general helpers in `common_utils.dart`)
 - `test/` — Mirrors `lib/`; `test/guards/` holds repo-wide checks, `test/helpers/` and `test/fixtures/` shared test code
 - `tool/` — Developer scripts that are not part of the app (e.g., `onset_logo_assets.py`, the README media generators `readme_logo.py` and `readme_shots/`), and `token_proxy/`, the Cloudflare Worker that mints logged-out app tokens for a second Twitch application, plus the owner's EventSub cleanup script (`node --test` there)
+- `site/` — The landing page (onsetapp.app), static HTML/CSS/JS served by Cloudflare Pages; no build step
 - `.github/assets/` — README media (animated logo, screenshots)
 - `docs/` — `ARCHITECTURE.md` and the in-app update setup (`MISES_A_JOUR.md`)
 

@@ -6,6 +6,10 @@
   var doc = document;
   var html = doc.documentElement;
   var root = doc.querySelector('.page');
+  // boot.js reads this flag on load: without it, it falls back to the no-script layout.
+  html.classList.add('js', 'js-ready');
+  // The boot failsafe may already have shown the page on a slow network: then nothing replays its entrance.
+  var revealedEarly = !html.classList.contains('pre');
   if (!root) { html.classList.remove('pre'); return; }
 
   var texts = [
@@ -18,6 +22,7 @@
 
   var S = { theme: 'dark', lat: null, index: null, heroOn: true };
   var reduce = !!(w.matchMedia && w.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var finePointer = !!(w.matchMedia && w.matchMedia('(hover: hover) and (pointer: fine)').matches);
   var car = null;
   var drift = [];
   var fieldStart = null;
@@ -57,6 +62,7 @@
   var themeT = 0;
   var tgl = doc.querySelector('.tgl');
   var themeMetas = Array.prototype.slice.call(doc.querySelectorAll('meta[name="theme-color"]'));
+  var schemeMeta = doc.querySelector('meta[name="color-scheme"]');
   if (tgl) {
     tgl.addEventListener('click', function () {
       var light = S.theme === 'light';
@@ -70,6 +76,7 @@
         doc.body.style.backgroundColor = bg;
       } catch (e) {}
       themeMetas.forEach(function (m) { m.setAttribute('content', bg); });
+      if (schemeMeta) schemeMeta.setAttribute('content', light ? 'dark' : 'light');
       if (themeT) clearTimeout(themeT);
       themeT = setTimeout(function () { root.classList.remove('theming'); }, 380);
     });
@@ -80,12 +87,16 @@
     var vp = doc.getElementById('car-vp');
     var track = doc.getElementById('car-track');
     if (!vp || !track) return;
+    // If the no-script layout was shown first, the viewport may have been scrolled natively.
+    vp.scrollLeft = 0;
+    var capsEl = doc.querySelector('.caps');
+    var dotsEl = doc.querySelector('.dots');
     var slides = Array.prototype.slice.call(track.querySelectorAll('.slide'));
     var ins = slides.map(function (s) { return s.querySelector('.sl-in'); });
     var scr = slides.map(function (s) { return Array.prototype.slice.call(s.querySelectorAll('.screen, .tab-scr')); });
     var n = slides.length;
     var C = { x: 0, v: 0, target: 0, idx: 0, centers: [], vpW: 0, pitch: 400, anim: false, raf: 0, last: 0,
-      down: false, drag: false, sx: 0, sy: 0, x0: 0, pid: null, hist: [], touched: false, visible: true, lastX: 0, wd: 0 };
+      down: false, drag: false, sx: 0, sy: 0, x0: 0, pid: null, hist: [], touched: false, visible: true, hover: false, focus: false };
 
     var offsetFor = function (i) { return C.vpW / 2 - C.centers[i]; };
     var render = function () {
@@ -143,9 +154,12 @@
       if (!C.anim) { C.anim = true; C.last = performance.now(); C.raf = requestAnimationFrame(step); }
     };
     var auto = 0;
+    // Called only for the visitor's own actions: autoplay stops for good, and from then on
+    // caption changes are announced (they stay silent while the carousel rotates by itself).
     var stopAuto = function () {
       C.touched = true;
       if (auto) { clearInterval(auto); auto = 0; }
+      if (capsEl) capsEl.setAttribute('aria-live', 'polite');
     };
     var rubber = function (raw) {
       var max = 0, min = offsetFor(n - 1), d = C.vpW || 1;
@@ -172,7 +186,6 @@
     var onUp = function (e) {
       if (!C.down) return;
       C.down = false;
-      clearTimeout(C.wd);
       if (!C.drag) { animateTo(C.idx, 0); return; }
       C.drag = false;
       vp.classList.remove('is-drag');
@@ -204,12 +217,6 @@
         return;
       }
       C.x = rubber(C.x0 + (e.clientX - C.sx));
-      C.lastX = e.clientX;
-      clearTimeout(C.wd);
-      // A finger that leaves the frame at its edge may never send pointerup: settle after 700 ms idle.
-      C.wd = setTimeout(function () {
-        if (C.drag) onUp({ timeStamp: performance.now() });
-      }, 700);
       C.hist.push({ x: e.clientX, t: e.timeStamp });
       if (C.hist.length > 8) C.hist.shift();
       render();
@@ -222,10 +229,42 @@
     vp.addEventListener('pointermove', onMove);
     vp.addEventListener('pointerup', onUp);
     vp.addEventListener('pointercancel', onUp);
-    vp.addEventListener('lostpointercapture', onUp);
+    // A touch pointer starts captured by the element under the finger; moving the capture to the
+    // viewport fires lostpointercapture on that inner element, which bubbles here. Only the
+    // viewport's own loss of this pointer ends the drag.
+    vp.addEventListener('lostpointercapture', function (e) { if (e.target === vp && e.pointerId === C.pid) onUp(e); });
+    // Safety net for a release that never reaches the viewport.
+    var onWinUp = function (e) { if (C.down && e.pointerId === C.pid) onUp(e); };
+    w.addEventListener('pointerup', onWinUp);
+    w.addEventListener('pointercancel', onWinUp);
     w.addEventListener('blur', onUp);
-    html.addEventListener('mouseleave', function () { if (C.drag) onUp({ timeStamp: performance.now() }); });
+    html.addEventListener('mouseleave', function (e) { if (C.drag && e.buttons === 0) onUp({ timeStamp: performance.now() }); });
     vp.addEventListener('keydown', onKey);
+
+    // Autoplay holds while the pointer rests on the carousel or focus is inside it.
+    var carBox = vp.parentNode;
+    carBox.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') C.hover = true; });
+    carBox.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') C.hover = false; });
+    [carBox, dotsEl].forEach(function (el) {
+      if (!el) return;
+      el.addEventListener('focusin', function () { C.focus = true; });
+      el.addEventListener('focusout', function (e) {
+        var to = e.relatedTarget;
+        C.focus = !!(to && (carBox.contains(to) || (dotsEl && dotsEl.contains(to))));
+      });
+    });
+
+    // Load every slide's image before the carousel scrolls into view, so no slide is blank mid-spring.
+    var slideImgs = Array.prototype.slice.call(track.querySelectorAll('img[loading="lazy"]'));
+    var eager = function () { slideImgs.forEach(function (im) { im.loading = 'eager'; }); };
+    if (w.IntersectionObserver) {
+      var near = new IntersectionObserver(function (entries) {
+        if (entries[0].isIntersecting) { eager(); near.disconnect(); }
+      }, { rootMargin: '0px 0px 800px 0px' });
+      near.observe(vp);
+    } else {
+      eager();
+    }
 
     measure();
     if (w.ResizeObserver) {
@@ -244,7 +283,7 @@
       new IntersectionObserver(function (entries) { C.visible = entries[0].isIntersecting; }).observe(vp);
     }
     auto = setInterval(function () {
-      if (C.touched || !C.visible || doc.hidden || C.down) return;
+      if (C.touched || !C.visible || doc.hidden || C.down || C.hover || C.focus) return;
       animateTo((C.idx + 1) % n, 0);
     }, 5000);
   };
@@ -278,10 +317,18 @@
   }
 
   /* ---------- entrance: copy reveal, phones settling in ---------- */
+  // The top bar is never held back by boot.js, so on a slow load it is already on screen when this
+  // runs. Its entrance plays only when nothing has been painted yet (or just now), so it never blinks.
+  var barPainted = function () {
+    try {
+      var p = performance.getEntriesByName('first-contentful-paint')[0];
+      return !!p && performance.now() - p.startTime > 250;
+    } catch (e) { return false; }
+  };
   var heroIn = function () {
     var tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
-    tl.from('.bar-in > *', { y: -10, opacity: 0, duration: 0.8, stagger: 0.08, ease: 'power3.out', clearProps: 'transform,opacity' }, 0)
-      .from('.h1 .li', { yPercent: 110, duration: 1.15, stagger: 0.1 }, 0.1)
+    if (!barPainted()) tl.from('.bar-in > *', { y: -10, opacity: 0, duration: 0.8, stagger: 0.08, ease: 'power3.out', clearProps: 'transform,opacity' }, 0);
+    tl.from('.h1 .li', { yPercent: 110, duration: 1.15, stagger: 0.1 }, 0.1)
       .from('.sub', { y: 14, opacity: 0, duration: 0.9 }, 0.42)
       .from('.hero .store', { scale: 0.96, opacity: 0, duration: 0.8, stagger: 0.07, ease: 'power3.out', clearProps: 'transform,opacity' }, 0.55)
       .from('.credit', { opacity: 0, duration: 0.8 }, 0.7)
@@ -326,20 +373,24 @@
   };
 
   /* ---------- latency proof: pinned scrub when it fits, unpinned scrub otherwise ---------- */
-  var latency = function (roomy) {
-    var pin = doc.getElementById('lat-pin');
+  var LAT_BAR = 88;
+  var latPin = doc.getElementById('lat-pin');
+  // Both are read again on every refresh (resize, rotation), never frozen at load time.
+  var latFits = function () { return !!latPin && latPin.offsetHeight + LAT_BAR + 16 <= w.innerHeight; };
+  // Centre the pinned block in the space under the sticky bar, so tall screens hold no empty band.
+  var latPinTop = function () {
+    return Math.round(LAT_BAR + Math.max(0, (w.innerHeight - LAT_BAR - latPin.offsetHeight) / 2));
+  };
+  var latency = function (pinned) {
+    var pin = latPin;
     var stage = doc.getElementById('lat-stage');
-    if (!pin || !stage) return;
-    var BAR = 88;
-    if (roomy && pin.offsetHeight + BAR + 16 > w.innerHeight) roomy = false;
-    // Centre the pinned block in the space under the sticky bar, so tall screens hold no empty band.
-    var PIN_TOP = Math.round(BAR + Math.max(0, (w.innerHeight - BAR - pin.offsetHeight) / 2));
+    if (!pin || !stage) return null;
     // Step states are a 0..1 custom property mixed into the theme's own text colours,
     // so the dimmed and lit states stay correct in both light and dark.
     gsap.set(['#ls2', '#ls3'], { '--on': 0 });
     gsap.set('#ls1', { '--on': 1 });
-    var trig = roomy
-      ? { trigger: pin, start: 'top ' + PIN_TOP + 'px', end: '+=1200', scrub: 0.8, pin: true, anticipatePin: 1, invalidateOnRefresh: true }
+    var trig = pinned
+      ? { trigger: pin, start: function () { return 'top ' + latPinTop() + 'px'; }, end: '+=1200', scrub: 0.8, pin: true, anticipatePin: 1, invalidateOnRefresh: true }
       : { trigger: stage, start: 'top 75%', end: 'bottom 80%', scrub: 0.6 };
     var tl = gsap.timeline({ scrollTrigger: trig });
     tl.fromTo('#lat-edge-label', { '--fl': 0 }, { '--fl': 1, duration: 0.3, ease: 'power2.out' }, 0.1)
@@ -354,8 +405,9 @@
       .from('#row-on', { autoAlpha: 0, y: 8, duration: 0.4 }, 2.5)
       .from(['#on-head', '#on-gap'], { left: '60%', duration: 1.4, ease: 'power3.inOut' }, 2.8)
       .fromTo('#odo-list', { y: 0, yPercent: 0 }, { y: 0, yPercent: -80, duration: 1.4, ease: 'steps(4)' }, 2.8);
-    if (roomy) tl.to({}, { duration: 0.6 });
+    if (pinned) tl.to({}, { duration: 0.6 });
     tl.fromTo('#lat-prog', { scaleX: 0 }, { scaleX: 1, duration: tl.duration(), ease: 'none' }, 0);
+    return tl;
   };
 
   /* ---------- LIVE readout: rolls to the next value ---------- */
@@ -406,7 +458,7 @@
   };
   var giftLoop = function () {
     if (S.heroOn && !doc.hidden) giftPop();
-    gsap.delayedCall(8, giftLoop);
+    setTimeout(giftLoop, 8000);
   };
 
   /* ---------- rocket streak, every ~12 s, kept in the band above the headline ---------- */
@@ -451,7 +503,7 @@
   };
   var rocketLoop = function () {
     if (S.heroOn && !doc.hidden) rocketStreak();
-    gsap.delayedCall(12, rocketLoop);
+    setTimeout(rocketLoop, 12000);
   };
 
   /* ---------- pointer parallax, scatter and scroll depth for the floating objects ---------- */
@@ -471,18 +523,22 @@
       });
     };
     measure();
+    // The loop sleeps once every object has settled; pointer, scroll and resize wake it.
+    var wake = function () { if (fieldStart) fieldStart(); };
     var onMove = function (e) {
       if (!fine) return;
       var r = hero.getBoundingClientRect();
       P.x = e.clientX - r.left; P.y = e.clientY - r.top;
       P.nx = (P.x / r.width) * 2 - 1; P.ny = (P.y / r.height) * 2 - 1;
       P.on = true;
+      wake();
     };
-    var onLeave = function () { P.on = false; P.nx = 0; P.ny = 0; };
+    var onLeave = function () { P.on = false; P.nx = 0; P.ny = 0; wake(); };
     hero.addEventListener('pointermove', onMove, { passive: true });
     hero.addEventListener('pointerleave', onLeave);
     w.addEventListener('blur', onLeave);
-    w.addEventListener('resize', measure);
+    w.addEventListener('resize', function () { measure(); wake(); });
+    w.addEventListener('scroll', wake, { passive: true });
 
     var OM = 2 * Math.PI / 0.55;
     var RAD = 150;
@@ -495,6 +551,7 @@
       last = now;
       var r = hero.getBoundingClientRect();
       var scrolled = Math.max(0, -r.top);
+      var busy = false;
       for (var i = 0; i < objs.length; i++) {
         var o = objs[i];
         var tx = P.nx * o.depth * 22;
@@ -522,7 +579,10 @@
           o.x += o.vx * h; o.y += o.vy * h; o.r += o.vr * h;
         }
         if (o.p) o.p.style.transform = 'translate3d(' + o.x.toFixed(2) + 'px,' + o.y.toFixed(2) + 'px,0)' + (o.gift ? ' rotate(' + o.r.toFixed(2) + 'deg)' : '');
+        if (Math.abs(o.x - tx) > 0.02 || Math.abs(o.y - ty) > 0.02 || Math.abs(o.r - tr) > 0.01 ||
+            Math.abs(o.vx) > 0.05 || Math.abs(o.vy) > 0.05 || Math.abs(o.vr) > 0.05) busy = true;
       }
+      if (!busy) { run = false; raf = 0; return; }
       raf = requestAnimationFrame(loop);
     };
     fieldStart = function () {
@@ -555,22 +615,38 @@
   };
 
   /* ---------- start ---------- */
-  if (w.Lenis && ST) {
+  // Lenis only smooths wheel scrolling; on touch-first devices it would add per-frame work for nothing.
+  if (w.Lenis && ST && finePointer) {
     try {
       var lenis = new w.Lenis({ lerp: 0.1, smoothWheel: true });
       lenis.on('scroll', ST.update);
-      gsap.ticker.add(function (t) { lenis.raf(t * 1000); });
+      // Lenis is driven by GSAP's ticker only while it is easing a scroll, so the ticker can sleep
+      // when the page is idle. Its clock is reset on wake so the first frame never jumps.
+      var lenisOn = false;
+      var lenisTick = function () {
+        lenis.raf(performance.now());
+        if (!lenis.isScrolling) { gsap.ticker.remove(lenisTick); lenisOn = false; }
+      };
+      var lenisWake = function () {
+        if (lenisOn) return;
+        lenisOn = true;
+        lenis.raf(performance.now());
+        gsap.ticker.add(lenisTick);
+      };
+      lenis.on('virtual-scroll', lenisWake);
+      w.addEventListener('wheel', lenisWake, { passive: true });
       gsap.ticker.lagSmoothing(0);
     } catch (e) {}
   }
   if (ST) ST.config({ ignoreMobileResize: true });
 
   unhold();
-  heroIn();
+  if (!revealedEarly) heroIn();
   startDrift();
-  if (ST) { reveals(); aura(); }
-  gsap.delayedCall(2.4, giftLoop);
-  gsap.delayedCall(5, rocketLoop);
+  if (ST) { if (!revealedEarly) reveals(); aura(); }
+  // Plain timers rather than GSAP delayed calls, so GSAP's ticker can sleep once the hero is off-screen.
+  setTimeout(giftLoop, 2400);
+  setTimeout(rocketLoop, 5000);
   initField();
   watchHero();
 
@@ -581,8 +657,30 @@
       compact: '(max-width: 767px), (max-height: 759px)'
     }, function (c) {
       var roomy = !!c.conditions.roomy;
-      latency(roomy);
+      var lat = null;
+      var mode = null;
+      // Pinned only while the block fits under the bar; re-decided after every resize or rotation.
+      var build = function () {
+        var pinned = roomy && latFits();
+        if (lat && mode === pinned) return false;
+        if (lat) lat.revert();
+        mode = pinned;
+        lat = latency(pinned);
+        return true;
+      };
+      build();
       if (roomy) parallax();
+      var rt = 0;
+      var onResize = function () {
+        clearTimeout(rt);
+        rt = setTimeout(function () {
+          var changed = false;
+          c.add(function () { changed = build(); });
+          if (changed) ST.refresh();
+        }, 250);
+      };
+      w.addEventListener('resize', onResize);
+      return function () { clearTimeout(rt); w.removeEventListener('resize', onResize); };
     });
     var refresh = function () { if (w.ScrollTrigger) w.ScrollTrigger.refresh(); };
     if (doc.fonts && doc.fonts.ready) doc.fonts.ready.then(refresh);

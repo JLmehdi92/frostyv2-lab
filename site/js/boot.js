@@ -2,8 +2,13 @@
 (function () {
   var d = document.documentElement;
   d.classList.add('js', 'pre');
-  // Failsafe: if the page script never runs, show everything once the page has loaded.
   var show = function () { d.classList.remove('pre'); };
-  window.addEventListener('load', show);
-  setTimeout(show, 8000);
+  // Failsafe for a slow network: never keep the hero hidden for more than 3 s.
+  setTimeout(show, 3000);
+  window.addEventListener('load', function () {
+    show();
+    // Every deferred script has run by now. Without site.js, fall back to the no-script layout
+    // (native-scroll carousel, all captions, no dead controls).
+    if (!d.classList.contains('js-ready')) d.classList.remove('js');
+  });
 })();

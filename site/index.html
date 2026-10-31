@@ -6,9 +6,8 @@
 <title>ONSET — Twitch, live. Not almost live.</title>
 <meta name="description" content="ONSET is a free, open-source Twitch client for Android with a low-latency native player and full chat with 7TV, BTTV and FFZ emotes.">
 <link rel="canonical" href="https://onsetapp.app/">
-<meta name="theme-color" content="#0A0A0A" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#F8F8F8" media="(prefers-color-scheme: light)">
-<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0A0A0A">
+<meta name="color-scheme" content="dark">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ONSET">
 <meta property="og:url" content="https://onsetapp.app/">
@@ -28,10 +27,14 @@
 <link rel="icon" href="/assets/icon-192.png" type="image/png" sizes="192x192">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
-<link rel="preload" href="/fonts/inter-800.ad01331a.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/fonts/inter-400.0fe1a476.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/css/site.css">
 <script src="/js/boot.js"></script>
+<link rel="preload" href="/fonts/inter-800.ad01331a.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/inter-400.0fe1a476.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/js/vendor/gsap-3.13.0.min.js" as="script">
+<link rel="preload" href="/js/vendor/ScrollTrigger-3.13.0.min.js" as="script">
+<link rel="preload" href="/js/vendor/lenis-1.3.11.min.js" as="script">
+<link rel="preload" href="/js/site.js" as="script">
 <script src="/js/vendor/gsap-3.13.0.min.js" defer></script>
 <script src="/js/vendor/ScrollTrigger-3.13.0.min.js" defer></script>
 <script src="/js/vendor/lenis-1.3.11.min.js" defer></script>
@@ -205,8 +208,8 @@
         <p class="eyebrow">Inside the app</p>
         <h2 class="h2" id="shots-title">A closer look</h2>
       </div>
-      <div class="car rv" role="region" aria-roledescription="carousel" aria-label="ONSET screenshots">
-        <div class="car-vp" id="car-vp" tabindex="0" aria-label="Screenshots. Use the left and right arrow keys to browse.">
+      <div class="car rv">
+        <div class="car-vp" id="car-vp" tabindex="0" role="region" aria-roledescription="carousel" aria-label="ONSET screenshots. Use the left and right arrow keys to browse.">
           <div class="car-track" id="car-track">
             <div class="slide" role="group" aria-roledescription="slide" aria-label="1 of 5">
               <div class="sl-in"><div class="phone"><div class="screen"><img width="616" height="1368" src="/assets/home-phone.webp" alt="ONSET home screen with continue watching and channels live now" draggable="false" loading="lazy" decoding="async"></div></div></div>
@@ -234,7 +237,7 @@
         <button class="arrow arrow-prev" type="button" aria-label="Previous screenshot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14.5 6-6 6 6 6"></path></svg></button>
         <button class="arrow arrow-next" type="button" aria-label="Next screenshot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 6 6 6-6 6"></path></svg></button>
       </div>
-      <div class="caps" aria-live="polite">
+      <div class="caps" aria-live="off">
         <p class="cap is-on" aria-hidden="false">Your follows, live and close to the edge.</p>
         <p class="cap" aria-hidden="true">A native player that keeps up with the stream.</p>
         <p class="cap" aria-hidden="true">Full chat with 7TV, BTTV and FFZ emotes, plus moderation tools.</p>
@@ -334,7 +337,7 @@
     <!-- CLOSING BAND -->
     <section class="cta2" aria-labelledby="cta-title">
       <div class="wrap cta2-in rv">
-        <img class="cta2-icon" src="/assets/onset-icon.webp" alt="ONSET app icon" width="64" height="64">
+        <img class="cta2-icon" src="/assets/onset-icon-192.webp" alt="ONSET app icon" width="64" height="64" loading="lazy" decoding="async">
         <h2 class="h2" id="cta-title">Catch it live.</h2>
         <p class="cta2-sub">Free for Android 7.0 and later.</p>
         <div class="stores">
