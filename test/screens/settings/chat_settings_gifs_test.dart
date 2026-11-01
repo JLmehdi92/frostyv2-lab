@@ -22,11 +22,11 @@ void main() {
     );
 
     final animated = find.text('Animated GIFs');
-    final show = find.text('Show GIFs in Chat');
+    final show = find.text('Show GIFs in chat');
     await scrollTo(tester, show);
 
     expect(animated, findsOneWidget);
-    // Twitch's order: Animated Emotes, Animated GIFs, Show GIFs in Chat.
+    // Twitch's order: Animated Emotes, Animated GIFs, Show GIFs in chat.
     expect(
       tester.getTopLeft(animated).dy,
       greaterThan(tester.getTopLeft(find.text('Animate emotes')).dy),

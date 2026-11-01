@@ -1097,7 +1097,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'When off, shows only the first frame of GIFs sent in chat.';
 
   @override
-  String get settingsShowGifs => 'Show GIFs in Chat';
+  String get settingsShowGifs => 'Show GIFs in chat';
 
   @override
   String get settingsShowGifsDetail =>

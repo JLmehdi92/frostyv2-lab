@@ -1425,13 +1425,13 @@
   "@settingsAnimatedGifsDetail": {
     "description": "Settings › Chat › Message appearance: what turning « Animated GIFs » off does."
   },
-  "settingsShowGifs": "Show GIFs in Chat",
+  "settingsShowGifs": "Show GIFs in chat",
   "@settingsShowGifs": {
     "description": "Settings › Chat › Message appearance: the switch that shows GIFs at all."
   },
   "settingsShowGifsDetail": "When off, shows the GIF’s title instead.",
   "@settingsShowGifsDetail": {
-    "description": "Settings › Chat › Message appearance: what turning « Show GIFs in Chat » off does."
+    "description": "Settings › Chat › Message appearance: what turning « Show GIFs in chat » off does."
   },
   "settingsLinkPreviews": "Preview clips and videos",
   "@settingsLinkPreviews": {

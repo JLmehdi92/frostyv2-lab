@@ -444,7 +444,7 @@ abstract class _SettingsStoreBase with Store {
   var animateEmotes = defaultAnimateEmotes;
 
   /// GIFs sent with Twitch's GIF keyboard are drawn in chat; off shows their
-  /// title instead (Twitch's "Show GIFs in Chat").
+  /// title instead (Twitch's "Show GIFs in chat").
   @JsonKey(defaultValue: defaultShowGifs)
   @observable
   var showGifs = defaultShowGifs;

@@ -1901,10 +1901,10 @@ abstract class AppLocalizations {
   /// Settings › Chat › Message appearance: the switch that shows GIFs at all.
   ///
   /// In en, this message translates to:
-  /// **'Show GIFs in Chat'**
+  /// **'Show GIFs in chat'**
   String get settingsShowGifs;
 
-  /// Settings › Chat › Message appearance: what turning « Show GIFs in Chat » off does.
+  /// Settings › Chat › Message appearance: what turning « Show GIFs in chat » off does.
   ///
   /// In en, this message translates to:
   /// **'When off, shows the GIF’s title instead.'**
