@@ -18,9 +18,16 @@ class _ProfilePictureState extends State<ProfilePicture> {
   static final Map<String, String> _urlCache = {};
   static final Map<String, Future<String>> _pendingRequests = {};
 
+  /// The picture's address, asked once per login shown. Asked in build, a
+  /// new future each time made every rebuild of a parent cost a frame of
+  /// placeholder and a rebuild more, and a request to Twitch again after a
+  /// failure.
+  late Future<String> _url = _getProfileImageUrl();
+
   @override
-  void initState() {
-    super.initState();
+  void didUpdateWidget(ProfilePicture oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.userLogin != widget.userLogin) _url = _getProfileImageUrl();
   }
 
   Future<String> _getProfileImageUrl() async {
@@ -57,17 +64,25 @@ class _ProfilePictureState extends State<ProfilePicture> {
   @override
   Widget build(BuildContext context) {
     final diameter = widget.radius * 2;
+    // Twitch serves 300 px pictures; decoded at the size drawn, they take
+    // the same pixels on screen for a fraction of the memory.
+    final decoded = (diameter * MediaQuery.devicePixelRatioOf(context)).ceil();
     final placeholderColor = Theme.of(context).colorScheme.surfaceContainer;
 
     return ClipOval(
       child: FutureBuilder<String>(
-        future: _getProfileImageUrl(),
+        future: _url,
+        // A picture already known shows from the first frame.
+        initialData: _urlCache[widget.userLogin],
         builder: (context, snapshot) {
           return snapshot.hasData
               ? OnsetCachedNetworkImage(
                   width: diameter,
                   height: diameter,
                   imageUrl: snapshot.data!,
+                  // The width alone: the height follows the picture's
+                  // own proportions, as it did at full size.
+                  memCacheWidth: decoded,
                   placeholder: (context, url) =>
                       ColoredBox(color: placeholderColor),
                 )
