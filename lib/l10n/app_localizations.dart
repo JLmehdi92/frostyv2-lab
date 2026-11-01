@@ -8231,6 +8231,330 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{{name} is raiding with {count} viewer!} other{{name} is raiding with {count} viewers!}}'**
   String noticeRaid({required String name, required int count});
+
+  /// Copies the video's link at the playback position: the player settings sheet's tile and a tablet's action pill.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link at current time'**
+  String get vodCopyLinkAtTime;
+
+  /// What kind of video it is, in a tablet's top row over the player: a stream kept after it ended.
+  ///
+  /// In en, this message translates to:
+  /// **'Past broadcast'**
+  String get vodKindArchive;
+
+  /// The same: a part of a stream the streamer kept.
+  ///
+  /// In en, this message translates to:
+  /// **'Highlight'**
+  String get vodKindHighlight;
+
+  /// The same: a video the streamer uploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload'**
+  String get vodKindUpload;
+
+  /// A playback speed other than normal, in the player's speed pills and its speed button. rate is the speed written with the language's decimal separator (« 1,25 »).
+  ///
+  /// In en, this message translates to:
+  /// **'{rate}×'**
+  String vodPlaybackRate({required String rate});
+
+  /// The note once a link was copied (a video's link at the current time, or a link the system could not share).
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get vodLinkCopied;
+
+  /// A tablet's action pill beside the video: shares its link at the current time.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get vodShare;
+
+  /// Opens the channel of the video (a tablet's channel card) or of a chat replay message's author (the sheet that opens on their name).
+  ///
+  /// In en, this message translates to:
+  /// **'Open channel'**
+  String get vodOpenChannel;
+
+  /// A tablet's action pill: the playback speed; tapping opens the settings. rate is « Normale » (playerSpeedNormal) or a speed (vodPlaybackRate).
+  ///
+  /// In en, this message translates to:
+  /// **'Speed {rate}'**
+  String vodSpeedPill({required String rate});
+
+  /// A tablet's action pill: the video quality; tapping opens the settings. quality is the quality's name (1080p60, Auto).
+  ///
+  /// In en, this message translates to:
+  /// **'Quality {quality}'**
+  String vodQualityPill({required String quality});
+
+  /// What a screen reader says for a tablet's captions pill: whether captions show. state is on or off.
+  ///
+  /// In en, this message translates to:
+  /// **'{state, select, on{Closed Captions, on} other{Closed Captions, off}}'**
+  String vodCaptionsState({required String state});
+
+  /// A tablet's legend under the video, beside a short grey bar: the marks on the seek bar are parts Twitch muted for copyright.
+  ///
+  /// In en, this message translates to:
+  /// **'Muted parts (copyright)'**
+  String get vodLegendMuted;
+
+  /// A tablet's legend under the video: double-tapping the left or right of the video goes back or forward 10 seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Double-tap the sides to skip 10 s'**
+  String get vodLegendDoubleTap;
+
+  /// A tablet's legend under the video: another video plays when this one ends.
+  ///
+  /// In en, this message translates to:
+  /// **'Up Next at the end'**
+  String get vodLegendUpNext;
+
+  /// The same, with when it plays by itself. autoplay is the setting's value (« Wi-Fi uniquement », « Données mobiles et Wi-Fi »).
+  ///
+  /// In en, this message translates to:
+  /// **'Up Next at the end · {autoplay}'**
+  String vodLegendUpNextWhen({required String autoplay});
+
+  /// What a screen reader calls the video's seek bar (a slider).
+  ///
+  /// In en, this message translates to:
+  /// **'Seek'**
+  String get vodSeek;
+
+  /// What a screen reader says the seek bar is at. position and duration are times (« 1:02:15 »).
+  ///
+  /// In en, this message translates to:
+  /// **'{position} of {duration}'**
+  String vodSeekValue({required String position, required String duration});
+
+  /// The heading of the card shown at the end of a video with the video that plays next (shown in capitals).
+  ///
+  /// In en, this message translates to:
+  /// **'Up Next'**
+  String get vodUpNext;
+
+  /// Beside « Up Next »: the seconds before the next video plays by itself.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} second} other{{count} seconds}}'**
+  String vodUpNextSeconds({required int count});
+
+  /// Under the next video's title when it is from another channel, picked as similar. channel is its channel's name.
+  ///
+  /// In en, this message translates to:
+  /// **'{channel} · Similar video'**
+  String vodUpNextSimilar({required String channel});
+
+  /// Tooltip of the round button on the up next card: plays the next video at once.
+  ///
+  /// In en, this message translates to:
+  /// **'Play now'**
+  String get vodPlayNow;
+
+  /// The title of the pane showing the chat as it was during the broadcast, under or beside the video.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat replay'**
+  String get vodReplayTitle;
+
+  /// The note under the chat replay's info button: why some emotes may look different from the broadcast.
+  ///
+  /// In en, this message translates to:
+  /// **'7TV, BTTV and FFZ emotes are the channel\'s current sets, which may differ from the ones used during the broadcast.'**
+  String get vodReplayEmotesNote;
+
+  /// Tooltip of the chat replay's info button (it shows vodReplayEmotesNote).
+  ///
+  /// In en, this message translates to:
+  /// **'About emotes in replays'**
+  String get vodReplayEmotesAbout;
+
+  /// Shown in the chat replay pane for an uploaded video (it never had a chat).
+  ///
+  /// In en, this message translates to:
+  /// **'Uploads have no chat replay'**
+  String get vodReplayNotForUploads;
+
+  /// Shown in the chat replay pane when Twitch gives no chat for this video, with Retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat replay is unavailable for this video'**
+  String get vodReplayUnavailable;
+
+  /// Shown in the chat replay pane when no one wrote yet at this point of the video.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet'**
+  String get vodReplayNoMessages;
+
+  /// Under the placeholder rows while the chat replay loads.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading chat replay'**
+  String get vodReplayLoading;
+
+  /// A whisper could not be sent: the conversation on screen was opened with another Twitch account than the one logged in now.
+  ///
+  /// In en, this message translates to:
+  /// **'This conversation belongs to another account.'**
+  String get whisperOtherAccount;
+
+  /// A whisper could not be sent: it is too long for Twitch. max is the limit.
+  ///
+  /// In en, this message translates to:
+  /// **'Whispers can be {max} characters at most.'**
+  String whisperTooLong({required int max});
+
+  /// A whisper could not be sent: the viewer's login predates the whisper permission.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in again to whisper from this app.'**
+  String get whisperLogInAgain;
+
+  /// A whisper could not be sent for an unexpected reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t whisper (unexpected error).'**
+  String get whisperFailedUnexpected;
+
+  /// The title of the notification when a followed channel goes live. name is the channel's display name. Shown in the system's notification and in the Activity list.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is live'**
+  String notifGoLiveTitle({required String name});
+
+  /// The text of a go-live or reminder notification: the stream's title (as the streamer wrote it) and its category. French puts the category first. Shown in the system's notification and in the Activity list.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} · {category}'**
+  String notifStreamBody({required String title, required String category});
+
+  /// The notification summing up the channels that went live beyond the first five at once. count is how many.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} more channel went live} other{{count} more channels went live}}'**
+  String notifGoLiveMore({required int count});
+
+  /// The title of the notification saying the background check stopped (its text: goLiveLogInAgain, Twitch refused the login).
+  ///
+  /// In en, this message translates to:
+  /// **'Go-live notifications paused'**
+  String get notifGoLivePaused;
+
+  /// The title of the notification when someone mentions the viewer in a chat open in the background. sender is who wrote, channel the channel's display name; the message follows as the text. Shown in the system's notification and in the Activity list.
+  ///
+  /// In en, this message translates to:
+  /// **'{sender} mentioned you in {channel}'**
+  String notifMentionTitle({required String sender, required String channel});
+
+  /// The title of the reminder notification set with « Remind me » on a channel's schedule. name is the channel's display name. Shown in the system's notification and in the Activity list.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s stream is starting'**
+  String notifReminderTitle({required String name});
+
+  /// The text of a reminder notification when the scheduled stream has no title nor category. Shown in the system's notification and in the Activity list.
+  ///
+  /// In en, this message translates to:
+  /// **'Stream'**
+  String get notifReminderUntitled;
+
+  /// The go-live notifications. An Android notification channel's name, listed in the system's settings for the app: short, plural, sentence case.
+  ///
+  /// In en, this message translates to:
+  /// **'Go live'**
+  String get notifChannelGoLive;
+
+  /// The go-live notifications. An Android notification channel's description, under its name in the system's settings: one sentence, no final full stop.
+  ///
+  /// In en, this message translates to:
+  /// **'When channels you follow go live'**
+  String get notifChannelGoLiveDescription;
+
+  /// The mention notifications. An Android notification channel's name, listed in the system's settings for the app: short, plural, sentence case.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat Mentions'**
+  String get notifChannelMentions;
+
+  /// The mention notifications. An Android notification channel's description, under its name in the system's settings: one sentence, no final full stop.
+  ///
+  /// In en, this message translates to:
+  /// **'When someone mentions you in a chat you are watching while ONSET is in the background'**
+  String get notifChannelMentionsDescription;
+
+  /// The reminders set on channels' schedules. An Android notification channel's name, listed in the system's settings for the app: short, plural, sentence case.
+  ///
+  /// In en, this message translates to:
+  /// **'Stream reminders'**
+  String get notifChannelReminders;
+
+  /// The reminders set on channels' schedules. An Android notification channel's description, under its name in the system's settings: one sentence, no final full stop.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled streams you asked to be reminded of'**
+  String get notifChannelRemindersDescription;
+
+  /// The notification of a stream or video playing in the background (its controls). An Android notification channel's name, listed in the system's settings for the app: short, plural, sentence case.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback'**
+  String get mediaChannel;
+
+  /// The media notification's button that resumes the stream.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get mediaPlay;
+
+  /// The media notification's button that pauses the stream.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get mediaPause;
+
+  /// The media notification's button that stops the stream and removes the notification.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get mediaStop;
+
+  /// The title of the dialog shown when Twitch refuses a request because the logged-in session lacks a permission this version needs.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing permissions'**
+  String get authMissingPermissionsTitle;
+
+  /// The text of the same dialog; « Log in » follows.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session is missing permissions. Please log in again to continue.'**
+  String get authMissingPermissions;
+
+  /// The title of the dialog shown when Twitch refuses a request because the session ended.
+  ///
+  /// In en, this message translates to:
+  /// **'Session expired'**
+  String get authSessionExpiredTitle;
+
+  /// The text of the same dialog; « Log in » follows.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has expired. Please log in again to continue.'**
+  String get authSessionExpired;
+
+  /// The dialog's button that opens the Twitch login page.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in'**
+  String get authLogIn;
 }
 
 class _AppLocalizationsDelegate

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:mobx/mobx.dart';
@@ -152,6 +154,32 @@ Future<void> saveUiLanguage(Locale locale) async {
   } catch (e) {
     debugPrint('Language not saved for the background: ${e.runtimeType}');
   }
+}
+
+/// The language ('en' or 'fr') what runs without the app's widgets (the
+/// background go-live check, its own isolate) shows, in this order:
+/// [saved], the language the app last showed ([kUiLanguagePrefsKey]); the
+/// language picked in [settingsJson], the settings the app keeps; the first
+/// supported language of [device], the device's preferred ones; English.
+String uiLanguageIn({
+  String? saved,
+  String? settingsJson,
+  List<Locale> device = const [],
+}) {
+  bool supported(Object? code) => AppLocalizations.supportedLocales.any(
+    (locale) => locale.languageCode == code,
+  );
+  if (supported(saved)) return saved!;
+  if (settingsJson != null) {
+    try {
+      final settings = jsonDecode(settingsJson);
+      final picked = settings is Map ? settings['appLanguage'] : null;
+      if (supported(picked)) return picked as String;
+    } on FormatException {
+      // Settings that do not read say nothing: the device decides.
+    }
+  }
+  return resolveAppLocale(AppLanguage.system, device).languageCode;
 }
 
 /// The `intl` locale to write [l]'s dates in (`DateFormat.MMMM(…)`): its

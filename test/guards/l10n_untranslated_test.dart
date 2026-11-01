@@ -7,9 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// match exactly, only go down, and the map is empty once every screen is
 /// translated. `L10n.english` (the fallback) is for lib/l10n/ only, so a
 /// screen cannot keep English under another name.
-const _untranslated = <String, int>{
-  'lib/screens/vod/widgets/vod_details_panel.dart': 1,
-};
+const _untranslated = <String, int>{};
 
 /// Where the app looks a language's texts up by itself outside lib/l10n/
 /// ([_directLookup]): English got that way would pass both tests above.

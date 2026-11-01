@@ -1,9 +1,11 @@
 package app.onset
 
 import android.annotation.TargetApi
+import android.app.LocaleManager
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.os.LocaleList
 import android.view.Display
 import android.view.View
 import android.window.SplashScreenView
@@ -29,6 +31,7 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
     private var fromLauncher = false
 
     private var launchChannel: MethodChannel? = null
+    private var localeChannel: MethodChannel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // A kept process (warm start) or a restored state does not replay
@@ -68,6 +71,22 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
 
         // Whether the network costs data (the "Wi-Fi Only" autoplay setting).
         network = NetworkBridge(applicationContext, messenger)
+
+        // The app's language in the system's per-app language settings
+        // (Android 13+): `set(tag)` ("" for the device's) when the viewer
+        // picks one in the app, `get()` to adopt one picked in the system.
+        localeChannel = MethodChannel(messenger, "onset/locale").apply {
+            setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "set" -> {
+                        setAppLocale(call.arguments as? String ?: "")
+                        result.success(null)
+                    }
+                    "get" -> result.success(appLocale())
+                    else -> result.notImplemented()
+                }
+            }
+        }
 
         // How this launch started, for the launch intro. The splash (before
         // and from Android 12) shows the launch tile.
@@ -136,7 +155,29 @@ class MainActivity : PipCallbackHelperActivityWrapper() {
         splash.postDelayed({ remove() }, 300)
     }
 
+    /** Sets the per-app language ([tag] "" for the device's); Android 13+. */
+    private fun setAppLocale(tag: String) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val manager = getSystemService(LocaleManager::class.java) ?: return
+        val wanted = if (tag.isEmpty()) {
+            LocaleList.getEmptyLocaleList()
+        } else {
+            LocaleList.forLanguageTags(tag)
+        }
+        if (manager.applicationLocales != wanted) manager.applicationLocales = wanted
+    }
+
+    /** The per-app language's tags ("" for the device's); null before
+     * Android 13, which has no per-app language. */
+    private fun appLocale(): String? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return null
+        val manager = getSystemService(LocaleManager::class.java) ?: return null
+        return manager.applicationLocales.toLanguageTags()
+    }
+
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
+        localeChannel?.setMethodCallHandler(null)
+        localeChannel = null
         backgroundAudio?.dispose()
         backgroundAudio = null
         audioFocus?.dispose()

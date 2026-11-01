@@ -7974,5 +7974,317 @@
         "example": "15"
       }
     }
+  },
+  "vodCopyLinkAtTime": "Copy link at current time",
+  "@vodCopyLinkAtTime": {
+    "description": "Copies the video's link at the playback position: the player settings sheet's tile and a tablet's action pill."
+  },
+  "vodKindArchive": "Past broadcast",
+  "@vodKindArchive": {
+    "description": "What kind of video it is, in a tablet's top row over the player: a stream kept after it ended."
+  },
+  "vodKindHighlight": "Highlight",
+  "@vodKindHighlight": {
+    "description": "The same: a part of a stream the streamer kept."
+  },
+  "vodKindUpload": "Upload",
+  "@vodKindUpload": {
+    "description": "The same: a video the streamer uploaded."
+  },
+  "vodPlaybackRate": "{rate}×",
+  "@vodPlaybackRate": {
+    "description": "A playback speed other than normal, in the player's speed pills and its speed button. rate is the speed written with the language's decimal separator (« 1,25 »).",
+    "placeholders": {
+      "rate": {
+        "type": "String",
+        "example": "1.25"
+      }
+    }
+  },
+  "vodLinkCopied": "Link copied",
+  "@vodLinkCopied": {
+    "description": "The note once a link was copied (a video's link at the current time, or a link the system could not share)."
+  },
+  "vodShare": "Share",
+  "@vodShare": {
+    "description": "A tablet's action pill beside the video: shares its link at the current time."
+  },
+  "vodOpenChannel": "Open channel",
+  "@vodOpenChannel": {
+    "description": "Opens the channel of the video (a tablet's channel card) or of a chat replay message's author (the sheet that opens on their name)."
+  },
+  "vodSpeedPill": "Speed {rate}",
+  "@vodSpeedPill": {
+    "description": "A tablet's action pill: the playback speed; tapping opens the settings. rate is « Normale » (playerSpeedNormal) or a speed (vodPlaybackRate).",
+    "placeholders": {
+      "rate": {
+        "type": "String",
+        "example": "Normal"
+      }
+    }
+  },
+  "vodQualityPill": "Quality {quality}",
+  "@vodQualityPill": {
+    "description": "A tablet's action pill: the video quality; tapping opens the settings. quality is the quality's name (1080p60, Auto).",
+    "placeholders": {
+      "quality": {
+        "type": "String",
+        "example": "1080p60"
+      }
+    }
+  },
+  "vodCaptionsState": "{state, select, on{Closed Captions, on} other{Closed Captions, off}}",
+  "@vodCaptionsState": {
+    "description": "What a screen reader says for a tablet's captions pill: whether captions show. state is on or off.",
+    "placeholders": {
+      "state": {
+        "type": "String",
+        "example": "on"
+      }
+    }
+  },
+  "vodLegendMuted": "Muted parts (copyright)",
+  "@vodLegendMuted": {
+    "description": "A tablet's legend under the video, beside a short grey bar: the marks on the seek bar are parts Twitch muted for copyright."
+  },
+  "vodLegendDoubleTap": "Double-tap the sides to skip 10 s",
+  "@vodLegendDoubleTap": {
+    "description": "A tablet's legend under the video: double-tapping the left or right of the video goes back or forward 10 seconds."
+  },
+  "vodLegendUpNext": "Up Next at the end",
+  "@vodLegendUpNext": {
+    "description": "A tablet's legend under the video: another video plays when this one ends."
+  },
+  "vodLegendUpNextWhen": "Up Next at the end · {autoplay}",
+  "@vodLegendUpNextWhen": {
+    "description": "The same, with when it plays by itself. autoplay is the setting's value (« Wi-Fi uniquement », « Données mobiles et Wi-Fi »).",
+    "placeholders": {
+      "autoplay": {
+        "type": "String",
+        "example": "Wi-Fi Only"
+      }
+    }
+  },
+  "vodSeek": "Seek",
+  "@vodSeek": {
+    "description": "What a screen reader calls the video's seek bar (a slider)."
+  },
+  "vodSeekValue": "{position} of {duration}",
+  "@vodSeekValue": {
+    "description": "What a screen reader says the seek bar is at. position and duration are times (« 1:02:15 »).",
+    "placeholders": {
+      "position": {
+        "type": "String",
+        "example": "12:05"
+      },
+      "duration": {
+        "type": "String",
+        "example": "1:02:15"
+      }
+    }
+  },
+  "vodUpNext": "Up Next",
+  "@vodUpNext": {
+    "description": "The heading of the card shown at the end of a video with the video that plays next (shown in capitals)."
+  },
+  "vodUpNextSeconds": "{count, plural, one{{count} second} other{{count} seconds}}",
+  "@vodUpNextSeconds": {
+    "description": "Beside « Up Next »: the seconds before the next video plays by itself.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "vodUpNextSimilar": "{channel} · Similar video",
+  "@vodUpNextSimilar": {
+    "description": "Under the next video's title when it is from another channel, picked as similar. channel is its channel's name.",
+    "placeholders": {
+      "channel": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "vodPlayNow": "Play now",
+  "@vodPlayNow": {
+    "description": "Tooltip of the round button on the up next card: plays the next video at once."
+  },
+  "vodReplayTitle": "Chat replay",
+  "@vodReplayTitle": {
+    "description": "The title of the pane showing the chat as it was during the broadcast, under or beside the video."
+  },
+  "vodReplayEmotesNote": "7TV, BTTV and FFZ emotes are the channel's current sets, which may differ from the ones used during the broadcast.",
+  "@vodReplayEmotesNote": {
+    "description": "The note under the chat replay's info button: why some emotes may look different from the broadcast."
+  },
+  "vodReplayEmotesAbout": "About emotes in replays",
+  "@vodReplayEmotesAbout": {
+    "description": "Tooltip of the chat replay's info button (it shows vodReplayEmotesNote)."
+  },
+  "vodReplayNotForUploads": "Uploads have no chat replay",
+  "@vodReplayNotForUploads": {
+    "description": "Shown in the chat replay pane for an uploaded video (it never had a chat)."
+  },
+  "vodReplayUnavailable": "Chat replay is unavailable for this video",
+  "@vodReplayUnavailable": {
+    "description": "Shown in the chat replay pane when Twitch gives no chat for this video, with Retry."
+  },
+  "vodReplayNoMessages": "No messages yet",
+  "@vodReplayNoMessages": {
+    "description": "Shown in the chat replay pane when no one wrote yet at this point of the video."
+  },
+  "vodReplayLoading": "Loading chat replay",
+  "@vodReplayLoading": {
+    "description": "Under the placeholder rows while the chat replay loads."
+  },
+  "whisperOtherAccount": "This conversation belongs to another account.",
+  "@whisperOtherAccount": {
+    "description": "A whisper could not be sent: the conversation on screen was opened with another Twitch account than the one logged in now."
+  },
+  "whisperTooLong": "Whispers can be {max} characters at most.",
+  "@whisperTooLong": {
+    "description": "A whisper could not be sent: it is too long for Twitch. max is the limit.",
+    "placeholders": {
+      "max": {
+        "type": "int",
+        "example": "500"
+      }
+    }
+  },
+  "whisperLogInAgain": "Log in again to whisper from this app.",
+  "@whisperLogInAgain": {
+    "description": "A whisper could not be sent: the viewer's login predates the whisper permission."
+  },
+  "whisperFailedUnexpected": "Couldn't whisper (unexpected error).",
+  "@whisperFailedUnexpected": {
+    "description": "A whisper could not be sent for an unexpected reason."
+  },
+  "notifGoLiveTitle": "{name} is live",
+  "@notifGoLiveTitle": {
+    "description": "The title of the notification when a followed channel goes live. name is the channel's display name. Shown in the system's notification and in the Activity list.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "notifStreamBody": "{title} · {category}",
+  "@notifStreamBody": {
+    "description": "The text of a go-live or reminder notification: the stream's title (as the streamer wrote it) and its category. French puts the category first. Shown in the system's notification and in the Activity list.",
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "example": "Ranked grind"
+      },
+      "category": {
+        "type": "String",
+        "example": "Just Chatting"
+      }
+    }
+  },
+  "notifGoLiveMore": "{count, plural, one{{count} more channel went live} other{{count} more channels went live}}",
+  "@notifGoLiveMore": {
+    "description": "The notification summing up the channels that went live beyond the first five at once. count is how many.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "notifGoLivePaused": "Go-live notifications paused",
+  "@notifGoLivePaused": {
+    "description": "The title of the notification saying the background check stopped (its text: goLiveLogInAgain, Twitch refused the login)."
+  },
+  "notifMentionTitle": "{sender} mentioned you in {channel}",
+  "@notifMentionTitle": {
+    "description": "The title of the notification when someone mentions the viewer in a chat open in the background. sender is who wrote, channel the channel's display name; the message follows as the text. Shown in the system's notification and in the Activity list.",
+    "placeholders": {
+      "sender": {
+        "type": "String",
+        "example": "Friend"
+      },
+      "channel": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "notifReminderTitle": "{name}'s stream is starting",
+  "@notifReminderTitle": {
+    "description": "The title of the reminder notification set with « Remind me » on a channel's schedule. name is the channel's display name. Shown in the system's notification and in the Activity list.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "xQc"
+      }
+    }
+  },
+  "notifReminderUntitled": "Stream",
+  "@notifReminderUntitled": {
+    "description": "The text of a reminder notification when the scheduled stream has no title nor category. Shown in the system's notification and in the Activity list."
+  },
+  "notifChannelGoLive": "Go live",
+  "@notifChannelGoLive": {
+    "description": "The go-live notifications. An Android notification channel's name, listed in the system's settings for the app: short, plural, sentence case."
+  },
+  "notifChannelGoLiveDescription": "When channels you follow go live",
+  "@notifChannelGoLiveDescription": {
+    "description": "The go-live notifications. An Android notification channel's description, under its name in the system's settings: one sentence, no final full stop."
+  },
+  "notifChannelMentions": "Chat Mentions",
+  "@notifChannelMentions": {
+    "description": "The mention notifications. An Android notification channel's name, listed in the system's settings for the app: short, plural, sentence case."
+  },
+  "notifChannelMentionsDescription": "When someone mentions you in a chat you are watching while ONSET is in the background",
+  "@notifChannelMentionsDescription": {
+    "description": "The mention notifications. An Android notification channel's description, under its name in the system's settings: one sentence, no final full stop."
+  },
+  "notifChannelReminders": "Stream reminders",
+  "@notifChannelReminders": {
+    "description": "The reminders set on channels' schedules. An Android notification channel's name, listed in the system's settings for the app: short, plural, sentence case."
+  },
+  "notifChannelRemindersDescription": "Scheduled streams you asked to be reminded of",
+  "@notifChannelRemindersDescription": {
+    "description": "The reminders set on channels' schedules. An Android notification channel's description, under its name in the system's settings: one sentence, no final full stop."
+  },
+  "mediaChannel": "Playback",
+  "@mediaChannel": {
+    "description": "The notification of a stream or video playing in the background (its controls). An Android notification channel's name, listed in the system's settings for the app: short, plural, sentence case."
+  },
+  "mediaPlay": "Play",
+  "@mediaPlay": {
+    "description": "The media notification's button that resumes the stream."
+  },
+  "mediaPause": "Pause",
+  "@mediaPause": {
+    "description": "The media notification's button that pauses the stream."
+  },
+  "mediaStop": "Stop",
+  "@mediaStop": {
+    "description": "The media notification's button that stops the stream and removes the notification."
+  },
+  "authMissingPermissionsTitle": "Missing permissions",
+  "@authMissingPermissionsTitle": {
+    "description": "The title of the dialog shown when Twitch refuses a request because the logged-in session lacks a permission this version needs."
+  },
+  "authMissingPermissions": "Your session is missing permissions. Please log in again to continue.",
+  "@authMissingPermissions": {
+    "description": "The text of the same dialog; « Log in » follows."
+  },
+  "authSessionExpiredTitle": "Session expired",
+  "@authSessionExpiredTitle": {
+    "description": "The title of the dialog shown when Twitch refuses a request because the session ended."
+  },
+  "authSessionExpired": "Your session has expired. Please log in again to continue.",
+  "@authSessionExpired": {
+    "description": "The text of the same dialog; « Log in » follows."
+  },
+  "authLogIn": "Log in",
+  "@authLogIn": {
+    "description": "The dialog's button that opens the Twitch login page."
   }
 }

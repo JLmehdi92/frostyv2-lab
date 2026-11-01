@@ -1,5 +1,6 @@
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/services/notifications/activity_log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,9 +37,13 @@ class GoLivePrefs {
     await _prefs.setBool(_enabledKey, value);
   }
 
-  /// Why the last background check could not run (shown in the settings);
-  /// null when it ran.
-  String? get problem => _prefs.getString(_problemKey);
+  /// Why the last background check could not run (a code: the settings
+  /// word it); null when it ran. An older version kept the English
+  /// sentence: read as its code.
+  String? get problem => switch (_prefs.getString(_problemKey)) {
+    kGoLiveLoggedOutLegacy => kGoLiveLoggedOut,
+    final problem => problem,
+  };
   Future<void> setProblem(String? problem) async {
     if (problem == null) {
       await _prefs.remove(_problemKey);
@@ -133,27 +138,40 @@ List<StreamTwitch> newlyLive({
   ];
 }
 
-/// A notice for someone who went live.
+/// A notice for someone who went live: its [title] and [body] worded, and
+/// what they say ([name], [streamTitle], [category]) for Activity to word
+/// again in the language on screen.
 typedef GoLiveNotice = ({
   String userId,
   String login,
+  String name,
+  String streamTitle,
+  String category,
   String title,
   String body,
   String startedAt,
 });
 
-GoLiveNotice goLiveNotice(StreamTwitch stream) => (
-  userId: stream.userId,
-  login: stream.userLogin,
-  startedAt: stream.startedAt,
-  title:
-      '${stream.userName.isEmpty ? stream.userLogin : stream.userName} '
-      'is live',
-  body: [
-    if (stream.title.trim().isNotEmpty) stream.title.trim(),
-    if (stream.gameName.isNotEmpty) stream.gameName,
-  ].join(' · '),
-);
+/// [stream]'s go-live notice, in [l]'s language (the one on screen by
+/// default; the background check's own otherwise).
+GoLiveNotice goLiveNotice(StreamTwitch stream, [AppLocalizations? l]) {
+  final words = l ?? L10n.current;
+  final name = stream.userName.isEmpty ? stream.userLogin : stream.userName;
+  return (
+    userId: stream.userId,
+    login: stream.userLogin,
+    name: name,
+    streamTitle: stream.title.trim(),
+    category: stream.gameName,
+    startedAt: stream.startedAt,
+    title: words.notifGoLiveTitle(name: name),
+    body: streamNoticeBody(
+      words,
+      title: stream.title,
+      category: stream.gameName,
+    ),
+  );
+}
 
 /// The Activity entry of a go-live notice posted [at]: one per broadcast.
 ActivityEntry goLiveEntry(GoLiveNotice notice, DateTime at) => ActivityEntry(
@@ -163,6 +181,11 @@ ActivityEntry goLiveEntry(GoLiveNotice notice, DateTime at) => ActivityEntry(
   body: notice.body,
   login: notice.login,
   at: at,
+  params: {
+    'name': notice.name,
+    if (notice.streamTitle.isNotEmpty) 'title': notice.streamTitle,
+    if (notice.category.isNotEmpty) 'category': notice.category,
+  },
 );
 
 /// At most this many notices per check; more are summed up in one.
@@ -255,8 +278,12 @@ Future<int> checkGoLiveInApp({
   );
 }
 
-/// The problem kept when Twitch refuses the token.
-const kGoLiveLoggedOut = 'Log in again to get go-live notifications.';
+/// The problem kept when Twitch refuses the token: a code, worded where it
+/// shows (`goLiveLogInAgain`).
+const kGoLiveLoggedOut = 'logged_out';
+
+/// What an older version kept for [kGoLiveLoggedOut]: its English text.
+const kGoLiveLoggedOutLegacy = 'Log in again to get go-live notifications.';
 
 /// One background run. True when done (or nothing to do), false to ask
 /// the system to retry later. A refused token pauses the notices until the

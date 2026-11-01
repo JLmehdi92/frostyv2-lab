@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'package:flutter/widgets.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobx/mobx.dart' show Observable, runInAction;
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 import 'package:onset/stores/whisper_store.dart';
 
@@ -227,7 +229,7 @@ void main() {
       );
 
       expect(
-        await store.send(thread, 'hi'),
+        (await store.send(thread, 'hi'))?.text(L10n.english),
         "Couldn't whisper: You need a verified phone number.",
       );
       expect(thread.whispers, isEmpty);
@@ -236,7 +238,7 @@ void main() {
         () => api.sendWhisper(fromUserId: '7', toUserId: '8', message: 'hi'),
       ).thenThrow(const UnauthorizedException('Please log in'));
       expect(
-        await store.send(thread, 'hi'),
+        (await store.send(thread, 'hi'))?.text(L10n.english),
         'Log in again to whisper from this app.',
       );
     });
@@ -274,7 +276,7 @@ void main() {
       runInAction(() => user.value = '10');
 
       expect(
-        await store.send(old, 'hi'),
+        (await store.send(old, 'hi'))?.text(L10n.english),
         'This conversation belongs to another account.',
       );
       verifyNever(
@@ -330,12 +332,12 @@ void main() {
         () => api.sendWhisper(fromUserId: '7', toUserId: '9', message: 'yo'),
       ).thenThrow(const ApiException('Nope', 400));
       expect(
-        await store.sendTo(
+        (await store.sendTo(
           userId: '9',
           login: 'other',
           displayName: 'Other',
           text: 'yo',
-        ),
+        ))?.text(L10n.english),
         "Couldn't whisper: Nope",
       );
       expect(store.threads, isEmpty);
@@ -369,5 +371,47 @@ void main() {
       runInAction(() => user.value = '10');
       expect(topics.last.condition, {'user_id': '10'});
     });
+  });
+
+  test('every reason a whisper was not sent reads in both languages', () {
+    final french = lookupAppLocalizations(const Locale('fr'));
+    const refused = ApiException(
+      'The recipient blocks whispers.',
+      400,
+      null,
+      ApiErrorKind.badRequest,
+      'The recipient blocks whispers.',
+    );
+    final failures = <WhisperFailure>[
+      const WhisperLoggedOut(),
+      const WhisperOtherAccount(),
+      const WhisperTooLong(500),
+      const WhisperLogInAgain(),
+      const WhisperRefused(refused),
+      const WhisperUnexpected(),
+    ];
+    expect(
+      [for (final f in failures) f.text(L10n.english)],
+      [
+        'Log in to whisper.',
+        'This conversation belongs to another account.',
+        'Whispers can be 500 characters at most.',
+        'Log in again to whisper from this app.',
+        "Couldn't whisper: The recipient blocks whispers.",
+        "Couldn't whisper (unexpected error).",
+      ],
+    );
+    expect(
+      [for (final f in failures) f.text(french)],
+      [
+        'Connectez-vous pour chuchoter.',
+        'Cette conversation appartient à un autre compte.',
+        'Les chuchotements sont limités à 500\u00a0caractères.',
+        'Reconnectez-vous pour chuchoter depuis cette application.',
+        'Impossible de chuchoter. ${french.apiErrorBadRequest} Raison de '
+            'Twitch\u00a0: «\u00a0The recipient blocks whispers.\u00a0»',
+        'Impossible de chuchoter (erreur inattendue).',
+      ],
+    );
   });
 }

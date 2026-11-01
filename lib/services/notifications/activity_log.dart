@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// What kind of notification ONSET posted, named after Twitch's own
@@ -20,6 +21,22 @@ DateTime? storedDate(Object? ms, {bool isUtc = false}) =>
     ? DateTime.fromMillisecondsSinceEpoch(ms, isUtc: isUtc)
     : null;
 
+/// The text of a go-live or reminder notice: the stream's [title] and
+/// [category] (Twitch's data, as they are), in [l]'s order; [none] when it
+/// has neither.
+String streamNoticeBody(
+  AppLocalizations l, {
+  String? title,
+  String? category,
+  String none = '',
+}) {
+  final shownTitle = title?.trim() ?? '';
+  final shownCategory = category?.trim() ?? '';
+  if (shownTitle.isEmpty) return shownCategory.isEmpty ? none : shownCategory;
+  if (shownCategory.isEmpty) return shownTitle;
+  return l.notifStreamBody(title: shownTitle, category: shownCategory);
+}
+
 /// One notification ONSET posted, kept for the Activity screen.
 @immutable
 class ActivityEntry {
@@ -31,13 +48,70 @@ class ActivityEntry {
     required this.at,
     this.login,
     this.read = false,
+    this.params,
   });
 
   /// Unique per event: the same event is never listed twice.
   final String id;
   final ActivityKind kind;
+
+  /// The notice's words as posted, in the language shown then: what an
+  /// entry without [params] (kept by an older version) shows.
   final String title;
   final String body;
+
+  /// What the notice was about, so it reads in the language on screen
+  /// ([titleIn], [bodyIn]): `name` (the channel) for a go-live or a
+  /// reminder, with the stream's `title` and `category` when it has them;
+  /// `sender` and `channel` for a mention. Null for an entry an older
+  /// version kept.
+  final Map<String, String>? params;
+
+  /// Its title in [l]'s language, from [kind] and [params]; the stored
+  /// [title] when they do not say enough (an older entry).
+  String titleIn(AppLocalizations l) {
+    final params = this.params;
+    if (params == null) return title;
+    return switch (kind) {
+      ActivityKind.live => switch (params['name']) {
+        final name? => l.notifGoLiveTitle(name: name),
+        null => title,
+      },
+      ActivityKind.reminder => switch (params['name']) {
+        final name? => l.notifReminderTitle(name: name),
+        null => title,
+      },
+      ActivityKind.mention => switch ((params['sender'], params['channel'])) {
+        (final sender?, final channel?) => l.notifMentionTitle(
+          sender: sender,
+          channel: channel,
+        ),
+        _ => title,
+      },
+    };
+  }
+
+  /// Its text in [l]'s language: a go-live's or reminder's stream title and
+  /// category ([streamNoticeBody]); a mention's message as it was written;
+  /// the stored [body] for an older entry.
+  String bodyIn(AppLocalizations l) {
+    final params = this.params;
+    if (params == null || params['name'] == null) return body;
+    return switch (kind) {
+      ActivityKind.live => streamNoticeBody(
+        l,
+        title: params['title'],
+        category: params['category'],
+      ),
+      ActivityKind.reminder => streamNoticeBody(
+        l,
+        title: params['title'],
+        category: params['category'],
+        none: l.notifReminderUntitled,
+      ),
+      ActivityKind.mention => body,
+    };
+  }
 
   /// The channel it is about (opened on tap), when there is one.
   final String? login;
@@ -52,6 +126,7 @@ class ActivityEntry {
     login: login,
     at: at,
     read: read ?? this.read,
+    params: params,
   );
 
   Map<String, Object?> toJson() => {
@@ -62,6 +137,7 @@ class ActivityEntry {
     'login': ?login,
     'at': at.millisecondsSinceEpoch,
     'read': read,
+    'params': ?params,
   };
 
   /// Null when [json] is not an entry (damaged or from a newer version).
@@ -75,6 +151,7 @@ class ActivityEntry {
     if (id is! String || kind == null || title is! String) return null;
     if (body is! String || at == null) return null;
     final login = json['login'];
+    final params = json['params'];
     return ActivityEntry(
       id: id,
       kind: kind,
@@ -83,6 +160,12 @@ class ActivityEntry {
       login: login is String && _login.hasMatch(login) ? login : null,
       at: at,
       read: json['read'] == true,
+      params: params is Map
+          ? {
+              for (final MapEntry(:key, :value) in params.entries)
+                if (key is String && value is String) key: value,
+            }
+          : null,
     );
   }
 }

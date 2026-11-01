@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' show Locale, PlatformDispatcher;
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/constants.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/services/go_live/go_live.dart';
@@ -98,6 +101,25 @@ Future<void> _initTelemetry() => initGoLiveTelemetry(
   setCollection: setFirebaseCollection,
 );
 
+/// Shows, in this isolate, the language the app last showed: [L10n] and
+/// `Intl` set to [uiLanguageIn] what [prefs] keep (read afresh: the app is
+/// another isolate) and the device prefers ([device]), dates loaded for
+/// it (there is no MaterialApp here to load them). Returns its texts.
+Future<AppLocalizations> useBackgroundLanguage(
+  SharedPreferences prefs,
+  List<Locale> device,
+) async {
+  await prefs.reload();
+  final language = uiLanguageIn(
+    saved: prefs.getString(kUiLanguagePrefsKey),
+    settingsJson: prefs.getString('settings'),
+    device: device,
+  );
+  await initializeDateFormatting(language);
+  L10n.use(Locale(language));
+  return L10n.current;
+}
+
 /// The background entry point (its own isolate).
 @pragma('vm:entry-point')
 void goLiveCallbackDispatcher() {
@@ -113,6 +135,11 @@ void goLiveCallbackDispatcher() {
     }
 
     try {
+      // The notices in the app's language, not the isolate's English.
+      final l = await useBackgroundLanguage(
+        await SharedPreferences.getInstance(),
+        PlatformDispatcher.instance.locales,
+      );
       await GoLiveNotifications.init();
       // The app a token of another app was issued to (kept with it): Helix
       // takes the token only with that app's client id.
@@ -138,7 +165,7 @@ void goLiveCallbackDispatcher() {
         ),
         prefs: await GoLivePrefs.load(),
         notify: (notices, more) async {
-          await GoLiveNotifications.show(notices, more);
+          await GoLiveNotifications.show(notices, more, l);
           // Listed in Activity too; a failure there must not announce
           // them again.
           try {
@@ -150,7 +177,7 @@ void goLiveCallbackDispatcher() {
             report(error, stack);
           }
         },
-        notifyProblem: GoLiveNotifications.showProblem,
+        notifyProblem: (_) => GoLiveNotifications.showProblem(l),
         report: report,
       );
     } catch (error, stack) {
@@ -197,18 +224,22 @@ abstract final class GoLiveScheduler {
 abstract final class GoLiveNotifications {
   static final _plugin = FlutterLocalNotificationsPlugin();
 
-  static const _details = NotificationDetails(
-    android: AndroidNotificationDetails(
-      'go_live',
-      'Go live',
-      channelDescription: 'When channels you follow go live',
-      groupKey: 'onset.goLive',
-      // A channel announced twice (the app and the background task at the
-      // same moment) replaces its notice without a second alert.
-      onlyAlertOnce: true,
-    ),
-    iOS: DarwinNotificationDetails(threadIdentifier: 'go_live'),
-  );
+  /// How they show, in [l]'s language: Android names the channel in the
+  /// system's settings each time one is posted, so it follows the language.
+  @visibleForTesting
+  static NotificationDetails detailsFor(AppLocalizations l) =>
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'go_live',
+          l.notifChannelGoLive,
+          channelDescription: l.notifChannelGoLiveDescription,
+          groupKey: 'onset.goLive',
+          // A channel announced twice (the app and the background task at
+          // the same moment) replaces its notice without a second alert.
+          onlyAlertOnce: true,
+        ),
+        iOS: const DarwinNotificationDetails(threadIdentifier: 'go_live'),
+      );
 
   static final _ready = Completer<void>();
 
@@ -296,30 +327,38 @@ abstract final class GoLiveNotifications {
         true;
   }
 
-  /// Says once that the notices are paused, and why.
-  static Future<void> showProblem(String message) => _plugin.show(
+  /// Says once, in [l]'s language, that the notices are paused because
+  /// Twitch refused the login ([kGoLiveLoggedOut], the only problem kept).
+  static Future<void> showProblem(AppLocalizations l) => _plugin.show(
     id: 1,
-    title: 'Go-live notifications paused',
-    body: message,
-    notificationDetails: _details,
+    title: l.notifGoLivePaused,
+    body: l.goLiveLogInAgain,
+    notificationDetails: detailsFor(l),
   );
 
-  static Future<void> show(List<GoLiveNotice> notices, int more) async {
+  /// Posts [notices] (worded already) and, in [l]'s language, the one
+  /// summing up [more] channels beyond them.
+  static Future<void> show(
+    List<GoLiveNotice> notices,
+    int more,
+    AppLocalizations l,
+  ) async {
+    final details = detailsFor(l);
     for (final notice in notices) {
       await _plugin.show(
         // One per channel: a new go-live replaces the last one.
         id: int.parse(notice.userId) % 0x7fffffff,
         title: notice.title,
         body: notice.body.isEmpty ? null : notice.body,
-        notificationDetails: _details,
+        notificationDetails: details,
         payload: notice.login,
       );
     }
     if (more > 0) {
       await _plugin.show(
         id: 0,
-        title: '$more more channel${more == 1 ? '' : 's'} went live',
-        notificationDetails: _details,
+        title: l.notifGoLiveMore(count: more),
+        notificationDetails: details,
       );
     }
   }

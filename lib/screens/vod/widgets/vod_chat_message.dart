@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/screens/channel/channel.dart';
 import 'package:onset/screens/channel/chat/stores/chat_assets_store.dart';
@@ -56,7 +57,7 @@ class VodChatMessage extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.live_tv_rounded),
-              title: const Text('Open channel'),
+              title: Text(context.l10n.vodOpenChannel),
               onTap: () {
                 Navigator.pop(sheetContext);
                 navigator.push(
@@ -78,20 +79,20 @@ class VodChatMessage extends StatelessWidget {
 
   void _onLongPress(BuildContext context) {
     final messenger = ScaffoldMessenger.of(context);
+    // Read now: the sheet's context is gone once it closes.
+    final copied = context.l10n.chatMessageCopied;
     showModalBottomSheetWithProperFocus(
       context: context,
       builder: (sheetContext) => SafeArea(
         child: ListTile(
           leading: const Icon(Icons.copy_rounded),
-          title: const Text('Copy message'),
+          title: Text(context.l10n.chatCopyMessage),
           onTap: () async {
             Navigator.pop(sheetContext);
             await Clipboard.setData(
               ClipboardData(text: ircMessage.message ?? ''),
             );
-            messenger.showSnackBar(
-              const SnackBar(content: Text('Message copied')),
-            );
+            messenger.showSnackBar(SnackBar(content: Text(copied)));
           },
         ),
       ),

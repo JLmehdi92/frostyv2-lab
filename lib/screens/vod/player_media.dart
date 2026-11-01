@@ -1,3 +1,4 @@
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/vod/vod_time.dart';
 
@@ -20,15 +21,16 @@ class PlayerMedia {
     this.kindLabel,
   });
 
-  PlayerMedia.vod(Vod vod)
+  /// [vod]'s, its labels in [l]'s language.
+  PlayerMedia.vod(Vod vod, AppLocalizations l)
     : this(
         title: vod.title,
         ownerId: vod.ownerId,
         ownerLogin: vod.ownerLogin,
         ownerDisplayName: vod.ownerDisplayName,
-        shareLabel: 'Copy link at current time',
+        shareLabel: l.vodCopyLinkAtTime,
         shareLink: (at) => vodShareLink(vod, at),
-        kindLabel: vodKindLabel(vod.type),
+        kindLabel: vodKindLabel(vod.type, l),
       );
 
   final String title;
@@ -47,10 +49,11 @@ class PlayerMedia {
   final String? kindLabel;
 }
 
-/// "Past broadcast", "Highlight" or "Upload" (null when unknown).
-String? vodKindLabel(VodType? type) => switch (type) {
-  VodType.archive => 'Past broadcast',
-  VodType.highlight => 'Highlight',
-  VodType.upload => 'Upload',
+/// "Past broadcast", "Highlight" or "Upload" in [l]'s language (null when
+/// unknown).
+String? vodKindLabel(VodType? type, AppLocalizations l) => switch (type) {
+  VodType.archive => l.vodKindArchive,
+  VodType.highlight => l.vodKindHighlight,
+  VodType.upload => l.vodKindUpload,
   null => null,
 };

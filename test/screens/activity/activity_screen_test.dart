@@ -11,6 +11,7 @@ import 'package:onset/screens/home/stores/home_store.dart';
 import 'package:onset/screens/whispers/whisper_conversation.dart';
 import 'package:onset/screens/whispers/whispers_screen.dart';
 import 'package:onset/services/notifications/activity_log.dart';
+import 'package:onset/services/notifications/schedule_reminders.dart';
 import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 import 'package:onset/stores/whisper_store.dart';
 import 'package:onset/theme.dart';
@@ -542,6 +543,73 @@ void main() {
             findsOneWidget,
           );
           await expectFrenchThroughout(tester, 'notifications');
+        });
+      }
+    }
+
+    for (final (sizeName, size) in frenchChannelScreenSizes) {
+      for (final scale in frenchTextScales) {
+        testWidgets('notices posted in English read in French, $sizeName, '
+            'text ×$scale', (tester) async {
+          final english = lookupAppLocalizations(en);
+          final reminder = ScheduleReminder(
+            segmentId: 's1',
+            login: 'streamer',
+            channelName: 'Streamer',
+            startAt: _now.subtract(const Duration(days: 2)),
+            title: 'Tournoi',
+            category: 'Échecs',
+          ).entryIn(english);
+          await store.addAll([
+            ActivityEntry(
+              id: 'live',
+              kind: ActivityKind.live,
+              title: english.notifGoLiveTitle(name: 'Streamer'),
+              body: 'Partie classée · Échecs',
+              login: 'streamer',
+              at: _now.subtract(const Duration(minutes: 5)),
+              params: const {
+                'name': 'Streamer',
+                'title': 'Partie classée',
+                'category': 'Échecs',
+              },
+            ),
+            ActivityEntry(
+              id: 'mention',
+              kind: ActivityKind.mention,
+              title: english.notifMentionTitle(
+                sender: 'Ami',
+                channel: 'Streamer',
+              ),
+              body: 'salut @viewer',
+              login: 'streamer',
+              at: _now.subtract(const Duration(hours: 3)),
+              params: const {'sender': 'Ami', 'channel': 'Streamer'},
+            ),
+            reminder,
+            // Kept by an older version: its words as they were.
+            ActivityEntry(
+              id: 'old',
+              kind: ActivityKind.live,
+              title: 'Oldie is live',
+              body: '',
+              login: 'oldie',
+              at: _now.subtract(const Duration(days: 20)),
+            ),
+          ]);
+          await pump(tester, size: size, locale: fr, textScale: scale);
+          await expectFrenchThroughout(
+            tester,
+            'reworded notices',
+            content: const ['Oldie is live'],
+          );
+          expect(find.text('Streamer est en direct'), findsWidgets);
+          expect(find.text('Échecs · Partie classée'), findsWidgets);
+          expect(
+            find.text('Mention de Ami dans le chat de la chaîne Streamer'),
+            findsWidgets,
+          );
+          expect(find.text('Oldie is live'), findsWidgets);
         });
       }
     }

@@ -132,8 +132,8 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
 
   Vod? _vod;
 
-  /// The metadata could not be loaded (null while loading or loaded).
-  String? _loadError;
+  /// Why the metadata could not be loaded (null while loading or loaded).
+  VodPlaybackProblem? _loadProblem;
 
   /// The current player, observable: it is replaced (after the content
   /// warning, a fallback to the web engine, a retry) and what follows it,
@@ -207,12 +207,14 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
         vod = await _service.getVideo(widget.vodId);
       } catch (e) {
         debugPrint('VodScreen metadata failed: $e');
-        if (mounted) setState(() => _loadError = "Couldn't load this video");
+        if (mounted) {
+          setState(() => _loadProblem = VodPlaybackProblem.unknown);
+        }
         return;
       }
       if (vod == null) {
         if (mounted) {
-          setState(() => _loadError = 'This video is no longer available');
+          setState(() => _loadProblem = VodPlaybackProblem.notFound);
         }
         return;
       }
@@ -252,7 +254,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
     if (!mounted) return;
     final loaded = vod;
     setState(() {
-      _loadError = null;
+      _loadProblem = null;
       _vod = loaded;
       _replay = _buildReplay(loaded);
       _upNext = loaded.isRecording ? null : _buildUpNext(loaded);
@@ -380,7 +382,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   }
 
   void _retryMetadata() {
-    setState(() => _loadError = null);
+    setState(() => _loadProblem = null);
     unawaited(_loadMetadata());
   }
 
@@ -598,9 +600,9 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
       );
     }
     if (vod == null || player == null) {
-      final error = _loadError;
+      final problem = _loadProblem;
       return _withBackButton(
-        error == null
+        problem == null
             ? ColoredBox(
                 color: Colors.black,
                 child: Center(
@@ -609,12 +611,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
                   ),
                 ),
               )
-            : VodErrorView(
-                problem: error == 'This video is no longer available'
-                    ? VodPlaybackProblem.notFound
-                    : VodPlaybackProblem.unknown,
-                onRetry: _retryMetadata,
-              ),
+            : VodErrorView(problem: problem, onRetry: _retryMetadata),
       );
     }
     return Stack(
@@ -639,7 +636,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
             }
             return VodOverlay(
               controller: player,
-              media: PlayerMedia.vod(vod),
+              media: PlayerMedia.vod(vod, context.l10n),
               settings: _settings,
               mutedSegments: _mutedSegments,
               fillScreen: player is IvsVodStore ? _fillScreen : null,
@@ -663,7 +660,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   Widget _buildChat({bool header = true, bool large = false}) {
     final replay = _replay;
     if (replay == null) {
-      return _loadError == null
+      return _loadProblem == null
           ? const ReplayLoading()
           : const SizedBox.shrink();
     }

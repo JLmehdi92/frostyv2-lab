@@ -686,7 +686,7 @@ class _EntryRow extends StatelessWidget {
                         spacing: 3,
                         children: [
                           Text(
-                            entry.title,
+                            entry.titleIn(context.l10n),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -699,9 +699,10 @@ class _EntryRow extends StatelessWidget {
                               color: unread ? colors.text : colors.secondary,
                             ),
                           ),
-                          if (entry.body.isNotEmpty)
+                          if (entry.bodyIn(context.l10n) case final body
+                              when body.isNotEmpty)
                             Text(
-                              entry.body,
+                              body,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -877,7 +878,7 @@ class _RemoveSheet extends StatelessWidget {
                   ],
                   Expanded(
                     child: Text(
-                      entry.title,
+                      entry.titleIn(context.l10n),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(fontSize: 13, color: colors.secondary),

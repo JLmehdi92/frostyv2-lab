@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// A share sheet is open: a second tap must not open another (Android
@@ -46,6 +47,6 @@ Future<void> _share(
   if (context.mounted) {
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('Link copied')));
+    ).showSnackBar(SnackBar(content: Text(context.l10n.vodLinkCopied)));
   }
 }

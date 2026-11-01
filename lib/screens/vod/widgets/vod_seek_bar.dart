@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/vod/vod_time.dart';
 import 'package:onset/theme.dart';
@@ -60,8 +61,10 @@ class _VodSeekBarState extends State<VodSeekBar> {
     return target;
   }
 
-  String _valueAt(Duration at) =>
-      '${formatVodTime(at)} of ${formatVodTime(widget.duration)}';
+  String _valueAt(Duration at) => context.l10n.vodSeekValue(
+    position: formatVodTime(at),
+    duration: formatVodTime(widget.duration),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +80,7 @@ class _VodSeekBarState extends State<VodSeekBar> {
     ];
 
     return Semantics(
-      label: 'Seek',
+      label: context.l10n.vodSeek,
       value: _valueAt(widget.position),
       increasedValue: _valueAt(_stepped(_semanticStep)),
       decreasedValue: _valueAt(_stepped(-_semanticStep)),

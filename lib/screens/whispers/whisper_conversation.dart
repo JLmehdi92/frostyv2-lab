@@ -88,7 +88,7 @@ class _WhisperConversationState extends State<WhisperConversation> {
   late final WhisperThread _thread;
   final _text = TextEditingController();
   var _sending = false;
-  String? _error;
+  WhisperFailure? _error;
 
   /// The whispers already on screen: those that come later slide in.
   late final Set<String> _known;
@@ -171,7 +171,7 @@ class _WhisperConversationState extends State<WhisperConversation> {
                 child: Semantics(
                   liveRegion: true,
                   child: Text(
-                    error,
+                    error.text(context.l10n),
                     style: const TextStyle(
                       fontSize: 12.5,
                       height: 1.4,

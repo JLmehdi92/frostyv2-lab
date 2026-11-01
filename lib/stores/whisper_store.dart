@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/l10n/api_errors.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 import 'package:onset/services/telemetry.dart';
 
@@ -349,7 +351,7 @@ abstract class WhisperStoreBase with Store {
 
   /// Whispers [text] to someone, starting the conversation only once it
   /// went (`/w`). Null when sent, else why not.
-  Future<String?> sendTo({
+  Future<WhisperFailure?> sendTo({
     required String userId,
     required String login,
     required String displayName,
@@ -363,25 +365,25 @@ abstract class WhisperStoreBase with Store {
   }
 
   /// Whispers [text] to [thread]'s person. Null when sent, else why not.
-  Future<String?> send(WhisperThread thread, String text) =>
+  Future<WhisperFailure?> send(WhisperThread thread, String text) =>
       _send(thread, text, adopt: false);
 
   /// [adopt]: [thread] is new, kept only if the whisper goes.
-  Future<String?> _send(
+  Future<WhisperFailure?> _send(
     WhisperThread thread,
     String text, {
     required bool adopt,
   }) async {
     final me = _me;
-    if (me == null) return 'Log in to whisper.';
+    if (me == null) return const WhisperLoggedOut();
     // A screen kept from before an account switch.
     if (!adopt && !identical(_threads[thread.userId], thread)) {
-      return 'This conversation belongs to another account.';
+      return const WhisperOtherAccount();
     }
     final message = text.trim();
     if (message.isEmpty) return null;
     if (message.length > TwitchApi.maxWhisperLength) {
-      return 'Whispers can be ${TwitchApi.maxWhisperLength} characters at most.';
+      return const WhisperTooLong(TwitchApi.maxWhisperLength);
     }
     try {
       await twitchApi.sendWhisper(
@@ -390,13 +392,13 @@ abstract class WhisperStoreBase with Store {
         message: message,
       );
     } on UnauthorizedException {
-      return 'Log in again to whisper from this app.';
+      return const WhisperLogInAgain();
     } on ApiException catch (e) {
-      return "Couldn't whisper: ${e.message}";
+      return WhisperRefused(e);
     } catch (e, stack) {
       // A bug, or Twitch changed something (never the whisper's text).
       Telemetry.recordError(e, stack, reason: 'whisper send');
-      return "Couldn't whisper (unexpected error).";
+      return const WhisperUnexpected();
     }
     // The account changed meanwhile: not this conversation any more.
     if (_me != me) return null;
@@ -426,4 +428,65 @@ abstract class WhisperStoreBase with Store {
     unawaited(_events?.cancel());
     unawaited(_incoming.close());
   }
+}
+
+/// Why a whisper was not sent; [text] words it in a language.
+sealed class WhisperFailure {
+  const WhisperFailure();
+
+  /// The line saying why, in [l]'s language.
+  String text(AppLocalizations l);
+}
+
+/// No one is logged in.
+final class WhisperLoggedOut extends WhisperFailure {
+  const WhisperLoggedOut();
+
+  @override
+  String text(AppLocalizations l) => l.chatLogInToWhisper;
+}
+
+/// The conversation on screen was opened with another account.
+final class WhisperOtherAccount extends WhisperFailure {
+  const WhisperOtherAccount();
+
+  @override
+  String text(AppLocalizations l) => l.whisperOtherAccount;
+}
+
+/// Longer than Twitch takes ([max] characters).
+final class WhisperTooLong extends WhisperFailure {
+  const WhisperTooLong(this.max);
+
+  final int max;
+
+  @override
+  String text(AppLocalizations l) => l.whisperTooLong(max: max);
+}
+
+/// The login predates the whisper permission.
+final class WhisperLogInAgain extends WhisperFailure {
+  const WhisperLogInAgain();
+
+  @override
+  String text(AppLocalizations l) => l.whisperLogInAgain;
+}
+
+/// Twitch refused it, or could not be reached.
+final class WhisperRefused extends WhisperFailure {
+  const WhisperRefused(this.error);
+
+  final ApiException error;
+
+  @override
+  String text(AppLocalizations l) =>
+      l.chatWhisperFailedBecause(reason: chatErrorText(l, error));
+}
+
+/// Something unexpected (a bug, or a Twitch change).
+final class WhisperUnexpected extends WhisperFailure {
+  const WhisperUnexpected();
+
+  @override
+  String text(AppLocalizations l) => l.whisperFailedUnexpected;
 }

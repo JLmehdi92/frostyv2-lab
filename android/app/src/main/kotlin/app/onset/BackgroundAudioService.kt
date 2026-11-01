@@ -52,6 +52,15 @@ class BackgroundAudioService : Service() {
         var onCommand: ((String) -> Unit)? = null
 
         /**
+         * The notification's words in the language the app shows, sent by
+         * Dart with each show and whenever the language changes (Dart's ARB
+         * files hold them: `mediaChannel`, `mediaPlay`, `mediaPause`,
+         * `mediaStop`). Empty only until Dart's first show, which carries
+         * them: the notification is never posted before it.
+         */
+        var labels = MediaLabels()
+
+        /**
          * A start asked for but not yet handled, and whether a hide came in
          * meanwhile: stopping a service started in the foreground before it
          * called startForeground crashes the app, so it stops itself after.
@@ -152,7 +161,7 @@ class BackgroundAudioService : Service() {
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             manager.createNotificationChannel(
-                NotificationChannel(CHANNEL_ID, "Playback", NotificationManager.IMPORTANCE_LOW),
+                NotificationChannel(CHANNEL_ID, labels.channel, NotificationManager.IMPORTANCE_LOW),
             )
             Notification.Builder(this, CHANNEL_ID)
         } else {
@@ -160,9 +169,9 @@ class BackgroundAudioService : Service() {
             Notification.Builder(this)
         }
         val toggle = if (playing) {
-            action(android.R.drawable.ic_media_pause, "Pause", ACTION_PAUSE)
+            action(android.R.drawable.ic_media_pause, labels.pause, ACTION_PAUSE)
         } else {
-            action(android.R.drawable.ic_media_play, "Play", ACTION_PLAY)
+            action(android.R.drawable.ic_media_play, labels.play, ACTION_PLAY)
         }
         val open = packageManager.getLaunchIntentForPackage(packageName)?.let {
             PendingIntent.getActivity(this, 0, it, PendingIntent.FLAG_IMMUTABLE)
@@ -176,7 +185,7 @@ class BackgroundAudioService : Service() {
             .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setOngoing(playing)
             .addAction(toggle)
-            .addAction(action(android.R.drawable.ic_menu_close_clear_cancel, "Stop", ACTION_STOP))
+            .addAction(action(android.R.drawable.ic_menu_close_clear_cancel, labels.stop, ACTION_STOP))
             .setStyle(
                 Notification.MediaStyle()
                     .setMediaSession(session?.sessionToken)
@@ -195,6 +204,11 @@ class BackgroundAudioService : Service() {
         Intent(this, BackgroundAudioService::class.java).setAction(intentAction),
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
     )
+
+    /** Posts the notification again in the [labels] just received. */
+    fun refreshLabels() {
+        update(title, subtitle, playing)
+    }
 
     /** Leaves at once: later shows start a new service instead of this one. */
     fun dismiss() {
@@ -217,10 +231,29 @@ class BackgroundAudioService : Service() {
     }
 }
 
+/** The media notification's words, in the language the app shows. */
+data class MediaLabels(
+    val channel: String = "",
+    val play: String = "",
+    val pause: String = "",
+    val stop: String = "",
+) {
+    companion object {
+        /** Read from a `labels` map sent by Dart; null when it has none. */
+        fun from(map: Map<*, *>?): MediaLabels? {
+            if (map == null) return null
+            fun text(key: String) = map[key] as? String ?: ""
+            return MediaLabels(text("channel"), text("play"), text("pause"), text("stop"))
+        }
+    }
+}
+
 /**
- * The `onset/background-audio` channel: `show {title, subtitle, playing}`
- * starts or updates [BackgroundAudioService], `hide` stops it, and media
- * buttons come back as `command {action}`.
+ * The `onset/background-audio` channel: `show {title, subtitle, playing,
+ * labels}` starts or updates [BackgroundAudioService], `labels {channel,
+ * play, pause, stop}` changes the notification's words (the app's language
+ * changed), `hide` stops it, and media buttons come back as `command
+ * {action}`.
  */
 class BackgroundAudioBridge(private val context: Context, messenger: BinaryMessenger) {
     private val channel = MethodChannel(messenger, "onset/background-audio")
@@ -232,7 +265,17 @@ class BackgroundAudioBridge(private val context: Context, messenger: BinaryMesse
         }
         channel.setMethodCallHandler { call, result ->
             when (call.method) {
+                "labels" -> {
+                    MediaLabels.from(call.arguments as? Map<*, *>)?.let {
+                        BackgroundAudioService.labels = it
+                        BackgroundAudioService.instance?.refreshLabels()
+                    }
+                    result.success(null)
+                }
                 "show" -> {
+                    MediaLabels.from(call.argument<Map<*, *>>("labels"))?.let {
+                        BackgroundAudioService.labels = it
+                    }
                     val title = call.argument<String>("title") ?: ""
                     val subtitle = call.argument<String>("subtitle") ?: ""
                     val playing = call.argument<Boolean>("playing") ?: true

@@ -536,7 +536,7 @@ abstract class ChatStoreBase with Store {
             text: message,
           );
           if (_shouldDisconnect) return;
-          if (error != null) return say(error);
+          if (error != null) return say(error.text(l));
           say(
             whispers.status == WhisperStatus.refused
                 ? l.chatWhisperSentNoReplies(name: user.displayName)

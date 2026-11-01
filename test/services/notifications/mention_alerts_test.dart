@@ -205,6 +205,8 @@ void main() {
       messageId: 'm1',
       channelId: '42',
       channelLogin: 'streamer',
+      sender: 'Someone',
+      channelName: 'Streamer',
       title: 'Someone mentioned you in Streamer',
       body: 'hey',
     ), DateTime.utc(2026, 10, 20, 12));

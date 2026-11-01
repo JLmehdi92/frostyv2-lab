@@ -9,6 +9,7 @@ import 'package:mobx/mobx.dart' show Observable, ObservableList;
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_clip_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel.dart';
 import 'package:onset/models/channel_profile.dart';
 import 'package:onset/models/clip.dart';
@@ -273,7 +274,7 @@ void main() {
             Scaffold(
               body: VodOverlay(
                 controller: FakeVodController(),
-                media: PlayerMedia.vod(vod),
+                media: PlayerMedia.vod(vod, L10n.english),
                 settings: SettingsStore.fromJson({}),
                 onCycleChatMode: () {},
                 isLandscape: size.width > size.height,

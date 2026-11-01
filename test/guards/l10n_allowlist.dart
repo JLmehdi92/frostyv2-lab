@@ -27,9 +27,29 @@ const l10nAllowlist = <String, Map<String, String>>{
     'Server timeout. Please try again': _apiLog,
     'HTTP Error {} occurred': _apiLog,
   },
+  'lib/apis/dio_client.dart': {
+    'ONSET (Flutter Twitch Client)':
+        'The HTTP User-Agent header sent to the APIs: the app\'s name, '
+        'never shown.',
+  },
+  'lib/apis/twitch_api.dart': {'Clip failed': _apiLog},
+  'lib/apis/twitch_clip_service.dart': {'Clip playback is forbidden': _apiLog},
   'lib/apis/twitch_directory_service.dart': {
     'RELEVANCE': 'A GQL sort value sent to Twitch (StreamSort.gql): code.',
     'RECENT': 'A GQL sort value sent to Twitch (StreamSort.gql): code.',
+  },
+  'lib/apis/twitch_stream_service.dart': {
+    '{}    value signature __typename{}':
+        'A GraphQL query document sent to Twitch: code.',
+  },
+  'lib/apis/twitch_vod_service.dart': {'Video playback is forbidden': _apiLog},
+  'lib/constants.dart': {
+    'blue': _chatColorId,
+    'chocolate': _chatColorId,
+    'coral': _chatColorId,
+    'firebrick': _chatColorId,
+    'green': _chatColorId,
+    'red': _chatColorId,
   },
   'lib/models/clip.dart': {
     'TRENDING': 'A GQL sort value sent to Twitch (ClipSort.gqlName): code.',
@@ -176,6 +196,16 @@ const l10nAllowlist = <String, Map<String, String>>{
     'ONSET v{} ({})':
         'The app\'s name, its version and build number: a brand and figures.',
   },
+  'lib/services/go_live/go_live.dart': {
+    'Log in again to get go-live notifications.':
+        'What an older version stored as the go-live problem, read to map '
+        'it to its code (kGoLiveLoggedOut); never shown.',
+  },
+  'lib/services/realtime/twitch_realtime_client.dart': {
+    'subscribe failed':
+        'Why a realtime topic is unavailable (RealtimeUnavailable.reason): '
+        'for logs, never shown.',
+  },
   'lib/utils/irc_privmsg_builder.dart': {
     '@{} :{}!{}@{}.tmi.twitch.tv PRIVMSG #{} :{}': _ircLine,
   },
@@ -218,6 +248,11 @@ const l10nAllowlist = <String, Map<String, String>>{
 const _apiLog =
     'ApiException.message, English for logs and crash reports; screens '
     'show apiErrorText (lib/l10n/api_errors.dart) instead.';
+
+/// Why a Twitch chat colour's id is allowed.
+const _chatColorId =
+    'A chat colour\'s id sent to Twitch (chatColorNames, /color); the '
+    'colour picker words it with chatColorName.';
 
 const _commandName =
     'A chat command\'s name: what is typed after the slash, as Twitch reads '

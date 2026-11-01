@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/widgets/go_live_setting.dart';
 import 'package:onset/screens/settings/widgets/settings_list_switch.dart';
 import 'package:onset/services/go_live/go_live.dart';
@@ -118,7 +119,7 @@ void main() {
     await prefs.setProblem(kGoLiveLoggedOut);
     await pump(tester, const SizedBox());
     await pump(tester, GoLiveSetting(userId: '7', platform: FakePlatform()));
-    expect(find.text(kGoLiveLoggedOut), findsOneWidget);
+    expect(find.text(L10n.english.goLiveLogInAgain), findsOneWidget);
   });
 
   testWidgets('logged out or not Android: cannot be turned on', (tester) async {

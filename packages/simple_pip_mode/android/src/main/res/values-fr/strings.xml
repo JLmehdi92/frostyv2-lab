@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="pip_action_play">Lire</string>
+    <string name="pip_action_play_description">Lancer la lecture</string>
+    <string name="pip_action_pause">Mettre en pause</string>
+    <string name="pip_action_pause_description">Mettre la lecture en pause</string>
+    <string name="pip_action_next">Suivant</string>
+    <string name="pip_action_next_description">Passer au contenu suivant</string>
+    <string name="pip_action_previous">Précédent</string>
+    <string name="pip_action_previous_description">Revenir au contenu précédent</string>
+    <string name="pip_action_live">Direct</string>
+    <string name="pip_action_live_description">Revenir au direct</string>
+
+</resources>

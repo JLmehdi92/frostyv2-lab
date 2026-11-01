@@ -1,5 +1,7 @@
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/services/background_audio.dart';
 
 void main() {
@@ -50,6 +52,13 @@ void main() {
       'title': 'Streamer',
       'subtitle': 'Endgames',
       'playing': true,
+      // The buttons in the language on screen.
+      'labels': {
+        'channel': 'Playback',
+        'play': 'Play',
+        'pause': 'Pause',
+        'stop': 'Stop',
+      },
     });
     expect((calls[1].arguments as Map)['playing'], isFalse);
   });
@@ -202,5 +211,38 @@ void main() {
     await audio.retryShow();
 
     expect(calls.map((c) => c.method), ['show', 'hide']);
+  });
+
+  test('the buttons follow the language: sent at once while shown, with '
+      'the next show otherwise', () async {
+    final french = lookupAppLocalizations(const Locale('fr'));
+    await audio.setLabels(mediaLabelsOf(french));
+    // Nothing is up: nothing sent yet.
+    expect(calls, isEmpty);
+    final owner = Object();
+    await audio.show(
+      owner: owner,
+      title: 'A',
+      subtitle: '',
+      playing: true,
+      onCommand: (_) {},
+    );
+    expect((calls.single.arguments as Map)['labels'], {
+      'channel': 'Lecture en cours',
+      'play': 'Lire',
+      'pause': 'Mettre en pause',
+      'stop': 'Arrêter',
+    });
+    await audio.setLabels(mediaLabelsOf(L10n.english));
+    expect(calls.last.method, 'labels');
+    expect(calls.last.arguments, {
+      'channel': 'Playback',
+      'play': 'Play',
+      'pause': 'Pause',
+      'stop': 'Stop',
+    });
+    // The same words again send nothing.
+    await audio.setLabels(mediaLabelsOf(L10n.english));
+    expect(calls.map((c) => c.method), ['show', 'labels']);
   });
 }

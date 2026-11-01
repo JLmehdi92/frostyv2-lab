@@ -749,5 +749,68 @@ void main() {
         });
       }
     }
+
+    for (final (sizeName, size) in frenchChannelScreenSizes) {
+      for (final scale in frenchTextScales) {
+        testWidgets('why a whisper was not sent, $sizeName, text ×$scale', (
+          tester,
+        ) async {
+          init();
+          for (final (error, words) in <(Object, String)>[
+            (
+              const NetworkException('No internet connection.'),
+              'Impossible de chuchoter. ${french.apiErrorNetwork}',
+            ),
+            (
+              const ApiException(
+                'Verify your phone number first.',
+                403,
+                null,
+                ApiErrorKind.forbidden,
+                'Verify your phone number first.',
+              ),
+              'Impossible de chuchoter. ${french.apiErrorForbidden} Raison '
+                  'de Twitch\u00a0: «\u00a0Verify your phone number first.'
+                  '\u00a0»',
+            ),
+            (
+              const UnauthorizedException('Please log in'),
+              french.whisperLogInAgain,
+            ),
+            (StateError('boom'), french.whisperFailedUnexpected),
+          ]) {
+            when(
+              () => api.sendWhisper(
+                fromUserId: '7',
+                toUserId: '8',
+                message: 'salut',
+              ),
+            ).thenThrow(error);
+            await pumpScreen(
+              tester,
+              WhisperConversation(
+                store: store,
+                userId: '8',
+                login: 'friend',
+                displayName: 'Friend',
+              ),
+              size: size,
+              locale: fr,
+              textScale: scale,
+            );
+            await tester.enterText(find.byType(TextField), 'salut');
+            await tester.pump();
+            await tester.tap(find.byTooltip(french.whisperSend));
+            await settle(tester);
+            expect(find.text(words), findsOneWidget, reason: '$error');
+            await expectFrenchThroughout(
+              tester,
+              'refused: $error',
+              content: const ['Verify your phone number first.'],
+            );
+          }
+        });
+      }
+    }
   });
 }

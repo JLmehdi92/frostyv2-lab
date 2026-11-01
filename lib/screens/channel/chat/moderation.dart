@@ -7,6 +7,9 @@ import 'package:onset/screens/channel/chat/chat_commands.dart';
 import 'package:onset/screens/channel/chat/moderation_notice.dart';
 import 'package:onset/services/telemetry.dart';
 
+export 'package:onset/l10n/api_errors.dart'
+    show chatErrorText, maxQuotedTwitchReason;
+
 /// What a moderation action ended with: whether it worked, and the line to
 /// show either way, worded in the language on screen when it ended.
 typedef ModerationOutcome = ({bool ok, String message});
@@ -15,29 +18,6 @@ typedef ModerationOutcome = ({bool ok, String message});
 /// run it must not stay busy for good).
 ModerationOutcome get moderationFailed =>
     (ok: false, message: L10n.current.chatModNotThrough);
-
-/// What [error] says, after « Couldn't … » in chat: on an English screen
-/// Twitch's own English words ([ApiException.message]), as the chat always
-/// read; in another language its kind, worded ([apiErrorText]), then
-/// Twitch's explanation quoted when it gave a short one
-/// (`chatTwitchReason`): the words in the language on screen come
-/// first, and Twitch's English never stands alone.
-String chatErrorText(AppLocalizations l, ApiException error) {
-  if (l.localeName == 'en') return error.message;
-  final kind = apiErrorText(l, error);
-  final reason = error.twitchMessage?.trim();
-  if (reason == null ||
-      reason.isEmpty ||
-      reason.length > maxQuotedTwitchReason ||
-      reason.contains('\n')) {
-    return kind;
-  }
-  return '$kind ${l.chatTwitchReason(reason: reason)}';
-}
-
-/// The longest explanation of Twitch's [chatErrorText] quotes after the
-/// worded kind: a longer one would bury the line, and stays in the logs.
-const maxQuotedTwitchReason = 120;
 
 /// The login a moderation command named belongs to nobody.
 class _NoSuchUser extends NotFoundException {

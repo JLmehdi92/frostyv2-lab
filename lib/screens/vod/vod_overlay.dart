@@ -11,6 +11,7 @@ import 'package:onset/models/vod.dart';
 import 'package:onset/screens/channel/channel.dart';
 import 'package:onset/screens/channel/video/overlay_common.dart';
 import 'package:onset/screens/channel/video/player_glyph.dart';
+import 'package:onset/screens/channel/video/quality_selection.dart';
 import 'package:onset/screens/channel/video/stores/caption_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/vod/player_media.dart';
@@ -936,7 +937,7 @@ class _SpeedPill extends StatelessWidget {
                 ),
               ),
               child: Text(
-                formatPlaybackRate(rate),
+                formatPlaybackRate(rate, context.l10n),
                 style: TextStyle(
                   fontFamily: OnsetTokens.bodyFamily,
                   color: _Over.text,
@@ -1077,7 +1078,7 @@ class VodSettingsSheet extends StatelessWidget {
                 children: [
                   for (final quality in qualities)
                     SheetChoicePill(
-                      label: quality,
+                      label: qualityLabel(quality, context.l10n),
                       large: true,
                       selected: currentQuality == quality,
                       onSelected: () => _pickQuality(context, quality),
@@ -1411,7 +1412,7 @@ class _SpeedGrid extends StatelessWidget {
                 child: _GridChip(
                   label: rate == 1.0
                       ? context.l10n.playerSpeedNormal
-                      : formatPlaybackRate(rate),
+                      : formatPlaybackRate(rate, context.l10n),
                   selected: current == rate,
                   onTap: () => onSelected(rate),
                 ),
@@ -1523,11 +1524,15 @@ class _LinkRow extends StatelessWidget {
   }
 }
 
-/// `1.25×` (trailing zeros dropped: `1.5×`, `2×`).
-String formatPlaybackRate(double rate) {
+/// `1.25×` in [l]'s language (« 1,25 × »), trailing zeros dropped (`1.5×`,
+/// `2×`).
+String formatPlaybackRate(double rate, AppLocalizations l) {
   final text = rate
       .toStringAsFixed(2)
       .replaceFirst(RegExp(r'0+$'), '')
       .replaceFirst(RegExp(r'\.$'), '');
-  return '$text×';
+  final separator = NumberFormat.decimalPattern(
+    l.localeName,
+  ).symbols.DECIMAL_SEP;
+  return l.vodPlaybackRate(rate: text.replaceFirst('.', separator));
 }

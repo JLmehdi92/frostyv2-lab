@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/vod/stores/up_next_store.dart';
@@ -81,7 +82,10 @@ class _UpNextCard extends StatelessWidget {
     final channel = next.ownerDisplayName.isNotEmpty
         ? next.ownerDisplayName
         : next.ownerLogin;
-    final title = next.title.trim().isEmpty ? 'Untitled' : next.title.trim();
+    final l = context.l10n;
+    final title = next.title.trim().isEmpty
+        ? l.videoUntitled
+        : next.title.trim();
     final thumbnail = vodThumbnailUrl(next);
     return DecoratedBox(
       decoration: const BoxDecoration(
@@ -110,7 +114,7 @@ class _UpNextCard extends StatelessWidget {
                       spacing: 8,
                       children: [
                         Text(
-                          'Up Next'.toUpperCase(),
+                          l.vodUpNext.toUpperCase(),
                           style: const TextStyle(
                             fontFamily: OnsetTokens.bodyFamily,
                             fontSize: 11,
@@ -121,8 +125,7 @@ class _UpNextCard extends StatelessWidget {
                         ),
                         if (counting)
                           Text(
-                            '$secondsLeft '
-                            '${secondsLeft == 1 ? 'second' : 'seconds'}',
+                            l.vodUpNextSeconds(count: secondsLeft),
                             style: OnsetType.tabular(
                               const TextStyle(
                                 fontFamily: OnsetTokens.bodyFamily,
@@ -147,7 +150,7 @@ class _UpNextCard extends StatelessWidget {
                             ),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          child: const Text('Cancel'),
+                          child: Text(l.commonCancel),
                         ),
                       ],
                     ),
@@ -178,7 +181,9 @@ class _UpNextCard extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              similar ? '$channel · Similar video' : channel,
+                              similar
+                                  ? l.vodUpNextSimilar(channel: channel)
+                                  : channel,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -276,7 +281,7 @@ class _PlayNowButton extends StatelessWidget {
     // where the next tick lands).
     final target = counting ? ((secondsLeft - 1) / total).clamp(0.0, 1.0) : 0.0;
     return Tooltip(
-      message: 'Play now',
+      message: context.l10n.vodPlayNow,
       child: PressScale(
         child: Material(
           color: OnsetTokens.raisedDark,

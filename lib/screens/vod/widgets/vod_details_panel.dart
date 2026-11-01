@@ -6,6 +6,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/l10n/enum_labels.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/vod.dart';
+import 'package:onset/screens/channel/video/quality_selection.dart';
 import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
@@ -140,7 +141,7 @@ class _ChannelCard extends StatelessWidget {
           ),
           Semantics(
             button: true,
-            label: 'Open channel',
+            label: context.l10n.vodOpenChannel,
             onTap: openChannel,
             excludeSemantics: true,
             child: PressScale(
@@ -163,7 +164,7 @@ class _ChannelCard extends StatelessWidget {
                       spacing: 6,
                       children: [
                         Text(
-                          'Open channel',
+                          context.l10n.vodOpenChannel,
                           style: TextStyle(
                             fontFamily: OnsetTokens.bodyFamily,
                             fontSize: 13,
@@ -205,8 +206,11 @@ class _Actions extends StatelessWidget {
     ScaffoldMessenger.of(context)
       ..clearSnackBars()
       ..showSnackBar(
-        const SnackBar(
-          content: AlertMessage(message: 'Link copied', centered: false),
+        SnackBar(
+          content: AlertMessage(
+            message: context.l10n.vodLinkCopied,
+            centered: false,
+          ),
         ),
       );
   }
@@ -217,7 +221,7 @@ class _Actions extends StatelessWidget {
       showVodSettingsSheet(
         context,
         controller: player,
-        media: PlayerMedia.vod(vod),
+        media: PlayerMedia.vod(vod, context.l10n),
       ),
     );
   }
@@ -225,6 +229,7 @@ class _Actions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final player = this.player;
+    final l = context.l10n;
     return Observer(
       builder: (context) {
         final rate = player?.playbackRate ?? 1;
@@ -238,12 +243,12 @@ class _Actions extends StatelessWidget {
           children: [
             VideoActionPill(
               glyph: VideoGlyphKind.link,
-              label: 'Copy link at current time',
+              label: l.vodCopyLinkAtTime,
               onTap: () => unawaited(_copyLink(context)),
             ),
             VideoActionPill(
               glyph: VideoGlyphKind.share,
-              label: 'Share',
+              label: l.vodShare,
               onTap: () => unawaited(
                 shareLink(
                   context,
@@ -255,25 +260,28 @@ class _Actions extends StatelessWidget {
             if (player != null) ...[
               VideoActionPill(
                 glyph: VideoGlyphKind.speed,
-                label:
-                    'Speed '
-                    '${rate == 1.0 ? 'Normal' : formatPlaybackRate(rate)}',
+                label: l.vodSpeedPill(
+                  rate: rate == 1.0
+                      ? l.playerSpeedNormal
+                      : formatPlaybackRate(rate, l),
+                ),
                 selected: rate != 1.0,
                 onTap: () => _openSettings(context, player),
               ),
               if (qualities.length > 1 && quality != null)
                 VideoActionPill(
                   glyph: VideoGlyphKind.settings,
-                  label: 'Quality $quality',
+                  label: l.vodQualityPill(quality: qualityLabel(quality, l)),
                   onTap: () => _openSettings(context, player),
                 ),
               if (captions != null)
                 VideoActionPill(
                   glyph: VideoGlyphKind.captions,
-                  label: 'Closed Captions',
+                  label: l.playerCaptions,
                   selected: captionsOn,
-                  semanticsLabel:
-                      'Closed Captions, ${captionsOn ? 'on' : 'off'}',
+                  semanticsLabel: l.vodCaptionsState(
+                    state: OnOff.of(captionsOn).name,
+                  ),
                   onTap: () {
                     HapticFeedback.selectionClick();
                     captions.setEnabled(!captionsOn);
@@ -302,6 +310,7 @@ class _Legend extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     final style = TextStyle(
       fontFamily: OnsetTokens.bodyFamily,
       fontSize: 12,
@@ -327,17 +336,15 @@ class _Legend extends StatelessWidget {
                   borderRadius: BorderRadius.circular(1),
                 ),
               ),
-              Text('Muted parts (copyright)', style: style),
+              Text(l.vodLegendMuted, style: style),
             ],
           ),
-        Text('Double-tap the sides to skip 10 s', style: style),
+        Text(l.vodLegendDoubleTap, style: style),
         if (upNext != null)
           Text(
             upNext == VodAutoplay.never
-                ? 'Up Next at the end'
-                // English, like the rest of the panel, until it is
-                // translated.
-                : 'Up Next at the end · ${upNext.label(L10n.untranslated)}',
+                ? l.vodLegendUpNext
+                : l.vodLegendUpNextWhen(autoplay: upNext.label(l)),
             style: style,
           ),
       ],

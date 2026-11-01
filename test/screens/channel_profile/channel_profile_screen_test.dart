@@ -59,6 +59,7 @@ class FakeReminderPlatform implements ReminderPlatform {
     required String title,
     required String body,
     required String payload,
+    required AppLocalizations l,
   }) async => scheduled.add(id);
 
   @override

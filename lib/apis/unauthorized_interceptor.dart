@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/main.dart';
 import 'package:onset/screens/onboarding/login_webview.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -76,10 +77,13 @@ class UnauthorizedInterceptor extends Interceptor {
 
     // Determine if user is logged in but missing scopes vs completely logged out
     final isLoggedIn = _authStore.isLoggedIn;
-    final title = isLoggedIn ? 'Missing permissions' : 'Session expired';
+    final l = context.l10n;
+    final title = isLoggedIn
+        ? l.authMissingPermissionsTitle
+        : l.authSessionExpiredTitle;
     final message = isLoggedIn
-        ? 'Your session is missing permissions. Please log in again to continue.'
-        : 'Your session has expired. Please log in again to continue.';
+        ? l.authMissingPermissions
+        : l.authSessionExpired;
 
     showDialog(
       context: context,
@@ -94,7 +98,7 @@ class UnauthorizedInterceptor extends Interceptor {
                 _isDialogShowing = false;
                 Navigator.of(dialogContext).pop(); // Close dialog
               },
-              child: const Text('Cancel'),
+              child: Text(l.commonCancel),
             ),
             FilledButton(
               onPressed: () {
@@ -110,7 +114,7 @@ class UnauthorizedInterceptor extends Interceptor {
                   ),
                 );
               },
-              child: Text('Log in'),
+              child: Text(l.authLogIn),
             ),
           ],
         );

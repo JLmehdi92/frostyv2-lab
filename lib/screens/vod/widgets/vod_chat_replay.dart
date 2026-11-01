@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/vod/stores/vod_chat_replay_store.dart';
 import 'package:onset/screens/vod/widgets/video_glyph.dart';
@@ -15,11 +16,6 @@ import 'package:onset/widgets/motion/reduce_motion.dart';
 import 'package:onset/widgets/onset_scrollbar.dart';
 import 'package:onset/widgets/skeleton_loader.dart';
 
-/// Why the replay's emotes may differ from the broadcast's.
-const kReplayEmotesNote =
-    "7TV, BTTV and FFZ emotes are the channel's current sets, which may "
-    'differ from the ones used during the broadcast.';
-
 /// The chat replay pane under (or beside) the VOD player:
 /// "Chat replay" with its "synced to video" pill
 /// and the note about emotes, then the messages as the live chat draws
@@ -30,7 +26,7 @@ class VodChatReplay extends StatefulWidget {
     required this.store,
     this.showHeader = true,
     this.large = false,
-    this.syncLabel = 'synced to video',
+    this.syncLabel,
   });
 
   final VodChatReplayStore store;
@@ -41,8 +37,9 @@ class VodChatReplay extends StatefulWidget {
   /// A tablet's side column: the 56 dp header with its hairline.
   final bool large;
 
-  /// The pill's words ("synced to the clip" under a clip).
-  final String syncLabel;
+  /// The pill's words ("synced to the clip" under a clip); null for
+  /// "synced to video" in the language on screen.
+  final String? syncLabel;
 
   @override
   State<VodChatReplay> createState() => _VodChatReplayState();
@@ -70,7 +67,7 @@ class _VodChatReplayState extends State<VodChatReplay> {
                     status == ReplayStatus.unavailable ||
                         status == ReplayStatus.notApplicable
                     ? null
-                    : widget.syncLabel,
+                    : widget.syncLabel ?? context.l10n.channelChatSynced,
                 noteShown: _noteShown,
                 onNote: () => setState(() => _noteShown = !_noteShown),
               );
@@ -101,16 +98,16 @@ class _VodChatReplayState extends State<VodChatReplay> {
     final settings = store.settings;
     switch (store.status) {
       case ReplayStatus.notApplicable:
-        return const VideoPaneNotice(message: 'Uploads have no chat replay');
+        return VideoPaneNotice(message: context.l10n.vodReplayNotForUploads);
       case ReplayStatus.unavailable:
         return VideoPaneNotice(
-          message: 'Chat replay is unavailable for this video',
+          message: context.l10n.vodReplayUnavailable,
           onRetry: store.retry,
         );
       case ReplayStatus.loading when store.messages.isEmpty:
         return const ReplayLoading();
       case ReplayStatus.active when store.messages.isEmpty:
-        return const VideoPaneNotice(message: 'No messages yet');
+        return VideoPaneNotice(message: context.l10n.vodReplayNoMessages);
       case ReplayStatus.loading || ReplayStatus.active:
         break;
     }
@@ -226,7 +223,7 @@ class _ReplayHeader extends StatelessWidget {
                     ConstrainedBox(
                       constraints: BoxConstraints(maxWidth: titleRoom),
                       child: Text(
-                        'Chat replay',
+                        context.l10n.vodReplayTitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -242,7 +239,7 @@ class _ReplayHeader extends StatelessWidget {
                 ),
               ),
               Tooltip(
-                message: 'About emotes in replays',
+                message: context.l10n.vodReplayEmotesAbout,
                 child: Semantics(
                   selected: noteShown,
                   child: IconButton(
@@ -315,7 +312,7 @@ class _EmotesNote extends StatelessWidget {
               ],
             ),
             child: Text(
-              kReplayEmotesNote,
+              context.l10n.vodReplayEmotesNote,
               style: TextStyle(
                 fontFamily: OnsetTokens.bodyFamily,
                 fontSize: 13,
@@ -367,7 +364,7 @@ class ReplayLoading extends StatelessWidget {
                   borderRadius: radius,
                 ),
                 Text(
-                  'Loading chat replay',
+                  context.l10n.vodReplayLoading,
                   style: TextStyle(
                     fontFamily: OnsetTokens.bodyFamily,
                     fontSize: 12,
@@ -405,12 +402,12 @@ class ResumeScrollPill extends StatelessWidget {
             ),
           ],
         ),
-        child: _pill(colors, dark),
+        child: _pill(context, colors, dark),
       ),
     );
   }
 
-  Widget _pill(FeedColors colors, bool dark) {
+  Widget _pill(BuildContext context, FeedColors colors, bool dark) {
     return Material(
       color: dark ? OnsetTokens.raisedDark : colors.surface,
       shape: StadiumBorder(
@@ -436,7 +433,7 @@ class ResumeScrollPill extends StatelessWidget {
                 strokeWidth: 2,
               ),
               Text(
-                'Resume scroll',
+                context.l10n.chatResumeScroll,
                 style: TextStyle(
                   fontFamily: OnsetTokens.bodyFamily,
                   fontSize: 13,

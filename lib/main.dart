@@ -48,6 +48,7 @@ import 'package:onset/services/go_live/go_live.dart';
 import 'package:onset/services/go_live/go_live_poller.dart';
 import 'package:onset/services/go_live/go_live_worker.dart';
 import 'package:onset/services/launch_info.dart';
+import 'package:onset/services/locale_bridge.dart';
 import 'package:onset/services/notifications/activity_log.dart';
 import 'package:onset/services/notifications/mention_alerts.dart';
 import 'package:onset/services/notifications/schedule_reminders.dart';
@@ -139,6 +140,20 @@ void main() async {
     settingsStore,
     (json) => unawaited(prefs.setString('settings', json)),
   );
+
+  // Android 13+'s per-app language and the app's stay the same, both ways:
+  // one picked in the system meanwhile is adopted now and on each resume,
+  // one picked in the app is told to the system. Kept for the app's
+  // lifetime.
+  final adoptSystemLanguage = await syncSystemLanguage(
+    settingsStore,
+    LocaleBridge.shared,
+  );
+  reaction(
+    (_) => settingsStore.appLanguage,
+    (AppLanguage language) => unawaited(LocaleBridge.shared.push(language)),
+  );
+  AppLifecycleListener(onResume: () => unawaited(adoptSystemLanguage()));
 
   /// Initialize API services with a common Dio client.
   /// This will prevent every request from creating a new client instance.
@@ -270,7 +285,7 @@ void main() async {
   // Mentions in a connected chat while the app is not in front.
   MentionAlerts.shared = MentionAlerts(
     post: (notice) async {
-      await MentionNotifications.show(notice);
+      await MentionNotifications.show(notice, L10n.current);
       await activityStore.addAll([mentionEntry(notice, DateTime.now())]);
     },
     inFront: appInFront,
@@ -289,7 +304,7 @@ void main() async {
         prefs: await GoLivePrefs.load(),
         loggedIn: authStore.isLoggedIn,
         notify: (notices, more) async {
-          await GoLiveNotifications.show(notices, more);
+          await GoLiveNotifications.show(notices, more, L10n.current);
           final now = DateTime.now();
           await activityStore.addAll([
             for (final notice in notices) goLiveEntry(notice, now),
@@ -601,8 +616,16 @@ class _MyAppState extends State<MyApp> {
           // The launch intro covers the app on a cold start while it builds
           // and loads underneath.
           builder: (context, child) => LocaleSync(
-            // The language shown, for what runs without the app's widgets.
-            onLocale: const [saveUiLanguage],
+            // The language shown, for what runs without the app's widgets:
+            // the background check, the reminders the system keeps, the
+            // media notification.
+            onLocale: [
+              saveUiLanguage,
+              (_) => unawaited(ScheduleReminders.shared?.reschedule()),
+              (_) => unawaited(
+                BackgroundAudio.shared.setLabels(mediaLabelsOf(L10n.current)),
+              ),
+            ],
             child: LaunchIntro(
               play: widget.launchInfo.playsIntro,
               fromTile: widget.launchInfo.nativeTile,

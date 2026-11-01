@@ -3,9 +3,27 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:onset/l10n/l10n.dart';
 
 /// What the media notification, the lock screen or headphones ask for.
 enum MediaCommand { play, pause, stop }
+
+/// The media notification's words: its channel's name in the system's
+/// settings and its buttons.
+typedef MediaLabels = ({
+  String channel,
+  String play,
+  String pause,
+  String stop,
+});
+
+/// The media notification's words in [l]'s language.
+MediaLabels mediaLabelsOf(AppLocalizations l) => (
+  channel: l.mediaChannel,
+  play: l.mediaPlay,
+  pause: l.mediaPause,
+  stop: l.mediaStop,
+);
 
 /// The Android media notification that keeps a live stream's sound going
 /// with the app in the background: a `mediaPlayback` foreground service
@@ -40,6 +58,24 @@ class BackgroundAudio {
   Object? _owner;
   void Function(MediaCommand command)? _onCommand;
 
+  MediaLabels? _labels;
+
+  /// The notification's words in the language the app shows now: sent
+  /// with each show, and at once to a notification already up (a
+  /// [LocaleSync] listener).
+  Future<void> setLabels(MediaLabels labels) async {
+    if (!_supported || labels == _labels) return;
+    _labels = labels;
+    if (_owner != null) await _invoke('labels', _labelsMap(labels));
+  }
+
+  static Map<String, String> _labelsMap(MediaLabels labels) => {
+    'channel': labels.channel,
+    'play': labels.play,
+    'pause': labels.pause,
+    'stop': labels.stop,
+  };
+
   /// Shows (or updates) the notification for [owner]'s stream.
   Future<void> show({
     required Object owner,
@@ -70,6 +106,8 @@ class BackgroundAudio {
       'title': shown.title,
       'subtitle': shown.subtitle,
       'playing': shown.playing,
+      // The language on screen unless told since ([setLabels]).
+      'labels': _labelsMap(_labels ?? mediaLabelsOf(L10n.current)),
     });
   }
 

@@ -60,6 +60,10 @@ Vod _vod(String id) => Vod(
   ownerDisplayName: 'JLTomy',
 );
 
+/// The videos' titles (`title: 'Past broadcast $id'`): the streamer's
+/// words, never translated.
+final _vodTitles = [for (var id = 0; id < 200; id++) 'Past broadcast $id'];
+
 void main() {
   late MockTwitchApi api;
   late MockAuthStore auth;
@@ -431,7 +435,11 @@ void main() {
           for (var i = 0; i < 4; i++) {
             await tester.pump(const Duration(milliseconds: 50));
           }
-          await expectFrenchThroughout(tester, 'Following');
+          await expectFrenchThroughout(
+            tester,
+            'Following',
+            content: _vodTitles,
+          );
 
           // The orders.
           tester.state<ScrollableState>(list).position.jumpTo(0);
@@ -440,7 +448,11 @@ void main() {
           await tester.pump(const Duration(milliseconds: 500));
           expect(find.text(french.followedSortRecent), findsOneWidget);
           expect(tester.takeException(), isNull);
-          expect(englishLeaks(tester), isEmpty, reason: 'sort menu');
+          expect(
+            englishLeaks(tester, content: _vodTitles),
+            isEmpty,
+            reason: 'sort menu',
+          );
           await close(tester);
         });
       }
@@ -451,7 +463,7 @@ void main() {
       live = [];
       await pump(tester, locale: fr);
       expect(find.text(french.streamListEmptyFollowed), findsOneWidget);
-      await expectFrenchThroughout(tester, 'nobody live');
+      await expectFrenchThroughout(tester, 'nobody live', content: _vodTitles);
       await close(tester);
 
       live = [
@@ -460,13 +472,17 @@ void main() {
       failure = const _Offline();
       await pump(tester, locale: fr);
       expect(find.text(french.streamListLoadFailed), findsOneWidget);
-      await expectFrenchThroughout(tester, 'failed');
+      await expectFrenchThroughout(tester, 'failed', content: _vodTitles);
       await close(tester);
 
       failure = null;
       settings.showThumbnails = false;
       await pump(tester, locale: fr, size: const Size(360, 640));
-      await expectFrenchThroughout(tester, 'no thumbnails');
+      await expectFrenchThroughout(
+        tester,
+        'no thumbnails',
+        content: _vodTitles,
+      );
 
       final list = find.byType(Scrollable).first;
       tester.state<ScrollableState>(list).position.jumpTo(0);
@@ -474,7 +490,11 @@ void main() {
       await tester.tap(find.text(french.commonSeeAll).first);
       await tester.pumpAndSettle();
       expect(find.text(french.continueWatchingTitle), findsWidgets);
-      await expectFrenchThroughout(tester, 'continue watching page');
+      await expectFrenchThroughout(
+        tester,
+        'continue watching page',
+        content: _vodTitles,
+      );
       await close(tester);
     });
   });

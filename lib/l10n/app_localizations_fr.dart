@@ -6137,4 +6137,223 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get vodCopyLinkAtTime => 'Copier le lien à ce moment';
+
+  @override
+  String get vodKindArchive => 'Ancienne diffusion';
+
+  @override
+  String get vodKindHighlight => 'Temps fort';
+
+  @override
+  String get vodKindUpload => 'Mise en ligne';
+
+  @override
+  String vodPlaybackRate({required String rate}) {
+    return '$rate ×';
+  }
+
+  @override
+  String get vodLinkCopied => 'Lien copié';
+
+  @override
+  String get vodShare => 'Partager';
+
+  @override
+  String get vodOpenChannel => 'Ouvrir la chaîne';
+
+  @override
+  String vodSpeedPill({required String rate}) {
+    return 'Vitesse $rate';
+  }
+
+  @override
+  String vodQualityPill({required String quality}) {
+    return 'Qualité $quality';
+  }
+
+  @override
+  String vodCaptionsState({required String state}) {
+    String _temp0 = intl.Intl.selectLogic(state, {
+      'on': 'Sous-titres, activés',
+      'other': 'Sous-titres, désactivés',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get vodLegendMuted => 'Passages sans son (droits d’auteur)';
+
+  @override
+  String get vodLegendDoubleTap =>
+      'Appuyez deux fois sur un côté pour reculer ou avancer de 10 s';
+
+  @override
+  String get vodLegendUpNext => 'Vidéo suivante à la fin';
+
+  @override
+  String vodLegendUpNextWhen({required String autoplay}) {
+    return 'Vidéo suivante à la fin · $autoplay';
+  }
+
+  @override
+  String get vodSeek => 'Position de lecture';
+
+  @override
+  String vodSeekValue({required String position, required String duration}) {
+    return '$position sur $duration';
+  }
+
+  @override
+  String get vodUpNext => 'À suivre';
+
+  @override
+  String vodUpNextSeconds({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count secondes',
+      one: '$count seconde',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String vodUpNextSimilar({required String channel}) {
+    return '$channel · Vidéo similaire';
+  }
+
+  @override
+  String get vodPlayNow => 'Lire maintenant';
+
+  @override
+  String get vodReplayTitle => 'Rediffusion du chat';
+
+  @override
+  String get vodReplayEmotesNote =>
+      'Les emotes 7TV, BTTV et FFZ sont celles que la chaîne utilise aujourd’hui : elles peuvent différer de celles de la diffusion.';
+
+  @override
+  String get vodReplayEmotesAbout =>
+      'À propos des emotes dans les rediffusions';
+
+  @override
+  String get vodReplayNotForUploads =>
+      'Les mises en ligne n’ont pas de rediffusion du chat';
+
+  @override
+  String get vodReplayUnavailable =>
+      'La rediffusion du chat n’est pas disponible pour cette vidéo';
+
+  @override
+  String get vodReplayNoMessages => 'Aucun message à ce moment de la vidéo';
+
+  @override
+  String get vodReplayLoading => 'Chargement de la rediffusion du chat…';
+
+  @override
+  String get whisperOtherAccount =>
+      'Cette conversation appartient à un autre compte.';
+
+  @override
+  String whisperTooLong({required int max}) {
+    return 'Les chuchotements sont limités à $max caractères.';
+  }
+
+  @override
+  String get whisperLogInAgain =>
+      'Reconnectez-vous pour chuchoter depuis cette application.';
+
+  @override
+  String get whisperFailedUnexpected =>
+      'Impossible de chuchoter (erreur inattendue).';
+
+  @override
+  String notifGoLiveTitle({required String name}) {
+    return '$name est en direct';
+  }
+
+  @override
+  String notifStreamBody({required String title, required String category}) {
+    return '$category · $title';
+  }
+
+  @override
+  String notifGoLiveMore({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count autres chaînes ont lancé un live',
+      one: '$count autre chaîne a lancé un live',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get notifGoLivePaused => 'Notifications de live en pause';
+
+  @override
+  String notifMentionTitle({required String sender, required String channel}) {
+    return 'Mention de $sender dans le chat de la chaîne $channel';
+  }
+
+  @override
+  String notifReminderTitle({required String name}) {
+    return 'Le live de la chaîne $name commence';
+  }
+
+  @override
+  String get notifReminderUntitled => 'Live prévu';
+
+  @override
+  String get notifChannelGoLive => 'Lives des chaînes suivies';
+
+  @override
+  String get notifChannelGoLiveDescription =>
+      'Quand une chaîne que vous suivez lance un live';
+
+  @override
+  String get notifChannelMentions => 'Mentions dans le chat';
+
+  @override
+  String get notifChannelMentionsDescription =>
+      'Quand quelqu’un vous mentionne dans un chat ouvert';
+
+  @override
+  String get notifChannelReminders => 'Rappels de lives';
+
+  @override
+  String get notifChannelRemindersDescription =>
+      'Quand un live programmé que vous avez demandé à vous rappeler commence';
+
+  @override
+  String get mediaChannel => 'Lecture en cours';
+
+  @override
+  String get mediaPlay => 'Lire';
+
+  @override
+  String get mediaPause => 'Mettre en pause';
+
+  @override
+  String get mediaStop => 'Arrêter';
+
+  @override
+  String get authMissingPermissionsTitle => 'Autorisations manquantes';
+
+  @override
+  String get authMissingPermissions =>
+      'Votre session ne dispose pas de toutes les autorisations nécessaires. Reconnectez-vous pour continuer.';
+
+  @override
+  String get authSessionExpiredTitle => 'Session expirée';
+
+  @override
+  String get authSessionExpired =>
+      'Votre session a expiré. Reconnectez-vous pour continuer.';
+
+  @override
+  String get authLogIn => 'Se connecter';
 }

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/irc.dart';
 import 'package:onset/services/notifications/activity_log.dart';
 import 'package:onset/services/notifications/notice_ids.dart';
@@ -17,11 +18,15 @@ typedef ChatMention = ({
   String text,
 });
 
-/// The notice posted for a [ChatMention].
+/// The notice posted for a [ChatMention]: its [title] and [body] worded,
+/// and who wrote where ([sender], [channelName]) for Activity to word it
+/// again in the language on screen.
 typedef MentionNotice = ({
   String messageId,
   String channelId,
   String channelLogin,
+  String sender,
+  String channelName,
   String title,
   String body,
 });
@@ -169,6 +174,7 @@ ActivityEntry mentionEntry(MentionNotice notice, DateTime at) => ActivityEntry(
   body: notice.body,
   login: notice.channelLogin,
   at: at,
+  params: {'sender': notice.sender, 'channel': notice.channelName},
 );
 
 /// The notification id of a channel's mention notice: one per channel, a
@@ -188,7 +194,9 @@ class MentionAlerts {
     required this.inFront,
     this.throttle = kMentionThrottle,
     DateTime Function()? now,
-  }) : _now = now ?? DateTime.now;
+    AppLocalizations Function()? words,
+  }) : _now = now ?? DateTime.now,
+       _words = words ?? (() => L10n.current);
 
   /// Off until the app sets it up (and in tests).
   static MentionAlerts shared = MentionAlerts(
@@ -205,6 +213,9 @@ class MentionAlerts {
   final Duration throttle;
   final DateTime Function() _now;
 
+  /// The language the notice is worded in (the one on screen).
+  final AppLocalizations Function() _words;
+
   final _lastByChannel = <String, DateTime>{};
 
   /// True when a notice was posted for [mention].
@@ -215,13 +226,15 @@ class MentionAlerts {
     if (last != null && now.difference(last) < throttle) return false;
     _lastByChannel[mention.channelId] = now;
     final from = _oneLine(mention.fromName, max: 25);
+    final channel = _oneLine(mention.channelName, max: 25);
     try {
       await post((
         messageId: mention.messageId,
         channelId: mention.channelId,
         channelLogin: mention.channelLogin,
-        title:
-            '$from mentioned you in ${_oneLine(mention.channelName, max: 25)}',
+        sender: from,
+        channelName: channel,
+        title: _words().notifMentionTitle(sender: from, channel: channel),
         body: _oneLine(mention.text),
       ));
       return true;
@@ -246,18 +259,20 @@ bool appInFront() =>
 abstract final class MentionNotifications {
   static final _plugin = FlutterLocalNotificationsPlugin();
 
-  static const _details = NotificationDetails(
-    android: AndroidNotificationDetails(
-      'chat_mentions',
-      'Chat Mentions',
-      channelDescription:
-          'When someone mentions you in a chat you are watching while ONSET '
-          'is in the background',
-      groupKey: 'onset.mentions',
-      category: AndroidNotificationCategory.message,
-    ),
-    iOS: DarwinNotificationDetails(threadIdentifier: 'chat_mentions'),
-  );
+  /// How they show, in [l]'s language: Android names the channel in the
+  /// system's settings each time one is posted, so it follows the language.
+  @visibleForTesting
+  static NotificationDetails detailsFor(AppLocalizations l) =>
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'chat_mentions',
+          l.notifChannelMentions,
+          channelDescription: l.notifChannelMentionsDescription,
+          groupKey: 'onset.mentions',
+          category: AndroidNotificationCategory.message,
+        ),
+        iOS: const DarwinNotificationDetails(threadIdentifier: 'chat_mentions'),
+      );
 
   /// Whether notices can show (Android 13+ asks; the user may block them).
   static Future<bool> allowed() async {
@@ -270,13 +285,16 @@ abstract final class MentionNotifications {
         true;
   }
 
-  static Future<void> show(MentionNotice notice) => _plugin.show(
-    id: mentionNoticeId(notice.channelId),
-    title: notice.title,
-    body: notice.body,
-    notificationDetails: _details,
-    // Not a bare login (not a go-live notice): tapping brings the chat
-    // back, opening its channel only when it is not open (mentionTapFor).
-    payload: 'mention:${notice.channelLogin}',
-  );
+  /// Posts [notice] (worded already), its channel named in [l]'s language
+  /// (the one on screen by default).
+  static Future<void> show(MentionNotice notice, [AppLocalizations? l]) =>
+      _plugin.show(
+        id: mentionNoticeId(notice.channelId),
+        title: notice.title,
+        body: notice.body,
+        notificationDetails: detailsFor(l ?? L10n.current),
+        // Not a bare login (not a go-live notice): tapping brings the chat
+        // back, opening its channel only when it is not open (mentionTapFor).
+        payload: 'mention:${notice.channelLogin}',
+      );
 }
