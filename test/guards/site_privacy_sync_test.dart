@@ -602,6 +602,11 @@ const notAppLabels = {
     "Clear the app's data",
     'uninstall',
     'Turn off',
+    'Hosting:',
+    'Visit statistics:',
+    'Language choice:',
+    'Legal basis:',
+    'Nothing else:',
   },
   'PRIVACY.fr.md': {
     'Date d’entrée en vigueur :',
@@ -637,6 +642,11 @@ const notAppLabels = {
     'Twitch et les autres services :',
     'Effacer les données de l’application',
     'désinstaller',
+    'Hébergement :',
+    'Statistiques de visite :',
+    'Choix de la langue :',
+    'Base légale :',
+    'Rien d’autre :',
   },
 };
 

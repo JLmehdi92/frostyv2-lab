@@ -1,23 +1,24 @@
 # Politique de confidentialité d’ONSET
 
-**Date d’entrée en vigueur :** 31 octobre 2026
+**Date d’entrée en vigueur :** 1er novembre 2026
 
 ONSET est un client Twitch gratuit et open source (AGPL-3.0-or-later) pour
 Android (paquet `app.onset`). C’est un projet indépendant, qui n’est ni
 affilié à Twitch Interactive, Inc., ni approuvé ni sponsorisé par elle.
 
-Cette politique décrit ce que l’application ONSET fait des données. Elle
-s’appuie sur le code source de l’application, consultable par tous à
-l’adresse `https://github.com/JLmehdi92/onset`.
+Cette politique décrit ce que l’application ONSET et son site web font des
+données. Elle s’appuie sur leur code source, consultable par tous à l’adresse
+`https://github.com/JLmehdi92/onset`.
 
 Cette politique est aussi disponible [en anglais](PRIVACY.md).
 
 ## En bref
 
 - ONSET n’a **aucun système de compte à lui**. Il communique directement avec
-  Twitch et avec plusieurs services tiers listés ci-dessous. Son seul serveur
-  est un petit service de jetons qui donne aux spectateurs non connectés un
-  jeton Twitch anonyme ; il ne conserve rien à votre sujet (section 4).
+  Twitch et avec plusieurs services tiers listés ci-dessous. Le seul serveur
+  de l’application est un petit service de jetons qui donne aux spectateurs
+  non connectés un jeton Twitch anonyme ; il ne conserve rien à votre sujet
+  (section 4).
 - ONSET n’affiche **aucune publicité de son fait**, et le développeur **ne
   vend ni ne loue aucune donnée**.
 - Vos identifiants de connexion Twitch et votre historique restent **sur votre
@@ -25,21 +26,22 @@ Cette politique est aussi disponible [en anglais](PRIVACY.md).
 - Les versions publiées sur GitHub incluent Google Firebase, mais n’envoient
   **aucun rapport de plantage, aucune statistique ni donnée de performance**
   tant que vous n’activez pas **Partager les rapports de plantage et
-  statistiques** (« Share crash logs and analytics » en anglais), désactivé
-  par défaut (section 5).
+  statistiques** (« Share crash logs and analytics » en anglais), désactivé par défaut (section 5).
+- La politique couvre aussi le site onsetapp.app, qui mesure sa fréquentation
+  avec Cloudflare Web Analytics (section 12).
 
 ## 1. Responsable du traitement
 
 ONSET est développé par Mehdi Seddiki, un particulier établi en France
 (contact : `contact@onsetapp.app`). Le développeur est responsable de
-l’application, de son service de jetons (section 4) et des rapports de
-plantage et statistiques recueillis via Google Firebase (section 5). Tant que
-vous n’activez pas **Partager les rapports de plantage et statistiques**, les
-versions publiées n’envoient aucun rapport de plantage, aucune statistique ni
-donnée de performance (les bibliothèques Firebase démarrent quand même et
-peuvent contacter les serveurs de Google, mais sans aucune de ces données ;
-voir la section 5). Le service de jetons ne voit votre adresse IP que
-brièvement (section 4).
+l’application, de son service de jetons (section 4), des rapports de plantage
+et statistiques recueillis via Google Firebase (section 5) et du site web
+(section 12). Tant que vous n’activez pas **Partager les rapports de plantage
+et statistiques**, les versions publiées n’envoient aucun rapport de plantage,
+aucune statistique ni donnée de performance (les bibliothèques Firebase
+démarrent quand même et peuvent contacter les serveurs de Google, mais sans
+aucune de ces données ; voir la section 5). Le service de jetons ne voit votre
+adresse IP que brièvement (section 4).
 
 Twitch, les services d’emotes et les autres services listés en section 4
 décident eux-mêmes de l’usage des données qu’ils reçoivent. Leurs propres
@@ -318,13 +320,70 @@ directement à eux.
 - FrankerFaceZ : https://www.frankerfacez.com/privacy
 - recent-messages (robotty) : https://recent-messages.robotty.de/ (la page du service décrit ce qu’il conserve)
 - GIPHY : https://giphy.com/privacy
-- Cloudflare (service de jetons) : https://www.cloudflare.com/privacypolicy/
+- Cloudflare (service de jetons, hébergement du site et Web Analytics) : https://www.cloudflare.com/privacypolicy/
 - GitHub : https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement
 - Amazon Web Services (lecteur IVS) : https://aws.amazon.com/privacy/
 - Google (Google Play, Firebase) : https://policies.google.com/privacy
 - Google Firebase (rapports de plantage et statistiques) : https://firebase.google.com/support/privacy
 
-## 12. Modifications
+## 12. Le site web
+
+Cette politique couvre aussi le site onsetapp.app, géré par le développeur.
+
+- **Hébergement :** le site est hébergé sur Cloudflare Pages. Pour servir les
+  pages et protéger le site contre les abus, Cloudflare traite des données
+  techniques sur chaque requête, comme votre adresse IP et l’agent utilisateur
+  (user agent) de votre navigateur, selon sa propre politique de
+  confidentialité (https://www.cloudflare.com/privacypolicy/). Le site
+  lui-même ne dépose aucun cookie, mais Cloudflare peut déposer un cookie de
+  sécurité strictement nécessaire (comme `__cf_bm` ou `cf_clearance`) s’il
+  doit vérifier qu’une requête ne vient pas d’un robot.
+- **Statistiques de visite :** le site utilise Cloudflare Web Analytics. Sur
+  chaque page, un petit script de Cloudflare (static.cloudflareinsights.com)
+  transmet à Cloudflare des informations sur la visite, comme l’adresse de la
+  page (sans ses paramètres ni son ancre), celle de la page d’où vous venez
+  (s’il y en a une), des mesures de performance (temps de chargement et
+  signaux Web essentiels, ou Core Web Vitals, dont le sélecteur CSS et
+  l’adresse de l’image du plus grand élément de la page), la taille transférée
+  et le protocole réseau, une estimation grossière de la mémoire, les versions
+  de votre navigateur et de votre système d’exploitation, ainsi qu’un
+  identifiant aléatoire propre à ce chargement de page. Cloudflare reçoit
+  aussi votre adresse IP avec la requête et en déduit votre pays. Le
+  développeur ne voit que des chiffres agrégés, comme les pages vues, les
+  visites, les pages les plus consultées, les sites référents, les pays, les
+  navigateurs, les systèmes d’exploitation, les types d’appareils et les temps
+  de chargement. Selon Cloudflare, Web Analytics n’utilise ni cookie ni
+  stockage local pour recueillir ces statistiques, n’a pas recours à
+  l’empreinte numérique (fingerprinting) pour les établir et ne suit pas les
+  visiteurs d’un site à l’autre parmi ceux qui utilisent Cloudflare. Toujours
+  selon Cloudflare, les données détaillées sont conservées 7 jours, puis seul
+  un échantillon d’environ 10 % en est gardé ; le développeur peut consulter
+  les chiffres des six derniers mois.
+- **Choix de la langue :** quand vous choisissez l’anglais ou le français dans
+  le sélecteur de langue, le site enregistre ce choix dans le stockage local
+  de votre navigateur (localStorage), sous la clé `onset.lang`. Il sert
+  uniquement à déterminer la version de la page d’accueil qui s’ouvrira la
+  prochaine fois, et il ne quitte jamais votre navigateur. Quand vous ouvrez
+  la page d’accueil anglaise sans avoir choisi l’anglais, le site vous
+  redirige vers la page d’accueil française si vous avez choisi le français,
+  ou si la langue préférée de votre navigateur est le français et que vous
+  n’arrivez pas d’une autre page du site.
+- **Base légale :** l’intérêt légitime du développeur à servir et à protéger
+  le site, et à mesurer sa fréquentation au moyen de statistiques agrégées
+  (article 6, paragraphe 1, point f) du RGPD). Vous pouvez vous y opposer à
+  tout moment (section 10) ; la plupart des bloqueurs de contenu bloquent déjà
+  le script de statistiques. Cloudflare traite ces données pour le compte du
+  développeur (pour celles qu’il utilise afin de protéger son propre réseau,
+  il agit selon sa propre politique de confidentialité) et peut les traiter
+  hors de l’Union européenne, notamment aux États-Unis ; selon Cloudflare, ces
+  transferts reposent sur le cadre de protection des données UE-États-Unis
+  (Data Privacy Framework) ou, à défaut, sur des clauses contractuelles types.
+- **Rien d’autre :** le site n’affiche aucune publicité et ne fait appel à
+  aucun autre service tiers. Le lien de téléchargement, le lien vers GitHub et
+  celui de la liste d’attente iPhone mènent tous à GitHub, qui applique sa
+  propre déclaration de confidentialité.
+
+## 13. Modifications
 
 Si ONSET se met à traiter les données différemment, cette politique sera mise
 à jour et sa date d’entrée en vigueur modifiée. L’historique de cette
@@ -337,7 +396,8 @@ politique est public dans le dépôt GitHub d’ONSET.
   vous voulez partager les rapports de plantage et les statistiques.
 - 31 octobre 2026 : formulation clarifiée ; aucun changement dans le
   traitement des données.
+- 1er novembre 2026 : ajout d’une section sur le site web.
 
-## 13. Contact
+## 14. Contact
 
 `contact@onsetapp.app`

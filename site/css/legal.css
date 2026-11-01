@@ -110,6 +110,8 @@ html.js .toc-fab.is-on{opacity:1;visibility:visible;transform:none}
   .policy > .toc-m,.toc-fab{display:none}
   .legal-page .foot{padding-bottom:40px}
   .doc{max-width:none}
+  /* the legal notice has no contents list: one centred column */
+  .legal-grid.is-solo{grid-template-columns:minmax(0,760px)}
 }
 @media (max-width:767px){
   .legal-page{--bar-h:64px}

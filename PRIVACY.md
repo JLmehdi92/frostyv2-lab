@@ -1,39 +1,41 @@
 # ONSET privacy policy
 
-**Effective date:** 31 October 2026
+**Effective date:** 1 November 2026
 
 ONSET is a free, open-source (AGPL-3.0-or-later) Twitch client for Android
 (package `app.onset`). It is an independent project, not affiliated with,
 endorsed by, or sponsored by Twitch Interactive, Inc.
 
-This policy describes what the ONSET app does with data. It is based on the
-app's source code, which anyone can read at
+This policy describes what the ONSET app and its website do with data. It is
+based on their source code, which anyone can read at
 `https://github.com/JLmehdi92/onset`.
 
 ## In short
 
 - ONSET has **no account system of its own**. It talks directly to Twitch and
-  to several third-party services listed below. Its only server is a small
-  token service that gives logged-out viewers an anonymous Twitch token; it
-  stores nothing about you (section 4).
+  to several third-party services listed below. The app's only server is a
+  small token service that gives logged-out viewers an anonymous Twitch token;
+  it stores nothing about you (section 4).
 - ONSET shows **no ads of its own**, and the developer **does not sell or
   rent any data**.
 - Your Twitch credentials and your history stay **on your device**; none of it
   is sent anywhere except to Twitch.
 - The builds published on GitHub include Google Firebase, but send **no crash
-  reports, analytics, or performance data** unless you turn on **Share crash
-  logs and analytics**, which is off by default (section 5).
+  reports, analytics, or performance data** unless you turn on **Share crash logs and analytics**, which is off by default (section 5).
+- The policy also covers the website onsetapp.app, which measures its audience
+  with Cloudflare Web Analytics (section 12).
 
 ## 1. Who is responsible
 
 ONSET is developed by Mehdi Seddiki, a private individual based in France
 (contact: `contact@onsetapp.app`). The developer is responsible for the app,
-for its token service (section 4) and for the crash reports and analytics
-collected through Google Firebase (section 5). Unless you turn on **Share
-crash logs and analytics**, the published builds send no crash reports,
-analytics, or performance data (the Firebase libraries are still started and
-may contact Google's servers, but without any of that data; see section 5).
-The token service sees your IP address only briefly (section 4).
+for its token service (section 4), for the crash reports and analytics
+collected through Google Firebase (section 5), and for the website (section
+12). Unless you turn on **Share crash logs and analytics**, the published
+builds send no crash reports, analytics, or performance data (the Firebase
+libraries are still started and may contact Google's servers, but without any
+of that data; see section 5). The token service sees your IP address only
+briefly (section 4).
 
 Twitch, the emote services, and the other services listed in section 4 decide
 for themselves what they do with the data they receive. Their own privacy
@@ -273,13 +275,62 @@ For data held by Twitch or the other services, contact them directly.
 - FrankerFaceZ: https://www.frankerfacez.com/privacy
 - recent-messages (robotty): https://recent-messages.robotty.de/ (the service's page describes what it stores)
 - GIPHY: https://giphy.com/privacy
-- Cloudflare (token service): https://www.cloudflare.com/privacypolicy/
+- Cloudflare (token service, website hosting, and Web Analytics):
+  https://www.cloudflare.com/privacypolicy/
 - GitHub: https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement
 - Amazon Web Services (IVS player): https://aws.amazon.com/privacy/
 - Google (Google Play, Firebase): https://policies.google.com/privacy
 - Google Firebase (crash reports and analytics): https://firebase.google.com/support/privacy
 
-## 12. Changes
+## 12. The website
+
+This policy also covers the website onsetapp.app, which the developer runs.
+
+- **Hosting:** the site is hosted on Cloudflare Pages. To serve the pages and
+  protect the site against abuse, Cloudflare processes technical data about
+  each request, such as your IP address and your browser's user agent, under
+  its own privacy policy (https://www.cloudflare.com/privacypolicy/). The site
+  itself sets no cookies, but Cloudflare may set a strictly necessary security
+  cookie (such as `__cf_bm` or `cf_clearance`) if it needs to check that a
+  request does not come from a bot.
+- **Visit statistics:** the site uses Cloudflare Web Analytics. On each page,
+  a small script from Cloudflare (static.cloudflareinsights.com) sends
+  Cloudflare information about the visit, such as the page's address (without
+  its query string or fragment), the address of the page you came from (if
+  any), performance measurements (load timings and Core Web Vitals, including
+  the CSS selector and image address of the page's largest element), the
+  transfer size and network protocol, a rough memory figure, your browser and
+  operating system versions, and a random identifier for that page load.
+  Cloudflare also receives your IP address with the request and derives your
+  country from it. The developer sees only aggregated figures, such as page
+  views, visits, top pages, referring sites, countries, browsers, operating
+  systems, device types, and load times. According to Cloudflare, Web
+  Analytics uses no cookies or local storage to collect these statistics, does
+  not fingerprint visitors for them, and does not track visitors across the
+  sites that use Cloudflare. Also according to Cloudflare, the detailed data
+  is kept for 7 days, after which only a sample of about 10% is kept; the
+  developer can view the figures for the past six months.
+- **Language choice:** when you pick English or French in the language switch,
+  the site stores that choice in your browser's local storage, under the key
+  `onset.lang`. It only decides which version of the home page opens next
+  time, and it never leaves your browser. When you open the English home page
+  without having chosen English, the site redirects you to the French home
+  page if you chose French, or if your browser's preferred language is French
+  and you did not arrive from another page of the site.
+- **Legal basis:** the developer's legitimate interest in serving and
+  protecting the site and in measuring its audience with aggregated statistics
+  (GDPR Article 6(1)(f)). You can object at any time (section 10); most
+  content blockers already block the statistics script. Cloudflare processes
+  this data on the developer's behalf (for data it uses to protect its own
+  network, it acts under its own privacy policy) and may process it outside
+  the European Union, including in the United States; according to Cloudflare,
+  these transfers rely on the EU-U.S. Data Privacy Framework or, failing that,
+  on standard contractual clauses.
+- **Nothing else:** the site shows no ads and uses no other third-party
+  service. The download link, the GitHub link, and the iPhone waitlist link
+  all lead to GitHub, where GitHub's own privacy statement applies.
+
+## 13. Changes
 
 If ONSET starts handling data differently, this policy will be updated and its
 effective date changed. The history of this policy is public in the ONSET
@@ -290,7 +341,8 @@ GitHub repository.
   where the setting was on by default, had it turned off by this update:
   turn it on again if you want to share crash logs and analytics.
 - 31 October 2026: wording clarified; no change to how data is handled.
+- 1 November 2026: a section about the website was added.
 
-## 13. Contact
+## 14. Contact
 
 `contact@onsetapp.app`

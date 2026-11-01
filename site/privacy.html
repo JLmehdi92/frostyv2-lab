@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Privacy policy — ONSET</title>
-<meta name="description" content="What the ONSET Android app keeps on your device, what it sends to Twitch and other services, and the crash reports and analytics that stay off by default.">
+<meta name="description" content="What the ONSET app and its website do with data: what stays on your device, what goes to Twitch and other services, and the site&#x27;s visit statistics.">
 <link rel="canonical" href="https://onsetapp.app/privacy">
 <link rel="alternate" hreflang="en" href="https://onsetapp.app/privacy">
 <link rel="alternate" hreflang="fr" href="https://onsetapp.app/fr/privacy">
@@ -15,7 +15,7 @@
 <meta property="og:site_name" content="ONSET">
 <meta property="og:url" content="https://onsetapp.app/privacy">
 <meta property="og:title" content="Privacy policy — ONSET">
-<meta property="og:description" content="What the ONSET Android app does with data, from what stays on your device to the crash reports and analytics that stay off unless you turn them on.">
+<meta property="og:description" content="What the ONSET Android app and the onsetapp.app website do with data, from what stays on your device to the site&#x27;s visit statistics.">
 <meta property="og:image" content="https://onsetapp.app/assets/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -24,7 +24,7 @@
 <meta property="og:locale:alternate" content="fr_FR">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Privacy policy — ONSET">
-<meta name="twitter:description" content="What the ONSET Android app does with data, from what stays on your device to the crash reports and analytics that stay off unless you turn them on.">
+<meta name="twitter:description" content="What the ONSET Android app and the onsetapp.app website do with data, from what stays on your device to the site&#x27;s visit statistics.">
 <meta name="twitter:image" content="https://onsetapp.app/assets/og.png">
 <meta name="twitter:image:alt" content="ONSET app icon and the headline: Twitch, live. Not almost live.">
 <link rel="icon" href="/favicon.ico" sizes="32x32 48x48">
@@ -83,8 +83,9 @@
 <li><a href="#children">9. Children</a></li>
 <li><a href="#your-rights">10. Your rights</a></li>
 <li><a href="#third-party-privacy-policies">11. Third-party privacy policies</a></li>
-<li><a href="#changes">12. Changes</a></li>
-<li><a href="#contact">13. Contact</a></li>
+<li><a href="#the-website">12. The website</a></li>
+<li><a href="#changes">13. Changes</a></li>
+<li><a href="#contact">14. Contact</a></li>
           </ol>
         </nav>
       </aside>
@@ -96,12 +97,12 @@
 
         <article class="policy" id="policy" tabindex="-1" aria-labelledby="policy-title">
 <h1 id="policy-title">ONSET privacy policy</h1>
-<p><strong>Effective date:</strong> 31 October 2026</p>
+<p><strong>Effective date:</strong> 1 November 2026</p>
 <p>ONSET is a free, open-source (AGPL-3.0-or-later) Twitch client for Android
 (package <code>app.onset</code>). It is an independent project, not affiliated with,
 endorsed by, or sponsored by Twitch Interactive, Inc.</p>
-<p>This policy describes what the ONSET app does with data. It is based on the
-app's source code, which anyone can read at
+<p>This policy describes what the ONSET app and its website do with data. It is
+based on their source code, which anyone can read at
 <a href="https://github.com/JLmehdi92/onset">https://github.com/JLmehdi92/onset</a>.</p>
 <details class="toc toc-m" id="contents">
 <summary>Contents<span class="toc-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></span></summary>
@@ -119,34 +120,37 @@ app's source code, which anyone can read at
 <li><a href="#children">9. Children</a></li>
 <li><a href="#your-rights">10. Your rights</a></li>
 <li><a href="#third-party-privacy-policies">11. Third-party privacy policies</a></li>
-<li><a href="#changes">12. Changes</a></li>
-<li><a href="#contact">13. Contact</a></li>
+<li><a href="#the-website">12. The website</a></li>
+<li><a href="#changes">13. Changes</a></li>
+<li><a href="#contact">14. Contact</a></li>
 </ol>
 </nav>
 </details>
 <h2 id="in-short">In short</h2>
 <ul>
 <li>ONSET has <strong>no account system of its own</strong>. It talks directly to Twitch and
-to several third-party services listed below. Its only server is a small
-token service that gives logged-out viewers an anonymous Twitch token; it
-stores nothing about you (section 4).</li>
+to several third-party services listed below. The app's only server is a
+small token service that gives logged-out viewers an anonymous Twitch token;
+it stores nothing about you (section 4).</li>
 <li>ONSET shows <strong>no ads of its own</strong>, and the developer <strong>does not sell or
 rent any data</strong>.</li>
 <li>Your Twitch credentials and your history stay <strong>on your device</strong>; none of it
 is sent anywhere except to Twitch.</li>
 <li>The builds published on GitHub include Google Firebase, but send <strong>no crash
-reports, analytics, or performance data</strong> unless you turn on <strong>Share crash
-logs and analytics</strong>, which is off by default (section 5).</li>
+reports, analytics, or performance data</strong> unless you turn on <strong>Share crash logs and analytics</strong>, which is off by default (section 5).</li>
+<li>The policy also covers the website onsetapp.app, which measures its audience
+with Cloudflare Web Analytics (section 12).</li>
 </ul>
 <h2 id="who-is-responsible">1. Who is responsible</h2>
 <p>ONSET is developed by Mehdi Seddiki, a private individual based in France
 (contact: <a href="mailto:contact@onsetapp.app">contact@onsetapp.app</a>). The developer is responsible for the app,
-for its token service (section 4) and for the crash reports and analytics
-collected through Google Firebase (section 5). Unless you turn on <strong>Share
-crash logs and analytics</strong>, the published builds send no crash reports,
-analytics, or performance data (the Firebase libraries are still started and
-may contact Google's servers, but without any of that data; see section 5).
-The token service sees your IP address only briefly (section 4).</p>
+for its token service (section 4), for the crash reports and analytics
+collected through Google Firebase (section 5), and for the website (section
+12). Unless you turn on <strong>Share crash logs and analytics</strong>, the published
+builds send no crash reports, analytics, or performance data (the Firebase
+libraries are still started and may contact Google's servers, but without any
+of that data; see section 5). The token service sees your IP address only
+briefly (section 4).</p>
 <p>Twitch, the emote services, and the other services listed in section 4 decide
 for themselves what they do with the data they receive. Their own privacy
 policies apply to it.</p>
@@ -378,13 +382,61 @@ protection authority, the CNIL (<a href="https://www.cnil.fr">https://www.cnil.f
 <li>FrankerFaceZ: <a href="https://www.frankerfacez.com/privacy">https://www.frankerfacez.com/privacy</a></li>
 <li>recent-messages (robotty): <a href="https://recent-messages.robotty.de/">https://recent-messages.robotty.de/</a> (the service's page describes what it stores)</li>
 <li>GIPHY: <a href="https://giphy.com/privacy">https://giphy.com/privacy</a></li>
-<li>Cloudflare (token service): <a href="https://www.cloudflare.com/privacypolicy/">https://www.cloudflare.com/privacypolicy/</a></li>
+<li>Cloudflare (token service, website hosting, and Web Analytics):
+<a href="https://www.cloudflare.com/privacypolicy/">https://www.cloudflare.com/privacypolicy/</a></li>
 <li>GitHub: <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement</a></li>
 <li>Amazon Web Services (IVS player): <a href="https://aws.amazon.com/privacy/">https://aws.amazon.com/privacy/</a></li>
 <li>Google (Google Play, Firebase): <a href="https://policies.google.com/privacy">https://policies.google.com/privacy</a></li>
 <li>Google Firebase (crash reports and analytics): <a href="https://firebase.google.com/support/privacy">https://firebase.google.com/support/privacy</a></li>
 </ul>
-<h2 id="changes">12. Changes</h2>
+<h2 id="the-website">12. The website</h2>
+<p>This policy also covers the website onsetapp.app, which the developer runs.</p>
+<ul>
+<li><strong>Hosting:</strong> the site is hosted on Cloudflare Pages. To serve the pages and
+protect the site against abuse, Cloudflare processes technical data about
+each request, such as your IP address and your browser's user agent, under
+its own privacy policy (<a href="https://www.cloudflare.com/privacypolicy/">https://www.cloudflare.com/privacypolicy/</a>). The site
+itself sets no cookies, but Cloudflare may set a strictly necessary security
+cookie (such as <code>__cf_bm</code> or <code>cf_clearance</code>) if it needs to check that a
+request does not come from a bot.</li>
+<li><strong>Visit statistics:</strong> the site uses Cloudflare Web Analytics. On each page,
+a small script from Cloudflare (static.cloudflareinsights.com) sends
+Cloudflare information about the visit, such as the page's address (without
+its query string or fragment), the address of the page you came from (if
+any), performance measurements (load timings and Core Web Vitals, including
+the CSS selector and image address of the page's largest element), the
+transfer size and network protocol, a rough memory figure, your browser and
+operating system versions, and a random identifier for that page load.
+Cloudflare also receives your IP address with the request and derives your
+country from it. The developer sees only aggregated figures, such as page
+views, visits, top pages, referring sites, countries, browsers, operating
+systems, device types, and load times. According to Cloudflare, Web
+Analytics uses no cookies or local storage to collect these statistics, does
+not fingerprint visitors for them, and does not track visitors across the
+sites that use Cloudflare. Also according to Cloudflare, the detailed data
+is kept for 7 days, after which only a sample of about 10% is kept; the
+developer can view the figures for the past six months.</li>
+<li><strong>Language choice:</strong> when you pick English or French in the language switch,
+the site stores that choice in your browser's local storage, under the key
+<code>onset.lang</code>. It only decides which version of the home page opens next
+time, and it never leaves your browser. When you open the English home page
+without having chosen English, the site redirects you to the French home
+page if you chose French, or if your browser's preferred language is French
+and you did not arrive from another page of the site.</li>
+<li><strong>Legal basis:</strong> the developer's legitimate interest in serving and
+protecting the site and in measuring its audience with aggregated statistics
+(GDPR Article 6(1)(f)). You can object at any time (section 10); most
+content blockers already block the statistics script. Cloudflare processes
+this data on the developer's behalf (for data it uses to protect its own
+network, it acts under its own privacy policy) and may process it outside
+the European Union, including in the United States; according to Cloudflare,
+these transfers rely on the EU-U.S. Data Privacy Framework or, failing that,
+on standard contractual clauses.</li>
+<li><strong>Nothing else:</strong> the site shows no ads and uses no other third-party
+service. The download link, the GitHub link, and the iPhone waitlist link
+all lead to GitHub, where GitHub's own privacy statement applies.</li>
+</ul>
+<h2 id="changes">13. Changes</h2>
 <p>If ONSET starts handling data differently, this policy will be updated and its
 effective date changed. The history of this policy is public in the ONSET
 GitHub repository.</p>
@@ -394,8 +446,9 @@ analytics, off unless you turn them on. Installs that ran an older build,
 where the setting was on by default, had it turned off by this update:
 turn it on again if you want to share crash logs and analytics.</li>
 <li>31 October 2026: wording clarified; no change to how data is handled.</li>
+<li>1 November 2026: a section about the website was added.</li>
 </ul>
-<h2 id="contact">13. Contact</h2>
+<h2 id="contact">14. Contact</h2>
 <p><a href="mailto:contact@onsetapp.app">contact@onsetapp.app</a></p>
         </article>
 
@@ -416,6 +469,7 @@ turn it on again if you want to share crash logs and analytics.</li>
         <nav class="foot-links" aria-label="Footer">
           <a href="https://github.com/JLmehdi92/ONSET" target="_blank" rel="noopener noreferrer">GitHub</a>
           <a href="/privacy" aria-current="page">Privacy policy</a>
+          <a href="/legal">Legal notice</a>
           <a href="https://github.com/JLmehdi92/ONSET/issues/1" target="_blank" rel="noopener noreferrer">iPhone waitlist</a>
           <a href="mailto:contact@onsetapp.app">contact@onsetapp.app</a>
         </nav>
