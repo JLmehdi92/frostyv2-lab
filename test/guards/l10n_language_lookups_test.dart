@@ -2,16 +2,9 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-/// `L10n.untranslated` (English on purpose) where a screen is not in French
-/// yet: each use by file. A ratchet like l10n_baseline.dart: counts must
-/// match exactly, only go down, and the map is empty once every screen is
-/// translated. `L10n.english` (the fallback) is for lib/l10n/ only, so a
-/// screen cannot keep English under another name.
-const _untranslated = <String, int>{};
-
 /// Where the app looks a language's texts up by itself outside lib/l10n/
-/// ([_directLookup]): English got that way would pass both tests above.
-/// Each use by file, with why it may.
+/// ([_directLookup]): English got that way would pass the test on
+/// `L10n.english`. Each use by file, with why it may.
 const _directLookups = <String, (int, String)>{
   'lib/screens/onboarding/onboarding_flow.dart': (
     1,
@@ -47,6 +40,14 @@ Map<String, int> usesIn(String root, RegExp pattern) {
   return counts;
 }
 
+/// Screens read the language shown (`context.l10n`, `L10n.current`),
+/// never one picked by name: `L10n.english` (the fallback) is for
+/// lib/l10n/ only, and a language looked up by itself is allowed only
+/// where listed below, so no screen can keep English under another name.
+///
+/// (The `L10n.untranslated` getter, English on purpose for screens not
+/// translated yet, is gone with its ratchet now that every screen is: a
+/// use would no longer compile.)
 void main() {
   test('L10n.english is only used inside lib/l10n/', () {
     final uses = usesIn('lib', _english)
@@ -55,20 +56,8 @@ void main() {
       uses,
       isEmpty,
       reason:
-          'use context.l10n (or L10n.current); English on purpose in a '
-          'screen not translated yet is L10n.untranslated',
-    );
-  });
-
-  test('L10n.untranslated: exactly the uses listed, by file', () {
-    final uses = usesIn('lib', RegExp(r'\bL10n\.untranslated\b'))
-      ..removeWhere((path, _) => path.startsWith('lib/l10n/'));
-    expect(
-      uses,
-      _untranslated,
-      reason:
-          'a file under its count: lower it here (the screen was '
-          'translated); over it, or not listed: translate the text instead',
+          'use context.l10n (or L10n.current): a screen shows the '
+          'language picked, never English by name',
     );
   });
 
@@ -104,17 +93,6 @@ void main() {
       'final j = AppLocalizationsEnglish;\n',
     );
     expect(usesIn(dir.path, _directLookup).values, [8]);
-  });
-
-  test('the counter sees a use', () {
-    final dir = Directory.systemTemp.createTempSync('untranslated');
-    addTearDown(() => dir.deleteSync(recursive: true));
-    File('${dir.path}/a.dart').writeAsStringSync(
-      'final a = x.label(L10n.untranslated);\n'
-      '// L10n.untranslated in a comment counts too\n'
-      'final b = L10n.untranslatedness;\n',
-    );
-    expect(usesIn(dir.path, RegExp(r'\bL10n\.untranslated\b')).values, [2]);
   });
 
   test('the English counter sees a use split by the formatter', () {

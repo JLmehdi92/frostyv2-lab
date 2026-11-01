@@ -31,7 +31,7 @@ dart run build_runner build --delete-conflicting-outputs             # Same, but
 - `tool/` — Developer scripts that are not part of the app (e.g., `onset_logo_assets.py`, the README media generators `readme_logo.py` and `readme_shots/`), and `token_proxy/`, the Cloudflare Worker that mints logged-out app tokens for a second Twitch application, plus the owner's EventSub cleanup script (`node --test` there)
 - `site/` — The landing page (onsetapp.app), static HTML/CSS/JS served by Cloudflare Pages; no build step
 - `.github/assets/` — README media (animated logo, screenshots)
-- `docs/` — `ARCHITECTURE.md` and the in-app update setup (`MISES_A_JOUR.md`)
+- `docs/` — `ARCHITECTURE.md`, the localization guide (`L10N.md`) and the in-app update setup (`MISES_A_JOUR.md`)
 
 ## Architecture (non-obvious bits)
 
@@ -46,6 +46,13 @@ dart run build_runner build --delete-conflicting-outputs             # Same, but
 - Use package imports (`import 'package:onset/...'`), not relative imports
 - Always include trailing commas
 - Use single quotes
+
+## Localization
+
+- Every user-facing string (text, tooltip, screen-reader label, notification, snackbar) goes through the ARB files in `lib/l10n/` — never a literal in a widget. Read it with `context.l10n` (or `L10n.current` outside widgets)
+- English (`app_en.arb`, with a description) and French (`app_fr.arb`, same key order) in the same commit, then `flutter gen-l10n`
+- The French style guide, glossary, typography rules and the guards are in `docs/L10N.md` — follow it
+- Run `flutter test test/l10n test/guards` and the screen's French tests after any text change
 
 ## Testing
 

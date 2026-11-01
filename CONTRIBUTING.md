@@ -50,7 +50,8 @@ The token proxy has its own tests: `node --test` in `tool/token_proxy/`
   bitmaps) and `token_proxy/`, the Cloudflare Worker that hands logged-out
   viewers an app token, with an optional EventSub cleanup script.
 - `docs/`: [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) (layers, player engines
-  and their fallback, stores, chat) and the in-app update setup
+  and their fallback, stores, chat), [`L10N.md`](docs/L10N.md) (adding a
+  string, the French style guide) and the in-app update setup
   ([`MISES_A_JOUR.md`](docs/MISES_A_JOUR.md), in French).
 
 ## Architecture notes
@@ -82,6 +83,8 @@ The token proxy has its own tests: `node --test` in `tool/token_proxy/`
 
 ## Code style
 
+- User-facing text goes in the ARB files (`lib/l10n/`), in English and French
+  in the same change; see [`docs/L10N.md`](docs/L10N.md).
 - Package imports (`import 'package:onset/...'`), never relative imports.
 - Single quotes.
 - Trailing commas everywhere, so `dart format` keeps one argument per line.

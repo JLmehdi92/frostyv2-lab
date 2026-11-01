@@ -32,13 +32,6 @@ abstract final class L10n {
     const Locale('en'),
   );
 
-  /// English on purpose, in a screen not translated yet (a label shown next
-  /// to its English text). Each use is listed in
-  /// test/guards/l10n_untranslated_test.dart, a ratchet that only goes down
-  /// and is empty once every screen is in French: translating a screen
-  /// means replacing its uses with `context.l10n` (or [current]).
-  static AppLocalizations get untranslated => english;
-
   static final _current = Observable<AppLocalizations>(
     english,
     name: 'L10n.current',
