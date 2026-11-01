@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -16,6 +17,14 @@ import 'package:flutter_test/flutter_test.dart';
 /// section headings. The article may only use the few tags, attributes and
 /// classes the page needs, so nothing in it can be hidden from the reader
 /// while still counting as policy text.
+///
+/// The policies also name the app's settings and buttons, in bold, so a reader
+/// can find them. Every bold run that is not declared as plain emphasis must be
+/// a real label (each part of a "Settings › Other" path on its own): a value in
+/// `lib/l10n/app_fr.arb` for the French policy; a value in
+/// `lib/l10n/app_en.arb`, or a string literal in `lib/`, for the English one.
+/// The English labels the French policy gives after its own
+/// (« Share crash logs and analytics » en anglais) are held to the English rule.
 void main() {
   group('the guard', () {
     const markdown = '''
@@ -265,6 +274,49 @@ https://example.org. Write to `me@example.com`; an address such as
       );
     });
 
+    test('finds a setting label the app does not have', () {
+      bool known(String label) => const {
+        'Settings',
+        'Other',
+        'Privacy',
+        'Share crash logs and analytics',
+      }.contains(label);
+      const policy =
+          '**Effective date:** today. Turn on **Share crash logs and '
+          'analytics** in **Settings › Other › Privacy**.';
+      expect(
+        labelProblems(policy, 'p.md', {'Effective date:'}, known),
+        isEmpty,
+      );
+      expect(
+        labelProblems(
+          policy.replaceFirst('Privacy', 'Privacy & data'),
+          'p.md',
+          {'Effective date:'},
+          known,
+        ),
+        [contains('"Privacy & data"')],
+      );
+      // A label hidden inside a declared emphasis run is not excused: the
+      // declaration must match the whole run, and a stale one is reported.
+      expect(
+        labelProblems(policy, 'p.md', {'Effective date:', 'Gone.'}, known),
+        [contains('"Gone."')],
+      );
+      expect(
+        englishCitations(
+          '**Partager** (« Share crash logs and analytics » en anglais), '
+          '(« Show BTTV emotes » et « Show BTTV badges » en anglais), '
+          '« jeton web »',
+        ),
+        [
+          'Share crash logs and analytics',
+          'Show BTTV emotes',
+          'Show BTTV badges',
+        ],
+      );
+    });
+
     test('refuses a page without the policy article', () {
       expect(
         () => htmlPolicyText('<main><p>Nothing</p></main>', 'page.html'),
@@ -316,6 +368,192 @@ https://example.org. Write to `me@example.com`; an address such as
       }
     });
   }
+
+  test('the policies name only settings the app has', () {
+    final fr = arbValues('lib/l10n/app_fr.arb');
+    final en = arbValues('lib/l10n/app_en.arb');
+    final libSource = Directory('lib')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((f) => f.path.endsWith('.dart'))
+        .map((f) => f.readAsStringSync())
+        .join('\n');
+    bool englishKnown(String label) =>
+        en.contains(label) ||
+        libSource.contains("'$label'") ||
+        libSource.contains('"$label"');
+
+    final enPolicy = File('PRIVACY.md').readAsStringSync();
+    final frPolicy = File('PRIVACY.fr.md').readAsStringSync();
+    // The check must be looking at labels, not at an empty match.
+    expect(fr.length, greaterThan(100));
+    expect(en.length, greaterThan(100));
+    for (final (name, text) in [
+      ('PRIVACY.md', enPolicy),
+      ('PRIVACY.fr.md', frPolicy),
+    ]) {
+      final labels = boldRuns(
+        text,
+      ).where((r) => !notAppLabels[name]!.contains(r)).toList();
+      expect(labels.length, greaterThan(20), reason: name);
+    }
+    final citations = englishCitations(frPolicy);
+    expect(citations.length, greaterThan(10));
+
+    final problems = [
+      ...labelProblems(
+        frPolicy,
+        'PRIVACY.fr.md',
+        notAppLabels['PRIVACY.fr.md']!,
+        fr.contains,
+      ),
+      ...labelProblems(
+        enPolicy,
+        'PRIVACY.md',
+        notAppLabels['PRIVACY.md']!,
+        englishKnown,
+      ),
+      for (final c in citations)
+        if (!c.split(' › ').every(englishKnown))
+          'PRIVACY.fr.md: English label "$c" is not in app_en.arb or lib/',
+    ];
+    if (problems.isNotEmpty) {
+      fail(
+        'A policy names a setting or button the app does not show. Copy the '
+        "label exactly from the app's strings, or, if the bold text is not a "
+        'label, declare it in notAppLabels.\n${problems.join('\n')}',
+      );
+    }
+  });
+}
+
+/// Bold runs that are not labels of the app: emphasis, lead-ins, the services
+/// in the network table, and labels of other software (Android's own
+/// settings, Twitch's website). Each entry must still occur in its policy.
+const notAppLabels = {
+  'PRIVACY.md': {
+    'Effective date:',
+    'no account system of its own',
+    'no ads of its own',
+    'does not sell or rent any data',
+    'on your device',
+    'no crash reports, analytics, or performance data',
+    'ONSET token service',
+    'Twitch',
+    'Amazon IVS player',
+    'Twitch web player',
+    '7TV',
+    'BetterTTV',
+    'FrankerFaceZ',
+    'recent-messages.robotty.de',
+    'GIPHY',
+    'GitHub',
+    'Google Firebase',
+    'Google Play',
+    'Off by default.',
+    'While it is off, no crash reports, analytics, or performance data are '
+        'sent.',
+    'While it is on, the app sends',
+    ':',
+    'Crash reports (Crashlytics):',
+    'Analytics (Google Analytics for Firebase):',
+    'Performance (Performance Monitoring):',
+    'What is not included.',
+    'Legal basis.',
+    'Google as processor.',
+    'On your device:',
+    'Firebase',
+    'Twitch and other services:',
+    "Clear the app's data",
+    'uninstall',
+    'Turn off',
+  },
+  'PRIVACY.fr.md': {
+    'Date d’entrée en vigueur :',
+    'aucun système de compte à lui',
+    'aucune publicité de son fait',
+    'ne vend ni ne loue aucune donnée',
+    'sur votre appareil',
+    'aucun rapport de plantage, aucune statistique ni donnée de performance',
+    'Service de jetons d’ONSET',
+    'Twitch',
+    'Lecteur Amazon IVS',
+    'Lecteur web de Twitch',
+    '7TV',
+    'BetterTTV',
+    'FrankerFaceZ',
+    'recent-messages.robotty.de',
+    'GIPHY',
+    'GitHub',
+    'Google Firebase',
+    'Google Play',
+    'Désactivé par défaut.',
+    'Réglage désactivé, aucun rapport de plantage, aucune statistique ni '
+        'donnée de performance n’est envoyé.',
+    'Réglage activé, l’application envoie',
+    'Rapports de plantage (Crashlytics) :',
+    'Statistiques (Google Analytics for Firebase) :',
+    'Performances (Performance Monitoring) :',
+    'Ce qui n’en fait pas partie.',
+    'Base légale.',
+    'Google, sous-traitant.',
+    'Sur votre appareil :',
+    'Firebase',
+    'Twitch et les autres services :',
+    'Effacer les données de l’application',
+    'désinstaller',
+    'Désactiver',
+  },
+};
+
+/// Whitespace collapsed, French no-break spaces included.
+String _flat(String s) =>
+    s.replaceAll(RegExp(r'[\s\u00a0\u202f]+'), ' ').trim();
+
+/// The text of every `**bold**` run, in order.
+List<String> boldRuns(String markdown) => RegExp(
+  r'\*\*([\s\S]+?)\*\*',
+).allMatches(markdown).map((m) => _flat(m.group(1)!)).toList();
+
+/// The English labels a French policy gives after its own, written
+/// « A » en anglais or « A » et « B » en anglais.
+List<String> englishCitations(String markdown) {
+  final flat = _flat(markdown);
+  return [
+    for (final m in RegExp(
+      r'((?:«[^»]+»(?: et |, ))*«[^»]+») en anglais',
+    ).allMatches(flat))
+      for (final q in RegExp(r'«\s*([^»]+?)\s*»').allMatches(m.group(1)!))
+        q.group(1)!,
+  ];
+}
+
+/// Every bold run not declared in [notLabels] whose parts are not all
+/// [known], and every declaration that no longer matches a bold run.
+List<String> labelProblems(
+  String markdown,
+  String name,
+  Set<String> notLabels,
+  bool Function(String label) known,
+) {
+  final runs = boldRuns(markdown);
+  return [
+    for (final run in runs)
+      if (!notLabels.contains(run))
+        for (final part in run.split(' › '))
+          if (!known(part)) '$name: label "$part" (in **$run**) is unknown',
+    for (final d in notLabels)
+      if (!runs.contains(d)) '$name: declared emphasis "$d" is not in the text',
+  ];
+}
+
+/// The string values of an ARB file, whitespace collapsed.
+Set<String> arbValues(String path) {
+  final map = jsonDecode(File(path).readAsStringSync()) as Map<String, dynamic>;
+  return {
+    for (final e in map.entries)
+      if (!e.key.startsWith('@') && e.value is String) _flat(e.value as String),
+  };
 }
 
 /// Code spans the pages show as links, with their targets. Any other code

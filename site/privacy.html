@@ -56,6 +56,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"></path></svg>
           <span class="gh-t">GitHub</span>
         </a>
+        <nav class="lng" aria-label="Language"><a href="/privacy" hreflang="en" lang="en" aria-label="EN — English" aria-current="page" data-lang="en">EN</a><span class="lng-sep" aria-hidden="true">·</span><a href="/fr/privacy" hreflang="fr" lang="fr" aria-label="FR — Français" data-lang="fr">FR</a></nav>
         <button class="tgl" type="button" aria-label="Light theme" aria-pressed="false">
           <svg class="ti ti-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2.5v2"></path><path d="M12 19.5v2"></path><path d="m5.3 5.3 1.4 1.4"></path><path d="m17.3 17.3 1.4 1.4"></path><path d="M2.5 12h2"></path><path d="M19.5 12h2"></path><path d="m5.3 18.7 1.4-1.4"></path><path d="m17.3 6.7 1.4-1.4"></path></svg>
           <svg class="ti ti-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"></path></svg>
@@ -91,15 +92,14 @@
       <div class="doc">
         <div class="doc-meta">
           <p class="eyebrow">Legal</p>
-          <nav class="lang" aria-label="Language"><a href="/privacy" hreflang="en" lang="en" aria-current="page" data-lang="en">English</a><span class="lang-sep" aria-hidden="true">·</span><a href="/fr/privacy" hreflang="fr" lang="fr" data-lang="fr">Français</a></nav>
         </div>
 
         <article class="policy" id="policy" tabindex="-1" aria-labelledby="policy-title">
-<h1 id="policy-title">ONSET Privacy Policy</h1>
+<h1 id="policy-title">ONSET privacy policy</h1>
 <p><strong>Effective date:</strong> 31 October 2026</p>
 <p>ONSET is a free, open-source (AGPL-3.0-or-later) Twitch client for Android
 (package <code>app.onset</code>). It is an independent project, not affiliated with,
-endorsed by or sponsored by Twitch Interactive, Inc.</p>
+endorsed by, or sponsored by Twitch Interactive, Inc.</p>
 <p>This policy describes what the ONSET app does with data. It is based on the
 app's source code, which anyone can read at
 <a href="https://github.com/JLmehdi92/onset">https://github.com/JLmehdi92/onset</a>.</p>
@@ -127,15 +127,15 @@ app's source code, which anyone can read at
 <h2 id="in-short">In short</h2>
 <ul>
 <li>ONSET has <strong>no account system of its own</strong>. It talks directly to Twitch and
-to a few third-party services listed below. Its only server is a small token
-service that gives logged-out viewers an anonymous Twitch token; it stores
-nothing about you (section 4).</li>
+to several third-party services listed below. Its only server is a small
+token service that gives logged-out viewers an anonymous Twitch token; it
+stores nothing about you (section 4).</li>
 <li>ONSET shows <strong>no ads of its own</strong>, and the developer <strong>does not sell or
 rent any data</strong>.</li>
-<li>Your Twitch credentials and your history stay <strong>on your device</strong> and go
-only to Twitch.</li>
-<li>The builds published on GitHub include Google Firebase, but send <strong>no
-crash reports, analytics or performance data unless you turn on Share crash
+<li>Your Twitch credentials and your history stay <strong>on your device</strong>; none of it
+is sent anywhere except to Twitch.</li>
+<li>The builds published on GitHub include Google Firebase, but send <strong>no crash
+reports, analytics, or performance data</strong> unless you turn on <strong>Share crash
 logs and analytics</strong>, which is off by default (section 5).</li>
 </ul>
 <h2 id="who-is-responsible">1. Who is responsible</h2>
@@ -144,10 +144,10 @@ logs and analytics</strong>, which is off by default (section 5).</li>
 for its token service (section 4) and for the crash reports and analytics
 collected through Google Firebase (section 5). Unless you turn on <strong>Share
 crash logs and analytics</strong>, the published builds send no crash reports,
-analytics or performance data (the Firebase libraries are still started and
+analytics, or performance data (the Firebase libraries are still started and
 may contact Google's servers, but without any of that data; see section 5).
 The token service sees your IP address only briefly (section 4).</p>
-<p>Twitch, the emote services and the other services listed in section 4 decide
+<p>Twitch, the emote services, and the other services listed in section 4 decide
 for themselves what they do with the data they receive. Their own privacy
 policies apply to it.</p>
 <h2 id="logging-in">2. Logging in</h2>
@@ -155,9 +155,9 @@ policies apply to it.</p>
 <p>When you log in, ONSET opens Twitch's own login and authorization page
 (id.twitch.tv) inside the app. You type your password into Twitch's page, not
 into ONSET; ONSET never sees it. Twitch then gives ONSET an access token for
-the permissions shown on that page (read and send chat, followed channels,
-blocked users, chat color, moderation actions if you are a moderator,
-whispers, your emotes, creating clips).</p>
+the permissions shown on that page (reading and sending chat, your followed
+channels, blocked users, chat color, moderation actions if you are a
+moderator, whispers, your emotes, and creating clips).</p>
 <p>Because the login page signs you in to twitch.tv, it also leaves a twitch.tv
 session cookie (<code>auth-token</code>) in the app's web view. On Android, ONSET reads
 that cookie and keeps it as a "web token" (you can also paste or clear it in
@@ -178,13 +178,13 @@ never has to be inside the app.</p>
 <tr role="row"><th scope="col" role="columnheader">What</th><th scope="col" role="columnheader">Where</th><th scope="col" role="columnheader">Details</th></tr>
 </thead>
 <tbody role="rowgroup">
-<tr role="row"><th scope="row" role="rowheader">Your Twitch access token, the twitch.tv web token, your Twitch user ID (the stored login), the anonymous app token</th><td role="cell" data-label="Where">Encrypted app storage (<code>flutter_secure_storage</code>, key kept in the Android Keystore)</td><td role="cell" data-label="Details">Deleted when you log out, except the anonymous app token.</td></tr>
-<tr role="row"><th scope="row" role="rowheader">twitch.tv cookies, web cache and site storage</th><td role="cell" data-label="Where">The app's web view</td><td role="cell" data-label="Details">The cookies are cleared when you log out; the web cache and site storage stay until you clear the app's data or uninstall it.</td></tr>
-<tr role="row"><th scope="row" role="rowheader">Your settings</th><td role="cell" data-label="Where">App preferences</td><td role="cell" data-label="Details">Theme, chat, video and notification options, including the switches below.</td></tr>
-<tr role="row"><th scope="row" role="rowheader">Search history (up to 8 searches), recently used emotes (up to 48), last chosen video quality</th><td role="cell" data-label="Where">App preferences</td><td role="cell" data-label="Details"></td></tr>
-<tr role="row"><th scope="row" role="rowheader">Where you stopped in past broadcasts (up to 300) and in live broadcasts (up to 300, IDs and times only)</th><td role="cell" data-label="Where">App preferences</td><td role="cell" data-label="Details">Kept apart for each account, under its Twitch user ID, used for "Continue watching" and resuming. Kept after you log out.</td></tr>
+<tr role="row"><th scope="row" role="rowheader">Your Twitch access token, the twitch.tv web token, your Twitch user ID (the stored login), and the anonymous app token</th><td role="cell" data-label="Where">Encrypted app storage (<code>flutter_secure_storage</code>, key kept in the Android Keystore)</td><td role="cell" data-label="Details">Deleted when you log out, except the anonymous app token.</td></tr>
+<tr role="row"><th scope="row" role="rowheader">twitch.tv cookies, web cache, and site storage</th><td role="cell" data-label="Where">The app's web view</td><td role="cell" data-label="Details">The cookies are cleared when you log out; the web cache and site storage stay until you clear the app's data or uninstall it.</td></tr>
+<tr role="row"><th scope="row" role="rowheader">Your settings</th><td role="cell" data-label="Where">App preferences</td><td role="cell" data-label="Details">Theme, chat, video, and notification options, including the switches below.</td></tr>
+<tr role="row"><th scope="row" role="rowheader">Search history (up to 8 searches), recently used emotes (up to 48), and last chosen video quality</th><td role="cell" data-label="Where">App preferences</td><td role="cell" data-label="Details"></td></tr>
+<tr role="row"><th scope="row" role="rowheader">Where you stopped in past broadcasts (up to 300) and in live broadcasts (up to 300, IDs and times only)</th><td role="cell" data-label="Where">App preferences</td><td role="cell" data-label="Details">Stored separately for each account under its Twitch user ID, and used for "Continue watching" and resuming. Kept after you log out.</td></tr>
 <tr role="row"><th scope="row" role="rowheader">Notification history (Activity screen, up to 100 entries)</th><td role="cell" data-label="Where">App preferences</td><td role="cell" data-label="Details">Go-live notices, schedule reminders, and chat mentions, including the text of the mention.</td></tr>
-<tr role="row"><th scope="row" role="rowheader">Go-live notification state, schedule reminders, chat rules you accepted, update checks</th><td role="cell" data-label="Where">App preferences</td><td role="cell" data-label="Details">Your Twitch user ID (for the go-live check and the chat rules you accepted), channels you muted, channels already announced, reminder times. Kept after you log out.</td></tr>
+<tr role="row"><th scope="row" role="rowheader">Go-live notification state, schedule reminders, chat rules you accepted, and update checks</th><td role="cell" data-label="Where">App preferences</td><td role="cell" data-label="Details">Your Twitch user ID (for the go-live check and the chat rules you accepted), channels you muted, channels already announced, and reminder times. Kept after you log out.</td></tr>
 <tr role="row"><th scope="row" role="rowheader">Images (emotes, badges, avatars, thumbnails)</th><td role="cell" data-label="Where">Cache</td><td role="cell" data-label="Details">Removed after 30 days without use. Clear it in <strong>Settings › Other › Clear image cache</strong>.</td></tr>
 <tr role="row"><th scope="row" role="rowheader">Downloaded app updates</th><td role="cell" data-label="Where">Cache</td><td role="cell" data-label="Details">Deleted once that version is installed.</td></tr>
 <tr role="row"><th scope="row" role="rowheader">Crash reports waiting to be sent, and the random identifiers the Firebase libraries use</th><td role="cell" data-label="Where">App storage (Firebase libraries)</td><td role="cell" data-label="Details">Reports wait here until they are sent while <strong>Share crash logs and analytics</strong> is on; with the setting off, unsent reports are deleted at startup and when you turn it off (section 5).</td></tr>
@@ -205,86 +205,85 @@ user agent).</p>
 </thead>
 <tbody role="rowgroup">
 <tr role="row"><th scope="row" role="rowheader"><strong>ONSET token service</strong> (a Cloudflare Worker run by the developer, on workers.dev)</th><td role="cell" data-label="When">When you are not logged in and the app has no anonymous token that Twitch still accepts: at the first launch, and later when the stored token has expired or been revoked</td><td role="cell" data-label="What is sent">A request with no account information. The service answers with the same shared anonymous Twitch token for every viewer. It uses your IP address only to limit how often a single address can ask (a short-lived counter); it does not log or store it, and stores nothing about you. Cloudflare, which hosts it, processes the connection under its own privacy policy.</td></tr>
-<tr role="row"><th scope="row" role="rowheader"><strong>Twitch</strong> (api.twitch.tv, id.twitch.tv, gql.twitch.tv, irc-ws.chat.twitch.tv, eventsub.wss.twitch.tv, hermes.twitch.tv, usher.ttvnw.net, static-cdn.jtvnw.net, twitch.tv, player.twitch.tv and Twitch's video servers)</th><td role="cell" data-label="When">Whenever you use the app</td><td role="cell" data-label="What is sent">Your access token or web token when logged in; when you open a channel's chat while logged in (with a twitch.tv web token), a request for that chat's recent messages, sent with your web token; the channels, videos, categories and searches you open; the chat messages, whispers and moderation actions you send; follows, blocks, clips, channel-point and prediction actions you take; when logged in, your position in past broadcasts (saved to your Twitch account). While go-live notifications are on, the app checks your followed channels about every 15 minutes in the background. When you log out, ONSET asks Twitch to revoke your access token.</td></tr>
+<tr role="row"><th scope="row" role="rowheader"><strong>Twitch</strong> (api.twitch.tv, id.twitch.tv, gql.twitch.tv, irc-ws.chat.twitch.tv, eventsub.wss.twitch.tv, hermes.twitch.tv, usher.ttvnw.net, static-cdn.jtvnw.net, twitch.tv, player.twitch.tv, and Twitch's video servers)</th><td role="cell" data-label="When">Whenever you use the app</td><td role="cell" data-label="What is sent">Your access token or web token when logged in; when you open a channel's chat while logged in, a request for that chat's recent messages, sent with your twitch.tv web token; the channels, videos, categories, and searches you open; the chat messages, whispers, and moderation actions you send; follows, blocks, clips, and channel-point and prediction actions you take; when logged in, your position in past broadcasts (saved to your Twitch account). While go-live notifications are on, the app checks your followed channels about every 15 minutes in the background. When you log out, ONSET asks Twitch to revoke your access token.</td></tr>
 <tr role="row"><th scope="row" role="rowheader"><strong>Amazon IVS player</strong> (built into the app)</th><td role="cell" data-label="When">When a stream or video plays in the native player</td><td role="cell" data-label="What is sent">The video comes from Twitch's servers. The IVS player library may also send playback quality statistics to Amazon's IVS service (player.stats.live-video.net). ONSET does not configure or receive this data.</td></tr>
-<tr role="row"><th scope="row" role="rowheader"><strong>Twitch web player</strong> (in a web view)</th><td role="cell" data-label="When">When you choose the web player in <strong>Settings › Video</strong>, or when the native player fails</td><td role="cell" data-label="What is sent">Twitch's own player page runs as it would on twitch.tv, under Twitch's privacy notice, and may show Twitch's ads.</td></tr>
-<tr role="row"><th scope="row" role="rowheader"><strong>7TV</strong> (7tv.io, events.7tv.io and its image servers)</th><td role="cell" data-label="When">When you open a channel, unless <strong>Show 7TV emotes</strong> is off</td><td role="cell" data-label="What is sent">The channel's Twitch ID; a live connection for that channel's emote changes.</td></tr>
+<tr role="row"><th scope="row" role="rowheader"><strong>Twitch web player</strong> (in a web view)</th><td role="cell" data-label="When">When you choose the web player in <strong>Settings › Video</strong>, or when the native player fails</td><td role="cell" data-label="What is sent">Twitch's own player page runs as it would on twitch.tv, under Twitch's Privacy Notice, and may show Twitch's ads.</td></tr>
+<tr role="row"><th scope="row" role="rowheader"><strong>7TV</strong> (7tv.io, events.7tv.io, and its image servers)</th><td role="cell" data-label="When">When you open a channel, unless <strong>Show 7TV emotes</strong> is off</td><td role="cell" data-label="What is sent">The channel's Twitch ID; a live connection for that channel's emote changes.</td></tr>
 <tr role="row"><th scope="row" role="rowheader"><strong>BetterTTV</strong> (api.betterttv.net, cdn.betterttv.net)</th><td role="cell" data-label="When">When you open a channel, unless <strong>Show BTTV emotes</strong> and <strong>Show BTTV badges</strong> are off</td><td role="cell" data-label="What is sent">The channel's Twitch ID; requests for global emote and badge lists.</td></tr>
 <tr role="row"><th scope="row" role="rowheader"><strong>FrankerFaceZ</strong> (api.frankerfacez.com and its image servers)</th><td role="cell" data-label="When">When you open a channel, unless <strong>Show FFZ emotes</strong> and <strong>Show FFZ badges</strong> are off</td><td role="cell" data-label="What is sent">The channel's Twitch ID; requests for global emote and badge lists.</td></tr>
-<tr role="row"><th scope="row" role="rowheader"><strong>recent-messages.robotty.de</strong></th><td role="cell" data-label="When">Only if you turn on <strong>Fallback chat history (third-party)</strong> (off by default), and only when Twitch's own recent chat is unavailable, fails or is empty (for example when you are not logged in)</td><td role="cell" data-label="What is sent">The login name of the channel whose chat you open.</td></tr>
+<tr role="row"><th scope="row" role="rowheader"><strong>recent-messages.robotty.de</strong></th><td role="cell" data-label="When">Only if you turn on <strong>Fallback chat history (third-party)</strong> (off by default), and only when Twitch's own recent chat is unavailable, fails, or is empty (for example when you are not logged in)</td><td role="cell" data-label="What is sent">The login name of the channel whose chat you open.</td></tr>
 <tr role="row"><th scope="row" role="rowheader"><strong>GIPHY</strong> (giphy.com and its subdomains)</th><td role="cell" data-label="When">When a chat message contains a GIF from Twitch's GIF keyboard, unless <strong>Show GIFs in Chat</strong> is off</td><td role="cell" data-label="What is sent">A request for that GIF image. Only GIPHY and Twitch image addresses are loaded.</td></tr>
-<tr role="row"><th scope="row" role="rowheader"><strong>GitHub</strong> (api.github.com, github.com, objects.githubusercontent.com, release-assets.githubusercontent.com)</th><td role="cell" data-label="When">In builds that include the updater (the APKs published in the ONSET GitHub releases do; a build made without it never contacts GitHub): at launch and when the app returns to the foreground (at most every 6 hours once up to date), and when you tap <strong>Update</strong> or <strong>Check for updates</strong></td><td role="cell" data-label="What is sent">A request for the latest release of the ONSET repository; the download of the new APK when you tap Update. No account information.</td></tr>
-<tr role="row"><th scope="row" role="rowheader"><strong>Google Firebase</strong> (Crashlytics, Google Analytics for Firebase and Performance Monitoring, run by Google)</th><td role="cell" data-label="When">Reports, analytics and performance data: only while <strong>Share crash logs and analytics</strong> is on (off by default), in the app and during the background go-live check, if you turned the setting on; never in debug builds. The libraries may contact Google when the app starts in any case</td><td role="cell" data-label="What is sent">Crash and error reports, the names of the app screens you open, request timings cut to the service's domain, and device and app details. No Twitch user ID, user name or channel name. See section 5.</td></tr>
+<tr role="row"><th scope="row" role="rowheader"><strong>GitHub</strong> (api.github.com, github.com, objects.githubusercontent.com, and release-assets.githubusercontent.com)</th><td role="cell" data-label="When">In builds that include the updater (the APKs published in the ONSET GitHub releases do; a build made without it never contacts GitHub): at launch and when the app returns to the foreground (at most every 6 hours once up to date), and when you tap <strong>Update</strong> or <strong>Check for updates</strong></td><td role="cell" data-label="What is sent">A request for the latest release of the ONSET repository; the download of the new APK when you tap Update. No account information.</td></tr>
+<tr role="row"><th scope="row" role="rowheader"><strong>Google Firebase</strong> (Crashlytics, Google Analytics for Firebase, and Performance Monitoring, run by Google)</th><td role="cell" data-label="When">Reports, analytics, and performance data: only while <strong>Share crash logs and analytics</strong> is on (off by default), both in the app and during the background go-live check; never in debug builds. The libraries may contact Google whenever the app starts, whatever the setting</td><td role="cell" data-label="What is sent">Crash and error reports, the names of the app screens you open, request timings cut to the service's domain, and device and app details. No Twitch user ID, username, or channel name. See section 5.</td></tr>
 <tr role="row"><th scope="row" role="rowheader"><strong>Google Play</strong> (in-app review)</th><td role="cell" data-label="When">After several launches, if Google Play is installed</td><td role="cell" data-label="What is sent">The app may ask Google Play to show its rating prompt, through Google Play's in-app review service.</td></tr>
 </tbody>
 </table>
 </div>
-<p>Links you tap in chat or in the app open in your browser or in the app; links
-you share go through Android's share sheet. ONSET does not fetch previews of
-other websites: chat previews are shown only for Twitch clip and video links,
-from Twitch.</p>
+<p>Twitch video and clip links you tap open inside ONSET; other web links open in
+an in-app browser tab, or in your browser if <strong>Open links in external
+browser</strong> is on. Links you share go through Android's share sheet. ONSET does
+not fetch previews of other websites: chat previews are shown only for Twitch
+clip and video links, from Twitch.</p>
 <h2 id="crash-reports-and-analytics-firebase">5. Crash reports and analytics (Firebase)</h2>
 <p>The builds published in the ONSET GitHub releases include Google Firebase:
-Crashlytics (crash reports), Google Analytics for Firebase (usage statistics)
-and Performance Monitoring (speed measurements). They collect only if you
-turn on <strong>Share crash logs and analytics</strong>.</p>
+Crashlytics (crash reports), Google Analytics for Firebase (usage statistics),
+and Performance Monitoring (speed measurements). They collect only if you turn
+on <strong>Share crash logs and analytics</strong>.</p>
 <p><strong>Off by default.</strong> The setting is off on a new install. You can turn it on
 in the setup screens at first launch or in <strong>Settings › Other › Privacy</strong>,
 and turn it off at any time in the same place. <strong>Reset settings</strong>
 (<strong>Settings › Other</strong>) turns it off again. Debug builds never collect,
 whatever the setting.</p>
-<p><strong>While it is off, no crash reports, analytics or performance data are
+<p><strong>While it is off, no crash reports, analytics, or performance data are
 sent.</strong> When the app opens, the Firebase libraries are still started and may
 contact Google's servers (for example to register the installation), without
-any of that data; the background go-live check does not start them at all.
-The app hands no error, log line or measurement to Crashlytics or
-Performance Monitoring. All three collections are declared disabled until the
-app applies your choice at startup, so Analytics records nothing either.
-Crashlytics normally keeps crash reports on the device to send later. With
-the setting off, the app hands it nothing, and any report Crashlytics stored
-on its own (for a crash in the app's Android code, for example) is deleted
-unsent each time the app starts and whenever you turn the setting off. Data
-sent while the setting was on is not recalled (section 7 says how long it is
-kept).</p>
+any of that data; the background go-live check does not start them at all. The
+app hands no error, log line, or measurement to Crashlytics or Performance
+Monitoring. All three collections are declared disabled until the app applies
+your choice at startup, so Analytics records nothing either. Crashlytics
+normally keeps crash reports on the device to send later. With the setting
+off, the app hands it nothing, and any report Crashlytics stored on its own
+(for a crash in the app's Android code, for example) is deleted unsent each
+time the app starts and whenever you turn the setting off. Data sent while the
+setting was on is not recalled (section 7 says how long it is kept).</p>
 <p><strong>While it is on, the app sends</strong> (and so does the background go-live check,
 for its own errors)<strong>:</strong></p>
 <ul>
 <li><strong>Crash reports (Crashlytics):</strong> crashes and uncaught errors, and some
-unexpected errors the app recovers from (for example a server error, a
-chat or real-time connection error, a video player failure). Each report
-holds the error's type and message, the stack trace and a short label of
-where it happened; for a failed request, its method and the service's
-address cut to the domain (for example <code>https://api.twitch.tv</code>), never the
-path or the query. Short log lines are added on some failures (chat and
-login reconnection attempts; a Twitch directory or highlights query that
-stopped working, with its error message), and a yes/no value for whether
-you are logged in. Crashlytics adds technical details such as the device
-model, Android version, app version, orientation, free memory and storage.</li>
+unexpected errors the app recovers from (for example a server error, a chat
+or real-time connection error, or a video player failure). Each report holds
+the error's type and message, the stack trace, and a short label of where it
+happened; for a failed request, its method and the service's address cut to
+the domain (for example <code>https://api.twitch.tv</code>), never the path or the
+query. Short log lines are added on some failures (chat and login
+reconnection attempts; a Twitch directory or highlights query that stopped
+working, with its error message), and a yes/no value for whether you are
+logged in. Crashlytics adds technical details such as the device model,
+Android version, app version, orientation, free memory, and storage.</li>
 <li><strong>Analytics (Google Analytics for Firebase):</strong> the name of each app screen
 you open. These are fixed names such as <code>VideoChat</code>, <code>VodScreen</code>,
-<code>Settings</code> or <code>/search</code>, never the channel, video or search behind them.
+<code>Settings</code>, or <code>/search</code>, never the channel, video, or search behind them.
 ONSET logs no other events of its own. The Analytics library also records
-events by itself (such as first open, sessions, time spent in the app, app
-updates) with device and app details (device model, Android version, app
-version, language) and an approximate location (country or region) that
+events by itself (such as first open, sessions, time spent in the app, and
+app updates) with device and app details (device model, Android version, app
+version, and language) and an approximate location (country or region) that
 Google derives from your IP address.</li>
 <li><strong>Performance (Performance Monitoring):</strong> for each request the app makes
 through its own HTTP client, the service's domain only (no path or query),
-the method, the response code and the duration. The Performance library
+the method, the response code, and the duration. The Performance library
 also measures some things by itself, such as the app's startup time and
 screen rendering (slow or frozen frames). Google also receives your IP
 address, which it uses to find the country, and the Firebase installation
 ID.</li>
 </ul>
-<p><strong>What is not included.</strong> ONSET puts no Twitch user ID, user name or channel
-name in these reports, and no tokens. Request addresses are cut to the
-domain. The Firebase libraries tell installations apart with random
-identifiers they generate (a Firebase installation ID and an Analytics app
-instance ID), which are not linked to your Twitch account and are replaced
-when you clear the app's data or reinstall it. The advertising ID is not
-collected: the app removes the advertising ID permissions, turns off
-advertising ID collection in Analytics and disables ad personalization
-signals.</p>
+<p><strong>What is not included.</strong> ONSET puts no Twitch user ID, username, or channel
+name in these reports, and no tokens. Request addresses are cut to the domain.
+The Firebase libraries tell installations apart with random identifiers they
+generate (a Firebase installation ID and an Analytics app instance ID), which
+are not linked to your Twitch account and are replaced when you clear the
+app's data or reinstall it. The advertising ID is not collected: the app
+removes the advertising ID permissions, turns off advertising ID collection in
+Analytics and disables ad personalization signals.</p>
 <p><strong>Legal basis.</strong> Your consent (GDPR Article 6(1)(a)), given by turning the
 setting on. You can withdraw it at any time by turning the setting off; this
 does not affect what was collected before.</p>
@@ -301,7 +300,7 @@ terms provide.</p>
 </thead>
 <tbody role="rowgroup">
 <tr role="row"><th scope="row" role="rowheader">Internet, network state</th><td role="cell" data-label="Why">Connect to Twitch and the services above; know whether you are on mobile data (for options such as autoplay on Wi-Fi only).</td></tr>
-<tr role="row"><th scope="row" role="rowheader">Notifications</th><td role="cell" data-label="Why">Go-live notices, chat mentions, schedule reminders, the media notification. Android 13+ asks you first.</td></tr>
+<tr role="row"><th scope="row" role="rowheader">Notifications</th><td role="cell" data-label="Why">Go-live notices, chat mentions, schedule reminders, and the media notification. Android 13+ asks you first.</td></tr>
 <tr role="row"><th scope="row" role="rowheader">Foreground service (media playback)</th><td role="cell" data-label="Why">Keep audio playing in the background.</td></tr>
 <tr role="row"><th scope="row" role="rowheader">Run at startup</th><td role="cell" data-label="Why">Restore your schedule reminders after a restart.</td></tr>
 <tr role="row"><th scope="row" role="rowheader">Install unknown apps</th><td role="cell" data-label="Why">Install an ONSET update you chose to download. Android asks you to allow it the first time.</td></tr>
@@ -311,22 +310,22 @@ terms provide.</p>
 <p>Libraries included in the app add a few more, such as vibration
 (notifications), wake lock and short foreground service (background go-live
 check), and Wi-Fi state (IVS player). The advertising ID and ad-services
-permissions that the Firebase Analytics library would add are removed from
-the app, and the advertising ID is not collected (section 5). ONSET does
-not request camera, microphone, location, contacts or storage permissions.</p>
+permissions that the Firebase Analytics library would add are removed from the
+app, and the advertising ID is not collected (section 5). ONSET does not
+request camera, microphone, location, contacts, or storage permissions.</p>
 <h2 id="how-long-data-is-kept">7. How long data is kept</h2>
 <ul>
-<li><strong>On your device:</strong> until you log out (tokens, stored login and web
+<li><strong>On your device:</strong> until you log out (tokens, stored login, and web
 cookies), clear the image cache, clear the app's data, or uninstall the app
-(everything else, including the Twitch user ID kept with local lists, as
-described in section 3). Lists are capped as described in section 3.</li>
+(everything else, including the Twitch user ID kept with local lists). Lists
+are capped as described in section 3.</li>
 <li><strong>Firebase</strong> (only what was sent while <strong>Share crash logs and analytics</strong>
 was on): Crashlytics keeps crash data and its identifiers for 90 days.
 Performance Monitoring keeps events linked to an IP address for 30 days and
 other performance data for 60 days. Google Analytics keeps user- and
 event-level data for 2 months (the project's setting); aggregated,
-non-identifying reports are kept. The Firebase installation ID is kept
-until the developer deletes it.</li>
+non-identifying reports are not affected by that limit. The Firebase
+installation ID is kept until the developer deletes it.</li>
 <li><strong>Twitch and other services:</strong> according to their own policies.</li>
 </ul>
 <h2 id="deleting-your-data">8. Deleting your data</h2>
@@ -335,21 +334,21 @@ until the developer deletes it.</li>
 token, deletes your tokens and the stored login (your Twitch user ID in the
 encrypted storage) from the device, and clears the web view's cookies. Your
 settings and local history stay on the device, and so does the Twitch user
-ID kept with those local lists (watch positions, accepted chat rules, the
-go-live check) until you clear the app's data or uninstall it. ONSET does
-not ask Twitch to end the twitch.tv web session itself. To remove ONSET's
-access to your account, use your Twitch settings, under <strong>Connections</strong>.</li>
+ID kept with those local lists (watch positions, accepted chat rules, and
+the go-live check) until you clear the app's data or uninstall it. ONSET
+does not ask Twitch to end the twitch.tv web session itself. To remove
+ONSET's access to your account, use your Twitch settings, under
+<strong>Connections</strong>.</li>
 <li><strong>Clear the app's data</strong> (Android Settings › Apps › ONSET › Storage) or
 <strong>uninstall</strong> ONSET: everything ONSET stored on the device is deleted,
 including unsent crash reports and the Firebase identifiers.</li>
-<li><strong>Turn off Share crash logs and analytics</strong> (<strong>Settings › Other ›
-Privacy</strong>): no more crash reports, analytics or performance data are
-sent, and the crash reports kept on the device and not yet sent are
-deleted. What Firebase already received carries no
-account identifier (no Twitch user ID or user name, only the random
-identifiers of section 5), so the developer may be unable to match an
-emailed deletion request to your data. You can still write to
-<a href="mailto:contact@onsetapp.app">contact@onsetapp.app</a>; in any case that data expires with the
+<li><strong>Turn off</strong> <strong>Share crash logs and analytics</strong> (<strong>Settings › Other ›
+Privacy</strong>): no more crash reports, analytics, or performance data are sent,
+and the crash reports kept on the device and not yet sent are deleted. What
+Firebase already received carries no account identifier (no Twitch user ID
+or username, only the random identifiers of section 5), so the developer may
+be unable to match an emailed deletion request to your data. You can still
+write to <a href="mailto:contact@onsetapp.app">contact@onsetapp.app</a>; in any case that data expires with the
 retention periods of section 7.</li>
 <li>Data held by Twitch and the other services is deleted through them.</li>
 </ul>
@@ -361,15 +360,15 @@ majority may use Twitch only with a parent's or guardian's supervision and
 agreement. You must meet Twitch's age requirements to use ONSET. ONSET is not
 directed at children under 13.</p>
 <h2 id="your-rights">10. Your rights</h2>
-<p>Under the GDPR you have the right to access, correct and delete your personal
+<p>Under the GDPR you have the right to access, correct, and delete your personal
 data, to object to or restrict its processing, and to data portability, and
 you can withdraw your consent to crash reports and analytics at any time by
 turning off <strong>Share crash logs and analytics</strong>. The developer holds no data
 about you from the published builds unless you turned that setting on; that
 data is linked to no account, so the developer may be unable to find yours
 (sections 5 and 8). To exercise a right, or for any question, write to
-<a href="mailto:contact@onsetapp.app">contact@onsetapp.app</a>. You can also lodge a complaint with the French
-data protection authority, the CNIL (<a href="https://www.cnil.fr">https://www.cnil.fr</a>).</p>
+<a href="mailto:contact@onsetapp.app">contact@onsetapp.app</a>. You can also lodge a complaint with the French data
+protection authority, the CNIL (<a href="https://www.cnil.fr">https://www.cnil.fr</a>).</p>
 <p>For data held by Twitch or the other services, contact them directly.</p>
 <h2 id="third-party-privacy-policies">11. Third-party privacy policies</h2>
 <ul>

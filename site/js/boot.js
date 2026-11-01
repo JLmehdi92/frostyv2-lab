@@ -1,10 +1,10 @@
-/* Runs before first paint: sends a first-time French visitor from / to /fr/, remembers the language
+/* Runs before first paint: sends a French visitor from / to /fr/ (a stored choice wins), remembers the language
    the visitor picks in the switch, marks the page as scripted and holds the hero until its entrance starts. */
 (function () {
   var d = document;
   var KEY = 'onset.lang';
 
-  // The language switch stores an explicit choice; once one is stored, nothing redirects again.
+  // The language switch stores an explicit choice: "en" stops the redirect for good, "fr" makes / open /fr/.
   d.addEventListener('click', function (e) {
     var a = e.target && e.target.closest ? e.target.closest('a[data-lang]') : null;
     if (!a) return;
@@ -16,7 +16,9 @@
     if (path !== '/' && path !== '/index.html') return false;
     var stored = null;
     try { stored = window.localStorage.getItem(KEY); } catch (er) {}
-    if (stored) return false;
+    // An explicit English choice keeps the English page; an explicit French one goes to /fr/ whatever
+    // the browser language.
+    if (stored === 'en') return false;
     var nav = window.navigator || {};
     // Crawlers and automated browsers always get the page they asked for.
     if (nav.webdriver) return false;
@@ -26,7 +28,7 @@
     var ref = d.referrer || '';
     if (ref && ref.indexOf(location.protocol + '//' + location.host + '/') === 0) return false;
     var first = (nav.languages && nav.languages[0]) || nav.language || '';
-    if (!/^fr(?:[-_]|$)/i.test(first)) return false;
+    if (stored !== 'fr' && !/^fr(?:[-_]|$)/i.test(first)) return false;
     // Nothing of the English page is painted while the French one loads.
     d.documentElement.style.visibility = 'hidden';
     var unhide = function () { d.documentElement.style.visibility = ''; };

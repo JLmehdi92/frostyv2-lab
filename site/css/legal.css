@@ -11,13 +11,8 @@
 .legal-grid{position:relative;display:grid;grid-template-columns:minmax(0,1fr);justify-items:center}
 .doc{width:100%;max-width:760px;min-width:0}
 
-/* language switch and eyebrow */
-.doc-meta{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;padding-bottom:20px;border-bottom:1px solid var(--hl)}
-.lang{display:flex;align-items:center;gap:2px;font-size:14px;font-weight:500}
-.lang a{display:inline-flex;align-items:center;min-height:44px;padding:0 8px;border-radius:8px;color:var(--t3);text-decoration:none;transition:color .2s ease}
-.lang a:hover{color:var(--t1)}
-.lang a[aria-current="page"]{color:var(--t1);font-weight:600}
-.lang-sep{color:var(--t4)}
+/* eyebrow above the policy (the language switch is in the bar) */
+.doc-meta{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;min-height:64px;padding-bottom:20px;border-bottom:1px solid var(--hl)}
 
 /* contents: a sticky column on wide screens, a collapsible block after the title and intro elsewhere */
 .toc-col{display:none}

@@ -72,7 +72,7 @@ html.lenis,html.lenis body{height:auto}
 .bar{position:sticky;top:0;z-index:20;background:rgba(10,10,10,.72);background:color-mix(in srgb,var(--bg) 72%,transparent);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid var(--hl)}
 .theme-light .bar{background:rgba(248,248,248,.72);background:color-mix(in srgb,var(--bg) 72%,transparent)}
 .bar-in{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:72px}
-.brand{display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 4px;margin-left:-4px;text-decoration:none;color:var(--t1);border-radius:12px}
+.brand{display:inline-flex;flex-shrink:0;align-items:center;gap:10px;min-height:44px;padding:0 4px;margin-left:-4px;text-decoration:none;color:var(--t1);border-radius:12px}
 .brand img{width:32px;height:32px;border-radius:9px}
 .brand span{font-size:18px;font-weight:800;letter-spacing:-0.02em}
 .bar-r{display:flex;align-items:center;gap:8px}
@@ -130,7 +130,7 @@ html.lenis,html.lenis body{height:auto}
 .credit{margin-top:20px;display:flex;flex-direction:column;align-items:center;gap:6px}
 .credit-a{font-size:14px;font-weight:500;color:var(--t3)}
 .credit-b{font-size:13px;color:var(--t3)}
-.credit-b a{color:var(--t1);font-weight:500;text-decoration:underline;text-decoration-color:var(--hl3);text-underline-offset:3px;transition:text-decoration-color .2s ease}
+.credit-b a{white-space:nowrap;color:var(--t1);font-weight:500;text-decoration:underline;text-decoration-color:var(--hl3);text-underline-offset:3px;transition:text-decoration-color .2s ease}
 .credit-b a:hover{text-decoration-color:var(--t1)}
 .credit-sep{margin:0 6px;color:var(--t4)}
 
@@ -204,6 +204,10 @@ html.lenis,html.lenis body{height:auto}
 /* French: the first headline line ("Twitch, en direct.") is wider than the English one, so the second
    chat message sits a little higher and further right, and leaves when that still is not enough */
 html[lang="fr"] .fo-msg2{left:76%;top:4%}
+/* 1200–1279 (a 1280 laptop with a scrollbar lands here): the upper-left "ON" disc reaches the sub copy */
+@media (min-width:1200px) and (max-width:1279px){
+  .fo-on1{left:11%}
+}
 @media (min-width:1200px) and (max-width:1259px){
   html[lang="fr"] .fo-msg2{display:none}
   html[lang="fr"] .fo-spl1{left:19%}
@@ -461,7 +465,14 @@ html[lang="fr"] .fo-msg2{left:76%;top:4%}
   .foot-top .brand{display:none}
   .foot-bot{margin-top:16px;padding-top:16px}
 }
+/* narrow phones: the bar keeps Download, the language and the theme; GitHub stays in the hero credit
+   line and the footer */
+@media (max-width:400px){
+  .bar .gh{display:none}
+}
 @media (max-width:359px){
+  /* "Twitch, en direct." stays on one line on the narrowest phones */
+  html[lang="fr"] .h1{font-size:2.125rem}
   .bar-dl .lbl-s{display:none}
   .bar-dl{width:44px;padding:0;justify-content:center}
   .fo-gift{bottom:62px}
