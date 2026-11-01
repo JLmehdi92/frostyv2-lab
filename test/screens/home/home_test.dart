@@ -59,6 +59,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_pip_mode/simple_pip.dart';
 
 import '../../helpers/fake_vod_controller.dart';
+import '../../helpers/l10n.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 
@@ -173,10 +174,21 @@ void main() {
     ThemeMode mode = ThemeMode.light,
     AuthStore? auth,
     bool reduceMotion = false,
+    Locale? locale,
+    double textScale = 1,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    final app = await localizedApp(
+      tester,
+      locale: locale,
+      textScale: textScale,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(disableAnimations: reduceMotion),
+        child: child!,
+      ),
+    );
     final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       MultiProvider(
@@ -192,15 +204,13 @@ void main() {
           Provider<MiniPlayerStore>.value(value: mini),
         ],
         child: MaterialApp(
+          locale: app.locale,
+          supportedLocales: app.supportedLocales,
+          localizationsDelegates: app.delegates,
           theme: themes.light,
           darkTheme: themes.dark,
           themeMode: mode,
-          builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(
-              context,
-            ).copyWith(disableAnimations: reduceMotion),
-            child: child!,
-          ),
+          builder: app.builder,
           navigatorObservers: [OnsetShell.routeObserver],
           home: const Home(),
         ),
@@ -2005,6 +2015,49 @@ void main() {
       expect(find.text(english.languagePromptTitle), findsOneWidget);
       await close(tester);
     });
+  });
+
+  group('in French', () {
+    final french = lookupAppLocalizations(fr);
+
+    for (final (sizeName, size) in frenchScreenSizes) {
+      for (final scale in frenchTextScales) {
+        // The shell and every section's empty state (each screen's
+        // content has its own French test).
+        testWidgets('Following, Live, Clips, Browse, Activity, '
+            '$sizeName, text ×$scale', (tester) async {
+          await pump(
+            tester,
+            size: size,
+            auth: FakeAuthStore(loggedIn: true),
+            locale: fr,
+            textScale: scale,
+          );
+          expect(find.text(french.streamListEmptyFollowed), findsOneWidget);
+          await expectFrenchThroughout(tester, 'Following');
+
+          for (final tab in [french.shellFeedLive, french.shellFeedClips]) {
+            await tester.tap(find.text(tab).first);
+            await tester.pump();
+            await tester.pump(const Duration(seconds: 1));
+            await expectFrenchThroughout(tester, tab);
+          }
+
+          await tester.tap(nav('browse'));
+          await tester.pumpAndSettle();
+          await expectFrenchThroughout(tester, 'Browse › categories');
+          await tester.tap(find.text(french.shellBrowseLiveChannels).first);
+          await tester.pumpAndSettle();
+          await expectFrenchThroughout(tester, 'Browse › live channels');
+
+          await tester.tap(nav('activity'));
+          await tester.pumpAndSettle();
+          expect(find.text(french.activityEmpty), findsOneWidget);
+          await expectFrenchThroughout(tester, 'Activity');
+          await close(tester);
+        });
+      }
+    }
   });
 }
 

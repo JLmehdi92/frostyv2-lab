@@ -101,7 +101,7 @@ void main() {
 
       expect(store.knowsLabelsOf('1'), isTrue);
       expect(store.labelsOf('1'), isEmpty);
-      expect(store.labelsOf('2'), ['Sexual Themes']);
+      expect(store.labelsOf('2'), ['SexualThemes']);
       expect(store.knowsLabelsOf('9'), isFalse);
       verify(
         () => api.getChannelsByIds(['1', '2', '3', '4', '5', '6', '7', '8']),
@@ -195,14 +195,14 @@ void main() {
       for (var i = 0; i < 6; i++) {
         await Future<void>.delayed(Duration.zero);
       }
-      expect(store.labelsOf('1'), ['Sexual Themes']);
+      expect(store.labelsOf('1'), ['SexualThemes']);
 
       fail = true;
       await store.refresh();
       for (var i = 0; i < 6; i++) {
         await Future<void>.delayed(Duration.zero);
       }
-      expect(store.labelsOf('1'), ['Sexual Themes']);
+      expect(store.labelsOf('1'), ['SexualThemes']);
       expect(store.labelsOf('2'), isEmpty);
       store.dispose();
     });
@@ -239,7 +239,7 @@ void main() {
         for (var i = 0; i < 6; i++) {
           await Future<void>.delayed(Duration.zero);
         }
-        expect(store.labelsOf('1'), ['Sexual Themes']);
+        expect(store.labelsOf('1'), ['SexualThemes']);
         store.dispose();
       },
     );

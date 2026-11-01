@@ -114,16 +114,16 @@ mixin _$ChannelClipsStore on ChannelClipsStoreBase, Store {
     context: context,
   );
 
-  String? get error {
+  ChannelClipsProblem? get error {
     _$_errorAtom.reportRead();
     return super._error;
   }
 
   @override
-  String? get _error => error;
+  ChannelClipsProblem? get _error => error;
 
   @override
-  set _error(String? value) {
+  set _error(ChannelClipsProblem? value) {
     _$_errorAtom.reportWrite(value, super._error, () {
       super._error = value;
     });

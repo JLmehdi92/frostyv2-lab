@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/category.dart';
 import 'package:onset/screens/home/search/stores/search_store.dart';
 import 'package:onset/screens/home/top/categories/category_card.dart';
@@ -89,16 +90,19 @@ class SearchResultsCategories extends StatelessWidget {
           case FutureStatus.pending:
             return _skeleton();
           case FutureStatus.rejected:
-            return _message('Unable to load categories', failed: true);
+            return _message(context.l10n.searchCategoriesFailed, failed: true);
           case FutureStatus.fulfilled:
             final CategoriesTwitch? categories = future.result;
 
             if (categories == null) {
-              return _message('Failed to get categories', failed: true);
+              return _message(
+                context.l10n.searchCategoriesUnavailable,
+                failed: true,
+              );
             }
 
             if (categories.data.isEmpty) {
-              return _message('No matching categories');
+              return _message(context.l10n.searchNoCategories);
             }
 
             final shown = limit == null

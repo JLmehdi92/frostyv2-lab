@@ -5,6 +5,40 @@
 /// Only what is never translated belongs here: brand names, Twitch's own
 /// data, code that only looks like text.
 const l10nAllowlist = <String, Map<String, String>>{
+  'lib/apis/base_api_client.dart': {
+    'No internet connection. Please check your network.': _apiLog,
+    'Request was cancelled': _apiLog,
+    'Security certificate error': _apiLog,
+    'An unexpected error occurred': _apiLog,
+    'Connection timeout. Please try again.': _apiLog,
+    'Upload timeout. Please try again.': _apiLog,
+    'Server response timeout. Please try again.': _apiLog,
+    'Request timeout. Please try again.': _apiLog,
+    'Invalid request data': _apiLog,
+    'Please log in to continue': _apiLog,
+    'Access denied. Insufficient permissions': _apiLog,
+    'Resource not found': _apiLog,
+    'Conflict with current state. Please refresh': _apiLog,
+    'Invalid data provided': _apiLog,
+    'Rate limit exceeded. Please wait before trying again': _apiLog,
+    'Server error. Please try again later': _apiLog,
+    'Service temporarily unavailable': _apiLog,
+    'Service maintenance. Please try again later': _apiLog,
+    'Server timeout. Please try again': _apiLog,
+    'HTTP Error {} occurred': _apiLog,
+  },
+  'lib/apis/twitch_directory_service.dart': {
+    'RELEVANCE': 'A GQL sort value sent to Twitch (StreamSort.gql): code.',
+    'RECENT': 'A GQL sort value sent to Twitch (StreamSort.gql): code.',
+  },
+  'lib/models/clip.dart': {
+    'TRENDING': 'A GQL sort value sent to Twitch (ClipSort.gqlName): code.',
+  },
+  'lib/screens/home/live_feed/live_preview.dart': {
+    'ONSET preview':
+        'The preview player\'s internal media title (media_kit), never '
+        'shown: the app\'s name and a word for logs.',
+  },
   'lib/main.dart': {
     'ONSET': 'The app\'s name (MaterialApp.title, the task switcher): a brand.',
   },
@@ -70,3 +104,9 @@ const l10nAllowlist = <String, Map<String, String>>{
     'ONSET': 'The wordmark\'s screen-reader label: the app\'s name, a brand.',
   },
 };
+
+/// Why an [ApiException]'s English message is allowed: it is for logs and
+/// crash reports only; screens word its kind (lib/l10n/api_errors.dart).
+const _apiLog =
+    'ApiException.message, English for logs and crash reports; screens '
+    'show apiErrorText (lib/l10n/api_errors.dart) instead.';

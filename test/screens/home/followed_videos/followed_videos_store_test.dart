@@ -89,7 +89,7 @@ void main() {
     final store = build();
     await store.load();
 
-    expect(store.error, 'Unable to connect to Twitch');
+    expect(store.error, isA<NetworkException>());
     expect(store.videos, isEmpty);
   });
 }

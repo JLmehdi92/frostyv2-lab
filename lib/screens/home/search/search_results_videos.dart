@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/home/search/stores/search_videos_store.dart';
 import 'package:onset/screens/vod/widgets/video_card_layout.dart';
 import 'package:onset/screens/vod/widgets/vod_card.dart';
@@ -42,7 +43,10 @@ class SearchResultsVideos extends StatelessWidget {
         if (error != null) {
           return SliverToBoxAdapter(
             child: _SectionStatus(
-              InlineStatus.error(message: error, onRetry: store.retry),
+              InlineStatus.error(
+                message: context.l10n.searchVideosFailed,
+                onRetry: store.retry,
+              ),
             ),
           );
         }
@@ -50,9 +54,9 @@ class SearchResultsVideos extends StatelessWidget {
           if (store.query.isEmpty) {
             return const SliverToBoxAdapter(child: SizedBox.shrink());
           }
-          return const SliverToBoxAdapter(
+          return SliverToBoxAdapter(
             child: _SectionStatus(
-              InlineStatus(message: 'No search results found', glyph: null),
+              InlineStatus(message: context.l10n.searchNoResults, glyph: null),
             ),
           );
         }
@@ -111,14 +115,17 @@ class SearchVideosColumn extends StatelessWidget {
         }
         if (error != null) {
           return _SectionStatus(
-            InlineStatus.error(message: error, onRetry: store.retry),
+            InlineStatus.error(
+              message: context.l10n.searchVideosFailed,
+              onRetry: store.retry,
+            ),
           );
         }
         final videos = store.videos;
         if (videos.isEmpty) {
           if (store.query.isEmpty) return const SizedBox.shrink();
-          return const _SectionStatus(
-            InlineStatus(message: 'No search results found', glyph: null),
+          return _SectionStatus(
+            InlineStatus(message: context.l10n.searchNoResults, glyph: null),
           );
         }
         return Column(

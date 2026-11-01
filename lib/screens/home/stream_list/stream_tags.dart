@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:onset/apis/twitch_directory_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
@@ -50,7 +51,7 @@ class StreamTags extends StatelessWidget {
     );
     if (onTap != null) return pills;
     return Semantics(
-      label: 'Tags: ${shown.join(', ')}',
+      label: context.l10n.streamTagsSemantics(tags: shown.join(', ')),
       child: ExcludeSemantics(child: pills),
     );
   }
@@ -94,7 +95,7 @@ class StreamTags extends StatelessWidget {
           ? label
           : Semantics(
               button: true,
-              label: 'Tag $tag',
+              label: context.l10n.streamTagSemantics(tag: tag),
               onTap: () => open(tag),
               excludeSemantics: true,
               child: InkWell(

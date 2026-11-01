@@ -292,7 +292,7 @@ class VideoPaneNotice extends StatelessWidget {
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 icon: const Icon(Icons.refresh_rounded, size: 17),
-                label: const Text('Try again'),
+                label: Text(context.l10n.commonTryAgain),
               ),
           ],
         ),

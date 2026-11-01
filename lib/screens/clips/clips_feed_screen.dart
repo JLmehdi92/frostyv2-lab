@@ -5,8 +5,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart' as material show Clip;
 import 'package:flutter/material.dart' hide Clip;
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:intl/intl.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/screens/clips/clip_screen.dart';
 import 'package:onset/screens/clips/stores/clip_player_store.dart';
@@ -399,7 +399,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
           ),
         Semantics(
           container: true,
-          label: 'Clip player. Double-tap to toggle play/pause',
+          label: context.l10n.clipsPlayerSemantics,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onDoubleTap: player?.togglePlay,
@@ -416,13 +416,13 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
               }
               if (status == VodPlaybackStatus.failed ||
                   status == VodPlaybackStatus.problem) {
-                return const Center(
+                return Center(
                   child: Padding(
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                     child: Text(
-                      "This clip can't be played here",
+                      context.l10n.clipsCannotPlay,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: OnsetTokens.bodyFamily,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -611,7 +611,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
   Widget _buildWidePage(BuildContext context, int index, EdgeInsets padding) {
     final clip = _store.clips[index];
     final title = clip.title.trim().isEmpty
-        ? 'Untitled clip'
+        ? context.l10n.clipUntitled
         : clip.title.trim();
     final game = clip.gameName;
     return Stack(
@@ -669,7 +669,7 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
                           [
                             _channelOf(clip),
                             if (game != null && game.isNotEmpty) game,
-                            _views(clip),
+                            _views(clip, context.l10n),
                           ].join(' · '),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -716,9 +716,9 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
                     spacing: 16,
                     children: [
                       CircularProgressIndicator(color: accent),
-                      const Text(
-                        'Loading more clips for you',
-                        style: TextStyle(
+                      Text(
+                        context.l10n.clipsLoadingMore,
+                        style: const TextStyle(
                           fontFamily: OnsetTokens.bodyFamily,
                           fontSize: 14,
                           color: OnsetTokens.textSecondaryDark,
@@ -893,8 +893,11 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
         if (clips.isEmpty) {
           if (_store.loading) return _FeedSkeleton(large: tablet);
           return error != null
-              ? FeedStatusView.error(message: error, onRetry: _store.load)
-              : const FeedStatusView.empty(message: 'No clips right now');
+              ? FeedStatusView.error(
+                  message: context.l10n.clipsLoadFailed,
+                  onRetry: _store.load,
+                )
+              : FeedStatusView.empty(message: context.l10n.clipsEmpty);
         }
         if (tablet) {
           // The phone's pages are gone with their layout.
@@ -976,10 +979,9 @@ class _ClipsFeedScreenState extends State<ClipsFeedScreen> {
   }
 }
 
-/// "248K views", or "1 view".
-String _views(Clip clip) =>
-    '${NumberFormat.compact().format(clip.viewCount)} '
-    '${clip.viewCount == 1 ? 'view' : 'views'}';
+/// "248K views", or "1 view", in [l]'s language.
+String _views(Clip clip, AppLocalizations l) =>
+    l.videoViewsCompact(count: clip.viewCount);
 
 String _channelOf(Clip clip) => clip.broadcasterDisplayName.isNotEmpty
     ? clip.broadcasterDisplayName
@@ -1071,10 +1073,10 @@ class _ClipDetails extends StatelessWidget {
     final game = clip.gameName;
     final details = [
       if (game != null && game.isNotEmpty) game,
-      _views(clip),
+      _views(clip, context.l10n),
     ].join(' · ');
     final title = clip.title.trim().isEmpty
-        ? 'Untitled clip'
+        ? context.l10n.clipUntitled
         : clip.title.trim();
     final channel = Row(
       spacing: large ? 12 : 10,
@@ -1181,7 +1183,7 @@ class _OpenClipButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = context.onsetColors.live;
     return Tooltip(
-      message: 'Open clip',
+      message: context.l10n.clipsOpen,
       excludeFromSemantics: true,
       child: PressScale(
         child: FilledButton(
@@ -1204,17 +1206,17 @@ class _OpenClipButton extends StatelessWidget {
             elevation: 0,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             spacing: 8,
             children: [
-              VideoGlyph(
+              const VideoGlyph(
                 VideoGlyphKind.expand,
                 color: OnsetTokens.backgroundDark,
                 size: 17,
                 strokeWidth: 2.2,
               ),
-              Text('Open clip'),
+              Text(context.l10n.clipsOpen),
             ],
           ),
         ),
@@ -1236,7 +1238,10 @@ class _NextCard extends StatelessWidget {
     final title = clip.title.trim();
     return Semantics(
       button: true,
-      label: 'Next clip, ${_channelOf(clip)}, $title',
+      label: context.l10n.clipsNextSemantics(
+        channel: _channelOf(clip),
+        title: title,
+      ),
       onTap: onTap,
       excludeSemantics: true,
       child: PressScale(
@@ -1279,9 +1284,9 @@ class _NextCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     spacing: 2,
                     children: [
-                      const Text(
-                        'NEXT',
-                        style: TextStyle(
+                      Text(
+                        context.l10n.clipsNext,
+                        style: const TextStyle(
                           fontFamily: OnsetTokens.bodyFamily,
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -1356,10 +1361,10 @@ class _SwipeHintState extends State<_SwipeHint>
 
   @override
   Widget build(BuildContext context) {
-    const text = Text(
-      'You can swipe to the next clip',
+    final text = Text(
+      context.l10n.clipsSwipeHint,
       textAlign: TextAlign.center,
-      style: TextStyle(
+      style: const TextStyle(
         fontFamily: OnsetTokens.bodyFamily,
         fontSize: 12,
         fontWeight: FontWeight.w500,
@@ -1391,7 +1396,7 @@ class _FeedFailed extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => InlineStatus.error(
-    message: 'Unable to load more clips',
+    message: context.l10n.clipsLoadMoreFailed,
     onRetry: () => unawaited(onRetry()),
   );
 }
@@ -1432,7 +1437,7 @@ class _FeedEnd extends StatelessWidget {
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 360),
           child: Text(
-            'That’s all for now! Check out more clips from previous streams',
+            context.l10n.clipsEnd,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: OnsetTokens.bodyFamily,
@@ -1459,9 +1464,9 @@ class _StageLoading extends StatelessWidget {
       spacing: 16,
       children: [
         CircularProgressIndicator(color: context.onsetColors.live),
-        const Text(
-          'Loading more clips for you',
-          style: TextStyle(
+        Text(
+          context.l10n.clipsLoadingMore,
+          style: const TextStyle(
             fontFamily: OnsetTokens.bodyFamily,
             fontSize: 14,
             color: OnsetTokens.textSecondaryDark,
@@ -1621,14 +1626,14 @@ class _Queue extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              const Expanded(
+              Expanded(
                 child: VideoSectionLabel(
-                  'Up next in Clips',
+                  context.l10n.clipsUpNext,
                   padding: EdgeInsets.zero,
                 ),
               ),
               Text(
-                'Swipe the video or pick one',
+                context.l10n.clipsUpNextHelp,
                 style: TextStyle(
                   fontFamily: OnsetTokens.bodyFamily,
                   fontSize: 12,
@@ -1696,12 +1701,12 @@ class _QueueItem extends StatelessWidget {
     final accent = context.onsetColors.live;
     final thumbnail = clip.thumbnailUrl;
     final title = clip.title.trim().isEmpty
-        ? 'Untitled clip'
+        ? context.l10n.clipUntitled
         : clip.title.trim();
     return Semantics(
       button: true,
       selected: current,
-      label: '$title, ${_channelOf(clip)}, ${_views(clip)}',
+      label: '$title, ${_channelOf(clip)}, ${_views(clip, context.l10n)}',
       onTap: onTap,
       excludeSemantics: true,
       child: PressScale(
@@ -1797,7 +1802,7 @@ class _QueueItem extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '${_channelOf(clip)} · ${_views(clip)}',
+                        '${_channelOf(clip)} · ${_views(clip, context.l10n)}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: OnsetType.tabular(
@@ -1926,9 +1931,9 @@ class _QueueLoading extends StatelessWidget {
                       borderRadius: BorderRadius.circular(5),
                     ),
                   ),
-                  const Text(
-                    'Loading more clips for you',
-                    style: TextStyle(
+                  Text(
+                    context.l10n.clipsLoadingMore,
+                    style: const TextStyle(
                       fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 12,
                       color: OnsetTokens.textTertiaryDark,

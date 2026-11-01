@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:native_device_orientation/native_device_orientation.dart';
+import 'package:onset/l10n/l10n.dart';
 
 /// The soft shadow under the live player's chrome (the
 /// `drop-shadow(0 1px 2px rgba(0,0,0,.6))`), so its text and glyphs read
@@ -82,7 +83,9 @@ class VolumeRow extends StatelessWidget {
     child: Row(
       children: [
         IconButton(
-          tooltip: muted ? 'Unmute' : 'Mute',
+          tooltip: muted
+              ? context.l10n.liveFeedUnmute
+              : context.l10n.liveFeedMute,
           icon: Icon(
             muted || volume == 0
                 ? Icons.volume_off_rounded
@@ -125,8 +128,10 @@ class VideoSurfaceSemantics extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       container: true,
-      label: 'Video player',
-      onTapHint: controlsVisible ? 'hide controls' : 'show controls',
+      label: context.l10n.playerSemantics,
+      onTapHint: controlsVisible
+          ? context.l10n.playerHideControls
+          : context.l10n.playerShowControls,
       customSemanticsActions: {
         for (final MapEntry(key: label, value: run) in actions.entries)
           CustomSemanticsAction(label: label): run,

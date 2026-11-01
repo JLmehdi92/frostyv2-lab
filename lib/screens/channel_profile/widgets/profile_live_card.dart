@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel_profile.dart';
 import 'package:onset/screens/channel/channel_info.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
@@ -50,22 +51,29 @@ class ProfileStreamFacts {
   }
 
   /// "963 watching · 4 h 02" (with [withCategory], the category first),
-  /// "Rerun · …", or "Last live 2 days ago · Chess".
-  String details(DateTime now, {bool withCategory = false}) {
+  /// "Rerun · …", or "Last live 2 days ago · Chess", in [l]'s language.
+  String details(
+    AppLocalizations l,
+    DateTime now, {
+    bool withCategory = false,
+  }) {
     final live = this.live;
     if (live == null) {
       final started = profile.lastBroadcast?.startedAt;
       return [
         if (started != null)
-          'Last live ${formatTimeAgo(started, now: now).toLowerCase()}',
+          l.profileLastLive(when: timeAgoInText(started, l, now: now)),
         ?profile.lastBroadcast?.gameName,
       ].join(' · ');
     }
     final started = live.startedAt;
     return [
       if (withCategory) ?category,
-      if (live.isRerun) 'Rerun',
-      '${formatViewers(live.viewers)} watching',
+      if (live.isRerun) l.profileRerun,
+      l.streamWatchingShort(
+        count: live.viewers,
+        viewers: formatViewers(live.viewers),
+      ),
       if (started != null) shortUptime(now.difference(started)),
     ].join(' · ');
   }
@@ -104,9 +112,14 @@ class ProfileLiveCard extends StatelessWidget {
     Widget card(BuildContext context) => Semantics(
       button: true,
       label: [
-        if (live == null) 'Offline' else if (live.isRerun) 'Rerun' else 'Live',
+        if (live == null)
+          context.l10n.streamOffline
+        else if (live.isRerun)
+          context.l10n.profileRerun
+        else
+          context.l10n.profileLive,
         ?facts.title,
-        facts.details(DateTime.now(), withCategory: true),
+        facts.details(context.l10n, DateTime.now(), withCategory: true),
       ].join(', '),
       onTap: onOpen,
       excludeSemantics: true,
@@ -192,7 +205,7 @@ class ProfileLiveCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(5),
         ),
         child: Text(
-          'LIVE',
+          context.l10n.commonLiveBadge,
           style: OnsetType.badge.copyWith(
             fontSize: 10,
             letterSpacing: 0.6,
@@ -208,7 +221,7 @@ class ProfileLiveCard extends StatelessWidget {
       padding: large ? 8 : 6,
       color: OverImage.pillStrong,
       child: Text(
-        'RERUN',
+        context.l10n.profileRerunBadge,
         style: OnsetType.badge.copyWith(
           fontSize: large ? 11 : 10,
           letterSpacing: 0.6,
@@ -222,8 +235,11 @@ class ProfileLiveCard extends StatelessWidget {
   Widget _row(BuildContext context, ProfileStreamFacts facts) {
     final colors = FeedColors.of(context);
     final now = DateTime.now();
-    final details = facts.details(now);
-    final title = facts.title ?? (facts.live == null ? 'Offline' : 'Live now');
+    final l = context.l10n;
+    final details = facts.details(l, now);
+    final title =
+        facts.title ??
+        (facts.live == null ? l.streamOffline : l.streamListLiveNow);
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -298,8 +314,11 @@ class ProfileLiveCard extends StatelessWidget {
 
   Widget _large(BuildContext context, ProfileStreamFacts facts) {
     final now = DateTime.now();
-    final details = facts.details(now, withCategory: true);
-    final title = facts.title ?? (facts.live == null ? 'Offline' : 'Live now');
+    final l = context.l10n;
+    final details = facts.details(l, now, withCategory: true);
+    final title =
+        facts.title ??
+        (facts.live == null ? l.streamOffline : l.streamListLiveNow);
     const radius = BorderRadius.all(Radius.circular(18));
     return AspectRatio(
       aspectRatio: 16 / 9,

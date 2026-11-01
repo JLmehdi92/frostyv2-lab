@@ -62,9 +62,10 @@ abstract class ClipsFeedStoreBase with Store {
   @readonly
   var _hasMore = false;
 
-  /// Why the first page could not be had (null when it could).
+  /// What failed when the first page could not be had (null when it
+  /// could); the screen says it could not load.
   @readonly
-  String? _error;
+  Object? _error;
 
   /// The feed ended because a page could not be had (it can be tried
   /// again), not because there are no more clips.
@@ -100,7 +101,7 @@ abstract class ClipsFeedStoreBase with Store {
       });
     } catch (e) {
       debugPrint('Clips feed failed: ${e.runtimeType}');
-      runInAction(() => _error = 'Unable to load clips');
+      runInAction(() => _error = e);
     } finally {
       runInAction(() => _loading = false);
     }

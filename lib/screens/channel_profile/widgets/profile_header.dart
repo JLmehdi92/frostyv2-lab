@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel_profile.dart';
 import 'package:onset/screens/channel/channel_info.dart';
 import 'package:onset/screens/channel/stores/channel_info_store.dart';
@@ -97,14 +98,18 @@ class ProfileBanner extends StatelessWidget {
   }
 }
 
-/// "48.2k followers · Partner": the channel's followers and its role.
-String profileMeta(ChannelProfile? profile) {
+/// "48.2k followers · Partner": the channel's followers and its role, in
+/// [l]'s language.
+String profileMeta(ChannelProfile? profile, AppLocalizations l) {
   final followers = profile?.followers;
   return [
     if (followers != null)
-      '${formatViewers(followers)} ${followers == 1 ? 'follower' : 'followers'}',
-    if (profile?.role == BroadcasterRole.partner) 'Partner',
-    if (profile?.role == BroadcasterRole.affiliate) 'Affiliate',
+      l.profileFollowersShort(
+        count: followers,
+        followers: formatViewers(followers),
+      ),
+    if (profile?.role == BroadcasterRole.partner) l.profilePartner,
+    if (profile?.role == BroadcasterRole.affiliate) l.profileAffiliate,
   ].join(' · ');
 }
 
@@ -141,7 +146,7 @@ class ProfileIdentity extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
     final size = large ? 30.0 : 24.0;
-    final meta = profileMeta(profile);
+    final meta = profileMeta(profile, context.l10n);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -219,7 +224,9 @@ class ProfileActions extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
     final watch = _WatchButton(
-      label: live ? (large ? 'Watch live' : 'Watch') : 'Chat',
+      label: live
+          ? (large ? context.l10n.profileWatchLive : context.l10n.streamWatch)
+          : context.l10n.profileChat,
       live: live,
       height: large ? 48 : 44,
       fontSize: large ? 15 : 14,
@@ -542,7 +549,7 @@ class ProfilePhoneHeader extends SliverPersistentHeaderDelegate {
               children: [
                 ProfileRoundButton(
                   glyph: SheetGlyphKind.chevronLeft,
-                  tooltip: 'Back',
+                  tooltip: context.l10n.commonBack,
                   onPressed: onBack,
                   onBar: t,
                 ),

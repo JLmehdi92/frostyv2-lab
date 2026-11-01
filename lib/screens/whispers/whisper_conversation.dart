@@ -2,6 +2,7 @@ import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/whispers/whisper_kit.dart';
 import 'package:onset/screens/whispers/whispers_screen.dart';
 import 'package:onset/stores/whisper_store.dart';
@@ -397,10 +398,6 @@ class _Messages extends StatelessWidget {
   /// How long after arriving a whisper still slides in when built.
   static const _freshFor = Duration(seconds: 1);
 
-  static const _note =
-      'Twitch keeps no history the app can show, so only this session’s '
-      'whispers appear here.';
-
   @override
   Widget build(BuildContext context) {
     return Observer(
@@ -440,7 +437,7 @@ class _Messages extends StatelessWidget {
                   item = Padding(
                     padding: EdgeInsets.fromLTRB(24, 4, 24, pane ? 22 : 18),
                     child: Text(
-                      _note,
+                      context.l10n.whisperSessionNote,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 12,
@@ -667,7 +664,7 @@ class _Composer extends StatelessWidget {
               cursorColor: accent,
               style: TextStyle(fontSize: 15, height: 1.35, color: colors.text),
               decoration: InputDecoration(
-                hintText: 'Whisper $name',
+                hintText: context.l10n.whisperHint(name: name),
                 hintStyle: TextStyle(fontSize: 15, color: colors.tertiary),
                 isCollapsed: true,
                 border: InputBorder.none,
@@ -742,7 +739,7 @@ class _SendButton extends StatelessWidget {
         height: 44,
         decoration: BoxDecoration(color: fill, shape: BoxShape.circle),
         child: IconButton(
-          tooltip: 'Send',
+          tooltip: context.l10n.whisperSend,
           onPressed: ready && !sending ? onSend : null,
           padding: EdgeInsets.zero,
           style: IconButton.styleFrom(splashFactory: NoSplash.splashFactory),

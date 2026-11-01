@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/models/vod.dart';
+import 'package:onset/screens/channel_profile/widgets/profile_videos_tab.dart';
 import 'package:onset/screens/clips/stores/channel_clips_store.dart';
 import 'package:onset/screens/clips/widgets/channel_clips_tab.dart';
 import 'package:onset/screens/home/shell/shell_tabs.dart';
@@ -64,14 +66,10 @@ class ChannelVideosScreen extends StatefulWidget {
 
 class _ChannelVideosScreenState extends State<ChannelVideosScreen>
     with SingleTickerProviderStateMixin {
-  static const _tabs = [
-    (VodType.archive, 'Past broadcasts', 'No past broadcasts'),
-    (VodType.highlight, 'Highlights', 'No highlights'),
-    (VodType.upload, 'Uploads', 'No uploads'),
-  ];
+  static const _tabs = kProfileVideoTypes;
 
   late final _stores = {
-    for (final (type, _, _) in _tabs)
+    for (final type in _tabs)
       type: ChannelVideosStore(
         login: widget.userLogin,
         type: type,
@@ -91,7 +89,7 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen>
     initialIndex: widget.startOnClips
         ? _tabs.length
         : _tabs
-              .indexWhere((t) => t.$1 == widget.initialTab)
+              .indexWhere((type) => type == widget.initialTab)
               .clamp(0, _tabs.length - 1),
   );
 
@@ -130,7 +128,11 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen>
     final accent = context.onsetColors.live;
     final ground = theme.scaffoldBackgroundColor;
     final padding = MediaQuery.paddingOf(context);
-    final labels = [for (final (_, label, _) in _tabs) label, 'Clips'];
+    final l = context.l10n;
+    final labels = [
+      for (final type in _tabs) profileVideoTypeTexts(type, l).label,
+      l.profileTabClips,
+    ];
 
     final header = DecoratedBox(
       decoration: BoxDecoration(
@@ -159,7 +161,7 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen>
                   spacing: 6,
                   children: [
                     Tooltip(
-                      message: 'Back',
+                      message: l.commonBack,
                       child: PressScale(
                         child: IconButton(
                           onPressed: () => Navigator.maybePop(context),
@@ -189,7 +191,7 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen>
                             text: widget.displayName,
                             children: [
                               TextSpan(
-                                text: ' · Videos',
+                                text: ' · ${l.profileTabVideos}',
                                 style: TextStyle(
                                   color: colors.tertiary,
                                   fontWeight: FontWeight.w600,
@@ -253,10 +255,10 @@ class _ChannelVideosScreenState extends State<ChannelVideosScreen>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    for (final (type, _, empty) in _tabs)
+                    for (final type in _tabs)
                       ChannelVideosTab(
                         store: _stores[type]!,
-                        emptyMessage: empty,
+                        emptyMessage: profileVideoTypeTexts(type, l).empty,
                       ),
                     ChannelClipsTab(store: _clipsStore),
                   ],

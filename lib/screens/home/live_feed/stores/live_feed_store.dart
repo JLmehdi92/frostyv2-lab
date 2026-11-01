@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_directory_service.dart';
-import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/screens/home/stream_list/stores/stream_list_store.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
@@ -117,8 +116,8 @@ abstract class LiveFeedStoreBase with Store {
   @readonly
   var _index = 0;
 
-  /// The content labels of the channels read so far (readable names, empty
-  /// when none; null when Twitch could not say).
+  /// The content labels of the channels read so far (Twitch's label ids,
+  /// named by the feed; empty when none, null when Twitch could not say).
   final _labels = ObservableMap<String, List<String>?>();
 
   /// The channels whose labels are being read.
@@ -131,8 +130,8 @@ abstract class LiveFeedStoreBase with Store {
   /// Whether [userId]'s labels were read (or could not be).
   bool knowsLabelsOf(String userId) => _labels.containsKey(userId);
 
-  /// [userId]'s content labels: empty when it has none, null when they are
-  /// not known (not read yet, or Twitch could not say).
+  /// [userId]'s content label ids: empty when it has none, null when they
+  /// are not known (not read yet, or Twitch could not say).
   List<String>? labelsOf(String userId) => _labels[userId];
 
   /// Reads the labels of the feed's channels not known yet, or read more
@@ -161,11 +160,9 @@ abstract class LiveFeedStoreBase with Store {
       read = {
         for (final id in ids)
           id: switch (channels[id]) {
-            // English, like the rest of the warning, until it is
-            // translated.
-            final channel? => contentLabelNames(
+            // Ids: the feed names them in the language on screen.
+            final channel? => contentLabelIds(
               channel.contentClassificationLabels,
-              L10n.untranslated,
             ),
             // Not in Twitch's answer: unknown, so not previewed unasked.
             null => null,

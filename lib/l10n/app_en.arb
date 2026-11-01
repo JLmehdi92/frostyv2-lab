@@ -2250,5 +2250,1654 @@
         }
       }
     }
+  },
+  "streamPreviewSemantics": "{name} stream preview",
+  "@streamPreviewSemantics": {
+    "description": "What a screen reader says for a stream card's preview picture. name is the channel's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "jltomy"
+      }
+    }
+  },
+  "streamEnlargeHint": "enlarge",
+  "@streamEnlargeHint": {
+    "description": "What a screen reader says a long press does on a stream picture: shows it larger. Lower case (it follows « long press to »)."
+  },
+  "streamViewers": "{count, plural, one{{count} viewer} other{{count} viewers}}",
+  "@streamViewers": {
+    "description": "A stream's viewers, the number in full (2,445): the cards' line and what a screen reader says for the viewers pill.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "2445"
+      }
+    }
+  },
+  "streamViewersCompact": "{count, plural, one{{count} viewer} other{{count} viewers}}",
+  "@streamViewersCompact": {
+    "description": "A followed category's viewers, the number short (1.2K): under its box art, and what a screen reader says for its pill.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "compact",
+        "example": "1200"
+      }
+    }
+  },
+  "streamWatching": "{count, plural, other{{count} watching}}",
+  "@streamWatching": {
+    "description": "How many watch a live, the number in full (2,445 watching): the live preview's line and the large stream card. English has one form.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "2445"
+      }
+    }
+  },
+  "streamWatchingShort": "{count, plural, other{{viewers} watching}}",
+  "@streamWatchingShort": {
+    "description": "How many watch a live, the number short (2.4k watching), on a channel profile's live card. count chooses the form; viewers is the number as shown.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2400"
+      },
+      "viewers": {
+        "type": "String",
+        "example": "2.4k"
+      }
+    }
+  },
+  "streamWatchStreakSemantics": "Watch streak {value}",
+  "@streamWatchStreakSemantics": {
+    "description": "What a screen reader says for the watch streak pill: how many streams in a row the viewer watched.",
+    "placeholders": {
+      "value": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "streamStreak": "Streak {value}",
+  "@streamStreak": {
+    "description": "The watch streak pill on a stream card (and in the large card's line): how many streams in a row the viewer watched. Kept short.",
+    "placeholders": {
+      "value": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "streamNoCategory": "No Category",
+  "@streamNoCategory": {
+    "description": "A stream card's category line when the stream has none."
+  },
+  "streamTagsSemantics": "Tags: {tags}",
+  "@streamTagsSemantics": {
+    "description": "What a screen reader says for a stream's row of tags. tags is the tags, comma-separated (Twitch's data).",
+    "placeholders": {
+      "tags": {
+        "type": "String",
+        "example": "English, Chill"
+      }
+    }
+  },
+  "streamTagSemantics": "Tag {tag}",
+  "@streamTagSemantics": {
+    "description": "What a screen reader says for one tag pill that opens the tag's streams. tag is Twitch's data.",
+    "placeholders": {
+      "tag": {
+        "type": "String",
+        "example": "Chill"
+      }
+    }
+  },
+  "streamWatch": "Watch",
+  "@streamWatch": {
+    "description": "The large stream card's button that opens the stream."
+  },
+  "streamOffline": "Offline",
+  "@streamOffline": {
+    "description": "A channel that is not live: the offline channel card's status and the Offline section of Following."
+  },
+  "streamFollowingForYears": "{count, plural, one{Following for {count} year} other{Following for {count} years}}",
+  "@streamFollowingForYears": {
+    "description": "Offline channel card: how long the viewer has followed the channel (« Suivie » agrees with « chaîne »).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "streamFollowingForMonths": "{count, plural, one{Following for {count} month} other{Following for {count} months}}",
+  "@streamFollowingForMonths": {
+    "description": "Offline channel card: how long the viewer has followed the channel, in months.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "streamFollowingForDays": "{count, plural, one{Following for {count} day} other{Following for {count} days}}",
+  "@streamFollowingForDays": {
+    "description": "Offline channel card: how long the viewer has followed the channel, in days.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "streamFollowingForHours": "{count, plural, one{Following for {count} hour} other{Following for {count} hours}}",
+  "@streamFollowingForHours": {
+    "description": "Offline channel card: how long the viewer has followed the channel, in hours.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "streamFollowingForMinutes": "{count, plural, one{Following for {count} minute} other{Following for {count} minutes}}",
+  "@streamFollowingForMinutes": {
+    "description": "Offline channel card: how long the viewer has followed the channel, in minutes (0 included).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "20"
+      }
+    }
+  },
+  "followedCategoriesTitle": "Categories",
+  "@followedCategoriesTitle": {
+    "description": "Following: the title of the row of followed categories."
+  },
+  "apiErrorUnableToConnect": "Unable to connect to Twitch",
+  "@apiErrorUnableToConnect": {
+    "description": "A list could not load because the device has no network: the error shown in its place (Following, Live, categories, followed videos)."
+  },
+  "apiErrorNetwork": "No internet connection. Please check your network.",
+  "@apiErrorNetwork": {
+    "description": "A request to Twitch failed: no connection."
+  },
+  "apiErrorConnectionTimeout": "Connection timeout. Please try again.",
+  "@apiErrorConnectionTimeout": {
+    "description": "A request to Twitch failed: connecting took too long."
+  },
+  "apiErrorSendTimeout": "Upload timeout. Please try again.",
+  "@apiErrorSendTimeout": {
+    "description": "A request to Twitch failed: sending it took too long."
+  },
+  "apiErrorReceiveTimeout": "Server response timeout. Please try again.",
+  "@apiErrorReceiveTimeout": {
+    "description": "A request to Twitch failed: the answer took too long."
+  },
+  "apiErrorCancelled": "Request was cancelled",
+  "@apiErrorCancelled": {
+    "description": "A request to Twitch was cancelled."
+  },
+  "apiErrorCertificate": "Security certificate error",
+  "@apiErrorCertificate": {
+    "description": "A request to Twitch failed: the server's certificate was refused."
+  },
+  "apiErrorUnexpected": "An unexpected error occurred",
+  "@apiErrorUnexpected": {
+    "description": "A request to Twitch failed for an unknown reason."
+  },
+  "apiErrorBadRequest": "Invalid request data",
+  "@apiErrorBadRequest": {
+    "description": "A request to Twitch was refused as malformed (HTTP 400) and Twitch said nothing more."
+  },
+  "apiErrorUnauthorized": "Please log in to continue",
+  "@apiErrorUnauthorized": {
+    "description": "A request to Twitch needs the viewer to log in (HTTP 401)."
+  },
+  "apiErrorForbidden": "Access denied. Insufficient permissions",
+  "@apiErrorForbidden": {
+    "description": "A request to Twitch was refused for lack of permissions (HTTP 403) and Twitch said nothing more."
+  },
+  "apiErrorNotFound": "Resource not found",
+  "@apiErrorNotFound": {
+    "description": "What a request to Twitch asked for does not exist (HTTP 404) and Twitch said nothing more."
+  },
+  "apiErrorConflict": "Conflict with current state. Please refresh",
+  "@apiErrorConflict": {
+    "description": "A request to Twitch conflicts with what changed meanwhile (HTTP 409)."
+  },
+  "apiErrorInvalid": "Invalid data provided",
+  "@apiErrorInvalid": {
+    "description": "A request to Twitch carried data it refused (HTTP 422)."
+  },
+  "apiErrorRateLimited": "Rate limit exceeded. Please wait before trying again",
+  "@apiErrorRateLimited": {
+    "description": "Twitch refused a request: too many in a short time (HTTP 429)."
+  },
+  "apiErrorServer": "Server error. Please try again later",
+  "@apiErrorServer": {
+    "description": "Twitch's server failed (HTTP 500)."
+  },
+  "apiErrorUnavailable": "Service temporarily unavailable",
+  "@apiErrorUnavailable": {
+    "description": "Twitch's service is down for now (HTTP 502)."
+  },
+  "apiErrorMaintenance": "Service maintenance. Please try again later",
+  "@apiErrorMaintenance": {
+    "description": "Twitch's service is in maintenance (HTTP 503)."
+  },
+  "apiErrorServerTimeout": "Server timeout. Please try again",
+  "@apiErrorServerTimeout": {
+    "description": "Twitch's server did not answer in time (HTTP 504)."
+  },
+  "apiErrorHttp": "HTTP Error {status} occurred",
+  "@apiErrorHttp": {
+    "description": "A request to Twitch failed with another HTTP status. status is its number (404, 418...).",
+    "placeholders": {
+      "status": {
+        "type": "int",
+        "example": "418"
+      }
+    }
+  },
+  "streamSortViewersHigh": "Viewers (high to low)",
+  "@streamSortViewersHigh": {
+    "description": "A category's or a tag's live streams sorted by viewers, most first (an option of « Sorted by »)."
+  },
+  "streamSortRecommended": "Recommended",
+  "@streamSortRecommended": {
+    "description": "A category's or a tag's live streams in Twitch's recommended order (an option of « Sorted by »; « Recommandés » agrees with « lives »)."
+  },
+  "streamSortViewersLow": "Viewers (low to high)",
+  "@streamSortViewersLow": {
+    "description": "A category's or a tag's live streams sorted by viewers, fewest first (an option of « Sorted by »)."
+  },
+  "streamSortRecent": "Recently started",
+  "@streamSortRecent": {
+    "description": "A category's or a tag's live streams, the latest started first (an option of « Sorted by »)."
+  },
+  "streamSortTooltip": "Sort streams",
+  "@streamSortTooltip": {
+    "description": "Tooltip of the « Sorted by » button above a category's or a tag's live streams."
+  },
+  "followedSortTooltip": "Sort live channels",
+  "@followedSortTooltip": {
+    "description": "Tooltip of the « Sorted by » button beside Following's « Live now »."
+  },
+  "streamSortedBy": "Sorted by {sort}",
+  "@streamSortedBy": {
+    "description": "The button that opens the orders of a live list: the current one. sort is an order's name (streamSortViewersHigh…, followedSortViewers…), shown in bold.",
+    "placeholders": {
+      "sort": {
+        "type": "String",
+        "example": "Viewers (high to low)"
+      }
+    }
+  },
+  "streamListTagUnavailable": "Tag streams are unavailable right now",
+  "@streamListTagUnavailable": {
+    "description": "A tag's list of live streams could not load (Twitch's directory failed)."
+  },
+  "streamListSortFailed": "Twitch could not sort by {sort}. {fallback} still works.",
+  "@streamListSortFailed": {
+    "description": "A category's live streams could not load in the order picked. sort is that order's name (streamSortRecent…), fallback the order that still works (streamSortViewersHigh).",
+    "placeholders": {
+      "sort": {
+        "type": "String",
+        "example": "Recently started"
+      },
+      "fallback": {
+        "type": "String",
+        "example": "Viewers (high to low)"
+      }
+    }
+  },
+  "streamListLoadFailed": "Something went wrong loading streams",
+  "@streamListLoadFailed": {
+    "description": "A list of live streams could not load, for an unexpected reason."
+  },
+  "streamListPinnedFailed": "Something went wrong loading pinned streams",
+  "@streamListPinnedFailed": {
+    "description": "Following's pinned channels' streams could not load, for an unexpected reason."
+  },
+  "streamListOfflineFailed": "Something went wrong loading offline channels",
+  "@streamListOfflineFailed": {
+    "description": "Following's offline channels could not load, for an unexpected reason."
+  },
+  "streamListAllHidden": "Every stream here has a label you hide",
+  "@streamListAllHidden": {
+    "description": "A live list (Live, a category, a tag) left empty because every stream has a content classification the viewer hides (Settings › General)."
+  },
+  "streamListShowHidden": "Show them",
+  "@streamListShowHidden": {
+    "description": "Button under « Every stream here has a label you hide » that shows those streams this once."
+  },
+  "streamListEmptyFollowed": "No followed streams",
+  "@streamListEmptyFollowed": {
+    "description": "Following, when no followed channel is live."
+  },
+  "streamListEmptyTop": "No top streams",
+  "@streamListEmptyTop": {
+    "description": "Home › Live (Twitch's most watched streams), when it is empty."
+  },
+  "streamListEmptyLive": "No live streams",
+  "@streamListEmptyLive": {
+    "description": "A category's or a tag's live streams, when none is live."
+  },
+  "streamListPinned": "Pinned",
+  "@streamListPinned": {
+    "description": "Following: the small capitals above the pinned channels (« Épinglées » agrees with « chaînes »)."
+  },
+  "streamListAll": "All",
+  "@streamListAll": {
+    "description": "Following: the small capitals above the other live channels, under the pinned ones (« Toutes » agrees with « chaînes »)."
+  },
+  "streamListLiveNow": "Live now",
+  "@streamListLiveNow": {
+    "description": "Following: the title above the followed channels that are live, with their number."
+  },
+  "streamListHiddenCount": "{count, plural, one{{count} stream hidden by your content preferences} other{{count} streams hidden by your content preferences}}",
+  "@streamListHiddenCount": {
+    "description": "Under a live list: how many streams the viewer's hidden content classifications leave out.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "streamListShow": "Show",
+  "@streamListShow": {
+    "description": "Button beside « 3 streams hidden by your content preferences » that shows them."
+  },
+  "followedVideosTitle": "Followed videos",
+  "@followedVideosTitle": {
+    "description": "The newest videos of the followed channels: the tile on Following that opens them, and that page's title."
+  },
+  "contentWarningTitle": "Just one second…",
+  "@contentWarningTitle": {
+    "description": "Twitch's mature-content warning over a live preview or a player: its title."
+  },
+  "contentWarningAudience": "This content is intended for certain audiences.",
+  "@contentWarningAudience": {
+    "description": "Mature-content warning: the line under its title when the channel's name is not known."
+  },
+  "contentWarningAudienceOf": "{name}'s content is intended for certain audiences.",
+  "@contentWarningAudienceOf": {
+    "description": "Mature-content warning: the line under its title. name is the channel's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "jltomy"
+      }
+    }
+  },
+  "contentWarningMayContain": "It may contain: {labels}",
+  "@contentWarningMayContain": {
+    "description": "Mature-content warning: the channel's content classifications (contentLabel… names, comma-separated).",
+    "placeholders": {
+      "labels": {
+        "type": "String",
+        "example": "Gambling, Mature-rated game"
+      }
+    }
+  },
+  "contentWarningStart": "Start watching",
+  "@contentWarningStart": {
+    "description": "Mature-content warning: the button that accepts it and plays."
+  },
+  "contentWarningBack": "Go back",
+  "@contentWarningBack": {
+    "description": "Mature-content warning: the button that declines it and leaves."
+  },
+  "liveFeedHidden": "You won't see {name} in Live for now",
+  "@liveFeedHidden": {
+    "description": "Snackbar after « Not interested » on a live preview (Home › Live). name is the channel's display name; « En direct » is the tab's name (shellFeedLive).",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "jltomy"
+      }
+    }
+  },
+  "liveFeedUndo": "Undo",
+  "@liveFeedUndo": {
+    "description": "The snackbar's action that brings back a channel hidden with « Not interested »."
+  },
+  "liveFeedAllCategories": "All",
+  "@liveFeedAllCategories": {
+    "description": "Home › Live: the first chip of the row of categories, every category (« Toutes » agrees with « catégories »)."
+  },
+  "liveFeedPreviewUnavailable": "Preview unavailable",
+  "@liveFeedPreviewUnavailable": {
+    "description": "Home › Live: over a channel's picture when its live preview cannot play."
+  },
+  "liveFeedContentWarningSemantics": "Content warning. Play preview",
+  "@liveFeedContentWarningSemantics": {
+    "description": "What a screen reader says for the pill over a classified channel's picture (Home › Live): a tap shows the warning, then the preview."
+  },
+  "liveFeedContentWarning": "Content warning · Play preview",
+  "@liveFeedContentWarning": {
+    "description": "The pill over a classified channel's picture (Home › Live): a tap shows the content warning, then the preview. One line, ellipsised if long."
+  },
+  "liveFeedPlayPreview": "Play preview",
+  "@liveFeedPlayPreview": {
+    "description": "Home › Live: the round button that plays a channel's preview by hand (autoplay off)."
+  },
+  "liveFeedUnmute": "Unmute",
+  "@liveFeedUnmute": {
+    "description": "Home › Live: the round button that turns a preview's sound on."
+  },
+  "liveFeedMute": "Mute",
+  "@liveFeedMute": {
+    "description": "Home › Live: the round button that turns a preview's sound off."
+  },
+  "liveFeedSoundOn": "Sound on",
+  "@liveFeedSoundOn": {
+    "description": "Home › Live: beside the viewers, the preview plays with sound."
+  },
+  "liveFeedMuted": "Muted preview",
+  "@liveFeedMuted": {
+    "description": "Home › Live: beside the viewers, the preview plays muted."
+  },
+  "liveFeedWatchWithChat": "Watch with chat",
+  "@liveFeedWatchWithChat": {
+    "description": "Home › Live: the main button that opens the channel (video and chat)."
+  },
+  "liveFeedFollowOnTwitch": "Follow {name} on Twitch",
+  "@liveFeedFollowOnTwitch": {
+    "description": "Home › Live: the tooltip of « Follow », which opens the channel on twitch.tv. name is the channel's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "jltomy"
+      }
+    }
+  },
+  "liveFeedFollow": "Follow",
+  "@liveFeedFollow": {
+    "description": "Home › Live: the button that opens the channel on twitch.tv to follow it."
+  },
+  "liveFeedPreviewSemantics": "{name} live preview. Opens the channel",
+  "@liveFeedPreviewSemantics": {
+    "description": "What a screen reader says for a channel's preview in Home › Live. name is the channel's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "jltomy"
+      }
+    }
+  },
+  "liveFeedChannelActions": "Channel actions",
+  "@liveFeedChannelActions": {
+    "description": "What a screen reader says a long press on a preview does (Home › Live, thumbnails off): opens the channel's actions."
+  },
+  "liveFeedNotInterested": "Not interested",
+  "@liveFeedNotInterested": {
+    "description": "Home › Live: the round button that hides a channel from the feed for this session."
+  },
+  "liveFeedShare": "Share",
+  "@liveFeedShare": {
+    "description": "Home › Live: the round button that shares the channel's link."
+  },
+  "liveFeedSwipeHint": "SWIPE UP FOR THE NEXT LIVE",
+  "@liveFeedSwipeHint": {
+    "description": "Home › Live, phone: the hint at the bottom of the first preview, in small capitals (written in capitals)."
+  },
+  "liveFeedUpNext": "UP NEXT",
+  "@liveFeedUpNext": {
+    "description": "Home › Live, tablet: the small capitals above the next channels (written in capitals)."
+  },
+  "liveFeedUpNextHelp": "Swipe up on the preview, or tap a live in the list. Previews never start with sound.",
+  "@liveFeedUpNextHelp": {
+    "description": "Home › Live, tablet: the note under the next channels."
+  },
+  "liveFeedLoadingMore": "Loading more live channels",
+  "@liveFeedLoadingMore": {
+    "description": "Home › Live: the page after the last channel while more load."
+  },
+  "liveFeedEnd": "That’s every live channel here for now",
+  "@liveFeedEnd": {
+    "description": "Home › Live: the page after the last channel when there are no more."
+  },
+  "liveFeedBackToFirst": "Back to the first",
+  "@liveFeedBackToFirst": {
+    "description": "Home › Live: the button on the last page that goes back to the first channel (« la première » chaîne)."
+  },
+  "commonSeeAll": "See all",
+  "@commonSeeAll": {
+    "description": "Button beside a section's title that opens all of it (search results, continue watching, a channel profile's section, whispers)."
+  },
+  "searchTabTop": "Top",
+  "@searchTabTop": {
+    "description": "Search: the first results tab, the best channels and categories (and videos) together. French: « Tout », as in Google's and Android's tabs."
+  },
+  "searchTabChannels": "Channels",
+  "@searchTabChannels": {
+    "description": "Search: the channels tab, and the title of the channels under « Top »."
+  },
+  "searchTabCategories": "Categories",
+  "@searchTabCategories": {
+    "description": "Search: the categories tab, and the title of the categories under « Top »."
+  },
+  "searchTabVideos": "Videos",
+  "@searchTabVideos": {
+    "description": "Search: the videos tab, and the title of the videos under « Top »."
+  },
+  "searchClear": "Clear",
+  "@searchClear": {
+    "description": "Search: the button that empties the search field, and the one that forgets the search history."
+  },
+  "searchHint": "Search channels, categories or videos",
+  "@searchHint": {
+    "description": "Search: the field's hint. One line, ellipsised if long."
+  },
+  "searchSeeAllSemantics": "See all {section}",
+  "@searchSeeAllSemantics": {
+    "description": "What a screen reader says for « See all » beside a search section. section is its title (searchTabChannels…).",
+    "placeholders": {
+      "section": {
+        "type": "String",
+        "example": "Channels"
+      }
+    }
+  },
+  "searchHistory": "History",
+  "@searchHistory": {
+    "description": "Search: the title of the past searches."
+  },
+  "searchRemoveFromHistory": "Remove {query} from history",
+  "@searchRemoveFromHistory": {
+    "description": "Search: the tooltip of the cross after a past search. query is what was searched.",
+    "placeholders": {
+      "query": {
+        "type": "String",
+        "example": "minecraft"
+      }
+    }
+  },
+  "searchNoHistory": "No recent searches",
+  "@searchNoHistory": {
+    "description": "Search, before typing: there is no past search."
+  },
+  "searchCategoriesFailed": "Unable to load categories",
+  "@searchCategoriesFailed": {
+    "description": "Search: the categories could not load (with « Try again »)."
+  },
+  "searchCategoriesUnavailable": "Failed to get categories",
+  "@searchCategoriesUnavailable": {
+    "description": "Search: Twitch answered without categories (with « Try again »)."
+  },
+  "searchNoCategories": "No matching categories",
+  "@searchNoCategories": {
+    "description": "Search: no category matches what was typed."
+  },
+  "searchChannelNotFound": "Unable to find channel",
+  "@searchChannelNotFound": {
+    "description": "Snackbar when the channel picked in search results cannot be opened."
+  },
+  "searchChannelsFailed": "Unable to load channels",
+  "@searchChannelsFailed": {
+    "description": "Search: the channels could not load (with « Try again »)."
+  },
+  "searchGoToChannel": "Go to channel \"{query}\"",
+  "@searchGoToChannel": {
+    "description": "Search: the row that opens the channel whose login is exactly what was typed. query is what was typed.",
+    "placeholders": {
+      "query": {
+        "type": "String",
+        "example": "jltomy"
+      }
+    }
+  },
+  "searchVideosFailed": "Unable to load videos",
+  "@searchVideosFailed": {
+    "description": "Search: the videos could not load (with « Try again »)."
+  },
+  "searchNoResults": "No search results found",
+  "@searchNoResults": {
+    "description": "Search: no video matches what was typed."
+  },
+  "browseLiveChannels": "Live channels {where}",
+  "@browseLiveChannels": {
+    "description": "Browse: the title above the live channels of all Twitch (Browse › Live channels). where is browseAcrossTwitch, shown lighter.",
+    "placeholders": {
+      "where": {
+        "type": "String",
+        "example": "across Twitch"
+      }
+    }
+  },
+  "browseAcrossTwitch": "across Twitch",
+  "@browseAcrossTwitch": {
+    "description": "The lighter end of « Live channels across Twitch » (browseLiveChannels)."
+  },
+  "categoriesEmpty": "No top categories",
+  "@categoriesEmpty": {
+    "description": "Browse › Categories, when Twitch lists none."
+  },
+  "categoriesLoadFailed": "Something went wrong loading categories",
+  "@categoriesLoadFailed": {
+    "description": "Browse › Categories could not load, for an unexpected reason."
+  },
+  "categoriesRailTitle": "Top categories",
+  "@categoriesRailTitle": {
+    "description": "Tablet Browse: the title above the rail of Twitch's most watched categories (« Most watched first » follows)."
+  },
+  "categoriesRailNote": "Most watched first",
+  "@categoriesRailNote": {
+    "description": "Tablet Browse: beside « Top categories », how they are ordered (« regardées » agrees with « catégories »)."
+  },
+  "categorySectionLive": "Live",
+  "@categorySectionLive": {
+    "description": "A category's page: the tab of its live streams."
+  },
+  "categorySectionVideos": "Videos",
+  "@categorySectionVideos": {
+    "description": "A category's page: the tab of its videos."
+  },
+  "categorySectionClips": "Clips",
+  "@categorySectionClips": {
+    "description": "A category's page: the tab of its clips."
+  },
+  "categoryNoVideos": "No videos in this category",
+  "@categoryNoVideos": {
+    "description": "A category's Videos tab, when it has none."
+  },
+  "categoryEyebrow": "CATEGORY",
+  "@categoryEyebrow": {
+    "description": "A category's page: the small capitals above its name (written in capitals)."
+  },
+  "categoryFollowOnTwitch": "Follow on Twitch",
+  "@categoryFollowOnTwitch": {
+    "description": "A category's page: the button that opens the category on twitch.tv to follow it."
+  },
+  "followedVideosToday": "Today",
+  "@followedVideosToday": {
+    "description": "Followed videos: the section of the videos made today."
+  },
+  "followedVideosYesterday": "Yesterday",
+  "@followedVideosYesterday": {
+    "description": "Followed videos: the section of the videos made yesterday."
+  },
+  "followedVideosThisWeek": "This week",
+  "@followedVideosThisWeek": {
+    "description": "Followed videos: the section of the videos made earlier this week."
+  },
+  "followedVideosOlder": "Older",
+  "@followedVideosOlder": {
+    "description": "Followed videos: the section of the older videos (« anciennes » agrees with « vidéos »)."
+  },
+  "followedVideosEmpty": "No recent videos",
+  "@followedVideosEmpty": {
+    "description": "Followed videos, when the followed channels made none lately."
+  },
+  "followedVideosSubtitle": "The newest videos of the channels you follow",
+  "@followedVideosSubtitle": {
+    "description": "Followed videos: the line under the page's title. One line, ellipsised if long."
+  },
+  "followedVideosRefresh": "Refresh",
+  "@followedVideosRefresh": {
+    "description": "Followed videos: the button that loads the list again."
+  },
+  "followedVideosLoadFailed": "Something went wrong loading videos",
+  "@followedVideosLoadFailed": {
+    "description": "Followed videos could not load, for an unexpected reason."
+  },
+  "continueWatchingTitle": "Continue watching",
+  "@continueWatchingTitle": {
+    "description": "Following: the title of the shelf of videos left part-way, and of its full page."
+  },
+  "continueWatchingResumeAt": "Resume at {time}",
+  "@continueWatchingResumeAt": {
+    "description": "Continue watching: where a video was left. time is a position such as 1:02:15.",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "1:02:15"
+      }
+    }
+  },
+  "continueWatchingEmpty": "Nothing to resume",
+  "@continueWatchingEmpty": {
+    "description": "Continue watching's page, when no video was left part-way."
+  },
+  "savedToday": "today",
+  "@savedToday": {
+    "description": "Continue watching: when a video was left, today. Lower case (it follows the channel's name and « · »)."
+  },
+  "savedYesterday": "yesterday",
+  "@savedYesterday": {
+    "description": "Continue watching: when a video was left, yesterday. Lower case."
+  },
+  "savedDaysAgo": "{count, plural, one{{count} day ago} other{{count} days ago}}",
+  "@savedDaysAgo": {
+    "description": "Continue watching: when a video was left, 2 to 6 days ago. Lower case.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "savedWeeksAgo": "{count, plural, one{{count} wk ago} other{{count} wk ago}}",
+  "@savedWeeksAgo": {
+    "description": "Continue watching: when a video was left, in weeks (abbreviated). Lower case.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "savedMonthsAgo": "{count, plural, one{{count} mo ago} other{{count} mo ago}}",
+  "@savedMonthsAgo": {
+    "description": "Continue watching: when a video was left, in months (abbreviated in English). Lower case.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "timeAgoJustNow": "Just now",
+  "@timeAgoJustNow": {
+    "description": "When a video, clip or notification was made: less than a minute ago. Starts with a capital (lowered inside a sentence, as in « Last live just now »)."
+  },
+  "timeAgoMinutes": "{count, plural, one{{count} minute ago} other{{count} minutes ago}}",
+  "@timeAgoMinutes": {
+    "description": "When a video, clip or notification was made, in minutes. Starts with a capital (lowered inside a sentence).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "timeAgoHours": "{count, plural, one{{count} hour ago} other{{count} hours ago}}",
+  "@timeAgoHours": {
+    "description": "When a video, clip or notification was made, in hours.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "timeAgoYesterday": "Yesterday",
+  "@timeAgoYesterday": {
+    "description": "When a video, clip or notification was made: yesterday."
+  },
+  "timeAgoDays": "{count, plural, one{{count} day ago} other{{count} days ago}}",
+  "@timeAgoDays": {
+    "description": "When a video, clip or notification was made, in days (2 to 6).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "timeAgoWeeks": "{count, plural, one{{count} week ago} other{{count} weeks ago}}",
+  "@timeAgoWeeks": {
+    "description": "When a video, clip or notification was made, in weeks.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "timeAgoMonths": "{count, plural, one{{count} month ago} other{{count} months ago}}",
+  "@timeAgoMonths": {
+    "description": "When a video, clip or notification was made, in months.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "timeAgoYears": "{count, plural, one{{count} year ago} other{{count} years ago}}",
+  "@timeAgoYears": {
+    "description": "When a video, clip or notification was made, in years.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "videoViews": "{count, plural, one{{count} view} other{{count} views}}",
+  "@videoViews": {
+    "description": "How many times a video or clip was watched, the number in full (3,104 views).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "3104"
+      }
+    }
+  },
+  "videoViewsCompact": "{count, plural, one{{count} view} other{{count} views}}",
+  "@videoViewsCompact": {
+    "description": "How many times a clip was watched, the number short (248K views).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "compact",
+        "example": "248000"
+      }
+    }
+  },
+  "videoViewsShort": "{count, plural, one{{views} view} other{{views} views}}",
+  "@videoViewsShort": {
+    "description": "How many times a video or clip was watched, on a channel profile's Home tab: count chooses the form, views is the number as shown (248k).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "248000"
+      },
+      "views": {
+        "type": "String",
+        "example": "248k"
+      }
+    }
+  },
+  "clipUntitled": "Untitled clip",
+  "@clipUntitled": {
+    "description": "A clip's title when it has none (clip cards, the clips feed, a clip's page)."
+  },
+  "clipsPlayerSemantics": "Clip player. Double-tap to toggle play/pause",
+  "@clipsPlayerSemantics": {
+    "description": "What a screen reader says for a clip's video in the clips feed."
+  },
+  "clipsCannotPlay": "This clip can't be played here",
+  "@clipsCannotPlay": {
+    "description": "The clips feed: over a clip that cannot play in the app."
+  },
+  "clipsLoadingMore": "Loading more clips for you",
+  "@clipsLoadingMore": {
+    "description": "The clips feed: while the next clips load."
+  },
+  "clipsLoadFailed": "Unable to load clips",
+  "@clipsLoadFailed": {
+    "description": "The clips feed could not load (with « Try again »)."
+  },
+  "clipsEmpty": "No clips right now",
+  "@clipsEmpty": {
+    "description": "The clips feed, when Twitch has none to show."
+  },
+  "clipsOpen": "Open clip",
+  "@clipsOpen": {
+    "description": "The clips feed: the button (and its tooltip) that opens the clip's own page."
+  },
+  "clipsNextSemantics": "Next clip, {channel}, {title}",
+  "@clipsNextSemantics": {
+    "description": "What a screen reader says for the card of the next clip. channel is its channel's name, title its title.",
+    "placeholders": {
+      "channel": {
+        "type": "String",
+        "example": "jltomy"
+      },
+      "title": {
+        "type": "String",
+        "example": "What a play"
+      }
+    }
+  },
+  "clipsNext": "NEXT",
+  "@clipsNext": {
+    "description": "The clips feed: the small capitals above the next clip's title (written in capitals)."
+  },
+  "clipsSwipeHint": "You can swipe to the next clip",
+  "@clipsSwipeHint": {
+    "description": "The clips feed: the hint shown on the first clip."
+  },
+  "clipsLoadMoreFailed": "Unable to load more clips",
+  "@clipsLoadMoreFailed": {
+    "description": "The clips feed: the next clips could not load (with « Try again »)."
+  },
+  "clipsEnd": "That’s all for now! Check out more clips from previous streams",
+  "@clipsEnd": {
+    "description": "The clips feed: after the last clip (Twitch's words)."
+  },
+  "clipsUpNext": "Up next in Clips",
+  "@clipsUpNext": {
+    "description": "Tablet clips feed: the title above the next clips (« Clips » is Home's tab)."
+  },
+  "clipsUpNextHelp": "Swipe the video or pick one",
+  "@clipsUpNextHelp": {
+    "description": "Tablet clips feed: beside « Up next in Clips »."
+  },
+  "clipOpenChannel": "Open {channel}",
+  "@clipOpenChannel": {
+    "description": "What a screen reader says for the channel row under a clip: it opens the channel. channel is its name.",
+    "placeholders": {
+      "channel": {
+        "type": "String",
+        "example": "jltomy"
+      }
+    }
+  },
+  "clipOpenChannelClippedBy": "Open {channel}, clipped by {curator}",
+  "@clipOpenChannelClippedBy": {
+    "description": "What a screen reader says for the channel row under a clip. channel is its name, curator the name of who made the clip.",
+    "placeholders": {
+      "channel": {
+        "type": "String",
+        "example": "jltomy"
+      },
+      "curator": {
+        "type": "String",
+        "example": "xqc_fan"
+      }
+    }
+  },
+  "clipClippedBy": "Clipped by {curator}",
+  "@clipClippedBy": {
+    "description": "Who made a clip (clip cards, a clip's page). curator is their name; « Créé » agrees with « clip ».",
+    "placeholders": {
+      "curator": {
+        "type": "String",
+        "example": "xqc_fan"
+      }
+    }
+  },
+  "clipWatchFullVideo": "Watch full video",
+  "@clipWatchFullVideo": {
+    "description": "A clip's page: the button that opens the whole video at the clip's moment."
+  },
+  "clipCopyLink": "Copy link",
+  "@clipCopyLink": {
+    "description": "A clip's page: the button that copies its link."
+  },
+  "clipShare": "Share",
+  "@clipShare": {
+    "description": "A clip's page: the tooltip of the button that shares its link."
+  },
+  "clipsNoneForPeriod": "No clips for this period",
+  "@clipsNoneForPeriod": {
+    "description": "A channel's or a category's clips, when the period picked has none."
+  },
+  "clipsShowingTop": "{count, plural, one{Showing the top {count} clip} other{Showing the top {count} clips}}",
+  "@clipsShowingTop": {
+    "description": "Under a channel's or a category's clips when Twitch has more than it lists.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "100"
+      }
+    }
+  },
+  "clipsCategoryNotFound": "Category not found",
+  "@clipsCategoryNotFound": {
+    "description": "A category's clips: the category is not on Twitch."
+  },
+  "clipsChannelNotFound": "Channel not found",
+  "@clipsChannelNotFound": {
+    "description": "A channel's clips: the channel is not on Twitch."
+  },
+  "clipsListFailed": "Couldn't load clips",
+  "@clipsListFailed": {
+    "description": "A channel's or a category's clips could not load (with « Try again »)."
+  },
+  "clipsMoreFrom": "More clips from {channel}",
+  "@clipsMoreFrom": {
+    "description": "A clip's page: the title above the channel's other clips. channel is its name.",
+    "placeholders": {
+      "channel": {
+        "type": "String",
+        "example": "jltomy"
+      }
+    }
+  },
+  "clipLinkCopied": "Link copied",
+  "@clipLinkCopied": {
+    "description": "Snackbar after copying a clip's link."
+  },
+  "clipCopyClipLink": "Copy clip link",
+  "@clipCopyClipLink": {
+    "description": "A clip's player: the label of the action that copies its link."
+  },
+  "clipDetailsFailed": "Couldn't load the clip details",
+  "@clipDetailsFailed": {
+    "description": "A clip's page: its title, channel and views could not load (with « Try again »)."
+  },
+  "clipSyncedToClip": "synced to the clip",
+  "@clipSyncedToClip": {
+    "description": "A clip's chat replay: the pill saying the messages follow the clip's time. Lower case."
+  },
+  "playbackSubscriberOnly": "{subject, select, clip{This clip is only available to subscribers.} other{This video is only available to subscribers.}}",
+  "@playbackSubscriberOnly": {
+    "description": "Over a video's or a clip's player: only the channel's subscribers may watch it. subject is clip or video.",
+    "placeholders": {
+      "subject": {
+        "type": "String",
+        "example": "video"
+      }
+    }
+  },
+  "playbackGeoBlocked": "{subject, select, clip{This clip is not available in your region} other{This video is not available in your region}}",
+  "@playbackGeoBlocked": {
+    "description": "Over a video's or a clip's player: it cannot be watched in the viewer's country. subject is clip or video.",
+    "placeholders": {
+      "subject": {
+        "type": "String",
+        "example": "video"
+      }
+    }
+  },
+  "playbackNotFound": "{subject, select, clip{This clip is no longer available} other{This video is no longer available}}",
+  "@playbackNotFound": {
+    "description": "Over a video's or a clip's player: it was deleted. subject is clip or video.",
+    "placeholders": {
+      "subject": {
+        "type": "String",
+        "example": "video"
+      }
+    }
+  },
+  "playbackFailed": "{subject, select, clip{Couldn't play this clip} other{Couldn't play this video}}",
+  "@playbackFailed": {
+    "description": "Over a video's or a clip's player: it could not play (with « Try again »). subject is clip or video.",
+    "placeholders": {
+      "subject": {
+        "type": "String",
+        "example": "video"
+      }
+    }
+  },
+  "playbackSubscribeDetail": "Subscribe now to watch and support this channel.",
+  "@playbackSubscribeDetail": {
+    "description": "Under « This video is only available to subscribers. » (the official app's words)."
+  },
+  "clipPeriodLastDay": "24 hours",
+  "@clipPeriodLastDay": {
+    "description": "A channel's or a category's clips: the chip for the clips of the last 24 hours."
+  },
+  "clipPeriodLastWeek": "7 days",
+  "@clipPeriodLastWeek": {
+    "description": "A channel's or a category's clips: the chip for the clips of the last 7 days."
+  },
+  "clipPeriodLastMonth": "30 days",
+  "@clipPeriodLastMonth": {
+    "description": "A channel's or a category's clips: the chip for the clips of the last 30 days."
+  },
+  "clipPeriodAllTime": "All time",
+  "@clipPeriodAllTime": {
+    "description": "A channel's or a category's clips: the chip for all the clips ever made."
+  },
+  "clipSortTop": "Top",
+  "@clipSortTop": {
+    "description": "A channel's or a category's clips: the chip that orders them by views, most first (« vus » agrees with « clips »)."
+  },
+  "clipSortTrending": "Trending",
+  "@clipSortTrending": {
+    "description": "A channel's or a category's clips: the chip that orders them by Twitch's trend."
+  },
+  "profileTabHome": "Home",
+  "@profileTabHome": {
+    "description": "A channel's profile: the Home tab (its live, next stream, recent broadcasts and clips)."
+  },
+  "profileTabVideos": "Videos",
+  "@profileTabVideos": {
+    "description": "A channel's profile: the Videos tab."
+  },
+  "profileTabClips": "Clips",
+  "@profileTabClips": {
+    "description": "A channel's profile: the Clips tab."
+  },
+  "profileTabSchedule": "Schedule",
+  "@profileTabSchedule": {
+    "description": "A channel's profile: the Schedule tab (Twitch's French word)."
+  },
+  "profileTabAbout": "About",
+  "@profileTabAbout": {
+    "description": "A channel's profile: the About tab."
+  },
+  "profileRefreshFailed": "Couldn't refresh this channel",
+  "@profileRefreshFailed": {
+    "description": "Snackbar when pulling to refresh a channel's profile failed (what was shown stays)."
+  },
+  "profileOpenFailed": "Couldn't open this channel, check your connection",
+  "@profileOpenFailed": {
+    "description": "Snackbar when a channel's profile cannot open its channel page (its id is not known yet)."
+  },
+  "profileShare": "Share",
+  "@profileShare": {
+    "description": "A channel's profile: the tooltip of the button that shares its link."
+  },
+  "profileMore": "More",
+  "@profileMore": {
+    "description": "A channel's profile: the tooltip of the button that opens more actions (block, report…)."
+  },
+  "profileLoadFailed": "Couldn't load this channel's profile",
+  "@profileLoadFailed": {
+    "description": "A channel's profile could not load (with « Try again »)."
+  },
+  "profileNoDetails": "No details",
+  "@profileNoDetails": {
+    "description": "A channel's About tab, when Twitch gave nothing about it."
+  },
+  "profileScheduleFailed": "Couldn't load the schedule",
+  "@profileScheduleFailed": {
+    "description": "A channel's Schedule tab could not load (with « Try again »)."
+  },
+  "profileNotFound": "Channel not found",
+  "@profileNotFound": {
+    "description": "A channel's profile, when the channel is not on Twitch."
+  },
+  "profileFollowers": "{count, plural, one{{count} follower} other{{count} followers}}",
+  "@profileFollowers": {
+    "description": "A channel's About tab: its followers, the number in full (48,213 followers). Twitch's French word is « followers ».",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "48213"
+      }
+    }
+  },
+  "profileFollowersShort": "{count, plural, one{{followers} follower} other{{followers} followers}}",
+  "@profileFollowersShort": {
+    "description": "A channel's profile header: its followers, the number short (48.2k). count chooses the form; followers is the number as shown.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "48200"
+      },
+      "followers": {
+        "type": "String",
+        "example": "48.2k"
+      }
+    }
+  },
+  "profileJoined": "Joined {date}",
+  "@profileJoined": {
+    "description": "A channel's About tab: when the channel was created, as month and year.",
+    "placeholders": {
+      "date": {
+        "type": "DateTime",
+        "format": "yMMMM",
+        "example": "2019-03-01"
+      }
+    }
+  },
+  "profilePartner": "Partner",
+  "@profilePartner": {
+    "description": "A channel's profile: the channel is a Twitch partner."
+  },
+  "profileAffiliate": "Affiliate",
+  "@profileAffiliate": {
+    "description": "A channel's profile: the channel is a Twitch affiliate (« Affilié », Twitch's French name of the role)."
+  },
+  "profileAboutTitle": "About {name}",
+  "@profileAboutTitle": {
+    "description": "A channel's About tab: its title. name is the channel's display name (French: « de la chaîne » avoids elision before the name).",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "jltomy"
+      }
+    }
+  },
+  "profileNoBio": "No bio yet.",
+  "@profileNoBio": {
+    "description": "A channel's About tab, when it has no description."
+  },
+  "profilePanelImage": "Panel image",
+  "@profilePanelImage": {
+    "description": "What a screen reader says for a channel's panel picture when it has no description of its own."
+  },
+  "profileWatchLive": "Watch live",
+  "@profileWatchLive": {
+    "description": "Tablet channel profile: the button that opens the live channel."
+  },
+  "profileChat": "Chat",
+  "@profileChat": {
+    "description": "A channel's profile when it is not live: the button that opens the channel's chat."
+  },
+  "profileNextStreamAt": "Next stream · {time}",
+  "@profileNextStreamAt": {
+    "description": "A channel's Home tab, phone: the next scheduled stream's card. time is its start time (14:05).",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "14:05"
+      }
+    }
+  },
+  "profileComingUp": "Coming up",
+  "@profileComingUp": {
+    "description": "Tablet channel profile: the small capitals above the next scheduled streams."
+  },
+  "profileRecentBroadcasts": "Recent broadcasts",
+  "@profileRecentBroadcasts": {
+    "description": "A channel's Home tab: the title above its latest past broadcasts."
+  },
+  "profilePopularClips": "Popular clips",
+  "@profilePopularClips": {
+    "description": "A channel's Home tab: the title above its most viewed clips."
+  },
+  "profileThumbnail": "Thumbnail",
+  "@profileThumbnail": {
+    "description": "What a screen reader says for a video's or a clip's picture on a channel's Home tab."
+  },
+  "videoUntitled": "Untitled",
+  "@videoUntitled": {
+    "description": "A video's title when it has none."
+  },
+  "profileRecording": "Recording",
+  "@profileRecording": {
+    "description": "A channel's Home tab: the chip on a broadcast still being recorded (the channel is live). Kept short."
+  },
+  "profileWatched": "Watched",
+  "@profileWatched": {
+    "description": "A channel's Home tab: the chip on a video the viewer watched to the end (« Vue » agrees with « vidéo »). Kept short."
+  },
+  "profileSubscribersOnly": "Subscribers only",
+  "@profileSubscribersOnly": {
+    "description": "A channel's Home tab: before a video's details when only subscribers may watch it."
+  },
+  "profileLastLive": "Last live {when}",
+  "@profileLastLive": {
+    "description": "A channel's live card when it is offline: when it last streamed. when is a time ago inside a sentence (« 3 days ago », « il y a 3 jours », « just now »).",
+    "placeholders": {
+      "when": {
+        "type": "String",
+        "example": "3 days ago"
+      }
+    }
+  },
+  "profileRerun": "Rerun",
+  "@profileRerun": {
+    "description": "A channel's live card: the stream is a rerun of a past broadcast."
+  },
+  "profileRerunBadge": "RERUN",
+  "@profileRerunBadge": {
+    "description": "A channel's live card: the small badge on a rerun's picture, in capitals. Kept short (an 18 dp pill)."
+  },
+  "profileLive": "Live",
+  "@profileLive": {
+    "description": "What a screen reader says first for a channel's live card while it is live."
+  },
+  "profileReminderSet": "Reminder Set",
+  "@profileReminderSet": {
+    "description": "A scheduled stream: the button (and tooltip) once a reminder is set; a tap removes it."
+  },
+  "profileRemindMe": "Remind Me",
+  "@profileRemindMe": {
+    "description": "A scheduled stream: the button (and tooltip) that sets a notification when it starts (Twitch's « Remind Me »)."
+  },
+  "startsNow": "now",
+  "@startsNow": {
+    "description": "When a scheduled stream starts: now. Lower case (inside « Next stream now · 14:05 »)."
+  },
+  "startsInMinutes": "{count, plural, one{in {count} minute} other{in {count} minutes}}",
+  "@startsInMinutes": {
+    "description": "When a scheduled stream starts, in minutes. Lower case (inside « Next stream in 5 minutes · 14:05 »).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "startsInHours": "{count, plural, one{in {count} hour} other{in {count} hours}}",
+  "@startsInHours": {
+    "description": "When a scheduled stream starts, in hours. Lower case.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "startsInDays": "{count, plural, one{in {count} day} other{in {count} days}}",
+  "@startsInDays": {
+    "description": "When a scheduled stream starts, in days. Lower case.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "profileReminderRefused": "Allow notifications for this app in the system settings.",
+  "@profileReminderRefused": {
+    "description": "Snackbar when a stream reminder cannot be set because the app may not post notifications."
+  },
+  "profileReminderFailed": "Couldn't set the reminder.",
+  "@profileReminderFailed": {
+    "description": "Snackbar when a stream reminder could not be set."
+  },
+  "profileStreamUntitled": "Stream",
+  "@profileStreamUntitled": {
+    "description": "A scheduled stream's title when the channel gave none."
+  },
+  "profileNoSchedule": "No streams scheduled",
+  "@profileNoSchedule": {
+    "description": "A channel's Schedule tab, when it plans none."
+  },
+  "profileNextStreamIn": "Next stream {when} · {time}",
+  "@profileNextStreamIn": {
+    "description": "A channel's Schedule tab: the next stream. when says how soon (startsInHours…: « in 3 hours », « dans 3 heures »), time when it starts.",
+    "placeholders": {
+      "when": {
+        "type": "String",
+        "example": "in 3 hours"
+      },
+      "time": {
+        "type": "String",
+        "example": "14:05"
+      }
+    }
+  },
+  "profileCancelled": "Cancelled",
+  "@profileCancelled": {
+    "description": "A channel's Schedule tab: a scheduled stream the channel cancelled (« Annulé » agrees with « live »)."
+  },
+  "profilePastBroadcasts": "Past broadcasts",
+  "@profilePastBroadcasts": {
+    "description": "A channel's Videos tab: the pill of its past broadcasts."
+  },
+  "profileNoPastBroadcasts": "No past broadcasts",
+  "@profileNoPastBroadcasts": {
+    "description": "A channel's Videos tab, past broadcasts, when there are none."
+  },
+  "profileHighlights": "Highlights",
+  "@profileHighlights": {
+    "description": "A channel's Videos tab: the pill of its highlights."
+  },
+  "profileNoHighlights": "No highlights",
+  "@profileNoHighlights": {
+    "description": "A channel's Videos tab, highlights, when there are none."
+  },
+  "profileUploads": "Uploads",
+  "@profileUploads": {
+    "description": "A channel's Videos tab: the pill of its uploaded videos."
+  },
+  "profileNoUploads": "No uploads",
+  "@profileNoUploads": {
+    "description": "A channel's Videos tab, uploads, when there are none."
+  },
+  "videosListFailed": "Couldn't load videos",
+  "@videosListFailed": {
+    "description": "A channel's or a category's videos could not load (with « Try again »)."
+  },
+  "videosShowingMostViewed": "{count, plural, one{Showing the {count} most viewed video} other{Showing the {count} most viewed videos}}",
+  "@videosShowingMostViewed": {
+    "description": "Under a category's videos when Twitch has more than it lists.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "30"
+      }
+    }
+  },
+  "videosShowingMostRecent": "{count, plural, one{Showing the {count} most recent video} other{Showing the {count} most recent videos}}",
+  "@videosShowingMostRecent": {
+    "description": "Under a channel's videos when Twitch has more than it lists.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "30"
+      }
+    }
+  },
+  "videoProcessing": "Processing",
+  "@videoProcessing": {
+    "description": "A video card without a picture yet: Twitch is still processing the video."
+  },
+  "videoUntitledBroadcast": "Untitled broadcast",
+  "@videoUntitledBroadcast": {
+    "description": "A past broadcast's title when it has none (under its player)."
+  },
+  "activityTitle": "Activity",
+  "@activityTitle": {
+    "description": "Tablet Activity: the page's title."
+  },
+  "activityNote": "Notifications ONSET posted on this device.",
+  "@activityNote": {
+    "description": "Activity: the line saying what the list holds (under the title on a tablet, at the end of the list on a phone)."
+  },
+  "activityRemove": "Remove notification",
+  "@activityRemove": {
+    "description": "Activity: swiping a notification away, and the action of its menu."
+  },
+  "activityEmpty": "Hooray! You're up to date",
+  "@activityEmpty": {
+    "description": "Activity, when there is no notification (Twitch's words)."
+  },
+  "activityEmptyDetail": "Check back soon for alerts about you and the broadcasters you follow.",
+  "@activityEmptyDetail": {
+    "description": "Activity, under « Hooray! You're up to date »."
+  },
+  "activityMostRecent": "Most Recent",
+  "@activityMostRecent": {
+    "description": "Activity: the title of the latest notifications (« récentes » agrees with « notifications »)."
+  },
+  "activityEarlier": "Earlier",
+  "@activityEarlier": {
+    "description": "Activity: the title of the older notifications."
+  },
+  "activityMarkAllRead": "Mark all as read",
+  "@activityMarkAllRead": {
+    "description": "Activity and tablet whispers: the button that marks every item read."
+  },
+  "activityOptions": "Options",
+  "@activityOptions": {
+    "description": "What a screen reader says a long press on a notification does: opens its options."
+  },
+  "activityUnread": "Unread",
+  "@activityUnread": {
+    "description": "What a screen reader says for the dot of an unread notification (« lue » agrees with « notification »)."
+  },
+  "activityNoWhispers": "No whispers yet. Whispers you get while the app is open show up here.",
+  "@activityNoWhispers": {
+    "description": "Tablet Activity: the whispers card, when there are none."
+  },
+  "activityKindLive": "Live",
+  "@activityKindLive": {
+    "description": "Activity: the category under a go-live notification, like Twitch's."
+  },
+  "activityKindMention": "Chat Mentions",
+  "@activityKindMention": {
+    "description": "Activity: the category under a chat mention notification, like Twitch's."
+  },
+  "activityKindReminder": "Events",
+  "@activityKindReminder": {
+    "description": "Activity: the category under a stream reminder notification, like Twitch's."
+  },
+  "whispersTitle": "Whispers",
+  "@whispersTitle": {
+    "description": "The whispers page's title, and its card in tablet Activity."
+  },
+  "whispersUnreadCount": "{count, plural, one{{count} unread} other{{count} unread}}",
+  "@whispersUnreadCount": {
+    "description": "Whispers: how many are unread (beside the title, and what a screen reader says for the count pill).",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "whispersAllRead": "All read",
+  "@whispersAllRead": {
+    "description": "Whispers: beside the title when none is unread."
+  },
+  "whispersChoose": "Choose a conversation",
+  "@whispersChoose": {
+    "description": "Tablet whispers: the pane before a conversation is opened."
+  },
+  "whispersEmpty": "No whispers yet",
+  "@whispersEmpty": {
+    "description": "Whispers, when there are none."
+  },
+  "whispersEmptyDetail": "Whispers you get while the app is open show up here.",
+  "@whispersEmptyDetail": {
+    "description": "Whispers, under « No whispers yet »."
+  },
+  "whisperSessionNote": "Twitch keeps no history the app can show, so only this session’s whispers appear here.",
+  "@whisperSessionNote": {
+    "description": "A whisper conversation: the note at its top."
+  },
+  "whisperHint": "Whisper {name}",
+  "@whisperHint": {
+    "description": "A whisper conversation: the hint of the message field. name is the other person's display name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "jltomy"
+      }
+    }
+  },
+  "whisperSend": "Send",
+  "@whisperSend": {
+    "description": "A whisper conversation: the tooltip of the send button."
+  },
+  "whisperYou": "You",
+  "@whisperYou": {
+    "description": "What a screen reader says for the arrow before the last whisper when the viewer sent it."
+  },
+  "whisperOpen": "Open",
+  "@whisperOpen": {
+    "description": "The action of the banner announcing a new whisper: opens the conversation."
+  },
+  "whisperStatusRefused": "Twitch refused to send your whispers to this app. Log out and log in again to allow them.",
+  "@whisperStatusRefused": {
+    "description": "Whispers: the note above the conversations when Twitch refused the app's access to whispers."
+  },
+  "whisperStatusInterrupted": "Reconnecting… whispers will arrive again soon.",
+  "@whisperStatusInterrupted": {
+    "description": "Whispers: the note while the connection that brings them is being restored."
+  },
+  "whisperStatusUnavailable": "Twitch isn't sending whispers to this app right now. It tries again when you come back to the app.",
+  "@whisperStatusUnavailable": {
+    "description": "Whispers: the note when Twitch is not sending them for now."
+  },
+  "whisperStatusOff": "Log in to get whispers.",
+  "@whisperStatusOff": {
+    "description": "Whispers, logged out."
+  },
+  "playerBack10": "Back 10 seconds",
+  "@playerBack10": {
+    "description": "A clip's or a video's player: the button (and screen reader action) that goes back 10 seconds."
+  },
+  "playerForward10": "Forward 10 seconds",
+  "@playerForward10": {
+    "description": "A clip's or a video's player: the button (and screen reader action) that skips 10 seconds ahead."
+  },
+  "playerChangeChatLayout": "Change chat layout",
+  "@playerChangeChatLayout": {
+    "description": "A video's player: the screen reader action that cycles where the chat replay sits."
+  },
+  "playerHideChatOverlay": "Hide chat overlay",
+  "@playerHideChatOverlay": {
+    "description": "A video's player in full screen: the tooltip of the button that hides the chat over the video."
+  },
+  "playerShowChatOverlay": "Show chat overlay",
+  "@playerShowChatOverlay": {
+    "description": "A video's player in full screen: the tooltip of the button that shows the chat over the video."
+  },
+  "playerStopLooping": "Stop looping",
+  "@playerStopLooping": {
+    "description": "A clip's player: the tooltip of the loop button while the clip loops."
+  },
+  "playerLoop": "Loop",
+  "@playerLoop": {
+    "description": "A clip's player: the tooltip of the button that makes the clip loop."
+  },
+  "playerSettings": "Settings",
+  "@playerSettings": {
+    "description": "A clip's or a video's player: the tooltip of the button that opens its settings sheet (quality, volume, speed)."
+  },
+  "playerReplay": "Replay",
+  "@playerReplay": {
+    "description": "A clip's or a video's player: the big button once it ended, which plays it again."
+  },
+  "playerPlay": "Play",
+  "@playerPlay": {
+    "description": "A clip's or a video's player: the big button while paused."
+  },
+  "playerPause": "Pause",
+  "@playerPause": {
+    "description": "A clip's or a video's player: the big button while playing."
+  },
+  "playerElapsed": "Elapsed time {elapsed} of {total}",
+  "@playerElapsed": {
+    "description": "What a screen reader says for the player's time (1:02 / 3:30). elapsed and total are times such as 1:02.",
+    "placeholders": {
+      "elapsed": {
+        "type": "String",
+        "example": "1:02"
+      },
+      "total": {
+        "type": "String",
+        "example": "3:30"
+      }
+    }
+  },
+  "playerPictureInPicture": "Picture-in-picture",
+  "@playerPictureInPicture": {
+    "description": "A clip's or a video's player: the tooltip of the button that opens the floating window (Android's French name)."
+  },
+  "playerFitScreen": "Fit to screen",
+  "@playerFitScreen": {
+    "description": "A video's player in landscape: the tooltip of the button that shows the whole video."
+  },
+  "playerFillScreen": "Fill screen",
+  "@playerFillScreen": {
+    "description": "A video's player in landscape: the tooltip of the button that fills the screen, cropping the video."
+  },
+  "playerExitFullScreen": "Exit full screen",
+  "@playerExitFullScreen": {
+    "description": "A clip's or a video's player: the tooltip of the full screen button while in full screen."
+  },
+  "playerFullScreen": "Full screen",
+  "@playerFullScreen": {
+    "description": "A clip's or a video's player: the tooltip of the button that goes full screen."
+  },
+  "playerSpeed": "Playback speed",
+  "@playerSpeed": {
+    "description": "A clip's or a video's player: the speed pill's tooltip, and its group in the settings sheet."
+  },
+  "playerQuality": "Quality",
+  "@playerQuality": {
+    "description": "A video's player settings sheet: the group of qualities."
+  },
+  "playerVolume": "Volume",
+  "@playerVolume": {
+    "description": "A clip's or a video's player settings sheet: the volume group."
+  },
+  "playerCaptions": "Closed Captions",
+  "@playerCaptions": {
+    "description": "A video's player settings sheet: the captions switch's title."
+  },
+  "playerCaptionsDetail": "When the stream has them",
+  "@playerCaptionsDetail": {
+    "description": "A video's player settings sheet: under « Closed Captions »."
+  },
+  "playerSpeedNormal": "Normal",
+  "@playerSpeedNormal": {
+    "description": "A clip's or a video's player: the normal playback speed (« Normale » agrees with « vitesse »)."
+  },
+  "playerSemantics": "Video player",
+  "@playerSemantics": {
+    "description": "What a screen reader calls the surface of a player (live, clip or video)."
+  },
+  "playerHideControls": "hide controls",
+  "@playerHideControls": {
+    "description": "What a screen reader says a tap on the player does while its controls show. Lower case."
+  },
+  "playerShowControls": "show controls",
+  "@playerShowControls": {
+    "description": "What a screen reader says a tap on the player does while its controls are hidden. Lower case."
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/hype_train.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_card_pill.dart';
@@ -88,7 +89,8 @@ class LargeStreamCard extends StatelessWidget {
             ),
           ),
         ),
-        if (streak != null) TextSpan(text: 'Streak $streak'),
+        if (streak != null)
+          TextSpan(text: context.l10n.streamStreak(value: streak)),
       ],
     ];
     final metaLine = <InlineSpan>[
@@ -137,8 +139,9 @@ class LargeStreamCard extends StatelessWidget {
                     children: [
                       LiveBadge(large: large),
                       Semantics(
-                        label:
-                            '${formatViewers(streamInfo.viewerCount, compact: false)} viewers',
+                        label: context.l10n.streamViewers(
+                          count: streamInfo.viewerCount,
+                        ),
                         child: ExcludeSemantics(
                           child: OverlayPill(
                             height: large ? 26 : 24,
@@ -314,11 +317,20 @@ class RollingViewers extends StatelessWidget {
         height: 1,
       ),
     );
+    final number = formatViewers(viewers, compact: !spelled);
+    if (!spelled) {
+      return RollingNumber(number, style: style);
+    }
+    // "2,445 watching": the digits roll, the words around them stay, in
+    // the order the language puts them.
+    final words = context.l10n.streamWatching(count: viewers).split(number);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        RollingNumber(formatViewers(viewers, compact: !spelled), style: style),
-        if (spelled) Text(' watching', style: style),
+        if (words.first.isNotEmpty) Text(words.first, style: style),
+        RollingNumber(number, style: style),
+        if (words.length > 1 && words.last.isNotEmpty)
+          Text(words.last, style: style),
       ],
     );
   }
@@ -346,7 +358,7 @@ class _WatchButton extends StatelessWidget {
         ),
       ),
       icon: const Icon(Icons.play_arrow_rounded, size: 18),
-      label: const Text('Watch'),
+      label: Text(context.l10n.streamWatch),
     );
   }
 }

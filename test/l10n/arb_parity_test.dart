@@ -30,6 +30,15 @@ const _sameInBothLanguages = {
       '"build" is the word French developers use; a number '
       'follows.',
   'releaseNotesVersions': '"Versions" is spelled the same.',
+  'streamTagSemantics': '"Tag" is Twitch\'s French word too; the tag follows.',
+  'categorySectionClips': 'Twitch calls them "clips" in French.',
+  'profileTabClips': 'Twitch calls them "clips" in French.',
+  'profileFollowers': '"followers" is Twitch\'s French word for them.',
+  'profileFollowersShort': '"followers" is Twitch\'s French word for them.',
+  'profileChat': '"Chat" is also the French word for it.',
+  'activityOptions': '"Options" is spelled the same.',
+  'playerPictureInPicture': 'Android\'s French name for the floating window.',
+  'playerVolume': '"Volume" is spelled the same.',
 };
 
 void main() {

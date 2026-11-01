@@ -150,8 +150,8 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
   /// broadcast still recording: its end is only the live edge).
   UpNextStore? _upNext;
 
-  /// The labels of a mature-content warning waiting for the viewer (null
-  /// when none). Like the official app, nothing plays until they accept:
+  /// The label ids of a mature-content warning waiting for the viewer (null
+  /// when none; named when shown). Like the official app, nothing plays until they accept:
   /// the player is only built then, at [_gatedStart].
   List<String>? _warningLabels;
   Duration? _gatedStart;
@@ -310,8 +310,8 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
       final ids = await _service
           .getContentLabels(vod.id)
           .timeout(_labelsTimeout);
-      // English, like the rest of the warning, until it is translated.
-      return contentLabelNames(ids, L10n.untranslated);
+      // Ids: the warning names them in the language on screen.
+      return contentLabelIds(ids);
     } catch (e) {
       debugPrint('VodScreen content labels failed: ${e.runtimeType}');
       return const [];
@@ -593,7 +593,7 @@ class _VodScreenState extends State<VodScreen> with WidgetsBindingObserver {
         displayName: vod.ownerDisplayName.isNotEmpty
             ? vod.ownerDisplayName
             : vod.ownerLogin,
-        labels: warning,
+        labels: contentLabelNames(warning, context.l10n),
         onAccept: _acceptContentWarning,
       );
     }

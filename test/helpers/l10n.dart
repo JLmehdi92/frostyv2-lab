@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -279,4 +280,100 @@ int _closing(String text, int open) {
     if (text[i] == '}' && --depth == 0) return i;
   }
   throw FormatException('Unclosed brace', text, open);
+}
+
+/// The windows every French screen is checked in: two phones, a landscape
+/// and a portrait tablet.
+const frenchScreenSizes = [
+  ('360x640', Size(360, 640)),
+  ('390x844', Size(390, 844)),
+  ('1280x854', Size(1280, 854)),
+  ('854x1280', Size(854, 1280)),
+];
+
+/// The text scales every French screen is checked at.
+const frenchTextScales = [1.0, 1.3];
+
+/// No overflow (nor any other exception) and no English ([englishLeaks]) on
+/// what [tester]'s screen shows, then on what each vertical list shows
+/// when scrolled to its end. [where] names the screen in failures.
+Future<void> expectFrenchThroughout(WidgetTester tester, String where) async {
+  void check(String step) {
+    final exception = tester.takeException();
+    expect(
+      exception,
+      isNull,
+      reason:
+          '$where, $step\n'
+          '${exception is FlutterError ? exception.toStringDeep() : ''}',
+    );
+    expect(englishLeaks(tester), isEmpty, reason: '$where, $step');
+  }
+
+  check('at the top');
+  final lists = tester
+      .stateList<ScrollableState>(find.byType(Scrollable))
+      .where((state) => state.axisDirection == AxisDirection.down)
+      .toList();
+  for (final (index, list) in lists.indexed) {
+    var steps = 0;
+    // A step can rebuild the page and drop a list (a feed's next page):
+    // each step asks again whether it is still there.
+    while (list.mounted &&
+        list.position.pixels < list.position.maxScrollExtent &&
+        steps++ < 80) {
+      final position = list.position;
+      position.jumpTo(
+        math.min(
+          position.maxScrollExtent,
+          position.pixels + position.viewportDimension * 0.75,
+        ),
+      );
+      await tester.pump();
+      check('list $index, step $steps');
+    }
+  }
+}
+
+/// The parts of a [MaterialApp] that show [locale] (null: none, as the
+/// English tests' bare apps) in the real Inter font with text at
+/// [textScale]: call it before pumping, and pass what it gives to the app.
+/// [builder] is the app's own builder, kept under the text scale.
+Future<
+  ({
+    Locale? locale,
+    List<Locale> supportedLocales,
+    List<LocalizationsDelegate<Object?>>? delegates,
+    TransitionBuilder? builder,
+  })
+>
+localizedApp(
+  WidgetTester tester, {
+  Locale? locale,
+  double textScale = 1,
+  TransitionBuilder? builder,
+}) async {
+  if (locale == null) {
+    return (
+      locale: null,
+      supportedLocales: const [Locale('en', 'US')],
+      delegates: null,
+      builder: builder,
+    );
+  }
+  await tester.runAsync(loadInter);
+  await useLocale(locale);
+  return (
+    locale: locale,
+    supportedLocales: AppLocalizations.supportedLocales,
+    delegates: AppLocalizations.localizationsDelegates,
+    builder: (BuildContext context, Widget? child) => MediaQuery(
+      data: MediaQuery.of(
+        context,
+      ).copyWith(textScaler: TextScaler.linear(textScale)),
+      child: Builder(
+        builder: (context) => builder?.call(context, child) ?? child!,
+      ),
+    ),
+  );
 }

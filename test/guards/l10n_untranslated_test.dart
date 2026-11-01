@@ -8,11 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// translated. `L10n.english` (the fallback) is for lib/l10n/ only, so a
 /// screen cannot keep English under another name.
 const _untranslated = <String, int>{
-  'lib/screens/channel/video/content_warning_gate.dart': 1,
   'lib/screens/channel/video/ivs_stats_panel.dart': 1,
-  'lib/screens/home/live_feed/stores/live_feed_store.dart': 1,
-  'lib/screens/home/stream_list/stream_sort_button.dart': 2,
-  'lib/screens/vod/vod_screen.dart': 1,
   'lib/screens/vod/widgets/vod_details_panel.dart': 1,
 };
 

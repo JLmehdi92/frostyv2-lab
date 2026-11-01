@@ -129,16 +129,16 @@ mixin _$ChannelProfileStore on ChannelProfileStoreBase, Store {
     context: context,
   );
 
-  String? get error {
+  Object? get error {
     _$_errorAtom.reportRead();
     return super._error;
   }
 
   @override
-  String? get _error => error;
+  Object? get _error => error;
 
   @override
-  set _error(String? value) {
+  set _error(Object? value) {
     _$_errorAtom.reportWrite(value, super._error, () {
       super._error = value;
     });
@@ -189,16 +189,16 @@ mixin _$ChannelProfileStore on ChannelProfileStoreBase, Store {
     context: context,
   );
 
-  String? get scheduleError {
+  Object? get scheduleError {
     _$_scheduleErrorAtom.reportRead();
     return super._scheduleError;
   }
 
   @override
-  String? get _scheduleError => scheduleError;
+  Object? get _scheduleError => scheduleError;
 
   @override
-  set _scheduleError(String? value) {
+  set _scheduleError(Object? value) {
     _$_scheduleErrorAtom.reportWrite(value, super._scheduleError, () {
       super._scheduleError = value;
     });

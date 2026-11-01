@@ -41,8 +41,9 @@ abstract class ChannelVideosStoreBase with Store {
   @readonly
   var _loaded = false;
 
+  /// Why the list could not load (null when it could); the screen words it.
   @readonly
-  String? _error;
+  ChannelVideosProblem? _error;
 
   /// Twitch has older videos than the ones listed.
   @readonly
@@ -71,12 +72,12 @@ abstract class ChannelVideosStoreBase with Store {
     } on NotFoundException {
       runInAction(
         () => _error = gameId != null
-            ? 'Category not found'
-            : 'Channel not found',
+            ? ChannelVideosProblem.categoryNotFound
+            : ChannelVideosProblem.channelNotFound,
       );
     } catch (e) {
       debugPrint('ChannelVideosStore $type failed: $e');
-      runInAction(() => _error = "Couldn't load videos");
+      runInAction(() => _error = ChannelVideosProblem.failed);
     } finally {
       runInAction(() {
         _isLoading = false;
@@ -86,4 +87,16 @@ abstract class ChannelVideosStoreBase with Store {
   }
 
   void dispose() => scrollController.dispose();
+}
+
+/// Why a list of videos could not load ([ChannelVideosStoreBase.error]).
+enum ChannelVideosProblem {
+  /// The category is not on Twitch.
+  categoryNotFound,
+
+  /// The channel is not on Twitch.
+  channelNotFound,
+
+  /// Anything else.
+  failed,
 }

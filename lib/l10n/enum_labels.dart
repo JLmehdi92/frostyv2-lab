@@ -1,4 +1,6 @@
+import 'package:onset/apis/twitch_directory_service.dart';
 import 'package:onset/l10n/app_localizations.dart';
+import 'package:onset/models/clip.dart';
 import 'package:onset/screens/channel/video/captions.dart';
 import 'package:onset/screens/home/stores/home_store.dart';
 import 'package:onset/screens/settings/account/account_settings.dart';
@@ -6,6 +8,7 @@ import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 import 'package:onset/screens/settings/widgets/release_notes.dart';
 import 'package:onset/screens/settings/widgets/settings_page.dart';
+import 'package:onset/services/notifications/activity_log.dart';
 
 /// The names the viewer reads for the app's enums, in their language. One
 /// exhaustive switch per enum: a new value without a name does not compile.
@@ -76,6 +79,40 @@ extension HomeTabLabel on HomeTab {
     HomeTab.live => l.shellFeedLive,
     HomeTab.clips => l.shellFeedClips,
     HomeTab.browse => l.shellSectionBrowse,
+  };
+}
+
+/// The category shown under a notification in Activity, like Twitch's.
+extension ActivityKindLabel on ActivityKind {
+  String label(AppLocalizations l) => switch (this) {
+    ActivityKind.live => l.activityKindLive,
+    ActivityKind.mention => l.activityKindMention,
+    ActivityKind.reminder => l.activityKindReminder,
+  };
+}
+
+extension ClipPeriodLabel on ClipPeriod {
+  String label(AppLocalizations l) => switch (this) {
+    ClipPeriod.lastDay => l.clipPeriodLastDay,
+    ClipPeriod.lastWeek => l.clipPeriodLastWeek,
+    ClipPeriod.lastMonth => l.clipPeriodLastMonth,
+    ClipPeriod.allTime => l.clipPeriodAllTime,
+  };
+}
+
+extension ClipSortLabel on ClipSort {
+  String label(AppLocalizations l) => switch (this) {
+    ClipSort.top => l.clipSortTop,
+    ClipSort.trending => l.clipSortTrending,
+  };
+}
+
+extension StreamSortLabel on StreamSort {
+  String label(AppLocalizations l) => switch (this) {
+    StreamSort.viewersHigh => l.streamSortViewersHigh,
+    StreamSort.recommended => l.streamSortRecommended,
+    StreamSort.viewersLow => l.streamSortViewersLow,
+    StreamSort.recent => l.streamSortRecent,
   };
 }
 

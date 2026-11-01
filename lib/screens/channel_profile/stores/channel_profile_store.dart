@@ -46,8 +46,10 @@ abstract class ChannelProfileStoreBase with Store {
   @readonly
   var _notFound = false;
 
+  /// What made the profile fail to load (null when it did not); the screen
+  /// says it could not load.
   @readonly
-  String? _error;
+  Object? _error;
 
   @readonly
   ChannelSchedule? _schedule;
@@ -55,8 +57,10 @@ abstract class ChannelProfileStoreBase with Store {
   @readonly
   var _scheduleLoading = false;
 
+  /// What made the schedule fail to load (null when it did not); the
+  /// screen says it could not load.
   @readonly
-  String? _scheduleError;
+  Object? _scheduleError;
 
   /// The channel's user id, once known.
   @computed
@@ -100,7 +104,7 @@ abstract class ChannelProfileStoreBase with Store {
     } catch (e) {
       debugPrint('ChannelProfileStore($login) profile failed: $e');
       if (_disposed) return;
-      runInAction(() => _error = "Couldn't load this channel's profile");
+      runInAction(() => _error = e);
       await _loadFallback();
     } finally {
       if (!_disposed) {
@@ -136,7 +140,7 @@ abstract class ChannelProfileStoreBase with Store {
     } catch (e) {
       debugPrint('ChannelProfileStore($login) schedule failed: $e');
       if (!_disposed) {
-        runInAction(() => _scheduleError = "Couldn't load the schedule");
+        runInAction(() => _scheduleError = e);
       }
     } finally {
       if (!_disposed) runInAction(() => _scheduleLoading = false);

@@ -1,4 +1,7 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/services/notifications/activity_log.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -121,9 +124,14 @@ void main() {
   });
 
   test('labels follow Twitch\'s notification categories', () {
-    expect(ActivityKind.live.label, 'Live');
-    expect(ActivityKind.mention.label, 'Chat Mentions');
-    expect(ActivityKind.reminder.label, 'Events');
+    final en = L10n.english;
+    expect(ActivityKind.live.label(en), 'Live');
+    expect(ActivityKind.mention.label(en), 'Chat Mentions');
+    expect(ActivityKind.reminder.label(en), 'Events');
+    final fr = lookupAppLocalizations(const Locale('fr'));
+    expect(ActivityKind.live.label(fr), 'En direct');
+    expect(ActivityKind.mention.label(fr), 'Mentions dans le chat');
+    expect(ActivityKind.reminder.label(fr), 'Événements');
   });
 
   test('remembers when the list was last viewed', () async {

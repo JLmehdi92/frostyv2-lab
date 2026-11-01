@@ -8,6 +8,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/home/search/search_results_categories.dart';
 import 'package:onset/screens/home/search/search_results_channels.dart';
 import 'package:onset/screens/home/search/search_results_videos.dart';
@@ -168,14 +169,18 @@ class Search extends StatefulWidget {
 
 /// The result tabs, like the official app's search.
 enum _SearchTab {
-  top('Top'),
-  channels('Channels'),
-  categories('Categories'),
-  videos('Videos');
+  top,
+  channels,
+  categories,
+  videos;
 
-  const _SearchTab(this.label);
-
-  final String label;
+  /// The tab's name (also the title of its section under Top).
+  String label(AppLocalizations l) => switch (this) {
+    top => l.searchTabTop,
+    channels => l.searchTabChannels,
+    categories => l.searchTabCategories,
+    videos => l.searchTabVideos,
+  };
 }
 
 /// The header's rows (the field row, then the result tabs).
@@ -339,7 +344,7 @@ class _SearchState extends State<Search> {
     final gutter = large ? OnsetSpacing.gutterTablet : 16.0;
     final onBack = widget.onBack;
     final tabs = ShellTabs(
-      labels: [for (final tab in _SearchTab.values) tab.label],
+      labels: [for (final tab in _SearchTab.values) tab.label(context.l10n)],
       index: _tab.index,
       onSelect: (i) => _selectTab(_SearchTab.values[i]),
       height: _Metrics.tabsRow(large),
@@ -389,7 +394,7 @@ class _SearchState extends State<Search> {
                       children: [
                         if (onBack != null)
                           IconButton(
-                            tooltip: 'Back',
+                            tooltip: context.l10n.commonBack,
                             constraints: const BoxConstraints.tightFor(
                               width: 44,
                               height: 44,
@@ -570,7 +575,7 @@ class _SearchState extends State<Search> {
       _SearchTab.top => [
         SliverToBoxAdapter(
           child: _sectionTitle(
-            'Channels',
+            _SearchTab.channels.label(context.l10n),
             _SearchTab.channels,
             gutter: OnsetSpacing.gutterPhone,
           ),
@@ -578,7 +583,7 @@ class _SearchState extends State<Search> {
         SliverToBoxAdapter(child: channels(limit: 5)),
         SliverToBoxAdapter(
           child: _sectionTitle(
-            'Categories',
+            _SearchTab.categories.label(context.l10n),
             _SearchTab.categories,
             gutter: OnsetSpacing.gutterPhone,
             top: 20,
@@ -629,7 +634,12 @@ class _SearchState extends State<Search> {
         final channels = Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _sectionTitle('Channels', _SearchTab.channels, gutter: 0, top: 0),
+            _sectionTitle(
+              _SearchTab.channels.label(context.l10n),
+              _SearchTab.channels,
+              gutter: 0,
+              top: 0,
+            ),
             SearchResultsChannels(
               searchStore: _searchStore,
               query: query,
@@ -643,7 +653,7 @@ class _SearchState extends State<Search> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _sectionTitle(
-              'Categories',
+              _SearchTab.categories.label(context.l10n),
               _SearchTab.categories,
               gutter: 0,
               top: 0,
@@ -661,7 +671,12 @@ class _SearchState extends State<Search> {
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _sectionTitle('Videos', _SearchTab.videos, gutter: 0, top: 0),
+                  _sectionTitle(
+                    _SearchTab.videos.label(context.l10n),
+                    _SearchTab.videos,
+                    gutter: 0,
+                    top: 0,
+                  ),
                   SearchVideosColumn(store: topVideos),
                 ],
               );
@@ -760,7 +775,9 @@ class _SearchField extends StatelessWidget {
       builder: (context, _) {
         final focused = focus.hasFocus;
         final hasText = store.searchText.isNotEmpty;
-        final label = hasText ? 'Clear' : 'Cancel';
+        final label = hasText
+            ? context.l10n.searchClear
+            : context.l10n.commonCancel;
         final Widget? clear = !(focused || hasText)
             ? null
             : large
@@ -860,7 +877,7 @@ class _SearchField extends StatelessWidget {
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
-                    hintText: 'Search channels, categories or videos',
+                    hintText: context.l10n.searchHint,
                     hintMaxLines: 1,
                     hintStyle: TextStyle(
                       fontSize: large ? 17 : 15,
@@ -918,9 +935,9 @@ class _SectionTitle extends StatelessWidget {
             ),
           ),
           child: Semantics(
-            label: 'See all $title',
+            label: context.l10n.searchSeeAllSemantics(section: title),
             excludeSemantics: true,
-            child: const Text('See all'),
+            child: Text(context.l10n.commonSeeAll),
           ),
         ),
       ],
@@ -961,7 +978,7 @@ class _HistoryList extends StatelessWidget {
                 child: Semantics(
                   header: true,
                   child: Text(
-                    'History',
+                    context.l10n.searchHistory,
                     style: TextStyle(
                       fontFamily: OnsetTokens.displayFamily,
                       fontSize: 17,
@@ -982,7 +999,7 @@ class _HistoryList extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                child: const Text('Clear'),
+                child: Text(context.l10n.searchClear),
               ),
             ],
           ),
@@ -1031,7 +1048,9 @@ class _HistoryList extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Remove ${history[i]} from history',
+                    tooltip: context.l10n.searchRemoveFromHistory(
+                      query: history[i],
+                    ),
                     constraints: const BoxConstraints.tightFor(
                       width: 44,
                       height: 44,
@@ -1075,7 +1094,7 @@ class _NoHistory extends StatelessWidget {
               color: colors.tertiary,
             ),
             Text(
-              'No recent searches',
+              context.l10n.searchNoHistory,
               style: TextStyle(
                 fontSize: large ? 15 : 14,
                 color: colors.secondary,

@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/l10n/api_errors.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/home/followed_videos/stores/followed_videos_store.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
@@ -21,14 +24,18 @@ import 'package:onset/widgets/state_views.dart';
 
 /// The day sections of the followed videos, newest first.
 enum FollowedVideosSection {
-  today('Today'),
-  yesterday('Yesterday'),
-  thisWeek('This week'),
-  older('Older');
+  today,
+  yesterday,
+  thisWeek,
+  older;
 
-  const FollowedVideosSection(this.label);
-
-  final String label;
+  /// The section's title.
+  String label(AppLocalizations l) => switch (this) {
+    today => l.followedVideosToday,
+    yesterday => l.followedVideosYesterday,
+    thisWeek => l.followedVideosThisWeek,
+    older => l.followedVideosOlder,
+  };
 
   /// Where a video made at [createdAt] goes, seen at [now] (both local).
   static FollowedVideosSection of(DateTime createdAt, DateTime now) {
@@ -178,13 +185,18 @@ class _FollowedVideosScreenState extends State<FollowedVideosScreen>
             SliverFillRemaining(
               hasScrollBody: false,
               child: error != null
-                  ? FeedStatusView.error(message: error, onRetry: store.load)
+                  ? FeedStatusView.error(
+                      message: followedVideosErrorText(context.l10n, error),
+                      onRetry: store.load,
+                    )
                   : Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         spacing: 16,
                         children: [
-                          const VideoListEmpty(message: 'No recent videos'),
+                          VideoListEmpty(
+                            message: context.l10n.followedVideosEmpty,
+                          ),
                           _RefreshPill(onPressed: store.load),
                         ],
                       ),
@@ -221,7 +233,7 @@ class _FollowedVideosScreenState extends State<FollowedVideosScreen>
                     0,
                   ),
                   child: InlineStatus.error(
-                    message: error,
+                    message: followedVideosErrorText(context.l10n, error),
                     onRetry: store.load,
                   ),
                 ),
@@ -229,7 +241,7 @@ class _FollowedVideosScreenState extends State<FollowedVideosScreen>
             for (final (n, (section, list)) in sections.indexed) ...[
               SliverToBoxAdapter(
                 child: VideoSectionLabel(
-                  section.label,
+                  section.label(context.l10n),
                   padding: EdgeInsets.fromLTRB(
                     side + insets.left,
                     tablet ? 14 : 16,
@@ -277,7 +289,7 @@ class _Header extends StatelessWidget {
     final colors = FeedColors.of(context);
     final padding = MediaQuery.paddingOf(context);
     final back = Tooltip(
-      message: 'Back',
+      message: context.l10n.commonBack,
       child: PressScale(
         child: Material(
           color: tablet ? colors.surface : Colors.transparent,
@@ -308,7 +320,7 @@ class _Header extends StatelessWidget {
       ),
     );
     final title = Text(
-      'Followed videos',
+      context.l10n.followedVideosTitle,
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: TextStyle(
@@ -352,7 +364,7 @@ class _Header extends StatelessWidget {
                           children: [
                             title,
                             Text(
-                              'The newest videos of the channels you follow',
+                              context.l10n.followedVideosSubtitle,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -403,7 +415,14 @@ class _RefreshPill extends StatelessWidget {
         ),
       ),
       icon: const Icon(Icons.refresh_rounded, size: 17),
-      label: const Text('Refresh'),
+      label: Text(context.l10n.followedVideosRefresh),
     );
   }
 }
+
+/// What [error], the followed videos store's, says in [l]'s language: no
+/// connection is "Unable to connect to Twitch", as on every list.
+String followedVideosErrorText(AppLocalizations l, Object error) =>
+    error is NetworkException
+    ? l.apiErrorUnableToConnect
+    : apiErrorText(l, error, fallback: l.followedVideosLoadFailed);

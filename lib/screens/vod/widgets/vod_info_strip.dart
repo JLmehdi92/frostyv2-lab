@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/vod/vod_time.dart';
@@ -7,11 +7,10 @@ import 'package:onset/screens/vod/widgets/video_kit.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
 
-/// "Yesterday · 3,104 views".
-String vodDetails(Vod vod) => [
-  formatTimeAgo(vod.createdAt),
-  '${NumberFormat().format(vod.viewCount)} '
-      '${vod.viewCount == 1 ? 'view' : 'views'}',
+/// "Yesterday · 3,104 views", in [l]'s language.
+String vodDetails(Vod vod, AppLocalizations l) => [
+  formatTimeAgo(vod.createdAt, l),
+  l.videoViews(count: vod.viewCount),
 ].join(' · ');
 
 /// Title and details of a VOD under the player:
@@ -42,7 +41,7 @@ class VodInfoStrip extends StatelessWidget {
     final gameName = vod.gameName;
     final hasCategory = gameId != null && gameName != null;
     final title = vod.title.trim().isEmpty
-        ? 'Untitled broadcast'
+        ? context.l10n.videoUntitledBroadcast
         : vod.title.trim();
 
     return DecoratedBox(
@@ -85,7 +84,7 @@ class VodInfoStrip extends StatelessWidget {
                 if (hasCategory)
                   VideoCategoryChip(name: gameName, gameId: gameId),
                 Text(
-                  vodDetails(vod),
+                  vodDetails(vod, context.l10n),
                   style: OnsetType.tabular(
                     TextStyle(
                       fontFamily: OnsetTokens.bodyFamily,
@@ -134,7 +133,7 @@ class RecordingBadge extends StatelessWidget {
             ),
           ),
           Text(
-            'Recording',
+            context.l10n.profileRecording,
             style: TextStyle(
               fontFamily: OnsetTokens.bodyFamily,
               fontSize: fontSize,

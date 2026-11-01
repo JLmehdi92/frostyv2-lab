@@ -24,8 +24,9 @@ class StreamSortButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
     final accent = context.onsetColors.live;
+    final l = context.l10n;
     return PopupMenuButton<StreamSort>(
-      tooltip: 'Sort streams',
+      tooltip: l.streamSortTooltip,
       initialValue: sort,
       onSelected: onSort,
       position: PopupMenuPosition.under,
@@ -50,7 +51,7 @@ class StreamSortButton extends StatelessWidget {
             height: 44,
             padding: EdgeInsets.zero,
             child: _SortOption(
-              label: option.label,
+              label: option.label(context.l10n),
               selected: option == sort,
               accent: accent,
               colors: colors,
@@ -67,16 +68,17 @@ class StreamSortButton extends StatelessWidget {
             Flexible(
               child: Text.rich(
                 TextSpan(
-                  text: 'Sorted by ',
-                  children: [
+                  // "Sorted by" and the order in bold, where the language
+                  // puts it.
+                  children: l10nSpans(l.streamSortedBy(sort: l10nMark(0)), [
                     TextSpan(
-                      text: sort.label,
+                      text: sort.label(l),
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: colors.text,
                       ),
                     ),
-                  ],
+                  ]),
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -157,8 +159,9 @@ class FollowedSortButton extends StatelessWidget {
     return Observer(
       builder: (context) {
         final sort = settingsStore.followedSort;
+        final l = context.l10n;
         return PopupMenuButton<FollowedSort>(
-          tooltip: 'Sort live channels',
+          tooltip: l.followedSortTooltip,
           initialValue: sort,
           onSelected: (value) => settingsStore.followedSort = value,
           itemBuilder: (context) => [
@@ -166,9 +169,7 @@ class FollowedSortButton extends StatelessWidget {
               CheckedPopupMenuItem(
                 value: option,
                 checked: option == sort,
-                // English, like the rest of the button, until it is
-                // translated.
-                child: Text(option.label(L10n.untranslated)),
+                child: Text(option.label(l)),
               ),
           ],
           child: Container(
@@ -190,7 +191,7 @@ class FollowedSortButton extends StatelessWidget {
                 Icon(Icons.sort_rounded, size: 14, color: colors.body),
                 Flexible(
                   child: Text(
-                    'Sorted by ${sort.label(L10n.untranslated)}',
+                    l.streamSortedBy(sort: sort.label(l)),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(

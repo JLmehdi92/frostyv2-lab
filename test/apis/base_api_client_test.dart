@@ -513,4 +513,80 @@ void main() {
       );
     });
   });
+
+  group('each failure says its kind, for a screen to word', () {
+    Future<ApiException> failure(int status, [Object? body]) async {
+      dioAdapter.onGet(
+        'https://api.test.com/kind',
+        (server) => server.reply(status, body ?? const <String, Object>{}),
+      );
+      try {
+        await client.testGet('/kind');
+      } on ApiException catch (e) {
+        return e;
+      }
+      throw StateError('no failure');
+    }
+
+    for (final (status, kind) in const [
+      (400, ApiErrorKind.badRequest),
+      (401, ApiErrorKind.unauthorized),
+      (403, ApiErrorKind.forbidden),
+      (404, ApiErrorKind.notFound),
+      (409, ApiErrorKind.conflict),
+      (422, ApiErrorKind.invalid),
+      (429, ApiErrorKind.rateLimited),
+      (500, ApiErrorKind.server),
+      (502, ApiErrorKind.unavailable),
+      (503, ApiErrorKind.maintenance),
+      (504, ApiErrorKind.serverTimeout),
+      (418, ApiErrorKind.http),
+    ]) {
+      test('$status: ${kind.name}, and no explanation of Twitch\'s', () async {
+        final e = await failure(status);
+        expect(e.kind, kind);
+        expect(e.statusCode, status);
+        expect(e.twitchMessage, isNull);
+      });
+    }
+
+    test("Twitch's own explanation is kept apart, as it wrote it", () async {
+      final e = await failure(403, {'message': 'Missing scope'});
+      expect(e.kind, ApiErrorKind.forbidden);
+      expect(e.twitchMessage, 'Missing scope');
+      expect(e.message, 'Missing scope');
+    });
+
+    test('the connection failing, timing out or being cancelled', () async {
+      for (final (type, kind) in const [
+        (DioExceptionType.connectionError, ApiErrorKind.network),
+        (DioExceptionType.connectionTimeout, ApiErrorKind.connectionTimeout),
+        (DioExceptionType.sendTimeout, ApiErrorKind.sendTimeout),
+        (DioExceptionType.receiveTimeout, ApiErrorKind.receiveTimeout),
+        (DioExceptionType.cancel, ApiErrorKind.cancelled),
+        (DioExceptionType.badCertificate, ApiErrorKind.certificate),
+        (DioExceptionType.unknown, ApiErrorKind.unknown),
+      ]) {
+        dioAdapter.onGet(
+          'https://api.test.com/${type.name}',
+          (server) => server.throws(
+            0,
+            DioException(
+              requestOptions: RequestOptions(
+                path: 'https://api.test.com/${type.name}',
+              ),
+              type: type,
+            ),
+          ),
+        );
+        try {
+          await client.testGet('/${type.name}');
+          fail('no failure for ${type.name}');
+        } on ApiException catch (e) {
+          expect(e.kind, kind, reason: type.name);
+          expect(e.twitchMessage, isNull, reason: type.name);
+        }
+      }
+    });
+  });
 }

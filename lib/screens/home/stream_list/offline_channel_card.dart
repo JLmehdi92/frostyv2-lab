@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/followed_channel.dart';
 import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
@@ -37,24 +38,17 @@ class OfflineChannelCard extends StatelessWidget {
     final colors = FeedColors.of(context);
     final followedDuration = DateTime.now().difference(channelInfo.followedAt);
 
-    String followedText;
-    if (followedDuration.inDays >= 365) {
-      final years = followedDuration.inDays ~/ 365;
-      followedText = 'Following for $years ${years == 1 ? 'year' : 'years'}';
-    } else if (followedDuration.inDays >= 30) {
-      final months = followedDuration.inDays ~/ 30;
-      followedText =
-          'Following for $months ${months == 1 ? 'month' : 'months'}';
-    } else if (followedDuration.inDays > 0) {
-      followedText =
-          'Following for ${followedDuration.inDays} ${followedDuration.inDays == 1 ? 'day' : 'days'}';
-    } else if (followedDuration.inHours > 0) {
-      followedText =
-          'Following for ${followedDuration.inHours} ${followedDuration.inHours == 1 ? 'hour' : 'hours'}';
-    } else {
-      followedText =
-          'Following for ${followedDuration.inMinutes} ${followedDuration.inMinutes == 1 ? 'minute' : 'minutes'}';
-    }
+    final l = context.l10n;
+    final days = followedDuration.inDays;
+    final followedText = switch (days) {
+      >= 365 => l.streamFollowingForYears(count: days ~/ 365),
+      >= 30 => l.streamFollowingForMonths(count: days ~/ 30),
+      > 0 => l.streamFollowingForDays(count: days),
+      _ when followedDuration.inHours > 0 => l.streamFollowingForHours(
+        count: followedDuration.inHours,
+      ),
+      _ => l.streamFollowingForMinutes(count: followedDuration.inMinutes),
+    };
 
     // The card sinks as soon as the finger is down (design system press).
     return PressScale(
@@ -114,7 +108,7 @@ class OfflineChannelCard extends StatelessWidget {
                     ),
                     // Status and follow duration
                     Text(
-                      showOfflineStatus ? 'Offline' : followedText,
+                      showOfflineStatus ? l.streamOffline : followedText,
                       // followedText porte une duree ("Following for 3 years"),
                       // donc chasse fixe comme tous les autres nombres.
                       style: OnsetType.tabular(

@@ -7,6 +7,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/twitch_clip_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/clips/stores/channel_clips_store.dart';
@@ -327,8 +328,11 @@ class _ClipScreenState extends State<ClipScreen> {
     await Clipboard.setData(ClipboardData(text: clipShareLink(widget.slug)));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: AlertMessage(message: 'Link copied', centered: false),
+      SnackBar(
+        content: AlertMessage(
+          message: context.l10n.clipLinkCopied,
+          centered: false,
+        ),
       ),
     );
   }
@@ -348,7 +352,7 @@ class _ClipScreenState extends State<ClipScreen> {
       ownerId: clip?.broadcasterId ?? '',
       ownerLogin: clip?.broadcasterLogin ?? '',
       ownerDisplayName: clip?.broadcasterDisplayName ?? '',
-      shareLabel: 'Copy clip link',
+      shareLabel: context.l10n.clipCopyClipLink,
       shareLink: (_) => clipShareLink(widget.slug),
     );
   }
@@ -376,7 +380,11 @@ class _ClipScreenState extends State<ClipScreen> {
     final loadProblem = _loadProblem;
     if (loadProblem != null) {
       return _withBackButton(
-        VodErrorView(problem: loadProblem, subject: 'clip', onRetry: _retry),
+        VodErrorView(
+          problem: loadProblem,
+          subject: PlaybackSubject.clip,
+          onRetry: _retry,
+        ),
       );
     }
     final player = _player;
@@ -391,7 +399,7 @@ class _ClipScreenState extends State<ClipScreen> {
               return _withBackButton(
                 VodErrorView(
                   problem: problem,
-                  subject: 'clip',
+                  subject: PlaybackSubject.clip,
                   onRetry: _retry,
                 ),
               );
@@ -400,7 +408,7 @@ class _ClipScreenState extends State<ClipScreen> {
               return _withBackButton(
                 VodErrorView(
                   problem: VodPlaybackProblem.unknown,
-                  subject: 'clip',
+                  subject: PlaybackSubject.clip,
                   onRetry: _retry,
                 ),
               );
@@ -434,7 +442,7 @@ class _ClipScreenState extends State<ClipScreen> {
     if (clip == null) {
       if (_detailsFailed) {
         return VideoPaneNotice(
-          message: "Couldn't load the clip details",
+          message: context.l10n.clipDetailsFailed,
           onRetry: _retryDetails,
         );
       }
@@ -486,7 +494,7 @@ class _ClipScreenState extends State<ClipScreen> {
             top: false,
             child: VodChatReplay(
               store: replay,
-              syncLabel: 'synced to the clip',
+              syncLabel: context.l10n.clipSyncedToClip,
             ),
           ),
         ),

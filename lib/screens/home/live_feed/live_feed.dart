@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart' hide Listener;
 import 'package:onset/apis/twitch_stream_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/screens/channel/video/content_warning_gate.dart';
 import 'package:onset/screens/channel/video/player_glyph.dart';
@@ -27,6 +28,7 @@ import 'package:onset/services/playback_token_cache.dart';
 import 'package:onset/stores/mini_player_store.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/common_utils.dart';
+import 'package:onset/utils/content_labels.dart';
 import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/utils/share_link.dart';
 import 'package:onset/widgets/alert_message.dart';
@@ -405,9 +407,9 @@ class _LiveFeedState extends State<LiveFeed> {
       ..clearSnackBars()
       ..showSnackBar(
         SnackBar(
-          content: Text("You won't see $name in Live for now"),
+          content: Text(context.l10n.liveFeedHidden(name: name)),
           action: SnackBarAction(
-            label: 'Undo',
+            label: context.l10n.liveFeedUndo,
             onPressed: () => widget.store.unhide(stream.userId),
           ),
         ),
@@ -428,10 +430,16 @@ class _LiveFeedState extends State<LiveFeed> {
   /// A refresh that failed with channels still on screen says so, as every
   /// list does (the end page then offers to try again).
   void _reportError() {
-    final error = widget.store.list.error;
+    final list = widget.store.list;
+    final error = list.error;
     if (!mounted || error == null) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: AlertMessage(message: error, centered: false)),
+      SnackBar(
+        content: AlertMessage(
+          message: streamListErrorText(context.l10n, error, list.sort),
+          centered: false,
+        ),
+      ),
     );
   }
 
@@ -505,22 +513,25 @@ class _LiveFeedState extends State<LiveFeed> {
     if (list.isLoading && error == null) {
       return _large ? const _TabletSkeleton() : const _PhoneSkeleton();
     }
+    final l = context.l10n;
     if (error != null) {
       return FeedStatusView.error(
-        message: error,
+        message: streamListErrorText(l, error, list.sort),
         onRetry: () => unawaited(_refresh()),
       );
     }
     if (list.hiddenByLabels > 0) {
       return FeedStatusView(
-        message: 'Every stream here has a label you hide',
+        message: l.streamListAllHidden,
         icon: Icons.visibility_off_outlined,
-        action: 'Show them',
+        action: l.streamListShowHidden,
         onAction: list.showLabeledStreams,
       );
     }
     return FeedStatusView.empty(
-      message: store.categoryId == null ? 'No top streams' : 'No live streams',
+      message: store.categoryId == null
+          ? l.streamListEmptyTop
+          : l.streamListEmptyLive,
     );
   }
 
@@ -562,7 +573,14 @@ class _LiveFeedState extends State<LiveFeed> {
                   ? page(context, streams[index], index)
                   : _EndPage(
                       loading: widget.store.list.isLoading,
-                      error: widget.store.list.error,
+                      error: switch (widget.store.list.error) {
+                        final error? => streamListErrorText(
+                          context.l10n,
+                          error,
+                          widget.store.list.sort,
+                        ),
+                        null => null,
+                      },
                       onRetry: () => unawaited(_retry()),
                       onBackToTop: () => widget.controller.animateToPage(
                         0,
@@ -772,7 +790,12 @@ class LiveFeedChips extends StatelessWidget {
           child: Row(
             spacing: 8,
             children: [
-              _chip(context, 'All', selected == null, () => onSelect(null)),
+              _chip(
+                context,
+                context.l10n.liveFeedAllCategories,
+                selected == null,
+                () => onSelect(null),
+              ),
               for (final chip in chips)
                 _chip(
                   context,
@@ -930,14 +953,17 @@ class _PreviewSurface extends StatelessWidget {
             builder: (context, _) {
               final backend = preview.backend;
               if (preview.failed && preview.targetLogin == stream.userLogin) {
-                return const Center(
+                return Center(
                   child: OverlayPill(
                     height: 26,
                     radius: 7,
                     padding: 10,
                     child: Text(
-                      'Preview unavailable',
-                      style: TextStyle(fontSize: 12, color: OverImage.text),
+                      context.l10n.liveFeedPreviewUnavailable,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: OverImage.text,
+                      ),
                     ),
                   ),
                 );
@@ -982,7 +1008,7 @@ class _PreviewSurface extends StatelessWidget {
                         stream.userName,
                         stream.userLogin,
                       ),
-                      labels: labels,
+                      labels: contentLabelNames(labels, context.l10n),
                       onAccept: () => gate.accept(stream),
                       onBack: gate.decline,
                     ),
@@ -1005,25 +1031,26 @@ class _WarningPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return Semantics(
       button: true,
-      label: 'Content warning. Play preview',
+      label: l.liveFeedContentWarningSemantics,
       onTap: onPressed,
       excludeSemantics: true,
       child: PressScale(
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: onPressed,
-          child: const OverlayPill(
+          child: OverlayPill(
             height: 36,
             radius: 18,
             padding: 14,
-            color: Color(0xB3000000),
+            color: const Color(0xB3000000),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               spacing: 8,
               children: [
-                PlayerGlyph(
+                const PlayerGlyph(
                   PlayerGlyphKind.eyeOff,
                   color: OverImage.text,
                   size: 16,
@@ -1031,10 +1058,10 @@ class _WarningPill extends StatelessWidget {
                 ),
                 Flexible(
                   child: Text(
-                    'Content warning · Play preview',
+                    l.liveFeedContentWarning,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: OverImage.text,
@@ -1129,7 +1156,7 @@ class _SoundAction extends StatelessWidget {
         if (!playing) {
           return _RoundAction(
             icon: Icons.play_arrow_rounded,
-            label: 'Play preview',
+            label: context.l10n.liveFeedPlayPreview,
             onPressed: onPlay,
             size: size,
           );
@@ -1137,7 +1164,9 @@ class _SoundAction extends StatelessWidget {
         final muted = preview.muted;
         return _RoundAction(
           icon: muted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-          label: muted ? 'Unmute' : 'Mute',
+          label: muted
+              ? context.l10n.liveFeedUnmute
+              : context.l10n.liveFeedMute,
           size: size,
           onPressed: () {
             Haptics.light();
@@ -1170,8 +1199,9 @@ class _SoundLabel extends StatelessWidget {
       builder: (context, _) {
         final audible =
             !preview.muted && preview.playingLogin == stream.userLogin;
+        final l = context.l10n;
         return Text(
-          '$prefix${audible ? 'Sound on' : 'Muted preview'}',
+          '$prefix${audible ? l.liveFeedSoundOn : l.liveFeedMuted}',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: style,
@@ -1191,7 +1221,7 @@ class _Watching extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Semantics(
-      label: '${formatViewers(viewers, compact: false)} watching',
+      label: context.l10n.streamWatching(count: viewers),
       child: ExcludeSemantics(
         child: RollingViewers(viewers: viewers, spelled: true, fontSize: 13),
       ),
@@ -1218,10 +1248,10 @@ class _WatchButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Listener(onPointerDown: (_) => onDown(), child: _button());
+    return Listener(onPointerDown: (_) => onDown(), child: _button(context));
   }
 
-  Widget _button() {
+  Widget _button(BuildContext context) {
     return FilledButton.icon(
       onPressed: onPressed,
       style: FilledButton.styleFrom(
@@ -1239,7 +1269,7 @@ class _WatchButton extends StatelessWidget {
         ),
       ),
       icon: const Icon(Icons.play_arrow_rounded, size: 18),
-      label: const Text('Watch with chat'),
+      label: Text(context.l10n.liveFeedWatchWithChat),
     );
   }
 }
@@ -1256,7 +1286,7 @@ class _FollowButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = getReadableName(stream.userName, stream.userLogin);
     return Tooltip(
-      message: 'Follow $name on Twitch',
+      message: context.l10n.liveFeedFollowOnTwitch(name: name),
       child: OutlinedButton(
         onPressed: () => TwitchWebPage.open(
           context,
@@ -1278,7 +1308,7 @@ class _FollowButton extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        child: const Text('Follow'),
+        child: Text(context.l10n.liveFeedFollow),
       ),
     );
   }
@@ -1374,7 +1404,7 @@ class _PhonePage extends StatelessWidget {
             child: AspectRatio(
               aspectRatio: 16 / 9,
               child: Semantics(
-                label: '$name live preview. Opens the channel',
+                label: context.l10n.liveFeedPreviewSemantics(name: name),
                 button: true,
                 // The node alone takes the actions (a finger's tap preloads on
                 // touch-down, a screen reader's does both at once): a detector in
@@ -1384,7 +1414,9 @@ class _PhonePage extends StatelessWidget {
                   onOpen();
                 },
                 onLongPress: onEnlarge,
-                onLongPressHint: showThumbnail ? 'enlarge' : 'Channel actions',
+                onLongPressHint: showThumbnail
+                    ? context.l10n.streamEnlargeHint
+                    : context.l10n.liveFeedChannelActions,
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   excludeFromSemantics: true,
@@ -1454,12 +1486,12 @@ class _PhonePage extends StatelessWidget {
               ),
               _RoundAction(
                 icon: Icons.block_rounded,
-                label: 'Not interested',
+                label: context.l10n.liveFeedNotInterested,
                 onPressed: onNotInterested,
               ),
               _RoundAction(
                 icon: Icons.ios_share_rounded,
-                label: 'Share',
+                label: context.l10n.liveFeedShare,
                 onPressed: () => unawaited(
                   shareLink(
                     context,
@@ -1600,10 +1632,10 @@ class _SwipeHintState extends State<_SwipeHint>
 
   @override
   Widget build(BuildContext context) {
-    const label = Text(
-      'SWIPE UP FOR THE NEXT LIVE',
+    final label = Text(
+      context.l10n.liveFeedSwipeHint,
       textAlign: TextAlign.center,
-      style: TextStyle(
+      style: const TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.14 * 11,
@@ -1670,7 +1702,7 @@ class _TabletPage extends StatelessWidget {
           child: AspectRatio(
             aspectRatio: 16 / 9,
             child: Semantics(
-              label: '$name live preview. Opens the channel',
+              label: context.l10n.liveFeedPreviewSemantics(name: name),
               button: true,
               // The node alone takes the actions (a finger's tap preloads on
               // touch-down, a screen reader's does both at once): a detector in
@@ -1680,7 +1712,9 @@ class _TabletPage extends StatelessWidget {
                 onOpen();
               },
               onLongPress: onEnlarge,
-              onLongPressHint: showThumbnail ? 'enlarge' : 'Channel actions',
+              onLongPressHint: showThumbnail
+                  ? context.l10n.streamEnlargeHint
+                  : context.l10n.liveFeedChannelActions,
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 excludeFromSemantics: true,
@@ -1759,13 +1793,13 @@ class _TabletPage extends StatelessWidget {
                 ),
                 _RoundAction(
                   icon: Icons.block_rounded,
-                  label: 'Not interested',
+                  label: context.l10n.liveFeedNotInterested,
                   onPressed: onNotInterested,
                   size: 50,
                 ),
                 _RoundAction(
                   icon: Icons.ios_share_rounded,
-                  label: 'Share',
+                  label: context.l10n.liveFeedShare,
                   size: 50,
                   onPressed: () => unawaited(
                     shareLink(
@@ -1878,7 +1912,7 @@ class _UpNext extends StatelessWidget {
             (i, streams[i]),
         ];
         final label = Text(
-          'UP NEXT',
+          context.l10n.liveFeedUpNext,
           style: OnsetType.label.copyWith(color: colors.secondary),
         );
         if (horizontal) {
@@ -1922,8 +1956,7 @@ class _UpNext extends StatelessWidget {
               ),
             const Spacer(),
             Text(
-              'Swipe up on the preview, or tap a live in the list. Previews '
-              'never start with sound.',
+              context.l10n.liveFeedUpNextHelp,
               style: TextStyle(
                 fontSize: 12,
                 height: 1.5,
@@ -2091,10 +2124,14 @@ class _UpNextRow extends StatelessWidget {
         onLongPress: () => showStreamActions(context, stream),
         child: vertical
             ? Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: 8,
                 children: [
-                  AspectRatio(aspectRatio: 16 / 9, child: picture),
+                  // The picture gives way when large text needs the room
+                  // (it stays 16:9, a little narrower).
+                  Flexible(
+                    child: AspectRatio(aspectRatio: 16 / 9, child: picture),
+                  ),
                   lines,
                 ],
               )
@@ -2131,14 +2168,14 @@ class _EndPage extends StatelessWidget {
     final error = this.error;
     final Widget content;
     if (loading) {
-      content = const Column(
+      content = Column(
         mainAxisSize: MainAxisSize.min,
         spacing: 16,
         children: [
-          CircularProgressIndicator(color: OverImage.text),
+          const CircularProgressIndicator(color: OverImage.text),
           Text(
-            'Loading more live channels',
-            style: TextStyle(color: OverImage.text),
+            context.l10n.liveFeedLoadingMore,
+            style: const TextStyle(color: OverImage.text),
           ),
         ],
       );
@@ -2160,7 +2197,7 @@ class _EndPage extends StatelessWidget {
             onPressed: onRetry,
             style: _endButtonStyle,
             icon: const Icon(Icons.refresh_rounded, size: 17),
-            label: const Text('Try again'),
+            label: Text(context.l10n.commonTryAgain),
           ),
         ],
       );
@@ -2169,10 +2206,10 @@ class _EndPage extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         spacing: 16,
         children: [
-          const Text(
-            'That’s every live channel here for now',
+          Text(
+            context.l10n.liveFeedEnd,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               color: OverImage.text,
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -2181,7 +2218,7 @@ class _EndPage extends StatelessWidget {
           OutlinedButton(
             onPressed: onBackToTop,
             style: _endButtonStyle,
-            child: const Text('Back to the first'),
+            child: Text(context.l10n.liveFeedBackToFirst),
           ),
         ],
       );

@@ -10,6 +10,8 @@ import 'package:onset/apis/twitch_clip_service.dart';
 import 'package:onset/apis/twitch_directory_service.dart';
 import 'package:onset/apis/twitch_hype_train_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/category.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/models/stream.dart';
@@ -26,6 +28,8 @@ import 'package:onset/utils/twitch_links.dart';
 import 'package:onset/widgets/onset_chip.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../../helpers/l10n.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 
@@ -219,12 +223,23 @@ void main() {
     bool reduceMotion = false,
     bool pushed = false,
     AuthStore? authStore,
+    Locale? locale,
+    double textScale = 1,
   }) async {
     if (size != null) {
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
     }
+    final app = await localizedApp(
+      tester,
+      locale: locale,
+      textScale: textScale,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(disableAnimations: reduceMotion),
+        child: child!,
+      ),
+    );
     final user = MockUserStore();
     final auth = authStore ?? MockAuthStore();
     if (authStore == null) when(() => auth.isLoggedIn).thenReturn(loggedIn);
@@ -245,15 +260,13 @@ void main() {
           Provider<TwitchHypeTrainService>.value(value: MockHypeTrainService()),
         ],
         child: MaterialApp(
+          locale: app.locale,
+          supportedLocales: app.supportedLocales,
+          localizationsDelegates: app.delegates,
           theme: themes.light,
           darkTheme: themes.dark,
           themeMode: mode,
-          builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(
-              context,
-            ).copyWith(disableAnimations: reduceMotion),
-            child: child!,
-          ),
+          builder: app.builder,
           home: pushed
               ? Builder(
                   builder: (context) => TextButton(
@@ -492,7 +505,7 @@ void main() {
       await tester.tap(find.byTooltip('Sort streams'));
       await settle(tester);
       for (final sort in StreamSort.values) {
-        expect(find.text(sort.label), findsOneWidget);
+        expect(find.text(sort.label(L10n.english)), findsOneWidget);
       }
       expect(find.byIcon(Icons.check_rounded), findsOneWidget);
       expect(
@@ -556,6 +569,126 @@ void main() {
         tester.getTopLeft(find.text('24 hours')).dy,
         greaterThan(tester.getTopLeft(find.text('CATEGORY')).dy),
       );
+    });
+  });
+
+  group('in French', () {
+    final french = lookupAppLocalizations(fr);
+
+    setUp(() {
+      when(
+        () => helix.getCategory(gameId: any(named: 'gameId')),
+      ).thenAnswer((_) async => const CategoriesTwitch([_gta], {}));
+      when(
+        () => helix.getStreamsUnderCategory(
+          gameId: any(named: 'gameId'),
+          cursor: any(named: 'cursor'),
+          language: any(named: 'language'),
+        ),
+      ).thenAnswer(
+        (_) async => StreamsTwitch([
+          for (var i = 0; i < 6; i++) _stream('$i'),
+        ], const {}),
+      );
+      when(
+        () => helix.getUser(userLogin: any(named: 'userLogin')),
+      ).thenAnswer((_) => Completer<UserTwitch>().future);
+      when(
+        () => clips.getCategoryClips(
+          gameId: any(named: 'gameId'),
+          period: any(named: 'period'),
+          sort: any(named: 'sort'),
+        ),
+      ).thenAnswer(
+        (_) async => ClipPage(
+          items: [
+            Clip(
+              id: '1',
+              slug: 'Slug',
+              title: '',
+              viewCount: 1,
+              createdAt: DateTime.utc(2026),
+              durationSeconds: 30,
+              broadcasterId: '43',
+              broadcasterLogin: 'fan',
+              broadcasterDisplayName: 'Fan',
+              curatorDisplayName: 'Curator',
+            ),
+          ],
+          hasMore: true,
+        ),
+      );
+    });
+
+    for (final (sizeName, size) in frenchScreenSizes) {
+      for (final scale in frenchTextScales) {
+        testWidgets('live, the orders, videos and clips, $sizeName, text '
+            '×$scale', (tester) async {
+          await pumpPage(
+            tester,
+            size: size,
+            loggedIn: true,
+            locale: fr,
+            textScale: scale,
+          );
+          await tester.pump(const Duration(milliseconds: 500));
+          expect(find.text(french.categoryEyebrow), findsOneWidget);
+          await expectFrenchThroughout(tester, 'live');
+
+          for (final list in tester.stateList<ScrollableState>(
+            find.byType(Scrollable),
+          )) {
+            if (list.mounted) list.position.jumpTo(0);
+          }
+          await settle(tester);
+          final sort = find.byTooltip(french.streamSortTooltip);
+          await tester.tap(sort.first);
+          await settle(tester);
+          expect(find.text(french.streamSortRecent), findsOneWidget);
+          expect(tester.takeException(), isNull);
+          expect(englishLeaks(tester), isEmpty, reason: 'orders');
+          await tester.tap(find.text(french.streamSortRecent));
+          await settle(tester);
+
+          for (final section in [
+            french.categorySectionVideos,
+            french.categorySectionClips,
+          ]) {
+            final chip = find.widgetWithText(OnsetChip, section);
+            await tester.ensureVisible(chip);
+            await tester.tap(chip);
+            await tester.pump();
+            await tester.pump(const Duration(milliseconds: 500));
+            await expectFrenchThroughout(tester, section);
+          }
+        });
+      }
+    }
+
+    testWidgets('an order Twitch refuses', (tester) async {
+      when(
+        () => directory.getCategoryStreams(
+          gameId: any(named: 'gameId'),
+          sort: any(named: 'sort'),
+          language: any(named: 'language'),
+        ),
+      ).thenAnswer((_) => Future.error(const DirectoryApiException('x')));
+      await pumpPage(tester, size: const Size(390, 844), locale: fr);
+      await settle(tester);
+      await tester.tap(find.byTooltip(french.streamSortTooltip).first);
+      await settle(tester);
+      await tester.tap(find.text(french.streamSortRecent));
+      await settle(tester);
+      expect(
+        find.text(
+          french.streamListSortFailed(
+            sort: french.streamSortRecent,
+            fallback: french.streamSortViewersHigh,
+          ),
+        ),
+        findsOneWidget,
+      );
+      await expectFrenchThroughout(tester, 'sort failed');
     });
   });
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/screens/clips/stores/channel_clips_store.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
@@ -34,7 +36,7 @@ class ClipFilterBar extends StatelessWidget {
             children: [
               for (final p in ClipPeriod.values)
                 OnsetChip(
-                  label: p.label,
+                  label: p.label(context.l10n),
                   selected: p == period,
                   height: OnsetChip.filterHeight,
                   onSelected: () => store.select(period: p),
@@ -46,7 +48,7 @@ class ClipFilterBar extends StatelessWidget {
               ),
               for (final s in ClipSort.values)
                 OnsetChip(
-                  label: s.label,
+                  label: s.label(context.l10n),
                   selected: s == sort,
                   height: OnsetChip.filterHeight,
                   onSelected: () => store.select(sort: s),

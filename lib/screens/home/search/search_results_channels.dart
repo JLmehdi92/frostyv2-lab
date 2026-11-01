@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/l10n/api_errors.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel.dart';
 import 'package:onset/screens/channel/channel.dart';
 import 'package:onset/screens/channel_profile/channel_profile_screen.dart';
@@ -88,20 +90,23 @@ class _SearchResultsChannelsState extends State<SearchResultsChannels> {
       );
     } on ApiException catch (e) {
       debugPrint('Search channels ApiException: $e');
-      final snackBar = SnackBar(
-        content: AlertMessage(message: e.message, centered: false),
-      );
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    } catch (error) {
-      debugPrint('Search channels error: $error');
       final snackBar = SnackBar(
         content: AlertMessage(
-          message: 'Unable to find channel',
+          message: apiErrorText(context.l10n, e),
           centered: false,
         ),
       );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    } catch (error) {
+      debugPrint('Search channels error: $error');
       if (!context.mounted) return;
+      final snackBar = SnackBar(
+        content: AlertMessage(
+          message: context.l10n.searchChannelNotFound,
+          centered: false,
+        ),
+      );
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
     }
   }
@@ -187,7 +192,7 @@ class _SearchResultsChannelsState extends State<SearchResultsChannels> {
               constraints: const BoxConstraints(minHeight: 100),
               child: Center(
                 child: InlineStatus.error(
-                  message: 'Unable to load channels',
+                  message: context.l10n.searchChannelsFailed,
                   onRetry: _retry,
                 ),
               ),
@@ -392,7 +397,7 @@ class SearchChannelRow extends StatelessWidget {
                         )
                       else
                         Text(
-                          offlineLine(channel),
+                          offlineLine(channel, context.l10n),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: meta.copyWith(color: colors.tertiary),
@@ -429,7 +434,7 @@ class _GoToChannel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
-    final label = 'Go to channel "$query"';
+    final label = context.l10n.searchGoToChannel(query: query);
     final text = TextStyle(
       fontSize: 14,
       fontWeight: FontWeight.w500,

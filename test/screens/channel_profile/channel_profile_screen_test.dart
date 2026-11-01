@@ -10,6 +10,7 @@ import 'package:onset/apis/twitch_channel_profile_service.dart';
 import 'package:onset/apis/twitch_clip_service.dart';
 import 'package:onset/apis/twitch_stream_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel_profile.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/models/user.dart';
@@ -29,6 +30,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../fixtures/channel_profile_payloads.dart';
+import '../../helpers/l10n.dart';
 
 class MockProfileService extends Mock implements TwitchChannelProfileService {}
 
@@ -135,11 +137,16 @@ void main() {
     bool reduceMotion = true,
     AuthStore? auth,
     double textScale = 1,
+    Locale? locale,
   }) async {
     tester.view
       ..physicalSize = size
       ..devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    if (locale != null) {
+      await tester.runAsync(loadInter);
+      await useLocale(locale);
+    }
     const themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       MultiProvider(
@@ -152,6 +159,10 @@ void main() {
           if (auth != null) Provider<AuthStore>.value(value: auth),
         ],
         child: MaterialApp(
+          // The app's localizations: they also load the dates' symbols.
+          locale: locale ?? const Locale('en'),
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
           theme: themes.light,
           darkTheme: themes.dark,
           themeMode: dark ? ThemeMode.dark : ThemeMode.light,
@@ -204,9 +215,11 @@ void main() {
 
   Future<void> tapTab(WidgetTester tester, ProfileTab tab) async {
     // The test font is wider than Inter: the row may scroll.
-    await tester.ensureVisible(find.widgetWithText(Tab, tab.label));
+    await tester.ensureVisible(
+      find.widgetWithText(Tab, tab.label(L10n.english)),
+    );
     await tester.pump();
-    await tester.tap(find.widgetWithText(Tab, tab.label));
+    await tester.tap(find.widgetWithText(Tab, tab.label(L10n.english)));
     await settle(tester);
   }
 
@@ -245,10 +258,12 @@ void main() {
         // The order.
         final xs = [
           for (final tab in ProfileTab.values)
-            tester.getTopLeft(find.widgetWithText(Tab, tab.label)).dx,
+            tester
+                .getTopLeft(find.widgetWithText(Tab, tab.label(L10n.english)))
+                .dx,
         ];
         expect(xs, orderedEquals([...xs]..sort()));
-        expect(ProfileTab.values.map((t) => t.label), [
+        expect(ProfileTab.values.map((t) => t.label(L10n.english)), [
           'Home',
           'Videos',
           'Clips',
@@ -374,12 +389,12 @@ void main() {
         final indicators = tester.widgetList<RefreshIndicator>(
           find.byType(RefreshIndicator),
         );
-        expect(indicators, isNotEmpty, reason: tab.label);
+        expect(indicators, isNotEmpty, reason: tab.label(L10n.english));
         for (final indicator in indicators) {
           expect(
             indicator.edgeOffset,
             greaterThanOrEqualTo(ProfilePhoneHeader.barHeight + 40),
-            reason: tab.label,
+            reason: tab.label(L10n.english),
           );
         }
       }
@@ -451,7 +466,11 @@ void main() {
         await settle(tester);
         for (final tab in ProfileTab.values) {
           await tapTab(tester, tab);
-          expect(tester.takeException(), isNull, reason: '$size ${tab.label}');
+          expect(
+            tester.takeException(),
+            isNull,
+            reason: '$size ${tab.label(L10n.english)}',
+          );
         }
       }
     });
@@ -482,7 +501,11 @@ void main() {
 
           for (final tab in ProfileTab.values) {
             await tapTab(tester, tab);
-            expect(tester.takeException(), isNull, reason: tab.label);
+            expect(
+              tester.takeException(),
+              isNull,
+              reason: tab.label(L10n.english),
+            );
           }
         }
       });
@@ -788,6 +811,124 @@ void main() {
       answerProfile();
       await pump(tester, tab: ProfileTab.schedule);
       expect(find.text('No streams scheduled'), findsOneWidget);
+    });
+  });
+
+  group('in French', () {
+    final french = lookupAppLocalizations(fr);
+
+    void answerWithContent() {
+      answerProfile();
+      final now = DateTime.now();
+      when(() => profiles.getSchedule(any())).thenAnswer(
+        (_) async => ChannelSchedule(
+          nextStartAt: now.add(const Duration(hours: 3)).toUtc(),
+          segments: [
+            ScheduleSegment(
+              id: 'a',
+              startAt: now.add(const Duration(hours: 3)).toUtc(),
+              title: 'Ranked',
+              categoryName: 'Chess',
+            ),
+            ScheduleSegment(
+              id: 'b',
+              startAt: now.add(const Duration(days: 1)).toUtc(),
+            ),
+            ScheduleSegment(
+              id: 'c',
+              startAt: now.add(const Duration(days: 2)).toUtc(),
+              isCancelled: true,
+            ),
+          ],
+        ),
+      );
+      when(
+        () => vods.getChannelVideos(
+          login: any(named: 'login'),
+          type: any(named: 'type'),
+        ),
+      ).thenAnswer(
+        (_) async => VodPage(
+          items: [
+            for (var i = 0; i < 3; i++)
+              Vod(
+                id: '$i',
+                title: i == 0 ? '' : 'Video $i',
+                lengthSeconds: 3600,
+                createdAt: now.subtract(Duration(days: i * 9 + 1)),
+                viewCount: i * 1500 + 1,
+                ownerId: '71092938',
+                ownerLogin: 'xqc',
+                ownerDisplayName: 'xQc',
+              ),
+          ],
+          hasMore: true,
+        ),
+      );
+      when(
+        () => clips.getChannelClips(
+          login: any(named: 'login'),
+          period: any(named: 'period'),
+          sort: any(named: 'sort'),
+        ),
+      ).thenAnswer(
+        (_) async => ClipPage(
+          items: [
+            for (var i = 0; i < 3; i++)
+              Clip(
+                id: '$i',
+                slug: 'Slug$i',
+                title: i == 0 ? '' : 'Clip $i',
+                viewCount: i * 120000 + 1,
+                createdAt: now.subtract(Duration(hours: i * 30 + 2)),
+                durationSeconds: 30,
+                broadcasterId: '71092938',
+                broadcasterLogin: 'xqc',
+                broadcasterDisplayName: 'xQc',
+                curatorDisplayName: i == 1 ? 'Fan' : null,
+              ),
+          ],
+          hasMore: true,
+        ),
+      );
+    }
+
+    for (final (sizeName, size) in frenchScreenSizes) {
+      for (final scale in frenchTextScales) {
+        testWidgets('every tab, $sizeName, text ×$scale', (tester) async {
+          answerWithContent();
+          await pump(tester, size: size, textScale: scale, locale: fr);
+          for (final tab in ProfileTab.values) {
+            final label = find.widgetWithText(Tab, tab.label(french));
+            await tester.ensureVisible(label);
+            await tester.pump();
+            await tester.tap(label);
+            await settle(tester);
+            // The tab's content is there, in French.
+            final shown = switch (tab) {
+              ProfileTab.home => french.profileRecentBroadcasts,
+              ProfileTab.videos => french.profilePastBroadcasts,
+              ProfileTab.clips => french.clipPeriodLastWeek,
+              ProfileTab.schedule => french.profileCancelled,
+              ProfileTab.about => french.profileAboutTitle(name: 'xQc'),
+            };
+            expect(find.textContaining(shown), findsWidgets, reason: tab.name);
+            await expectFrenchThroughout(tester, tab.name);
+          }
+        });
+      }
+    }
+
+    testWidgets('a channel not found, and a schedule that failed', (
+      tester,
+    ) async {
+      when(() => profiles.getProfile(any())).thenAnswer((_) async => null);
+      when(
+        () => helix.getUser(userLogin: any(named: 'userLogin')),
+      ).thenThrow(Exception('down'));
+      await pump(tester, locale: fr);
+      expect(find.text(french.profileNotFound), findsOneWidget);
+      await expectFrenchThroughout(tester, 'not found');
     });
   });
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/vod/widgets/vod_error_view.dart';
 
 void main() {
@@ -20,7 +21,7 @@ void main() {
     for (final problem in VodPlaybackProblem.values) {
       await pump(tester, problem);
       expect(
-        find.text(VodErrorView.messageFor(problem)),
+        find.text(VodErrorView.messageFor(problem, L10n.english)),
         findsOneWidget,
         reason: problem.name,
       );
@@ -68,15 +69,40 @@ void main() {
       const MaterialApp(
         home: VodErrorView(
           problem: VodPlaybackProblem.notFound,
-          subject: 'clip',
+          subject: PlaybackSubject.clip,
         ),
       ),
     );
 
     expect(find.text('This clip is no longer available'), findsOneWidget);
     expect(
-      VodErrorView.messageFor(VodPlaybackProblem.notFound),
+      VodErrorView.messageFor(VodPlaybackProblem.notFound, L10n.english),
       'This video is no longer available',
     );
+  });
+
+  test('French words a video and a clip each its own way', () {
+    final french = lookupAppLocalizations(const Locale('fr'));
+    String message(VodPlaybackProblem problem, PlaybackSubject subject) =>
+        VodErrorView.messageFor(problem, french, subject: subject);
+    expect(
+      VodErrorView.messageFor(VodPlaybackProblem.notFound, french),
+      'Cette vidéo n’est plus disponible',
+    );
+    expect(
+      message(VodPlaybackProblem.notFound, PlaybackSubject.clip),
+      'Ce clip n’est plus disponible',
+    );
+    // Every subject is a branch of every message, in both languages: a
+    // subject the ARB files miss would fall back to the video's words.
+    for (final l in [L10n.english, french]) {
+      for (final problem in VodPlaybackProblem.values) {
+        expect(
+          VodErrorView.messageFor(problem, l, subject: PlaybackSubject.clip),
+          isNot(VodErrorView.messageFor(problem, l)),
+          reason: '${l.localeName} ${problem.name}',
+        );
+      }
+    }
   });
 }

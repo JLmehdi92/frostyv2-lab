@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/settings/account/account_settings.dart';
 import 'package:onset/screens/whispers/whisper_conversation.dart';
 import 'package:onset/screens/whispers/whisper_kit.dart';
@@ -404,7 +405,7 @@ class _WhispersScreenState extends State<WhispersScreen>
                         child: Semantics(
                           header: true,
                           child: Text(
-                            'Whispers',
+                            context.l10n.whispersTitle,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
@@ -417,7 +418,9 @@ class _WhispersScreenState extends State<WhispersScreen>
                         ),
                       ),
                       Text(
-                        unread > 0 ? '$unread unread' : 'All read',
+                        unread > 0
+                            ? context.l10n.whispersUnreadCount(count: unread)
+                            : context.l10n.whispersAllRead,
                         style: OnsetType.tabular(
                           TextStyle(
                             fontSize: 13,
@@ -472,8 +475,8 @@ class _WhispersScreenState extends State<WhispersScreen>
                     ? _conversation(selected, pane: true)
                     : threads.isEmpty
                     ? const _NoWhispers()
-                    : const FeedStatusView.empty(
-                        message: 'Choose a conversation',
+                    : FeedStatusView.empty(
+                        message: context.l10n.whispersChoose,
                         glyph: StateGlyphKind.whisper,
                       ),
               ),
@@ -527,7 +530,7 @@ class _ListPage extends StatelessWidget {
                   child: Semantics(
                     header: true,
                     child: Text(
-                      'Whispers',
+                      context.l10n.whispersTitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -561,9 +564,9 @@ class _NoWhispers extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const FeedStatusView.empty(
-      message: 'No whispers yet',
-      detail: 'Whispers you get while the app is open show up here.',
+    return FeedStatusView.empty(
+      message: context.l10n.whispersEmpty,
+      detail: context.l10n.whispersEmptyDetail,
       glyph: StateGlyphKind.whisper,
     );
   }
@@ -584,7 +587,7 @@ class _LoggedOut extends StatelessWidget {
           Center(
             child: SingleChildScrollView(
               child: FeedStatusView.signIn(
-                message: whisperStatusHint(WhisperStatus.off)!,
+                message: whisperStatusHint(WhisperStatus.off, context.l10n)!,
                 onConnect: () => openLogin(context),
               ),
             ),

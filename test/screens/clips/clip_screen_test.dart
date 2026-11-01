@@ -5,6 +5,7 @@ import 'package:mobx/mobx.dart' show ObservableList;
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_clip_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/cheermote.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/models/irc.dart';
@@ -24,6 +25,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../fixtures/clip_responses.dart';
 import '../../helpers/fake_vod_controller.dart';
+import '../../helpers/l10n.dart';
 
 class MockClipService extends Mock implements TwitchClipService {}
 
@@ -103,6 +105,7 @@ void main() {
     String slug = 'SomeClipSlug',
     Size size = const Size(400, 800),
     double textScale = 1,
+    Locale? locale,
   }) {
     tester.view
       ..physicalSize = size
@@ -117,6 +120,9 @@ void main() {
           Provider<TwitchVodService>.value(value: vodService),
         ],
         child: MaterialApp(
+          locale: locale,
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
           builder: (context, child) => MediaQuery(
             data: MediaQuery.of(
               context,
@@ -429,5 +435,27 @@ void main() {
 
     expect(tester.takeException(), isNull);
     await close(tester);
+  });
+
+  group('in French', () {
+    for (final (sizeName, size) in frenchScreenSizes) {
+      for (final scale in frenchTextScales) {
+        testWidgets('a clip, its details and its channel\'s clips, '
+            '$sizeName, text ×$scale', (tester) async {
+          await useLocale(fr);
+          await tester.runAsync(loadInter);
+          await pump(
+            tester,
+            known: clip,
+            size: size,
+            textScale: scale,
+            locale: fr,
+          );
+          await tester.pump(const Duration(milliseconds: 500));
+          await expectFrenchThroughout(tester, 'clip');
+          await close(tester);
+        });
+      }
+    }
   });
 }

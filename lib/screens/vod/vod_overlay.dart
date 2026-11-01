@@ -5,6 +5,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:intl/intl.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/channel/channel.dart';
 import 'package:onset/screens/channel/video/overlay_common.dart';
@@ -279,10 +281,10 @@ class _VodOverlayState extends State<VodOverlay> {
                 controlsVisible: _c.overlayVisible,
                 actions: {
                   if (widget.skipButtons) ...{
-                    'Back 10 seconds': () => _skipBy(forward: false),
-                    'Forward 10 seconds': () => _skipBy(forward: true),
+                    context.l10n.playerBack10: () => _skipBy(forward: false),
+                    context.l10n.playerForward10: () => _skipBy(forward: true),
                   },
-                  'Change chat layout': ?widget.onCycleChatMode,
+                  context.l10n.playerChangeChatLayout: ?widget.onCycleChatMode,
                 },
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
@@ -499,7 +501,7 @@ class _VodOverlayState extends State<VodOverlay> {
       spacing: m.large ? 10 : 2,
       children: [
         _OverlayButton(
-          tooltip: 'Back',
+          tooltip: context.l10n.commonBack,
           glyph: VideoGlyphKind.back,
           glyphSize: 22,
           strokeWidth: 2,
@@ -512,7 +514,9 @@ class _VodOverlayState extends State<VodOverlay> {
             alignment: AlignmentDirectional.centerStart,
             child: Semantics(
               button: true,
-              label: 'Open ${media.ownerDisplayName}',
+              label: context.l10n.clipOpenChannel(
+                channel: media.ownerDisplayName,
+              ),
               onTap: () => _openChannel(context),
               excludeSemantics: true,
               child: GestureDetector(
@@ -535,7 +539,9 @@ class _VodOverlayState extends State<VodOverlay> {
             builder: (context) {
               final shown = widget.settings.fullScreenChatOverlay;
               return Tooltip(
-                message: shown ? 'Hide chat overlay' : 'Show chat overlay',
+                message: shown
+                    ? context.l10n.playerHideChatOverlay
+                    : context.l10n.playerShowChatOverlay,
                 child: Semantics(
                   selected: shown,
                   child: _PlainButton(
@@ -553,7 +559,9 @@ class _VodOverlayState extends State<VodOverlay> {
           ),
         if (widget.onToggleLoop != null)
           _OverlayButton(
-            tooltip: widget.looping == true ? 'Stop looping' : 'Loop',
+            tooltip: widget.looping == true
+                ? context.l10n.playerStopLooping
+                : context.l10n.playerLoop,
             glyph: VideoGlyphKind.loop,
             strokeWidth: 1.9,
             selected: widget.looping == true,
@@ -561,7 +569,7 @@ class _VodOverlayState extends State<VodOverlay> {
             onPressed: widget.onToggleLoop,
           ),
         _OverlayButton(
-          tooltip: 'Settings',
+          tooltip: context.l10n.playerSettings,
           glyph: VideoGlyphKind.settings,
           onPressed: () => _openSettings(context),
         ),
@@ -574,18 +582,19 @@ class _VodOverlayState extends State<VodOverlay> {
       builder: (context) {
         final ended = _c.ended;
         final paused = _c.paused;
+        final l = context.l10n;
         final label = ended
-            ? 'Replay'
+            ? l.playerReplay
             : paused
-            ? 'Play'
-            : 'Pause';
+            ? l.playerPlay
+            : l.playerPause;
         return Row(
           mainAxisSize: MainAxisSize.min,
           spacing: m.centerGap,
           children: [
             if (widget.skipButtons)
               _OverlayButton(
-                tooltip: 'Back 10 seconds',
+                tooltip: l.playerBack10,
                 glyph: VideoGlyphKind.replay10,
                 size: m.skip,
                 glyphSize: m.skipGlyph,
@@ -606,7 +615,7 @@ class _VodOverlayState extends State<VodOverlay> {
             ),
             if (widget.skipButtons)
               _OverlayButton(
-                tooltip: 'Forward 10 seconds',
+                tooltip: l.playerForward10,
                 glyph: VideoGlyphKind.forward10,
                 size: m.skip,
                 glyphSize: m.skipGlyph,
@@ -635,7 +644,10 @@ class _VodOverlayState extends State<VodOverlay> {
                 alignment: AlignmentDirectional.centerStart,
                 child: Text(
                   '$elapsed / $total',
-                  semanticsLabel: 'Elapsed time $elapsed of $total',
+                  semanticsLabel: context.l10n.playerElapsed(
+                    elapsed: elapsed,
+                    total: total,
+                  ),
                   style: TextStyle(
                     fontFamily: OnsetTokens.bodyFamily,
                     color: _Over.text,
@@ -658,14 +670,16 @@ class _VodOverlayState extends State<VodOverlay> {
               ),
             const Spacer(),
             _OverlayButton(
-              tooltip: _c.muted ? 'Unmute' : 'Mute',
+              tooltip: _c.muted
+                  ? context.l10n.liveFeedUnmute
+                  : context.l10n.liveFeedMute,
               glyph: silent ? VideoGlyphKind.muted : VideoGlyphKind.volume,
               below: false,
               onPressed: _c.toggleMute,
             ),
             if (Platform.isAndroid)
               _OverlayButton(
-                tooltip: 'Picture-in-picture',
+                tooltip: context.l10n.playerPictureInPicture,
                 glyph: VideoGlyphKind.pip,
                 below: false,
                 onPressed: _c.requestPictureInPicture,
@@ -674,8 +688,8 @@ class _VodOverlayState extends State<VodOverlay> {
             if (widget.onToggleFillScreen != null && widget.isLandscape)
               _OverlayButton(
                 tooltip: widget.fillScreen == true
-                    ? 'Fit to screen'
-                    : 'Fill screen',
+                    ? context.l10n.playerFitScreen
+                    : context.l10n.playerFillScreen,
                 glyph: VideoGlyphKind.fillScreen,
                 selected: widget.fillScreen == true,
                 color: widget.fillScreen == true ? accent : _Over.text,
@@ -683,7 +697,9 @@ class _VodOverlayState extends State<VodOverlay> {
                 onPressed: widget.onToggleFillScreen,
               ),
             _OverlayButton(
-              tooltip: widget.isLandscape ? 'Exit full screen' : 'Full screen',
+              tooltip: widget.isLandscape
+                  ? context.l10n.playerExitFullScreen
+                  : context.l10n.playerFullScreen,
               glyph: widget.isLandscape
                   ? VideoGlyphKind.exitFullscreen
                   : VideoGlyphKind.fullscreen,
@@ -899,7 +915,7 @@ class _SpeedPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Tooltip(
-    message: 'Playback speed',
+    message: context.l10n.playerSpeed,
     child: PressScale(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -1054,7 +1070,7 @@ class VodSettingsSheet extends StatelessWidget {
         children: [
           if (qualities.length > 1)
             _SheetGroup(
-              label: 'Quality',
+              label: context.l10n.playerQuality,
               child: Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -1070,7 +1086,7 @@ class VodSettingsSheet extends StatelessWidget {
               ),
             ),
           _SheetGroup(
-            label: 'Volume',
+            label: context.l10n.playerVolume,
             gap: 6,
             child: Observer(
               builder: (context) => _VolumeSlider(
@@ -1084,7 +1100,7 @@ class VodSettingsSheet extends StatelessWidget {
           if (controller case final IvsVodStore ivs)
             _CaptionsCard(captions: ivs.captions),
           _SheetGroup(
-            label: 'Playback speed',
+            label: context.l10n.playerSpeed,
             child: _SpeedGrid(
               current: rate,
               onSelected: (rate) {
@@ -1134,7 +1150,7 @@ class VodSettingsSheet extends StatelessWidget {
                   ),
                   _LinkRow(
                     glyph: VideoGlyphKind.share,
-                    label: 'Share',
+                    label: context.l10n.clipShare,
                     onTap: () async {
                       await shareLink(
                         context,
@@ -1191,14 +1207,16 @@ class _VolumeSlider extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = SheetColors.of(context);
     final shown = muted ? 0.0 : volume.clamp(0.0, 1.0);
-    final percent = '${(shown * 100).round()}%';
+    final percent = NumberFormat.percentPattern().format(shown);
     return Row(
       spacing: 8,
       children: [
         Transform.translate(
           offset: const Offset(-10, 0),
           child: Tooltip(
-            message: muted ? 'Unmute' : 'Mute',
+            message: muted
+                ? context.l10n.liveFeedUnmute
+                : context.l10n.liveFeedMute,
             child: IconButton(
               onPressed: onToggleMute,
               padding: EdgeInsets.zero,
@@ -1233,7 +1251,8 @@ class _VolumeSlider extends StatelessWidget {
             child: Slider(
               value: volume.clamp(0.0, 1.0),
               divisions: 20,
-              semanticFormatterCallback: (value) => '${(value * 100).round()}%',
+              semanticFormatterCallback: (value) =>
+                  NumberFormat.percentPattern().format(value),
               onChanged: onChanged,
             ),
           ),
@@ -1281,7 +1300,9 @@ class _CaptionsCard extends StatelessWidget {
             Semantics(
               toggled: on,
               button: true,
-              label: 'Closed Captions, When the stream has them',
+              label:
+                  '${context.l10n.playerCaptions}, '
+                  '${context.l10n.playerCaptionsDetail}',
               excludeSemantics: true,
               onTap: toggle,
               child: PressScale(
@@ -1315,7 +1336,7 @@ class _CaptionsCard extends StatelessWidget {
                                 spacing: 1,
                                 children: [
                                   Text(
-                                    'Closed Captions',
+                                    context.l10n.playerCaptions,
                                     style: SheetText.row.copyWith(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
@@ -1323,7 +1344,7 @@ class _CaptionsCard extends StatelessWidget {
                                     ),
                                   ),
                                   Text(
-                                    'When the stream has them',
+                                    context.l10n.playerCaptionsDetail,
                                     style: SheetText.rowDetail.copyWith(
                                       fontSize: 12,
                                       color: colors.secondary,
@@ -1388,7 +1409,9 @@ class _SpeedGrid extends StatelessWidget {
               SizedBox(
                 width: width,
                 child: _GridChip(
-                  label: rate == 1.0 ? 'Normal' : formatPlaybackRate(rate),
+                  label: rate == 1.0
+                      ? context.l10n.playerSpeedNormal
+                      : formatPlaybackRate(rate),
                   selected: current == rate,
                   onTap: () => onSelected(rate),
                 ),

@@ -1,4 +1,6 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/vod/vod_time.dart';
 
 void main() {
@@ -81,7 +83,8 @@ void main() {
 
   group('formatTimeAgo', () {
     final now = DateTime.utc(2026, 10, 13, 12);
-    String ago(Duration d) => formatTimeAgo(now.subtract(d), now: now);
+    String ago(Duration d) =>
+        formatTimeAgo(now.subtract(d), L10n.english, now: now);
 
     test('reads like Twitch', () {
       expect(ago(const Duration(seconds: 20)), 'Just now');
@@ -99,9 +102,37 @@ void main() {
 
     test('a date in the future is just now', () {
       expect(
-        formatTimeAgo(now.add(const Duration(minutes: 5)), now: now),
+        formatTimeAgo(
+          now.add(const Duration(minutes: 5)),
+          L10n.english,
+          now: now,
+        ),
         'Just now',
       );
+    });
+
+    test('in French, "one" covering 0 and 1', () {
+      final fr = lookupAppLocalizations(const Locale('fr'));
+      String agoFr(Duration d) => formatTimeAgo(now.subtract(d), fr, now: now);
+      expect(agoFr(const Duration(seconds: 20)), 'À l’instant');
+      expect(agoFr(const Duration(minutes: 1)), 'Il y a 1\u00a0minute');
+      expect(agoFr(const Duration(minutes: 5)), 'Il y a 5\u00a0minutes');
+      expect(agoFr(const Duration(hours: 3)), 'Il y a 3\u00a0heures');
+      expect(agoFr(const Duration(days: 1)), 'Hier');
+      expect(agoFr(const Duration(days: 3)), 'Il y a 3\u00a0jours');
+      expect(agoFr(const Duration(days: 14)), 'Il y a 2\u00a0semaines');
+      expect(agoFr(const Duration(days: 65)), 'Il y a 2\u00a0mois');
+      expect(agoFr(const Duration(days: 400)), 'Il y a 1\u00a0an');
+      expect(agoFr(const Duration(days: 800)), 'Il y a 2\u00a0ans');
+    });
+
+    test('inside a sentence, its first letter in lower case', () {
+      final fr = lookupAppLocalizations(const Locale('fr'));
+      final day = now.subtract(const Duration(days: 3));
+      expect(timeAgoInText(day, L10n.english, now: now), '3 days ago');
+      expect(timeAgoInText(now, L10n.english, now: now), 'just now');
+      expect(timeAgoInText(day, fr, now: now), 'il y a 3\u00a0jours');
+      expect(timeAgoInText(now, fr, now: now), 'à l’instant');
     });
   });
 }

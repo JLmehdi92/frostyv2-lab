@@ -2923,6 +2923,1839 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{received} / {total} MB'**
   String updateProgress({required double received, required double total});
+
+  /// What a screen reader says for a stream card's preview picture. name is the channel's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} stream preview'**
+  String streamPreviewSemantics({required String name});
+
+  /// What a screen reader says a long press does on a stream picture: shows it larger. Lower case (it follows « long press to »).
+  ///
+  /// In en, this message translates to:
+  /// **'enlarge'**
+  String get streamEnlargeHint;
+
+  /// A stream's viewers, the number in full (2,445): the cards' line and what a screen reader says for the viewers pill.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} viewer} other{{count} viewers}}'**
+  String streamViewers({required int count});
+
+  /// A followed category's viewers, the number short (1.2K): under its box art, and what a screen reader says for its pill.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} viewer} other{{count} viewers}}'**
+  String streamViewersCompact({required int count});
+
+  /// How many watch a live, the number in full (2,445 watching): the live preview's line and the large stream card. English has one form.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, other{{count} watching}}'**
+  String streamWatching({required int count});
+
+  /// How many watch a live, the number short (2.4k watching), on a channel profile's live card. count chooses the form; viewers is the number as shown.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, other{{viewers} watching}}'**
+  String streamWatchingShort({required int count, required String viewers});
+
+  /// What a screen reader says for the watch streak pill: how many streams in a row the viewer watched.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch streak {value}'**
+  String streamWatchStreakSemantics({required int value});
+
+  /// The watch streak pill on a stream card (and in the large card's line): how many streams in a row the viewer watched. Kept short.
+  ///
+  /// In en, this message translates to:
+  /// **'Streak {value}'**
+  String streamStreak({required int value});
+
+  /// A stream card's category line when the stream has none.
+  ///
+  /// In en, this message translates to:
+  /// **'No Category'**
+  String get streamNoCategory;
+
+  /// What a screen reader says for a stream's row of tags. tags is the tags, comma-separated (Twitch's data).
+  ///
+  /// In en, this message translates to:
+  /// **'Tags: {tags}'**
+  String streamTagsSemantics({required String tags});
+
+  /// What a screen reader says for one tag pill that opens the tag's streams. tag is Twitch's data.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag {tag}'**
+  String streamTagSemantics({required String tag});
+
+  /// The large stream card's button that opens the stream.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch'**
+  String get streamWatch;
+
+  /// A channel that is not live: the offline channel card's status and the Offline section of Following.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline'**
+  String get streamOffline;
+
+  /// Offline channel card: how long the viewer has followed the channel (« Suivie » agrees with « chaîne »).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Following for {count} year} other{Following for {count} years}}'**
+  String streamFollowingForYears({required int count});
+
+  /// Offline channel card: how long the viewer has followed the channel, in months.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Following for {count} month} other{Following for {count} months}}'**
+  String streamFollowingForMonths({required int count});
+
+  /// Offline channel card: how long the viewer has followed the channel, in days.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Following for {count} day} other{Following for {count} days}}'**
+  String streamFollowingForDays({required int count});
+
+  /// Offline channel card: how long the viewer has followed the channel, in hours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Following for {count} hour} other{Following for {count} hours}}'**
+  String streamFollowingForHours({required int count});
+
+  /// Offline channel card: how long the viewer has followed the channel, in minutes (0 included).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Following for {count} minute} other{Following for {count} minutes}}'**
+  String streamFollowingForMinutes({required int count});
+
+  /// Following: the title of the row of followed categories.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get followedCategoriesTitle;
+
+  /// A list could not load because the device has no network: the error shown in its place (Following, Live, categories, followed videos).
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to connect to Twitch'**
+  String get apiErrorUnableToConnect;
+
+  /// A request to Twitch failed: no connection.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection. Please check your network.'**
+  String get apiErrorNetwork;
+
+  /// A request to Twitch failed: connecting took too long.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection timeout. Please try again.'**
+  String get apiErrorConnectionTimeout;
+
+  /// A request to Twitch failed: sending it took too long.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload timeout. Please try again.'**
+  String get apiErrorSendTimeout;
+
+  /// A request to Twitch failed: the answer took too long.
+  ///
+  /// In en, this message translates to:
+  /// **'Server response timeout. Please try again.'**
+  String get apiErrorReceiveTimeout;
+
+  /// A request to Twitch was cancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Request was cancelled'**
+  String get apiErrorCancelled;
+
+  /// A request to Twitch failed: the server's certificate was refused.
+  ///
+  /// In en, this message translates to:
+  /// **'Security certificate error'**
+  String get apiErrorCertificate;
+
+  /// A request to Twitch failed for an unknown reason.
+  ///
+  /// In en, this message translates to:
+  /// **'An unexpected error occurred'**
+  String get apiErrorUnexpected;
+
+  /// A request to Twitch was refused as malformed (HTTP 400) and Twitch said nothing more.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid request data'**
+  String get apiErrorBadRequest;
+
+  /// A request to Twitch needs the viewer to log in (HTTP 401).
+  ///
+  /// In en, this message translates to:
+  /// **'Please log in to continue'**
+  String get apiErrorUnauthorized;
+
+  /// A request to Twitch was refused for lack of permissions (HTTP 403) and Twitch said nothing more.
+  ///
+  /// In en, this message translates to:
+  /// **'Access denied. Insufficient permissions'**
+  String get apiErrorForbidden;
+
+  /// What a request to Twitch asked for does not exist (HTTP 404) and Twitch said nothing more.
+  ///
+  /// In en, this message translates to:
+  /// **'Resource not found'**
+  String get apiErrorNotFound;
+
+  /// A request to Twitch conflicts with what changed meanwhile (HTTP 409).
+  ///
+  /// In en, this message translates to:
+  /// **'Conflict with current state. Please refresh'**
+  String get apiErrorConflict;
+
+  /// A request to Twitch carried data it refused (HTTP 422).
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid data provided'**
+  String get apiErrorInvalid;
+
+  /// Twitch refused a request: too many in a short time (HTTP 429).
+  ///
+  /// In en, this message translates to:
+  /// **'Rate limit exceeded. Please wait before trying again'**
+  String get apiErrorRateLimited;
+
+  /// Twitch's server failed (HTTP 500).
+  ///
+  /// In en, this message translates to:
+  /// **'Server error. Please try again later'**
+  String get apiErrorServer;
+
+  /// Twitch's service is down for now (HTTP 502).
+  ///
+  /// In en, this message translates to:
+  /// **'Service temporarily unavailable'**
+  String get apiErrorUnavailable;
+
+  /// Twitch's service is in maintenance (HTTP 503).
+  ///
+  /// In en, this message translates to:
+  /// **'Service maintenance. Please try again later'**
+  String get apiErrorMaintenance;
+
+  /// Twitch's server did not answer in time (HTTP 504).
+  ///
+  /// In en, this message translates to:
+  /// **'Server timeout. Please try again'**
+  String get apiErrorServerTimeout;
+
+  /// A request to Twitch failed with another HTTP status. status is its number (404, 418...).
+  ///
+  /// In en, this message translates to:
+  /// **'HTTP Error {status} occurred'**
+  String apiErrorHttp({required int status});
+
+  /// A category's or a tag's live streams sorted by viewers, most first (an option of « Sorted by »).
+  ///
+  /// In en, this message translates to:
+  /// **'Viewers (high to low)'**
+  String get streamSortViewersHigh;
+
+  /// A category's or a tag's live streams in Twitch's recommended order (an option of « Sorted by »; « Recommandés » agrees with « lives »).
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended'**
+  String get streamSortRecommended;
+
+  /// A category's or a tag's live streams sorted by viewers, fewest first (an option of « Sorted by »).
+  ///
+  /// In en, this message translates to:
+  /// **'Viewers (low to high)'**
+  String get streamSortViewersLow;
+
+  /// A category's or a tag's live streams, the latest started first (an option of « Sorted by »).
+  ///
+  /// In en, this message translates to:
+  /// **'Recently started'**
+  String get streamSortRecent;
+
+  /// Tooltip of the « Sorted by » button above a category's or a tag's live streams.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort streams'**
+  String get streamSortTooltip;
+
+  /// Tooltip of the « Sorted by » button beside Following's « Live now ».
+  ///
+  /// In en, this message translates to:
+  /// **'Sort live channels'**
+  String get followedSortTooltip;
+
+  /// The button that opens the orders of a live list: the current one. sort is an order's name (streamSortViewersHigh…, followedSortViewers…), shown in bold.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorted by {sort}'**
+  String streamSortedBy({required String sort});
+
+  /// A tag's list of live streams could not load (Twitch's directory failed).
+  ///
+  /// In en, this message translates to:
+  /// **'Tag streams are unavailable right now'**
+  String get streamListTagUnavailable;
+
+  /// A category's live streams could not load in the order picked. sort is that order's name (streamSortRecent…), fallback the order that still works (streamSortViewersHigh).
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch could not sort by {sort}. {fallback} still works.'**
+  String streamListSortFailed({required String sort, required String fallback});
+
+  /// A list of live streams could not load, for an unexpected reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong loading streams'**
+  String get streamListLoadFailed;
+
+  /// Following's pinned channels' streams could not load, for an unexpected reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong loading pinned streams'**
+  String get streamListPinnedFailed;
+
+  /// Following's offline channels could not load, for an unexpected reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong loading offline channels'**
+  String get streamListOfflineFailed;
+
+  /// A live list (Live, a category, a tag) left empty because every stream has a content classification the viewer hides (Settings › General).
+  ///
+  /// In en, this message translates to:
+  /// **'Every stream here has a label you hide'**
+  String get streamListAllHidden;
+
+  /// Button under « Every stream here has a label you hide » that shows those streams this once.
+  ///
+  /// In en, this message translates to:
+  /// **'Show them'**
+  String get streamListShowHidden;
+
+  /// Following, when no followed channel is live.
+  ///
+  /// In en, this message translates to:
+  /// **'No followed streams'**
+  String get streamListEmptyFollowed;
+
+  /// Home › Live (Twitch's most watched streams), when it is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No top streams'**
+  String get streamListEmptyTop;
+
+  /// A category's or a tag's live streams, when none is live.
+  ///
+  /// In en, this message translates to:
+  /// **'No live streams'**
+  String get streamListEmptyLive;
+
+  /// Following: the small capitals above the pinned channels (« Épinglées » agrees with « chaînes »).
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned'**
+  String get streamListPinned;
+
+  /// Following: the small capitals above the other live channels, under the pinned ones (« Toutes » agrees with « chaînes »).
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get streamListAll;
+
+  /// Following: the title above the followed channels that are live, with their number.
+  ///
+  /// In en, this message translates to:
+  /// **'Live now'**
+  String get streamListLiveNow;
+
+  /// Under a live list: how many streams the viewer's hidden content classifications leave out.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} stream hidden by your content preferences} other{{count} streams hidden by your content preferences}}'**
+  String streamListHiddenCount({required int count});
+
+  /// Button beside « 3 streams hidden by your content preferences » that shows them.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get streamListShow;
+
+  /// The newest videos of the followed channels: the tile on Following that opens them, and that page's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Followed videos'**
+  String get followedVideosTitle;
+
+  /// Twitch's mature-content warning over a live preview or a player: its title.
+  ///
+  /// In en, this message translates to:
+  /// **'Just one second…'**
+  String get contentWarningTitle;
+
+  /// Mature-content warning: the line under its title when the channel's name is not known.
+  ///
+  /// In en, this message translates to:
+  /// **'This content is intended for certain audiences.'**
+  String get contentWarningAudience;
+
+  /// Mature-content warning: the line under its title. name is the channel's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s content is intended for certain audiences.'**
+  String contentWarningAudienceOf({required String name});
+
+  /// Mature-content warning: the channel's content classifications (contentLabel… names, comma-separated).
+  ///
+  /// In en, this message translates to:
+  /// **'It may contain: {labels}'**
+  String contentWarningMayContain({required String labels});
+
+  /// Mature-content warning: the button that accepts it and plays.
+  ///
+  /// In en, this message translates to:
+  /// **'Start watching'**
+  String get contentWarningStart;
+
+  /// Mature-content warning: the button that declines it and leaves.
+  ///
+  /// In en, this message translates to:
+  /// **'Go back'**
+  String get contentWarningBack;
+
+  /// Snackbar after « Not interested » on a live preview (Home › Live). name is the channel's display name; « En direct » is the tab's name (shellFeedLive).
+  ///
+  /// In en, this message translates to:
+  /// **'You won\'t see {name} in Live for now'**
+  String liveFeedHidden({required String name});
+
+  /// The snackbar's action that brings back a channel hidden with « Not interested ».
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get liveFeedUndo;
+
+  /// Home › Live: the first chip of the row of categories, every category (« Toutes » agrees with « catégories »).
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get liveFeedAllCategories;
+
+  /// Home › Live: over a channel's picture when its live preview cannot play.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview unavailable'**
+  String get liveFeedPreviewUnavailable;
+
+  /// What a screen reader says for the pill over a classified channel's picture (Home › Live): a tap shows the warning, then the preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Content warning. Play preview'**
+  String get liveFeedContentWarningSemantics;
+
+  /// The pill over a classified channel's picture (Home › Live): a tap shows the content warning, then the preview. One line, ellipsised if long.
+  ///
+  /// In en, this message translates to:
+  /// **'Content warning · Play preview'**
+  String get liveFeedContentWarning;
+
+  /// Home › Live: the round button that plays a channel's preview by hand (autoplay off).
+  ///
+  /// In en, this message translates to:
+  /// **'Play preview'**
+  String get liveFeedPlayPreview;
+
+  /// Home › Live: the round button that turns a preview's sound on.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute'**
+  String get liveFeedUnmute;
+
+  /// Home › Live: the round button that turns a preview's sound off.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute'**
+  String get liveFeedMute;
+
+  /// Home › Live: beside the viewers, the preview plays with sound.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound on'**
+  String get liveFeedSoundOn;
+
+  /// Home › Live: beside the viewers, the preview plays muted.
+  ///
+  /// In en, this message translates to:
+  /// **'Muted preview'**
+  String get liveFeedMuted;
+
+  /// Home › Live: the main button that opens the channel (video and chat).
+  ///
+  /// In en, this message translates to:
+  /// **'Watch with chat'**
+  String get liveFeedWatchWithChat;
+
+  /// Home › Live: the tooltip of « Follow », which opens the channel on twitch.tv. name is the channel's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow {name} on Twitch'**
+  String liveFeedFollowOnTwitch({required String name});
+
+  /// Home › Live: the button that opens the channel on twitch.tv to follow it.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow'**
+  String get liveFeedFollow;
+
+  /// What a screen reader says for a channel's preview in Home › Live. name is the channel's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} live preview. Opens the channel'**
+  String liveFeedPreviewSemantics({required String name});
+
+  /// What a screen reader says a long press on a preview does (Home › Live, thumbnails off): opens the channel's actions.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel actions'**
+  String get liveFeedChannelActions;
+
+  /// Home › Live: the round button that hides a channel from the feed for this session.
+  ///
+  /// In en, this message translates to:
+  /// **'Not interested'**
+  String get liveFeedNotInterested;
+
+  /// Home › Live: the round button that shares the channel's link.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get liveFeedShare;
+
+  /// Home › Live, phone: the hint at the bottom of the first preview, in small capitals (written in capitals).
+  ///
+  /// In en, this message translates to:
+  /// **'SWIPE UP FOR THE NEXT LIVE'**
+  String get liveFeedSwipeHint;
+
+  /// Home › Live, tablet: the small capitals above the next channels (written in capitals).
+  ///
+  /// In en, this message translates to:
+  /// **'UP NEXT'**
+  String get liveFeedUpNext;
+
+  /// Home › Live, tablet: the note under the next channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe up on the preview, or tap a live in the list. Previews never start with sound.'**
+  String get liveFeedUpNextHelp;
+
+  /// Home › Live: the page after the last channel while more load.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading more live channels'**
+  String get liveFeedLoadingMore;
+
+  /// Home › Live: the page after the last channel when there are no more.
+  ///
+  /// In en, this message translates to:
+  /// **'That’s every live channel here for now'**
+  String get liveFeedEnd;
+
+  /// Home › Live: the button on the last page that goes back to the first channel (« la première » chaîne).
+  ///
+  /// In en, this message translates to:
+  /// **'Back to the first'**
+  String get liveFeedBackToFirst;
+
+  /// Button beside a section's title that opens all of it (search results, continue watching, a channel profile's section, whispers).
+  ///
+  /// In en, this message translates to:
+  /// **'See all'**
+  String get commonSeeAll;
+
+  /// Search: the first results tab, the best channels and categories (and videos) together. French: « Tout », as in Google's and Android's tabs.
+  ///
+  /// In en, this message translates to:
+  /// **'Top'**
+  String get searchTabTop;
+
+  /// Search: the channels tab, and the title of the channels under « Top ».
+  ///
+  /// In en, this message translates to:
+  /// **'Channels'**
+  String get searchTabChannels;
+
+  /// Search: the categories tab, and the title of the categories under « Top ».
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get searchTabCategories;
+
+  /// Search: the videos tab, and the title of the videos under « Top ».
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get searchTabVideos;
+
+  /// Search: the button that empties the search field, and the one that forgets the search history.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get searchClear;
+
+  /// Search: the field's hint. One line, ellipsised if long.
+  ///
+  /// In en, this message translates to:
+  /// **'Search channels, categories or videos'**
+  String get searchHint;
+
+  /// What a screen reader says for « See all » beside a search section. section is its title (searchTabChannels…).
+  ///
+  /// In en, this message translates to:
+  /// **'See all {section}'**
+  String searchSeeAllSemantics({required String section});
+
+  /// Search: the title of the past searches.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get searchHistory;
+
+  /// Search: the tooltip of the cross after a past search. query is what was searched.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {query} from history'**
+  String searchRemoveFromHistory({required String query});
+
+  /// Search, before typing: there is no past search.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent searches'**
+  String get searchNoHistory;
+
+  /// Search: the categories could not load (with « Try again »).
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load categories'**
+  String get searchCategoriesFailed;
+
+  /// Search: Twitch answered without categories (with « Try again »).
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get categories'**
+  String get searchCategoriesUnavailable;
+
+  /// Search: no category matches what was typed.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching categories'**
+  String get searchNoCategories;
+
+  /// Snackbar when the channel picked in search results cannot be opened.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to find channel'**
+  String get searchChannelNotFound;
+
+  /// Search: the channels could not load (with « Try again »).
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load channels'**
+  String get searchChannelsFailed;
+
+  /// Search: the row that opens the channel whose login is exactly what was typed. query is what was typed.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to channel \"{query}\"'**
+  String searchGoToChannel({required String query});
+
+  /// Search: the videos could not load (with « Try again »).
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load videos'**
+  String get searchVideosFailed;
+
+  /// Search: no video matches what was typed.
+  ///
+  /// In en, this message translates to:
+  /// **'No search results found'**
+  String get searchNoResults;
+
+  /// Browse: the title above the live channels of all Twitch (Browse › Live channels). where is browseAcrossTwitch, shown lighter.
+  ///
+  /// In en, this message translates to:
+  /// **'Live channels {where}'**
+  String browseLiveChannels({required String where});
+
+  /// The lighter end of « Live channels across Twitch » (browseLiveChannels).
+  ///
+  /// In en, this message translates to:
+  /// **'across Twitch'**
+  String get browseAcrossTwitch;
+
+  /// Browse › Categories, when Twitch lists none.
+  ///
+  /// In en, this message translates to:
+  /// **'No top categories'**
+  String get categoriesEmpty;
+
+  /// Browse › Categories could not load, for an unexpected reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong loading categories'**
+  String get categoriesLoadFailed;
+
+  /// Tablet Browse: the title above the rail of Twitch's most watched categories (« Most watched first » follows).
+  ///
+  /// In en, this message translates to:
+  /// **'Top categories'**
+  String get categoriesRailTitle;
+
+  /// Tablet Browse: beside « Top categories », how they are ordered (« regardées » agrees with « catégories »).
+  ///
+  /// In en, this message translates to:
+  /// **'Most watched first'**
+  String get categoriesRailNote;
+
+  /// A category's page: the tab of its live streams.
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get categorySectionLive;
+
+  /// A category's page: the tab of its videos.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get categorySectionVideos;
+
+  /// A category's page: the tab of its clips.
+  ///
+  /// In en, this message translates to:
+  /// **'Clips'**
+  String get categorySectionClips;
+
+  /// A category's Videos tab, when it has none.
+  ///
+  /// In en, this message translates to:
+  /// **'No videos in this category'**
+  String get categoryNoVideos;
+
+  /// A category's page: the small capitals above its name (written in capitals).
+  ///
+  /// In en, this message translates to:
+  /// **'CATEGORY'**
+  String get categoryEyebrow;
+
+  /// A category's page: the button that opens the category on twitch.tv to follow it.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow on Twitch'**
+  String get categoryFollowOnTwitch;
+
+  /// Followed videos: the section of the videos made today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get followedVideosToday;
+
+  /// Followed videos: the section of the videos made yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get followedVideosYesterday;
+
+  /// Followed videos: the section of the videos made earlier this week.
+  ///
+  /// In en, this message translates to:
+  /// **'This week'**
+  String get followedVideosThisWeek;
+
+  /// Followed videos: the section of the older videos (« anciennes » agrees with « vidéos »).
+  ///
+  /// In en, this message translates to:
+  /// **'Older'**
+  String get followedVideosOlder;
+
+  /// Followed videos, when the followed channels made none lately.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent videos'**
+  String get followedVideosEmpty;
+
+  /// Followed videos: the line under the page's title. One line, ellipsised if long.
+  ///
+  /// In en, this message translates to:
+  /// **'The newest videos of the channels you follow'**
+  String get followedVideosSubtitle;
+
+  /// Followed videos: the button that loads the list again.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get followedVideosRefresh;
+
+  /// Followed videos could not load, for an unexpected reason.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong loading videos'**
+  String get followedVideosLoadFailed;
+
+  /// Following: the title of the shelf of videos left part-way, and of its full page.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue watching'**
+  String get continueWatchingTitle;
+
+  /// Continue watching: where a video was left. time is a position such as 1:02:15.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume at {time}'**
+  String continueWatchingResumeAt({required String time});
+
+  /// Continue watching's page, when no video was left part-way.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to resume'**
+  String get continueWatchingEmpty;
+
+  /// Continue watching: when a video was left, today. Lower case (it follows the channel's name and « · »).
+  ///
+  /// In en, this message translates to:
+  /// **'today'**
+  String get savedToday;
+
+  /// Continue watching: when a video was left, yesterday. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'yesterday'**
+  String get savedYesterday;
+
+  /// Continue watching: when a video was left, 2 to 6 days ago. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} day ago} other{{count} days ago}}'**
+  String savedDaysAgo({required int count});
+
+  /// Continue watching: when a video was left, in weeks (abbreviated). Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} wk ago} other{{count} wk ago}}'**
+  String savedWeeksAgo({required int count});
+
+  /// Continue watching: when a video was left, in months (abbreviated in English). Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} mo ago} other{{count} mo ago}}'**
+  String savedMonthsAgo({required int count});
+
+  /// When a video, clip or notification was made: less than a minute ago. Starts with a capital (lowered inside a sentence, as in « Last live just now »).
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get timeAgoJustNow;
+
+  /// When a video, clip or notification was made, in minutes. Starts with a capital (lowered inside a sentence).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} minute ago} other{{count} minutes ago}}'**
+  String timeAgoMinutes({required int count});
+
+  /// When a video, clip or notification was made, in hours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} hour ago} other{{count} hours ago}}'**
+  String timeAgoHours({required int count});
+
+  /// When a video, clip or notification was made: yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get timeAgoYesterday;
+
+  /// When a video, clip or notification was made, in days (2 to 6).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} day ago} other{{count} days ago}}'**
+  String timeAgoDays({required int count});
+
+  /// When a video, clip or notification was made, in weeks.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} week ago} other{{count} weeks ago}}'**
+  String timeAgoWeeks({required int count});
+
+  /// When a video, clip or notification was made, in months.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} month ago} other{{count} months ago}}'**
+  String timeAgoMonths({required int count});
+
+  /// When a video, clip or notification was made, in years.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} year ago} other{{count} years ago}}'**
+  String timeAgoYears({required int count});
+
+  /// How many times a video or clip was watched, the number in full (3,104 views).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} view} other{{count} views}}'**
+  String videoViews({required int count});
+
+  /// How many times a clip was watched, the number short (248K views).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} view} other{{count} views}}'**
+  String videoViewsCompact({required int count});
+
+  /// How many times a video or clip was watched, on a channel profile's Home tab: count chooses the form, views is the number as shown (248k).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{views} view} other{{views} views}}'**
+  String videoViewsShort({required int count, required String views});
+
+  /// A clip's title when it has none (clip cards, the clips feed, a clip's page).
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled clip'**
+  String get clipUntitled;
+
+  /// What a screen reader says for a clip's video in the clips feed.
+  ///
+  /// In en, this message translates to:
+  /// **'Clip player. Double-tap to toggle play/pause'**
+  String get clipsPlayerSemantics;
+
+  /// The clips feed: over a clip that cannot play in the app.
+  ///
+  /// In en, this message translates to:
+  /// **'This clip can\'t be played here'**
+  String get clipsCannotPlay;
+
+  /// The clips feed: while the next clips load.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading more clips for you'**
+  String get clipsLoadingMore;
+
+  /// The clips feed could not load (with « Try again »).
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load clips'**
+  String get clipsLoadFailed;
+
+  /// The clips feed, when Twitch has none to show.
+  ///
+  /// In en, this message translates to:
+  /// **'No clips right now'**
+  String get clipsEmpty;
+
+  /// The clips feed: the button (and its tooltip) that opens the clip's own page.
+  ///
+  /// In en, this message translates to:
+  /// **'Open clip'**
+  String get clipsOpen;
+
+  /// What a screen reader says for the card of the next clip. channel is its channel's name, title its title.
+  ///
+  /// In en, this message translates to:
+  /// **'Next clip, {channel}, {title}'**
+  String clipsNextSemantics({required String channel, required String title});
+
+  /// The clips feed: the small capitals above the next clip's title (written in capitals).
+  ///
+  /// In en, this message translates to:
+  /// **'NEXT'**
+  String get clipsNext;
+
+  /// The clips feed: the hint shown on the first clip.
+  ///
+  /// In en, this message translates to:
+  /// **'You can swipe to the next clip'**
+  String get clipsSwipeHint;
+
+  /// The clips feed: the next clips could not load (with « Try again »).
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load more clips'**
+  String get clipsLoadMoreFailed;
+
+  /// The clips feed: after the last clip (Twitch's words).
+  ///
+  /// In en, this message translates to:
+  /// **'That’s all for now! Check out more clips from previous streams'**
+  String get clipsEnd;
+
+  /// Tablet clips feed: the title above the next clips (« Clips » is Home's tab).
+  ///
+  /// In en, this message translates to:
+  /// **'Up next in Clips'**
+  String get clipsUpNext;
+
+  /// Tablet clips feed: beside « Up next in Clips ».
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe the video or pick one'**
+  String get clipsUpNextHelp;
+
+  /// What a screen reader says for the channel row under a clip: it opens the channel. channel is its name.
+  ///
+  /// In en, this message translates to:
+  /// **'Open {channel}'**
+  String clipOpenChannel({required String channel});
+
+  /// What a screen reader says for the channel row under a clip. channel is its name, curator the name of who made the clip.
+  ///
+  /// In en, this message translates to:
+  /// **'Open {channel}, clipped by {curator}'**
+  String clipOpenChannelClippedBy({
+    required String channel,
+    required String curator,
+  });
+
+  /// Who made a clip (clip cards, a clip's page). curator is their name; « Créé » agrees with « clip ».
+  ///
+  /// In en, this message translates to:
+  /// **'Clipped by {curator}'**
+  String clipClippedBy({required String curator});
+
+  /// A clip's page: the button that opens the whole video at the clip's moment.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch full video'**
+  String get clipWatchFullVideo;
+
+  /// A clip's page: the button that copies its link.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get clipCopyLink;
+
+  /// A clip's page: the tooltip of the button that shares its link.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get clipShare;
+
+  /// A channel's or a category's clips, when the period picked has none.
+  ///
+  /// In en, this message translates to:
+  /// **'No clips for this period'**
+  String get clipsNoneForPeriod;
+
+  /// Under a channel's or a category's clips when Twitch has more than it lists.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Showing the top {count} clip} other{Showing the top {count} clips}}'**
+  String clipsShowingTop({required int count});
+
+  /// A category's clips: the category is not on Twitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Category not found'**
+  String get clipsCategoryNotFound;
+
+  /// A channel's clips: the channel is not on Twitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel not found'**
+  String get clipsChannelNotFound;
+
+  /// A channel's or a category's clips could not load (with « Try again »).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load clips'**
+  String get clipsListFailed;
+
+  /// A clip's page: the title above the channel's other clips. channel is its name.
+  ///
+  /// In en, this message translates to:
+  /// **'More clips from {channel}'**
+  String clipsMoreFrom({required String channel});
+
+  /// Snackbar after copying a clip's link.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get clipLinkCopied;
+
+  /// A clip's player: the label of the action that copies its link.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy clip link'**
+  String get clipCopyClipLink;
+
+  /// A clip's page: its title, channel and views could not load (with « Try again »).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the clip details'**
+  String get clipDetailsFailed;
+
+  /// A clip's chat replay: the pill saying the messages follow the clip's time. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'synced to the clip'**
+  String get clipSyncedToClip;
+
+  /// Over a video's or a clip's player: only the channel's subscribers may watch it. subject is clip or video.
+  ///
+  /// In en, this message translates to:
+  /// **'{subject, select, clip{This clip is only available to subscribers.} other{This video is only available to subscribers.}}'**
+  String playbackSubscriberOnly({required String subject});
+
+  /// Over a video's or a clip's player: it cannot be watched in the viewer's country. subject is clip or video.
+  ///
+  /// In en, this message translates to:
+  /// **'{subject, select, clip{This clip is not available in your region} other{This video is not available in your region}}'**
+  String playbackGeoBlocked({required String subject});
+
+  /// Over a video's or a clip's player: it was deleted. subject is clip or video.
+  ///
+  /// In en, this message translates to:
+  /// **'{subject, select, clip{This clip is no longer available} other{This video is no longer available}}'**
+  String playbackNotFound({required String subject});
+
+  /// Over a video's or a clip's player: it could not play (with « Try again »). subject is clip or video.
+  ///
+  /// In en, this message translates to:
+  /// **'{subject, select, clip{Couldn\'t play this clip} other{Couldn\'t play this video}}'**
+  String playbackFailed({required String subject});
+
+  /// Under « This video is only available to subscribers. » (the official app's words).
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe now to watch and support this channel.'**
+  String get playbackSubscribeDetail;
+
+  /// A channel's or a category's clips: the chip for the clips of the last 24 hours.
+  ///
+  /// In en, this message translates to:
+  /// **'24 hours'**
+  String get clipPeriodLastDay;
+
+  /// A channel's or a category's clips: the chip for the clips of the last 7 days.
+  ///
+  /// In en, this message translates to:
+  /// **'7 days'**
+  String get clipPeriodLastWeek;
+
+  /// A channel's or a category's clips: the chip for the clips of the last 30 days.
+  ///
+  /// In en, this message translates to:
+  /// **'30 days'**
+  String get clipPeriodLastMonth;
+
+  /// A channel's or a category's clips: the chip for all the clips ever made.
+  ///
+  /// In en, this message translates to:
+  /// **'All time'**
+  String get clipPeriodAllTime;
+
+  /// A channel's or a category's clips: the chip that orders them by views, most first (« vus » agrees with « clips »).
+  ///
+  /// In en, this message translates to:
+  /// **'Top'**
+  String get clipSortTop;
+
+  /// A channel's or a category's clips: the chip that orders them by Twitch's trend.
+  ///
+  /// In en, this message translates to:
+  /// **'Trending'**
+  String get clipSortTrending;
+
+  /// A channel's profile: the Home tab (its live, next stream, recent broadcasts and clips).
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get profileTabHome;
+
+  /// A channel's profile: the Videos tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Videos'**
+  String get profileTabVideos;
+
+  /// A channel's profile: the Clips tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Clips'**
+  String get profileTabClips;
+
+  /// A channel's profile: the Schedule tab (Twitch's French word).
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get profileTabSchedule;
+
+  /// A channel's profile: the About tab.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get profileTabAbout;
+
+  /// Snackbar when pulling to refresh a channel's profile failed (what was shown stays).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t refresh this channel'**
+  String get profileRefreshFailed;
+
+  /// Snackbar when a channel's profile cannot open its channel page (its id is not known yet).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open this channel, check your connection'**
+  String get profileOpenFailed;
+
+  /// A channel's profile: the tooltip of the button that shares its link.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get profileShare;
+
+  /// A channel's profile: the tooltip of the button that opens more actions (block, report…).
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get profileMore;
+
+  /// A channel's profile could not load (with « Try again »).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load this channel\'s profile'**
+  String get profileLoadFailed;
+
+  /// A channel's About tab, when Twitch gave nothing about it.
+  ///
+  /// In en, this message translates to:
+  /// **'No details'**
+  String get profileNoDetails;
+
+  /// A channel's Schedule tab could not load (with « Try again »).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load the schedule'**
+  String get profileScheduleFailed;
+
+  /// A channel's profile, when the channel is not on Twitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel not found'**
+  String get profileNotFound;
+
+  /// A channel's About tab: its followers, the number in full (48,213 followers). Twitch's French word is « followers ».
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} follower} other{{count} followers}}'**
+  String profileFollowers({required int count});
+
+  /// A channel's profile header: its followers, the number short (48.2k). count chooses the form; followers is the number as shown.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{followers} follower} other{{followers} followers}}'**
+  String profileFollowersShort({required int count, required String followers});
+
+  /// A channel's About tab: when the channel was created, as month and year.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined {date}'**
+  String profileJoined({required DateTime date});
+
+  /// A channel's profile: the channel is a Twitch partner.
+  ///
+  /// In en, this message translates to:
+  /// **'Partner'**
+  String get profilePartner;
+
+  /// A channel's profile: the channel is a Twitch affiliate (« Affilié », Twitch's French name of the role).
+  ///
+  /// In en, this message translates to:
+  /// **'Affiliate'**
+  String get profileAffiliate;
+
+  /// A channel's About tab: its title. name is the channel's display name (French: « de la chaîne » avoids elision before the name).
+  ///
+  /// In en, this message translates to:
+  /// **'About {name}'**
+  String profileAboutTitle({required String name});
+
+  /// A channel's About tab, when it has no description.
+  ///
+  /// In en, this message translates to:
+  /// **'No bio yet.'**
+  String get profileNoBio;
+
+  /// What a screen reader says for a channel's panel picture when it has no description of its own.
+  ///
+  /// In en, this message translates to:
+  /// **'Panel image'**
+  String get profilePanelImage;
+
+  /// Tablet channel profile: the button that opens the live channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch live'**
+  String get profileWatchLive;
+
+  /// A channel's profile when it is not live: the button that opens the channel's chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get profileChat;
+
+  /// A channel's Home tab, phone: the next scheduled stream's card. time is its start time (14:05).
+  ///
+  /// In en, this message translates to:
+  /// **'Next stream · {time}'**
+  String profileNextStreamAt({required String time});
+
+  /// Tablet channel profile: the small capitals above the next scheduled streams.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming up'**
+  String get profileComingUp;
+
+  /// A channel's Home tab: the title above its latest past broadcasts.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent broadcasts'**
+  String get profileRecentBroadcasts;
+
+  /// A channel's Home tab: the title above its most viewed clips.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular clips'**
+  String get profilePopularClips;
+
+  /// What a screen reader says for a video's or a clip's picture on a channel's Home tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Thumbnail'**
+  String get profileThumbnail;
+
+  /// A video's title when it has none.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled'**
+  String get videoUntitled;
+
+  /// A channel's Home tab: the chip on a broadcast still being recorded (the channel is live). Kept short.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording'**
+  String get profileRecording;
+
+  /// A channel's Home tab: the chip on a video the viewer watched to the end (« Vue » agrees with « vidéo »). Kept short.
+  ///
+  /// In en, this message translates to:
+  /// **'Watched'**
+  String get profileWatched;
+
+  /// A channel's Home tab: before a video's details when only subscribers may watch it.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribers only'**
+  String get profileSubscribersOnly;
+
+  /// A channel's live card when it is offline: when it last streamed. when is a time ago inside a sentence (« 3 days ago », « il y a 3 jours », « just now »).
+  ///
+  /// In en, this message translates to:
+  /// **'Last live {when}'**
+  String profileLastLive({required String when});
+
+  /// A channel's live card: the stream is a rerun of a past broadcast.
+  ///
+  /// In en, this message translates to:
+  /// **'Rerun'**
+  String get profileRerun;
+
+  /// A channel's live card: the small badge on a rerun's picture, in capitals. Kept short (an 18 dp pill).
+  ///
+  /// In en, this message translates to:
+  /// **'RERUN'**
+  String get profileRerunBadge;
+
+  /// What a screen reader says first for a channel's live card while it is live.
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get profileLive;
+
+  /// A scheduled stream: the button (and tooltip) once a reminder is set; a tap removes it.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder Set'**
+  String get profileReminderSet;
+
+  /// A scheduled stream: the button (and tooltip) that sets a notification when it starts (Twitch's « Remind Me »).
+  ///
+  /// In en, this message translates to:
+  /// **'Remind Me'**
+  String get profileRemindMe;
+
+  /// When a scheduled stream starts: now. Lower case (inside « Next stream now · 14:05 »).
+  ///
+  /// In en, this message translates to:
+  /// **'now'**
+  String get startsNow;
+
+  /// When a scheduled stream starts, in minutes. Lower case (inside « Next stream in 5 minutes · 14:05 »).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{in {count} minute} other{in {count} minutes}}'**
+  String startsInMinutes({required int count});
+
+  /// When a scheduled stream starts, in hours. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{in {count} hour} other{in {count} hours}}'**
+  String startsInHours({required int count});
+
+  /// When a scheduled stream starts, in days. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{in {count} day} other{in {count} days}}'**
+  String startsInDays({required int count});
+
+  /// Snackbar when a stream reminder cannot be set because the app may not post notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow notifications for this app in the system settings.'**
+  String get profileReminderRefused;
+
+  /// Snackbar when a stream reminder could not be set.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t set the reminder.'**
+  String get profileReminderFailed;
+
+  /// A scheduled stream's title when the channel gave none.
+  ///
+  /// In en, this message translates to:
+  /// **'Stream'**
+  String get profileStreamUntitled;
+
+  /// A channel's Schedule tab, when it plans none.
+  ///
+  /// In en, this message translates to:
+  /// **'No streams scheduled'**
+  String get profileNoSchedule;
+
+  /// A channel's Schedule tab: the next stream. when says how soon (startsInHours…: « in 3 hours », « dans 3 heures »), time when it starts.
+  ///
+  /// In en, this message translates to:
+  /// **'Next stream {when} · {time}'**
+  String profileNextStreamIn({required String when, required String time});
+
+  /// A channel's Schedule tab: a scheduled stream the channel cancelled (« Annulé » agrees with « live »).
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get profileCancelled;
+
+  /// A channel's Videos tab: the pill of its past broadcasts.
+  ///
+  /// In en, this message translates to:
+  /// **'Past broadcasts'**
+  String get profilePastBroadcasts;
+
+  /// A channel's Videos tab, past broadcasts, when there are none.
+  ///
+  /// In en, this message translates to:
+  /// **'No past broadcasts'**
+  String get profileNoPastBroadcasts;
+
+  /// A channel's Videos tab: the pill of its highlights.
+  ///
+  /// In en, this message translates to:
+  /// **'Highlights'**
+  String get profileHighlights;
+
+  /// A channel's Videos tab, highlights, when there are none.
+  ///
+  /// In en, this message translates to:
+  /// **'No highlights'**
+  String get profileNoHighlights;
+
+  /// A channel's Videos tab: the pill of its uploaded videos.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploads'**
+  String get profileUploads;
+
+  /// A channel's Videos tab, uploads, when there are none.
+  ///
+  /// In en, this message translates to:
+  /// **'No uploads'**
+  String get profileNoUploads;
+
+  /// A channel's or a category's videos could not load (with « Try again »).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load videos'**
+  String get videosListFailed;
+
+  /// Under a category's videos when Twitch has more than it lists.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Showing the {count} most viewed video} other{Showing the {count} most viewed videos}}'**
+  String videosShowingMostViewed({required int count});
+
+  /// Under a channel's videos when Twitch has more than it lists.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Showing the {count} most recent video} other{Showing the {count} most recent videos}}'**
+  String videosShowingMostRecent({required int count});
+
+  /// A video card without a picture yet: Twitch is still processing the video.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing'**
+  String get videoProcessing;
+
+  /// A past broadcast's title when it has none (under its player).
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled broadcast'**
+  String get videoUntitledBroadcast;
+
+  /// Tablet Activity: the page's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity'**
+  String get activityTitle;
+
+  /// Activity: the line saying what the list holds (under the title on a tablet, at the end of the list on a phone).
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications ONSET posted on this device.'**
+  String get activityNote;
+
+  /// Activity: swiping a notification away, and the action of its menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove notification'**
+  String get activityRemove;
+
+  /// Activity, when there is no notification (Twitch's words).
+  ///
+  /// In en, this message translates to:
+  /// **'Hooray! You\'re up to date'**
+  String get activityEmpty;
+
+  /// Activity, under « Hooray! You're up to date ».
+  ///
+  /// In en, this message translates to:
+  /// **'Check back soon for alerts about you and the broadcasters you follow.'**
+  String get activityEmptyDetail;
+
+  /// Activity: the title of the latest notifications (« récentes » agrees with « notifications »).
+  ///
+  /// In en, this message translates to:
+  /// **'Most Recent'**
+  String get activityMostRecent;
+
+  /// Activity: the title of the older notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier'**
+  String get activityEarlier;
+
+  /// Activity and tablet whispers: the button that marks every item read.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all as read'**
+  String get activityMarkAllRead;
+
+  /// What a screen reader says a long press on a notification does: opens its options.
+  ///
+  /// In en, this message translates to:
+  /// **'Options'**
+  String get activityOptions;
+
+  /// What a screen reader says for the dot of an unread notification (« lue » agrees with « notification »).
+  ///
+  /// In en, this message translates to:
+  /// **'Unread'**
+  String get activityUnread;
+
+  /// Tablet Activity: the whispers card, when there are none.
+  ///
+  /// In en, this message translates to:
+  /// **'No whispers yet. Whispers you get while the app is open show up here.'**
+  String get activityNoWhispers;
+
+  /// Activity: the category under a go-live notification, like Twitch's.
+  ///
+  /// In en, this message translates to:
+  /// **'Live'**
+  String get activityKindLive;
+
+  /// Activity: the category under a chat mention notification, like Twitch's.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat Mentions'**
+  String get activityKindMention;
+
+  /// Activity: the category under a stream reminder notification, like Twitch's.
+  ///
+  /// In en, this message translates to:
+  /// **'Events'**
+  String get activityKindReminder;
+
+  /// The whispers page's title, and its card in tablet Activity.
+  ///
+  /// In en, this message translates to:
+  /// **'Whispers'**
+  String get whispersTitle;
+
+  /// Whispers: how many are unread (beside the title, and what a screen reader says for the count pill).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} unread} other{{count} unread}}'**
+  String whispersUnreadCount({required int count});
+
+  /// Whispers: beside the title when none is unread.
+  ///
+  /// In en, this message translates to:
+  /// **'All read'**
+  String get whispersAllRead;
+
+  /// Tablet whispers: the pane before a conversation is opened.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a conversation'**
+  String get whispersChoose;
+
+  /// Whispers, when there are none.
+  ///
+  /// In en, this message translates to:
+  /// **'No whispers yet'**
+  String get whispersEmpty;
+
+  /// Whispers, under « No whispers yet ».
+  ///
+  /// In en, this message translates to:
+  /// **'Whispers you get while the app is open show up here.'**
+  String get whispersEmptyDetail;
+
+  /// A whisper conversation: the note at its top.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch keeps no history the app can show, so only this session’s whispers appear here.'**
+  String get whisperSessionNote;
+
+  /// A whisper conversation: the hint of the message field. name is the other person's display name.
+  ///
+  /// In en, this message translates to:
+  /// **'Whisper {name}'**
+  String whisperHint({required String name});
+
+  /// A whisper conversation: the tooltip of the send button.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get whisperSend;
+
+  /// What a screen reader says for the arrow before the last whisper when the viewer sent it.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get whisperYou;
+
+  /// The action of the banner announcing a new whisper: opens the conversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get whisperOpen;
+
+  /// Whispers: the note above the conversations when Twitch refused the app's access to whispers.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch refused to send your whispers to this app. Log out and log in again to allow them.'**
+  String get whisperStatusRefused;
+
+  /// Whispers: the note while the connection that brings them is being restored.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnecting… whispers will arrive again soon.'**
+  String get whisperStatusInterrupted;
+
+  /// Whispers: the note when Twitch is not sending them for now.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch isn\'t sending whispers to this app right now. It tries again when you come back to the app.'**
+  String get whisperStatusUnavailable;
+
+  /// Whispers, logged out.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in to get whispers.'**
+  String get whisperStatusOff;
+
+  /// A clip's or a video's player: the button (and screen reader action) that goes back 10 seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Back 10 seconds'**
+  String get playerBack10;
+
+  /// A clip's or a video's player: the button (and screen reader action) that skips 10 seconds ahead.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward 10 seconds'**
+  String get playerForward10;
+
+  /// A video's player: the screen reader action that cycles where the chat replay sits.
+  ///
+  /// In en, this message translates to:
+  /// **'Change chat layout'**
+  String get playerChangeChatLayout;
+
+  /// A video's player in full screen: the tooltip of the button that hides the chat over the video.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide chat overlay'**
+  String get playerHideChatOverlay;
+
+  /// A video's player in full screen: the tooltip of the button that shows the chat over the video.
+  ///
+  /// In en, this message translates to:
+  /// **'Show chat overlay'**
+  String get playerShowChatOverlay;
+
+  /// A clip's player: the tooltip of the loop button while the clip loops.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop looping'**
+  String get playerStopLooping;
+
+  /// A clip's player: the tooltip of the button that makes the clip loop.
+  ///
+  /// In en, this message translates to:
+  /// **'Loop'**
+  String get playerLoop;
+
+  /// A clip's or a video's player: the tooltip of the button that opens its settings sheet (quality, volume, speed).
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get playerSettings;
+
+  /// A clip's or a video's player: the big button once it ended, which plays it again.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay'**
+  String get playerReplay;
+
+  /// A clip's or a video's player: the big button while paused.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get playerPlay;
+
+  /// A clip's or a video's player: the big button while playing.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get playerPause;
+
+  /// What a screen reader says for the player's time (1:02 / 3:30). elapsed and total are times such as 1:02.
+  ///
+  /// In en, this message translates to:
+  /// **'Elapsed time {elapsed} of {total}'**
+  String playerElapsed({required String elapsed, required String total});
+
+  /// A clip's or a video's player: the tooltip of the button that opens the floating window (Android's French name).
+  ///
+  /// In en, this message translates to:
+  /// **'Picture-in-picture'**
+  String get playerPictureInPicture;
+
+  /// A video's player in landscape: the tooltip of the button that shows the whole video.
+  ///
+  /// In en, this message translates to:
+  /// **'Fit to screen'**
+  String get playerFitScreen;
+
+  /// A video's player in landscape: the tooltip of the button that fills the screen, cropping the video.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill screen'**
+  String get playerFillScreen;
+
+  /// A clip's or a video's player: the tooltip of the full screen button while in full screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit full screen'**
+  String get playerExitFullScreen;
+
+  /// A clip's or a video's player: the tooltip of the button that goes full screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Full screen'**
+  String get playerFullScreen;
+
+  /// A clip's or a video's player: the speed pill's tooltip, and its group in the settings sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback speed'**
+  String get playerSpeed;
+
+  /// A video's player settings sheet: the group of qualities.
+  ///
+  /// In en, this message translates to:
+  /// **'Quality'**
+  String get playerQuality;
+
+  /// A clip's or a video's player settings sheet: the volume group.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get playerVolume;
+
+  /// A video's player settings sheet: the captions switch's title.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed Captions'**
+  String get playerCaptions;
+
+  /// A video's player settings sheet: under « Closed Captions ».
+  ///
+  /// In en, this message translates to:
+  /// **'When the stream has them'**
+  String get playerCaptionsDetail;
+
+  /// A clip's or a video's player: the normal playback speed (« Normale » agrees with « vitesse »).
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get playerSpeedNormal;
+
+  /// What a screen reader calls the surface of a player (live, clip or video).
+  ///
+  /// In en, this message translates to:
+  /// **'Video player'**
+  String get playerSemantics;
+
+  /// What a screen reader says a tap on the player does while its controls show. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'hide controls'**
+  String get playerHideControls;
+
+  /// What a screen reader says a tap on the player does while its controls are hidden. Lower case.
+  ///
+  /// In en, this message translates to:
+  /// **'show controls'**
+  String get playerShowControls;
 }
 
 class _AppLocalizationsDelegate

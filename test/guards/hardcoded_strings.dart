@@ -341,6 +341,8 @@ const _exemptMethods = {
   'padRight',
   'parse',
   'tryParse',
+  // A cancel token's reason, for logs.
+  'cancel',
 };
 
 /// Named arguments that never carry UI text (even when their name looks

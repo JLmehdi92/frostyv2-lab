@@ -5,6 +5,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_hype_train_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/followed_channel.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/models/user.dart';
@@ -22,6 +23,8 @@ import 'package:onset/theme.dart';
 import 'package:onset/widgets/user_actions_modal.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../helpers/l10n.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 
@@ -150,12 +153,23 @@ void main() {
     Size size = const Size(390, 844),
     ThemeMode mode = ThemeMode.dark,
     bool reduceMotion = false,
+    Locale? locale,
+    double textScale = 1,
   }) async {
     // Saves queued in another test's fake zone never run in this one.
     VodResumeRepository.shared.resetQueue();
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    final app = await localizedApp(
+      tester,
+      locale: locale,
+      textScale: textScale,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(disableAnimations: reduceMotion),
+        child: child!,
+      ),
+    );
     final hype = MockHypeTrainService();
     when(() => hype.getActiveStatuses(any())).thenAnswer((_) async => {});
     final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
@@ -169,15 +183,13 @@ void main() {
           Provider<TwitchVodService>.value(value: vods),
         ],
         child: MaterialApp(
+          locale: app.locale,
+          supportedLocales: app.supportedLocales,
+          localizationsDelegates: app.delegates,
           theme: themes.light,
           darkTheme: themes.dark,
           themeMode: mode,
-          builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(
-              context,
-            ).copyWith(disableAnimations: reduceMotion),
-            child: child!,
-          ),
+          builder: app.builder,
           home: Scaffold(
             body: StreamsList(
               listType: ListType.followed,
@@ -370,10 +382,101 @@ void main() {
     expect(formatResumeTime(9064), '2:31:04');
     expect(formatResumeTime(65), '1:05');
     final now = DateTime(2026, 10, 28, 12);
-    expect(savedWhen(DateTime(2026, 10, 28, 1), now: now), 'today');
-    expect(savedWhen(DateTime(2026, 10, 27, 23), now: now), 'yesterday');
-    expect(savedWhen(DateTime(2026, 10, 25), now: now), '3 days ago');
-    expect(savedWhen(null, now: now), isNull);
+    final en = L10n.english;
+    expect(savedWhen(DateTime(2026, 10, 28, 1), en, now: now), 'today');
+    expect(savedWhen(DateTime(2026, 10, 27, 23), en, now: now), 'yesterday');
+    expect(savedWhen(DateTime(2026, 10, 25), en, now: now), '3 days ago');
+    expect(savedWhen(DateTime(2026, 10, 14), en, now: now), '2 wk ago');
+    expect(savedWhen(DateTime(2026, 8, 28), en, now: now), '2 mo ago');
+    expect(savedWhen(null, en, now: now), isNull);
+    final fr = lookupAppLocalizations(const Locale('fr'));
+    expect(savedWhen(DateTime(2026, 10, 28, 1), fr, now: now), 'aujourd’hui');
+    expect(savedWhen(DateTime(2026, 10, 27, 23), fr, now: now), 'hier');
+    expect(
+      savedWhen(DateTime(2026, 10, 25), fr, now: now),
+      'il y a 3\u00a0jours',
+    );
+    expect(
+      savedWhen(DateTime(2026, 10, 14), fr, now: now),
+      'il y a 2\u00a0sem.',
+    );
+    expect(
+      savedWhen(DateTime(2026, 8, 28), fr, now: now),
+      'il y a 2\u00a0mois',
+    );
+  });
+
+  group('in French', () {
+    final french = lookupAppLocalizations(fr);
+
+    for (final (sizeName, size) in frenchScreenSizes) {
+      for (final scale in frenchTextScales) {
+        testWidgets('pinned, live, offline, the sort menu, $sizeName, text '
+            '×$scale', (tester) async {
+          settings.pinnedChannelIds = ['3'];
+          await pump(tester, size: size, locale: fr, textScale: scale);
+          expect(find.text(french.streamListLiveNow), findsOneWidget);
+          if (size.shortestSide < 600) {
+            // (A tablet makes the pinned channel its hero.)
+            expect(
+              find.text(french.streamListPinned.toUpperCase()),
+              findsOneWidget,
+            );
+          }
+          // The offline channels, opened.
+          final list = find.byType(Scrollable).first;
+          final offline = find.text(french.streamOffline.toUpperCase());
+          await tester.scrollUntilVisible(offline, 300, scrollable: list);
+          await tester.tap(offline);
+          for (var i = 0; i < 4; i++) {
+            await tester.pump(const Duration(milliseconds: 50));
+          }
+          await expectFrenchThroughout(tester, 'Following');
+
+          // The orders.
+          tester.state<ScrollableState>(list).position.jumpTo(0);
+          await tester.pump();
+          await tester.tap(find.byTooltip(french.followedSortTooltip));
+          await tester.pump(const Duration(milliseconds: 500));
+          expect(find.text(french.followedSortRecent), findsOneWidget);
+          expect(tester.takeException(), isNull);
+          expect(englishLeaks(tester), isEmpty, reason: 'sort menu');
+          await close(tester);
+        });
+      }
+    }
+
+    testWidgets('nobody live, a failure, the thumbnails off, Continue '
+        'watching\'s page', (tester) async {
+      live = [];
+      await pump(tester, locale: fr);
+      expect(find.text(french.streamListEmptyFollowed), findsOneWidget);
+      await expectFrenchThroughout(tester, 'nobody live');
+      await close(tester);
+
+      live = [
+        for (var i = 1; i <= 6; i++) _stream(i, tags: ['English']),
+      ];
+      failure = const _Offline();
+      await pump(tester, locale: fr);
+      expect(find.text(french.streamListLoadFailed), findsOneWidget);
+      await expectFrenchThroughout(tester, 'failed');
+      await close(tester);
+
+      failure = null;
+      settings.showThumbnails = false;
+      await pump(tester, locale: fr, size: const Size(360, 640));
+      await expectFrenchThroughout(tester, 'no thumbnails');
+
+      final list = find.byType(Scrollable).first;
+      tester.state<ScrollableState>(list).position.jumpTo(0);
+      await tester.pump();
+      await tester.tap(find.text(french.commonSeeAll).first);
+      await tester.pumpAndSettle();
+      expect(find.text(french.continueWatchingTitle), findsWidgets);
+      await expectFrenchThroughout(tester, 'continue watching page');
+      await close(tester);
+    });
   });
 }
 

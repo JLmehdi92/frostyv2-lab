@@ -74,16 +74,16 @@ mixin _$ChannelVideosStore on ChannelVideosStoreBase, Store {
     context: context,
   );
 
-  String? get error {
+  ChannelVideosProblem? get error {
     _$_errorAtom.reportRead();
     return super._error;
   }
 
   @override
-  String? get _error => error;
+  ChannelVideosProblem? get _error => error;
 
   @override
-  set _error(String? value) {
+  set _error(ChannelVideosProblem? value) {
     _$_errorAtom.reportWrite(value, super._error, () {
       super._error = value;
     });

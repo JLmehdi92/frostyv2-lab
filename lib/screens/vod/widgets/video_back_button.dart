@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/vod/widgets/video_glyph.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/widgets/motion/press_scale.dart';
@@ -12,7 +13,7 @@ class VideoBackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: 'Back',
+      message: context.l10n.commonBack,
       child: PressScale(
         child: IconButton(
           onPressed: () => Navigator.maybePop(context),

@@ -6,6 +6,7 @@ import 'package:mobx/mobx.dart' show ObservableList;
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/category.dart';
 import 'package:onset/models/channel.dart';
 import 'package:onset/models/user.dart';
@@ -21,6 +22,8 @@ import 'package:onset/screens/vod/widgets/vod_card.dart';
 import 'package:onset/theme.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../helpers/l10n.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 
@@ -101,10 +104,21 @@ void main() {
     required Size size,
     ThemeMode mode = ThemeMode.dark,
     bool reduceMotion = false,
+    Locale? locale,
+    double textScale = 1,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    final app = await localizedApp(
+      tester,
+      locale: locale,
+      textScale: textScale,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(disableAnimations: reduceMotion),
+        child: child!,
+      ),
+    );
     final auth = MockAuthStore();
     final user = MockUserStore();
     when(() => auth.user).thenReturn(user);
@@ -119,15 +133,13 @@ void main() {
           Provider<TwitchVodService>.value(value: vods),
         ],
         child: MaterialApp(
+          locale: app.locale,
+          supportedLocales: app.supportedLocales,
+          localizationsDelegates: app.delegates,
           theme: themes.light,
           darkTheme: themes.dark,
           themeMode: mode,
-          builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(
-              context,
-            ).copyWith(disableAnimations: reduceMotion),
-            child: child!,
-          ),
+          builder: app.builder,
           home: const SearchScreen(),
         ),
       ),
@@ -352,5 +364,56 @@ void main() {
       isFalse,
     );
     await settle(tester);
+  });
+
+  group('in French', () {
+    final french = lookupAppLocalizations(fr);
+
+    for (final (sizeName, size) in frenchScreenSizes) {
+      for (final scale in frenchTextScales) {
+        testWidgets('history, then every tab, $sizeName, text ×$scale', (
+          tester,
+        ) async {
+          await pump(tester, size: size, locale: fr, textScale: scale);
+          expect(find.text(french.searchHistory), findsOneWidget);
+          await expectFrenchThroughout(tester, 'history');
+
+          await search(tester, 'chess');
+          for (final label in [
+            french.searchTabTop,
+            french.searchTabChannels,
+            french.searchTabCategories,
+            french.searchTabVideos,
+          ]) {
+            await tester.tap(tab(label));
+            await settle(tester);
+            await expectFrenchThroughout(tester, label);
+          }
+        });
+      }
+    }
+
+    testWidgets('nothing found, channels failing', (tester) async {
+      when(
+        () => api.searchChannels(query: any(named: 'query')),
+      ).thenAnswer((_) => Future.error(Exception('down')));
+      when(
+        () => api.searchCategories(query: any(named: 'query')),
+      ).thenAnswer((_) async => const CategoriesTwitch([], null));
+      when(
+        () => vods.searchVideos(any(), cursor: any(named: 'cursor')),
+      ).thenAnswer((_) async => const VodSearchPage(items: []));
+      await pump(tester, size: const Size(390, 844), locale: fr);
+      await search(tester, 'zzz');
+      await expectFrenchThroughout(tester, 'top');
+      await tester.tap(tab(french.searchTabCategories));
+      await settle(tester);
+      expect(find.text(french.searchNoCategories), findsOneWidget);
+      await expectFrenchThroughout(tester, 'categories');
+      await tester.tap(tab(french.searchTabVideos));
+      await settle(tester);
+      expect(find.text(french.searchNoResults), findsOneWidget);
+      await expectFrenchThroughout(tester, 'videos');
+    });
   });
 }

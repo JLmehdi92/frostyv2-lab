@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/screens/clips/stores/channel_clips_store.dart';
 import 'package:onset/screens/clips/widgets/clip_card.dart';
@@ -44,7 +45,9 @@ class MoreClipsSliver extends StatelessWidget {
           slivers: [
             SliverToBoxAdapter(
               child: VideoSectionLabel(
-                'More clips from ${current.broadcasterDisplayName}',
+                context.l10n.clipsMoreFrom(
+                  channel: current.broadcasterDisplayName,
+                ),
                 padding: EdgeInsets.fromLTRB(
                   16 + MediaQuery.paddingOf(context).left,
                   16,

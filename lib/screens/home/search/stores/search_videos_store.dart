@@ -42,9 +42,10 @@ abstract class SearchVideosStoreBase with Store {
   @readonly
   var _hasMore = false;
 
-  /// Why the first page could not be had (null when it could).
+  /// What failed when the first page could not be had (null when it
+  /// could); the screen says it could not load.
   @readonly
-  String? _error;
+  Object? _error;
 
   /// Shows the videos matching [query] (a blank one clears the tab).
   @action
@@ -76,7 +77,7 @@ abstract class SearchVideosStoreBase with Store {
     } catch (e) {
       debugPrint('Video search failed: ${e.runtimeType}');
       if (generation != _generation) return;
-      runInAction(() => _error = 'Unable to load videos');
+      runInAction(() => _error = e);
     } finally {
       if (generation == _generation) runInAction(() => _loading = false);
     }

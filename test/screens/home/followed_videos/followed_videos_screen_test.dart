@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/followed_channel.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/home/followed_videos/followed_videos_screen.dart';
@@ -10,6 +11,8 @@ import 'package:onset/screens/home/followed_videos/stores/followed_videos_store.
 import 'package:onset/screens/vod/widgets/vod_card.dart';
 import 'package:onset/theme.dart';
 import 'package:provider/provider.dart';
+
+import '../../../helpers/l10n.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 
@@ -51,14 +54,25 @@ void main() {
     WidgetTester tester, {
     Size size = const Size(390, 844),
     ThemeData? theme,
+    Locale? locale,
+    double textScale = 1,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    final app = await localizedApp(
+      tester,
+      locale: locale,
+      textScale: textScale,
+    );
     await tester.pumpWidget(
       Provider<TwitchApi>.value(
         value: api,
         child: MaterialApp(
+          locale: app.locale,
+          supportedLocales: app.supportedLocales,
+          localizationsDelegates: app.delegates,
+          builder: app.builder,
           theme: theme ?? ThemeData(extensions: const [OnsetColors.light]),
           home: FollowedVideosScreen(
             now: () => clock,
@@ -121,7 +135,9 @@ void main() {
       () => vods.getFollowedVideos(any()),
     ).thenThrow(const VodApiException('Unreadable videos'));
     await pump(tester);
-    expect(find.text('Unreadable videos'), findsOneWidget);
+    // An error the app raised itself (its message is for logs) reads as
+    // an unexpected one.
+    expect(find.text('An unexpected error occurred'), findsOneWidget);
 
     when(() => vods.getFollowedVideos(any())).thenAnswer((_) async => []);
     await tester.tap(find.text('Try again'));
@@ -238,5 +254,48 @@ void main() {
       FollowedVideosSection.today,
       reason: 'a clock behind the server',
     );
+  });
+
+  group('in French', () {
+    final french = lookupAppLocalizations(fr);
+
+    for (final (sizeName, size) in frenchScreenSizes) {
+      for (final scale in frenchTextScales) {
+        testWidgets('the sections, $sizeName, text ×$scale', (tester) async {
+          when(() => vods.getFollowedVideos(any())).thenAnswer(
+            (_) async => [
+              // Titles are Twitch's data: neither language's words.
+              video('a', Duration.zero, title: 'Partie 1'),
+              video('b', const Duration(days: 1), title: 'Partie 2'),
+              video('c', const Duration(days: 3), title: ''),
+              video('d', const Duration(days: 12), title: 'Partie 4'),
+            ],
+          );
+          await pump(tester, size: size, locale: fr, textScale: scale);
+          expect(
+            find.text(french.followedVideosToday.toUpperCase()),
+            findsOneWidget,
+          );
+          expect(find.text(french.followedVideosTitle), findsOneWidget);
+          await expectFrenchThroughout(tester, 'followed videos');
+        });
+      }
+    }
+
+    testWidgets('empty', (tester) async {
+      when(() => vods.getFollowedVideos(any())).thenAnswer((_) async => []);
+      await pump(tester, locale: fr);
+      expect(find.text(french.followedVideosEmpty), findsOneWidget);
+      await expectFrenchThroughout(tester, 'empty');
+    });
+
+    testWidgets('a failure', (tester) async {
+      when(
+        () => vods.getFollowedVideos(any()),
+      ).thenThrow(const VodApiException('Unreadable videos'));
+      await pump(tester, locale: fr);
+      expect(find.text(french.apiErrorUnexpected), findsOneWidget);
+      await expectFrenchThroughout(tester, 'failed');
+    });
   });
 }

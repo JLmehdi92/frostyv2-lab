@@ -32,9 +32,10 @@ abstract class CategoriesStoreBase with Store {
   @readonly
   var _categories = ObservableList<CategoryTwitch>();
 
-  /// The error message to show if any. Will be non-null if there is an error.
+  /// What made the last load fail (an [ApiException], a [SocketException],
+  /// anything else), null when it did not; the screen words it.
   @readonly
-  String? _error;
+  Object? _error;
 
   /// Whether the next page (not a refresh) is loading.
   bool get isLoadingMore => _isLoading && _categoriesCursor != null;
@@ -65,14 +66,14 @@ abstract class CategoriesStoreBase with Store {
       _categoriesCursor = result.pagination?['cursor'];
 
       _error = null;
-    } on SocketException {
-      _error = 'Unable to connect to Twitch';
+    } on SocketException catch (e) {
+      _error = e;
       debugPrint('Categories SocketException: No internet connection');
     } on ApiException catch (e) {
-      _error = e.message;
+      _error = e;
       debugPrint('Categories ApiException: $e');
     } catch (e) {
-      _error = 'Something went wrong loading categories';
+      _error = e;
       debugPrint('Categories error: $e');
     }
 

@@ -13,17 +13,17 @@ class DirectoryApiException extends ApiException {
   String toString() => 'DirectoryApiException: $message';
 }
 
-/// How a directory orders its live streams, as Twitch's "Sort by".
+/// How a directory orders its live streams, as Twitch's "Sort by" (named
+/// in lib/l10n/enum_labels.dart).
 enum StreamSort {
   /// Helix's own order, the only one that pages past the first answer.
-  viewersHigh('Viewers (high to low)', 'VIEWER_COUNT'),
-  recommended('Recommended', 'RELEVANCE'),
-  viewersLow('Viewers (low to high)', 'VIEWER_COUNT_ASC'),
-  recent('Recently started', 'RECENT');
+  viewersHigh('VIEWER_COUNT'),
+  recommended('RELEVANCE'),
+  viewersLow('VIEWER_COUNT_ASC'),
+  recent('RECENT');
 
-  const StreamSort(this.label, this.gql);
+  const StreamSort(this.gql);
 
-  final String label;
   final String gql;
 }
 

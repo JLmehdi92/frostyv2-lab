@@ -94,16 +94,16 @@ mixin _$ClipsFeedStore on ClipsFeedStoreBase, Store {
     context: context,
   );
 
-  String? get error {
+  Object? get error {
     _$_errorAtom.reportRead();
     return super._error;
   }
 
   @override
-  String? get _error => error;
+  Object? get _error => error;
 
   @override
-  set _error(String? value) {
+  set _error(Object? value) {
     _$_errorAtom.reportWrite(value, super._error, () {
       super._error = value;
     });

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel_profile.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/models/vod.dart';
@@ -118,7 +119,9 @@ class _ProfileHomeContentState extends State<ProfileHomeContent>
                   time.format(segment.startAt.toLocal()),
                   ?segment.categoryName,
                 ].join(' · ')
-              : 'Next stream · ${time.format(segment.startAt.toLocal())}',
+              : context.l10n.profileNextStreamAt(
+                  time: time.format(segment.startAt.toLocal()),
+                ),
           reminders: widget.reminders,
           login: widget.login,
           channelName: widget.channelName,
@@ -144,7 +147,7 @@ class _ProfileHomeContentState extends State<ProfileHomeContent>
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: 12,
         children: [
-          const ProfileEyebrow('Coming up'),
+          ProfileEyebrow(context.l10n.profileComingUp),
           for (final (index, segment) in coming.indexed)
             scheduleCard(segment, index),
         ],
@@ -216,7 +219,7 @@ class _ProfileHomeContentState extends State<ProfileHomeContent>
                       return const SizedBox.shrink();
                     }
                     return _Section(
-                      title: 'Recent broadcasts',
+                      title: context.l10n.profileRecentBroadcasts,
                       onSeeAll: widget.onViewAllVideos,
                       large: large,
                       columns: columns,
@@ -245,7 +248,7 @@ class _ProfileHomeContentState extends State<ProfileHomeContent>
                       return const SizedBox.shrink();
                     }
                     return _Section(
-                      title: 'Popular clips',
+                      title: context.l10n.profilePopularClips,
                       onSeeAll: widget.onViewAllClips,
                       large: large,
                       columns: columns,
@@ -358,8 +361,8 @@ class _TilePicture extends StatelessWidget {
               else
                 Semantics(
                   image: true,
-                  label: 'Thumbnail',
-                  onLongPressHint: 'enlarge',
+                  label: context.l10n.profileThumbnail,
+                  onLongPressHint: context.l10n.streamEnlargeHint,
                   child: GestureDetector(
                     onLongPress: () {
                       HapticFeedback.lightImpact();
@@ -506,11 +509,14 @@ class ProfileVideoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = vod.title.trim().isEmpty ? 'Untitled' : vod.title.trim();
+    final l = context.l10n;
+    final title = vod.title.trim().isEmpty ? l.videoUntitled : vod.title.trim();
     final details = [
-      formatTimeAgo(vod.createdAt),
-      '${formatViewers(vod.viewCount)} '
-          '${vod.viewCount == 1 ? 'view' : 'views'}',
+      formatTimeAgo(vod.createdAt, l),
+      l.videoViewsShort(
+        count: vod.viewCount,
+        views: formatViewers(vod.viewCount),
+      ),
     ].join(' · ');
     return Semantics(
       button: true,
@@ -533,12 +539,12 @@ class ProfileVideoTile extends StatelessWidget {
                 chips: [
                   if (vod.isRecording)
                     _TileChip(
-                      text: 'Recording',
+                      text: l.profileRecording,
                       large: large,
                       color: OnsetTokens.danger.withValues(alpha: 0.9),
                     ),
                   if (progress.watched)
-                    _TileChip(text: 'Watched', large: large),
+                    _TileChip(text: l.profileWatched, large: large),
                   if (vod.isRestricted)
                     _TileChip(
                       large: large,
@@ -554,7 +560,7 @@ class ProfileVideoTile extends StatelessWidget {
                 child: _TileText(
                   title: title,
                   details: vod.isRestricted
-                      ? 'Subscribers only · $details'
+                      ? '${l.profileSubscribersOnly} · $details'
                       : details,
                   large: large,
                 ),
@@ -577,16 +583,18 @@ class ProfileClipTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     final title = clip.title.trim().isEmpty
-        ? 'Untitled clip'
+        ? l.clipUntitled
         : clip.title.trim();
-    final views =
-        '${formatViewers(clip.viewCount)} '
-        '${clip.viewCount == 1 ? 'view' : 'views'}';
+    final views = l.videoViewsShort(
+      count: clip.viewCount,
+      views: formatViewers(clip.viewCount),
+    );
     final curator = clip.curatorDisplayName;
     final details = [
-      formatTimeAgo(clip.createdAt),
-      if (curator != null) 'Clipped by $curator',
+      formatTimeAgo(clip.createdAt, l),
+      if (curator != null) l.clipClippedBy(curator: curator),
     ].join(' · ');
     return Semantics(
       button: true,

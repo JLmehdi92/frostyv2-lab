@@ -1,16 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/vod/stores/channel_videos_store.dart';
 import 'package:onset/screens/vod/widgets/channel_videos_tab.dart';
 import 'package:onset/widgets/sheet/onset_sheet.dart';
 
 /// The profile's video types: past broadcasts (the default), highlights
-/// and uploads, each with its empty message.
-const kProfileVideoTypes = [
-  (VodType.archive, 'Past broadcasts', 'No past broadcasts'),
-  (VodType.highlight, 'Highlights', 'No highlights'),
-  (VodType.upload, 'Uploads', 'No uploads'),
-];
+/// and uploads.
+const kProfileVideoTypes = [VodType.archive, VodType.highlight, VodType.upload];
+
+/// [type]'s pill on the profile's Videos tab, and what its empty list says,
+/// in [l]'s language.
+({String label, String empty}) profileVideoTypeTexts(
+  VodType type,
+  AppLocalizations l,
+) => switch (type) {
+  VodType.archive => (
+    label: l.profilePastBroadcasts,
+    empty: l.profileNoPastBroadcasts,
+  ),
+  VodType.highlight => (
+    label: l.profileHighlights,
+    empty: l.profileNoHighlights,
+  ),
+  VodType.upload => (label: l.profileUploads, empty: l.profileNoUploads),
+};
 
 /// The profile's Videos tab: the type pills, then that type's list with
 /// its progress, pull to refresh and states ([ChannelVideosTab]).
@@ -36,7 +50,8 @@ class ProfileVideosTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (_, _, empty) = kProfileVideoTypes.firstWhere((t) => t.$1 == type);
+    final l = context.l10n;
+    final empty = profileVideoTypeTexts(type, l).empty;
     final padding = MediaQuery.paddingOf(context);
     // Each type keeps its own list and scroll position.
     return ChannelVideosTab(
@@ -59,9 +74,9 @@ class ProfileVideosTab extends StatelessWidget {
             child: Row(
               spacing: 8,
               children: [
-                for (final (value, label, _) in kProfileVideoTypes)
+                for (final value in kProfileVideoTypes)
                   SheetChoicePill(
-                    label: label,
+                    label: profileVideoTypeTexts(value, l).label,
                     large: true,
                     selected: value == type,
                     onSelected: value == type ? null : () => onType(value),

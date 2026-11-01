@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/clips/stores/channel_clips_store.dart';
 import 'package:onset/screens/clips/widgets/clip_card.dart';
 import 'package:onset/screens/clips/widgets/clip_filter_bar.dart';
@@ -117,8 +118,11 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
         child: Padding(
           padding: const EdgeInsets.only(top: 100),
           child: error == null
-              ? const VideoListEmpty(message: 'No clips for this period')
-              : FeedStatusView.error(message: error, onRetry: store.refresh),
+              ? VideoListEmpty(message: context.l10n.clipsNoneForPeriod)
+              : FeedStatusView.error(
+                  message: channelClipsErrorText(context.l10n, error),
+                  onRetry: store.refresh,
+                ),
         ),
       );
     }
@@ -137,7 +141,7 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'Showing the top ${clips.length} clips',
+                context.l10n.clipsShowingTop(count: clips.length),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 12.5,
@@ -202,3 +206,11 @@ class _ChannelClipsTabState extends State<ChannelClipsTab>
     );
   }
 }
+
+/// What [problem], the clips list's, says in [l]'s language.
+String channelClipsErrorText(AppLocalizations l, ChannelClipsProblem problem) =>
+    switch (problem) {
+      ChannelClipsProblem.categoryNotFound => l.clipsCategoryNotFound,
+      ChannelClipsProblem.channelNotFound => l.clipsChannelNotFound,
+      ChannelClipsProblem.failed => l.clipsListFailed,
+    };

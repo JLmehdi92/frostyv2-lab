@@ -34,8 +34,10 @@ abstract class FollowedVideosStoreBase with Store {
   @readonly
   var _loading = false;
 
+  /// What made the last load fail (an [ApiException], anything else), null
+  /// when it did not; the screen words it.
   @readonly
-  String? _error;
+  Object? _error;
 
   /// Loads (or reloads) the list; a failure keeps what was shown.
   @action
@@ -58,13 +60,13 @@ abstract class FollowedVideosStoreBase with Store {
       );
       _videos = videos.take(maxVideos).toList();
       _error = null;
-    } on NetworkException {
-      _error = 'Unable to connect to Twitch';
+    } on NetworkException catch (e) {
+      _error = e;
     } on ApiException catch (e) {
-      _error = e.message;
+      _error = e;
       debugPrint('Followed videos: $e');
     } catch (e) {
-      _error = 'Something went wrong loading videos';
+      _error = e;
       debugPrint('Followed videos: $e');
     }
     _loading = false;

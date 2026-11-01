@@ -13,13 +13,90 @@ typedef ApiHeaders = Map<String, String>;
 String crashReasonFor(RequestOptions request) =>
     '${request.method} ${request.uri.origin}';
 
+/// What went wrong with a request, for a screen to say in its language
+/// (lib/l10n/api_errors.dart words each one): [ApiException.message] is
+/// English, for logs only.
+enum ApiErrorKind {
+  /// No connection.
+  network,
+
+  /// Connecting took too long.
+  connectionTimeout,
+
+  /// Sending took too long.
+  sendTimeout,
+
+  /// The answer took too long.
+  receiveTimeout,
+
+  /// The request was cancelled.
+  cancelled,
+
+  /// The server's certificate was refused.
+  certificate,
+
+  /// Anything else (and errors the app raises itself).
+  unknown,
+
+  /// 400.
+  badRequest,
+
+  /// 401.
+  unauthorized,
+
+  /// 403.
+  forbidden,
+
+  /// 404.
+  notFound,
+
+  /// 409.
+  conflict,
+
+  /// 422.
+  invalid,
+
+  /// 429.
+  rateLimited,
+
+  /// 500.
+  server,
+
+  /// 502.
+  unavailable,
+
+  /// 503.
+  maintenance,
+
+  /// 504.
+  serverTimeout,
+
+  /// Any other HTTP status ([ApiException.statusCode]).
+  http,
+}
+
 /// Custom API exceptions for better error handling
 class ApiException implements Exception {
+  /// What went wrong, in English: for logs and crash reports, never shown
+  /// (a screen words [kind]).
   final String message;
   final int? statusCode;
   final DioExceptionType? type;
 
-  const ApiException(this.message, [this.statusCode, this.type]);
+  /// What went wrong, for a screen to say.
+  final ApiErrorKind kind;
+
+  /// The server's own explanation from its answer's body (Twitch's words,
+  /// shown as they are), when it gave one.
+  final String? twitchMessage;
+
+  const ApiException(
+    this.message, [
+    this.statusCode,
+    this.type,
+    this.kind = ApiErrorKind.unknown,
+    this.twitchMessage,
+  ]);
 
   @override
   String toString() => 'ApiException: $message';
@@ -27,27 +104,55 @@ class ApiException implements Exception {
 
 class NetworkException extends ApiException {
   const NetworkException(String message)
-    : super(message, null, DioExceptionType.connectionError);
+    : super(
+        message,
+        null,
+        DioExceptionType.connectionError,
+        ApiErrorKind.network,
+      );
 }
 
 class TimeoutException extends ApiException {
-  const TimeoutException(String message)
-    : super(message, null, DioExceptionType.connectionTimeout);
+  const TimeoutException(
+    String message, [
+    ApiErrorKind kind = ApiErrorKind.connectionTimeout,
+  ]) : super(message, null, DioExceptionType.connectionTimeout, kind);
 }
 
 class ServerException extends ApiException {
-  const ServerException(String message, int statusCode)
-    : super(message, statusCode, DioExceptionType.badResponse);
+  const ServerException(
+    String message,
+    int statusCode, [
+    ApiErrorKind kind = ApiErrorKind.server,
+    String? twitchMessage,
+  ]) : super(
+         message,
+         statusCode,
+         DioExceptionType.badResponse,
+         kind,
+         twitchMessage,
+       );
 }
 
 class NotFoundException extends ApiException {
-  const NotFoundException(String message)
-    : super(message, 404, DioExceptionType.badResponse);
+  const NotFoundException(String message, [String? twitchMessage])
+    : super(
+        message,
+        404,
+        DioExceptionType.badResponse,
+        ApiErrorKind.notFound,
+        twitchMessage,
+      );
 }
 
 class UnauthorizedException extends ApiException {
   const UnauthorizedException(String message)
-    : super(message, 401, DioExceptionType.badResponse);
+    : super(
+        message,
+        401,
+        DioExceptionType.badResponse,
+        ApiErrorKind.unauthorized,
+      );
 }
 
 /// Base API client to eliminate code duplication across API services
@@ -207,18 +312,32 @@ abstract class BaseApiClient {
   /// Converts DioException to appropriate ApiException subtype
   ApiException _handleError(DioException error) {
     final exception = switch (error.type) {
-      DioExceptionType.connectionTimeout ||
-      DioExceptionType.sendTimeout ||
+      DioExceptionType.connectionTimeout => TimeoutException(
+        _getTimeoutMessage(error.type),
+      ),
+      DioExceptionType.sendTimeout => TimeoutException(
+        _getTimeoutMessage(error.type),
+        ApiErrorKind.sendTimeout,
+      ),
       DioExceptionType.receiveTimeout => TimeoutException(
         _getTimeoutMessage(error.type),
+        ApiErrorKind.receiveTimeout,
       ),
       DioExceptionType.connectionError => NetworkException(
         'No internet connection. Please check your network.',
       ),
       DioExceptionType.badResponse => _handleHttpError(error),
-      DioExceptionType.cancel => ApiException('Request was cancelled'),
+      DioExceptionType.cancel => ApiException(
+        'Request was cancelled',
+        null,
+        null,
+        ApiErrorKind.cancelled,
+      ),
       DioExceptionType.badCertificate => ApiException(
         'Security certificate error',
+        null,
+        null,
+        ApiErrorKind.certificate,
       ),
       DioExceptionType.unknown => ApiException(
         error.message ?? 'An unexpected error occurred',
@@ -274,6 +393,8 @@ abstract class BaseApiClient {
           serverMessage ?? 'Invalid request data',
           400,
           DioExceptionType.badResponse,
+          ApiErrorKind.badRequest,
+          serverMessage,
         );
       case 401:
         return UnauthorizedException('Please log in to continue');
@@ -282,20 +403,29 @@ abstract class BaseApiClient {
           serverMessage ?? 'Access denied. Insufficient permissions',
           403,
           DioExceptionType.badResponse,
+          ApiErrorKind.forbidden,
+          serverMessage,
         );
       case 404:
-        return NotFoundException(serverMessage ?? 'Resource not found');
+        return NotFoundException(
+          serverMessage ?? 'Resource not found',
+          serverMessage,
+        );
       case 409:
         return ApiException(
           serverMessage ?? 'Conflict with current state. Please refresh',
           409,
           DioExceptionType.badResponse,
+          ApiErrorKind.conflict,
+          serverMessage,
         );
       case 422:
         return ApiException(
           serverMessage ?? 'Invalid data provided',
           422,
           DioExceptionType.badResponse,
+          ApiErrorKind.invalid,
+          serverMessage,
         );
       case 429:
         return ApiException(
@@ -303,22 +433,35 @@ abstract class BaseApiClient {
               'Rate limit exceeded. Please wait before trying again',
           429,
           DioExceptionType.badResponse,
+          ApiErrorKind.rateLimited,
+          serverMessage,
         );
       case 500:
         return ServerException('Server error. Please try again later', 500);
       case 502:
-        return ServerException('Service temporarily unavailable', 502);
+        return ServerException(
+          'Service temporarily unavailable',
+          502,
+          ApiErrorKind.unavailable,
+        );
       case 503:
         return ServerException(
           'Service maintenance. Please try again later',
           503,
+          ApiErrorKind.maintenance,
         );
       case 504:
-        return ServerException('Server timeout. Please try again', 504);
+        return ServerException(
+          'Server timeout. Please try again',
+          504,
+          ApiErrorKind.serverTimeout,
+        );
       default:
         return ServerException(
           serverMessage ?? 'HTTP Error $statusCode occurred',
           statusCode ?? 500,
+          ApiErrorKind.http,
+          serverMessage,
         );
     }
   }

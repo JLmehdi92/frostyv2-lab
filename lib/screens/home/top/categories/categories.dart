@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/api_errors.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/category.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/home/stream_list/streams_list.dart';
@@ -81,7 +83,12 @@ class _CategoriesState extends State<Categories>
     final error = _store.error;
     if (error == null || !mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: AlertMessage(message: error, centered: false)),
+      SnackBar(
+        content: AlertMessage(
+          message: _errorText(context.l10n, error),
+          centered: false,
+        ),
+      ),
     );
   }
 
@@ -173,12 +180,12 @@ class _CategoriesState extends State<Categories>
               Widget? status;
               if (error != null && categories.isEmpty) {
                 status = FeedStatusView.error(
-                  message: error,
+                  message: _errorText(context.l10n, error),
                   onRetry: () => _refresh(),
                 );
               } else if (categories.isEmpty) {
-                status = const FeedStatusView.empty(
-                  message: 'No top categories',
+                status = FeedStatusView.empty(
+                  message: context.l10n.categoriesEmpty,
                 );
               }
               if (status != null) {
@@ -270,7 +277,7 @@ class _CategoriesState extends State<Categories>
                                   Icons.refresh_rounded,
                                   size: 18,
                                 ),
-                                label: const Text('Try again'),
+                                label: Text(context.l10n.commonTryAgain),
                               ),
                             ),
                           ),
@@ -315,12 +322,16 @@ class _RailTitle extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.baseline,
       textBaseline: TextBaseline.alphabetic,
       children: [
-        const Expanded(child: FeedSectionTitle('Top categories')),
+        Expanded(child: FeedSectionTitle(context.l10n.categoriesRailTitle)),
         Text(
-          'Most watched first',
+          context.l10n.categoriesRailNote,
           style: TextStyle(fontSize: 12, color: colors.tertiary),
         ),
       ],
     );
   }
 }
+
+/// What [error], the categories store's, says in [l]'s language.
+String _errorText(AppLocalizations l, Object error) =>
+    apiErrorText(l, error, fallback: l.categoriesLoadFailed);

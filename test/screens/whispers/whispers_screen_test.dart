@@ -6,6 +6,7 @@ import 'package:mobx/mobx.dart' show Observable, runInAction;
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/whispers/whisper_conversation.dart';
 import 'package:onset/screens/whispers/whisper_kit.dart';
 import 'package:onset/screens/whispers/whispers_screen.dart';
@@ -13,6 +14,8 @@ import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 import 'package:onset/stores/whisper_store.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/widgets/state_glyph.dart';
+
+import '../../helpers/l10n.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 
@@ -73,22 +76,31 @@ void main() {
     Size size = _phone,
     ThemeMode theme = ThemeMode.dark,
     bool reduceMotion = false,
+    Locale? locale,
+    double textScale = 1,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    final app = await localizedApp(
+      tester,
+      locale: locale,
+      textScale: textScale,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(disableAnimations: reduceMotion),
+        child: child!,
+      ),
+    );
     final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       MaterialApp(
+        locale: app.locale,
+        supportedLocales: app.supportedLocales,
+        localizationsDelegates: app.delegates,
         theme: themes.light,
         darkTheme: themes.dark,
         themeMode: theme,
-        builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(
-            context,
-          ).copyWith(disableAnimations: reduceMotion),
-          child: child!,
-        ),
+        builder: app.builder,
         home: screen,
       ),
     );
@@ -684,8 +696,58 @@ void main() {
   });
 
   test('the status hints', () {
-    expect(whisperStatusHint(WhisperStatus.listening), isNull);
-    expect(whisperStatusHint(WhisperStatus.connecting), isNull);
-    expect(whisperStatusHint(WhisperStatus.off), 'Log in to get whispers.');
+    final en = L10n.english;
+    expect(whisperStatusHint(WhisperStatus.listening, en), isNull);
+    expect(whisperStatusHint(WhisperStatus.connecting, en), isNull);
+    expect(whisperStatusHint(WhisperStatus.off, en), 'Log in to get whispers.');
+    final fr = lookupAppLocalizations(const Locale('fr'));
+    expect(
+      whisperStatusHint(WhisperStatus.off, fr),
+      'Connectez-vous pour recevoir des chuchotements.',
+    );
+  });
+
+  group('in French', () {
+    final french = lookupAppLocalizations(fr);
+
+    for (final (sizeName, size) in frenchScreenSizes) {
+      for (final scale in frenchTextScales) {
+        testWidgets('the list, a conversation, $sizeName, text ×$scale', (
+          tester,
+        ) async {
+          init();
+          await pumpScreen(
+            tester,
+            WhispersScreen(store: store),
+            size: size,
+            locale: fr,
+            textScale: scale,
+          );
+          expect(find.text(french.whispersEmpty), findsWidgets);
+          await expectFrenchThroughout(tester, 'none');
+
+          receive('salut');
+          receive('ça va ?', id: 'w2', from: '9', login: 'amie', name: 'Amie');
+          await settle(tester);
+          expect(find.text('salut'), findsWidgets);
+          await expectFrenchThroughout(tester, 'list');
+
+          await pumpScreen(
+            tester,
+            WhisperConversation(
+              store: store,
+              userId: '8',
+              login: 'friend',
+              displayName: 'Friend',
+            ),
+            size: size,
+            locale: fr,
+            textScale: scale,
+          );
+          expect(find.text(french.whisperSessionNote), findsOneWidget);
+          await expectFrenchThroughout(tester, 'conversation');
+        });
+      }
+    }
   });
 }

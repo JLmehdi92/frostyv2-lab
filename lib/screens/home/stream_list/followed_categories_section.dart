@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/followed_category.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/home/top/categories/category_streams.dart';
@@ -47,9 +47,9 @@ class FollowedCategoriesSection extends StatelessWidget {
               left: gutter + padding.left,
               right: gutter + padding.right,
             ),
-            child: const Align(
+            child: Align(
               alignment: AlignmentDirectional.centerStart,
-              child: FeedSectionTitle('Categories'),
+              child: FeedSectionTitle(context.l10n.followedCategoriesTitle),
             ),
           ),
           SizedBox(
@@ -124,8 +124,7 @@ class _FollowedCategoryTile extends StatelessWidget {
                 ),
               ),
               Text(
-                '${NumberFormat.compact().format(viewers)} '
-                '${viewers == 1 ? 'viewer' : 'viewers'}',
+                context.l10n.streamViewersCompact(count: viewers),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: OnsetType.tabular(
@@ -160,7 +159,7 @@ class FollowedCategoryChips extends StatelessWidget {
             button: true,
             label:
                 '${category.title}, '
-                '${NumberFormat.compact().format(category.viewers)} viewers',
+                '${context.l10n.streamViewersCompact(count: category.viewers)}',
             onTap: () => _openCategory(context, category),
             excludeSemantics: true,
             child: PressScale(

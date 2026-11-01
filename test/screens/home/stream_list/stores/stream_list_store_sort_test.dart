@@ -5,9 +5,11 @@ import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_directory_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/category.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/screens/home/stream_list/stores/stream_list_store.dart';
+import 'package:onset/screens/home/stream_list/streams_list.dart';
 import 'package:onset/screens/settings/stores/auth_store.dart';
 import 'package:onset/screens/settings/stores/settings_store.dart';
 
@@ -158,8 +160,9 @@ void main() {
     store.sort = StreamSort.viewersLow;
     await pumpEventQueue();
 
+    expect(store.error, StreamListProblem.sort);
     expect(
-      store.error,
+      streamListErrorText(L10n.english, store.error!, store.sort),
       'Twitch could not sort by Viewers (low to high). '
       'Viewers (high to low) still works.',
     );

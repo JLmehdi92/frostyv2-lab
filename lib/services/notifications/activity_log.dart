@@ -5,17 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// What kind of notification ONSET posted, named after Twitch's own
-/// notification categories.
-enum ActivityKind {
-  live('Live'),
-  mention('Chat Mentions'),
-  reminder('Events');
-
-  const ActivityKind(this.label);
-
-  /// The category shown under the notification, like Twitch's.
-  final String label;
-}
+/// notification categories (lib/l10n/enum_labels.dart names them).
+enum ActivityKind { live, mention, reminder }
 
 final _login = RegExp(r'^[a-zA-Z0-9_]{1,25}$');
 

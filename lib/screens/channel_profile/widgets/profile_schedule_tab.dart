@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel_profile.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_parts.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
@@ -9,19 +10,16 @@ import 'package:onset/utils/context_extensions.dart';
 import 'package:onset/widgets/sheet/sheet_glyph.dart';
 import 'package:onset/widgets/state_views.dart';
 
-/// "in 3 hours", "in 2 days", "now" for a start [at] seen from [now].
-String formatStartsIn(DateTime at, DateTime now) {
+/// "in 3 hours", "in 2 days", "now" for a start [at] seen from [now], in
+/// [l]'s language.
+String formatStartsIn(DateTime at, DateTime now, AppLocalizations l) {
   final left = at.difference(now);
-  if (left <= Duration.zero) return 'now';
+  if (left <= Duration.zero) return l.startsNow;
   if (left.inMinutes < 60) {
-    final minutes = left.inMinutes.clamp(1, 59);
-    return 'in $minutes ${minutes == 1 ? 'minute' : 'minutes'}';
+    return l.startsInMinutes(count: left.inMinutes.clamp(1, 59));
   }
-  if (left.inHours < 24) {
-    return 'in ${left.inHours} ${left.inHours == 1 ? 'hour' : 'hours'}';
-  }
-  final days = left.inDays;
-  return 'in $days ${days == 1 ? 'day' : 'days'}';
+  if (left.inHours < 24) return l.startsInHours(count: left.inHours);
+  return l.startsInDays(count: left.inDays);
 }
 
 /// Sets or clears [segment]'s reminder, and says when it could not.
@@ -37,13 +35,13 @@ Future<void> toggleScheduleReminder(
     login: login,
     channelName: channelName,
   );
+  if (!context.mounted) return;
   final message = switch (result) {
-    ReminderResult.refused =>
-      'Allow notifications for this app in the system settings.',
-    ReminderResult.failed => "Couldn't set the reminder.",
+    ReminderResult.refused => context.l10n.profileReminderRefused,
+    ReminderResult.failed => context.l10n.profileReminderFailed,
     ReminderResult.set || ReminderResult.cleared => null,
   };
-  if (message == null || !context.mounted) return;
+  if (message == null) return;
   ScaffoldMessenger.of(context)
     ..clearSnackBars()
     ..showSnackBar(SnackBar(content: Text(message)));
@@ -124,7 +122,9 @@ class ProfileScheduleCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  title == null || title.isEmpty ? 'Stream' : title,
+                  title == null || title.isEmpty
+                      ? context.l10n.profileStreamUntitled
+                      : title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -194,7 +194,7 @@ class ProfileScheduleContent extends StatelessWidget {
     if (upcoming.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 48),
-        child: const FeedStatusView.empty(message: 'No streams scheduled'),
+        child: FeedStatusView.empty(message: context.l10n.profileNoSchedule),
       );
     }
 
@@ -223,9 +223,10 @@ class ProfileScheduleContent extends StatelessWidget {
                 ? ProfileScheduleCard(
                     segment: nextSegment,
                     next: true,
-                    meta:
-                        'Next stream ${formatStartsIn(next, now)} · '
-                        '${time.format(next.toLocal())}',
+                    meta: context.l10n.profileNextStreamIn(
+                      when: formatStartsIn(next, now, context.l10n),
+                      time: time.format(next.toLocal()),
+                    ),
                     reminders: reminders,
                     login: login,
                     channelName: channelName,
@@ -233,8 +234,12 @@ class ProfileScheduleContent extends StatelessWidget {
                   )
                 : ProfileCard(
                     child: Text(
-                      'Next stream ${formatStartsIn(next, now)} · '
-                      '${DateFormat.MMMEd().add_jm().format(next.toLocal())}',
+                      context.l10n.profileNextStreamIn(
+                        when: formatStartsIn(next, now, context.l10n),
+                        time: DateFormat.MMMEd().add_jm().format(
+                          next.toLocal(),
+                        ),
+                      ),
                       style: TextStyle(fontSize: 14, color: colors.text),
                     ),
                   ),
@@ -333,7 +338,9 @@ class _SegmentRow extends StatelessWidget {
               spacing: 2,
               children: [
                 Text(
-                  title == null || title.isEmpty ? 'Stream' : title,
+                  title == null || title.isEmpty
+                      ? context.l10n.profileStreamUntitled
+                      : title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -347,7 +354,7 @@ class _SegmentRow extends StatelessWidget {
                   [
                     hours,
                     ?segment.categoryName,
-                    if (cancelled) 'Cancelled',
+                    if (cancelled) context.l10n.profileCancelled,
                   ].join(' · '),
                   style: OnsetType.tabular(
                     TextStyle(
@@ -362,7 +369,9 @@ class _SegmentRow extends StatelessWidget {
           ),
           if (reminder != null)
             IconButton(
-              tooltip: reminder.set ? 'Reminder Set' : 'Remind Me',
+              tooltip: reminder.set
+                  ? context.l10n.profileReminderSet
+                  : context.l10n.profileRemindMe,
               isSelected: reminder.set,
               onPressed: reminder.toggle,
               icon: SheetGlyph(SheetGlyphKind.bell, color: colors.secondary),

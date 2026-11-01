@@ -111,7 +111,7 @@ void main() {
       ),
     ).thenThrow(const NotFoundException('nope'));
     await store.load();
-    expect(store.error, 'Channel not found');
+    expect(store.error, ChannelClipsProblem.channelNotFound);
 
     when(
       () => service.getChannelClips(
@@ -121,7 +121,7 @@ void main() {
       ),
     ).thenThrow(const ClipApiException('server error'));
     await store.refresh();
-    expect(store.error, "Couldn't load clips");
+    expect(store.error, ChannelClipsProblem.failed);
     expect(store.clips, isEmpty);
   });
 
@@ -234,6 +234,6 @@ void main() {
 
     await category.load();
 
-    expect(category.error, 'Category not found');
+    expect(category.error, ChannelClipsProblem.categoryNotFound);
   });
 }

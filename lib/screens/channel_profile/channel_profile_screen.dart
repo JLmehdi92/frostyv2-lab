@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel_profile.dart';
 import 'package:onset/models/user.dart';
 import 'package:onset/models/vod.dart';
@@ -35,15 +36,20 @@ import 'package:provider/provider.dart';
 
 /// The profile's tabs, in order.
 enum ProfileTab {
-  home('Home'),
-  videos('Videos'),
-  clips('Clips'),
-  schedule('Schedule'),
-  about('About');
+  home,
+  videos,
+  clips,
+  schedule,
+  about;
 
-  const ProfileTab(this.label);
-
-  final String label;
+  /// The tab's name.
+  String label(AppLocalizations l) => switch (this) {
+    home => l.profileTabHome,
+    videos => l.profileTabVideos,
+    clips => l.profileTabClips,
+    schedule => l.profileTabSchedule,
+    about => l.profileTabAbout,
+  };
 }
 
 /// A channel's profile page.
@@ -279,8 +285,9 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
   Future<void> _refresh() async {
     unawaited(_follow?.refreshFollowing());
     await _store.refresh();
+    if (!mounted) return;
     if (_store.error != null && _store.profile != null) {
-      _say("Couldn't refresh this channel");
+      _say(context.l10n.profileRefreshFailed);
     }
   }
 
@@ -298,7 +305,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
     }
     final id = _userId;
     if (id == null) {
-      _say("Couldn't open this channel, check your connection");
+      _say(context.l10n.profileOpenFailed);
       return;
     }
     Navigator.push(
@@ -372,7 +379,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
   List<Widget> _actions({double onBar = 0, double disc = 0.45}) => [
     ProfileRoundButton(
       glyph: SheetGlyphKind.share,
-      tooltip: 'Share',
+      tooltip: context.l10n.profileShare,
       onPressed: () => unawaited(_share()),
       onBar: onBar,
       disc: disc,
@@ -380,7 +387,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
     if (_userId != null)
       ProfileRoundButton(
         glyph: SheetGlyphKind.more,
-        tooltip: 'More',
+        tooltip: context.l10n.profileMore,
         onPressed: _more,
         onBar: onBar,
         disc: disc,
@@ -464,7 +471,10 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
           showStream: large,
           large: large,
           status: error != null && profile == null && !retrying
-              ? _status(error, () => unawaited(_store.load()))
+              ? _status(
+                  context.l10n.profileLoadFailed,
+                  () => unawaited(_store.load()),
+                )
               : null,
         ),
       ),
@@ -503,7 +513,9 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
         profile == null
             ? (_store.loaded && !retrying
                   ? _status(
-                      error ?? 'No details',
+                      error != null
+                          ? context.l10n.profileLoadFailed
+                          : context.l10n.profileNoDetails,
                       () => unawaited(_store.load()),
                     )
                   : const _AboutSkeleton())
@@ -526,7 +538,10 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
     }
     final error = _store.scheduleError;
     if (error != null && !_store.scheduleLoading) {
-      return _status(error, () => unawaited(_store.loadSchedule()));
+      return _status(
+        context.l10n.profileScheduleFailed,
+        () => unawaited(_store.loadSchedule()),
+      );
     }
     return const _ScheduleSkeleton();
   }
@@ -584,7 +599,9 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
               ),
               tabs: ProfileTabBar(
                 controller: _tabs,
-                labels: [for (final tab in ProfileTab.values) tab.label],
+                labels: [
+                  for (final tab in ProfileTab.values) tab.label(context.l10n),
+                ],
                 padding: EdgeInsetsDirectional.only(
                   start: 16 + media.padding.left,
                 ),
@@ -659,7 +676,10 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
               children: [
                 ProfileTabBar(
                   controller: _tabs,
-                  labels: [for (final tab in ProfileTab.values) tab.label],
+                  labels: [
+                    for (final tab in ProfileTab.values)
+                      tab.label(context.l10n),
+                  ],
                   large: true,
                 ),
                 Expanded(
@@ -681,7 +701,7 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
           top: padding.top + 16,
           child: ProfileRoundButton(
             glyph: SheetGlyphKind.chevronLeft,
-            tooltip: 'Back',
+            tooltip: context.l10n.commonBack,
             onPressed: _back,
             disc: 0.5,
           ),
@@ -700,14 +720,17 @@ class _ChannelProfileScreenState extends State<ChannelProfileScreen>
     return Stack(
       children: [
         Positioned.fill(
-          child: _status('Channel not found', () => unawaited(_store.load())),
+          child: _status(
+            context.l10n.profileNotFound,
+            () => unawaited(_store.load()),
+          ),
         ),
         PositionedDirectional(
           start: 8 + padding.left,
           top: padding.top + 6,
           child: ProfileRoundButton(
             glyph: SheetGlyphKind.chevronLeft,
-            tooltip: 'Back',
+            tooltip: context.l10n.commonBack,
             onPressed: _back,
             onBar: 1,
           ),

@@ -1739,4 +1739,1310 @@ class AppLocalizationsEn extends AppLocalizations {
 
     return '$receivedString / $totalString MB';
   }
+
+  @override
+  String streamPreviewSemantics({required String name}) {
+    return '$name stream preview';
+  }
+
+  @override
+  String get streamEnlargeHint => 'enlarge';
+
+  @override
+  String streamViewers({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString viewers',
+      one: '$countString viewer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streamViewersCompact({required int count}) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString viewers',
+      one: '$countString viewer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streamWatching({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString watching',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streamWatchingShort({required int count, required String viewers}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$viewers watching',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streamWatchStreakSemantics({required int value}) {
+    return 'Watch streak $value';
+  }
+
+  @override
+  String streamStreak({required int value}) {
+    return 'Streak $value';
+  }
+
+  @override
+  String get streamNoCategory => 'No Category';
+
+  @override
+  String streamTagsSemantics({required String tags}) {
+    return 'Tags: $tags';
+  }
+
+  @override
+  String streamTagSemantics({required String tag}) {
+    return 'Tag $tag';
+  }
+
+  @override
+  String get streamWatch => 'Watch';
+
+  @override
+  String get streamOffline => 'Offline';
+
+  @override
+  String streamFollowingForYears({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Following for $count years',
+      one: 'Following for $count year',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streamFollowingForMonths({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Following for $count months',
+      one: 'Following for $count month',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streamFollowingForDays({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Following for $count days',
+      one: 'Following for $count day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streamFollowingForHours({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Following for $count hours',
+      one: 'Following for $count hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String streamFollowingForMinutes({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Following for $count minutes',
+      one: 'Following for $count minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get followedCategoriesTitle => 'Categories';
+
+  @override
+  String get apiErrorUnableToConnect => 'Unable to connect to Twitch';
+
+  @override
+  String get apiErrorNetwork =>
+      'No internet connection. Please check your network.';
+
+  @override
+  String get apiErrorConnectionTimeout =>
+      'Connection timeout. Please try again.';
+
+  @override
+  String get apiErrorSendTimeout => 'Upload timeout. Please try again.';
+
+  @override
+  String get apiErrorReceiveTimeout =>
+      'Server response timeout. Please try again.';
+
+  @override
+  String get apiErrorCancelled => 'Request was cancelled';
+
+  @override
+  String get apiErrorCertificate => 'Security certificate error';
+
+  @override
+  String get apiErrorUnexpected => 'An unexpected error occurred';
+
+  @override
+  String get apiErrorBadRequest => 'Invalid request data';
+
+  @override
+  String get apiErrorUnauthorized => 'Please log in to continue';
+
+  @override
+  String get apiErrorForbidden => 'Access denied. Insufficient permissions';
+
+  @override
+  String get apiErrorNotFound => 'Resource not found';
+
+  @override
+  String get apiErrorConflict => 'Conflict with current state. Please refresh';
+
+  @override
+  String get apiErrorInvalid => 'Invalid data provided';
+
+  @override
+  String get apiErrorRateLimited =>
+      'Rate limit exceeded. Please wait before trying again';
+
+  @override
+  String get apiErrorServer => 'Server error. Please try again later';
+
+  @override
+  String get apiErrorUnavailable => 'Service temporarily unavailable';
+
+  @override
+  String get apiErrorMaintenance =>
+      'Service maintenance. Please try again later';
+
+  @override
+  String get apiErrorServerTimeout => 'Server timeout. Please try again';
+
+  @override
+  String apiErrorHttp({required int status}) {
+    return 'HTTP Error $status occurred';
+  }
+
+  @override
+  String get streamSortViewersHigh => 'Viewers (high to low)';
+
+  @override
+  String get streamSortRecommended => 'Recommended';
+
+  @override
+  String get streamSortViewersLow => 'Viewers (low to high)';
+
+  @override
+  String get streamSortRecent => 'Recently started';
+
+  @override
+  String get streamSortTooltip => 'Sort streams';
+
+  @override
+  String get followedSortTooltip => 'Sort live channels';
+
+  @override
+  String streamSortedBy({required String sort}) {
+    return 'Sorted by $sort';
+  }
+
+  @override
+  String get streamListTagUnavailable =>
+      'Tag streams are unavailable right now';
+
+  @override
+  String streamListSortFailed({
+    required String sort,
+    required String fallback,
+  }) {
+    return 'Twitch could not sort by $sort. $fallback still works.';
+  }
+
+  @override
+  String get streamListLoadFailed => 'Something went wrong loading streams';
+
+  @override
+  String get streamListPinnedFailed =>
+      'Something went wrong loading pinned streams';
+
+  @override
+  String get streamListOfflineFailed =>
+      'Something went wrong loading offline channels';
+
+  @override
+  String get streamListAllHidden => 'Every stream here has a label you hide';
+
+  @override
+  String get streamListShowHidden => 'Show them';
+
+  @override
+  String get streamListEmptyFollowed => 'No followed streams';
+
+  @override
+  String get streamListEmptyTop => 'No top streams';
+
+  @override
+  String get streamListEmptyLive => 'No live streams';
+
+  @override
+  String get streamListPinned => 'Pinned';
+
+  @override
+  String get streamListAll => 'All';
+
+  @override
+  String get streamListLiveNow => 'Live now';
+
+  @override
+  String streamListHiddenCount({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count streams hidden by your content preferences',
+      one: '$count stream hidden by your content preferences',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get streamListShow => 'Show';
+
+  @override
+  String get followedVideosTitle => 'Followed videos';
+
+  @override
+  String get contentWarningTitle => 'Just one second…';
+
+  @override
+  String get contentWarningAudience =>
+      'This content is intended for certain audiences.';
+
+  @override
+  String contentWarningAudienceOf({required String name}) {
+    return '$name\'s content is intended for certain audiences.';
+  }
+
+  @override
+  String contentWarningMayContain({required String labels}) {
+    return 'It may contain: $labels';
+  }
+
+  @override
+  String get contentWarningStart => 'Start watching';
+
+  @override
+  String get contentWarningBack => 'Go back';
+
+  @override
+  String liveFeedHidden({required String name}) {
+    return 'You won\'t see $name in Live for now';
+  }
+
+  @override
+  String get liveFeedUndo => 'Undo';
+
+  @override
+  String get liveFeedAllCategories => 'All';
+
+  @override
+  String get liveFeedPreviewUnavailable => 'Preview unavailable';
+
+  @override
+  String get liveFeedContentWarningSemantics => 'Content warning. Play preview';
+
+  @override
+  String get liveFeedContentWarning => 'Content warning · Play preview';
+
+  @override
+  String get liveFeedPlayPreview => 'Play preview';
+
+  @override
+  String get liveFeedUnmute => 'Unmute';
+
+  @override
+  String get liveFeedMute => 'Mute';
+
+  @override
+  String get liveFeedSoundOn => 'Sound on';
+
+  @override
+  String get liveFeedMuted => 'Muted preview';
+
+  @override
+  String get liveFeedWatchWithChat => 'Watch with chat';
+
+  @override
+  String liveFeedFollowOnTwitch({required String name}) {
+    return 'Follow $name on Twitch';
+  }
+
+  @override
+  String get liveFeedFollow => 'Follow';
+
+  @override
+  String liveFeedPreviewSemantics({required String name}) {
+    return '$name live preview. Opens the channel';
+  }
+
+  @override
+  String get liveFeedChannelActions => 'Channel actions';
+
+  @override
+  String get liveFeedNotInterested => 'Not interested';
+
+  @override
+  String get liveFeedShare => 'Share';
+
+  @override
+  String get liveFeedSwipeHint => 'SWIPE UP FOR THE NEXT LIVE';
+
+  @override
+  String get liveFeedUpNext => 'UP NEXT';
+
+  @override
+  String get liveFeedUpNextHelp =>
+      'Swipe up on the preview, or tap a live in the list. Previews never start with sound.';
+
+  @override
+  String get liveFeedLoadingMore => 'Loading more live channels';
+
+  @override
+  String get liveFeedEnd => 'That’s every live channel here for now';
+
+  @override
+  String get liveFeedBackToFirst => 'Back to the first';
+
+  @override
+  String get commonSeeAll => 'See all';
+
+  @override
+  String get searchTabTop => 'Top';
+
+  @override
+  String get searchTabChannels => 'Channels';
+
+  @override
+  String get searchTabCategories => 'Categories';
+
+  @override
+  String get searchTabVideos => 'Videos';
+
+  @override
+  String get searchClear => 'Clear';
+
+  @override
+  String get searchHint => 'Search channels, categories or videos';
+
+  @override
+  String searchSeeAllSemantics({required String section}) {
+    return 'See all $section';
+  }
+
+  @override
+  String get searchHistory => 'History';
+
+  @override
+  String searchRemoveFromHistory({required String query}) {
+    return 'Remove $query from history';
+  }
+
+  @override
+  String get searchNoHistory => 'No recent searches';
+
+  @override
+  String get searchCategoriesFailed => 'Unable to load categories';
+
+  @override
+  String get searchCategoriesUnavailable => 'Failed to get categories';
+
+  @override
+  String get searchNoCategories => 'No matching categories';
+
+  @override
+  String get searchChannelNotFound => 'Unable to find channel';
+
+  @override
+  String get searchChannelsFailed => 'Unable to load channels';
+
+  @override
+  String searchGoToChannel({required String query}) {
+    return 'Go to channel \"$query\"';
+  }
+
+  @override
+  String get searchVideosFailed => 'Unable to load videos';
+
+  @override
+  String get searchNoResults => 'No search results found';
+
+  @override
+  String browseLiveChannels({required String where}) {
+    return 'Live channels $where';
+  }
+
+  @override
+  String get browseAcrossTwitch => 'across Twitch';
+
+  @override
+  String get categoriesEmpty => 'No top categories';
+
+  @override
+  String get categoriesLoadFailed => 'Something went wrong loading categories';
+
+  @override
+  String get categoriesRailTitle => 'Top categories';
+
+  @override
+  String get categoriesRailNote => 'Most watched first';
+
+  @override
+  String get categorySectionLive => 'Live';
+
+  @override
+  String get categorySectionVideos => 'Videos';
+
+  @override
+  String get categorySectionClips => 'Clips';
+
+  @override
+  String get categoryNoVideos => 'No videos in this category';
+
+  @override
+  String get categoryEyebrow => 'CATEGORY';
+
+  @override
+  String get categoryFollowOnTwitch => 'Follow on Twitch';
+
+  @override
+  String get followedVideosToday => 'Today';
+
+  @override
+  String get followedVideosYesterday => 'Yesterday';
+
+  @override
+  String get followedVideosThisWeek => 'This week';
+
+  @override
+  String get followedVideosOlder => 'Older';
+
+  @override
+  String get followedVideosEmpty => 'No recent videos';
+
+  @override
+  String get followedVideosSubtitle =>
+      'The newest videos of the channels you follow';
+
+  @override
+  String get followedVideosRefresh => 'Refresh';
+
+  @override
+  String get followedVideosLoadFailed => 'Something went wrong loading videos';
+
+  @override
+  String get continueWatchingTitle => 'Continue watching';
+
+  @override
+  String continueWatchingResumeAt({required String time}) {
+    return 'Resume at $time';
+  }
+
+  @override
+  String get continueWatchingEmpty => 'Nothing to resume';
+
+  @override
+  String get savedToday => 'today';
+
+  @override
+  String get savedYesterday => 'yesterday';
+
+  @override
+  String savedDaysAgo({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days ago',
+      one: '$count day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String savedWeeksAgo({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count wk ago',
+      one: '$count wk ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String savedMonthsAgo({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mo ago',
+      one: '$count mo ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get timeAgoJustNow => 'Just now';
+
+  @override
+  String timeAgoMinutes({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes ago',
+      one: '$count minute ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String timeAgoHours({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours ago',
+      one: '$count hour ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get timeAgoYesterday => 'Yesterday';
+
+  @override
+  String timeAgoDays({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days ago',
+      one: '$count day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String timeAgoWeeks({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weeks ago',
+      one: '$count week ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String timeAgoMonths({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count months ago',
+      one: '$count month ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String timeAgoYears({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count years ago',
+      one: '$count year ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String videoViews({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString views',
+      one: '$countString view',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String videoViewsCompact({required int count}) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString views',
+      one: '$countString view',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String videoViewsShort({required int count, required String views}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$views views',
+      one: '$views view',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get clipUntitled => 'Untitled clip';
+
+  @override
+  String get clipsPlayerSemantics =>
+      'Clip player. Double-tap to toggle play/pause';
+
+  @override
+  String get clipsCannotPlay => 'This clip can\'t be played here';
+
+  @override
+  String get clipsLoadingMore => 'Loading more clips for you';
+
+  @override
+  String get clipsLoadFailed => 'Unable to load clips';
+
+  @override
+  String get clipsEmpty => 'No clips right now';
+
+  @override
+  String get clipsOpen => 'Open clip';
+
+  @override
+  String clipsNextSemantics({required String channel, required String title}) {
+    return 'Next clip, $channel, $title';
+  }
+
+  @override
+  String get clipsNext => 'NEXT';
+
+  @override
+  String get clipsSwipeHint => 'You can swipe to the next clip';
+
+  @override
+  String get clipsLoadMoreFailed => 'Unable to load more clips';
+
+  @override
+  String get clipsEnd =>
+      'That’s all for now! Check out more clips from previous streams';
+
+  @override
+  String get clipsUpNext => 'Up next in Clips';
+
+  @override
+  String get clipsUpNextHelp => 'Swipe the video or pick one';
+
+  @override
+  String clipOpenChannel({required String channel}) {
+    return 'Open $channel';
+  }
+
+  @override
+  String clipOpenChannelClippedBy({
+    required String channel,
+    required String curator,
+  }) {
+    return 'Open $channel, clipped by $curator';
+  }
+
+  @override
+  String clipClippedBy({required String curator}) {
+    return 'Clipped by $curator';
+  }
+
+  @override
+  String get clipWatchFullVideo => 'Watch full video';
+
+  @override
+  String get clipCopyLink => 'Copy link';
+
+  @override
+  String get clipShare => 'Share';
+
+  @override
+  String get clipsNoneForPeriod => 'No clips for this period';
+
+  @override
+  String clipsShowingTop({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Showing the top $count clips',
+      one: 'Showing the top $count clip',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get clipsCategoryNotFound => 'Category not found';
+
+  @override
+  String get clipsChannelNotFound => 'Channel not found';
+
+  @override
+  String get clipsListFailed => 'Couldn\'t load clips';
+
+  @override
+  String clipsMoreFrom({required String channel}) {
+    return 'More clips from $channel';
+  }
+
+  @override
+  String get clipLinkCopied => 'Link copied';
+
+  @override
+  String get clipCopyClipLink => 'Copy clip link';
+
+  @override
+  String get clipDetailsFailed => 'Couldn\'t load the clip details';
+
+  @override
+  String get clipSyncedToClip => 'synced to the clip';
+
+  @override
+  String playbackSubscriberOnly({required String subject}) {
+    String _temp0 = intl.Intl.selectLogic(subject, {
+      'clip': 'This clip is only available to subscribers.',
+      'other': 'This video is only available to subscribers.',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String playbackGeoBlocked({required String subject}) {
+    String _temp0 = intl.Intl.selectLogic(subject, {
+      'clip': 'This clip is not available in your region',
+      'other': 'This video is not available in your region',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String playbackNotFound({required String subject}) {
+    String _temp0 = intl.Intl.selectLogic(subject, {
+      'clip': 'This clip is no longer available',
+      'other': 'This video is no longer available',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String playbackFailed({required String subject}) {
+    String _temp0 = intl.Intl.selectLogic(subject, {
+      'clip': 'Couldn\'t play this clip',
+      'other': 'Couldn\'t play this video',
+    });
+    return '$_temp0';
+  }
+
+  @override
+  String get playbackSubscribeDetail =>
+      'Subscribe now to watch and support this channel.';
+
+  @override
+  String get clipPeriodLastDay => '24 hours';
+
+  @override
+  String get clipPeriodLastWeek => '7 days';
+
+  @override
+  String get clipPeriodLastMonth => '30 days';
+
+  @override
+  String get clipPeriodAllTime => 'All time';
+
+  @override
+  String get clipSortTop => 'Top';
+
+  @override
+  String get clipSortTrending => 'Trending';
+
+  @override
+  String get profileTabHome => 'Home';
+
+  @override
+  String get profileTabVideos => 'Videos';
+
+  @override
+  String get profileTabClips => 'Clips';
+
+  @override
+  String get profileTabSchedule => 'Schedule';
+
+  @override
+  String get profileTabAbout => 'About';
+
+  @override
+  String get profileRefreshFailed => 'Couldn\'t refresh this channel';
+
+  @override
+  String get profileOpenFailed =>
+      'Couldn\'t open this channel, check your connection';
+
+  @override
+  String get profileShare => 'Share';
+
+  @override
+  String get profileMore => 'More';
+
+  @override
+  String get profileLoadFailed => 'Couldn\'t load this channel\'s profile';
+
+  @override
+  String get profileNoDetails => 'No details';
+
+  @override
+  String get profileScheduleFailed => 'Couldn\'t load the schedule';
+
+  @override
+  String get profileNotFound => 'Channel not found';
+
+  @override
+  String profileFollowers({required int count}) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString followers',
+      one: '$countString follower',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String profileFollowersShort({
+    required int count,
+    required String followers,
+  }) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$followers followers',
+      one: '$followers follower',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String profileJoined({required DateTime date}) {
+    final intl.DateFormat dateDateFormat = intl.DateFormat.yMMMM(localeName);
+    final String dateString = dateDateFormat.format(date);
+
+    return 'Joined $dateString';
+  }
+
+  @override
+  String get profilePartner => 'Partner';
+
+  @override
+  String get profileAffiliate => 'Affiliate';
+
+  @override
+  String profileAboutTitle({required String name}) {
+    return 'About $name';
+  }
+
+  @override
+  String get profileNoBio => 'No bio yet.';
+
+  @override
+  String get profilePanelImage => 'Panel image';
+
+  @override
+  String get profileWatchLive => 'Watch live';
+
+  @override
+  String get profileChat => 'Chat';
+
+  @override
+  String profileNextStreamAt({required String time}) {
+    return 'Next stream · $time';
+  }
+
+  @override
+  String get profileComingUp => 'Coming up';
+
+  @override
+  String get profileRecentBroadcasts => 'Recent broadcasts';
+
+  @override
+  String get profilePopularClips => 'Popular clips';
+
+  @override
+  String get profileThumbnail => 'Thumbnail';
+
+  @override
+  String get videoUntitled => 'Untitled';
+
+  @override
+  String get profileRecording => 'Recording';
+
+  @override
+  String get profileWatched => 'Watched';
+
+  @override
+  String get profileSubscribersOnly => 'Subscribers only';
+
+  @override
+  String profileLastLive({required String when}) {
+    return 'Last live $when';
+  }
+
+  @override
+  String get profileRerun => 'Rerun';
+
+  @override
+  String get profileRerunBadge => 'RERUN';
+
+  @override
+  String get profileLive => 'Live';
+
+  @override
+  String get profileReminderSet => 'Reminder Set';
+
+  @override
+  String get profileRemindMe => 'Remind Me';
+
+  @override
+  String get startsNow => 'now';
+
+  @override
+  String startsInMinutes({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'in $count minutes',
+      one: 'in $count minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String startsInHours({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'in $count hours',
+      one: 'in $count hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String startsInDays({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'in $count days',
+      one: 'in $count day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get profileReminderRefused =>
+      'Allow notifications for this app in the system settings.';
+
+  @override
+  String get profileReminderFailed => 'Couldn\'t set the reminder.';
+
+  @override
+  String get profileStreamUntitled => 'Stream';
+
+  @override
+  String get profileNoSchedule => 'No streams scheduled';
+
+  @override
+  String profileNextStreamIn({required String when, required String time}) {
+    return 'Next stream $when · $time';
+  }
+
+  @override
+  String get profileCancelled => 'Cancelled';
+
+  @override
+  String get profilePastBroadcasts => 'Past broadcasts';
+
+  @override
+  String get profileNoPastBroadcasts => 'No past broadcasts';
+
+  @override
+  String get profileHighlights => 'Highlights';
+
+  @override
+  String get profileNoHighlights => 'No highlights';
+
+  @override
+  String get profileUploads => 'Uploads';
+
+  @override
+  String get profileNoUploads => 'No uploads';
+
+  @override
+  String get videosListFailed => 'Couldn\'t load videos';
+
+  @override
+  String videosShowingMostViewed({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Showing the $count most viewed videos',
+      one: 'Showing the $count most viewed video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String videosShowingMostRecent({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Showing the $count most recent videos',
+      one: 'Showing the $count most recent video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get videoProcessing => 'Processing';
+
+  @override
+  String get videoUntitledBroadcast => 'Untitled broadcast';
+
+  @override
+  String get activityTitle => 'Activity';
+
+  @override
+  String get activityNote => 'Notifications ONSET posted on this device.';
+
+  @override
+  String get activityRemove => 'Remove notification';
+
+  @override
+  String get activityEmpty => 'Hooray! You\'re up to date';
+
+  @override
+  String get activityEmptyDetail =>
+      'Check back soon for alerts about you and the broadcasters you follow.';
+
+  @override
+  String get activityMostRecent => 'Most Recent';
+
+  @override
+  String get activityEarlier => 'Earlier';
+
+  @override
+  String get activityMarkAllRead => 'Mark all as read';
+
+  @override
+  String get activityOptions => 'Options';
+
+  @override
+  String get activityUnread => 'Unread';
+
+  @override
+  String get activityNoWhispers =>
+      'No whispers yet. Whispers you get while the app is open show up here.';
+
+  @override
+  String get activityKindLive => 'Live';
+
+  @override
+  String get activityKindMention => 'Chat Mentions';
+
+  @override
+  String get activityKindReminder => 'Events';
+
+  @override
+  String get whispersTitle => 'Whispers';
+
+  @override
+  String whispersUnreadCount({required int count}) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count unread',
+      one: '$count unread',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get whispersAllRead => 'All read';
+
+  @override
+  String get whispersChoose => 'Choose a conversation';
+
+  @override
+  String get whispersEmpty => 'No whispers yet';
+
+  @override
+  String get whispersEmptyDetail =>
+      'Whispers you get while the app is open show up here.';
+
+  @override
+  String get whisperSessionNote =>
+      'Twitch keeps no history the app can show, so only this session’s whispers appear here.';
+
+  @override
+  String whisperHint({required String name}) {
+    return 'Whisper $name';
+  }
+
+  @override
+  String get whisperSend => 'Send';
+
+  @override
+  String get whisperYou => 'You';
+
+  @override
+  String get whisperOpen => 'Open';
+
+  @override
+  String get whisperStatusRefused =>
+      'Twitch refused to send your whispers to this app. Log out and log in again to allow them.';
+
+  @override
+  String get whisperStatusInterrupted =>
+      'Reconnecting… whispers will arrive again soon.';
+
+  @override
+  String get whisperStatusUnavailable =>
+      'Twitch isn\'t sending whispers to this app right now. It tries again when you come back to the app.';
+
+  @override
+  String get whisperStatusOff => 'Log in to get whispers.';
+
+  @override
+  String get playerBack10 => 'Back 10 seconds';
+
+  @override
+  String get playerForward10 => 'Forward 10 seconds';
+
+  @override
+  String get playerChangeChatLayout => 'Change chat layout';
+
+  @override
+  String get playerHideChatOverlay => 'Hide chat overlay';
+
+  @override
+  String get playerShowChatOverlay => 'Show chat overlay';
+
+  @override
+  String get playerStopLooping => 'Stop looping';
+
+  @override
+  String get playerLoop => 'Loop';
+
+  @override
+  String get playerSettings => 'Settings';
+
+  @override
+  String get playerReplay => 'Replay';
+
+  @override
+  String get playerPlay => 'Play';
+
+  @override
+  String get playerPause => 'Pause';
+
+  @override
+  String playerElapsed({required String elapsed, required String total}) {
+    return 'Elapsed time $elapsed of $total';
+  }
+
+  @override
+  String get playerPictureInPicture => 'Picture-in-picture';
+
+  @override
+  String get playerFitScreen => 'Fit to screen';
+
+  @override
+  String get playerFillScreen => 'Fill screen';
+
+  @override
+  String get playerExitFullScreen => 'Exit full screen';
+
+  @override
+  String get playerFullScreen => 'Full screen';
+
+  @override
+  String get playerSpeed => 'Playback speed';
+
+  @override
+  String get playerQuality => 'Quality';
+
+  @override
+  String get playerVolume => 'Volume';
+
+  @override
+  String get playerCaptions => 'Closed Captions';
+
+  @override
+  String get playerCaptionsDetail => 'When the stream has them';
+
+  @override
+  String get playerSpeedNormal => 'Normal';
+
+  @override
+  String get playerSemantics => 'Video player';
+
+  @override
+  String get playerHideControls => 'hide controls';
+
+  @override
+  String get playerShowControls => 'show controls';
 }

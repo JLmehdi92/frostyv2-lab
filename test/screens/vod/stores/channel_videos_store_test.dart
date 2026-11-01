@@ -94,7 +94,7 @@ void main() {
     await store.refresh();
 
     expect(store.videos.map((v) => v.id), ['1']);
-    expect(store.error, "Couldn't load videos");
+    expect(store.error, ChannelVideosProblem.failed);
   });
 
   test('refresh fetches again and replaces the list', () async {
@@ -125,7 +125,7 @@ void main() {
 
     await store.load();
 
-    expect(store.error, 'Channel not found');
+    expect(store.error, ChannelVideosProblem.channelNotFound);
   });
 
   test('a category store asks for the category\'s top videos', () async {
@@ -160,6 +160,6 @@ void main() {
 
     await category.load();
 
-    expect(category.error, 'Category not found');
+    expect(category.error, ChannelVideosProblem.categoryNotFound);
   });
 }

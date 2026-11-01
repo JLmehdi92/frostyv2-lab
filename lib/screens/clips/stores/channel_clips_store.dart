@@ -48,8 +48,9 @@ abstract class ChannelClipsStoreBase with Store {
   @readonly
   var _loaded = false;
 
+  /// Why the list could not load (null when it could); the screen words it.
   @readonly
-  String? _error;
+  ChannelClipsProblem? _error;
 
   /// Twitch has more clips than the ones listed.
   @readonly
@@ -127,15 +128,17 @@ abstract class ChannelClipsStoreBase with Store {
     } on NotFoundException {
       _showError(
         key,
-        gameId != null ? 'Category not found' : 'Channel not found',
+        gameId != null
+            ? ChannelClipsProblem.categoryNotFound
+            : ChannelClipsProblem.channelNotFound,
       );
     } catch (e) {
       debugPrint('ChannelClipsStore ${key.$1} ${key.$2} failed: $e');
-      _showError(key, "Couldn't load clips");
+      _showError(key, ChannelClipsProblem.failed);
     }
   }
 
-  void _showError((ClipPeriod, ClipSort) key, String message) {
+  void _showError((ClipPeriod, ClipSort) key, ChannelClipsProblem problem) {
     if (key != _key) return;
     final kept = _pages[key];
     if (kept != null) {
@@ -145,11 +148,23 @@ abstract class ChannelClipsStoreBase with Store {
     runInAction(() {
       _clips = const [];
       _hasMore = false;
-      _error = message;
+      _error = problem;
       _isLoading = false;
       _loaded = true;
     });
   }
 
   void dispose() => scrollController.dispose();
+}
+
+/// Why a list of clips could not load ([ChannelClipsStoreBase.error]).
+enum ChannelClipsProblem {
+  /// The category is not on Twitch.
+  categoryNotFound,
+
+  /// The channel is not on Twitch.
+  channelNotFound,
+
+  /// Anything else.
+  failed,
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/vod.dart';
 import 'package:onset/screens/vod/vod_screen.dart';
 import 'package:onset/screens/vod/vod_time.dart';
@@ -59,15 +60,16 @@ class VodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = vod.title.trim().isEmpty ? 'Untitled' : vod.title.trim();
-    final details = vodDetails(vod);
+    final l = context.l10n;
+    final title = vod.title.trim().isEmpty ? l.videoUntitled : vod.title.trim();
+    final details = vodDetails(vod, l);
     final channel = vod.ownerDisplayName.isNotEmpty
         ? vod.ownerDisplayName
         : vod.ownerLogin;
 
     return VideoCardLayout(
       thumbnailUrl: vodThumbnailUrl(vod),
-      fallback: (glyph: VideoGlyphKind.camera, label: 'Processing'),
+      fallback: (glyph: VideoGlyphKind.camera, label: l.videoProcessing),
       lengthLabel: formatVodTime(vod.duration),
       tile: tile,
       topChips: [
@@ -76,17 +78,17 @@ class VodCard extends StatelessWidget {
         if (watched)
           VideoCardChip(
             large: tile,
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               spacing: 4,
               children: [
-                VideoGlyph(
+                const VideoGlyph(
                   VideoGlyphKind.check,
                   color: Color(0xFFF5F5F5),
                   size: 10,
                   strokeWidth: 3,
                 ),
-                Text('Watched'),
+                Text(l.profileWatched),
               ],
             ),
           ),
@@ -95,7 +97,7 @@ class VodCard extends StatelessWidget {
             large: tile,
             square: true,
             child: Semantics(
-              label: 'Subscribers only',
+              label: l.profileSubscribersOnly,
               child: const VideoGlyph(
                 VideoGlyphKind.lock,
                 color: Color(0xFFF5F5F5),

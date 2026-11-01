@@ -10,6 +10,7 @@ import 'package:onset/apis/twitch_clip_service.dart';
 import 'package:onset/apis/twitch_directory_service.dart';
 import 'package:onset/apis/twitch_hype_train_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/category.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/models/user.dart';
@@ -27,6 +28,8 @@ import 'package:onset/screens/settings/stores/user_store.dart';
 import 'package:onset/theme.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../helpers/l10n.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 
@@ -134,10 +137,21 @@ void main() {
     Size size = const Size(390, 844),
     ThemeMode mode = ThemeMode.dark,
     bool reduceMotion = false,
+    Locale? locale,
+    double textScale = 1,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    final app = await localizedApp(
+      tester,
+      locale: locale,
+      textScale: textScale,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(disableAnimations: reduceMotion),
+        child: child!,
+      ),
+    );
     final auth = loggedOut();
     final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
@@ -152,15 +166,13 @@ void main() {
           Provider<TwitchHypeTrainService>.value(value: MockHypeTrainService()),
         ],
         child: MaterialApp(
+          locale: app.locale,
+          supportedLocales: app.supportedLocales,
+          localizationsDelegates: app.delegates,
           theme: themes.light,
           darkTheme: themes.dark,
           themeMode: mode,
-          builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(
-              context,
-            ).copyWith(disableAnimations: reduceMotion),
-            child: child!,
-          ),
+          builder: app.builder,
           home: Scaffold(
             body: Observer(
               builder: (context) => BrowsePage(
@@ -500,6 +512,27 @@ void main() {
     await settle(tester);
     expect(find.text('Something went wrong loading categories'), findsWidgets);
     expect(find.text('Try again'), findsOneWidget);
+  });
+
+  group('in French', () {
+    final french = lookupAppLocalizations(fr);
+
+    for (final (sizeName, size) in frenchScreenSizes) {
+      for (final scale in frenchTextScales) {
+        testWidgets('categories and live channels, $sizeName, text ×$scale', (
+          tester,
+        ) async {
+          await pump(tester, size: size, locale: fr, textScale: scale);
+          if (size.shortestSide >= 600 && size.width > size.height) {
+            expect(find.text(french.categoriesRailTitle), findsOneWidget);
+          }
+          await expectFrenchThroughout(tester, 'categories');
+          runInActionTab(home, BrowseTab.live);
+          await settle(tester);
+          await expectFrenchThroughout(tester, 'live channels');
+        });
+      }
+    }
   });
 }
 

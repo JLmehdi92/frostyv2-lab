@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:onset/l10n/l10n.dart';
@@ -141,5 +144,32 @@ void main() {
       ]),
       isEmpty,
     );
+  });
+
+  test('no French text is an English text French words otherwise, so the '
+      'check is never blinded', () {
+    final english =
+        jsonDecode(File('lib/l10n/app_en.arb').readAsStringSync())
+            as Map<String, Object?>;
+    final french =
+        jsonDecode(File('lib/l10n/app_fr.arb').readAsStringSync())
+            as Map<String, Object?>;
+    final frenchValues = {
+      for (final MapEntry(:key, :value) in french.entries)
+        if (value is String) value: key,
+    };
+    final clashes = [
+      for (final MapEntry(:key, :value) in english.entries)
+        if (!key.startsWith('@') &&
+            value is String &&
+            french[key] != value &&
+            frenchValues.containsKey(value))
+          '$key "$value" is the French of ${frenchValues[value]}',
+    ];
+    // "English" names the language in a sentence (« anglais »); the pill
+    // shows it as an endonym, the same in French.
+    expect(clashes, [
+      'languageInTextEnglish "English" is the French of languageNameEnglish',
+    ]);
   });
 }

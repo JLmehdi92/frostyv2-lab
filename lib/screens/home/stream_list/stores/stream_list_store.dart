@@ -209,9 +209,11 @@ abstract class ListStoreBase with Store {
   @readonly
   var _hypeTrains = ObservableMap<String, HtCardStatus>();
 
-  /// The error message to show if any. Will be non-null if there is an error.
+  /// Why the last load failed, null when it did not: what was thrown (an
+  /// [ApiException], a [SocketException]) or a [StreamListProblem]. The
+  /// screen words it (streamListErrorText in streams_list.dart).
   @readonly
-  String? _error;
+  Object? _error;
 
   /// Bumped by [refreshStreams] so a page asked for before it is dropped
   /// (a new language must not get the old one's pages).
@@ -402,26 +404,25 @@ abstract class ListStoreBase with Store {
       _streamsCursor = newStreams.pagination['cursor'];
 
       _error = null;
-    } on SocketException {
+    } on SocketException catch (e) {
       if (generation != _streamsGeneration) return;
-      _error = 'Unable to connect to Twitch';
+      _error = e;
       debugPrint('Streams SocketException: No internet connection');
     } on DirectoryApiException catch (e) {
       if (generation != _streamsGeneration) return;
       _error = listType == ListType.tag
-          ? 'Tag streams are unavailable right now'
-          : 'Twitch could not sort by ${sort.label}. '
-                '${StreamSort.viewersHigh.label} still works.';
+          ? StreamListProblem.tagStreams
+          : StreamListProblem.sort;
       debugPrint('Streams DirectoryApiException: $e');
       // Seen in release too: Twitch probably changed the query.
       Telemetry.log('directory streams failed: $e');
     } on ApiException catch (e) {
       if (generation != _streamsGeneration) return;
-      _error = e.message;
+      _error = e;
       debugPrint('Streams ApiException: $e');
     } catch (e) {
       if (generation != _streamsGeneration) return;
-      _error = 'Something went wrong loading streams';
+      _error = StreamListProblem.streams;
       debugPrint('Streams error: $e');
     }
 
@@ -501,14 +502,14 @@ abstract class ListStoreBase with Store {
       )).data.asObservable();
 
       _error = null;
-    } on SocketException {
-      _error = 'Unable to connect to Twitch';
+    } on SocketException catch (e) {
+      _error = e;
       debugPrint('Pinned streams SocketException: No internet connection');
     } on ApiException catch (e) {
-      _error = e.message;
+      _error = e;
       debugPrint('Pinned streams ApiException: $e');
     } catch (e) {
-      _error = 'Something went wrong loading pinned streams';
+      _error = StreamListProblem.pinnedStreams;
       debugPrint('Pinned streams error: $e');
     }
 
@@ -571,14 +572,14 @@ abstract class ListStoreBase with Store {
       _offlineChannelsCursor = followedChannels.pagination['cursor'];
 
       _error = null;
-    } on SocketException {
-      _error = 'Unable to connect to Twitch';
+    } on SocketException catch (e) {
+      _error = e;
       debugPrint('Offline channels SocketException: No internet connection');
     } on ApiException catch (e) {
-      _error = e.message;
+      _error = e;
       debugPrint('Offline channels ApiException: $e');
     } catch (e) {
-      _error = 'Something went wrong loading offline channels';
+      _error = StreamListProblem.offlineChannels;
       debugPrint('Offline channels error: $e');
     }
 
@@ -706,3 +707,23 @@ List<StreamTwitch> sortFollowedStreams(
 /// [ListType.category] is the list of streams under a category.
 /// [ListType.tag] is the list of streams with a tag.
 enum ListType { followed, top, category, tag }
+
+/// A failure of the stream list that is not the API's own error
+/// ([ListStoreBase.error]), worded by its screen.
+enum StreamListProblem {
+  /// A tag's streams could not load.
+  tagStreams,
+
+  /// Twitch could not sort by the list's [ListStoreBase.sort]; its own order
+  /// (viewers, high to low) still works.
+  sort,
+
+  /// Something unexpected while loading the streams.
+  streams,
+
+  /// Something unexpected while loading the pinned streams.
+  pinnedStreams,
+
+  /// Something unexpected while loading the offline channels.
+  offlineChannels,
+}

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/activity/activity_screen.dart';
 import 'package:onset/screens/activity/stores/activity_store.dart';
 import 'package:onset/screens/home/stores/home_store.dart';
@@ -14,6 +15,8 @@ import 'package:onset/services/realtime/twitch_eventsub_client.dart';
 import 'package:onset/stores/whisper_store.dart';
 import 'package:onset/theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../helpers/l10n.dart';
 
 class MockTwitchApi extends Mock implements TwitchApi {}
 
@@ -57,22 +60,31 @@ void main() {
     Size size = _phone,
     ThemeMode theme = ThemeMode.dark,
     bool reduceMotion = false,
+    Locale? locale,
+    double textScale = 1,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    final app = await localizedApp(
+      tester,
+      locale: locale,
+      textScale: textScale,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(disableAnimations: reduceMotion),
+        child: child!,
+      ),
+    );
     final themes = OnsetThemes(colorSchemeSeed: OnsetTokens.accent);
     await tester.pumpWidget(
       MaterialApp(
+        locale: app.locale,
+        supportedLocales: app.supportedLocales,
+        localizationsDelegates: app.delegates,
         theme: themes.light,
         darkTheme: themes.dark,
         themeMode: theme,
-        builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(
-            context,
-          ).copyWith(disableAnimations: reduceMotion),
-          child: child!,
-        ),
+        builder: app.builder,
         home: Scaffold(
           body: ActivityScreen(
             store: store,
@@ -493,4 +505,45 @@ void main() {
       });
     }
   }
+
+  group('in French', () {
+    final french = lookupAppLocalizations(fr);
+
+    for (final (sizeName, size) in frenchScreenSizes) {
+      for (final scale in frenchTextScales) {
+        testWidgets('empty, then notifications, $sizeName, text ×$scale', (
+          tester,
+        ) async {
+          await pump(tester, size: size, locale: fr, textScale: scale);
+          expect(find.text(french.activityEmpty), findsOneWidget);
+          await expectFrenchThroughout(tester, 'empty');
+
+          // The titles and bodies are what the notification said (written
+          // when it was posted): Twitch names here.
+          await store.addAll([
+            for (final (id, ago, kind) in [
+              ('1', const Duration(minutes: 5), ActivityKind.live),
+              ('2', const Duration(hours: 3), ActivityKind.mention),
+              ('3', const Duration(days: 9), ActivityKind.reminder),
+            ])
+              ActivityEntry(
+                id: id,
+                kind: kind,
+                title: 'Streamer$id',
+                body: 'Chess',
+                login: 'streamer',
+                at: _now.subtract(ago),
+                read: id == '3',
+              ),
+          ]);
+          await pump(tester, size: size, locale: fr, textScale: scale);
+          expect(
+            find.textContaining(french.activityKindMention),
+            findsOneWidget,
+          );
+          await expectFrenchThroughout(tester, 'notifications');
+        });
+      }
+    }
+  });
 }

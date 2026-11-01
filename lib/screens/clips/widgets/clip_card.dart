@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart' hide Clip;
-import 'package:intl/intl.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/screens/clips/clip_screen.dart';
 import 'package:onset/screens/vod/vod_time.dart';
@@ -30,13 +30,12 @@ class ClipCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final views =
-        '${NumberFormat.compact().format(clip.viewCount)} '
-        '${clip.viewCount == 1 ? 'view' : 'views'}';
+    final l = context.l10n;
+    final views = l.videoViewsCompact(count: clip.viewCount);
     final curator = clip.curatorDisplayName;
     final details = [
-      formatTimeAgo(clip.createdAt),
-      if (curator != null) 'Clipped by $curator',
+      formatTimeAgo(clip.createdAt, l),
+      if (curator != null) l.clipClippedBy(curator: curator),
     ].join(' · ');
     final title = clip.title.trim();
 
@@ -46,7 +45,7 @@ class ClipCard extends StatelessWidget {
       lengthLabel: formatVodTime(clip.duration),
       tile: tile,
       topChips: [VideoCardChip(large: tile, child: Text(views))],
-      title: title.isEmpty ? 'Untitled clip' : title,
+      title: title.isEmpty ? l.clipUntitled : title,
       subtitle: showChannel ? clip.broadcasterDisplayName : clip.gameName,
       channelLogin: showChannel && tile ? clip.broadcasterLogin : null,
       details: details,

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_clip_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel_profile.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/models/vod.dart';
@@ -299,14 +300,28 @@ void main() {
     });
 
     test('starts in', () {
-      expect(formatStartsIn(now, now), 'now');
+      expect(formatStartsIn(now, now, L10n.english), 'now');
       expect(
-        formatStartsIn(now.add(const Duration(minutes: 1)), now),
+        formatStartsIn(now.add(const Duration(minutes: 1)), now, L10n.english),
         'in 1 minute',
       );
       expect(
-        formatStartsIn(now.add(const Duration(hours: 30)), now),
+        formatStartsIn(now.add(const Duration(hours: 30)), now, L10n.english),
         'in 1 day',
+      );
+      final french = lookupAppLocalizations(const Locale('fr'));
+      expect(formatStartsIn(now, now, french), 'maintenant');
+      expect(
+        formatStartsIn(now.add(const Duration(minutes: 1)), now, french),
+        'dans 1\u00a0minute',
+      );
+      expect(
+        formatStartsIn(now.add(const Duration(hours: 3)), now, french),
+        'dans 3\u00a0heures',
+      );
+      expect(
+        formatStartsIn(now.add(const Duration(hours: 30)), now, french),
+        'dans 1\u00a0jour',
       );
     });
   });

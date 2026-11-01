@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/vod/widgets/video_glyph.dart';
 import 'package:onset/theme.dart';
@@ -370,8 +371,8 @@ class _VideoPicture extends StatelessWidget {
               Semantics(
                 container: true,
                 image: true,
-                label: 'Thumbnail',
-                onLongPressHint: 'enlarge',
+                label: context.l10n.profileThumbnail,
+                onLongPressHint: context.l10n.streamEnlargeHint,
                 child: GestureDetector(
                   onLongPress: () {
                     HapticFeedback.lightImpact();
@@ -510,7 +511,7 @@ class SubscribersOnlyLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-    'Subscribers only',
+    context.l10n.profileSubscribersOnly,
     style: TextStyle(
       fontFamily: OnsetTokens.bodyFamily,
       fontSize: 12.5,

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_clip_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/screens/clips/clips_feed_screen.dart';
 import 'package:onset/screens/clips/stores/clips_feed_store.dart';
@@ -17,6 +18,7 @@ import 'package:onset/widgets/skeleton_loader.dart';
 import 'package:provider/provider.dart';
 
 import '../../helpers/fake_vod_controller.dart';
+import '../../helpers/l10n.dart';
 
 class MockClipService extends Mock implements TwitchClipService {}
 
@@ -72,14 +74,22 @@ void main() {
     required ClipFeedPage first,
     ValueListenable<bool>? active,
     ClipsFeedStore? store,
+    Size size = const Size(400, 800),
+    Locale? locale,
+    double textScale = 1,
   }) async {
     when(
       () => service.getTopClips(language: any(named: 'language')),
     ).thenAnswer((_) async => first);
     final settings = SettingsStore.fromJson({})..keepScreenAwake = false;
-    tester.view.physicalSize = const Size(400, 800);
+    tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    final app = await localizedApp(
+      tester,
+      locale: locale,
+      textScale: textScale,
+    );
     final feedStore = store ?? ClipsFeedStore(clipService: service);
     Widget feed(bool isActive) => ClipsFeedScreen(
       store: feedStore,
@@ -98,6 +108,10 @@ void main() {
           Provider<TwitchClipService>.value(value: service),
         ],
         child: MaterialApp(
+          locale: app.locale,
+          supportedLocales: app.supportedLocales,
+          localizationsDelegates: app.delegates,
+          builder: app.builder,
           home: active == null
               ? feed(true)
               : ValueListenableBuilder<bool>(
@@ -834,6 +848,87 @@ void main() {
       expect(find.text('Clip b'), findsOneWidget);
       expect(players['b']!.calls.where((c) => c == 'play').length, playsBefore);
       expect(players['b']!.calls.last, isNot('pause'));
+      await close(tester);
+    });
+  });
+
+  group('in French', () {
+    final french = lookupAppLocalizations(fr);
+
+    Clip frenchClip(String slug) => Clip(
+      id: slug,
+      slug: slug,
+      title: slug == 'a' ? '' : 'Clip $slug',
+      viewCount: 248000,
+      createdAt: DateTime.utc(2026, 10, 2),
+      durationSeconds: 30,
+      broadcasterId: '42',
+      broadcasterLogin: 'streamer',
+      broadcasterDisplayName: 'Streamer',
+      gameName: 'Just Chatting',
+    );
+
+    for (final (sizeName, size) in frenchScreenSizes) {
+      for (final scale in frenchTextScales) {
+        testWidgets('the clips and the end, $sizeName, text ×$scale', (
+          tester,
+        ) async {
+          await pump(
+            tester,
+            first: ClipFeedPage(
+              items: [frenchClip('a'), frenchClip('b'), frenchClip('c')],
+            ),
+            size: size,
+            locale: fr,
+            textScale: scale,
+          );
+          expect(
+            find.textContaining(french.videoViewsCompact(count: 248000)),
+            findsWidgets,
+          );
+          await expectFrenchThroughout(tester, 'clips');
+          await close(tester);
+        });
+      }
+    }
+
+    testWidgets('no clips, and the feed failing', (tester) async {
+      await pump(
+        tester,
+        first: const ClipFeedPage(items: []),
+        locale: fr,
+      );
+      expect(find.text(french.clipsEmpty), findsOneWidget);
+      await expectFrenchThroughout(tester, 'empty');
+      await close(tester);
+
+      when(
+        () => service.getTopClips(language: any(named: 'language')),
+      ).thenAnswer((_) => Future.error(Exception('down')));
+      final settings = SettingsStore.fromJson({})..keepScreenAwake = false;
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<SettingsStore>.value(value: settings),
+            Provider<MiniPlayerStore>.value(value: mini),
+            Provider<TwitchClipService>.value(value: service),
+          ],
+          child: MaterialApp(
+            locale: fr,
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            home: ClipsFeedScreen(
+              store: ClipsFeedStore(clipService: service),
+              disableAutoPip: () {},
+              playerFactory: (clip, {required focused}) => FakeVodController(),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(find.text(french.clipsLoadFailed), findsOneWidget);
+      await expectFrenchThroughout(tester, 'failed');
       await close(tester);
     });
   });

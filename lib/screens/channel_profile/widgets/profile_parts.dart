@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
@@ -308,7 +309,7 @@ class ProfileSectionTitle extends StatelessWidget {
                   widthFactor: 1,
                   alignment: AlignmentDirectional.centerEnd,
                   child: Text(
-                    'See all',
+                    context.l10n.commonSeeAll,
                     style: TextStyle(fontSize: 13, color: colors.secondary),
                   ),
                 ),
@@ -466,7 +467,9 @@ class ProfileRemindButton extends StatelessWidget {
                     strokeWidth: set ? 2.2 : 2,
                   ),
                   Text(
-                    set ? 'Reminder Set' : 'Remind Me',
+                    set
+                        ? context.l10n.profileReminderSet
+                        : context.l10n.profileRemindMe,
                     style: TextStyle(
                       fontFamily: OnsetTokens.bodyFamily,
                       fontSize: 12,

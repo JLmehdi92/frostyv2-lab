@@ -37,17 +37,24 @@ String contentLabelName(String id, AppLocalizations l) {
   return spaced.isEmpty ? id : spaced;
 }
 
-/// The labels worth warning about, cleaned up and named in [l]'s language:
-/// non-empty ids, de-duplicated, in a stable order, at most eight (a
-/// hostile channel can't flood the card).
-List<String> contentLabelNames(Iterable<String> ids, AppLocalizations l) {
+/// The label ids worth warning about, cleaned up: non-empty, trimmed,
+/// de-duplicated, in a stable order, at most eight (a hostile channel can't
+/// flood the card). What a store keeps; a screen names them with
+/// [contentLabelNames].
+List<String> contentLabelIds(Iterable<String> ids) {
   final seen = <String>{};
-  final names = <String>[];
+  final kept = <String>[];
   for (final id in ids) {
     final trimmed = id.trim();
     if (trimmed.isEmpty || !seen.add(trimmed)) continue;
-    names.add(contentLabelName(trimmed, l));
-    if (names.length == 8) break;
+    kept.add(trimmed);
+    if (kept.length == 8) break;
   }
-  return names;
+  return kept;
 }
+
+/// The labels worth warning about ([contentLabelIds]), named in [l]'s
+/// language.
+List<String> contentLabelNames(Iterable<String> ids, AppLocalizations l) => [
+  for (final id in contentLabelIds(ids)) contentLabelName(id, l),
+];

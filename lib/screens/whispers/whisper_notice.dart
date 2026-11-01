@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/whispers/whisper_kit.dart';
 import 'package:onset/stores/whisper_store.dart';
 import 'package:onset/theme.dart';
@@ -38,7 +39,7 @@ SnackBar whisperNotice(
     padding: EdgeInsets.fromLTRB(large ? 14 : 12, 10, 8, 10),
     // An action keeps the notice up while accessible navigation is on.
     action: SnackBarAction(
-      label: 'Open',
+      label: context.l10n.whisperOpen,
       textColor: accent,
       onPressed: () {
         if (store.me == me) onOpen();

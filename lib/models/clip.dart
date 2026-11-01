@@ -2,29 +2,29 @@ import 'dart:math' as math;
 
 import 'package:onset/apis/base_api_client.dart';
 
-/// How far back a channel's clips list looks (GQL `ClipsPeriod`).
+/// How far back a channel's clips list looks (GQL `ClipsPeriod`; named in
+/// lib/l10n/enum_labels.dart).
 enum ClipPeriod {
-  lastDay('LAST_DAY', '24 hours'),
-  lastWeek('LAST_WEEK', '7 days'),
-  lastMonth('LAST_MONTH', '30 days'),
-  allTime('ALL_TIME', 'All time');
+  lastDay('LAST_DAY'),
+  lastWeek('LAST_WEEK'),
+  lastMonth('LAST_MONTH'),
+  allTime('ALL_TIME');
 
-  const ClipPeriod(this.gqlName, this.label);
+  const ClipPeriod(this.gqlName);
 
   final String gqlName;
-  final String label;
 }
 
-/// Order of a channel's clips list (GQL `ClipsSort`). Anonymous clients get
-/// "server error" for the other sorts (verified 2026-10-13).
+/// Order of a channel's clips list (GQL `ClipsSort`; named in
+/// lib/l10n/enum_labels.dart). Anonymous clients get "server error" for the
+/// other sorts (verified 2026-10-13).
 enum ClipSort {
-  top('VIEWS_DESC', 'Top'),
-  trending('TRENDING', 'Trending');
+  top('VIEWS_DESC'),
+  trending('TRENDING');
 
-  const ClipSort(this.gqlName, this.label);
+  const ClipSort(this.gqlName);
 
   final String gqlName;
-  final String label;
 }
 
 final _slugPattern = RegExp(r'^[A-Za-z0-9][A-Za-z0-9_-]{0,99}$');

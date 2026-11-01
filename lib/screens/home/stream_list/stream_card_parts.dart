@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/screens/channel/channel.dart';
 import 'package:onset/screens/home/top/categories/category_streams.dart';
@@ -216,8 +217,8 @@ class StreamThumbnail extends StatelessWidget {
     return Semantics(
       container: true,
       image: true,
-      label: '$name stream preview',
-      onLongPressHint: enlarge ? 'enlarge' : null,
+      label: context.l10n.streamPreviewSemantics(name: name),
+      onLongPressHint: enlarge ? context.l10n.streamEnlargeHint : null,
       child: enlarge
           ? GestureDetector(
               onLongPress: () => enlargeThumbnail(context, stream),
@@ -254,7 +255,7 @@ class LiveBadge extends StatelessWidget {
         children: [
           SignalPing(size: small ? 5 : 6, color: onAccent),
           Text(
-            'LIVE',
+            context.l10n.commonLiveBadge,
             style: OnsetType.badge.copyWith(
               fontSize: fontSize,
               letterSpacing: 0.06 * fontSize,
@@ -319,7 +320,7 @@ class ViewerPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: '${formatViewers(viewers, compact: false)} viewers',
+      label: context.l10n.streamViewers(count: viewers),
       child: ExcludeSemantics(
         child: OverlayPill(
           height: height,
@@ -376,7 +377,7 @@ class StreakPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final dark = overImage || Theme.of(context).brightness == Brightness.dark;
     return Semantics(
-      label: 'Watch streak $value',
+      label: context.l10n.streamWatchStreakSemantics(value: value),
       child: ExcludeSemantics(
         child: Container(
           height: height,
@@ -391,7 +392,7 @@ class StreakPill extends StatelessWidget {
             ),
           ),
           child: Text(
-            'Streak $value',
+            context.l10n.streamStreak(value: value),
             maxLines: 1,
             style: OnsetType.tabular(
               TextStyle(

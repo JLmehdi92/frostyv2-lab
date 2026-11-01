@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/theme.dart';
@@ -22,9 +23,12 @@ ChannelQuery? featuredChannel(Iterable<ChannelQuery> results, String query) {
   return null;
 }
 
-/// "Offline · Hytale", or "Offline" without a last category.
-String offlineLine(ChannelQuery channel) =>
-    channel.gameName.isEmpty ? 'Offline' : 'Offline · ${channel.gameName}';
+/// "Offline · Hytale", or "Offline" without a last category, in [l]'s
+/// language.
+String offlineLine(ChannelQuery channel, AppLocalizations l) =>
+    channel.gameName.isEmpty
+    ? l.streamOffline
+    : '${l.streamOffline} · ${channel.gameName}';
 
 /// A channel's picture, ringed in the signal colour while it is live
 /// (2 dp of ground, then 1.5 dp of signal, drawn outside
@@ -108,7 +112,7 @@ class FeaturedChannelCard extends StatelessWidget {
             ],
           )
         : Text(
-            offlineLine(channel),
+            offlineLine(channel, context.l10n),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: meta,

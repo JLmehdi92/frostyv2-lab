@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/home/continue_watching/stores/continue_watching_store.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/vod/vod_screen.dart';
@@ -22,26 +23,26 @@ String formatResumeTime(int seconds) {
   return h > 0 ? '$h:$m:$s' : '$m:$s';
 }
 
-/// When a position was saved, as the shelf words it ("today", "yesterday",
-/// "3 days ago"); null when unknown.
-String? savedWhen(DateTime? at, {DateTime? now}) {
+/// When a position was saved, as the shelf words it in [l]'s language
+/// ("today", "yesterday", "3 days ago"); null when unknown.
+String? savedWhen(DateTime? at, AppLocalizations l, {DateTime? now}) {
   if (at == null) return null;
   final today = DateUtils.dateOnly(now ?? DateTime.now());
   final day = DateUtils.dateOnly(at.toLocal());
   final days = today.difference(day).inDays;
-  if (days <= 0) return 'today';
-  if (days == 1) return 'yesterday';
-  if (days < 7) return '$days days ago';
-  if (days < 30) return '${days ~/ 7} wk ago';
-  return '${days ~/ 30} mo ago';
+  if (days <= 0) return l.savedToday;
+  if (days == 1) return l.savedYesterday;
+  if (days < 7) return l.savedDaysAgo(count: days);
+  if (days < 30) return l.savedWeeksAgo(count: days ~/ 7);
+  return l.savedMonthsAgo(count: days ~/ 30);
 }
 
 /// The second line of an item: the channel and when it was left.
-String _subtitle(ContinueWatchingItem item) {
+String _subtitle(ContinueWatchingItem item, AppLocalizations l) {
   final owner = item.vod.ownerDisplayName.isNotEmpty
       ? item.vod.ownerDisplayName
       : item.vod.ownerLogin;
-  final when = savedWhen(item.updatedAt);
+  final when = savedWhen(item.updatedAt, l);
   return [if (owner.isNotEmpty) owner, ?when].join(' · ');
 }
 
@@ -59,7 +60,7 @@ class _ShelfHeader extends StatelessWidget {
     final colors = FeedColors.of(context);
     return Row(
       children: [
-        const Expanded(child: FeedSectionTitle('Continue watching')),
+        Expanded(child: FeedSectionTitle(context.l10n.continueWatchingTitle)),
         TextButton(
           onPressed: () => ContinueWatchingScreen.open(context, store),
           style: TextButton.styleFrom(
@@ -71,7 +72,7 @@ class _ShelfHeader extends StatelessWidget {
               fontWeight: FontWeight.w500,
             ),
           ),
-          child: const Text('See all'),
+          child: Text(context.l10n.commonSeeAll),
         ),
       ],
     );
@@ -135,7 +136,9 @@ class _ResumeThumbnail extends StatelessWidget {
                         color: OverImage.text,
                       ),
                       Text(
-                        'Resume at ${formatResumeTime(item.positionSec)}',
+                        context.l10n.continueWatchingResumeAt(
+                          time: formatResumeTime(item.positionSec),
+                        ),
                         style: OnsetType.tabular(
                           const TextStyle(
                             fontSize: 11,
@@ -207,7 +210,11 @@ class ContinueWatchingShelf extends StatelessWidget {
                 child: _ShelfHeader(store: store),
               ),
               SizedBox(
-                height: thumbnailHeight + 9 + 40,
+                // The two lines under the picture grow with the text size.
+                height:
+                    thumbnailHeight +
+                    9 +
+                    MediaQuery.textScalerOf(context).scale(40),
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   padding: EdgeInsets.only(
@@ -262,7 +269,7 @@ class ContinueWatchingShelf extends StatelessWidget {
                                           ),
                                         ),
                                         Text(
-                                          _subtitle(item),
+                                          _subtitle(item, context.l10n),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
@@ -342,8 +349,8 @@ class ContinueWatchingColumn extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              'Resume at ${formatResumeTime(item.positionSec)}'
-                              ' · ${_subtitle(item)}',
+                              '${context.l10n.continueWatchingResumeAt(time: formatResumeTime(item.positionSec))}'
+                              ' · ${_subtitle(item, context.l10n)}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: OnsetType.tabular(
@@ -386,7 +393,7 @@ class ContinueWatchingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Continue watching')),
+      appBar: AppBar(title: Text(context.l10n.continueWatchingTitle)),
       body: RefreshIndicator.adaptive(
         onRefresh: store.load,
         child: Observer(
@@ -398,7 +405,7 @@ class ContinueWatchingScreen extends StatelessWidget {
                   const SizedBox(height: 120),
                   Center(
                     child: Text(
-                      'Nothing to resume',
+                      context.l10n.continueWatchingEmpty,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,

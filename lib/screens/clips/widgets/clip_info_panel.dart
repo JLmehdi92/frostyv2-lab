@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart' as material show Clip;
 import 'package:flutter/material.dart' hide Clip;
-import 'package:intl/intl.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/clip.dart';
 import 'package:onset/screens/channel/channel.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
@@ -48,16 +48,16 @@ class ClipInfoPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
+    final l = context.l10n;
     final details = [
-      '${NumberFormat().format(clip.viewCount)} '
-          '${clip.viewCount == 1 ? 'view' : 'views'}',
-      formatTimeAgo(clip.createdAt),
+      l.videoViews(count: clip.viewCount),
+      formatTimeAgo(clip.createdAt, l),
     ].join(' · ');
     final gameId = clip.gameId;
     final gameName = clip.gameName;
     final curator = clip.curatorDisplayName;
     final title = clip.title.trim().isEmpty
-        ? 'Untitled clip'
+        ? l.clipUntitled
         : clip.title.trim();
     final channel = clip.broadcasterDisplayName.isNotEmpty
         ? clip.broadcasterDisplayName
@@ -115,8 +115,11 @@ class ClipInfoPanel extends StatelessWidget {
               Semantics(
                 button: true,
                 label: curator == null
-                    ? 'Open $channel'
-                    : 'Open $channel, clipped by $curator',
+                    ? l.clipOpenChannel(channel: channel)
+                    : l.clipOpenChannelClippedBy(
+                        channel: channel,
+                        curator: curator,
+                      ),
                 onTap: () => _openChannel(context),
                 excludeSemantics: true,
                 child: PressScale(
@@ -151,7 +154,7 @@ class ClipInfoPanel extends StatelessWidget {
                                 ),
                                 if (curator != null)
                                   Text(
-                                    'Clipped by $curator',
+                                    l.clipClippedBy(curator: curator),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -184,13 +187,13 @@ class ClipInfoPanel extends StatelessWidget {
                 if (watchFull != null)
                   VideoActionPill(
                     glyph: VideoGlyphKind.broadcast,
-                    label: 'Watch full video',
+                    label: l.clipWatchFullVideo,
                     raised: true,
                     onTap: watchFull,
                   ),
                 VideoActionPill(
                   glyph: VideoGlyphKind.link,
-                  label: 'Copy link',
+                  label: l.clipCopyLink,
                   raised: true,
                   onTap: onCopyLink,
                 ),
@@ -214,7 +217,7 @@ class _ShareDisc extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
     return Tooltip(
-      message: 'Share',
+      message: context.l10n.clipShare,
       child: PressScale(
         child: Material(
           color: colors.raised,

@@ -4,6 +4,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/apis/twitch_api.dart';
 import 'package:onset/apis/twitch_directory_service.dart';
 import 'package:onset/apis/twitch_followed_categories_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/category.dart';
 import 'package:onset/models/followed_category.dart';
 import 'package:onset/models/vod.dart';
@@ -137,7 +138,7 @@ class _BackButton extends StatelessWidget {
         shape: const CircleBorder(),
         clipBehavior: Clip.antiAlias,
         child: IconButton(
-          tooltip: 'Back',
+          tooltip: context.l10n.commonBack,
           constraints: const BoxConstraints.tightFor(width: 44, height: 44),
           padding: EdgeInsets.zero,
           icon: const Icon(
@@ -154,13 +155,16 @@ class _BackButton extends StatelessWidget {
 
 /// What a category page lists.
 enum CategorySection {
-  live('Live'),
-  videos('Videos'),
-  clips('Clips');
+  live,
+  videos,
+  clips;
 
-  const CategorySection(this.label);
-
-  final String label;
+  /// The section's tab.
+  String label(AppLocalizations l) => switch (this) {
+    live => l.categorySectionLive,
+    videos => l.categorySectionVideos,
+    clips => l.categorySectionClips,
+  };
 }
 
 /// A category's header and its Live / Videos / Clips: the page's content,
@@ -288,7 +292,7 @@ class _CategoryViewState extends State<CategoryView> {
     return ChannelVideosTab(
       key: const ValueKey('category-videos'),
       store: _videos,
-      emptyMessage: 'No videos in this category',
+      emptyMessage: context.l10n.categoryNoVideos,
       showChannel: true,
       leadingSlivers: [
         _header(large: large),
@@ -359,7 +363,7 @@ class _CategoryHeader extends StatelessWidget {
       children: [
         for (final s in CategorySection.values)
           OnsetChip(
-            label: s.label,
+            label: s.label(context.l10n),
             selected: s == section,
             onSelected: () => onSection(s),
           ),
@@ -544,7 +548,7 @@ class _Title extends StatelessWidget {
       ),
     );
     final eyebrow = Text(
-      'CATEGORY',
+      context.l10n.categoryEyebrow,
       style: TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w600,
@@ -603,11 +607,11 @@ class _FollowButton extends StatelessWidget {
     return Semantics(
       container: true,
       button: true,
-      label: 'Follow on Twitch',
+      label: context.l10n.categoryFollowOnTwitch,
       onTap: onPressed,
       excludeSemantics: true,
       child: Tooltip(
-        message: 'Follow on Twitch',
+        message: context.l10n.categoryFollowOnTwitch,
         excludeFromSemantics: true,
         child: PressScale(
           child: Material(
@@ -635,7 +639,7 @@ class _FollowButton extends StatelessWidget {
                     ),
                     Flexible(
                       child: Text(
-                        'Follow on Twitch',
+                        context.l10n.categoryFollowOnTwitch,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(

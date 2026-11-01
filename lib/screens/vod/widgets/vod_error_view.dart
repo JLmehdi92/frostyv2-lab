@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/vod/widgets/video_glyph.dart';
 import 'package:onset/theme.dart';
+
+/// What cannot play, in [VodErrorView]'s messages (each language words a
+/// video and a clip its own way: « Cette vidéo », « Ce clip »).
+enum PlaybackSubject { video, clip }
 
 /// Why a VOD (or a clip) cannot play, over a black player area. Never opens
 /// a browser.
@@ -10,36 +15,40 @@ class VodErrorView extends StatelessWidget {
     super.key,
     required this.problem,
     this.onRetry,
-    this.subject = 'video',
+    this.subject = PlaybackSubject.video,
   });
 
   final VodPlaybackProblem problem;
 
-  /// What is playing, in the messages: "video" or "clip".
-  final String subject;
+  /// What is playing, in the messages.
+  final PlaybackSubject subject;
 
   /// Offered for problems that may be temporary.
   final VoidCallback? onRetry;
 
+  /// The message for [problem], in [l]'s language.
   static String messageFor(
-    VodPlaybackProblem problem, {
-    String subject = 'video',
+    VodPlaybackProblem problem,
+    AppLocalizations l, {
+    PlaybackSubject subject = PlaybackSubject.video,
   }) => switch (problem) {
-    VodPlaybackProblem.subscriberOnly =>
-      'This $subject is only available to subscribers.',
-    VodPlaybackProblem.geoBlocked =>
-      'This $subject is not available in your region',
-    VodPlaybackProblem.notFound => 'This $subject is no longer available',
+    VodPlaybackProblem.subscriberOnly => l.playbackSubscriberOnly(
+      subject: subject.name,
+    ),
+    VodPlaybackProblem.geoBlocked => l.playbackGeoBlocked(
+      subject: subject.name,
+    ),
+    VodPlaybackProblem.notFound => l.playbackNotFound(subject: subject.name),
     VodPlaybackProblem.tokenRejected ||
-    VodPlaybackProblem.unknown => "Couldn't play this $subject",
+    VodPlaybackProblem.unknown => l.playbackFailed(subject: subject.name),
   };
 
   /// A second line, under the message (the official app's wording).
-  static String? detailFor(VodPlaybackProblem problem) => switch (problem) {
-    VodPlaybackProblem.subscriberOnly =>
-      'Subscribe now to watch and support this channel.',
-    _ => null,
-  };
+  static String? detailFor(VodPlaybackProblem problem, AppLocalizations l) =>
+      switch (problem) {
+        VodPlaybackProblem.subscriberOnly => l.playbackSubscribeDetail,
+        _ => null,
+      };
 
   /// Subscriber-only can pass too: subscribing elsewhere, or a renewed web
   /// token, opens it (the official app offers a refresh there).
@@ -51,7 +60,8 @@ class VodErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const text = OnsetTokens.textPrimaryDark;
-    final detail = detailFor(problem);
+    final l = context.l10n;
+    final detail = detailFor(problem, l);
     final retry = _retryable ? onRetry : null;
     // The player's own ground, as the content warning draws it:
     // a glyph in its disc, the message, the detail, "Try again".
@@ -83,7 +93,7 @@ class VodErrorView extends StatelessWidget {
                 ),
               ),
               Text(
-                messageFor(problem, subject: subject),
+                messageFor(problem, l, subject: subject),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontFamily: OnsetTokens.bodyFamily,
@@ -128,7 +138,7 @@ class VodErrorView extends StatelessWidget {
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     icon: const Icon(Icons.refresh_rounded, size: 17),
-                    label: const Text('Try again'),
+                    label: Text(l.commonTryAgain),
                   ),
                 ),
             ],

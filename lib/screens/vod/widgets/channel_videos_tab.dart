@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/vod/stores/channel_videos_store.dart';
 import 'package:onset/screens/vod/vod_screen.dart';
@@ -112,7 +113,14 @@ class _ChannelVideosTabState extends State<ChannelVideosTab>
                     child: error == null
                         ? VideoListEmpty(message: widget.emptyMessage)
                         : FeedStatusView.error(
-                            message: error,
+                            message: switch (error) {
+                              ChannelVideosProblem.categoryNotFound =>
+                                context.l10n.clipsCategoryNotFound,
+                              ChannelVideosProblem.channelNotFound =>
+                                context.l10n.clipsChannelNotFound,
+                              ChannelVideosProblem.failed =>
+                                context.l10n.videosListFailed,
+                            },
                             onRetry: store.refresh,
                           ),
                   ),
@@ -144,8 +152,12 @@ class _ChannelVideosTabState extends State<ChannelVideosTab>
                   padding: const EdgeInsets.all(16),
                   child: Text(
                     store.gameId != null
-                        ? 'Showing the ${videos.length} most viewed videos'
-                        : 'Showing the ${videos.length} most recent videos',
+                        ? context.l10n.videosShowingMostViewed(
+                            count: videos.length,
+                          )
+                        : context.l10n.videosShowingMostRecent(
+                            count: videos.length,
+                          ),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12.5,

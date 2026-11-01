@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/hype_train.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_card_pill.dart';
@@ -157,7 +158,7 @@ class StreamCard extends StatelessWidget {
     final title = streamInfo.title.trim();
     final category = streamInfo.gameName.isNotEmpty
         ? streamInfo.gameName
-        : 'No Category';
+        : context.l10n.streamNoCategory;
     final openCategory = openCategoryOf(context, streamInfo);
     final tags = streamInfo.tags.isEmpty
         ? null
@@ -205,7 +206,7 @@ class StreamCard extends StatelessWidget {
         // A category's list names no category: its viewers instead.
         if (!showCategory && showThumbnail)
           Text(
-            '${formatViewers(streamInfo.viewerCount, compact: false)} viewers',
+            context.l10n.streamViewers(count: streamInfo.viewerCount),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: OnsetType.tabular(
@@ -243,9 +244,7 @@ class StreamCard extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                 ),
-                Text(
-                  '${formatViewers(streamInfo.viewerCount, compact: false)} viewers',
-                ),
+                Text(context.l10n.streamViewers(count: streamInfo.viewerCount)),
                 const Text('·'),
                 Flexible(
                   child: Uptime(

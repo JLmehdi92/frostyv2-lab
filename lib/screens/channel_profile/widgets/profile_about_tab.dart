@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
-import 'package:intl/intl.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/channel_profile.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_header.dart';
 import 'package:onset/screens/channel_profile/widgets/profile_parts.dart';
@@ -44,16 +44,15 @@ class ProfileAboutContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
+    final l = context.l10n;
     final description = profile.description?.trim();
     final followers = profile.followers;
     final joined = profile.createdAt;
     final facts = [
-      if (followers != null)
-        '${NumberFormat.decimalPattern().format(followers)} '
-            '${followers == 1 ? 'follower' : 'followers'}',
-      if (joined != null) 'Joined ${DateFormat.yMMMM().format(joined)}',
-      if (profile.role == BroadcasterRole.partner) 'Partner',
-      if (profile.role == BroadcasterRole.affiliate) 'Affiliate',
+      if (followers != null) l.profileFollowers(count: followers),
+      if (joined != null) l.profileJoined(date: joined),
+      if (profile.role == BroadcasterRole.partner) l.profilePartner,
+      if (profile.role == BroadcasterRole.affiliate) l.profileAffiliate,
     ];
     final noBio = description == null || description.isEmpty;
 
@@ -65,7 +64,9 @@ class ProfileAboutContent extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 6,
           children: [
-            ProfileSectionTitle(title: 'About ${profile.displayName}'),
+            ProfileSectionTitle(
+              title: l.profileAboutTitle(name: profile.displayName),
+            ),
             if (facts.isNotEmpty)
               Text(
                 facts.join(' · '),
@@ -76,7 +77,7 @@ class ProfileAboutContent extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Text(
-                noBio ? 'No bio yet.' : description,
+                noBio ? l.profileNoBio : description,
                 style: TextStyle(
                   fontSize: 14,
                   height: 1.55,
@@ -152,7 +153,7 @@ class ProfilePanel extends StatelessWidget {
       );
       picture = Semantics(
         image: true,
-        label: panel.altText ?? title ?? 'Panel image',
+        label: panel.altText ?? title ?? context.l10n.profilePanelImage,
         link: link != null,
         child: link == null
             ? ExcludeSemantics(child: picture)

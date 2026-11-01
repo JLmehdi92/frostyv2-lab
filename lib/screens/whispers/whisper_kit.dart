@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:intl/intl.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/stores/whisper_store.dart';
 import 'package:onset/theme.dart';
 import 'package:onset/utils/context_extensions.dart';
@@ -130,7 +131,7 @@ class WhisperCountPill extends StatelessWidget {
     // The pill grows with the text size, like the digits in it.
     final height = MediaQuery.textScalerOf(context).scale(size);
     return Semantics(
-      label: '$count unread',
+      label: context.l10n.whispersUnreadCount(count: count),
       excludeSemantics: true,
       child: Container(
         constraints: BoxConstraints(minWidth: height),
@@ -273,7 +274,7 @@ class WhisperThreadRow extends StatelessWidget {
                                   // whisper could fake.
                                   if (last?.mine ?? false) ...[
                                     Semantics(
-                                      label: 'You',
+                                      label: context.l10n.whisperYou,
                                       child: StateGlyph(
                                         StateGlyphKind.reply,
                                         color: colors.tertiary,
@@ -375,7 +376,7 @@ class WhisperStatusNote extends StatelessWidget {
     return Observer(
       builder: (context) {
         final status = store.status;
-        final hint = whisperStatusHint(status);
+        final hint = whisperStatusHint(status, context.l10n);
         Widget? card;
         if (hint != null) {
           final Widget mark = status == WhisperStatus.interrupted
@@ -449,15 +450,13 @@ class WhisperStatusNote extends StatelessWidget {
   }
 }
 
-/// What to tell about [status] above the conversations, or null.
-String? whisperStatusHint(WhisperStatus status) => switch (status) {
-  WhisperStatus.refused =>
-    'Twitch refused to send your whispers to this app. Log out and log in '
-        'again to allow them.',
-  WhisperStatus.interrupted => 'Reconnecting… whispers will arrive again soon.',
-  WhisperStatus.unavailable =>
-    "Twitch isn't sending whispers to this app right now. It tries again "
-        'when you come back to the app.',
-  WhisperStatus.off => 'Log in to get whispers.',
-  WhisperStatus.connecting || WhisperStatus.listening => null,
-};
+/// What to tell about [status] above the conversations, in [l]'s
+/// language, or null.
+String? whisperStatusHint(WhisperStatus status, AppLocalizations l) =>
+    switch (status) {
+      WhisperStatus.refused => l.whisperStatusRefused,
+      WhisperStatus.interrupted => l.whisperStatusInterrupted,
+      WhisperStatus.unavailable => l.whisperStatusUnavailable,
+      WhisperStatus.off => l.whisperStatusOff,
+      WhisperStatus.connecting || WhisperStatus.listening => null,
+    };

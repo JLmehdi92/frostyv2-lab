@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:onset/apis/twitch_directory_service.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/screens/home/stream_list/stores/stream_list_store.dart';
 import 'package:onset/screens/home/stream_list/stream_card_parts.dart';
 import 'package:onset/screens/home/stream_list/stream_sort_button.dart';
@@ -112,7 +113,7 @@ class _TagStreamsState extends State<TagStreams> {
                               child: Row(
                                 children: [
                                   IconButton(
-                                    tooltip: 'Back',
+                                    tooltip: context.l10n.commonBack,
                                     constraints: const BoxConstraints.tightFor(
                                       width: 44,
                                       height: 44,

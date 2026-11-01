@@ -10,6 +10,9 @@ import 'package:onset/apis/twitch_followed_categories_service.dart';
 import 'package:onset/apis/twitch_hype_train_service.dart';
 import 'package:onset/apis/twitch_vod_service.dart';
 import 'package:onset/apis/twitch_watch_streak_service.dart';
+import 'package:onset/l10n/api_errors.dart';
+import 'package:onset/l10n/enum_labels.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/stream.dart';
 import 'package:onset/screens/home/continue_watching/continue_watching.dart';
 import 'package:onset/screens/home/continue_watching/stores/continue_watching_store.dart';
@@ -190,7 +193,12 @@ class _StreamsListState extends State<StreamsList>
     final error = _listStore.error;
     if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: AlertMessage(message: error, centered: false)),
+        SnackBar(
+          content: AlertMessage(
+            message: streamListErrorText(context.l10n, error, _listStore.sort),
+            centered: false,
+          ),
+        ),
       );
     }
   }
@@ -235,23 +243,23 @@ class _StreamsListState extends State<StreamsList>
       );
     }
 
+    final l = context.l10n;
     Widget? status;
     if (error != null) {
-      status = FeedStatusView.error(message: error, onRetry: _retry);
+      status = FeedStatusView.error(
+        message: streamListErrorText(l, error, _listStore.sort),
+        onRetry: _retry,
+      );
     } else if (streams.isEmpty) {
       status = _listStore.hiddenByLabels > 0
           ? FeedStatusView(
-              message: 'Every stream here has a label you hide',
+              message: l.streamListAllHidden,
               icon: Icons.visibility_off_outlined,
-              action: 'Show them',
+              action: l.streamListShowHidden,
               onAction: _listStore.showLabeledStreams,
             )
           : FeedStatusView.empty(
-              message: switch (widget.listType) {
-                ListType.followed => 'No followed streams',
-                ListType.top => 'No top streams',
-                ListType.category || ListType.tag => 'No live streams',
-              },
+              message: streamListEmptyText(l, widget.listType),
             );
     }
 
@@ -446,9 +454,9 @@ class _StreamsListState extends State<StreamsList>
         ),
       ),
       if (pinned.isNotEmpty) ...[
-        const SliverToBoxAdapter(child: _Eyebrow('Pinned')),
+        SliverToBoxAdapter(child: _Eyebrow(context.l10n.streamListPinned)),
         section(pinned, isPinned: true),
-        const SliverToBoxAdapter(child: _Eyebrow('All')),
+        SliverToBoxAdapter(child: _Eyebrow(context.l10n.streamListAll)),
       ],
       section(unpinned, isPinned: false),
       ..._followingTail(context, settings, chipsShown: false),
@@ -482,7 +490,7 @@ class _StreamsListState extends State<StreamsList>
       SliverToBoxAdapter(
         child: Observer(
           builder: (context) => ExpandableSectionHeader(
-            'Offline',
+            context.l10n.streamOffline,
             isFirst: true,
             padding: EdgeInsets.fromLTRB(
               (large ? OnsetSpacing.gutterTablet : OnsetSpacing.gutterPhone) +
@@ -665,12 +673,12 @@ class _StreamsListState extends State<StreamsList>
         ),
       ),
       if (restPinned.isNotEmpty) ...[
-        const SliverToBoxAdapter(child: _Eyebrow('Pinned')),
+        SliverToBoxAdapter(child: _Eyebrow(context.l10n.streamListPinned)),
         grid(restPinned, isPinned: true),
       ],
       if (restPinned.isNotEmpty ||
           (pinned.isNotEmpty && restUnpinned.isNotEmpty))
-        const SliverToBoxAdapter(child: _Eyebrow('All')),
+        SliverToBoxAdapter(child: _Eyebrow(context.l10n.streamListAll)),
       grid(restUnpinned, isPinned: false),
       ..._followingTail(
         context,
@@ -956,7 +964,10 @@ class _LiveNowHeader extends StatelessWidget {
           Expanded(
             child: Align(
               alignment: AlignmentDirectional.centerStart,
-              child: FeedSectionTitle('Live now', count: count),
+              child: FeedSectionTitle(
+                context.l10n.streamListLiveNow,
+                count: count,
+              ),
             ),
           ),
           Flexible(child: FollowedSortButton(settingsStore: settingsStore)),
@@ -1062,13 +1073,14 @@ class HiddenStreamsBanner extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              hidden == 1
-                  ? '1 stream hidden by your content preferences'
-                  : '$hidden streams hidden by your content preferences',
+              context.l10n.streamListHiddenCount(count: hidden),
               style: TextStyle(fontSize: 13, color: colors.secondary),
             ),
           ),
-          TextButton(onPressed: onShow, child: const Text('Show')),
+          TextButton(
+            onPressed: onShow,
+            child: Text(context.l10n.streamListShow),
+          ),
         ],
       ),
     );
@@ -1126,7 +1138,7 @@ class FollowedVideosTile extends StatelessWidget {
                   ),
                   Expanded(
                     child: Text(
-                      'Followed videos',
+                      context.l10n.followedVideosTitle,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -1388,3 +1400,25 @@ class FeedTileSkeleton extends StatelessWidget {
     );
   }
 }
+
+/// What [error], the stream list's ([ListStoreBase.error]), says to a
+/// viewer in [l]'s language; [sort] is the list's order.
+String streamListErrorText(AppLocalizations l, Object error, StreamSort sort) =>
+    switch (error) {
+      StreamListProblem.tagStreams => l.streamListTagUnavailable,
+      StreamListProblem.sort => l.streamListSortFailed(
+        sort: sort.label(l),
+        fallback: StreamSort.viewersHigh.label(l),
+      ),
+      StreamListProblem.streams => l.streamListLoadFailed,
+      StreamListProblem.pinnedStreams => l.streamListPinnedFailed,
+      StreamListProblem.offlineChannels => l.streamListOfflineFailed,
+      _ => apiErrorText(l, error),
+    };
+
+/// What an empty list of [type] says.
+String streamListEmptyText(AppLocalizations l, ListType type) => switch (type) {
+  ListType.followed => l.streamListEmptyFollowed,
+  ListType.top => l.streamListEmptyTop,
+  ListType.category || ListType.tag => l.streamListEmptyLive,
+};

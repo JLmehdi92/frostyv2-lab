@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:onset/apis/twitch_api.dart';
+import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/category.dart';
 import 'package:onset/screens/home/shell/shell_pages.dart';
 import 'package:onset/screens/home/stores/home_store.dart';
@@ -252,20 +253,22 @@ class _LiveChannelsTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
+    final l = context.l10n;
     return Semantics(
       header: true,
       child: Text.rich(
         TextSpan(
-          text: 'Live channels ',
-          children: [
+          // "Live channels" and, lighter, "across Twitch", where the
+          // language puts it.
+          children: l10nSpans(l.browseLiveChannels(where: l10nMark(0)), [
             TextSpan(
-              text: 'across Twitch',
+              text: l.browseAcrossTwitch,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 color: colors.tertiary,
               ),
             ),
-          ],
+          ]),
         ),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
