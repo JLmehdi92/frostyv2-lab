@@ -33,7 +33,8 @@ Cette politique est aussi disponible [en anglais](PRIVACY.md).
 
 ## 1. Responsable du traitement
 
-ONSET est développé par Mehdi Seddiki, un particulier établi en France
+ONSET est développé par un particulier établi en France, appelé
+« le développeur » dans cette politique
 (contact : `contact@onsetapp.app`). Le développeur est responsable de
 l’application, de son service de jetons (section 4), des rapports de plantage
 et statistiques recueillis via Google Firebase (section 5) et du site web

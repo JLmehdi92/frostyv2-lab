@@ -28,7 +28,8 @@ based on their source code, which anyone can read at
 
 ## 1. Who is responsible
 
-ONSET is developed by Mehdi Seddiki, a private individual based in France
+ONSET is developed by a private individual based in France, called "the
+developer" in this policy
 (contact: `contact@onsetapp.app`). The developer is responsible for the app,
 for its token service (section 4), for the crash reports and analytics
 collected through Google Firebase (section 5), and for the website (section
