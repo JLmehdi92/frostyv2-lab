@@ -341,6 +341,15 @@ bool _looksLikeCode(String text) {
       RegExp(r'[;{}]$').hasMatch(text.trimRight());
 }
 
+/// Whether [text], in a place that shows text, is code anyway: an `=`, a
+/// backtick or a backslash, a block (`{ id }`), or a brace or semicolon
+/// ending it. Unlike [_looksLikeCode], a colon or a bracket beside a
+/// semicolon is a sentence's ("Note: this may take a while; please wait").
+bool _looksLikeCodeInUi(String text) =>
+    _codeChars.hasMatch(text) ||
+    text.contains(RegExp(r'\{\s|\s\}')) ||
+    RegExp(r'[;{}]$').hasMatch(text.trimRight());
+
 /// What a field or variable assigned a literal (`_error = 'Failed'`) is
 /// called when it holds text to show, beyond the UI names.
 final _uiAssignee = RegExp(
@@ -361,7 +370,14 @@ final _host = RegExp(r'^[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:/\S*)?$');
 /// One token with a separator between word characters: `v5.0.5`,
 /// `chat:read`, `a/b` (not `Done.` or `Error:`, words with punctuation).
 final _snakeOrDotted = RegExp(r'^[\w-]+(?:[.:/][\w-]+)+$');
-final _kebab = RegExp(r'^[a-z0-9]+(?:-[a-z0-9]+)+$');
+
+/// Two hyphens or more: an id or a tag (`predictions-channel-v1`), code
+/// anywhere.
+final _kebab = RegExp(r'^[a-z0-9]+(?:-[a-z0-9]+){2,}$');
+
+/// One hyphen: an IRC tag (`msg-id`) outside a place that shows text, a
+/// word (`pop-up`, `sign-in`) in one.
+final _singleHyphen = RegExp(r'^[a-z0-9]+-[a-z0-9]+$');
 
 /// Getters named for data (`id`, `name`): read as text they show Twitch's
 /// data, not words of the app's, and their names are everywhere.
@@ -382,6 +398,10 @@ const _dataGetters = {
 final _uiVariable = RegExp(
   r'(names|Names|labels|Labels|label|Label|titles|Titles|notes|Notes)$',
 );
+
+/// Named arguments taking a map whose keys are texts a screen reader reads
+/// (the labels of custom semantics actions).
+const _uiMapArguments = {'actions', 'customSemanticsActions'};
 
 /// Callees whose arguments are never UI text.
 const _exemptClasses = {
@@ -553,6 +573,33 @@ const _uiPositional = {
   'ReleaseVersionPill',
 };
 
+/// Methods that give a list of some of the same words (`where`, `toList`):
+/// joined after them, the words are still the text.
+const _listMethods = {
+  'where',
+  'whereType',
+  'toList',
+  'followedBy',
+  'skip',
+  'take',
+  'skipWhile',
+  'takeWhile',
+};
+
+/// Properties that give a list of some of the same words.
+const _listProperties = {'nonNulls', 'reversed'};
+
+/// Whether [node] is a list literal, or one filtered by [_listMethods] or
+/// [_listProperties] (`['Poll', t].where((s) => s.isNotEmpty)`).
+bool _isListy(AstNode node) => switch (node) {
+  ListLiteral() => true,
+  MethodInvocation(:final target?, :final methodName) =>
+    _listMethods.contains(methodName.name) && _isListy(target),
+  PropertyAccess(:final target?, :final propertyName) =>
+    _listProperties.contains(propertyName.name) && _isListy(target),
+  _ => false,
+};
+
 /// Methods that keep a literal UI text (`'First launch'.toUpperCase()`).
 const _transparentMethods = {'toUpperCase', 'toLowerCase', 'trim'};
 
@@ -614,11 +661,19 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   void _check(StringLiteral node, String text, {required bool multiline}) {
     if (multiline || !_letters.hasMatch(text)) return;
-    if (_textIsCode(text) || _looksLikeCode(text)) return;
-    if (_contextIsCode(node)) return;
+    if (_textIsCode(text)) return;
+    final uiKey = _isUiMapKey(node);
+    if (_contextIsCode(node, uiKey: uiKey)) return;
     final String reason;
-    if (_inUiPlace(node, helpers)) {
+    if (uiKey || _inUiPlace(node, helpers)) {
+      // In a place that shows text, only code's own marks make it code: a
+      // sentence there may hold a colon and a semicolon ("Note: …; …"),
+      // and a word one hyphen ("pop-up", "sign-in").
+      if (_looksLikeCodeInUi(text)) return;
       reason = 'ui';
+    } else if (_singleHyphen.hasMatch(text.trim())) {
+      // An IRC tag or an id ("msg-id", "sub-gift") outside a text place.
+      return;
     } else if (_sentenceLike(text)) {
       reason = 'sentence';
     } else {
@@ -703,15 +758,24 @@ class _Visitor extends RecursiveAstVisitor<void> {
           operator.lexeme == '??' || operator.lexeme == '+',
         SwitchExpressionCase(:final expression) => child == expression,
         SwitchExpression() => child is SwitchExpressionCase,
+        // `.toUpperCase()`; a list's words joined (`[…].join(' · ')`),
+        // filtered first (`[…].where(…).join(', ')`).
         MethodInvocation(:final target, :final methodName) =>
           child == target &&
               (_transparentMethods.contains(methodName.name) ||
-                  (child is ListLiteral && methodName.name == 'join')),
+                  (_isListy(child) &&
+                      (methodName.name == 'join' ||
+                          _listMethods.contains(methodName.name)))),
         // `['Welcome'].first`: a word of the list read out.
         PropertyAccess(:final target, :final propertyName) =>
           child == target &&
-              child is ListLiteral &&
-              const {'first', 'last', 'single'}.contains(propertyName.name),
+              _isListy(child) &&
+              const {
+                'first',
+                'last',
+                'single',
+                ..._listProperties,
+              }.contains(propertyName.name),
         MapLiteralEntry(:final value) => child == value,
         SetOrMapLiteral() => child is MapLiteralEntry,
         _ => false,
@@ -723,10 +787,28 @@ class _Visitor extends RecursiveAstVisitor<void> {
     return (child, parent);
   }
 
-  bool _contextIsCode(AstNode node) {
+  /// Whether [node] is a map key that names text: one of a map of
+  /// screen-reader actions (`actions: {'Change chat layout': …}`, built
+  /// into `CustomSemanticsAction`s). Other map keys are code.
+  static bool _isUiMapKey(AstNode node) {
+    final (child, anchor) = _anchor(node);
+    if (anchor is! MapLiteralEntry || anchor.key != child) return false;
+    // Up through `if` and `for` elements to the map.
+    var map = anchor.parent;
+    while (map is IfElement || map is ForElement) {
+      map = map?.parent;
+    }
+    return map is SetOrMapLiteral &&
+        map.parent is NamedExpression &&
+        _uiMapArguments.contains(
+          (map.parent! as NamedExpression).name.label.name,
+        );
+  }
+
+  bool _contextIsCode(AstNode node, {bool uiKey = false}) {
     final (child, anchor) = _anchor(node);
     switch (anchor) {
-      case MapLiteralEntry(:final key) when key == child:
+      case MapLiteralEntry(:final key) when key == child && !uiKey:
         return true;
       case IndexExpression(:final index) when index == child:
         return true;
@@ -780,8 +862,9 @@ bool _inUiPlace(AstNode node, UiHelpers helpers, [int depth = 0]) {
       if (_Visitor._calleeNames(call).any(_uiPositional.contains)) {
         return true;
       }
+      // `out.write('Live')`, cascaded too (`StringBuffer()..write('Live')`).
       if (call is MethodInvocation &&
-          call.target != null &&
+          call.realTarget != null &&
           _writeMethods.contains(call.methodName.name)) {
         return true;
       }
@@ -794,6 +877,12 @@ bool _inUiPlace(AstNode node, UiHelpers helpers, [int depth = 0]) {
       return _inUiFunction(anchor, helpers);
     case ReturnStatement():
       return _inUiFunction(anchor, helpers);
+    // A record's field read back by destructuring and shown:
+    // `for (final (label, value) in [('Latency', v)]) Text(label)`.
+    case RecordLiteral(:final fields) when depth < 3:
+      final positional = fields.where((f) => f is! NamedExpression).toList();
+      final index = positional.indexOf(child as Expression);
+      return index >= 0 && _recordFieldShown(anchor, index, helpers, depth);
     case DefaultFormalParameter(:final defaultValue, :final parameter)
         when defaultValue == child:
       final name = parameter.name?.lexeme;
@@ -811,7 +900,7 @@ bool _inUiPlace(AstNode node, UiHelpers helpers, [int depth = 0]) {
           :final operator,
         )
         when rightHandSide == child &&
-            (operator.lexeme == '=' || operator.lexeme == '??='):
+            const {'=', '??=', '+='}.contains(operator.lexeme):
       final assignee = switch (leftHandSide) {
         SimpleIdentifier(:final name) => name,
         PrefixedIdentifier(:final identifier) => identifier.name,
@@ -900,6 +989,49 @@ bool _usedInUiPlace(
   for (final use in uses.found) {
     if (use.offset == declaration.name.offset) continue;
     if (_inUiPlace(_readOf(use), helpers, depth)) return true;
+  }
+  return false;
+}
+
+/// Whether field [index] (positional) of [record] is shown as text where
+/// the record is destructured by a `for`: over the list holding it
+/// (`for (final (a, b) in [(…)])`), or over the variable that list is
+/// put in (`final rows = [(…)]; for (final (a, b) in rows) Text(a)`).
+bool _recordFieldShown(
+  RecordLiteral record,
+  int index,
+  UiHelpers helpers,
+  int depth,
+) {
+  final loops = <ForEachPartsWithPattern>[];
+  final (child, anchor) = _Visitor._anchor(record);
+  if (anchor is ForEachPartsWithPattern && anchor.iterable == child) {
+    loops.add(anchor);
+  } else if (anchor is VariableDeclaration && anchor.initializer == child) {
+    final AstNode scope =
+        anchor.thisOrAncestorOfType<FunctionBody>() ?? anchor.root;
+    final uses = _Uses({anchor.name.lexeme});
+    scope.accept(uses);
+    for (final use in uses.found) {
+      if (use.parent case final ForEachPartsWithPattern parts
+          when parts.iterable == use) {
+        loops.add(parts);
+      }
+    }
+  }
+  for (final parts in loops) {
+    final pattern = parts.pattern;
+    if (pattern is! RecordPattern) continue;
+    final positional = pattern.fields.where((f) => f.name == null).toList();
+    if (index >= positional.length) continue;
+    final field = positional[index].pattern;
+    if (field is! DeclaredVariablePattern) continue;
+    final body = parts.parent.body;
+    final uses = _Uses({field.name.lexeme});
+    body.accept(uses);
+    if (uses.found.any((use) => _inUiPlace(_readOf(use), helpers, depth + 1))) {
+      return true;
+    }
   }
   return false;
 }

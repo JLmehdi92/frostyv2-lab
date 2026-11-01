@@ -302,6 +302,20 @@ What changed.
       expect(kind('Bugfixes'), ReleaseSectionKind.fixed);
       expect(kind('Fixes for the new player'), ReleaseSectionKind.fixed);
       expect(kind('Breaking changes'), ReleaseSectionKind.other);
+      // Every form of the word, as a whole word.
+      for (final fix in const [
+        'Fix',
+        'Fixed',
+        'Fixing',
+        'Fixups',
+        'Hotfix',
+        'Corrections',
+        'Small fixups',
+      ]) {
+        expect(kind(fix), ReleaseSectionKind.fixed, reason: fix);
+      }
+      expect(kind('Prefixes'), ReleaseSectionKind.other);
+      expect(kind('Fixtures'), ReleaseSectionKind.other);
     });
 
     test('counts read one and many', () {

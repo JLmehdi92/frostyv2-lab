@@ -110,7 +110,15 @@ void main() {
           expect(tester.takeException(), isNull);
           expect(find.text('Streamer'), findsOneWidget);
           expect(find.text('Dota 2'), findsOneWidget);
-          expect(find.text(' · 2,445 watching · 3 h 12'), findsOneWidget);
+          // Read in full (a narrow row shows it shorter, never cut).
+          expect(
+            find.byWidgetPredicate(
+              (w) =>
+                  w is Semantics &&
+                  w.properties.label == ' · 2,445 watching · 3 h 12',
+            ),
+            findsOneWidget,
+          );
           expect(find.text('Follow'), findsOneWidget);
         }
       }

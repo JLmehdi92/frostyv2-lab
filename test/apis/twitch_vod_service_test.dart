@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
@@ -655,6 +657,22 @@ void main() {
         throwsA(isA<NetworkException>()),
       );
       expect(sent.map(auth), ['OAuth webtok'], reason: 'no anonymous retry');
+    });
+
+    test('a connection dropped on the viewer\'s request falls back '
+        'anonymously, as it always did', () async {
+      authService.webToken = () => 'webtok';
+      onAuthed = (o, h) => h.reject(
+        DioException(
+          requestOptions: o,
+          error: const SocketException('Connection reset by peer'),
+        ),
+      );
+
+      final url = await authService.getVodUsherUrl(vodId: '1000000001');
+
+      expect(tokenOf(url), vodTokenValue);
+      expect(sent.map(auth), ['OAuth webtok', null]);
     });
 
     test("forgetting a vod's token forgets the viewer's too", () async {

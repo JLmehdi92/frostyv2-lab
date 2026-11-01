@@ -41,7 +41,6 @@ const _sameInBothLanguages = {
   'playerVolume': '"Volume" is spelled the same.',
   'channelChat': '"Chat" is also the French word for it.',
   'latencyStatsMode': '"Mode" is spelled the same.',
-  'clipCreateButton': 'Twitch calls it a "clip" in French.',
   'highlightVotes': '"vote(s)" is the French word too; a number leads.',
   'highlightPoints': '"point(s)" is the French word too; a number leads.',
   'raidBadge': '"Raid" is Twitch\'s French word too, in capitals.',

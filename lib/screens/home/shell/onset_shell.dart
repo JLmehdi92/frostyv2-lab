@@ -491,9 +491,14 @@ class OnsetShell extends StatelessWidget {
                             constraints: const BoxConstraints(maxWidth: 214),
                             child: LayoutBuilder(
                               // Squeezed (portrait, large text): the field
-                              // becomes a round button.
+                              // becomes a round button, rather than break
+                              // its word.
                               builder: (context, constraints) =>
-                                  constraints.maxWidth < 100
+                                  constraints.maxWidth <
+                                      _SearchField.widthFor(
+                                        context,
+                                        context.l10n.shellSearch,
+                                      )
                                   ? Align(
                                       alignment: Alignment.centerRight,
                                       child: _SearchField(
@@ -1023,6 +1028,24 @@ class _SearchField extends StatelessWidget {
     this.compact = false,
   });
 
+  /// The width a 40 dp field needs to show [label] on one line (100 dp
+  /// at least): narrower, it is a round button.
+  static double widthFor(BuildContext context, String label) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: OnsetType.body.copyWith(fontSize: 14, height: 1.15),
+      ),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: 1,
+    )..layout();
+    final width = painter.width;
+    painter.dispose();
+    // Padding, glyph and gap around the text.
+    return math.max(100, width + 14 * 2 + 16 + 8 + 1);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Semantics(
@@ -1036,7 +1059,9 @@ class _SearchField extends StatelessWidget {
           behavior: HitTestBehavior.opaque,
           onTap: onTap,
           child: Container(
-            height: height,
+            // Grows when its two lines of hint need more (large text).
+            height: compact ? height : null,
+            constraints: compact ? null : BoxConstraints(minHeight: height),
             width: compact ? height : null,
             padding: compact
                 ? null

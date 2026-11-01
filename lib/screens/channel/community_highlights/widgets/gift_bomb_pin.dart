@@ -403,9 +403,10 @@ class _GiftBombPinState extends State<GiftBombPin>
             ),
             maxLines: 1,
             softWrap: false,
+            // One line of its text, as large as the text is set.
             child: SizedBox(
               key: GiftBombPin.progressKey,
-              height: 16,
+              height: MediaQuery.textScalerOf(context).scale(12.5) * 16 / 12.5,
               child: _progress(accentText),
             ),
           ),

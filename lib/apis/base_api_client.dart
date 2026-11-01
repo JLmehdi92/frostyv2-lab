@@ -357,11 +357,17 @@ abstract class BaseApiClient {
         ApiErrorKind.certificate,
       ),
       // The connection dropped after it was made (reset, closed early):
-      // Dio does not call it a connection error, but it is one.
+      // a screen says so ([ApiErrorKind.network]), but it stays the plain
+      // unexpected failure it always was for the code that decides what to
+      // do next (no NetworkException: no token retry, no anonymous-token
+      // skip, still reported).
       DioExceptionType.unknown
           when error.error is SocketException || error.error is HttpException =>
-        NetworkException(
-          error.message ?? 'No internet connection. Please check your network.',
+        ApiException(
+          error.message ?? 'An unexpected error occurred',
+          null,
+          null,
+          ApiErrorKind.network,
         ),
       DioExceptionType.unknown => ApiException(
         error.message ?? 'An unexpected error occurred',

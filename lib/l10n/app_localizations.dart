@@ -4865,7 +4865,7 @@ abstract class AppLocalizations {
   /// **'{hours} h {minutes}'**
   String channelUptimeHours({required int hours, required String minutes});
 
-  /// A chip under a tablet's video: how many streams in a row the viewer watched on this channel.
+  /// A chip under a tablet's video: how many streams in a row the viewer watched on this channel. French keeps the short « Série {value} » of the stream cards (streamStreak), so the number always shows; the screen reader hears the full name (streamWatchStreakSemantics).
   ///
   /// In en, this message translates to:
   /// **'Watch streak {value}'**
@@ -4889,7 +4889,7 @@ abstract class AppLocalizations {
   /// **'synced to video'**
   String get channelChatSynced;
 
-  /// Beside « Chat » on a tablet: the chat is held back by that many seconds (Settings › Chat).
+  /// Beside « Chat » on a tablet: the chat is held back by that many seconds (Settings › Chat › Message delay, « Délai des messages »).
   ///
   /// In en, this message translates to:
   /// **'{seconds}s delay'**
@@ -5057,7 +5057,7 @@ abstract class AppLocalizations {
   /// **'This stream is not available in your region.'**
   String get liveRefusedGeoblocked;
 
-  /// Why the app's player cannot play a stream: the viewer is banned from the channel. name is the channel's display name. French uses a noun to avoid agreeing « banni(e) ».
+  /// Why the app's player cannot play a stream: the viewer is banned from the channel. name is the channel's display name. French says « votre compte » (masculine) so « banni » never agrees with the viewer.
   ///
   /// In en, this message translates to:
   /// **'You are banned from {name}\'s channel.'**
@@ -5400,7 +5400,7 @@ abstract class AppLocalizations {
   /// **'Create Clip'**
   String get clipCreateTitle;
 
-  /// Tooltip of the clip button under the live video (opens the Create clip sheet).
+  /// Tooltip of the clip button under the live video (opens the Create clip sheet). « Clip » is also a verb in English; French names the action, as the sheet's title does.
   ///
   /// In en, this message translates to:
   /// **'Clip'**
@@ -5484,7 +5484,7 @@ abstract class AppLocalizations {
   /// **'Your Twitch login does not allow creating clips.'**
   String get clipCreateFailedMissingScope;
 
-  /// Create clip sheet, failed: Twitch refused for this channel. French uses nouns to avoid agreeing « banni(e) ».
+  /// Create clip sheet, failed: Twitch refused for this channel. French says « votre compte » so nothing agrees with the viewer.
   ///
   /// In en, this message translates to:
   /// **'You can\'t clip this channel right now: clips may be off, only for followers or subscribers, or you are banned or timed out here.'**

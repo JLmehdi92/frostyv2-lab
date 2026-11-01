@@ -1,4 +1,6 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:onset/l10n/l10n.dart';
 import 'package:onset/models/hype_train.dart';
 import 'package:onset/screens/channel/hype_train/widgets/hype_train_copy.dart';
@@ -10,6 +12,22 @@ void main() {
   final copy = HtCopy(L10n.english);
 
   group('banner', () {
+    test("numbers are grouped in the copy's language, whatever Intl holds", () {
+      final previous = Intl.defaultLocale;
+      addTearDown(() => Intl.defaultLocale = previous);
+      Intl.defaultLocale = 'en';
+      expect(
+        HtCopy(lookupAppLocalizations(const Locale('fr'))).number(1200),
+        '1\u202f200',
+      );
+      Intl.defaultLocale = 'fr';
+      expect(copy.number(1200), '1,200');
+    });
+
+    test('the golden Kappa card reads the variant by its name', () {
+      expect(copy.goldenCard, startsWith("You'll have a limited time to earn"));
+    });
+
     test('level pill, percentage and countdown', () {
       expect(copy.level(7), 'LVL 7');
       expect(copy.percent(33), '33%');

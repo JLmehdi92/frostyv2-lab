@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/twitch_api.dart';
@@ -294,6 +295,60 @@ void main() {
       }
     }
 
+    // Over a phone's portrait video (360 × 202.5 dp), under the controls'
+    // top row, as channel.dart places it: the panel shrinks to fit, and the
+    // French one must stay about as readable as the English one.
+    for (final scale in frenchTextScales) {
+      testWidgets('in its real space over a portrait video, text ×$scale', (
+        tester,
+      ) async {
+        when(() => store.autoLatencyStatus).thenReturn(statuses[2]);
+        Future<double> shrinkIn(Locale locale) async {
+          await pumpLocalized(
+            tester,
+            Scaffold(
+              body: Align(
+                alignment: Alignment.topLeft,
+                child: SizedBox(
+                  width: 360,
+                  height: 202.5,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 44, 8, 8),
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: IvsStatsPanel(store: store),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            locale: locale,
+            size: const Size(360, 640),
+            textScale: scale,
+          );
+          final panel = find
+              .descendant(
+                of: find.byType(FittedBox),
+                matching: find.byType(DecoratedBox),
+              )
+              .first;
+          return tester.getRect(panel).height /
+              tester.renderObject<RenderBox>(panel).size.height;
+        }
+
+        final english = await shrinkIn(en);
+        final shrink = await shrinkIn(fr);
+        await expectFrenchThroughout(tester, 'over the video, ×$scale');
+        expect(
+          shrink,
+          greaterThanOrEqualTo(english * 0.9),
+          reason:
+              'French at ${shrink.toStringAsFixed(2)}, English at '
+              '${english.toStringAsFixed(2)}',
+        );
+      });
+    }
+
     test('French numbers: decimal commas, units after a space', () async {
       await useLocale(fr);
       expect(displayLatency('2.3s', french), '2,3 s');
@@ -310,7 +365,7 @@ void main() {
           ),
           french,
         ),
-        'rattrapage 1,05× · cible 1,3 s',
+        'rattrapage 1,05 × · cible 1,3 s',
       );
       expect(
         describeAutoLatency(
@@ -322,7 +377,7 @@ void main() {
           ),
           french,
         ),
-        'arrêtée : le lecteur est resté à 1,05×',
+        'arrêtée : le lecteur est resté à 1,05 ×',
       );
       // Every reason has its own words.
       final reasons = {
@@ -563,6 +618,37 @@ void main() {
               fakeStream(userId: '1', login: 'splinter', name: 'Splinter'),
             ];
             await tester.pump();
+            if (live && size.shortestSide < 600) {
+              // The phone's line under the video never cuts its viewers
+              // (« 2 445 spectate… »): it shrinks a little at most, then
+              // says the number short or alone, and a screen reader hears
+              // it in full.
+              final full = french.streamWatching(
+                count: fakeStream().viewerCount,
+              );
+              final facts = find.byWidgetPredicate(
+                (w) =>
+                    w is Semantics &&
+                    (w.properties.label?.contains(full) ?? false),
+              );
+              expect(facts, findsOneWidget, reason: '$sizeName, ×$scale');
+              final text = find.descendant(
+                of: facts,
+                matching: find.byType(RichText),
+              );
+              final paragraph = tester.renderObject<RenderParagraph>(text);
+              expect(paragraph.didExceedMaxLines, isFalse);
+              final shrink = tester.getRect(text).width / paragraph.size.width;
+              final worded = paragraph.text.toPlainText().contains(
+                'spectateurs',
+              );
+              // A little with its word; more only for the bare number.
+              expect(
+                shrink,
+                greaterThanOrEqualTo(worded ? 0.849 : 0.7),
+                reason: '$sizeName, ×$scale: ${shrink.toStringAsFixed(2)}',
+              );
+            }
             for (final delay in [true, false]) {
               settings
                 ..autoSyncChatDelay = delay

@@ -381,6 +381,94 @@ const f = 'two words;';
       );
     });
 
+    test('hole: the keys of a map of screen-reader actions', () {
+      expect(
+        texts('''
+Widget a(bool landscape) => VideoSurfaceSemantics(
+  actions: {if (landscape) 'Change chat layout': cycle, 'Rewind': back},
+  child: x,
+);
+Widget b() => Semantics(customSemanticsActions: {'Collapse': f}, child: x);
+final c = {'Map key words': 1};
+'''),
+        ['Change chat layout', 'Rewind', 'Collapse'],
+      );
+    });
+
+    test('hole: a word with one hyphen in a place that shows text', () {
+      expect(
+        texts('''
+Widget a() => Column(children: [
+  const Text('pop-up'),
+  Tab(text: 'sign-in'),
+  Tooltip(message: 'e-mail'),
+]);
+void b(Map<String, String> tags) {
+  if (tags['msg-id'] == 'sub-gift') return;
+  final kind = 'msg-id';
+  send(kind);
+}
+'''),
+        ['pop-up', 'sign-in', 'e-mail'],
+      );
+    });
+
+    test('hole: a sentence with a colon or a bracket and a semicolon in a '
+        'place that shows text', () {
+      expect(
+        texts('''
+Widget a() => Column(children: [
+  const Text('Note: this may take a while; please wait'),
+  const Text('Slow mode (30s); followers only'),
+]);
+void b() => use('if (a) { b; }');
+'''),
+        [
+          'Note: this may take a while; please wait',
+          'Slow mode (30s); followers only',
+        ],
+      );
+    });
+
+    test('hole: a cascade write, a filtered list joined, +=', () {
+      expect(
+        texts(r'''
+Widget a() {
+  final b = StringBuffer()..write('Live')..writeln('Offline');
+  return Text(b.toString());
+}
+Widget c(String t) =>
+    Text(['Prediction', t].where((s) => s.isNotEmpty).join(', '));
+Widget d(List<String?> t) => Text([...t, 'Poll'].nonNulls.join(', '));
+Widget e(int n) {
+  var t = '$n';
+  t += ' watching';
+  return Text(t);
+}
+'''),
+        ['Live', 'Offline', 'Prediction', 'Poll', ' watching'],
+      );
+    });
+
+    test('hole: record rows read back by destructuring', () {
+      expect(
+        texts('''
+Widget a(String v) {
+  final rows = <(String, String)>[('Latency', v), ('Buffer', v)];
+  return Column(children: [for (final (label, value) in rows) Text(label)]);
+}
+Widget b(String v) => Column(children: [
+  for (final (label, _) in [('Bitrate', v)]) Text(label),
+]);
+Widget c() {
+  final rows = [('row-id', 1)];
+  return Column(children: [for (final (id, n) in rows) Key2(id, n)]);
+}
+'''),
+        ['Latency', 'Buffer', 'Bitrate'],
+      );
+    });
+
     test('says where a literal is and why', () {
       final [literal] = flaggedIn(
         "\n\nfinal t = Text('Hello');\n",

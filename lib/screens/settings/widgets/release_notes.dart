@@ -856,10 +856,11 @@ enum ReleaseSectionKind {
     return other;
   }
 
-  /// A whole English word: "Fixes", "Bugfixes", "Hotfix", "Fixed", not
-  /// "Prefixes" (nor the French « Préfixes »).
+  /// A whole English word: "Fix", "Fixes", "Fixed", "Fixing", "Fixups",
+  /// "Bugfixes", "Hotfix", "Corrections", not "Prefixes" (nor the French
+  /// « Préfixes »).
   static final _fixed = RegExp(
-    r'(?<!\p{L})(?:bug|hot)?fix(?:es|ed)?(?!\p{L})',
+    r'(?<!\p{L})(?:(?:bug|hot)?fix(?:es|ed|ing|ups?)?|corrections?)(?!\p{L})',
     unicode: true,
   );
   static final _added = RegExp(r'\b(new|features?|added)\b');

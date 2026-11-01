@@ -642,6 +642,36 @@ void main() {
     });
   });
 
+  test('a connection dropped midway still counts towards turning the '
+      'snapshot off, as it always did', () {
+    run((async) {
+      var online = false;
+      when(() => h.service.getPoll(any())).thenAnswer((_) async {
+        // Read by a screen as a network error, but not a NetworkException.
+        if (!online) {
+          throw const ApiException(
+            'Connection reset by peer',
+            null,
+            null,
+            ApiErrorKind.network,
+          );
+        }
+        return pollModel();
+      });
+      h.create();
+      async.flushMicrotasks();
+      h.topics[HighlightTopic.polls]!.add(
+        const RealtimeUnavailable('reconnecting'),
+      );
+      async.elapse(const Duration(seconds: 150));
+
+      online = true;
+      async.elapse(const Duration(seconds: 31));
+      expect(h.store.poll, isNull);
+      h.store.dispose();
+    });
+  });
+
   test('a new connection gives a switched-off snapshot another chance', () {
     run((async) {
       var broken = true;

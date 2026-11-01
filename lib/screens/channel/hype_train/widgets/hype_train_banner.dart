@@ -191,6 +191,7 @@ class _HypeTrainBannerState extends State<HypeTrainBanner> {
                     palette,
                     compact,
                     HtCopy.of(context),
+                    height: height,
                     // An announced level change counts up on its own pill.
                     animatePill: resting && !store.reduceMotion,
                     pillColorDuration: morph,
@@ -247,9 +248,11 @@ class _HypeTrainBannerState extends State<HypeTrainBanner> {
               store: store,
               child: ClipRRect(
                 borderRadius: radius,
-                child: SizedBox(
+                // 74 dp (scaled with the text), taller when the subtitle
+                // needs its second line: nothing is cut off.
+                child: ConstrainedBox(
                   key: const ValueKey('ht-banner'),
-                  height: height,
+                  constraints: BoxConstraints(minHeight: height ?? 0),
                   child: HtFillScope(
                     fraction: _edge,
                     child: Stack(
@@ -379,18 +382,21 @@ class _HypeTrainBannerState extends State<HypeTrainBanner> {
 
 /// The resting content at the start of the banner: the level pill and the
 /// title over the subtitle (compact: the train's name as the subtitle).
+/// Its natural height: the banner is at least [height] (null: compact) and
+/// grows to fit it.
 Widget _restColumn(
   HypeTrainStore store,
   HtPalette palette,
   bool compact,
   HtCopy copy, {
+  double? height,
   bool animatePill = true,
   Duration pillColorDuration = Duration.zero,
 }) {
   final train = store.train;
   if (train == null) return const SizedBox.shrink();
   if (store.style == HtStyle.athApproaching) {
-    return _athApproaching(palette, compact, copy);
+    return _athApproaching(palette, compact, copy, height: height);
   }
   final title = copy.trainTitle(train.variant, shared: train.shared != null);
   final subtitle = Padding(
@@ -447,38 +453,92 @@ Widget _restColumn(
               if (!compact) ...[
                 const SizedBox(width: HtDims.margin),
                 Flexible(
-                  child: htSplit(
-                    palette,
-                    Text(
-                      title,
-                      key: const ValueKey('ht-title'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: palette.textStyle(HtType.titleDefault),
-                    ),
+                  child: _FittedTitle(
+                    title,
+                    palette: palette,
+                    style: palette.textStyle(HtType.titleDefault),
                   ),
                 ),
               ],
             ],
           ),
         );
+        // Centred in the banner's row; both lines of the subtitle shown.
         return Column(
-          mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            top,
-            if (compact) subtitle else Flexible(child: subtitle),
-          ],
+          children: [top, subtitle],
         );
       },
     ),
   );
 }
 
-/// A record in sight: a large trophy (cropped by the banner) and the
-/// subtitle, no pill or title.
-Widget _athApproaching(HtPalette palette, bool compact, HtCopy copy) {
+/// The train's name in the banner's top row, never losing its last word
+/// (the variant, « trésor », "Shared…"): one line at its size when it
+/// fits, else a little smaller (down to [_minScale]), else on more lines
+/// at that size (the banner grows).
+class _FittedTitle extends StatelessWidget {
+  const _FittedTitle(this.title, {required this.palette, required this.style});
+
+  final String title;
+  final HtPalette palette;
+  final TextStyle style;
+
+  static const _minScale = 0.8;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final scaler = MediaQuery.textScalerOf(context);
+      var shownScaler = scaler;
+      var lines = 1;
+      if (constraints.hasBoundedWidth) {
+        final painter = TextPainter(
+          text: TextSpan(text: title, style: style),
+          textDirection: Directionality.of(context),
+          textScaler: scaler,
+          maxLines: 1,
+        )..layout();
+        final natural = painter.width;
+        painter.dispose();
+        if (natural > constraints.maxWidth) {
+          // Rounded down, so the smaller text surely fits; the style keeps
+          // its size, the text is scaled.
+          final scale =
+              (constraints.maxWidth / natural * 100).floorToDouble() / 100;
+          final size = style.fontSize ?? 14;
+          shownScaler = TextScaler.linear(
+            scaler.scale(size) / size * max(scale, _minScale),
+          );
+          // A shared train at large text on a narrow phone: up to three.
+          if (scale < _minScale) lines = 3;
+        }
+      }
+      return htSplit(
+        palette,
+        Text(
+          title,
+          key: const ValueKey('ht-title'),
+          maxLines: lines,
+          overflow: TextOverflow.ellipsis,
+          style: style,
+          textScaler: shownScaler,
+        ),
+      );
+    },
+  );
+}
+
+/// A record in sight: a large trophy (cropped by the banner, whose base
+/// [height] it fills) and the subtitle, no pill or title.
+Widget _athApproaching(
+  HtPalette palette,
+  bool compact,
+  HtCopy copy, {
+  double? height,
+}) {
   final trophy = Icon(
     Icons.emoji_events_rounded,
     key: const ValueKey('ht-ath-trophy'),
@@ -498,8 +558,11 @@ Widget _athApproaching(HtPalette palette, bool compact, HtCopy copy) {
             // Up to half a narrow banner; the 100 dp trophy is cropped.
             SizedBox(
               width: min(HtDims.trophy, constraints.maxWidth / 2),
+              height: height,
               child: ClipRect(
                 child: OverflowBox(
+                  minWidth: 0,
+                  minHeight: 0,
                   maxWidth: HtDims.trophy,
                   maxHeight: HtDims.trophy,
                   child: trophy,

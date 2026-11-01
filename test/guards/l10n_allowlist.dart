@@ -51,6 +51,13 @@ const l10nAllowlist = <String, Map<String, String>>{
     'Mythic Train': _paletteName,
     'Golden Kappa Train': _paletteName,
   },
+  'lib/screens/channel/video/stores/ivs_video_store.dart': {
+    'Auto': _autoQuality,
+  },
+  'lib/screens/channel/video/stores/native_video_store.dart': {
+    'Auto': _autoQuality,
+  },
+  'lib/screens/channel/video/stores/video_store.dart': {'Auto': _autoQuality},
   'lib/screens/home/live_feed/live_preview.dart': {
     'ONSET preview':
         'The preview player\'s internal media title (media_kit), never '
@@ -78,6 +85,12 @@ const l10nAllowlist = <String, Map<String, String>>{
     "it is a user's token": 'Same: a debug log, never shown.',
     'it is not the application the proxy named':
         'Same: a debug log, never shown.',
+  },
+  'lib/screens/settings/widgets/settings_twitch_web_token.dart': {
+    'auth-token':
+        'The name of the twitch.tv cookie the field asks for, shown as its '
+        'label while no token is set: a cookie name, the same in every '
+        'language.',
   },
   'lib/screens/settings/widgets/settings_page.dart': {
     'ONSET v{} ({})':
@@ -122,6 +135,11 @@ const l10nAllowlist = <String, Map<String, String>>{
 const _apiLog =
     'ApiException.message, English for logs and crash reports; screens '
     'show apiErrorText (lib/l10n/api_errors.dart) instead.';
+
+const _autoQuality =
+    'The adaptive rendition\'s name, a quality value compared and saved '
+    'as is (streamQuality, the quality list); the quality menu words it '
+    'with qualityLabel (playerConfigAuto, « Auto » in French too).';
 
 const _ignoredEvent =
     'Why the hype train reducer ignored an event (HtApplyResult.reason): '

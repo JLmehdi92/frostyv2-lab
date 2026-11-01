@@ -15,8 +15,9 @@ final class HtCopy {
 
   final AppLocalizations l;
 
-  /// [value] with the grouping of the language of `Intl` (« 1 200 »).
-  String number(int value) => NumberFormat.decimalPattern().format(value);
+  /// [value] with the grouping of [l]'s language (« 1 200 »).
+  String number(int value) =>
+      NumberFormat.decimalPattern(l.localeName).format(value);
 
   // --- Names -----------------------------------------------------------------
 
@@ -225,7 +226,8 @@ final class HtCopy {
 
   String mythicCard(int pool) => l.htMythicCard(count: pool);
 
-  String get goldenCard => l.htInstructionStart(variant: 'goldenKappa');
+  String get goldenCard =>
+      l.htInstructionStart(variant: HtVariant.goldenKappa.name);
 
   // --- Followed streams ------------------------------------------------------
 
@@ -254,10 +256,13 @@ final class HtCopy {
       case HtPhase.approaching:
         return l.htSemanticsApproaching;
       case HtPhase.ongoing:
-        final seconds = store.remaining.inSeconds;
-        final time = seconds >= 60
-            ? l.htSemanticsMinutes(minutes: (seconds / 60).ceil())
-            : l.htSemanticsSeconds(count: seconds);
+        // Minutes until the last one: a label that changes every second
+        // would keep screen readers busy (and rebuild its readers).
+        final time = switch (store.summaryTime) {
+          (minutes: final minutes, seconds: _) when minutes > 0 =>
+            l.htSemanticsMinutes(minutes: minutes),
+          (minutes: _, :final seconds) => l.htSemanticsSeconds(count: seconds),
+        };
         return l.htSemanticsOngoing(
           level: store.level,
           percent: store.percent,

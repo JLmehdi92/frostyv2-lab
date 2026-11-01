@@ -320,7 +320,7 @@ void main() {
       );
       expect(
         copy.contribution('Alice', const HtAction('TIER_2_SUB'), 1),
-        'Alice vient de s’abonner avec un abonnement de niveau 2 !',
+        'Alice vient de s’abonner au niveau 2 !',
       );
     });
   });

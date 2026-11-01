@@ -3173,7 +3173,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String channelWatchStreak({required int value}) {
-    return 'Série de visionnage : $value';
+    return 'Série $value';
   }
 
   @override
@@ -3187,7 +3187,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String channelChatDelay({required int seconds}) {
-    return '$seconds s de décalage';
+    return '$seconds s de délai';
   }
 
   @override
@@ -3282,7 +3282,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String liveRefusedBanned({required String name}) {
-    return 'Vous faites l’objet d’un bannissement sur la chaîne $name.';
+    return 'Votre compte est banni de la chaîne $name.';
   }
 
   @override
@@ -3370,7 +3370,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String latencyStatsRate({required String rate}) {
-    return '$rate×';
+    return '$rate ×';
   }
 
   @override
@@ -3386,7 +3386,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get latencyStatsStartup => 'Démarrage';
 
   @override
-  String get latencyStatsRebuffers => 'Mises en tampon';
+  String get latencyStatsRebuffers => 'Blocages';
 
   @override
   String get latencyStatsLiveJumps => 'Retours au direct';
@@ -3413,11 +3413,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get latencyAutoSettling => 'attente du calme';
+  String get latencyAutoSettling => 'stabilisation';
 
   @override
   String latencyAutoSettlingSeconds({required int seconds}) {
-    return 'attente du calme $seconds s';
+    return 'stabilisation $seconds s';
   }
 
   @override
@@ -3425,12 +3425,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String latencyAutoCatchingUp({required String rate}) {
-    return 'rattrapage $rate×';
+    return 'rattrapage $rate ×';
   }
 
   @override
   String latencyAutoDraining({required String rate}) {
-    return 'résorption $rate×';
+    return 'résorption $rate ×';
   }
 
   @override
@@ -3438,14 +3438,14 @@ class AppLocalizationsFr extends AppLocalizations {
     required String rate,
     required String reason,
   }) {
-    return 'résorption $rate× ($reason)';
+    return 'résorption $rate × ($reason)';
   }
 
   @override
   String get latencyReasonGaveUp => 'abandon';
 
   @override
-  String get latencyReasonHeld => 'pause';
+  String get latencyReasonHeld => 'en attente';
 
   @override
   String get latencyReasonAd => 'publicité';
@@ -3483,12 +3483,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String latencyReasonStuckFast({required String rate}) {
-    return 'le lecteur est resté à $rate×';
+    return 'le lecteur est resté à $rate ×';
   }
 
   @override
   String latencyReasonNotBackToNormal({required String rate}) {
-    return 'le lecteur n’est pas revenu à $rate×';
+    return 'le lecteur n’est pas revenu à $rate ×';
   }
 
   @override
@@ -3500,13 +3500,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get clipCreateTitle => 'Créer un clip';
 
   @override
-  String get clipCreateButton => 'Clip';
+  String get clipCreateButton => 'Créer un clip';
 
   @override
   String get clipCreateGenerating => 'Génération du Clipperino…';
 
   @override
-  String get clipCreateRendering => 'Rendu du clip';
+  String get clipCreateRendering => 'Rendu du clip en cours';
 
   @override
   String get clipCreateLogIn => 'Connectez-vous pour créer des clips.';
@@ -3546,7 +3546,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get clipCreateFailedRestricted =>
-      'Impossible de créer un clip de cette chaîne pour le moment : les clips sont peut-être désactivés ou réservés aux followers ou aux abonnés, ou bien vous faites l’objet d’un bannissement ou d’une exclusion temporaire sur cette chaîne.';
+      'Impossible de créer un clip de cette chaîne pour le moment : les clips y sont peut-être désactivés ou réservés aux followers ou aux abonnés, ou votre compte y est banni ou exclu temporairement.';
 
   @override
   String get clipCreateFailedOffline =>
@@ -3689,7 +3689,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get highlightPredictionsOpen => 'Prédictions ouvertes';
 
   @override
-  String get highlightPredictionsClosed => 'Prédictions fermées';
+  String get highlightPredictionsClosed => 'Prédictions verrouillées';
 
   @override
   String get highlightPredictionWaiting => 'En attente du résultat';
@@ -3859,7 +3859,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String raidGoAlong({required String viewers}) {
-    return '$viewers · suivi automatique';
+    return '$viewers · départ automatique';
   }
 
   @override
@@ -3942,7 +3942,7 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'les $count abonnements ont été distribués',
-      one: 'abonnement distribué',
+      one: 'l’abonnement a été distribué',
     );
     return '$_temp0';
   }
@@ -4123,7 +4123,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get htMerging =>
-      'Préparez-vous ! Vos forces s’unissent et les niveaux grimpent !';
+      'Ça va chauffer ! Vos forces s’unissent et les niveaux grimpent !';
 
   @override
   String get htSummaryRecord =>
@@ -4185,7 +4185,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String htContributionSub({required String name, required int tier}) {
-    return '$name vient de s’abonner avec un abonnement de niveau $tier !';
+    return '$name vient de s’abonner au niveau $tier !';
   }
 
   @override
@@ -4227,10 +4227,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String htInstructionStart({required String variant}) {
     String _temp0 = intl.Intl.selectLogic(variant, {
       'goldenKappa':
-          'Vous avez peu de temps pour obtenir une emote Kappa dorée exclusive pendant 24 h',
+          'Vous avez peu de temps pour gagner une emote Kappa dorée exclusive, valable 24 h.',
       'community': 'Waouh, un Hype Train collectif, c’est rare !',
       'mythic': 'Waouh, un Hype Train mythique, c’est rare !',
-      'other': 'Vous avez peu de temps pour obtenir des emotes exclusives',
+      'other': 'Vous avez peu de temps pour gagner des emotes exclusives.',
     });
     return '$_temp0';
   }
@@ -4245,11 +4245,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get htInstructionTreasureOneAway =>
-      'Encore un niveau pour débloquer une réduction jusqu’à la fin de ce train, continuez !';
+      'Encore un niveau pour débloquer une réduction jusqu’à la fin de ce train. Continuez !';
 
   @override
   String htInstructionTreasureUnlocked({required int discount}) {
-    return 'Réduction de $discount % débloquée dès 5 abonnements offerts ! Profitez-en !';
+    return 'Vous avez débloqué $discount % de réduction dès 5 abonnements offerts ! Profitez-en !';
   }
 
   @override
@@ -4292,7 +4292,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String htOtherChannelRecord({required String name}) {
-    return 'Nouveau record partagé absolu pour la chaîne $name !';
+    return 'Nouveau record absolu partagé pour la chaîne $name !';
   }
 
   @override
@@ -4366,8 +4366,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get htRewards =>
-      'Bravo ! Les emotes sont en cours d’envoi aux soutiens';
+  String get htRewards => 'Bravo ! Les emotes arrivent chez les soutiens';
 
   @override
   String get htGoldenRewards =>
@@ -4492,17 +4491,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String htChannelRecord({required int percent, required int level}) {
-    return 'Record absolu de la chaîne ! $percent % au niveau $level';
+    return 'Record absolu de la chaîne ! Niveau $level à $percent %';
   }
 
   @override
   String htTreasureCardUnlocked({required int discount}) {
-    return 'Économisez $discount % dès 5 abonnements offerts, uniquement pendant ce train. Tout le monde à bord !';
+    return 'Économisez $discount % dès 5 abonnements offerts, uniquement pendant ce train. En voiture !';
   }
 
   @override
   String htTreasureCardLocked({required int level, required int discount}) {
-    return 'Débloquez $discount % de réduction temporaire sur les abonnements offerts au niveau $level de ce train !';
+    return 'Atteignez le niveau $level de ce train pour débloquer une réduction temporaire de $discount % sur les abonnements offerts !';
   }
 
   @override
@@ -4510,8 +4509,8 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Débloquez 1 emote exclusive parmi $count pendant 24 heures !',
-      one: 'Débloquez 1 emote exclusive parmi $count pendant 24 heures !',
+      other: 'Débloquez 1 emote exclusive parmi $count, valable 24 heures !',
+      one: 'Débloquez 1 emote exclusive parmi $count, valable 24 heures !',
     );
     return '$_temp0';
   }
@@ -4548,8 +4547,8 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count secondes',
-      one: '$count seconde',
+      other: '$count secondes',
+      one: '$count seconde',
     );
     return '$_temp0';
   }

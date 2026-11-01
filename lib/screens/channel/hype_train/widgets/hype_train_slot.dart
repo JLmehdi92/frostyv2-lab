@@ -148,14 +148,18 @@ class _HypeTrainSlotState extends State<HypeTrainSlot> {
             elevation: pill ? 0 : HtDims.elevation,
             borderRadius: BorderRadius.circular(HtDims.radius),
             clipBehavior: Clip.antiAlias,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                switcher,
-                // The details open below the banner, over the oldest
-                // messages, in the same card.
-                if (details)
-                  ConstrainedBox(
+            // With the details open, the card keeps to the banner's base
+            // height and the details' room (the caller's budget): a banner
+            // grown for its words takes it from the details.
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: details
+                    ? room + htBannerHeight(MediaQuery.textScalerOf(context))
+                    : double.infinity,
+              ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final sheet = ConstrainedBox(
                     constraints: BoxConstraints(maxHeight: room),
                     child: SingleChildScrollView(
                       child: HypeTrainSheet(
@@ -163,8 +167,22 @@ class _HypeTrainSlotState extends State<HypeTrainSlot> {
                         onLearnMore: widget.onLearnMore,
                       ),
                     ),
-                  ),
-              ],
+                  );
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      switcher,
+                      // The details open below the banner, over the oldest
+                      // messages, in the same card; under a banner grown
+                      // for its subtitle they give up what it took.
+                      if (details)
+                        constraints.hasBoundedHeight
+                            ? Flexible(child: sheet)
+                            : sheet,
+                    ],
+                  );
+                },
+              ),
             ),
           );
         },

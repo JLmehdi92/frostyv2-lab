@@ -250,6 +250,19 @@ abstract class HypeTrainStoreBase with Store {
     return HtStyle.regular;
   }
 
+  /// The time left as the screen-reader line names it (HtCopy.summaryLabel):
+  /// whole minutes, rounded up, from a minute ([minutes], [seconds] 0),
+  /// else the seconds ([minutes] 0). Computed, so the banner and the pill
+  /// that read it rebuild once a minute, not every countdown second, until
+  /// the last minute.
+  @computed
+  ({int minutes, int seconds}) get summaryTime {
+    final seconds = _remaining.inSeconds;
+    return seconds >= 60
+        ? (minutes: (seconds / 60).ceil(), seconds: 0)
+        : (minutes: 0, seconds: seconds);
+  }
+
   // --- Presenter and lifecycle --------------------------------------------------
 
   /// A banner is on screen. Counted: each attach needs a detach.

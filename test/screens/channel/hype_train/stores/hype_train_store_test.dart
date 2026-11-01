@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mobx/mobx.dart' as mobx;
 import 'package:mocktail/mocktail.dart';
 import 'package:onset/apis/base_api_client.dart';
 import 'package:onset/apis/twitch_hype_train_service.dart';
@@ -138,6 +139,29 @@ void main() {
 
         async.elapse(const Duration(seconds: 1));
         expect(store.remaining, const Duration(minutes: 4, seconds: 59));
+        store.dispose();
+      });
+    });
+
+    test('the screen-reader time changes once a minute, then every second '
+        'in the last one', () {
+      run((async) {
+        snapshot(() => ongoing(running()));
+        final store = build();
+        async.flushMicrotasks();
+        final seen = <({int minutes, int seconds})>[];
+        final dispose = mobx.reaction((_) => store.summaryTime, seen.add);
+
+        expect(store.summaryTime, (minutes: 5, seconds: 0));
+        // 4:59 down to 4:01 still reads "5 minutes": nothing to rebuild.
+        async.elapse(const Duration(seconds: 59));
+        expect(seen, isEmpty);
+        async.elapse(const Duration(seconds: 1));
+        expect(seen, [(minutes: 4, seconds: 0)]);
+        // The last minute counts seconds.
+        async.elapse(const Duration(minutes: 3, seconds: 1));
+        expect(seen.last, (minutes: 0, seconds: 59));
+        dispose();
         store.dispose();
       });
     });

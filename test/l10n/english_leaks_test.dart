@@ -255,6 +255,206 @@ void main() {
     );
   });
 
+  testWidgets('catches English inside composed texts and in every screen-'
+      'reader field (the phase 4 review\'s plants)', (tester) async {
+    const box = SizedBox(width: 10, height: 10);
+    final watching = english.streamWatching(count: 2445).split('2,445').last;
+    final planted = <String, Widget>{
+      'a custom action': Semantics(
+        customSemanticsActions: {
+          CustomSemanticsAction(label: english.htCollapse): () {},
+        },
+        child: box,
+      ),
+      'a tap hint': Semantics(
+        onTapHint: english.htExpand,
+        onTap: () {},
+        child: box,
+      ),
+      'a long-press hint': Semantics(
+        onLongPressHint: english.playerChangeChatLayout,
+        onLongPress: () {},
+        child: box,
+      ),
+      'an increased value': Semantics(
+        increasedValue: english.livePlayerUnmute,
+        value: '1',
+        onIncrease: () {},
+        child: box,
+      ),
+      'a decreased value': Semantics(
+        decreasedValue: english.htCollapse,
+        value: '1',
+        onDecrease: () {},
+        child: box,
+      ),
+      'after a leading separator': Text(' · ${english.streamOffline}'),
+      'in a joined line': Text(
+        [french.streamWatching(count: 2445), english.streamOffline].join(' · '),
+      ),
+      'inside a French sentence': Text(
+        '${french.channelWebFallback(notice: '')} ${english.liveRefused}'
+            .trim(),
+      ),
+      'a number and its word in a Wrap': Wrap(
+        children: [const Text('2 445'), Text(watching)],
+      ),
+      'a row with a third item': Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('2 445'),
+          Text(watching),
+          const Text(' · 3 h 12'),
+        ],
+      ),
+      'a joined screen-reader summary': Semantics(
+        label: [
+          english.highlightKind(kind: 'prediction'),
+          'Qui gagne ?',
+          french.highlightPredictionsOpen,
+        ].join(', '),
+        child: box,
+      ),
+      'after a bullet': Text('• ${english.clipsListFailed}'),
+      'in quotes': Text('«\u00a0${english.streamOffline}\u00a0»'),
+      'a stats row\'s label': Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(text: '${english.latencyStatsBuffer}  '),
+            const TextSpan(text: '1,7\u00a0s'),
+          ],
+        ),
+      ),
+      'a stats row\'s value': Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(text: '${french.latencyStatsAutoLatency}  '),
+            TextSpan(
+              text: english.latencyAutoHeld(
+                reason: english.latencyReasonPaused,
+              ),
+            ),
+          ],
+        ),
+      ),
+    };
+    for (final MapEntry(key: where, value: widget) in planted.entries) {
+      expect(await leaksOf(tester, [widget]), isNotEmpty, reason: where);
+    }
+    // The same shapes in French pass.
+    expect(
+      await leaksOf(tester, [
+        Semantics(
+          customSemanticsActions: {
+            CustomSemanticsAction(label: french.htCollapse): () {},
+          },
+          onTapHint: french.htExpand,
+          onTap: () {},
+          child: box,
+        ),
+        Text(' · ${french.streamOffline}'),
+        Text(
+          [
+            french.streamWatching(count: 2445),
+            french.streamOffline,
+          ].join(' · '),
+        ),
+        Text(french.channelWebFallback(notice: french.liveRefused)),
+        Text('• ${french.clipsListFailed}'),
+        Text('«\u00a0${french.streamOffline}\u00a0»'),
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(text: '${french.latencyStatsBuffer}  '),
+              const TextSpan(text: '1,7\u00a0s'),
+            ],
+          ),
+        ),
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(text: '${french.latencyStatsAutoLatency}  '),
+              TextSpan(
+                text: french.latencyAutoHeld(
+                  reason: french.latencyReasonPaused,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Semantics(
+          label: [
+            french.highlightKind(kind: 'prediction'),
+            'Qui gagne ?',
+            french.highlightPredictionsOpen,
+          ].join(', '),
+          child: box,
+        ),
+      ]),
+      isEmpty,
+    );
+  });
+
+  test('a piece is only checked against messages French cannot share', () {
+    expect(textPieces(' · Offline'), ['Offline']);
+    expect(textPieces('Latence : 2,3 s'), ['Latence']);
+    expect(textPieces('Passage au lecteur web. Twitch refused this stream.'), [
+      'Passage au lecteur web',
+      'Twitch refused this stream.',
+    ]);
+    expect(textPieces('Buffer  1,7 s'), ['Buffer']);
+  });
+
+  testWidgets('clippedTexts finds a text cut off without an ellipsis, and '
+      'only that', (tester) async {
+    const long =
+        'Atteignez le niveau 3 de ce train pour débloquer une réduction';
+    Future<List<String>> clipsOf(Widget shown) async {
+      await pumpLocalized(
+        tester,
+        Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(width: 160, child: shown),
+          ),
+        ),
+      );
+      return clippedTexts(tester);
+    }
+
+    // Two lines in a box one line high (a banner of fixed height).
+    expect(
+      await clipsOf(
+        const SizedBox(
+          height: 20,
+          child: Text(long, maxLines: 2, overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      [contains('px of lines in a 20.0 px box')],
+    );
+    // One line allowed, cut with nothing to show it (the default clip).
+    expect(await clipsOf(const Text(long, maxLines: 1)), [
+      contains('cut off with no ellipsis'),
+    ]);
+    // A line that does not wrap, cut at the box's edge.
+    expect(await clipsOf(const Text(long, softWrap: false)), [
+      contains('px wide in a 160.0 px box'),
+    ]);
+    // What a viewer can see is cut passes: an ellipsis, a fade.
+    expect(
+      await clipsOf(
+        const Text(long, maxLines: 1, overflow: TextOverflow.ellipsis),
+      ),
+      isEmpty,
+    );
+    expect(
+      await clipsOf(const Text(long, maxLines: 1, overflow: TextOverflow.fade)),
+      isEmpty,
+    );
+    // Room for every line passes.
+    expect(await clipsOf(const Text(long)), isEmpty);
+  });
+
   testWidgets('passes what French writes as English does: an endonym, data', (
     tester,
   ) async {

@@ -232,10 +232,12 @@ void main() {
     );
 
     testWidgets(
-      'the banner is 74 dp tall',
+      'the banner is 74 dp tall when its subtitle fits one line',
       (tester) async {
+        // Wide enough for the test font's wide letters to keep the
+        // subtitle on one line: on two, the banner grows to show them.
         final h = running(tester);
-        await pumpSlot(tester, h.store);
+        await pumpSlot(tester, h.store, width: 600);
 
         expect(tester.getSize(_banner).height, 74);
         expect(tester.takeException(), isNull);

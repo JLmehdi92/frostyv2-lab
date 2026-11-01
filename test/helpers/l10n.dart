@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -105,24 +106,49 @@ Future<void> pumpLocalized(
 /// message ("LIVE", the badge, is no leak of "Live", the tab). An English
 /// message that French also uses as is, case included (the endonym
 /// "English"), is not looked for.
+///
+/// A text is also read in pieces, since screens compose: each piece
+/// between separators (`·`, a dash, a colon, a comma, a sentence's end, a
+/// line break, a bullet, brackets and quotes, a double space: "2 445
+/// spectateurs · Offline", "Prediction, Qui gagne ?", "Passage au lecteur
+/// web. Twitch refused this stream.", "« Offline »"), and each span of a
+/// `Text.rich` (a stats row's label beside its value). A piece is a leak
+/// when it is a whole English message of two words or five letters at
+/// least that French words differently, and that no French message holds
+/// as is ([_pieceChecks]): a short word French shares ("Message",
+/// "Points") cannot be told apart, and stays unchecked.
 List<String> englishLeaks(WidgetTester tester) => [
   for (final text in shownTexts(tester))
     if (_isEnglishLeak(text)) text,
+  for (final (:whole, :piece) in _spanPieces(tester))
+    if (!_isEnglishLeak(whole) && _isEnglishPiece(piece)) '$whole [$piece]',
 ];
 
 /// Whether [text], shown on a French screen, is English (see
-/// [englishLeaks]). Worked out once per text: the screens show the same
-/// texts at every scroll step.
-bool _isEnglishLeak(String text) =>
-    _leakVerdicts.putIfAbsent(text, () => _findsEnglish(text));
+/// [englishLeaks]), whole or in a piece. Worked out once per text: the
+/// screens show the same texts at every scroll step.
+bool _isEnglishLeak(String text) => _leakVerdicts.putIfAbsent(
+  text,
+  () =>
+      _findsEnglish(text, _leakChecks.checks, _leakChecks.anyEnglish) ||
+      textPieces(text).any((piece) => piece != text && _isEnglishPiece(piece)),
+);
 
 final _leakVerdicts = <String, bool>{};
 
-bool _findsEnglish(String text) {
-  final (:checks, :frenchValues, :anyEnglish) = _leakChecks;
-  if (frenchValues.contains(text)) return false;
+/// Whether [piece], a part of a longer text, is an English message
+/// ([englishLeaks]).
+bool _isEnglishPiece(String piece) => _pieceVerdicts.putIfAbsent(
+  piece,
+  () => _findsEnglish(piece, _leakChecks.pieceChecks, _leakChecks.anyPiece),
+);
+
+final _pieceVerdicts = <String, bool>{};
+
+bool _findsEnglish(String text, List<_LeakCheck> checks, RegExp? any) {
+  if (any == null || _leakChecks.frenchValues.contains(text)) return false;
   // Most texts match no English message: one pass over all of them first.
-  if (!anyEnglish.hasMatch(text)) return false;
+  if (!any.hasMatch(text)) return false;
   return checks.any(
     (check) =>
         check.english.any((pattern) => pattern.hasMatch(text)) &&
@@ -130,11 +156,57 @@ bool _findsEnglish(String text) {
   );
 }
 
+/// Where [textPieces] cuts a text: `·`, a dash, a colon, a comma, a
+/// semicolon, a sentence's end before a space, a line break, a bullet,
+/// brackets, quotes, a vertical bar, two spaces or more.
+final _pieceSeparators = RegExp(
+  r'\s*[·•|—–:,;()\[\]«»“”"\n]\s*|[.!?…]\s+|[\s\u00a0\u202f]{2,}',
+);
+
+/// The pieces of [text] [englishLeaks] reads apart: cut at
+/// [_pieceSeparators], trimmed of spaces and closing marks, each with two
+/// letters at least.
+List<String> textPieces(String text) => [
+  for (final raw in text.split(_pieceSeparators))
+    if (raw.replaceAll(RegExp(r'^[\s\u00a0\u202f.!?…]+|[\s\u00a0\u202f]+$'), '')
+        case final piece
+        when RegExp(r'\p{L}{2}', unicode: true).hasMatch(piece))
+      piece,
+];
+
+/// Each span of each `Text.rich` that has several ([englishLeaks]), with
+/// the whole text it is in.
+Iterable<({String whole, String piece})> _spanPieces(
+  WidgetTester tester,
+) sync* {
+  for (final widget in tester.widgetList<RichText>(find.byType(RichText))) {
+    final spans = <String>[];
+    widget.text.visitChildren((span) {
+      if (span is TextSpan && span.text != null) spans.add(span.text!);
+      return true;
+    });
+    if (spans.length < 2) continue;
+    final whole = widget.text.toPlainText();
+    for (final span in spans) {
+      for (final piece in textPieces(span)) {
+        yield (whole: whole, piece: piece);
+      }
+    }
+  }
+}
+
 typedef _LeakCheck = ({List<RegExp> english, List<RegExp> french});
 
-/// The messages [englishLeaks] looks for, read once from the ARB files, and
-/// all their English patterns in one ([anyEnglish]).
-final ({List<_LeakCheck> checks, Set<String> frenchValues, RegExp anyEnglish})
+/// The messages [englishLeaks] looks for, read once from the ARB files:
+/// every one for whole texts ([checks], all in one in [anyEnglish]), and
+/// those a piece of a text can be told by ([pieceChecks], in [anyPiece]).
+final ({
+  List<_LeakCheck> checks,
+  List<_LeakCheck> pieceChecks,
+  Set<String> frenchValues,
+  RegExp? anyEnglish,
+  RegExp? anyPiece,
+})
 _leakChecks = () {
   final english =
       jsonDecode(File('lib/l10n/app_en.arb').readAsStringSync())
@@ -150,28 +222,74 @@ _leakChecks = () {
         ..._variants(value).where((v) => !v.contains(_hole)),
       ],
   };
+  // Every French text, lower case: an English piece found in it is a
+  // word French uses too.
+  final frenchCorpus = [
+    for (final MapEntry(:key, :value) in french.entries)
+      if (!key.startsWith('@') && value is String)
+        ..._variants(value).map((v) => v.replaceAll(_hole, '\n')),
+  ].join('\n').toLowerCase();
+  bool inFrench(String words) => RegExp(
+    '(?<![\\p{L}\\d])${RegExp.escape(words.toLowerCase())}(?![\\p{L}\\d])',
+    unicode: true,
+  ).hasMatch(frenchCorpus);
+
   final checks = <_LeakCheck>[];
+  final pieceChecks = <_LeakCheck>[];
   for (final MapEntry(:key, :value) in english.entries) {
     if (key.startsWith('@') || value is! String) continue;
     // Shown as is in French too (an endonym): it cannot be told apart.
     if (frenchValues.contains(value)) continue;
     final englishPatterns = shownPatterns(value);
     if (englishPatterns.isEmpty) continue;
-    checks.add((
-      english: englishPatterns,
-      french: shownPatterns(french[key]! as String),
-    ));
+    final frenchPatterns = shownPatterns(french[key]! as String);
+    checks.add((english: englishPatterns, french: frenchPatterns));
+    final telling = [
+      for (final variant in _variants(value))
+        if (_tellsAPiece(variant, inFrench)) shownPatterns(variant),
+    ].expand((patterns) => patterns).toList();
+    if (telling.isNotEmpty) {
+      pieceChecks.add((english: telling, french: frenchPatterns));
+    }
   }
-  final anyEnglish = RegExp(
-    [
-      for (final check in checks)
-        for (final pattern in check.english) '(?:${pattern.pattern})',
-    ].join('|'),
-    caseSensitive: false,
-    dotAll: true,
+  RegExp? anyOf(List<_LeakCheck> checks) => checks.isEmpty
+      ? null
+      : RegExp(
+          [
+            for (final check in checks)
+              for (final pattern in check.english) '(?:${pattern.pattern})',
+          ].join('|'),
+          caseSensitive: false,
+          dotAll: true,
+        );
+  return (
+    checks: checks,
+    pieceChecks: pieceChecks,
+    frenchValues: frenchValues,
+    anyEnglish: anyOf(checks),
+    anyPiece: anyOf(pieceChecks),
   );
-  return (checks: checks, frenchValues: frenchValues, anyEnglish: anyEnglish);
 }();
+
+/// Whether a piece of a text that is [variant] (an English message's,
+/// [_hole] for its placeholders) tells English: two words or five letters
+/// of its own at least, and words French does not use as they are
+/// ([inFrench] finds every fixed part of it in a French message:
+/// "Message", "Points", "Notifications").
+bool _tellsAPiece(String variant, bool Function(String words) inFrench) {
+  final fixed = [
+    for (final part in variant.split(_hole))
+      if (part.replaceAll(RegExp(r'^[\s\p{P}]+|[\s\p{P}]+$', unicode: true), '')
+          case final words when RegExp(r'\p{L}', unicode: true).hasMatch(words))
+        words,
+  ];
+  if (fixed.isEmpty) return false;
+  final joined = fixed.join(' ');
+  final letters = RegExp(r'\p{L}', unicode: true).allMatches(joined).length;
+  final words = RegExp(r'\p{L}+', unicode: true).allMatches(joined).length;
+  if (letters < 5 && words < 2) return false;
+  return !fixed.every(inFrench);
+}
 
 /// Every text [tester]'s screen shows a viewer: drawn text (with its
 /// spans' screen-reader labels, and `SelectableText`), the texts of each
@@ -192,21 +310,36 @@ Set<String> shownTexts(WidgetTester tester) => {
       widget.properties.value,
       widget.properties.hint,
       widget.properties.tooltip,
+      widget.properties.hintOverrides?.onTapHint,
+      widget.properties.hintOverrides?.onLongPressHint,
+      widget.properties.increasedValue,
+      widget.properties.decreasedValue,
       widget.properties.attributedLabel?.string,
       widget.properties.attributedValue?.string,
       widget.properties.attributedHint?.string,
+      widget.properties.attributedIncreasedValue?.string,
+      widget.properties.attributedDecreasedValue?.string,
+      for (final action
+          in widget.properties.customSemanticsActions?.keys ??
+              const <CustomSemanticsAction>[])
+        action.label,
     ].nonNulls.where((text) => text.trim().isNotEmpty),
   for (final widget in tester.widgetList<Tooltip>(find.byType(Tooltip)))
     ?(widget.message ?? widget.richMessage?.toPlainText()),
 };
 
-/// The text of each horizontal [Flex] (a `Row`) drawing more than one
-/// text: its texts in order, joined as they stand side by side. A number
-/// and its word in two `Text`s ("2 445" and " watching") read as one.
+/// The text of each horizontal [Flex] (a `Row`) or [Wrap] drawing more
+/// than one text: its texts in order, joined as they stand side by side. A
+/// number and its word in two `Text`s ("2 445" and " watching") read as
+/// one.
 Iterable<String> _rowTexts(WidgetTester tester) sync* {
-  for (final element in find.byWidgetPredicate((w) => w is Flex).evaluate()) {
-    final flex = element.widget as Flex;
-    if (flex.direction != Axis.horizontal) continue;
+  for (final element
+      in find.byWidgetPredicate((w) => w is Flex || w is Wrap).evaluate()) {
+    final direction = switch (element.widget) {
+      Flex(:final direction) || Wrap(:final direction) => direction,
+      _ => Axis.vertical,
+    };
+    if (direction != Axis.horizontal) continue;
     final texts = <String>[];
     void visit(Element child) {
       if (child.widget case RichText(:final text)) {
@@ -318,6 +451,44 @@ int _closing(String text, int open) {
   throw FormatException('Unclosed brace', text, open);
 }
 
+/// The texts [tester]'s screen draws cut off without showing it: a
+/// paragraph whose box is shorter than the lines it lays out (a banner of
+/// fixed height under a two-line subtitle: the second line is cut in
+/// half), or one that goes past its lines or its width with nothing drawn
+/// to say so (`TextOverflow.clip`, the default). An ellipsis is visible,
+/// so a text ending in one passes, unless its box is too short too.
+///
+/// Each is described with what it needs and what it has.
+List<String> clippedTexts(WidgetTester tester) => [
+  for (final element in find.byType(RichText).evaluate())
+    if (element.renderObject case final RenderParagraph paragraph
+        when paragraph.hasSize && paragraph.size.height >= 1)
+      ?_clipOf(paragraph),
+];
+
+String? _clipOf(RenderParagraph paragraph) {
+  final size = paragraph.size;
+  final text = paragraph.text.toPlainText();
+  if (text.trim().isEmpty) return null;
+  // The height its lines need at its width (within maxLines).
+  final needed = paragraph.getMaxIntrinsicHeight(size.width);
+  if (size.height + 0.5 < needed) {
+    return '"$text": ${needed.toStringAsFixed(1)} px of lines in a '
+        '${size.height.toStringAsFixed(1)} px box';
+  }
+  if (paragraph.overflow != TextOverflow.clip) return null;
+  if (paragraph.didExceedMaxLines) {
+    return '"$text": more than ${paragraph.maxLines} line(s), cut off with '
+        'no ellipsis';
+  }
+  final wide = paragraph.getMaxIntrinsicWidth(double.infinity);
+  if (!paragraph.softWrap && wide > size.width + 0.5) {
+    return '"$text": ${wide.toStringAsFixed(1)} px wide in a '
+        '${size.width.toStringAsFixed(1)} px box, cut off with no ellipsis';
+  }
+  return null;
+}
+
 /// The windows every French screen is checked in: two phones, a landscape
 /// and a portrait tablet.
 const frenchScreenSizes = [
@@ -337,8 +508,9 @@ const frenchChannelScreenSizes = [
 /// The text scales every French screen is checked at.
 const frenchTextScales = [1.0, 1.3];
 
-/// No overflow (nor any other exception) and no English ([englishLeaks]) on
-/// what [tester]'s screen shows, then on what each vertical list shows
+/// No overflow (nor any other exception), no English ([englishLeaks]) and
+/// no text cut off without an ellipsis ([clippedTexts]) on what [tester]'s
+/// screen shows, then on what each vertical list shows
 /// when scrolled to its end. [where] names the screen in failures.
 Future<void> expectFrenchThroughout(WidgetTester tester, String where) async {
   void check(String step) {
@@ -351,6 +523,7 @@ Future<void> expectFrenchThroughout(WidgetTester tester, String where) async {
           '${exception is FlutterError ? exception.toStringDeep() : ''}',
     );
     expect(englishLeaks(tester), isEmpty, reason: '$where, $step');
+    expect(clippedTexts(tester), isEmpty, reason: '$where, $step');
   }
 
   check('at the top');

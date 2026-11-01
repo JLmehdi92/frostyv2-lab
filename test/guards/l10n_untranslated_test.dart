@@ -11,10 +11,9 @@ const _untranslated = <String, int>{
   'lib/screens/vod/widgets/vod_details_panel.dart': 1,
 };
 
-/// Where the app looks a language's texts up by itself
-/// (`lookupAppLocalizations`, `AppLocalizationsEn()`…) outside lib/l10n/:
-/// English got that way would pass both tests above. Each use by file, with
-/// why it may.
+/// Where the app looks a language's texts up by itself outside lib/l10n/
+/// ([_directLookup]): English got that way would pass both tests above.
+/// Each use by file, with why it may.
 const _directLookups = <String, (int, String)>{
   'lib/screens/onboarding/onboarding_flow.dart': (
     1,
@@ -22,6 +21,18 @@ const _directLookups = <String, (int, String)>{
         'switching language never moves the layout',
   ),
 };
+
+/// Every way to a language's texts but `context.l10n` and `L10n.current`:
+/// `lookupAppLocalizations` called or torn off, `AppLocalizationsEn` /
+/// `AppLocalizationsFr` built (`.new` too) or named, the delegate's `load`,
+/// and `Localizations.override` (a subtree in a language of its own).
+final _directLookup = RegExp(
+  r'\blookupAppLocalizations\b|\bAppLocalizations(En|Fr)\b|'
+  r'\bdelegate\s*\.\s*load\b|\bLocalizations\s*\.\s*override\b',
+);
+
+/// `L10n.english`, split across lines by the formatter or not.
+final _english = RegExp(r'\bL10n\s*\.\s*english\b');
 
 /// How many times [pattern] occurs in each Dart file of [root], comments
 /// included (a commented-out use would come back).
@@ -40,7 +51,7 @@ Map<String, int> usesIn(String root, RegExp pattern) {
 
 void main() {
   test('L10n.english is only used inside lib/l10n/', () {
-    final uses = usesIn('lib', RegExp(r'\bL10n\.english\b'))
+    final uses = usesIn('lib', _english)
       ..removeWhere((path, _) => path.startsWith('lib/l10n/'));
     expect(
       uses,
@@ -65,10 +76,8 @@ void main() {
 
   test('no language looked up by itself outside lib/l10n/, but the listed '
       'uses', () {
-    final uses = usesIn(
-      'lib',
-      RegExp(r'\blookupAppLocalizations\s*\(|\bAppLocalizations(En|Fr)\s*\('),
-    )..removeWhere((path, _) => path.startsWith('lib/l10n/'));
+    final uses = usesIn('lib', _directLookup)
+      ..removeWhere((path, _) => path.startsWith('lib/l10n/'));
     expect(
       uses,
       {
@@ -88,15 +97,15 @@ void main() {
       "final a = lookupAppLocalizations(const Locale('en'));\n"
       'final b = AppLocalizationsEn();\n'
       "final c = AppLocalizationsFr('fr');\n"
-      'final d = lookupAppLocalizationsNot;\n',
+      'final d = lookupAppLocalizationsNot;\n'
+      'final e = AppLocalizationsEn.new();\n'
+      'final f = [en].map(lookupAppLocalizations);\n'
+      'final g = AppLocalizations.delegate.load(en);\n'
+      'final h = AppLocalizations.delegate\n    .load(en);\n'
+      'final i = Localizations.override(context: c, locale: en);\n'
+      'final j = AppLocalizationsEnglish;\n',
     );
-    expect(
-      usesIn(
-        dir.path,
-        RegExp(r'\blookupAppLocalizations\s*\(|\bAppLocalizations(En|Fr)\s*\('),
-      ).values,
-      [3],
-    );
+    expect(usesIn(dir.path, _directLookup).values, [8]);
   });
 
   test('the counter sees a use', () {
@@ -108,5 +117,16 @@ void main() {
       'final b = L10n.untranslatedness;\n',
     );
     expect(usesIn(dir.path, RegExp(r'\bL10n\.untranslated\b')).values, [2]);
+  });
+
+  test('the English counter sees a use split by the formatter', () {
+    final dir = Directory.systemTemp.createTempSync('english');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    File('${dir.path}/a.dart').writeAsStringSync(
+      'final a = L10n.english;\n'
+      'final b = L10n\n    .english.commonNext;\n'
+      'final c = L10n.englishness;\n',
+    );
+    expect(usesIn(dir.path, _english).values, [2]);
   });
 }

@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:onset/apis/base_api_client.dart';
+import 'package:onset/screens/channel/video/ivs_recovery.dart';
 
 /// Concrete test subclass to test BaseApiClient through its public interface.
 class TestApiClient extends BaseApiClient {
@@ -580,7 +581,8 @@ void main() {
       expect(oauth.twitchMessage, 'Missing client id');
     });
 
-    test('a connection dropped after it was made is a network error', () async {
+    test('a connection dropped after it was made reads as a network error, '
+        'and stays a plain failure for the code', () async {
       for (final inner in [
         const SocketException('Connection reset by peer'),
         const HttpException('Connection closed before full header'),
@@ -601,8 +603,14 @@ void main() {
           await client.testGet('/dropped');
           fail('no failure');
         } on ApiException catch (e) {
-          expect(e, isA<NetworkException>(), reason: '$inner');
+          // A screen says the connection failed.
           expect(e.kind, ApiErrorKind.network, reason: '$inner');
+          // The code decides as before: no token retry, no skipping the
+          // anonymous VOD token, still reported (go-live, highlights).
+          expect(e, isNot(isA<NetworkException>()), reason: '$inner');
+          expect(e.runtimeType, ApiException, reason: '$inner');
+          expect(e.type, isNull, reason: '$inner');
+          expect(isRetryableTokenError(e), isFalse, reason: '$inner');
         }
       }
     });

@@ -372,18 +372,60 @@ class _LiveFactsState extends State<_LiveFacts> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     final minutes = _minutes;
-    return Text(
-      [
-        '${widget.prefix}${context.l10n.streamWatching(count: widget.viewers)}',
-        if (minutes != null)
-          shortUptime(Duration(minutes: minutes), context.l10n),
-      ].join(' · '),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: OnsetType.tabular(widget.style),
+    final uptime = minutes == null
+        ? null
+        : shortUptime(Duration(minutes: minutes), l);
+    String line(String viewers) =>
+        [widget.prefix + viewers, ?uptime].join(' · ');
+    final full = line(l.streamWatching(count: widget.viewers));
+    final style = OnsetType.tabular(widget.style);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Beside the category on a phone the line can run out of room
+        // (French words run longer): it shrinks a little, then the number
+        // goes short (« 2,4 k spectateurs »), then stands alone, rather
+        // than lose its words to an ellipsis (« 2 445 spectate… »). A
+        // screen reader always hears it in full.
+        var shown = full;
+        if (constraints.hasBoundedWidth) {
+          final room = constraints.maxWidth / _minShrink;
+          final scaler = MediaQuery.textScalerOf(context);
+          final direction = Directionality.of(context);
+          final number = formatViewers(widget.viewers);
+          for (final candidate in [
+            full,
+            line(l.streamWatchingShort(count: widget.viewers, viewers: number)),
+            line(number),
+          ]) {
+            shown = candidate;
+            final painter = TextPainter(
+              text: TextSpan(text: candidate, style: style),
+              textDirection: direction,
+              textScaler: scaler,
+              maxLines: 1,
+            )..layout();
+            final fits = painter.width <= room;
+            painter.dispose();
+            if (fits) break;
+          }
+        }
+        return Semantics(
+          label: full,
+          excludeSemantics: true,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(shown, maxLines: 1, softWrap: false, style: style),
+          ),
+        );
+      },
     );
   }
+
+  /// How much the line may shrink before it says less.
+  static const _minShrink = 0.85;
 }
 
 /// A channel's picture, in the live ring when it streams (2 dp of ground,
@@ -722,6 +764,20 @@ class _Chip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = FeedColors.of(context);
     final dark = Theme.of(context).brightness == Brightness.dark;
+    final text = Text(
+      label,
+      maxLines: 1,
+      // A category too long for a narrow column ends in an ellipsis.
+      overflow: green ? TextOverflow.visible : TextOverflow.ellipsis,
+      style: TextStyle(
+        fontSize: 12,
+        height: 1,
+        fontWeight: green ? FontWeight.w600 : FontWeight.w400,
+        color: green
+            ? (dark ? OnsetTokens.hypeText : OnsetTokens.hypeTextLight)
+            : colors.body,
+      ),
+    );
     final chip = Container(
       height: 24,
       padding: const EdgeInsets.symmetric(horizontal: 9),
@@ -732,18 +788,10 @@ class _Chip extends StatelessWidget {
             : (dark ? const Color(0xFF1A1A1A) : colors.raised),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(
-        label,
-        maxLines: 1,
-        style: TextStyle(
-          fontSize: 12,
-          height: 1,
-          fontWeight: green ? FontWeight.w600 : FontWeight.w400,
-          color: green
-              ? (dark ? OnsetTokens.hypeText : OnsetTokens.hypeTextLight)
-              : colors.body,
-        ),
-      ),
+      child: green
+          // The streak's number is all it says: it shrinks rather than go.
+          ? FittedBox(fit: BoxFit.scaleDown, child: text)
+          : text,
     );
     if (onTap == null) return chip;
     return Semantics(

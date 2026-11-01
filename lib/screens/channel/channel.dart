@@ -1115,7 +1115,7 @@ class _VideoChatState extends State<VideoChat>
         controlsVisible: _videoStore.overlayVisible,
         actions: {
           if (context.isLandscape)
-            'Change chat layout': _cycleLandscapeChatMode,
+            context.l10n.playerChangeChatLayout: _cycleLandscapeChatMode,
         },
         child: gestures,
       ),

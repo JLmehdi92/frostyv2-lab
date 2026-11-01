@@ -1195,6 +1195,9 @@ abstract class IvsVideoStoreBase with Store implements PlayerController {
         _reportUnexpected(e, stack, 'usher reason');
       }
       if (reason != null) {
+        // Twitch's English words: shown on English screens only, so always
+        // logged.
+        debugPrint('IvsVideoStore usher refused the stream: $reason');
         notice = StreamRefusalNotice(name: shownName, usherReason: reason);
       }
     }

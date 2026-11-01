@@ -4014,7 +4014,7 @@
   },
   "channelWatchStreak": "Watch streak {value}",
   "@channelWatchStreak": {
-    "description": "A chip under a tablet's video: how many streams in a row the viewer watched on this channel.",
+    "description": "A chip under a tablet's video: how many streams in a row the viewer watched on this channel. French keeps the short « Série {value} » of the stream cards (streamStreak), so the number always shows; the screen reader hears the full name (streamWatchStreakSemantics).",
     "placeholders": {
       "value": {
         "type": "int",
@@ -4036,7 +4036,7 @@
   },
   "channelChatDelay": "{seconds}s delay",
   "@channelChatDelay": {
-    "description": "Beside « Chat » on a tablet: the chat is held back by that many seconds (Settings › Chat).",
+    "description": "Beside « Chat » on a tablet: the chat is held back by that many seconds (Settings › Chat › Message delay, « Délai des messages »).",
     "placeholders": {
       "seconds": {
         "type": "int",
@@ -4172,7 +4172,7 @@
   },
   "liveRefusedBanned": "You are banned from {name}'s channel.",
   "@liveRefusedBanned": {
-    "description": "Why the app's player cannot play a stream: the viewer is banned from the channel. name is the channel's display name. French uses a noun to avoid agreeing « banni(e) ».",
+    "description": "Why the app's player cannot play a stream: the viewer is banned from the channel. name is the channel's display name. French says « votre compte » (masculine) so « banni » never agrees with the viewer.",
     "placeholders": {
       "name": {
         "type": "String",
@@ -4526,7 +4526,7 @@
   },
   "clipCreateButton": "Clip",
   "@clipCreateButton": {
-    "description": "Tooltip of the clip button under the live video (opens the Create clip sheet)."
+    "description": "Tooltip of the clip button under the live video (opens the Create clip sheet). « Clip » is also a verb in English; French names the action, as the sheet's title does."
   },
   "clipCreateGenerating": "Generating Clipperino...",
   "@clipCreateGenerating": {
@@ -4582,7 +4582,7 @@
   },
   "clipCreateFailedRestricted": "You can't clip this channel right now: clips may be off, only for followers or subscribers, or you are banned or timed out here.",
   "@clipCreateFailedRestricted": {
-    "description": "Create clip sheet, failed: Twitch refused for this channel. French uses nouns to avoid agreeing « banni(e) »."
+    "description": "Create clip sheet, failed: Twitch refused for this channel. French says « votre compte » so nothing agrees with the viewer."
   },
   "clipCreateFailedOffline": "Only live streams can be clipped.",
   "@clipCreateFailedOffline": {

@@ -455,6 +455,21 @@ void main() {
       expect(reported, isEmpty);
     });
 
+    test('a connection dropped midway: retried later and reported, as it '
+        'always was', () async {
+      // Read by a screen as a network error, but not a NetworkException.
+      answer(
+        const ApiException(
+          'Connection reset by peer',
+          null,
+          null,
+          ApiErrorKind.network,
+        ),
+      );
+      expect(await run(), isFalse);
+      expect(reported.single, isA<ApiException>());
+    });
+
     test('anything else: retried later and reported', () async {
       answer(StateError('changed'));
       expect(await run(), isFalse);

@@ -1677,6 +1677,12 @@ void main() {
         () => streamService.usherRefusal(_usherUrl),
       ).thenAnswer((_) async => 'Content Restricted In Region');
       var fatal = 0;
+      final logged = <String>[];
+      final print = debugPrint;
+      debugPrint = (message, {wrapWidth}) {
+        if (message != null) logged.add(message);
+      };
+      addTearDown(() => debugPrint = print);
       store = await createStore();
       store.onFatalError = () => fatal++;
 
@@ -1694,7 +1700,9 @@ void main() {
         store.refusalNotice?.text(L10n.english),
         contains('Content Restricted In Region'),
       );
-      // French says Twitch refused; its English words stay in the logs.
+      // Usher's English words are logged whatever the language on screen.
+      expect(logged, contains(contains('Content Restricted In Region')));
+      // French only says Twitch refused.
       expect(
         store.refusalNotice?.text(lookupAppLocalizations(const Locale('fr'))),
         'Twitch refuse ce live.',
