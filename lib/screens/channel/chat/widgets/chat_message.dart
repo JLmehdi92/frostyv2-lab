@@ -316,13 +316,14 @@ class ChatMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final defaultTextStyle = DefaultTextStyle.of(context).style;
-    final messageHeaderIconSize =
-        defaultBadgeSize * chatStore.settings.badgeScale;
     final messageHeaderTextColor = context.onsetColors.metadata;
     const messageHeaderFontWeight = FontWeight.w600;
 
     return Observer(
       builder: (context) {
+        // Read in the Observer: a change of the setting redraws the row.
+        final messageHeaderIconSize =
+            defaultBadgeSize * chatStore.settings.badgeScale;
         Color? highlightColor;
         final Widget renderMessage;
         // A notice row draws its own full-width background and accent, so it
