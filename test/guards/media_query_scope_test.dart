@@ -51,25 +51,98 @@ const _allowed = <String, (int, String)>{
   ),
 };
 
-void main() {
-  test('the whole MediaQuery is read only where it is needed', () {
-    final found = <String, int>{};
-    final pattern = RegExp(r'MediaQuery\s*\.\s*(of|maybeOf)\s*\(');
-    final files = Directory('lib')
-        .listSync(recursive: true)
-        .whereType<File>()
-        .where((f) => f.path.endsWith('.dart') && !f.path.endsWith('.g.dart'));
-    for (final file in files) {
-      final code = file
-          .readAsLinesSync()
-          .map((line) {
-            final comment = line.indexOf('//');
-            return comment == -1 ? line : line.substring(0, comment);
-          })
-          .join('\n');
-      final count = pattern.allMatches(code).length;
-      if (count > 0) found[file.path.replaceAll(r'\', '/')] = count;
+/// Every read of the view's insets straight from `View.of`, which registers
+/// no dependency on them: a widget reading the keyboard that way is not
+/// rebuilt when it comes or goes, unless it listens itself.
+const _viewInsetsAllowed = <String, String>{
+  'lib/screens/channel/channel_top_overlays.dart':
+      'the fallback of an overlay drawn without its ChannelKeyboardScope',
+  'lib/screens/channel/channel_info.dart':
+      '_HiddenWhileTyping listens to the metrics itself '
+      '(WidgetsBindingObserver.didChangeMetrics)',
+};
+
+/// [source] without its comments; string literals are kept whole, so a
+/// `//` in a URL is not taken for a comment.
+String stripComments(String source) {
+  final out = StringBuffer();
+  var i = 0;
+  bool at(String token) => source.startsWith(token, i);
+  while (i < source.length) {
+    if (at('//')) {
+      while (i < source.length && source[i] != '\n') {
+        i++;
+      }
+    } else if (at('/*')) {
+      var depth = 0;
+      do {
+        if (at('/*')) {
+          depth++;
+          i += 2;
+        } else if (at('*/')) {
+          depth--;
+          i += 2;
+        } else {
+          i++;
+        }
+      } while (depth > 0 && i < source.length);
+    } else if (at("'") || at('"')) {
+      final raw = i > 0 && source[i - 1] == 'r';
+      final quote = at("'''") || at('"""')
+          ? source.substring(i, i + 3)
+          : source[i];
+      out.write(quote);
+      i += quote.length;
+      while (i < source.length && !at(quote)) {
+        if (!raw && at(r'\')) {
+          out.write(source.substring(i, i + 2));
+          i += 2;
+        } else {
+          out.write(source[i++]);
+        }
+      }
+      if (i < source.length) {
+        out.write(quote);
+        i += quote.length;
+      }
+    } else {
+      out.write(source[i++]);
     }
+  }
+  return out.toString();
+}
+
+Map<String, int> _count(RegExp pattern) {
+  final found = <String, int>{};
+  final files = Directory('lib')
+      .listSync(recursive: true)
+      .whereType<File>()
+      .where((f) => f.path.endsWith('.dart') && !f.path.endsWith('.g.dart'));
+  for (final file in files) {
+    final count = pattern
+        .allMatches(stripComments(file.readAsStringSync()))
+        .length;
+    if (count > 0) found[file.path.replaceAll(r'\', '/')] = count;
+  }
+  return found;
+}
+
+final _wholeMediaQuery = RegExp(r'MediaQuery\s*\.\s*(of|maybeOf)\s*\(');
+
+void main() {
+  test('the comment stripping keeps code after a URL and drops comments', () {
+    const source = '''
+final url = 'https://example.com'; MediaQuery.of(context);
+// MediaQuery.of(context) in a line comment
+/* MediaQuery.of(context) in a block comment */
+final raw = r'C:\\path'; MediaQuery.maybeOf(context);
+final quoted = "it's // not a comment"; MediaQuery.of(context);
+''';
+    expect(_wholeMediaQuery.allMatches(stripComments(source)).length, 3);
+  });
+
+  test('the whole MediaQuery is read only where it is needed', () {
+    final found = _count(_wholeMediaQuery);
     // The scan saw something: an empty result would pass anything.
     expect(found, isNotEmpty);
     expect(
@@ -78,6 +151,21 @@ void main() {
       reason:
           'A new MediaQuery.of rebuilds its caller on every keyboard frame: '
           'read one aspect, or add it here with the reason it needs all.',
+    );
+  });
+
+  test("the view's insets are read with a dependency, or listened to", () {
+    final found = _count(
+      RegExp(r'View\s*\.\s*(of|maybeOf)\s*\([^;]*?\)[\s\S]{0,80}?viewInsets'),
+    );
+    expect(found, isNotEmpty);
+    expect(
+      found.keys.toSet(),
+      _viewInsetsAllowed.keys.toSet(),
+      reason:
+          'View.of(context).viewInsets does not rebuild its reader when the '
+          'keyboard comes or goes: read MediaQuery.viewInsetsOf, or add it '
+          'here with how it follows the keyboard.',
     );
   });
 }
