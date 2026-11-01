@@ -53,9 +53,29 @@ class ChatRestriction {
     ChatRestrictionKind.subscribersOnly => l.chatRestrictionSubscribersOnly,
     ChatRestrictionKind.followersOnly => switch (minutes) {
       null || 0 => l.chatRestrictionFollowersOnly,
-      final m => l.chatRestrictionFollowersFor(minutes: m),
+      final m => l.chatRestrictionFollowersFor(
+        duration: followAgeShort(Duration(minutes: m), l),
+      ),
     },
   };
+}
+
+/// A followers-only follow [age] for the one-line input, short so it stays
+/// in sight on a phone at large text, in [l]'s language: minutes and hours
+/// in short units ("10m", « 10 min », "3h", « 3 h »), longer ages in whole
+/// days or months of 30 days ("7 days", « 7 jours », "3 months").
+String followAgeShort(Duration age, AppLocalizations l) {
+  final minutes = age.inMinutes;
+  if (minutes < 60) return l.chatShortMinutes(minutes: minutes);
+  if (minutes < 1440 || minutes % 1440 != 0) {
+    return minutes % 60 == 0
+        ? l.chatShortHours(hours: minutes ~/ 60)
+        : l.chatShortHoursMinutes(hours: minutes ~/ 60, minutes: minutes % 60);
+  }
+  final days = minutes ~/ 1440;
+  return days % 30 == 0
+      ? l.chatDurationMonths(count: days ~/ 30)
+      : l.chatDurationDays(count: days);
 }
 
 /// Height of the line [ChatRestriction.showsBar] puts above the input.

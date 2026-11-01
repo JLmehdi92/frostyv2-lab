@@ -52,7 +52,7 @@
   "@commonDismiss": {
     "description": "Tooltip of the cross that hides an in-app notification banner."
   },
-  "commonConnectWithTwitch": "Connect with Twitch",
+  "commonConnectWithTwitch": "Log in with Twitch",
   "@commonConnectWithTwitch": {
     "description": "Button that opens the Twitch login (onboarding Log in step, Profile and other logged-out screens), and the title of the Twitch login page."
   },
@@ -60,7 +60,7 @@
   "@settingsLanguageTitle": {
     "description": "Settings › General: the title of the first group, the app's language."
   },
-  "settingsLanguageSystemSubtitle": "“System” follows your device’s language (currently: {language}).",
+  "settingsLanguageSystemSubtitle": "“System” follows your device’s language (currently {language}).",
   "@settingsLanguageSystemSubtitle": {
     "description": "Settings › General › Language: the line under the options, saying which language the System option gives on this device. The language is named as in a sentence (languageInTextEnglish, languageInTextFrench).",
     "placeholders": {
@@ -120,11 +120,11 @@
   "@onboardingLoginTitle": {
     "description": "Onboarding: title of the Log in step."
   },
-  "onboardingLoginLead": "ONSET needs your permission in order to enable the ability to chat, view followed streams, and more.",
+  "onboardingLoginLead": "ONSET needs your permission to let you chat, see followed streams, and more.",
   "@onboardingLoginLead": {
     "description": "Onboarding Log in step: the text under the title."
   },
-  "onboardingLoginAuthorizeHeader": "What you will authorize",
+  "onboardingLoginAuthorizeHeader": "What you’ll authorize",
   "@onboardingLoginAuthorizeHeader": {
     "description": "Onboarding Log in step: header of the permission list (shown in capitals)."
   },
@@ -140,7 +140,7 @@
   "@onboardingPermissionFollowsTitle": {
     "description": "Onboarding Log in step, permission list: the followed channels permission."
   },
-  "onboardingPermissionFollowsDetail": "See who is live right now",
+  "onboardingPermissionFollowsDetail": "See who’s live right now",
   "@onboardingPermissionFollowsDetail": {
     "description": "Onboarding Log in step, permission list: what the followed channels permission allows."
   },
@@ -180,11 +180,11 @@
   "@onboardingPermissionBlocksTitle": {
     "description": "Onboarding Log in step, permission list: the blocks and chat colour permissions."
   },
-  "onboardingPermissionBlocksDetail": "Manage blocks, change your chat color",
+  "onboardingPermissionBlocksDetail": "Manage blocks and change your name color",
   "@onboardingPermissionBlocksDetail": {
     "description": "Onboarding Log in step, permission list: what the blocks and chat colour permissions allow."
   },
-  "onboardingLoginDisclaimer": "ONSET only asks for the necessary permissions through the official Twitch API. You’ll be able to review them before authorizing.",
+  "onboardingLoginDisclaimer": "ONSET asks only for the permissions it needs, through the official Twitch API. You’ll be able to review them before authorizing.",
   "@onboardingLoginDisclaimer": {
     "description": "Onboarding Log in step: the note above the buttons (in the content on a tablet)."
   },
@@ -210,11 +210,11 @@
       }
     }
   },
-  "loginSigningIn": "Signing you in…",
+  "loginSigningIn": "Logging you in…",
   "@loginSigningIn": {
     "description": "While Twitch finishes the login (onboarding Setup pill, over the Twitch login page)."
   },
-  "onboardingSetupLoginFailed": "Login failed · go back to try again, or log in later from Profile",
+  "onboardingSetupLoginFailed": "Couldn’t log in · go back to try again, or log in later from Profile",
   "@onboardingSetupLoginFailed": {
     "description": "Onboarding Setup step: the pill when the Twitch login did not go through. Profile is the bottom bar section."
   },
@@ -272,7 +272,7 @@
   "@onboardingSetupThemeLightNote": {
     "description": "Onboarding Setup step: the note beside Theme when Light is picked."
   },
-  "onboardingSetupThemeDarkNote": "Noir, the ONSET default",
+  "onboardingSetupThemeDarkNote": "The ONSET default",
   "@onboardingSetupThemeDarkNote": {
     "description": "Onboarding Setup step: the note beside Theme when Dark is picked (\"Noir\" is the dark theme's name)."
   },
@@ -298,7 +298,7 @@
   "@accentSaturationBrightness": {
     "description": "What a screen reader calls the colour square of the accent colour pickers."
   },
-  "accentSaturationBrightnessValue": "{saturation} %, {brightness} %",
+  "accentSaturationBrightnessValue": "{saturation}%, {brightness}%",
   "@accentSaturationBrightnessValue": {
     "description": "Screen-reader value of the colour square of the accent colour pickers.",
     "placeholders": {
@@ -312,7 +312,7 @@
       }
     }
   },
-  "accentHue": "{degrees, plural, other{Hue {degrees} degrees}}",
+  "accentHue": "{degrees, plural, one{Hue {degrees} degree} other{Hue {degrees} degrees}}",
   "@accentHue": {
     "description": "A screen-reader button on the hue slider of the accent colour pickers (eight named hues, 0 to 315).",
     "placeholders": {
@@ -326,7 +326,7 @@
   "@onboardingSetupHistoryTitle": {
     "description": "The switch that loads recent chat messages from a third party (onboarding Setup step, Settings › Chat › Recent messages)."
   },
-  "onboardingSetupHistoryDetail": "When Twitch's own chat history is unavailable, fails or is empty, loads recent messages from {link}, which then receives the channel name.",
+  "onboardingSetupHistoryDetail": "When Twitch’s own chat history is unavailable, fails, or is empty, ONSET loads recent messages from {link}, which then receives the channel name.",
   "@onboardingSetupHistoryDetail": {
     "description": "Onboarding Setup step: the text under the fallback chat history switch. The link is the third party's host, underlined. Also under the same switch in Settings › Chat › Recent messages.",
     "placeholders": {
@@ -340,7 +340,7 @@
   "@onboardingSetupCrashTitle": {
     "description": "The crash logs and analytics consent switch (onboarding Setup step, Settings › Other › Privacy)."
   },
-  "onboardingSetupCrashDetail": "Help improve ONSET by sending crash logs and analytics through Firebase, without your Twitch account or channels.",
+  "onboardingSetupCrashDetail": "Help improve ONSET by sending crash logs and analytics through Firebase. Neither your Twitch account nor your channels are sent.",
   "@onboardingSetupCrashDetail": {
     "description": "Onboarding Setup step: the text under the crash logs and analytics switch. Also under the same switch in Settings › Other › Privacy."
   },
@@ -352,15 +352,15 @@
   "@onboardingWelcomeLead": {
     "description": "Onboarding Welcome step: the text under the title, above the three tips."
   },
-  "onboardingWelcomeTipGitHub": "Check out the GitHub repo at the top-right of the settings page to explore ONSET’s source code, report bugs, make feature requests, and more.",
+  "onboardingWelcomeTipGitHub": "Check out the GitHub repo (top-right corner of Settings) to explore ONSET’s source code, report bugs, request features, and more.",
   "@onboardingWelcomeTipGitHub": {
     "description": "Onboarding Welcome step: the first tip."
   },
-  "onboardingWelcomeTipChangelog": "Links to the full changelog and FAQ are in the settings page under “Other”.",
+  "onboardingWelcomeTipChangelog": "Links to the full changelog and the FAQ are in Settings › Other.",
   "@onboardingWelcomeTipChangelog": {
     "description": "Onboarding Welcome step: the second tip. \"Other\" is the name of a settings page."
   },
-  "onboardingWelcomeTipRating": "Don’t forget to leave a rating and/or review on the app store!",
+  "onboardingWelcomeTipRating": "ONSET checks for new builds by itself, and the release notes open after each update.",
   "@onboardingWelcomeTipRating": {
     "description": "Onboarding Welcome step: the third tip."
   },
@@ -376,11 +376,11 @@
   "@loginHelpTitle": {
     "description": "Title of the login help dialog."
   },
-  "loginHelpBodyOnboarding": "If the Twitch cookie banner is still blocking the login, try clicking one of the links in the cookie policy description and navigating until you reach the Twitch home page. From there, you can try logging in on the top right profile icon. Once logged in, go back to the first step of the onboarding and then try again.",
+  "loginHelpBodyOnboarding": "If the Twitch cookie banner still blocks the login, tap one of the links in the cookie policy text and keep going until you reach the Twitch home page. From there, log in with the profile icon in the top-right corner. Once you’re logged in, go back to the first step of setup and try again.",
   "@loginHelpBodyOnboarding": {
     "description": "Text of the login help dialog, opened from the onboarding."
   },
-  "loginHelpBodyElsewhere": "If the Twitch cookie banner is still blocking the login, try clicking one of the links in the cookie policy description and navigating until you reach the Twitch home page. From there, you can try logging in on the top right profile icon. Once logged in, go back, then open the login again.",
+  "loginHelpBodyElsewhere": "If the Twitch cookie banner still blocks the login, tap one of the links in the cookie policy text and keep going until you reach the Twitch home page. From there, log in with the profile icon in the top-right corner. Once you’re logged in, go back and open the login page again.",
   "@loginHelpBodyElsewhere": {
     "description": "Text of the login help dialog, opened from the settings (outside the onboarding)."
   },
@@ -404,13 +404,13 @@
       }
     }
   },
-  "loginFailedLine": "Twitch did not sign you in. Try again.",
+  "loginFailedLine": "Twitch didn’t log you in. Try again.",
   "@loginFailedLine": {
     "description": "The line under the address of the Twitch login page when Twitch handed back a token that did not log in."
   },
-  "loginLoadFailedTitle": "Twitch could not be reached",
+  "loginLoadFailedTitle": "Couldn’t reach Twitch.",
   "@loginLoadFailedTitle": {
-    "description": "Twitch login page: the title when the page could not load."
+    "description": "Error message. Twitch login page: the title when the page could not load."
   },
   "loginLoadFailedDetail": "Check your connection, then try again.",
   "@loginLoadFailedDetail": {
@@ -432,7 +432,7 @@
   "@shellSectionProfile": {
     "description": "The Profile section of the bottom bar (tablet: the avatar's tooltip)."
   },
-  "shellActivityNew": "{count, plural, other{Activity, {count} new}}",
+  "shellActivityNew": "{count, plural, one{Activity, {count} new} other{Activity, {count} new}}",
   "@shellActivityNew": {
     "description": "What a screen reader (and the tooltip) says for the Activity section when notifications are unread.",
     "placeholders": {
@@ -470,7 +470,7 @@
   "@shellWhispers": {
     "description": "Activity's tab of the whispers, and the tooltip of the header's whispers button."
   },
-  "shellWhispersUnread": "{count, plural, other{Whispers ({count} unread)}}",
+  "shellWhispersUnread": "{count, plural, one{Whispers ({count} unread)} other{Whispers ({count} unread)}}",
   "@shellWhispersUnread": {
     "description": "Tooltip of the header's whispers button when whispers are unread.",
     "placeholders": {
@@ -484,7 +484,7 @@
   "@shellWhispersRefused": {
     "description": "Tooltip of the header's whispers button when Twitch refused them until a new login."
   },
-  "shellTabUnread": "{count, plural, other{{label}, {count} unread}}",
+  "shellTabUnread": "{count, plural, one{{label}, {count} unread} other{{label}, {count} unread}}",
   "@shellTabUnread": {
     "description": "What a screen reader says for a header tab with an unread count (Activity: Notifications, Whispers).",
     "placeholders": {
@@ -506,7 +506,7 @@
   "@shellSearch": {
     "description": "The search button and field of the header, and what a screen reader calls them."
   },
-  "shellSearchHint": "Search channels, categories or videos",
+  "shellSearchHint": "Search channels, categories, or videos",
   "@shellSearchHint": {
     "description": "Browse's search field on a phone."
   },
@@ -514,9 +514,9 @@
   "@shellSettings": {
     "description": "Tooltip of the header's settings button (on Profile)."
   },
-  "homeOpenChannelFailed": "Couldn't open {login}'s channel.",
+  "homeOpenChannelFailed": "Couldn’t open {login}’s channel.",
   "@homeOpenChannelFailed": {
-    "description": "Snackbar when a channel opened from Activity could not be loaded.",
+    "description": "Error message. Snackbar when a channel opened from Activity could not be loaded.",
     "placeholders": {
       "login": {
         "type": "String",
@@ -524,7 +524,7 @@
       }
     }
   },
-  "mentionNotice": "You were mentioned in {login}'s chat",
+  "mentionNotice": "You were mentioned in {login}’s chat.",
   "@mentionNotice": {
     "description": "Snackbar when a mention notification is tapped while a player or a conversation covers the chat.",
     "placeholders": {
@@ -538,9 +538,9 @@
   "@deepLinkCategoryFallback": {
     "description": "Title of the in-app Twitch page opened for a category link Twitch search did not find, when the link has no name."
   },
-  "deepLinkFailed": "Unable to navigate to '{uri}'",
+  "deepLinkFailed": "Couldn’t open “{uri}”.",
   "@deepLinkFailed": {
-    "description": "Snackbar when a link to Twitch cannot be opened in the app.",
+    "description": "Error message. Snackbar when a link to Twitch cannot be opened in the app.",
     "placeholders": {
       "uri": {
         "type": "String",
@@ -560,7 +560,7 @@
   "@miniPlayerReturn": {
     "description": "What a screen reader says for the mini player: it opens the channel again."
   },
-  "miniPlayerClose": "Close mini player",
+  "miniPlayerClose": "Close miniplayer",
   "@miniPlayerClose": {
     "description": "Tooltip of the mini player's close button."
   },
@@ -694,7 +694,7 @@
   "@settingsPageGeneral": {
     "description": "The General settings page: its row, title and side column entry. French: exactly « Général », other messages cite it."
   },
-  "settingsPageGeneralDescription": "Theme, stream cards, browsing and links",
+  "settingsPageGeneralDescription": "Theme, stream cards, browsing, and links",
   "@settingsPageGeneralDescription": {
     "description": "Tablet: the line under the General settings page title."
   },
@@ -702,7 +702,7 @@
   "@settingsPageVideo": {
     "description": "The Video settings page: its row, title and side column entry."
   },
-  "settingsPageVideoDescription": "The low-latency player, playback, overlay, videos and captions",
+  "settingsPageVideoDescription": "Low-latency player, playback, overlay, videos, and captions",
   "@settingsPageVideoDescription": {
     "description": "Tablet: the line under the Video settings page title."
   },
@@ -710,7 +710,7 @@
   "@settingsPageChat": {
     "description": "The Chat settings page: its row, title and side column entry; also a group of Settings › Notifications."
   },
-  "settingsPageChatDescription": "How chat looks, waits, alerts and filters",
+  "settingsPageChatDescription": "Appearance, delay, alerts, and filters",
   "@settingsPageChatDescription": {
     "description": "Tablet: the line under the Chat settings page title."
   },
@@ -726,7 +726,7 @@
   "@settingsPageOther": {
     "description": "The Other settings page (updates, storage, privacy, about): its row, title and side column entry. French: exactly « Autres », other messages cite it."
   },
-  "settingsPageOtherDescription": "Updates, storage, privacy and about",
+  "settingsPageOtherDescription": "Updates, storage, privacy, and about",
   "@settingsPageOtherDescription": {
     "description": "Tablet: the line under the Other settings page title."
   },
@@ -746,11 +746,11 @@
   "@settingsPageBlockedDescription": {
     "description": "Tablet: the line under the blocked users page title."
   },
-  "settingsPageChatFilters": "Edit Chat Filters",
+  "settingsPageChatFilters": "Edit chat filters",
   "@settingsPageChatFilters": {
     "description": "Settings › Chat: the row that opens the chat filters, and that page's title."
   },
-  "settingsSummaryGeneral": "Theme, accent color, browse, links",
+  "settingsSummaryGeneral": "Theme, accent color, browsing, links",
   "@settingsSummaryGeneral": {
     "description": "Profile and phone settings: the line under the General section."
   },
@@ -770,7 +770,7 @@
   "@settingsSummaryNotificationsLoggedOut": {
     "description": "Profile and phone settings, logged out: the line under the Notifications section."
   },
-  "settingsSummaryOther": "Updates, cache, privacy, about",
+  "settingsSummaryOther": "Updates, storage, privacy, about",
   "@settingsSummaryOther": {
     "description": "Profile and phone settings: the line under the Other section."
   },
@@ -798,11 +798,11 @@
       }
     }
   },
-  "settingsUnableToReachTwitch": "Unable to connect to Twitch",
+  "settingsUnableToReachTwitch": "Couldn’t connect to Twitch.",
   "@settingsUnableToReachTwitch": {
-    "description": "Phone settings account card and Profile, when Twitch cannot be reached (a network problem, not a login)."
+    "description": "Error message. Phone settings account card and Profile, when Twitch cannot be reached (a network problem, not a login)."
   },
-  "settingsCheckConnection": "Check your connection, then try again",
+  "settingsCheckConnection": "Check your connection, then try again.",
   "@settingsCheckConnection": {
     "description": "Under « Unable to connect to Twitch » (phone settings account card, Profile)."
   },
@@ -822,11 +822,11 @@
   "@settingsWatchingWithoutAccount": {
     "description": "Profile, logged out: the line under « Anonymous »."
   },
-  "settingsLoginPitch": "Log in to enable the ability to chat, view followed streams, and more.",
+  "settingsLoginPitch": "Log in to chat, see followed streams, and more.",
   "@settingsLoginPitch": {
     "description": "Phone settings account card and Profile, logged out: why to log in."
   },
-  "settingsLoginDisclaimer": "ONSET only asks for the necessary permissions through the official Twitch API. You'll be able to review them before authorizing.",
+  "settingsLoginDisclaimer": "ONSET asks only for the permissions it needs, through the official Twitch API. You’ll be able to review them before authorizing.",
   "@settingsLoginDisclaimer": {
     "description": "Profile, logged out: the note under « Connect with Twitch »."
   },
@@ -854,7 +854,7 @@
   "@settingsTwitchSecurity": {
     "description": "Settings › Account and Profile: opens Twitch's security and privacy page, and that page's title."
   },
-  "settingsTwitchSecurityDetail": "Password, email, phone, two-factor — on twitch.tv",
+  "settingsTwitchSecurityDetail": "Password, email, phone, two-factor authentication — on twitch.tv",
   "@settingsTwitchSecurityDetail": {
     "description": "Profile: the line under « Security and privacy »."
   },
@@ -907,7 +907,7 @@
       }
     }
   },
-  "settingsUnblockMessage": "Are you sure you want to unblock \"{name}\"?",
+  "settingsUnblockMessage": "Are you sure you want to unblock {name}?",
   "@settingsUnblockMessage": {
     "description": "Text of the dialog that asks before unblocking someone.",
     "placeholders": {
@@ -921,7 +921,7 @@
   "@settingsBlock": {
     "description": "Title of the dialog that asks before blocking someone (from a channel or a chat user card)."
   },
-  "settingsBlockMessage": "Are you sure you want to block \"{name}\"? This will remove them from channel lists, search results, and chat messages.",
+  "settingsBlockMessage": "Are you sure you want to block {name}? This removes them from channel lists, search results, and chat messages.",
   "@settingsBlockMessage": {
     "description": "Text of the dialog that asks before blocking someone.",
     "placeholders": {
@@ -939,7 +939,7 @@
   "@settingsNoBlockedUsers": {
     "description": "The blocked users page when there are none."
   },
-  "settingsBlockedCount": "{count, plural, other{{count} blocked}}",
+  "settingsBlockedCount": "{count, plural, one{{count} blocked} other{{count} blocked}}",
   "@settingsBlockedCount": {
     "description": "The blocked users page: the label above the list (shown in capitals).",
     "placeholders": {
@@ -977,7 +977,7 @@
   "@settingsStreamCard": {
     "description": "Settings › General: the group about the cards of live channels."
   },
-  "settingsLargeStreamCard": "Use large stream card",
+  "settingsLargeStreamCard": "Use large stream cards",
   "@settingsLargeStreamCard": {
     "description": "Settings › General › Stream card: the switch for the large card."
   },
@@ -1017,7 +1017,7 @@
   "@settingsHideLabeled": {
     "description": "Settings › General › Browse: the row that hides streams with content classification labels, and its list's title."
   },
-  "settingsHideLabeledValue": "{count, plural, =0{None} other{{count} labels}}",
+  "settingsHideLabeledValue": "{count, plural, =0{None} one{{count} label} other{{count} labels}}",
   "@settingsHideLabeledValue": {
     "description": "Settings › General › Browse: the value of « Hide labeled streams » when none or several labels are hidden (one label shows its name instead).",
     "placeholders": {
@@ -1027,19 +1027,19 @@
       }
     }
   },
-  "settingsHideLabeledNote": "Streams with these labels are left out of Top, categories and tags. Followed channels always show.",
+  "settingsHideLabeledNote": "Streams with these labels are left out of Live, Live channels, categories, and tags. Followed channels always show.",
   "@settingsHideLabeledNote": {
     "description": "The list of content labels to hide: the note under its title."
   },
-  "contentLabelDrugs": "Drugs, Intoxication, or Excessive Tobacco Use",
+  "contentLabelDrugs": "Drugs, intoxication, or excessive tobacco use",
   "@contentLabelDrugs": {
     "description": "Twitch's content classification label (Settings › General › Hide labeled streams, the mature content warning)."
   },
-  "contentLabelSexualThemes": "Sexual Themes",
+  "contentLabelSexualThemes": "Sexual themes",
   "@contentLabelSexualThemes": {
     "description": "Twitch's content classification label."
   },
-  "contentLabelViolentGraphic": "Violent and Graphic Depictions",
+  "contentLabelViolentGraphic": "Violent and graphic depictions",
   "@contentLabelViolentGraphic": {
     "description": "Twitch's content classification label."
   },
@@ -1047,15 +1047,15 @@
   "@contentLabelGambling": {
     "description": "Twitch's content classification label."
   },
-  "contentLabelProfanity": "Significant Profanity or Vulgarity",
+  "contentLabelProfanity": "Significant profanity or vulgarity",
   "@contentLabelProfanity": {
     "description": "Twitch's content classification label."
   },
-  "contentLabelMatureGame": "Mature-Rated Game",
+  "contentLabelMatureGame": "Mature-rated game",
   "@contentLabelMatureGame": {
     "description": "Twitch's content classification label."
   },
-  "contentLabelPolitics": "Politics and Sensitive Social Issues",
+  "contentLabelPolitics": "Politics and sensitive social issues",
   "@contentLabelPolitics": {
     "description": "Twitch's content classification label."
   },
@@ -1075,7 +1075,7 @@
   "@settingsAutoLatency": {
     "description": "Settings › Video › Low-latency player: the switch that keeps the stream close to live by playing slightly faster."
   },
-  "settingsAutoLatencyDetail": "Keeps the stream close to live by playing very slightly faster when it drifts behind, without reloading it. If Ultra keeps stalling, the next streams use Standard for a while. Applies the next time a stream is opened.",
+  "settingsAutoLatencyDetail": "Keeps the stream close to live by playing very slightly faster when it falls behind, without reloading it. If Ultra keeps stalling, the next few streams use Standard. Applies the next time you open a stream.",
   "@settingsAutoLatencyDetail": {
     "description": "Settings › Video › Low-latency player: what « Auto latency » does. Ultra and Standard are the buffer profiles."
   },
@@ -1083,7 +1083,7 @@
   "@settingsLiveCatchUp": {
     "description": "Settings › Video › Low-latency player: how the player gets back to live after falling behind."
   },
-  "settingsLiveCatchUpDetail": "Speed up plays slightly faster until it is back at live (Auto latency does it when on). Jump to live skips ahead after a stall. Applies the next time a stream is opened.",
+  "settingsLiveCatchUpDetail": "“Speed up” plays slightly faster until the stream is back to live (Auto latency already does this when it’s on). “Jump to live” skips ahead after a stall. Applies the next time you open a stream.",
   "@settingsLiveCatchUpDetail": {
     "description": "Settings › Video › Low-latency player: what the two « Live catch-up » options do. Starts with the options' names (liveCatchUpSpeedUp, liveCatchUpJumpToLive)."
   },
@@ -1099,7 +1099,7 @@
   "@settingsBufferProfile": {
     "description": "Settings › Video › Low-latency player: how much video the player keeps ahead."
   },
-  "settingsBufferProfileDetail": "Ultra keeps an even smaller buffer for lower latency but may rebuffer more on weak connections. Applies the next time a stream is opened.",
+  "settingsBufferProfileDetail": "Ultra keeps a smaller buffer than Standard for lower latency, but may rebuffer more on weak connections. Applies the next time you open a stream.",
   "@settingsBufferProfileDetail": {
     "description": "Settings › Video › Low-latency player: what the « Ultra » buffer profile changes."
   },
@@ -1149,7 +1149,7 @@
   "@settingsFastRendering": {
     "description": "Settings › Video › Playback (Android): the switch for the faster WebView rendering."
   },
-  "settingsFastRenderingDetail": "Uses a faster WebView rendering method. Disable if you experience crashes while watching streams.",
+  "settingsFastRenderingDetail": "Uses a faster WebView rendering method. Turn it off if streams crash while you watch.",
   "@settingsFastRenderingDetail": {
     "description": "Settings › Video › Playback: what « Use fast video rendering » does."
   },
@@ -1177,15 +1177,15 @@
   "@settingsCustomOverlay": {
     "description": "Settings › Video › Overlay: the switch for ONSET's own controls over the video."
   },
-  "settingsCustomOverlayDetail": "Replaces Twitch's default web overlay with a mobile-friendly version.",
+  "settingsCustomOverlayDetail": "Replaces Twitch’s default web overlay with a mobile-friendly version.",
   "@settingsCustomOverlayDetail": {
     "description": "Settings › Video › Overlay: what « Use custom video overlay » does."
   },
-  "settingsToggleOverlay": "Long-press player to toggle overlay",
+  "settingsToggleOverlay": "Long-press the player to toggle the overlay",
   "@settingsToggleOverlay": {
     "description": "Settings › Video › Overlay: the switch that lets a long press on the player switch overlays."
   },
-  "settingsToggleOverlayDetail": "Allows switching between Twitch's overlay and the custom overlay.",
+  "settingsToggleOverlayDetail": "Lets you switch between Twitch’s overlay and the custom overlay.",
   "@settingsToggleOverlayDetail": {
     "description": "Settings › Video › Overlay: what the long-press switch does."
   },
@@ -1201,19 +1201,19 @@
   "@settingsVideosAndContent": {
     "description": "Settings › Video: the group about past broadcasts and mature content."
   },
-  "settingsVodAutoplay": "Video Autoplaying",
+  "settingsVodAutoplay": "Autoplay videos",
   "@settingsVodAutoplay": {
     "description": "Settings › Video › Videos and content: when the next video plays by itself."
   },
-  "settingsVodAutoplayDetail": "Choose when videos should play automatically",
+  "settingsVodAutoplayDetail": "Choose when videos play automatically.",
   "@settingsVodAutoplayDetail": {
     "description": "Settings › Video › Videos and content: the line under the autoplay options."
   },
-  "vodAutoplayAlways": "Mobile data & Wi-Fi",
+  "vodAutoplayAlways": "Wi-Fi and mobile data",
   "@vodAutoplayAlways": {
     "description": "Video autoplay option (Settings › Video), with Twitch's wording: always."
   },
-  "vodAutoplayWifiOnly": "Wi-Fi Only",
+  "vodAutoplayWifiOnly": "Wi-Fi only",
   "@vodAutoplayWifiOnly": {
     "description": "Video autoplay option (Settings › Video): only on Wi-Fi."
   },
@@ -1225,7 +1225,7 @@
   "@settingsWarnMature": {
     "description": "Settings › Video › Videos and content: the switch for the mature content warning."
   },
-  "settingsWarnMatureDetail": "Shows a warning before a channel labeled for mature content.",
+  "settingsWarnMatureDetail": "Shows a warning before opening a channel labeled for mature content.",
   "@settingsWarnMatureDetail": {
     "description": "Settings › Video › Videos and content: what the mature content switch does."
   },
@@ -1233,7 +1233,7 @@
   "@settingsCaptions": {
     "description": "Settings › Video (Android): the captions group."
   },
-  "settingsClosedCaptions": "Closed Captions",
+  "settingsClosedCaptions": "Closed captions",
   "@settingsClosedCaptions": {
     "description": "Settings › Video › Captions: the switch that shows captions."
   },
@@ -1301,7 +1301,7 @@
   "@webTokenNotSet": {
     "description": "Settings › Video: the value of « Twitch web token (2K) » when there is none."
   },
-  "webTokenExplanation": "Some streams only offer their 2K (1440p HEVC) quality to a signed-in viewer. This is normally picked up on its own when you log in, and refreshed on each launch — you should never need to touch it. Fill it in by hand only if that fails: paste the value of the \"auth-token\" cookie from twitch.tv in a browser.",
+  "webTokenExplanation": "Some streams offer 2K (1440p HEVC) only to logged-in viewers. ONSET normally picks up this token by itself when you log in and refreshes it on each launch, so you should never need to touch it. Fill it in by hand only if that fails: paste the value of the “auth-token” cookie from twitch.tv in a browser.",
   "@webTokenExplanation": {
     "description": "The Twitch web token dialog: what the token is for, and how to fill it in by hand. \"auth-token\" is the cookie's name and stays as is."
   },
@@ -1345,7 +1345,7 @@
   "@settingsChatPreviewBadgeEmote": {
     "description": "Settings › Chat preview: the first sample message, between a badge and an emote."
   },
-  "settingsChatPreviewText": "Hello! Here's a text preview.",
+  "settingsChatPreviewText": "Hello! Here’s a text preview.",
   "@settingsChatPreviewText": {
     "description": "Settings › Chat preview: the second sample message."
   },
@@ -1365,7 +1365,7 @@
   "@settingsMessageScale": {
     "description": "Settings › Chat › Message sizing: the text size slider, as a factor."
   },
-  "settingsScaleValue": "{scale}x",
+  "settingsScaleValue": "{scale}×",
   "@settingsScaleValue": {
     "description": "Settings › Chat › Message sizing: the value of a scale slider, as a factor (1.00x).",
     "placeholders": {
@@ -1405,7 +1405,7 @@
   "@settingsShowDeleted": {
     "description": "Settings › Chat › Message appearance: the switch that reveals deleted messages."
   },
-  "settingsShowDeletedDetail": "Restores the original message of deleted messages.",
+  "settingsShowDeletedDetail": "Shows the original text of deleted messages.",
   "@settingsShowDeletedDetail": {
     "description": "Settings › Chat › Message appearance: what « Show deleted messages » does."
   },
@@ -1413,7 +1413,7 @@
   "@settingsAnimateEmotes": {
     "description": "Settings › Chat › Message appearance: the switch that animates emotes."
   },
-  "settingsAnimateEmotesDetail": "Off shows the first frame of animated emotes in chat.",
+  "settingsAnimateEmotesDetail": "When off, shows only the first frame of animated emotes in chat.",
   "@settingsAnimateEmotesDetail": {
     "description": "Settings › Chat › Message appearance: what turning « Animate emotes » off does."
   },
@@ -1421,7 +1421,7 @@
   "@settingsAnimatedGifs": {
     "description": "Settings › Chat › Message appearance: the switch that animates GIFs."
   },
-  "settingsAnimatedGifsDetail": "Off shows the first frame of GIFs sent in chat.",
+  "settingsAnimatedGifsDetail": "When off, shows only the first frame of GIFs sent in chat.",
   "@settingsAnimatedGifsDetail": {
     "description": "Settings › Chat › Message appearance: what turning « Animated GIFs » off does."
   },
@@ -1429,7 +1429,7 @@
   "@settingsShowGifs": {
     "description": "Settings › Chat › Message appearance: the switch that shows GIFs at all."
   },
-  "settingsShowGifsDetail": "Off shows the title of a GIF instead of the GIF.",
+  "settingsShowGifsDetail": "When off, shows the GIF’s title instead.",
   "@settingsShowGifsDetail": {
     "description": "Settings › Chat › Message appearance: what turning « Show GIFs in Chat » off does."
   },
@@ -1437,7 +1437,7 @@
   "@settingsLinkPreviews": {
     "description": "Settings › Chat › Message appearance: the switch for link cards."
   },
-  "settingsLinkPreviewsDetail": "Shows a card under messages that link a Twitch clip or video.",
+  "settingsLinkPreviewsDetail": "Shows a card under messages that link to a Twitch clip or video.",
   "@settingsLinkPreviewsDetail": {
     "description": "Settings › Chat › Message appearance: what « Preview clips and videos » does."
   },
@@ -1477,7 +1477,7 @@
   "@settingsSyncDelay": {
     "description": "Settings › Chat › Delay and latency: the switch that delays chat as much as the video is behind live."
   },
-  "settingsSyncDelayDetail": "Holds each message for as long as the video is behind live, so chat matches what you see. Your own messages show at once.",
+  "settingsSyncDelayDetail": "Holds each message for as long as the video is behind live, so chat matches what you see. Your own messages show right away.",
   "@settingsSyncDelayDetail": {
     "description": "Settings › Chat › Delay and latency: what the sync switch does."
   },
@@ -1485,7 +1485,7 @@
   "@settingsMessageDelay": {
     "description": "Settings › Chat › Delay and latency: the manual delay slider (when sync is off)."
   },
-  "settingsMessageDelayValue": "{seconds, plural, other{{seconds} seconds}}",
+  "settingsMessageDelayValue": "{seconds, plural, one{{seconds} second} other{{seconds} seconds}}",
   "@settingsMessageDelayValue": {
     "description": "Settings › Chat › Delay and latency: the value of the delay slider.",
     "placeholders": {
@@ -1495,11 +1495,11 @@
       }
     }
   },
-  "settingsMessageDelayDetail": "Adds a delay before each message is rendered in chat. ",
+  "settingsMessageDelayDetail": "Adds a delay before each message appears in chat.",
   "@settingsMessageDelayDetail": {
     "description": "Settings › Chat › Delay and latency: what the delay slider does (Android)."
   },
-  "settingsMessageDelayDetailIos": "Adds a delay before each message is rendered in chat. 15 seconds is recommended for iOS.",
+  "settingsMessageDelayDetailIos": "Adds a delay before each message appears in chat. 15 seconds is recommended on iOS.",
   "@settingsMessageDelayDetailIos": {
     "description": "Settings › Chat › Delay and latency: what the delay slider does, on iOS."
   },
@@ -1527,7 +1527,7 @@
   "@settingsAlerts": {
     "description": "Settings › Chat: the group about highlighted messages and events."
   },
-  "settingsFirstTimeChatters": "Highlight first time chatters",
+  "settingsFirstTimeChatters": "Highlight first-time chatters",
   "@settingsFirstTimeChatters": {
     "description": "Settings › Chat › Alerts: the switch that highlights a viewer's first message in a channel."
   },
@@ -1535,7 +1535,7 @@
   "@settingsUserNotices": {
     "description": "Settings › Chat › Alerts: the switch for sub, resub, announcement and raid lines."
   },
-  "settingsUserNoticesDetail": "Shows notices such as subs and re-subs, announcements, and raids.",
+  "settingsUserNoticesDetail": "Shows notices such as subs, resubs, announcements, and raids.",
   "@settingsUserNoticesDetail": {
     "description": "Settings › Chat › Alerts: what « Show notices » does."
   },
@@ -1543,7 +1543,7 @@
   "@settingsCollapseGiftBombs": {
     "description": "Settings › Chat › Alerts: the switch that folds a gift bomb (many gifted subs at once) into one line."
   },
-  "settingsCollapseGiftBombsDetail": "Folds a gift bomb of five subs or more into its first line; tap \"recipients\" to see who got one.",
+  "settingsCollapseGiftBombsDetail": "Folds a gift bomb of five subs or more into its first line; tap “recipients” to see who got one.",
   "@settingsCollapseGiftBombsDetail": {
     "description": "Settings › Chat › Alerts: what « Collapse gift bombs » does. \"recipients\" is the link the folded line shows."
   },
@@ -1551,7 +1551,7 @@
   "@settingsShowHypeTrains": {
     "description": "Settings › Chat › Alerts: the switch for the Hype Train above chat."
   },
-  "settingsShowHypeTrainsDetail": "Shows Hype Train progress, levels and rewards above chat.",
+  "settingsShowHypeTrainsDetail": "Shows Hype Train progress, levels, and rewards above chat.",
   "@settingsShowHypeTrainsDetail": {
     "description": "Settings › Chat › Alerts: what « Show Hype Trains » does."
   },
@@ -1559,7 +1559,7 @@
   "@settingsCommunityHighlights": {
     "description": "Settings › Chat › Alerts: the switch for pinned polls, predictions and so on above chat."
   },
-  "settingsCommunityHighlightsDetail": "Shows polls, predictions, pinned messages, gift bombs and raids above chat.",
+  "settingsCommunityHighlightsDetail": "Shows polls, predictions, pinned messages, gift bombs, and raids above chat.",
   "@settingsCommunityHighlightsDetail": {
     "description": "Settings › Chat › Alerts: what « Show community highlights » does."
   },
@@ -1575,7 +1575,7 @@
   "@settingsCelebrationsOnVideo": {
     "description": "Settings › Chat › Alerts: how celebrations show (Full or Subtle). Cited by the release notes."
   },
-  "settingsCelebrationsOnVideoDetail": "Full plays the animation over the video. Subtle keeps the video clear and says it with a line in chat.",
+  "settingsCelebrationsOnVideoDetail": "“Full” plays the animation over the video. “Subtle” keeps the video clear and posts a line in chat instead.",
   "@settingsCelebrationsOnVideoDetail": {
     "description": "Settings › Chat › Alerts: what the two « Celebrations on video » options do, starting with their names (celebrationsFull, celebrationsSubtle)."
   },
@@ -1619,7 +1619,7 @@
   "@settingsNotchSide": {
     "description": "Settings › Chat › Landscape mode: which side of a display notch the app draws into."
   },
-  "settingsNotchSideDetail": "Overrides and fills the available space in devices with a display notch.",
+  "settingsNotchSideDetail": "Fills the space beside the display notch on devices that have one.",
   "@settingsNotchSideDetail": {
     "description": "Settings › Chat › Landscape mode: what « Fill notch side » does."
   },
@@ -1653,7 +1653,7 @@
       }
     }
   },
-  "settingsOverlayOpacityDetail": "Sets the opacity (transparency) of the overlay chat in fullscreen mode.",
+  "settingsOverlayOpacityDetail": "Sets the opacity of the chat overlay in full-screen mode.",
   "@settingsOverlayOpacityDetail": {
     "description": "Settings › Chat › Landscape mode: what the chat overlay opacity slider does."
   },
@@ -1673,7 +1673,7 @@
   "@settingsWholeWords": {
     "description": "Settings › Chat › Chat filters and muted keywords: the switch that only mutes whole words."
   },
-  "settingsWholeWordsDetail": "Only matches whole words instead of partial matches.",
+  "settingsWholeWordsDetail": "Matches whole words only, not parts of words.",
   "@settingsWholeWordsDetail": {
     "description": "Settings › Chat: what « Match whole words » does."
   },
@@ -1717,7 +1717,7 @@
   "@chatFiltersEnable": {
     "description": "Settings › Chat › Edit Chat Filters: the main switch."
   },
-  "chatFiltersExplanation": "Select the filters you would like to block in chat across all channels. In channels you moderate, you will still see all messages.",
+  "chatFiltersExplanation": "Choose what to filter out of chat in every channel. In channels you moderate, you’ll still see every message.",
   "@chatFiltersExplanation": {
     "description": "Settings › Chat › Edit Chat Filters: what filtering does."
   },
@@ -1729,11 +1729,11 @@
   "@chatFilterDiscrimination": {
     "description": "A chat filter (Twitch's AutoMod category)."
   },
-  "chatFilterDiscriminationDetail": "Negative language about race, gender, orientation, or similar",
+  "chatFilterDiscriminationDetail": "Negative language about race, gender, sexual orientation, or similar",
   "@chatFilterDiscriminationDetail": {
     "description": "What the Discrimination chat filter hides."
   },
-  "chatFilterSexual": "Sexually Explicit Language",
+  "chatFilterSexual": "Sexually explicit language",
   "@chatFilterSexual": {
     "description": "A chat filter (Twitch's AutoMod category)."
   },
@@ -1745,7 +1745,7 @@
   "@chatFilterHarassment": {
     "description": "A chat filter (Twitch's AutoMod category)."
   },
-  "chatFilterHarassmentDetail": "Aggressive or sexually harassing language towards other people",
+  "chatFilterHarassmentDetail": "Aggressive or sexually harassing language toward other people",
   "@chatFilterHarassmentDetail": {
     "description": "What the harassment chat filter hides."
   },
@@ -1757,7 +1757,7 @@
   "@chatFilterProfanityDetail": {
     "description": "What the profanity chat filter hides."
   },
-  "chatFiltersNote": "Twitch's AutoMod rates the words of each live chat message; only words it rates are hidden, so a message it did not rate always shows. Hidden words show as stars: tap them to see the message. Chat replays of past broadcasts are not filtered.",
+  "chatFiltersNote": "Twitch’s AutoMod checks the words of each live chat message and hides only the ones it flags, so a message with no flagged words always shows. Hidden words show as stars: tap them to see the message. Chat replays of past broadcasts aren’t filtered.",
   "@chatFiltersNote": {
     "description": "Settings › Chat › Edit Chat Filters: the note under the filters."
   },
@@ -1765,7 +1765,7 @@
   "@mutedKeywordsTitle": {
     "description": "Settings › Chat: the row of the muted keywords, and its list's title."
   },
-  "mutedKeywordsCount": "{count, plural, =0{None} =1{1 keyword} other{{count} keywords}}",
+  "mutedKeywordsCount": "{count, plural, =0{None} one{{count} keyword} other{{count} keywords}}",
   "@mutedKeywordsCount": {
     "description": "Settings › Chat: the value of « Muted keywords ».",
     "placeholders": {
@@ -1797,7 +1797,7 @@
       }
     }
   },
-  "mutedKeywordsRemoved": "Removed '{word}'",
+  "mutedKeywordsRemoved": "Removed “{word}”",
   "@mutedKeywordsRemoved": {
     "description": "Snackbar after a muted keyword was removed (with « Undo »).",
     "placeholders": {
@@ -1831,7 +1831,7 @@
   "@goLiveBlocked": {
     "description": "Settings › Notifications: the line under « Go-live notifications » when the system blocks them."
   },
-  "goLiveOnDetail": "Checked every 90 seconds while ONSET is open or playing, and about every 15 minutes otherwise, when the system allows. Turn a channel's bell off from its menu.",
+  "goLiveOnDetail": "Checked every 90 seconds while ONSET is open or playing, and about every 15 minutes otherwise, when the system allows. Turn a channel’s bell off from its menu.",
   "@goLiveOnDetail": {
     "description": "Settings › Notifications: the line under « Go-live notifications » when they are on."
   },
@@ -1843,25 +1843,25 @@
   "@goLiveLogInAgain": {
     "description": "Settings › Notifications: the line under « Go-live notifications » when Twitch refused the login the background check uses."
   },
-  "goLiveReadFailed": "Couldn't read the go-live setting.",
+  "goLiveReadFailed": "Couldn’t read the go-live setting.",
   "@goLiveReadFailed": {
-    "description": "Settings › Notifications: the line under « Go-live notifications » when its state could not be read."
+    "description": "Error message. Settings › Notifications: the line under « Go-live notifications » when its state could not be read."
   },
-  "goLiveTurnOnFailed": "Couldn't turn on go-live notifications.",
+  "goLiveTurnOnFailed": "Couldn’t turn on go-live notifications.",
   "@goLiveTurnOnFailed": {
-    "description": "Settings › Notifications: the line under « Go-live notifications » when turning them on failed."
+    "description": "Error message. Settings › Notifications: the line under « Go-live notifications » when turning them on failed."
   },
-  "goLiveTurnOffFailed": "Couldn't turn off go-live notifications.",
+  "goLiveTurnOffFailed": "Couldn’t turn off go-live notifications.",
   "@goLiveTurnOffFailed": {
-    "description": "Settings › Notifications: the line under « Go-live notifications » when turning them off failed."
+    "description": "Error message. Settings › Notifications: the line under « Go-live notifications » when turning them off failed."
   },
   "notificationsAllowInSystem": "Allow notifications for this app in the system settings.",
   "@notificationsAllowInSystem": {
     "description": "Settings › Notifications: the line under a notification switch when the system permission was refused."
   },
-  "goLiveBellFailed": "Couldn't change the bell.",
+  "goLiveBellFailed": "Couldn’t change the bell.",
   "@goLiveBellFailed": {
-    "description": "Snackbar when a channel's go-live bell could not be changed (the channel's menu)."
+    "description": "Error message. Snackbar when a channel's go-live bell could not be changed (the channel's menu)."
   },
   "goLiveBell": "Notify when {name} goes live",
   "@goLiveBell": {
@@ -1889,7 +1889,7 @@
   "@mentionAllow": {
     "description": "Settings › Notifications › Chat: the button that asks the system for the notification permission."
   },
-  "mentionDetail": "When someone mentions you in a chat you are watching while ONSET is in the background or in picture-in-picture.",
+  "mentionDetail": "When someone mentions you in a chat you’re watching while ONSET is in the background or in picture-in-picture.",
   "@mentionDetail": {
     "description": "Settings › Notifications › Chat: when mention notifications come."
   },
@@ -1901,7 +1901,7 @@
   "@settingsReleaseNotes": {
     "description": "Settings › Other › Updates: the row that opens the release notes, and their page title."
   },
-  "settingsUpdatesNote": "ONSET looks for a newer build when it starts and when it comes back to the foreground. Release notes open by themselves after an update to a new version.",
+  "settingsUpdatesNote": "ONSET looks for a newer build when it starts and when it comes back to the foreground. Release notes open automatically after an update.",
   "@settingsUpdatesNote": {
     "description": "Settings › Other › Updates: the note under the rows (builds with in-app updates)."
   },
@@ -1963,13 +1963,13 @@
       }
     }
   },
-  "updatesUpToDate": "You're up to date",
+  "updatesUpToDate": "You’re up to date",
   "@updatesUpToDate": {
     "description": "Snackbar after « Check for updates » found nothing newer."
   },
-  "updatesCheckFailed": "Couldn't check for updates",
+  "updatesCheckFailed": "Couldn’t check for updates.",
   "@updatesCheckFailed": {
-    "description": "Snackbar when « Check for updates » failed."
+    "description": "Error message. Snackbar when « Check for updates » failed."
   },
   "updatesCheck": "Check for updates",
   "@updatesCheck": {
@@ -1985,19 +1985,19 @@
       }
     }
   },
-  "updatesChecking": "Checking",
+  "updatesChecking": "Checking…",
   "@updatesChecking": {
     "description": "What a screen reader says for the spinner while looking for updates."
   },
-  "followedSortViewers": "Viewers (High to Low)",
+  "followedSortViewers": "Viewers (high to low)",
   "@followedSortViewers": {
     "description": "How Following orders its live channels (the sort button): most viewers first."
   },
-  "followedSortRecent": "Recently Started",
+  "followedSortRecent": "Recently started",
   "@followedSortRecent": {
     "description": "How Following orders its live channels: the most recently started lives first."
   },
-  "followedSortName": "Name (A-Z)",
+  "followedSortName": "Name (A–Z)",
   "@followedSortName": {
     "description": "How Following orders its live channels: by name."
   },
@@ -2005,7 +2005,7 @@
   "@followedSortCategory": {
     "description": "How Following orders its live channels: grouped by category."
   },
-  "releaseKindAdded": "{count, plural, other{{count} new}}",
+  "releaseKindAdded": "{count, plural, one{{count} new} other{{count} new}}",
   "@releaseKindAdded": {
     "description": "Release notes: in the line summing up a version (« 2 new · 3 improvements · 1 fix »), its new features.",
     "placeholders": {
@@ -2045,11 +2045,11 @@
       }
     }
   },
-  "releaseNotesWhatsNew": "WHAT'S NEW",
+  "releaseNotesWhatsNew": "WHAT’S NEW",
   "@releaseNotesWhatsNew": {
     "description": "Release notes: the small capitals above the latest version (and the title on a tablet when opened from Settings)."
   },
-  "releaseNotesWhatsNewIn": "WHAT'S NEW IN {version}",
+  "releaseNotesWhatsNewIn": "WHAT’S NEW IN {version}",
   "@releaseNotesWhatsNewIn": {
     "description": "Release notes opened after an update: the small capitals above « Updated to … ». The version is a number such as 1.1.0 (« la » stands for « la version »).",
     "placeholders": {
@@ -2079,7 +2079,7 @@
       }
     }
   },
-  "releaseNotesWasOnSince": "You were on {version}. Here is what changed since then.",
+  "releaseNotesWasOnSince": "You were on {version}. Here’s what’s changed since.",
   "@releaseNotesWasOnSince": {
     "description": "Release notes opened after an update (phone): the version installed before, and what follows. The version is shown in figures of even width.",
     "placeholders": {
@@ -2101,11 +2101,11 @@
   "@releaseNotesVersions": {
     "description": "Release notes on a tablet: the label of the version list."
   },
-  "releaseNotesFootnote": "Release notes open by themselves after an update to a new version.",
+  "releaseNotesFootnote": "Release notes open automatically after an update.",
   "@releaseNotesFootnote": {
     "description": "Release notes: the note at the end of the page."
   },
-  "releaseNotesPoints": "{count, plural, =1{1 point} other{{count} points}}",
+  "releaseNotesPoints": "{count, plural, one{{count} point} other{{count} points}}",
   "@releaseNotesPoints": {
     "description": "Release notes: what a screen reader says for the count beside a section's name.",
     "placeholders": {
@@ -2135,7 +2135,7 @@
   "@releaseNotesEmpty": {
     "description": "Release notes when there are none."
   },
-  "releaseNotesEmptyDetail": "What changes in each version of ONSET shows up here, and opens by itself after an update.",
+  "releaseNotesEmptyDetail": "Changes in each ONSET version appear here and open automatically after an update.",
   "@releaseNotesEmptyDetail": {
     "description": "Release notes when there are none: the line under « No release notes yet »."
   },
@@ -2143,7 +2143,7 @@
   "@updateAllowTitle": {
     "description": "Title of the dialog that asks to let ONSET install its updates (Android)."
   },
-  "updateAllowMessage": "Android asks you to let ONSET install apps. Turn on \"Allow from this source\" on the next screen, then come back.",
+  "updateAllowMessage": "Android asks you to let ONSET install apps. Turn on “Allow from this source” on the next screen, then come back.",
   "@updateAllowMessage": {
     "description": "Text of the dialog that asks to let ONSET install its updates. \"Allow from this source\" is the name of the Android switch, in Android's own words."
   },
@@ -2151,21 +2151,21 @@
   "@updateOpenSettings": {
     "description": "The button that opens the Android setting that lets ONSET install apps."
   },
-  "updateNotAllowed": "ONSET is not allowed to install updates",
+  "updateNotAllowed": "ONSET isn’t allowed to install updates.",
   "@updateNotAllowed": {
-    "description": "Snackbar when the Android setting was left off."
+    "description": "Error message. Snackbar when the Android setting was left off."
   },
-  "updateCorrupted": "The download was corrupted — try again",
+  "updateCorrupted": "The download was corrupted. Try again.",
   "@updateCorrupted": {
-    "description": "Snackbar when the downloaded update failed its integrity check."
+    "description": "Error message. Snackbar when the downloaded update failed its integrity check."
   },
-  "updateInstallFailed": "Android could not install the update",
+  "updateInstallFailed": "Android couldn’t install the update.",
   "@updateInstallFailed": {
-    "description": "Snackbar when Android refused the update."
+    "description": "Error message. Snackbar when Android refused the update."
   },
-  "updateDownloadFailed": "Download failed",
+  "updateDownloadFailed": "Couldn’t download the update.",
   "@updateDownloadFailed": {
-    "description": "Snackbar when the update could not be downloaded."
+    "description": "Error message. Snackbar when the update could not be downloaded."
   },
   "updateInstalledBuild": "Installed: build {build}",
   "@updateInstalledBuild": {
@@ -2191,7 +2191,7 @@
       }
     }
   },
-  "updateChecked": "SHA-256 checked before install",
+  "updateChecked": "Verified with SHA-256 before installing",
   "@updateChecked": {
     "description": "Update dialog: the download is checked before it is installed."
   },
@@ -2221,11 +2221,11 @@
   "@updateLater": {
     "description": "Update dialog: asks again later."
   },
-  "updateInstalling": "Installing update",
+  "updateInstalling": "Installing update…",
   "@updateInstalling": {
     "description": "Title of the update progress dialog while Android installs it."
   },
-  "updateDownloading": "Downloading update",
+  "updateDownloading": "Downloading update…",
   "@updateDownloading": {
     "description": "Title of the update progress dialog while it downloads."
   },
@@ -2287,7 +2287,7 @@
       }
     }
   },
-  "streamWatching": "{count, plural, other{{count} watching}}",
+  "streamWatching": "{count, plural, one{{count} watching} other{{count} watching}}",
   "@streamWatching": {
     "description": "How many watch a live, the number in full (2,445 watching): the live preview's line and the large stream card. English has one form.",
     "placeholders": {
@@ -2298,7 +2298,7 @@
       }
     }
   },
-  "streamWatchingShort": "{count, plural, other{{viewers} watching}}",
+  "streamWatchingShort": "{count, plural, one{{viewers} watching} other{{viewers} watching}}",
   "@streamWatchingShort": {
     "description": "How many watch a live, the number short (2.4k watching), on a channel profile's live card. count chooses the form; viewers is the number as shown.",
     "placeholders": {
@@ -2312,7 +2312,7 @@
       }
     }
   },
-  "streamWatchStreakSemantics": "Watch streak {value}",
+  "streamWatchStreakSemantics": "Watch Streak {value}",
   "@streamWatchStreakSemantics": {
     "description": "What a screen reader says for the watch streak pill: how many streams in a row the viewer watched.",
     "placeholders": {
@@ -2332,7 +2332,7 @@
       }
     }
   },
-  "streamNoCategory": "No Category",
+  "streamNoCategory": "No category",
   "@streamNoCategory": {
     "description": "A stream card's category line when the stream has none."
   },
@@ -2418,85 +2418,85 @@
   "@followedCategoriesTitle": {
     "description": "Following: the title of the row of followed categories."
   },
-  "apiErrorUnableToConnect": "Unable to connect to Twitch",
+  "apiErrorUnableToConnect": "Couldn’t connect to Twitch.",
   "@apiErrorUnableToConnect": {
-    "description": "A list could not load because the device has no network: the error shown in its place (Following, Live, categories, followed videos)."
+    "description": "Error message. A list could not load because the device has no network: the error shown in its place (Following, Live, categories, followed videos)."
   },
-  "apiErrorNetwork": "No internet connection. Please check your network.",
+  "apiErrorNetwork": "No internet connection. Check your network.",
   "@apiErrorNetwork": {
-    "description": "A request to Twitch failed: no connection."
+    "description": "Error message. A request to Twitch failed: no connection."
   },
-  "apiErrorConnectionTimeout": "Connection timeout. Please try again.",
+  "apiErrorConnectionTimeout": "The connection timed out. Try again.",
   "@apiErrorConnectionTimeout": {
-    "description": "A request to Twitch failed: connecting took too long."
+    "description": "Error message. A request to Twitch failed: connecting took too long."
   },
-  "apiErrorSendTimeout": "Upload timeout. Please try again.",
+  "apiErrorSendTimeout": "Sending took too long. Try again.",
   "@apiErrorSendTimeout": {
-    "description": "A request to Twitch failed: sending it took too long."
+    "description": "Error message. A request to Twitch failed: sending it took too long."
   },
-  "apiErrorReceiveTimeout": "Server response timeout. Please try again.",
+  "apiErrorReceiveTimeout": "Twitch took too long to respond. Try again.",
   "@apiErrorReceiveTimeout": {
-    "description": "A request to Twitch failed: the answer took too long."
+    "description": "Error message. A request to Twitch failed: the answer took too long."
   },
-  "apiErrorCancelled": "Request was cancelled",
+  "apiErrorCancelled": "The request was canceled.",
   "@apiErrorCancelled": {
-    "description": "A request to Twitch was cancelled."
+    "description": "Error message. A request to Twitch was cancelled."
   },
-  "apiErrorCertificate": "Security certificate error",
+  "apiErrorCertificate": "Couldn’t verify Twitch’s security certificate.",
   "@apiErrorCertificate": {
-    "description": "A request to Twitch failed: the server's certificate was refused."
+    "description": "Error message. A request to Twitch failed: the server's certificate was refused."
   },
-  "apiErrorUnexpected": "An unexpected error occurred",
+  "apiErrorUnexpected": "An unexpected error occurred.",
   "@apiErrorUnexpected": {
-    "description": "A request to Twitch failed for an unknown reason."
+    "description": "Error message. A request to Twitch failed for an unknown reason."
   },
-  "apiErrorBadRequest": "Invalid request data",
+  "apiErrorBadRequest": "The request wasn’t valid.",
   "@apiErrorBadRequest": {
-    "description": "A request to Twitch was refused as malformed (HTTP 400) and Twitch said nothing more."
+    "description": "Error message. A request to Twitch was refused as malformed (HTTP 400) and Twitch said nothing more."
   },
-  "apiErrorUnauthorized": "Please log in to continue",
+  "apiErrorUnauthorized": "Log in to continue.",
   "@apiErrorUnauthorized": {
-    "description": "A request to Twitch needs the viewer to log in (HTTP 401)."
+    "description": "Error message. A request to Twitch needs the viewer to log in (HTTP 401)."
   },
-  "apiErrorForbidden": "Access denied. Insufficient permissions",
+  "apiErrorForbidden": "Access denied: missing permissions.",
   "@apiErrorForbidden": {
-    "description": "A request to Twitch was refused for lack of permissions (HTTP 403) and Twitch said nothing more."
+    "description": "Error message. A request to Twitch was refused for lack of permissions (HTTP 403) and Twitch said nothing more."
   },
-  "apiErrorNotFound": "Resource not found",
+  "apiErrorNotFound": "This content couldn’t be found.",
   "@apiErrorNotFound": {
-    "description": "What a request to Twitch asked for does not exist (HTTP 404) and Twitch said nothing more."
+    "description": "Error message. What a request to Twitch asked for does not exist (HTTP 404) and Twitch said nothing more."
   },
-  "apiErrorConflict": "Conflict with current state. Please refresh",
+  "apiErrorConflict": "This changed in the meantime. Refresh and try again.",
   "@apiErrorConflict": {
-    "description": "A request to Twitch conflicts with what changed meanwhile (HTTP 409)."
+    "description": "Error message. A request to Twitch conflicts with what changed meanwhile (HTTP 409)."
   },
-  "apiErrorInvalid": "Invalid data provided",
+  "apiErrorInvalid": "The data sent wasn’t valid.",
   "@apiErrorInvalid": {
-    "description": "A request to Twitch carried data it refused (HTTP 422)."
+    "description": "Error message. A request to Twitch carried data it refused (HTTP 422)."
   },
-  "apiErrorRateLimited": "Rate limit exceeded. Please wait before trying again",
+  "apiErrorRateLimited": "Too many requests. Wait a moment, then try again.",
   "@apiErrorRateLimited": {
-    "description": "Twitch refused a request: too many in a short time (HTTP 429)."
+    "description": "Error message. Twitch refused a request: too many in a short time (HTTP 429)."
   },
-  "apiErrorServer": "Server error. Please try again later",
+  "apiErrorServer": "Twitch had a server error. Try again later.",
   "@apiErrorServer": {
-    "description": "Twitch's server failed (HTTP 500)."
+    "description": "Error message. Twitch's server failed (HTTP 500)."
   },
-  "apiErrorUnavailable": "Service temporarily unavailable",
+  "apiErrorUnavailable": "Twitch is temporarily unavailable.",
   "@apiErrorUnavailable": {
-    "description": "Twitch's service is down for now (HTTP 502)."
+    "description": "Error message. Twitch's service is down for now (HTTP 502)."
   },
-  "apiErrorMaintenance": "Service maintenance. Please try again later",
+  "apiErrorMaintenance": "Twitch is under maintenance. Try again later.",
   "@apiErrorMaintenance": {
-    "description": "Twitch's service is in maintenance (HTTP 503)."
+    "description": "Error message. Twitch's service is in maintenance (HTTP 503)."
   },
-  "apiErrorServerTimeout": "Server timeout. Please try again",
+  "apiErrorServerTimeout": "Twitch’s server didn’t respond. Try again.",
   "@apiErrorServerTimeout": {
-    "description": "Twitch's server did not answer in time (HTTP 504)."
+    "description": "Error message. Twitch's server did not answer in time (HTTP 504)."
   },
-  "apiErrorHttp": "HTTP Error {status} occurred",
+  "apiErrorHttp": "HTTP error {status}.",
   "@apiErrorHttp": {
-    "description": "A request to Twitch failed with another HTTP status. status is its number (404, 418...).",
+    "description": "Error message. A request to Twitch failed with another HTTP status. status is its number (404, 418...).",
     "placeholders": {
       "status": {
         "type": "int",
@@ -2504,21 +2504,21 @@
       }
     }
   },
-  "apiErrorUserNotFound": "User does not exist",
+  "apiErrorUserNotFound": "This user doesn’t exist.",
   "@apiErrorUserNotFound": {
-    "description": "No Twitch user has the login asked for: Search › « Go to channel », and other places that open a channel by its name."
+    "description": "Error message. No Twitch user has the login asked for: Search › « Go to channel », and other places that open a channel by its name."
   },
-  "apiErrorChannelNotFound": "Channel does not exist",
+  "apiErrorChannelNotFound": "This channel doesn’t exist.",
   "@apiErrorChannelNotFound": {
-    "description": "The Twitch user asked for has no channel: Search › « Go to channel »."
+    "description": "Error message. The Twitch user asked for has no channel: Search › « Go to channel »."
   },
-  "apiErrorCategoryNotFound": "Category not found",
+  "apiErrorCategoryNotFound": "Category not found.",
   "@apiErrorCategoryNotFound": {
-    "description": "A category page whose category Twitch no longer has."
+    "description": "Error message. A category page whose category Twitch no longer has."
   },
-  "apiErrorTokenProxyTimeout": "Token proxy timeout",
+  "apiErrorTokenProxyTimeout": "The ONSET token service didn’t respond in time.",
   "@apiErrorTokenProxyTimeout": {
-    "description": "A list could not load for a viewer not logged in: ONSET's token proxy (its server that gives the app a Twitch token) did not answer in time. French names it « le serveur d’ONSET », plainer than a token proxy."
+    "description": "Error message. A list could not load for a viewer not logged in: ONSET's token proxy (its server that gives the app a Twitch token) did not answer in time. French names it « le serveur d’ONSET », plainer than a token proxy."
   },
   "streamSortViewersHigh": "Viewers (high to low)",
   "@streamSortViewersHigh": {
@@ -2554,13 +2554,13 @@
       }
     }
   },
-  "streamListTagUnavailable": "Tag streams are unavailable right now",
+  "streamListTagUnavailable": "Streams for this tag aren’t available right now.",
   "@streamListTagUnavailable": {
-    "description": "A tag's list of live streams could not load (Twitch's directory failed)."
+    "description": "Error message. A tag's list of live streams could not load (Twitch's directory failed)."
   },
-  "streamListSortFailed": "Twitch could not sort by {sort}. {fallback} still works.",
+  "streamListSortFailed": "Twitch couldn’t sort by {sort}. {fallback} still works.",
   "@streamListSortFailed": {
-    "description": "A category's live streams could not load in the order picked. sort is that order's name (streamSortRecent…), fallback the order that still works (streamSortViewersHigh).",
+    "description": "Error message. A category's live streams could not load in the order picked. sort is that order's name (streamSortRecent…), fallback the order that still works (streamSortViewersHigh).",
     "placeholders": {
       "sort": {
         "type": "String",
@@ -2572,17 +2572,17 @@
       }
     }
   },
-  "streamListLoadFailed": "Something went wrong loading streams",
+  "streamListLoadFailed": "Couldn’t load streams.",
   "@streamListLoadFailed": {
-    "description": "A list of live streams could not load, for an unexpected reason."
+    "description": "Error message. A list of live streams could not load, for an unexpected reason."
   },
-  "streamListPinnedFailed": "Something went wrong loading pinned streams",
+  "streamListPinnedFailed": "Couldn’t load pinned streams.",
   "@streamListPinnedFailed": {
-    "description": "Following's pinned channels' streams could not load, for an unexpected reason."
+    "description": "Error message. Following's pinned channels' streams could not load, for an unexpected reason."
   },
-  "streamListOfflineFailed": "Something went wrong loading offline channels",
+  "streamListOfflineFailed": "Couldn’t load offline channels.",
   "@streamListOfflineFailed": {
-    "description": "Following's offline channels could not load, for an unexpected reason."
+    "description": "Error message. Following's offline channels could not load, for an unexpected reason."
   },
   "streamListAllHidden": "Every stream here has a label you hide",
   "@streamListAllHidden": {
@@ -2596,7 +2596,7 @@
   "@streamListEmptyFollowed": {
     "description": "Following, when no followed channel is live."
   },
-  "streamListEmptyTop": "No top streams",
+  "streamListEmptyTop": "No live streams right now",
   "@streamListEmptyTop": {
     "description": "Home › Live (Twitch's most watched streams), when it is empty."
   },
@@ -2642,7 +2642,7 @@
   "@contentWarningAudience": {
     "description": "Mature-content warning: the line under its title when the channel's name is not known."
   },
-  "contentWarningAudienceOf": "{name}'s content is intended for certain audiences.",
+  "contentWarningAudienceOf": "{name}’s content is intended for certain audiences.",
   "@contentWarningAudienceOf": {
     "description": "Mature-content warning: the line under its title. name is the channel's display name.",
     "placeholders": {
@@ -2670,7 +2670,7 @@
   "@contentWarningBack": {
     "description": "Mature-content warning: the button that declines it and leaves."
   },
-  "liveFeedHidden": "You won't see {name} in Live for now",
+  "liveFeedHidden": "You won’t see {name} in Live for now.",
   "@liveFeedHidden": {
     "description": "Snackbar after « Not interested » on a live preview (Home › Live). name is the channel's display name; « En direct » is the tab's name (shellFeedLive).",
     "placeholders": {
@@ -2760,7 +2760,7 @@
   "@liveFeedShare": {
     "description": "Home › Live: the round button that shares the channel's link."
   },
-  "liveFeedSwipeHint": "SWIPE UP FOR THE NEXT LIVE",
+  "liveFeedSwipeHint": "SWIPE UP FOR THE NEXT STREAM",
   "@liveFeedSwipeHint": {
     "description": "Home › Live, phone: the hint at the bottom of the first preview, in small capitals (written in capitals)."
   },
@@ -2768,11 +2768,11 @@
   "@liveFeedUpNext": {
     "description": "Home › Live, tablet: the small capitals above the next channels (written in capitals)."
   },
-  "liveFeedUpNextHelp": "Swipe up on the preview, or tap a live in the list. Previews never start with sound.",
+  "liveFeedUpNextHelp": "Swipe up on the preview, or tap a stream in the list. Previews never start with sound.",
   "@liveFeedUpNextHelp": {
     "description": "Home › Live, tablet: the note under the next channels."
   },
-  "liveFeedLoadingMore": "Loading more live channels",
+  "liveFeedLoadingMore": "Loading more live channels…",
   "@liveFeedLoadingMore": {
     "description": "Home › Live: the page after the last channel while more load."
   },
@@ -2780,7 +2780,7 @@
   "@liveFeedEnd": {
     "description": "Home › Live: the page after the last channel when there are no more."
   },
-  "liveFeedBackToFirst": "Back to the first",
+  "liveFeedBackToFirst": "Back to the top",
   "@liveFeedBackToFirst": {
     "description": "Home › Live: the button on the last page that goes back to the first channel."
   },
@@ -2808,9 +2808,9 @@
   "@searchClear": {
     "description": "Search: the button that empties the search field, and the one that forgets the search history."
   },
-  "searchHint": "Search channels, categories or videos",
+  "searchHint": "Search",
   "@searchHint": {
-    "description": "Search: the field's hint, one line beside the search glyph, about 150 dp wide on a phone beside the Cancel button. French keeps the verb alone, whole at every size: the tabs under the field name channels, categories and videos."
+    "description": "Search: the field's hint, one line beside the search glyph, about 150 dp wide on a phone beside the Cancel button. The verb alone, whole at every size: the tabs under the field name channels, categories and videos."
   },
   "searchSeeAllSemantics": "See all {section}",
   "@searchSeeAllSemantics": {
@@ -2822,7 +2822,7 @@
       }
     }
   },
-  "searchHistory": "History",
+  "searchHistory": "Recent searches",
   "@searchHistory": {
     "description": "Search: the title of the past searches."
   },
@@ -2840,27 +2840,27 @@
   "@searchNoHistory": {
     "description": "Search, before typing: there is no past search."
   },
-  "searchCategoriesFailed": "Unable to load categories",
+  "searchCategoriesFailed": "Couldn’t load categories.",
   "@searchCategoriesFailed": {
-    "description": "Search: the categories could not load (with « Try again »)."
+    "description": "Error message. Search: the categories could not load (with « Try again »)."
   },
-  "searchCategoriesUnavailable": "Failed to get categories",
+  "searchCategoriesUnavailable": "Couldn’t get categories.",
   "@searchCategoriesUnavailable": {
-    "description": "Search: Twitch answered without categories (with « Try again »)."
+    "description": "Error message. Search: Twitch answered without categories (with « Try again »)."
   },
   "searchNoCategories": "No matching categories",
   "@searchNoCategories": {
     "description": "Search: no category matches what was typed."
   },
-  "searchChannelNotFound": "Unable to find channel",
+  "searchChannelNotFound": "Couldn’t find that channel.",
   "@searchChannelNotFound": {
-    "description": "Snackbar when the channel picked in search results cannot be opened."
+    "description": "Error message. Snackbar when the channel picked in search results cannot be opened."
   },
-  "searchChannelsFailed": "Unable to load channels",
+  "searchChannelsFailed": "Couldn’t load channels.",
   "@searchChannelsFailed": {
-    "description": "Search: the channels could not load (with « Try again »)."
+    "description": "Error message. Search: the channels could not load (with « Try again »)."
   },
-  "searchGoToChannel": "Go to channel \"{query}\"",
+  "searchGoToChannel": "Go to channel “{query}”",
   "@searchGoToChannel": {
     "description": "Search: the row that opens the channel whose login is exactly what was typed. query is what was typed.",
     "placeholders": {
@@ -2870,11 +2870,11 @@
       }
     }
   },
-  "searchVideosFailed": "Unable to load videos",
+  "searchVideosFailed": "Couldn’t load videos.",
   "@searchVideosFailed": {
-    "description": "Search: the videos could not load (with « Try again »)."
+    "description": "Error message. Search: the videos could not load (with « Try again »)."
   },
-  "searchNoResults": "No search results found",
+  "searchNoResults": "No results found",
   "@searchNoResults": {
     "description": "Search: no video matches what was typed."
   },
@@ -2896,15 +2896,15 @@
   "@categoriesEmpty": {
     "description": "Browse › Categories, when Twitch lists none."
   },
-  "categoriesLoadFailed": "Something went wrong loading categories",
+  "categoriesLoadFailed": "Couldn’t load categories.",
   "@categoriesLoadFailed": {
-    "description": "Browse › Categories could not load, for an unexpected reason."
+    "description": "Error message. Browse › Categories could not load, for an unexpected reason."
   },
   "categoriesRailTitle": "Top categories",
   "@categoriesRailTitle": {
     "description": "Tablet Browse: the title above the rail of Twitch's most watched categories (« Most watched first » follows)."
   },
-  "categoriesRailNote": "Most watched first",
+  "categoriesRailNote": "Most-watched first",
   "@categoriesRailNote": {
     "description": "Tablet Browse: beside « Top categories », how they are ordered (« regardées » agrees with « catégories »)."
   },
@@ -2952,7 +2952,7 @@
   "@followedVideosEmpty": {
     "description": "Followed videos, when the followed channels made none lately."
   },
-  "followedVideosSubtitle": "The newest videos of the channels you follow",
+  "followedVideosSubtitle": "The newest videos from channels you follow",
   "@followedVideosSubtitle": {
     "description": "Followed videos: the line under the page's title. One line, ellipsised if long."
   },
@@ -2960,9 +2960,9 @@
   "@followedVideosRefresh": {
     "description": "Followed videos: the button that loads the list again."
   },
-  "followedVideosLoadFailed": "Something went wrong loading videos",
+  "followedVideosLoadFailed": "Couldn’t load videos.",
   "@followedVideosLoadFailed": {
-    "description": "Followed videos could not load, for an unexpected reason."
+    "description": "Error message. Followed videos could not load, for an unexpected reason."
   },
   "continueWatchingTitle": "Continue watching",
   "@continueWatchingTitle": {
@@ -3000,7 +3000,7 @@
       }
     }
   },
-  "savedWeeksAgo": "{count, plural, one{{count} wk ago} other{{count} wk ago}}",
+  "savedWeeksAgo": "{count, plural, one{{count} week ago} other{{count} weeks ago}}",
   "@savedWeeksAgo": {
     "description": "Continue watching: when a video was left, in weeks (abbreviated). Lower case.",
     "placeholders": {
@@ -3010,7 +3010,7 @@
       }
     }
   },
-  "savedMonthsAgo": "{count, plural, one{{count} mo ago} other{{count} mo ago}}",
+  "savedMonthsAgo": "{count, plural, one{{count} month ago} other{{count} months ago}}",
   "@savedMonthsAgo": {
     "description": "Continue watching: when a video was left, in months (abbreviated in English). Lower case.",
     "placeholders": {
@@ -3128,21 +3128,21 @@
   "@clipUntitled": {
     "description": "A clip's title when it has none (clip cards, the clips feed, a clip's page)."
   },
-  "clipsPlayerSemantics": "Clip player. Double-tap to toggle play/pause",
+  "clipsPlayerSemantics": "Clip player. Double-tap to play or pause.",
   "@clipsPlayerSemantics": {
     "description": "What a screen reader says for a clip's video in the clips feed."
   },
-  "clipsCannotPlay": "This clip can't be played here",
+  "clipsCannotPlay": "This clip can’t be played here.",
   "@clipsCannotPlay": {
-    "description": "The clips feed: over a clip that cannot play in the app."
+    "description": "Error message. The clips feed: over a clip that cannot play in the app."
   },
-  "clipsLoadingMore": "Loading more clips for you",
+  "clipsLoadingMore": "Loading more clips…",
   "@clipsLoadingMore": {
     "description": "The clips feed: while the next clips load."
   },
-  "clipsLoadFailed": "Unable to load clips",
+  "clipsLoadFailed": "Couldn’t load clips.",
   "@clipsLoadFailed": {
-    "description": "The clips feed could not load (with « Try again »)."
+    "description": "Error message. The clips feed could not load (with « Try again »)."
   },
   "clipsEmpty": "No clips right now",
   "@clipsEmpty": {
@@ -3170,15 +3170,15 @@
   "@clipsNext": {
     "description": "The clips feed: the small capitals above the next clip's title (written in capitals)."
   },
-  "clipsSwipeHint": "You can swipe to the next clip",
+  "clipsSwipeHint": "Swipe for the next clip",
   "@clipsSwipeHint": {
     "description": "The clips feed: the hint shown on the first clip."
   },
-  "clipsLoadMoreFailed": "Unable to load more clips",
+  "clipsLoadMoreFailed": "Couldn’t load more clips.",
   "@clipsLoadMoreFailed": {
-    "description": "The clips feed: the next clips could not load (with « Try again »)."
+    "description": "Error message. The clips feed: the next clips could not load (with « Try again »)."
   },
-  "clipsEnd": "That’s all for now! Check out more clips from previous streams",
+  "clipsEnd": "That’s all for now! Check out more clips from previous streams.",
   "@clipsEnd": {
     "description": "The clips feed: after the last clip (Twitch's words)."
   },
@@ -3240,7 +3240,7 @@
   "@clipsNoneForPeriod": {
     "description": "A channel's or a category's clips, when the period picked has none."
   },
-  "clipsShowingTop": "{count, plural, one{Showing the top {count} clip} other{Showing the top {count} clips}}",
+  "clipsShowingTop": "{count, plural, one{Showing the first clip} other{Showing the first {count} clips}}",
   "@clipsShowingTop": {
     "description": "Under a channel's or a category's clips when Twitch has more than it lists.",
     "placeholders": {
@@ -3250,17 +3250,17 @@
       }
     }
   },
-  "clipsCategoryNotFound": "Category not found",
+  "clipsCategoryNotFound": "Category not found.",
   "@clipsCategoryNotFound": {
-    "description": "A category's clips: the category is not on Twitch."
+    "description": "Error message. A category's clips: the category is not on Twitch."
   },
-  "clipsChannelNotFound": "Channel not found",
+  "clipsChannelNotFound": "Channel not found.",
   "@clipsChannelNotFound": {
-    "description": "A channel's clips: the channel is not on Twitch."
+    "description": "Error message. A channel's clips: the channel is not on Twitch."
   },
-  "clipsListFailed": "Couldn't load clips",
+  "clipsListFailed": "Couldn’t load clips.",
   "@clipsListFailed": {
-    "description": "A channel's or a category's clips could not load (with « Try again »)."
+    "description": "Error message. A channel's or a category's clips could not load (with « Try again »)."
   },
   "clipsMoreFrom": "More clips from {channel}",
   "@clipsMoreFrom": {
@@ -3280,17 +3280,17 @@
   "@clipCopyClipLink": {
     "description": "A clip's player: the label of the action that copies its link."
   },
-  "clipDetailsFailed": "Couldn't load the clip details",
+  "clipDetailsFailed": "Couldn’t load the clip details.",
   "@clipDetailsFailed": {
-    "description": "A clip's page: its title, channel and views could not load (with « Try again »)."
+    "description": "Error message. A clip's page: its title, channel and views could not load (with « Try again »)."
   },
   "clipSyncedToClip": "synced to the clip",
   "@clipSyncedToClip": {
     "description": "A clip's chat replay: the pill saying the messages follow the clip's time. Lower case."
   },
-  "playbackSubscriberOnly": "{subject, select, clip{This clip is only available to subscribers.} other{This video is only available to subscribers.}}",
+  "playbackSubscriberOnly": "{subject, select, clip{This clip is available only to subscribers.} other{This video is available only to subscribers.}}",
   "@playbackSubscriberOnly": {
-    "description": "Over a video's or a clip's player: only the channel's subscribers may watch it. subject is clip or video.",
+    "description": "Error message. Over a video's or a clip's player: only the channel's subscribers may watch it. subject is clip or video.",
     "placeholders": {
       "subject": {
         "type": "String",
@@ -3298,9 +3298,9 @@
       }
     }
   },
-  "playbackGeoBlocked": "{subject, select, clip{This clip is not available in your region} other{This video is not available in your region}}",
+  "playbackGeoBlocked": "{subject, select, clip{This clip isn’t available in your region.} other{This video isn’t available in your region.}}",
   "@playbackGeoBlocked": {
-    "description": "Over a video's or a clip's player: it cannot be watched in the viewer's country. subject is clip or video.",
+    "description": "Error message. Over a video's or a clip's player: it cannot be watched in the viewer's country. subject is clip or video.",
     "placeholders": {
       "subject": {
         "type": "String",
@@ -3308,9 +3308,9 @@
       }
     }
   },
-  "playbackNotFound": "{subject, select, clip{This clip is no longer available} other{This video is no longer available}}",
+  "playbackNotFound": "{subject, select, clip{This clip is no longer available.} other{This video is no longer available.}}",
   "@playbackNotFound": {
-    "description": "Over a video's or a clip's player: it was deleted. subject is clip or video.",
+    "description": "Error message. Over a video's or a clip's player: it was deleted. subject is clip or video.",
     "placeholders": {
       "subject": {
         "type": "String",
@@ -3318,9 +3318,9 @@
       }
     }
   },
-  "playbackFailed": "{subject, select, clip{Couldn't play this clip} other{Couldn't play this video}}",
+  "playbackFailed": "{subject, select, clip{Couldn’t play this clip.} other{Couldn’t play this video.}}",
   "@playbackFailed": {
-    "description": "Over a video's or a clip's player: it could not play (with « Try again »). subject is clip or video.",
+    "description": "Error message. Over a video's or a clip's player: it could not play (with « Try again »). subject is clip or video.",
     "placeholders": {
       "subject": {
         "type": "String",
@@ -3376,13 +3376,13 @@
   "@profileTabAbout": {
     "description": "A channel's profile: the About tab."
   },
-  "profileRefreshFailed": "Couldn't refresh this channel",
+  "profileRefreshFailed": "Couldn’t refresh this channel.",
   "@profileRefreshFailed": {
-    "description": "Snackbar when pulling to refresh a channel's profile failed (what was shown stays)."
+    "description": "Error message. Snackbar when pulling to refresh a channel's profile failed (what was shown stays)."
   },
-  "profileOpenFailed": "Couldn't open this channel, check your connection",
+  "profileOpenFailed": "Couldn’t open this channel. Check your connection.",
   "@profileOpenFailed": {
-    "description": "Snackbar when a channel's profile cannot open its channel page (its id is not known yet)."
+    "description": "Error message. Snackbar when a channel's profile cannot open its channel page (its id is not known yet)."
   },
   "profileShare": "Share",
   "@profileShare": {
@@ -3392,21 +3392,21 @@
   "@profileMore": {
     "description": "A channel's profile: the tooltip of the button that opens more actions (block, report…)."
   },
-  "profileLoadFailed": "Couldn't load this channel's profile",
+  "profileLoadFailed": "Couldn’t load this channel’s profile.",
   "@profileLoadFailed": {
-    "description": "A channel's profile could not load (with « Try again »)."
+    "description": "Error message. A channel's profile could not load (with « Try again »)."
   },
   "profileNoDetails": "No details",
   "@profileNoDetails": {
     "description": "A channel's About tab, when Twitch gave nothing about it."
   },
-  "profileScheduleFailed": "Couldn't load the schedule",
+  "profileScheduleFailed": "Couldn’t load the schedule.",
   "@profileScheduleFailed": {
-    "description": "A channel's Schedule tab could not load (with « Try again »)."
+    "description": "Error message. A channel's Schedule tab could not load (with « Try again »)."
   },
-  "profileNotFound": "Channel not found",
+  "profileNotFound": "Channel not found.",
   "@profileNotFound": {
-    "description": "A channel's profile, when the channel is not on Twitch."
+    "description": "Error message. A channel's profile, when the channel is not on Twitch."
   },
   "profileFollowers": "{count, plural, one{{count} follower} other{{count} followers}}",
   "@profileFollowers": {
@@ -3542,15 +3542,15 @@
   "@profileLive": {
     "description": "What a screen reader says first for a channel's live card while it is live."
   },
-  "profileReminderSet": "Reminder Set",
+  "profileReminderSet": "Reminder set",
   "@profileReminderSet": {
     "description": "A scheduled stream: the button (and tooltip) once a reminder is set; a tap removes it."
   },
-  "profileRemindMe": "Remind Me",
+  "profileRemindMe": "Remind me",
   "@profileRemindMe": {
     "description": "A scheduled stream: the button (and tooltip) that sets a notification when it starts (Twitch's « Remind Me »)."
   },
-  "startsNow": "now",
+  "startsNow": "starting now",
   "@startsNow": {
     "description": "When a scheduled stream starts: now. Lower case (inside « Next stream now · 14:05 »; French « Prochain live imminent », agreeing with « live »)."
   },
@@ -3588,11 +3588,11 @@
   "@profileReminderRefused": {
     "description": "Snackbar when a stream reminder cannot be set because the app may not post notifications."
   },
-  "profileReminderFailed": "Couldn't set the reminder.",
+  "profileReminderFailed": "Couldn’t set the reminder.",
   "@profileReminderFailed": {
-    "description": "Snackbar when a stream reminder could not be set."
+    "description": "Error message. Snackbar when a stream reminder could not be set."
   },
-  "profileStreamUntitled": "Stream",
+  "profileStreamUntitled": "Untitled stream",
   "@profileStreamUntitled": {
     "description": "A scheduled stream's title when the channel gave none."
   },
@@ -3614,7 +3614,7 @@
       }
     }
   },
-  "profileCancelled": "Cancelled",
+  "profileCancelled": "Canceled",
   "@profileCancelled": {
     "description": "A channel's Schedule tab: a scheduled stream the channel cancelled (« Annulé » agrees with « live »)."
   },
@@ -3642,11 +3642,11 @@
   "@profileNoUploads": {
     "description": "A channel's Videos tab, uploads, when there are none."
   },
-  "videosListFailed": "Couldn't load videos",
+  "videosListFailed": "Couldn’t load videos.",
   "@videosListFailed": {
-    "description": "A channel's or a category's videos could not load (with « Try again »)."
+    "description": "Error message. A channel's or a category's videos could not load (with « Try again »)."
   },
-  "videosShowingMostViewed": "{count, plural, one{Showing the {count} most viewed video} other{Showing the {count} most viewed videos}}",
+  "videosShowingMostViewed": "{count, plural, one{Showing the most-viewed video} other{Showing the {count} most-viewed videos}}",
   "@videosShowingMostViewed": {
     "description": "Under a category's videos when Twitch has more than it lists.",
     "placeholders": {
@@ -3656,7 +3656,7 @@
       }
     }
   },
-  "videosShowingMostRecent": "{count, plural, one{Showing the {count} most recent video} other{Showing the {count} most recent videos}}",
+  "videosShowingMostRecent": "{count, plural, one{Showing the most recent video} other{Showing the {count} most recent videos}}",
   "@videosShowingMostRecent": {
     "description": "Under a channel's videos when Twitch has more than it lists.",
     "placeholders": {
@@ -3678,7 +3678,7 @@
   "@activityTitle": {
     "description": "Tablet Activity: the page's title."
   },
-  "activityNote": "Notifications ONSET posted on this device.",
+  "activityNote": "Notifications ONSET has shown on this device.",
   "@activityNote": {
     "description": "Activity: the line saying what the list holds (under the title on a tablet, at the end of the list on a phone)."
   },
@@ -3686,7 +3686,7 @@
   "@activityRemove": {
     "description": "Activity: swiping a notification away, and the action of its menu."
   },
-  "activityEmpty": "Hooray! You're up to date",
+  "activityEmpty": "Hooray! You’re up to date",
   "@activityEmpty": {
     "description": "Activity, when there is no notification (Twitch's words)."
   },
@@ -3694,7 +3694,7 @@
   "@activityEmptyDetail": {
     "description": "Activity, under « Hooray! You're up to date »."
   },
-  "activityMostRecent": "Most Recent",
+  "activityMostRecent": "Most recent",
   "@activityMostRecent": {
     "description": "Activity: the title of the latest notifications (« Récentes » agrees with « notifications », and pairs with « Plus anciennes »)."
   },
@@ -3722,7 +3722,7 @@
   "@activityKindLive": {
     "description": "Activity: the category under a go-live notification, like Twitch's."
   },
-  "activityKindMention": "Chat Mentions",
+  "activityKindMention": "Chat mentions",
   "@activityKindMention": {
     "description": "Activity: the category under a chat mention notification, like Twitch's."
   },
@@ -3794,7 +3794,7 @@
   "@whisperStatusInterrupted": {
     "description": "Whispers: the note while the connection that brings them is being restored."
   },
-  "whisperStatusUnavailable": "Twitch isn't sending whispers to this app right now. It tries again when you come back to the app.",
+  "whisperStatusUnavailable": "Twitch isn’t sending whispers to this app right now. ONSET will try again when you come back to the app.",
   "@whisperStatusUnavailable": {
     "description": "Whispers: the note when Twitch is not sending them for now."
   },
@@ -3802,11 +3802,11 @@
   "@whisperStatusOff": {
     "description": "Whispers, logged out."
   },
-  "playerBack10": "Back 10 seconds",
+  "playerBack10": "Rewind 10 seconds",
   "@playerBack10": {
     "description": "A clip's or a video's player: the button (and screen reader action) that goes back 10 seconds."
   },
-  "playerForward10": "Forward 10 seconds",
+  "playerForward10": "Skip ahead 10 seconds",
   "@playerForward10": {
     "description": "A clip's or a video's player: the button (and screen reader action) that skips 10 seconds ahead."
   },
@@ -3892,11 +3892,11 @@
   "@playerVolume": {
     "description": "A clip's or a video's player settings sheet: the volume group."
   },
-  "playerCaptions": "Closed Captions",
+  "playerCaptions": "Closed captions",
   "@playerCaptions": {
     "description": "A video's player settings sheet: the captions switch's title."
   },
-  "playerCaptionsDetail": "When the stream has them",
+  "playerCaptionsDetail": "When the video has them",
   "@playerCaptionsDetail": {
     "description": "A video's player settings sheet: under « Closed Captions »."
   },
@@ -3966,7 +3966,7 @@
   "@channelVideos": {
     "description": "Tooltip of the button over the live video (and in the channel bar) that opens the channel's videos."
   },
-  "channelWebFallback": "{notice} Trying the web player.",
+  "channelWebFallback": "{notice} Switching to the web player.",
   "@channelWebFallback": {
     "description": "Snackbar when the app's player gives up on a stream Twitch refuses and the web player takes over. notice says why (liveRefused…), a full sentence; French puts it after « Passage au lecteur web. ».",
     "placeholders": {
@@ -3984,11 +3984,11 @@
   "@channelResizeVideo": {
     "description": "What a screen reader calls the handle between the video and the chat in portrait."
   },
-  "channelResizeVideoHint": "Drag to change the video size, double tap for full width",
+  "channelResizeVideoHint": "Drag to resize the video. Double-tap for full width.",
   "@channelResizeVideoHint": {
     "description": "What a screen reader says the handle between the video and the chat does."
   },
-  "channelUptimeMinutes": "{minutes} min",
+  "channelUptimeMinutes": "{minutes}m",
   "@channelUptimeMinutes": {
     "description": "How long a live has run, under an hour, in the info row under the video and on a channel profile's live card. Short unit, no plural.",
     "placeholders": {
@@ -3998,7 +3998,7 @@
       }
     }
   },
-  "channelUptimeHours": "{hours} h {minutes}",
+  "channelUptimeHours": "{hours}h {minutes}m",
   "@channelUptimeHours": {
     "description": "How long a live has run, from an hour (3 h 12), in the info row under the video and on a channel profile's live card. minutes is two digits.",
     "placeholders": {
@@ -4012,7 +4012,7 @@
       }
     }
   },
-  "channelWatchStreak": "Watch streak {value}",
+  "channelWatchStreak": "Watch Streak {value}",
   "@channelWatchStreak": {
     "description": "A chip under a tablet's video: how many streams in a row the viewer watched on this channel. French keeps the short « Série {value} » of the stream cards (streamStreak), so the number always shows; the screen reader hears the full name (streamWatchStreakSemantics).",
     "placeholders": {
@@ -4022,7 +4022,7 @@
       }
     }
   },
-  "channelAlsoLive": "ALSO LIVE FROM YOUR FOLLOWS",
+  "channelAlsoLive": "ALSO LIVE FROM CHANNELS YOU FOLLOW",
   "@channelAlsoLive": {
     "description": "Tablet channel page, under the video: the heading of the row of other followed channels that are live. Written in capitals."
   },
@@ -4064,11 +4064,11 @@
   "@livePlayerRefresh": {
     "description": "Tooltip of the live player's button that reloads the stream."
   },
-  "livePlayerEnterFullScreen": "Enter fullscreen mode",
+  "livePlayerEnterFullScreen": "Full screen",
   "@livePlayerEnterFullScreen": {
     "description": "Tooltip of the live player's full-screen button."
   },
-  "livePlayerExitFullScreen": "Exit fullscreen mode",
+  "livePlayerExitFullScreen": "Exit full screen",
   "@livePlayerExitFullScreen": {
     "description": "Tooltip of the live player's full-screen button while in full screen."
   },
@@ -4112,7 +4112,7 @@
   "@livePlayerVideoStats": {
     "description": "The live player's settings sheet: shows or hides the stats panel over the video."
   },
-  "livePlayerVideoStatsDetail": "Latency, buffer, bitrate and frames over the video",
+  "livePlayerVideoStatsDetail": "Latency, buffer, bitrate, and frames over the video",
   "@livePlayerVideoStatsDetail": {
     "description": "Under « Video stats »: what the panel shows."
   },
@@ -4158,7 +4158,7 @@
   },
   "liveRefusedSubscribersOnly": "{name} is streaming for subscribers only.",
   "@liveRefusedSubscribersOnly": {
-    "description": "Why the app's player cannot play a stream (then the web player tries): Twitch keeps it for subscribers. name is the channel's display name.",
+    "description": "Error message. Why the app's player cannot play a stream (then the web player tries): Twitch keeps it for subscribers. name is the channel's display name.",
     "placeholders": {
       "name": {
         "type": "String",
@@ -4168,11 +4168,11 @@
   },
   "liveRefusedGeoblocked": "This stream is not available in your region.",
   "@liveRefusedGeoblocked": {
-    "description": "Why the app's player cannot play a stream: Twitch blocks it in the viewer's country."
+    "description": "Error message. Why the app's player cannot play a stream: Twitch blocks it in the viewer's country."
   },
-  "liveRefusedBanned": "You are banned from {name}'s channel.",
+  "liveRefusedBanned": "You’re banned from {name}’s channel.",
   "@liveRefusedBanned": {
-    "description": "Why the app's player cannot play a stream: the viewer is banned from the channel. name is the channel's display name. French says « votre compte » (masculine) so « banni » never agrees with the viewer.",
+    "description": "Error message. Why the app's player cannot play a stream: the viewer is banned from the channel. name is the channel's display name. French says « votre compte » (masculine) so « banni » never agrees with the viewer.",
     "placeholders": {
       "name": {
         "type": "String",
@@ -4180,17 +4180,17 @@
       }
     }
   },
-  "liveRefusedUnauthorized": "Twitch refused this stream to the app player.",
+  "liveRefusedUnauthorized": "Twitch won’t play this stream in the low-latency player.",
   "@liveRefusedUnauthorized": {
-    "description": "Why the app's player cannot play a stream: Twitch refused its token, without saying why."
+    "description": "Error message. Why the app's player cannot play a stream: Twitch refused its token, without saying why."
   },
   "liveRefused": "Twitch refused this stream.",
   "@liveRefused": {
-    "description": "Why the app's player cannot play a stream, on a screen whose language is not English: Twitch explained in English (its words stay in the logs)."
+    "description": "Error message. Why the app's player cannot play a stream, on a screen whose language is not English: Twitch explained in English (its words stay in the logs)."
   },
   "liveRefusedBecause": "Twitch refused this stream: {reason}",
   "@liveRefusedBecause": {
-    "description": "Why the app's player cannot play a stream, in English only: Twitch's own explanation follows (a full stop is added when it has none).",
+    "description": "Error message. Why the app's player cannot play a stream, in English only: Twitch's own explanation follows (a full stop is added when it has none).",
     "placeholders": {
       "reason": {
         "type": "String",
@@ -4314,7 +4314,7 @@
   "@latencyStatsSpeed": {
     "description": "Stats panel: the row of the playback rate."
   },
-  "latencyStatsRate": "{rate}x",
+  "latencyStatsRate": "{rate}×",
   "@latencyStatsRate": {
     "description": "Stats panel: a playback rate (1.05x). rate has two decimals.",
     "placeholders": {
@@ -4404,7 +4404,7 @@
   "@latencyAutoSteady": {
     "description": "Stats panel, Auto latency row: close enough to live, playing at normal speed."
   },
-  "latencyAutoCatchingUp": "catching up {rate}x",
+  "latencyAutoCatchingUp": "catching up {rate}×",
   "@latencyAutoCatchingUp": {
     "description": "Stats panel, Auto latency row: playing faster to get back to the target. rate has two decimals.",
     "placeholders": {
@@ -4414,7 +4414,7 @@
       }
     }
   },
-  "latencyAutoDraining": "draining {rate}x",
+  "latencyAutoDraining": "draining {rate}×",
   "@latencyAutoDraining": {
     "description": "Stats panel, Auto latency row: playing slightly faster to drain an excessive buffer (« résorption » du tampon). rate has two decimals.",
     "placeholders": {
@@ -4424,7 +4424,7 @@
       }
     }
   },
-  "latencyAutoDrainingBecause": "draining {rate}x ({reason})",
+  "latencyAutoDrainingBecause": "draining {rate}× ({reason})",
   "@latencyAutoDrainingBecause": {
     "description": "The same, with why the normal catch-up does not run (latencyReason…).",
     "placeholders": {
@@ -4442,7 +4442,7 @@
   "@latencyReasonGaveUp": {
     "description": "Stats panel, Auto latency row: why it stopped, when there is no other reason."
   },
-  "latencyReasonHeld": "held",
+  "latencyReasonHeld": "waiting",
   "@latencyReasonHeld": {
     "description": "Stats panel, Auto latency row: why it holds, when there is no other reason."
   },
@@ -4482,7 +4482,7 @@
   "@latencyReasonRateRefused": {
     "description": "Why auto latency stopped: the player refused to play faster. Lower case."
   },
-  "latencyReasonRateNotKept": "the player did not keep the rate",
+  "latencyReasonRateNotKept": "the player didn’t keep the rate",
   "@latencyReasonRateNotKept": {
     "description": "Why auto latency stopped: the player did not play at the rate asked for. Lower case."
   },
@@ -4490,7 +4490,7 @@
   "@latencyReasonStalls": {
     "description": "Why auto latency stopped: playing faster kept causing stalls. Lower case."
   },
-  "latencyReasonStuckFast": "the player stayed at {rate}x",
+  "latencyReasonStuckFast": "the player stayed at {rate}×",
   "@latencyReasonStuckFast": {
     "description": "Why auto latency stopped: the player stayed fast after normal speed was asked for. rate has two decimals.",
     "placeholders": {
@@ -4500,7 +4500,7 @@
       }
     }
   },
-  "latencyReasonNotBackToNormal": "the player did not return to {rate}x",
+  "latencyReasonNotBackToNormal": "the player didn’t return to {rate}×",
   "@latencyReasonNotBackToNormal": {
     "description": "Why auto latency stopped: the player refused to go back to normal speed. rate is 1.0, with its decimal separator.",
     "placeholders": {
@@ -4520,7 +4520,7 @@
       }
     }
   },
-  "clipCreateTitle": "Create Clip",
+  "clipCreateTitle": "Create clip",
   "@clipCreateTitle": {
     "description": "The title of the sheet that makes a clip of the live stream."
   },
@@ -4528,11 +4528,11 @@
   "@clipCreateButton": {
     "description": "Tooltip of the clip button under the live video (opens the Create clip sheet). « Clip » is also a verb in English; French names the action, as the sheet's title does."
   },
-  "clipCreateGenerating": "Generating Clipperino...",
+  "clipCreateGenerating": "Creating clip…",
   "@clipCreateGenerating": {
     "description": "Create clip sheet: Twitch is making the clip (« Clipperino » is Twitch's playful word, kept)."
   },
-  "clipCreateRendering": "Rendering Clip",
+  "clipCreateRendering": "Rendering clip…",
   "@clipCreateRendering": {
     "description": "Create clip sheet: Twitch is rendering the clip."
   },
@@ -4544,7 +4544,7 @@
   "@clipCreateLogInAction": {
     "description": "Create clip sheet, signed out: the button that opens the Twitch login."
   },
-  "clipCreateMissingScope": "Creating clips needs a permission your Twitch login does not have yet. Reconnect to Twitch to allow it.",
+  "clipCreateMissingScope": "Creating clips needs a permission your Twitch login doesn’t have yet. Reconnect to Twitch to allow it.",
   "@clipCreateMissingScope": {
     "description": "Create clip sheet: the login lacks the clips permission."
   },
@@ -4552,7 +4552,7 @@
   "@clipCreateReconnect": {
     "description": "Create clip sheet: the button that opens the Twitch login again, to grant the clips permission."
   },
-  "clipCreateShare": "Share Clip",
+  "clipCreateShare": "Share clip",
   "@clipCreateShare": {
     "description": "Create clip sheet, once the clip is made: shares its link (French « Partager » alone: the button sits beside « Copier le lien », in half the sheet)."
   },
@@ -4572,33 +4572,33 @@
   "@clipCreateEditDetail": {
     "description": "Under « Edit »: what can be changed there."
   },
-  "clipCreateEditorTitle": "Edit Clip",
+  "clipCreateEditorTitle": "Edit clip",
   "@clipCreateEditorTitle": {
     "description": "The title of the in-app twitch.tv page of the clip editor."
   },
-  "clipCreateFailedMissingScope": "Your Twitch login does not allow creating clips.",
+  "clipCreateFailedMissingScope": "Your Twitch login doesn’t allow creating clips.",
   "@clipCreateFailedMissingScope": {
-    "description": "Create clip sheet, failed: the login lacks the permission."
+    "description": "Error message. Create clip sheet, failed: the login lacks the permission."
   },
-  "clipCreateFailedRestricted": "You can't clip this channel right now: clips may be off, only for followers or subscribers, or you are banned or timed out here.",
+  "clipCreateFailedRestricted": "You can’t clip this channel right now: clips may be off or limited to followers or subscribers, or you’re banned or timed out here.",
   "@clipCreateFailedRestricted": {
-    "description": "Create clip sheet, failed: Twitch refused for this channel. French says « votre compte » so nothing agrees with the viewer."
+    "description": "Error message. Create clip sheet, failed: Twitch refused for this channel. French says « votre compte » so nothing agrees with the viewer."
   },
   "clipCreateFailedOffline": "Only live streams can be clipped.",
   "@clipCreateFailedOffline": {
-    "description": "Create clip sheet, failed: the channel is offline."
+    "description": "Error message. Create clip sheet, failed: the channel is offline."
   },
-  "clipCreateFailedNotClippable": "This channel does not permit clips of this category.",
+  "clipCreateFailedNotClippable": "This channel doesn’t allow clips of this category.",
   "@clipCreateFailedNotClippable": {
-    "description": "Create clip sheet, failed: the channel forbids clips of the current category."
+    "description": "Error message. Create clip sheet, failed: the channel forbids clips of the current category."
   },
   "clipCreateFailedRateLimited": "Too many clips at once. Try again in a moment.",
   "@clipCreateFailedRateLimited": {
-    "description": "Create clip sheet, failed: too many clips made in a short time."
+    "description": "Error message. Create clip sheet, failed: too many clips made in a short time."
   },
-  "clipCreateFailedUnknown": "Hmm... Something went wrong",
+  "clipCreateFailedUnknown": "Hmm… something went wrong.",
   "@clipCreateFailedUnknown": {
-    "description": "Create clip sheet, failed for another reason."
+    "description": "Error message. Create clip sheet, failed for another reason."
   },
   "commonHide": "Hide",
   "@commonHide": {
@@ -4644,7 +4644,7 @@
       }
     }
   },
-  "highlightKind": "{kind, select, poll{Poll} prediction{Prediction} pinned{Pinned} raid{Raid} giftBomb{Gift Subs} incomingRaid{Incoming raid} other{Highlight}}",
+  "highlightKind": "{kind, select, poll{Poll} prediction{Prediction} pinned{Pinned} raid{Raid} giftBomb{Gift subs} incomingRaid{Incoming raid} other{Highlight}}",
   "@highlightKind": {
     "description": "The name of a community highlight over the video or the chat: its card's title and the pill that shows the highlights.",
     "placeholders": {
@@ -4664,7 +4664,7 @@
       }
     }
   },
-  "highlightAndMore": "{label} and {count, plural, other{{count} more}}",
+  "highlightAndMore": "{label} and {count, plural, one{{count} more} other{{count} more}}",
   "@highlightAndMore": {
     "description": "What a screen reader says for the pill that opens the community highlights when there are several. label is the shown one's name (highlightKind).",
     "placeholders": {
@@ -4894,7 +4894,7 @@
       }
     }
   },
-  "raidStay": "You stay on {source}",
+  "raidStay": "You’re staying on {source}",
   "@raidStay": {
     "description": "Raid card, after « Stay here »: the viewer stays on the channel. source is its display name.",
     "placeholders": {
@@ -4924,7 +4924,7 @@
       }
     }
   },
-  "raidWentAlong": "{count, plural, other{{viewers} went along}}",
+  "raidWentAlong": "{count, plural, one{{viewers} went along} other{{viewers} went along}}",
   "@raidWentAlong": {
     "description": "Raid card once the raid left: how many viewers went. viewers is raidViewers; count chooses the French verb's number.",
     "placeholders": {
@@ -4938,7 +4938,7 @@
       }
     }
   },
-  "raidCancelled": "Raid cancelled",
+  "raidCancelled": "Raid canceled",
   "@raidCancelled": {
     "description": "Raid card when the broadcaster cancels the raid."
   },
@@ -5117,7 +5117,7 @@
       }
     }
   },
-  "giftBombAllHandedOut": "{count, plural, other{all {count} handed out}}",
+  "giftBombAllHandedOut": "{count, plural, one{all {count} handed out} other{all {count} handed out}}",
   "@giftBombAllHandedOut": {
     "description": "What a screen reader reads as the gift subs pin's value once every sub reached a viewer.",
     "placeholders": {
@@ -5127,7 +5127,7 @@
       }
     }
   },
-  "giftBombHandedOutSemantics": "{received, plural, other{{received} of {count} handed out}}",
+  "giftBombHandedOutSemantics": "{received, plural, one{{received} of {count} handed out} other{{received} of {count} handed out}}",
   "@giftBombHandedOutSemantics": {
     "description": "What a screen reader reads as the gift subs pin's value: how many subs reached a viewer so far.",
     "placeholders": {
@@ -5141,7 +5141,7 @@
       }
     }
   },
-  "giftBombProgress": "{receivedCount, plural, other{{received} of {total} handed out}}",
+  "giftBombProgress": "{receivedCount, plural, one{{received} of {total} handed out} other{{received} of {total} handed out}}",
   "@giftBombProgress": {
     "description": "The gift subs pin: how many subs reached a viewer so far. received is that number as shown (it rolls), receivedCount the same number choosing the form.",
     "placeholders": {
@@ -5211,11 +5211,11 @@
   "@htFinalLevel": {
     "description": "The hype train banner's line (and the sheet's) at the last level."
   },
-  "htAthApproaching": "About to beat your last record. Keep up the support.",
+  "htAthApproaching": "About to beat the channel’s record. Keep up the support.",
   "@htAthApproaching": {
     "description": "The hype train banner's line when the train nears the channel's all-time record."
   },
-  "htAthApproachingCompact": "About to beat your last record.",
+  "htAthApproachingCompact": "About to beat the channel’s record.",
   "@htAthApproachingCompact": {
     "description": "The same line where little room is left."
   },
@@ -5227,7 +5227,7 @@
   "@htAthReachedShared": {
     "description": "The same line for a shared train."
   },
-  "htTreasureLocked": "Reach Level {level} to unlock {discount}% OFF Gift Subs!",
+  "htTreasureLocked": "Reach level {level} to unlock {discount}% off gift subs!",
   "@htTreasureLocked": {
     "description": "A treasure train's banner line before its discount unlocks (the banner has room for one line: as short as the English).",
     "placeholders": {
@@ -5241,7 +5241,7 @@
       }
     }
   },
-  "htTreasureUnlockedSubtitle": "{discount}% OFF 5+ Gift Subs for the rest of this Hype Train",
+  "htTreasureUnlockedSubtitle": "{discount}% off 5+ gift subs for the rest of this Hype Train",
   "@htTreasureUnlockedSubtitle": {
     "description": "A treasure train's banner line once its discount is unlocked (as short as the English).",
     "placeholders": {
@@ -5251,7 +5251,7 @@
       }
     }
   },
-  "htCommunityLocked": "Hit Level {level} and chat will receive emotes too!",
+  "htCommunityLocked": "Hit level {level} and chat will receive emotes too!",
   "@htCommunityLocked": {
     "description": "A community train's banner line (and step) before chat's emotes unlock.",
     "placeholders": {
@@ -5261,7 +5261,7 @@
       }
     }
   },
-  "htCommunityUnlockedSubtitle": "{count, plural, one{{count} Emote for Chat} other{{count} Emotes for Chat}}",
+  "htCommunityUnlockedSubtitle": "{count, plural, one{{count} emote for chat} other{{count} emotes for chat}}",
   "@htCommunityUnlockedSubtitle": {
     "description": "A community train's banner line once emotes for chat are unlocked.",
     "placeholders": {
@@ -5272,7 +5272,7 @@
       }
     }
   },
-  "htLevelComplete": "Level {level} Complete!",
+  "htLevelComplete": "Level {level} complete!",
   "@htLevelComplete": {
     "description": "The hype train banner's announcement when a level completes.",
     "placeholders": {
@@ -5282,7 +5282,7 @@
       }
     }
   },
-  "htStarted": "{variant, select, goldenKappa{Golden Kappa Train starting!} treasure{Treasure Train Incoming!} community{Community Train Incoming!} mythic{Mythic Train Incoming!} other{Hype Train starting!}}",
+  "htStarted": "{variant, select, goldenKappa{Golden Kappa Train starting!} treasure{Treasure Train incoming!} community{Community Train incoming!} mythic{Mythic Train incoming!} other{Hype Train starting!}}",
   "@htStarted": {
     "description": "The marquee when a hype train starts (three emotes follow it). variant is the train's variant (regular, goldenKappa, treasure, community, mythic).",
     "placeholders": {
@@ -5306,7 +5306,7 @@
   "@htLevelUp": {
     "description": "The marquee when the hype train levels up: a cheer, the same in French."
   },
-  "htCompleted": "{variant, select, goldenKappa{Golden Kappa Train success!} treasure{Treasure Train Success!} community{Community Train Success!} mythic{Mythic Train Success!} other{Hype Train success!}}",
+  "htCompleted": "{variant, select, goldenKappa{Golden Kappa Train success!} treasure{Treasure Train success!} community{Community Train success!} mythic{Mythic Train success!} other{Hype Train success!}}",
   "@htCompleted": {
     "description": "The marquee when a hype train ends with a level completed. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).",
     "placeholders": {
@@ -5338,11 +5338,11 @@
   "@htMerging": {
     "description": "The announcement when two channels' hype trains merge into a shared one."
   },
-  "htSummaryRecord": "All-time record shattered!\nYou've reached new levels of support!",
+  "htSummaryRecord": "All-time record shattered!\nYou’ve reached new levels of support!",
   "@htSummaryRecord": {
     "description": "The hype train's summary at its end, after beating the channel's record: two lines (keep the line break)."
   },
-  "htSummary": "{variant, select, treasure{Such strong support\nTreasure Train Level {level} completed!} community{Such strong support\nCommunity Train Level {level} completed!} mythic{Such strong support\nMythic Train Level {level} completed!} other{Such strong support\nLevel {level} completed!}}",
+  "htSummary": "{variant, select, treasure{Such strong support!\nTreasure Train level {level} completed!} community{Such strong support!\nCommunity Train level {level} completed!} mythic{Such strong support!\nMythic Train level {level} completed!} other{Such strong support!\nLevel {level} completed!}}",
   "@htSummary": {
     "description": "The hype train's summary at its end: two lines (keep the line break), the cheer then the last level completed. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).",
     "placeholders": {
@@ -5379,7 +5379,7 @@
       }
     }
   },
-  "htContributionGift": "{count, plural, one{{name} just gifted {count} Tier {tier} Sub!} other{{name} just gifted {count} Tier {tier} Subs!}}",
+  "htContributionGift": "{count, plural, one{{name} just gifted {count} Tier {tier} sub!} other{{name} just gifted {count} Tier {tier} subs!}}",
   "@htContributionGift": {
     "description": "The hype train banner's announcement of gifted subs. tier is the sub tier (1, 2 or 3).",
     "placeholders": {
@@ -5398,7 +5398,7 @@
       }
     }
   },
-  "htContributionSub": "{name} just subscribed with a Tier {tier} Sub!",
+  "htContributionSub": "{name} just subscribed at Tier {tier}!",
   "@htContributionSub": {
     "description": "The hype train banner's announcement of a sub. tier is the sub tier (1, 2 or 3).",
     "placeholders": {
@@ -5422,7 +5422,7 @@
       }
     }
   },
-  "htSubs": "{count, plural, one{{count} Sub} other{{count} Subs}}",
+  "htSubs": "{count, plural, one{{count} sub} other{{count} subs}}",
   "@htSubs": {
     "description": "A number of subs: a shared train's totals, the conductor's, the level target.",
     "placeholders": {
@@ -5444,7 +5444,7 @@
       }
     }
   },
-  "htInstructionStart": "{variant, select, goldenKappa{You'll have a limited time to earn an exclusive golden Kappa emote for 24 hrs} community{Whoa, this is a rare Community Train!} mythic{Whoa, this is a rare Mythic Train!} other{You'll have a limited time to earn exclusive emotes}}",
+  "htInstructionStart": "{variant, select, goldenKappa{You’ll have a limited time to earn an exclusive Golden Kappa emote, valid for 24 hours} community{Whoa, this is a rare Community Train!} mythic{Whoa, this is a rare Mythic Train!} other{You’ll have a limited time to earn exclusive emotes}}",
   "@htInstructionStart": {
     "description": "The hype train banner's first step after it starts (and the golden Kappa card of the sheet). variant is the train's variant (regular, goldenKappa, treasure, community, mythic).",
     "placeholders": {
@@ -5454,7 +5454,7 @@
       }
     }
   },
-  "htInstructionTreasureReachLevel": "Reach Level {level} during this train to unlock {discount}% OFF Gift Subs!",
+  "htInstructionTreasureReachLevel": "Reach level {level} during this train to unlock {discount}% off gift subs!",
   "@htInstructionTreasureReachLevel": {
     "description": "A treasure train's step: the level that unlocks its discount.",
     "placeholders": {
@@ -5468,11 +5468,11 @@
       }
     }
   },
-  "htInstructionTreasureOneAway": "One more level unlocks a discount for the rest of this train, keep going!",
+  "htInstructionTreasureOneAway": "One more level unlocks a discount for the rest of this train. Keep going!",
   "@htInstructionTreasureOneAway": {
     "description": "A treasure train's step one level before the discount."
   },
-  "htInstructionTreasureUnlocked": "You've unlocked {discount}% OFF on 5+ Gift Subs! Don't miss out!",
+  "htInstructionTreasureUnlocked": "You’ve unlocked {discount}% off 5+ gift subs! Don’t miss out!",
   "@htInstructionTreasureUnlocked": {
     "description": "A treasure train's step once its discount unlocks.",
     "placeholders": {
@@ -5497,7 +5497,7 @@
   "@htInstructionCommunityRewards": {
     "description": "A community train's step at its end."
   },
-  "htInstructionSeeYouNextTime": "See you next time in Shared Hype Train!",
+  "htInstructionSeeYouNextTime": "See you next time in a Shared Hype Train!",
   "@htInstructionSeeYouNextTime": {
     "description": "A shared train's last step."
   },
@@ -5529,7 +5529,7 @@
       }
     }
   },
-  "htOtherChannelRecord": "{name}'s new all-time Shared record!",
+  "htOtherChannelRecord": "{name}’s new all-time shared record!",
   "@htOtherChannelRecord": {
     "description": "A shared train's strip when another channel of it beats its record. name is that channel's display name.",
     "placeholders": {
@@ -5539,7 +5539,7 @@
       }
     }
   },
-  "htSharedRecordReached": "Shared Train Record Broken!",
+  "htSharedRecordReached": "Shared Train record broken!",
   "@htSharedRecordReached": {
     "description": "A shared train's announcement when it beats its record."
   },
@@ -5567,7 +5567,7 @@
       }
     }
   },
-  "htApproachingMore": "{count, plural, one{{count} more person needs to sub, gift or use Bits} other{{count} more people need to sub, gift or use Bits}}",
+  "htApproachingMore": "{count, plural, one{{count} more person needs to sub, gift, or use Bits} other{{count} more people need to sub, gift, or use Bits}}",
   "@htApproachingMore": {
     "description": "The approaching banner's line once the viewer took part: how many others are needed.",
     "placeholders": {
@@ -5601,7 +5601,7 @@
       }
     }
   },
-  "htApproachingExplanationSecond": "{variant, select, goldenKappa{Once a Golden Kappa Train is underway, the community fills up the Hype Meter with more subs, gifts or Bits. Everyone who contributes enough to be eligible for rewards will receive the Golden Kappa emote for 24 hours in addition to the regular emote rewards.} other{Once a Hype Train is underway, the community fills up the Hype Meter with more subs, gifts or Bits. Everyone who contributes receives one unique emote based on the highest level completed.}}",
+  "htApproachingExplanationSecond": "{variant, select, goldenKappa{Once a Golden Kappa Train is underway, the community fills up the Hype Meter with more subs, gifts, or Bits. Everyone who contributes enough to be eligible for rewards will receive the Golden Kappa emote for 24 hours in addition to the regular emote rewards.} other{Once a Hype Train is underway, the community fills up the Hype Meter with more subs, gifts, or Bits. Everyone who contributes receives one unique emote based on the highest level completed.}}",
   "@htApproachingExplanationSecond": {
     "description": "The approaching sheet's second paragraph. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).",
     "placeholders": {
@@ -5615,11 +5615,11 @@
   "@htRewards": {
     "description": "The end strip of a hype train with rewards."
   },
-  "htGoldenRewards": "Great work! Supporters can enjoy the exclusive Golden Kappa emote for 24 hrs",
+  "htGoldenRewards": "Great work! Supporters can enjoy the exclusive Golden Kappa emote for 24 hours",
   "@htGoldenRewards": {
     "description": "The end strip of a golden Kappa train."
   },
-  "htExpired": "You missed the Train. Better luck next time!",
+  "htExpired": "You missed the train. Better luck next time!",
   "@htExpired": {
     "description": "The end strip of a hype train that expired without completing a level."
   },
@@ -5643,7 +5643,7 @@
   "@htRewardsDescription": {
     "description": "Under « Available rewards » (a link to learn more follows)."
   },
-  "htGoldenRewardsDescription": "Contribute by subbing, gifting, or using more than 100 Bits in total during the event to earn an exclusive golden Kappa emote for 24 hours in addition to the regular emote rewards.",
+  "htGoldenRewardsDescription": "Contribute by subbing, gifting, or using more than 100 Bits in total during the event to earn an exclusive Golden Kappa emote for 24 hours in addition to the regular emote rewards.",
   "@htGoldenRewardsDescription": {
     "description": "Under « Available rewards » for a golden Kappa train."
   },
@@ -5661,11 +5661,11 @@
       }
     }
   },
-  "htMoreInfo": "More Info",
+  "htMoreInfo": "More info",
   "@htMoreInfo": {
     "description": "The hype train sheet's button that opens Twitch's hype train guide."
   },
-  "htLearnMore": "learn more",
+  "htLearnMore": "Learn more",
   "@htLearnMore": {
     "description": "The link after the hype train sheet's rewards description (opens Twitch's guide). English writes it in lower case after the sentence; French starts it with a capital, a new sentence."
   },
@@ -5681,7 +5681,7 @@
   "@htNothingMore": {
     "description": "The hype train sheet when nothing more is coming."
   },
-  "htLevelTarget": "Completing Level {level} requires combined support events totaling {subs, plural, one{{subs} Tier 1 Sub} other{{subs} Tier 1 Subs}} or {bits, plural, one{{bits} Bit} other{{bits} Bits}}",
+  "htLevelTarget": "Level {level} needs {subs, plural, one{{subs} Tier 1 sub} other{{subs} Tier 1 subs}} or {bits, plural, one{{bits} Bit} other{{bits} Bits}} in total",
   "@htLevelTarget": {
     "description": "The hype train sheet's line: what the level needs.",
     "placeholders": {
@@ -5701,7 +5701,7 @@
       }
     }
   },
-  "htSubsConductor": "{count, plural, one{{name} has contributed {count} Sub!} other{{name} has contributed {count} Subs!}}",
+  "htSubsConductor": "{count, plural, one{{name} has contributed {count} sub!} other{{name} has contributed {count} subs!}}",
   "@htSubsConductor": {
     "description": "The hype train sheet: the top subs supporter (name drawn bold) and their subs.",
     "placeholders": {
@@ -5731,7 +5731,7 @@
       }
     }
   },
-  "htNoSubsConductor": "Sub or Gift to take over this spot!",
+  "htNoSubsConductor": "Sub or gift to take over this spot!",
   "@htNoSubsConductor": {
     "description": "The hype train sheet when no one has subbed yet."
   },
@@ -5739,7 +5739,7 @@
   "@htNoBitsConductor": {
     "description": "The hype train sheet when no one has used Bits yet."
   },
-  "htChannelRecord": "Channel all-time record! {percent}% Level {level}",
+  "htChannelRecord": "Channel all-time record! Level {level} at {percent}%",
   "@htChannelRecord": {
     "description": "The hype train sheet, after a trophy: the channel's all-time record.",
     "placeholders": {
@@ -5753,7 +5753,7 @@
       }
     }
   },
-  "htTreasureCardUnlocked": "Save {discount}% on 5 or more Gift Subs exclusively during this train. All Aboard!",
+  "htTreasureCardUnlocked": "Save {discount}% on 5 or more gift subs, only during this train. All aboard!",
   "@htTreasureCardUnlocked": {
     "description": "The hype train sheet's treasure card once the discount is unlocked.",
     "placeholders": {
@@ -5763,7 +5763,7 @@
       }
     }
   },
-  "htTreasureCardLocked": "Unlock a limited-time {discount}% OFF Gift Subs at Level {level} during this train!",
+  "htTreasureCardLocked": "Unlock a limited-time {discount}% discount on gift subs at level {level} during this train!",
   "@htTreasureCardLocked": {
     "description": "The hype train sheet's treasure card before the discount unlocks.",
     "placeholders": {
@@ -5787,7 +5787,7 @@
       }
     }
   },
-  "htCardLevelRecord": "All-Time High Train Level {level}",
+  "htCardLevelRecord": "All-time record · Level {level}",
   "@htCardLevelRecord": {
     "description": "The pill on a followed stream's card while its hype train beats the channel's record.",
     "placeholders": {
@@ -5797,7 +5797,7 @@
       }
     }
   },
-  "htCardLevel": "{train} Level {level}",
+  "htCardLevel": "{train} level {level}",
   "@htCardLevel": {
     "description": "The pill on a followed stream's card while a hype train runs. train is its name (htTrainTitle).",
     "placeholders": {
@@ -5819,9 +5819,9 @@
   "@htExpand": {
     "description": "What a screen reader says a tap on the collapsed hype train pill does."
   },
-  "htDetailsHint": "Double tap to show details",
+  "htDetailsHint": "show details",
   "@htDetailsHint": {
-    "description": "What a screen reader says a tap on the hype train banner does (opens its sheet)."
+    "description": "What a screen reader says a tap on the hype train banner does (opens its sheet), after its own « Double-tap to »: a verb in lower case."
   },
   "htSemanticsApproaching": "Hype Train approaching",
   "@htSemanticsApproaching": {
@@ -6017,11 +6017,11 @@
       }
     }
   },
-  "chatConnecting": "Connecting to chat...",
+  "chatConnecting": "Connecting to chat…",
   "@chatConnecting": {
     "description": "The first line of a chat, while it connects."
   },
-  "chatWelcome": "Welcome to {name}'s chat!",
+  "chatWelcome": "Welcome to {name}’s chat!",
   "@chatWelcome": {
     "description": "The line once the chat is connected. name is the channel's display name.",
     "placeholders": {
@@ -6045,7 +6045,7 @@
       }
     }
   },
-  "chatReconnectingIn": "Reconnecting in {seconds}s... (attempt {attempt} of {max})",
+  "chatReconnectingIn": "Reconnecting in {seconds}s… (attempt {attempt} of {max})",
   "@chatReconnectingIn": {
     "description": "The chat lost its connection: the countdown before the next try.",
     "placeholders": {
@@ -6063,7 +6063,7 @@
       }
     }
   },
-  "chatReconnecting": "Reconnecting... (attempt {attempt} of {max})",
+  "chatReconnecting": "Reconnecting… (attempt {attempt} of {max})",
   "@chatReconnecting": {
     "description": "The chat lost its connection: a try is running.",
     "placeholders": {
@@ -6077,19 +6077,19 @@
       }
     }
   },
-  "chatDisconnected": "Chat disconnected. Please check your connection.",
+  "chatDisconnected": "Chat disconnected. Check your connection.",
   "@chatDisconnected": {
-    "description": "The line once every try to reconnect failed; a Reconnect button follows (chatReconnect)."
+    "description": "Error message. The line once every try to reconnect failed; a Reconnect button follows (chatReconnect)."
   },
   "chatReconnect": "Reconnect",
   "@chatReconnect": {
     "description": "The button on the « chat disconnected » line, and the row of the chat's details sheet that reconnects the chat."
   },
-  "chatReconnectingNotice": "Reconnecting to chat...",
+  "chatReconnectingNotice": "Reconnecting to chat…",
   "@chatReconnectingNotice": {
     "description": "The note above the input after the viewer asked to reconnect (chat details › Reconnect)."
   },
-  "chatSyncIn": "Chat will sync in {seconds}s...",
+  "chatSyncIn": "Chat will sync in {seconds}s…",
   "@chatSyncIn": {
     "description": "The chat is delayed to match the video (Settings › Chat › Message delay): the countdown until it catches up.",
     "placeholders": {
@@ -6099,7 +6099,7 @@
       }
     }
   },
-  "chatSevenTvEmoteAdded": "{name} added 7TV emote \"{emote}\" to chat",
+  "chatSevenTvEmoteAdded": "{name} added the 7TV emote “{emote}” to chat.",
   "@chatSevenTvEmoteAdded": {
     "description": "A line when an editor of the channel adds a 7TV emote. name is the editor's name, emote the emote's code.",
     "placeholders": {
@@ -6113,7 +6113,7 @@
       }
     }
   },
-  "chatSevenTvEmoteRemoved": "{name} removed 7TV emote \"{emote}\" from chat",
+  "chatSevenTvEmoteRemoved": "{name} removed the 7TV emote “{emote}” from chat.",
   "@chatSevenTvEmoteRemoved": {
     "description": "A line when an editor of the channel removes a 7TV emote. name is the editor's name, emote the emote's code.",
     "placeholders": {
@@ -6127,9 +6127,9 @@
       }
     }
   },
-  "chatMessageTooLong": "Messages can be {max} characters at most",
+  "chatMessageTooLong": "Messages can be {max} characters at most.",
   "@chatMessageTooLong": {
-    "description": "The note above the input when a message is too long for Twitch.",
+    "description": "Error message. The note above the input when a message is too long for Twitch.",
     "placeholders": {
       "max": {
         "type": "int",
@@ -6137,23 +6137,23 @@
       }
     }
   },
-  "chatWaitCommand": "Please wait, running the previous command...",
+  "chatWaitCommand": "Running the previous command…",
   "@chatWaitCommand": {
     "description": "The note above the input when a command is sent while the last one still runs."
   },
-  "chatWaitMessage": "Please wait, sending previous message...",
+  "chatWaitMessage": "Sending the previous message…",
   "@chatWaitMessage": {
     "description": "The note above the input when a message is sent before Twitch confirmed the last one."
   },
-  "chatCannotSendDisconnected": "Cannot send message - chat is disconnected. Reconnecting...",
+  "chatCannotSendDisconnected": "Can’t send: chat is disconnected. Reconnecting…",
   "@chatCannotSendDisconnected": {
-    "description": "A line in chat when a message is sent while the chat is disconnected."
+    "description": "Error message. A line in chat when a message is sent while the chat is disconnected."
   },
-  "chatMaybeNotSent": "Message may not have been sent. Please try again.",
+  "chatMaybeNotSent": "Your message may not have been sent. Try again.",
   "@chatMaybeNotSent": {
-    "description": "The note above the input when Twitch did not confirm a message in time."
+    "description": "Error message. The note above the input when Twitch did not confirm a message in time."
   },
-  "chatClearedByModerator": "Chat was cleared by a moderator",
+  "chatClearedByModerator": "Chat was cleared by a moderator.",
   "@chatClearedByModerator": {
     "description": "The line left when a moderator clears the whole chat."
   },
@@ -6181,7 +6181,7 @@
       }
     }
   },
-  "chatWhisperSentNoReplies": "Whisper sent to {name}. Replies cannot reach this app until you log in again.",
+  "chatWhisperSentNoReplies": "Whisper sent to {name}. Replies can’t reach this app until you log in again.",
   "@chatWhisperSentNoReplies": {
     "description": "The same, while Twitch refuses the app's whisper connection until the viewer logs in again.",
     "placeholders": {
@@ -6191,9 +6191,9 @@
       }
     }
   },
-  "chatWhisperNoUser": "Couldn't whisper: no user named {login}.",
+  "chatWhisperNoUser": "Couldn’t whisper: no user named {login}.",
   "@chatWhisperNoUser": {
-    "description": "A line in chat: /w names nobody. login is what the viewer typed.",
+    "description": "Error message. A line in chat: /w names nobody. login is what the viewer typed.",
     "placeholders": {
       "login": {
         "type": "String",
@@ -6201,9 +6201,9 @@
       }
     }
   },
-  "chatWhisperFailedBecause": "Couldn't whisper: {reason}",
+  "chatWhisperFailedBecause": "Couldn’t whisper: {reason}",
   "@chatWhisperFailedBecause": {
-    "description": "A line in chat: the whisper failed; reason is the error, worded (a sentence; French puts a full stop before it).",
+    "description": "Error message. A line in chat: the whisper failed; reason is the error, worded (a sentence; French puts a full stop before it).",
     "placeholders": {
       "reason": {
         "type": "String",
@@ -6211,11 +6211,11 @@
       }
     }
   },
-  "chatWhisperFailed": "Couldn't whisper.",
+  "chatWhisperFailed": "Couldn’t whisper.",
   "@chatWhisperFailed": {
-    "description": "A line in chat: the whisper failed for an unexpected reason."
+    "description": "Error message. A line in chat: the whisper failed for an unexpected reason."
   },
-  "chatLogInToChangeColor": "Log in to change your color.",
+  "chatLogInToChangeColor": "Log in to change your name color.",
   "@chatLogInToChangeColor": {
     "description": "A line in chat: /color needs the viewer logged in."
   },
@@ -6223,9 +6223,9 @@
   "@chatColorChanged": {
     "description": "A line in chat once /color changed the viewer's name colour."
   },
-  "chatColorFailedHex": "Couldn't change your color (hex colors need Turbo or Prime).",
+  "chatColorFailedHex": "Couldn’t change your name color (hex colors need Turbo or Prime).",
   "@chatColorFailedHex": {
-    "description": "A line in chat: Twitch refused the colour (#RRGGBB colours need Turbo or Prime)."
+    "description": "Error message. A line in chat: Twitch refused the colour (#RRGGBB colours need Turbo or Prime)."
   },
   "chatAlreadyBlocked": "{name} is already blocked.",
   "@chatAlreadyBlocked": {
@@ -6257,9 +6257,9 @@
       }
     }
   },
-  "chatBlockFailed": "Couldn't block {login}.",
+  "chatBlockFailed": "Couldn’t block {login}.",
   "@chatBlockFailed": {
-    "description": "A line in chat: /block failed. login is what the viewer typed.",
+    "description": "Error message. A line in chat: /block failed. login is what the viewer typed.",
     "placeholders": {
       "login": {
         "type": "String",
@@ -6267,9 +6267,9 @@
       }
     }
   },
-  "chatUnblockFailed": "Couldn't unblock {login}.",
+  "chatUnblockFailed": "Couldn’t unblock {login}.",
   "@chatUnblockFailed": {
-    "description": "A line in chat: /unblock failed. login is what the viewer typed.",
+    "description": "Error message. A line in chat: /unblock failed. login is what the viewer typed.",
     "placeholders": {
       "login": {
         "type": "String",
@@ -6309,7 +6309,7 @@
   "@chatCommandArgMessageId": {
     "description": "A word in a chat command's usage, between < > (required) or [ ] (optional): what to type there. The command itself and its syntax are never translated. Here: the id of the message to delete. French joins its words with no-break spaces, so the argument never breaks inside its brackets."
   },
-  "chatCommandDescription": "{command, select, me{Speak in the third person} color{Change your name color} block{Block a user} unblock{Unblock a user} w{Whisper a user} help{List the commands} ban{Ban a user from the chat} unban{Lift a ban} timeout{Time a user out (10m by default; s, m, h, d, w)} untimeout{Lift a timeout} warn{Warn a user} delete{Delete a message} clear{Delete every message} slow{Slow mode (30s by default)} slowoff{Turn slow mode off} followers{Followers-only mode (m, h, d, w, mo)} followersoff{Turn followers-only mode off} subscribers{Subscribers-only mode} subscribersoff{Turn subscribers-only mode off} emoteonly{Emote-only mode} emoteonlyoff{Turn emote-only mode off} uniquechat{Unique chat mode (no repeated messages)} uniquechatoff{Turn unique chat mode off} other{}}",
+  "chatCommandDescription": "{command, select, me{Speak in the third person} color{Change your name color} block{Block a user} unblock{Unblock a user} w{Whisper a user} help{List the commands} ban{Ban a user} unban{Lift a ban} timeout{Time out a user (default 10m; s, m, h, d, w)} untimeout{Lift a timeout} warn{Warn a user} delete{Delete a message} clear{Delete every message} slow{Turn slow mode on (default 30s)} slowoff{Turn slow mode off} followers{Turn followers-only mode on (m, h, d, w, mo)} followersoff{Turn followers-only mode off} subscribers{Turn subscribers-only mode on} subscribersoff{Turn subscribers-only mode off} emoteonly{Turn emote-only mode on} emoteonlyoff{Turn emote-only mode off} uniquechat{Turn unique chat mode on (no repeated messages)} uniquechatoff{Turn unique chat mode off} other{}}",
   "@chatCommandDescription": {
     "description": "What a chat command does, beside its usage in the input's suggestions. command is the command's name (never translated, nor are the lengths « 10m », « 30s » and their units « s, m, h, d, w, mo » that Twitch reads).",
     "placeholders": {
@@ -6329,9 +6329,9 @@
       }
     }
   },
-  "chatCommandBadLength": "Unknown length \"{length}\". Use e.g. 30, 10m, 2h, 1d or 1w.",
+  "chatCommandBadLength": "Unknown length “{length}”. Try 30, 10m, 2h, 1d, or 1w.",
   "@chatCommandBadLength": {
-    "description": "A line in chat: /timeout got a length it cannot read. length is what the viewer typed; the examples are what Twitch reads (never translated).",
+    "description": "Error message. A line in chat: /timeout got a length it cannot read. length is what the viewer typed; the examples are what Twitch reads (never translated).",
     "placeholders": {
       "length": {
         "type": "String",
@@ -6339,25 +6339,25 @@
       }
     }
   },
-  "chatCommandTimeoutRange": "Timeouts last from 1 second to 2 weeks.",
+  "chatCommandTimeoutRange": "Timeouts must be between 1 second and 2 weeks.",
   "@chatCommandTimeoutRange": {
-    "description": "A line in chat: /timeout got a length out of range."
+    "description": "Error message. A line in chat: /timeout got a length out of range."
   },
-  "chatCommandSlowRange": "The slow mode wait is 3 to 120 seconds.",
+  "chatCommandSlowRange": "Slow mode must be between 3 and 120 seconds.",
   "@chatCommandSlowRange": {
-    "description": "A line in chat: /slow got a wait out of range."
+    "description": "Error message. A line in chat: /slow got a wait out of range."
   },
-  "chatCommandFollowAgeRange": "The follow age is 0 minutes to 3 months (e.g. 10m, 1w, 3mo).",
+  "chatCommandFollowAgeRange": "Follow age must be between 0 minutes and 3 months (e.g., 10m, 1w, 3mo).",
   "@chatCommandFollowAgeRange": {
-    "description": "A line in chat: /followers got a follow age out of range. The examples are what Twitch reads (never translated)."
+    "description": "Error message. A line in chat: /followers got a follow age out of range. The examples are what Twitch reads (never translated)."
   },
-  "chatCommandUnknownColor": "Unknown color. Try Blue, Coral, HotPink… or #RRGGBB (Turbo/Prime).",
+  "chatCommandUnknownColor": "Unknown color. Try Blue, Coral, HotPink, or #RRGGBB (Turbo or Prime).",
   "@chatCommandUnknownColor": {
-    "description": "A line in chat: /color got a colour it does not know. Blue, Coral, HotPink are what /color reads (never translated; French writes them in lower case, which /color reads the same)."
+    "description": "Error message. A line in chat: /color got a colour it does not know. Blue, Coral, HotPink are what /color reads (never translated; French writes them in lower case, which /color reads the same)."
   },
   "chatCommandNotInApp": "/{command} is not available in this app.",
   "@chatCommandNotInApp": {
-    "description": "A line in chat: a Twitch command this app does not run. command is its name.",
+    "description": "Error message. A line in chat: a Twitch command this app does not run. command is its name.",
     "placeholders": {
       "command": {
         "type": "String",
@@ -6367,7 +6367,7 @@
   },
   "chatCommandUnknown": "Unknown command /{command}. Type /help for the commands you can use.",
   "@chatCommandUnknown": {
-    "description": "A line in chat: a command nobody knows. command is what the viewer typed; /help is the command (never translated).",
+    "description": "Error message. A line in chat: a command nobody knows. command is what the viewer typed; /help is the command (never translated).",
     "placeholders": {
       "command": {
         "type": "String",
@@ -6409,7 +6409,7 @@
       }
     }
   },
-  "chatModeFollowersOn": "Followers-only mode on (followers of {duration}).",
+  "chatModeFollowersOn": "Followers-only mode on (must follow for {duration}).",
   "@chatModeFollowersOn": {
     "description": "A line in chat once a moderator turned followers-only mode on with a follow age. duration is the age (chatDuration…).",
     "placeholders": {
@@ -6419,9 +6419,9 @@
       }
     }
   },
-  "chatModFailed": "Couldn't {command, select, ban{ban} timeout{time out} untimeout{remove the timeout of} unban{unban} warn{warn} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} other{do that}}: {reason}",
+  "chatModFailed": "Couldn’t {command, select, ban{ban the user} timeout{time out the user} untimeout{lift the timeout} unban{unban the user} warn{warn the user} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} other{do that}}: {reason}",
   "@chatModFailed": {
-    "description": "A moderation action failed (in chat, under the moderation bar): what, then why. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch. reason is a sentence or a phrase (chatModCannotModerate, chatModNoUser, an error); French makes it a sentence after a full stop (« Impossible de bannir. … »).",
+    "description": "Error message. A moderation action failed (in chat, under the moderation bar): what, then why. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch. reason is a sentence or a phrase (chatModCannotModerate, chatModNoUser, an error); French makes it a sentence after a full stop (« Impossible de bannir. … »).",
     "placeholders": {
       "command": {
         "type": "String",
@@ -6433,9 +6433,9 @@
       }
     }
   },
-  "chatModFailedUnexpected": "Couldn't {command, select, ban{ban} timeout{time out} untimeout{remove the timeout of} unban{unban} warn{warn} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} other{do that}} (unexpected error).",
+  "chatModFailedUnexpected": "Couldn’t {command, select, ban{ban the user} timeout{time out the user} untimeout{lift the timeout} unban{unban the user} warn{warn the user} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} other{do that}} (unexpected error).",
   "@chatModFailedUnexpected": {
-    "description": "A moderation action failed for an unexpected reason. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch.",
+    "description": "Error message. A moderation action failed for an unexpected reason. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch.",
     "placeholders": {
       "command": {
         "type": "String",
@@ -6443,9 +6443,9 @@
       }
     }
   },
-  "chatModCannotModerate": "Twitch says you can't moderate this chat.",
+  "chatModCannotModerate": "Twitch says you can’t moderate this chat.",
   "@chatModCannotModerate": {
-    "description": "Why a moderation action failed (after chatModFailed's colon): the viewer is not a moderator here."
+    "description": "Error message. Why a moderation action failed (after chatModFailed's colon): the viewer is not a moderator here."
   },
   "chatTwitchReason": "Twitch’s reason: “{reason}”",
   "@chatTwitchReason": {
@@ -6457,9 +6457,9 @@
       }
     }
   },
-  "chatModNoUser": "no user named {login}",
+  "chatModNoUser": "no user named {login}.",
   "@chatModNoUser": {
-    "description": "Why a moderation action failed (after chatModFailed's colon; French: a sentence after its full stop): nobody has that name. login is what the viewer typed.",
+    "description": "Error message. Why a moderation action failed (after chatModFailed's colon; French: a sentence after its full stop): nobody has that login. English starts in lower case after the colon and ends the line with a full stop.",
     "placeholders": {
       "login": {
         "type": "String",
@@ -6469,11 +6469,11 @@
   },
   "chatModLogInAgain": "Log in again to moderate from this app.",
   "@chatModLogInAgain": {
-    "description": "A moderation action failed: the viewer's login predates the moderator permissions."
+    "description": "Error message. A moderation action failed: the viewer's login predates the moderator permissions."
   },
-  "chatModNotThrough": "That did not go through. Try again.",
+  "chatModNotThrough": "That didn’t go through. Try again.",
   "@chatModNotThrough": {
-    "description": "A moderation action failed without an answer (under the moderation bar or the chat modes)."
+    "description": "Error message. A moderation action failed without an answer (under the moderation bar or the chat modes)."
   },
   "chatModBanned": "You banned {name}.",
   "@chatModBanned": {
@@ -6499,7 +6499,7 @@
       }
     }
   },
-  "chatModUntimedOut": "You removed the timeout of {name}.",
+  "chatModUntimedOut": "You lifted {name}’s timeout.",
   "@chatModUntimedOut": {
     "description": "A line in chat once the viewer lifted a timeout. French puts the name last (no elision before it).",
     "placeholders": {
@@ -6571,15 +6571,15 @@
       }
     }
   },
-  "chatRestrictionBanned": "You are permanently banned from this chat",
+  "chatRestrictionBanned": "Permanently banned",
   "@chatRestrictionBanned": {
     "description": "Above the chat input (and as its placeholder, one line each): the viewer is banned. French uses the noun, so nothing agrees with the viewer and the key word comes first."
   },
-  "chatRestrictionTimedOut": "You are timed out",
+  "chatRestrictionTimedOut": "You’re timed out",
   "@chatRestrictionTimedOut": {
     "description": "The chat input's placeholder while the viewer is timed out (one line): French uses the noun, as on the bar above the input (chatRestrictionTimedOutFor)."
   },
-  "chatRestrictionTimedOutFor": "You are timed out · {wait}",
+  "chatRestrictionTimedOutFor": "You’re timed out · {wait}",
   "@chatRestrictionTimedOutFor": {
     "description": "Above the chat input while the viewer is timed out (one line at 12 dp). wait is the time left (« 4:05 », « 12 s »), the line's point: French keeps it short so it never falls under the ellipsis.",
     "placeholders": {
@@ -6611,13 +6611,13 @@
   "@chatRestrictionFollowersOnly": {
     "description": "The chat input's placeholder in followers-only mode."
   },
-  "chatRestrictionFollowersFor": "Followers-only chat · following for {minutes}+ min",
+  "chatRestrictionFollowersFor": "Follow for {duration}",
   "@chatRestrictionFollowersFor": {
-    "description": "The same, when followers must have followed for a while (the input's one-line placeholder). minutes is that follow age; French keeps the line short so the age stays visible on a phone at large text.",
+    "description": "The input's one-line placeholder when followers must have followed for a while: what it takes to chat. duration is that follow age, short so it stays in sight on a phone at large text (chatShortMinutes, chatShortHours, else whole days or months: « 10m », « 3h », « 7 days », « 10 min », « 7 jours »).",
     "placeholders": {
-      "minutes": {
-        "type": "int",
-        "example": "10"
+      "duration": {
+        "type": "String",
+        "example": "10m"
       }
     }
   },
@@ -6671,7 +6671,7 @@
   "@chatFilteredWord": {
     "description": "What a screen reader says for a word the chat filters hide (drawn as stars)."
   },
-  "chatCheerSemantics": "{count, plural, one{{prefix} {count} bit} other{{prefix} {count} bits}}",
+  "chatCheerSemantics": "{count, plural, one{{prefix} {count} Bit} other{{prefix} {count} Bits}}",
   "@chatCheerSemantics": {
     "description": "What a screen reader says for a cheer in a message. prefix is the cheermote's name (Cheer, Kappa…), never translated. Bits is Twitch's word, after an ordinary space as in htBits.",
     "placeholders": {
@@ -6725,7 +6725,7 @@
   "@chatCopyMessage": {
     "description": "A row of a message's options (long press)."
   },
-  "chatCopyMessageAndPaste": "Copy message and paste",
+  "chatCopyMessageAndPaste": "Copy into message box",
   "@chatCopyMessageAndPaste": {
     "description": "A row of a message's options: copies the message into the input."
   },
@@ -6753,19 +6753,9 @@
   "@chatPermanentlyBanned": {
     "description": "Above the messages of someone banned."
   },
-  "chatTimedOutFor": "{count, plural, one{Timed out for {count} second} other{Timed out for {count} seconds}}",
-  "@chatTimedOutFor": {
-    "description": "Above the messages of someone timed out: for how many seconds.",
-    "placeholders": {
-      "count": {
-        "type": "int",
-        "example": "600"
-      }
-    }
-  },
   "chatTimedOutForLength": "Timed out for {duration}",
   "@chatTimedOutForLength": {
-    "description": "Above the messages of someone timed out, on a screen in another language than English: for how long, worded like the timeout notices (chatDuration…, « 10 minutes »). An English screen keeps chatTimedOutFor.",
+    "description": "Above the messages of someone timed out: for how long, worded like the timeout notices (chatDuration…: « 10 minutes »).",
     "placeholders": {
       "duration": {
         "type": "String",
@@ -6777,9 +6767,9 @@
   "@chatAnnouncement": {
     "description": "Above a moderator's announcement."
   },
-  "chatMessageOptionsHint": "message options",
+  "chatMessageOptionsHint": "open message options",
   "@chatMessageOptionsHint": {
-    "description": "What a screen reader says a long press on a message does (it opens its options). Lower case: it follows « double tap and hold to », so French is a verb in the infinitive."
+    "description": "What a screen reader says a long press on a chat message does, after its own « Double-tap and hold to »: a verb in lower case."
   },
   "chatCopyMessageHint": "copy message",
   "@chatCopyMessageHint": {
@@ -6801,11 +6791,11 @@
   "@chatCancelReply": {
     "description": "Tooltip of the cross on the « replying to » bar above the input."
   },
-  "chatEnterMessage": "Enter a message",
+  "chatEnterMessage": "Send a message",
   "@chatEnterMessage": {
     "description": "Tooltip of the collapsed chat input's button that opens the keyboard."
   },
-  "chatCannotChatNow": "You can't chat right now",
+  "chatCannotChatNow": "You can’t chat right now",
   "@chatCannotChatNow": {
     "description": "The chat input's placeholder while the viewer cannot send (rules not accepted yet, a restriction); one line, so French keeps it short (the bar above says why)."
   },
@@ -6813,11 +6803,11 @@
   "@chatInputDisconnected": {
     "description": "The chat input's placeholder while the chat is disconnected."
   },
-  "chatInputConnecting": "Connecting...",
+  "chatInputConnecting": "Connecting…",
   "@chatInputConnecting": {
     "description": "The chat input's placeholder while the chat connects."
   },
-  "chatSending": "Sending...",
+  "chatSending": "Sending…",
   "@chatSending": {
     "description": "The chat input's placeholder, and the send button's tooltip, while Twitch confirms a message."
   },
@@ -6839,7 +6829,7 @@
   "@chatReply": {
     "description": "The chat input's placeholder while replying when the channel is not named, and the user card's reply button."
   },
-  "chatInChannelDelayed": "Chat in {name} ({seconds}s delay)",
+  "chatInChannelDelayed": "{name} · {seconds}s delay",
   "@chatInChannelDelayed": {
     "description": "The chat input's placeholder while the chat is delayed to match the video (one line). name is the channel's display name; « délai » is the setting's word (Délai des messages). French puts the name first and keeps the line short, so the name and the delay both show on a phone at large text.",
     "placeholders": {
@@ -6853,7 +6843,7 @@
       }
     }
   },
-  "chatDelayed": "Chat ({seconds}s delay)",
+  "chatDelayed": "Chat · {seconds}s delay",
   "@chatDelayed": {
     "description": "The same, when the channel is not named.",
     "placeholders": {
@@ -6891,13 +6881,13 @@
       }
     }
   },
-  "chatColorUpdated": "Chat color updated successfully!",
+  "chatColorUpdated": "Name color updated",
   "@chatColorUpdated": {
     "description": "Snackbar once the name colour picked in the chat details was saved."
   },
-  "chatColorUpdateFailed": "Failed to update chat color. Please try again.",
+  "chatColorUpdateFailed": "Couldn’t update your name color. Try again.",
   "@chatColorUpdateFailed": {
-    "description": "Snackbar when the name colour could not be saved."
+    "description": "Error message. Snackbar when the name colour could not be saved."
   },
   "chatDetailsChatOnly": "Chat only",
   "@chatDetailsChatOnly": {
@@ -6911,11 +6901,11 @@
   "@chatDetailsRefreshAssets": {
     "description": "A row of the chat's details sheet."
   },
-  "chatDetailsUsernameColor": "Username color",
+  "chatDetailsUsernameColor": "Name color",
   "@chatDetailsUsernameColor": {
     "description": "A row of the chat's details sheet, and the title of the colour picker it opens."
   },
-  "chatDetailsPointsPollsPredictions": "Channel points, polls and predictions",
+  "chatDetailsPointsPollsPredictions": "Channel points, polls, and predictions",
   "@chatDetailsPointsPollsPredictions": {
     "description": "A row of the chat's details sheet: opens the chat on twitch.tv."
   },
@@ -6931,7 +6921,7 @@
   "@chatDetailsOpensTwitch": {
     "description": "The line under the Subscribe and Gift a Sub rows of the chat's details sheet."
   },
-  "chatDetailsGiftSub": "Gift a Sub",
+  "chatDetailsGiftSub": "Gift a sub",
   "@chatDetailsGiftSub": {
     "description": "A row of the chat's details sheet (opens the channel's subscription page on twitch.tv), and that page's title."
   },
@@ -6963,7 +6953,7 @@
   "@chatColorPreview": {
     "description": "The colour picker's preview: a fake message from the viewer, in the picked colour."
   },
-  "chatColorName": "{color, select, blue{Blue} blue_violet{Blue Violet} cadet_blue{Cadet Blue} chocolate{Chocolate} coral{Coral} dodger_blue{Dodger Blue} firebrick{Firebrick} golden_rod{Golden Rod} green{Green} hot_pink{Hot Pink} orange_red{Orange Red} red{Red} sea_green{Sea Green} spring_green{Spring Green} yellow_green{Yellow Green} other{}}",
+  "chatColorName": "{color, select, blue{Blue} blue_violet{Blue violet} cadet_blue{Cadet blue} chocolate{Chocolate} coral{Coral} dodger_blue{Dodger blue} firebrick{Firebrick} golden_rod{Goldenrod} green{Green} hot_pink{Hot pink} orange_red{Orange red} red{Red} sea_green{Sea green} spring_green{Spring green} yellow_green{Yellow green} other{}}",
   "@chatColorName": {
     "description": "A Twitch name colour in the colour picker. color is Twitch's id for it (blue_violet). /color still takes the English names.",
     "placeholders": {
@@ -6993,6 +6983,16 @@
   "@chatModesModerator": {
     "description": "Beside the Chat modes sheet's title: these are a moderator's tools."
   },
+  "chatBadgeModeratorBot": "{moderator} (bot)",
+  "@chatBadgeModeratorBot": {
+    "description": "A chat badge's name for a moderator who is a bot (FrankerFaceZ's bot badge drawn in place of the moderator's): its sheet and tooltip. moderator is Twitch's own name of the moderator badge.",
+    "placeholders": {
+      "moderator": {
+        "type": "String",
+        "example": "Moderator"
+      }
+    }
+  },
   "chatModesSlowWait": "{seconds}s between messages",
   "@chatModesSlowWait": {
     "description": "The slow mode's wait in its picker.",
@@ -7007,7 +7007,7 @@
   "@chatModesClearChat": {
     "description": "The Chat modes sheet's row that clears the chat."
   },
-  "chatModePill": "{mode, select, emoteOnly{Emote only} followers{Follower only} slow{Slow mode} subscribers{Sub only} uniqueChat{Unique mode} other{}}",
+  "chatModePill": "{mode, select, emoteOnly{Emote-only} followers{Followers-only} slow{Slow mode} subscribers{Subscribers-only} uniqueChat{Unique chat} other{}}",
   "@chatModePill": {
     "description": "A pill at the top of the chat's details sheet: a room mode that is on. mode is ChatMode.name.",
     "placeholders": {
@@ -7092,7 +7092,7 @@
       }
     }
   },
-  "chatHeldQuoted": "{decision}: \"{quote}\"",
+  "chatHeldQuoted": "{decision}: “{quote}”",
   "@chatHeldQuoted": {
     "description": "The same line with the held message quoted. decision is chatHeldDecision.",
     "placeholders": {
@@ -7106,11 +7106,11 @@
       }
     }
   },
-  "chatAddChatSearchFailed": "Failed to search channels",
+  "chatAddChatSearchFailed": "Couldn’t search channels.",
   "@chatAddChatSearchFailed": {
-    "description": "The Add chat sheet when the search failed."
+    "description": "Error message. The Add chat sheet when the search failed."
   },
-  "chatAddChatTitle": "Add Chat",
+  "chatAddChatTitle": "Add chat",
   "@chatAddChatTitle": {
     "description": "The title of the sheet that opens another channel's chat in a new tab."
   },
@@ -7150,7 +7150,7 @@
   "@chatTabsMaximum": {
     "description": "Snackbar when the viewer adds an 11th chat."
   },
-  "chatTabsAlreadyOpen": "Channel already open, switched to it",
+  "chatTabsAlreadyOpen": "Channel already open — switched to it",
   "@chatTabsAlreadyOpen": {
     "description": "Snackbar when the viewer adds a chat already open: the app shows it."
   },
@@ -7204,15 +7204,15 @@
       }
     }
   },
-  "chatFilteredTitle": "Message Blocked",
+  "chatFilteredTitle": "Message hidden",
   "@chatFilteredTitle": {
     "description": "The title of the sheet over a message hidden by the chat filters."
   },
-  "chatFilteredBody": "Would you like to see this message? It has been hidden for you based on your NSFW Chat Filter settings.",
+  "chatFilteredBody": "This message was hidden by your chat filters. Show it anyway?",
   "@chatFilteredBody": {
     "description": "The text of the same sheet."
   },
-  "chatFilteredShow": "Show Message",
+  "chatFilteredShow": "Show message",
   "@chatFilteredShow": {
     "description": "The same sheet's button that shows the message."
   },
@@ -7220,15 +7220,15 @@
   "@chatRulesTitle": {
     "description": "The chat details' row that opens the channel's chat rules, and the back header over them."
   },
-  "chatRulesHeading": "Chat Rules",
+  "chatRulesHeading": "Chat rules",
   "@chatRulesHeading": {
     "description": "The heading of the channel's chat rules sheet."
   },
-  "chatRulesAccept": "OK, Got it!",
+  "chatRulesAccept": "Got it",
   "@chatRulesAccept": {
     "description": "The button that accepts a channel's chat rules."
   },
-  "chatRaidWelcomeSemantics": "You followed {from}'s raid. Welcome to {target}'s chat",
+  "chatRaidWelcomeSemantics": "You followed {from}’s raid. Welcome to {target}’s chat",
   "@chatRaidWelcomeSemantics": {
     "description": "What a screen reader says for the card at the top of a chat the viewer joined with a raid. from is the raiding channel, target this one.",
     "placeholders": {
@@ -7242,7 +7242,7 @@
       }
     }
   },
-  "chatRaidWelcomeFrom": "You followed {name}'s raid",
+  "chatRaidWelcomeFrom": "You followed {name}’s raid",
   "@chatRaidWelcomeFrom": {
     "description": "The card at the top of a chat the viewer joined with a raid; name (the raiding channel) is drawn bold. Also the line it stands for in chat.",
     "placeholders": {
@@ -7252,7 +7252,7 @@
       }
     }
   },
-  "chatRaidWelcomeTo": "Welcome to {name}'s chat",
+  "chatRaidWelcomeTo": "Welcome to {name}’s chat",
   "@chatRaidWelcomeTo": {
     "description": "The same card's second line. name is this channel.",
     "placeholders": {
@@ -7298,7 +7298,7 @@
   },
   "chatAnonymousGifter": "An anonymous gifter",
   "@chatAnonymousGifter": {
-    "description": "Who gave anonymous gift subs, in the gift sub lines and pins. French says « Anonyme » (no gender)."
+    "description": "Who gave anonymous gift subs, in the gift sub lines and pins, in place of the name of Twitch's anonymous gifter account. French says « Anonyme » (no gender)."
   },
   "chatLinkUntitledClip": "Untitled clip",
   "@chatLinkUntitledClip": {
@@ -7410,15 +7410,15 @@
   "@pointsStreakNote": {
     "description": "Under the watch streak in the channel points sheet."
   },
-  "pointsBonusBlocked": "Twitch blocks collecting the bonus from here — its anti-bot check. Collect it on twitch.tv and the balance follows.",
+  "pointsBonusBlocked": "Twitch’s anti-bot check blocks collecting the bonus here. Collect it on twitch.tv and your balance updates.",
   "@pointsBonusBlocked": {
-    "description": "The channel points sheet when Twitch refuses the bonus to the app."
+    "description": "Error message. The channel points sheet when Twitch refuses the bonus to the app."
   },
   "pointsCollectBonus": "Collect bonus",
   "@pointsCollectBonus": {
     "description": "The channel points sheet's button that collects the bonus chest."
   },
-  "pointsOutcomeTotals": "{count, plural, one{{points}  ·  {count} viewer} other{{points}  ·  {count} viewers}}",
+  "pointsOutcomeTotals": "{count, plural, one{{points} · {count} viewer} other{{points} · {count} viewers}}",
   "@pointsOutcomeTotals": {
     "description": "Under a prediction's outcome: the points bet on it, then how many bet.",
     "placeholders": {
@@ -7446,7 +7446,7 @@
       }
     }
   },
-  "pointsBetOnUnknown": "Bet on {title}, pays unknown",
+  "pointsBetOnUnknown": "Bet on {title}, payout unknown",
   "@pointsBetOnUnknown": {
     "description": "The same before anyone bet on it.",
     "placeholders": {
@@ -7500,7 +7500,7 @@
   "@pointsNoOdds": {
     "description": "The bet view before anyone bet on the outcome."
   },
-  "pointsPaysAbout": "Pays about {odds} × if this wins — moves with every other bet.",
+  "pointsPaysAbout": "Pays about {odds}× if this wins. Odds change with every bet.",
   "@pointsPaysAbout": {
     "description": "The bet view: the payout for the stake typed. odds has two decimals.",
     "placeholders": {
@@ -7510,7 +7510,7 @@
       }
     }
   },
-  "pointsBetAmount": "{count, plural, other{Bet {points}}}",
+  "pointsBetAmount": "{count, plural, one{Bet {points}} other{Bet {points}}}",
   "@pointsBetAmount": {
     "description": "The bet view's button once an amount is typed. points is the amount, written with the language's digits; count is the same amount as a number, for the plural.",
     "placeholders": {
@@ -7528,7 +7528,7 @@
   "@pointsBet": {
     "description": "The bet view's button before an amount is typed."
   },
-  "pointsOdds": "{odds} ×",
+  "pointsOdds": "{odds}×",
   "@pointsOdds": {
     "description": "The payout beside a prediction's outcome (1.85 ×).",
     "placeholders": {
@@ -7556,7 +7556,7 @@
   "@pointsRedeem": {
     "description": "The button that redeems a reward."
   },
-  "pointsResult": "{status, select, success{Done.} integrityRefused{Twitch refused: anti-bot check. Not something this app can pass.} notAuthenticated{Twitch rejected the login. Sign in again to spend points.} network{Could not reach Twitch. Try again.} other{Twitch refused: {reason}}}",
+  "pointsResult": "{status, select, success{Done.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t pass it, so try on twitch.tv.} notAuthenticated{Twitch rejected the login. Log in again to spend points.} network{Couldn’t reach Twitch. Try again.} other{Twitch refused: {reason}}}",
   "@pointsResult": {
     "description": "Snackbar after spending channel points (a reward, a bet, the bonus). status is PointsActionStatus.name; reason is Twitch's own code for an unknown refusal (never translated), or pointsNoReason.",
     "placeholders": {
@@ -7574,7 +7574,7 @@
   "@pointsBusy": {
     "description": "Snackbar when the viewer spends channel points while the last spend still runs."
   },
-  "pointsNoReason": "no reason",
+  "pointsNoReason": "no reason given",
   "@pointsNoReason": {
     "description": "After « Twitch refused: » when Twitch gave no reason."
   },
@@ -7592,7 +7592,7 @@
   "@streakSaveTitle": {
     "description": "The watch streak card when the streak is suspended and the channel is live."
   },
-  "streakSaveLive": "{count, plural, other{Watch this live stream and you'll be able to save your current {count}-stream streak.}}",
+  "streakSaveLive": "{count, plural, one{Watch this live stream and you’ll be able to save your current {count}-stream streak.} other{Watch this live stream and you’ll be able to save your current {count}-stream streak.}}",
   "@streakSaveLive": {
     "description": "Under the same title: how long the streak is (in streams).",
     "placeholders": {
@@ -7602,29 +7602,21 @@
       }
     }
   },
-  "streakExpiringTitle": "Watch Streak Expiring",
+  "streakExpiringTitle": "Watch Streak expiring",
   "@streakExpiringTitle": {
     "description": "The watch streak card when the streak is suspended and the channel is offline."
   },
-  "streakExpiring": "Watch {name} in the next {hours}h {minutes}m {seconds}s to save your streak!",
+  "streakExpiring": "Watch {name} in the next {time} to save your streak!",
   "@streakExpiring": {
-    "description": "Under the same title: the time left to save the streak. name is the channel's display name.",
+    "description": "Under the same title: the time left to save the streak. name is the channel's display name; time is the time left, short (chatShort…: « 5h 12m », « 4m 30s », « 12s »).",
     "placeholders": {
       "name": {
         "type": "String",
         "example": "xQc"
       },
-      "hours": {
-        "type": "int",
-        "example": "5"
-      },
-      "minutes": {
-        "type": "int",
-        "example": "12"
-      },
-      "seconds": {
-        "type": "int",
-        "example": "30"
+      "time": {
+        "type": "String",
+        "example": "5h 12m"
       }
     }
   },
@@ -7638,7 +7630,7 @@
       }
     }
   },
-  "streakOneMore": "{count, plural, one{1 more stream until an extra {points} channel point reward} other{1 more stream until an extra {points} channel points reward}}",
+  "streakOneMore": "{count, plural, one{1 more stream to earn {points} bonus channel point} other{1 more stream to earn {points} bonus channel points}}",
   "@streakOneMore": {
     "description": "Under the watch streak's title: one stream before the bonus. points is the bonus (« 1 200 »); count chooses the form.",
     "placeholders": {
@@ -7652,7 +7644,7 @@
       }
     }
   },
-  "streakReached": "{count, plural, one{You reached a {next}-stream streak and earned an extra {points} channel point} other{You reached a {next}-stream streak and earned an extra {points} channel points}}",
+  "streakReached": "{count, plural, one{You reached a {next}-stream streak and earned {points} bonus channel point} other{You reached a {next}-stream streak and earned {points} bonus channel points}}",
   "@streakReached": {
     "description": "Under the watch streak's title once the bonus was earned. next is the streak's length in streams.",
     "placeholders": {
@@ -7670,7 +7662,7 @@
       }
     }
   },
-  "streakReach": "{count, plural, one{Reach {next}-stream streak and earn an extra {points} channel point} other{Reach {next}-stream streak and earn an extra {points} channel points}}",
+  "streakReach": "{count, plural, one{Reach a {next}-stream streak and earn {points} bonus channel point} other{Reach a {next}-stream streak and earn {points} bonus channel points}}",
   "@streakReach": {
     "description": "Under the watch streak's title: the next bonus.",
     "placeholders": {
@@ -7708,7 +7700,7 @@
       }
     }
   },
-  "emoteTypeName": "{type, select, twitchBits{Twitch bits emote} twitchFollower{Twitch follower emote} twitchSub{Twitch sub emote} twitchGlobal{Twitch global emote} twitchUnlocked{Twitch unlocked emote} twitchChannel{Twitch channel emote} ffzGlobal{FrankerFaceZ global emote} ffzChannel{FrankerFaceZ channel emote} bttvGlobal{BetterTTV global emote} bttvChannel{BetterTTV channel emote} bttvShared{BetterTTV shared emote} sevenTVGlobal{7TV global emote} sevenTVChannel{7TV channel emote} other{}}",
+  "emoteTypeName": "{type, select, twitchBits{Twitch Bits emote} twitchFollower{Twitch follower emote} twitchSub{Twitch sub emote} twitchGlobal{Twitch global emote} twitchUnlocked{Twitch unlocked emote} twitchChannel{Twitch channel emote} ffzGlobal{FrankerFaceZ global emote} ffzChannel{FrankerFaceZ channel emote} bttvGlobal{BetterTTV global emote} bttvChannel{BetterTTV channel emote} bttvShared{BetterTTV shared emote} sevenTVGlobal{7TV global emote} sevenTVChannel{7TV channel emote} other{}}",
   "@emoteTypeName": {
     "description": "An emote's kind, in its details. type is EmoteType.name.",
     "placeholders": {
@@ -7764,7 +7756,7 @@
       }
     }
   },
-  "noticeSubStreak": "{months, plural, one{They've subscribed for {months} month, currently on a {streak} month streak!} other{They've subscribed for {months} months, currently on a {streak} month streak!}}",
+  "noticeSubStreak": "{months, plural, one{They’ve subscribed for {months} month, currently on a {streak}-month streak!} other{They’ve subscribed for {months} months, currently on a {streak}-month streak!}}",
   "@noticeSubStreak": {
     "description": "The sentence after a sub line: how long in all, and the streak the subscriber shares.",
     "placeholders": {
@@ -7778,7 +7770,7 @@
       }
     }
   },
-  "noticeSubMonths": "They've subscribed for {months} months!",
+  "noticeSubMonths": "They’ve subscribed for {months} months!",
   "@noticeSubMonths": {
     "description": "The sentence after a sub line: how long in all (2 months or more).",
     "placeholders": {
@@ -7788,7 +7780,7 @@
       }
     }
   },
-  "noticeGiftedSub": "{tiered, select, yes{{gifter} gifted a Tier {tier} Sub to {recipient}!} other{{gifter} gifted a Sub to {recipient}!}}",
+  "noticeGiftedSub": "{tiered, select, yes{{gifter} gifted a Tier {tier} sub to {recipient}!} other{{gifter} gifted a sub to {recipient}!}}",
   "@noticeGiftedSub": {
     "description": "A gift sub line in chat. tiered is yes when Twitch named the tier. Names are drawn bold where their placeholder is; French puts them where no word agrees with them.",
     "placeholders": {
@@ -7832,7 +7824,7 @@
       }
     }
   },
-  "noticeGiftedMonths": "{gifter} gifted a {months} Sub to {recipient}!",
+  "noticeGiftedMonths": "{gifter} gifted a {months} sub to {recipient}!",
   "@noticeGiftedMonths": {
     "description": "The same when Twitch did not name the tier. months is noticeGiftMonthsShort, drawn bold. Names are drawn bold where their placeholder is; French puts them where no word agrees with them.",
     "placeholders": {
@@ -7860,7 +7852,7 @@
       }
     }
   },
-  "noticeGiftMonthsShort": "{count} month",
+  "noticeGiftMonthsShort": "{count}-month",
   "@noticeGiftMonthsShort": {
     "description": "Inside noticeGiftedMonths: how many months were gifted, as English writes it before « Sub » (drawn bold).",
     "placeholders": {
@@ -7880,11 +7872,11 @@
       }
     }
   },
-  "noticeGiftFirst": "It's their first Gift Sub in the channel!",
+  "noticeGiftFirst": "It’s their first gift sub in the channel!",
   "@noticeGiftFirst": {
     "description": "The sentence after a gift sub line: the gifter's first. « son » agrees with « abonnement »."
   },
-  "noticeGiftCount": "They've given {count} Gift Subs in the channel!",
+  "noticeGiftCount": "They’ve given {count} gift subs in the channel!",
   "@noticeGiftCount": {
     "description": "The sentence after a gift sub line: how many the gifter gave in all (2 or more), with the language's thousands separator. French opens with « Son total » (the gifter's, after the sentence naming them), so it never reads as the channel's total.",
     "placeholders": {
@@ -7895,7 +7887,7 @@
       }
     }
   },
-  "noticeCommunityGift": "{tiered, select, yes{{count, plural, one{{gifter} is gifting {count} Tier {tier} Sub to {channel}'s community{end, select, more{.} other{!}}} other{{gifter} is gifting {count} Tier {tier} Subs to {channel}'s community{end, select, more{.} other{!}}}}} other{{count, plural, one{{gifter} is gifting {count} Sub to {channel}'s community{end, select, more{.} other{!}}} other{{gifter} is gifting {count} Subs to {channel}'s community{end, select, more{.} other{!}}}}}}",
+  "noticeCommunityGift": "{tiered, select, yes{{count, plural, one{{gifter} is gifting {count} Tier {tier} sub to {channel}’s community{end, select, more{.} other{!}}} other{{gifter} is gifting {count} Tier {tier} subs to {channel}’s community{end, select, more{.} other{!}}}}} other{{count, plural, one{{gifter} is gifting {count} sub to {channel}’s community{end, select, more{.} other{!}}} other{{gifter} is gifting {count} subs to {channel}’s community{end, select, more{.} other{!}}}}}}",
   "@noticeCommunityGift": {
     "description": "A gift bomb's line in chat: who gifts how many subs to the channel's community (gifter bold). tiered is yes when Twitch named the tier; end is more when another sentence follows (a full stop), else last (an exclamation mark). Names are drawn bold where their placeholder is; French puts them where no word agrees with them.",
     "placeholders": {
@@ -7925,11 +7917,11 @@
       }
     }
   },
-  "noticeCommunityGiftFirst": "It's their first Gift Sub in the channel!",
+  "noticeCommunityGiftFirst": "It’s their first gift sub in the channel!",
   "@noticeCommunityGiftFirst": {
     "description": "The sentence after a gift bomb's line: the gifter's first gift."
   },
-  "noticeCommunityGiftTotal": "They've gifted a total of {count} in the channel!",
+  "noticeCommunityGiftTotal": "They’ve gifted a total of {count} subs in the channel!",
   "@noticeCommunityGiftTotal": {
     "description": "The sentence after a gift bomb's line: how many subs the gifter gave in all, with the language's thousands separator. French opens with « Son total » (the gifter's).",
     "placeholders": {
@@ -8025,7 +8017,7 @@
       }
     }
   },
-  "vodSpeedPillNormal": "Speed Normal",
+  "vodSpeedPillNormal": "Normal speed",
   "@vodSpeedPillNormal": {
     "description": "The same pill at the normal speed. French: « normale » in lower case, inside the pill's words."
   },
@@ -8039,15 +8031,15 @@
       }
     }
   },
-  "vodQualityPillAuto": "Quality Auto",
+  "vodQualityPillAuto": "Auto quality",
   "@vodQualityPillAuto": {
     "description": "The same pill on the adaptive quality. French: « auto » in lower case, inside the pill's words."
   },
-  "vodQualityPillAudioOnly": "Quality Audio only",
+  "vodQualityPillAudioOnly": "Audio only",
   "@vodQualityPillAudioOnly": {
     "description": "The same pill when only the sound plays. French: in lower case, inside the pill's words."
   },
-  "vodCaptionsState": "{state, select, on{Closed Captions, on} other{Closed Captions, off}}",
+  "vodCaptionsState": "{state, select, on{Closed captions, on} other{Closed captions, off}}",
   "@vodCaptionsState": {
     "description": "What a screen reader says for a tablet's captions pill: whether captions show. state is on or off.",
     "placeholders": {
@@ -8057,19 +8049,19 @@
       }
     }
   },
-  "vodLegendMuted": "Muted parts (copyright)",
+  "vodLegendMuted": "Muted segments (copyright)",
   "@vodLegendMuted": {
     "description": "A tablet's legend under the video, beside a short grey bar: the marks on the seek bar are parts Twitch muted for copyright."
   },
-  "vodLegendDoubleTap": "Double-tap the sides to skip 10 s",
+  "vodLegendDoubleTap": "Double-tap the sides to skip 10 seconds",
   "@vodLegendDoubleTap": {
     "description": "A tablet's legend under the video: double-tapping the left or right of the video goes back or forward 10 seconds."
   },
-  "vodLegendUpNext": "Up Next at the end",
+  "vodLegendUpNext": "Up next at the end",
   "@vodLegendUpNext": {
     "description": "A tablet's legend under the video: another video plays when this one ends."
   },
-  "vodLegendUpNextWhen": "Up Next at the end · {autoplay}",
+  "vodLegendUpNextWhen": "Up next at the end · {autoplay}",
   "@vodLegendUpNextWhen": {
     "description": "The same, with when it plays by itself. autoplay is the setting's value (« Wi-Fi uniquement », « Données mobiles et Wi-Fi »).",
     "placeholders": {
@@ -8097,7 +8089,7 @@
       }
     }
   },
-  "vodUpNext": "Up Next",
+  "vodUpNext": "Up next",
   "@vodUpNext": {
     "description": "The heading of the card shown at the end of a video with the video that plays next (shown in capitals)."
   },
@@ -8133,7 +8125,7 @@
   "@vodReplaySynced": {
     "description": "The pill beside « Chat replay »: the replay follows the video. Lower case; French keeps one word, the title says what it follows (a tablet's live chat says it in full: channelChatSynced)."
   },
-  "vodReplayEmotesNote": "7TV, BTTV and FFZ emotes are the channel's current sets, which may differ from the ones used during the broadcast.",
+  "vodReplayEmotesNote": "7TV, BTTV, and FFZ emotes are the channel’s current sets, which may differ from the ones used during the broadcast.",
   "@vodReplayEmotesNote": {
     "description": "The note under the chat replay's info button: why some emotes may look different from the broadcast."
   },
@@ -8153,17 +8145,17 @@
   "@vodReplayNoMessages": {
     "description": "Shown in the chat replay pane when no one wrote yet at this point of the video."
   },
-  "vodReplayLoading": "Loading chat replay",
+  "vodReplayLoading": "Loading chat replay…",
   "@vodReplayLoading": {
     "description": "Under the placeholder rows while the chat replay loads."
   },
   "whisperOtherAccount": "This conversation belongs to another account.",
   "@whisperOtherAccount": {
-    "description": "A whisper could not be sent: the conversation on screen was opened with another Twitch account than the one logged in now."
+    "description": "Error message. A whisper could not be sent: the conversation on screen was opened with another Twitch account than the one logged in now."
   },
   "whisperTooLong": "Whispers can be {max} characters at most.",
   "@whisperTooLong": {
-    "description": "A whisper could not be sent: it is too long for Twitch. max is the limit, with the language's thousands separator (10,000).",
+    "description": "Error message. A whisper could not be sent: it is too long for Twitch. max is the limit, with the language's thousands separator (10,000).",
     "placeholders": {
       "max": {
         "type": "int",
@@ -8174,11 +8166,11 @@
   },
   "whisperLogInAgain": "Log in again to whisper from this app.",
   "@whisperLogInAgain": {
-    "description": "A whisper could not be sent: the viewer's login predates the whisper permission."
+    "description": "Error message. A whisper could not be sent: the viewer's login predates the whisper permission."
   },
-  "whisperFailedUnexpected": "Couldn't whisper (unexpected error).",
+  "whisperFailedUnexpected": "Couldn’t whisper (unexpected error).",
   "@whisperFailedUnexpected": {
-    "description": "A whisper could not be sent for an unexpected reason."
+    "description": "Error message. A whisper could not be sent for an unexpected reason."
   },
   "notifGoLiveTitle": "{name} is live",
   "@notifGoLiveTitle": {
@@ -8232,7 +8224,7 @@
       }
     }
   },
-  "notifReminderTitle": "{name}'s stream is starting",
+  "notifReminderTitle": "{name}’s stream is starting",
   "@notifReminderTitle": {
     "description": "The title of the reminder notification set with « Remind me » on a channel's schedule. name is the channel's display name. Shown in the system's notification and in the Activity list.",
     "placeholders": {
@@ -8242,11 +8234,11 @@
       }
     }
   },
-  "notifReminderUntitled": "Stream",
+  "notifReminderUntitled": "Untitled stream",
   "@notifReminderUntitled": {
     "description": "The text of a reminder notification when the scheduled stream has no title nor category. Shown in the system's notification and in the Activity list."
   },
-  "notifChannelGoLive": "Go live",
+  "notifChannelGoLive": "Go-live notifications",
   "@notifChannelGoLive": {
     "description": "The go-live notifications. An Android notification channel's name, listed in the system's settings for the app: short, plural, sentence case."
   },
@@ -8254,11 +8246,11 @@
   "@notifChannelGoLiveDescription": {
     "description": "The go-live notifications. An Android notification channel's description, under its name in the system's settings: one sentence, no final full stop."
   },
-  "notifChannelMentions": "Chat Mentions",
+  "notifChannelMentions": "Chat mentions",
   "@notifChannelMentions": {
     "description": "The mention notifications. An Android notification channel's name, listed in the system's settings for the app: short, plural, sentence case."
   },
-  "notifChannelMentionsDescription": "When someone mentions you in a chat you are watching while ONSET is in the background",
+  "notifChannelMentionsDescription": "When someone mentions you in a chat you’re watching while ONSET is in the background",
   "@notifChannelMentionsDescription": {
     "description": "The mention notifications. An Android notification channel's description, under its name in the system's settings: one sentence, no final full stop."
   },
@@ -8266,7 +8258,7 @@
   "@notifChannelReminders": {
     "description": "The reminders set on channels' schedules. An Android notification channel's name, listed in the system's settings for the app: short, plural, sentence case."
   },
-  "notifChannelRemindersDescription": "Scheduled streams you asked to be reminded of",
+  "notifChannelRemindersDescription": "When a scheduled stream you set a reminder for starts",
   "@notifChannelRemindersDescription": {
     "description": "The reminders set on channels' schedules. An Android notification channel's description, under its name in the system's settings: one sentence, no final full stop."
   },
@@ -8290,17 +8282,17 @@
   "@authMissingPermissionsTitle": {
     "description": "The title of the dialog shown when Twitch refuses a request because the logged-in session lacks a permission this version needs."
   },
-  "authMissingPermissions": "Your session is missing permissions. Please log in again to continue.",
+  "authMissingPermissions": "Your session is missing permissions. Log in again to continue.",
   "@authMissingPermissions": {
-    "description": "The text of the same dialog; « Log in » follows."
+    "description": "Error message. The text of the same dialog; « Log in » follows."
   },
   "authSessionExpiredTitle": "Session expired",
   "@authSessionExpiredTitle": {
     "description": "The title of the dialog shown when Twitch refuses a request because the session ended."
   },
-  "authSessionExpired": "Your session has expired. Please log in again to continue.",
+  "authSessionExpired": "Your session has expired. Log in again to continue.",
   "@authSessionExpired": {
-    "description": "The text of the same dialog; « Log in » follows."
+    "description": "Error message. The text of the same dialog; « Log in » follows."
   },
   "authLogIn": "Log in",
   "@authLogIn": {

@@ -179,7 +179,7 @@ abstract class AppLocalizations {
   /// Button that opens the Twitch login (onboarding Log in step, Profile and other logged-out screens), and the title of the Twitch login page.
   ///
   /// In en, this message translates to:
-  /// **'Connect with Twitch'**
+  /// **'Log in with Twitch'**
   String get commonConnectWithTwitch;
 
   /// Settings › General: the title of the first group, the app's language.
@@ -191,7 +191,7 @@ abstract class AppLocalizations {
   /// Settings › General › Language: the line under the options, saying which language the System option gives on this device. The language is named as in a sentence (languageInTextEnglish, languageInTextFrench).
   ///
   /// In en, this message translates to:
-  /// **'“System” follows your device’s language (currently: {language}).'**
+  /// **'“System” follows your device’s language (currently {language}).'**
   String settingsLanguageSystemSubtitle({required String language});
 
   /// The English language named inside a sentence of the language on screen (lower case in French), as in the System subtitle of Settings › General › Language.
@@ -257,13 +257,13 @@ abstract class AppLocalizations {
   /// Onboarding Log in step: the text under the title.
   ///
   /// In en, this message translates to:
-  /// **'ONSET needs your permission in order to enable the ability to chat, view followed streams, and more.'**
+  /// **'ONSET needs your permission to let you chat, see followed streams, and more.'**
   String get onboardingLoginLead;
 
   /// Onboarding Log in step: header of the permission list (shown in capitals).
   ///
   /// In en, this message translates to:
-  /// **'What you will authorize'**
+  /// **'What you’ll authorize'**
   String get onboardingLoginAuthorizeHeader;
 
   /// Onboarding Log in step, permission list: the chat permission.
@@ -287,7 +287,7 @@ abstract class AppLocalizations {
   /// Onboarding Log in step, permission list: what the followed channels permission allows.
   ///
   /// In en, this message translates to:
-  /// **'See who is live right now'**
+  /// **'See who’s live right now'**
   String get onboardingPermissionFollowsDetail;
 
   /// Onboarding Log in step, permission list: the viewer's own emotes permission.
@@ -347,13 +347,13 @@ abstract class AppLocalizations {
   /// Onboarding Log in step, permission list: what the blocks and chat colour permissions allow.
   ///
   /// In en, this message translates to:
-  /// **'Manage blocks, change your chat color'**
+  /// **'Manage blocks and change your name color'**
   String get onboardingPermissionBlocksDetail;
 
   /// Onboarding Log in step: the note above the buttons (in the content on a tablet).
   ///
   /// In en, this message translates to:
-  /// **'ONSET only asks for the necessary permissions through the official Twitch API. You’ll be able to review them before authorizing.'**
+  /// **'ONSET asks only for the permissions it needs, through the official Twitch API. You’ll be able to review them before authorizing.'**
   String get onboardingLoginDisclaimer;
 
   /// Onboarding Log in step: goes on without an account.
@@ -383,13 +383,13 @@ abstract class AppLocalizations {
   /// While Twitch finishes the login (onboarding Setup pill, over the Twitch login page).
   ///
   /// In en, this message translates to:
-  /// **'Signing you in…'**
+  /// **'Logging you in…'**
   String get loginSigningIn;
 
   /// Onboarding Setup step: the pill when the Twitch login did not go through. Profile is the bottom bar section.
   ///
   /// In en, this message translates to:
-  /// **'Login failed · go back to try again, or log in later from Profile'**
+  /// **'Couldn’t log in · go back to try again, or log in later from Profile'**
   String get onboardingSetupLoginFailed;
 
   /// Onboarding Setup step: the pill when no account is logged in. Profile is the bottom bar section.
@@ -464,7 +464,7 @@ abstract class AppLocalizations {
   /// Onboarding Setup step: the note beside Theme when Dark is picked ("Noir" is the dark theme's name).
   ///
   /// In en, this message translates to:
-  /// **'Noir, the ONSET default'**
+  /// **'The ONSET default'**
   String get onboardingSetupThemeDarkNote;
 
   /// The accent colour row (onboarding Setup, Settings › General), and the title of its colour picker.
@@ -494,7 +494,7 @@ abstract class AppLocalizations {
   /// Screen-reader value of the colour square of the accent colour pickers.
   ///
   /// In en, this message translates to:
-  /// **'{saturation} %, {brightness} %'**
+  /// **'{saturation}%, {brightness}%'**
   String accentSaturationBrightnessValue({
     required int saturation,
     required int brightness,
@@ -503,7 +503,7 @@ abstract class AppLocalizations {
   /// A screen-reader button on the hue slider of the accent colour pickers (eight named hues, 0 to 315).
   ///
   /// In en, this message translates to:
-  /// **'{degrees, plural, other{Hue {degrees} degrees}}'**
+  /// **'{degrees, plural, one{Hue {degrees} degree} other{Hue {degrees} degrees}}'**
   String accentHue({required int degrees});
 
   /// The switch that loads recent chat messages from a third party (onboarding Setup step, Settings › Chat › Recent messages).
@@ -515,7 +515,7 @@ abstract class AppLocalizations {
   /// Onboarding Setup step: the text under the fallback chat history switch. The link is the third party's host, underlined. Also under the same switch in Settings › Chat › Recent messages.
   ///
   /// In en, this message translates to:
-  /// **'When Twitch\'s own chat history is unavailable, fails or is empty, loads recent messages from {link}, which then receives the channel name.'**
+  /// **'When Twitch’s own chat history is unavailable, fails, or is empty, ONSET loads recent messages from {link}, which then receives the channel name.'**
   String onboardingSetupHistoryDetail({required String link});
 
   /// The crash logs and analytics consent switch (onboarding Setup step, Settings › Other › Privacy).
@@ -527,7 +527,7 @@ abstract class AppLocalizations {
   /// Onboarding Setup step: the text under the crash logs and analytics switch. Also under the same switch in Settings › Other › Privacy.
   ///
   /// In en, this message translates to:
-  /// **'Help improve ONSET by sending crash logs and analytics through Firebase, without your Twitch account or channels.'**
+  /// **'Help improve ONSET by sending crash logs and analytics through Firebase. Neither your Twitch account nor your channels are sent.'**
   String get onboardingSetupCrashDetail;
 
   /// Onboarding: title of the last step, Welcome.
@@ -545,19 +545,19 @@ abstract class AppLocalizations {
   /// Onboarding Welcome step: the first tip.
   ///
   /// In en, this message translates to:
-  /// **'Check out the GitHub repo at the top-right of the settings page to explore ONSET’s source code, report bugs, make feature requests, and more.'**
+  /// **'Check out the GitHub repo (top-right corner of Settings) to explore ONSET’s source code, report bugs, request features, and more.'**
   String get onboardingWelcomeTipGitHub;
 
   /// Onboarding Welcome step: the second tip. "Other" is the name of a settings page.
   ///
   /// In en, this message translates to:
-  /// **'Links to the full changelog and FAQ are in the settings page under “Other”.'**
+  /// **'Links to the full changelog and the FAQ are in Settings › Other.'**
   String get onboardingWelcomeTipChangelog;
 
   /// Onboarding Welcome step: the third tip.
   ///
   /// In en, this message translates to:
-  /// **'Don’t forget to leave a rating and/or review on the app store!'**
+  /// **'ONSET checks for new builds by itself, and the release notes open after each update.'**
   String get onboardingWelcomeTipRating;
 
   /// Onboarding Welcome step: the button that opens the app.
@@ -581,13 +581,13 @@ abstract class AppLocalizations {
   /// Text of the login help dialog, opened from the onboarding.
   ///
   /// In en, this message translates to:
-  /// **'If the Twitch cookie banner is still blocking the login, try clicking one of the links in the cookie policy description and navigating until you reach the Twitch home page. From there, you can try logging in on the top right profile icon. Once logged in, go back to the first step of the onboarding and then try again.'**
+  /// **'If the Twitch cookie banner still blocks the login, tap one of the links in the cookie policy text and keep going until you reach the Twitch home page. From there, log in with the profile icon in the top-right corner. Once you’re logged in, go back to the first step of setup and try again.'**
   String get loginHelpBodyOnboarding;
 
   /// Text of the login help dialog, opened from the settings (outside the onboarding).
   ///
   /// In en, this message translates to:
-  /// **'If the Twitch cookie banner is still blocking the login, try clicking one of the links in the cookie policy description and navigating until you reach the Twitch home page. From there, you can try logging in on the top right profile icon. Once logged in, go back, then open the login again.'**
+  /// **'If the Twitch cookie banner still blocks the login, tap one of the links in the cookie policy text and keep going until you reach the Twitch home page. From there, log in with the profile icon in the top-right corner. Once you’re logged in, go back and open the login page again.'**
   String get loginHelpBodyElsewhere;
 
   /// What a screen reader says for the address strip of the Twitch login page, on an https page.
@@ -605,13 +605,13 @@ abstract class AppLocalizations {
   /// The line under the address of the Twitch login page when Twitch handed back a token that did not log in.
   ///
   /// In en, this message translates to:
-  /// **'Twitch did not sign you in. Try again.'**
+  /// **'Twitch didn’t log you in. Try again.'**
   String get loginFailedLine;
 
-  /// Twitch login page: the title when the page could not load.
+  /// Error message. Twitch login page: the title when the page could not load.
   ///
   /// In en, this message translates to:
-  /// **'Twitch could not be reached'**
+  /// **'Couldn’t reach Twitch.'**
   String get loginLoadFailedTitle;
 
   /// Twitch login page: the text under the title when the page could not load.
@@ -647,7 +647,7 @@ abstract class AppLocalizations {
   /// What a screen reader (and the tooltip) says for the Activity section when notifications are unread.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, other{Activity, {count} new}}'**
+  /// **'{count, plural, one{Activity, {count} new} other{Activity, {count} new}}'**
   String shellActivityNew({required int count});
 
   /// Home's top tab of the followed channels that are live. Also an option of Settings › General › « Open the app on ».
@@ -695,7 +695,7 @@ abstract class AppLocalizations {
   /// Tooltip of the header's whispers button when whispers are unread.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, other{Whispers ({count} unread)}}'**
+  /// **'{count, plural, one{Whispers ({count} unread)} other{Whispers ({count} unread)}}'**
   String shellWhispersUnread({required int count});
 
   /// Tooltip of the header's whispers button when Twitch refused them until a new login.
@@ -707,7 +707,7 @@ abstract class AppLocalizations {
   /// What a screen reader says for a header tab with an unread count (Activity: Notifications, Whispers).
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, other{{label}, {count} unread}}'**
+  /// **'{count, plural, one{{label}, {count} unread} other{{label}, {count} unread}}'**
   String shellTabUnread({required String label, required int count});
 
   /// What a screen reader calls the bottom bar (tablet: the top pill) of the main sections.
@@ -725,7 +725,7 @@ abstract class AppLocalizations {
   /// Browse's search field on a phone.
   ///
   /// In en, this message translates to:
-  /// **'Search channels, categories or videos'**
+  /// **'Search channels, categories, or videos'**
   String get shellSearchHint;
 
   /// Tooltip of the header's settings button (on Profile).
@@ -734,16 +734,16 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get shellSettings;
 
-  /// Snackbar when a channel opened from Activity could not be loaded.
+  /// Error message. Snackbar when a channel opened from Activity could not be loaded.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t open {login}\'s channel.'**
+  /// **'Couldn’t open {login}’s channel.'**
   String homeOpenChannelFailed({required String login});
 
   /// Snackbar when a mention notification is tapped while a player or a conversation covers the chat.
   ///
   /// In en, this message translates to:
-  /// **'You were mentioned in {login}\'s chat'**
+  /// **'You were mentioned in {login}’s chat.'**
   String mentionNotice({required String login});
 
   /// Title of the in-app Twitch page opened for a category link Twitch search did not find, when the link has no name.
@@ -752,10 +752,10 @@ abstract class AppLocalizations {
   /// **'Category'**
   String get deepLinkCategoryFallback;
 
-  /// Snackbar when a link to Twitch cannot be opened in the app.
+  /// Error message. Snackbar when a link to Twitch cannot be opened in the app.
   ///
   /// In en, this message translates to:
-  /// **'Unable to navigate to \'{uri}\''**
+  /// **'Couldn’t open “{uri}”.'**
   String deepLinkFailed({required String uri});
 
   /// Tooltip of the button at the end of the link failure snackbar.
@@ -779,7 +779,7 @@ abstract class AppLocalizations {
   /// Tooltip of the mini player's close button.
   ///
   /// In en, this message translates to:
-  /// **'Close mini player'**
+  /// **'Close miniplayer'**
   String get miniPlayerClose;
 
   /// Channel long-press menu: opens the channel's profile.
@@ -917,7 +917,7 @@ abstract class AppLocalizations {
   /// Tablet: the line under the General settings page title.
   ///
   /// In en, this message translates to:
-  /// **'Theme, stream cards, browsing and links'**
+  /// **'Theme, stream cards, browsing, and links'**
   String get settingsPageGeneralDescription;
 
   /// The Video settings page: its row, title and side column entry.
@@ -929,7 +929,7 @@ abstract class AppLocalizations {
   /// Tablet: the line under the Video settings page title.
   ///
   /// In en, this message translates to:
-  /// **'The low-latency player, playback, overlay, videos and captions'**
+  /// **'Low-latency player, playback, overlay, videos, and captions'**
   String get settingsPageVideoDescription;
 
   /// The Chat settings page: its row, title and side column entry; also a group of Settings › Notifications.
@@ -941,7 +941,7 @@ abstract class AppLocalizations {
   /// Tablet: the line under the Chat settings page title.
   ///
   /// In en, this message translates to:
-  /// **'How chat looks, waits, alerts and filters'**
+  /// **'Appearance, delay, alerts, and filters'**
   String get settingsPageChatDescription;
 
   /// The Notifications settings page: its row, title and side column entry.
@@ -965,7 +965,7 @@ abstract class AppLocalizations {
   /// Tablet: the line under the Other settings page title.
   ///
   /// In en, this message translates to:
-  /// **'Updates, storage, privacy and about'**
+  /// **'Updates, storage, privacy, and about'**
   String get settingsPageOtherDescription;
 
   /// The Account settings page (the viewer's Twitch account): its title and side column entry, and its group label in Profile and on the tablet side column.
@@ -995,13 +995,13 @@ abstract class AppLocalizations {
   /// Settings › Chat: the row that opens the chat filters, and that page's title.
   ///
   /// In en, this message translates to:
-  /// **'Edit Chat Filters'**
+  /// **'Edit chat filters'**
   String get settingsPageChatFilters;
 
   /// Profile and phone settings: the line under the General section.
   ///
   /// In en, this message translates to:
-  /// **'Theme, accent color, browse, links'**
+  /// **'Theme, accent color, browsing, links'**
   String get settingsSummaryGeneral;
 
   /// Profile and phone settings: the line under the Video section.
@@ -1031,7 +1031,7 @@ abstract class AppLocalizations {
   /// Profile and phone settings: the line under the Other section.
   ///
   /// In en, this message translates to:
-  /// **'Updates, cache, privacy, about'**
+  /// **'Updates, storage, privacy, about'**
   String get settingsSummaryOther;
 
   /// Profile: the line under the Notifications section where go-live notifications do not exist (not Android). mentions is on or off.
@@ -1049,16 +1049,16 @@ abstract class AppLocalizations {
     required String mentions,
   });
 
-  /// Phone settings account card and Profile, when Twitch cannot be reached (a network problem, not a login).
+  /// Error message. Phone settings account card and Profile, when Twitch cannot be reached (a network problem, not a login).
   ///
   /// In en, this message translates to:
-  /// **'Unable to connect to Twitch'**
+  /// **'Couldn’t connect to Twitch.'**
   String get settingsUnableToReachTwitch;
 
   /// Under « Unable to connect to Twitch » (phone settings account card, Profile).
   ///
   /// In en, this message translates to:
-  /// **'Check your connection, then try again'**
+  /// **'Check your connection, then try again.'**
   String get settingsCheckConnection;
 
   /// Button that tries to reach Twitch again (phone settings account card, Profile).
@@ -1088,13 +1088,13 @@ abstract class AppLocalizations {
   /// Phone settings account card and Profile, logged out: why to log in.
   ///
   /// In en, this message translates to:
-  /// **'Log in to enable the ability to chat, view followed streams, and more.'**
+  /// **'Log in to chat, see followed streams, and more.'**
   String get settingsLoginPitch;
 
   /// Profile, logged out: the note under « Connect with Twitch ».
   ///
   /// In en, this message translates to:
-  /// **'ONSET only asks for the necessary permissions through the official Twitch API. You\'ll be able to review them before authorizing.'**
+  /// **'ONSET asks only for the permissions it needs, through the official Twitch API. You’ll be able to review them before authorizing.'**
   String get settingsLoginDisclaimer;
 
   /// Profile, logged out: the tip at the end of the login card (a long press logs in with a copied token).
@@ -1136,7 +1136,7 @@ abstract class AppLocalizations {
   /// Profile: the line under « Security and privacy ».
   ///
   /// In en, this message translates to:
-  /// **'Password, email, phone, two-factor — on twitch.tv'**
+  /// **'Password, email, phone, two-factor authentication — on twitch.tv'**
   String get settingsTwitchSecurityDetail;
 
   /// Settings › Account and Profile: opens Twitch's connections page (linked accounts), and that page's title. French: Twitch's own name for that page.
@@ -1196,7 +1196,7 @@ abstract class AppLocalizations {
   /// Text of the dialog that asks before unblocking someone.
   ///
   /// In en, this message translates to:
-  /// **'Are you sure you want to unblock \"{name}\"?'**
+  /// **'Are you sure you want to unblock {name}?'**
   String settingsUnblockMessage({required String name});
 
   /// Title of the dialog that asks before blocking someone (from a channel or a chat user card).
@@ -1208,7 +1208,7 @@ abstract class AppLocalizations {
   /// Text of the dialog that asks before blocking someone.
   ///
   /// In en, this message translates to:
-  /// **'Are you sure you want to block \"{name}\"? This will remove them from channel lists, search results, and chat messages.'**
+  /// **'Are you sure you want to block {name}? This removes them from channel lists, search results, and chat messages.'**
   String settingsBlockMessage({required String name});
 
   /// The button that confirms a block or an unblock.
@@ -1226,7 +1226,7 @@ abstract class AppLocalizations {
   /// The blocked users page: the label above the list (shown in capitals).
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, other{{count} blocked}}'**
+  /// **'{count, plural, one{{count} blocked} other{{count} blocked}}'**
   String settingsBlockedCount({required int count});
 
   /// The blocked users page: the note under the list.
@@ -1274,7 +1274,7 @@ abstract class AppLocalizations {
   /// Settings › General › Stream card: the switch for the large card.
   ///
   /// In en, this message translates to:
-  /// **'Use large stream card'**
+  /// **'Use large stream cards'**
   String get settingsLargeStreamCard;
 
   /// Settings › General › Stream card: the switch that shows the stream picture.
@@ -1334,31 +1334,31 @@ abstract class AppLocalizations {
   /// Settings › General › Browse: the value of « Hide labeled streams » when none or several labels are hidden (one label shows its name instead).
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =0{None} other{{count} labels}}'**
+  /// **'{count, plural, =0{None} one{{count} label} other{{count} labels}}'**
   String settingsHideLabeledValue({required int count});
 
   /// The list of content labels to hide: the note under its title.
   ///
   /// In en, this message translates to:
-  /// **'Streams with these labels are left out of Top, categories and tags. Followed channels always show.'**
+  /// **'Streams with these labels are left out of Live, Live channels, categories, and tags. Followed channels always show.'**
   String get settingsHideLabeledNote;
 
   /// Twitch's content classification label (Settings › General › Hide labeled streams, the mature content warning).
   ///
   /// In en, this message translates to:
-  /// **'Drugs, Intoxication, or Excessive Tobacco Use'**
+  /// **'Drugs, intoxication, or excessive tobacco use'**
   String get contentLabelDrugs;
 
   /// Twitch's content classification label.
   ///
   /// In en, this message translates to:
-  /// **'Sexual Themes'**
+  /// **'Sexual themes'**
   String get contentLabelSexualThemes;
 
   /// Twitch's content classification label.
   ///
   /// In en, this message translates to:
-  /// **'Violent and Graphic Depictions'**
+  /// **'Violent and graphic depictions'**
   String get contentLabelViolentGraphic;
 
   /// Twitch's content classification label.
@@ -1370,19 +1370,19 @@ abstract class AppLocalizations {
   /// Twitch's content classification label.
   ///
   /// In en, this message translates to:
-  /// **'Significant Profanity or Vulgarity'**
+  /// **'Significant profanity or vulgarity'**
   String get contentLabelProfanity;
 
   /// Twitch's content classification label.
   ///
   /// In en, this message translates to:
-  /// **'Mature-Rated Game'**
+  /// **'Mature-rated game'**
   String get contentLabelMatureGame;
 
   /// Twitch's content classification label.
   ///
   /// In en, this message translates to:
-  /// **'Politics and Sensitive Social Issues'**
+  /// **'Politics and sensitive social issues'**
   String get contentLabelPolitics;
 
   /// Settings › Video (Android): the group of the Amazon IVS player's settings.
@@ -1412,7 +1412,7 @@ abstract class AppLocalizations {
   /// Settings › Video › Low-latency player: what « Auto latency » does. Ultra and Standard are the buffer profiles.
   ///
   /// In en, this message translates to:
-  /// **'Keeps the stream close to live by playing very slightly faster when it drifts behind, without reloading it. If Ultra keeps stalling, the next streams use Standard for a while. Applies the next time a stream is opened.'**
+  /// **'Keeps the stream close to live by playing very slightly faster when it falls behind, without reloading it. If Ultra keeps stalling, the next few streams use Standard. Applies the next time you open a stream.'**
   String get settingsAutoLatencyDetail;
 
   /// Settings › Video › Low-latency player: how the player gets back to live after falling behind.
@@ -1424,7 +1424,7 @@ abstract class AppLocalizations {
   /// Settings › Video › Low-latency player: what the two « Live catch-up » options do. Starts with the options' names (liveCatchUpSpeedUp, liveCatchUpJumpToLive).
   ///
   /// In en, this message translates to:
-  /// **'Speed up plays slightly faster until it is back at live (Auto latency does it when on). Jump to live skips ahead after a stall. Applies the next time a stream is opened.'**
+  /// **'“Speed up” plays slightly faster until the stream is back to live (Auto latency already does this when it’s on). “Jump to live” skips ahead after a stall. Applies the next time you open a stream.'**
   String get settingsLiveCatchUpDetail;
 
   /// Live catch-up option (Settings › Video): play slightly faster until back at live. Also in the live video stats.
@@ -1448,7 +1448,7 @@ abstract class AppLocalizations {
   /// Settings › Video › Low-latency player: what the « Ultra » buffer profile changes.
   ///
   /// In en, this message translates to:
-  /// **'Ultra keeps an even smaller buffer for lower latency but may rebuffer more on weak connections. Applies the next time a stream is opened.'**
+  /// **'Ultra keeps a smaller buffer than Standard for lower latency, but may rebuffer more on weak connections. Applies the next time you open a stream.'**
   String get settingsBufferProfileDetail;
 
   /// Buffer profile option (Settings › Video): the player's default buffer. Also in the live video stats.
@@ -1511,7 +1511,7 @@ abstract class AppLocalizations {
   /// Settings › Video › Playback: what « Use fast video rendering » does.
   ///
   /// In en, this message translates to:
-  /// **'Uses a faster WebView rendering method. Disable if you experience crashes while watching streams.'**
+  /// **'Uses a faster WebView rendering method. Turn it off if streams crash while you watch.'**
   String get settingsFastRenderingDetail;
 
   /// Settings › Video › Playback: the switch that keeps the screen on.
@@ -1553,19 +1553,19 @@ abstract class AppLocalizations {
   /// Settings › Video › Overlay: what « Use custom video overlay » does.
   ///
   /// In en, this message translates to:
-  /// **'Replaces Twitch\'s default web overlay with a mobile-friendly version.'**
+  /// **'Replaces Twitch’s default web overlay with a mobile-friendly version.'**
   String get settingsCustomOverlayDetail;
 
   /// Settings › Video › Overlay: the switch that lets a long press on the player switch overlays.
   ///
   /// In en, this message translates to:
-  /// **'Long-press player to toggle overlay'**
+  /// **'Long-press the player to toggle the overlay'**
   String get settingsToggleOverlay;
 
   /// Settings › Video › Overlay: what the long-press switch does.
   ///
   /// In en, this message translates to:
-  /// **'Allows switching between Twitch\'s overlay and the custom overlay.'**
+  /// **'Lets you switch between Twitch’s overlay and the custom overlay.'**
   String get settingsToggleOverlayDetail;
 
   /// Settings › Video › Overlay: the switch that shows the delay behind live in the player.
@@ -1589,25 +1589,25 @@ abstract class AppLocalizations {
   /// Settings › Video › Videos and content: when the next video plays by itself.
   ///
   /// In en, this message translates to:
-  /// **'Video Autoplaying'**
+  /// **'Autoplay videos'**
   String get settingsVodAutoplay;
 
   /// Settings › Video › Videos and content: the line under the autoplay options.
   ///
   /// In en, this message translates to:
-  /// **'Choose when videos should play automatically'**
+  /// **'Choose when videos play automatically.'**
   String get settingsVodAutoplayDetail;
 
   /// Video autoplay option (Settings › Video), with Twitch's wording: always.
   ///
   /// In en, this message translates to:
-  /// **'Mobile data & Wi-Fi'**
+  /// **'Wi-Fi and mobile data'**
   String get vodAutoplayAlways;
 
   /// Video autoplay option (Settings › Video): only on Wi-Fi.
   ///
   /// In en, this message translates to:
-  /// **'Wi-Fi Only'**
+  /// **'Wi-Fi only'**
   String get vodAutoplayWifiOnly;
 
   /// Video autoplay option (Settings › Video): never.
@@ -1625,7 +1625,7 @@ abstract class AppLocalizations {
   /// Settings › Video › Videos and content: what the mature content switch does.
   ///
   /// In en, this message translates to:
-  /// **'Shows a warning before a channel labeled for mature content.'**
+  /// **'Shows a warning before opening a channel labeled for mature content.'**
   String get settingsWarnMatureDetail;
 
   /// Settings › Video (Android): the captions group.
@@ -1637,7 +1637,7 @@ abstract class AppLocalizations {
   /// Settings › Video › Captions: the switch that shows captions.
   ///
   /// In en, this message translates to:
-  /// **'Closed Captions'**
+  /// **'Closed captions'**
   String get settingsClosedCaptions;
 
   /// Settings › Video › Captions: what the captions switch does.
@@ -1739,7 +1739,7 @@ abstract class AppLocalizations {
   /// The Twitch web token dialog: what the token is for, and how to fill it in by hand. "auth-token" is the cookie's name and stays as is.
   ///
   /// In en, this message translates to:
-  /// **'Some streams only offer their 2K (1440p HEVC) quality to a signed-in viewer. This is normally picked up on its own when you log in, and refreshed on each launch — you should never need to touch it. Fill it in by hand only if that fails: paste the value of the \"auth-token\" cookie from twitch.tv in a browser.'**
+  /// **'Some streams offer 2K (1440p HEVC) only to logged-in viewers. ONSET normally picks up this token by itself when you log in and refreshes it on each launch, so you should never need to touch it. Fill it in by hand only if that fails: paste the value of the “auth-token” cookie from twitch.tv in a browser.'**
   String get webTokenExplanation;
 
   /// The Twitch web token dialog: there is one.
@@ -1805,7 +1805,7 @@ abstract class AppLocalizations {
   /// Settings › Chat preview: the second sample message.
   ///
   /// In en, this message translates to:
-  /// **'Hello! Here\'s a text preview.'**
+  /// **'Hello! Here’s a text preview.'**
   String get settingsChatPreviewText;
 
   /// Settings › Chat preview: the third sample message.
@@ -1835,7 +1835,7 @@ abstract class AppLocalizations {
   /// Settings › Chat › Message sizing: the value of a scale slider, as a factor (1.00x).
   ///
   /// In en, this message translates to:
-  /// **'{scale}x'**
+  /// **'{scale}×'**
   String settingsScaleValue({required double scale});
 
   /// Settings › Chat › Message sizing: the space between messages.
@@ -1871,7 +1871,7 @@ abstract class AppLocalizations {
   /// Settings › Chat › Message appearance: what « Show deleted messages » does.
   ///
   /// In en, this message translates to:
-  /// **'Restores the original message of deleted messages.'**
+  /// **'Shows the original text of deleted messages.'**
   String get settingsShowDeletedDetail;
 
   /// Settings › Chat › Message appearance: the switch that animates emotes.
@@ -1883,7 +1883,7 @@ abstract class AppLocalizations {
   /// Settings › Chat › Message appearance: what turning « Animate emotes » off does.
   ///
   /// In en, this message translates to:
-  /// **'Off shows the first frame of animated emotes in chat.'**
+  /// **'When off, shows only the first frame of animated emotes in chat.'**
   String get settingsAnimateEmotesDetail;
 
   /// Settings › Chat › Message appearance: the switch that animates GIFs.
@@ -1895,7 +1895,7 @@ abstract class AppLocalizations {
   /// Settings › Chat › Message appearance: what turning « Animated GIFs » off does.
   ///
   /// In en, this message translates to:
-  /// **'Off shows the first frame of GIFs sent in chat.'**
+  /// **'When off, shows only the first frame of GIFs sent in chat.'**
   String get settingsAnimatedGifsDetail;
 
   /// Settings › Chat › Message appearance: the switch that shows GIFs at all.
@@ -1907,7 +1907,7 @@ abstract class AppLocalizations {
   /// Settings › Chat › Message appearance: what turning « Show GIFs in Chat » off does.
   ///
   /// In en, this message translates to:
-  /// **'Off shows the title of a GIF instead of the GIF.'**
+  /// **'When off, shows the GIF’s title instead.'**
   String get settingsShowGifsDetail;
 
   /// Settings › Chat › Message appearance: the switch for link cards.
@@ -1919,7 +1919,7 @@ abstract class AppLocalizations {
   /// Settings › Chat › Message appearance: what « Preview clips and videos » does.
   ///
   /// In en, this message translates to:
-  /// **'Shows a card under messages that link a Twitch clip or video.'**
+  /// **'Shows a card under messages that link to a Twitch clip or video.'**
   String get settingsLinkPreviewsDetail;
 
   /// Settings › Chat › Message appearance: the switch for moderation lines.
@@ -1979,7 +1979,7 @@ abstract class AppLocalizations {
   /// Settings › Chat › Delay and latency: what the sync switch does.
   ///
   /// In en, this message translates to:
-  /// **'Holds each message for as long as the video is behind live, so chat matches what you see. Your own messages show at once.'**
+  /// **'Holds each message for as long as the video is behind live, so chat matches what you see. Your own messages show right away.'**
   String get settingsSyncDelayDetail;
 
   /// Settings › Chat › Delay and latency: the manual delay slider (when sync is off).
@@ -1991,19 +1991,19 @@ abstract class AppLocalizations {
   /// Settings › Chat › Delay and latency: the value of the delay slider.
   ///
   /// In en, this message translates to:
-  /// **'{seconds, plural, other{{seconds} seconds}}'**
+  /// **'{seconds, plural, one{{seconds} second} other{{seconds} seconds}}'**
   String settingsMessageDelayValue({required int seconds});
 
   /// Settings › Chat › Delay and latency: what the delay slider does (Android).
   ///
   /// In en, this message translates to:
-  /// **'Adds a delay before each message is rendered in chat. '**
+  /// **'Adds a delay before each message appears in chat.'**
   String get settingsMessageDelayDetail;
 
   /// Settings › Chat › Delay and latency: what the delay slider does, on iOS.
   ///
   /// In en, this message translates to:
-  /// **'Adds a delay before each message is rendered in chat. 15 seconds is recommended for iOS.'**
+  /// **'Adds a delay before each message appears in chat. 15 seconds is recommended on iOS.'**
   String get settingsMessageDelayDetailIos;
 
   /// Settings › Chat: the layout group.
@@ -2045,7 +2045,7 @@ abstract class AppLocalizations {
   /// Settings › Chat › Alerts: the switch that highlights a viewer's first message in a channel.
   ///
   /// In en, this message translates to:
-  /// **'Highlight first time chatters'**
+  /// **'Highlight first-time chatters'**
   String get settingsFirstTimeChatters;
 
   /// Settings › Chat › Alerts: the switch for sub, resub, announcement and raid lines.
@@ -2057,7 +2057,7 @@ abstract class AppLocalizations {
   /// Settings › Chat › Alerts: what « Show notices » does.
   ///
   /// In en, this message translates to:
-  /// **'Shows notices such as subs and re-subs, announcements, and raids.'**
+  /// **'Shows notices such as subs, resubs, announcements, and raids.'**
   String get settingsUserNoticesDetail;
 
   /// Settings › Chat › Alerts: the switch that folds a gift bomb (many gifted subs at once) into one line.
@@ -2069,7 +2069,7 @@ abstract class AppLocalizations {
   /// Settings › Chat › Alerts: what « Collapse gift bombs » does. "recipients" is the link the folded line shows.
   ///
   /// In en, this message translates to:
-  /// **'Folds a gift bomb of five subs or more into its first line; tap \"recipients\" to see who got one.'**
+  /// **'Folds a gift bomb of five subs or more into its first line; tap “recipients” to see who got one.'**
   String get settingsCollapseGiftBombsDetail;
 
   /// Settings › Chat › Alerts: the switch for the Hype Train above chat.
@@ -2081,7 +2081,7 @@ abstract class AppLocalizations {
   /// Settings › Chat › Alerts: what « Show Hype Trains » does.
   ///
   /// In en, this message translates to:
-  /// **'Shows Hype Train progress, levels and rewards above chat.'**
+  /// **'Shows Hype Train progress, levels, and rewards above chat.'**
   String get settingsShowHypeTrainsDetail;
 
   /// Settings › Chat › Alerts: the switch for pinned polls, predictions and so on above chat.
@@ -2093,7 +2093,7 @@ abstract class AppLocalizations {
   /// Settings › Chat › Alerts: what « Show community highlights » does.
   ///
   /// In en, this message translates to:
-  /// **'Shows polls, predictions, pinned messages, gift bombs and raids above chat.'**
+  /// **'Shows polls, predictions, pinned messages, gift bombs, and raids above chat.'**
   String get settingsCommunityHighlightsDetail;
 
   /// Settings › Chat › Alerts: the switch for the animation when someone gifts subs.
@@ -2117,7 +2117,7 @@ abstract class AppLocalizations {
   /// Settings › Chat › Alerts: what the two « Celebrations on video » options do, starting with their names (celebrationsFull, celebrationsSubtle).
   ///
   /// In en, this message translates to:
-  /// **'Full plays the animation over the video. Subtle keeps the video clear and says it with a line in chat.'**
+  /// **'“Full” plays the animation over the video. “Subtle” keeps the video clear and posts a line in chat instead.'**
   String get settingsCelebrationsOnVideoDetail;
 
   /// Celebrations on video option (Settings › Chat): the animation plays over the video. French: feminine plural, it agrees with « célébrations ».
@@ -2183,7 +2183,7 @@ abstract class AppLocalizations {
   /// Settings › Chat › Landscape mode: what « Fill notch side » does.
   ///
   /// In en, this message translates to:
-  /// **'Overrides and fills the available space in devices with a display notch.'**
+  /// **'Fills the space beside the display notch on devices that have one.'**
   String get settingsNotchSideDetail;
 
   /// Fill notch side option (Settings › Chat). French: masculine, it agrees with « côté ».
@@ -2225,7 +2225,7 @@ abstract class AppLocalizations {
   /// Settings › Chat › Landscape mode: what the chat overlay opacity slider does.
   ///
   /// In en, this message translates to:
-  /// **'Sets the opacity (transparency) of the overlay chat in fullscreen mode.'**
+  /// **'Sets the opacity of the chat overlay in full-screen mode.'**
   String get settingsOverlayOpacityDetail;
 
   /// Settings › Chat: the group of the chat filters and muted keywords.
@@ -2255,7 +2255,7 @@ abstract class AppLocalizations {
   /// Settings › Chat: what « Match whole words » does.
   ///
   /// In en, this message translates to:
-  /// **'Only matches whole words instead of partial matches.'**
+  /// **'Matches whole words only, not parts of words.'**
   String get settingsWholeWordsDetail;
 
   /// Settings › Chat: the group of emote and badge providers.
@@ -2321,7 +2321,7 @@ abstract class AppLocalizations {
   /// Settings › Chat › Edit Chat Filters: what filtering does.
   ///
   /// In en, this message translates to:
-  /// **'Select the filters you would like to block in chat across all channels. In channels you moderate, you will still see all messages.'**
+  /// **'Choose what to filter out of chat in every channel. In channels you moderate, you’ll still see every message.'**
   String get chatFiltersExplanation;
 
   /// Settings › Chat › Edit Chat Filters: the group of the four filters.
@@ -2339,13 +2339,13 @@ abstract class AppLocalizations {
   /// What the Discrimination chat filter hides.
   ///
   /// In en, this message translates to:
-  /// **'Negative language about race, gender, orientation, or similar'**
+  /// **'Negative language about race, gender, sexual orientation, or similar'**
   String get chatFilterDiscriminationDetail;
 
   /// A chat filter (Twitch's AutoMod category).
   ///
   /// In en, this message translates to:
-  /// **'Sexually Explicit Language'**
+  /// **'Sexually explicit language'**
   String get chatFilterSexual;
 
   /// What the sexually explicit language chat filter hides.
@@ -2363,7 +2363,7 @@ abstract class AppLocalizations {
   /// What the harassment chat filter hides.
   ///
   /// In en, this message translates to:
-  /// **'Aggressive or sexually harassing language towards other people'**
+  /// **'Aggressive or sexually harassing language toward other people'**
   String get chatFilterHarassmentDetail;
 
   /// A chat filter (Twitch's AutoMod category).
@@ -2381,7 +2381,7 @@ abstract class AppLocalizations {
   /// Settings › Chat › Edit Chat Filters: the note under the filters.
   ///
   /// In en, this message translates to:
-  /// **'Twitch\'s AutoMod rates the words of each live chat message; only words it rates are hidden, so a message it did not rate always shows. Hidden words show as stars: tap them to see the message. Chat replays of past broadcasts are not filtered.'**
+  /// **'Twitch’s AutoMod checks the words of each live chat message and hides only the ones it flags, so a message with no flagged words always shows. Hidden words show as stars: tap them to see the message. Chat replays of past broadcasts aren’t filtered.'**
   String get chatFiltersNote;
 
   /// Settings › Chat: the row of the muted keywords, and its list's title.
@@ -2393,7 +2393,7 @@ abstract class AppLocalizations {
   /// Settings › Chat: the value of « Muted keywords ».
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =0{None} =1{1 keyword} other{{count} keywords}}'**
+  /// **'{count, plural, =0{None} one{{count} keyword} other{{count} keywords}}'**
   String mutedKeywordsCount({required int count});
 
   /// The muted keywords list: the hint in the field, beside its add button on one line (French keeps it short).
@@ -2423,7 +2423,7 @@ abstract class AppLocalizations {
   /// Snackbar after a muted keyword was removed (with « Undo »).
   ///
   /// In en, this message translates to:
-  /// **'Removed \'{word}\''**
+  /// **'Removed “{word}”'**
   String mutedKeywordsRemoved({required String word});
 
   /// Snackbar button that undoes what was just done (a muted keyword removed).
@@ -2465,7 +2465,7 @@ abstract class AppLocalizations {
   /// Settings › Notifications: the line under « Go-live notifications » when they are on.
   ///
   /// In en, this message translates to:
-  /// **'Checked every 90 seconds while ONSET is open or playing, and about every 15 minutes otherwise, when the system allows. Turn a channel\'s bell off from its menu.'**
+  /// **'Checked every 90 seconds while ONSET is open or playing, and about every 15 minutes otherwise, when the system allows. Turn a channel’s bell off from its menu.'**
   String get goLiveOnDetail;
 
   /// Settings › Notifications: the line under « Go-live notifications » when they are off.
@@ -2480,22 +2480,22 @@ abstract class AppLocalizations {
   /// **'Log in again to get go-live notifications.'**
   String get goLiveLogInAgain;
 
-  /// Settings › Notifications: the line under « Go-live notifications » when its state could not be read.
+  /// Error message. Settings › Notifications: the line under « Go-live notifications » when its state could not be read.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t read the go-live setting.'**
+  /// **'Couldn’t read the go-live setting.'**
   String get goLiveReadFailed;
 
-  /// Settings › Notifications: the line under « Go-live notifications » when turning them on failed.
+  /// Error message. Settings › Notifications: the line under « Go-live notifications » when turning them on failed.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t turn on go-live notifications.'**
+  /// **'Couldn’t turn on go-live notifications.'**
   String get goLiveTurnOnFailed;
 
-  /// Settings › Notifications: the line under « Go-live notifications » when turning them off failed.
+  /// Error message. Settings › Notifications: the line under « Go-live notifications » when turning them off failed.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t turn off go-live notifications.'**
+  /// **'Couldn’t turn off go-live notifications.'**
   String get goLiveTurnOffFailed;
 
   /// Settings › Notifications: the line under a notification switch when the system permission was refused.
@@ -2504,10 +2504,10 @@ abstract class AppLocalizations {
   /// **'Allow notifications for this app in the system settings.'**
   String get notificationsAllowInSystem;
 
-  /// Snackbar when a channel's go-live bell could not be changed (the channel's menu).
+  /// Error message. Snackbar when a channel's go-live bell could not be changed (the channel's menu).
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t change the bell.'**
+  /// **'Couldn’t change the bell.'**
   String get goLiveBellFailed;
 
   /// A channel's menu (chat user card « More »): the switch for that channel's go-live notifications.
@@ -2543,7 +2543,7 @@ abstract class AppLocalizations {
   /// Settings › Notifications › Chat: when mention notifications come.
   ///
   /// In en, this message translates to:
-  /// **'When someone mentions you in a chat you are watching while ONSET is in the background or in picture-in-picture.'**
+  /// **'When someone mentions you in a chat you’re watching while ONSET is in the background or in picture-in-picture.'**
   String get mentionDetail;
 
   /// Settings › Other: the updates group.
@@ -2561,7 +2561,7 @@ abstract class AppLocalizations {
   /// Settings › Other › Updates: the note under the rows (builds with in-app updates).
   ///
   /// In en, this message translates to:
-  /// **'ONSET looks for a newer build when it starts and when it comes back to the foreground. Release notes open by themselves after an update to a new version.'**
+  /// **'ONSET looks for a newer build when it starts and when it comes back to the foreground. Release notes open automatically after an update.'**
   String get settingsUpdatesNote;
 
   /// Settings › Other: the storage group.
@@ -2645,13 +2645,13 @@ abstract class AppLocalizations {
   /// Snackbar after « Check for updates » found nothing newer.
   ///
   /// In en, this message translates to:
-  /// **'You\'re up to date'**
+  /// **'You’re up to date'**
   String get updatesUpToDate;
 
-  /// Snackbar when « Check for updates » failed.
+  /// Error message. Snackbar when « Check for updates » failed.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t check for updates'**
+  /// **'Couldn’t check for updates.'**
   String get updatesCheckFailed;
 
   /// Settings › Other › Updates: looks for a newer build now.
@@ -2669,25 +2669,25 @@ abstract class AppLocalizations {
   /// What a screen reader says for the spinner while looking for updates.
   ///
   /// In en, this message translates to:
-  /// **'Checking'**
+  /// **'Checking…'**
   String get updatesChecking;
 
   /// How Following orders its live channels (the sort button): most viewers first.
   ///
   /// In en, this message translates to:
-  /// **'Viewers (High to Low)'**
+  /// **'Viewers (high to low)'**
   String get followedSortViewers;
 
   /// How Following orders its live channels: the most recently started lives first.
   ///
   /// In en, this message translates to:
-  /// **'Recently Started'**
+  /// **'Recently started'**
   String get followedSortRecent;
 
   /// How Following orders its live channels: by name.
   ///
   /// In en, this message translates to:
-  /// **'Name (A-Z)'**
+  /// **'Name (A–Z)'**
   String get followedSortName;
 
   /// How Following orders its live channels: grouped by category.
@@ -2699,7 +2699,7 @@ abstract class AppLocalizations {
   /// Release notes: in the line summing up a version (« 2 new · 3 improvements · 1 fix »), its new features.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, other{{count} new}}'**
+  /// **'{count, plural, one{{count} new} other{{count} new}}'**
   String releaseKindAdded({required int count});
 
   /// Release notes: in the line summing up a version, its improvements.
@@ -2723,13 +2723,13 @@ abstract class AppLocalizations {
   /// Release notes: the small capitals above the latest version (and the title on a tablet when opened from Settings).
   ///
   /// In en, this message translates to:
-  /// **'WHAT\'S NEW'**
+  /// **'WHAT’S NEW'**
   String get releaseNotesWhatsNew;
 
   /// Release notes opened after an update: the small capitals above « Updated to … ». The version is a number such as 1.1.0 (« la » stands for « la version »).
   ///
   /// In en, this message translates to:
-  /// **'WHAT\'S NEW IN {version}'**
+  /// **'WHAT’S NEW IN {version}'**
   String releaseNotesWhatsNewIn({required String version});
 
   /// Release notes opened after an update: the title, a fact (the version now installed), never an action. The version is a number such as 1.1.0.
@@ -2747,7 +2747,7 @@ abstract class AppLocalizations {
   /// Release notes opened after an update (phone): the version installed before, and what follows. The version is shown in figures of even width.
   ///
   /// In en, this message translates to:
-  /// **'You were on {version}. Here is what changed since then.'**
+  /// **'You were on {version}. Here’s what’s changed since.'**
   String releaseNotesWasOnSince({required String version});
 
   /// Release notes on a phone, opened after an update to an older entry: the heading of the other versions.
@@ -2771,13 +2771,13 @@ abstract class AppLocalizations {
   /// Release notes: the note at the end of the page.
   ///
   /// In en, this message translates to:
-  /// **'Release notes open by themselves after an update to a new version.'**
+  /// **'Release notes open automatically after an update.'**
   String get releaseNotesFootnote;
 
   /// Release notes: what a screen reader says for the count beside a section's name.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 point} other{{count} points}}'**
+  /// **'{count, plural, one{{count} point} other{{count} points}}'**
   String releaseNotesPoints({required int count});
 
   /// Release notes: marks the newest version in the list (and what a screen reader says for it). French: feminine, it agrees with « version ».
@@ -2813,7 +2813,7 @@ abstract class AppLocalizations {
   /// Release notes when there are none: the line under « No release notes yet ».
   ///
   /// In en, this message translates to:
-  /// **'What changes in each version of ONSET shows up here, and opens by itself after an update.'**
+  /// **'Changes in each ONSET version appear here and open automatically after an update.'**
   String get releaseNotesEmptyDetail;
 
   /// Title of the dialog that asks to let ONSET install its updates (Android).
@@ -2825,7 +2825,7 @@ abstract class AppLocalizations {
   /// Text of the dialog that asks to let ONSET install its updates. "Allow from this source" is the name of the Android switch, in Android's own words.
   ///
   /// In en, this message translates to:
-  /// **'Android asks you to let ONSET install apps. Turn on \"Allow from this source\" on the next screen, then come back.'**
+  /// **'Android asks you to let ONSET install apps. Turn on “Allow from this source” on the next screen, then come back.'**
   String get updateAllowMessage;
 
   /// The button that opens the Android setting that lets ONSET install apps.
@@ -2834,28 +2834,28 @@ abstract class AppLocalizations {
   /// **'Open settings'**
   String get updateOpenSettings;
 
-  /// Snackbar when the Android setting was left off.
+  /// Error message. Snackbar when the Android setting was left off.
   ///
   /// In en, this message translates to:
-  /// **'ONSET is not allowed to install updates'**
+  /// **'ONSET isn’t allowed to install updates.'**
   String get updateNotAllowed;
 
-  /// Snackbar when the downloaded update failed its integrity check.
+  /// Error message. Snackbar when the downloaded update failed its integrity check.
   ///
   /// In en, this message translates to:
-  /// **'The download was corrupted — try again'**
+  /// **'The download was corrupted. Try again.'**
   String get updateCorrupted;
 
-  /// Snackbar when Android refused the update.
+  /// Error message. Snackbar when Android refused the update.
   ///
   /// In en, this message translates to:
-  /// **'Android could not install the update'**
+  /// **'Android couldn’t install the update.'**
   String get updateInstallFailed;
 
-  /// Snackbar when the update could not be downloaded.
+  /// Error message. Snackbar when the update could not be downloaded.
   ///
   /// In en, this message translates to:
-  /// **'Download failed'**
+  /// **'Couldn’t download the update.'**
   String get updateDownloadFailed;
 
   /// Update dialog: the build installed now (in a line with the size and the check).
@@ -2873,7 +2873,7 @@ abstract class AppLocalizations {
   /// Update dialog: the download is checked before it is installed.
   ///
   /// In en, this message translates to:
-  /// **'SHA-256 checked before install'**
+  /// **'Verified with SHA-256 before installing'**
   String get updateChecked;
 
   /// Update dialog: its title, and what a screen reader calls it.
@@ -2909,13 +2909,13 @@ abstract class AppLocalizations {
   /// Title of the update progress dialog while Android installs it.
   ///
   /// In en, this message translates to:
-  /// **'Installing update'**
+  /// **'Installing update…'**
   String get updateInstalling;
 
   /// Title of the update progress dialog while it downloads.
   ///
   /// In en, this message translates to:
-  /// **'Downloading update'**
+  /// **'Downloading update…'**
   String get updateDownloading;
 
   /// Update progress dialog: how much is downloaded, in megabytes.
@@ -2951,19 +2951,19 @@ abstract class AppLocalizations {
   /// How many watch a live, the number in full (2,445 watching): the live preview's line and the large stream card. English has one form.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, other{{count} watching}}'**
+  /// **'{count, plural, one{{count} watching} other{{count} watching}}'**
   String streamWatching({required int count});
 
   /// How many watch a live, the number short (2.4k watching), on a channel profile's live card. count chooses the form; viewers is the number as shown.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, other{{viewers} watching}}'**
+  /// **'{count, plural, one{{viewers} watching} other{{viewers} watching}}'**
   String streamWatchingShort({required int count, required String viewers});
 
   /// What a screen reader says for the watch streak pill: how many streams in a row the viewer watched.
   ///
   /// In en, this message translates to:
-  /// **'Watch streak {value}'**
+  /// **'Watch Streak {value}'**
   String streamWatchStreakSemantics({required int value});
 
   /// The watch streak pill on a stream card (and in the large card's line): how many streams in a row the viewer watched. Kept short.
@@ -2975,7 +2975,7 @@ abstract class AppLocalizations {
   /// A stream card's category line when the stream has none.
   ///
   /// In en, this message translates to:
-  /// **'No Category'**
+  /// **'No category'**
   String get streamNoCategory;
 
   /// What a screen reader says for a stream's row of tags. tags is the tags, comma-separated (Twitch's data).
@@ -3038,148 +3038,148 @@ abstract class AppLocalizations {
   /// **'Categories'**
   String get followedCategoriesTitle;
 
-  /// A list could not load because the device has no network: the error shown in its place (Following, Live, categories, followed videos).
+  /// Error message. A list could not load because the device has no network: the error shown in its place (Following, Live, categories, followed videos).
   ///
   /// In en, this message translates to:
-  /// **'Unable to connect to Twitch'**
+  /// **'Couldn’t connect to Twitch.'**
   String get apiErrorUnableToConnect;
 
-  /// A request to Twitch failed: no connection.
+  /// Error message. A request to Twitch failed: no connection.
   ///
   /// In en, this message translates to:
-  /// **'No internet connection. Please check your network.'**
+  /// **'No internet connection. Check your network.'**
   String get apiErrorNetwork;
 
-  /// A request to Twitch failed: connecting took too long.
+  /// Error message. A request to Twitch failed: connecting took too long.
   ///
   /// In en, this message translates to:
-  /// **'Connection timeout. Please try again.'**
+  /// **'The connection timed out. Try again.'**
   String get apiErrorConnectionTimeout;
 
-  /// A request to Twitch failed: sending it took too long.
+  /// Error message. A request to Twitch failed: sending it took too long.
   ///
   /// In en, this message translates to:
-  /// **'Upload timeout. Please try again.'**
+  /// **'Sending took too long. Try again.'**
   String get apiErrorSendTimeout;
 
-  /// A request to Twitch failed: the answer took too long.
+  /// Error message. A request to Twitch failed: the answer took too long.
   ///
   /// In en, this message translates to:
-  /// **'Server response timeout. Please try again.'**
+  /// **'Twitch took too long to respond. Try again.'**
   String get apiErrorReceiveTimeout;
 
-  /// A request to Twitch was cancelled.
+  /// Error message. A request to Twitch was cancelled.
   ///
   /// In en, this message translates to:
-  /// **'Request was cancelled'**
+  /// **'The request was canceled.'**
   String get apiErrorCancelled;
 
-  /// A request to Twitch failed: the server's certificate was refused.
+  /// Error message. A request to Twitch failed: the server's certificate was refused.
   ///
   /// In en, this message translates to:
-  /// **'Security certificate error'**
+  /// **'Couldn’t verify Twitch’s security certificate.'**
   String get apiErrorCertificate;
 
-  /// A request to Twitch failed for an unknown reason.
+  /// Error message. A request to Twitch failed for an unknown reason.
   ///
   /// In en, this message translates to:
-  /// **'An unexpected error occurred'**
+  /// **'An unexpected error occurred.'**
   String get apiErrorUnexpected;
 
-  /// A request to Twitch was refused as malformed (HTTP 400) and Twitch said nothing more.
+  /// Error message. A request to Twitch was refused as malformed (HTTP 400) and Twitch said nothing more.
   ///
   /// In en, this message translates to:
-  /// **'Invalid request data'**
+  /// **'The request wasn’t valid.'**
   String get apiErrorBadRequest;
 
-  /// A request to Twitch needs the viewer to log in (HTTP 401).
+  /// Error message. A request to Twitch needs the viewer to log in (HTTP 401).
   ///
   /// In en, this message translates to:
-  /// **'Please log in to continue'**
+  /// **'Log in to continue.'**
   String get apiErrorUnauthorized;
 
-  /// A request to Twitch was refused for lack of permissions (HTTP 403) and Twitch said nothing more.
+  /// Error message. A request to Twitch was refused for lack of permissions (HTTP 403) and Twitch said nothing more.
   ///
   /// In en, this message translates to:
-  /// **'Access denied. Insufficient permissions'**
+  /// **'Access denied: missing permissions.'**
   String get apiErrorForbidden;
 
-  /// What a request to Twitch asked for does not exist (HTTP 404) and Twitch said nothing more.
+  /// Error message. What a request to Twitch asked for does not exist (HTTP 404) and Twitch said nothing more.
   ///
   /// In en, this message translates to:
-  /// **'Resource not found'**
+  /// **'This content couldn’t be found.'**
   String get apiErrorNotFound;
 
-  /// A request to Twitch conflicts with what changed meanwhile (HTTP 409).
+  /// Error message. A request to Twitch conflicts with what changed meanwhile (HTTP 409).
   ///
   /// In en, this message translates to:
-  /// **'Conflict with current state. Please refresh'**
+  /// **'This changed in the meantime. Refresh and try again.'**
   String get apiErrorConflict;
 
-  /// A request to Twitch carried data it refused (HTTP 422).
+  /// Error message. A request to Twitch carried data it refused (HTTP 422).
   ///
   /// In en, this message translates to:
-  /// **'Invalid data provided'**
+  /// **'The data sent wasn’t valid.'**
   String get apiErrorInvalid;
 
-  /// Twitch refused a request: too many in a short time (HTTP 429).
+  /// Error message. Twitch refused a request: too many in a short time (HTTP 429).
   ///
   /// In en, this message translates to:
-  /// **'Rate limit exceeded. Please wait before trying again'**
+  /// **'Too many requests. Wait a moment, then try again.'**
   String get apiErrorRateLimited;
 
-  /// Twitch's server failed (HTTP 500).
+  /// Error message. Twitch's server failed (HTTP 500).
   ///
   /// In en, this message translates to:
-  /// **'Server error. Please try again later'**
+  /// **'Twitch had a server error. Try again later.'**
   String get apiErrorServer;
 
-  /// Twitch's service is down for now (HTTP 502).
+  /// Error message. Twitch's service is down for now (HTTP 502).
   ///
   /// In en, this message translates to:
-  /// **'Service temporarily unavailable'**
+  /// **'Twitch is temporarily unavailable.'**
   String get apiErrorUnavailable;
 
-  /// Twitch's service is in maintenance (HTTP 503).
+  /// Error message. Twitch's service is in maintenance (HTTP 503).
   ///
   /// In en, this message translates to:
-  /// **'Service maintenance. Please try again later'**
+  /// **'Twitch is under maintenance. Try again later.'**
   String get apiErrorMaintenance;
 
-  /// Twitch's server did not answer in time (HTTP 504).
+  /// Error message. Twitch's server did not answer in time (HTTP 504).
   ///
   /// In en, this message translates to:
-  /// **'Server timeout. Please try again'**
+  /// **'Twitch’s server didn’t respond. Try again.'**
   String get apiErrorServerTimeout;
 
-  /// A request to Twitch failed with another HTTP status. status is its number (404, 418...).
+  /// Error message. A request to Twitch failed with another HTTP status. status is its number (404, 418...).
   ///
   /// In en, this message translates to:
-  /// **'HTTP Error {status} occurred'**
+  /// **'HTTP error {status}.'**
   String apiErrorHttp({required int status});
 
-  /// No Twitch user has the login asked for: Search › « Go to channel », and other places that open a channel by its name.
+  /// Error message. No Twitch user has the login asked for: Search › « Go to channel », and other places that open a channel by its name.
   ///
   /// In en, this message translates to:
-  /// **'User does not exist'**
+  /// **'This user doesn’t exist.'**
   String get apiErrorUserNotFound;
 
-  /// The Twitch user asked for has no channel: Search › « Go to channel ».
+  /// Error message. The Twitch user asked for has no channel: Search › « Go to channel ».
   ///
   /// In en, this message translates to:
-  /// **'Channel does not exist'**
+  /// **'This channel doesn’t exist.'**
   String get apiErrorChannelNotFound;
 
-  /// A category page whose category Twitch no longer has.
+  /// Error message. A category page whose category Twitch no longer has.
   ///
   /// In en, this message translates to:
-  /// **'Category not found'**
+  /// **'Category not found.'**
   String get apiErrorCategoryNotFound;
 
-  /// A list could not load for a viewer not logged in: ONSET's token proxy (its server that gives the app a Twitch token) did not answer in time. French names it « le serveur d’ONSET », plainer than a token proxy.
+  /// Error message. A list could not load for a viewer not logged in: ONSET's token proxy (its server that gives the app a Twitch token) did not answer in time. French names it « le serveur d’ONSET », plainer than a token proxy.
   ///
   /// In en, this message translates to:
-  /// **'Token proxy timeout'**
+  /// **'The ONSET token service didn’t respond in time.'**
   String get apiErrorTokenProxyTimeout;
 
   /// A category's or a tag's live streams sorted by viewers, most first (an option of « Sorted by »).
@@ -3224,34 +3224,34 @@ abstract class AppLocalizations {
   /// **'Sorted by {sort}'**
   String streamSortedBy({required String sort});
 
-  /// A tag's list of live streams could not load (Twitch's directory failed).
+  /// Error message. A tag's list of live streams could not load (Twitch's directory failed).
   ///
   /// In en, this message translates to:
-  /// **'Tag streams are unavailable right now'**
+  /// **'Streams for this tag aren’t available right now.'**
   String get streamListTagUnavailable;
 
-  /// A category's live streams could not load in the order picked. sort is that order's name (streamSortRecent…), fallback the order that still works (streamSortViewersHigh).
+  /// Error message. A category's live streams could not load in the order picked. sort is that order's name (streamSortRecent…), fallback the order that still works (streamSortViewersHigh).
   ///
   /// In en, this message translates to:
-  /// **'Twitch could not sort by {sort}. {fallback} still works.'**
+  /// **'Twitch couldn’t sort by {sort}. {fallback} still works.'**
   String streamListSortFailed({required String sort, required String fallback});
 
-  /// A list of live streams could not load, for an unexpected reason.
+  /// Error message. A list of live streams could not load, for an unexpected reason.
   ///
   /// In en, this message translates to:
-  /// **'Something went wrong loading streams'**
+  /// **'Couldn’t load streams.'**
   String get streamListLoadFailed;
 
-  /// Following's pinned channels' streams could not load, for an unexpected reason.
+  /// Error message. Following's pinned channels' streams could not load, for an unexpected reason.
   ///
   /// In en, this message translates to:
-  /// **'Something went wrong loading pinned streams'**
+  /// **'Couldn’t load pinned streams.'**
   String get streamListPinnedFailed;
 
-  /// Following's offline channels could not load, for an unexpected reason.
+  /// Error message. Following's offline channels could not load, for an unexpected reason.
   ///
   /// In en, this message translates to:
-  /// **'Something went wrong loading offline channels'**
+  /// **'Couldn’t load offline channels.'**
   String get streamListOfflineFailed;
 
   /// A live list (Live, a category, a tag) left empty because every stream has a content classification the viewer hides (Settings › General).
@@ -3275,7 +3275,7 @@ abstract class AppLocalizations {
   /// Home › Live (Twitch's most watched streams), when it is empty.
   ///
   /// In en, this message translates to:
-  /// **'No top streams'**
+  /// **'No live streams right now'**
   String get streamListEmptyTop;
 
   /// A category's or a tag's live streams, when none is live.
@@ -3335,7 +3335,7 @@ abstract class AppLocalizations {
   /// Mature-content warning: the line under its title. name is the channel's display name.
   ///
   /// In en, this message translates to:
-  /// **'{name}\'s content is intended for certain audiences.'**
+  /// **'{name}’s content is intended for certain audiences.'**
   String contentWarningAudienceOf({required String name});
 
   /// Mature-content warning: the channel's content classifications (contentLabel… names, comma-separated).
@@ -3359,7 +3359,7 @@ abstract class AppLocalizations {
   /// Snackbar after « Not interested » on a live preview (Home › Live). name is the channel's display name; « En direct » is the tab's name (shellFeedLive).
   ///
   /// In en, this message translates to:
-  /// **'You won\'t see {name} in Live for now'**
+  /// **'You won’t see {name} in Live for now.'**
   String liveFeedHidden({required String name});
 
   /// The snackbar's action that brings back a channel hidden with « Not interested ».
@@ -3467,7 +3467,7 @@ abstract class AppLocalizations {
   /// Home › Live, phone: the hint at the bottom of the first preview, in small capitals (written in capitals).
   ///
   /// In en, this message translates to:
-  /// **'SWIPE UP FOR THE NEXT LIVE'**
+  /// **'SWIPE UP FOR THE NEXT STREAM'**
   String get liveFeedSwipeHint;
 
   /// Home › Live, tablet: the small capitals above the next channels (written in capitals).
@@ -3479,13 +3479,13 @@ abstract class AppLocalizations {
   /// Home › Live, tablet: the note under the next channels.
   ///
   /// In en, this message translates to:
-  /// **'Swipe up on the preview, or tap a live in the list. Previews never start with sound.'**
+  /// **'Swipe up on the preview, or tap a stream in the list. Previews never start with sound.'**
   String get liveFeedUpNextHelp;
 
   /// Home › Live: the page after the last channel while more load.
   ///
   /// In en, this message translates to:
-  /// **'Loading more live channels'**
+  /// **'Loading more live channels…'**
   String get liveFeedLoadingMore;
 
   /// Home › Live: the page after the last channel when there are no more.
@@ -3497,7 +3497,7 @@ abstract class AppLocalizations {
   /// Home › Live: the button on the last page that goes back to the first channel.
   ///
   /// In en, this message translates to:
-  /// **'Back to the first'**
+  /// **'Back to the top'**
   String get liveFeedBackToFirst;
 
   /// Button beside a section's title that opens all of it (search results, continue watching, a channel profile's section, whispers).
@@ -3536,10 +3536,10 @@ abstract class AppLocalizations {
   /// **'Clear'**
   String get searchClear;
 
-  /// Search: the field's hint, one line beside the search glyph, about 150 dp wide on a phone beside the Cancel button. French keeps the verb alone, whole at every size: the tabs under the field name channels, categories and videos.
+  /// Search: the field's hint, one line beside the search glyph, about 150 dp wide on a phone beside the Cancel button. The verb alone, whole at every size: the tabs under the field name channels, categories and videos.
   ///
   /// In en, this message translates to:
-  /// **'Search channels, categories or videos'**
+  /// **'Search'**
   String get searchHint;
 
   /// What a screen reader says for « See all » beside a search section. section is its title (searchTabChannels…).
@@ -3551,7 +3551,7 @@ abstract class AppLocalizations {
   /// Search: the title of the past searches.
   ///
   /// In en, this message translates to:
-  /// **'History'**
+  /// **'Recent searches'**
   String get searchHistory;
 
   /// Search: the tooltip of the cross after a past search. query is what was searched.
@@ -3566,16 +3566,16 @@ abstract class AppLocalizations {
   /// **'No recent searches'**
   String get searchNoHistory;
 
-  /// Search: the categories could not load (with « Try again »).
+  /// Error message. Search: the categories could not load (with « Try again »).
   ///
   /// In en, this message translates to:
-  /// **'Unable to load categories'**
+  /// **'Couldn’t load categories.'**
   String get searchCategoriesFailed;
 
-  /// Search: Twitch answered without categories (with « Try again »).
+  /// Error message. Search: Twitch answered without categories (with « Try again »).
   ///
   /// In en, this message translates to:
-  /// **'Failed to get categories'**
+  /// **'Couldn’t get categories.'**
   String get searchCategoriesUnavailable;
 
   /// Search: no category matches what was typed.
@@ -3584,34 +3584,34 @@ abstract class AppLocalizations {
   /// **'No matching categories'**
   String get searchNoCategories;
 
-  /// Snackbar when the channel picked in search results cannot be opened.
+  /// Error message. Snackbar when the channel picked in search results cannot be opened.
   ///
   /// In en, this message translates to:
-  /// **'Unable to find channel'**
+  /// **'Couldn’t find that channel.'**
   String get searchChannelNotFound;
 
-  /// Search: the channels could not load (with « Try again »).
+  /// Error message. Search: the channels could not load (with « Try again »).
   ///
   /// In en, this message translates to:
-  /// **'Unable to load channels'**
+  /// **'Couldn’t load channels.'**
   String get searchChannelsFailed;
 
   /// Search: the row that opens the channel whose login is exactly what was typed. query is what was typed.
   ///
   /// In en, this message translates to:
-  /// **'Go to channel \"{query}\"'**
+  /// **'Go to channel “{query}”'**
   String searchGoToChannel({required String query});
 
-  /// Search: the videos could not load (with « Try again »).
+  /// Error message. Search: the videos could not load (with « Try again »).
   ///
   /// In en, this message translates to:
-  /// **'Unable to load videos'**
+  /// **'Couldn’t load videos.'**
   String get searchVideosFailed;
 
   /// Search: no video matches what was typed.
   ///
   /// In en, this message translates to:
-  /// **'No search results found'**
+  /// **'No results found'**
   String get searchNoResults;
 
   /// Browse: the title above the live channels of all Twitch (Browse › Live channels). where is browseAcrossTwitch, shown lighter.
@@ -3632,10 +3632,10 @@ abstract class AppLocalizations {
   /// **'No top categories'**
   String get categoriesEmpty;
 
-  /// Browse › Categories could not load, for an unexpected reason.
+  /// Error message. Browse › Categories could not load, for an unexpected reason.
   ///
   /// In en, this message translates to:
-  /// **'Something went wrong loading categories'**
+  /// **'Couldn’t load categories.'**
   String get categoriesLoadFailed;
 
   /// Tablet Browse: the title above the rail of Twitch's most watched categories (« Most watched first » follows).
@@ -3647,7 +3647,7 @@ abstract class AppLocalizations {
   /// Tablet Browse: beside « Top categories », how they are ordered (« regardées » agrees with « catégories »).
   ///
   /// In en, this message translates to:
-  /// **'Most watched first'**
+  /// **'Most-watched first'**
   String get categoriesRailNote;
 
   /// A category's page: the tab of its live streams.
@@ -3719,7 +3719,7 @@ abstract class AppLocalizations {
   /// Followed videos: the line under the page's title. One line, ellipsised if long.
   ///
   /// In en, this message translates to:
-  /// **'The newest videos of the channels you follow'**
+  /// **'The newest videos from channels you follow'**
   String get followedVideosSubtitle;
 
   /// Followed videos: the button that loads the list again.
@@ -3728,10 +3728,10 @@ abstract class AppLocalizations {
   /// **'Refresh'**
   String get followedVideosRefresh;
 
-  /// Followed videos could not load, for an unexpected reason.
+  /// Error message. Followed videos could not load, for an unexpected reason.
   ///
   /// In en, this message translates to:
-  /// **'Something went wrong loading videos'**
+  /// **'Couldn’t load videos.'**
   String get followedVideosLoadFailed;
 
   /// Following: the title of the shelf of videos left part-way, and of its full page.
@@ -3773,13 +3773,13 @@ abstract class AppLocalizations {
   /// Continue watching: when a video was left, in weeks (abbreviated). Lower case.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} wk ago} other{{count} wk ago}}'**
+  /// **'{count, plural, one{{count} week ago} other{{count} weeks ago}}'**
   String savedWeeksAgo({required int count});
 
   /// Continue watching: when a video was left, in months (abbreviated in English). Lower case.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} mo ago} other{{count} mo ago}}'**
+  /// **'{count, plural, one{{count} month ago} other{{count} months ago}}'**
   String savedMonthsAgo({required int count});
 
   /// When a video, clip or notification was made: less than a minute ago. Starts with a capital (lowered inside a sentence, as in « Last live just now »).
@@ -3857,25 +3857,25 @@ abstract class AppLocalizations {
   /// What a screen reader says for a clip's video in the clips feed.
   ///
   /// In en, this message translates to:
-  /// **'Clip player. Double-tap to toggle play/pause'**
+  /// **'Clip player. Double-tap to play or pause.'**
   String get clipsPlayerSemantics;
 
-  /// The clips feed: over a clip that cannot play in the app.
+  /// Error message. The clips feed: over a clip that cannot play in the app.
   ///
   /// In en, this message translates to:
-  /// **'This clip can\'t be played here'**
+  /// **'This clip can’t be played here.'**
   String get clipsCannotPlay;
 
   /// The clips feed: while the next clips load.
   ///
   /// In en, this message translates to:
-  /// **'Loading more clips for you'**
+  /// **'Loading more clips…'**
   String get clipsLoadingMore;
 
-  /// The clips feed could not load (with « Try again »).
+  /// Error message. The clips feed could not load (with « Try again »).
   ///
   /// In en, this message translates to:
-  /// **'Unable to load clips'**
+  /// **'Couldn’t load clips.'**
   String get clipsLoadFailed;
 
   /// The clips feed, when Twitch has none to show.
@@ -3905,19 +3905,19 @@ abstract class AppLocalizations {
   /// The clips feed: the hint shown on the first clip.
   ///
   /// In en, this message translates to:
-  /// **'You can swipe to the next clip'**
+  /// **'Swipe for the next clip'**
   String get clipsSwipeHint;
 
-  /// The clips feed: the next clips could not load (with « Try again »).
+  /// Error message. The clips feed: the next clips could not load (with « Try again »).
   ///
   /// In en, this message translates to:
-  /// **'Unable to load more clips'**
+  /// **'Couldn’t load more clips.'**
   String get clipsLoadMoreFailed;
 
   /// The clips feed: after the last clip (Twitch's words).
   ///
   /// In en, this message translates to:
-  /// **'That’s all for now! Check out more clips from previous streams'**
+  /// **'That’s all for now! Check out more clips from previous streams.'**
   String get clipsEnd;
 
   /// Tablet clips feed: the title above the next clips (« Clips » is Home's tab).
@@ -3980,25 +3980,25 @@ abstract class AppLocalizations {
   /// Under a channel's or a category's clips when Twitch has more than it lists.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{Showing the top {count} clip} other{Showing the top {count} clips}}'**
+  /// **'{count, plural, one{Showing the first clip} other{Showing the first {count} clips}}'**
   String clipsShowingTop({required int count});
 
-  /// A category's clips: the category is not on Twitch.
+  /// Error message. A category's clips: the category is not on Twitch.
   ///
   /// In en, this message translates to:
-  /// **'Category not found'**
+  /// **'Category not found.'**
   String get clipsCategoryNotFound;
 
-  /// A channel's clips: the channel is not on Twitch.
+  /// Error message. A channel's clips: the channel is not on Twitch.
   ///
   /// In en, this message translates to:
-  /// **'Channel not found'**
+  /// **'Channel not found.'**
   String get clipsChannelNotFound;
 
-  /// A channel's or a category's clips could not load (with « Try again »).
+  /// Error message. A channel's or a category's clips could not load (with « Try again »).
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t load clips'**
+  /// **'Couldn’t load clips.'**
   String get clipsListFailed;
 
   /// A clip's page: the title above the channel's other clips. channel is its name.
@@ -4019,10 +4019,10 @@ abstract class AppLocalizations {
   /// **'Copy clip link'**
   String get clipCopyClipLink;
 
-  /// A clip's page: its title, channel and views could not load (with « Try again »).
+  /// Error message. A clip's page: its title, channel and views could not load (with « Try again »).
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t load the clip details'**
+  /// **'Couldn’t load the clip details.'**
   String get clipDetailsFailed;
 
   /// A clip's chat replay: the pill saying the messages follow the clip's time. Lower case.
@@ -4031,28 +4031,28 @@ abstract class AppLocalizations {
   /// **'synced to the clip'**
   String get clipSyncedToClip;
 
-  /// Over a video's or a clip's player: only the channel's subscribers may watch it. subject is clip or video.
+  /// Error message. Over a video's or a clip's player: only the channel's subscribers may watch it. subject is clip or video.
   ///
   /// In en, this message translates to:
-  /// **'{subject, select, clip{This clip is only available to subscribers.} other{This video is only available to subscribers.}}'**
+  /// **'{subject, select, clip{This clip is available only to subscribers.} other{This video is available only to subscribers.}}'**
   String playbackSubscriberOnly({required String subject});
 
-  /// Over a video's or a clip's player: it cannot be watched in the viewer's country. subject is clip or video.
+  /// Error message. Over a video's or a clip's player: it cannot be watched in the viewer's country. subject is clip or video.
   ///
   /// In en, this message translates to:
-  /// **'{subject, select, clip{This clip is not available in your region} other{This video is not available in your region}}'**
+  /// **'{subject, select, clip{This clip isn’t available in your region.} other{This video isn’t available in your region.}}'**
   String playbackGeoBlocked({required String subject});
 
-  /// Over a video's or a clip's player: it was deleted. subject is clip or video.
+  /// Error message. Over a video's or a clip's player: it was deleted. subject is clip or video.
   ///
   /// In en, this message translates to:
-  /// **'{subject, select, clip{This clip is no longer available} other{This video is no longer available}}'**
+  /// **'{subject, select, clip{This clip is no longer available.} other{This video is no longer available.}}'**
   String playbackNotFound({required String subject});
 
-  /// Over a video's or a clip's player: it could not play (with « Try again »). subject is clip or video.
+  /// Error message. Over a video's or a clip's player: it could not play (with « Try again »). subject is clip or video.
   ///
   /// In en, this message translates to:
-  /// **'{subject, select, clip{Couldn\'t play this clip} other{Couldn\'t play this video}}'**
+  /// **'{subject, select, clip{Couldn’t play this clip.} other{Couldn’t play this video.}}'**
   String playbackFailed({required String subject});
 
   /// Under « This video is only available to subscribers. » (the official app's words).
@@ -4127,16 +4127,16 @@ abstract class AppLocalizations {
   /// **'About'**
   String get profileTabAbout;
 
-  /// Snackbar when pulling to refresh a channel's profile failed (what was shown stays).
+  /// Error message. Snackbar when pulling to refresh a channel's profile failed (what was shown stays).
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t refresh this channel'**
+  /// **'Couldn’t refresh this channel.'**
   String get profileRefreshFailed;
 
-  /// Snackbar when a channel's profile cannot open its channel page (its id is not known yet).
+  /// Error message. Snackbar when a channel's profile cannot open its channel page (its id is not known yet).
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t open this channel, check your connection'**
+  /// **'Couldn’t open this channel. Check your connection.'**
   String get profileOpenFailed;
 
   /// A channel's profile: the tooltip of the button that shares its link.
@@ -4151,10 +4151,10 @@ abstract class AppLocalizations {
   /// **'More'**
   String get profileMore;
 
-  /// A channel's profile could not load (with « Try again »).
+  /// Error message. A channel's profile could not load (with « Try again »).
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t load this channel\'s profile'**
+  /// **'Couldn’t load this channel’s profile.'**
   String get profileLoadFailed;
 
   /// A channel's About tab, when Twitch gave nothing about it.
@@ -4163,16 +4163,16 @@ abstract class AppLocalizations {
   /// **'No details'**
   String get profileNoDetails;
 
-  /// A channel's Schedule tab could not load (with « Try again »).
+  /// Error message. A channel's Schedule tab could not load (with « Try again »).
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t load the schedule'**
+  /// **'Couldn’t load the schedule.'**
   String get profileScheduleFailed;
 
-  /// A channel's profile, when the channel is not on Twitch.
+  /// Error message. A channel's profile, when the channel is not on Twitch.
   ///
   /// In en, this message translates to:
-  /// **'Channel not found'**
+  /// **'Channel not found.'**
   String get profileNotFound;
 
   /// A channel's About tab: its followers, the number in full (48,213 followers). Twitch's French word is « followers ».
@@ -4316,19 +4316,19 @@ abstract class AppLocalizations {
   /// A scheduled stream: the button (and tooltip) once a reminder is set; a tap removes it.
   ///
   /// In en, this message translates to:
-  /// **'Reminder Set'**
+  /// **'Reminder set'**
   String get profileReminderSet;
 
   /// A scheduled stream: the button (and tooltip) that sets a notification when it starts (Twitch's « Remind Me »).
   ///
   /// In en, this message translates to:
-  /// **'Remind Me'**
+  /// **'Remind me'**
   String get profileRemindMe;
 
   /// When a scheduled stream starts: now. Lower case (inside « Next stream now · 14:05 »; French « Prochain live imminent », agreeing with « live »).
   ///
   /// In en, this message translates to:
-  /// **'now'**
+  /// **'starting now'**
   String get startsNow;
 
   /// When a scheduled stream starts, in minutes. Lower case (inside « Next stream in 5 minutes · 14:05 »).
@@ -4355,16 +4355,16 @@ abstract class AppLocalizations {
   /// **'Allow notifications for this app in the system settings.'**
   String get profileReminderRefused;
 
-  /// Snackbar when a stream reminder could not be set.
+  /// Error message. Snackbar when a stream reminder could not be set.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t set the reminder.'**
+  /// **'Couldn’t set the reminder.'**
   String get profileReminderFailed;
 
   /// A scheduled stream's title when the channel gave none.
   ///
   /// In en, this message translates to:
-  /// **'Stream'**
+  /// **'Untitled stream'**
   String get profileStreamUntitled;
 
   /// A channel's Schedule tab, when it plans none.
@@ -4382,7 +4382,7 @@ abstract class AppLocalizations {
   /// A channel's Schedule tab: a scheduled stream the channel cancelled (« Annulé » agrees with « live »).
   ///
   /// In en, this message translates to:
-  /// **'Cancelled'**
+  /// **'Canceled'**
   String get profileCancelled;
 
   /// A channel's Videos tab: the pill of its past broadcasts.
@@ -4421,22 +4421,22 @@ abstract class AppLocalizations {
   /// **'No uploads'**
   String get profileNoUploads;
 
-  /// A channel's or a category's videos could not load (with « Try again »).
+  /// Error message. A channel's or a category's videos could not load (with « Try again »).
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t load videos'**
+  /// **'Couldn’t load videos.'**
   String get videosListFailed;
 
   /// Under a category's videos when Twitch has more than it lists.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{Showing the {count} most viewed video} other{Showing the {count} most viewed videos}}'**
+  /// **'{count, plural, one{Showing the most-viewed video} other{Showing the {count} most-viewed videos}}'**
   String videosShowingMostViewed({required int count});
 
   /// Under a channel's videos when Twitch has more than it lists.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{Showing the {count} most recent video} other{Showing the {count} most recent videos}}'**
+  /// **'{count, plural, one{Showing the most recent video} other{Showing the {count} most recent videos}}'**
   String videosShowingMostRecent({required int count});
 
   /// A video card without a picture yet: Twitch is still processing the video.
@@ -4460,7 +4460,7 @@ abstract class AppLocalizations {
   /// Activity: the line saying what the list holds (under the title on a tablet, at the end of the list on a phone).
   ///
   /// In en, this message translates to:
-  /// **'Notifications ONSET posted on this device.'**
+  /// **'Notifications ONSET has shown on this device.'**
   String get activityNote;
 
   /// Activity: swiping a notification away, and the action of its menu.
@@ -4472,7 +4472,7 @@ abstract class AppLocalizations {
   /// Activity, when there is no notification (Twitch's words).
   ///
   /// In en, this message translates to:
-  /// **'Hooray! You\'re up to date'**
+  /// **'Hooray! You’re up to date'**
   String get activityEmpty;
 
   /// Activity, under « Hooray! You're up to date ».
@@ -4484,7 +4484,7 @@ abstract class AppLocalizations {
   /// Activity: the title of the latest notifications (« Récentes » agrees with « notifications », and pairs with « Plus anciennes »).
   ///
   /// In en, this message translates to:
-  /// **'Most Recent'**
+  /// **'Most recent'**
   String get activityMostRecent;
 
   /// Activity: the title of the older notifications.
@@ -4526,7 +4526,7 @@ abstract class AppLocalizations {
   /// Activity: the category under a chat mention notification, like Twitch's.
   ///
   /// In en, this message translates to:
-  /// **'Chat Mentions'**
+  /// **'Chat mentions'**
   String get activityKindMention;
 
   /// Activity: the category under a stream reminder notification, like Twitch's.
@@ -4616,7 +4616,7 @@ abstract class AppLocalizations {
   /// Whispers: the note when Twitch is not sending them for now.
   ///
   /// In en, this message translates to:
-  /// **'Twitch isn\'t sending whispers to this app right now. It tries again when you come back to the app.'**
+  /// **'Twitch isn’t sending whispers to this app right now. ONSET will try again when you come back to the app.'**
   String get whisperStatusUnavailable;
 
   /// Whispers, logged out.
@@ -4628,13 +4628,13 @@ abstract class AppLocalizations {
   /// A clip's or a video's player: the button (and screen reader action) that goes back 10 seconds.
   ///
   /// In en, this message translates to:
-  /// **'Back 10 seconds'**
+  /// **'Rewind 10 seconds'**
   String get playerBack10;
 
   /// A clip's or a video's player: the button (and screen reader action) that skips 10 seconds ahead.
   ///
   /// In en, this message translates to:
-  /// **'Forward 10 seconds'**
+  /// **'Skip ahead 10 seconds'**
   String get playerForward10;
 
   /// A video's player: the screen reader action that cycles where the chat replay sits.
@@ -4748,13 +4748,13 @@ abstract class AppLocalizations {
   /// A video's player settings sheet: the captions switch's title.
   ///
   /// In en, this message translates to:
-  /// **'Closed Captions'**
+  /// **'Closed captions'**
   String get playerCaptions;
 
   /// A video's player settings sheet: under « Closed Captions ».
   ///
   /// In en, this message translates to:
-  /// **'When the stream has them'**
+  /// **'When the video has them'**
   String get playerCaptionsDetail;
 
   /// A clip's or a video's player: the normal playback speed (« Normale » agrees with « vitesse »).
@@ -4832,7 +4832,7 @@ abstract class AppLocalizations {
   /// Snackbar when the app's player gives up on a stream Twitch refuses and the web player takes over. notice says why (liveRefused…), a full sentence; French puts it after « Passage au lecteur web. ».
   ///
   /// In en, this message translates to:
-  /// **'{notice} Trying the web player.'**
+  /// **'{notice} Switching to the web player.'**
   String channelWebFallback({required String notice});
 
   /// Over the video while the viewer drags it down: letting go enters picture-in-picture (Android's floating window, « Picture-in-picture » as Android names it in French).
@@ -4850,31 +4850,31 @@ abstract class AppLocalizations {
   /// What a screen reader says the handle between the video and the chat does.
   ///
   /// In en, this message translates to:
-  /// **'Drag to change the video size, double tap for full width'**
+  /// **'Drag to resize the video. Double-tap for full width.'**
   String get channelResizeVideoHint;
 
   /// How long a live has run, under an hour, in the info row under the video and on a channel profile's live card. Short unit, no plural.
   ///
   /// In en, this message translates to:
-  /// **'{minutes} min'**
+  /// **'{minutes}m'**
   String channelUptimeMinutes({required int minutes});
 
   /// How long a live has run, from an hour (3 h 12), in the info row under the video and on a channel profile's live card. minutes is two digits.
   ///
   /// In en, this message translates to:
-  /// **'{hours} h {minutes}'**
+  /// **'{hours}h {minutes}m'**
   String channelUptimeHours({required int hours, required String minutes});
 
   /// A chip under a tablet's video: how many streams in a row the viewer watched on this channel. French keeps the short « Série {value} » of the stream cards (streamStreak), so the number always shows; the screen reader hears the full name (streamWatchStreakSemantics).
   ///
   /// In en, this message translates to:
-  /// **'Watch streak {value}'**
+  /// **'Watch Streak {value}'**
   String channelWatchStreak({required int value});
 
   /// Tablet channel page, under the video: the heading of the row of other followed channels that are live. Written in capitals.
   ///
   /// In en, this message translates to:
-  /// **'ALSO LIVE FROM YOUR FOLLOWS'**
+  /// **'ALSO LIVE FROM CHANNELS YOU FOLLOW'**
   String get channelAlsoLive;
 
   /// The title of the chat column's bar on a tablet's channel page.
@@ -4928,13 +4928,13 @@ abstract class AppLocalizations {
   /// Tooltip of the live player's full-screen button.
   ///
   /// In en, this message translates to:
-  /// **'Enter fullscreen mode'**
+  /// **'Full screen'**
   String get livePlayerEnterFullScreen;
 
   /// Tooltip of the live player's full-screen button while in full screen.
   ///
   /// In en, this message translates to:
-  /// **'Exit fullscreen mode'**
+  /// **'Exit full screen'**
   String get livePlayerExitFullScreen;
 
   /// Tooltip of a tablet's button over the live video that brings the side chat back.
@@ -5000,7 +5000,7 @@ abstract class AppLocalizations {
   /// Under « Video stats »: what the panel shows.
   ///
   /// In en, this message translates to:
-  /// **'Latency, buffer, bitrate and frames over the video'**
+  /// **'Latency, buffer, bitrate, and frames over the video'**
   String get livePlayerVideoStatsDetail;
 
   /// The live player's settings sheet: starts the stats over.
@@ -5045,37 +5045,37 @@ abstract class AppLocalizations {
   /// **'Captions {number}'**
   String liveCaptionsTrack({required int number});
 
-  /// Why the app's player cannot play a stream (then the web player tries): Twitch keeps it for subscribers. name is the channel's display name.
+  /// Error message. Why the app's player cannot play a stream (then the web player tries): Twitch keeps it for subscribers. name is the channel's display name.
   ///
   /// In en, this message translates to:
   /// **'{name} is streaming for subscribers only.'**
   String liveRefusedSubscribersOnly({required String name});
 
-  /// Why the app's player cannot play a stream: Twitch blocks it in the viewer's country.
+  /// Error message. Why the app's player cannot play a stream: Twitch blocks it in the viewer's country.
   ///
   /// In en, this message translates to:
   /// **'This stream is not available in your region.'**
   String get liveRefusedGeoblocked;
 
-  /// Why the app's player cannot play a stream: the viewer is banned from the channel. name is the channel's display name. French says « votre compte » (masculine) so « banni » never agrees with the viewer.
+  /// Error message. Why the app's player cannot play a stream: the viewer is banned from the channel. name is the channel's display name. French says « votre compte » (masculine) so « banni » never agrees with the viewer.
   ///
   /// In en, this message translates to:
-  /// **'You are banned from {name}\'s channel.'**
+  /// **'You’re banned from {name}’s channel.'**
   String liveRefusedBanned({required String name});
 
-  /// Why the app's player cannot play a stream: Twitch refused its token, without saying why.
+  /// Error message. Why the app's player cannot play a stream: Twitch refused its token, without saying why.
   ///
   /// In en, this message translates to:
-  /// **'Twitch refused this stream to the app player.'**
+  /// **'Twitch won’t play this stream in the low-latency player.'**
   String get liveRefusedUnauthorized;
 
-  /// Why the app's player cannot play a stream, on a screen whose language is not English: Twitch explained in English (its words stay in the logs).
+  /// Error message. Why the app's player cannot play a stream, on a screen whose language is not English: Twitch explained in English (its words stay in the logs).
   ///
   /// In en, this message translates to:
   /// **'Twitch refused this stream.'**
   String get liveRefused;
 
-  /// Why the app's player cannot play a stream, in English only: Twitch's own explanation follows (a full stop is added when it has none).
+  /// Error message. Why the app's player cannot play a stream, in English only: Twitch's own explanation follows (a full stop is added when it has none).
   ///
   /// In en, this message translates to:
   /// **'Twitch refused this stream: {reason}'**
@@ -5193,7 +5193,7 @@ abstract class AppLocalizations {
   /// Stats panel: a playback rate (1.05x). rate has two decimals.
   ///
   /// In en, this message translates to:
-  /// **'{rate}x'**
+  /// **'{rate}×'**
   String latencyStatsRate({required String rate});
 
   /// Stats panel: the row of the player's setting (Settings › Video), e.g. « Standard · Auto ».
@@ -5280,19 +5280,19 @@ abstract class AppLocalizations {
   /// Stats panel, Auto latency row: playing faster to get back to the target. rate has two decimals.
   ///
   /// In en, this message translates to:
-  /// **'catching up {rate}x'**
+  /// **'catching up {rate}×'**
   String latencyAutoCatchingUp({required String rate});
 
   /// Stats panel, Auto latency row: playing slightly faster to drain an excessive buffer (« résorption » du tampon). rate has two decimals.
   ///
   /// In en, this message translates to:
-  /// **'draining {rate}x'**
+  /// **'draining {rate}×'**
   String latencyAutoDraining({required String rate});
 
   /// The same, with why the normal catch-up does not run (latencyReason…).
   ///
   /// In en, this message translates to:
-  /// **'draining {rate}x ({reason})'**
+  /// **'draining {rate}× ({reason})'**
   String latencyAutoDrainingBecause({
     required String rate,
     required String reason,
@@ -5307,7 +5307,7 @@ abstract class AppLocalizations {
   /// Stats panel, Auto latency row: why it holds, when there is no other reason.
   ///
   /// In en, this message translates to:
-  /// **'held'**
+  /// **'waiting'**
   String get latencyReasonHeld;
 
   /// Why auto latency holds: an ad plays. Lower case.
@@ -5367,7 +5367,7 @@ abstract class AppLocalizations {
   /// Why auto latency stopped: the player did not play at the rate asked for. Lower case.
   ///
   /// In en, this message translates to:
-  /// **'the player did not keep the rate'**
+  /// **'the player didn’t keep the rate'**
   String get latencyReasonRateNotKept;
 
   /// Why auto latency stopped: playing faster kept causing stalls. Lower case.
@@ -5379,13 +5379,13 @@ abstract class AppLocalizations {
   /// Why auto latency stopped: the player stayed fast after normal speed was asked for. rate has two decimals.
   ///
   /// In en, this message translates to:
-  /// **'the player stayed at {rate}x'**
+  /// **'the player stayed at {rate}×'**
   String latencyReasonStuckFast({required String rate});
 
   /// Why auto latency stopped: the player refused to go back to normal speed. rate is 1.0, with its decimal separator.
   ///
   /// In en, this message translates to:
-  /// **'the player did not return to {rate}x'**
+  /// **'the player didn’t return to {rate}×'**
   String latencyReasonNotBackToNormal({required String rate});
 
   /// Stats panel, Next streams row: the buffer profile streams open with until that time, because Ultra kept stalling (« Standard », « Ultra » are the profiles' names, Settings › Video).
@@ -5397,7 +5397,7 @@ abstract class AppLocalizations {
   /// The title of the sheet that makes a clip of the live stream.
   ///
   /// In en, this message translates to:
-  /// **'Create Clip'**
+  /// **'Create clip'**
   String get clipCreateTitle;
 
   /// Tooltip of the clip button under the live video (opens the Create clip sheet). « Clip » is also a verb in English; French names the action, as the sheet's title does.
@@ -5409,13 +5409,13 @@ abstract class AppLocalizations {
   /// Create clip sheet: Twitch is making the clip (« Clipperino » is Twitch's playful word, kept).
   ///
   /// In en, this message translates to:
-  /// **'Generating Clipperino...'**
+  /// **'Creating clip…'**
   String get clipCreateGenerating;
 
   /// Create clip sheet: Twitch is rendering the clip.
   ///
   /// In en, this message translates to:
-  /// **'Rendering Clip'**
+  /// **'Rendering clip…'**
   String get clipCreateRendering;
 
   /// Create clip sheet, signed out.
@@ -5433,7 +5433,7 @@ abstract class AppLocalizations {
   /// Create clip sheet: the login lacks the clips permission.
   ///
   /// In en, this message translates to:
-  /// **'Creating clips needs a permission your Twitch login does not have yet. Reconnect to Twitch to allow it.'**
+  /// **'Creating clips needs a permission your Twitch login doesn’t have yet. Reconnect to Twitch to allow it.'**
   String get clipCreateMissingScope;
 
   /// Create clip sheet: the button that opens the Twitch login again, to grant the clips permission.
@@ -5445,7 +5445,7 @@ abstract class AppLocalizations {
   /// Create clip sheet, once the clip is made: shares its link (French « Partager » alone: the button sits beside « Copier le lien », in half the sheet).
   ///
   /// In en, this message translates to:
-  /// **'Share Clip'**
+  /// **'Share clip'**
   String get clipCreateShare;
 
   /// Snackbar after « Copy link » in the Create clip sheet.
@@ -5475,43 +5475,43 @@ abstract class AppLocalizations {
   /// The title of the in-app twitch.tv page of the clip editor.
   ///
   /// In en, this message translates to:
-  /// **'Edit Clip'**
+  /// **'Edit clip'**
   String get clipCreateEditorTitle;
 
-  /// Create clip sheet, failed: the login lacks the permission.
+  /// Error message. Create clip sheet, failed: the login lacks the permission.
   ///
   /// In en, this message translates to:
-  /// **'Your Twitch login does not allow creating clips.'**
+  /// **'Your Twitch login doesn’t allow creating clips.'**
   String get clipCreateFailedMissingScope;
 
-  /// Create clip sheet, failed: Twitch refused for this channel. French says « votre compte » so nothing agrees with the viewer.
+  /// Error message. Create clip sheet, failed: Twitch refused for this channel. French says « votre compte » so nothing agrees with the viewer.
   ///
   /// In en, this message translates to:
-  /// **'You can\'t clip this channel right now: clips may be off, only for followers or subscribers, or you are banned or timed out here.'**
+  /// **'You can’t clip this channel right now: clips may be off or limited to followers or subscribers, or you’re banned or timed out here.'**
   String get clipCreateFailedRestricted;
 
-  /// Create clip sheet, failed: the channel is offline.
+  /// Error message. Create clip sheet, failed: the channel is offline.
   ///
   /// In en, this message translates to:
   /// **'Only live streams can be clipped.'**
   String get clipCreateFailedOffline;
 
-  /// Create clip sheet, failed: the channel forbids clips of the current category.
+  /// Error message. Create clip sheet, failed: the channel forbids clips of the current category.
   ///
   /// In en, this message translates to:
-  /// **'This channel does not permit clips of this category.'**
+  /// **'This channel doesn’t allow clips of this category.'**
   String get clipCreateFailedNotClippable;
 
-  /// Create clip sheet, failed: too many clips made in a short time.
+  /// Error message. Create clip sheet, failed: too many clips made in a short time.
   ///
   /// In en, this message translates to:
   /// **'Too many clips at once. Try again in a moment.'**
   String get clipCreateFailedRateLimited;
 
-  /// Create clip sheet, failed for another reason.
+  /// Error message. Create clip sheet, failed for another reason.
   ///
   /// In en, this message translates to:
-  /// **'Hmm... Something went wrong'**
+  /// **'Hmm… something went wrong.'**
   String get clipCreateFailedUnknown;
 
   /// Tooltip of the cross that hides a card over the video or the chat (community highlights, raids, gift subs).
@@ -5547,7 +5547,7 @@ abstract class AppLocalizations {
   /// The name of a community highlight over the video or the chat: its card's title and the pill that shows the highlights.
   ///
   /// In en, this message translates to:
-  /// **'{kind, select, poll{Poll} prediction{Prediction} pinned{Pinned} raid{Raid} giftBomb{Gift Subs} incomingRaid{Incoming raid} other{Highlight}}'**
+  /// **'{kind, select, poll{Poll} prediction{Prediction} pinned{Pinned} raid{Raid} giftBomb{Gift subs} incomingRaid{Incoming raid} other{Highlight}}'**
   String highlightKind({required String kind});
 
   /// What a screen reader says for the pill that announces a new community highlight.
@@ -5559,7 +5559,7 @@ abstract class AppLocalizations {
   /// What a screen reader says for the pill that opens the community highlights when there are several. label is the shown one's name (highlightKind).
   ///
   /// In en, this message translates to:
-  /// **'{label} and {count, plural, other{{count} more}}'**
+  /// **'{label} and {count, plural, one{{count} more} other{{count} more}}'**
   String highlightAndMore({required String label, required int count});
 
   /// Tooltip of the arrow that shows the previous community highlight.
@@ -5733,7 +5733,7 @@ abstract class AppLocalizations {
   /// Raid card, after « Stay here »: the viewer stays on the channel. source is its display name.
   ///
   /// In en, this message translates to:
-  /// **'You stay on {source}'**
+  /// **'You’re staying on {source}'**
   String raidStay({required String source});
 
   /// Raid card, after « Stay here »: under raidStay. target is the raided channel's name.
@@ -5751,13 +5751,13 @@ abstract class AppLocalizations {
   /// Raid card once the raid left: how many viewers went. viewers is raidViewers; count chooses the French verb's number.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, other{{viewers} went along}}'**
+  /// **'{count, plural, one{{viewers} went along} other{{viewers} went along}}'**
   String raidWentAlong({required int count, required String viewers});
 
   /// Raid card when the broadcaster cancels the raid.
   ///
   /// In en, this message translates to:
-  /// **'Raid cancelled'**
+  /// **'Raid canceled'**
   String get raidCancelled;
 
   /// Raid card when the raid is cancelled. source is the channel's name.
@@ -5879,13 +5879,13 @@ abstract class AppLocalizations {
   /// What a screen reader reads as the gift subs pin's value once every sub reached a viewer.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, other{all {count} handed out}}'**
+  /// **'{count, plural, one{all {count} handed out} other{all {count} handed out}}'**
   String giftBombAllHandedOut({required int count});
 
   /// What a screen reader reads as the gift subs pin's value: how many subs reached a viewer so far.
   ///
   /// In en, this message translates to:
-  /// **'{received, plural, other{{received} of {count} handed out}}'**
+  /// **'{received, plural, one{{received} of {count} handed out} other{{received} of {count} handed out}}'**
   String giftBombHandedOutSemantics({
     required int received,
     required int count,
@@ -5894,7 +5894,7 @@ abstract class AppLocalizations {
   /// The gift subs pin: how many subs reached a viewer so far. received is that number as shown (it rolls), receivedCount the same number choosing the form.
   ///
   /// In en, this message translates to:
-  /// **'{receivedCount, plural, other{{received} of {total} handed out}}'**
+  /// **'{receivedCount, plural, one{{received} of {total} handed out} other{{received} of {total} handed out}}'**
   String giftBombProgress({
     required int receivedCount,
     required String received,
@@ -5946,13 +5946,13 @@ abstract class AppLocalizations {
   /// The hype train banner's line when the train nears the channel's all-time record.
   ///
   /// In en, this message translates to:
-  /// **'About to beat your last record. Keep up the support.'**
+  /// **'About to beat the channel’s record. Keep up the support.'**
   String get htAthApproaching;
 
   /// The same line where little room is left.
   ///
   /// In en, this message translates to:
-  /// **'About to beat your last record.'**
+  /// **'About to beat the channel’s record.'**
   String get htAthApproachingCompact;
 
   /// The hype train banner's line once the train beats the channel's record.
@@ -5970,37 +5970,37 @@ abstract class AppLocalizations {
   /// A treasure train's banner line before its discount unlocks (the banner has room for one line: as short as the English).
   ///
   /// In en, this message translates to:
-  /// **'Reach Level {level} to unlock {discount}% OFF Gift Subs!'**
+  /// **'Reach level {level} to unlock {discount}% off gift subs!'**
   String htTreasureLocked({required int level, required int discount});
 
   /// A treasure train's banner line once its discount is unlocked (as short as the English).
   ///
   /// In en, this message translates to:
-  /// **'{discount}% OFF 5+ Gift Subs for the rest of this Hype Train'**
+  /// **'{discount}% off 5+ gift subs for the rest of this Hype Train'**
   String htTreasureUnlockedSubtitle({required int discount});
 
   /// A community train's banner line (and step) before chat's emotes unlock.
   ///
   /// In en, this message translates to:
-  /// **'Hit Level {level} and chat will receive emotes too!'**
+  /// **'Hit level {level} and chat will receive emotes too!'**
   String htCommunityLocked({required int level});
 
   /// A community train's banner line once emotes for chat are unlocked.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} Emote for Chat} other{{count} Emotes for Chat}}'**
+  /// **'{count, plural, one{{count} emote for chat} other{{count} emotes for chat}}'**
   String htCommunityUnlockedSubtitle({required int count});
 
   /// The hype train banner's announcement when a level completes.
   ///
   /// In en, this message translates to:
-  /// **'Level {level} Complete!'**
+  /// **'Level {level} complete!'**
   String htLevelComplete({required int level});
 
   /// The marquee when a hype train starts (three emotes follow it). variant is the train's variant (regular, goldenKappa, treasure, community, mythic).
   ///
   /// In en, this message translates to:
-  /// **'{variant, select, goldenKappa{Golden Kappa Train starting!} treasure{Treasure Train Incoming!} community{Community Train Incoming!} mythic{Mythic Train Incoming!} other{Hype Train starting!}}'**
+  /// **'{variant, select, goldenKappa{Golden Kappa Train starting!} treasure{Treasure Train incoming!} community{Community Train incoming!} mythic{Mythic Train incoming!} other{Hype Train starting!}}'**
   String htStarted({required String variant});
 
   /// The marquee when a shared hype train starts. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).
@@ -6018,7 +6018,7 @@ abstract class AppLocalizations {
   /// The marquee when a hype train ends with a level completed. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).
   ///
   /// In en, this message translates to:
-  /// **'{variant, select, goldenKappa{Golden Kappa Train success!} treasure{Treasure Train Success!} community{Community Train Success!} mythic{Mythic Train Success!} other{Hype Train success!}}'**
+  /// **'{variant, select, goldenKappa{Golden Kappa Train success!} treasure{Treasure Train success!} community{Community Train success!} mythic{Mythic Train success!} other{Hype Train success!}}'**
   String htCompleted({required String variant});
 
   /// The same marquee for a shared train. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).
@@ -6048,13 +6048,13 @@ abstract class AppLocalizations {
   /// The hype train's summary at its end, after beating the channel's record: two lines (keep the line break).
   ///
   /// In en, this message translates to:
-  /// **'All-time record shattered!\nYou\'ve reached new levels of support!'**
+  /// **'All-time record shattered!\nYou’ve reached new levels of support!'**
   String get htSummaryRecord;
 
   /// The hype train's summary at its end: two lines (keep the line break), the cheer then the last level completed. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).
   ///
   /// In en, this message translates to:
-  /// **'{variant, select, treasure{Such strong support\nTreasure Train Level {level} completed!} community{Such strong support\nCommunity Train Level {level} completed!} mythic{Such strong support\nMythic Train Level {level} completed!} other{Such strong support\nLevel {level} completed!}}'**
+  /// **'{variant, select, treasure{Such strong support!\nTreasure Train level {level} completed!} community{Such strong support!\nCommunity Train level {level} completed!} mythic{Such strong support!\nMythic Train level {level} completed!} other{Such strong support!\nLevel {level} completed!}}'**
   String htSummary({required String variant, required int level});
 
   /// The hype train banner's announcement when the channel's record is beaten.
@@ -6078,7 +6078,7 @@ abstract class AppLocalizations {
   /// The hype train banner's announcement of gifted subs. tier is the sub tier (1, 2 or 3).
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{name} just gifted {count} Tier {tier} Sub!} other{{name} just gifted {count} Tier {tier} Subs!}}'**
+  /// **'{count, plural, one{{name} just gifted {count} Tier {tier} sub!} other{{name} just gifted {count} Tier {tier} subs!}}'**
   String htContributionGift({
     required int count,
     required String name,
@@ -6088,7 +6088,7 @@ abstract class AppLocalizations {
   /// The hype train banner's announcement of a sub. tier is the sub tier (1, 2 or 3).
   ///
   /// In en, this message translates to:
-  /// **'{name} just subscribed with a Tier {tier} Sub!'**
+  /// **'{name} just subscribed at Tier {tier}!'**
   String htContributionSub({required String name, required int tier});
 
   /// The hype train banner's announcement of another contribution.
@@ -6100,7 +6100,7 @@ abstract class AppLocalizations {
   /// A number of subs: a shared train's totals, the conductor's, the level target.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} Sub} other{{count} Subs}}'**
+  /// **'{count, plural, one{{count} sub} other{{count} subs}}'**
   String htSubs({required int count});
 
   /// A number of Bits (Twitch's name, kept): a shared train's totals, the conductor's, the level target.
@@ -6112,13 +6112,13 @@ abstract class AppLocalizations {
   /// The hype train banner's first step after it starts (and the golden Kappa card of the sheet). variant is the train's variant (regular, goldenKappa, treasure, community, mythic).
   ///
   /// In en, this message translates to:
-  /// **'{variant, select, goldenKappa{You\'ll have a limited time to earn an exclusive golden Kappa emote for 24 hrs} community{Whoa, this is a rare Community Train!} mythic{Whoa, this is a rare Mythic Train!} other{You\'ll have a limited time to earn exclusive emotes}}'**
+  /// **'{variant, select, goldenKappa{You’ll have a limited time to earn an exclusive Golden Kappa emote, valid for 24 hours} community{Whoa, this is a rare Community Train!} mythic{Whoa, this is a rare Mythic Train!} other{You’ll have a limited time to earn exclusive emotes}}'**
   String htInstructionStart({required String variant});
 
   /// A treasure train's step: the level that unlocks its discount.
   ///
   /// In en, this message translates to:
-  /// **'Reach Level {level} during this train to unlock {discount}% OFF Gift Subs!'**
+  /// **'Reach level {level} during this train to unlock {discount}% off gift subs!'**
   String htInstructionTreasureReachLevel({
     required int level,
     required int discount,
@@ -6127,13 +6127,13 @@ abstract class AppLocalizations {
   /// A treasure train's step one level before the discount.
   ///
   /// In en, this message translates to:
-  /// **'One more level unlocks a discount for the rest of this train, keep going!'**
+  /// **'One more level unlocks a discount for the rest of this train. Keep going!'**
   String get htInstructionTreasureOneAway;
 
   /// A treasure train's step once its discount unlocks.
   ///
   /// In en, this message translates to:
-  /// **'You\'ve unlocked {discount}% OFF on 5+ Gift Subs! Don\'t miss out!'**
+  /// **'You’ve unlocked {discount}% off 5+ gift subs! Don’t miss out!'**
   String htInstructionTreasureUnlocked({required int discount});
 
   /// A community train's step (and sheet card) once emotes for chat are unlocked.
@@ -6151,7 +6151,7 @@ abstract class AppLocalizations {
   /// A shared train's last step.
   ///
   /// In en, this message translates to:
-  /// **'See you next time in Shared Hype Train!'**
+  /// **'See you next time in a Shared Hype Train!'**
   String get htInstructionSeeYouNextTime;
 
   /// A shared train's level and progress, in its strip and pill.
@@ -6175,13 +6175,13 @@ abstract class AppLocalizations {
   /// A shared train's strip when another channel of it beats its record. name is that channel's display name.
   ///
   /// In en, this message translates to:
-  /// **'{name}\'s new all-time Shared record!'**
+  /// **'{name}’s new all-time shared record!'**
   String htOtherChannelRecord({required String name});
 
   /// A shared train's announcement when it beats its record.
   ///
   /// In en, this message translates to:
-  /// **'Shared Train Record Broken!'**
+  /// **'Shared Train record broken!'**
   String get htSharedRecordReached;
 
   /// The announcement when a shared hype train starts.
@@ -6205,7 +6205,7 @@ abstract class AppLocalizations {
   /// The approaching banner's line once the viewer took part: how many others are needed.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} more person needs to sub, gift or use Bits} other{{count} more people need to sub, gift or use Bits}}'**
+  /// **'{count, plural, one{{count} more person needs to sub, gift, or use Bits} other{{count} more people need to sub, gift, or use Bits}}'**
   String htApproachingMore({required int count});
 
   /// The landscape pill of an approaching hype train (« Imminent » agrees with « Hype Train »). Kept short.
@@ -6229,7 +6229,7 @@ abstract class AppLocalizations {
   /// The approaching sheet's second paragraph. variant is the train's variant (regular, goldenKappa, treasure, community, mythic).
   ///
   /// In en, this message translates to:
-  /// **'{variant, select, goldenKappa{Once a Golden Kappa Train is underway, the community fills up the Hype Meter with more subs, gifts or Bits. Everyone who contributes enough to be eligible for rewards will receive the Golden Kappa emote for 24 hours in addition to the regular emote rewards.} other{Once a Hype Train is underway, the community fills up the Hype Meter with more subs, gifts or Bits. Everyone who contributes receives one unique emote based on the highest level completed.}}'**
+  /// **'{variant, select, goldenKappa{Once a Golden Kappa Train is underway, the community fills up the Hype Meter with more subs, gifts, or Bits. Everyone who contributes enough to be eligible for rewards will receive the Golden Kappa emote for 24 hours in addition to the regular emote rewards.} other{Once a Hype Train is underway, the community fills up the Hype Meter with more subs, gifts, or Bits. Everyone who contributes receives one unique emote based on the highest level completed.}}'**
   String htApproachingExplanationSecond({required String variant});
 
   /// The end strip of a hype train with rewards.
@@ -6241,13 +6241,13 @@ abstract class AppLocalizations {
   /// The end strip of a golden Kappa train.
   ///
   /// In en, this message translates to:
-  /// **'Great work! Supporters can enjoy the exclusive Golden Kappa emote for 24 hrs'**
+  /// **'Great work! Supporters can enjoy the exclusive Golden Kappa emote for 24 hours'**
   String get htGoldenRewards;
 
   /// The end strip of a hype train that expired without completing a level.
   ///
   /// In en, this message translates to:
-  /// **'You missed the Train. Better luck next time!'**
+  /// **'You missed the train. Better luck next time!'**
   String get htExpired;
 
   /// The end strip of a golden Kappa train that expired.
@@ -6283,7 +6283,7 @@ abstract class AppLocalizations {
   /// Under « Available rewards » for a golden Kappa train.
   ///
   /// In en, this message translates to:
-  /// **'Contribute by subbing, gifting, or using more than 100 Bits in total during the event to earn an exclusive golden Kappa emote for 24 hours in addition to the regular emote rewards.'**
+  /// **'Contribute by subbing, gifting, or using more than 100 Bits in total during the event to earn an exclusive Golden Kappa emote for 24 hours in addition to the regular emote rewards.'**
   String get htGoldenRewardsDescription;
 
   /// The shared train sheet's heading over each channel's share. Written in capitals.
@@ -6301,13 +6301,13 @@ abstract class AppLocalizations {
   /// The hype train sheet's button that opens Twitch's hype train guide.
   ///
   /// In en, this message translates to:
-  /// **'More Info'**
+  /// **'More info'**
   String get htMoreInfo;
 
   /// The link after the hype train sheet's rewards description (opens Twitch's guide). English writes it in lower case after the sentence; French starts it with a capital, a new sentence.
   ///
   /// In en, this message translates to:
-  /// **'learn more'**
+  /// **'Learn more'**
   String get htLearnMore;
 
   /// The hype train sheet's heading over the emotes already unlocked (« débloquées » agrees with « emotes »).
@@ -6331,7 +6331,7 @@ abstract class AppLocalizations {
   /// The hype train sheet's line: what the level needs.
   ///
   /// In en, this message translates to:
-  /// **'Completing Level {level} requires combined support events totaling {subs, plural, one{{subs} Tier 1 Sub} other{{subs} Tier 1 Subs}} or {bits, plural, one{{bits} Bit} other{{bits} Bits}}'**
+  /// **'Level {level} needs {subs, plural, one{{subs} Tier 1 sub} other{{subs} Tier 1 subs}} or {bits, plural, one{{bits} Bit} other{{bits} Bits}} in total'**
   String htLevelTarget({
     required int level,
     required int subs,
@@ -6341,7 +6341,7 @@ abstract class AppLocalizations {
   /// The hype train sheet: the top subs supporter (name drawn bold) and their subs.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{name} has contributed {count} Sub!} other{{name} has contributed {count} Subs!}}'**
+  /// **'{count, plural, one{{name} has contributed {count} sub!} other{{name} has contributed {count} subs!}}'**
   String htSubsConductor({required int count, required String name});
 
   /// The hype train sheet: the top Bits supporter (name drawn bold) and their Bits.
@@ -6353,7 +6353,7 @@ abstract class AppLocalizations {
   /// The hype train sheet when no one has subbed yet.
   ///
   /// In en, this message translates to:
-  /// **'Sub or Gift to take over this spot!'**
+  /// **'Sub or gift to take over this spot!'**
   String get htNoSubsConductor;
 
   /// The hype train sheet when no one has used Bits yet.
@@ -6365,19 +6365,19 @@ abstract class AppLocalizations {
   /// The hype train sheet, after a trophy: the channel's all-time record.
   ///
   /// In en, this message translates to:
-  /// **'Channel all-time record! {percent}% Level {level}'**
+  /// **'Channel all-time record! Level {level} at {percent}%'**
   String htChannelRecord({required int percent, required int level});
 
   /// The hype train sheet's treasure card once the discount is unlocked.
   ///
   /// In en, this message translates to:
-  /// **'Save {discount}% on 5 or more Gift Subs exclusively during this train. All Aboard!'**
+  /// **'Save {discount}% on 5 or more gift subs, only during this train. All aboard!'**
   String htTreasureCardUnlocked({required int discount});
 
   /// The hype train sheet's treasure card before the discount unlocks.
   ///
   /// In en, this message translates to:
-  /// **'Unlock a limited-time {discount}% OFF Gift Subs at Level {level} during this train!'**
+  /// **'Unlock a limited-time {discount}% discount on gift subs at level {level} during this train!'**
   String htTreasureCardLocked({required int level, required int discount});
 
   /// A mythic train's step and sheet card: one emote out of its pool.
@@ -6389,13 +6389,13 @@ abstract class AppLocalizations {
   /// The pill on a followed stream's card while its hype train beats the channel's record.
   ///
   /// In en, this message translates to:
-  /// **'All-Time High Train Level {level}'**
+  /// **'All-time record · Level {level}'**
   String htCardLevelRecord({required int level});
 
   /// The pill on a followed stream's card while a hype train runs. train is its name (htTrainTitle).
   ///
   /// In en, this message translates to:
-  /// **'{train} Level {level}'**
+  /// **'{train} level {level}'**
   String htCardLevel({required String train, required int level});
 
   /// What a screen reader offers on the expanded hype train banner.
@@ -6410,10 +6410,10 @@ abstract class AppLocalizations {
   /// **'Show Hype Train'**
   String get htExpand;
 
-  /// What a screen reader says a tap on the hype train banner does (opens its sheet).
+  /// What a screen reader says a tap on the hype train banner does (opens its sheet), after its own « Double-tap to »: a verb in lower case.
   ///
   /// In en, this message translates to:
-  /// **'Double tap to show details'**
+  /// **'show details'**
   String get htDetailsHint;
 
   /// What a screen reader says for the approaching hype train.
@@ -6537,13 +6537,13 @@ abstract class AppLocalizations {
   /// The first line of a chat, while it connects.
   ///
   /// In en, this message translates to:
-  /// **'Connecting to chat...'**
+  /// **'Connecting to chat…'**
   String get chatConnecting;
 
   /// The line once the chat is connected. name is the channel's display name.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to {name}\'s chat!'**
+  /// **'Welcome to {name}’s chat!'**
   String chatWelcome({required String name});
 
   /// The line that replaces the reconnecting line once the chat is back: how many tries and seconds it took.
@@ -6555,7 +6555,7 @@ abstract class AppLocalizations {
   /// The chat lost its connection: the countdown before the next try.
   ///
   /// In en, this message translates to:
-  /// **'Reconnecting in {seconds}s... (attempt {attempt} of {max})'**
+  /// **'Reconnecting in {seconds}s… (attempt {attempt} of {max})'**
   String chatReconnectingIn({
     required int seconds,
     required int attempt,
@@ -6565,13 +6565,13 @@ abstract class AppLocalizations {
   /// The chat lost its connection: a try is running.
   ///
   /// In en, this message translates to:
-  /// **'Reconnecting... (attempt {attempt} of {max})'**
+  /// **'Reconnecting… (attempt {attempt} of {max})'**
   String chatReconnecting({required int attempt, required int max});
 
-  /// The line once every try to reconnect failed; a Reconnect button follows (chatReconnect).
+  /// Error message. The line once every try to reconnect failed; a Reconnect button follows (chatReconnect).
   ///
   /// In en, this message translates to:
-  /// **'Chat disconnected. Please check your connection.'**
+  /// **'Chat disconnected. Check your connection.'**
   String get chatDisconnected;
 
   /// The button on the « chat disconnected » line, and the row of the chat's details sheet that reconnects the chat.
@@ -6583,61 +6583,61 @@ abstract class AppLocalizations {
   /// The note above the input after the viewer asked to reconnect (chat details › Reconnect).
   ///
   /// In en, this message translates to:
-  /// **'Reconnecting to chat...'**
+  /// **'Reconnecting to chat…'**
   String get chatReconnectingNotice;
 
   /// The chat is delayed to match the video (Settings › Chat › Message delay): the countdown until it catches up.
   ///
   /// In en, this message translates to:
-  /// **'Chat will sync in {seconds}s...'**
+  /// **'Chat will sync in {seconds}s…'**
   String chatSyncIn({required int seconds});
 
   /// A line when an editor of the channel adds a 7TV emote. name is the editor's name, emote the emote's code.
   ///
   /// In en, this message translates to:
-  /// **'{name} added 7TV emote \"{emote}\" to chat'**
+  /// **'{name} added the 7TV emote “{emote}” to chat.'**
   String chatSevenTvEmoteAdded({required String name, required String emote});
 
   /// A line when an editor of the channel removes a 7TV emote. name is the editor's name, emote the emote's code.
   ///
   /// In en, this message translates to:
-  /// **'{name} removed 7TV emote \"{emote}\" from chat'**
+  /// **'{name} removed the 7TV emote “{emote}” from chat.'**
   String chatSevenTvEmoteRemoved({required String name, required String emote});
 
-  /// The note above the input when a message is too long for Twitch.
+  /// Error message. The note above the input when a message is too long for Twitch.
   ///
   /// In en, this message translates to:
-  /// **'Messages can be {max} characters at most'**
+  /// **'Messages can be {max} characters at most.'**
   String chatMessageTooLong({required int max});
 
   /// The note above the input when a command is sent while the last one still runs.
   ///
   /// In en, this message translates to:
-  /// **'Please wait, running the previous command...'**
+  /// **'Running the previous command…'**
   String get chatWaitCommand;
 
   /// The note above the input when a message is sent before Twitch confirmed the last one.
   ///
   /// In en, this message translates to:
-  /// **'Please wait, sending previous message...'**
+  /// **'Sending the previous message…'**
   String get chatWaitMessage;
 
-  /// A line in chat when a message is sent while the chat is disconnected.
+  /// Error message. A line in chat when a message is sent while the chat is disconnected.
   ///
   /// In en, this message translates to:
-  /// **'Cannot send message - chat is disconnected. Reconnecting...'**
+  /// **'Can’t send: chat is disconnected. Reconnecting…'**
   String get chatCannotSendDisconnected;
 
-  /// The note above the input when Twitch did not confirm a message in time.
+  /// Error message. The note above the input when Twitch did not confirm a message in time.
   ///
   /// In en, this message translates to:
-  /// **'Message may not have been sent. Please try again.'**
+  /// **'Your message may not have been sent. Try again.'**
   String get chatMaybeNotSent;
 
   /// The line left when a moderator clears the whole chat.
   ///
   /// In en, this message translates to:
-  /// **'Chat was cleared by a moderator'**
+  /// **'Chat was cleared by a moderator.'**
   String get chatClearedByModerator;
 
   /// The line /help writes in chat: every command's usage (chatCommandUsage…), joined with commas. The commands themselves are never translated.
@@ -6661,31 +6661,31 @@ abstract class AppLocalizations {
   /// The same, while Twitch refuses the app's whisper connection until the viewer logs in again.
   ///
   /// In en, this message translates to:
-  /// **'Whisper sent to {name}. Replies cannot reach this app until you log in again.'**
+  /// **'Whisper sent to {name}. Replies can’t reach this app until you log in again.'**
   String chatWhisperSentNoReplies({required String name});
 
-  /// A line in chat: /w names nobody. login is what the viewer typed.
+  /// Error message. A line in chat: /w names nobody. login is what the viewer typed.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t whisper: no user named {login}.'**
+  /// **'Couldn’t whisper: no user named {login}.'**
   String chatWhisperNoUser({required String login});
 
-  /// A line in chat: the whisper failed; reason is the error, worded (a sentence; French puts a full stop before it).
+  /// Error message. A line in chat: the whisper failed; reason is the error, worded (a sentence; French puts a full stop before it).
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t whisper: {reason}'**
+  /// **'Couldn’t whisper: {reason}'**
   String chatWhisperFailedBecause({required String reason});
 
-  /// A line in chat: the whisper failed for an unexpected reason.
+  /// Error message. A line in chat: the whisper failed for an unexpected reason.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t whisper.'**
+  /// **'Couldn’t whisper.'**
   String get chatWhisperFailed;
 
   /// A line in chat: /color needs the viewer logged in.
   ///
   /// In en, this message translates to:
-  /// **'Log in to change your color.'**
+  /// **'Log in to change your name color.'**
   String get chatLogInToChangeColor;
 
   /// A line in chat once /color changed the viewer's name colour.
@@ -6694,10 +6694,10 @@ abstract class AppLocalizations {
   /// **'Your name color was changed.'**
   String get chatColorChanged;
 
-  /// A line in chat: Twitch refused the colour (#RRGGBB colours need Turbo or Prime).
+  /// Error message. A line in chat: Twitch refused the colour (#RRGGBB colours need Turbo or Prime).
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t change your color (hex colors need Turbo or Prime).'**
+  /// **'Couldn’t change your name color (hex colors need Turbo or Prime).'**
   String get chatColorFailedHex;
 
   /// A line in chat: /block names someone already blocked. French puts the name last so nothing agrees with it.
@@ -6718,16 +6718,16 @@ abstract class AppLocalizations {
   /// **'Unblocked {name}.'**
   String chatUnblockedUser({required String name});
 
-  /// A line in chat: /block failed. login is what the viewer typed.
+  /// Error message. A line in chat: /block failed. login is what the viewer typed.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t block {login}.'**
+  /// **'Couldn’t block {login}.'**
   String chatBlockFailed({required String login});
 
-  /// A line in chat: /unblock failed. login is what the viewer typed.
+  /// Error message. A line in chat: /unblock failed. login is what the viewer typed.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t unblock {login}.'**
+  /// **'Couldn’t unblock {login}.'**
   String chatUnblockFailed({required String login});
 
   /// A line in chat: a moderation command needs the viewer logged in.
@@ -6781,7 +6781,7 @@ abstract class AppLocalizations {
   /// What a chat command does, beside its usage in the input's suggestions. command is the command's name (never translated, nor are the lengths « 10m », « 30s » and their units « s, m, h, d, w, mo » that Twitch reads).
   ///
   /// In en, this message translates to:
-  /// **'{command, select, me{Speak in the third person} color{Change your name color} block{Block a user} unblock{Unblock a user} w{Whisper a user} help{List the commands} ban{Ban a user from the chat} unban{Lift a ban} timeout{Time a user out (10m by default; s, m, h, d, w)} untimeout{Lift a timeout} warn{Warn a user} delete{Delete a message} clear{Delete every message} slow{Slow mode (30s by default)} slowoff{Turn slow mode off} followers{Followers-only mode (m, h, d, w, mo)} followersoff{Turn followers-only mode off} subscribers{Subscribers-only mode} subscribersoff{Turn subscribers-only mode off} emoteonly{Emote-only mode} emoteonlyoff{Turn emote-only mode off} uniquechat{Unique chat mode (no repeated messages)} uniquechatoff{Turn unique chat mode off} other{}}'**
+  /// **'{command, select, me{Speak in the third person} color{Change your name color} block{Block a user} unblock{Unblock a user} w{Whisper a user} help{List the commands} ban{Ban a user} unban{Lift a ban} timeout{Time out a user (default 10m; s, m, h, d, w)} untimeout{Lift a timeout} warn{Warn a user} delete{Delete a message} clear{Delete every message} slow{Turn slow mode on (default 30s)} slowoff{Turn slow mode off} followers{Turn followers-only mode on (m, h, d, w, mo)} followersoff{Turn followers-only mode off} subscribers{Turn subscribers-only mode on} subscribersoff{Turn subscribers-only mode off} emoteonly{Turn emote-only mode on} emoteonlyoff{Turn emote-only mode off} uniquechat{Turn unique chat mode on (no repeated messages)} uniquechatoff{Turn unique chat mode off} other{}}'**
   String chatCommandDescription({required String command});
 
   /// A line in chat when a command is typed wrong: how to type it. usage is the command and its words (/ban <user> [reason]).
@@ -6790,43 +6790,43 @@ abstract class AppLocalizations {
   /// **'Usage: {usage}'**
   String chatCommandUsage({required String usage});
 
-  /// A line in chat: /timeout got a length it cannot read. length is what the viewer typed; the examples are what Twitch reads (never translated).
+  /// Error message. A line in chat: /timeout got a length it cannot read. length is what the viewer typed; the examples are what Twitch reads (never translated).
   ///
   /// In en, this message translates to:
-  /// **'Unknown length \"{length}\". Use e.g. 30, 10m, 2h, 1d or 1w.'**
+  /// **'Unknown length “{length}”. Try 30, 10m, 2h, 1d, or 1w.'**
   String chatCommandBadLength({required String length});
 
-  /// A line in chat: /timeout got a length out of range.
+  /// Error message. A line in chat: /timeout got a length out of range.
   ///
   /// In en, this message translates to:
-  /// **'Timeouts last from 1 second to 2 weeks.'**
+  /// **'Timeouts must be between 1 second and 2 weeks.'**
   String get chatCommandTimeoutRange;
 
-  /// A line in chat: /slow got a wait out of range.
+  /// Error message. A line in chat: /slow got a wait out of range.
   ///
   /// In en, this message translates to:
-  /// **'The slow mode wait is 3 to 120 seconds.'**
+  /// **'Slow mode must be between 3 and 120 seconds.'**
   String get chatCommandSlowRange;
 
-  /// A line in chat: /followers got a follow age out of range. The examples are what Twitch reads (never translated).
+  /// Error message. A line in chat: /followers got a follow age out of range. The examples are what Twitch reads (never translated).
   ///
   /// In en, this message translates to:
-  /// **'The follow age is 0 minutes to 3 months (e.g. 10m, 1w, 3mo).'**
+  /// **'Follow age must be between 0 minutes and 3 months (e.g., 10m, 1w, 3mo).'**
   String get chatCommandFollowAgeRange;
 
-  /// A line in chat: /color got a colour it does not know. Blue, Coral, HotPink are what /color reads (never translated; French writes them in lower case, which /color reads the same).
+  /// Error message. A line in chat: /color got a colour it does not know. Blue, Coral, HotPink are what /color reads (never translated; French writes them in lower case, which /color reads the same).
   ///
   /// In en, this message translates to:
-  /// **'Unknown color. Try Blue, Coral, HotPink… or #RRGGBB (Turbo/Prime).'**
+  /// **'Unknown color. Try Blue, Coral, HotPink, or #RRGGBB (Turbo or Prime).'**
   String get chatCommandUnknownColor;
 
-  /// A line in chat: a Twitch command this app does not run. command is its name.
+  /// Error message. A line in chat: a Twitch command this app does not run. command is its name.
   ///
   /// In en, this message translates to:
   /// **'/{command} is not available in this app.'**
   String chatCommandNotInApp({required String command});
 
-  /// A line in chat: a command nobody knows. command is what the viewer typed; /help is the command (never translated).
+  /// Error message. A line in chat: a command nobody knows. command is what the viewer typed; /help is the command (never translated).
   ///
   /// In en, this message translates to:
   /// **'Unknown command /{command}. Type /help for the commands you can use.'**
@@ -6853,25 +6853,25 @@ abstract class AppLocalizations {
   /// A line in chat once a moderator turned followers-only mode on with a follow age. duration is the age (chatDuration…).
   ///
   /// In en, this message translates to:
-  /// **'Followers-only mode on (followers of {duration}).'**
+  /// **'Followers-only mode on (must follow for {duration}).'**
   String chatModeFollowersOn({required String duration});
 
-  /// A moderation action failed (in chat, under the moderation bar): what, then why. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch. reason is a sentence or a phrase (chatModCannotModerate, chatModNoUser, an error); French makes it a sentence after a full stop (« Impossible de bannir. … »).
+  /// Error message. A moderation action failed (in chat, under the moderation bar): what, then why. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch. reason is a sentence or a phrase (chatModCannotModerate, chatModNoUser, an error); French makes it a sentence after a full stop (« Impossible de bannir. … »).
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t {command, select, ban{ban} timeout{time out} untimeout{remove the timeout of} unban{unban} warn{warn} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} other{do that}}: {reason}'**
+  /// **'Couldn’t {command, select, ban{ban the user} timeout{time out the user} untimeout{lift the timeout} unban{unban the user} warn{warn the user} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} other{do that}}: {reason}'**
   String chatModFailed({required String command, required String reason});
 
-  /// A moderation action failed for an unexpected reason. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch.
+  /// Error message. A moderation action failed for an unexpected reason. command is what failed: ban, timeout, untimeout, unban, warn, delete, clear, or a room mode turned on or off (slowOn, slowOff, followersOn, followersOff, subscribersOn, subscribersOff, emoteOnlyOn, emoteOnlyOff, uniqueChatOn, uniqueChatOff). French carries « de » / « d’ » in each branch.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t {command, select, ban{ban} timeout{time out} untimeout{remove the timeout of} unban{unban} warn{warn} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} other{do that}} (unexpected error).'**
+  /// **'Couldn’t {command, select, ban{ban the user} timeout{time out the user} untimeout{lift the timeout} unban{unban the user} warn{warn the user} delete{delete the message} clear{clear the chat} slowOn{turn slow mode on} slowOff{turn slow mode off} followersOn{turn followers-only mode on} followersOff{turn followers-only mode off} subscribersOn{turn subscribers-only mode on} subscribersOff{turn subscribers-only mode off} emoteOnlyOn{turn emote-only mode on} emoteOnlyOff{turn emote-only mode off} uniqueChatOn{turn unique chat mode on} uniqueChatOff{turn unique chat mode off} other{do that}} (unexpected error).'**
   String chatModFailedUnexpected({required String command});
 
-  /// Why a moderation action failed (after chatModFailed's colon): the viewer is not a moderator here.
+  /// Error message. Why a moderation action failed (after chatModFailed's colon): the viewer is not a moderator here.
   ///
   /// In en, this message translates to:
-  /// **'Twitch says you can\'t moderate this chat.'**
+  /// **'Twitch says you can’t moderate this chat.'**
   String get chatModCannotModerate;
 
   /// After « Couldn't … » in chat, on a screen in another language than English: a sentence after the failure's kind worded in that language, quoting Twitch's own short explanation as Twitch wrote it (English). An English screen shows Twitch's words alone instead, as it always has.
@@ -6880,22 +6880,22 @@ abstract class AppLocalizations {
   /// **'Twitch’s reason: “{reason}”'**
   String chatTwitchReason({required String reason});
 
-  /// Why a moderation action failed (after chatModFailed's colon; French: a sentence after its full stop): nobody has that name. login is what the viewer typed.
+  /// Error message. Why a moderation action failed (after chatModFailed's colon; French: a sentence after its full stop): nobody has that login. English starts in lower case after the colon and ends the line with a full stop.
   ///
   /// In en, this message translates to:
-  /// **'no user named {login}'**
+  /// **'no user named {login}.'**
   String chatModNoUser({required String login});
 
-  /// A moderation action failed: the viewer's login predates the moderator permissions.
+  /// Error message. A moderation action failed: the viewer's login predates the moderator permissions.
   ///
   /// In en, this message translates to:
   /// **'Log in again to moderate from this app.'**
   String get chatModLogInAgain;
 
-  /// A moderation action failed without an answer (under the moderation bar or the chat modes).
+  /// Error message. A moderation action failed without an answer (under the moderation bar or the chat modes).
   ///
   /// In en, this message translates to:
-  /// **'That did not go through. Try again.'**
+  /// **'That didn’t go through. Try again.'**
   String get chatModNotThrough;
 
   /// A line in chat once the viewer banned someone. name is their display name.
@@ -6913,7 +6913,7 @@ abstract class AppLocalizations {
   /// A line in chat once the viewer lifted a timeout. French puts the name last (no elision before it).
   ///
   /// In en, this message translates to:
-  /// **'You removed the timeout of {name}.'**
+  /// **'You lifted {name}’s timeout.'**
   String chatModUntimedOut({required String name});
 
   /// A line in chat once the viewer lifted a ban.
@@ -6964,19 +6964,19 @@ abstract class AppLocalizations {
   /// Above the chat input (and as its placeholder, one line each): the viewer is banned. French uses the noun, so nothing agrees with the viewer and the key word comes first.
   ///
   /// In en, this message translates to:
-  /// **'You are permanently banned from this chat'**
+  /// **'Permanently banned'**
   String get chatRestrictionBanned;
 
   /// The chat input's placeholder while the viewer is timed out (one line): French uses the noun, as on the bar above the input (chatRestrictionTimedOutFor).
   ///
   /// In en, this message translates to:
-  /// **'You are timed out'**
+  /// **'You’re timed out'**
   String get chatRestrictionTimedOut;
 
   /// Above the chat input while the viewer is timed out (one line at 12 dp). wait is the time left (« 4:05 », « 12 s »), the line's point: French keeps it short so it never falls under the ellipsis.
   ///
   /// In en, this message translates to:
-  /// **'You are timed out · {wait}'**
+  /// **'You’re timed out · {wait}'**
   String chatRestrictionTimedOutFor({required String wait});
 
   /// Above the chat input in slow mode, after a message (one line at 12 dp). wait is the time left: French keeps the line short (« encore 29 s ») so it never falls under the ellipsis on a phone at large text.
@@ -7003,11 +7003,11 @@ abstract class AppLocalizations {
   /// **'Followers-only chat'**
   String get chatRestrictionFollowersOnly;
 
-  /// The same, when followers must have followed for a while (the input's one-line placeholder). minutes is that follow age; French keeps the line short so the age stays visible on a phone at large text.
+  /// The input's one-line placeholder when followers must have followed for a while: what it takes to chat. duration is that follow age, short so it stays in sight on a phone at large text (chatShortMinutes, chatShortHours, else whole days or months: « 10m », « 3h », « 7 days », « 10 min », « 7 jours »).
   ///
   /// In en, this message translates to:
-  /// **'Followers-only chat · following for {minutes}+ min'**
-  String chatRestrictionFollowersFor({required int minutes});
+  /// **'Follow for {duration}'**
+  String chatRestrictionFollowersFor({required String duration});
 
   /// The button over a paused chat: how many messages arrived since; tapping it scrolls back down.
   ///
@@ -7060,7 +7060,7 @@ abstract class AppLocalizations {
   /// What a screen reader says for a cheer in a message. prefix is the cheermote's name (Cheer, Kappa…), never translated. Bits is Twitch's word, after an ordinary space as in htBits.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{prefix} {count} bit} other{{prefix} {count} bits}}'**
+  /// **'{count, plural, one{{prefix} {count} Bit} other{{prefix} {count} Bits}}'**
   String chatCheerSemantics({required String prefix, required int count});
 
   /// The details of a stack of emotes (a zero-width emote over another): the emotes on top, joined with « + ».
@@ -7108,7 +7108,7 @@ abstract class AppLocalizations {
   /// A row of a message's options: copies the message into the input.
   ///
   /// In en, this message translates to:
-  /// **'Copy message and paste'**
+  /// **'Copy into message box'**
   String get chatCopyMessageAndPaste;
 
   /// A row of a message's options.
@@ -7147,13 +7147,7 @@ abstract class AppLocalizations {
   /// **'Permanently banned'**
   String get chatPermanentlyBanned;
 
-  /// Above the messages of someone timed out: for how many seconds.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, one{Timed out for {count} second} other{Timed out for {count} seconds}}'**
-  String chatTimedOutFor({required int count});
-
-  /// Above the messages of someone timed out, on a screen in another language than English: for how long, worded like the timeout notices (chatDuration…, « 10 minutes »). An English screen keeps chatTimedOutFor.
+  /// Above the messages of someone timed out: for how long, worded like the timeout notices (chatDuration…: « 10 minutes »).
   ///
   /// In en, this message translates to:
   /// **'Timed out for {duration}'**
@@ -7165,10 +7159,10 @@ abstract class AppLocalizations {
   /// **'Announcement'**
   String get chatAnnouncement;
 
-  /// What a screen reader says a long press on a message does (it opens its options). Lower case: it follows « double tap and hold to », so French is a verb in the infinitive.
+  /// What a screen reader says a long press on a chat message does, after its own « Double-tap and hold to »: a verb in lower case.
   ///
   /// In en, this message translates to:
-  /// **'message options'**
+  /// **'open message options'**
   String get chatMessageOptionsHint;
 
   /// What a screen reader says a long press on a notice does (it copies it). Lower case.
@@ -7204,13 +7198,13 @@ abstract class AppLocalizations {
   /// Tooltip of the collapsed chat input's button that opens the keyboard.
   ///
   /// In en, this message translates to:
-  /// **'Enter a message'**
+  /// **'Send a message'**
   String get chatEnterMessage;
 
   /// The chat input's placeholder while the viewer cannot send (rules not accepted yet, a restriction); one line, so French keeps it short (the bar above says why).
   ///
   /// In en, this message translates to:
-  /// **'You can\'t chat right now'**
+  /// **'You can’t chat right now'**
   String get chatCannotChatNow;
 
   /// The chat input's placeholder while the chat is disconnected.
@@ -7222,13 +7216,13 @@ abstract class AppLocalizations {
   /// The chat input's placeholder while the chat connects.
   ///
   /// In en, this message translates to:
-  /// **'Connecting...'**
+  /// **'Connecting…'**
   String get chatInputConnecting;
 
   /// The chat input's placeholder, and the send button's tooltip, while Twitch confirms a message.
   ///
   /// In en, this message translates to:
-  /// **'Sending...'**
+  /// **'Sending…'**
   String get chatSending;
 
   /// Tooltip of the chat input's send button.
@@ -7252,13 +7246,13 @@ abstract class AppLocalizations {
   /// The chat input's placeholder while the chat is delayed to match the video (one line). name is the channel's display name; « délai » is the setting's word (Délai des messages). French puts the name first and keeps the line short, so the name and the delay both show on a phone at large text.
   ///
   /// In en, this message translates to:
-  /// **'Chat in {name} ({seconds}s delay)'**
+  /// **'{name} · {seconds}s delay'**
   String chatInChannelDelayed({required String name, required int seconds});
 
   /// The same, when the channel is not named.
   ///
   /// In en, this message translates to:
-  /// **'Chat ({seconds}s delay)'**
+  /// **'Chat · {seconds}s delay'**
   String chatDelayed({required int seconds});
 
   /// The chat input's placeholder (one line). name is the channel's display name; French keeps the words before it short so the name shows.
@@ -7288,13 +7282,13 @@ abstract class AppLocalizations {
   /// Snackbar once the name colour picked in the chat details was saved.
   ///
   /// In en, this message translates to:
-  /// **'Chat color updated successfully!'**
+  /// **'Name color updated'**
   String get chatColorUpdated;
 
-  /// Snackbar when the name colour could not be saved.
+  /// Error message. Snackbar when the name colour could not be saved.
   ///
   /// In en, this message translates to:
-  /// **'Failed to update chat color. Please try again.'**
+  /// **'Couldn’t update your name color. Try again.'**
   String get chatColorUpdateFailed;
 
   /// A row of the chat's details sheet: hides the video.
@@ -7318,13 +7312,13 @@ abstract class AppLocalizations {
   /// A row of the chat's details sheet, and the title of the colour picker it opens.
   ///
   /// In en, this message translates to:
-  /// **'Username color'**
+  /// **'Name color'**
   String get chatDetailsUsernameColor;
 
   /// A row of the chat's details sheet: opens the chat on twitch.tv.
   ///
   /// In en, this message translates to:
-  /// **'Channel points, polls and predictions'**
+  /// **'Channel points, polls, and predictions'**
   String get chatDetailsPointsPollsPredictions;
 
   /// The line under the « Channel points, polls and predictions » row.
@@ -7348,7 +7342,7 @@ abstract class AppLocalizations {
   /// A row of the chat's details sheet (opens the channel's subscription page on twitch.tv), and that page's title.
   ///
   /// In en, this message translates to:
-  /// **'Gift a Sub'**
+  /// **'Gift a sub'**
   String get chatDetailsGiftSub;
 
   /// A row of the chat's details sheet for moderators, and the title of the sheet it opens.
@@ -7396,7 +7390,7 @@ abstract class AppLocalizations {
   /// A Twitch name colour in the colour picker. color is Twitch's id for it (blue_violet). /color still takes the English names.
   ///
   /// In en, this message translates to:
-  /// **'{color, select, blue{Blue} blue_violet{Blue Violet} cadet_blue{Cadet Blue} chocolate{Chocolate} coral{Coral} dodger_blue{Dodger Blue} firebrick{Firebrick} golden_rod{Golden Rod} green{Green} hot_pink{Hot Pink} orange_red{Orange Red} red{Red} sea_green{Sea Green} spring_green{Spring Green} yellow_green{Yellow Green} other{}}'**
+  /// **'{color, select, blue{Blue} blue_violet{Blue violet} cadet_blue{Cadet blue} chocolate{Chocolate} coral{Coral} dodger_blue{Dodger blue} firebrick{Firebrick} golden_rod{Goldenrod} green{Green} hot_pink{Hot pink} orange_red{Orange red} red{Red} sea_green{Sea green} spring_green{Spring green} yellow_green{Yellow green} other{}}'**
   String chatColorName({required String color});
 
   /// The followers-only mode's shortest follow age: anyone following.
@@ -7429,6 +7423,12 @@ abstract class AppLocalizations {
   /// **'Moderator'**
   String get chatModesModerator;
 
+  /// A chat badge's name for a moderator who is a bot (FrankerFaceZ's bot badge drawn in place of the moderator's): its sheet and tooltip. moderator is Twitch's own name of the moderator badge.
+  ///
+  /// In en, this message translates to:
+  /// **'{moderator} (bot)'**
+  String chatBadgeModeratorBot({required String moderator});
+
   /// The slow mode's wait in its picker.
   ///
   /// In en, this message translates to:
@@ -7444,7 +7444,7 @@ abstract class AppLocalizations {
   /// A pill at the top of the chat's details sheet: a room mode that is on. mode is ChatMode.name.
   ///
   /// In en, this message translates to:
-  /// **'{mode, select, emoteOnly{Emote only} followers{Follower only} slow{Slow mode} subscribers{Sub only} uniqueChat{Unique mode} other{}}'**
+  /// **'{mode, select, emoteOnly{Emote-only} followers{Followers-only} slow{Slow mode} subscribers{Subscribers-only} uniqueChat{Unique chat} other{}}'**
   String chatModePill({required String mode});
 
   /// The placeholder of the chatters list's search field.
@@ -7534,19 +7534,19 @@ abstract class AppLocalizations {
   /// The same line with the held message quoted. decision is chatHeldDecision.
   ///
   /// In en, this message translates to:
-  /// **'{decision}: \"{quote}\"'**
+  /// **'{decision}: “{quote}”'**
   String chatHeldQuoted({required String decision, required String quote});
 
-  /// The Add chat sheet when the search failed.
+  /// Error message. The Add chat sheet when the search failed.
   ///
   /// In en, this message translates to:
-  /// **'Failed to search channels'**
+  /// **'Couldn’t search channels.'**
   String get chatAddChatSearchFailed;
 
   /// The title of the sheet that opens another channel's chat in a new tab.
   ///
   /// In en, this message translates to:
-  /// **'Add Chat'**
+  /// **'Add chat'**
   String get chatAddChatTitle;
 
   /// The placeholder of the Add chat sheet's search field.
@@ -7606,7 +7606,7 @@ abstract class AppLocalizations {
   /// Snackbar when the viewer adds a chat already open: the app shows it.
   ///
   /// In en, this message translates to:
-  /// **'Channel already open, switched to it'**
+  /// **'Channel already open — switched to it'**
   String get chatTabsAlreadyOpen;
 
   /// Tooltip of the user card's whisper button.
@@ -7654,19 +7654,19 @@ abstract class AppLocalizations {
   /// The title of the sheet over a message hidden by the chat filters.
   ///
   /// In en, this message translates to:
-  /// **'Message Blocked'**
+  /// **'Message hidden'**
   String get chatFilteredTitle;
 
   /// The text of the same sheet.
   ///
   /// In en, this message translates to:
-  /// **'Would you like to see this message? It has been hidden for you based on your NSFW Chat Filter settings.'**
+  /// **'This message was hidden by your chat filters. Show it anyway?'**
   String get chatFilteredBody;
 
   /// The same sheet's button that shows the message.
   ///
   /// In en, this message translates to:
-  /// **'Show Message'**
+  /// **'Show message'**
   String get chatFilteredShow;
 
   /// The chat details' row that opens the channel's chat rules, and the back header over them.
@@ -7678,19 +7678,19 @@ abstract class AppLocalizations {
   /// The heading of the channel's chat rules sheet.
   ///
   /// In en, this message translates to:
-  /// **'Chat Rules'**
+  /// **'Chat rules'**
   String get chatRulesHeading;
 
   /// The button that accepts a channel's chat rules.
   ///
   /// In en, this message translates to:
-  /// **'OK, Got it!'**
+  /// **'Got it'**
   String get chatRulesAccept;
 
   /// What a screen reader says for the card at the top of a chat the viewer joined with a raid. from is the raiding channel, target this one.
   ///
   /// In en, this message translates to:
-  /// **'You followed {from}\'s raid. Welcome to {target}\'s chat'**
+  /// **'You followed {from}’s raid. Welcome to {target}’s chat'**
   String chatRaidWelcomeSemantics({
     required String from,
     required String target,
@@ -7699,13 +7699,13 @@ abstract class AppLocalizations {
   /// The card at the top of a chat the viewer joined with a raid; name (the raiding channel) is drawn bold. Also the line it stands for in chat.
   ///
   /// In en, this message translates to:
-  /// **'You followed {name}\'s raid'**
+  /// **'You followed {name}’s raid'**
   String chatRaidWelcomeFrom({required String name});
 
   /// The same card's second line. name is this channel.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to {name}\'s chat'**
+  /// **'Welcome to {name}’s chat'**
   String chatRaidWelcomeTo({required String name});
 
   /// Above the list of a gift bomb's recipients: how many got their sub so far.
@@ -7729,7 +7729,7 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{+{count} more} other{+{count} more}}'**
   String chatGiftRecipientsMore({required int count});
 
-  /// Who gave anonymous gift subs, in the gift sub lines and pins. French says « Anonyme » (no gender).
+  /// Who gave anonymous gift subs, in the gift sub lines and pins, in place of the name of Twitch's anonymous gifter account. French says « Anonyme » (no gender).
   ///
   /// In en, this message translates to:
   /// **'An anonymous gifter'**
@@ -7867,10 +7867,10 @@ abstract class AppLocalizations {
   /// **'Twitch counts streaks. Watching in this app may not count toward them.'**
   String get pointsStreakNote;
 
-  /// The channel points sheet when Twitch refuses the bonus to the app.
+  /// Error message. The channel points sheet when Twitch refuses the bonus to the app.
   ///
   /// In en, this message translates to:
-  /// **'Twitch blocks collecting the bonus from here — its anti-bot check. Collect it on twitch.tv and the balance follows.'**
+  /// **'Twitch’s anti-bot check blocks collecting the bonus here. Collect it on twitch.tv and your balance updates.'**
   String get pointsBonusBlocked;
 
   /// The channel points sheet's button that collects the bonus chest.
@@ -7882,7 +7882,7 @@ abstract class AppLocalizations {
   /// Under a prediction's outcome: the points bet on it, then how many bet.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{points}  ·  {count} viewer} other{{points}  ·  {count} viewers}}'**
+  /// **'{count, plural, one{{points} · {count} viewer} other{{points} · {count} viewers}}'**
   String pointsOutcomeTotals({required String points, required int count});
 
   /// What a screen reader says for an outcome of an open prediction. title is the outcome (Twitch's text), odds the payout (1.85).
@@ -7894,7 +7894,7 @@ abstract class AppLocalizations {
   /// The same before anyone bet on it.
   ///
   /// In en, this message translates to:
-  /// **'Bet on {title}, pays unknown'**
+  /// **'Bet on {title}, payout unknown'**
   String pointsBetOnUnknown({required String title});
 
   /// Under an open prediction in the channel points sheet.
@@ -7948,13 +7948,13 @@ abstract class AppLocalizations {
   /// The bet view: the payout for the stake typed. odds has two decimals.
   ///
   /// In en, this message translates to:
-  /// **'Pays about {odds} × if this wins — moves with every other bet.'**
+  /// **'Pays about {odds}× if this wins. Odds change with every bet.'**
   String pointsPaysAbout({required String odds});
 
   /// The bet view's button once an amount is typed. points is the amount, written with the language's digits; count is the same amount as a number, for the plural.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, other{Bet {points}}}'**
+  /// **'{count, plural, one{Bet {points}} other{Bet {points}}}'**
   String pointsBetAmount({required String points, required int count});
 
   /// The bet view's button before an amount is typed.
@@ -7966,7 +7966,7 @@ abstract class AppLocalizations {
   /// The payout beside a prediction's outcome (1.85 ×).
   ///
   /// In en, this message translates to:
-  /// **'{odds} ×'**
+  /// **'{odds}×'**
   String pointsOdds({required String odds});
 
   /// The title of the dialog that confirms redeeming a reward.
@@ -7990,7 +7990,7 @@ abstract class AppLocalizations {
   /// Snackbar after spending channel points (a reward, a bet, the bonus). status is PointsActionStatus.name; reason is Twitch's own code for an unknown refusal (never translated), or pointsNoReason.
   ///
   /// In en, this message translates to:
-  /// **'{status, select, success{Done.} integrityRefused{Twitch refused: anti-bot check. Not something this app can pass.} notAuthenticated{Twitch rejected the login. Sign in again to spend points.} network{Could not reach Twitch. Try again.} other{Twitch refused: {reason}}}'**
+  /// **'{status, select, success{Done.} integrityRefused{Twitch’s anti-bot check refused this. ONSET can’t pass it, so try on twitch.tv.} notAuthenticated{Twitch rejected the login. Log in again to spend points.} network{Couldn’t reach Twitch. Try again.} other{Twitch refused: {reason}}}'**
   String pointsResult({required String status, required String reason});
 
   /// Snackbar when the viewer spends channel points while the last spend still runs.
@@ -8002,7 +8002,7 @@ abstract class AppLocalizations {
   /// After « Twitch refused: » when Twitch gave no reason.
   ///
   /// In en, this message translates to:
-  /// **'no reason'**
+  /// **'no reason given'**
   String get pointsNoReason;
 
   /// The name of one of Twitch's built-in rewards (Twitch sends none for them).
@@ -8020,25 +8020,20 @@ abstract class AppLocalizations {
   /// Under the same title: how long the streak is (in streams).
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, other{Watch this live stream and you\'ll be able to save your current {count}-stream streak.}}'**
+  /// **'{count, plural, one{Watch this live stream and you’ll be able to save your current {count}-stream streak.} other{Watch this live stream and you’ll be able to save your current {count}-stream streak.}}'**
   String streakSaveLive({required int count});
 
   /// The watch streak card when the streak is suspended and the channel is offline.
   ///
   /// In en, this message translates to:
-  /// **'Watch Streak Expiring'**
+  /// **'Watch Streak expiring'**
   String get streakExpiringTitle;
 
-  /// Under the same title: the time left to save the streak. name is the channel's display name.
+  /// Under the same title: the time left to save the streak. name is the channel's display name; time is the time left, short (chatShort…: « 5h 12m », « 4m 30s », « 12s »).
   ///
   /// In en, this message translates to:
-  /// **'Watch {name} in the next {hours}h {minutes}m {seconds}s to save your streak!'**
-  String streakExpiring({
-    required String name,
-    required int hours,
-    required int minutes,
-    required int seconds,
-  });
+  /// **'Watch {name} in the next {time} to save your streak!'**
+  String streakExpiring({required String name, required String time});
 
   /// The watch streak card's title: how many streams in a row.
   ///
@@ -8049,13 +8044,13 @@ abstract class AppLocalizations {
   /// Under the watch streak's title: one stream before the bonus. points is the bonus (« 1 200 »); count chooses the form.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{1 more stream until an extra {points} channel point reward} other{1 more stream until an extra {points} channel points reward}}'**
+  /// **'{count, plural, one{1 more stream to earn {points} bonus channel point} other{1 more stream to earn {points} bonus channel points}}'**
   String streakOneMore({required int count, required String points});
 
   /// Under the watch streak's title once the bonus was earned. next is the streak's length in streams.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{You reached a {next}-stream streak and earned an extra {points} channel point} other{You reached a {next}-stream streak and earned an extra {points} channel points}}'**
+  /// **'{count, plural, one{You reached a {next}-stream streak and earned {points} bonus channel point} other{You reached a {next}-stream streak and earned {points} bonus channel points}}'**
   String streakReached({
     required int count,
     required int next,
@@ -8065,7 +8060,7 @@ abstract class AppLocalizations {
   /// Under the watch streak's title: the next bonus.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{Reach {next}-stream streak and earn an extra {points} channel point} other{Reach {next}-stream streak and earn an extra {points} channel points}}'**
+  /// **'{count, plural, one{Reach a {next}-stream streak and earn {points} bonus channel point} other{Reach a {next}-stream streak and earn {points} bonus channel points}}'**
   String streakReach({
     required int count,
     required int next,
@@ -8087,7 +8082,7 @@ abstract class AppLocalizations {
   /// An emote's kind, in its details. type is EmoteType.name.
   ///
   /// In en, this message translates to:
-  /// **'{type, select, twitchBits{Twitch bits emote} twitchFollower{Twitch follower emote} twitchSub{Twitch sub emote} twitchGlobal{Twitch global emote} twitchUnlocked{Twitch unlocked emote} twitchChannel{Twitch channel emote} ffzGlobal{FrankerFaceZ global emote} ffzChannel{FrankerFaceZ channel emote} bttvGlobal{BetterTTV global emote} bttvChannel{BetterTTV channel emote} bttvShared{BetterTTV shared emote} sevenTVGlobal{7TV global emote} sevenTVChannel{7TV channel emote} other{}}'**
+  /// **'{type, select, twitchBits{Twitch Bits emote} twitchFollower{Twitch follower emote} twitchSub{Twitch sub emote} twitchGlobal{Twitch global emote} twitchUnlocked{Twitch unlocked emote} twitchChannel{Twitch channel emote} ffzGlobal{FrankerFaceZ global emote} ffzChannel{FrankerFaceZ channel emote} bttvGlobal{BetterTTV global emote} bttvChannel{BetterTTV channel emote} bttvShared{BetterTTV shared emote} sevenTVGlobal{7TV global emote} sevenTVChannel{7TV channel emote} other{}}'**
   String emoteTypeName({required String type});
 
   /// A chat badge's source, in its details. type is BadgeType.name.
@@ -8119,19 +8114,19 @@ abstract class AppLocalizations {
   /// The sentence after a sub line: how long in all, and the streak the subscriber shares.
   ///
   /// In en, this message translates to:
-  /// **'{months, plural, one{They\'ve subscribed for {months} month, currently on a {streak} month streak!} other{They\'ve subscribed for {months} months, currently on a {streak} month streak!}}'**
+  /// **'{months, plural, one{They’ve subscribed for {months} month, currently on a {streak}-month streak!} other{They’ve subscribed for {months} months, currently on a {streak}-month streak!}}'**
   String noticeSubStreak({required int months, required int streak});
 
   /// The sentence after a sub line: how long in all (2 months or more).
   ///
   /// In en, this message translates to:
-  /// **'They\'ve subscribed for {months} months!'**
+  /// **'They’ve subscribed for {months} months!'**
   String noticeSubMonths({required int months});
 
   /// A gift sub line in chat. tiered is yes when Twitch named the tier. Names are drawn bold where their placeholder is; French puts them where no word agrees with them.
   ///
   /// In en, this message translates to:
-  /// **'{tiered, select, yes{{gifter} gifted a Tier {tier} Sub to {recipient}!} other{{gifter} gifted a Sub to {recipient}!}}'**
+  /// **'{tiered, select, yes{{gifter} gifted a Tier {tier} sub to {recipient}!} other{{gifter} gifted a sub to {recipient}!}}'**
   String noticeGiftedSub({
     required String tiered,
     required String gifter,
@@ -8153,7 +8148,7 @@ abstract class AppLocalizations {
   /// The same when Twitch did not name the tier. months is noticeGiftMonthsShort, drawn bold. Names are drawn bold where their placeholder is; French puts them where no word agrees with them.
   ///
   /// In en, this message translates to:
-  /// **'{gifter} gifted a {months} Sub to {recipient}!'**
+  /// **'{gifter} gifted a {months} sub to {recipient}!'**
   String noticeGiftedMonths({
     required String gifter,
     required String months,
@@ -8169,7 +8164,7 @@ abstract class AppLocalizations {
   /// Inside noticeGiftedMonths: how many months were gifted, as English writes it before « Sub » (drawn bold).
   ///
   /// In en, this message translates to:
-  /// **'{count} month'**
+  /// **'{count}-month'**
   String noticeGiftMonthsShort({required int count});
 
   /// Inside noticeGiftedMonthsTier: the sub tier (drawn bold).
@@ -8181,19 +8176,19 @@ abstract class AppLocalizations {
   /// The sentence after a gift sub line: the gifter's first. « son » agrees with « abonnement ».
   ///
   /// In en, this message translates to:
-  /// **'It\'s their first Gift Sub in the channel!'**
+  /// **'It’s their first gift sub in the channel!'**
   String get noticeGiftFirst;
 
   /// The sentence after a gift sub line: how many the gifter gave in all (2 or more), with the language's thousands separator. French opens with « Son total » (the gifter's, after the sentence naming them), so it never reads as the channel's total.
   ///
   /// In en, this message translates to:
-  /// **'They\'ve given {count} Gift Subs in the channel!'**
+  /// **'They’ve given {count} gift subs in the channel!'**
   String noticeGiftCount({required int count});
 
   /// A gift bomb's line in chat: who gifts how many subs to the channel's community (gifter bold). tiered is yes when Twitch named the tier; end is more when another sentence follows (a full stop), else last (an exclamation mark). Names are drawn bold where their placeholder is; French puts them where no word agrees with them.
   ///
   /// In en, this message translates to:
-  /// **'{tiered, select, yes{{count, plural, one{{gifter} is gifting {count} Tier {tier} Sub to {channel}\'s community{end, select, more{.} other{!}}} other{{gifter} is gifting {count} Tier {tier} Subs to {channel}\'s community{end, select, more{.} other{!}}}}} other{{count, plural, one{{gifter} is gifting {count} Sub to {channel}\'s community{end, select, more{.} other{!}}} other{{gifter} is gifting {count} Subs to {channel}\'s community{end, select, more{.} other{!}}}}}}'**
+  /// **'{tiered, select, yes{{count, plural, one{{gifter} is gifting {count} Tier {tier} sub to {channel}’s community{end, select, more{.} other{!}}} other{{gifter} is gifting {count} Tier {tier} subs to {channel}’s community{end, select, more{.} other{!}}}}} other{{count, plural, one{{gifter} is gifting {count} sub to {channel}’s community{end, select, more{.} other{!}}} other{{gifter} is gifting {count} subs to {channel}’s community{end, select, more{.} other{!}}}}}}'**
   String noticeCommunityGift({
     required String tiered,
     required int count,
@@ -8206,13 +8201,13 @@ abstract class AppLocalizations {
   /// The sentence after a gift bomb's line: the gifter's first gift.
   ///
   /// In en, this message translates to:
-  /// **'It\'s their first Gift Sub in the channel!'**
+  /// **'It’s their first gift sub in the channel!'**
   String get noticeCommunityGiftFirst;
 
   /// The sentence after a gift bomb's line: how many subs the gifter gave in all, with the language's thousands separator. French opens with « Son total » (the gifter's).
   ///
   /// In en, this message translates to:
-  /// **'They\'ve gifted a total of {count} in the channel!'**
+  /// **'They’ve gifted a total of {count} subs in the channel!'**
   String noticeCommunityGiftTotal({required int count});
 
   /// A line when a subscriber extended their sub. month is a month's name (« mai »); « son » agrees with « abonnement ». Names are drawn bold where their placeholder is; French puts them where no word agrees with them.
@@ -8289,7 +8284,7 @@ abstract class AppLocalizations {
   /// The same pill at the normal speed. French: « normale » in lower case, inside the pill's words.
   ///
   /// In en, this message translates to:
-  /// **'Speed Normal'**
+  /// **'Normal speed'**
   String get vodSpeedPillNormal;
 
   /// A tablet's action pill: the video quality; tapping opens the settings. quality is the rendition's name (1080p60); Auto and Audio only have their own messages.
@@ -8301,43 +8296,43 @@ abstract class AppLocalizations {
   /// The same pill on the adaptive quality. French: « auto » in lower case, inside the pill's words.
   ///
   /// In en, this message translates to:
-  /// **'Quality Auto'**
+  /// **'Auto quality'**
   String get vodQualityPillAuto;
 
   /// The same pill when only the sound plays. French: in lower case, inside the pill's words.
   ///
   /// In en, this message translates to:
-  /// **'Quality Audio only'**
+  /// **'Audio only'**
   String get vodQualityPillAudioOnly;
 
   /// What a screen reader says for a tablet's captions pill: whether captions show. state is on or off.
   ///
   /// In en, this message translates to:
-  /// **'{state, select, on{Closed Captions, on} other{Closed Captions, off}}'**
+  /// **'{state, select, on{Closed captions, on} other{Closed captions, off}}'**
   String vodCaptionsState({required String state});
 
   /// A tablet's legend under the video, beside a short grey bar: the marks on the seek bar are parts Twitch muted for copyright.
   ///
   /// In en, this message translates to:
-  /// **'Muted parts (copyright)'**
+  /// **'Muted segments (copyright)'**
   String get vodLegendMuted;
 
   /// A tablet's legend under the video: double-tapping the left or right of the video goes back or forward 10 seconds.
   ///
   /// In en, this message translates to:
-  /// **'Double-tap the sides to skip 10 s'**
+  /// **'Double-tap the sides to skip 10 seconds'**
   String get vodLegendDoubleTap;
 
   /// A tablet's legend under the video: another video plays when this one ends.
   ///
   /// In en, this message translates to:
-  /// **'Up Next at the end'**
+  /// **'Up next at the end'**
   String get vodLegendUpNext;
 
   /// The same, with when it plays by itself. autoplay is the setting's value (« Wi-Fi uniquement », « Données mobiles et Wi-Fi »).
   ///
   /// In en, this message translates to:
-  /// **'Up Next at the end · {autoplay}'**
+  /// **'Up next at the end · {autoplay}'**
   String vodLegendUpNextWhen({required String autoplay});
 
   /// What a screen reader calls the video's seek bar (a slider).
@@ -8355,7 +8350,7 @@ abstract class AppLocalizations {
   /// The heading of the card shown at the end of a video with the video that plays next (shown in capitals).
   ///
   /// In en, this message translates to:
-  /// **'Up Next'**
+  /// **'Up next'**
   String get vodUpNext;
 
   /// Beside « Up Next »: the seconds before the next video plays by itself. French reads as a countdown with the unit's symbol (« dans 10 s »), which fits beside « À SUIVRE » and the Cancel button on a phone at large text.
@@ -8391,7 +8386,7 @@ abstract class AppLocalizations {
   /// The note under the chat replay's info button: why some emotes may look different from the broadcast.
   ///
   /// In en, this message translates to:
-  /// **'7TV, BTTV and FFZ emotes are the channel\'s current sets, which may differ from the ones used during the broadcast.'**
+  /// **'7TV, BTTV, and FFZ emotes are the channel’s current sets, which may differ from the ones used during the broadcast.'**
   String get vodReplayEmotesNote;
 
   /// Tooltip of the chat replay's info button (it shows vodReplayEmotesNote).
@@ -8421,31 +8416,31 @@ abstract class AppLocalizations {
   /// Under the placeholder rows while the chat replay loads.
   ///
   /// In en, this message translates to:
-  /// **'Loading chat replay'**
+  /// **'Loading chat replay…'**
   String get vodReplayLoading;
 
-  /// A whisper could not be sent: the conversation on screen was opened with another Twitch account than the one logged in now.
+  /// Error message. A whisper could not be sent: the conversation on screen was opened with another Twitch account than the one logged in now.
   ///
   /// In en, this message translates to:
   /// **'This conversation belongs to another account.'**
   String get whisperOtherAccount;
 
-  /// A whisper could not be sent: it is too long for Twitch. max is the limit, with the language's thousands separator (10,000).
+  /// Error message. A whisper could not be sent: it is too long for Twitch. max is the limit, with the language's thousands separator (10,000).
   ///
   /// In en, this message translates to:
   /// **'Whispers can be {max} characters at most.'**
   String whisperTooLong({required int max});
 
-  /// A whisper could not be sent: the viewer's login predates the whisper permission.
+  /// Error message. A whisper could not be sent: the viewer's login predates the whisper permission.
   ///
   /// In en, this message translates to:
   /// **'Log in again to whisper from this app.'**
   String get whisperLogInAgain;
 
-  /// A whisper could not be sent for an unexpected reason.
+  /// Error message. A whisper could not be sent for an unexpected reason.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t whisper (unexpected error).'**
+  /// **'Couldn’t whisper (unexpected error).'**
   String get whisperFailedUnexpected;
 
   /// The title of the notification when a followed channel goes live. name is the channel's display name. Shown in the system's notification and in the Activity list.
@@ -8481,19 +8476,19 @@ abstract class AppLocalizations {
   /// The title of the reminder notification set with « Remind me » on a channel's schedule. name is the channel's display name. Shown in the system's notification and in the Activity list.
   ///
   /// In en, this message translates to:
-  /// **'{name}\'s stream is starting'**
+  /// **'{name}’s stream is starting'**
   String notifReminderTitle({required String name});
 
   /// The text of a reminder notification when the scheduled stream has no title nor category. Shown in the system's notification and in the Activity list.
   ///
   /// In en, this message translates to:
-  /// **'Stream'**
+  /// **'Untitled stream'**
   String get notifReminderUntitled;
 
   /// The go-live notifications. An Android notification channel's name, listed in the system's settings for the app: short, plural, sentence case.
   ///
   /// In en, this message translates to:
-  /// **'Go live'**
+  /// **'Go-live notifications'**
   String get notifChannelGoLive;
 
   /// The go-live notifications. An Android notification channel's description, under its name in the system's settings: one sentence, no final full stop.
@@ -8505,13 +8500,13 @@ abstract class AppLocalizations {
   /// The mention notifications. An Android notification channel's name, listed in the system's settings for the app: short, plural, sentence case.
   ///
   /// In en, this message translates to:
-  /// **'Chat Mentions'**
+  /// **'Chat mentions'**
   String get notifChannelMentions;
 
   /// The mention notifications. An Android notification channel's description, under its name in the system's settings: one sentence, no final full stop.
   ///
   /// In en, this message translates to:
-  /// **'When someone mentions you in a chat you are watching while ONSET is in the background'**
+  /// **'When someone mentions you in a chat you’re watching while ONSET is in the background'**
   String get notifChannelMentionsDescription;
 
   /// The reminders set on channels' schedules. An Android notification channel's name, listed in the system's settings for the app: short, plural, sentence case.
@@ -8523,7 +8518,7 @@ abstract class AppLocalizations {
   /// The reminders set on channels' schedules. An Android notification channel's description, under its name in the system's settings: one sentence, no final full stop.
   ///
   /// In en, this message translates to:
-  /// **'Scheduled streams you asked to be reminded of'**
+  /// **'When a scheduled stream you set a reminder for starts'**
   String get notifChannelRemindersDescription;
 
   /// The notification of a stream or video playing in the background (its controls). An Android notification channel's name, listed in the system's settings for the app: short, plural, sentence case.
@@ -8556,10 +8551,10 @@ abstract class AppLocalizations {
   /// **'Missing permissions'**
   String get authMissingPermissionsTitle;
 
-  /// The text of the same dialog; « Log in » follows.
+  /// Error message. The text of the same dialog; « Log in » follows.
   ///
   /// In en, this message translates to:
-  /// **'Your session is missing permissions. Please log in again to continue.'**
+  /// **'Your session is missing permissions. Log in again to continue.'**
   String get authMissingPermissions;
 
   /// The title of the dialog shown when Twitch refuses a request because the session ended.
@@ -8568,10 +8563,10 @@ abstract class AppLocalizations {
   /// **'Session expired'**
   String get authSessionExpiredTitle;
 
-  /// The text of the same dialog; « Log in » follows.
+  /// Error message. The text of the same dialog; « Log in » follows.
   ///
   /// In en, this message translates to:
-  /// **'Your session has expired. Please log in again to continue.'**
+  /// **'Your session has expired. Log in again to continue.'**
   String get authSessionExpired;
 
   /// The dialog's button that opens the Twitch login page.

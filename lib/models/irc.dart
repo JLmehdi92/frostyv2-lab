@@ -504,7 +504,11 @@ class IRCMessage {
             }
 
             final newBadge = ChatBadge(
-              name: skipBot ? 'Moderator (Bot)' : 'Moderator',
+              name: skipBot
+                  ? context.l10n.chatBadgeModeratorBot(
+                      moderator: badgeInfo.name,
+                    )
+                  : badgeInfo.name,
               url: badgeUrl,
               type: BadgeType.twitch,
             );

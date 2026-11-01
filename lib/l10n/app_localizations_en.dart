@@ -48,14 +48,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonDismiss => 'Dismiss';
 
   @override
-  String get commonConnectWithTwitch => 'Connect with Twitch';
+  String get commonConnectWithTwitch => 'Log in with Twitch';
 
   @override
   String get settingsLanguageTitle => 'Language';
 
   @override
   String settingsLanguageSystemSubtitle({required String language}) {
-    return '“System” follows your device’s language (currently: $language).';
+    return '“System” follows your device’s language (currently $language).';
   }
 
   @override
@@ -94,10 +94,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingLoginLead =>
-      'ONSET needs your permission in order to enable the ability to chat, view followed streams, and more.';
+      'ONSET needs your permission to let you chat, see followed streams, and more.';
 
   @override
-  String get onboardingLoginAuthorizeHeader => 'What you will authorize';
+  String get onboardingLoginAuthorizeHeader => 'What you’ll authorize';
 
   @override
   String get onboardingPermissionChatTitle => 'Chat';
@@ -109,7 +109,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingPermissionFollowsTitle => 'Followed channels';
 
   @override
-  String get onboardingPermissionFollowsDetail => 'See who is live right now';
+  String get onboardingPermissionFollowsDetail => 'See who’s live right now';
 
   @override
   String get onboardingPermissionEmotesTitle => 'Your emotes';
@@ -142,11 +142,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingPermissionBlocksDetail =>
-      'Manage blocks, change your chat color';
+      'Manage blocks and change your name color';
 
   @override
   String get onboardingLoginDisclaimer =>
-      'ONSET only asks for the necessary permissions through the official Twitch API. You’ll be able to review them before authorizing.';
+      'ONSET asks only for the permissions it needs, through the official Twitch API. You’ll be able to review them before authorizing.';
 
   @override
   String get onboardingLoginSkip => 'Skip';
@@ -164,11 +164,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get loginSigningIn => 'Signing you in…';
+  String get loginSigningIn => 'Logging you in…';
 
   @override
   String get onboardingSetupLoginFailed =>
-      'Login failed · go back to try again, or log in later from Profile';
+      'Couldn’t log in · go back to try again, or log in later from Profile';
 
   @override
   String get onboardingSetupNotLoggedIn =>
@@ -210,7 +210,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingSetupThemeLightNote => 'Light surfaces everywhere';
 
   @override
-  String get onboardingSetupThemeDarkNote => 'Noir, the ONSET default';
+  String get onboardingSetupThemeDarkNote => 'The ONSET default';
 
   @override
   String get accentColorTitle => 'Accent color';
@@ -231,7 +231,7 @@ class AppLocalizationsEn extends AppLocalizations {
     required int saturation,
     required int brightness,
   }) {
-    return '$saturation %, $brightness %';
+    return '$saturation%, $brightness%';
   }
 
   @override
@@ -240,6 +240,7 @@ class AppLocalizationsEn extends AppLocalizations {
       degrees,
       locale: localeName,
       other: 'Hue $degrees degrees',
+      one: 'Hue $degrees degree',
     );
     return '$_temp0';
   }
@@ -250,7 +251,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String onboardingSetupHistoryDetail({required String link}) {
-    return 'When Twitch\'s own chat history is unavailable, fails or is empty, loads recent messages from $link, which then receives the channel name.';
+    return 'When Twitch’s own chat history is unavailable, fails, or is empty, ONSET loads recent messages from $link, which then receives the channel name.';
   }
 
   @override
@@ -258,7 +259,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingSetupCrashDetail =>
-      'Help improve ONSET by sending crash logs and analytics through Firebase, without your Twitch account or channels.';
+      'Help improve ONSET by sending crash logs and analytics through Firebase. Neither your Twitch account nor your channels are sent.';
 
   @override
   String get onboardingWelcomeTitle => 'Welcome!';
@@ -268,15 +269,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingWelcomeTipGitHub =>
-      'Check out the GitHub repo at the top-right of the settings page to explore ONSET’s source code, report bugs, make feature requests, and more.';
+      'Check out the GitHub repo (top-right corner of Settings) to explore ONSET’s source code, report bugs, request features, and more.';
 
   @override
   String get onboardingWelcomeTipChangelog =>
-      'Links to the full changelog and FAQ are in the settings page under “Other”.';
+      'Links to the full changelog and the FAQ are in Settings › Other.';
 
   @override
   String get onboardingWelcomeTipRating =>
-      'Don’t forget to leave a rating and/or review on the app store!';
+      'ONSET checks for new builds by itself, and the release notes open after each update.';
 
   @override
   String get onboardingWelcomeGo => 'Let’s go!';
@@ -289,11 +290,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginHelpBodyOnboarding =>
-      'If the Twitch cookie banner is still blocking the login, try clicking one of the links in the cookie policy description and navigating until you reach the Twitch home page. From there, you can try logging in on the top right profile icon. Once logged in, go back to the first step of the onboarding and then try again.';
+      'If the Twitch cookie banner still blocks the login, tap one of the links in the cookie policy text and keep going until you reach the Twitch home page. From there, log in with the profile icon in the top-right corner. Once you’re logged in, go back to the first step of setup and try again.';
 
   @override
   String get loginHelpBodyElsewhere =>
-      'If the Twitch cookie banner is still blocking the login, try clicking one of the links in the cookie policy description and navigating until you reach the Twitch home page. From there, you can try logging in on the top right profile icon. Once logged in, go back, then open the login again.';
+      'If the Twitch cookie banner still blocks the login, tap one of the links in the cookie policy text and keep going until you reach the Twitch home page. From there, log in with the profile icon in the top-right corner. Once you’re logged in, go back and open the login page again.';
 
   @override
   String loginHostSecure({required String host}) {
@@ -306,10 +307,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get loginFailedLine => 'Twitch did not sign you in. Try again.';
+  String get loginFailedLine => 'Twitch didn’t log you in. Try again.';
 
   @override
-  String get loginLoadFailedTitle => 'Twitch could not be reached';
+  String get loginLoadFailedTitle => 'Couldn’t reach Twitch.';
 
   @override
   String get loginLoadFailedDetail => 'Check your connection, then try again.';
@@ -332,6 +333,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Activity, $count new',
+      one: 'Activity, $count new',
     );
     return '$_temp0';
   }
@@ -363,6 +365,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Whispers ($count unread)',
+      one: 'Whispers ($count unread)',
     );
     return '$_temp0';
   }
@@ -376,6 +379,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: '$label, $count unread',
+      one: '$label, $count unread',
     );
     return '$_temp0';
   }
@@ -387,19 +391,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shellSearch => 'Search';
 
   @override
-  String get shellSearchHint => 'Search channels, categories or videos';
+  String get shellSearchHint => 'Search channels, categories, or videos';
 
   @override
   String get shellSettings => 'Settings';
 
   @override
   String homeOpenChannelFailed({required String login}) {
-    return 'Couldn\'t open $login\'s channel.';
+    return 'Couldn’t open $login’s channel.';
   }
 
   @override
   String mentionNotice({required String login}) {
-    return 'You were mentioned in $login\'s chat';
+    return 'You were mentioned in $login’s chat.';
   }
 
   @override
@@ -407,7 +411,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String deepLinkFailed({required String uri}) {
-    return 'Unable to navigate to \'$uri\'';
+    return 'Couldn’t open “$uri”.';
   }
 
   @override
@@ -420,7 +424,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get miniPlayerReturn => 'Return to stream';
 
   @override
-  String get miniPlayerClose => 'Close mini player';
+  String get miniPlayerClose => 'Close miniplayer';
 
   @override
   String get userActionsProfile => 'Profile';
@@ -504,21 +508,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsPageGeneralDescription =>
-      'Theme, stream cards, browsing and links';
+      'Theme, stream cards, browsing, and links';
 
   @override
   String get settingsPageVideo => 'Video';
 
   @override
   String get settingsPageVideoDescription =>
-      'The low-latency player, playback, overlay, videos and captions';
+      'Low-latency player, playback, overlay, videos, and captions';
 
   @override
   String get settingsPageChat => 'Chat';
 
   @override
   String get settingsPageChatDescription =>
-      'How chat looks, waits, alerts and filters';
+      'Appearance, delay, alerts, and filters';
 
   @override
   String get settingsPageNotifications => 'Notifications';
@@ -532,7 +536,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsPageOtherDescription =>
-      'Updates, storage, privacy and about';
+      'Updates, storage, privacy, and about';
 
   @override
   String get settingsPageAccount => 'Account';
@@ -547,10 +551,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsPageBlockedDescription => 'People you blocked on Twitch';
 
   @override
-  String get settingsPageChatFilters => 'Edit Chat Filters';
+  String get settingsPageChatFilters => 'Edit chat filters';
 
   @override
-  String get settingsSummaryGeneral => 'Theme, accent color, browse, links';
+  String get settingsSummaryGeneral => 'Theme, accent color, browsing, links';
 
   @override
   String get settingsSummaryVideo => 'Low-latency player, captions, overlay';
@@ -566,7 +570,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Log in to get go-live and mention notifications';
 
   @override
-  String get settingsSummaryOther => 'Updates, cache, privacy, about';
+  String get settingsSummaryOther => 'Updates, storage, privacy, about';
 
   @override
   String settingsSummaryMentions({required String mentions}) {
@@ -594,10 +598,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settingsUnableToReachTwitch => 'Unable to connect to Twitch';
+  String get settingsUnableToReachTwitch => 'Couldn’t connect to Twitch.';
 
   @override
-  String get settingsCheckConnection => 'Check your connection, then try again';
+  String get settingsCheckConnection =>
+      'Check your connection, then try again.';
 
   @override
   String get settingsReconnect => 'Reconnect';
@@ -613,11 +618,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsLoginPitch =>
-      'Log in to enable the ability to chat, view followed streams, and more.';
+      'Log in to chat, see followed streams, and more.';
 
   @override
   String get settingsLoginDisclaimer =>
-      'ONSET only asks for the necessary permissions through the official Twitch API. You\'ll be able to review them before authorizing.';
+      'ONSET asks only for the permissions it needs, through the official Twitch API. You’ll be able to review them before authorizing.';
 
   @override
   String get settingsTokenLoginTip =>
@@ -640,7 +645,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsTwitchSecurityDetail =>
-      'Password, email, phone, two-factor — on twitch.tv';
+      'Password, email, phone, two-factor authentication — on twitch.tv';
 
   @override
   String get settingsTwitchConnections => 'Connections';
@@ -679,7 +684,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String settingsUnblockMessage({required String name}) {
-    return 'Are you sure you want to unblock \"$name\"?';
+    return 'Are you sure you want to unblock $name?';
   }
 
   @override
@@ -687,7 +692,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String settingsBlockMessage({required String name}) {
-    return 'Are you sure you want to block \"$name\"? This will remove them from channel lists, search results, and chat messages.';
+    return 'Are you sure you want to block $name? This removes them from channel lists, search results, and chat messages.';
   }
 
   @override
@@ -702,6 +707,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count blocked',
+      one: '$count blocked',
     );
     return '$_temp0';
   }
@@ -731,7 +737,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsStreamCard => 'Stream card';
 
   @override
-  String get settingsLargeStreamCard => 'Use large stream card';
+  String get settingsLargeStreamCard => 'Use large stream cards';
 
   @override
   String get settingsShowThumbnail => 'Show thumbnail';
@@ -766,6 +772,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count labels',
+      one: '$count label',
       zero: 'None',
     );
     return '$_temp0';
@@ -773,29 +780,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsHideLabeledNote =>
-      'Streams with these labels are left out of Top, categories and tags. Followed channels always show.';
+      'Streams with these labels are left out of Live, Live channels, categories, and tags. Followed channels always show.';
 
   @override
   String get contentLabelDrugs =>
-      'Drugs, Intoxication, or Excessive Tobacco Use';
+      'Drugs, intoxication, or excessive tobacco use';
 
   @override
-  String get contentLabelSexualThemes => 'Sexual Themes';
+  String get contentLabelSexualThemes => 'Sexual themes';
 
   @override
-  String get contentLabelViolentGraphic => 'Violent and Graphic Depictions';
+  String get contentLabelViolentGraphic => 'Violent and graphic depictions';
 
   @override
   String get contentLabelGambling => 'Gambling';
 
   @override
-  String get contentLabelProfanity => 'Significant Profanity or Vulgarity';
+  String get contentLabelProfanity => 'Significant profanity or vulgarity';
 
   @override
-  String get contentLabelMatureGame => 'Mature-Rated Game';
+  String get contentLabelMatureGame => 'Mature-rated game';
 
   @override
-  String get contentLabelPolitics => 'Politics and Sensitive Social Issues';
+  String get contentLabelPolitics => 'Politics and sensitive social issues';
 
   @override
   String get settingsLowLatencyPlayer => 'Low-latency player';
@@ -813,14 +820,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsAutoLatencyDetail =>
-      'Keeps the stream close to live by playing very slightly faster when it drifts behind, without reloading it. If Ultra keeps stalling, the next streams use Standard for a while. Applies the next time a stream is opened.';
+      'Keeps the stream close to live by playing very slightly faster when it falls behind, without reloading it. If Ultra keeps stalling, the next few streams use Standard. Applies the next time you open a stream.';
 
   @override
   String get settingsLiveCatchUp => 'Live catch-up';
 
   @override
   String get settingsLiveCatchUpDetail =>
-      'Speed up plays slightly faster until it is back at live (Auto latency does it when on). Jump to live skips ahead after a stall. Applies the next time a stream is opened.';
+      '“Speed up” plays slightly faster until the stream is back to live (Auto latency already does this when it’s on). “Jump to live” skips ahead after a stall. Applies the next time you open a stream.';
 
   @override
   String get liveCatchUpSpeedUp => 'Speed up';
@@ -833,7 +840,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsBufferProfileDetail =>
-      'Ultra keeps an even smaller buffer for lower latency but may rebuffer more on weak connections. Applies the next time a stream is opened.';
+      'Ultra keeps a smaller buffer than Standard for lower latency, but may rebuffer more on weak connections. Applies the next time you open a stream.';
 
   @override
   String get bufferProfileStandard => 'Standard';
@@ -869,7 +876,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsFastRenderingDetail =>
-      'Uses a faster WebView rendering method. Disable if you experience crashes while watching streams.';
+      'Uses a faster WebView rendering method. Turn it off if streams crash while you watch.';
 
   @override
   String get settingsKeepAwake => 'Keep screen awake';
@@ -893,14 +900,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsCustomOverlayDetail =>
-      'Replaces Twitch\'s default web overlay with a mobile-friendly version.';
+      'Replaces Twitch’s default web overlay with a mobile-friendly version.';
 
   @override
-  String get settingsToggleOverlay => 'Long-press player to toggle overlay';
+  String get settingsToggleOverlay =>
+      'Long-press the player to toggle the overlay';
 
   @override
   String get settingsToggleOverlayDetail =>
-      'Allows switching between Twitch\'s overlay and the custom overlay.';
+      'Lets you switch between Twitch’s overlay and the custom overlay.';
 
   @override
   String get settingsShowLatency => 'Show latency';
@@ -913,17 +921,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsVideosAndContent => 'Videos and content';
 
   @override
-  String get settingsVodAutoplay => 'Video Autoplaying';
+  String get settingsVodAutoplay => 'Autoplay videos';
 
   @override
   String get settingsVodAutoplayDetail =>
-      'Choose when videos should play automatically';
+      'Choose when videos play automatically.';
 
   @override
-  String get vodAutoplayAlways => 'Mobile data & Wi-Fi';
+  String get vodAutoplayAlways => 'Wi-Fi and mobile data';
 
   @override
-  String get vodAutoplayWifiOnly => 'Wi-Fi Only';
+  String get vodAutoplayWifiOnly => 'Wi-Fi only';
 
   @override
   String get vodAutoplayNever => 'Never';
@@ -933,13 +941,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsWarnMatureDetail =>
-      'Shows a warning before a channel labeled for mature content.';
+      'Shows a warning before opening a channel labeled for mature content.';
 
   @override
   String get settingsCaptions => 'Captions';
 
   @override
-  String get settingsClosedCaptions => 'Closed Captions';
+  String get settingsClosedCaptions => 'Closed captions';
 
   @override
   String get settingsClosedCaptionsDetail =>
@@ -993,7 +1001,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get webTokenExplanation =>
-      'Some streams only offer their 2K (1440p HEVC) quality to a signed-in viewer. This is normally picked up on its own when you log in, and refreshed on each launch — you should never need to touch it. Fill it in by hand only if that fails: paste the value of the \"auth-token\" cookie from twitch.tv in a browser.';
+      'Some streams offer 2K (1440p HEVC) only to logged-in viewers. ONSET normally picks up this token by itself when you log in and refreshes it on each launch, so you should never need to touch it. Fill it in by hand only if that fails: paste the value of the “auth-token” cookie from twitch.tv in a browser.';
 
   @override
   String get webTokenIsSet => 'A token is set.';
@@ -1026,7 +1034,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsChatPreviewBadgeEmote => 'Badge and emote preview.';
 
   @override
-  String get settingsChatPreviewText => 'Hello! Here\'s a text preview.';
+  String get settingsChatPreviewText => 'Hello! Here’s a text preview.';
 
   @override
   String get settingsChatPreviewSpacing =>
@@ -1050,7 +1058,7 @@ class AppLocalizationsEn extends AppLocalizations {
         );
     final String scaleString = scaleNumberFormat.format(scale);
 
-    return '${scaleString}x';
+    return '$scaleString×';
   }
 
   @override
@@ -1072,35 +1080,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsShowDeletedDetail =>
-      'Restores the original message of deleted messages.';
+      'Shows the original text of deleted messages.';
 
   @override
   String get settingsAnimateEmotes => 'Animate emotes';
 
   @override
   String get settingsAnimateEmotesDetail =>
-      'Off shows the first frame of animated emotes in chat.';
+      'When off, shows only the first frame of animated emotes in chat.';
 
   @override
   String get settingsAnimatedGifs => 'Animated GIFs';
 
   @override
   String get settingsAnimatedGifsDetail =>
-      'Off shows the first frame of GIFs sent in chat.';
+      'When off, shows only the first frame of GIFs sent in chat.';
 
   @override
   String get settingsShowGifs => 'Show GIFs in Chat';
 
   @override
   String get settingsShowGifsDetail =>
-      'Off shows the title of a GIF instead of the GIF.';
+      'When off, shows the GIF’s title instead.';
 
   @override
   String get settingsLinkPreviews => 'Preview clips and videos';
 
   @override
   String get settingsLinkPreviewsDetail =>
-      'Shows a card under messages that link a Twitch clip or video.';
+      'Shows a card under messages that link to a Twitch clip or video.';
 
   @override
   String get settingsModerationNotices => 'Show timeouts and bans';
@@ -1132,7 +1140,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSyncDelayDetail =>
-      'Holds each message for as long as the video is behind live, so chat matches what you see. Your own messages show at once.';
+      'Holds each message for as long as the video is behind live, so chat matches what you see. Your own messages show right away.';
 
   @override
   String get settingsMessageDelay => 'Message delay';
@@ -1143,17 +1151,18 @@ class AppLocalizationsEn extends AppLocalizations {
       seconds,
       locale: localeName,
       other: '$seconds seconds',
+      one: '$seconds second',
     );
     return '$_temp0';
   }
 
   @override
   String get settingsMessageDelayDetail =>
-      'Adds a delay before each message is rendered in chat. ';
+      'Adds a delay before each message appears in chat.';
 
   @override
   String get settingsMessageDelayDetailIos =>
-      'Adds a delay before each message is rendered in chat. 15 seconds is recommended for iOS.';
+      'Adds a delay before each message appears in chat. 15 seconds is recommended on iOS.';
 
   @override
   String get settingsLayout => 'Layout';
@@ -1176,35 +1185,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAlerts => 'Alerts';
 
   @override
-  String get settingsFirstTimeChatters => 'Highlight first time chatters';
+  String get settingsFirstTimeChatters => 'Highlight first-time chatters';
 
   @override
   String get settingsUserNotices => 'Show notices';
 
   @override
   String get settingsUserNoticesDetail =>
-      'Shows notices such as subs and re-subs, announcements, and raids.';
+      'Shows notices such as subs, resubs, announcements, and raids.';
 
   @override
   String get settingsCollapseGiftBombs => 'Collapse gift bombs';
 
   @override
   String get settingsCollapseGiftBombsDetail =>
-      'Folds a gift bomb of five subs or more into its first line; tap \"recipients\" to see who got one.';
+      'Folds a gift bomb of five subs or more into its first line; tap “recipients” to see who got one.';
 
   @override
   String get settingsShowHypeTrains => 'Show Hype Trains';
 
   @override
   String get settingsShowHypeTrainsDetail =>
-      'Shows Hype Train progress, levels and rewards above chat.';
+      'Shows Hype Train progress, levels, and rewards above chat.';
 
   @override
   String get settingsCommunityHighlights => 'Show community highlights';
 
   @override
   String get settingsCommunityHighlightsDetail =>
-      'Shows polls, predictions, pinned messages, gift bombs and raids above chat.';
+      'Shows polls, predictions, pinned messages, gift bombs, and raids above chat.';
 
   @override
   String get settingsCelebrations => 'Show celebrations';
@@ -1218,7 +1227,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsCelebrationsOnVideoDetail =>
-      'Full plays the animation over the video. Subtle keeps the video clear and says it with a line in chat.';
+      '“Full” plays the animation over the video. “Subtle” keeps the video clear and posts a line in chat instead.';
 
   @override
   String get celebrationsFull => 'Full';
@@ -1254,7 +1263,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsNotchSideDetail =>
-      'Overrides and fills the available space in devices with a display notch.';
+      'Fills the space beside the display notch on devices that have one.';
 
   @override
   String get notchSideNone => 'None';
@@ -1278,7 +1287,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsOverlayOpacityDetail =>
-      'Sets the opacity (transparency) of the overlay chat in fullscreen mode.';
+      'Sets the opacity of the chat overlay in full-screen mode.';
 
   @override
   String get settingsFiltersGroup => 'Chat filters and muted keywords';
@@ -1294,7 +1303,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsWholeWordsDetail =>
-      'Only matches whole words instead of partial matches.';
+      'Matches whole words only, not parts of words.';
 
   @override
   String get settingsEmotesAndBadges => 'Emotes and badges';
@@ -1328,7 +1337,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatFiltersExplanation =>
-      'Select the filters you would like to block in chat across all channels. In channels you moderate, you will still see all messages.';
+      'Choose what to filter out of chat in every channel. In channels you moderate, you’ll still see every message.';
 
   @override
   String get chatFiltersGroup => 'Filters';
@@ -1338,10 +1347,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatFilterDiscriminationDetail =>
-      'Negative language about race, gender, orientation, or similar';
+      'Negative language about race, gender, sexual orientation, or similar';
 
   @override
-  String get chatFilterSexual => 'Sexually Explicit Language';
+  String get chatFilterSexual => 'Sexually explicit language';
 
   @override
   String get chatFilterSexualDetail =>
@@ -1352,7 +1361,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatFilterHarassmentDetail =>
-      'Aggressive or sexually harassing language towards other people';
+      'Aggressive or sexually harassing language toward other people';
 
   @override
   String get chatFilterProfanity => 'Profanity';
@@ -1363,7 +1372,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chatFiltersNote =>
-      'Twitch\'s AutoMod rates the words of each live chat message; only words it rates are hidden, so a message it did not rate always shows. Hidden words show as stars: tap them to see the message. Chat replays of past broadcasts are not filtered.';
+      'Twitch’s AutoMod checks the words of each live chat message and hides only the ones it flags, so a message with no flagged words always shows. Hidden words show as stars: tap them to see the message. Chat replays of past broadcasts aren’t filtered.';
 
   @override
   String get mutedKeywordsTitle => 'Muted keywords';
@@ -1374,7 +1383,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count keywords',
-      one: '1 keyword',
+      one: '$count keyword',
       zero: 'None',
     );
     return '$_temp0';
@@ -1396,7 +1405,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String mutedKeywordsRemoved({required String word}) {
-    return 'Removed \'$word\'';
+    return 'Removed “$word”';
   }
 
   @override
@@ -1421,7 +1430,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get goLiveOnDetail =>
-      'Checked every 90 seconds while ONSET is open or playing, and about every 15 minutes otherwise, when the system allows. Turn a channel\'s bell off from its menu.';
+      'Checked every 90 seconds while ONSET is open or playing, and about every 15 minutes otherwise, when the system allows. Turn a channel’s bell off from its menu.';
 
   @override
   String get goLiveOffDetail => 'Be told when channels you follow go live.';
@@ -1430,20 +1439,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get goLiveLogInAgain => 'Log in again to get go-live notifications.';
 
   @override
-  String get goLiveReadFailed => 'Couldn\'t read the go-live setting.';
+  String get goLiveReadFailed => 'Couldn’t read the go-live setting.';
 
   @override
-  String get goLiveTurnOnFailed => 'Couldn\'t turn on go-live notifications.';
+  String get goLiveTurnOnFailed => 'Couldn’t turn on go-live notifications.';
 
   @override
-  String get goLiveTurnOffFailed => 'Couldn\'t turn off go-live notifications.';
+  String get goLiveTurnOffFailed => 'Couldn’t turn off go-live notifications.';
 
   @override
   String get notificationsAllowInSystem =>
       'Allow notifications for this app in the system settings.';
 
   @override
-  String get goLiveBellFailed => 'Couldn\'t change the bell.';
+  String get goLiveBellFailed => 'Couldn’t change the bell.';
 
   @override
   String goLiveBell({required String name}) {
@@ -1465,7 +1474,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mentionDetail =>
-      'When someone mentions you in a chat you are watching while ONSET is in the background or in picture-in-picture.';
+      'When someone mentions you in a chat you’re watching while ONSET is in the background or in picture-in-picture.';
 
   @override
   String get settingsUpdates => 'Updates';
@@ -1475,7 +1484,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsUpdatesNote =>
-      'ONSET looks for a newer build when it starts and when it comes back to the foreground. Release notes open by themselves after an update to a new version.';
+      'ONSET looks for a newer build when it starts and when it comes back to the foreground. Release notes open automatically after an update.';
 
   @override
   String get settingsStorage => 'Storage and reset';
@@ -1520,10 +1529,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get updatesUpToDate => 'You\'re up to date';
+  String get updatesUpToDate => 'You’re up to date';
 
   @override
-  String get updatesCheckFailed => 'Couldn\'t check for updates';
+  String get updatesCheckFailed => 'Couldn’t check for updates.';
 
   @override
   String get updatesCheck => 'Check for updates';
@@ -1534,16 +1543,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get updatesChecking => 'Checking';
+  String get updatesChecking => 'Checking…';
 
   @override
-  String get followedSortViewers => 'Viewers (High to Low)';
+  String get followedSortViewers => 'Viewers (high to low)';
 
   @override
-  String get followedSortRecent => 'Recently Started';
+  String get followedSortRecent => 'Recently started';
 
   @override
-  String get followedSortName => 'Name (A-Z)';
+  String get followedSortName => 'Name (A–Z)';
 
   @override
   String get followedSortCategory => 'Category';
@@ -1554,6 +1563,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count new',
+      one: '$count new',
     );
     return '$_temp0';
   }
@@ -1592,11 +1602,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get releaseNotesWhatsNew => 'WHAT\'S NEW';
+  String get releaseNotesWhatsNew => 'WHAT’S NEW';
 
   @override
   String releaseNotesWhatsNewIn({required String version}) {
-    return 'WHAT\'S NEW IN $version';
+    return 'WHAT’S NEW IN $version';
   }
 
   @override
@@ -1611,7 +1621,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String releaseNotesWasOnSince({required String version}) {
-    return 'You were on $version. Here is what changed since then.';
+    return 'You were on $version. Here’s what’s changed since.';
   }
 
   @override
@@ -1625,7 +1635,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releaseNotesFootnote =>
-      'Release notes open by themselves after an update to a new version.';
+      'Release notes open automatically after an update.';
 
   @override
   String releaseNotesPoints({required int count}) {
@@ -1633,7 +1643,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count points',
-      one: '1 point',
+      one: '$count point',
     );
     return '$_temp0';
   }
@@ -1655,29 +1665,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get releaseNotesEmptyDetail =>
-      'What changes in each version of ONSET shows up here, and opens by itself after an update.';
+      'Changes in each ONSET version appear here and open automatically after an update.';
 
   @override
   String get updateAllowTitle => 'Allow updates';
 
   @override
   String get updateAllowMessage =>
-      'Android asks you to let ONSET install apps. Turn on \"Allow from this source\" on the next screen, then come back.';
+      'Android asks you to let ONSET install apps. Turn on “Allow from this source” on the next screen, then come back.';
 
   @override
   String get updateOpenSettings => 'Open settings';
 
   @override
-  String get updateNotAllowed => 'ONSET is not allowed to install updates';
+  String get updateNotAllowed => 'ONSET isn’t allowed to install updates.';
 
   @override
-  String get updateCorrupted => 'The download was corrupted — try again';
+  String get updateCorrupted => 'The download was corrupted. Try again.';
 
   @override
-  String get updateInstallFailed => 'Android could not install the update';
+  String get updateInstallFailed => 'Android couldn’t install the update.';
 
   @override
-  String get updateDownloadFailed => 'Download failed';
+  String get updateDownloadFailed => 'Couldn’t download the update.';
 
   @override
   String updateInstalledBuild({required int build}) {
@@ -1697,7 +1707,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get updateChecked => 'SHA-256 checked before install';
+  String get updateChecked => 'Verified with SHA-256 before installing';
 
   @override
   String get updateAvailable => 'Update available';
@@ -1717,10 +1727,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get updateLater => 'Later';
 
   @override
-  String get updateInstalling => 'Installing update';
+  String get updateInstalling => 'Installing update…';
 
   @override
-  String get updateDownloading => 'Downloading update';
+  String get updateDownloading => 'Downloading update…';
 
   @override
   String updateProgress({required double received, required double total}) {
@@ -1789,6 +1799,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: '$countString watching',
+      one: '$countString watching',
     );
     return '$_temp0';
   }
@@ -1799,13 +1810,14 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: '$viewers watching',
+      one: '$viewers watching',
     );
     return '$_temp0';
   }
 
   @override
   String streamWatchStreakSemantics({required int value}) {
-    return 'Watch streak $value';
+    return 'Watch Streak $value';
   }
 
   @override
@@ -1814,7 +1826,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get streamNoCategory => 'No Category';
+  String get streamNoCategory => 'No category';
 
   @override
   String streamTagsSemantics({required String tags}) {
@@ -1891,83 +1903,86 @@ class AppLocalizationsEn extends AppLocalizations {
   String get followedCategoriesTitle => 'Categories';
 
   @override
-  String get apiErrorUnableToConnect => 'Unable to connect to Twitch';
+  String get apiErrorUnableToConnect => 'Couldn’t connect to Twitch.';
 
   @override
-  String get apiErrorNetwork =>
-      'No internet connection. Please check your network.';
+  String get apiErrorNetwork => 'No internet connection. Check your network.';
 
   @override
   String get apiErrorConnectionTimeout =>
-      'Connection timeout. Please try again.';
+      'The connection timed out. Try again.';
 
   @override
-  String get apiErrorSendTimeout => 'Upload timeout. Please try again.';
+  String get apiErrorSendTimeout => 'Sending took too long. Try again.';
 
   @override
   String get apiErrorReceiveTimeout =>
-      'Server response timeout. Please try again.';
+      'Twitch took too long to respond. Try again.';
 
   @override
-  String get apiErrorCancelled => 'Request was cancelled';
+  String get apiErrorCancelled => 'The request was canceled.';
 
   @override
-  String get apiErrorCertificate => 'Security certificate error';
+  String get apiErrorCertificate =>
+      'Couldn’t verify Twitch’s security certificate.';
 
   @override
-  String get apiErrorUnexpected => 'An unexpected error occurred';
+  String get apiErrorUnexpected => 'An unexpected error occurred.';
 
   @override
-  String get apiErrorBadRequest => 'Invalid request data';
+  String get apiErrorBadRequest => 'The request wasn’t valid.';
 
   @override
-  String get apiErrorUnauthorized => 'Please log in to continue';
+  String get apiErrorUnauthorized => 'Log in to continue.';
 
   @override
-  String get apiErrorForbidden => 'Access denied. Insufficient permissions';
+  String get apiErrorForbidden => 'Access denied: missing permissions.';
 
   @override
-  String get apiErrorNotFound => 'Resource not found';
+  String get apiErrorNotFound => 'This content couldn’t be found.';
 
   @override
-  String get apiErrorConflict => 'Conflict with current state. Please refresh';
+  String get apiErrorConflict =>
+      'This changed in the meantime. Refresh and try again.';
 
   @override
-  String get apiErrorInvalid => 'Invalid data provided';
+  String get apiErrorInvalid => 'The data sent wasn’t valid.';
 
   @override
   String get apiErrorRateLimited =>
-      'Rate limit exceeded. Please wait before trying again';
+      'Too many requests. Wait a moment, then try again.';
 
   @override
-  String get apiErrorServer => 'Server error. Please try again later';
+  String get apiErrorServer => 'Twitch had a server error. Try again later.';
 
   @override
-  String get apiErrorUnavailable => 'Service temporarily unavailable';
+  String get apiErrorUnavailable => 'Twitch is temporarily unavailable.';
 
   @override
   String get apiErrorMaintenance =>
-      'Service maintenance. Please try again later';
+      'Twitch is under maintenance. Try again later.';
 
   @override
-  String get apiErrorServerTimeout => 'Server timeout. Please try again';
+  String get apiErrorServerTimeout =>
+      'Twitch’s server didn’t respond. Try again.';
 
   @override
   String apiErrorHttp({required int status}) {
-    return 'HTTP Error $status occurred';
+    return 'HTTP error $status.';
   }
 
   @override
-  String get apiErrorUserNotFound => 'User does not exist';
+  String get apiErrorUserNotFound => 'This user doesn’t exist.';
 
   @override
-  String get apiErrorChannelNotFound => 'Channel does not exist';
+  String get apiErrorChannelNotFound => 'This channel doesn’t exist.';
 
   @override
-  String get apiErrorCategoryNotFound => 'Category not found';
+  String get apiErrorCategoryNotFound => 'Category not found.';
 
   @override
-  String get apiErrorTokenProxyTimeout => 'Token proxy timeout';
+  String get apiErrorTokenProxyTimeout =>
+      'The ONSET token service didn’t respond in time.';
 
   @override
   String get streamSortViewersHigh => 'Viewers (high to low)';
@@ -1994,26 +2009,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get streamListTagUnavailable =>
-      'Tag streams are unavailable right now';
+      'Streams for this tag aren’t available right now.';
 
   @override
   String streamListSortFailed({
     required String sort,
     required String fallback,
   }) {
-    return 'Twitch could not sort by $sort. $fallback still works.';
+    return 'Twitch couldn’t sort by $sort. $fallback still works.';
   }
 
   @override
-  String get streamListLoadFailed => 'Something went wrong loading streams';
+  String get streamListLoadFailed => 'Couldn’t load streams.';
 
   @override
-  String get streamListPinnedFailed =>
-      'Something went wrong loading pinned streams';
+  String get streamListPinnedFailed => 'Couldn’t load pinned streams.';
 
   @override
-  String get streamListOfflineFailed =>
-      'Something went wrong loading offline channels';
+  String get streamListOfflineFailed => 'Couldn’t load offline channels.';
 
   @override
   String get streamListAllHidden => 'Every stream here has a label you hide';
@@ -2025,7 +2038,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get streamListEmptyFollowed => 'No followed streams';
 
   @override
-  String get streamListEmptyTop => 'No top streams';
+  String get streamListEmptyTop => 'No live streams right now';
 
   @override
   String get streamListEmptyLive => 'No live streams';
@@ -2065,7 +2078,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String contentWarningAudienceOf({required String name}) {
-    return '$name\'s content is intended for certain audiences.';
+    return '$name’s content is intended for certain audiences.';
   }
 
   @override
@@ -2081,7 +2094,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String liveFeedHidden({required String name}) {
-    return 'You won\'t see $name in Live for now';
+    return 'You won’t see $name in Live for now.';
   }
 
   @override
@@ -2140,23 +2153,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get liveFeedShare => 'Share';
 
   @override
-  String get liveFeedSwipeHint => 'SWIPE UP FOR THE NEXT LIVE';
+  String get liveFeedSwipeHint => 'SWIPE UP FOR THE NEXT STREAM';
 
   @override
   String get liveFeedUpNext => 'UP NEXT';
 
   @override
   String get liveFeedUpNextHelp =>
-      'Swipe up on the preview, or tap a live in the list. Previews never start with sound.';
+      'Swipe up on the preview, or tap a stream in the list. Previews never start with sound.';
 
   @override
-  String get liveFeedLoadingMore => 'Loading more live channels';
+  String get liveFeedLoadingMore => 'Loading more live channels…';
 
   @override
   String get liveFeedEnd => 'That’s every live channel here for now';
 
   @override
-  String get liveFeedBackToFirst => 'Back to the first';
+  String get liveFeedBackToFirst => 'Back to the top';
 
   @override
   String get commonSeeAll => 'See all';
@@ -2177,7 +2190,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchClear => 'Clear';
 
   @override
-  String get searchHint => 'Search channels, categories or videos';
+  String get searchHint => 'Search';
 
   @override
   String searchSeeAllSemantics({required String section}) {
@@ -2185,7 +2198,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get searchHistory => 'History';
+  String get searchHistory => 'Recent searches';
 
   @override
   String searchRemoveFromHistory({required String query}) {
@@ -2196,30 +2209,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchNoHistory => 'No recent searches';
 
   @override
-  String get searchCategoriesFailed => 'Unable to load categories';
+  String get searchCategoriesFailed => 'Couldn’t load categories.';
 
   @override
-  String get searchCategoriesUnavailable => 'Failed to get categories';
+  String get searchCategoriesUnavailable => 'Couldn’t get categories.';
 
   @override
   String get searchNoCategories => 'No matching categories';
 
   @override
-  String get searchChannelNotFound => 'Unable to find channel';
+  String get searchChannelNotFound => 'Couldn’t find that channel.';
 
   @override
-  String get searchChannelsFailed => 'Unable to load channels';
+  String get searchChannelsFailed => 'Couldn’t load channels.';
 
   @override
   String searchGoToChannel({required String query}) {
-    return 'Go to channel \"$query\"';
+    return 'Go to channel “$query”';
   }
 
   @override
-  String get searchVideosFailed => 'Unable to load videos';
+  String get searchVideosFailed => 'Couldn’t load videos.';
 
   @override
-  String get searchNoResults => 'No search results found';
+  String get searchNoResults => 'No results found';
 
   @override
   String browseLiveChannels({required String where}) {
@@ -2233,13 +2246,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get categoriesEmpty => 'No top categories';
 
   @override
-  String get categoriesLoadFailed => 'Something went wrong loading categories';
+  String get categoriesLoadFailed => 'Couldn’t load categories.';
 
   @override
   String get categoriesRailTitle => 'Top categories';
 
   @override
-  String get categoriesRailNote => 'Most watched first';
+  String get categoriesRailNote => 'Most-watched first';
 
   @override
   String get categorySectionLive => 'Live';
@@ -2276,13 +2289,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get followedVideosSubtitle =>
-      'The newest videos of the channels you follow';
+      'The newest videos from channels you follow';
 
   @override
   String get followedVideosRefresh => 'Refresh';
 
   @override
-  String get followedVideosLoadFailed => 'Something went wrong loading videos';
+  String get followedVideosLoadFailed => 'Couldn’t load videos.';
 
   @override
   String get continueWatchingTitle => 'Continue watching';
@@ -2317,8 +2330,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count wk ago',
-      one: '$count wk ago',
+      other: '$count weeks ago',
+      one: '$count week ago',
     );
     return '$_temp0';
   }
@@ -2328,8 +2341,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count mo ago',
-      one: '$count mo ago',
+      other: '$count months ago',
+      one: '$count month ago',
     );
     return '$_temp0';
   }
@@ -2453,16 +2466,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clipsPlayerSemantics =>
-      'Clip player. Double-tap to toggle play/pause';
+      'Clip player. Double-tap to play or pause.';
 
   @override
-  String get clipsCannotPlay => 'This clip can\'t be played here';
+  String get clipsCannotPlay => 'This clip can’t be played here.';
 
   @override
-  String get clipsLoadingMore => 'Loading more clips for you';
+  String get clipsLoadingMore => 'Loading more clips…';
 
   @override
-  String get clipsLoadFailed => 'Unable to load clips';
+  String get clipsLoadFailed => 'Couldn’t load clips.';
 
   @override
   String get clipsEmpty => 'No clips right now';
@@ -2479,14 +2492,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clipsNext => 'NEXT';
 
   @override
-  String get clipsSwipeHint => 'You can swipe to the next clip';
+  String get clipsSwipeHint => 'Swipe for the next clip';
 
   @override
-  String get clipsLoadMoreFailed => 'Unable to load more clips';
+  String get clipsLoadMoreFailed => 'Couldn’t load more clips.';
 
   @override
   String get clipsEnd =>
-      'That’s all for now! Check out more clips from previous streams';
+      'That’s all for now! Check out more clips from previous streams.';
 
   @override
   String get clipsUpNext => 'Up next in Clips';
@@ -2529,20 +2542,20 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Showing the top $count clips',
-      one: 'Showing the top $count clip',
+      other: 'Showing the first $count clips',
+      one: 'Showing the first clip',
     );
     return '$_temp0';
   }
 
   @override
-  String get clipsCategoryNotFound => 'Category not found';
+  String get clipsCategoryNotFound => 'Category not found.';
 
   @override
-  String get clipsChannelNotFound => 'Channel not found';
+  String get clipsChannelNotFound => 'Channel not found.';
 
   @override
-  String get clipsListFailed => 'Couldn\'t load clips';
+  String get clipsListFailed => 'Couldn’t load clips.';
 
   @override
   String clipsMoreFrom({required String channel}) {
@@ -2556,7 +2569,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clipCopyClipLink => 'Copy clip link';
 
   @override
-  String get clipDetailsFailed => 'Couldn\'t load the clip details';
+  String get clipDetailsFailed => 'Couldn’t load the clip details.';
 
   @override
   String get clipSyncedToClip => 'synced to the clip';
@@ -2564,8 +2577,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String playbackSubscriberOnly({required String subject}) {
     String _temp0 = intl.Intl.selectLogic(subject, {
-      'clip': 'This clip is only available to subscribers.',
-      'other': 'This video is only available to subscribers.',
+      'clip': 'This clip is available only to subscribers.',
+      'other': 'This video is available only to subscribers.',
     });
     return '$_temp0';
   }
@@ -2573,8 +2586,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String playbackGeoBlocked({required String subject}) {
     String _temp0 = intl.Intl.selectLogic(subject, {
-      'clip': 'This clip is not available in your region',
-      'other': 'This video is not available in your region',
+      'clip': 'This clip isn’t available in your region.',
+      'other': 'This video isn’t available in your region.',
     });
     return '$_temp0';
   }
@@ -2582,8 +2595,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String playbackNotFound({required String subject}) {
     String _temp0 = intl.Intl.selectLogic(subject, {
-      'clip': 'This clip is no longer available',
-      'other': 'This video is no longer available',
+      'clip': 'This clip is no longer available.',
+      'other': 'This video is no longer available.',
     });
     return '$_temp0';
   }
@@ -2591,8 +2604,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String playbackFailed({required String subject}) {
     String _temp0 = intl.Intl.selectLogic(subject, {
-      'clip': 'Couldn\'t play this clip',
-      'other': 'Couldn\'t play this video',
+      'clip': 'Couldn’t play this clip.',
+      'other': 'Couldn’t play this video.',
     });
     return '$_temp0';
   }
@@ -2635,11 +2648,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileTabAbout => 'About';
 
   @override
-  String get profileRefreshFailed => 'Couldn\'t refresh this channel';
+  String get profileRefreshFailed => 'Couldn’t refresh this channel.';
 
   @override
   String get profileOpenFailed =>
-      'Couldn\'t open this channel, check your connection';
+      'Couldn’t open this channel. Check your connection.';
 
   @override
   String get profileShare => 'Share';
@@ -2648,16 +2661,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileMore => 'More';
 
   @override
-  String get profileLoadFailed => 'Couldn\'t load this channel\'s profile';
+  String get profileLoadFailed => 'Couldn’t load this channel’s profile.';
 
   @override
   String get profileNoDetails => 'No details';
 
   @override
-  String get profileScheduleFailed => 'Couldn\'t load the schedule';
+  String get profileScheduleFailed => 'Couldn’t load the schedule.';
 
   @override
-  String get profileNotFound => 'Channel not found';
+  String get profileNotFound => 'Channel not found.';
 
   @override
   String profileFollowers({required int count}) {
@@ -2763,13 +2776,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileLive => 'Live';
 
   @override
-  String get profileReminderSet => 'Reminder Set';
+  String get profileReminderSet => 'Reminder set';
 
   @override
-  String get profileRemindMe => 'Remind Me';
+  String get profileRemindMe => 'Remind me';
 
   @override
-  String get startsNow => 'now';
+  String get startsNow => 'starting now';
 
   @override
   String startsInMinutes({required int count}) {
@@ -2809,10 +2822,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Allow notifications for this app in the system settings.';
 
   @override
-  String get profileReminderFailed => 'Couldn\'t set the reminder.';
+  String get profileReminderFailed => 'Couldn’t set the reminder.';
 
   @override
-  String get profileStreamUntitled => 'Stream';
+  String get profileStreamUntitled => 'Untitled stream';
 
   @override
   String get profileNoSchedule => 'No streams scheduled';
@@ -2823,7 +2836,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get profileCancelled => 'Cancelled';
+  String get profileCancelled => 'Canceled';
 
   @override
   String get profilePastBroadcasts => 'Past broadcasts';
@@ -2844,15 +2857,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileNoUploads => 'No uploads';
 
   @override
-  String get videosListFailed => 'Couldn\'t load videos';
+  String get videosListFailed => 'Couldn’t load videos.';
 
   @override
   String videosShowingMostViewed({required int count}) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Showing the $count most viewed videos',
-      one: 'Showing the $count most viewed video',
+      other: 'Showing the $count most-viewed videos',
+      one: 'Showing the most-viewed video',
     );
     return '$_temp0';
   }
@@ -2863,7 +2876,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Showing the $count most recent videos',
-      one: 'Showing the $count most recent video',
+      one: 'Showing the most recent video',
     );
     return '$_temp0';
   }
@@ -2878,20 +2891,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activityTitle => 'Activity';
 
   @override
-  String get activityNote => 'Notifications ONSET posted on this device.';
+  String get activityNote => 'Notifications ONSET has shown on this device.';
 
   @override
   String get activityRemove => 'Remove notification';
 
   @override
-  String get activityEmpty => 'Hooray! You\'re up to date';
+  String get activityEmpty => 'Hooray! You’re up to date';
 
   @override
   String get activityEmptyDetail =>
       'Check back soon for alerts about you and the broadcasters you follow.';
 
   @override
-  String get activityMostRecent => 'Most Recent';
+  String get activityMostRecent => 'Most recent';
 
   @override
   String get activityEarlier => 'Earlier';
@@ -2913,7 +2926,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activityKindLive => 'Live';
 
   @override
-  String get activityKindMention => 'Chat Mentions';
+  String get activityKindMention => 'Chat mentions';
 
   @override
   String get activityKindReminder => 'Events';
@@ -2973,16 +2986,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get whisperStatusUnavailable =>
-      'Twitch isn\'t sending whispers to this app right now. It tries again when you come back to the app.';
+      'Twitch isn’t sending whispers to this app right now. ONSET will try again when you come back to the app.';
 
   @override
   String get whisperStatusOff => 'Log in to get whispers.';
 
   @override
-  String get playerBack10 => 'Back 10 seconds';
+  String get playerBack10 => 'Rewind 10 seconds';
 
   @override
-  String get playerForward10 => 'Forward 10 seconds';
+  String get playerForward10 => 'Skip ahead 10 seconds';
 
   @override
   String get playerChangeChatLayout => 'Change chat layout';
@@ -3041,10 +3054,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playerVolume => 'Volume';
 
   @override
-  String get playerCaptions => 'Closed Captions';
+  String get playerCaptions => 'Closed captions';
 
   @override
-  String get playerCaptionsDetail => 'When the stream has them';
+  String get playerCaptionsDetail => 'When the video has them';
 
   @override
   String get playerSpeedNormal => 'Normal';
@@ -3090,7 +3103,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String channelWebFallback({required String notice}) {
-    return '$notice Trying the web player.';
+    return '$notice Switching to the web player.';
   }
 
   @override
@@ -3101,25 +3114,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get channelResizeVideoHint =>
-      'Drag to change the video size, double tap for full width';
+      'Drag to resize the video. Double-tap for full width.';
 
   @override
   String channelUptimeMinutes({required int minutes}) {
-    return '$minutes min';
+    return '${minutes}m';
   }
 
   @override
   String channelUptimeHours({required int hours, required String minutes}) {
-    return '$hours h $minutes';
+    return '${hours}h ${minutes}m';
   }
 
   @override
   String channelWatchStreak({required int value}) {
-    return 'Watch streak $value';
+    return 'Watch Streak $value';
   }
 
   @override
-  String get channelAlsoLive => 'ALSO LIVE FROM YOUR FOLLOWS';
+  String get channelAlsoLive => 'ALSO LIVE FROM CHANNELS YOU FOLLOW';
 
   @override
   String get channelChat => 'Chat';
@@ -3148,10 +3161,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get livePlayerRefresh => 'Refresh';
 
   @override
-  String get livePlayerEnterFullScreen => 'Enter fullscreen mode';
+  String get livePlayerEnterFullScreen => 'Full screen';
 
   @override
-  String get livePlayerExitFullScreen => 'Exit fullscreen mode';
+  String get livePlayerExitFullScreen => 'Exit full screen';
 
   @override
   String get livePlayerShowChat => 'Show chat';
@@ -3185,7 +3198,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get livePlayerVideoStatsDetail =>
-      'Latency, buffer, bitrate and frames over the video';
+      'Latency, buffer, bitrate, and frames over the video';
 
   @override
   String get livePlayerResetStats => 'Reset stats';
@@ -3223,12 +3236,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String liveRefusedBanned({required String name}) {
-    return 'You are banned from $name\'s channel.';
+    return 'You’re banned from $name’s channel.';
   }
 
   @override
   String get liveRefusedUnauthorized =>
-      'Twitch refused this stream to the app player.';
+      'Twitch won’t play this stream in the low-latency player.';
 
   @override
   String get liveRefused => 'Twitch refused this stream.';
@@ -3311,7 +3324,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String latencyStatsRate({required String rate}) {
-    return '${rate}x';
+    return '$rate×';
   }
 
   @override
@@ -3366,12 +3379,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String latencyAutoCatchingUp({required String rate}) {
-    return 'catching up ${rate}x';
+    return 'catching up $rate×';
   }
 
   @override
   String latencyAutoDraining({required String rate}) {
-    return 'draining ${rate}x';
+    return 'draining $rate×';
   }
 
   @override
@@ -3379,14 +3392,14 @@ class AppLocalizationsEn extends AppLocalizations {
     required String rate,
     required String reason,
   }) {
-    return 'draining ${rate}x ($reason)';
+    return 'draining $rate× ($reason)';
   }
 
   @override
   String get latencyReasonGaveUp => 'gave up';
 
   @override
-  String get latencyReasonHeld => 'held';
+  String get latencyReasonHeld => 'waiting';
 
   @override
   String get latencyReasonAd => 'ad';
@@ -3416,19 +3429,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get latencyReasonRateRefused => 'the player refused the rate';
 
   @override
-  String get latencyReasonRateNotKept => 'the player did not keep the rate';
+  String get latencyReasonRateNotKept => 'the player didn’t keep the rate';
 
   @override
   String get latencyReasonStalls => 'stalls after catching up';
 
   @override
   String latencyReasonStuckFast({required String rate}) {
-    return 'the player stayed at ${rate}x';
+    return 'the player stayed at $rate×';
   }
 
   @override
   String latencyReasonNotBackToNormal({required String rate}) {
-    return 'the player did not return to ${rate}x';
+    return 'the player didn’t return to $rate×';
   }
 
   @override
@@ -3437,16 +3450,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get clipCreateTitle => 'Create Clip';
+  String get clipCreateTitle => 'Create clip';
 
   @override
   String get clipCreateButton => 'Clip';
 
   @override
-  String get clipCreateGenerating => 'Generating Clipperino...';
+  String get clipCreateGenerating => 'Creating clip…';
 
   @override
-  String get clipCreateRendering => 'Rendering Clip';
+  String get clipCreateRendering => 'Rendering clip…';
 
   @override
   String get clipCreateLogIn => 'Log in to create clips.';
@@ -3456,13 +3469,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clipCreateMissingScope =>
-      'Creating clips needs a permission your Twitch login does not have yet. Reconnect to Twitch to allow it.';
+      'Creating clips needs a permission your Twitch login doesn’t have yet. Reconnect to Twitch to allow it.';
 
   @override
   String get clipCreateReconnect => 'Reconnect to Twitch';
 
   @override
-  String get clipCreateShare => 'Share Clip';
+  String get clipCreateShare => 'Share clip';
 
   @override
   String get clipCreateLinkCopied => 'Clip link copied';
@@ -3478,29 +3491,29 @@ class AppLocalizationsEn extends AppLocalizations {
       'Title and moment, in the twitch.tv clip editor';
 
   @override
-  String get clipCreateEditorTitle => 'Edit Clip';
+  String get clipCreateEditorTitle => 'Edit clip';
 
   @override
   String get clipCreateFailedMissingScope =>
-      'Your Twitch login does not allow creating clips.';
+      'Your Twitch login doesn’t allow creating clips.';
 
   @override
   String get clipCreateFailedRestricted =>
-      'You can\'t clip this channel right now: clips may be off, only for followers or subscribers, or you are banned or timed out here.';
+      'You can’t clip this channel right now: clips may be off or limited to followers or subscribers, or you’re banned or timed out here.';
 
   @override
   String get clipCreateFailedOffline => 'Only live streams can be clipped.';
 
   @override
   String get clipCreateFailedNotClippable =>
-      'This channel does not permit clips of this category.';
+      'This channel doesn’t allow clips of this category.';
 
   @override
   String get clipCreateFailedRateLimited =>
       'Too many clips at once. Try again in a moment.';
 
   @override
-  String get clipCreateFailedUnknown => 'Hmm... Something went wrong';
+  String get clipCreateFailedUnknown => 'Hmm… something went wrong.';
 
   @override
   String get commonHide => 'Hide';
@@ -3540,7 +3553,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'prediction': 'Prediction',
       'pinned': 'Pinned',
       'raid': 'Raid',
-      'giftBomb': 'Gift Subs',
+      'giftBomb': 'Gift subs',
       'incomingRaid': 'Incoming raid',
       'other': 'Highlight',
     });
@@ -3567,6 +3580,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count more',
+      one: '$count more',
     );
     return '$label and $_temp0';
   }
@@ -3731,7 +3745,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String raidStay({required String source}) {
-    return 'You stay on $source';
+    return 'You’re staying on $source';
   }
 
   @override
@@ -3750,12 +3764,13 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: '$viewers went along',
+      one: '$viewers went along',
     );
     return '$_temp0';
   }
 
   @override
-  String get raidCancelled => 'Raid cancelled';
+  String get raidCancelled => 'Raid canceled';
 
   @override
   String raidStaysLive({required String source}) {
@@ -3879,6 +3894,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: 'all $count handed out',
+      one: 'all $count handed out',
     );
     return '$_temp0';
   }
@@ -3892,6 +3908,7 @@ class AppLocalizationsEn extends AppLocalizations {
       received,
       locale: localeName,
       other: '$received of $count handed out',
+      one: '$received of $count handed out',
     );
     return '$_temp0';
   }
@@ -3906,6 +3923,7 @@ class AppLocalizationsEn extends AppLocalizations {
       receivedCount,
       locale: localeName,
       other: '$received of $total handed out',
+      one: '$received of $total handed out',
     );
     return '$_temp0';
   }
@@ -3954,10 +3972,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get htAthApproaching =>
-      'About to beat your last record. Keep up the support.';
+      'About to beat the channel’s record. Keep up the support.';
 
   @override
-  String get htAthApproachingCompact => 'About to beat your last record.';
+  String get htAthApproachingCompact => 'About to beat the channel’s record.';
 
   @override
   String get htAthReached =>
@@ -3969,17 +3987,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String htTreasureLocked({required int level, required int discount}) {
-    return 'Reach Level $level to unlock $discount% OFF Gift Subs!';
+    return 'Reach level $level to unlock $discount% off gift subs!';
   }
 
   @override
   String htTreasureUnlockedSubtitle({required int discount}) {
-    return '$discount% OFF 5+ Gift Subs for the rest of this Hype Train';
+    return '$discount% off 5+ gift subs for the rest of this Hype Train';
   }
 
   @override
   String htCommunityLocked({required int level}) {
-    return 'Hit Level $level and chat will receive emotes too!';
+    return 'Hit level $level and chat will receive emotes too!';
   }
 
   @override
@@ -3991,24 +4009,24 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$countString Emotes for Chat',
-      one: '$countString Emote for Chat',
+      other: '$countString emotes for chat',
+      one: '$countString emote for chat',
     );
     return '$_temp0';
   }
 
   @override
   String htLevelComplete({required int level}) {
-    return 'Level $level Complete!';
+    return 'Level $level complete!';
   }
 
   @override
   String htStarted({required String variant}) {
     String _temp0 = intl.Intl.selectLogic(variant, {
       'goldenKappa': 'Golden Kappa Train starting!',
-      'treasure': 'Treasure Train Incoming!',
-      'community': 'Community Train Incoming!',
-      'mythic': 'Mythic Train Incoming!',
+      'treasure': 'Treasure Train incoming!',
+      'community': 'Community Train incoming!',
+      'mythic': 'Mythic Train incoming!',
       'other': 'Hype Train starting!',
     });
     return '$_temp0';
@@ -4030,9 +4048,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String htCompleted({required String variant}) {
     String _temp0 = intl.Intl.selectLogic(variant, {
       'goldenKappa': 'Golden Kappa Train success!',
-      'treasure': 'Treasure Train Success!',
-      'community': 'Community Train Success!',
-      'mythic': 'Mythic Train Success!',
+      'treasure': 'Treasure Train success!',
+      'community': 'Community Train success!',
+      'mythic': 'Mythic Train success!',
       'other': 'Hype Train success!',
     });
     return '$_temp0';
@@ -4059,16 +4077,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get htSummaryRecord =>
-      'All-time record shattered!\nYou\'ve reached new levels of support!';
+      'All-time record shattered!\nYou’ve reached new levels of support!';
 
   @override
   String htSummary({required String variant, required int level}) {
     String _temp0 = intl.Intl.selectLogic(variant, {
-      'treasure': 'Such strong support\nTreasure Train Level $level completed!',
+      'treasure':
+          'Such strong support!\nTreasure Train level $level completed!',
       'community':
-          'Such strong support\nCommunity Train Level $level completed!',
-      'mythic': 'Such strong support\nMythic Train Level $level completed!',
-      'other': 'Such strong support\nLevel $level completed!',
+          'Such strong support!\nCommunity Train level $level completed!',
+      'mythic': 'Such strong support!\nMythic Train level $level completed!',
+      'other': 'Such strong support!\nLevel $level completed!',
     });
     return '$_temp0';
   }
@@ -4107,15 +4126,15 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$name just gifted $countString Tier $tier Subs!',
-      one: '$name just gifted $countString Tier $tier Sub!',
+      other: '$name just gifted $countString Tier $tier subs!',
+      one: '$name just gifted $countString Tier $tier sub!',
     );
     return '$_temp0';
   }
 
   @override
   String htContributionSub({required String name, required int tier}) {
-    return '$name just subscribed with a Tier $tier Sub!';
+    return '$name just subscribed at Tier $tier!';
   }
 
   @override
@@ -4132,8 +4151,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$countString Subs',
-      one: '$countString Sub',
+      other: '$countString subs',
+      one: '$countString sub',
     );
     return '$_temp0';
   }
@@ -4157,10 +4176,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String htInstructionStart({required String variant}) {
     String _temp0 = intl.Intl.selectLogic(variant, {
       'goldenKappa':
-          'You\'ll have a limited time to earn an exclusive golden Kappa emote for 24 hrs',
+          'You’ll have a limited time to earn an exclusive Golden Kappa emote, valid for 24 hours',
       'community': 'Whoa, this is a rare Community Train!',
       'mythic': 'Whoa, this is a rare Mythic Train!',
-      'other': 'You\'ll have a limited time to earn exclusive emotes',
+      'other': 'You’ll have a limited time to earn exclusive emotes',
     });
     return '$_temp0';
   }
@@ -4170,16 +4189,16 @@ class AppLocalizationsEn extends AppLocalizations {
     required int level,
     required int discount,
   }) {
-    return 'Reach Level $level during this train to unlock $discount% OFF Gift Subs!';
+    return 'Reach level $level during this train to unlock $discount% off gift subs!';
   }
 
   @override
   String get htInstructionTreasureOneAway =>
-      'One more level unlocks a discount for the rest of this train, keep going!';
+      'One more level unlocks a discount for the rest of this train. Keep going!';
 
   @override
   String htInstructionTreasureUnlocked({required int discount}) {
-    return 'You\'ve unlocked $discount% OFF on 5+ Gift Subs! Don\'t miss out!';
+    return 'You’ve unlocked $discount% off 5+ gift subs! Don’t miss out!';
   }
 
   @override
@@ -4205,7 +4224,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get htInstructionSeeYouNextTime =>
-      'See you next time in Shared Hype Train!';
+      'See you next time in a Shared Hype Train!';
 
   @override
   String htSharedLevel({required int level, required int percent}) {
@@ -4222,11 +4241,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String htOtherChannelRecord({required String name}) {
-    return '$name\'s new all-time Shared record!';
+    return '$name’s new all-time shared record!';
   }
 
   @override
-  String get htSharedRecordReached => 'Shared Train Record Broken!';
+  String get htSharedRecordReached => 'Shared Train record broken!';
 
   @override
   String get htSharedNew => 'New Shared Hype Train';
@@ -4253,8 +4272,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count more people need to sub, gift or use Bits',
-      one: '$count more person needs to sub, gift or use Bits',
+      other: '$count more people need to sub, gift, or use Bits',
+      one: '$count more person needs to sub, gift, or use Bits',
     );
     return '$_temp0';
   }
@@ -4286,9 +4305,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String htApproachingExplanationSecond({required String variant}) {
     String _temp0 = intl.Intl.selectLogic(variant, {
       'goldenKappa':
-          'Once a Golden Kappa Train is underway, the community fills up the Hype Meter with more subs, gifts or Bits. Everyone who contributes enough to be eligible for rewards will receive the Golden Kappa emote for 24 hours in addition to the regular emote rewards.',
+          'Once a Golden Kappa Train is underway, the community fills up the Hype Meter with more subs, gifts, or Bits. Everyone who contributes enough to be eligible for rewards will receive the Golden Kappa emote for 24 hours in addition to the regular emote rewards.',
       'other':
-          'Once a Hype Train is underway, the community fills up the Hype Meter with more subs, gifts or Bits. Everyone who contributes receives one unique emote based on the highest level completed.',
+          'Once a Hype Train is underway, the community fills up the Hype Meter with more subs, gifts, or Bits. Everyone who contributes receives one unique emote based on the highest level completed.',
     });
     return '$_temp0';
   }
@@ -4299,10 +4318,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get htGoldenRewards =>
-      'Great work! Supporters can enjoy the exclusive Golden Kappa emote for 24 hrs';
+      'Great work! Supporters can enjoy the exclusive Golden Kappa emote for 24 hours';
 
   @override
-  String get htExpired => 'You missed the Train. Better luck next time!';
+  String get htExpired => 'You missed the train. Better luck next time!';
 
   @override
   String get htGoldenExpired =>
@@ -4323,7 +4342,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get htGoldenRewardsDescription =>
-      'Contribute by subbing, gifting, or using more than 100 Bits in total during the event to earn an exclusive golden Kappa emote for 24 hours in addition to the regular emote rewards.';
+      'Contribute by subbing, gifting, or using more than 100 Bits in total during the event to earn an exclusive Golden Kappa emote for 24 hours in addition to the regular emote rewards.';
 
   @override
   String get htContributionsHeader => 'CONTRIBUTIONS';
@@ -4334,10 +4353,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get htMoreInfo => 'More Info';
+  String get htMoreInfo => 'More info';
 
   @override
-  String get htLearnMore => 'learn more';
+  String get htLearnMore => 'Learn more';
 
   @override
   String get htUnlockedSoFar => 'Unlocked so far';
@@ -4366,8 +4385,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       subs,
       locale: localeName,
-      other: '$subsString Tier 1 Subs',
-      one: '$subsString Tier 1 Sub',
+      other: '$subsString Tier 1 subs',
+      one: '$subsString Tier 1 sub',
     );
     String _temp1 = intl.Intl.pluralLogic(
       bits,
@@ -4375,7 +4394,7 @@ class AppLocalizationsEn extends AppLocalizations {
       other: '$bitsString Bits',
       one: '$bitsString Bit',
     );
-    return 'Completing Level $level requires combined support events totaling $_temp0 or $_temp1';
+    return 'Level $level needs $_temp0 or $_temp1 in total';
   }
 
   @override
@@ -4387,8 +4406,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$name has contributed $countString Subs!',
-      one: '$name has contributed $countString Sub!',
+      other: '$name has contributed $countString subs!',
+      one: '$name has contributed $countString sub!',
     );
     return '$_temp0';
   }
@@ -4409,24 +4428,24 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get htNoSubsConductor => 'Sub or Gift to take over this spot!';
+  String get htNoSubsConductor => 'Sub or gift to take over this spot!';
 
   @override
   String get htNoBitsConductor => 'Use Bits to take over this spot!';
 
   @override
   String htChannelRecord({required int percent, required int level}) {
-    return 'Channel all-time record! $percent% Level $level';
+    return 'Channel all-time record! Level $level at $percent%';
   }
 
   @override
   String htTreasureCardUnlocked({required int discount}) {
-    return 'Save $discount% on 5 or more Gift Subs exclusively during this train. All Aboard!';
+    return 'Save $discount% on 5 or more gift subs, only during this train. All aboard!';
   }
 
   @override
   String htTreasureCardLocked({required int level, required int discount}) {
-    return 'Unlock a limited-time $discount% OFF Gift Subs at Level $level during this train!';
+    return 'Unlock a limited-time $discount% discount on gift subs at level $level during this train!';
   }
 
   @override
@@ -4442,12 +4461,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String htCardLevelRecord({required int level}) {
-    return 'All-Time High Train Level $level';
+    return 'All-time record · Level $level';
   }
 
   @override
   String htCardLevel({required String train, required int level}) {
-    return '$train Level $level';
+    return '$train level $level';
   }
 
   @override
@@ -4457,7 +4476,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get htExpand => 'Show Hype Train';
 
   @override
-  String get htDetailsHint => 'Double tap to show details';
+  String get htDetailsHint => 'show details';
 
   @override
   String get htSemanticsApproaching => 'Hype Train approaching';
@@ -4597,11 +4616,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get chatConnecting => 'Connecting to chat...';
+  String get chatConnecting => 'Connecting to chat…';
 
   @override
   String chatWelcome({required String name}) {
-    return 'Welcome to $name\'s chat!';
+    return 'Welcome to $name’s chat!';
   }
 
   @override
@@ -4621,32 +4640,31 @@ class AppLocalizationsEn extends AppLocalizations {
     required int attempt,
     required int max,
   }) {
-    return 'Reconnecting in ${seconds}s... (attempt $attempt of $max)';
+    return 'Reconnecting in ${seconds}s… (attempt $attempt of $max)';
   }
 
   @override
   String chatReconnecting({required int attempt, required int max}) {
-    return 'Reconnecting... (attempt $attempt of $max)';
+    return 'Reconnecting… (attempt $attempt of $max)';
   }
 
   @override
-  String get chatDisconnected =>
-      'Chat disconnected. Please check your connection.';
+  String get chatDisconnected => 'Chat disconnected. Check your connection.';
 
   @override
   String get chatReconnect => 'Reconnect';
 
   @override
-  String get chatReconnectingNotice => 'Reconnecting to chat...';
+  String get chatReconnectingNotice => 'Reconnecting to chat…';
 
   @override
   String chatSyncIn({required int seconds}) {
-    return 'Chat will sync in ${seconds}s...';
+    return 'Chat will sync in ${seconds}s…';
   }
 
   @override
   String chatSevenTvEmoteAdded({required String name, required String emote}) {
-    return '$name added 7TV emote \"$emote\" to chat';
+    return '$name added the 7TV emote “$emote” to chat.';
   }
 
   @override
@@ -4654,30 +4672,30 @@ class AppLocalizationsEn extends AppLocalizations {
     required String name,
     required String emote,
   }) {
-    return '$name removed 7TV emote \"$emote\" from chat';
+    return '$name removed the 7TV emote “$emote” from chat.';
   }
 
   @override
   String chatMessageTooLong({required int max}) {
-    return 'Messages can be $max characters at most';
+    return 'Messages can be $max characters at most.';
   }
 
   @override
-  String get chatWaitCommand => 'Please wait, running the previous command...';
+  String get chatWaitCommand => 'Running the previous command…';
 
   @override
-  String get chatWaitMessage => 'Please wait, sending previous message...';
+  String get chatWaitMessage => 'Sending the previous message…';
 
   @override
   String get chatCannotSendDisconnected =>
-      'Cannot send message - chat is disconnected. Reconnecting...';
+      'Can’t send: chat is disconnected. Reconnecting…';
 
   @override
   String get chatMaybeNotSent =>
-      'Message may not have been sent. Please try again.';
+      'Your message may not have been sent. Try again.';
 
   @override
-  String get chatClearedByModerator => 'Chat was cleared by a moderator';
+  String get chatClearedByModerator => 'Chat was cleared by a moderator.';
 
   @override
   String chatHelpCommands({required String commands}) {
@@ -4694,31 +4712,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String chatWhisperSentNoReplies({required String name}) {
-    return 'Whisper sent to $name. Replies cannot reach this app until you log in again.';
+    return 'Whisper sent to $name. Replies can’t reach this app until you log in again.';
   }
 
   @override
   String chatWhisperNoUser({required String login}) {
-    return 'Couldn\'t whisper: no user named $login.';
+    return 'Couldn’t whisper: no user named $login.';
   }
 
   @override
   String chatWhisperFailedBecause({required String reason}) {
-    return 'Couldn\'t whisper: $reason';
+    return 'Couldn’t whisper: $reason';
   }
 
   @override
-  String get chatWhisperFailed => 'Couldn\'t whisper.';
+  String get chatWhisperFailed => 'Couldn’t whisper.';
 
   @override
-  String get chatLogInToChangeColor => 'Log in to change your color.';
+  String get chatLogInToChangeColor => 'Log in to change your name color.';
 
   @override
   String get chatColorChanged => 'Your name color was changed.';
 
   @override
   String get chatColorFailedHex =>
-      'Couldn\'t change your color (hex colors need Turbo or Prime).';
+      'Couldn’t change your name color (hex colors need Turbo or Prime).';
 
   @override
   String chatAlreadyBlocked({required String name}) {
@@ -4737,12 +4755,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String chatBlockFailed({required String login}) {
-    return 'Couldn\'t block $login.';
+    return 'Couldn’t block $login.';
   }
 
   @override
   String chatUnblockFailed({required String login}) {
-    return 'Couldn\'t unblock $login.';
+    return 'Couldn’t unblock $login.';
   }
 
   @override
@@ -4778,22 +4796,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'unblock': 'Unblock a user',
       'w': 'Whisper a user',
       'help': 'List the commands',
-      'ban': 'Ban a user from the chat',
+      'ban': 'Ban a user',
       'unban': 'Lift a ban',
-      'timeout': 'Time a user out (10m by default; s, m, h, d, w)',
+      'timeout': 'Time out a user (default 10m; s, m, h, d, w)',
       'untimeout': 'Lift a timeout',
       'warn': 'Warn a user',
       'delete': 'Delete a message',
       'clear': 'Delete every message',
-      'slow': 'Slow mode (30s by default)',
+      'slow': 'Turn slow mode on (default 30s)',
       'slowoff': 'Turn slow mode off',
-      'followers': 'Followers-only mode (m, h, d, w, mo)',
+      'followers': 'Turn followers-only mode on (m, h, d, w, mo)',
       'followersoff': 'Turn followers-only mode off',
-      'subscribers': 'Subscribers-only mode',
+      'subscribers': 'Turn subscribers-only mode on',
       'subscribersoff': 'Turn subscribers-only mode off',
-      'emoteonly': 'Emote-only mode',
+      'emoteonly': 'Turn emote-only mode on',
       'emoteonlyoff': 'Turn emote-only mode off',
-      'uniquechat': 'Unique chat mode (no repeated messages)',
+      'uniquechat': 'Turn unique chat mode on (no repeated messages)',
       'uniquechatoff': 'Turn unique chat mode off',
       'other': '',
     });
@@ -4807,23 +4825,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String chatCommandBadLength({required String length}) {
-    return 'Unknown length \"$length\". Use e.g. 30, 10m, 2h, 1d or 1w.';
+    return 'Unknown length “$length”. Try 30, 10m, 2h, 1d, or 1w.';
   }
 
   @override
   String get chatCommandTimeoutRange =>
-      'Timeouts last from 1 second to 2 weeks.';
+      'Timeouts must be between 1 second and 2 weeks.';
 
   @override
-  String get chatCommandSlowRange => 'The slow mode wait is 3 to 120 seconds.';
+  String get chatCommandSlowRange =>
+      'Slow mode must be between 3 and 120 seconds.';
 
   @override
   String get chatCommandFollowAgeRange =>
-      'The follow age is 0 minutes to 3 months (e.g. 10m, 1w, 3mo).';
+      'Follow age must be between 0 minutes and 3 months (e.g., 10m, 1w, 3mo).';
 
   @override
   String get chatCommandUnknownColor =>
-      'Unknown color. Try Blue, Coral, HotPink… or #RRGGBB (Turbo/Prime).';
+      'Unknown color. Try Blue, Coral, HotPink, or #RRGGBB (Turbo or Prime).';
 
   @override
   String chatCommandNotInApp({required String command}) {
@@ -4869,17 +4888,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String chatModeFollowersOn({required String duration}) {
-    return 'Followers-only mode on (followers of $duration).';
+    return 'Followers-only mode on (must follow for $duration).';
   }
 
   @override
   String chatModFailed({required String command, required String reason}) {
     String _temp0 = intl.Intl.selectLogic(command, {
-      'ban': 'ban',
-      'timeout': 'time out',
-      'untimeout': 'remove the timeout of',
-      'unban': 'unban',
-      'warn': 'warn',
+      'ban': 'ban the user',
+      'timeout': 'time out the user',
+      'untimeout': 'lift the timeout',
+      'unban': 'unban the user',
+      'warn': 'warn the user',
       'delete': 'delete the message',
       'clear': 'clear the chat',
       'slowOn': 'turn slow mode on',
@@ -4894,17 +4913,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'uniqueChatOff': 'turn unique chat mode off',
       'other': 'do that',
     });
-    return 'Couldn\'t $_temp0: $reason';
+    return 'Couldn’t $_temp0: $reason';
   }
 
   @override
   String chatModFailedUnexpected({required String command}) {
     String _temp0 = intl.Intl.selectLogic(command, {
-      'ban': 'ban',
-      'timeout': 'time out',
-      'untimeout': 'remove the timeout of',
-      'unban': 'unban',
-      'warn': 'warn',
+      'ban': 'ban the user',
+      'timeout': 'time out the user',
+      'untimeout': 'lift the timeout',
+      'unban': 'unban the user',
+      'warn': 'warn the user',
       'delete': 'delete the message',
       'clear': 'clear the chat',
       'slowOn': 'turn slow mode on',
@@ -4919,12 +4938,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'uniqueChatOff': 'turn unique chat mode off',
       'other': 'do that',
     });
-    return 'Couldn\'t $_temp0 (unexpected error).';
+    return 'Couldn’t $_temp0 (unexpected error).';
   }
 
   @override
   String get chatModCannotModerate =>
-      'Twitch says you can\'t moderate this chat.';
+      'Twitch says you can’t moderate this chat.';
 
   @override
   String chatTwitchReason({required String reason}) {
@@ -4933,14 +4952,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String chatModNoUser({required String login}) {
-    return 'no user named $login';
+    return 'no user named $login.';
   }
 
   @override
   String get chatModLogInAgain => 'Log in again to moderate from this app.';
 
   @override
-  String get chatModNotThrough => 'That did not go through. Try again.';
+  String get chatModNotThrough => 'That didn’t go through. Try again.';
 
   @override
   String chatModBanned({required String name}) {
@@ -4954,7 +4973,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String chatModUntimedOut({required String name}) {
-    return 'You removed the timeout of $name.';
+    return 'You lifted $name’s timeout.';
   }
 
   @override
@@ -4992,15 +5011,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get chatRestrictionBanned =>
-      'You are permanently banned from this chat';
+  String get chatRestrictionBanned => 'Permanently banned';
 
   @override
-  String get chatRestrictionTimedOut => 'You are timed out';
+  String get chatRestrictionTimedOut => 'You’re timed out';
 
   @override
   String chatRestrictionTimedOutFor({required String wait}) {
-    return 'You are timed out · $wait';
+    return 'You’re timed out · $wait';
   }
 
   @override
@@ -5018,8 +5036,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatRestrictionFollowersOnly => 'Followers-only chat';
 
   @override
-  String chatRestrictionFollowersFor({required int minutes}) {
-    return 'Followers-only chat · following for $minutes+ min';
+  String chatRestrictionFollowersFor({required String duration}) {
+    return 'Follow for $duration';
   }
 
   @override
@@ -5063,8 +5081,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$prefix $count bits',
-      one: '$prefix $count bit',
+      other: '$prefix $count Bits',
+      one: '$prefix $count Bit',
     );
     return '$_temp0';
   }
@@ -5095,7 +5113,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatCopyMessage => 'Copy message';
 
   @override
-  String get chatCopyMessageAndPaste => 'Copy message and paste';
+  String get chatCopyMessageAndPaste => 'Copy into message box';
 
   @override
   String get chatReplyToMessage => 'Reply to message';
@@ -5116,17 +5134,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatPermanentlyBanned => 'Permanently banned';
 
   @override
-  String chatTimedOutFor({required int count}) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'Timed out for $count seconds',
-      one: 'Timed out for $count second',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String chatTimedOutForLength({required String duration}) {
     return 'Timed out for $duration';
   }
@@ -5135,7 +5142,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatAnnouncement => 'Announcement';
 
   @override
-  String get chatMessageOptionsHint => 'message options';
+  String get chatMessageOptionsHint => 'open message options';
 
   @override
   String get chatCopyMessageHint => 'copy message';
@@ -5153,19 +5160,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatCancelReply => 'Cancel reply';
 
   @override
-  String get chatEnterMessage => 'Enter a message';
+  String get chatEnterMessage => 'Send a message';
 
   @override
-  String get chatCannotChatNow => 'You can\'t chat right now';
+  String get chatCannotChatNow => 'You can’t chat right now';
 
   @override
   String get chatInputDisconnected => 'Chat disconnected';
 
   @override
-  String get chatInputConnecting => 'Connecting...';
+  String get chatInputConnecting => 'Connecting…';
 
   @override
-  String get chatSending => 'Sending...';
+  String get chatSending => 'Sending…';
 
   @override
   String get chatSend => 'Send';
@@ -5180,12 +5187,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String chatInChannelDelayed({required String name, required int seconds}) {
-    return 'Chat in $name (${seconds}s delay)';
+    return '$name · ${seconds}s delay';
   }
 
   @override
   String chatDelayed({required int seconds}) {
-    return 'Chat (${seconds}s delay)';
+    return 'Chat · ${seconds}s delay';
   }
 
   @override
@@ -5211,11 +5218,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get chatColorUpdated => 'Chat color updated successfully!';
+  String get chatColorUpdated => 'Name color updated';
 
   @override
   String get chatColorUpdateFailed =>
-      'Failed to update chat color. Please try again.';
+      'Couldn’t update your name color. Try again.';
 
   @override
   String get chatDetailsChatOnly => 'Chat only';
@@ -5227,11 +5234,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatDetailsRefreshAssets => 'Refresh emotes and badges';
 
   @override
-  String get chatDetailsUsernameColor => 'Username color';
+  String get chatDetailsUsernameColor => 'Name color';
 
   @override
   String get chatDetailsPointsPollsPredictions =>
-      'Channel points, polls and predictions';
+      'Channel points, polls, and predictions';
 
   @override
   String get chatDetailsOpensTwitchChat => 'Opens the chat on twitch.tv';
@@ -5243,7 +5250,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatDetailsOpensTwitch => 'Opens twitch.tv';
 
   @override
-  String get chatDetailsGiftSub => 'Gift a Sub';
+  String get chatDetailsGiftSub => 'Gift a sub';
 
   @override
   String get chatDetailsModes => 'Chat modes';
@@ -5270,20 +5277,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String chatColorName({required String color}) {
     String _temp0 = intl.Intl.selectLogic(color, {
       'blue': 'Blue',
-      'blue_violet': 'Blue Violet',
-      'cadet_blue': 'Cadet Blue',
+      'blue_violet': 'Blue violet',
+      'cadet_blue': 'Cadet blue',
       'chocolate': 'Chocolate',
       'coral': 'Coral',
-      'dodger_blue': 'Dodger Blue',
+      'dodger_blue': 'Dodger blue',
       'firebrick': 'Firebrick',
-      'golden_rod': 'Golden Rod',
+      'golden_rod': 'Goldenrod',
       'green': 'Green',
-      'hot_pink': 'Hot Pink',
-      'orange_red': 'Orange Red',
+      'hot_pink': 'Hot pink',
+      'orange_red': 'Orange red',
       'red': 'Red',
-      'sea_green': 'Sea Green',
-      'spring_green': 'Spring Green',
-      'yellow_green': 'Yellow Green',
+      'sea_green': 'Sea green',
+      'spring_green': 'Spring green',
+      'yellow_green': 'Yellow green',
       'other': '',
     });
     return '$_temp0';
@@ -5305,6 +5312,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatModesModerator => 'Moderator';
 
   @override
+  String chatBadgeModeratorBot({required String moderator}) {
+    return '$moderator (bot)';
+  }
+
+  @override
   String chatModesSlowWait({required int seconds}) {
     return '${seconds}s between messages';
   }
@@ -5315,11 +5327,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String chatModePill({required String mode}) {
     String _temp0 = intl.Intl.selectLogic(mode, {
-      'emoteOnly': 'Emote only',
-      'followers': 'Follower only',
+      'emoteOnly': 'Emote-only',
+      'followers': 'Followers-only',
       'slow': 'Slow mode',
-      'subscribers': 'Sub only',
-      'uniqueChat': 'Unique mode',
+      'subscribers': 'Subscribers-only',
+      'uniqueChat': 'Unique chat',
       'other': '',
     });
     return '$_temp0';
@@ -5390,14 +5402,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String chatHeldQuoted({required String decision, required String quote}) {
-    return '$decision: \"$quote\"';
+    return '$decision: “$quote”';
   }
 
   @override
-  String get chatAddChatSearchFailed => 'Failed to search channels';
+  String get chatAddChatSearchFailed => 'Couldn’t search channels.';
 
   @override
-  String get chatAddChatTitle => 'Add Chat';
+  String get chatAddChatTitle => 'Add chat';
 
   @override
   String get chatAddChatSearch => 'Search for a channel';
@@ -5427,7 +5439,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatTabsMaximum => 'Maximum 10 chats open';
 
   @override
-  String get chatTabsAlreadyOpen => 'Channel already open, switched to it';
+  String get chatTabsAlreadyOpen => 'Channel already open — switched to it';
 
   @override
   String get chatUserWhisper => 'Whisper';
@@ -5463,40 +5475,40 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get chatFilteredTitle => 'Message Blocked';
+  String get chatFilteredTitle => 'Message hidden';
 
   @override
   String get chatFilteredBody =>
-      'Would you like to see this message? It has been hidden for you based on your NSFW Chat Filter settings.';
+      'This message was hidden by your chat filters. Show it anyway?';
 
   @override
-  String get chatFilteredShow => 'Show Message';
+  String get chatFilteredShow => 'Show message';
 
   @override
   String get chatRulesTitle => 'Chat rules';
 
   @override
-  String get chatRulesHeading => 'Chat Rules';
+  String get chatRulesHeading => 'Chat rules';
 
   @override
-  String get chatRulesAccept => 'OK, Got it!';
+  String get chatRulesAccept => 'Got it';
 
   @override
   String chatRaidWelcomeSemantics({
     required String from,
     required String target,
   }) {
-    return 'You followed $from\'s raid. Welcome to $target\'s chat';
+    return 'You followed $from’s raid. Welcome to $target’s chat';
   }
 
   @override
   String chatRaidWelcomeFrom({required String name}) {
-    return 'You followed $name\'s raid';
+    return 'You followed $name’s raid';
   }
 
   @override
   String chatRaidWelcomeTo({required String name}) {
-    return 'Welcome to $name\'s chat';
+    return 'Welcome to $name’s chat';
   }
 
   @override
@@ -5619,7 +5631,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pointsBonusBlocked =>
-      'Twitch blocks collecting the bonus from here — its anti-bot check. Collect it on twitch.tv and the balance follows.';
+      'Twitch’s anti-bot check blocks collecting the bonus here. Collect it on twitch.tv and your balance updates.';
 
   @override
   String get pointsCollectBonus => 'Collect bonus';
@@ -5629,8 +5641,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$points  ·  $count viewers',
-      one: '$points  ·  $count viewer',
+      other: '$points · $count viewers',
+      one: '$points · $count viewer',
     );
     return '$_temp0';
   }
@@ -5642,7 +5654,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pointsBetOnUnknown({required String title}) {
-    return 'Bet on $title, pays unknown';
+    return 'Bet on $title, payout unknown';
   }
 
   @override
@@ -5675,7 +5687,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pointsPaysAbout({required String odds}) {
-    return 'Pays about $odds × if this wins — moves with every other bet.';
+    return 'Pays about $odds× if this wins. Odds change with every bet.';
   }
 
   @override
@@ -5684,6 +5696,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Bet $points',
+      one: 'Bet $points',
     );
     return '$_temp0';
   }
@@ -5693,7 +5706,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String pointsOdds({required String odds}) {
-    return '$odds ×';
+    return '$odds×';
   }
 
   @override
@@ -5712,10 +5725,10 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.selectLogic(status, {
       'success': 'Done.',
       'integrityRefused':
-          'Twitch refused: anti-bot check. Not something this app can pass.',
+          'Twitch’s anti-bot check refused this. ONSET can’t pass it, so try on twitch.tv.',
       'notAuthenticated':
-          'Twitch rejected the login. Sign in again to spend points.',
-      'network': 'Could not reach Twitch. Try again.',
+          'Twitch rejected the login. Log in again to spend points.',
+      'network': 'Couldn’t reach Twitch. Try again.',
       'other': 'Twitch refused: $reason',
     });
     return '$_temp0';
@@ -5725,7 +5738,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pointsBusy => 'Already in progress.';
 
   @override
-  String get pointsNoReason => 'no reason';
+  String get pointsNoReason => 'no reason given';
 
   @override
   String pointsAutomaticReward({required String type}) {
@@ -5749,22 +5762,19 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          'Watch this live stream and you\'ll be able to save your current $count-stream streak.',
+          'Watch this live stream and you’ll be able to save your current $count-stream streak.',
+      one:
+          'Watch this live stream and you’ll be able to save your current $count-stream streak.',
     );
     return '$_temp0';
   }
 
   @override
-  String get streakExpiringTitle => 'Watch Streak Expiring';
+  String get streakExpiringTitle => 'Watch Streak expiring';
 
   @override
-  String streakExpiring({
-    required String name,
-    required int hours,
-    required int minutes,
-    required int seconds,
-  }) {
-    return 'Watch $name in the next ${hours}h ${minutes}m ${seconds}s to save your streak!';
+  String streakExpiring({required String name, required String time}) {
+    return 'Watch $name in the next $time to save your streak!';
   }
 
   @override
@@ -5777,8 +5787,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '1 more stream until an extra $points channel points reward',
-      one: '1 more stream until an extra $points channel point reward',
+      other: '1 more stream to earn $points bonus channel points',
+      one: '1 more stream to earn $points bonus channel point',
     );
     return '$_temp0';
   }
@@ -5793,9 +5803,9 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          'You reached a $next-stream streak and earned an extra $points channel points',
+          'You reached a $next-stream streak and earned $points bonus channel points',
       one:
-          'You reached a $next-stream streak and earned an extra $points channel point',
+          'You reached a $next-stream streak and earned $points bonus channel point',
     );
     return '$_temp0';
   }
@@ -5810,8 +5820,8 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          'Reach $next-stream streak and earn an extra $points channel points',
-      one: 'Reach $next-stream streak and earn an extra $points channel point',
+          'Reach a $next-stream streak and earn $points bonus channel points',
+      one: 'Reach a $next-stream streak and earn $points bonus channel point',
     );
     return '$_temp0';
   }
@@ -5837,7 +5847,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String emoteTypeName({required String type}) {
     String _temp0 = intl.Intl.selectLogic(type, {
-      'twitchBits': 'Twitch bits emote',
+      'twitchBits': 'Twitch Bits emote',
       'twitchFollower': 'Twitch follower emote',
       'twitchSub': 'Twitch sub emote',
       'twitchGlobal': 'Twitch global emote',
@@ -5901,16 +5911,16 @@ class AppLocalizationsEn extends AppLocalizations {
       months,
       locale: localeName,
       other:
-          'They\'ve subscribed for $months months, currently on a $streak month streak!',
+          'They’ve subscribed for $months months, currently on a $streak-month streak!',
       one:
-          'They\'ve subscribed for $months month, currently on a $streak month streak!',
+          'They’ve subscribed for $months month, currently on a $streak-month streak!',
     );
     return '$_temp0';
   }
 
   @override
   String noticeSubMonths({required int months}) {
-    return 'They\'ve subscribed for $months months!';
+    return 'They’ve subscribed for $months months!';
   }
 
   @override
@@ -5921,8 +5931,8 @@ class AppLocalizationsEn extends AppLocalizations {
     required String recipient,
   }) {
     String _temp0 = intl.Intl.selectLogic(tiered, {
-      'yes': '$gifter gifted a Tier $tier Sub to $recipient!',
-      'other': '$gifter gifted a Sub to $recipient!',
+      'yes': '$gifter gifted a Tier $tier sub to $recipient!',
+      'other': '$gifter gifted a sub to $recipient!',
     });
     return '$_temp0';
   }
@@ -5943,7 +5953,7 @@ class AppLocalizationsEn extends AppLocalizations {
     required String months,
     required String recipient,
   }) {
-    return '$gifter gifted a $months Sub to $recipient!';
+    return '$gifter gifted a $months sub to $recipient!';
   }
 
   @override
@@ -5959,7 +5969,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String noticeGiftMonthsShort({required int count}) {
-    return '$count month';
+    return '$count-month';
   }
 
   @override
@@ -5968,7 +5978,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get noticeGiftFirst => 'It\'s their first Gift Sub in the channel!';
+  String get noticeGiftFirst => 'It’s their first gift sub in the channel!';
 
   @override
   String noticeGiftCount({required int count}) {
@@ -5976,7 +5986,7 @@ class AppLocalizationsEn extends AppLocalizations {
         intl.NumberFormat.decimalPattern(localeName);
     final String countString = countNumberFormat.format(count);
 
-    return 'They\'ve given $countString Gift Subs in the channel!';
+    return 'They’ve given $countString gift subs in the channel!';
   }
 
   @override
@@ -5994,17 +6004,17 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          '$gifter is gifting $count Tier $tier Subs to $channel\'s community$_temp0',
+          '$gifter is gifting $count Tier $tier subs to $channel’s community$_temp0',
       one:
-          '$gifter is gifting $count Tier $tier Sub to $channel\'s community$_temp1',
+          '$gifter is gifting $count Tier $tier sub to $channel’s community$_temp1',
     );
     String _temp3 = intl.Intl.selectLogic(end, {'more': '.', 'other': '!'});
     String _temp4 = intl.Intl.selectLogic(end, {'more': '.', 'other': '!'});
     String _temp5 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$gifter is gifting $count Subs to $channel\'s community$_temp3',
-      one: '$gifter is gifting $count Sub to $channel\'s community$_temp4',
+      other: '$gifter is gifting $count subs to $channel’s community$_temp3',
+      one: '$gifter is gifting $count sub to $channel’s community$_temp4',
     );
     String _temp6 = intl.Intl.selectLogic(tiered, {
       'yes': '$_temp2',
@@ -6015,7 +6025,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noticeCommunityGiftFirst =>
-      'It\'s their first Gift Sub in the channel!';
+      'It’s their first gift sub in the channel!';
 
   @override
   String noticeCommunityGiftTotal({required int count}) {
@@ -6023,7 +6033,7 @@ class AppLocalizationsEn extends AppLocalizations {
         intl.NumberFormat.decimalPattern(localeName);
     final String countString = countNumberFormat.format(count);
 
-    return 'They\'ve gifted a total of $countString in the channel!';
+    return 'They’ve gifted a total of $countString subs in the channel!';
   }
 
   @override
@@ -6087,7 +6097,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get vodSpeedPillNormal => 'Speed Normal';
+  String get vodSpeedPillNormal => 'Normal speed';
 
   @override
   String vodQualityPill({required String quality}) {
@@ -6095,32 +6105,32 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get vodQualityPillAuto => 'Quality Auto';
+  String get vodQualityPillAuto => 'Auto quality';
 
   @override
-  String get vodQualityPillAudioOnly => 'Quality Audio only';
+  String get vodQualityPillAudioOnly => 'Audio only';
 
   @override
   String vodCaptionsState({required String state}) {
     String _temp0 = intl.Intl.selectLogic(state, {
-      'on': 'Closed Captions, on',
-      'other': 'Closed Captions, off',
+      'on': 'Closed captions, on',
+      'other': 'Closed captions, off',
     });
     return '$_temp0';
   }
 
   @override
-  String get vodLegendMuted => 'Muted parts (copyright)';
+  String get vodLegendMuted => 'Muted segments (copyright)';
 
   @override
-  String get vodLegendDoubleTap => 'Double-tap the sides to skip 10 s';
+  String get vodLegendDoubleTap => 'Double-tap the sides to skip 10 seconds';
 
   @override
-  String get vodLegendUpNext => 'Up Next at the end';
+  String get vodLegendUpNext => 'Up next at the end';
 
   @override
   String vodLegendUpNextWhen({required String autoplay}) {
-    return 'Up Next at the end · $autoplay';
+    return 'Up next at the end · $autoplay';
   }
 
   @override
@@ -6132,7 +6142,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get vodUpNext => 'Up Next';
+  String get vodUpNext => 'Up next';
 
   @override
   String vodUpNextSeconds({required int count}) {
@@ -6161,7 +6171,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vodReplayEmotesNote =>
-      '7TV, BTTV and FFZ emotes are the channel\'s current sets, which may differ from the ones used during the broadcast.';
+      '7TV, BTTV, and FFZ emotes are the channel’s current sets, which may differ from the ones used during the broadcast.';
 
   @override
   String get vodReplayEmotesAbout => 'About emotes in replays';
@@ -6177,7 +6187,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vodReplayNoMessages => 'No messages yet';
 
   @override
-  String get vodReplayLoading => 'Loading chat replay';
+  String get vodReplayLoading => 'Loading chat replay…';
 
   @override
   String get whisperOtherAccount =>
@@ -6197,7 +6207,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get whisperLogInAgain => 'Log in again to whisper from this app.';
 
   @override
-  String get whisperFailedUnexpected => 'Couldn\'t whisper (unexpected error).';
+  String get whisperFailedUnexpected => 'Couldn’t whisper (unexpected error).';
 
   @override
   String notifGoLiveTitle({required String name}) {
@@ -6230,32 +6240,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String notifReminderTitle({required String name}) {
-    return '$name\'s stream is starting';
+    return '$name’s stream is starting';
   }
 
   @override
-  String get notifReminderUntitled => 'Stream';
+  String get notifReminderUntitled => 'Untitled stream';
 
   @override
-  String get notifChannelGoLive => 'Go live';
+  String get notifChannelGoLive => 'Go-live notifications';
 
   @override
   String get notifChannelGoLiveDescription =>
       'When channels you follow go live';
 
   @override
-  String get notifChannelMentions => 'Chat Mentions';
+  String get notifChannelMentions => 'Chat mentions';
 
   @override
   String get notifChannelMentionsDescription =>
-      'When someone mentions you in a chat you are watching while ONSET is in the background';
+      'When someone mentions you in a chat you’re watching while ONSET is in the background';
 
   @override
   String get notifChannelReminders => 'Stream reminders';
 
   @override
   String get notifChannelRemindersDescription =>
-      'Scheduled streams you asked to be reminded of';
+      'When a scheduled stream you set a reminder for starts';
 
   @override
   String get mediaChannel => 'Playback';
@@ -6274,14 +6284,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authMissingPermissions =>
-      'Your session is missing permissions. Please log in again to continue.';
+      'Your session is missing permissions. Log in again to continue.';
 
   @override
   String get authSessionExpiredTitle => 'Session expired';
 
   @override
   String get authSessionExpired =>
-      'Your session has expired. Please log in again to continue.';
+      'Your session has expired. Log in again to continue.';
 
   @override
   String get authLogIn => 'Log in';

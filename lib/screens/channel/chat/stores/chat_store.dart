@@ -514,7 +514,9 @@ abstract class ChatStoreBase with Store {
         ];
         say(
           l.chatHelpCommands(
-            commands: [for (final c in commands) c.usage(l)].join(', '),
+            commands: [
+              for (final c in commands) c.usage(l, inChatLine: true),
+            ].join(', '),
           ),
         );
         done();

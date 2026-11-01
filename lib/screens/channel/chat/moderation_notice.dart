@@ -77,6 +77,18 @@ String timeoutLength(int seconds, [AppLocalizations? l]) {
   return words.chatDurationSeconds(count: seconds < 0 ? 0 : seconds);
 }
 
+/// A followers-only follow [age] as Twitch words it, in [l]'s language
+/// (the one on screen by default): whole months of 30 days as months ("1
+/// month", "3 months"), else like a timeout ("10 minutes", "1 week").
+String followAgeLength(Duration age, [AppLocalizations? l]) {
+  final words = l ?? L10n.current;
+  final days = age.inDays;
+  if (days >= 30 && days % 30 == 0 && age.inSeconds % 86400 == 0) {
+    return words.chatDurationMonths(count: days ~/ 30);
+  }
+  return timeoutLength(age.inSeconds, words);
+}
+
 /// How chat names [login]: the display name of their latest message in
 /// [newestFirst], or the login when they have not chatted.
 String chatNameOf(String login, Iterable<IRCMessage> newestFirst) {
@@ -89,10 +101,8 @@ String chatNameOf(String login, Iterable<IRCMessage> newestFirst) {
 }
 
 /// The header above the messages of someone timed out for [seconds], in
-/// [l]'s language: in English the seconds, as the chat always read
-/// ("Timed out for 600 seconds"); in another language the length worded
-/// like the timeout notices ([timeoutLength]: « Exclusion temporaire
+/// [l]'s language, the length worded like the timeout notices
+/// ([timeoutLength]: "Timed out for 10 minutes", « Exclusion temporaire
 /// (10 minutes) »).
-String timedOutLabel(int seconds, AppLocalizations l) => l.localeName == 'en'
-    ? l.chatTimedOutFor(count: seconds)
-    : l.chatTimedOutForLength(duration: timeoutLength(seconds, l));
+String timedOutLabel(int seconds, AppLocalizations l) =>
+    l.chatTimedOutForLength(duration: timeoutLength(seconds, l));

@@ -120,9 +120,7 @@ class WatchStreak {
             ? null
             : words.streakExpiring(
                 name: channelName,
-                hours: left.inHours,
-                minutes: left.inMinutes % 60,
-                seconds: left.inSeconds % 60,
+                time: _timeLeft(left, words),
               ),
       );
     }
@@ -153,4 +151,17 @@ class WatchStreak {
     final number = _int(value);
     return number != null && number > 0 ? number : null;
   }
+}
+
+/// [left] short, in [l]'s language: "5h 12m" from an hour, "4m 30s" from a
+/// minute, else "12s" (no zero hours or minutes up front).
+String _timeLeft(Duration left, AppLocalizations l) {
+  final hours = left.inHours;
+  final minutes = left.inMinutes % 60;
+  final seconds = left.inSeconds % 60;
+  if (hours > 0) return l.chatShortHoursMinutes(hours: hours, minutes: minutes);
+  if (minutes > 0) {
+    return l.chatShortMinutesSeconds(minutes: minutes, seconds: seconds);
+  }
+  return l.chatShortSeconds(seconds: seconds);
 }

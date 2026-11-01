@@ -166,9 +166,7 @@ class ChatModeration {
             duration: timeoutLength(duration.inSeconds, l),
           );
         case ChatMode.followers when duration > Duration.zero:
-          return l.chatModeFollowersOn(
-            duration: timeoutLength(duration.inSeconds, l),
-          );
+          return l.chatModeFollowersOn(duration: followAgeLength(duration, l));
         default:
           break;
       }

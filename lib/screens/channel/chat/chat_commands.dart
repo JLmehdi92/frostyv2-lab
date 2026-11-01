@@ -145,7 +145,9 @@ final class UsageProblem extends CommandProblem {
       ...kChatCommands,
       ...kModeratorChatCommands,
     ].where((c) => c.name == name).firstOrNull;
-    return l.chatCommandUsage(usage: command?.usage(l) ?? '/$name');
+    return l.chatCommandUsage(
+      usage: command?.usage(l, inChatLine: true) ?? commandInChatLine(name),
+    );
   }
 }
 
@@ -225,6 +227,11 @@ enum ChatCommandArg {
   };
 }
 
+/// `/name` for a line chat shows: a word joiner (U+2060) after the slash, so
+/// a wrapped line never leaves the slash alone at the end of a row (a line
+/// may break after a slash).
+String commandInChatLine(String name) => '/\u2060$name';
+
 /// A command the input suggests: its [name] (what is typed, never
 /// translated), what it takes ([required], then [optional]), worded by
 /// [usage] and [description].
@@ -239,9 +246,11 @@ final class ChatCommandInfo {
   final List<ChatCommandArg> required;
   final List<ChatCommandArg> optional;
 
-  /// `/ban <user> [reason]`, in [l]'s language.
-  String usage(AppLocalizations l) => [
-    '/$name',
+  /// `/ban <user> [reason]`, in [l]'s language. [inChatLine] keeps the
+  /// slash with the name when a chat line wraps (a word joiner, U+2060,
+  /// after it): only for the lines chat shows, never for what is typed.
+  String usage(AppLocalizations l, {bool inChatLine = false}) => [
+    inChatLine ? commandInChatLine(name) : '/$name',
     for (final arg in required) '<${arg.word(l)}>',
     for (final arg in optional) '[${arg.word(l)}]',
   ].join(' ');

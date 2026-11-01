@@ -30,6 +30,7 @@ const _sameInBothLanguages = {
       '"build" is the word French developers use; a number '
       'follows.',
   'releaseNotesVersions': '"Versions" is spelled the same.',
+  'releaseNotesPoints': '"point(s)" is the French word too; a number leads.',
   'streamTagSemantics': '"Tag" is Twitch\'s French word too; the tag follows.',
   'categorySectionClips': 'Twitch calls them "clips" in French.',
   'profileTabClips': 'Twitch calls them "clips" in French.',
@@ -48,6 +49,11 @@ const _sameInBothLanguages = {
   'htLevelUp': 'A cheer, the same in both languages.',
   'htBits': 'Bits are Twitch\'s currency, named the same in French.',
   'htContributionsHeader': '"Contributions" is spelled the same.',
+  'chatBadgeModeratorBot':
+      'Twitch\'s badge name, then "bot", the French word too.',
+  'chatCheerSemantics':
+      'The cheermote\'s name, then Bits, Twitch\'s currency, named the same '
+      'in French.',
   'chatCommandArgMessage':
       '"message" is the French word too (a command\'s usage).',
   'chatLinkClip': 'Twitch calls it a "clip" in French.',

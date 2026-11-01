@@ -34,11 +34,7 @@ const kFollowAges = [
 
 String _followAgeLabel(Duration age, AppLocalizations l) {
   if (age == Duration.zero) return l.chatModesAnyFollower;
-  final days = age.inDays;
-  if (days >= 30 && days % 30 == 0 && age.inSeconds % 86400 == 0) {
-    return l.chatDurationMonths(count: days ~/ 30);
-  }
-  return timeoutLength(age.inSeconds, l);
+  return followAgeLength(age, l);
 }
 
 /// A moderator's switches for the chat's room modes, and clearing the chat.

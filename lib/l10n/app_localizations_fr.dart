@@ -280,7 +280,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onboardingWelcomeTipRating =>
-      'N’oubliez pas de laisser une note ou un avis sur la boutique d’applications !';
+      'ONSET recherche lui-même les nouveaux builds, et les notes de version s’ouvrent après chaque mise à jour.';
 
   @override
   String get onboardingWelcomeGo => 'C’est parti !';
@@ -3503,7 +3503,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get clipCreateButton => 'Créer un clip';
 
   @override
-  String get clipCreateGenerating => 'Génération du Clipperino…';
+  String get clipCreateGenerating => 'Création du clip…';
 
   @override
   String get clipCreateRendering => 'Rendu du clip en cours';
@@ -4532,7 +4532,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get htExpand => 'Afficher le Hype Train';
 
   @override
-  String get htDetailsHint => 'Appuyez deux fois pour afficher les détails';
+  String get htDetailsHint => 'afficher les détails';
 
   @override
   String get htSemanticsApproaching => 'Hype Train imminent';
@@ -5100,8 +5100,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get chatRestrictionFollowersOnly => 'Followers uniquement';
 
   @override
-  String chatRestrictionFollowersFor({required int minutes}) {
-    return 'Followers depuis $minutes min';
+  String chatRestrictionFollowersFor({required String duration}) {
+    return 'Followers depuis $duration';
   }
 
   @override
@@ -5196,17 +5196,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get chatPermanentlyBanned => 'Bannissement définitif';
-
-  @override
-  String chatTimedOutFor({required int count}) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'Exclusion temporaire ($count secondes)',
-      one: 'Exclusion temporaire ($count seconde)',
-    );
-    return '$_temp0';
-  }
 
   @override
   String chatTimedOutForLength({required String duration}) {
@@ -5388,6 +5377,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get chatModesModerator => 'Modérateur';
 
   @override
+  String chatBadgeModeratorBot({required String moderator}) {
+    return '$moderator (bot)';
+  }
+
+  @override
   String chatModesSlowWait({required int seconds}) {
     return '$seconds s entre les messages';
   }
@@ -5547,11 +5541,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get chatFilteredTitle => 'Message bloqué';
+  String get chatFilteredTitle => 'Message masqué';
 
   @override
   String get chatFilteredBody =>
-      'Voulez-vous voir ce message ? Il a été masqué par vos filtres du chat.';
+      'Ce message a été masqué par vos filtres du chat. L’afficher quand même ?';
 
   @override
   String get chatFilteredShow => 'Afficher le message';
@@ -5845,13 +5839,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get streakExpiringTitle => 'Votre série de visionnage expire bientôt';
 
   @override
-  String streakExpiring({
-    required String name,
-    required int hours,
-    required int minutes,
-    required int seconds,
-  }) {
-    return 'Regardez la chaîne $name dans les $hours h $minutes min $seconds s pour sauver votre série !';
+  String streakExpiring({required String name, required String time}) {
+    return 'Regardez la chaîne $name dans les $time pour sauver votre série !';
   }
 
   @override
